@@ -1,0 +1,306 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AccessViolatedTxt" xml:space="preserve">
+    <value>Access Error : Device reports scope of access violated.</value>
+  </data>
+  <data name="HardwareFaultTxt" xml:space="preserve">
+    <value>Access Error : Device reports a hardware fault.</value>
+  </data>
+  <data name="InconsistentClassTxt" xml:space="preserve">
+    <value>Access Error : Device reports a inconsistent Class or object.</value>
+  </data>
+  <data name="ReadWriteDeniedTxt" xml:space="preserve">
+    <value>Access Error : Device reports Read-Write denied.</value>
+  </data>
+  <data name="TemporaryFailureTxt" xml:space="preserve">
+    <value>Access Error : Device reports a temporary failure.</value>
+  </data>
+  <data name="UnavailableObjectTxt" xml:space="preserve">
+    <value>Access Error : Device reports a unavailable object.</value>
+  </data>
+  <data name="UndefinedObjectTxt" xml:space="preserve">
+    <value>Access Error : Device reports a undefined object.</value>
+  </data>
+  <data name="UnitA260Txt" xml:space="preserve">
+    <value>A260*60s</value>
+  </data>
+  <data name="UnitActiveEnergyTxt" xml:space="preserve">
+    <value>Active energy W*60*60s</value>
+  </data>
+  <data name="UnitActivePowerTxt" xml:space="preserve">
+    <value>Active power P watt W = J/s</value>
+  </data>
+  <data name="UnitActiveTxt" xml:space="preserve">
+    <value>Active energy meter constant 1/Wh</value>
+  </data>
+  <data name="UnitApparentEnergyTxt" xml:space="preserve">
+    <value>Apparent energy VA*60*60s</value>
+  </data>
+  <data name="UnitApparentPowerTxt" xml:space="preserve">
+    <value>Apparent power S</value>
+  </data>
+  <data name="UnitApparentTxt" xml:space="preserve">
+    <value>Apparent energy meter constant</value>
+  </data>
+  <data name="UnitCapacityTxt" xml:space="preserve">
+    <value>Capacity C farad C/V = As/V</value>
+  </data>
+  <data name="UnitConductanceTxt" xml:space="preserve">
+    <value>Conductance siemens 1/ohm</value>
+  </data>
+  <data name="UnitCorrectedVolumeFluxHourTxt" xml:space="preserve">
+    <value>Corrected volume flux m3/60*60s</value>
+  </data>
+  <data name="UnitCorrectedVolumeTxt" xml:space="preserve">
+    <value>Corrected volume m3</value>
+  </data>
+  <data name="UnitCorrecteVolumeFluxDayTxt" xml:space="preserve">
+    <value>Corrected volume flux m3/24*60*60s</value>
+  </data>
+  <data name="UnitCurrentTxt" xml:space="preserve">
+    <value>Current I ampere A</value>
+  </data>
+  <data name="UnitDayTxt" xml:space="preserve">
+    <value>Day</value>
+  </data>
+  <data name="UnitElectricalChargeTxt" xml:space="preserve">
+    <value>Electrical charge Q coulomb C = As</value>
+  </data>
+  <data name="UnitElectricalFieldStrengthTxt" xml:space="preserve">
+    <value>Electrical field strength E V/m</value>
+  </data>
+  <data name="UnitEnergyJouleTxt" xml:space="preserve">
+    <value>Energy joule J = Nm = Ws</value>
+  </data>
+  <data name="UnitEnergyTxt" xml:space="preserve">
+    <value>Energy newtonmeter J = Nm = Ws</value>
+  </data>
+  <data name="UnitForceTxt" xml:space="preserve">
+    <value>Force F newton N</value>
+  </data>
+  <data name="UnitFrequencyTxt" xml:space="preserve">
+    <value>Frequency f</value>
+  </data>
+  <data name="UnitHourTxt" xml:space="preserve">
+    <value>Hour</value>
+  </data>
+  <data name="UnitInductionTxt" xml:space="preserve">
+    <value>Induction T tesla Wb/m2</value>
+  </data>
+  <data name="UnitInductivityTxt" xml:space="preserve">
+    <value>Inductivity L henry H = Wb/A</value>
+  </data>
+  <data name="UnitLengthTxt" xml:space="preserve">
+    <value>Length l meter m</value>
+  </data>
+  <data name="UnitLocalCurrencyTxt" xml:space="preserve">
+    <value>Local currency</value>
+  </data>
+  <data name="UnitMagneticFluxTxt" xml:space="preserve">
+    <value>Magnetic flux F weber Wb = Vs</value>
+  </data>
+  <data name="UnitMagneticTxt" xml:space="preserve">
+    <value>Magnetic field strength H A/m</value>
+  </data>
+  <data name="UnitMassKgPerSecondTxt" xml:space="preserve">
+    <value>Mass flux kg/s</value>
+  </data>
+  <data name="UnitMassKgTxt" xml:space="preserve">
+    <value>Mass m kilogram kg</value>
+  </data>
+  <data name="UnitMinuteTxt" xml:space="preserve">
+    <value>Minute</value>
+  </data>
+  <data name="UnitMonthTxt" xml:space="preserve">
+    <value>Month</value>
+  </data>
+  <data name="UnitNoneTxt" xml:space="preserve">
+    <value>No Unit</value>
+  </data>
+  <data name="UnitOtherTxt" xml:space="preserve">
+    <value>Other Unit</value>
+  </data>
+  <data name="UnitPhasAngleGegreeTxt" xml:space="preserve">
+    <value>Phase angle degree rad*180/p</value>
+  </data>
+  <data name="UnitPressureBarTxt" xml:space="preserve">
+    <value>Pressure p bar 10-5 N/m2</value>
+  </data>
+  <data name="UnitPressurePascalTxt" xml:space="preserve">
+    <value>Pressure p pascal N/m2</value>
+  </data>
+  <data name="UnitReactiveEnergyTxt" xml:space="preserve">
+    <value>Reactive energy var*60*60s</value>
+  </data>
+  <data name="UnitReactivePowerTxt" xml:space="preserve">
+    <value>Reactive power Q</value>
+  </data>
+  <data name="UnitReactiveTxt" xml:space="preserve">
+    <value>Reactive energy meter constant</value>
+  </data>
+  <data name="UnitResistanceTxt" xml:space="preserve">
+    <value>Resistance R ohm = V/A</value>
+  </data>
+  <data name="UnitResistivityTxt" xml:space="preserve">
+    <value>Resistivity</value>
+  </data>
+  <data name="UnitSecondTxt" xml:space="preserve">
+    <value>Second</value>
+  </data>
+  <data name="UnitSpeedTxt" xml:space="preserve">
+    <value>Speed v m/s</value>
+  </data>
+  <data name="UnitTemperatureTxt" xml:space="preserve">
+    <value>Temperature T degree centigrade</value>
+  </data>
+  <data name="UnitThermalPowerTxt" xml:space="preserve">
+    <value>Thermal power J/60*60s</value>
+  </data>
+  <data name="UnitV260Txt" xml:space="preserve">
+    <value>V260*60s</value>
+  </data>
+  <data name="UnitVoltageTxt" xml:space="preserve">
+    <value>Voltage</value>
+  </data>
+  <data name="UnitVolumeCubicMeterTxt" xml:space="preserve">
+    <value>Volume V m3</value>
+  </data>
+  <data name="UnitVolumeFluxDayTxt" xml:space="preserve">
+    <value>Volume flux m3/24*60*60s</value>
+  </data>
+  <data name="UnitVolumeFluxHourTxt" xml:space="preserve">
+    <value>Volume flux m3/60*60s</value>
+  </data>
+  <data name="UnitVolumeLiterTxt" xml:space="preserve">
+    <value>Volume 10-3 m3</value>
+  </data>
+  <data name="UnitWeekTxt" xml:space="preserve">
+    <value>Week</value>
+  </data>
+  <data name="UnitYearTxt" xml:space="preserve">
+    <value>Year</value>
+  </data>
+  <data name="UnknownErrorTxt" xml:space="preserve">
+    <value>Unknown Error.</value>
+  </data>
+  <data name="UnmatchedTypeTxt" xml:space="preserve">
+    <value>Access Error : Device reports a unmatched type.</value>
+  </data>
+</root>
