@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GuruxDLMSServerExample", "GuruxDLMSServerExample\GuruxDLMSServerExample.csproj", "{60FE2A68-A783-4F3F-B034-2657E9718F66}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gurux.DLMS.Server.Example_2008", "Gurux.DLMS.Server.Example\Gurux.DLMS.Server.Example_2008.csproj", "{60FE2A68-A783-4F3F-B034-2657E9718F66}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gurux.DLMS_2008", "..\Development\Gurux.DLMS_2008.csproj", "{EFD71BFF-AD54-45ED-B473-305813C2F83A}"
 EndProject

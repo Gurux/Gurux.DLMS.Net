@@ -43,8 +43,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Gurux Ltd")]
-[assembly: AssemblyProduct("GuruxDLMSServerExample")]
-[assembly: AssemblyCopyright("Copyright Gurux Ltd © 2012")]
+[assembly: AssemblyProduct("Gurux DLMS Server Example")]
+[assembly: AssemblyCopyright("Copyright (c) 1998-2013 Gurux Ltd. All rights reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
