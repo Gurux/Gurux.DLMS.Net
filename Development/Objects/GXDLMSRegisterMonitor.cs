@@ -41,7 +41,7 @@ using Gurux.DLMS.ManufacturerSettings;
 
 namespace Gurux.DLMS.Objects
 {
-    public class GXDLMSRegisterMonitor : GXDLMSObject
+    public class GXDLMSRegisterMonitor : GXDLMSObject, IGXDLMSBase
     {
         /// <summary> 
         /// Constructor.
@@ -72,7 +72,7 @@ namespace Gurux.DLMS.Objects
         
         [XmlIgnore()]
         [GXDLMSAttribute(2, Static = true)]
-        public object Thresholds
+        public object[] Thresholds
         {
             get;
             set;
@@ -80,7 +80,7 @@ namespace Gurux.DLMS.Objects
 
         [XmlIgnore()]
         [GXDLMSAttribute(3, Static = true)]
-        public object MonitoredValue
+        public GXDLMSMonitoredValue MonitoredValue
         {
             get;
             set;
@@ -89,7 +89,7 @@ namespace Gurux.DLMS.Objects
 
         [XmlIgnore()]
         [GXDLMSAttribute(4, Static = true)]
-        public object Actions
+        public GXDLMSActionSet[] Actions
         {
             get;
             set;
@@ -99,5 +99,93 @@ namespace Gurux.DLMS.Objects
         {
             return new object[] { LogicalName, Thresholds, MonitoredValue, Actions };
         }
+
+        #region IGXDLMSBase Members
+
+        int IGXDLMSBase.GetAttributeCount()
+        {
+            return 4;
+        }
+
+        int IGXDLMSBase.GetMethodCount()
+        {
+            return 0;
+        }
+
+        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters)
+        {
+            if (index == 1)
+            {
+                type = DataType.OctetString;
+                return GXDLMSObject.GetLogicalName(this.LogicalName);
+            }
+            if (index == 2)
+            {
+                type = DataType.None;
+                return this.Thresholds;
+            }
+            if (index == 3)
+            {
+                type = DataType.Structure;
+                return MonitoredValue;
+            }
+            if (index == 4)
+            {
+                type = DataType.Structure;
+                return Actions;
+            }
+            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+        }
+
+        void IGXDLMSBase.SetValue(int index, object value)
+        {
+            if (index == 1)
+            {
+                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+            }
+            else if (index == 2)
+            {                
+                Thresholds = (object[]) value;
+            }
+            else if (index == 3)
+            {
+                if (MonitoredValue == null)
+                {
+                    MonitoredValue = new GXDLMSMonitoredValue();
+                }
+                MonitoredValue.ObjectType = (ObjectType)Convert.ToInt32(((object[])value)[0]);
+                MonitoredValue.LogicalName = GXDLMSClient.ChangeType((byte[])((object[])value)[1], DataType.OctetString).ToString();
+                MonitoredValue.AttributeIndex = Convert.ToInt32(((object[])value)[2]);
+            }
+            else if (index == 4)
+            {
+                Actions = null;
+                if (value != null)
+                {
+                    List<GXDLMSActionSet> items = new List<GXDLMSActionSet>();
+                    foreach (Object[] action_set in (Object[])value)
+                    {
+                        GXDLMSActionSet set = new GXDLMSActionSet();                        
+                        set.ActionUp.LogicalName = GXDLMSClient.ChangeType((byte[])((Object[])action_set[0])[0], DataType.OctetString).ToString();
+                        set.ActionUp.ScriptSelector = Convert.ToUInt16(((Object[])action_set[0])[1]);
+                        set.ActionDown.LogicalName = GXDLMSClient.ChangeType((byte[])((Object[])action_set[1])[0], DataType.OctetString).ToString();
+                        set.ActionDown.ScriptSelector = Convert.ToUInt16(((Object[])action_set[1])[1]);
+                        items.Add(set);
+                    }
+                    Actions = items.ToArray();
+                }
+            }
+            else
+            {
+                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+            }
+        }
+
+        void IGXDLMSBase.Invoke(int index, object parameters)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
     }
 }

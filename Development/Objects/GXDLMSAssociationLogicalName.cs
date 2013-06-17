@@ -74,7 +74,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSObjectCollection ObjectList
         {
             get;
-            private set;
+            internal set;
         }
 
 
@@ -164,7 +164,7 @@ namespace Gurux.DLMS.Objects
     {
         List<byte> stream = new List<byte>();
         stream.Add((byte)DataType.Array);
-        bool lnExists = ObjectList.FindByLN(ObjectType.AssociationShortName, this.LogicalName) != null;
+        bool lnExists = ObjectList.FindByLN(ObjectType.AssociationLogicalName, this.LogicalName) != null;
         //Add count        
         int cnt = ObjectList.Count();
         if (!lnExists)
@@ -207,7 +207,7 @@ namespace Gurux.DLMS.Objects
             data.Add((byte)DataType.Structure); //attribute_access_item
             data.Add((byte)3);
             GXCommon.SetData(data, DataType.Int8, pos + 1);
-            ///If attribute is not set return read only.
+            //If attribute is not set return read only.
             if (att == null)
             {
                 GXCommon.SetData(data, DataType.Enum, AccessMode.Read);
@@ -228,7 +228,7 @@ namespace Gurux.DLMS.Objects
             data.Add((byte)DataType.Structure); //attribute_access_item
             data.Add((byte)2);
             GXCommon.SetData(data, DataType.Int8, pos + 1);
-             ///If method attribute is not set return no access.
+            //If method attribute is not set return no access.
             if (att == null)
             {
                 GXCommon.SetData(data, DataType.Enum, MethodAccessMode.NoAccess);
@@ -264,7 +264,6 @@ namespace Gurux.DLMS.Objects
                 type = DataType.OctetString;
                 return GXDLMSObject.GetLogicalName(this.LogicalName);
             }
-            //This should be never called. Server handles this.
             if (index == 2)
             {
                 type = DataType.Array;
@@ -307,7 +306,7 @@ namespace Gurux.DLMS.Objects
         {
             if (index == 1)
             {
-                LogicalName = Convert.ToString(value);                
+                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();                
             }
             else if (index == 2)
             {
@@ -320,69 +319,36 @@ namespace Gurux.DLMS.Objects
                         int version = Convert.ToInt32(item[1]);
                         String ln = GXDLMSObject.toLogicalName((byte[])item[2]);
                         GXDLMSObject obj = Gurux.DLMS.GXDLMSClient.CreateObject(type);
-                        obj.LogicalName = ln;
-                        UpdateAccessRights(obj, (Object[])item[3]);
-                        obj.LogicalName = ln;
-                        obj.Version = version;
-                        ObjectList.Add(obj);
+                        if (obj != null)
+                        {
+                            obj.LogicalName = ln;
+                            UpdateAccessRights(obj, (Object[])item[3]);
+                            obj.LogicalName = ln;
+                            obj.Version = version;
+                            ObjectList.Add(obj);
+                        }
                     }
                 }
             }
             else if (index == 3)
             {
-                if (value == null)
-                {
-                    AssociatedPartnersId = null;
-                }
-                else
-                {
-                    //TODO: MIKKO AssociatedPartnersId();
-                }
-
+                AssociatedPartnersId = value;
             }
             else if (index == 4)
             {
-                if (value == null)
-                {
-                    ApplicationContextName = null;
-                }
-                else
-                {
-                    //TODO: MIKKO ApplicationContextName();
-                }
+                ApplicationContextName = value;
             }
             else if (index == 5)
             {
-                if (value == null)
-                {
-                    XDLMSContextInfo = null;
-                }
-                else
-                {
-                    //TODO: MIKKO XDLMSContextInfo();
-                }
+                XDLMSContextInfo = value;
             }
             else if (index == 6)
             {
-                if (value == null)
-                {
-                    AuthenticationMechanismMame = null;
-                }
-                else
-                {
-                    //TODO: MIKKO AuthenticationMechanismMame();
-                }
+                AuthenticationMechanismMame = value;
             }
             else if (index == 7)
             {
-                if (value == null)
-                {
-                    Secret = null;
-                }
-                else
-                {
-                    //TODO: MIKKO Secret();
-                }
+                Secret = value;
             }
             else if (index == 8)
             {
@@ -392,7 +358,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    //Mikko TODO: AssociationStatus(AssociationStatus.);
+                    AssociationStatus = (AssociationStatus) Convert.ToInt32(value);
                 }
             }
             else if (index == 9)

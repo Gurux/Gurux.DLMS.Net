@@ -38,24 +38,19 @@ using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
-    public enum AutoAnswerStatus
-    {
-        Inactive = 0,
-        Active = 1,
-        Locked = 2
-    }
-
-    public class GXDLMSAutoAnswer : GXDLMSObject
+    public class GXDLMSAutoAnswer : GXDLMSObject, IGXDLMSBase
     {
         /// <summary> 
         /// Constructor.
         /// </summary> 
         public GXDLMSAutoAnswer()
-            : base(ObjectType.AutoAnswer)
+            : base(ObjectType.AutoAnswer, "0.0.2.2.0.255", 0)
         {
+            ListeningWindow = new Dictionary<GXDateTime, GXDateTime>();
         }
 
         /// <summary> 
@@ -65,6 +60,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSAutoAnswer(string ln)
             : base(ObjectType.AutoAnswer, ln, 0)
         {
+            ListeningWindow = new Dictionary<GXDateTime, GXDateTime>();
         }
 
         /// <summary> 
@@ -73,13 +69,14 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logican Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSAutoAnswer(string ln, ushort sn)
-            : base(ObjectType.AutoAnswer, ln, 0)
+            : base(ObjectType.AutoAnswer, ln, sn)
         {
+            ListeningWindow = new Dictionary<GXDateTime, GXDateTime>();
         }
 
         [XmlIgnore()]
         [GXDLMSAttribute(2, Static=true)]
-        public int Mode
+        public AutoConnectMode Mode
         {
             get;
             set;
@@ -87,7 +84,7 @@ namespace Gurux.DLMS.Objects
 
         [XmlIgnore()]
         [GXDLMSAttribute(3, Static = true)]
-        public object ListeningWindow
+        public Dictionary<GXDateTime, GXDateTime> ListeningWindow
         {
             get;
             set;
@@ -121,5 +118,115 @@ namespace Gurux.DLMS.Objects
         {
             return new object[] { LogicalName, Mode, ListeningWindow, Status, NumberOfCalls, NumberOfRings };
         }
+
+        #region IGXDLMSBase Members
+
+        int IGXDLMSBase.GetAttributeCount()
+        {
+            return 6;
+        }
+
+        int IGXDLMSBase.GetMethodCount()
+        {
+            return 0;
+        }
+
+        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters)
+        {
+            if (index == 1)
+            {
+                type = DataType.OctetString;
+                return GXDLMSObject.GetLogicalName(this.LogicalName);
+            }
+            if (index == 2)
+            {
+                type = DataType.Enum;
+                return (byte)Mode;
+            }
+            if (index == 3)
+            {
+                type = DataType.Array;
+                int cnt = ListeningWindow.Count;
+                List<byte> data = new List<byte>();
+                data.Add((byte)DataType.Array);
+                //Add count            
+                GXCommon.SetObjectCount(cnt, data);
+                if (cnt != 0)
+                {
+                    foreach (var it in ListeningWindow)
+                    {
+                        data.Add((byte)DataType.Structure);
+                        data.Add((byte)2); //Count
+                        GXCommon.SetData(data, DataType.OctetString, it.Key); //start_time
+                        GXCommon.SetData(data, DataType.OctetString, it.Value); //end_time
+                    }
+                }
+                return data.ToArray();                
+            }
+            if (index == 4)
+            {
+                type = DataType.Enum;
+                return Status;
+            }
+            if (index == 5)
+            {
+                type = DataType.UInt8;
+                return NumberOfCalls;
+            }
+            if (index == 6)
+            {
+                type = DataType.Enum;
+                return NumberOfRings;
+            }
+            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+        }
+
+        void IGXDLMSBase.SetValue(int index, object value)
+        {
+            if (index == 1)
+            {
+                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+            }
+            else if (index == 2)
+            {
+                Mode = (AutoConnectMode)Convert.ToInt32(value);
+            }
+            else if (index == 3)
+            {
+                ListeningWindow.Clear();
+                if (value != null)
+                {
+                    foreach (Object[] item in (Object[])value)
+                    {
+                        GXDateTime start = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[0], DataType.DateTime);
+                        GXDateTime end = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime);
+                        ListeningWindow.Add(start, end);
+                    }
+                }                
+            }
+            else if (index == 4)
+            {
+                Status = (AutoAnswerStatus) Convert.ToInt32(value);
+            }
+            else if (index == 5)
+            {
+                NumberOfCalls = Convert.ToInt32(value);
+            }
+            else if (index == 6)
+            {
+                NumberOfRings = Convert.ToInt32(value);
+            }
+            else
+            {
+                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+            }
+        }
+
+        void IGXDLMSBase.Invoke(int index, object parameters)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
     }
 }

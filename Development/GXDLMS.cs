@@ -1246,22 +1246,31 @@ namespace Gurux.DLMS
         /// <summary>
         /// Reserved for internal use.
         /// </summary>
-        long GetAddress(List<byte> buff, ref int index, int size)
+        internal object GetAddress(byte[] buff, ref int index)
         {
+            int size = 0;
+            for (int pos = index; pos != buff.Length; ++pos)
+            {
+                ++size;
+                if ((buff[pos] & 0x1) == 1)
+                {
+                    break;
+                }
+            }
             if (size == 1)
             {
-                return buff[index] & 0xFF;
+                return buff[index++];
             }
-            if (size == 2)
+            else if (size == 2)
             {
-                return GXCommon.GetUInt16(buff.ToArray(), ref index);
+                return GXCommon.GetUInt16(buff, ref index);
             }
-            if (size == 4)
+            else if (size == 4)
             {
-                return GXCommon.GetUInt32(buff.ToArray(), ref index);
+                return GXCommon.GetUInt32(buff, ref index);
             }
-            throw new GXDLMSException("Invalid address size.");
-        }
+            throw new OutOfMemoryException();
+        }        
 
         /// <summary>
         /// Reserved for internal use.
@@ -1357,12 +1366,12 @@ namespace Gurux.DLMS
                         return RequestTypes.None;
                     }
                 }
-                throw new GXDLMSException("Source addresses do not match. It is " + GetAddress(buff, ref index, clientBuff.Length) + ". It should be " + this.ClientID + ".");
+                throw new GXDLMSException("Source addresses do not match. It is " + GetAddress(buff.ToArray(), ref index) + ". It should be " + this.ClientID + ".");
             }             
             //Check that server addresses match.
             if (!GXCommon.Compare(buff.ToArray(), ref index, serverBuff))
             {
-                throw new GXDLMSException("Destination addresses do not match. It is " + GetAddress(buff, ref index, serverBuff.Length) + ". It should be " + this.ServerID + ".");
+                throw new GXDLMSException("Destination addresses do not match. It is " + GetAddress(buff.ToArray(), ref index) + ". It should be " + this.ServerID + ".");
             }
             if (InterfaceType != InterfaceType.Net)
             {

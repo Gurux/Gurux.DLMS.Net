@@ -1,4 +1,4 @@
-//
+﻿//
 // --------------------------------------------------------------------------
 //  Gurux Ltd
 // 
@@ -37,22 +37,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Gurux.DLMS
+namespace Gurux.DLMS.Objects
 {
-    /// <summary>
-    /// InterfaceType enumerates the usable types of connection in GuruxDLMS.
-    /// </summary>
-    public enum InterfaceType
+    public class GXDLMSSpecialDay
     {
-        /// <summary>
-        /// General interface type is used for meters that support 
-        /// IEC 62056-46 Data link layer using HDLC protocol.
-        /// </summary>
-        General,
-        /// <summary>
-        /// Nwtwork interface type is used for meters that support 
-        /// IEC 62056-47 COSEM transport layers for IPv4 networks.
-        /// </summary>
-        Net
+        public UInt16 Index
+        {
+            get;
+            set;
+        }
+
+        public GXDateTime Date
+        {
+            get;
+            set;
+        }
+
+        public byte DayId
+        {
+            get;
+            set;
+        }
     }
 }

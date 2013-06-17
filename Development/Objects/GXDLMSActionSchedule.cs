@@ -40,10 +40,39 @@ using Gurux.DLMS;
 using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
-    public class GXDLMSActionSchedule : GXDLMSObject
+    public enum SingleActionScheduleType
+    {
+        /// <summary>
+        /// Size of execution_time = 1. Wildcard in date allowed.
+        /// </summary>
+        SingleActionScheduleType1,
+        /// <summary>
+        /// Size of execution_time = n. 
+        /// All time values are the same, wildcards in date not allowed.
+        /// </summary>
+        SingleActionScheduleType2,
+        /// <summary>
+        /// Size of execution_time = n. 
+        /// All time values are the same, wildcards in date are allowed,
+        /// </summary>
+        SingleActionScheduleType3,
+        /// <summary>
+        /// Size of execution_time = n.
+        /// Time values may be different, wildcards in date not allowed,
+        /// </summary>
+        SingleActionScheduleType4,
+        /// <summary>
+        /// Size of execution_time = n.
+        /// Time values may be different, wildcards in date are allowed
+        /// </summary>
+        SingleActionScheduleType5                       
+    }
+
+    public class GXDLMSActionSchedule : GXDLMSObject, IGXDLMSBase
     {
         /// <summary> 
         /// Constructor.
@@ -72,25 +101,32 @@ namespace Gurux.DLMS.Objects
         {
         }
         
-        [XmlIgnore()]
         [GXDLMSAttribute(2, Static=true)]
-        public object[] ExecutedScript
+        [XmlIgnore()]
+        public string ExecutedScriptLogicalName
         {
             get;
             set;
         }
 
         [XmlIgnore()]
+        public UInt16 ExecutedScriptSelector
+        {
+            get;
+            set;
+        }
+
         [GXDLMSAttribute(3, Static = true)]
-        public int Type
+        [XmlIgnore()]        
+        public SingleActionScheduleType Type
         {
             get;
             set;
         }
 
+        [GXDLMSAttribute(4, Static = true)]
         [XmlIgnore()]
-        [GXDLMSAttribute(4, Static=true)]
-        public object[] ExecutionTime
+        public GXDateTime[] ExecutionTime
         {
             get;
             set;
@@ -98,7 +134,113 @@ namespace Gurux.DLMS.Objects
 
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, ExecutedScript, Type, ExecutionTime };
+            return new object[] { LogicalName, ExecutedScriptLogicalName + " " + ExecutedScriptSelector , Type, ExecutionTime };
         }
+
+        #region IGXDLMSBase Members
+
+        int IGXDLMSBase.GetAttributeCount()
+        {
+            return 4;
+        }
+
+        int IGXDLMSBase.GetMethodCount()
+        {
+            return 0;
+        }
+
+        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters)
+        {
+            if (index == 1)
+            {
+                type = DataType.OctetString;
+                return GXDLMSObject.GetLogicalName(this.LogicalName);
+            }
+            if (index == 2)
+            {
+                type = DataType.Array;
+                List<byte> stream = new List<byte>();
+                stream.Add((byte)DataType.Structure);
+                stream.Add(2);
+                GXCommon.SetData(stream, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(ExecutedScriptLogicalName)); //Time
+                GXCommon.SetData(stream, DataType.UInt16, ExecutedScriptSelector); //Time
+                return stream.ToArray();
+            }
+            if (index == 3)
+            {
+                type = DataType.Enum;
+                return this.Type;
+            }
+            if (index == 4)
+            {
+                type = DataType.Array;
+                List<byte> stream = new List<byte>();
+                stream.Add((byte)DataType.Array);
+                if (ExecutionTime == null)
+                {
+                    GXCommon.SetObjectCount(0, stream);
+                }
+                else
+                {
+                    GXCommon.SetObjectCount(ExecutionTime.Length, stream);
+                    foreach (GXDateTime it in ExecutionTime)
+                    {
+                        stream.Add((byte)DataType.Structure);
+                        stream.Add((byte)2); //Count
+                        GXCommon.SetData(stream, DataType.Time, it.Value); //Time
+                        GXCommon.SetData(stream, DataType.Date, it.Value); //Date
+                    }
+                }                
+                return stream.ToArray();
+            }
+            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+        }
+
+        void IGXDLMSBase.SetValue(int index, object value)
+        {
+            if (index == 1)
+            {
+                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+            }
+            else if (index == 2)
+            {                
+                ExecutedScriptLogicalName = GXDLMSClient.ChangeType((byte[])((object[])value)[0], DataType.OctetString).ToString();
+                ExecutedScriptSelector = Convert.ToUInt16(((object[])value)[1]);
+            }
+            else if (index == 3)
+            {
+                Type = (SingleActionScheduleType) Convert.ToInt32(value);
+            }
+            else if (index == 4)
+            {
+                ExecutionTime = null;
+                if (value != null)
+                {
+                    List<GXDateTime> items = new List<GXDateTime>();
+                    foreach (object[] it in (object[])value)
+                    {
+                        GXDateTime tm = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[0], DataType.Time);
+                        GXDateTime date = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[1], DataType.Date);
+                        tm.Value.AddYears(date.Value.Year - 1);
+                        tm.Value.AddMonths(date.Value.Month - 1);
+                        tm.Value.AddDays(date.Value.Day - 1);
+                        tm.Skip |= date.Skip;
+                        items.Add(tm);
+                    }
+                    ExecutionTime = items.ToArray();
+                }
+            }           
+            else
+            {
+                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+            }
+        }
+
+        void IGXDLMSBase.Invoke(int index, object parameters)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
     }
 }

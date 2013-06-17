@@ -1,4 +1,4 @@
-//
+﻿//
 // --------------------------------------------------------------------------
 //  Gurux Ltd
 // 
@@ -37,22 +37,54 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Gurux.DLMS
+namespace Gurux.DLMS.Objects
 {
-    /// <summary>
-    /// InterfaceType enumerates the usable types of connection in GuruxDLMS.
-    /// </summary>
-    public enum InterfaceType
+    public class GXDLMSSeasonProfile
     {
         /// <summary>
-        /// General interface type is used for meters that support 
-        /// IEC 62056-46 Data link layer using HDLC protocol.
+        /// Constructor.
         /// </summary>
-        General,
+        public GXDLMSSeasonProfile()
+        {
+
+        }
+
         /// <summary>
-        /// Nwtwork interface type is used for meters that support 
-        /// IEC 62056-47 COSEM transport layers for IPv4 networks.
+        /// Constructor.
         /// </summary>
-        Net
+        public GXDLMSSeasonProfile(string name, GXDateTime start, string weekName)
+        {
+            Name = name;
+            Start = start;
+            WeekName = weekName;
+        }
+
+        /// <summary>
+        /// Name of season profile.
+        /// </summary>
+        public string Name
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Season Profile start time.
+        /// </summary>
+        public GXDateTime Start
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Week name of season profile.
+        /// </summary>
+        public string WeekName
+        {
+            get;
+            set;
+        }
+
     }
 }

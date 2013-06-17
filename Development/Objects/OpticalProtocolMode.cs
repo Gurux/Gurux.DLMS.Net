@@ -1,4 +1,4 @@
-//
+﻿//
 // --------------------------------------------------------------------------
 //  Gurux Ltd
 // 
@@ -37,22 +37,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Gurux.DLMS
+namespace Gurux.DLMS.Objects
 {
     /// <summary>
-    /// InterfaceType enumerates the usable types of connection in GuruxDLMS.
+    /// Defines the protocol used by the meter on the port.
     /// </summary>
-    public enum InterfaceType
+    public enum OpticalProtocolMode
     {
-        /// <summary>
-        /// General interface type is used for meters that support 
-        /// IEC 62056-46 Data link layer using HDLC protocol.
+        /// <summary>        
+        /// Protocol according to IEC 62056-21 (modes A…E),
         /// </summary>
-        General,
+        Default = 0,
         /// <summary>
-        /// Nwtwork interface type is used for meters that support 
-        /// IEC 62056-47 COSEM transport layers for IPv4 networks.
+        /// Protocol according to IEC 62056-46. 
+        /// Using this enumeration value all other attributes of this IC are not applicable.
         /// </summary>
-        Net
-    }
+        Net = 1,
+        /// <summary>
+        /// Protocol not specified. Using this enumeration value, 
+        /// ProposedBaudrate is used for setting the communication speed on the port. 
+        /// All other attributes are not applicable.
+        /// </summary>
+        Unknown = 2
+    }    
 }

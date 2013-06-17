@@ -1,4 +1,4 @@
-//
+﻿//
 // --------------------------------------------------------------------------
 //  Gurux Ltd
 // 
@@ -34,98 +34,96 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
-using System.Xml.Serialization;
-using System.ComponentModel;
 
-namespace Gurux.DLMS.ManufacturerSettings
+namespace Gurux.DLMS
 {
     /// <summary>
-    /// Available HDLC Address types.
+    /// Activity Calendar's Day profile is defined on the standard.
     /// </summary>
-    /// <remarks>
-    /// Read more from HDLC Address counting from here:
-    /// http://www.gurux.fi/index.php?q=node/336 
-    /// </remarks>
-    public enum HDLCAddressType : int
+    public class GXDLMSDayProfile
     {
         /// <summary>
-        /// Default HDLC Address count is used.
+        /// Constructor.
         /// </summary>
-        /// <remarks>
-        /// Newer meters usually supports this.
-        /// </remarks>
-        [XmlEnum("0")]
-        Default,
+        public GXDLMSDayProfile()
+        {
+        }
+
         /// <summary>
-        /// HDLC Address is counted from serial number.
+        /// Constructor.
         /// </summary>
-        [XmlEnum("1")]
-        SerialNumber,
+        public GXDLMSDayProfile(int dayId, GXDLMSDayProfileAction[] schedules)
+        {
+            DayId = dayId;
+            DaySchedules = schedules;
+        }
+
         /// <summary>
-        /// Custom HDLC address counting is used.
-        /// <remarks>
-        /// Some older meters needs this.
-        /// </remarks>
+        /// User defined identifier, identifying the currentday_profile.
         /// </summary>
-        [XmlEnum("2")]
-        Custom
+        public int DayId
+        {
+            get;
+            set;
+        }
+
+        public GXDLMSDayProfileAction[] DaySchedules
+        {
+            get;
+            set;
+        }
     }
 
-    [Serializable]
-    public class GXServerAddress
+    /// <summary>
+    /// Activity Calendar's Day Profile Action is defined on the standard.
+    /// </summary>
+    public class GXDLMSDayProfileAction
     {
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXServerAddress()
+        public GXDLMSDayProfileAction()
         {
+
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXServerAddress(HDLCAddressType address, object value, bool enabled)
+        public GXDLMSDayProfileAction(GXDateTime startTime, string scriptLogicalName, UInt16 scriptSelector)
         {
-            HDLCAddress = address;
-            PhysicalAddress = value;            
+            StartTime = startTime;
+            ScriptLogicalName = scriptLogicalName;
+            ScriptSelector = scriptSelector;
         }
 
         /// <summary>
-        /// Is server address enabled
+        /// Defines the time when the script is to be executed.
         /// </summary>
-        [DefaultValue(false)]
-        public bool Selected
-        {
-            get;
-            set;
-        }        
-
-        public HDLCAddressType HDLCAddress
-        {
-            get;
-            set;
-        }      
-
-        public string Formula
+        public GXDateTime StartTime
         {
             get;
             set;
         }
 
-        [Browsable(false)]
-        [DefaultValue(null)]
-        public object PhysicalAddress
+        /// <summary>
+        /// Defines the logical name of the “Script table” object;
+        /// </summary>
+        public string ScriptLogicalName
         {
             get;
             set;
         }
-        
-        [DefaultValue(0)]
-        public int LogicalAddress
+
+        /// <summary>
+        /// Defines the script_identifier of the script to be executed.
+        /// </summary>
+        public UInt16 ScriptSelector
         {
             get;
             set;
-        }       
+        }
     }
 }

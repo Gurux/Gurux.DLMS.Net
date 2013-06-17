@@ -1,4 +1,4 @@
-//
+﻿//
 // --------------------------------------------------------------------------
 //  Gurux Ltd
 // 
@@ -37,22 +37,52 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Gurux.DLMS
+namespace Gurux.DLMS.Objects
 {
     /// <summary>
-    /// InterfaceType enumerates the usable types of connection in GuruxDLMS.
+    /// Defines the baudrates.
     /// </summary>
-    public enum InterfaceType
+    public enum BaudRate
     {
         /// <summary>
-        /// General interface type is used for meters that support 
-        /// IEC 62056-46 Data link layer using HDLC protocol.
+        /// Baudrate is 300.
         /// </summary>
-        General,
+        Baudrate300 = 0,
         /// <summary>
-        /// Nwtwork interface type is used for meters that support 
-        /// IEC 62056-47 COSEM transport layers for IPv4 networks.
+        /// Baudrate is 600.
         /// </summary>
-        Net
+        Baudrate600,
+        /// <summary>
+        /// Baudrate is 1200.
+        /// </summary>
+        Baudrate1200,
+        /// <summary>
+        /// Baudrate is 2400.
+        /// </summary>
+        Baudrate2400,
+        /// <summary>
+        /// Baudrate is 4800.
+        /// </summary>
+        Baudrate4800,
+        /// <summary>
+        /// Baudrate is 9600.
+        /// </summary>
+        Baudrate9600,
+        /// <summary>
+        /// Baudrate is 19200.
+        /// </summary>
+        Baudrate19200,
+        /// <summary>
+        /// Baudrate is 38400.
+        /// </summary>
+        Baudrate38400,
+        /// <summary>
+        /// Baudrate is 57600.
+        /// </summary>
+        Baudrate57600,
+        /// <summary>
+        /// Baudrate is 115200.
+        /// </summary>
+        Baudrate115200
     }
 }

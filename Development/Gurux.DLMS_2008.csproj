@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
+    <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{EFD71BFF-AD54-45ED-B473-305813C2F83A}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -53,11 +53,16 @@
     <Compile Include="AccessMode.cs" />
     <Compile Include="AssociationResult.cs" />
     <Compile Include="Authentication.cs" />
+    <Compile Include="Objects\AutoAnswerMode.cs" />
+    <Compile Include="Objects\AutoAnswerStatus.cs" />
+    <Compile Include="Objects\AutoConnectMode.cs" />
     <Compile Include="Command.cs" />
     <Compile Include="DataType.cs" />
+    <Compile Include="GXDateTime.cs" />
+    <Compile Include="Objects\BaudRate.cs" />
+    <Compile Include="Objects\GXDLMSActionItem.cs" />
     <Compile Include="GXDLMSClient.cs" />
     <Compile Include="GXDLMSServerBase.cs" />
-    <Compile Include="GXProfileGenericUpdater.cs" />
     <Compile Include="Internal\GXAPDU.cs" />
     <Compile Include="GXApplicationContextName.cs" />
     <Compile Include="Internal\GXCommon.cs" />
@@ -65,6 +70,11 @@
     <Compile Include="GXDLMSException.cs" />
     <Compile Include="GXDLMSLimits.cs" />
     <Compile Include="GXDLMSLNSettings.cs" />
+    <Compile Include="NamespaceDoc.cs" />
+    <Compile Include="Objects\GXDLMSActionSet.cs" />
+    <Compile Include="Objects\GXDLMSDayProfile.cs" />
+    <Compile Include="Objects\GXDLMSModemInitialisation.cs" />
+    <Compile Include="Objects\GXDLMSMonitoredValue.cs" />
     <Compile Include="Objects\GXDLMSObject.cs" />
     <Compile Include="Objects\GXDLMSMacAddressSetup.cs" />
     <Compile Include="Objects\GXDLMSAssociationLogicalName.cs" />
@@ -109,9 +119,14 @@
     <Compile Include="Objects\GXDLMSSapAssignment.cs" />
     <Compile Include="Objects\GXDLMSSchedule.cs" />
     <Compile Include="Objects\GXDLMSScriptTable.cs" />
+    <Compile Include="Objects\GXDLMSSeasonProfile.cs" />
+    <Compile Include="Objects\GXDLMSSpecialDay.cs" />
     <Compile Include="Objects\GXDLMSSpecialDaysTable.cs" />
     <Compile Include="Objects\GXDLMSTcpUdpSetup.cs" />
+    <Compile Include="Objects\GXDLMSWeekProfile.cs" />
+    <Compile Include="Objects\GXProfileGenericUpdater.cs" />
     <Compile Include="Objects\IGXDLMSBase.cs" />
+    <Compile Include="Objects\OpticalProtocolMode.cs" />
     <Compile Include="ObjectType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">

@@ -48,17 +48,7 @@ namespace Gurux.DLMS
     /// GXDLMS implements methods to communicate with DLMS/COSEM metering devices.
     /// </summary>
     public class GXDLMSClient
-    {
-        public static bool CanRead(AccessMode mode)
-        {
-            return mode == AccessMode.Read || mode == AccessMode.ReadWrite || mode == AccessMode.AuthenticatedRead || mode == AccessMode.AuthenticatedReadWrite;
-        }
-
-        public static bool CanWrite(AccessMode mode)
-        {
-            return mode == AccessMode.Write || mode == AccessMode.ReadWrite || mode == AccessMode.AuthenticatedWrite || mode == AccessMode.AuthenticatedReadWrite;
-        }
-
+    {       
         GXDLMS m_Base;
         
         /// <summary>
@@ -551,14 +541,9 @@ namespace Gurux.DLMS
         /// <summary>
         /// Generate AARQ request. 
         /// </summary>
-        /// <remarks>
-        /// Because all meters can't read all data in one packet, 
-        /// the packet must be split first, by using SplitDataToPackets method.
-        /// </remarks>
-        /// <param name="Tags"></param>
+        /// <param name="Tags">Reserved for future use.</param>
         /// <returns>AARQ request as byte array.</returns>
         /// <seealso cref="ParseAAREResponse"/>
-        /// <seealso cref="SplitDataToPackets"/>
         /// <seealso cref="IsDLMSPacketComplete"/>
         public byte[][] AARQRequest(GXDLMSTagCollection Tags)
         {
@@ -996,9 +981,14 @@ namespace Gurux.DLMS
             return (target as IGXDLMSBase).GetValue(attributeIndex, out type, null); //Mikko TODO:
         }
 
-        /*
-         * Get Value from byte array received from the meter.
-        */
+        /// <summary>
+        /// Get Value from byte array received from the meter.
+        /// </summary>
+        /// <param name="data">Reply byte array received from the meter.</param>
+        /// <param name="target">Read COSEM Object.</param>
+        /// <param name="attributeIndex"></param>
+        /// <returns></returns>
+        /// <seealso cref="TryGetValue"/>
         public object GetValue(byte[] data, GXDLMSObject target, int attributeIndex)
         {        
             DataType type = target.GetDataType(attributeIndex);
@@ -1009,7 +999,7 @@ namespace Gurux.DLMS
             }
             return value;
         }
-
+        
         /// <summary>
         /// Get Value from byte array received from the meter.
         /// </summary>
@@ -1071,10 +1061,19 @@ namespace Gurux.DLMS
         /// This method can be used when Profile Generic is read and if 
         /// data is need to update at collection time.
         /// Cached data is cleared after read.
+        /// 
+        /// Use TryGetValue if you are reading large amount of data like Load Profile.
+        /// Using TryGetValue you can read data from the meter even if transmission line is bad.
+        /// If communication breaks using TryGetValue you can continue reading from last success row.
+        /// 
+        /// Another good aspect of TryGetValue is that data is progressing while reading. You can 
+        /// save data to the DB while reading and you do not have to wait until add data is read.
+        /// This will smooth out the CPU load significantly after translation.
         /// </remarks>
         /// <param name="data">Byte array received from the meter.</param>        
         /// <returns>Received data.</returns>
         /// <seealso cref="UseCache">UseCache</seealso>
+        /// <seealso cref="GetValue"/>
         public object TryGetValue(byte[] data)
         {
             if (!UseCache || data.Length < m_Base.CacheIndex)
@@ -1159,6 +1158,10 @@ namespace Gurux.DLMS
             {
                 return null;
             }
+            if (value.Length == 0 && (type == DataType.String || type == DataType.OctetString))
+            {
+                return string.Empty;
+            }
             if (type == DataType.None)
             {
                 return BitConverter.ToString(value).Replace('-', ' ');
@@ -1231,6 +1234,8 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="item">object to write.</param>
         /// <param name="index">Attribute index where data is write.</param>
+        /// <param name="data">Additional data.</param>
+        /// <param name="type">Additional data type.</param>
         /// <returns></returns>
         public byte[] Method(GXDLMSObject item, int index, Object data, DataType type)
         {
@@ -1438,6 +1443,11 @@ namespace Gurux.DLMS
             return m_Base.GenerateMessage(name, 4, buff.ToArray(), ObjectType.ProfileGeneric, 2, this.UseLogicalNameReferencing ? Command.GetRequest : Command.ReadRequest)[0];
         }
 
+        /// <summary>
+        /// Create given type of COSEM object.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public static GXDLMSObject CreateObject(Gurux.DLMS.ObjectType type)
         {
             return GXDLMS.CreateObject(type);
@@ -1453,6 +1463,12 @@ namespace Gurux.DLMS
             return m_Base.IsDLMSPacketComplete(data);
         }
 
+        /// <summary>
+        /// Check if server (meter) is returned error.
+        /// </summary>
+        /// <param name="sendData">Send data.</param>
+        /// <param name="receivedData">Received data.</param>
+        /// <returns>List of occurred errors as id and string collection.</returns>
         public object[,] CheckReplyErrors(byte[] sendData, byte[] receivedData)
         {
             return m_Base.CheckReplyErrors(sendData, receivedData);

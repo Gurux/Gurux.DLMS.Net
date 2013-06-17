@@ -1,4 +1,4 @@
-//
+﻿//
 // --------------------------------------------------------------------------
 //  Gurux Ltd
 // 
@@ -34,98 +34,82 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
-using System.Xml.Serialization;
-using System.ComponentModel;
 
-namespace Gurux.DLMS.ManufacturerSettings
+namespace Gurux.DLMS
 {
-    /// <summary>
-    /// Available HDLC Address types.
-    /// </summary>
-    /// <remarks>
-    /// Read more from HDLC Address counting from here:
-    /// http://www.gurux.fi/index.php?q=node/336 
-    /// </remarks>
-    public enum HDLCAddressType : int
-    {
-        /// <summary>
-        /// Default HDLC Address count is used.
-        /// </summary>
-        /// <remarks>
-        /// Newer meters usually supports this.
-        /// </remarks>
-        [XmlEnum("0")]
-        Default,
-        /// <summary>
-        /// HDLC Address is counted from serial number.
-        /// </summary>
-        [XmlEnum("1")]
-        SerialNumber,
-        /// <summary>
-        /// Custom HDLC address counting is used.
-        /// <remarks>
-        /// Some older meters needs this.
-        /// </remarks>
-        /// </summary>
-        [XmlEnum("2")]
-        Custom
-    }
-
-    [Serializable]
-    public class GXServerAddress
+    public class GXDLMSWeekProfile
     {
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXServerAddress()
+        public GXDLMSWeekProfile()
         {
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXServerAddress(HDLCAddressType address, object value, bool enabled)
+        public GXDLMSWeekProfile(string name, int monday, int tuesday, 
+            int wednesday, int thursday, int friday, int saturday, int sunday)
         {
-            HDLCAddress = address;
-            PhysicalAddress = value;            
+            Name = name;
+            Monday = monday;
+            Tuesday = tuesday;
+            Wednesday = wednesday;
+            Thursday = thursday;
+            Friday = friday;
+            Saturday = saturday;
+            Sunday = sunday;
         }
 
-        /// <summary>
-        /// Is server address enabled
-        /// </summary>
-        [DefaultValue(false)]
-        public bool Selected
+        public string Name
         {
             get;
             set;
-        }        
-
-        public HDLCAddressType HDLCAddress
-        {
-            get;
-            set;
-        }      
-
-        public string Formula
+        }
+        public int Monday
         {
             get;
             set;
         }
 
-        [Browsable(false)]
-        [DefaultValue(null)]
-        public object PhysicalAddress
+        public int Tuesday
         {
             get;
             set;
         }
-        
-        [DefaultValue(0)]
-        public int LogicalAddress
+
+        public int Wednesday
         {
             get;
             set;
-        }       
+        }
+
+        public int Thursday
+        {
+            get;
+            set;
+        }
+
+        public int Friday
+        {
+            get;
+            set;
+        }
+
+        public int Saturday
+        {
+            get;
+            set;
+        }
+
+        public int Sunday
+        {
+            get;
+            set;
+        }
+
     }
 }

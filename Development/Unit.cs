@@ -40,115 +40,280 @@ using System.Xml.Serialization;
 
 namespace Gurux.DLMS
 {
+    /// <summary>
+    /// Unit describes available COSEM unit types.
+    /// </summary>
     public enum Unit : int
     {
+        /// <summary>
+        /// No unit is used.
+        /// </summary>
         [XmlEnum("0")]
         None = 0,
+        /// <summary>
+        /// Unit is yer.
+        /// </summary>
         [XmlEnum("1")]
         Year = 1,
+        /// <summary>
+        /// Unit is month.
+        /// </summary>
         [XmlEnum("2")]
         Month,
+        /// <summary>
+        /// Unit is week.
+        /// </summary>
         [XmlEnum("3")]
         Week,
+        /// <summary>
+        /// Unit is day.
+        /// </summary>
         [XmlEnum("4")]
         Day,
+        /// <summary>
+        /// Unit is hour.
+        /// </summary>
         [XmlEnum("5")]
         Hour,
+        /// <summary>
+        /// Unit is minute.
+        /// </summary>
         [XmlEnum("6")]
         Minute,
+        /// <summary>
+        /// Unit is second.
+        /// </summary>
         [XmlEnum("7")]
         Second,
+        /// <summary>
+        /// Unit is phase angle degree rad*180/p
+        /// </summary>
         [XmlEnum("8")]
-        PhaseAngleGegree, // Phase angle degree rad*180/p
+        PhaseAngleGegree,
+        /// <summary>
+        /// Unit is temperature T degree centigrade
+        /// </summary>
         [XmlEnum("9")]
-        Temperature, // Temperature T degree centigrade
+        Temperature, 
+        /// <summary>
+        /// Local currency is used as unit.
+        /// </summary>
         [XmlEnum("10")]
-        LocalCurrency, //Local currency
+        LocalCurrency,
+        /// <summary>
+        /// Length l meter m is used as an unit.
+        /// </summary>
         [XmlEnum("11")]
-        Length, // Length l meter m
+        Length, // 
+        /// <summary>
+        /// Unit is Speed v m/s.
+        /// </summary>
         [XmlEnum("12")]
-        Speed, // "Speed v m/s        
+        Speed,
+        /// <summary>
+        /// Unit is Volume V m3.
+        /// </summary>
         [XmlEnum("13")]
-        VolumeCubicMeter, //Volume V m3       
+        VolumeCubicMeter,
+        /// <summary>
+        /// Unit is Corrected volume m3.
+        /// </summary>
         [XmlEnum("14")]
-        CorrectedVolume, // Corrected volume m3
+        CorrectedVolume,
+        /// <summary>
+        /// Unit is Volume flux m3/60*60s.
+        /// </summary>
         [XmlEnum("15")]
-        VolumeFluxHour, //Volume flux m3/60*60s
+        VolumeFluxHour,
+        /// <summary>
+        /// Unit is Corrected volume flux m3/60*60s.
+        /// </summary>
         [XmlEnum("16")]
-        CorrectedVolumeFluxHour, // Corrected volume flux m3/60*60s
+        CorrectedVolumeFluxHour,
+        /// <summary>
+        /// Unit is Volume flux m3/24*60*60s.
+        /// </summary>
         [XmlEnum("17")]
-        VolumeFluxDay, // Volume flux m3/24*60*60s                
+        VolumeFluxDay,
+        /// <summary>
+        /// Unit is Corrected volume flux m3/24*60*60s.
+        /// </summary>
         [XmlEnum("18")]
-        CorrecteVolumeFluxDay, // Corrected volume flux m3/24*60*60s        
+        CorrecteVolumeFluxDay,
+        /// <summary>
+        /// Unit is Volume 10-3 m3.
+        /// </summary>
         [XmlEnum("19")]
-        VolumeLiter, //Volume 10-3 m3
+        VolumeLiter,
+        /// <summary>
+        /// Unit is Mass m kilogram kg.
+        /// </summary>
         [XmlEnum("20")]
-        MassKg, //Mass m kilogram kg
+        MassKg,
+        /// <summary>
+        /// Unit is Force F newton N.
+        /// </summary>
         [XmlEnum("21")]
-        Force, // return "Force F newton N
+        Force,
+        /// <summary>
+        /// Unit is Energy newtonmeter J = Nm = Ws.
+        /// </summary>
         [XmlEnum("22")]
-        Energy, // Energy newtonmeter J = Nm = Ws
+        Energy,
+        /// <summary>
+        /// Unit is Pressure p pascal N/m2.
+        /// </summary>
         [XmlEnum("23")]
-        PressurePascal, // Pressure p pascal N/m2
+        PressurePascal,
+        /// <summary>
+        /// Unit is Pressure p bar 10-5 N/m2.
+        /// </summary>
         [XmlEnum("24")]
-        PressureBar, // Pressure p bar 10-5 N/m2
+        PressureBar,
+        /// <summary>
+        /// Unit is Energy joule J = Nm = Ws.
+        /// </summary>
         [XmlEnum("25")]
-        EnergyJoule, // Energy joule J = Nm = Ws
+        EnergyJoule,
+        /// <summary>
+        /// Unit is Thermal power J/60*60s.
+        /// </summary>
         [XmlEnum("26")]
-        ThermalPower, // Thermal power J/60*60s
+        ThermalPower, 
+        /// <summary>
+        /// Unit is Active power P watt W = J/s.
+        /// </summary>
         [XmlEnum("27")]
-        ActivePower, //Active power P watt W = J/s
+        ActivePower, 
+        /// <summary>
+        /// Unit is Apparent power S.
+        /// </summary>
         [XmlEnum("28")]
-        ApparentPower, // Apparent power S
+        ApparentPower,
+        /// <summary>
+        /// Unit is Reactive power Q.
+        /// </summary>
         [XmlEnum("29")]
-        ReactivePower, //Reactive power Q
+        ReactivePower,
+        /// <summary>
+        /// Unit is Active energy W*60*60s.
+        /// </summary>
         [XmlEnum("30")]
-        ActiveEnergy, // Active energy W*60*60s
+        ActiveEnergy, 
+        /// <summary>
+        /// Unit is Apparent energy VA*60*60s.
+        /// </summary>
         [XmlEnum("31")]
-        ApparentEnergy, // Apparent energy VA*60*60s
+        ApparentEnergy,
+        /// <summary>
+        /// Unit is Reactive energy var*60*60s.
+        /// </summary>
         [XmlEnum("32")]
-        ReactiveEnergy, // Reactive energy var*60*60s
+        ReactiveEnergy,
+        /// <summary>
+        /// Unit is Current I ampere A.
+        /// </summary>
         [XmlEnum("33")]
-        Current, // Current I ampere A
+        Current,
+        /// <summary>
+        /// Unit is Electrical charge Q coulomb C = As.
+        /// </summary>
         [XmlEnum("34")]
-        ElectricalCharge, // Electrical charge Q coulomb C = As
+        ElectricalCharge,
+        /// <summary>
+        /// Unit is Voltage.
+        /// </summary>
         [XmlEnum("35")]
-        Voltage, // Voltage
+        Voltage,
+        /// <summary>
+        /// Unit is Electrical field strength E V/m.
+        /// </summary>
         [XmlEnum("36")]
-        ElectricalFieldStrength, // Electrical field strength E V/m
+        ElectricalFieldStrength,
+        /// <summary>
+        /// Unit is Capacity C farad C/V = As/V.
+        /// </summary>
         [XmlEnum("37")]
-        Capacity, // Capacity C farad C/V = As/V
+        Capacity,
+        /// <summary>
+        /// Unit is Resistance R ohm = V/A.
+        /// </summary>
         [XmlEnum("38")]
-        Resistance, // Resistance R ohm = V/A
+        Resistance, 
+        /// <summary>
+        /// Unit is Resistivity.
+        /// </summary>
         [XmlEnum("39")]
-        Resistivity, // Resistivity
+        Resistivity,
+        /// <summary>
+        /// Unit is Magnetic flux F weber Wb = Vs.
+        /// </summary>
         [XmlEnum("40")]
-        MagneticFlux, // Magnetic flux F weber Wb = Vs
+        MagneticFlux, 
+        /// <summary>
+        /// Unit is Induction T tesla Wb/m2.
+        /// </summary>
         [XmlEnum("41")]
-        Induction, // Induction T tesla Wb/m2
+        Induction,
+        /// <summary>
+        /// Unit is Magnetic field strength H A/m.
+        /// </summary>
         [XmlEnum("42")]
-        Magnetic, // Magnetic field strength H A/m
+        Magnetic,
+        /// <summary>
+        /// Unit is Inductivity L henry H = Wb/A.
+        /// </summary>
         [XmlEnum("43")]
-        Inductivity, // Inductivity L henry H = Wb/A
+        Inductivity,
+        /// <summary>
+        /// Unit is Frequency f.
+        /// </summary>
         [XmlEnum("44")]
-        Frequency, // Frequency f
+        Frequency,
+        /// <summary>
+        /// Unit is Active energy meter constant 1/Wh.
+        /// </summary>
         [XmlEnum("45")]
-        Active, // Active energy meter constant 1/Wh
+        Active,
+        /// <summary>
+        /// Unit is Reactive energy meter constant.
+        /// </summary>
         [XmlEnum("46")]
-        Reactive, // Reactive energy meter constant
+        Reactive,
+        /// <summary>
+        /// Unit is Apparent energy meter constant.
+        /// </summary>
         [XmlEnum("47")]
-        Apparent, // Apparent energy meter constant
+        Apparent,
+        /// <summary>
+        /// Unit is V260*60s.
+        /// </summary>
         [XmlEnum("48")]
-        V260, // V260*60s
+        V260,
+        /// <summary>
+        /// Unit is A260*60s.
+        /// </summary>
         [XmlEnum("49")]
-        A260, // A260*60s
+        A260,
+        /// <summary>
+        /// Unit is Mass flux kg/s.
+        /// </summary>
         [XmlEnum("50")]
-        MassKgPerSecond, // Mass flux kg/s
+        MassKgPerSecond,
+        /// <summary>
+        /// Unit is Conductance siemens 1/ohm.
+        /// </summary>
         [XmlEnum("51")]
-        Conductance, // Conductance siemens 1/ohm
+        Conductance, 
+        /// <summary>
+        /// Other Unit is used.
+        /// </summary>
         [XmlEnum("254")]
-        OtherUnit = 254, // Other Unit
+        OtherUnit = 254,
+        /// <summary>
+        /// No Unit is used.
+        /// </summary>
         [XmlEnum("255")]
-        NoUnit = 255// No Unit                
+        NoUnit = 255// 
     }
 }

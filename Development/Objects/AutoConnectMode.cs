@@ -1,4 +1,4 @@
-//
+﻿//
 // --------------------------------------------------------------------------
 //  Gurux Ltd
 // 
@@ -37,22 +37,42 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Gurux.DLMS
+namespace Gurux.DLMS.Objects
 {
     /// <summary>
-    /// InterfaceType enumerates the usable types of connection in GuruxDLMS.
+    /// Defines the mode controlling the auto dial functionality concerning the timing.
     /// </summary>
-    public enum InterfaceType
+    public enum AutoConnectMode
     {
         /// <summary>
-        /// General interface type is used for meters that support 
-        /// IEC 62056-46 Data link layer using HDLC protocol.
+        /// No auto dialling,
         /// </summary>
-        General,
+        NoAutoDialling,
         /// <summary>
-        /// Nwtwork interface type is used for meters that support 
-        /// IEC 62056-47 COSEM transport layers for IPv4 networks.
+        /// Auto dialling allowed anytime,
         /// </summary>
-        Net
+        AutoDiallingAllowedAnytime,
+        /// <summary>
+        /// Auto dialling allowed within the validity time of the calling window.
+        /// </summary>
+        AutoDiallingAllowedCallingWindow,
+        /// <summary>
+        /// “regular” auto dialling allowed within the validity time
+        /// of the calling window; “alarm” initiated auto dialling allowed anytime,
+        /// </summary>        
+        RegularAutoDiallingAllowedCallingWindow,
+        /// <summary>
+        /// SMS sending via Public Land Mobile Network (PLMN),
+        /// </summary>
+        SmsSendingPlmn,
+        /// <summary>
+        /// SMS sending via PSTN.
+        /// </summary>
+        SmsSendingPstn,
+        /// <summary>
+        /// Email sending.
+        /// </summary>
+        EmailSending
+        //(200..255) manufacturer specific modes
     }
 }

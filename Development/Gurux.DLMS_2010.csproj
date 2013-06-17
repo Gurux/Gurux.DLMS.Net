@@ -18,6 +18,21 @@
     </FileUpgradeFlags>
     <OldToolsVersion>3.5</OldToolsVersion>
     <UpgradeBackupLocation />
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -59,9 +74,9 @@
     <Compile Include="Authentication.cs" />
     <Compile Include="Command.cs" />
     <Compile Include="DataType.cs" />
+    <Compile Include="GXDateTime.cs" />
     <Compile Include="GXDLMSClient.cs" />
     <Compile Include="GXDLMSServerBase.cs" />
-    <Compile Include="GXProfileGenericUpdater.cs" />
     <Compile Include="Internal\GXAPDU.cs" />
     <Compile Include="GXApplicationContextName.cs" />
     <Compile Include="Internal\GXCommon.cs" />
@@ -69,6 +84,16 @@
     <Compile Include="GXDLMSException.cs" />
     <Compile Include="GXDLMSLimits.cs" />
     <Compile Include="GXDLMSLNSettings.cs" />
+    <Compile Include="NamespaceDoc.cs" />
+    <Compile Include="Objects\AutoAnswerMode.cs" />
+    <Compile Include="Objects\AutoAnswerStatus.cs" />
+    <Compile Include="Objects\AutoConnectMode.cs" />
+    <Compile Include="Objects\BaudRate.cs" />
+    <Compile Include="Objects\GXDLMSActionItem.cs" />
+    <Compile Include="Objects\GXDLMSActionSet.cs" />
+    <Compile Include="Objects\GXDLMSDayProfile.cs" />
+    <Compile Include="Objects\GXDLMSModemInitialisation.cs" />
+    <Compile Include="Objects\GXDLMSMonitoredValue.cs" />
     <Compile Include="Objects\GXDLMSObject.cs" />
     <Compile Include="Objects\GXDLMSMacAddressSetup.cs" />
     <Compile Include="Objects\GXDLMSAssociationLogicalName.cs" />
@@ -113,9 +138,14 @@
     <Compile Include="Objects\GXDLMSSapAssignment.cs" />
     <Compile Include="Objects\GXDLMSSchedule.cs" />
     <Compile Include="Objects\GXDLMSScriptTable.cs" />
+    <Compile Include="Objects\GXDLMSSeasonProfile.cs" />
+    <Compile Include="Objects\GXDLMSSpecialDay.cs" />
     <Compile Include="Objects\GXDLMSSpecialDaysTable.cs" />
     <Compile Include="Objects\GXDLMSTcpUdpSetup.cs" />
+    <Compile Include="Objects\GXDLMSWeekProfile.cs" />
+    <Compile Include="Objects\GXProfileGenericUpdater.cs" />
     <Compile Include="Objects\IGXDLMSBase.cs" />
+    <Compile Include="Objects\OpticalProtocolMode.cs" />
     <Compile Include="ObjectType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -140,6 +170,23 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

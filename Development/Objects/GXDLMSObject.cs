@@ -150,20 +150,6 @@ namespace Gurux.DLMS.Objects
             this.LogicalName = ln;
         }
 
-        protected GXDLMSClient GetClient()
-        {
-            GXDLMSObjectCollection parent1 = Parent;
-            if (parent1 != null)
-            {                    
-                Object parent2 = parent1.Parent;
-                if (parent2 is GXDLMSClient)
-                {
-                    return (GXDLMSClient) parent2;
-                }
-            }
-            throw new Exception("Object parent not set. Use GXDLMSClient.CreateObject to create objecs.");
-        }
-
         [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [System.Xml.Serialization.XmlIgnore()]
         public Gurux.DLMS.Objects.GXDLMSObjectCollection Parent

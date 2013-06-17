@@ -315,7 +315,11 @@ namespace Gurux.DLMS.ManufacturerSettings
 
         #region ICollection<GXDLMSObject> Members
 
-        public void Add(GXDLMSAttributeSettings item)
+        /// <summary>
+        /// Add new GXDLMSAttributeSettings item to the collection.
+        /// </summary>
+        /// <param name="item"></param>
+        public new void Add(GXDLMSAttributeSettings item)
         {
             item.Parent = this;
             base.Add(item);

@@ -1,4 +1,4 @@
-//
+﻿//
 // --------------------------------------------------------------------------
 //  Gurux Ltd
 // 
@@ -36,23 +36,28 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Gurux.DLMS.Objects;
+using System.Threading;
 
-namespace Gurux.DLMS
+namespace Gurux.DLMS.Objects
 {
-    /// <summary>
-    /// InterfaceType enumerates the usable types of connection in GuruxDLMS.
-    /// </summary>
-    public enum InterfaceType
+    class GXProfileGenericUpdater
     {
-        /// <summary>
-        /// General interface type is used for meters that support 
-        /// IEC 62056-46 Data link layer using HDLC protocol.
-        /// </summary>
-        General,
-        /// <summary>
-        /// Nwtwork interface type is used for meters that support 
-        /// IEC 62056-47 COSEM transport layers for IPv4 networks.
-        /// </summary>
-        Net
+        GXDLMSProfileGeneric Target;
+        GXDLMSServerBase Server;
+        public GXProfileGenericUpdater(GXDLMSServerBase server, GXDLMSProfileGeneric pg)
+        {
+            Server = server;
+            Target = pg;
+        }
+
+        public void UpdateProfileGenericData()
+        {
+            while (true)
+            {
+                Thread.Sleep(Target.CapturePeriod * 1000);
+                Target.Capture();
+            }
+        }
     }
 }

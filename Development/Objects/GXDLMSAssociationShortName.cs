@@ -244,7 +244,7 @@ namespace Gurux.DLMS.Objects
         {
             if (index == 1)
             {
-                LogicalName = Convert.ToString(value);
+                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
             }
             else if (index == 2)
             {
@@ -253,15 +253,18 @@ namespace Gurux.DLMS.Objects
                 {
                     foreach (Object[] item in (Object[])value)
                     {
-                        ushort sn = Convert.ToUInt16(item[0]);
+                        ushort sn = (ushort)(Convert.ToInt32(item[0]) & 0xFFFF);
                         ObjectType type = (ObjectType)Convert.ToInt32(item[1]);
                         int version = Convert.ToInt32(item[2]);
                         String ln = GXDLMSObject.toLogicalName((byte[])item[3]);
                         GXDLMSObject obj = Gurux.DLMS.GXDLMSClient.CreateObject(type);
-                        obj.LogicalName = ln;
-                        obj.ShortName = sn;
-                        obj.Version = version;
-                        ObjectList.Add(obj);
+                        if (obj != null)
+                        {
+                            obj.LogicalName = ln;
+                            obj.ShortName = sn;
+                            obj.Version = version;
+                            ObjectList.Add(obj);
+                        }
                     }
                 }
             }

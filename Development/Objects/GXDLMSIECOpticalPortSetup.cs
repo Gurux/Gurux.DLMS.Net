@@ -43,13 +43,28 @@ using Gurux.DLMS.ManufacturerSettings;
 
 namespace Gurux.DLMS.Objects
 {
-    public class GXDLMSIECOpticalPortSetup : GXDLMSObject
+    /// <summary>
+    /// Defines the minimum time between the reception of a request 
+    /// (end of request telegram) and the transmission of the response (begin of response telegram).
+    /// </summary>
+    public enum LocalPortResponseTime
+    {
+        /// <summary>
+        /// Minimium time is 20 ms.
+        /// </summary>
+        ms20 = 0,
+        /// <summary>
+        /// Minimium time is 200 ms.
+        /// </summary>
+        ms200 = 1
+    }
+    public class GXDLMSIECOpticalPortSetup : GXDLMSObject, IGXDLMSBase
     {
         /// <summary> 
         /// Constructor.
         /// </summary> 
         public GXDLMSIECOpticalPortSetup()
-            : base(ObjectType.IecLocalPortSetup)
+            : base(ObjectType.IecLocalPortSetup, "0.0.20.0.0.255", 0)
         {
         }
 
@@ -72,38 +87,54 @@ namespace Gurux.DLMS.Objects
         {
         }
 
+        /// <summary>
+        /// Start communication mode.
+        /// </summary>
         [XmlIgnore()]
         [GXDLMSAttribute(2)]
-        public int DefaultMode
+        public OpticalProtocolMode DefaultMode
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// Default Baudrate.
+        /// </summary>
         [XmlIgnore()]        
         [GXDLMSAttribute(3)]
-        public int DefaultBaudrate
+        public BaudRate DefaultBaudrate
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// Proposed Baudrate.
+        /// </summary>
         [XmlIgnore()]
         [GXDLMSAttribute(4)]
-        public int MaximumBaudrate
+        public BaudRate ProposedBaudrate
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// Defines the minimum time between the reception of a request 
+        /// (end of request telegram) and the transmission of the response (begin of response telegram).
+        /// </summary>
         [XmlIgnore()]
         [GXDLMSAttribute(5)]
-        public int ResponseTime
+        public LocalPortResponseTime ResponseTime
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// Device address according to IEC 62056-21.
+        /// </summary>
         [XmlIgnore()]
         [GXDLMSAttribute(6, DataType.String)]
         public string DeviceAddress
@@ -112,6 +143,9 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// Password 1 according to IEC 62056-21.
+        /// </summary>
         [XmlIgnore()]
         [GXDLMSAttribute(7, DataType.String)]
         public string Password1
@@ -120,6 +154,9 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// Password 2 according to IEC 62056-21.
+        /// </summary>
         [XmlIgnore()]
         [GXDLMSAttribute(8, DataType.String)]
         public string Password2
@@ -128,6 +165,9 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// Password W5 reserved for national applications.
+        /// </summary>
         [XmlIgnore()]
         [GXDLMSAttribute(9, DataType.String)]
         public string Password5
@@ -136,63 +176,122 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
-        /// <inheritdoc cref="GXDLMSObject.UpdateDefaultValueItems"/>
-        public override void UpdateDefaultValueItems()
-        {
-            GXDLMSAttributeSettings att = this.Attributes.Find(2);
-            if (att == null)
-            {
-                att = new GXDLMSAttribute(2);
-                Attributes.Add(att);
-            }
-            att.Values.Add(new GXObisValueItem(0, "IEC"));
-            att.Values.Add(new GXObisValueItem(1, "DLMS"));
-
-            att = this.Attributes.Find(3);
-            if (att == null)
-            {
-                att = new GXDLMSAttribute(3);
-                Attributes.Add(att);
-            } 
-            att.Values.Add(new GXObisValueItem(0, "300"));
-            att.Values.Add(new GXObisValueItem(1, "600"));
-            att.Values.Add(new GXObisValueItem(2, "1200"));
-            att.Values.Add(new GXObisValueItem(3, "2400"));
-            att.Values.Add(new GXObisValueItem(4, "4800"));
-            att.Values.Add(new GXObisValueItem(5, "9600"));
-            att.Values.Add(new GXObisValueItem(6, "19200"));
-            att.Values.Add(new GXObisValueItem(7, "38400"));
-            att.Values.Add(new GXObisValueItem(8, "57600"));
-            att.Values.Add(new GXObisValueItem(9, "115200"));
-            att = this.Attributes.Find(4);
-            if (att == null)
-            {
-                att = new GXDLMSAttribute(4);
-                Attributes.Add(att);
-            }             
-            att.Values.Add(new GXObisValueItem(0, "300"));
-            att.Values.Add(new GXObisValueItem(1, "600"));
-            att.Values.Add(new GXObisValueItem(2, "1200"));
-            att.Values.Add(new GXObisValueItem(3, "2400"));
-            att.Values.Add(new GXObisValueItem(4, "4800"));
-            att.Values.Add(new GXObisValueItem(5, "9600"));
-            att.Values.Add(new GXObisValueItem(6, "19200"));
-            att.Values.Add(new GXObisValueItem(7, "38400"));
-            att.Values.Add(new GXObisValueItem(8, "57600"));
-            att.Values.Add(new GXObisValueItem(9, "115200"));
-            att = this.Attributes.Find(5);
-            if (att == null)
-            {
-                att = new GXDLMSAttribute(5);
-                Attributes.Add(att);
-            }
-            att.Values.Add(new GXObisValueItem(0, "20"));
-            att.Values.Add(new GXObisValueItem(1, "200"));
-        }
-
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, DefaultMode, DefaultBaudrate, MaximumBaudrate, ResponseTime, DeviceAddress, Password1, Password2, Password5 };
+            return new object[] { LogicalName, DefaultMode, DefaultBaudrate, ProposedBaudrate, ResponseTime, DeviceAddress, Password1, Password2, Password5 };
         }
+
+        #region IGXDLMSBase Members
+
+        int IGXDLMSBase.GetAttributeCount()
+        {
+            return 9;
+        }
+
+        int IGXDLMSBase.GetMethodCount()
+        {
+            return 0;
+        }
+
+        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters)
+        {
+            if (index == 1)
+            {
+                type = DataType.OctetString;
+                return GXDLMSObject.GetLogicalName(this.LogicalName);
+            }
+            if (index == 2)
+            {
+                type = DataType.Enum;
+                return this.DefaultMode;
+            }
+            if (index == 3)
+            {
+                type = DataType.Enum;
+                return this.DefaultBaudrate;
+            }
+            if (index == 4)
+            {
+                type = DataType.Enum;
+                return this.ProposedBaudrate;
+            }
+            if (index == 5)
+            {
+                type = DataType.Enum;
+                return this.ResponseTime;
+            }
+            if (index == 6)
+            {
+                type = DataType.OctetString;
+                return ASCIIEncoding.ASCII.GetBytes(DeviceAddress);
+            }
+            if (index == 7)
+            {
+                type = DataType.OctetString;
+                return ASCIIEncoding.ASCII.GetBytes(Password1);
+            }
+            if (index == 8)
+            {
+                type = DataType.OctetString;
+                return ASCIIEncoding.ASCII.GetBytes(Password2);
+            }
+            if (index == 9)
+            {
+                type = DataType.OctetString;
+                return ASCIIEncoding.ASCII.GetBytes(Password5);
+            }
+            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+        }
+
+        void IGXDLMSBase.SetValue(int index, object value)
+        {
+            if (index == 1)
+            {
+                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+            }
+            else if (index == 2)
+            {
+                DefaultMode = (OpticalProtocolMode)Convert.ToInt32(value);
+            }
+            else if (index == 3)
+            {
+                DefaultBaudrate = (BaudRate)Convert.ToInt32(value);
+            }
+            else if (index == 4)
+            {
+                ProposedBaudrate = (BaudRate)Convert.ToInt32(value);
+            }
+            else if (index == 5)
+            {
+                ResponseTime = (LocalPortResponseTime)Convert.ToInt32(value);
+            }
+            else if (index == 6)
+            {
+                DeviceAddress = GXDLMSClient.ChangeType((byte[])value, DataType.String).ToString();
+            }
+            else if (index == 7)
+            {
+                Password1 = GXDLMSClient.ChangeType((byte[])value, DataType.String).ToString();
+            }
+            else if (index == 8)
+            {
+                Password2 = GXDLMSClient.ChangeType((byte[])value, DataType.String).ToString();
+            }
+            else if (index == 9)
+            {
+                Password5 = GXDLMSClient.ChangeType((byte[])value, DataType.String).ToString();
+            }
+            else
+            {
+                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+            }
+        }
+
+        void IGXDLMSBase.Invoke(int index, object parameters)
+        {
+            throw new ArgumentException("Invoke failed. Invalid attribute index.");
+        }
+
+        #endregion
     }
 }

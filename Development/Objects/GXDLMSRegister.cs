@@ -160,9 +160,9 @@ namespace Gurux.DLMS.Objects
         /// Reset value.
         /// </summary>
         /// <returns></returns>
-        public byte[][] Reset()
+        public byte[][] Reset(GXDLMSClient client)
         {
-            byte[] ret = GetClient().Method(this, 1, (int)0);
+            byte[] ret = client.Method(this, 1, (int)0);
             return new byte[][] { ret };
         }
 
@@ -222,7 +222,7 @@ namespace Gurux.DLMS.Objects
         {
             if (index == 1)
             {
-                LogicalName = Convert.ToString(value);
+                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
             }
             else if (index == 2)
             {

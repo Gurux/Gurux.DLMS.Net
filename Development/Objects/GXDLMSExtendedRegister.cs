@@ -42,8 +42,8 @@ using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 
 namespace Gurux.DLMS.Objects
-{    
-    public class GXDLMSExtendedRegister : GXDLMSRegister
+{
+    public class GXDLMSExtendedRegister : GXDLMSRegister, IGXDLMSBase
     {
         /// <summary> 
         /// Constructor.
@@ -110,7 +110,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         [XmlIgnore()]
         [GXDLMSAttribute(4, Access = AccessMode.Read)]
-        public int Status
+        public object Status
         {
             get;
             set;
@@ -130,6 +130,91 @@ namespace Gurux.DLMS.Objects
         public override object[] GetValues()
         {
             return new object[] { LogicalName, Value, ScalerUnit, Status, CaptureTime };
+        }
+
+        int IGXDLMSBase.GetAttributeCount()
+        {
+            return 5;
+        }
+
+        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters)
+        {
+            if (index == 1)
+            {
+                type = DataType.OctetString;
+                return GXDLMSObject.GetLogicalName(this.LogicalName);
+            }
+            if (index == 2)
+            {
+                type = DataType.None;
+                return Value;
+            }
+            if (index == 3)
+            {
+                type = DataType.Structure;
+                return ScalerUnit;
+            }
+            if (index == 4)
+            {
+                type = DataType.None;
+                return Status;
+            }
+            if (index == 5)
+            {
+                type = DataType.DateTime;
+                return CaptureTime;
+            }
+            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+        }
+
+        void IGXDLMSBase.SetValue(int index, object value)
+        {
+            if (index == 1)
+            {
+                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+            }
+            else if (index == 2)
+            {
+                Value = value;
+            }
+            else if (index == 3)
+            {
+                if (ScalerUnit == null)
+                {
+                    ScalerUnit = new int[2];
+                }
+                //Set default values.
+                if (value == null)
+                {
+                    ScalerUnit[0] = ScalerUnit[1] = 0;
+                }
+                else
+                {
+                    object[] arr = (object[])value;
+                    if (arr.Length != 2)
+                    {
+                        throw new Exception("setValue failed. Invalid scaler unit value.");
+                    }
+                    ScalerUnit[0] = Convert.ToInt32(arr[0]);
+                    ScalerUnit[1] = Convert.ToInt32(arr[1]);
+                }
+            }
+            else if (index == 4)
+            {                
+                Status = value;
+            }
+            else if (index == 5)
+            {
+                if (value is byte[])
+                {
+                    value = GXDLMSClient.ChangeType((byte[])value, DataType.DateTime);
+                }
+                CaptureTime = ((GXDateTime)value).Value;
+            }
+            else
+            {
+                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+            }
         }
     }
 }

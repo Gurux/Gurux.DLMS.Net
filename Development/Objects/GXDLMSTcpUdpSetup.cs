@@ -189,27 +189,27 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 2)
             {
-                type = DataType.Int32;
+                type = DataType.UInt16;
                 return Port;
             }
             if (index == 3)
             {
-                type = DataType.Int32;
+                type = DataType.OctetString;
                 return IPReference;
             }
             if (index == 4)
             {
-                type = DataType.Int32;
+                type = DataType.UInt16;
                 return MaximumSegmentSize;
             }
             if (index == 5)
             {
-                type = DataType.Int32;
+                type = DataType.UInt8;
                 return MaximumSimultaneousConnections;
             }
             if (index == 6)
             {
-                type = DataType.Int32;
+                type = DataType.UInt16;
                 return InactivityTimeout;
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
@@ -219,7 +219,7 @@ namespace Gurux.DLMS.Objects
         {
             if (index == 1)
             {
-                LogicalName = value.ToString();
+                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
             }
             else if (index == 2)
             {
@@ -227,7 +227,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 3)
             {
-                IPReference = value.ToString();
+                IPReference = Convert.ToString(value);
             }
             else if (index == 4)
             {

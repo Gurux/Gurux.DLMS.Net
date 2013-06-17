@@ -42,6 +42,7 @@ using System.ComponentModel;
 using System.Xml.Serialization;
 using System.Collections;
 using Gurux.DLMS.ManufacturerSettings;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
@@ -235,7 +236,7 @@ namespace Gurux.DLMS.Objects
         [XmlIgnore()]
         [DefaultValue(null)]
         [GXDLMSAttribute(6, Static = true, Access = AccessMode.Read, Order = 3)]
-        public object SortObject
+        public GXDLMSObject SortObject
         {
             get;
             set;
@@ -338,7 +339,201 @@ namespace Gurux.DLMS.Objects
         int IGXDLMSBase.GetMethodCount()
         {
             return 1;
+        }
+
+        /// <summary>
+        /// Returns Association View.
+        /// </summary>
+        /// <param name="table"></param>
+        /// <returns></returns>
+        byte[] GetData(DataTable table)
+        {
+            List<byte> data = new List<byte>();
+            data.Add((byte)DataType.Array);
+            GXCommon.SetObjectCount(table.Rows.Count, data);
+            foreach (DataRow row in table.Rows)
+            {
+                object[] items = row.ItemArray;
+                data.Add((byte)DataType.Structure);
+                GXCommon.SetObjectCount(items.Length, data);
+                foreach (object value in items)
+                {
+                    Gurux.DLMS.DataType tp = Gurux.DLMS.Internal.GXCommon.GetValueType(value);
+                    GXCommon.SetData(data, tp, value);
+                }
+            }
+            return data.ToArray();
+        }
+
+        /// <summary>
+        /// Returns Association View.
+        /// </summary>
+        /// <param name="sortObject">Object to used in sort.</param>
+        /// <returns></returns>
+        byte[] GetSortObject(GXDLMSObject sortObject)
+        {
+            List<byte> data = new List<byte>();
+            data.Add((byte)DataType.Structure);
+            data.Add(4);//Count    
+            if (sortObject == null)
+            {
+                GXCommon.SetData(data, DataType.UInt16, 0);//ClassID
+                GXCommon.SetData(data, DataType.OctetString, new byte[6]);//LN
+                GXCommon.SetData(data, DataType.Int8, 0); //Selected Attribute Index
+                GXCommon.SetData(data, DataType.UInt16, 0); //Selected Data Index                
+            }
+            else
+            {
+                GXCommon.SetData(data, DataType.UInt16, sortObject.ObjectType);//ClassID
+                GXCommon.SetData(data, DataType.OctetString, sortObject.LogicalName);//LN
+                GXCommon.SetData(data, DataType.Int8, sortObject.SelectedAttributeIndex); //Selected Attribute Index
+                GXCommon.SetData(data, DataType.UInt16, sortObject.SelectedDataIndex); //Selected Data Index                
+            }
+            return data.ToArray();
+        }
+
+        /// <summary>
+        /// Returns Association View.
+        /// </summary>
+        /// <param name="items"></param>
+        /// <returns></returns>
+        byte[] GetColumns(GXDLMSObjectCollection items)
+        {
+            List<byte> data = new List<byte>();
+            data.Add((byte)DataType.Array);
+            //Add count
+            GXCommon.SetObjectCount(items.Count, data);
+            foreach (GXDLMSObject it in items)
+            {
+                data.Add((byte)DataType.Structure);
+                data.Add(4);//Count    
+                GXCommon.SetData(data, DataType.UInt16, it.ObjectType);//ClassID
+                GXCommon.SetData(data, DataType.OctetString, it.LogicalName);//LN
+                GXCommon.SetData(data, DataType.Int8, it.SelectedAttributeIndex); //Selected Attribute Index
+                GXCommon.SetData(data, DataType.UInt16, it.SelectedDataIndex); //Selected Data Index                
+            }
+            return data.ToArray();
+        }
+
+        byte[] GetProfileGenericData(byte[] data)
+        {
+            int selector;
+            object from, to;
+            //If all data is readed.
+            if (data == null || data.Length == 0)
+            {
+                return GetData(Buffer);
+            }
+            GetAccessSelector(data, out selector, out from, out to);
+            DataTable table;
+            lock (Buffer)
+            {
+                table = Buffer.Clone();
+                if (selector == 1) //Read by range
+                {
+                    GXDateTime start = (GXDateTime)from;
+                    GXDateTime end = (GXDateTime)to;
+                    foreach (DataRow row in Buffer.Rows)
+                    {
+                        DateTime tm = Convert.ToDateTime(row[0]);
+                        if (tm >= start.Value && tm <= end.Value)
+                        {
+                            table.Rows.Add(row.ItemArray);
+                        }
+                    }
+                }
+                else if (selector == 2)//Read by entry.
+                {
+                    int start = Convert.ToInt32(from);
+                    int count = Convert.ToInt32(to);
+                    for (int pos = 0; pos < count; ++pos)
+                    {
+                        if (pos + start == Buffer.Rows.Count)
+                        {
+                            break;
+                        }
+                        table.Rows.Add(Buffer.Rows[start + pos].ItemArray);
+                    }
+                }
+            }
+            return GetData(table);
+        }
+
+        void GetAccessSelector(byte[] data, out int selector, out object start, out object to)
+        {
+            selector = data[0];
+            int pos;
+            DataType type = DataType.None;
+            //Start index
+            int index = 0, count = 0, cachePos = 0;
+            if (selector == 1)//Read by range
+            {
+                if (data[1] != (int)DataType.Structure ||
+                    data[2] != 4 ||
+                    data[3] != (int)DataType.Structure ||
+                    data[4] != 4)
+                {
+                    throw new GXDLMSException("Invalid parameter");
+                }
+                pos = 5;
+                object classId = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos);
+                type = DataType.None;
+                object ln = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos);
+                type = DataType.None;
+                object attributeIndex = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos);
+                type = DataType.None;
+                object version = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos);
+                type = DataType.None;
+                byte[] tmp = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos) as byte[];
+                start = GXDLMSClient.ChangeType(tmp, DataType.DateTime);
+                type = DataType.None;
+                tmp = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos) as byte[];
+                to = GXDLMSClient.ChangeType(tmp, DataType.DateTime);
+            }
+            else if (selector == 2)//Read by entry.
+            {
+                if (data[1] != (int)DataType.Structure ||
+                    data[2] != 4)
+                {
+                    throw new GXDLMSException("Invalid parameter");
+                }
+                pos = 3;
+                start = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos);
+                type = DataType.None;
+                to = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos);
+                if (Convert.ToUInt32(start) > Convert.ToUInt32(to))
+                {
+                    throw new GXDLMSException("Invalid parameter");
+                }
+            }
+            else
+            {
+                throw new GXDLMSException("Invalid parameter");
+            }
         }        
+
+        /// <summary>
+        /// Returns captured objects.
+        /// </summary>
+        /// <param name="items"></param>
+        /// <returns></returns>
+        byte[] GetColumns()
+        {
+            List<byte> data = new List<byte>();
+            data.Add((byte)DataType.Array);
+            //Add count
+            GXCommon.SetObjectCount(CaptureObjects.Count, data);
+            foreach (GXDLMSObject it in CaptureObjects)
+            {
+                data.Add((byte)DataType.Structure);
+                data.Add(4);//Count    
+                GXCommon.SetData(data, DataType.UInt16, it.ObjectType);//ClassID
+                GXCommon.SetData(data, DataType.OctetString, it.LogicalName);//LN
+                GXCommon.SetData(data, DataType.Int8, it.SelectedAttributeIndex); //Selected Attribute Index
+                GXCommon.SetData(data, DataType.UInt16, it.SelectedDataIndex); //Selected Data Index                
+            }
+            return data.ToArray();
+        }
 
         object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters)
         {
@@ -350,12 +545,12 @@ namespace Gurux.DLMS.Objects
             if (index == 2)
             {
                 type = DataType.Array;
-                return Buffer;
+                return GetProfileGenericData(parameters);   
             }
             if (index == 3)
             {
                 type = DataType.Array;
-                return CaptureObjects;
+                return GetColumns();
             }
             if (index == 4)
             {
@@ -368,10 +563,26 @@ namespace Gurux.DLMS.Objects
                 return SortMethod;
             }
             if (index == 6)
-            {
-                //Mikko
-                type = DataType.Array;
-                return SortObject;
+            {                
+                type = DataType.Array;                
+                List<byte> data = new List<byte>();            
+                data.Add((byte)DataType.Structure);
+                data.Add((byte) 4); //Count  
+                if (SortObject == null)
+                {
+                    GXCommon.SetData(data, DataType.UInt16, 0); //ClassID
+                    GXCommon.SetData(data, DataType.OctetString, new byte[6]); //LN
+                    GXCommon.SetData(data, DataType.Int8, 0); //Selected Attribute Index
+                    GXCommon.SetData(data, DataType.UInt16, 0); //Selected Data Index
+                }
+                else
+                {
+                    GXCommon.SetData(data, DataType.UInt16, SortObject.ObjectType); //ClassID
+                    GXCommon.SetData(data, DataType.OctetString, SortObject.LogicalName); //LN
+                    GXCommon.SetData(data, DataType.Int8, SortObject.SelectedAttributeIndex); //Selected Attribute Index
+                    GXCommon.SetData(data, DataType.UInt16, SortObject.SelectedDataIndex); //Selected Data Index
+                }            
+                return data.ToArray();
             }
             if (index == 7)
             {
@@ -390,7 +601,7 @@ namespace Gurux.DLMS.Objects
         {
             if (index == 1)
             {
-                LogicalName = value.ToString();
+                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
             }
             else if (index == 2)
             {
@@ -434,7 +645,7 @@ namespace Gurux.DLMS.Objects
                 string ln = GXDLMSObject.toLogicalName((byte[])tmp[1]);
                 int attributeIndex = Convert.ToInt16(tmp[2]);
                 int dataIndex = Convert.ToInt16(tmp[3]);
-                SortObject = Server.Items.FindByLN(type, ln);
+                SortObject = CaptureObjects.FindByLN(type, ln);
             }
             else if (index == 7)
             {

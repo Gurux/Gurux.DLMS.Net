@@ -43,6 +43,10 @@ using Gurux.DLMS.ManufacturerSettings;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Script table objects contain a table of script entries. Each entry consists of a script identifier
+    /// and a series of action specifications.
+    /// </summary>
     public class GXDLMSScriptTable : GXDLMSObject
     {
         /// <summary> 

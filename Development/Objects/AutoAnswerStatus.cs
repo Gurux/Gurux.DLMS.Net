@@ -1,4 +1,4 @@
-//
+﻿//
 // --------------------------------------------------------------------------
 //  Gurux Ltd
 // 
@@ -37,22 +37,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Gurux.DLMS
+namespace Gurux.DLMS.Objects
 {
-    /// <summary>
-    /// InterfaceType enumerates the usable types of connection in GuruxDLMS.
-    /// </summary>
-    public enum InterfaceType
+    public enum AutoAnswerStatus
     {
         /// <summary>
-        /// General interface type is used for meters that support 
-        /// IEC 62056-46 Data link layer using HDLC protocol.
+        /// The device will manage no new incoming call. 
+        /// This status is automatically reset to Active when the next listening window starts,
         /// </summary>
-        General,
+        Inactive = 0,
         /// <summary>
-        /// Nwtwork interface type is used for meters that support 
-        /// IEC 62056-47 COSEM transport layers for IPv4 networks.
+        /// The device can answer to the next incoming call.
         /// </summary>
-        Net
+        Active = 1,
+        /// <summary>
+        /// This value can be set automatically by the device or by a specific client when this client has
+        /// completed its reading session and wants to give the line back to the customer before the end of the
+        /// window duration. This status is automatically reset to Active when the next listening window starts.
+        /// </summary>
+        Locked = 2
     }
 }

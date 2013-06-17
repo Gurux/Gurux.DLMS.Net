@@ -42,14 +42,14 @@ using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 
 namespace Gurux.DLMS.Objects
-{   
-    public class GXDLMSMacAddressSetup : GXDLMSObject
+{
+    public class GXDLMSMacAddressSetup : GXDLMSObject, IGXDLMSBase
     {
         /// <summary> 
         /// Constructor.
         /// </summary> 
         public GXDLMSMacAddressSetup()
-            : base(ObjectType.MacAddressSetup)
+            : base(ObjectType.MacAddressSetup, "0.0.25.2.0.255", 0)
         {
         }
 
@@ -77,7 +77,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         [XmlIgnore()]
         [GXDLMSAttribute(2)]
-        public object MacAddress
+        public string MacAddress
         {
             get;
             set;
@@ -87,6 +87,57 @@ namespace Gurux.DLMS.Objects
         {
             return new object[] { LogicalName, MacAddress };
         }
-        
+
+
+        #region IGXDLMSBase Members
+
+        int IGXDLMSBase.GetAttributeCount()
+        {
+            return 2;
+        }
+
+        int IGXDLMSBase.GetMethodCount()
+        {
+            return 0;
+        }
+
+        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters)
+        {
+            if (index == 1)
+            {
+                type = DataType.OctetString;
+                return GXDLMSObject.GetLogicalName(this.LogicalName);
+            }
+            if (index == 2)
+            {
+                type = DataType.OctetString;
+                return MacAddress.Replace(':', '.');
+            }
+            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+        }
+
+        void IGXDLMSBase.SetValue(int index, object value)
+        {
+            if (index == 1)
+            {
+                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+            }
+            else if (index == 2)
+            {
+                MacAddress = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                MacAddress = MacAddress.Replace('.', ':');
+            }
+            else
+            {
+                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+            }
+        }
+
+        void IGXDLMSBase.Invoke(int index, object parameters)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
     }
 }

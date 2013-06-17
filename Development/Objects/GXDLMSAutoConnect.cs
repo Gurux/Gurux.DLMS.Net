@@ -40,18 +40,22 @@ using Gurux.DLMS;
 using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
-
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
-    public class GXDLMSAutoConnect : GXDLMSObject
+    /// <summary>
+    /// Auto Connect implements data transfer from the device to one or several destinations.
+    /// </summary>
+    public class GXDLMSAutoConnect : GXDLMSObject, IGXDLMSBase
     {
         /// <summary> 
         /// Constructor.
         /// </summary> 
         public GXDLMSAutoConnect()
-            : base(ObjectType.AutoConnect)
+            : base(ObjectType.AutoConnect, "0.0.2.1.0.255", 0)
         {
+            CallingWindow = new Dictionary<GXDateTime, GXDateTime>();
         }
 
         /// <summary> 
@@ -61,6 +65,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSAutoConnect(string ln)
             : base(ObjectType.AutoConnect, ln, 0)
         {
+            CallingWindow = new Dictionary<GXDateTime, GXDateTime>();
         }
 
         /// <summary> 
@@ -73,14 +78,21 @@ namespace Gurux.DLMS.Objects
         {
         }
 
+        /// <summary>
+        /// Defines the mode controlling the auto dial functionality concerning the
+        /// timing, the message type to be sent and the infrastructure to be used.
+        /// </summary>
         [XmlIgnore()]        
         [GXDLMSAttribute(2)]
-        public int Mode
+        public AutoConnectMode Mode
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// The maximum number of trials in the case of unsuccessful dialling attempts.
+        /// </summary>
         [XmlIgnore()]        
         [GXDLMSAttribute(3)]
         public int Repetitions
@@ -89,6 +101,9 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// The time delay, expressed in seconds until an unsuccessful dial attempt can be repeated.
+        /// </summary>
         [XmlIgnore()]        
         [GXDLMSAttribute(4)]
         public int RepetitionDelay
@@ -97,17 +112,26 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
-        [XmlIgnore()]        
+        /// <summary>
+        /// Contains the start and end date/time stamp when the window becomes active.
+        /// </summary>
+        [XmlIgnore()]
         [GXDLMSAttribute(5)]
-        public object CallingWindow
+        public Dictionary<GXDateTime, GXDateTime> CallingWindow
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// Contains the list of destinations (for example phone numbers, email 
+        /// addresses or their combinations) where the message(s) have to be sent 
+        /// under certain conditions. The conditions and their link to the elements of 
+        /// the array are not defined here.
+        /// </summary>
         [XmlIgnore()]        
         [GXDLMSAttribute(6)]
-        public object PhoneList
+        public string[] Destinations
         {
             get;
             set;
@@ -115,7 +139,143 @@ namespace Gurux.DLMS.Objects
 
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, Mode, Repetitions, RepetitionDelay, CallingWindow, PhoneList };
+            return new object[] { LogicalName, Mode, Repetitions, RepetitionDelay, CallingWindow, Destinations };
         }
+
+        #region IGXDLMSBase Members
+
+        int IGXDLMSBase.GetAttributeCount()
+        {
+            return 6;
+        }
+
+        int IGXDLMSBase.GetMethodCount()
+        {
+            return 0;
+        }
+
+        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters)
+        {
+            if (index == 1)
+            {
+                type = DataType.OctetString;
+                return GXDLMSObject.GetLogicalName(this.LogicalName);
+            }
+            if (index == 2)
+            {
+                type = DataType.Enum;
+                return (byte) Mode;
+            }
+            if (index == 3)
+            {
+                type = DataType.UInt8;
+                return Repetitions;
+            }
+            if (index == 4)
+            {
+                type = DataType.UInt16;
+                return RepetitionDelay;
+            }
+            if (index == 5)
+            {
+                type = DataType.Array;
+                int cnt = CallingWindow.Count;
+                List<byte> data = new List<byte>();
+                data.Add((byte)DataType.Array);
+                //Add count            
+                GXCommon.SetObjectCount(cnt, data);
+                if (cnt != 0)
+                {
+                    foreach (var it in CallingWindow)
+                    {
+                        data.Add((byte)DataType.Structure);
+                        data.Add((byte)2); //Count
+                        GXCommon.SetData(data, DataType.OctetString, it.Key); //start_time
+                        GXCommon.SetData(data, DataType.OctetString, it.Value); //end_time
+                    }
+                }
+                return data.ToArray();
+            }
+            if (index == 6)
+            {
+                type = DataType.Array;                
+                List<byte> data = new List<byte>();
+                data.Add((byte)DataType.Array);
+                if (Destinations == null)
+                {
+                    //Add count            
+                    GXCommon.SetObjectCount(0, data);
+                }
+                else
+                {
+                    int cnt = Destinations.Length;                                        
+                    //Add count            
+                    GXCommon.SetObjectCount(cnt, data);
+                    foreach (string it in Destinations)
+                    {
+                        GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it)); //destination
+                    }
+                }
+                return data.ToArray();
+            }
+            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+        }
+
+        void IGXDLMSBase.SetValue(int index, object value)
+        {
+            if (index == 1)
+            {
+                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+            }
+            else if (index == 2)
+            {
+                Mode = (AutoConnectMode) Convert.ToInt32(value);
+            }
+            else if (index == 3)
+            {
+                Repetitions = Convert.ToInt32(value);
+            }
+            else if (index == 4)
+            {
+                Repetitions = Convert.ToInt32(value);
+            }
+            else if (index == 5)
+            {
+                CallingWindow.Clear();
+                if (value != null)
+                {
+                    foreach (Object[] item in (Object[])value)
+                    {
+                        GXDateTime start = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[0], DataType.DateTime);
+                        GXDateTime end = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime);
+                        CallingWindow.Add(start, end);
+                    }
+                }
+            }
+            else if (index == 6)
+            {
+                Destinations = null;
+                if (value != null)
+                {
+                    List<string> items = new List<string>();
+                    foreach (byte[] item in (object[])value)
+                    {
+                        string it = GXDLMSClient.ChangeType(item, DataType.String).ToString();
+                        items.Add(it);
+                    }
+                    Destinations = items.ToArray();
+                }
+            }
+            else
+            {
+                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+            }
+        }
+
+        void IGXDLMSBase.Invoke(int index, object parameters)
+        {
+            throw new ArgumentException("Invoke failed. Invalid attribute index.");
+        }
+        #endregion
     }
 }

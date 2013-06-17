@@ -47,6 +47,11 @@ namespace Gurux.DLMS.ManufacturerSettings
     {
         #region IList<GXObisValueItem> Members
 
+        /// <summary>
+        /// Inserts new GXObisValueItem item to the collection.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="item"></param>
         public void Insert(int index, GXObisValueItem item)
         {
             if (!this.Contains(item))
@@ -59,7 +64,11 @@ namespace Gurux.DLMS.ManufacturerSettings
 
         #region ICollection<GXObisValueItem> Members
 
-        public void Add(GXObisValueItem item)
+        /// <summary>
+        /// Add new GXObisValueItem item to the collection.
+        /// </summary>
+        /// <param name="item"></param>
+        public new void Add(GXObisValueItem item)
         {
             if (!this.Contains(item))
             {
@@ -67,6 +76,11 @@ namespace Gurux.DLMS.ManufacturerSettings
             }
         }
 
+        /// <summary>
+        /// Determines whether an GXObisValueItem is in the collection.
+        /// </summary>
+        /// <param name="item">The GXObisValueItem to locate in the collection.</param>
+        /// <returns></returns>
         public bool Contains(GXObisValueItem item)
         {
             foreach (GXObisValueItem it in this)

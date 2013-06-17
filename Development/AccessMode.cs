@@ -40,6 +40,9 @@ using System.Xml.Serialization;
 
 namespace Gurux.DLMS
 {
+    /// <summary>
+    /// The AccessMode enumerates the access modes.
+    /// </summary>
     public enum AccessMode
     {
         /// <summary>
@@ -62,28 +65,40 @@ namespace Gurux.DLMS
         /// </summary>
         [XmlEnum("3")]
         ReadWrite = 3,
+        /// <summary>
+        /// Authenticated read is used.
+        /// </summary>
         [XmlEnum("4")]
         AuthenticatedRead = 4,
-        [XmlEnum("5")]
+        /// <summary>
+        /// Authenticated write is used.
+        /// </summary>
+        [XmlEnum("5")]        
         AuthenticatedWrite = 5,
+        /// <summary>
+        /// Authenticated Read Write is used.
+        /// </summary>
         [XmlEnum("6")]
         AuthenticatedReadWrite = 6
     }
 
+    /// <summary>
+    /// The MethodAccessMode enumerates the method access modes.
+    /// </summary>
     public enum MethodAccessMode
     {
         /// <summary>
-        /// No access.
+        /// Client can't use method..
         /// </summary>
         [XmlEnum("0")]
         NoAccess = 0,
         /// <summary>
-        /// No access.
+        /// Method is allowed to use.
         /// </summary>
         [XmlEnum("1")]
         Access = 1,
         /// <summary>
-        /// No access.
+        /// Authenticated access is allowed.
         /// </summary>
         [XmlEnum("2")]
         AuthenticatedAccess = 2

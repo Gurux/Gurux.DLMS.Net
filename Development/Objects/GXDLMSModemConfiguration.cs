@@ -41,16 +41,17 @@ using System.ComponentModel;
 using System.Xml.Serialization;
 
 using Gurux.DLMS.ManufacturerSettings;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
-    public class GXDLMSModemConfiguration : GXDLMSObject
+    public class GXDLMSModemConfiguration : GXDLMSObject, IGXDLMSBase
     {
         /// <summary> 
         /// Constructor.
         /// </summary> 
         public GXDLMSModemConfiguration()
-            : base(ObjectType.ModemConfiguration)
+            : base(ObjectType.ModemConfiguration, "0.0.2.0.0.255", 0)
         {
         }
 
@@ -71,32 +72,11 @@ namespace Gurux.DLMS.Objects
         public GXDLMSModemConfiguration(string ln, ushort sn)
             : base(ObjectType.ModemConfiguration, ln, 0)
         {
-        }
-
-        /// <inheritdoc cref="GXDLMSObject.UpdateDefaultValueItems"/>
-        public override void UpdateDefaultValueItems()
-        {
-            GXDLMSAttributeSettings att = this.Attributes.Find(2);
-            if (att == null)
-            {
-                att = new GXDLMSAttribute(2);
-                Attributes.Add(att);
-            }
-            att.Values.Add(new GXObisValueItem(0, "300"));
-            att.Values.Add(new GXObisValueItem(1, "600"));
-            att.Values.Add(new GXObisValueItem(2, "1200"));
-            att.Values.Add(new GXObisValueItem(3, "2400"));
-            att.Values.Add(new GXObisValueItem(4, "4800"));
-            att.Values.Add(new GXObisValueItem(5, "9600"));
-            att.Values.Add(new GXObisValueItem(6, "19200"));
-            att.Values.Add(new GXObisValueItem(7, "38400"));
-            att.Values.Add(new GXObisValueItem(8, "57600"));
-            att.Values.Add(new GXObisValueItem(9, "115200"));            
-        }
+        }       
 
         [XmlIgnore()]
         [GXDLMSAttribute(2)]
-        public int CommunicationSpeed
+        public BaudRate CommunicationSpeed
         {
             get;
             set;
@@ -104,7 +84,7 @@ namespace Gurux.DLMS.Objects
 
         [XmlIgnore()]
         [GXDLMSAttribute(3)]
-        public object InitialisationStrings
+        public GXDLMSModemInitialisation[] InitialisationStrings
         {
             get;
             set;
@@ -112,7 +92,7 @@ namespace Gurux.DLMS.Objects
 
         [XmlIgnore()]
         [GXDLMSAttribute(4)]
-        public object ModemProfile
+        public string[] ModemProfile
         {
             get;
             set;
@@ -122,5 +102,134 @@ namespace Gurux.DLMS.Objects
         {
             return new object[] { LogicalName, CommunicationSpeed, InitialisationStrings, ModemProfile };
         }
+
+        #region IGXDLMSBase Members
+
+        int IGXDLMSBase.GetAttributeCount()
+        {
+            return 4;
+        }
+
+        int IGXDLMSBase.GetMethodCount()
+        {
+            return 0;
+        }
+
+        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters)
+        {
+            if (index == 1)
+            {
+                type = DataType.OctetString;
+                return GXDLMSObject.GetLogicalName(this.LogicalName);
+            }
+            if (index == 2)
+            {
+                type = DataType.DateTime;
+                return CommunicationSpeed;
+            }
+            if (index == 3)
+            {
+                type = DataType.Array;
+                List<byte> data = new List<byte>();
+                data.Add((byte)DataType.Array);
+                //Add count
+                int cnt = 0;
+                if (InitialisationStrings != null)
+                {
+                    cnt = InitialisationStrings.Length;
+                }
+                GXCommon.SetObjectCount(cnt, data);
+                if (cnt != 0)
+                {
+                    foreach (GXDLMSModemInitialisation it in InitialisationStrings)
+                    {
+                        data.Add((byte)DataType.Structure);
+                        data.Add((byte)3); //Count
+                        GXCommon.SetData(data, DataType.OctetString, it.Request);
+                        GXCommon.SetData(data, DataType.OctetString, it.Response);
+                        GXCommon.SetData(data, DataType.UInt16, it.Delay);
+                    }
+                }
+                return data.ToArray();
+            }
+            if (index == 4)
+            {
+                type = DataType.Array;
+                List<byte> data = new List<byte>();
+                data.Add((byte)DataType.Array);
+                //Add count
+                int cnt = 0;
+                if (ModemProfile != null)
+                {
+                    cnt = ModemProfile.Length;
+                }
+                GXCommon.SetObjectCount(cnt, data);
+                if (cnt != 0)
+                {
+                    foreach (string it in ModemProfile)
+                    {
+                        GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it));
+                    }
+                }
+                return data.ToArray();
+            }
+            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+        }
+
+        void IGXDLMSBase.SetValue(int index, object value)
+        {
+            if (index == 1)
+            {
+                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+            }
+            else if (index == 2)
+            {
+                CommunicationSpeed = (BaudRate)Convert.ToInt32(value);
+            }
+            else if (index == 3)
+            {
+                InitialisationStrings = null;
+                if (value != null)
+                {
+                    List<GXDLMSModemInitialisation> items = new List<GXDLMSModemInitialisation>();
+                    foreach (object[] it in (Object[])value)
+                    {
+                        GXDLMSModemInitialisation item = new GXDLMSModemInitialisation();
+                        item.Request = GXDLMSClient.ChangeType((byte[])it[0], DataType.String).ToString();
+                        item.Response = GXDLMSClient.ChangeType((byte[])it[1], DataType.String).ToString();
+                        if (it.Length > 2)
+                        {
+                            item.Delay = Convert.ToUInt16(it[2]);
+                        }
+                        items.Add(item);
+                    }
+                    InitialisationStrings = items.ToArray();
+                }                                 
+            }
+            else if (index == 4)
+            {
+                ModemProfile = null;
+                if (value != null)
+                {
+                    List<string> items = new List<string>();
+                    foreach (object it in (Object[])value)
+                    {
+                        items.Add(GXDLMSClient.ChangeType((byte[])it, DataType.String).ToString());
+                    }
+                    ModemProfile = items.ToArray();
+                }                   
+            }
+            else
+            {
+                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+            }
+        }
+
+        void IGXDLMSBase.Invoke(int index, object parameters)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
     }
 }
