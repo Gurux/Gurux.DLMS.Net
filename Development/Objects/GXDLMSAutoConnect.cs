@@ -237,7 +237,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 4)
             {
-                Repetitions = Convert.ToInt32(value);
+                RepetitionDelay = Convert.ToInt32(value);
             }
             else if (index == 5)
             {
