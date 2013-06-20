@@ -325,11 +325,10 @@ namespace Gurux.DLMS.Internal
             data.Add((byte)diagnostic); //diagnostic            
             //Add User Information
             data.Add(0xBE); //Tag
-            data.Add(0x11); //Length for AARQ user field
+            data.Add(0x10); //Length for AARQ user field
             data.Add(0x04); //Coding the choice for user-information (Octet STRING, universal)
-            data.Add(0xF); //Length
+            data.Add(0xE); //Length
             data.Add(GXCommon.InitialResponce); // Tag for xDLMS-Initiate response
-            data.Add(0x1); // Usage field for dedicated-key component (not used)
             data.Add(0x00); // Usage field for the response allowed component (not used)
             data.Add(6); // DLMSVersioNumber
             data.Add(0x5F);
