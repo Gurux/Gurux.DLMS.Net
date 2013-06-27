@@ -978,7 +978,7 @@ namespace Gurux.DLMS
         {
             target.SetValue(attributeIndex, GetValue(data, target, attributeIndex));
             DataType type;
-            return (target as IGXDLMSBase).GetValue(attributeIndex, out type, null); //Mikko TODO:
+            return (target as IGXDLMSBase).GetValue(attributeIndex, out type, null);
         }
 
         /// <summary>

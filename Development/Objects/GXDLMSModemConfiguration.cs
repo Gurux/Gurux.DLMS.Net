@@ -47,12 +47,21 @@ namespace Gurux.DLMS.Objects
 {
     public class GXDLMSModemConfiguration : GXDLMSObject, IGXDLMSBase
     {
+        static string[] DefaultProfiles()
+        {
+            return new string[]{"OK", "CONNECT", "RING", "NO CARRIER", "ERROR", "CONNECT 1200", "NO DIAL TONE",
+                "BUSY", "NO ANSWER", "CONNECT 600", "CONNECT 2400", "CONNECT 4800", "CONNECT 9600", 
+                "CONNECT 14 400", "CONNECT 28 800", "CONNECT 33 600", "CONNECT 56 000"};
+        }
         /// <summary> 
         /// Constructor.
         /// </summary> 
         public GXDLMSModemConfiguration()
             : base(ObjectType.ModemConfiguration, "0.0.2.0.0.255", 0)
         {
+            InitialisationStrings = new GXDLMSModemInitialisation[0];
+            CommunicationSpeed = BaudRate.Baudrate300;
+            ModemProfile = DefaultProfiles();
         }
 
         /// <summary> 
@@ -62,6 +71,9 @@ namespace Gurux.DLMS.Objects
         public GXDLMSModemConfiguration(string ln)
             : base(ObjectType.ModemConfiguration, ln, 0)
         {
+            InitialisationStrings = new GXDLMSModemInitialisation[0];
+            CommunicationSpeed = BaudRate.Baudrate300;
+            ModemProfile = DefaultProfiles();
         }
 
         /// <summary> 
@@ -72,6 +84,9 @@ namespace Gurux.DLMS.Objects
         public GXDLMSModemConfiguration(string ln, ushort sn)
             : base(ObjectType.ModemConfiguration, ln, 0)
         {
+            InitialisationStrings = new GXDLMSModemInitialisation[0];
+            CommunicationSpeed = BaudRate.Baudrate300;
+            ModemProfile = DefaultProfiles();
         }       
 
         [XmlIgnore()]
@@ -124,7 +139,7 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 2)
             {
-                type = DataType.DateTime;
+                type = DataType.Enum;
                 return CommunicationSpeed;
             }
             if (index == 3)
@@ -145,8 +160,8 @@ namespace Gurux.DLMS.Objects
                     {
                         data.Add((byte)DataType.Structure);
                         data.Add((byte)3); //Count
-                        GXCommon.SetData(data, DataType.OctetString, it.Request);
-                        GXCommon.SetData(data, DataType.OctetString, it.Response);
+                        GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Request));
+                        GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Response));
                         GXCommon.SetData(data, DataType.UInt16, it.Delay);
                     }
                 }

@@ -181,7 +181,7 @@ namespace Gurux.DLMS.Objects
             {
                 if (ScalerUnit == null)
                 {
-                    ScalerUnit = new int[2];
+                    ScalerUnit = new byte[2];
                 }
                 //Set default values.
                 if (value == null)
@@ -195,8 +195,8 @@ namespace Gurux.DLMS.Objects
                     {
                         throw new Exception("setValue failed. Invalid scaler unit value.");
                     }
-                    ScalerUnit[0] = Convert.ToInt32(arr[0]);
-                    ScalerUnit[1] = Convert.ToInt32(arr[1]);
+                    ScalerUnit[0] = (byte)Convert.ToInt32(arr[0]);
+                    ScalerUnit[1] = (byte)Convert.ToInt32(arr[1]);
                 }
             }
             else if (index == 4)

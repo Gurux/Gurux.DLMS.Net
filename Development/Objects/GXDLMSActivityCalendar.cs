@@ -253,8 +253,10 @@ namespace Gurux.DLMS.Objects
                         GXCommon.SetObjectCount(it.DaySchedules.Length, data);                        
                         foreach (GXDLMSDayProfileAction action in it.DaySchedules)
                         {
-                            GXCommon.SetData(data, DataType.OctetString, action.StartTime);
-                            GXCommon.SetData(data, DataType.OctetString, action.ScriptLogicalName);
+                            data.Add((byte)DataType.Structure);
+                            data.Add(3);
+                            GXCommon.SetData(data, DataType.Time, action.StartTime);
+                            GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(action.ScriptLogicalName));
                             GXCommon.SetData(data, DataType.UInt16, action.ScriptSelector);
                         }
                     }
@@ -349,8 +351,10 @@ namespace Gurux.DLMS.Objects
                         GXCommon.SetObjectCount(it.DaySchedules.Length, data);
                         foreach (GXDLMSDayProfileAction action in it.DaySchedules)
                         {
-                            GXCommon.SetData(data, DataType.OctetString, action.StartTime);
-                            GXCommon.SetData(data, DataType.OctetString, action.ScriptLogicalName);
+                            data.Add((byte)DataType.Structure);
+                            data.Add(3);
+                            GXCommon.SetData(data, DataType.Time, action.StartTime);
+                            GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(action.ScriptLogicalName));
                             GXCommon.SetData(data, DataType.UInt16, action.ScriptSelector);
                         }
                     }

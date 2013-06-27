@@ -299,6 +299,15 @@ namespace Gurux.DLMS.Objects
                 type = DataType.UInt8;
                 return AssociationStatus;
             }
+            if (index == 9)
+            {
+                type = DataType.OctetString;
+                if (SecuritySetupReference == null)
+                {
+                    return null;
+                }
+                return ASCIIEncoding.ASCII.GetBytes(SecuritySetupReference);
+            }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 

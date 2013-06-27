@@ -38,6 +38,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
@@ -48,7 +49,10 @@ namespace Gurux.DLMS.Objects
         /// </summary> 
         public GXDLMSRegisterMonitor()
             : base(ObjectType.RegisterMonitor)
-        {            
+        {
+            this.Thresholds = new object[0];            
+            MonitoredValue = new GXDLMSMonitoredValue();
+            Actions = new GXDLMSActionSet[0];
         }
 
         /// <summary> 
@@ -58,6 +62,9 @@ namespace Gurux.DLMS.Objects
         public GXDLMSRegisterMonitor(string ln)
             : base(ObjectType.RegisterMonitor, ln, 0)
         {
+            this.Thresholds = new object[0];
+            MonitoredValue = new GXDLMSMonitoredValue();
+            Actions = new GXDLMSActionSet[0];
         }
 
         /// <summary> 
@@ -68,6 +75,9 @@ namespace Gurux.DLMS.Objects
         public GXDLMSRegisterMonitor(string ln, ushort sn)
             : base(ObjectType.RegisterMonitor, ln, 0)
         {
+            this.Thresholds = new object[0];
+            MonitoredValue = new GXDLMSMonitoredValue();
+            Actions = new GXDLMSActionSet[0];
         }
         
         [XmlIgnore()]
@@ -83,7 +93,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSMonitoredValue MonitoredValue
         {
             get;
-            set;
+            internal set;
         }
 
 
@@ -126,8 +136,14 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 3)
             {
-                type = DataType.Structure;
-                return MonitoredValue;
+                type = DataType.Array;
+                List<byte> data = new List<byte>();
+                data.Add((int) DataType.Structure);
+                data.Add(3);
+                GXCommon.SetData(data, DataType.UInt16, MonitoredValue.ObjectType); //ClassID
+                GXCommon.SetData(data, DataType.OctetString, MonitoredValue.LogicalName); //Logical name.
+                GXCommon.SetData(data, DataType.Int8, MonitoredValue.AttributeIndex); //Attribute Index
+                return data.ToArray();
             }
             if (index == 4)
             {

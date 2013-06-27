@@ -704,28 +704,35 @@ namespace Gurux.DLMS.Internal
                         return null;
                     }
                 }
+                DateTimeSkips skip = DateTimeSkips.None;
                 //Get time.
                 int hours = buff[pos++];
                 if (hours == -1)
                 {
+                    skip |= DateTimeSkips.Hour;
                     hours = 0;
                 }
                 int minutes = buff[pos++];
                 if (minutes == -1)
                 {
+                    skip |= DateTimeSkips.Minute;
                     minutes = 0;
                 }
                 int seconds = buff[pos++];
                 if (seconds == -1)
                 {
+                    skip |= DateTimeSkips.Second;
                     seconds = 0;
                 }
                 int milliseconds = buff[pos++];
                 if (milliseconds == -1)
                 {
+                    skip |= DateTimeSkips.Ms;
                     milliseconds = 0;
                 }
-                value = new GXDateTime(-1, -1, -1, hours, minutes, seconds, milliseconds);            
+                GXDateTime dt = new GXDateTime(-1, -1, -1, hours, minutes, seconds, milliseconds);
+                dt.Skip = skip;
+                value = dt;
             }
             else
             {

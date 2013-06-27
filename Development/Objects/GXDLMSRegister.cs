@@ -52,14 +52,14 @@ namespace Gurux.DLMS.Objects
             : base(ObjectType.Register)
         {
             Scaler = 1;
-            Unit = Unit.None;
+            Unit = Unit.NoUnit;
         }
 
         internal GXDLMSRegister(ObjectType type, string ln, ushort sn)
             : base(type, ln, sn)
         {
             Scaler = 1;
-            Unit = Unit.None;
+            Unit = Unit.NoUnit;
         }
 
         /// <summary> 
@@ -99,10 +99,10 @@ namespace Gurux.DLMS.Objects
             {
                 if (ScalerUnit == null)
                 {
-                    ScalerUnit = new int[2];
+                    ScalerUnit = new byte[2];
                     ScalerUnit[1] = 0;
                 }
-                ScalerUnit[0] = (int)Math.Log10(value);
+                ScalerUnit[0] = (byte)Math.Log10(value);
             }
         }
 
@@ -124,10 +124,10 @@ namespace Gurux.DLMS.Objects
             {
                 if (ScalerUnit == null)
                 {
-                    ScalerUnit = new int[2];
+                    ScalerUnit = new byte[2];
                     ScalerUnit[0] = 0;
                 }
-                ScalerUnit[1] = (int)value;
+                ScalerUnit[1] = (byte)value;
             }
         }
 
@@ -150,7 +150,7 @@ namespace Gurux.DLMS.Objects
         /// Scaler and unit of COSEM object.
         /// </summary>
         [GXDLMSAttribute(3, Type = DataType.Array, Static = true, Access = AccessMode.Read, Order = 1)]
-        internal int[] ScalerUnit
+        internal byte[] ScalerUnit
         {
             get;
             set;
@@ -232,7 +232,7 @@ namespace Gurux.DLMS.Objects
             {
                 if (ScalerUnit == null)
                 {
-                    ScalerUnit = new int[2];
+                    ScalerUnit = new byte[2];
                 }
                 //Set default values.
                 if (value == null)
@@ -246,8 +246,8 @@ namespace Gurux.DLMS.Objects
                     {
                         throw new Exception("setValue failed. Invalid scaler unit value.");
                     }
-                    ScalerUnit[0] = Convert.ToInt32(arr[0]);
-                    ScalerUnit[1] = Convert.ToInt32(arr[1]);
+                    ScalerUnit[0] = (byte)Convert.ToInt32(arr[0]);
+                    ScalerUnit[1] = (byte)Convert.ToInt32(arr[1]);
                 }                
             }
             else

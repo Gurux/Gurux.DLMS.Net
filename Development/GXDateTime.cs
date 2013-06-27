@@ -111,7 +111,7 @@ namespace Gurux.DLMS
             if (year == -1)
             {
                 Skip |= DateTimeSkips.Year;
-                year = 1;
+                year = 2000;
             }
             if (month == -1)
             {
@@ -207,7 +207,11 @@ namespace Gurux.DLMS
                         format += " ";
                     }
                     format += string.Join(culture.DateTimeFormat.TimeSeparator, shortTimePattern.ToArray());
-                }                
+                }
+                if (format == "H")
+                {
+                    return Value.Hour.ToString();
+                }
                 return Value.ToString(format);
             }
             return Value.ToString();

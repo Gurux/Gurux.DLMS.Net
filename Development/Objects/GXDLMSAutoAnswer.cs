@@ -106,9 +106,22 @@ namespace Gurux.DLMS.Objects
             set;
         }
         
+        /// <summary>
+        /// Number of rings within the window defined by ListeningWindow.        
+        /// </summary>
         [XmlIgnore()]
         [GXDLMSAttribute(6, Static = true)]
-        public object NumberOfRings
+        public int NumberOfRingsInListeningWindow
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Number of rings outside the window defined by ListeningWindow.        
+        /// </summary>
+        [XmlIgnore()]
+        public int NumberOfRingsOutListeningWindow
         {
             get;
             set;
@@ -116,7 +129,8 @@ namespace Gurux.DLMS.Objects
 
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, Mode, ListeningWindow, Status, NumberOfCalls, NumberOfRings };
+            return new object[] { LogicalName, Mode, ListeningWindow, Status, 
+                NumberOfCalls, NumberOfRingsInListeningWindow + "/" + NumberOfRingsOutListeningWindow};
         }
 
         #region IGXDLMSBase Members
@@ -175,8 +189,14 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 6)
             {
-                type = DataType.Enum;
-                return NumberOfRings;
+                type = DataType.Array;
+                List<byte> data = new List<byte>();
+                data.Add((byte)DataType.Structure);
+                //Add count            
+                GXCommon.SetObjectCount(2, data);
+                GXCommon.SetData(data, DataType.UInt8, NumberOfRingsInListeningWindow);
+                GXCommon.SetData(data, DataType.UInt8, NumberOfRingsOutListeningWindow);                
+                return data.ToArray();                
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
@@ -214,7 +234,12 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 6)
             {
-                NumberOfRings = Convert.ToInt32(value);
+                NumberOfRingsInListeningWindow = NumberOfRingsOutListeningWindow = 0;
+                if (value != null)
+                {
+                    NumberOfRingsInListeningWindow = Convert.ToInt32(((Object[])value)[0]);
+                    NumberOfRingsOutListeningWindow = Convert.ToInt32(((Object[])value)[1]);
+                }
             }
             else
             {

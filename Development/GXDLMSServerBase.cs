@@ -1213,46 +1213,7 @@ namespace Gurux.DLMS
                             Gurux.DLMS.DataType tp = Gurux.DLMS.Internal.GXCommon.GetValueType(e.Value);
                             SendData.AddRange(ReadReply(name, type, index, e.Value, tp));
                             return SendData[FrameIndex];
-                        }
-                        /* Mikko TODO: pois
-                        if (item is GXDLMSAssociationShortName)
-                        {
-                            if (index == 2) //Get list of SN objects.
-                            {                                
-                                SendData.AddRange(GetObjects(Items));
-                                return SendData[FrameIndex];
-                            }
-                            if (index == 3) //Get access rights list.
-                            {
-                                SendData.AddRange(m_Base.SplitToBlocks(GetAccessRights(Items), Command.GetResponse));
-                                return SendData[FrameIndex];
-                            }
-                            if (index == 4) //Get Security Setup Reference.
-                            {
-                                SendData.Add(ServerReportError(1, 5, 3));
-                                return SendData[FrameIndex];
-                            }
-                        }
-                        else if (item is GXDLMSProfileGeneric)
-                        {
-                            GXDLMSProfileGeneric pg = item as GXDLMSProfileGeneric;
-                            if (index == 2) //Get list of objects.
-                            {
-                                GetProfileGenericData(pg, parameter);                                
-                                return SendData[FrameIndex];
-                            }
-                            if (index == 3) //Get list of objects.
-                            {
-                                SendData.AddRange(GetColumns(pg.CaptureObjects));
-                                return SendData[FrameIndex];
-                            }
-                            if (index == 6) //Get sort object
-                            {
-                                SendData.AddRange(GetSortObject(pg.SortObject as GXDLMSObject));
-                                return SendData[FrameIndex];
-                            }
-                        }
-                         * */
+                        }                        
                         if (item != null)
                         {
                             return GetValue(name, item, index, parameter);
@@ -1275,36 +1236,7 @@ namespace Gurux.DLMS
                                 Gurux.DLMS.DataType tp = Gurux.DLMS.Internal.GXCommon.GetValueType(e.Value);
                                 SendData.AddRange(ReadReply(name, type, index, e.Value, tp));
                                 return SendData[FrameIndex];
-                            }
-                            /*
-                            if (item is GXDLMSAssociationLogicalName)
-                            {
-                                if (index == 2) //Get list of LN objects.
-                                {
-                                    SendData.AddRange(GetObjects(Items));
-                                    return SendData[FrameIndex];
-                                }
-                            }
-                            else if (item is GXDLMSProfileGeneric)
-                            {
-                                GXDLMSProfileGeneric pg = item as GXDLMSProfileGeneric;
-                                if (index == 2) //Get list of objects.
-                                {
-                                    GetProfileGenericData(pg, parameter);
-                                    return SendData[FrameIndex];
-                                }
-                                if (index == 3) //Get list of objects.
-                                {
-                                    SendData.AddRange(GetColumns(pg.CaptureObjects));
-                                    return SendData[FrameIndex];
-                                }
-                                if (index == 6) //Get sort object
-                                {
-                                    SendData.AddRange(GetSortObject(pg.SortObject as GXDLMSObject));
-                                    return SendData[FrameIndex];
-                                }
-                            }
-                             * */
+                            }                           
                             return GetValue(name, item, index, parameter);
                         }
                     }

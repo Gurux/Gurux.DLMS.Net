@@ -41,6 +41,13 @@ namespace Gurux.DLMS.Objects
 {
     public class GXDLMSMonitoredValue
     {
+        public void Update(GXDLMSObject value, int attributeIndex)
+        {
+            ObjectType = value.ObjectType;
+            LogicalName = value.LogicalName;
+            AttributeIndex = attributeIndex;
+        }
+
         public ObjectType ObjectType
         {
             get;
