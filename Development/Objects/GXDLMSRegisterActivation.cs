@@ -67,6 +67,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSRegisterActivation()
             : base(ObjectType.RegisterActivation)
         {
+            MaskList = new List<KeyValuePair<string, byte[]>>();
         }
 
         /// <summary> 
@@ -76,6 +77,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSRegisterActivation(string ln)
             : base(ObjectType.RegisterActivation, ln, 0)
         {
+            MaskList = new List<KeyValuePair<string, byte[]>>();
         }
 
         /// <summary> 
@@ -86,13 +88,13 @@ namespace Gurux.DLMS.Objects
         public GXDLMSRegisterActivation(string ln, ushort sn)
             : base(ObjectType.RegisterActivation, ln, 0)
         {
+            MaskList = new List<KeyValuePair<string, byte[]>>();
         }
 
         /// <summary>
         ///
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(2)]
         public GXDLMSObjectDefinition[] RegisterAssignment
         {
             get;
@@ -103,8 +105,7 @@ namespace Gurux.DLMS.Objects
         ///
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(3)]
-        public object MaskList
+        public List<KeyValuePair<string, byte[]>> MaskList
         {
             get;
             set;
@@ -114,13 +115,13 @@ namespace Gurux.DLMS.Objects
         ///
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(4, DataType.OctetString)]
         public string ActiveMask
         {
             get;
             set;
         }
 
+        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, RegisterAssignment, MaskList, ActiveMask };
@@ -137,6 +138,32 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("Invoke failed. Invalid attribute index.");
         }
 
+        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        {
+            List<int> attributes = new List<int>();
+            //LN is static and read only once.
+            if (string.IsNullOrEmpty(LogicalName))
+            {
+                attributes.Add(1);
+            }
+            //RegisterAssignment
+            if (!base.IsRead(2))
+            {
+                attributes.Add(2);
+            }
+            //MaskList
+            if (!base.IsRead(3))
+            {
+                attributes.Add(3);
+            }
+            //ActiveMask
+            if (!base.IsRead(4))
+            {
+                attributes.Add(4);
+            }
+            return attributes.ToArray();
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 4;
@@ -147,7 +174,7 @@ namespace Gurux.DLMS.Objects
             return 3;
         }
 
-        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters)
+        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
         {
             if (index == 1)
             {
@@ -176,6 +203,33 @@ namespace Gurux.DLMS.Objects
                 }
                 return data.ToArray();
             }
+            if (index == 3)
+            {                
+                type = DataType.Array;
+                List<byte> data = new List<byte>();
+                data.Add((byte)DataType.Array);
+                if (MaskList == null)
+                {
+                    data.Add(0);
+                }
+                else
+                {
+                    data.Add((byte)MaskList.Count);
+                    foreach (KeyValuePair<string, byte[]> it in MaskList)
+                    {
+                        data.Add((byte)DataType.Structure);
+                        data.Add(2);
+                        GXCommon.SetData(data, DataType.OctetString, GXDLMSObject.GetLogicalName(it.Key));
+                        data.Add((byte)DataType.Array);
+                        data.Add((byte)it.Value.Length);
+                        foreach (byte b in it.Value)
+                        {
+                            GXCommon.SetData(data, DataType.UInt8, b);
+                        }
+                    }
+                }
+                return data.ToArray();
+            }
             if (index == 4)
             {
                 type = DataType.OctetString;
@@ -184,27 +238,46 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(int index, object value, bool raw)
         {
             if (index == 1)
             {
-                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                if (value is string)
+                {
+                    LogicalName = value.ToString();
+                }
+                else
+                {
+                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                }
             }
             else if (index == 2)
             {
-                RegisterAssignment = null;
+                List<GXDLMSObjectDefinition> items = new List<GXDLMSObjectDefinition>();
                 if (value != null)
-                {
-                    List<GXDLMSObjectDefinition> items = new List<GXDLMSObjectDefinition>();
+                {                    
                     foreach(Object[] it in (Object[]) value)
                     {
                         GXDLMSObjectDefinition item = new GXDLMSObjectDefinition();
                         item.ClassId = (ObjectType) Convert.ToInt32(it[0]);
                         item.LogicalName = GXDLMSObject.toLogicalName((byte[]) it[1]);
                         items.Add(item);
-                    }
-                    RegisterAssignment = items.ToArray();
-                }  
+                    }                    
+                }
+                RegisterAssignment = items.ToArray();
+            }
+            else if (index == 3)
+            {
+                MaskList.Clear();                
+                if (value != null)
+                {                   
+                    foreach (Object[] it in (Object[])value)
+                    {
+                        string ln = GXDLMSObject.toLogicalName((byte[])it[0]);
+                        byte[] index_list = (byte[])it[0];
+                        MaskList.Add(new KeyValuePair<string, byte[]>(ln, index_list));
+                    }                    
+                }                
             }
             else if (index == 4)
             {

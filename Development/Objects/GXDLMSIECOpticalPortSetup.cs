@@ -91,7 +91,6 @@ namespace Gurux.DLMS.Objects
         /// Start communication mode.
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(2)]
         public OpticalProtocolMode DefaultMode
         {
             get;
@@ -102,7 +101,6 @@ namespace Gurux.DLMS.Objects
         /// Default Baudrate.
         /// </summary>
         [XmlIgnore()]        
-        [GXDLMSAttribute(3)]
         public BaudRate DefaultBaudrate
         {
             get;
@@ -113,7 +111,6 @@ namespace Gurux.DLMS.Objects
         /// Proposed Baudrate.
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(4)]
         public BaudRate ProposedBaudrate
         {
             get;
@@ -125,7 +122,6 @@ namespace Gurux.DLMS.Objects
         /// (end of request telegram) and the transmission of the response (begin of response telegram).
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(5)]
         public LocalPortResponseTime ResponseTime
         {
             get;
@@ -136,7 +132,6 @@ namespace Gurux.DLMS.Objects
         /// Device address according to IEC 62056-21.
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(6, DataType.String)]
         public string DeviceAddress
         {
             get;
@@ -147,7 +142,6 @@ namespace Gurux.DLMS.Objects
         /// Password 1 according to IEC 62056-21.
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(7, DataType.String)]
         public string Password1
         {
             get;
@@ -158,7 +152,6 @@ namespace Gurux.DLMS.Objects
         /// Password 2 according to IEC 62056-21.
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(8, DataType.String)]
         public string Password2
         {
             get;
@@ -169,19 +162,72 @@ namespace Gurux.DLMS.Objects
         /// Password W5 reserved for national applications.
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(9, DataType.String)]
         public string Password5
         {
             get;
             set;
         }
 
+        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, DefaultMode, DefaultBaudrate, ProposedBaudrate, ResponseTime, DeviceAddress, Password1, Password2, Password5 };
+            return new object[] { LogicalName, DefaultMode, DefaultBaudrate, 
+                ProposedBaudrate, ResponseTime, DeviceAddress, 
+                Password1, Password2, Password5 };
         }
 
         #region IGXDLMSBase Members
+
+        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        {
+            List<int> attributes = new List<int>();
+            //LN is static and read only once.
+            if (string.IsNullOrEmpty(LogicalName))
+            {
+                attributes.Add(1);
+            }
+            //DefaultMode
+            if (!base.IsRead(2))
+            {
+                attributes.Add(2);
+            }
+            //DefaultBaudrate
+            if (!base.IsRead(3))
+            {
+                attributes.Add(3);
+            }
+            //ProposedBaudrate
+            if (!base.IsRead(4))
+            {
+                attributes.Add(4);
+            }
+            //ResponseTime
+            if (!base.IsRead(5))
+            {
+                attributes.Add(5);
+            }
+            //DeviceAddress
+            if (!base.IsRead(6))
+            {
+                attributes.Add(6);
+            }
+            //Password1
+            if (!base.IsRead(7))
+            {
+                attributes.Add(7);
+            }
+            //Password2
+            if (!base.IsRead(8))
+            {
+                attributes.Add(8);
+            }
+            //Password5
+            if (!base.IsRead(9))
+            {
+                attributes.Add(9);
+            }
+            return attributes.ToArray();
+        }
 
         int IGXDLMSBase.GetAttributeCount()
         {
@@ -193,7 +239,7 @@ namespace Gurux.DLMS.Objects
             return 0;
         }
 
-        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters)
+        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
         {
             if (index == 1)
             {
@@ -243,11 +289,18 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(int index, object value, bool raw)
         {
             if (index == 1)
             {
-                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                if (value is string)
+                {
+                    LogicalName = value.ToString();
+                }
+                else
+                {
+                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                }
             }
             else if (index == 2)
             {
@@ -267,19 +320,47 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 6)
             {
-                DeviceAddress = GXDLMSClient.ChangeType((byte[])value, DataType.String).ToString();
+                if (value is byte[])
+                {
+                    DeviceAddress = GXDLMSClient.ChangeType((byte[])value, DataType.String).ToString();
+                }
+                else
+                {
+                    DeviceAddress = Convert.ToString(value);
+                }
             }
             else if (index == 7)
             {
-                Password1 = GXDLMSClient.ChangeType((byte[])value, DataType.String).ToString();
+                if (value is byte[])
+                {
+                    Password1 = GXDLMSClient.ChangeType((byte[])value, DataType.String).ToString();
+                }
+                else
+                {
+                    Password1 = Convert.ToString(value);
+                }
             }
             else if (index == 8)
             {
-                Password2 = GXDLMSClient.ChangeType((byte[])value, DataType.String).ToString();
+                if (value is byte[])
+                {
+                    Password2 = GXDLMSClient.ChangeType((byte[])value, DataType.String).ToString();
+                }
+                else
+                {
+                    Password2 = Convert.ToString(value);
+                }
             }
             else if (index == 9)
             {
-                Password5 = GXDLMSClient.ChangeType((byte[])value, DataType.String).ToString();
+                if (value is byte[])
+                {
+                    Password5 = GXDLMSClient.ChangeType((byte[])value, DataType.String).ToString();
+                }
+                else
+                {
+                    Password5 = Convert.ToString(value);
+                }
             }
             else
             {

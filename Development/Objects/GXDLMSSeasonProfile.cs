@@ -86,5 +86,10 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        public override string ToString()
+        {
+            return Name + " " + Start.ToString();
+        }
+
     }
 }

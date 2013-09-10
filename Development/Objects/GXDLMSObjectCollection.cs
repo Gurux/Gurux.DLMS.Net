@@ -36,21 +36,81 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.ComponentModel;
+
+using System.Collections;
+
 
 namespace Gurux.DLMS.Objects
 {
     /// <summary>
     /// Collection of DLMS objects.
     /// </summary>
-    public class GXDLMSObjectCollection : List<GXDLMSObject>, IList<GXDLMSObject>
+    public class GXDLMSObjectCollection : IList<GXDLMSObject>, 
+                            ICollection<GXDLMSObject>, IEnumerable<GXDLMSObject>                            
     {
+        private List<GXDLMSObject> Objects;
+
+        #region Protected Properties
+        /// <summary>
+        /// Returns the list of items in the class.
+        /// </summary>
+        protected List<GXDLMSObject> Items
+        {
+            get { return this.Objects; }
+            private set { this.Objects = value; }
+        }
+        #endregion
+
+
         /// <summary>
         /// Constructor.
         /// </summary>
         public GXDLMSObjectCollection()
+            : this(0)
         {
-            return;
+            //Nothing to do
         }
+        
+        /// <summary>
+        /// Constructor.
+        /// </summary>        
+        public GXDLMSObjectCollection(int capacity)
+        {
+            this.Items = new List<GXDLMSObject>(capacity);
+        }        
+
+        #region IList Methods
+        /// <summary>
+        /// Gets or sets the element at the specified index.
+        /// </summary>
+        /// <param name="index">The zero-based index of the element to get or set.</param>
+        /// <returns>The element at the specified index.</returns>
+        public GXDLMSObject this[int index]
+        {
+            get { return this.Items[index]; }
+            set { this.Items[index] = value; }
+        }
+
+        /// <summary>
+        /// Inserts an item to the System.Collections.Generic.IList at the specified index.
+        /// </summary>
+        /// <param name="index">The zero-based index at which item should be inserted.</param>
+        /// <param name="item">The object to insert into the System.Collections.Generic.IList.</param>
+        public void Insert(int index, GXDLMSObject item)
+        {            
+            this.Items.Insert(index, item);         
+        }
+
+        /// <summary>
+        /// Removes the System.Collections.Generic.IList item at the specified index.
+        /// </summary>
+        /// <param name="index">The zero-based index of the item to remove.</param>
+        public void RemoveAt(int index)
+        {            
+            this.Items.RemoveAt(index);         
+        }
+        #endregion
 
         /// <summary>
         /// Constructor.
@@ -62,6 +122,12 @@ namespace Gurux.DLMS.Objects
         }
 
         public object Parent
+        {
+            get;
+            internal set;
+        }
+
+        public object Tag
         {
             get;
             set;
@@ -116,18 +182,118 @@ namespace Gurux.DLMS.Objects
             }
             return null;
         }
-       
+
+        public void AddRange(IEnumerable<GXDLMSObject> collection)
+        {
+            foreach (GXDLMSObject it in collection)
+            {
+                Add(it);
+            }
+        }
+           
+        #region IList<GXDLMSObject> Members
+
+        /// <summary>
+        /// Determines the index of a specific item in the System.Collections.Generic.IList.
+        /// </summary>
+        /// <param name="item">The object to locate in the System.Collections.Generic.IList.</param>
+        /// <returns>The index of item if found in the list; otherwise, -1.</returns>
+        public int IndexOf(GXDLMSObject item)
+        {
+            return Objects.IndexOf(item);
+        }
+
+        #endregion
+
         #region ICollection<GXDLMSObject> Members
 
         public void Add(GXDLMSObject item)
         {
-            base.Add(item);
+            if (Objects == null)
+            {
+                Objects = new List<GXDLMSObject>();
+            }
+            Objects.Add(item);
             if (this.Parent != null && item.Parent == null)
             {
                 item.Parent = this;
             }
         }
+
+        public void Clear()
+        {
+            Objects.Clear();
+        }
+
+        public bool Contains(GXDLMSObject item)
+        {
+            return Objects.Contains(item);
+        }
+
+        public void CopyTo(GXDLMSObject[] array, int arrayIndex)
+        {
+            Objects.CopyTo(array, arrayIndex);
+        }
+
+        public int Count
+        {
+            get 
+            {
+                return Objects.Count;
+            }
+        }
+
+        public bool IsReadOnly
+        {
+            get 
+            {
+                return false;
+            }
+        }
+
+        public bool Remove(GXDLMSObject item)
+        {
+            return Objects.Remove(item);
+        }
+
         #endregion
-       
+
+        #region IEnumerable<GXDLMSObject> Members
+
+        public IEnumerator<GXDLMSObject> GetEnumerator()
+        {
+            if (Objects == null)
+            {
+                Objects = new List<GXDLMSObject>();
+            }
+            return Objects.GetEnumerator();
+        }
+
+        #endregion
+
+        #region IEnumerable Members
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return Objects.GetEnumerator();
+        }
+
+        #endregion
+
+        #region ICollection<GXDLMSObject> Members
+
+
+        void ICollection<GXDLMSObject>.Clear()
+        {
+            Objects.Clear();
+        }
+
+        bool ICollection<GXDLMSObject>.Contains(GXDLMSObject item)
+        {
+            return Objects.Contains(item);
+        }
+
+        #endregion
+
     }
 }

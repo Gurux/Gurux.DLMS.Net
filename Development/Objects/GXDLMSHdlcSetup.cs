@@ -53,7 +53,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSHdlcSetup()
             : base(ObjectType.IecHdlcSetup)
         {
-            CommunicationSpeed = 5;
+            CommunicationSpeed = BaudRate.Baudrate9600;
             WindowSizeReceive = WindowSizeTransmit = 1;
             MaximumInfoLengthTransmit = MaximumInfoLengthReceive = 128;
         }
@@ -75,32 +75,10 @@ namespace Gurux.DLMS.Objects
         public GXDLMSHdlcSetup(string ln, ushort sn)
             : base(ObjectType.IecHdlcSetup, ln, 0)
         {
-        }
-
-        /// <inheritdoc cref="GXDLMSObject.UpdateDefaultValueItems"/>
-        public override void UpdateDefaultValueItems()
-        {
-            GXDLMSAttributeSettings att = this.Attributes.Find(2);
-            if (att == null)
-            {
-                att = new GXDLMSAttribute(2);
-                Attributes.Add(att);
-            } 
-            att.Values.Add(new GXObisValueItem(0, "300"));
-            att.Values.Add(new GXObisValueItem(1, "600"));
-            att.Values.Add(new GXObisValueItem(2, "1200"));
-            att.Values.Add(new GXObisValueItem(3, "2400"));
-            att.Values.Add(new GXObisValueItem(4, "4800"));
-            att.Values.Add(new GXObisValueItem(5, "9600"));
-            att.Values.Add(new GXObisValueItem(6, "19200"));
-            att.Values.Add(new GXObisValueItem(7, "38400"));
-            att.Values.Add(new GXObisValueItem(8, "57600"));
-            att.Values.Add(new GXObisValueItem(9, "115200"));         
-        }
+        }       
 
         [XmlIgnore()]
-        [GXDLMSAttribute(2)]
-        public int CommunicationSpeed
+        public BaudRate CommunicationSpeed
         {
             get;
             set;
@@ -108,7 +86,6 @@ namespace Gurux.DLMS.Objects
 
         [XmlIgnore()]
         [DefaultValue(1)]
-        [GXDLMSAttribute(3)]
         public int WindowSizeTransmit
         {
             get;
@@ -117,7 +94,6 @@ namespace Gurux.DLMS.Objects
 
         [XmlIgnore()]
         [DefaultValue(1)]
-        [GXDLMSAttribute(4)]
         public int WindowSizeReceive
         {
             get;
@@ -126,7 +102,6 @@ namespace Gurux.DLMS.Objects
 
         [XmlIgnore()]
         [DefaultValue(128)]
-        [GXDLMSAttribute(5)]
         public int MaximumInfoLengthTransmit
         {
             get;
@@ -135,7 +110,6 @@ namespace Gurux.DLMS.Objects
 
         [XmlIgnore()]
         [DefaultValue(128)]
-        [GXDLMSAttribute(6)]
         public int MaximumInfoLengthReceive
         {
             get;
@@ -144,7 +118,6 @@ namespace Gurux.DLMS.Objects
 
         [XmlIgnore()]
         [DefaultValue(30)]
-        [GXDLMSAttribute(7)]
         public int InterCharachterTimeout
         {
             get;
@@ -153,7 +126,6 @@ namespace Gurux.DLMS.Objects
 
         [XmlIgnore()]
         [DefaultValue(120)]
-        [GXDLMSAttribute(8)]
         public int InactivityTimeout
         {
             get;
@@ -162,20 +134,73 @@ namespace Gurux.DLMS.Objects
 
         [XmlIgnore()]
         [DefaultValue(0)]
-        [GXDLMSAttribute(9)]
         public int DeviceAddress
         {
             get;
             set;
         }
 
+        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, CommunicationSpeed, WindowSizeTransmit, WindowSizeReceive, 
-                MaximumInfoLengthTransmit, MaximumInfoLengthReceive, InterCharachterTimeout, InactivityTimeout, DeviceAddress };
+            return new object[] { LogicalName, CommunicationSpeed, 
+                WindowSizeTransmit, WindowSizeReceive, 
+                MaximumInfoLengthTransmit, MaximumInfoLengthReceive, 
+                InterCharachterTimeout, InactivityTimeout, DeviceAddress };
         }
 
         #region IGXDLMSBase Members
+
+        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        {
+            List<int> attributes = new List<int>();
+            //LN is static and read only once.
+            if (string.IsNullOrEmpty(LogicalName))
+            {
+                attributes.Add(1);
+            }
+            //CommunicationSpeed
+            if (!base.IsRead(2))
+            {
+                attributes.Add(2);
+            }
+            //WindowSizeTransmit
+            if (!base.IsRead(3))
+            {
+                attributes.Add(3);
+            }
+            //WindowSizeReceive
+            if (!base.IsRead(4))
+            {
+                attributes.Add(4);
+            }
+            //MaximumInfoLengthTransmit
+            if (!base.IsRead(5))
+            {
+                attributes.Add(5);
+            }
+            //MaximumInfoLengthReceive
+            if (!base.IsRead(6))
+            {
+                attributes.Add(6);
+            }
+            //InterCharachterTimeout
+            if (!base.IsRead(7))
+            {
+                attributes.Add(7);
+            }
+            //InactivityTimeout
+            if (!base.IsRead(8))
+            {
+                attributes.Add(8);
+            }
+            //DeviceAddress
+            if (!base.IsRead(9))
+            {
+                attributes.Add(9);
+            }
+            return attributes.ToArray();
+        }
 
         int IGXDLMSBase.GetAttributeCount()
         {
@@ -187,7 +212,7 @@ namespace Gurux.DLMS.Objects
             return 0;
         }
 
-        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters)
+        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
         {
             if (index == 1)
             {
@@ -237,15 +262,22 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(int index, object value, bool raw)
         {
             if (index == 1)
             {
-                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                if (value is string)
+                {
+                    LogicalName = value.ToString();
+                }
+                else
+                {
+                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                }
             }
             else if (index == 2)
             {
-                CommunicationSpeed = Convert.ToInt32(value);
+                CommunicationSpeed = (BaudRate) Convert.ToInt32(value);
             }
             else if (index == 3)
             {

@@ -40,6 +40,7 @@ using Gurux.DLMS;
 using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
@@ -47,7 +48,7 @@ namespace Gurux.DLMS.Objects
     /// Script table objects contain a table of script entries. Each entry consists of a script identifier
     /// and a series of action specifications.
     /// </summary>
-    public class GXDLMSScriptTable : GXDLMSObject
+    public class GXDLMSScriptTable : GXDLMSObject, IGXDLMSBase
     {
         /// <summary> 
         /// Constructor.
@@ -55,6 +56,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSScriptTable()
             : base(ObjectType.ScriptTable)
         {
+            Scripts = new List<KeyValuePair<int, GXDLMSScriptAction>>();
         }
 
         /// <summary> 
@@ -64,6 +66,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSScriptTable(string ln)
             : base(ObjectType.ScriptTable, ln, 0)
         {
+            Scripts = new List<KeyValuePair<int, GXDLMSScriptAction>>();
         }
 
         /// <summary> 
@@ -74,19 +77,132 @@ namespace Gurux.DLMS.Objects
         public GXDLMSScriptTable(string ln, ushort sn)
             : base(ObjectType.ScriptTable, ln, 0)
         {
+            Scripts = new List<KeyValuePair<int, GXDLMSScriptAction>>();
         }
 
-        [XmlIgnore()]
-        [GXDLMSAttribute(2)]
-        public object Scripts
+        [XmlIgnore()]                
+        public List<KeyValuePair<int, GXDLMSScriptAction>> Scripts
         {
             get;
             set;
         }
 
+        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, Scripts };
         }
+
+        #region IGXDLMSBase Members
+
+
+        void IGXDLMSBase.Invoke(int index, Object parameters)
+        {
+            throw new ArgumentException("Invoke failed. Invalid attribute index.");            
+        }
+
+        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        {
+            List<int> attributes = new List<int>();
+            //LN is static and read only once.
+            if (string.IsNullOrEmpty(LogicalName))
+            {
+                attributes.Add(1);
+            }
+            //Scripts
+            if (!base.IsRead(2))
+            {
+                attributes.Add(2);
+            }           
+            return attributes.ToArray();
+        }
+
+        int IGXDLMSBase.GetAttributeCount()
+        {
+            return 2;
+        }
+
+        int IGXDLMSBase.GetMethodCount()
+        {
+            return 1;
+        }
+
+        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
+        {
+            if (index == 1)
+            {
+                type = DataType.OctetString;
+                return GXDLMSObject.GetLogicalName(this.LogicalName);
+            }
+            if (index == 2)
+            {
+                type = DataType.Array;
+                int cnt = Scripts.Count;
+                List<byte> data = new List<byte>();
+                data.Add((byte) DataType.Array);
+                //Add count            
+                GXCommon.SetObjectCount(cnt, data);
+                if (cnt != 0)
+                {
+                    foreach (var it in Scripts)
+                    {
+                        data.Add((byte) DataType.Structure);
+                        data.Add(2); //Count
+                        GXCommon.SetData(data, DataType.UInt16, it.Key); //Script_identifier:
+                        data.Add((byte)DataType.Array);
+                        data.Add(5); //Count
+                        GXDLMSScriptAction tmp = it.Value;
+                        GXCommon.SetData(data, DataType.Enum, tmp.Type); //service_id
+                        GXCommon.SetData(data, DataType.UInt16, tmp.ObjectType); //class_id
+                        GXCommon.SetData(data, DataType.OctetString, tmp.LogicalName); //logical_name
+                        GXCommon.SetData(data, DataType.Int8, tmp.Index); //index
+                        GXCommon.SetData(data, GXCommon.GetValueType(tmp.Parameter), tmp.Parameter); //parameter
+                    }
+                }
+                return data.ToArray();
+            }            
+            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+        }
+
+        void IGXDLMSBase.SetValue(int index, object value, bool raw)
+        {
+            if (index == 1)
+            {
+                if (value is string)
+                {
+                    LogicalName = value.ToString();
+                }
+                else
+                {
+                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                }
+            }
+            else if (index == 2)
+            {
+                Scripts.Clear();
+                if (value != null)
+                {
+                    foreach(Object[] item in (Object[])value)
+                    { 
+                        int script_identifier = Convert.ToInt32(item[0]);
+                        foreach (Object[] arr in (Object[])item[1])
+                        { 
+                            GXDLMSScriptAction it = new GXDLMSScriptAction();
+                            it.Type = (GXDLMSScriptActionType)Convert.ToInt32(arr[0]);
+                            it.ObjectType = (ObjectType)Convert.ToInt32(arr[1]);                            
+                            it.LogicalName = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString).ToString();
+                            it.Index = Convert.ToInt32(arr[3]);
+                            it.Parameter = arr[4];
+                            Scripts.Add(new KeyValuePair<int,GXDLMSScriptAction>(script_identifier, it));
+                        }
+                    }               
+                }
+            }            
+            else
+            {
+                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+            }
+        }
+        #endregion
     }
 }

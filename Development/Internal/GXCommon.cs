@@ -55,8 +55,6 @@ namespace Gurux.DLMS.Internal
     class GXCommon
     {
         internal const byte HDLCFrameStartEnd = 0x7E;
-        internal const byte HDLCFrameType = 0xA0;
-        internal const byte HDLCFrameTypeMoreData = 0xA8;
         internal const byte InitialRequest = 0x1;
         internal const byte InitialResponce = 0x8;
         internal const byte AARQTag = 0x60;
@@ -463,7 +461,34 @@ namespace Gurux.DLMS.Internal
                 }                
                 if (len > 0)
                 {
-                    value = ASCIIEncoding.ASCII.GetString(GXCommon.RawData(buff, ref pos, len));
+                    bool octetString = false;
+                    if (knownType)
+                    {
+                        //Check that this is not octet string.
+                        foreach (byte it in buff)
+                        {
+                            if (it < 0x32)
+                            {
+                                octetString = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (octetString)
+                    {
+                        StringBuilder sb = new StringBuilder(3 * buff.Length);
+                        foreach (byte it in buff)
+                        {
+                            sb.Append(it);
+                            sb.Append('.');
+                        }
+                        sb.Remove(sb.Length - 1, 1);
+                        value = sb.ToString();
+                    }
+                    else
+                    {
+                        value = ASCIIEncoding.ASCII.GetString(GXCommon.RawData(buff, ref pos, len));
+                    }
                 }
             }
             //Excample Logical name is octet string, so do not change to string...
@@ -683,7 +708,8 @@ namespace Gurux.DLMS.Internal
                 {
                     dt.Skip |= DateTimeSkips.DayOfWeek;
                     DayOfWeek = 1;
-                }                
+                }
+                dt.Skip |= DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms;
                 return dt;        
             }
             else if (type == DataType.Time)
@@ -707,19 +733,19 @@ namespace Gurux.DLMS.Internal
                 DateTimeSkips skip = DateTimeSkips.None;
                 //Get time.
                 int hours = buff[pos++];
-                if (hours == -1)
+                if (hours < 0 || hours > 24)
                 {
                     skip |= DateTimeSkips.Hour;
                     hours = 0;
                 }
                 int minutes = buff[pos++];
-                if (minutes == -1)
+                if (minutes < 0 || minutes > 60)
                 {
                     skip |= DateTimeSkips.Minute;
                     minutes = 0;
                 }
                 int seconds = buff[pos++];
-                if (seconds == -1)
+                if (seconds < 0 || seconds > 60)
                 {
                     skip |= DateTimeSkips.Second;
                     seconds = 0;
@@ -731,7 +757,7 @@ namespace Gurux.DLMS.Internal
                     milliseconds = 0;
                 }
                 GXDateTime dt = new GXDateTime(-1, -1, -1, hours, minutes, seconds, milliseconds);
-                dt.Skip = skip;
+                dt.Skip |= skip;
                 value = dt;
             }
             else
@@ -1091,6 +1117,7 @@ namespace Gurux.DLMS.Internal
                 tmp.Add(0xFF);
             }            
             //Week day is not spesified.
+            //Standard defines. tmp.Add(0xFF);
             tmp.Add(0xFF);
             //Add time.
             if ((skip & DateTimeSkips.Hour) == 0)

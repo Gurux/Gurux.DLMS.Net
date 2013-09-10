@@ -40,19 +40,20 @@ using System.ComponentModel;
 using Gurux.DLMS;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
     public class GXDLMSDemandRegister : GXDLMSObject, IGXDLMSBase
     {
+        protected int m_Scaler;
+
         /// <summary> 
         /// Constructor.
         /// </summary> 
         public GXDLMSDemandRegister()
             : base(ObjectType.DemandRegister)
         {
-            Scaler = 1;
-            Unit = Unit.None;
         }        
 
         /// <summary> 
@@ -62,8 +63,6 @@ namespace Gurux.DLMS.Objects
         public GXDLMSDemandRegister(string ln)
             : base(ObjectType.DemandRegister, ln, 0)
         {
-            Scaler = 1;
-            Unit = Unit.None;
         }
 
         /// <summary> 
@@ -74,15 +73,12 @@ namespace Gurux.DLMS.Objects
         public GXDLMSDemandRegister(string ln, ushort sn)
             : base(ObjectType.DemandRegister, ln, 0)
         {
-            Scaler = 1;
-            Unit = Unit.None;
         }
 
         /// <summary>
         /// Current avarage value of COSEM Data object.
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(2, Access = AccessMode.Read)]
         public object CurrentAvarageValue
         {
             get;
@@ -93,79 +89,42 @@ namespace Gurux.DLMS.Objects
         /// Last avarage value of COSEM Data object.
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(3, Access = AccessMode.Read)]
         public object LastAvarageValue
         {
             get;
             set;
-        }        
+        }
 
         /// <summary>
         /// Scaler of COSEM Register object.
         /// </summary>        
-        [DefaultValue(1)]        
+        [DefaultValue(1.0)]
         public double Scaler
         {
             get
             {
-                if (ScalerUnit == null)
-                {
-                    return 1;
-                }
-                return Math.Pow(10, Convert.ToInt32(ScalerUnit[0]));
+                return Math.Pow(10, m_Scaler);
             }
             set
             {
-                if (ScalerUnit == null)
-                {
-                    ScalerUnit = new byte[2];
-                    ScalerUnit[1] = 0;
-                }
-                ScalerUnit[0] = (byte)Math.Log10(value);
+                m_Scaler = (int)Math.Log10(value);
             }
         }
 
         /// <summary>
         /// Unit of COSEM Register object.
         /// </summary>
-        [DefaultValue(Unit.NoUnit)]        
+        [DefaultValue(Unit.NoUnit)]
         public Unit Unit
-        {
-            get
-            {
-                if (ScalerUnit == null)
-                {
-                    return Unit.NoUnit;
-                }
-                return (Unit)Convert.ToInt32(ScalerUnit[1]);
-            }
-            set
-            {
-                if (ScalerUnit == null)
-                {
-                    ScalerUnit = new byte[2];
-                    ScalerUnit[0] = 0;
-                }
-                ScalerUnit[1] = (byte)value;
-            }
-        }
-
-        /// <summary>
-        /// Scaler and unit of COSEM object.
-        /// </summary>
-        [XmlIgnore()]
-        [GXDLMSAttribute(4, Type = DataType.Array, Static = true, Access = AccessMode.Read, Order = 1)]
-        internal byte[] ScalerUnit
         {
             get;
             set;
-        }        
+        }
 
         /// <summary>
         /// Provides Demand register specific status information.
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(5, Access = AccessMode.Read)]
         public Object Status
         {
             get;
@@ -176,7 +135,6 @@ namespace Gurux.DLMS.Objects
         /// Capture time of COSEM Register object.
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(6, DataType.DateTime, Access = AccessMode.Read)]        
         public GXDateTime CaptureTime
         {
             get;
@@ -187,7 +145,6 @@ namespace Gurux.DLMS.Objects
         /// Current start time of COSEM Register object.
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(7, DataType.DateTime, Access = AccessMode.Read)]
         public GXDateTime StartTimeCurrent
         {
             get;
@@ -199,7 +156,6 @@ namespace Gurux.DLMS.Objects
         /// (NumberOfPeriods * Period is the denominator for the calculation of the demand).
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(8, Access = AccessMode.Read)]
         public ulong Period
         {
             get;
@@ -214,20 +170,71 @@ namespace Gurux.DLMS.Objects
         /// specified by the manufacturer.
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(9, Access = AccessMode.Read)]
         public uint NumberOfPeriods
         {
             get;
             set;
         }
 
+        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, CurrentAvarageValue, LastAvarageValue, ScalerUnit, 
+            return new object[] { LogicalName, CurrentAvarageValue, LastAvarageValue, "Scaler: " + Scaler + " Unit: " + Unit, 
                             Status, CaptureTime, StartTimeCurrent, Period, NumberOfPeriods };
         }
 
         #region IGXDLMSBase Members
+
+        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        {
+            List<int> attributes = new List<int>();
+            //LN is static and read only once.
+            if (string.IsNullOrEmpty(LogicalName))
+            {
+                attributes.Add(1);
+            }
+            //ScalerUnit
+            if (!base.IsRead(4))
+            {
+                attributes.Add(4);
+            }
+            //CurrentAvarageValue
+            if (CanRead(2))
+            {
+                attributes.Add(2);
+            }
+            //LastAvarageValue            
+            if (CanRead(3))
+            {
+                attributes.Add(3);
+            }
+            //Status
+            if (CanRead(5))
+            {
+                attributes.Add(5);
+            }
+            //CaptureTime
+            if (CanRead(6))
+            {
+                attributes.Add(6);
+            }
+            //StartTimeCurrent
+            if (CanRead(7))
+            {
+                attributes.Add(7);
+            }
+            //Period
+            if (CanRead(8))
+            {
+                attributes.Add(8);
+            }
+            //NumberOfPeriods
+            if (CanRead(9))
+            {
+                attributes.Add(9);
+            }
+            return attributes.ToArray();
+        }
 
         int IGXDLMSBase.GetAttributeCount()
         {
@@ -239,7 +246,7 @@ namespace Gurux.DLMS.Objects
             return 2;
         }
 
-        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters)
+        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
         {
             if (index == 1)
             {
@@ -258,13 +265,13 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 4)
             {
-                type = DataType.Structure;
-                if (ScalerUnit == null)
-                {
-                    //Set default values.
-                    ScalerUnit[0] = ScalerUnit[1] = 0;
-                }
-                return ScalerUnit;
+                type = DataType.Array;
+                List<byte> data = new List<byte>();
+                data.Add((byte)DataType.Structure);
+                data.Add(2);
+                GXCommon.SetData(data, DataType.UInt8, m_Scaler);
+                GXCommon.SetData(data, DataType.UInt8, Unit);
+                return data.ToArray();
             }
             if (index == 5)
             {
@@ -294,30 +301,77 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(int index, object value, bool raw)
         {
             if (index == 1)
             {
-                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                if (value is string)
+                {
+                    LogicalName = value.ToString();
+                }
+                else
+                {
+                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                }
             }
             else if (index == 2)
             {
-                CurrentAvarageValue = Convert.ToInt32(value);
+                if (!raw)
+                {
+                    if (Scaler != 1)
+                    {
+                        try
+                        {
+                            CurrentAvarageValue = Convert.ToDouble(value) * Scaler;
+                        }
+                        catch (Exception)
+                        {
+                            //Sometimes scaler is set for wrong Object type.
+                            CurrentAvarageValue = value;
+                        }
+                    }
+                    else
+                    {
+                        CurrentAvarageValue = value;
+                    }
+                }
+                else
+                {
+                    CurrentAvarageValue = value;
+                }                
             }
             else if (index == 3)
-            {
-                LastAvarageValue = Convert.ToInt32(value);
+            {                 
+                if (!raw)
+                {
+                    if (Scaler != 1)
+                    {
+                        try
+                        {
+                            LastAvarageValue = Convert.ToDouble(value) * Scaler;
+                        }
+                        catch (Exception)
+                        {
+                            //Sometimes scaler is set for wrong Object type.
+                            LastAvarageValue = value;
+                        }
+                    }
+                    else
+                    {
+                        LastAvarageValue = value;
+                    }
+                }
+                else
+                {
+                    LastAvarageValue = value;
+                }
             }
             else if (index == 4)
             {
-                if (ScalerUnit == null)
-                {
-                    ScalerUnit = new byte[2];
-                }
-                //Set default values.
                 if (value == null)
                 {
-                    ScalerUnit[0] = ScalerUnit[1] = 0;
+                    Scaler = 1;
+                    Unit = Unit.None;
                 }
                 else
                 {
@@ -326,9 +380,9 @@ namespace Gurux.DLMS.Objects
                     {
                         throw new Exception("setValue failed. Invalid scaler unit value.");
                     }
-                    ScalerUnit[0] = (byte)Convert.ToInt32(arr[0]);
-                    ScalerUnit[1] = (byte)Convert.ToInt32(arr[1]);
-                }                
+                    m_Scaler = Convert.ToInt32(arr[0]);
+                    Unit = (Unit)Convert.ToInt32(arr[1]);
+                }             
             }
             else if (index == 5)
             {

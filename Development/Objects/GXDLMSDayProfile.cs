@@ -74,6 +74,16 @@ namespace Gurux.DLMS
             get;
             set;
         }
+
+        public override string ToString()
+        {
+            string str = DayId.ToString();
+            foreach (GXDLMSDayProfileAction it in DaySchedules)
+            {
+                str += " " + it.ToString();
+            }
+            return str;
+        }
     }
 
     /// <summary>
@@ -124,6 +134,11 @@ namespace Gurux.DLMS
         {
             get;
             set;
+        }
+
+        public override string ToString()
+        {
+            return StartTime.ToString() + " " + ScriptLogicalName;
         }
     }
 }

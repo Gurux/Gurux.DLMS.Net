@@ -55,7 +55,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSAutoConnect()
             : base(ObjectType.AutoConnect, "0.0.2.1.0.255", 0)
         {
-            CallingWindow = new Dictionary<GXDateTime, GXDateTime>();
+            CallingWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
         }
 
         /// <summary> 
@@ -65,7 +65,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSAutoConnect(string ln)
             : base(ObjectType.AutoConnect, ln, 0)
         {
-            CallingWindow = new Dictionary<GXDateTime, GXDateTime>();
+            CallingWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
         }
 
         /// <summary> 
@@ -76,6 +76,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSAutoConnect(string ln, ushort sn)
             : base(ObjectType.AutoConnect, ln, 0)
         {
+            CallingWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
         }
 
         /// <summary>
@@ -83,7 +84,6 @@ namespace Gurux.DLMS.Objects
         /// timing, the message type to be sent and the infrastructure to be used.
         /// </summary>
         [XmlIgnore()]        
-        [GXDLMSAttribute(2)]
         public AutoConnectMode Mode
         {
             get;
@@ -94,7 +94,6 @@ namespace Gurux.DLMS.Objects
         /// The maximum number of trials in the case of unsuccessful dialling attempts.
         /// </summary>
         [XmlIgnore()]        
-        [GXDLMSAttribute(3)]
         public int Repetitions
         {
             get;
@@ -105,7 +104,6 @@ namespace Gurux.DLMS.Objects
         /// The time delay, expressed in seconds until an unsuccessful dial attempt can be repeated.
         /// </summary>
         [XmlIgnore()]        
-        [GXDLMSAttribute(4)]
         public int RepetitionDelay
         {
             get;
@@ -116,8 +114,7 @@ namespace Gurux.DLMS.Objects
         /// Contains the start and end date/time stamp when the window becomes active.
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(5)]
-        public Dictionary<GXDateTime, GXDateTime> CallingWindow
+        public List<KeyValuePair<GXDateTime, GXDateTime>> CallingWindow
         {
             get;
             set;
@@ -130,19 +127,56 @@ namespace Gurux.DLMS.Objects
         /// the array are not defined here.
         /// </summary>
         [XmlIgnore()]        
-        [GXDLMSAttribute(6)]
         public string[] Destinations
         {
             get;
             set;
         }
 
+        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, Mode, Repetitions, RepetitionDelay, CallingWindow, Destinations };
+            return new object[] { LogicalName, Mode, Repetitions, RepetitionDelay, 
+                CallingWindow, Destinations };
         }
 
         #region IGXDLMSBase Members
+
+        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        {
+            List<int> attributes = new List<int>();
+            //LN is static and read only once.
+            if (string.IsNullOrEmpty(LogicalName))
+            {
+                attributes.Add(1);
+            }
+            //Mode
+            if (CanRead(2))
+            {
+                attributes.Add(2);
+            }
+            //Repetitions
+            if (CanRead(3))
+            {
+                attributes.Add(3);
+            }
+            //RepetitionDelay
+            if (CanRead(4))
+            {
+                attributes.Add(4);
+            }
+            //CallingWindow
+            if (CanRead(5))
+            {
+                attributes.Add(5);
+            }
+            //Destinations
+            if (CanRead(6))
+            {
+                attributes.Add(6);
+            }
+            return attributes.ToArray();
+        }
 
         int IGXDLMSBase.GetAttributeCount()
         {
@@ -154,7 +188,7 @@ namespace Gurux.DLMS.Objects
             return 0;
         }
 
-        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters)
+        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
         {
             if (index == 1)
             {
@@ -221,11 +255,18 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(int index, object value, bool raw)
         {
             if (index == 1)
             {
-                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                if (value is string)
+                {
+                    LogicalName = value.ToString();
+                }
+                else
+                {
+                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                }
             }
             else if (index == 2)
             {
@@ -248,7 +289,7 @@ namespace Gurux.DLMS.Objects
                     {
                         GXDateTime start = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[0], DataType.DateTime);
                         GXDateTime end = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime);
-                        CallingWindow.Add(start, end);
+                        CallingWindow.Add(new KeyValuePair<GXDateTime, GXDateTime>(start, end));
                     }
                 }
             }

@@ -101,7 +101,18 @@ namespace Gurux.DLMS.Objects
 
     public class GXDLMSProfileGeneric : GXDLMSObject, IGXDLMSBase
     {
-        internal GXDLMSServerBase Server;
+        object Owner
+        {
+            get
+            {
+                if (Parent != null)
+                {
+                    return Parent.Parent;
+                }
+                return null;
+            }
+        }
+        
         /// <summary> 
         /// Constructor.
         /// </summary> 
@@ -130,8 +141,9 @@ namespace Gurux.DLMS.Objects
             From = DateTime.Now.Date;
             To = DateTime.Now.AddDays(1);
             AccessSelector = AccessRange.Last;
-            Buffer = new DataTable();
+            Buffer = new List<object[]>();
             CaptureObjects = new GXDLMSObjectCollection();
+            CaptureObjects2 = new List<KeyValuePair<GXDLMSObject, int>>();
         }
 
         /// <inheritdoc cref="GXDLMSObject.UpdateDefaultValueItems"/>
@@ -189,8 +201,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         [XmlIgnore()]
         [Browsable(false)]
-        [GXDLMSAttribute(2, Access = AccessMode.Read, Type=DataType.Array)]
-        public DataTable Buffer
+        public List<object[]> Buffer
         {
             get;
             set;
@@ -199,9 +210,15 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Captured Objects.
         /// </summary>
-        [GXDLMSAttribute(3, Static = true, Access = AccessMode.Read, Order = 6)]
         [XmlArray("Columns")]
         public GXDLMSObjectCollection CaptureObjects
+        {
+            get;
+            set;
+        }
+
+        [XmlArray("CaptureObjects")]
+        public List<KeyValuePair<GXDLMSObject, int>> CaptureObjects2
         {
             get;
             set;
@@ -211,7 +228,6 @@ namespace Gurux.DLMS.Objects
         /// How often values are captured.
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(4, Static = true, Access = AccessMode.Read, Order = 5)]
         public int CapturePeriod
         {
             get;
@@ -223,7 +239,6 @@ namespace Gurux.DLMS.Objects
         /// </summary>       
         [XmlIgnore()]
         [DefaultValue(SortMethod.FiFo)]
-        [GXDLMSAttribute(5, Static = true, Access = AccessMode.Read, Order = 4)]
         public SortMethod SortMethod
         {
             get;
@@ -235,7 +250,6 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         [XmlIgnore()]
         [DefaultValue(null)]
-        [GXDLMSAttribute(6, Static = true, Access = AccessMode.Read, Order = 3)]
         public GXDLMSObject SortObject
         {
             get;
@@ -246,29 +260,26 @@ namespace Gurux.DLMS.Objects
         /// Entries (rows) in Use.
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(7, Access = AccessMode.Read, Order = 1)]
         public int EntriesInUse
         {
-            get
-            {
-                return Buffer.Rows.Count;
-            }
+            get;
+            set;
         }    
 
         /// <summary>
         /// Maximum Entries (rows) count.
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(8, Static = true, Access = AccessMode.Read, Order = 2)]
         public int ProfileEntries
         {
             get;
             set;
         }
 
+        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, Buffer, CaptureObjects, 
+            return new object[] { LogicalName, Buffer.ToArray(), CaptureObjects, 
                 CapturePeriod, SortMethod, 
                 SortObject, EntriesInUse, ProfileEntries };
         }
@@ -278,7 +289,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         public void Reset()
         {
-            if (Server == null)
+            if (!(Owner is GXDLMSServerBase))
             {
                 throw new Exception("This functionality is available only in server side.");
             }
@@ -294,7 +305,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         public void Capture()
         {
-            if (Server == null)
+            if (!(Owner is GXDLMSServerBase))
             {
                 throw new Exception("This functionality is available only in server side.");
             }
@@ -303,7 +314,7 @@ namespace Gurux.DLMS.Objects
             foreach (GXDLMSObject obj in CaptureObjects)
             {
                 ValueEventArgs e = new ValueEventArgs(obj, obj.SelectedAttributeIndex);
-                Server.Read(e);
+                (Owner as GXDLMSServerBase).Read(e);
                 if (e.Handled)
                 {
                     values[++pos] = e.Value;
@@ -316,11 +327,11 @@ namespace Gurux.DLMS.Objects
             lock (Buffer)
             {
                 //Remove first items if buffer is full.
-                if (ProfileEntries == Buffer.Rows.Count)
+                if (ProfileEntries == Buffer.Count)
                 {
-                    Buffer.Rows.RemoveAt(0);
+                    Buffer.RemoveAt(0);
                 }
-                Buffer.Rows.Add(values);
+                Buffer.Add(values);
             }
         }
 
@@ -329,6 +340,46 @@ namespace Gurux.DLMS.Objects
         void IGXDLMSBase.Invoke(int index, Object parameters)
         {
             throw new ArgumentException("Invoke failed. Invalid attribute index.");
+        }
+
+        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        {
+            List<int> attributes = new List<int>();
+            //LN is static and read only once.
+            if (string.IsNullOrEmpty(LogicalName))
+            {
+                attributes.Add(1);
+            }
+            //CaptureObjects
+            if (CaptureObjects.Count == 0 && !base.IsRead(3))
+            {
+                attributes.Add(3);
+            }
+            //Buffer
+            attributes.Add(2);
+            //CapturePeriod
+            if (!base.IsRead(4))
+            {
+                attributes.Add(4);
+            }
+            //SortMethod
+            if (!base.IsRead(5))
+            {
+                attributes.Add(5);
+            }
+            //SortObject
+            if (!base.IsRead(6))
+            {
+                attributes.Add(6);
+            }
+            //EntriesInUse
+            attributes.Add(7);
+            //ProfileEntries
+            if (!base.IsRead(8))
+            {
+                attributes.Add(8);
+            }
+            return attributes.ToArray();
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -346,14 +397,13 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="table"></param>
         /// <returns></returns>
-        byte[] GetData(DataTable table)
+        byte[] GetData(List<object[]> table)
         {
             List<byte> data = new List<byte>();
             data.Add((byte)DataType.Array);
-            GXCommon.SetObjectCount(table.Rows.Count, data);
-            foreach (DataRow row in table.Rows)
+            GXCommon.SetObjectCount(table.Count, data);
+            foreach (object[] items in table)
             {
-                object[] items = row.ItemArray;
                 data.Add((byte)DataType.Structure);
                 GXCommon.SetObjectCount(items.Length, data);
                 foreach (object value in items)
@@ -425,20 +475,19 @@ namespace Gurux.DLMS.Objects
                 return GetData(Buffer);
             }
             GetAccessSelector(data, out selector, out from, out to);
-            DataTable table;
+            List<object[]> table = new List<object[]>();
             lock (Buffer)
             {
-                table = Buffer.Clone();
                 if (selector == 1) //Read by range
                 {
                     GXDateTime start = (GXDateTime)from;
                     GXDateTime end = (GXDateTime)to;
-                    foreach (DataRow row in Buffer.Rows)
+                    foreach (object[] row in Buffer)
                     {
                         DateTime tm = Convert.ToDateTime(row[0]);
                         if (tm >= start.Value && tm <= end.Value)
                         {
-                            table.Rows.Add(row.ItemArray);
+                            table.Add(row);
                         }
                     }
                 }
@@ -448,15 +497,15 @@ namespace Gurux.DLMS.Objects
                     int count = Convert.ToInt32(to);
                     for (int pos = 0; pos < count; ++pos)
                     {
-                        if (pos + start == Buffer.Rows.Count)
+                        if (pos + start == Buffer.Count)
                         {
                             break;
                         }
-                        table.Rows.Add(Buffer.Rows[start + pos].ItemArray);
+                        table.Add(Buffer[start + pos]);
                     }
                 }
             }
-            return GetData(table);
+            return GetData(Buffer);
         }
 
         void GetAccessSelector(byte[] data, out int selector, out object start, out object to)
@@ -535,7 +584,7 @@ namespace Gurux.DLMS.Objects
             return data.ToArray();
         }
 
-        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters)
+        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
         {
             if (index == 1)
             {
@@ -597,20 +646,64 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(int index, object value, bool raw)
         {
             if (index == 1)
             {
-                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                if (value is string)
+                {
+                    LogicalName = value.ToString();
+                }
+                else
+                {
+                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                }
             }
             else if (index == 2)
             {
-                //Client can't set data.
-                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+                if (CaptureObjects == null || CaptureObjects.Count == 0)
+                {
+                    throw new Exception("Read capture objects first.");
+                }
+                if (value != null && (value as object[]).Length != 0)
+                {
+                    foreach(object[] row in (value as object[]))
+                    {
+                        if ((row as object[]).Length != CaptureObjects.Count)
+                        {
+                            throw new Exception("Number of columns do not match.");
+                        }
+                        for (int pos = 0; pos != row.Length; ++pos)
+                        {
+                            if (row[pos] is byte[])
+                            {
+                                DataType type = CaptureObjects[pos].GetUIDataType(CaptureObjects[pos].SelectedAttributeIndex);
+                                row[pos] = GXDLMSClient.ChangeType(row[pos] as byte[], type);
+                            }
+                            if (CaptureObjects[pos] is GXDLMSRegister && CaptureObjects[pos].SelectedAttributeIndex == 2)
+                            {
+                                double scaler = (CaptureObjects[pos] as GXDLMSRegister).Scaler;
+                                if (scaler != 1)
+                                {
+                                    try
+                                    {
+                                        row[pos] = Convert.ToDouble(row[pos]) * scaler;
+                                    }
+                                    catch
+                                    {
+                                        //Skip error
+                                    }
+                                }
+                            }                            
+                        }
+                        Buffer.Add(row);
+                    }                    
+                }
             }
             else if (index == 3)
             {
-                CaptureObjects.Clear();
+                Buffer.Clear();                
+                CaptureObjects.Clear();                
                 foreach (object it in value as object[])
                 {
                     object[] tmp = it as object[];
@@ -622,7 +715,21 @@ namespace Gurux.DLMS.Objects
                     string ln = GXDLMSObject.toLogicalName((byte[]) tmp[1]);
                     int attributeIndex = Convert.ToInt16(tmp[2]);
                     int dataIndex = Convert.ToInt16(tmp[3]);
-                    GXDLMSObject obj = Server.Items.FindByLN(type, ln);
+                    GXDLMSObject obj = null;
+                    if (Owner is GXDLMSServerBase)
+                    {
+                        obj = (Owner as GXDLMSServerBase).Items.FindByLN(type, ln);
+                    }
+                    else if (Owner is GXDLMSClient)
+                    {
+                        obj = (Owner as GXDLMSClient).Objects.FindByLN(type, ln);
+                    }
+                    else
+                    {
+                        obj = GXDLMSClient.CreateDLMSObject((int)type, null, 0, ln, 0, attributeIndex, dataIndex);
+                    }
+                    obj.SelectedAttributeIndex = attributeIndex;
+                    obj.SelectedDataIndex = dataIndex;
                     CaptureObjects.Add(obj);
                 }
             }
@@ -649,8 +756,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 7)
             {
-                //Client can't set row count.
-                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+                EntriesInUse = Convert.ToInt32(value);
             }
             else if (index == 8)
             {

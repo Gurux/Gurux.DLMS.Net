@@ -73,7 +73,6 @@ namespace Gurux.DLMS.Objects
         }
 
         [XmlIgnore()]
-        [GXDLMSAttribute(2, DataType.String)]
         public string CalendarNameActive
         {
             get;
@@ -81,7 +80,6 @@ namespace Gurux.DLMS.Objects
         }
 
         [XmlIgnore()]
-        [GXDLMSAttribute(3, DataType.Array)]
         public GXDLMSSeasonProfile[] SeasonProfileActive
         {
             get;
@@ -89,7 +87,6 @@ namespace Gurux.DLMS.Objects
         }
 
         [System.Xml.Serialization.XmlIgnore()]
-        [GXDLMSAttribute(4, DataType.Array)]
         public GXDLMSWeekProfile[] WeekProfileTableActive
         {
             get;
@@ -97,21 +94,18 @@ namespace Gurux.DLMS.Objects
         }
 
         [System.Xml.Serialization.XmlIgnore()]
-        [GXDLMSAttribute(5, DataType.Array)]
         public GXDLMSDayProfile[] DayProfileTableActive
         {
             get;
             set;
         }
         [XmlIgnore()]
-        [GXDLMSAttribute(6, DataType.String)]
         public string CalendarNamePassive
         {
             get;
             set;
         }
         [XmlIgnore()]
-        [GXDLMSAttribute(7, DataType.Array)]
         public GXDLMSSeasonProfile[] SeasonProfilePassive
         {
             get;
@@ -119,7 +113,6 @@ namespace Gurux.DLMS.Objects
         }
 
         [System.Xml.Serialization.XmlIgnore()]
-        [GXDLMSAttribute(8, DataType.Array)]
         public GXDLMSWeekProfile[] WeekProfileTablePassive
         {
             get;
@@ -127,27 +120,85 @@ namespace Gurux.DLMS.Objects
         }
 
         [System.Xml.Serialization.XmlIgnore()]
-        [GXDLMSAttribute(9, DataType.Array)]
         public GXDLMSDayProfile[] DayProfileTablePassive
         {
             get;
             set;
         }
 
-        [XmlIgnore()]
-        [GXDLMSAttribute(10, DataType.DateTime)]
+        [XmlIgnore()]        
         public GXDateTime Time
         {
             get;
             set;
         }
 
+        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, CalendarNameActive, SeasonProfileActive, WeekProfileTableActive, DayProfileTableActive, CalendarNamePassive, SeasonProfilePassive, WeekProfileTablePassive, DayProfileTablePassive, Time };
+            return new object[] { LogicalName, CalendarNameActive, SeasonProfileActive, 
+                WeekProfileTableActive, DayProfileTableActive, CalendarNamePassive, 
+                SeasonProfilePassive, WeekProfileTablePassive, DayProfileTablePassive, Time };
         }
 
         #region IGXDLMSBase Members
+
+        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        {
+            List<int> attributes = new List<int>();
+            //LN is static and read only once.
+            if (string.IsNullOrEmpty(LogicalName))
+            {
+                attributes.Add(1);
+            }
+            //CalendarNameActive
+            if (CanRead(2))
+            {
+                attributes.Add(2);
+            }            
+            //SeasonProfileActive
+            if (CanRead(3))
+            {
+                attributes.Add(3);
+            } 
+            
+            //WeekProfileTableActive
+            if (CanRead(4))
+            {
+                attributes.Add(4);
+            } 
+            //DayProfileTableActive
+            if (CanRead(5))
+            {
+                attributes.Add(5);
+            } 
+            //CalendarNamePassive
+            if (CanRead(6))
+            {
+                attributes.Add(6);
+            } 
+            //SeasonProfileActive
+            if (CanRead(7))
+            {
+                attributes.Add(7);
+            }
+            //WeekProfileTableActive
+            if (CanRead(8))
+            {
+                attributes.Add(8);
+            }
+            //DayProfileTableActive
+            if (CanRead(9))
+            {
+                attributes.Add(9);
+            }
+            //Time.
+            if (CanRead(10))
+            {
+                attributes.Add(10);
+            }             
+            return attributes.ToArray();
+        }
 
         int IGXDLMSBase.GetAttributeCount()
         {
@@ -159,7 +210,7 @@ namespace Gurux.DLMS.Objects
             return 1;
         }
 
-        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters)
+        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
         {
             if (index == 1)
             {
@@ -369,15 +420,29 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(int index, object value, bool raw)
         {
             if (index == 1)
             {
-                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                if (value is string)
+                {
+                    LogicalName = value.ToString();
+                }
+                else
+                {
+                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                }
             }
             else if (index == 2)
             {
-                CalendarNameActive = GXDLMSClient.ChangeType((byte[])value, DataType.String).ToString();
+                if (value is byte[])
+                {
+                    CalendarNameActive = GXDLMSClient.ChangeType((byte[])value, DataType.String).ToString();
+                }
+                else
+                {
+                    CalendarNameActive = Convert.ToString(value);
+                }
             }
             else if (index == 3)
             {
@@ -445,7 +510,14 @@ namespace Gurux.DLMS.Objects
             }                
             else if (index == 6)
             {
-                CalendarNamePassive = GXDLMSClient.ChangeType((byte[])value, DataType.String).ToString();
+                if (value is byte[])
+                {
+                    CalendarNamePassive = GXDLMSClient.ChangeType((byte[])value, DataType.String).ToString();
+                }
+                else
+                {
+                    CalendarNamePassive = Convert.ToString(value);
+                }
             }
             else if (index == 7)
             {
@@ -513,7 +585,14 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 10)
             {
-                Time = (GXDateTime)GXDLMSClient.ChangeType((byte[])value, DataType.DateTime);
+                if (value is byte[])
+                {
+                    Time = (GXDateTime)GXDLMSClient.ChangeType((byte[])value, DataType.DateTime);
+                }
+                else
+                {
+                    Time = new GXDateTime(Convert.ToDateTime(value));
+                }
             }
             else
             {

@@ -1,4 +1,4 @@
-//
+﻿//
 // --------------------------------------------------------------------------
 //  Gurux Ltd
 // 
@@ -40,17 +40,16 @@ using Gurux.DLMS;
 using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
-using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
-{
-    public class GXDLMSSpecialDaysTable : GXDLMSObject, IGXDLMSBase
+{    
+    public class GXDLMSMBusSlavePortSetup : GXDLMSObject, IGXDLMSBase
     {
         /// <summary> 
         /// Constructor.
         /// </summary> 
-        public GXDLMSSpecialDaysTable()
-            : base(ObjectType.SpecialDaysTable, "0.0.11.0.0.255", 0)
+        public GXDLMSMBusSlavePortSetup()
+            : base(ObjectType.MbusSetup)
         {
         }
 
@@ -58,8 +57,8 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary> 
         /// <param name="ln">Logican Name of the object.</param>
-        public GXDLMSSpecialDaysTable(string ln)
-            : base(ObjectType.SpecialDaysTable, ln, 0)
+        public GXDLMSMBusSlavePortSetup(string ln)
+            : base(ObjectType.MbusSetup, ln, 0)
         {
         }
 
@@ -68,24 +67,45 @@ namespace Gurux.DLMS.Objects
         /// </summary> 
         /// <param name="ln">Logican Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
-        public GXDLMSSpecialDaysTable(string ln, ushort sn)
-            : base(ObjectType.SpecialDaysTable, ln, 0)
+        public GXDLMSMBusSlavePortSetup(string ln, ushort sn)
+            : base(ObjectType.MbusSetup, ln, 0)
         {
         }
 
-        /// <inheritdoc cref="GXDLMSObject.LogicalName"/>
-        [DefaultValue("0.0.11.0.0.255")]
-        override public string LogicalName
+        /// <summary>
+        /// Defines the baud rate for the opening sequence.
+        /// </summary>
+        public BaudRate DefaultBaud
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Value of COSEM Data object.
+        /// Defines the baud rate for the opening sequence.
         /// </summary>
-        [XmlIgnore()]
-        public GXDLMSSpecialDay[] Entries
+        public BaudRate AvailableBaud
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Defines whether or not the device has been assigned an address
+        /// since last power up of the device.
+        /// </summary>
+        /// <returns></returns>
+        public AddressState AddressState
+        {
+            get;
+            set;
+        }
+
+
+        /// <summary>
+        /// Defines the baud rate for the opening sequence.
+        /// </summary>
+        public int BusAddress
         {
             get;
             set;
@@ -94,10 +114,19 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, Entries };
+            return new Object[] { LogicalName, DefaultBaud, AvailableBaud, AddressState, BusAddress };
         }
 
         #region IGXDLMSBase Members
+
+        /// <summary>
+        /// Data interface do not have any methods.
+        /// </summary>
+        /// <param name="index"></param>
+        void IGXDLMSBase.Invoke(int index, Object parameters)
+        {
+            throw new ArgumentException("Invoke failed. Invalid attribute index.");
+        }
 
         int[] IGXDLMSBase.GetAttributeIndexToRead()
         {
@@ -107,22 +136,37 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(1);
             }
-            //Entries
-            if (!base.IsRead(2))
+            //DefaultBaud
+            if (IsRead(2))
             {
                 attributes.Add(2);
+            }
+            //AvailableBaud
+            if (IsRead(3))
+            {
+                attributes.Add(3);
+            }
+            //AddressState
+            if (IsRead(4))
+            {
+                attributes.Add(4);
+            }
+            //BusAddress
+            if (IsRead(5))
+            {
+                attributes.Add(5);
             }
             return attributes.ToArray();
         }
 
         int IGXDLMSBase.GetAttributeCount()
         {
-            return 2;
+            return 5;
         }
 
         int IGXDLMSBase.GetMethodCount()
         {
-            return 2;
+            return 0;
         }
 
         object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
@@ -134,24 +178,23 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 2)
             {
-                type = DataType.Array;
-                int cnt = Entries.Length;
-                List<byte> data = new List<byte>();
-                data.Add((byte)DataType.Array);
-                //Add count            
-                GXCommon.SetObjectCount(cnt, data);
-                if (cnt != 0)
-                {
-                    foreach (GXDLMSSpecialDay it in Entries)
-                    {
-                        data.Add((byte)DataType.Structure);
-                        data.Add((byte)3); //Count
-                        GXCommon.SetData(data, DataType.UInt16, it.Index);
-                        GXCommon.SetData(data, DataType.DateTime, it.Date);
-                        GXCommon.SetData(data, DataType.UInt8, it.DayId);
-                    }
-                }
-                return data.ToArray();
+                type = DataType.Enum;
+                return DefaultBaud;
+            }
+            if (index == 3)
+            {
+                type = DataType.Enum;
+                return AvailableBaud;
+            }
+            if (index == 4)
+            {
+                type = DataType.Enum;
+                return AddressState;
+            }
+            if (index == 5)
+            {
+                type = DataType.UInt16;
+                return BusAddress;
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
@@ -171,19 +214,46 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 2)
             {
-                Entries = null;
-                if (value != null)
+                if (value == null)
                 {
-                    List<GXDLMSSpecialDay> items = new List<GXDLMSSpecialDay>();
-                    foreach (Object[] item in (Object[])value)
-                    {
-                        GXDLMSSpecialDay it = new GXDLMSSpecialDay();
-                        it.Index = Convert.ToUInt16(item[0]);
-                        it.Date = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.Date);
-                        it.DayId = Convert.ToByte(item[2]);
-                        items.Add(it);
-                    }
-                    Entries = items.ToArray();
+                    DefaultBaud = BaudRate.Baudrate300;
+                }
+                else
+                {
+                    DefaultBaud = (BaudRate)Convert.ToInt32(value);
+                }
+            }
+            else if (index == 3)
+            {
+                if (value == null)
+                {
+                    AvailableBaud = BaudRate.Baudrate300;
+                }
+                else
+                {
+                    AvailableBaud = (BaudRate)Convert.ToInt32(value);
+                }
+            }
+            else if (index == 4)
+            {
+                if (value == null)
+                {
+                    AddressState = AddressState.None;
+                }
+                else
+                {
+                    AddressState = (AddressState)Convert.ToInt32(value);
+                }
+            }
+            else if (index == 5)
+            {
+                if (value == null)
+                {
+                    BusAddress = 0;
+                }
+                else
+                {
+                    BusAddress = Convert.ToInt32(value);
                 }
             }
             else
@@ -191,12 +261,6 @@ namespace Gurux.DLMS.Objects
                 throw new ArgumentException("SetValue failed. Invalid attribute index.");
             }
         }
-
-        void IGXDLMSBase.Invoke(int index, object parameters)
-        {
-            throw new ArgumentException("Invoke failed. Invalid attribute index.");
-        }
-
         #endregion
     }
 }

@@ -661,7 +661,7 @@ namespace Gurux.DLMS
         {
             m_Base.ClearProgress();
             //If connection is not established, there is no need to send DisconnectRequest.
-            if (SNSettings == null && LNSettings == null) //TODO:
+            if (SNSettings == null && LNSettings == null)
             {
                 return null;
             }
@@ -716,7 +716,7 @@ namespace Gurux.DLMS
         /// <param name="AttributeIndex"></param>
         /// <param name="dataIndex"></param>
         /// <returns></returns>
-        GXDLMSObject CreateDLMSObject(int ClassID, object Version, int BaseName, object LN, object AccessRights, int AttributeIndex, int dataIndex)
+        internal static GXDLMSObject CreateDLMSObject(int ClassID, object Version, int BaseName, object LN, object AccessRights, int AttributeIndex, int dataIndex)
         {
             GXDLMSObject obj = null;
             ObjectType type = (ObjectType)ClassID;
@@ -729,16 +729,7 @@ namespace Gurux.DLMS
             {
                 obj = new GXDLMSObject();
             }
-            UpdateObjectData(obj, type, Version, BaseName, (byte[])LN, AccessRights, AttributeIndex, dataIndex);
-            if (ObisCodes != null)
-            {
-                Gurux.DLMS.ManufacturerSettings.GXObisCode code = ObisCodes.FindByLN(obj.ObjectType, obj.LogicalName, null);
-                if (code != null)
-                {
-                    obj.Description = code.Description;
-                    obj.Attributes.AddRange(code.Attributes);
-                }
-            }
+            UpdateObjectData(obj, type, Version, BaseName, LN, AccessRights, AttributeIndex, dataIndex);
             return obj;
         }
 
@@ -755,7 +746,7 @@ namespace Gurux.DLMS
             {
                 throw new GXDLMSException("Invalid response.");
             }
-            GXDLMSObjectCollection items = new GXDLMSObjectCollection();
+            GXDLMSObjectCollection items = new GXDLMSObjectCollection(this);
             long cnt = GXCommon.GetObjectCount(buff, ref index);
             int total, count;
             int[] values = null;
@@ -809,7 +800,7 @@ namespace Gurux.DLMS
         /// <param name="accessRights"></param>
         /// <param name="attributeIndex"></param>
         /// <param name="dataIndex"></param>
-        internal static void UpdateObjectData(GXDLMSObject obj, ObjectType objectType, object version, object baseName, byte[] logicalName, object accessRights, int attributeIndex, int dataIndex)
+        internal static void UpdateObjectData(GXDLMSObject obj, ObjectType objectType, object version, object baseName, object logicalName, object accessRights, int attributeIndex, int dataIndex)
         {
             obj.ObjectType = objectType;
             // Check access rights...            
@@ -846,7 +837,113 @@ namespace Gurux.DLMS
             {
                 obj.Version = Convert.ToInt32(version);
             }
-            obj.LogicalName = GXDLMSObject.toLogicalName(logicalName);
+            if (logicalName is byte[])
+            {
+                obj.LogicalName = GXDLMSObject.toLogicalName((byte[])logicalName);
+            }
+            else
+            {
+                obj.LogicalName = logicalName.ToString();
+            }
+        }
+
+        static void UpdateOBISCodes(GXDLMSObjectCollection objects)
+        {
+            GXStandardObisCodeCollection codes = new GXStandardObisCodeCollection();
+            string[] rows = Gurux.DLMS.Properties.Resources.OBISCodes.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string it in rows)
+            {
+                string[] items = it.Split(new char[] { ';' });
+                string[] obis = items[0].Split(new char[] { '.' });
+                GXStandardObisCode code = new GXStandardObisCode(obis, items[3] + "; " + items[4] + "; " +
+                    items[5] + "; " + items[6] + "; " + items[7], items[1], items[2]);
+                codes.Add(code);
+            }
+            foreach (GXDLMSObject it in objects)
+            {
+                if (!string.IsNullOrEmpty(it.Description) && it.ObjectType != ObjectType.None)
+                {
+                    continue;
+                }
+                GXStandardObisCode code = codes.Find(it.LogicalName, it.ObjectType);                
+                if (code != null)
+                {
+                    it.Description = code.Description;
+                    //If string is used
+                    if (code.DataType.Contains("10"))
+                    {
+                        code.DataType = "10";
+                    }
+                    //If date time is used.
+                    else if (code.DataType.Contains("25") || code.DataType.Contains("26"))
+                    {
+                        code.DataType = "25";
+                    }                    
+                    //Time stamps of the billing periods objects (first scheme if there are two)
+                    else if (code.DataType.Contains("9"))
+                    {
+                        if ((GXStandardObisCodeCollection.EqualsMask("0.0-64.96.7.10-14.255", it.LogicalName) ||
+                            //Time stamps of the billing periods objects (second scheme)
+                        GXStandardObisCodeCollection.EqualsMask("0.0-64.0.1.5.0-99,255", it.LogicalName) ||
+                            //Time of power failure
+                        GXStandardObisCodeCollection.EqualsMask("0.0-64.0.1.2.0-99,255", it.LogicalName) ||
+                            //Time stamps of the billing periods objects (first scheme if there are two)                        
+                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.1.2.0-99,255", it.LogicalName) ||
+                            //Time stamps of the billing periods objects (second scheme)
+                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.1.5.0-99,255", it.LogicalName) ||
+                            //Time expired since last end of billing period
+                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.0.255", it.LogicalName) ||
+                            //Time of last reset
+                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.6.255", it.LogicalName) ||
+                            //Date of last reset
+                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.7.255", it.LogicalName) ||
+                            //Time expired since last end of billing period (Second billing period scheme)
+                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.13.255", it.LogicalName) ||
+                            //Time of last reset (Second billing period scheme)
+                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.14.255", it.LogicalName) ||
+                            //Date of last reset (Second billing period scheme)
+                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.15.255", it.LogicalName)))
+                        {
+                            code.DataType = "25";
+                        }
+                        //Local time
+                        else if (GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.1.255", it.LogicalName))
+                        {
+                            code.DataType = "27";
+                        }
+                        //Local date
+                        else if (GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.2.255", it.LogicalName))
+                        {
+                            code.DataType = "26";
+                        }
+                    }
+                    if (code.DataType != "*" && code.DataType != string.Empty && !code.DataType.Contains(","))
+                    {
+                        DataType type = (DataType)int.Parse(code.DataType);
+                        switch (it.ObjectType)
+                        {                            
+                            case ObjectType.Data:
+                            case ObjectType.Register:
+                            case ObjectType.RegisterActivation:
+                            case ObjectType.ExtendedRegister:
+                                it.SetUIDataType(2, type);
+                                break;
+                            default:
+                                break;
+                        }                        
+                    }                    
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("Unknown OBIS Code: " + it.LogicalName + " Type: " + it.ObjectType);
+                }
+            }
+        }
+
+        public GXDLMSObjectCollection Objects
+        {
+            get;
+            set;
         }
 
         /// <summary>
@@ -869,6 +966,8 @@ namespace Gurux.DLMS
             {
                 objects = ParseSNObjects(data, onlyKnownObjects);
             }
+            UpdateOBISCodes(objects);
+            Objects = objects;
             return objects;
         }
 
@@ -887,7 +986,7 @@ namespace Gurux.DLMS
             //get object count
             int cnt = GXCommon.GetObjectCount(buff, ref index);
             int objectCnt = 0;
-            GXDLMSObjectCollection items = new GXDLMSObjectCollection();
+            GXDLMSObjectCollection items = new GXDLMSObjectCollection(this);
             int total, count;
             int[] values = null;
             if (onlyKnownObjects)
@@ -915,7 +1014,7 @@ namespace Gurux.DLMS
                 if (!onlyKnownObjects || values.Contains(type2))
                 {
                     GXDLMSObject comp = CreateDLMSObject(type2, objects[1], 0, objects[2], objects[3], 0, 0);
-                    items.Add(comp);
+                    items.Add(comp);                    
                 }
                 else
                 {
@@ -967,7 +1066,25 @@ namespace Gurux.DLMS
                 {
                     items.Add(comp);
                 }
-            }
+                //Update data type and scaler unit if register.
+                GXDLMSObject tmp = Objects.FindByLN(comp.ObjectType, comp.LogicalName);
+                if (tmp != null)
+                {
+                    if (comp is GXDLMSRegister)
+                    {
+                        int index2 = tmp.SelectedAttributeIndex;
+                        //Some meters return zero.
+                        if (index2 == 0)
+                        {
+                            index2 = 2;
+                        }
+                        comp.SetUIDataType(index2, tmp.GetUIDataType(index2));
+                        (comp as GXDLMSRegister).Scaler = (tmp as GXDLMSRegister).Scaler;
+                        (comp as GXDLMSRegister).Unit = (tmp as GXDLMSRegister).Unit;
+                    }
+                }
+            }            
+            UpdateOBISCodes(items);
             return items;
         }
 
@@ -977,8 +1094,7 @@ namespace Gurux.DLMS
         public object UpdateValue(byte[] data, GXDLMSObject target, int attributeIndex)
         {
             target.SetValue(attributeIndex, GetValue(data, target, attributeIndex));
-            DataType type;
-            return (target as IGXDLMSBase).GetValue(attributeIndex, out type, null);
+            return target.GetValues()[attributeIndex - 1];
         }
 
         /// <summary>
@@ -1118,32 +1234,7 @@ namespace Gurux.DLMS
         public static GXDLMSAttributeSettings GetAttributeInfo(GXDLMSObject item, int index)
         {
             GXDLMSAttributeSettings att = item.Attributes.Find(index);
-            if (att != null)
-            {
-                return att;
-            }
-            GXDLMSAttribute att2;
-            PropertyInfo info;
-            GetPropertyInfo(item, index, out att2, out info);
-            return att2;
-        }
-
-        public static PropertyInfo GetPropertyInfo(object item, int index, out GXDLMSAttribute att, out PropertyInfo info)
-        {
-            info = null;
-            att = null;
-            PropertyInfo[] fields = item.GetType().GetProperties(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).Where(x => Attribute.IsDefined(x, typeof(GXDLMSAttribute), false)).ToArray();
-            foreach (PropertyInfo it in fields)
-            {
-                GXDLMSAttribute tmp = Attribute.GetCustomAttribute(it, typeof(GXDLMSAttribute)) as GXDLMSAttribute;
-                if (tmp.Index == index)
-                {
-                    info = it;
-                    att = tmp;
-                    return it;
-                }
-            }
-            return null;
+            return att;
         }
 
         /// <summary>
@@ -1154,13 +1245,13 @@ namespace Gurux.DLMS
         /// <returns>Value changed by type.</returns>
         public static object ChangeType(byte[] value, DataType type)
         {
+            if ((value == null || value.Length == 0) && (type == DataType.String || type == DataType.OctetString))
+            {
+                return string.Empty;
+            }
             if (value == null)
             {
                 return null;
-            }
-            if (value.Length == 0 && (type == DataType.String || type == DataType.OctetString))
-            {
-                return string.Empty;
             }
             if (type == DataType.None)
             {
@@ -1204,7 +1295,7 @@ namespace Gurux.DLMS
         /// This method is used to get all registers in the device.
         /// </remarks>
         /// <returns>Read request, as byte array.</returns>
-        public byte[] GetObjects()
+        public byte[] GetObjectsRequest()
         {
             object name;
             if (UseLogicalNameReferencing)
@@ -1288,25 +1379,8 @@ namespace Gurux.DLMS
             {
                 throw new GXDLMSException("Invalid parameter");
             }
-            object value = null;
-            PropertyDescriptorCollection pdc = TypeDescriptor.GetProperties(item);
-            bool found = false;
-            DataType type = DataType.None;
-            foreach (PropertyDescriptor it in pdc)
-            {
-                GXDLMSAttribute att = it.Attributes[typeof(GXDLMSAttribute)] as GXDLMSAttribute;
-                if (att != null && att.Index == index)
-                {
-                    found = true;
-                    value = it.GetValue(item);
-                    type = item.GetDataType(index);
-                    break;
-                }
-            }
-            if (!found)
-            {
-                throw new Exception("Index out of range.");
-            }            
+            DataType type;
+            Object value = (item as IGXDLMSBase).GetValue(index, out type, null, true);
             return Write(item.Name, value, type, item.ObjectType, index);
         }
 
@@ -1424,6 +1498,10 @@ namespace Gurux.DLMS
         /// <returns></returns>
         public byte[] ReadRowsByRange(object name, string ln, ObjectType objectType, int version, DateTime start, DateTime end)
         {
+            GXDateTime s = new GXDateTime(start);
+            s.Skip = DateTimeSkips.Ms;
+            GXDateTime e = new GXDateTime(end);
+            e.Skip = DateTimeSkips.Ms;
             m_Base.ClearProgress();
             List<byte> buff = new List<byte>();
             buff.Add(0x01);  //Add AccessSelector
@@ -1435,8 +1513,8 @@ namespace Gurux.DLMS
             GXCommon.SetData(buff, DataType.OctetString, ln);// Add parameter Logical name
             GXCommon.SetData(buff, DataType.Int8, 2);// Add attribute index.
             GXCommon.SetData(buff, DataType.UInt16, version);// Add version
-            GXCommon.SetData(buff, DataType.DateTime, start);// Add start time.
-            GXCommon.SetData(buff, DataType.DateTime, end);// Add end time.
+            GXCommon.SetData(buff, DataType.DateTime, s);// Add start time.
+            GXCommon.SetData(buff, DataType.DateTime, e);// Add end time.
             //Add array of read columns. Read All...
             buff.Add(0x01); //Add item count   
             buff.Add(0x00); //Add item count   

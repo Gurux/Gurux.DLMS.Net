@@ -71,6 +71,7 @@ namespace Gurux.DLMS.Objects
         {
         }
 
+        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, };

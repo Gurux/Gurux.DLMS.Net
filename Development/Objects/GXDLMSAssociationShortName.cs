@@ -64,7 +64,6 @@ namespace Gurux.DLMS.Objects
         }
 
         [XmlIgnore()]
-        [GXDLMSAttribute(2, Static = true)]
         public GXDLMSObjectCollection ObjectList
         {
             get;
@@ -72,7 +71,6 @@ namespace Gurux.DLMS.Objects
         }
 
         [XmlIgnore()]
-        [GXDLMSAttribute(3, Static = true)]
         public object AccessRightsList
         {
             get;
@@ -80,13 +78,13 @@ namespace Gurux.DLMS.Objects
         }
 
         [XmlIgnore()]
-        [GXDLMSAttribute(4, Static = true)]
         public object SecuritySetupReference
         {
             get;
             set;
         }
 
+        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, ObjectList, AccessRightsList, SecuritySetupReference };
@@ -97,6 +95,32 @@ namespace Gurux.DLMS.Objects
         void IGXDLMSBase.Invoke(int index, Object parameters)
         {
             throw new ArgumentException("Invoke failed. Invalid attribute index.");
+        }
+
+        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        {
+            List<int> attributes = new List<int>();
+            //LN is static and read only once.
+            if (string.IsNullOrEmpty(LogicalName))
+            {
+                attributes.Add(1);
+            }
+            //ObjectList is static and read only once.
+            if (!base.IsRead(2))
+            {
+                attributes.Add(2);
+            }
+            //AccessRightsList is static and read only once.
+            if (!base.IsRead(3))
+            {
+                attributes.Add(3);
+            }
+            //SecuritySetupReference is static and read only once.
+            if (!base.IsRead(4))
+            {
+                attributes.Add(4);
+            }
+            return attributes.ToArray();
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -135,7 +159,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters)
+        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
         {
             if (ObjectList == null)
             {
@@ -240,11 +264,18 @@ namespace Gurux.DLMS.Objects
             return base.GetDataType(index);
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(int index, object value, bool raw)
         {
             if (index == 1)
             {
-                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                if (value is string)
+                {
+                    LogicalName = value.ToString();
+                }
+                else
+                {
+                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                }                
             }
             else if (index == 2)
             {
@@ -287,10 +318,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 4)
             {
-                if (value != null)
-                {
-                    throw new ArgumentException("SetValue failed. Invalid attribute index.");
-                }
+                
             }
             else
             {

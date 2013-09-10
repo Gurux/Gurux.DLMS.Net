@@ -52,7 +52,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSSapAssignment()
             : base(ObjectType.SapAssignment, "0.0.41.0.0.255", 0)
         {
-            SapAssignmentList = new Dictionary<ushort, string>();
+            SapAssignmentList = new List<KeyValuePair<UInt16, string>>();
         }
 
         /// <summary> 
@@ -62,7 +62,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSSapAssignment(string ln)
             : base(ObjectType.SapAssignment, ln, 0)
         {
-            SapAssignmentList = new Dictionary<ushort, string>();
+            SapAssignmentList = new List<KeyValuePair<UInt16, string>>();
         }
 
         /// <summary> 
@@ -73,23 +73,39 @@ namespace Gurux.DLMS.Objects
         public GXDLMSSapAssignment(string ln, ushort sn)
             : base(ObjectType.SapAssignment, ln, 0)
         {
-            SapAssignmentList = new Dictionary<ushort, string>();
+            SapAssignmentList = new List<KeyValuePair<UInt16, string>>();
         }
 
         [XmlIgnore()]
-        [GXDLMSAttribute(2, Static=true)]
-        public Dictionary<UInt16, string> SapAssignmentList
+        public List<KeyValuePair<UInt16, string>> SapAssignmentList
         {
             get;
             set;
         }
 
+        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, SapAssignmentList };
         }
 
         #region IGXDLMSBase Members
+
+        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        {
+            List<int> attributes = new List<int>();
+            //LN is static and read only once.
+            if (string.IsNullOrEmpty(LogicalName))
+            {
+                attributes.Add(1);
+            }
+            //SapAssignmentList
+            if (!base.IsRead(2))
+            {
+                attributes.Add(2);
+            }
+            return attributes.ToArray();
+        }
 
         int IGXDLMSBase.GetAttributeCount()
         {
@@ -101,7 +117,7 @@ namespace Gurux.DLMS.Objects
             return 1;
         }
 
-        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters)
+        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
         {
             if (index == 1)
             {
@@ -135,11 +151,18 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(int index, object value, bool raw)
         {
             if (index == 1)
             {
-                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                if (value is string)
+                {
+                    LogicalName = value.ToString();
+                }
+                else
+                {
+                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                }
             }
             else if (index == 2)
             {
@@ -157,7 +180,7 @@ namespace Gurux.DLMS.Objects
                         {
                             str = Convert.ToString(item[1]);
                         }                        
-                        SapAssignmentList.Add(Convert.ToUInt16(item[0]), str);
+                        SapAssignmentList.Add(new KeyValuePair<UInt16, string>(Convert.ToUInt16(item[0]), str));
                     }                    
                 }
             }

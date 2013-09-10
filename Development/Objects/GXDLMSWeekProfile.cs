@@ -111,5 +111,10 @@ namespace Gurux.DLMS
             set;
         }
 
+        public override string ToString()
+        {
+            return Name;
+        }
+
     }
 }

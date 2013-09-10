@@ -47,8 +47,7 @@ namespace Gurux.DLMS
     /// Gurux.DLMS library is a high-performance .NET component that helps you to read you DLMS/COSEM 
     /// compatible electricity, gas or water meters. We have try to make component so easy to 
     /// use that you do not need understand protocol at all.
-    /// You do not nesessary need to use <a href="http://www.gurux.org/index.php?q=Gurux.Serial">Gurux.Serial</a> or 
-    /// <a href="http://www.gurux.org/index.php?q=Gurux.Net">Gurux.Net</a>. 
+    /// You do not nesessary need to use <a href="http://www.gurux.org/index.php?q=Gurux.Serial">Gurux.Serial</a>, <a href="http://www.gurux.org/index.php?q=Gurux.Terminal">Gurux.Terminal</a> or <a href="http://www.gurux.org/index.php?q=Gurux.Net">Gurux.Net</a>. 
     /// You can use any connection library you want to. Gurux.DLMS classes only parse the data.
     /// <a target="_blank" href="index.php?q=DLMSIntro">Read intraductions</a> and start building your own AMR system today!
     /// <a target="_blank" href="index.php?q=OwnDLMSMeter">Read intraductions</a> and build your own DLMS/COSEM meter.   
@@ -122,8 +121,7 @@ namespace Gurux.DLMS
     ///             Media.Receive(p);
     ///             throw new Exception("Invalid responce.");
     ///         }
-    ///         string manufactureID = p.Reply.Substring(1, 3);
-    ///         //UpdateManufactureSettings(manufactureID);
+    ///         string manufactureID = p.Reply.Substring(1, 3);    
     ///         char baudrate = p.Reply[4];
     ///         int BaudRate = 0;
     ///         switch (baudrate)
@@ -216,6 +214,7 @@ namespace Gurux.DLMS
     /// </example>
     /// If parameters are right connection is made.
     /// Next you can read Association view and show all objects that meter can offer.
+    /// Note! COSEM Object descriptions are updated from the OBIS Code.
     /// <example>
     /// <code>
     /// // Read Association View from the meter.
@@ -223,11 +222,44 @@ namespace Gurux.DLMS
     /// GXDLMSObjectCollection objects = client.ParseObjects(reply, true);
     /// </code>
     /// </example>
-    /// Now you can read wanted objects. After read you must close the connection by sending disconnecting request.
+    /// Now you can read wanted objects. 
+    /// In this example we read all atributes from all objects from the meter.
+    /// Note! This might take some time.
+    /// <example>
+    /// <code> 
+    /// foreach (GXDLMSObject it in objects)
+    /// {
+    ///     foreach (int pos in (it as IGXDLMSBase).GetAttributeIndexToRead())
+    ///     {
+    ///         try
+    ///         {
+    ///             object val = comm.Read(it, pos);
+    ///         }
+    ///     }
+    /// }
+    /// </code>
+    /// </example>
+    /// Writing is also very simple. Just update data to the object and write attribute index to the meter.    
+    /// <example>
+    /// <code> 
+    /// GXDLMSActivityCalendar activity = it as GXDLMSActivityCalendar;
+    /// activity.setDayProfileTableActive(new GXDLMSDayProfile[]{new GXDLMSDayProfile(1, new GXDLMSDayProfileAction[]{new GXDLMSDayProfileAction(new GXDateTime(now), "test", 1)})});
+    /// ReadDataBlock(m_Parser.Write(it, attributeIndex)[0]);    
+    /// </code>
+    /// </example>    
+    /// After read and/or writing you must close the connection by sending disconnecting request.    
     /// <example>
     /// <code>
     /// ReadDLMSPacket(m_Parser.DisconnectRequest());
     /// Media.Close();
+    /// </code>
+    /// </example>
+    /// If you want to keep connection up you must send keep alive message. Keep alive time is meter spesific.
+    /// <example>
+    /// <code>
+    /// byte[] allData = null, reply = null;
+    /// reply = ReadDLMSPacket(m_Cosem.GetKeepAlive());
+    /// m_Cosem.GetDataFromPacket(reply, ref allData);
     /// </code>
     /// </example>
     /// <example>

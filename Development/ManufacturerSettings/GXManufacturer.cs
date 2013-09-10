@@ -340,8 +340,12 @@ namespace Gurux.DLMS.ManufacturerSettings
             {
                 if (addressing == HDLCAddressType.SerialNumber)
                 {
-                    physicalAddress = Convert.ChangeType(EvaluateSN(Convert.ToInt32(physicalAddress), formula), physicalAddress.GetType());
-                    LogicalAddress = 0;
+                    Type type = physicalAddress.GetType();
+                    if (type != typeof(byte) && type != typeof(UInt16) && type != typeof(UInt32))
+                    {
+                        type = typeof(UInt16);
+                    }
+                    physicalAddress = Convert.ChangeType(EvaluateSN(Convert.ToInt32(physicalAddress), formula), type);
                 }
                 if (physicalAddress is byte)
                 {
@@ -352,7 +356,7 @@ namespace Gurux.DLMS.ManufacturerSettings
                 {
                     int physicalID = Convert.ToInt32(physicalAddress);
                     int logicalID = Convert.ToInt32(LogicalAddress);
-                    int total = (physicalID & 0x7F) << 1 | 1;
+                    int total = (physicalID) << 1 | 1;
                     value = Convert.ToUInt32(total | (logicalID << 9));                    
                     value = Convert.ChangeType(value, typeof(UInt16));
                 }

@@ -42,6 +42,15 @@ namespace Gurux.DLMS.Objects
     public interface IGXDLMSBase
     {
         /// <summary>
+        /// Returns collection of attributes to read.
+        /// </summary>
+        /// <remarks>
+        /// If attribute is static and already read or device is returned HW error it is not returned.
+        /// </remarks>
+        /// <returns>Collection of attributes to read.</returns>                
+        int[] GetAttributeIndexToRead();
+
+        /// <summary>
         /// Returns amount of attributes.
         /// </summary>
         /// <returns>Count of attributes.</returns>
@@ -56,16 +65,24 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Returns value of given attribute.
         /// </summary>
+        /// <remarks>
+        /// When raw parameter us not used example register multiplies value by scalar.
+        /// </remarks>
         /// <param name="index">Attribute index</param>
         /// <returns>Value of the attribute index.</returns>
-        Object GetValue(int index, out DataType type, byte[] parameters);
-        
+        /// <param name="raw">Is value get as raw value.</param>
+        Object GetValue(int index, out DataType type, byte[] parameters, bool raw);
+
         /// <summary>
         /// Set value of given attribute.
         /// </summary>
+        /// <remarks>
+        /// When raw parameter us not used example register multiplies value by scalar.
+        /// </remarks>
         /// <param name="index">Attribute index</param>
         /// <param name="value">Value of the attribute index.</param>
-        void SetValue(int index, Object value);
+        /// <param name="raw">Is value set as raw.</param>
+        void SetValue(int index, Object value, bool raw);
 
         /// <summary>
         /// Invokes method.

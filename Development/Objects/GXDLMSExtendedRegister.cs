@@ -40,6 +40,7 @@ using System.ComponentModel;
 using Gurux.DLMS;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
@@ -106,10 +107,9 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Scaler of COSEM Register object.
+        /// Status
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(4, Access = AccessMode.Read)]
         public object Status
         {
             get;
@@ -117,19 +117,68 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Scaler of COSEM Register object.
+        /// Capture time.
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(5, DataType.DateTime, Access = AccessMode.Read)]
         public DateTime CaptureTime
         {
             get;
             set;
         }
 
+        public override DataType GetUIDataType(int index)
+        {
+            if (index == 5)
+            {
+                return DataType.DateTime;
+            }
+            return base.GetUIDataType(index);
+        }
+
+        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, Value, ScalerUnit, Status, CaptureTime };
+            return new object[] { LogicalName, Value, "Scaler: " + Scaler + " Unit: " + Unit, Status, CaptureTime };
+        }
+
+        public override bool IsRead(int index)
+        {
+            if (index == 3)
+            {
+                return Unit != 0;
+            }
+            return base.IsRead(index);
+        }
+
+        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        {
+            List<int> attributes = new List<int>();
+            //LN is static and read only once.
+            if (string.IsNullOrEmpty(LogicalName))
+            {
+                attributes.Add(1);
+            }
+            //ScalerUnit
+            if (!IsRead(3))
+            {
+                attributes.Add(3);
+            }
+            //Value
+            if (CanRead(2))
+            {
+                attributes.Add(2);
+            }
+            //Status
+            if (CanRead(4))
+            {
+                attributes.Add(4);
+            }
+            //CaptureTime
+            if (CanRead(5))
+            {
+                attributes.Add(5);
+            }
+            return attributes.ToArray();
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -137,7 +186,7 @@ namespace Gurux.DLMS.Objects
             return 5;
         }
 
-        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters)
+        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
         {
             if (index == 1)
             {
@@ -151,8 +200,13 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 3)
             {
-                type = DataType.Structure;
-                return ScalerUnit;
+                type = DataType.Array;
+                List<byte> data = new List<byte>();
+                data.Add((byte)DataType.Structure);
+                data.Add(2);
+                GXCommon.SetData(data, DataType.UInt8, m_Scaler);
+                GXCommon.SetData(data, DataType.UInt8, Unit);
+                return data.ToArray();
             }
             if (index == 4)
             {
@@ -167,26 +221,51 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(int index, object value, bool raw)
         {
             if (index == 1)
             {
-                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                if (value is string)
+                {
+                    LogicalName = value.ToString();
+                }
+                else
+                {
+                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                }
             }
             else if (index == 2)
             {
-                Value = value;
+                if (!raw)
+                {
+                    if (Scaler != 1)
+                    {
+                        try
+                        {
+                            Value = Convert.ToDouble(value) * Scaler;
+                        }
+                        catch (Exception)
+                        {
+                            //Sometimes scaler is set for wrong Object type.
+                            Value = value;
+                        }
+                    }
+                    else
+                    {
+                        Value = value;
+                    }
+                }
+                else
+                {
+                    Value = value;
+                }                
             }
             else if (index == 3)
             {
-                if (ScalerUnit == null)
-                {
-                    ScalerUnit = new byte[2];
-                }
-                //Set default values.
                 if (value == null)
                 {
-                    ScalerUnit[0] = ScalerUnit[1] = 0;
+                    Scaler = 1;
+                    Unit = Unit.None;
                 }
                 else
                 {
@@ -195,8 +274,8 @@ namespace Gurux.DLMS.Objects
                     {
                         throw new Exception("setValue failed. Invalid scaler unit value.");
                     }
-                    ScalerUnit[0] = (byte)Convert.ToInt32(arr[0]);
-                    ScalerUnit[1] = (byte)Convert.ToInt32(arr[1]);
+                    m_Scaler = Convert.ToInt32(arr[0]);
+                    Unit = (Unit)Convert.ToInt32(arr[1]);
                 }
             }
             else if (index == 4)

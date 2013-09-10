@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{EFD71BFF-AD54-45ED-B473-305813C2F83A}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -53,6 +53,11 @@
     <Compile Include="AccessMode.cs" />
     <Compile Include="AssociationResult.cs" />
     <Compile Include="Authentication.cs" />
+    <Compile Include="GXStandardObisObject.cs" />
+    <Compile Include="GXStandardObisObjectCollection.cs" />
+    <Compile Include="ManufacturerSettings\GXAttribute.cs" />
+    <Compile Include="ManufacturerSettings\GXAttributeCollection.cs" />
+    <Compile Include="Objects\AddressState.cs" />
     <Compile Include="Objects\AutoAnswerMode.cs" />
     <Compile Include="Objects\AutoAnswerStatus.cs" />
     <Compile Include="Objects\AutoConnectMode.cs" />
@@ -72,7 +77,13 @@
     <Compile Include="GXDLMSLNSettings.cs" />
     <Compile Include="NamespaceDoc.cs" />
     <Compile Include="Objects\GXDLMSActionSet.cs" />
+    <Compile Include="Objects\GXDLMSCCallback.cs" />
     <Compile Include="Objects\GXDLMSDayProfile.cs" />
+    <Compile Include="Objects\GXDLMSIp4SetupIpOption.cs" />
+    <Compile Include="Objects\GXDLMSIp4SetupIpOptionType.cs" />
+    <Compile Include="Objects\GXDLMSPppSetupLcpOption.cs" />
+    <Compile Include="Objects\GXDLMSPppSetupLcpOptionType.cs" />
+    <Compile Include="Objects\GXDLMSMBusSlavePortSetup.cs" />
     <Compile Include="Objects\GXDLMSModemInitialisation.cs" />
     <Compile Include="Objects\GXDLMSMonitoredValue.cs" />
     <Compile Include="Objects\GXDLMSObject.cs" />
@@ -88,8 +99,6 @@
     <Compile Include="Internal\GXFCS16.cs" />
     <Compile Include="GXUserInformation.cs" />
     <Compile Include="InterfaceType.cs" />
-    <Compile Include="ManufacturerSettings\GXAttribute.cs" />
-    <Compile Include="ManufacturerSettings\GXAttributeCollection.cs" />
     <Compile Include="ManufacturerSettings\GXAuthentication.cs" />
     <Compile Include="ManufacturerSettings\GXFileInfo.cs" />
     <Compile Include="ManufacturerSettings\GXManufacturer.cs" />
@@ -112,12 +121,20 @@
     <Compile Include="Objects\GXDLMSIp4Setup.cs" />
     <Compile Include="Objects\GXDLMSModemConfiguration.cs" />
     <Compile Include="Objects\GXDLMSPppSetup.cs" />
+    <Compile Include="Objects\GXDLMSPppSetupAuthenticationProtocol.cs" />
+    <Compile Include="Objects\GXDLMSPppSetupCallbackOperation.cs" />
+    <Compile Include="Objects\GXDLMSPppSetupIPCompressionProtocol.cs" />
+    <Compile Include="Objects\GXDLMSPppSetupIPCPOption.cs" />
+    <Compile Include="Objects\GXDLMSPppSetupIPCPOptionType.cs" />
     <Compile Include="Objects\GXDLMSProfileGeneric.cs" />
+    <Compile Include="Objects\GXDLMSQosElement.cs" />
     <Compile Include="Objects\GXDLMSRegister.cs" />
     <Compile Include="Objects\GXDLMSRegisterActivation.cs" />
     <Compile Include="Objects\GXDLMSRegisterMonitor.cs" />
     <Compile Include="Objects\GXDLMSSapAssignment.cs" />
     <Compile Include="Objects\GXDLMSSchedule.cs" />
+    <Compile Include="Objects\GXDLMSScriptAction.cs" />
+    <Compile Include="Objects\GXDLMSScriptActionType.cs" />
     <Compile Include="Objects\GXDLMSScriptTable.cs" />
     <Compile Include="Objects\GXDLMSSeasonProfile.cs" />
     <Compile Include="Objects\GXDLMSSpecialDay.cs" />
@@ -151,6 +168,9 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="OBISCodes.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

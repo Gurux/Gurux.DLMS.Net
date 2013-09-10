@@ -104,7 +104,31 @@ namespace Gurux.DLMS.Objects
     /// GXDLMSObject provides an interface to DLMS registers. 
     /// </summary>
     public class GXDLMSObject : IGXDLMSColumnObject
-    {
+    {        
+        /// <summary>
+        /// Is attribute read.
+        /// </summary>
+        /// <param name="index">Attribute index to read.</param>
+        /// <returns>Returns true if attribute is read.</returns>
+        virtual public bool IsRead(int index)
+        {            
+            if (!CanRead(index))
+            {
+                return true;
+            }
+            return GetLastReadTime(index) != DateTime.MinValue;
+        }
+        
+        /// <summary>
+        /// Is attribute of the object readable.
+        /// </summary>
+        /// <param name="index">Attribute index of the object.</param>
+        /// <returns>True, if attribute of the object is readable.</returns>
+        public bool CanRead(int index)
+        {
+            return GetAccess(index) != AccessMode.NoAccess;
+        }
+
         /// <summary>
         /// List of changed items.
         /// </summary>
@@ -180,9 +204,9 @@ namespace Gurux.DLMS.Objects
         {
             if (ShortName != 0)
             {
-                return ShortName.ToString();
+                return ShortName.ToString() + " " + Description;
             }
-            return LogicalName;
+            return LogicalName + " " + Description;
         }
 
         /// <summary>
@@ -322,7 +346,6 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Logical Name of DLMS object.
         /// </summary>        
-        [GXDLMSAttribute(1, Type = DataType.OctetString, UIType = DataType.OctetString, Static = true, Access = AccessMode.Read)]
         public virtual string LogicalName
         {
             get;
@@ -365,6 +388,10 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// Clear dirty flag from selected attribute.
+        /// </summary>
+        /// <param name="attributeIndex">Attribute index of the object.</param>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void ClearDirty(int attributeIndex)
         {
@@ -375,6 +402,12 @@ namespace Gurux.DLMS.Objects
             }
         }
 
+        /// <summary>
+        /// Is value of selected attribute changed.
+        /// </summary>
+        /// <param name="attributeIndex">Attribute index of the object.</param>
+        /// <param name="value"></param>
+        /// <returns>Returns True if attribute is changed.</returns>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool GetDirty(int attributeIndex, out object value)
         {
@@ -387,12 +420,21 @@ namespace Gurux.DLMS.Objects
             return false;
         }
 
+        /// <summary>
+        /// Returns collection of dirty attribute indexes.
+        /// </summary>
+        /// <returns>Collection of dirty attribute index.</returns>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public int[] GetDirtyAttributeIndexes()
         {
             return DirtyAttributes.Keys.ToArray();                        
         }
 
+        /// <summary>
+        /// Update dirty state of attribute index.
+        /// </summary>
+        /// <param name="attributeIndex"></param>
+        /// <param name="value"></param>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void UpdateDirty(int attributeIndex, object value)
         {
@@ -493,13 +535,24 @@ namespace Gurux.DLMS.Objects
         {
         }
 
+        /// <summary>
+        /// Returns device data type of selected attribute index.
+        /// </summary>
+        /// <param name="index">Attribute index of the object.</param>
+        /// <returns>Device data type of the object.</returns>
         public virtual DataType GetDataType(int index)
         {
             GXDLMSAttributeSettings att = GetAttribute(index, null);
             return att.Type;
         }
 
-        public DataType GetUIDataType(int index)
+
+        /// <summary>
+        /// Returns UI data type of selected index.
+        /// </summary>
+        /// <param name="index">Attribute index of the object.</param>
+        /// <returns>UI data type of the object.</returns>
+        public virtual DataType GetUIDataType(int index)
         {
             GXDLMSAttributeSettings att = GetAttribute(index, null);
             return att.UIType;
@@ -508,58 +561,26 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Returns attributes as an array.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Collection of COSEM object values.</returns>
         public virtual object[] GetValues()
         {
             throw new NotImplementedException("GetValues");
         }
 
         /// <summary>
-        /// Returns attributes as an array.
+        /// Set new value.
         /// </summary>
         /// <returns></returns>
         public virtual void SetValue(int index, object value)
         {
-            if (this is IGXDLMSBase)
-            {
-                (this as IGXDLMSBase).SetValue(index, value);
-            }
-            else
-            {
-                PropertyInfo[] fields = this.GetType().GetProperties(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).Where(x => Attribute.IsDefined(x, typeof(GXDLMSAttribute), false)).ToArray();
-                foreach (PropertyInfo it in fields)
-                {
-                    GXDLMSAttribute att = Attribute.GetCustomAttribute(it, typeof(GXDLMSAttribute)) as GXDLMSAttribute;
-                    if (att != null && index == att.Index)
-                    {
-                        if (value != null && it.PropertyType != value.GetType())
-                        {
-                            value = Convert.ChangeType(value, it.PropertyType);
-                        }
-                        it.SetValue(this, value, null);
-                        return;
-                    }
-                }
-            }
+            (this as IGXDLMSBase).SetValue(index, value, false);
         }
 
         protected GXDLMSAttributeSettings GetAttribute(int index, GXAttributeCollection attributes)
         {
             GXDLMSAttributeSettings att = this.Attributes.Find(index);
             if (att == null)
-            {
-                foreach (PropertyDescriptor it in TypeDescriptor.GetProperties(this))
-                {
-                    att = it.Attributes[typeof(GXDLMSAttribute)] as GXDLMSAttributeSettings;
-                    if (att != null && att.Index == index)
-                    {
-                        if (attributes != null)
-                        {
-                            attributes.Add(att);
-                        }
-                        return att;
-                    }
-                }
+            {                
                 att = new GXDLMSAttributeSettings(index);
                 if (attributes != null)
                 {

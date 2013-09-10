@@ -369,11 +369,11 @@ namespace Gurux.DLMS
             if (wrongCrc)
             {
                 throw new GXDLMSException("Wrong Checksum.");
-            }
+            }            
             if (command == (int) Command.Rejected)
             {
                 throw new GXDLMSException("Packet rejected.");
-            }            
+            }              
             int len = 0;
             if (data != null)
             {
@@ -843,7 +843,7 @@ namespace Gurux.DLMS
             }
 
             //If we are checking UA or AARE messages.
-            if (LNSettings == null && SNSettings == null) //TODO:
+            if (LNSettings == null && SNSettings == null)
             {
                 return null;
             }
@@ -1305,20 +1305,24 @@ namespace Gurux.DLMS
                 }
                 frame = buff[index++];
                 //Is there more data available.
-                if (frame == GXCommon.HDLCFrameTypeMoreData)
+                if ((frame & 0x8) != 0)
                 {
                     MoreData = RequestTypes.Frame;
                 }
+                //Check frame length.
+                if ((frame & 0x7) != 0)
+                {
+                    FrameLen = ((frame & 0x7) << 8);
+                }
                 //If not enought data.
-                FrameLen = buff[index++];
-                //if (len - index + 2 < FrameLen)
+                FrameLen += buff[index++];
                 if (len < FrameLen + index - 1)
                 {
                     packetFull = false;
                     return RequestTypes.None;
                 }
-                if ((frame != GXCommon.HDLCFrameType && frame != GXCommon.HDLCFrameTypeMoreData) || //Check BOP
-                        (MoreData == RequestTypes.None && buff[FrameLen + PacketStartID + 1] != GXCommon.HDLCFrameStartEnd))//Check EOP
+                //Check EOP
+                if (MoreData == RequestTypes.None && buff[FrameLen + PacketStartID + 1] != GXCommon.HDLCFrameStartEnd)
                 {
                     throw new GXDLMSException("Invalid data format.");
                 }
@@ -1674,17 +1678,15 @@ namespace Gurux.DLMS
             }
             else if (res == (int)Command.SetRequest)
             {
-                //Mikko MoreData = RequestTypes.Write;
+                
             }
             else if (res == (int)Command.MethodRequest)
-            {
-                //Mikko MoreData = RequestTypes.Action;
+            {                
             }
             else
             {
                 if (server && AttributeID == 0x01)
-                {
-                    //Mikko MoreData = res == 0xC0 ? RequestTypes.Read : RequestTypes.Write;
+                {                    
                 }
                 else
                 {

@@ -123,22 +123,22 @@ namespace Gurux.DLMS
                 Skip |= DateTimeSkips.Day;
                 day = 1;
             }
-            if (hour == -1)
+            if (hour < 0 || hour > 24)
             {
                 Skip |= DateTimeSkips.Hour;
                 hour = 0;
             }
-            if (minute == -1)
+            if (minute < 0 || minute > 60)
             {
                 Skip |= DateTimeSkips.Minute;
                 minute = 0;
             }
-            if (second == -1)
+            if (second < 0 || second > 60)
             {
                 Skip |= DateTimeSkips.Second;
                 second = 0;
             }
-            if (millisecond == -1)
+            if (millisecond < 0 || millisecond > 60)
             {
                 Skip |= DateTimeSkips.Ms;
                 millisecond = 0;
@@ -211,6 +211,10 @@ namespace Gurux.DLMS
                 if (format == "H")
                 {
                     return Value.Hour.ToString();
+                }
+                if (format == null)
+                {
+                    return "";
                 }
                 return Value.ToString(format);
             }

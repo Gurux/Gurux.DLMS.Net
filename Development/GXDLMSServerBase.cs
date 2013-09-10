@@ -74,11 +74,6 @@ namespace Gurux.DLMS
         abstract public void Write(ValueEventArgs e);
 
         /// <summary>
-        /// Returns collection of available items.
-        /// </summary>
-        abstract public void UpdateItems();
-
-        /// <summary>
         /// Client attempts to connect with the wrong server or client address.
         /// </summary>
         abstract public void InvalidConnection(ConnectionEventArgs e);
@@ -105,7 +100,7 @@ namespace Gurux.DLMS
             m_Base.UseLogicalNameReferencing = logicalNameReferencing;
             //TODO: StartProtocol = StartProtocolType.DLMS;
             Reset();
-            Items = new GXDLMSObjectCollection();
+            Items = new GXDLMSObjectCollection(this);
             m_Base.LNSettings = new GXDLMSLNSettings(new byte[] { 0x00, 0x7E, 0x1F });
             m_Base.SNSettings = new GXDLMSSNSettings(new byte[] { 0x1C, 0x03, 0x20 });
             ServerIDs = new List<object>();
@@ -466,7 +461,7 @@ namespace Gurux.DLMS
                 GXDLMSAttribute att = it.Attributes[typeof(GXDLMSAttribute)] as GXDLMSAttribute;
                 if (att != null && attribs.Find(att.Index) == null)
                 {
-                    //Mikko attribs.Add(att);
+                    //TODO: attribs.Add(att);
                 }
             }
             List<byte> data = new List<byte>();
@@ -606,7 +601,7 @@ namespace Gurux.DLMS
                     if (it is GXDLMSProfileGeneric)
                     {
                         GXDLMSProfileGeneric pg = it as GXDLMSProfileGeneric;
-                        pg.Server = this;
+                        pg.Parent.Parent = this;
                         if (pg.ProfileEntries < 1)
                         {
                             throw new Exception("Invalid Profile Entries. Profile entries tells amount of rows in the table.");
@@ -616,12 +611,6 @@ namespace Gurux.DLMS
                             if (obj.SelectedAttributeIndex < 1)
                             {
                                 throw new Exception("Invalid attribute index. SelectedAttributeIndex is not set for " + obj.Name);
-                            }
-                            Type type = GXObisCode.GetDataType(obj.GetDataType(obj.SelectedAttributeIndex));
-                            DataColumn col = pg.Buffer.Columns.Add();
-                            if (type != null)
-                            {
-                                col.DataType = type;
                             }
                         }                       
                         if (pg.ProfileEntries < 1)
@@ -867,19 +856,25 @@ namespace Gurux.DLMS
                 }
                 byte frame = buff[index++];
                 RequestTypes MoreData = RequestTypes.None;
+
                 //Is there more data available.
-                if (frame == GXCommon.HDLCFrameTypeMoreData)
+                if ((frame & 0x8) != 0)
                 {
                     MoreData = RequestTypes.Frame;
                 }
+                //Check frame length.
+                if ((frame & 0x7) != 0)
+                {
+                    FrameLen = ((frame & 0x7) << 8);
+                }                
                 //If not enought data.
-                FrameLen = buff[index++];
+                FrameLen += buff[index++];
                 if (len < FrameLen + index - 1)
                 {
                     return false;
                 }
-                if ((frame != GXCommon.HDLCFrameType && frame != GXCommon.HDLCFrameTypeMoreData) || //Check BOP
-                        (MoreData == RequestTypes.None && buff[FrameLen + PacketStartID + 1] != GXCommon.HDLCFrameStartEnd))//Check EOP
+                if (MoreData == RequestTypes.None && 
+                    buff[FrameLen + PacketStartID + 1] != GXCommon.HDLCFrameStartEnd)
                 {
                     throw new GXDLMSException("Invalid data format.");
                 }
@@ -919,7 +914,7 @@ namespace Gurux.DLMS
             Gurux.DLMS.DataType tp = DataType.None;
             if (tmp != null)
             {
-                value = tmp.GetValue(index, out tp, parameters);
+                value = tmp.GetValue(index, out tp, parameters, true);
             }
             else
             {
@@ -1183,7 +1178,7 @@ namespace Gurux.DLMS
                                     return SendData[FrameIndex];
                                 }
                             }
-                            (item as IGXDLMSBase).SetValue(index, value);
+                            (item as IGXDLMSBase).SetValue(index, value, true);
                             //Return OK.
                             SendData.Add(Acknowledge(UseLogicalNameReferencing ? Command.SetResponse : Command.WriteResponse, 0));
                             return SendData[FrameIndex];

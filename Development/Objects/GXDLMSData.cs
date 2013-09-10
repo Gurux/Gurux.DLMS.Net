@@ -76,13 +76,13 @@ namespace Gurux.DLMS.Objects
         /// Value of COSEM Data object.
         /// </summary>        
         [XmlIgnore()]        
-        [GXDLMSAttribute(2)]
         public object Value
         {
             get;
             set;
         }
 
+        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, Value };
@@ -99,6 +99,22 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("Invoke failed. Invalid attribute index.");
         }
 
+        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        {
+            List<int> attributes = new List<int>();
+            //LN is static and read only once.
+            if (string.IsNullOrEmpty(LogicalName))
+            {
+                attributes.Add(1);
+            }
+            //Value
+            if (CanRead(2))
+            {
+                attributes.Add(2);
+            }
+            return attributes.ToArray();
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 2;
@@ -109,7 +125,7 @@ namespace Gurux.DLMS.Objects
             return 0;
         }        
 
-        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters)
+        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
         {
             if (index == 1)
             {
@@ -124,11 +140,18 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(int index, object value, bool raw)
         {
             if (index == 1)
             {
-                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();                
+                if (value is string)
+                {
+                    LogicalName = value.ToString();
+                }
+                else
+                {
+                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                }                
             }
             else if (index == 2)
             {

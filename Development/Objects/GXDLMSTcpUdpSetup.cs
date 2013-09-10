@@ -94,7 +94,6 @@ namespace Gurux.DLMS.Objects
         /// listening for the DLMS/COSEM application.
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(2)]
         [DefaultValue(4059)]
         public int Port
         {
@@ -108,7 +107,6 @@ namespace Gurux.DLMS.Objects
         /// supporting the TCP-UDP layer.
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(3, DataType.OctetString)]
         public string IPReference
         {
             get;
@@ -120,7 +118,6 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         [XmlIgnore()]
         [DefaultValue(576)]
-        [GXDLMSAttribute(4)]
         public int MaximumSegmentSize
         {
             get;
@@ -132,7 +129,6 @@ namespace Gurux.DLMS.Objects
         /// TCP/UDP based transport layer is able to support.
         /// </summary>
         [XmlIgnore()]
-        [GXDLMSAttribute(5)]
         public int MaximumSimultaneousConnections
         {
             get;
@@ -148,13 +144,13 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         [XmlIgnore()]
         [DefaultValue(180)]
-        [GXDLMSAttribute(6)]
         public int InactivityTimeout
         {
             get;
             set;
         }
 
+        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, Port, IPReference, 
@@ -169,6 +165,42 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("Invoke failed. Invalid attribute index.");
         }
 
+        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        {
+            List<int> attributes = new List<int>();
+            //LN is static and read only once.
+            if (string.IsNullOrEmpty(LogicalName))
+            {
+                attributes.Add(1);
+            }
+            //Port
+            if (!base.IsRead(2))
+            {
+                attributes.Add(2);
+            }
+            //IPReference
+            if (!base.IsRead(3))
+            {
+                attributes.Add(3);
+            }
+            //MaximumSegmentSize
+            if (!base.IsRead(4))
+            {
+                attributes.Add(4);
+            }
+            //MaximumSimultaneousConnections
+            if (!base.IsRead(5))
+            {
+                attributes.Add(5);
+            }
+            //InactivityTimeout
+            if (!base.IsRead(6))
+            {
+                attributes.Add(6);
+            }            
+            return attributes.ToArray();
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 6;
@@ -180,7 +212,7 @@ namespace Gurux.DLMS.Objects
         }        
 
 
-        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters)
+        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
         {
             if (index == 1)
             {
@@ -215,11 +247,18 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(int index, object value, bool raw)
         {
             if (index == 1)
             {
-                LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                if (value is string)
+                {
+                    LogicalName = value.ToString();
+                }
+                else
+                {
+                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                }
             }
             else if (index == 2)
             {
