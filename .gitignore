@@ -67,6 +67,7 @@ local.properties
 #packages/
 .svn/
 Nuget/
+OBIS2File/
 *.onetoc2
 # Visual C++ cache files
 ipch/

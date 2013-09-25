@@ -117,6 +117,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="parent"></param>
         public GXDLMSObjectCollection(Object parent)
+            : this(0)
         {
             this.Parent = parent;
         }
