@@ -209,13 +209,9 @@ namespace Gurux.DLMS.Objects
         #region ICollection<GXDLMSObject> Members
 
         public void Add(GXDLMSObject item)
-        {
-            if (Objects == null)
-            {
-                Objects = new List<GXDLMSObject>();
-            }
+        {            
             Objects.Add(item);
-            if (this.Parent != null && item.Parent == null)
+            if (item.Parent == null)
             {
                 item.Parent = this;
             }
@@ -263,10 +259,6 @@ namespace Gurux.DLMS.Objects
 
         public IEnumerator<GXDLMSObject> GetEnumerator()
         {
-            if (Objects == null)
-            {
-                Objects = new List<GXDLMSObject>();
-            }
             return Objects.GetEnumerator();
         }
 

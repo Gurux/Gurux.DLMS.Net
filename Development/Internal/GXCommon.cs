@@ -467,7 +467,7 @@ namespace Gurux.DLMS.Internal
                         //Check that this is not octet string.
                         foreach (byte it in buff)
                         {
-                            if (it < 0x32)
+                            if (it < 0x20)
                             {
                                 octetString = true;
                                 break;
@@ -912,39 +912,44 @@ namespace Gurux.DLMS.Internal
             //Example Logical name is octet string, so do not change to string...
             else if (type == DataType.OctetString)
             {
+                reverse = false;
                 if (value is string)
                 {
                     string str = value as string;
                     string[] items = str.Split('.');
-                    SetObjectCount(items.Length, tmp);
-                    foreach (string it in items)
+                    if (items.Length == 1 && items[0].Equals(str))
                     {
-                        tmp.Add(byte.Parse(it));
+                        SetObjectCount(str.Length, tmp);
+                        tmp.AddRange(ASCIIEncoding.ASCII.GetBytes(str));
+                        value = tmp.ToArray(); 
                     }
-                    value = tmp.ToArray();
-                    reverse = false;
+                    else
+                    {
+                        SetObjectCount(items.Length, tmp);
+                        foreach (string it in items)
+                        {
+                            tmp.Add(byte.Parse(it));
+                        }
+                        value = tmp.ToArray();                        
+                    }
                 }
                 else if (value == null)
                 {
                     SetObjectCount(0, tmp);
-                    value = tmp.ToArray();
-                    reverse = false;
+                    value = tmp.ToArray();                    
                 }
                 else if (value is byte[])
                 {
                     SetObjectCount((value as byte[]).Length, tmp);
                     tmp.AddRange(value as byte[]);
-                    value = tmp.ToArray();
-                    reverse = false;
+                    value = tmp.ToArray();                    
                 }
                 else if (value is GXDateTime)
-                {
-                    reverse = false;
+                {                    
                     value = GetDateTime((value as GXDateTime).Value, (value as GXDateTime).Skip);
                 }
                 else if (value is DateTime)
                 {
-                    reverse = false;
                     value = GetDateTime(Convert.ToDateTime(value), DateTimeSkips.None);
                 }
                 else

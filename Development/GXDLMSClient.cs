@@ -458,6 +458,7 @@ namespace Gurux.DLMS
         /// <seealso cref="ParseUAResponse"/>    
         public byte[] SNRMRequest()
         {
+            IsAuthenticationRequired = false;
             m_Base.MaxReceivePDUSize = 0xFFFF;
             m_Base.ClearProgress();
             //SNRM reguest is not used in network connections.
@@ -642,6 +643,7 @@ namespace Gurux.DLMS
             {
                 throw new GXDLMSException(ret, pdu.ResultDiagnosticValue);
             }
+            IsAuthenticationRequired = pdu.ResultDiagnosticValue == SourceDiagnostic.AuthenticationRequired;
             System.Diagnostics.Debug.WriteLine("- Server max PDU size is " + MaxReceivePDUSize);
             System.Diagnostics.Debug.WriteLine("- Value of quality of service is " + ValueOfQualityOfService);
             System.Diagnostics.Debug.WriteLine("- Server DLMS version number is " + DLMSVersion);
@@ -651,6 +653,20 @@ namespace Gurux.DLMS
             }
             System.Diagnostics.Debug.WriteLine("- Number of unused bits is " + NumberOfUnusedBits);
             return Tags;
+        }
+
+        /// <summary>
+        /// Is authentication Required.
+        /// </summary>
+        public bool IsAuthenticationRequired
+        {
+            get;
+            private set;
+        }
+
+        public byte[] GetApplicationAssociationRequest()
+        {
+            return null;
         }
 
         /// <summary>
@@ -812,7 +828,12 @@ namespace Gurux.DLMS
                 {
                     int id = Convert.ToInt32(attributeAccess[0]);
                     AccessMode mode = (AccessMode)Convert.ToInt32(attributeAccess[1]);
-                    obj.SetAccess(id, mode);
+                    //TODO: Check why...
+                    //With some meters id is negative. 
+                    if (id > 0)
+                    {
+                        obj.SetAccess(id, mode);
+                    }
                 }
                 if (obj.ShortName == 0) //If Logical Name is used.
                 {
@@ -1107,7 +1128,7 @@ namespace Gurux.DLMS
         /// <seealso cref="TryGetValue"/>
         public object GetValue(byte[] data, GXDLMSObject target, int attributeIndex)
         {        
-            DataType type = target.GetDataType(attributeIndex);
+            DataType type = target.GetUIDataType(attributeIndex);
             Object value = GetValue(data);
             if (value is byte[] && type != DataType.None)
             {

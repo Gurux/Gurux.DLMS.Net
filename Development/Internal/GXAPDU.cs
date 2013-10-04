@@ -110,7 +110,7 @@ namespace Gurux.DLMS.Internal
         ///</summary>
         internal void GetAuthenticationString(List<byte> data)
         {
-            //If authentication is used.
+            //If low authentication is used.
             if (this.Authentication != Authentication.None)
             {
                 //Add sender ACSE-requirenents field component.
@@ -122,13 +122,20 @@ namespace Gurux.DLMS.Internal
                 byte[] p = { (byte)0x60, (byte)0x85, (byte)0x74, (byte)0x05, (byte)0x08, (byte)0x02, (byte)this.Authentication };
                 data.AddRange(p);
                 //Add Calling authentication information.
-                int len = Password.Length;
+                int len = 0;
+                if (Password != null)
+                {
+                    len = Password.Length;
+                }
                 data.Add(0xAC);
                 data.Add((byte)(2 + len));
                 //Add authentication information.
                 data.Add((byte)0x80);
                 data.Add((byte)len);
-                data.AddRange(ASCIIEncoding.ASCII.GetBytes(Password));
+                if (Password != null)
+                {
+                    data.AddRange(ASCIIEncoding.ASCII.GetBytes(Password));
+                }
             }
         }
 
@@ -174,7 +181,7 @@ namespace Gurux.DLMS.Internal
         {
             // Get AARE tag and length
             int tag = buff[index++];
-            if (tag != 0x61 && tag != 0x60)
+            if (tag != 0x61 && tag != 0x60 && tag != 0x81 && tag != 0x80)
             {
                 throw new Exception("Invalid tag.");
             }
