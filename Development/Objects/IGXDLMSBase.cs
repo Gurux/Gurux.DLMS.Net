@@ -88,6 +88,6 @@ namespace Gurux.DLMS.Objects
         /// Invokes method.
         /// </summary>
         /// <param name="index">Method index.</param>
-        void Invoke(int index, Object parameters);
+        byte[] Invoke(object sender, int index, Object parameters);
     }
 }

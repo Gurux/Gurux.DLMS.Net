@@ -53,6 +53,9 @@
     <Compile Include="AccessMode.cs" />
     <Compile Include="AssociationResult.cs" />
     <Compile Include="Authentication.cs" />
+    <Compile Include="GXCiphering.cs" />
+    <Compile Include="GXDLMSChippering.cs" />
+    <Compile Include="GXDLMSChipperingStream.cs" />
     <Compile Include="GXStandardObisObject.cs" />
     <Compile Include="GXStandardObisObjectCollection.cs" />
     <Compile Include="ManufacturerSettings\GXAttribute.cs" />
@@ -152,6 +155,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="RequestTypes.cs" />
+    <Compile Include="Security.cs" />
     <Compile Include="Shared\GXCommon.cs">
       <SubType>Code</SubType>
     </Compile>

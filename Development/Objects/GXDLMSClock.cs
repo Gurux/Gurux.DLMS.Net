@@ -196,7 +196,7 @@ namespace Gurux.DLMS.Objects
 
         #region IGXDLMSBase Members
 
-        void IGXDLMSBase.Invoke(int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
         {
             DateTime tm = this.Time.Value;
             // Resets the value to the default value. 
@@ -263,6 +263,7 @@ namespace Gurux.DLMS.Objects
             {
                 throw new ArgumentException("Invoke failed. Invalid attribute index.");
             }
+            return null;
         }
 
         /// <summary>

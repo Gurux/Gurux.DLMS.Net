@@ -171,8 +171,31 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 4)
             {
-                type = DataType.Structure;
-                return Actions;
+                type = DataType.Array;
+                List<byte> data = new List<byte>();
+                data.Add((int)DataType.Structure);
+                if (Actions == null)
+                {
+                    data.Add(0);
+                }
+                else
+                {
+                    data.Add((byte)Actions.Length);
+                    foreach (GXDLMSActionSet it in Actions)
+                    {
+                        data.Add((int)DataType.Structure);
+                        data.Add(2);
+                        data.Add((int)DataType.Structure);
+                        data.Add(2);
+                        GXCommon.SetData(data, DataType.OctetString, it.ActionUp.LogicalName); //Logical name.
+                        GXCommon.SetData(data, DataType.UInt16, it.ActionUp.ScriptSelector); //ScriptSelector
+                        data.Add((int)DataType.Structure);
+                        data.Add(2);
+                        GXCommon.SetData(data, DataType.OctetString, it.ActionDown.LogicalName); //Logical name.
+                        GXCommon.SetData(data, DataType.UInt16, it.ActionDown.ScriptSelector); //ScriptSelector                        
+                    }
+                }                
+                return data.ToArray();
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
@@ -228,7 +251,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        void IGXDLMSBase.Invoke(int index, object parameters)
+        byte[] IGXDLMSBase.Invoke(object sender, int index, object parameters)
         {
             throw new NotImplementedException();
         }

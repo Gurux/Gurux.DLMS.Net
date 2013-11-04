@@ -49,7 +49,7 @@ namespace Gurux.DLMS
     /// </summary>
     public class GXDLMSClient
     {       
-        GXDLMS m_Base;
+        GXDLMS m_Base;        
         
         /// <summary>
         /// Constructor.
@@ -300,16 +300,10 @@ namespace Gurux.DLMS
         /// If authentication is set to none, password is not used.
         /// </remarks>
         /// <seealso cref="Authentication"/>
-        public string Password
+        public byte[] Password
         {
-            get
-            {
-                return m_Base.Password;
-            }
-            set
-            {
-                m_Base.Password = value;
-            }
+            get;
+            set;
         }
 
         /// <summary>
@@ -392,7 +386,9 @@ namespace Gurux.DLMS
         /// <remarks>
         /// By default authentication is not used. If authentication is used,
         /// set the password with the Password property.
-        /// </remarks>
+        /// Note!
+        /// For HLS authentication password (shared secret) is needed from the manufacturer.
+        /// </remarks>        
         /// <seealso cref="Password"/>
         /// <seealso cref="ClientID"/>
         /// <seealso cref="ServerID"/>
@@ -402,8 +398,14 @@ namespace Gurux.DLMS
         [DefaultValue(Authentication.None)]
         public Authentication Authentication
         {
-            get;
-            set;
+            get
+            {
+                return m_Base.Authentication;
+            }
+            set
+            {
+                m_Base.Authentication = value;
+            }
         }
 
         /// <summary>
@@ -564,10 +566,19 @@ namespace Gurux.DLMS
                 m_Base.SNSettings = new GXDLMSSNSettings(new byte[] { 0x1C, 0x03, 0x20 });
                 aarq.UserInformation.ConformanceBlock = SNSettings.m_ConformanceBlock;
             }
-            aarq.SetAuthentication(this.Authentication, Password);
+            aarq.SetAuthentication(this.Authentication, Password);            
             aarq.UserInformation.DLMSVersioNumber = DLMSVersion;
             aarq.UserInformation.MaxReceivePDUSize = MaxReceivePDUSize;
-            aarq.CodeData(buff, this.InterfaceType);
+            m_Base.StoCChallenge = null;
+            if (Authentication > Authentication.High)
+            {
+                m_Base.CtoSChallenge = GXDLMS.GenerateChallenge();
+            }
+            else
+            {
+                m_Base.CtoSChallenge = null;
+            }
+            aarq.CodeData(buff, this.InterfaceType, m_Base.CtoSChallenge);
             m_Base.FrameSequence = -1;
             m_Base.ExpectedFrame = -1;
             return m_Base.SplitToBlocks(buff, Command.None);
@@ -623,7 +634,9 @@ namespace Gurux.DLMS
             else
             {
                 System.Diagnostics.Debug.WriteLine("--- Short Name settings are---\r\n");
-            }
+            }            
+            m_Base.StoCChallenge = pdu.Password;
+            System.Diagnostics.Debug.WriteLine("StoC: " + BitConverter.ToString(m_Base.StoCChallenge));
             AssociationResult ret = pdu.ResultComponent;
             if (ret == AssociationResult.Accepted)
             {
@@ -663,10 +676,66 @@ namespace Gurux.DLMS
             get;
             private set;
         }
-
+        
+        /// <summary>
+        /// Get challenge request if HLS authentication is used.
+        /// </summary>
+        /// <returns></returns>
         public byte[] GetApplicationAssociationRequest()
         {
-            return null;
+            if (Password == null || Password.Length == 0)
+            {
+                throw new ArgumentException("Password is invalid.");
+            }
+            List<byte> CtoS = new List<byte>(Password);
+            CtoS.AddRange(m_Base.StoCChallenge);
+            byte[] challenge = GXDLMS.Chipher(this.Authentication, CtoS.ToArray());
+            if (UseLogicalNameReferencing)
+            {
+                return Method("0.0.40.0.0.255", ObjectType.AssociationLogicalName, 1, challenge, DataType.OctetString);
+            }
+            return Method((ushort)0xFA00, ObjectType.AssociationShortName, 8, challenge, DataType.OctetString);            
+        }
+
+        /// <summary>
+        /// Parse server's challenge if HLS authentication is used.
+        /// </summary>
+        /// <param name="reply"></param>
+        public void ParseApplicationAssociationResponse(byte[] reply)
+        {
+            byte frame;
+            int error, index = 0;
+            List<byte> arr = new List<byte>(reply);
+            bool packetFull, wrongCrc;
+            byte command;
+            m_Base.GetDataFromFrame(arr, index, out frame, true, out error, false, out packetFull, out wrongCrc, out command);
+            if (!packetFull)
+            {
+                throw new GXDLMSException("Not enought data to parse frame.");
+            }
+            if (wrongCrc)
+            {
+                throw new GXDLMSException("Wrong Checksum.");
+            }
+            //Skip invoke ID and priority.
+            index += 2;
+            //Skip Error
+            ++index;
+            //Skip item count
+            ++index;
+            //Skip item status
+            ++index;
+            int total = 0, read = 0, CacheIndex = 0;
+            DataType type = DataType.None;
+            byte[] serverChallenge = (byte[])GXCommon.GetData(arr.ToArray(), ref index, ActionType.None, out total, out read, ref type, ref CacheIndex);
+            List<byte> challenge = new List<byte>(Password);
+            challenge.AddRange(m_Base.CtoSChallenge);
+            byte[] clientChallenge = GXDLMS.Chipher(this.Authentication, challenge.ToArray());
+            int pos = 0;
+            if (!GXCommon.Compare(serverChallenge, ref pos, clientChallenge))
+            {
+                throw new Exception("Server returns invalid challenge.");
+            }
         }
 
         /// <summary>

@@ -432,7 +432,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        void IGXDLMSBase.Invoke(int index, object parameters)
+        byte[] IGXDLMSBase.Invoke(object sender, int index, object parameters)
         {
             throw new NotImplementedException();
         }

@@ -43,6 +43,7 @@ using Gurux.DLMS.ManufacturerSettings;
 using System.Reflection;
 using System.Data;
 using System.Threading;
+using System.Security.Cryptography;
 
 namespace Gurux.DLMS
 {
@@ -51,7 +52,7 @@ namespace Gurux.DLMS
     /// </summary>
     public abstract class GXDLMSServerBase
     {
-        GXDLMS m_Base;
+        internal GXDLMS m_Base;
         List<byte> ReceivedData = new List<byte>();
         List<byte[]> SendData = new List<byte[]>();
         int FrameIndex = 0;
@@ -312,7 +313,10 @@ namespace Gurux.DLMS
                         }                                               
                         Authentications.Add(new GXAuthentication(Authentication.None, "", (byte)0x10));
                         Authentications.Add(new GXAuthentication(Authentication.Low, "GuruxLow", (byte)0x20));
-                        Authentications.Add(new GXAuthentication(Authentication.High, "GuruxHigh", (byte)0x40));                        
+                        Authentications.Add(new GXAuthentication(Authentication.High, "GuruxHigh", (byte)0x40));
+                        Authentications.Add(new GXAuthentication(Authentication.HighMD5, "GuruxMD5", (byte)0x40));
+                        Authentications.Add(new GXAuthentication(Authentication.HighSHA1, "GuruxSHA1", (byte)0x40));
+                        Authentications.Add(new GXAuthentication(Authentication.GMAC, "GuruxSHA1", (byte)0x40));
                         ServerIDs.Add(CountServerID((byte)1, 0));
                     }
                     else
@@ -329,7 +333,10 @@ namespace Gurux.DLMS
                         Authentications.Add(new GXAuthentication(Authentication.None, "", (ushort)0x10));
                         Authentications.Add(new GXAuthentication(Authentication.Low, "GuruxLow", (ushort)0x20));
                         Authentications.Add(new GXAuthentication(Authentication.High, "GuruxHigh", (ushort)0x40));
-                        ServerIDs.Add((ushort) 1);
+                        Authentications.Add(new GXAuthentication(Authentication.HighMD5, "GuruxMD5", (byte)0x40));
+                        Authentications.Add(new GXAuthentication(Authentication.HighSHA1, "GuruxSHA1", (byte)0x40));
+                        Authentications.Add(new GXAuthentication(Authentication.GMAC, "GuruxSHA1", (byte)0x40));
+                        ServerIDs.Add((ushort)1);
                     }
                 }
             }
@@ -679,7 +686,7 @@ namespace Gurux.DLMS
                 }
             }
         }
-
+       
         /// <summary>
         /// Parse AARQ request that cliend send and returns AARE request.
         /// </summary>
@@ -707,6 +714,13 @@ namespace Gurux.DLMS
             aarq.EncodeData(arr.ToArray(), ref pos);
             AssociationResult result = AssociationResult.Accepted;
             SourceDiagnostic diagnostic = SourceDiagnostic.None;
+            m_Base.Authentication = aarq.Authentication;
+            m_Base.CtoSChallenge = null;
+            m_Base.StoCChallenge = null;
+            if (aarq.Authentication > Authentication.High)
+            {
+                m_Base.CtoSChallenge = aarq.Password;
+            }
             if (this.UseLogicalNameReferencing != aarq.UseLN)
             {
                 result = AssociationResult.PermanentRejected;
@@ -722,7 +736,7 @@ namespace Gurux.DLMS
                         auth = it;
                         break;
                     }
-                }
+                }                
                 if (auth == null)
                 {
                     result = AssociationResult.PermanentRejected;
@@ -737,10 +751,21 @@ namespace Gurux.DLMS
                     }
                 }
                 //If authentication is used check pw.
-                else if (aarq.Authentication != Authentication.None && auth.Password != aarq.Password && string.IsNullOrEmpty(auth.Password) != string.IsNullOrEmpty((aarq.Password)))
+                else if (aarq.Authentication != Authentication.None)
                 {
-                    result = AssociationResult.PermanentRejected;
-                    diagnostic = SourceDiagnostic.AuthenticationFailure;
+                    //If Low authentication is used and pw don't match.                    
+                    if (aarq.Authentication == Authentication.Low && auth.Password != ASCIIEncoding.ASCII.GetString(aarq.Password))
+                    {
+                        result = AssociationResult.PermanentRejected;
+                        diagnostic = SourceDiagnostic.AuthenticationFailure;
+                    }
+                    else //If High authentication is used.
+                    {
+                        m_Base.StoCChallenge = GXDLMS.GenerateChallenge();
+                        System.Diagnostics.Debug.WriteLine("StoC: " + BitConverter.ToString(m_Base.StoCChallenge));
+                        result = AssociationResult.Accepted;
+                        diagnostic = SourceDiagnostic.AuthenticationRequired;
+                    }
                 }
             }
             //Generate AARE packet.
@@ -754,7 +779,7 @@ namespace Gurux.DLMS
             {
                 conformanceBlock = SNSettings.m_ConformanceBlock;
             }
-            aarq.GenerateAARE(buff, MaxReceivePDUSize, conformanceBlock, result, diagnostic);
+            aarq.GenerateAARE(buff, aarq.Authentication, m_Base.StoCChallenge, MaxReceivePDUSize, conformanceBlock, result, diagnostic);
             if (this.InterfaceType == InterfaceType.General)
             {
                 buff.InsertRange(0, new byte[] { 0xE6, 0xE7, 0x00 });
@@ -1266,7 +1291,7 @@ namespace Gurux.DLMS
                             }
                             int value, count;
                             GXDLMS.GetActionInfo(item.ObjectType, out value, out count);
-                            index = ((sn - item.ShortName) / value);
+                            index = ((sn - item.ShortName - value) / 8) + 1;
                         }
                         if (item != null)
                         {
@@ -1276,7 +1301,12 @@ namespace Gurux.DLMS
                             Action(e);
                             if (!e.Handled && item is IGXDLMSBase)
                             {
-                                (item as IGXDLMSBase).Invoke(index, e.Value);
+                                byte[] reply = (item as IGXDLMSBase).Invoke(this, index, e.Value);
+                                if (reply != null)
+                                {
+                                    SendData.Add(reply);
+                                    return SendData[FrameIndex];
+                                }
                             }
                             SendData.Add(Acknowledge(Command.MethodResponse, 0));
                             return SendData[FrameIndex];
@@ -1314,10 +1344,15 @@ namespace Gurux.DLMS
             return m_Base.GenerateMessage(name, 0, data.ToArray(), objectType, attributeOrdinal, this.UseLogicalNameReferencing ? Command.GetResponse : Command.ReadResponse);
         }
 
+        internal byte[] Acknowledge(Command cmd, byte status)
+        {
+            return Acknowledge(cmd, status, null, DataType.None);
+        }
+
         /// <summary>
         /// Generates a acknowledge message.
         /// </summary>
-        internal byte[] Acknowledge(Command cmd, byte status)
+        internal byte[] Acknowledge(Command cmd, byte status, Object data, DataType type)
         {
             List<byte> buff = new List<byte>(10);
             if (this.InterfaceType == InterfaceType.General)
@@ -1337,6 +1372,12 @@ namespace Gurux.DLMS
             //Invoke ID and priority.
             buff.Add(0x81);
             buff.Add(status);
+            if (type != DataType.None)
+            {
+                buff.Add(0x01);
+                buff.Add(0x00);
+                GXCommon.SetData(buff, type, data);
+            }
             return m_Base.AddFrame(m_Base.GenerateIFrame(), false, buff, 0, buff.Count);
         }
 

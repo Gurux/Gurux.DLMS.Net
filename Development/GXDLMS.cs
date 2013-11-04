@@ -40,6 +40,7 @@ using System.ComponentModel;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Objects;
 using Gurux.DLMS.Internal;
+using System.Security.Cryptography;
 
 namespace Gurux.DLMS
 {            
@@ -52,6 +53,9 @@ namespace Gurux.DLMS
         object m_ServerID;
         byte[] ServerBuff;
         byte[] ClientBuff;
+        internal byte[] CtoSChallenge;
+        internal byte[] StoCChallenge;
+        GXCiphering Ciphering;
 
         uint PacketIndex;
         bool bIsLastMsgKeepAliveMsg;
@@ -66,7 +70,13 @@ namespace Gurux.DLMS
         internal int CacheSize;
         internal int ItemCount;
         internal int MaxItemCount;
-        internal static Dictionary<Gurux.DLMS.ObjectType, Type> AvailableObjectTypes = new Dictionary<Gurux.DLMS.ObjectType, Type>();        
+        internal static Dictionary<Gurux.DLMS.ObjectType, Type> AvailableObjectTypes = new Dictionary<Gurux.DLMS.ObjectType, Type>();
+
+        public Authentication Authentication
+        {
+            get;
+            set;
+        }
 
         public static GXDLMSObject CreateObject(Gurux.DLMS.ObjectType type)
         {
@@ -83,6 +93,50 @@ namespace Gurux.DLMS
                 }
             }
             return null;
+        }
+
+        static public byte[] Chipher(Authentication auth, byte[] plainText)
+        {
+            if (auth == Authentication.HighMD5)
+            {
+                using (MD5 md5Hash = MD5.Create())
+                {                    
+                    return md5Hash.ComputeHash(plainText);
+                }
+            }
+            if (auth == Authentication.HighSHA1)
+            {
+                using (SHA1 sha = new SHA1CryptoServiceProvider())
+                {                    
+                    return sha.ComputeHash(plainText);
+                }
+            }
+            if (auth == Authentication.GMAC)
+            {
+
+            }
+            return plainText;
+        }
+
+        /// <summary>
+        /// Generate challenge for the meter.
+        /// </summary>
+        /// <returns>Generated challenge.</returns>
+        static public byte[] GenerateChallenge()
+        {
+            // Random challenge is 8 to 64 bytes.
+            int len = new Random().Next(57) + 8;
+            byte[] result = new byte[len];
+            for (int pos = 0; pos != len; ++pos)
+            {
+                // Allow printable characters only.
+                do
+                {
+                    result[pos] = (byte)new Random().Next(0x7A);
+                }
+                while (result[pos] < 0x21);
+            }
+            return result;
         }
 
         /// <summary>
@@ -116,6 +170,7 @@ namespace Gurux.DLMS
         /// </summary>
         public GXDLMS(bool server)
         {
+            Ciphering = new GXCiphering(ASCIIEncoding.ASCII.GetBytes("ABCDEFGH"));
             Server = server;
             UseCache = true;
             this.InterfaceType = InterfaceType.General;
@@ -684,21 +739,7 @@ namespace Gurux.DLMS
         {
             get;
             set;
-        }
-
-
-        /// <summary>
-        /// Retrieves the password that is used in communication.
-        /// </summary>
-        /// <remarks>
-        /// If authentication is set to none, password is not used.
-        /// </remarks>
-        /// <seealso cref="Authentication"/>
-        public string Password
-        {
-            get;
-            set;
-        }
+        }       
 
         byte[][] SplitToFrames(List<byte> packet, uint blockIndex, ref int index, int count, Command cmd)
         {
@@ -797,6 +838,10 @@ namespace Gurux.DLMS
         /// <returns>Array of byte arrays that are sent to device.</returns>
         internal byte[][] SplitToBlocks(List<byte> packet, Command cmd)
         {
+            if (Ciphering.Enabled)
+            {
+
+            }
             int index = 0;
             if (!UseLogicalNameReferencing)//SN
             {                                
@@ -1521,12 +1566,12 @@ namespace Gurux.DLMS
             {
                 throw new GXDLMSException("Invalid command");
             }
-            ++index;
+            //Ship invoke ID and priority.
+            ++index;            
             if (res == (byte)Command.ReadResponse || res == (byte)Command.WriteResponse)
             {
-                
-                //Add reply status.
                 ++index;
+                //Add reply status.                
                 bool bIsError = (buff[index++] != 0);
                 if (bIsError)
                 {

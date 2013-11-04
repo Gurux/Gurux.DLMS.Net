@@ -1,4 +1,4 @@
-//
+﻿//
 // --------------------------------------------------------------------------
 //  Gurux Ltd
 // 
@@ -32,41 +32,15 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 namespace Gurux.DLMS
 {
-    /// <summary>
-    /// Authentication enumerates the authentication levels.
-    /// </summary>
-    public enum Authentication
+    public enum Security
     {
-        /// <summary>
-        /// No authentication is used.
-        /// </summary>
-        None,
-        /// <summary>
-        /// Low authentication is used.
-        /// </summary>
-        Low,
-        /// <summary>
-        /// High authentication is used.
-        /// </summary>
-        High,
-        /// <summary>
-        /// High authentication is used. Password is hashed with MD5.
-        /// </summary>
-        HighMD5,
-        /// <summary>
-        /// High authentication is used. Password is hashed with SHA1.
-        /// </summary>
-        HighSHA1,
-        /// <summary>
-        /// High authentication is used. Password is hashed with GMAC.
-        /// </summary>
-        GMAC
+        //Authentication only.
+        Authentication = 0x10,
+        //Encryption only.
+        Encryption = 0x20,
+        //Authentication and Encryption
+        AuthenticationEncryption = 0x30
     }
 }

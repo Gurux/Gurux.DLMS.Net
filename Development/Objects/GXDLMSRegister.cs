@@ -138,7 +138,7 @@ namespace Gurux.DLMS.Objects
         #region IGXDLMSBase Members
 
 
-        void IGXDLMSBase.Invoke(int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
         {
             // Resets the value to the default value. 
             // The default value is an instance specific constant.
@@ -150,6 +150,7 @@ namespace Gurux.DLMS.Objects
             {
                 throw new ArgumentException("Invoke failed. Invalid attribute index.");
             }
+            return null;
         }
 
         public override bool IsRead(int index)

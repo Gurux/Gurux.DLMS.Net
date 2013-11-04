@@ -135,9 +135,49 @@ namespace Gurux.DLMS.Objects
 
         #region IGXDLMSBase Members
 
-        void IGXDLMSBase.Invoke(int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
         {
-            throw new ArgumentException("Invoke failed. Invalid attribute index.");
+            //Check reply_to_HLS_authentication
+            if (index == 1)
+            {
+                GXDLMSServerBase s = sender as GXDLMSServerBase;
+                if (s == null)
+                {
+                    throw new ArgumentException("sender");
+                }
+                GXDLMS b = s.m_Base;
+                //Get server Challenge.
+                List<byte> challenge = null;
+                List<byte> CtoS = null;
+                //Find shared secret
+                foreach (GXAuthentication it in s.Authentications)
+                {
+                    if (it.Type == b.Authentication)
+                    {
+                        CtoS = new List<byte>(it.SharedSecret);
+                        challenge = new List<byte>(it.SharedSecret);
+                        challenge.AddRange(b.StoCChallenge);
+                        break;
+                    }
+                }
+                byte[] serverChallenge = GXDLMS.Chipher(b.Authentication, challenge.ToArray());
+                byte[] clientChallenge = (byte[])parameters;
+                int pos = 0;
+                if (GXCommon.Compare(serverChallenge, ref pos, clientChallenge))
+                {
+                    CtoS.AddRange(b.CtoSChallenge);
+                    return s.Acknowledge(Command.MethodResponse, 0, GXDLMS.Chipher(b.Authentication, CtoS.ToArray()), DataType.OctetString);
+                }
+                else
+                {
+                    //Return error.
+                    return s.ServerReportError(1, 5, 3);
+                }
+            }
+            else
+            {
+                throw new ArgumentException("Invoke failed. Invalid attribute index.");
+            }
         }
 
         int[] IGXDLMSBase.GetAttributeIndexToRead()

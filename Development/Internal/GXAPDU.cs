@@ -48,7 +48,7 @@ namespace Gurux.DLMS.Internal
     ///</summary>
     class GXAPDU
     {
-        public string Password;
+        public byte[] Password;
         public Authentication Authentication;
         GXApplicationContextName ApplicationContextName = new GXApplicationContextName();
         AssociationResult ResultValue;
@@ -100,15 +100,16 @@ namespace Gurux.DLMS.Internal
         ///<summary>
         ///Determines the authentication level, and password, if used.
         ///</summary>
-        internal void SetAuthentication(Authentication val, String pw)
+        internal void SetAuthentication(Authentication val, byte[] pw)
         {
             Authentication = val;
             Password = pw;
         }
+
         ///<summary>
         ///Retrieves the string that indicates the level of authentication, if any. 
         ///</summary>
-        internal void GetAuthenticationString(List<byte> data)
+        internal void GetAuthenticationString(List<byte> data, byte[] challenge)
         {
             //If low authentication is used.
             if (this.Authentication != Authentication.None)
@@ -123,18 +124,29 @@ namespace Gurux.DLMS.Internal
                 data.AddRange(p);
                 //Add Calling authentication information.
                 int len = 0;
-                if (Password != null)
+                if (this.Authentication == Authentication.Low)
                 {
-                    len = Password.Length;
+                    if (Password != null)
+                    {
+                        len = Password.Length;
+                    }
+                }
+                else
+                {                    
+                    len = challenge.Length;
                 }
                 data.Add(0xAC);
                 data.Add((byte)(2 + len));
                 //Add authentication information.
                 data.Add((byte)0x80);
                 data.Add((byte)len);
-                if (Password != null)
+                if (challenge != null)
                 {
-                    data.AddRange(ASCIIEncoding.ASCII.GetBytes(Password));
+                    data.AddRange(challenge);
+                }
+                else if (Password != null)
+                {
+                    data.AddRange(Password);
                 }
             }
         }
@@ -142,7 +154,7 @@ namespace Gurux.DLMS.Internal
         ///<summary>
         ///CodeData
         ///</summary>
-        internal void CodeData(List<byte> data, InterfaceType interfaceType)
+        internal void CodeData(List<byte> data, InterfaceType interfaceType, byte[] challenge)
         {
             //AARQ APDU Tag
             data.Add(GXCommon.AARQTag);
@@ -152,7 +164,7 @@ namespace Gurux.DLMS.Internal
             ///////////////////////////////////////////
             // Add Application context name.
             ApplicationContextName.CodeData(data);
-            GetAuthenticationString(data);            
+            GetAuthenticationString(data, challenge);            
             UserInformation.CodeData(data);
             //Add extra tags...
             if (Tags != null)
@@ -227,7 +239,7 @@ namespace Gurux.DLMS.Internal
                     len = buff[index++];
                     ResultDiagnosticValue = (SourceDiagnostic)buff[index++];
                 }
-                else if (tag == 0x8A) //Authentication.
+                else if (tag == 0x8A || tag == 0x88) //Authentication.
                 {
                     tag = buff[index++];
                     //Get sender ACSE-requirenents field component.
@@ -235,12 +247,21 @@ namespace Gurux.DLMS.Internal
                     {
                         throw new Exception("Invalid tag.");
                     }
-                    if (GXCommon.GetUInt16(buff, ref index) != 0x0780)
+                    int val = GXCommon.GetUInt16(buff, ref index);
+                    if (val != 0x0780 && val != 0x0680)
                     {
                         throw new Exception("Invalid tag.");
                     }
+                }               
+                else if (tag == 0xAA) //Server Challenge.                
+                {
+                    tag = buff[index++];
+                    len = buff[index++];
+                    ++index;
+                    len = buff[index++];
+                    //Get challenge
                 }
-                else if (tag == 0x8B) //Authentication.
+                else if (tag == 0x8B || tag == 0x89) //Authentication.
                 {
                     tag = buff[index++];
                     len = buff[index++];
@@ -269,12 +290,13 @@ namespace Gurux.DLMS.Internal
                         throw new Exception("Invalid tag.");
                     }
                     int tmp = buff[index++];
-                    if (tmp < 0 || tmp > 2)
+                    if (tmp < 0 || tmp > 4)
                     {
                         throw new Exception("Invalid tag.");
                     }
                     Authentication = (Authentication)tmp;
-                    if (buff[index++] != 0xAC)
+                    byte tag2 = buff[index++];
+                    if (tag2 != 0xAC && tag2 != 0xAA)
                     {
                         throw new Exception("Invalid tag.");
                     }
@@ -285,8 +307,9 @@ namespace Gurux.DLMS.Internal
                         throw new Exception("Invalid tag.");
                     }
                     len = buff[index++];
-                    Password = ASCIIEncoding.ASCII.GetString(buff, index, len);
-                    index += len;                    
+                    Password = new byte[len];
+                    Array.Copy(buff, index, Password, 0, len);
+                    index += len;
                 }
                 //Unknown tags.
                 else
@@ -304,12 +327,12 @@ namespace Gurux.DLMS.Internal
                     index += len;
                 }
             }
-        }
+        }       
 
         ///<summary>
         ///Server generates AARE message.
         ///</summary>
-        internal void GenerateAARE(List<byte> data, ushort maxReceivePDUSize, byte[] conformanceBlock, AssociationResult result, SourceDiagnostic diagnostic)
+        internal void GenerateAARE(List<byte> data, Authentication authentication, byte[] challenge, ushort maxReceivePDUSize, byte[] conformanceBlock, AssociationResult result, SourceDiagnostic diagnostic)
         {
             // Set AARE tag and length
             data.Add(0x61);
@@ -330,6 +353,29 @@ namespace Gurux.DLMS.Internal
             //Choice for result (INTEGER, universal)
             data.Add(1); //Len
             data.Add((byte)diagnostic); //diagnostic            
+            if (diagnostic == SourceDiagnostic.AuthenticationRequired)
+            {                
+                //Add server ACSE-requirenents field component.
+                data.Add(0x88);
+                data.Add(0x02);  //Len.
+                GXCommon.SetUInt16(0x0780, data);
+                //Add tag.
+                data.Add(0x89);
+                data.Add(0x07);//Len
+                data.Add(0x60);
+                data.Add(0x85);
+                data.Add(0x74);
+                data.Add(0x05);
+                data.Add(0x08);
+                data.Add(0x02);
+                data.Add((byte) authentication);
+                //Add tag.
+                data.Add(0xAA);
+                data.Add((byte) (2 + challenge.Length));//Len
+                data.Add(0x80);
+                data.Add((byte) challenge.Length);
+                data.AddRange(challenge);
+            }            
             //Add User Information
             data.Add(0xBE); //Tag
             data.Add(0x10); //Length for AARQ user field

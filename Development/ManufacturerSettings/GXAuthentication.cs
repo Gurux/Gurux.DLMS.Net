@@ -61,7 +61,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <param name="auth">Authentication type</param>
         /// <param name="clientID">Client Id.</param>
         public GXAuthentication(Authentication type, object clientID) :
-            this(type, null, clientID)
+            this(type, "", clientID)
         {
         }
 
@@ -74,7 +74,42 @@ namespace Gurux.DLMS.ManufacturerSettings
         public GXAuthentication(Authentication type, string pw, object clientID)
         {
             Type = type;
-            Password = pw;
+            if (type == Authentication.None)
+            {
+                Password = "";
+            }
+            else if (type == Authentication.Low)
+            {
+                Password = pw;
+            }
+            else
+            {
+                SharedSecret = ASCIIEncoding.ASCII.GetBytes(pw);
+            }
+            ClientID = clientID;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="auth">Authentication type</param>
+        /// <param name="sharedSecret">Shared secret.</param>
+        /// <param name="clientID">Client Id.</param>
+        public GXAuthentication(Authentication type, byte[] sharedSecret, object clientID)
+        {
+            Type = type;
+            if (type == Authentication.None)
+            {
+                Password = "";
+            }
+            else if (type == Authentication.Low)
+            {
+                Password = Convert.ToString(sharedSecret);
+            }
+            else
+            {
+                SharedSecret = sharedSecret;
+            }
             ClientID = clientID;
         }
 
@@ -116,6 +151,17 @@ namespace Gurux.DLMS.ManufacturerSettings
         [Browsable(false)]
         [DefaultValue(null)]
         public string Password
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Used password.
+        /// </summary>
+        [Browsable(false)]
+        [DefaultValue(null)]
+        public byte[] SharedSecret
         {
             get;
             set;

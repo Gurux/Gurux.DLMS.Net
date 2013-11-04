@@ -337,7 +337,7 @@ namespace Gurux.DLMS.Objects
 
         #region IGXDLMSBase Members
 
-        void IGXDLMSBase.Invoke(int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
         {
             throw new ArgumentException("Invoke failed. Invalid attribute index.");
         }

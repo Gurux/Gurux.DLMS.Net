@@ -72,11 +72,15 @@ namespace Gurux.DLMS.Internal
          */
         internal static void SetBits(byte value, byte BitMask, bool val)
         {
-            byte Mask = (byte)(0xFF ^ BitMask);
-            value &= Mask;
+            value &= (byte)~BitMask;
+            //Set bit.
             if (val)
             {
                 value |= BitMask;
+            }
+            else //Clear bit.
+            {
+                value &= (byte)~BitMask;
             }
         }
 
