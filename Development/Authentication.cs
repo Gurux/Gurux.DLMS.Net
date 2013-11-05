@@ -67,6 +67,6 @@ namespace Gurux.DLMS
         /// <summary>
         /// High authentication is used. Password is hashed with GMAC.
         /// </summary>
-        GMAC
+        HighGMAC
     }
 }

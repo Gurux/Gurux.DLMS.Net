@@ -111,7 +111,7 @@ namespace Gurux.DLMS
                     return sha.ComputeHash(plainText);
                 }
             }
-            if (auth == Authentication.GMAC)
+            if (auth == Authentication.HighGMAC)
             {
 
             }
@@ -124,17 +124,14 @@ namespace Gurux.DLMS
         /// <returns>Generated challenge.</returns>
         static public byte[] GenerateChallenge()
         {
+            Random rnd = new Random();
             // Random challenge is 8 to 64 bytes.
-            int len = new Random().Next(57) + 8;
+            int len = rnd.Next(8, 64);
             byte[] result = new byte[len];
             for (int pos = 0; pos != len; ++pos)
             {
                 // Allow printable characters only.
-                do
-                {
-                    result[pos] = (byte)new Random().Next(0x7A);
-                }
-                while (result[pos] < 0x21);
+                result[pos] = (byte)rnd.Next(0x21, 0x7A);                
             }
             return result;
         }

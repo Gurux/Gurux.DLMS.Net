@@ -316,7 +316,7 @@ namespace Gurux.DLMS
                         Authentications.Add(new GXAuthentication(Authentication.High, "GuruxHigh", (byte)0x40));
                         Authentications.Add(new GXAuthentication(Authentication.HighMD5, "GuruxMD5", (byte)0x40));
                         Authentications.Add(new GXAuthentication(Authentication.HighSHA1, "GuruxSHA1", (byte)0x40));
-                        Authentications.Add(new GXAuthentication(Authentication.GMAC, "GuruxSHA1", (byte)0x40));
+                        Authentications.Add(new GXAuthentication(Authentication.HighGMAC, "GuruxSHA1", (byte)0x40));
                         ServerIDs.Add(CountServerID((byte)1, 0));
                     }
                     else
@@ -335,7 +335,7 @@ namespace Gurux.DLMS
                         Authentications.Add(new GXAuthentication(Authentication.High, "GuruxHigh", (ushort)0x40));
                         Authentications.Add(new GXAuthentication(Authentication.HighMD5, "GuruxMD5", (byte)0x40));
                         Authentications.Add(new GXAuthentication(Authentication.HighSHA1, "GuruxSHA1", (byte)0x40));
-                        Authentications.Add(new GXAuthentication(Authentication.GMAC, "GuruxSHA1", (byte)0x40));
+                        Authentications.Add(new GXAuthentication(Authentication.HighGMAC, "GuruxSHA1", (byte)0x40));
                         ServerIDs.Add((ushort)1);
                     }
                 }

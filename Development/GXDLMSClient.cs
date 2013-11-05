@@ -635,8 +635,7 @@ namespace Gurux.DLMS
             {
                 System.Diagnostics.Debug.WriteLine("--- Short Name settings are---\r\n");
             }            
-            m_Base.StoCChallenge = pdu.Password;
-            System.Diagnostics.Debug.WriteLine("StoC: " + BitConverter.ToString(m_Base.StoCChallenge));
+            m_Base.StoCChallenge = pdu.Password;            
             AssociationResult ret = pdu.ResultComponent;
             if (ret == AssociationResult.Accepted)
             {
