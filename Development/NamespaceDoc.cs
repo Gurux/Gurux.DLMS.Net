@@ -333,6 +333,66 @@ namespace Gurux.DLMS
     /// }
     /// </code>
     /// </example>
+    /// <h2>Using authentication</h2>
+    /// Using authentication (Access security) server(meter) can allow different rights for the client. 
+    /// Example without authentication (None) only read is allowed. 
+    /// Gurux DLMS component supports five different authentication level:
+    /// <ul>
+    /// <li>None</li>
+    /// <li>Low</li>
+    /// <li>High</li>
+    /// <li>High authentication is used. Password is hashed with MD5.</li>
+    /// <li>High authentication is used. Password is hashed with SHA1.</li>
+    /// </ul>
+    /// In default Authentication level None is used. If other level is used password must also give.
+    /// Used password debends from the meter.
+    /// <example>
+    /// <code>
+    /// client.Authentication = Authentication.HighMD5;
+    /// client.Password = ASCIIEncoding.ASCII.GetBytes("12345678");
+    /// </code>
+    /// </example>
+    /// When authentication is High or above High Level security (HLS) is used. 
+    /// After connection is made client must send challenge to the server and server must accept this challenge.
+    /// This is done checking is Is Authentication Required after AARE message is parsed.
+    /// If authentication is required client sends challenge to the server and if everything succeeded 
+    /// server returns own challenge.
+    /// <example>
+    /// <code>
+    /// //Parse reply.
+    /// Client.ParseAAREResponse(reply);
+    /// //Get challenge Is HSL authentication is used.
+    /// if (Client.IsAuthenticationRequired)
+    /// {
+    ///     reply = ReadDLMSPacket(Client.GetApplicationAssociationRequest());
+    ///     Client.ParseApplicationAssociationResponse(reply);
+    /// }
+    /// </code>
+    /// </example>
+    /// <h2>Writing values</h2>
+    /// Writing values to the meter is very simple. There are two ways to do this.
+    /// First is using Write -method of GXDLMSClient.
+    /// <example>
+    /// <code >
+    /// ReadDLMSPacket(Client.Write("0.0.1.0.0.255", DateTime.Now, 2, DataType.OctetString, ObjectType.Clock, 2));
+    /// </code>
+    /// </example>
+    /// Note!
+    /// Data type must be correct or meter returns usually error. 
+    /// If you are reading byte value you can't write UIn16.
+    /// 
+    /// It is easy to write simple data types like this. If you want to write complex data types like arrays there
+    /// is also another way to do this. You can Update Object's propery and then write it.
+    /// In this example we want to update listening window of GXDLMSAutoAnswer object.
+    /// <example>
+    /// <code >
+    /// //Read Association view and find GXDLMSAutoAnswer object first.
+    /// GXDLMSAutoAnswer item = Client.Object.FindByLN("0.0.2.2.0.255", ObjectType.AutoAnswer);
+    /// //Window time is from 6am to 8am.
+    /// item.ListeningWindow.Add(new KeyValuePair&lt;GXDateTime, GXDateTime&gt;(new GXDateTime(-1, -1, -1, 6, -1, -1, -1), new GXDateTime(-1, -1, -1, 8, -1, -1, -1)));
+    /// ReadDLMSPacket(Client.Write(item, 3));
+    /// </code>
+    /// </example>
     /// </summary>
     [System.Runtime.CompilerServices.CompilerGenerated]
     class NamespaceDoc

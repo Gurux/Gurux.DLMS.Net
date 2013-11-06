@@ -314,9 +314,9 @@ namespace Gurux.DLMS
                         Authentications.Add(new GXAuthentication(Authentication.None, "", (byte)0x10));
                         Authentications.Add(new GXAuthentication(Authentication.Low, "GuruxLow", (byte)0x20));
                         Authentications.Add(new GXAuthentication(Authentication.High, "GuruxHigh", (byte)0x40));
-                        Authentications.Add(new GXAuthentication(Authentication.HighMD5, "GuruxMD5", (byte)0x40));
-                        Authentications.Add(new GXAuthentication(Authentication.HighSHA1, "GuruxSHA1", (byte)0x40));
-                        Authentications.Add(new GXAuthentication(Authentication.HighGMAC, "GuruxSHA1", (byte)0x40));
+                        Authentications.Add(new GXAuthentication(Authentication.HighMD5, "GuruxHighMD5", (byte)0x40));
+                        Authentications.Add(new GXAuthentication(Authentication.HighSHA1, "GuruxHighSHA1", (byte)0x40));
+                        Authentications.Add(new GXAuthentication(Authentication.HighGMAC, "GuruxHighGMAC", (byte)0x40));
                         ServerIDs.Add(CountServerID((byte)1, 0));
                     }
                     else
@@ -333,9 +333,9 @@ namespace Gurux.DLMS
                         Authentications.Add(new GXAuthentication(Authentication.None, "", (ushort)0x10));
                         Authentications.Add(new GXAuthentication(Authentication.Low, "GuruxLow", (ushort)0x20));
                         Authentications.Add(new GXAuthentication(Authentication.High, "GuruxHigh", (ushort)0x40));
-                        Authentications.Add(new GXAuthentication(Authentication.HighMD5, "GuruxMD5", (byte)0x40));
-                        Authentications.Add(new GXAuthentication(Authentication.HighSHA1, "GuruxSHA1", (byte)0x40));
-                        Authentications.Add(new GXAuthentication(Authentication.HighGMAC, "GuruxSHA1", (byte)0x40));
+                        Authentications.Add(new GXAuthentication(Authentication.HighMD5, "GuruxHighMD5", (ushort)0x40));
+                        Authentications.Add(new GXAuthentication(Authentication.HighSHA1, "GuruxHighSHA1", (ushort)0x40));
+                        Authentications.Add(new GXAuthentication(Authentication.HighGMAC, "GuruxHighGMAC", (ushort)0x40));
                         ServerIDs.Add((ushort)1);
                     }
                 }
@@ -717,7 +717,7 @@ namespace Gurux.DLMS
             m_Base.Authentication = aarq.Authentication;
             m_Base.CtoSChallenge = null;
             m_Base.StoCChallenge = null;
-            if (aarq.Authentication > Authentication.High)
+            if (aarq.Authentication >= Authentication.High)
             {
                 m_Base.CtoSChallenge = aarq.Password;
             }
