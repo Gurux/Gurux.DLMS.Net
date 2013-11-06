@@ -286,21 +286,20 @@ public byte[] ReadDLMSPacket(byte[] data)
     }
     return p.Reply;
 }
-`
-``
+```
 
 Using authentication
 
 
-Using authentication (Access security) server(meter) can allow different rights for the client.
+When authentication (Access security) is used server(meter) can allow different rights to  the client.
 Example without authentication (None) only read is allowed.
 Gurux DLMS component supports five different authentication level:
 
-•None
-•Low
-•High
-•HighMD5.
-•HighSHA1.
+0. None
+1. Low
+2. High
+3. HighMD5
+4. HighSHA1
 
 In default Authentication level None is used. If other level is used password must also give.
 Used password depends from the meter.

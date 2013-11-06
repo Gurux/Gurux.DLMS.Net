@@ -345,7 +345,7 @@ namespace Gurux.DLMS
     /// <li>High authentication is used. Password is hashed with SHA1.</li>
     /// </ul>
     /// In default Authentication level None is used. If other level is used password must also give.
-    /// Used password debends from the meter.
+    /// Used password depends from the meter.
     /// <example>
     /// <code>
     /// client.Authentication = Authentication.HighMD5;
