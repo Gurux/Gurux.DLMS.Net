@@ -124,7 +124,7 @@ namespace Gurux.DLMS.Internal
                 data.AddRange(p);
                 //Add Calling authentication information.
                 int len = 0;
-                if (this.Authentication == Authentication.Low)
+                if (this.Authentication == Authentication.Low || this.Authentication == Authentication.High)
                 {
                     if (Password != null)
                     {

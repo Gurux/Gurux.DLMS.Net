@@ -34,13 +34,26 @@
 
 namespace Gurux.DLMS
 {
+    /// <summary>
+    /// Used security model.
+    /// </summary>
     public enum Security
     {
-        //Authentication only.
+        /// <summary>
+        /// Transport security is not used.
+        /// </summary>
+        None = 0,
+        /// <summary>
+        /// Authentication security is used.
+        /// </summary>
         Authentication = 0x10,
-        //Encryption only.
+        /// <summary>
+        /// Encryption security is used.
+        /// </summary>
         Encryption = 0x20,
-        //Authentication and Encryption
+        /// <summary>
+        /// Authentication and Encryption security are used.
+        /// </summary>
         AuthenticationEncryption = 0x30
     }
 }

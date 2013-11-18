@@ -67,6 +67,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSClock()
             : base(ObjectType.Clock, "0.0.1.0.0.255", 0)
         {
+            Time = new GXDateTime(DateTime.MinValue);
         }
 
         public override DataType GetUIDataType(int index)
@@ -85,6 +86,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSClock(string ln)
             : base(ObjectType.Clock, ln, 0)
         {
+            Time = new GXDateTime(DateTime.MinValue);
         }
 
         /// <summary> 
@@ -95,6 +97,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSClock(string ln, ushort sn)
             : base(ObjectType.Clock, ln, sn)
         {
+            Time = new GXDateTime(DateTime.MinValue);
         }
 
         /// <inheritdoc cref="GXDLMSObject.LogicalName"/>
@@ -272,8 +275,7 @@ namespace Gurux.DLMS.Objects
         /// <returns></returns>
         public byte[][] AdjustToQuarter(GXDLMSClient client)
         {
-            byte[] ret = client.Method(this, 1, (int)0);
-            return new byte[][] { ret };
+            return client.Method(this, 1, (int)0);            
         }
 
 
@@ -283,8 +285,7 @@ namespace Gurux.DLMS.Objects
         /// <returns></returns>
         public byte[][] AdjustToMeasuringPeriod(GXDLMSClient client)
         {
-            byte[] ret = client.Method(this, 2, (int)0);
-            return new byte[][] { ret };
+            return client.Method(this, 2, (int)0);            
         }
 
         /// <summary>
@@ -296,8 +297,7 @@ namespace Gurux.DLMS.Objects
         /// <returns></returns>
         public byte[][] AdjustToMinute(GXDLMSClient client)
         {
-            byte[] ret = client.Method(this, 3, (int)0);
-            return new byte[][] { ret };
+            return client.Method(this, 3, (int)0);            
         }
 
         /// <summary>
@@ -308,8 +308,7 @@ namespace Gurux.DLMS.Objects
         /// <returns></returns>
         public byte[][] AdjustToPresetTime(GXDLMSClient client)
         {
-            byte[] ret = client.Method(this, 4, (int)0);
-            return new byte[][] { ret };
+            return client.Method(this, 4, (int)0);            
         }
 
         /// <summary>
@@ -327,8 +326,7 @@ namespace Gurux.DLMS.Objects
             GXCommon.SetData(buff, DataType.DateTime, presetTime);
             GXCommon.SetData(buff, DataType.DateTime, validityIntervalStart);
             GXCommon.SetData(buff, DataType.DateTime, validityIntervalEnd);
-            byte[] ret = client.Method(this, 5, buff.ToArray(), DataType.Array);
-            return new byte[][] { ret };
+            return client.Method(this, 5, buff.ToArray(), DataType.Array);            
         }
 
         /// <summary>
@@ -342,8 +340,7 @@ namespace Gurux.DLMS.Objects
             {
                 throw new ArgumentOutOfRangeException("Invalid shift time.");
             }
-            byte[] ret = client.Method(this, 6, time);
-            return new byte[][] { ret };
+            return client.Method(this, 6, time);            
         }
 
         int[] IGXDLMSBase.GetAttributeIndexToRead()

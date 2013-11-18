@@ -74,7 +74,10 @@
     <Compile Include="Authentication.cs" />
     <Compile Include="Command.cs" />
     <Compile Include="DataType.cs" />
+    <Compile Include="GXCiphering.cs" />
     <Compile Include="GXDateTime.cs" />
+    <Compile Include="GXDLMSChippering.cs" />
+    <Compile Include="GXDLMSChipperingStream.cs" />
     <Compile Include="GXDLMSClient.cs" />
     <Compile Include="GXDLMSServerBase.cs" />
     <Compile Include="GXStandardObisObject.cs" />
@@ -164,6 +167,7 @@
     <Compile Include="Objects\IGXDLMSBase.cs" />
     <Compile Include="Objects\OpticalProtocolMode.cs" />
     <Compile Include="ObjectType.cs" />
+    <Compile Include="Priority.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -171,6 +175,8 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="RequestTypes.cs" />
+    <Compile Include="Security.cs" />
+    <Compile Include="ServiceClass.cs" />
     <Compile Include="Shared\GXCommon.cs">
       <SubType>Code</SubType>
     </Compile>

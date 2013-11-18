@@ -393,6 +393,31 @@ namespace Gurux.DLMS
     /// ReadDLMSPacket(Client.Write(item, 3));
     /// </code>
     /// </example>
+    /// <h2>Transport security</h2>
+    /// DLMS supports tree different transport security. When transport security is used 
+    /// each packet is secured using GMAC security. Security level are:
+    /// <ul>
+    /// <li>Authentication</li>
+    /// <li>Encryption</li>
+    /// <li>AuthenticationEncryption</li>
+    /// </ul>
+    /// 
+    /// Using secured messages is easy. Before security can be used following properties must set:
+    /// <ul>
+    /// <li>Security</li>
+    /// <li>SystemTitle</li>
+    /// <li>AuthenticationKey</li>
+    /// <li>BlockCipherKey</li>
+    /// <li>FrameCounter</li>
+    /// </ul>
+    /// If we want communicate with Gurux DLMS server you just need to set the following settings.
+    /// <example>
+    /// <code >
+    /// dlms.Ciphering.Security = Security.Encryption;
+    /// //Default security when using gurux test server.
+    /// dlms.Ciphering.SystemTitle = ASCIIEncoding.ASCII.GetBytes("GRX12345"); 
+    /// </code>
+    /// </example>    
     /// </summary>
     [System.Runtime.CompilerServices.CompilerGenerated]
     class NamespaceDoc

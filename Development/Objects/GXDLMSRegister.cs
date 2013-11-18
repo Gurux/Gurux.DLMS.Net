@@ -125,8 +125,7 @@ namespace Gurux.DLMS.Objects
         /// <returns></returns>
         public byte[][] Reset(GXDLMSClient client)
         {
-            byte[] ret = client.Method(this, 1, (int)0);
-            return new byte[][] { ret };
+            return client.Method(this, 1, (int)0);            
         }
 
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
@@ -211,8 +210,8 @@ namespace Gurux.DLMS.Objects
                 List<byte> data = new List<byte>();
                 data.Add((byte) DataType.Structure);
                 data.Add(2);
-                GXCommon.SetData(data, DataType.UInt8, m_Scaler);
-                GXCommon.SetData(data, DataType.UInt8, Unit);
+                GXCommon.SetData(data, DataType.Int8, m_Scaler);
+                GXCommon.SetData(data, DataType.Enum, Unit);
                 return data.ToArray();
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");

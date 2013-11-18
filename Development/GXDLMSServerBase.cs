@@ -106,6 +106,8 @@ namespace Gurux.DLMS
             m_Base.SNSettings = new GXDLMSSNSettings(new byte[] { 0x1C, 0x03, 0x20 });
             ServerIDs = new List<object>();
             this.InterfaceType = InterfaceType.General;
+            //Set default system title to transport security.
+            Ciphering.SystemTitle = ASCIIEncoding.ASCII.GetBytes("GRX12345");
         }
 
         /// <summary>
@@ -117,6 +119,15 @@ namespace Gurux.DLMS
         {
             return (uint) GXManufacturer.CountServerAddress(HDLCAddressType.SerialNumber, "SN%10000+1000", serialNumber, 0);            
         }
+
+        public GXCiphering Ciphering
+        {
+            get
+            {
+                return m_Base.Ciphering;
+            }
+        }
+
         /* TODO: Add IEC handshake later.
         /// <summary>
         /// Start protocol.
@@ -278,6 +289,48 @@ namespace Gurux.DLMS
         {
             get;
             private set;
+        }
+
+        public Priority Priority
+        {
+            get
+            {
+                return m_Base.Priority;
+            }
+            set
+            {
+                m_Base.Priority = value;
+            }
+        }
+
+        /// <summary>
+        /// Used service class.
+        /// </summary>
+        public ServiceClass ServiceClass
+        {
+            get
+            {
+                return m_Base.ServiceClass;
+            }
+            set
+            {
+                m_Base.ServiceClass = value;
+            }
+        }
+
+        /// <summary>
+        /// Invoke ID.
+        /// </summary>
+        public byte InvokeID
+        {
+            get
+            {
+                return m_Base.InvokeID;
+            }
+            set
+            {
+                m_Base.InvokeID = value;
+            }
         }
        
         /// <summary>
@@ -699,7 +752,7 @@ namespace Gurux.DLMS
             List<byte> arr = new List<byte>(data);
             bool packetFull, wrongCrc;
             byte command;
-            m_Base.GetDataFromFrame(arr, index, out frame, true, out error, false, out packetFull, out wrongCrc, out command);
+            m_Base.GetDataFromFrame(arr, index, out frame, true, out error, false, out packetFull, out wrongCrc, out command, false);
             if (!packetFull)
             {
                 throw new GXDLMSException("Not enought data to parse frame.");
@@ -752,12 +805,15 @@ namespace Gurux.DLMS
                 }
                 //If authentication is used check pw.
                 else if (aarq.Authentication != Authentication.None)
-                {
-                    //If Low authentication is used and pw don't match.                    
-                    if (aarq.Authentication == Authentication.Low && auth.Password != ASCIIEncoding.ASCII.GetString(aarq.Password))
+                {                    
+                    if (aarq.Authentication == Authentication.Low)
                     {
-                        result = AssociationResult.PermanentRejected;
-                        diagnostic = SourceDiagnostic.AuthenticationFailure;
+                        //If Low authentication is used and pw don't match.
+                        if (string.Compare(auth.Password, ASCIIEncoding.ASCII.GetString(aarq.Password)) != 0)
+                        {
+                            result = AssociationResult.PermanentRejected;
+                            diagnostic = SourceDiagnostic.AuthenticationFailure;
+                        }
                     }
                     else //If High authentication is used.
                     {
@@ -1126,6 +1182,14 @@ namespace Gurux.DLMS
                     }
                     FrameIndex = 0;
                     SendData.Clear();
+                    if (command == (byte) Command.GloGetRequest ||
+                        command == (byte) Command.GloSetRequest ||
+                        command == (byte) Command.GloMethodRequest)
+                    {
+                        Command cmd;
+                        allData = m_Base.Decrypt(allData.ToArray(), out cmd);
+                        command = (byte) cmd;
+                    }
                     if (command == (int)Command.Aarq)
                     {
                         SendData.Add(HandleAARQRequest(data));
@@ -1354,23 +1418,12 @@ namespace Gurux.DLMS
         /// </summary>
         internal byte[] Acknowledge(Command cmd, byte status, Object data, DataType type)
         {
-            List<byte> buff = new List<byte>(10);
-            if (this.InterfaceType == InterfaceType.General)
-            {
-                if (m_Base.Server)
-                {
-                    buff.AddRange(GXCommon.LLCReplyBytes);
-                }
-                else
-                {
-                    buff.AddRange(GXCommon.LLCSendBytes);
-                }
-            }           
+            List<byte> buff = new List<byte>(10);                   
             //Get request normal
             buff.Add((byte) cmd);
             buff.Add(0x01);
             //Invoke ID and priority.
-            buff.Add(0x81);
+            buff.Add(m_Base.GetInvokeIDPriority());
             buff.Add(status);
             if (type != DataType.None)
             {
@@ -1386,18 +1439,7 @@ namespace Gurux.DLMS
         /// </summary>
         internal byte[] ServerReportError(byte serviceErrorCode, byte type, byte code)
         {
-            List<byte> buff = new List<byte>(10);
-            if (this.InterfaceType == InterfaceType.General)
-            {
-                if (m_Base.Server)
-                {
-                    buff.AddRange(GXCommon.LLCReplyBytes);
-                }
-                else
-                {
-                    buff.AddRange(GXCommon.LLCSendBytes);
-                }
-            }
+            List<byte> buff = new List<byte>(10);           
             byte cmd;
             if (m_Base.Server)
             {

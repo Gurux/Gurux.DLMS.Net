@@ -55,7 +55,7 @@ namespace Gurux.DLMS
         byte[] ClientBuff;
         internal byte[] CtoSChallenge;
         internal byte[] StoCChallenge;
-        GXCiphering Ciphering;
+        internal GXCiphering Ciphering;
 
         uint PacketIndex;
         bool bIsLastMsgKeepAliveMsg;
@@ -70,12 +70,65 @@ namespace Gurux.DLMS
         internal int CacheSize;
         internal int ItemCount;
         internal int MaxItemCount;
+        byte m_InvokeID;
         internal static Dictionary<Gurux.DLMS.ObjectType, Type> AvailableObjectTypes = new Dictionary<Gurux.DLMS.ObjectType, Type>();
 
         public Authentication Authentication
         {
             get;
             set;
+        }
+
+        internal byte GetInvokeIDPriority()
+        {
+            byte value = 0;
+            if (Priority == Priority.High)
+            {
+                value |= 0x80;
+            }
+            if (ServiceClass == ServiceClass.Confirmed)
+            {
+                value |= 0x40;
+            }
+            value |= m_InvokeID;
+            return value;
+        }
+
+        /// <summary>
+        /// Used priority.
+        /// </summary>
+        public Priority Priority
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Used service class.
+        /// </summary>
+        public ServiceClass ServiceClass
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Invoke ID.
+        /// </summary>
+        public byte InvokeID
+        {
+            get
+            {
+                return m_InvokeID;
+            }
+            set
+            {
+                if (value > 0xF)
+                {
+                    throw new ArgumentOutOfRangeException("Invalid InvokeID");
+                }
+                m_InvokeID = value;
+            }
         }
 
         public static GXDLMSObject CreateObject(Gurux.DLMS.ObjectType type)
@@ -167,6 +220,8 @@ namespace Gurux.DLMS
         /// </summary>
         public GXDLMS(bool server)
         {
+            Priority = Priority.High;
+            InvokeID = 1;
             Ciphering = new GXCiphering(ASCIIEncoding.ASCII.GetBytes("ABCDEFGH"));
             Server = server;
             UseCache = true;
@@ -413,7 +468,7 @@ namespace Gurux.DLMS
             int error;            
             List<byte> arr = new List<byte>(packet);
             bool packetFull, wrongCrc;
-            RequestTypes moreData = GetDataFromFrame(arr, 0, out frame, true, out error, false, out packetFull, out wrongCrc, out command);
+            RequestTypes moreData = GetDataFromFrame(arr, 0, out frame, true, out error, false, out packetFull, out wrongCrc, out command, true);
             if (!packetFull)
             {
                 throw new GXDLMSException("Not enought data to parse frame.");
@@ -425,7 +480,13 @@ namespace Gurux.DLMS
             if (command == (int) Command.Rejected)
             {
                 throw new GXDLMSException("Packet rejected.");
-            }              
+            }
+            if (command == (byte)Command.GloGetResponse)
+            {
+                Command cmd;
+                data = Decrypt(arr.ToArray(), out cmd);
+                command = (byte)cmd;
+            }
             int len = 0;
             if (data != null)
             {
@@ -469,7 +530,7 @@ namespace Gurux.DLMS
             buff.Add(0xC0);
             buff.Add(0x02);
             //Invoke ID and priority.
-            buff.Add(0x81);
+            buff.Add(GetInvokeIDPriority());
             GXCommon.SetUInt32(PacketIndex, buff);
             return AddFrame(GenerateIFrame(), false, buff, 0, buff.Count);
         }           
@@ -487,7 +548,7 @@ namespace Gurux.DLMS
             {
                 bool packetFull, wrongCrc;
                 byte command;
-                GetDataFromFrame(new List<byte>(data), 0, out frame, true, out error, false, out packetFull, out wrongCrc, out command);
+                GetDataFromFrame(new List<byte>(data), 0, out frame, true, out error, false, out packetFull, out wrongCrc, out command, false);
                 return packetFull;
             }
             catch
@@ -554,6 +615,11 @@ namespace Gurux.DLMS
         {
             try
             {
+                //We can't get progress status if ciphering is used.
+                if (Ciphering.Security != Security.None)
+                {
+                    return 0;
+                }
                 //Return cache size.
                 if (UseCache && data.Length == CacheSize)
                 {
@@ -580,6 +646,12 @@ namespace Gurux.DLMS
         {
             try
             {
+                //We can't get progress status if ciphering is used.
+                if (Ciphering.Security != Security.None)
+                {
+                    return 0;
+                }
+
                 //Return cache size.
                 if (UseCache && data.Length == CacheSize)
                 {
@@ -613,7 +685,7 @@ namespace Gurux.DLMS
             int error;            
             bool packetFull, wrongCrc;
             byte command;
-            GetDataFromFrame(new List<byte>(sendData), 0, out sendID, false, out error, false, out packetFull, out wrongCrc, out command);
+            GetDataFromFrame(new List<byte>(sendData), 0, out sendID, false, out error, false, out packetFull, out wrongCrc, out command, false);
             if (!packetFull)
             {
                 throw new GXDLMSException("Not enought data to parse frame.");
@@ -622,7 +694,7 @@ namespace Gurux.DLMS
             {
                 throw new GXDLMSException("Wrong Checksum.");
             }
-            RequestTypes more = GetDataFromFrame(new List<byte>(receivedData), 0, out receiveID, true, out error, true, out packetFull, out wrongCrc, out command);
+            RequestTypes more = GetDataFromFrame(new List<byte>(receivedData), 0, out receiveID, true, out error, true, out packetFull, out wrongCrc, out command, false);
             if (!packetFull)
             {
                 throw new GXDLMSException("Not enought data to parse frame.");
@@ -655,7 +727,7 @@ namespace Gurux.DLMS
             int error;
             bool packetFull, wrongCrc;
             byte command;
-            GetDataFromFrame(new List<byte>(sendData), 0, out sendID, false, out error, false, out packetFull, out wrongCrc, out command);
+            GetDataFromFrame(new List<byte>(sendData), 0, out sendID, false, out error, false, out packetFull, out wrongCrc, out command, false);
             if (!packetFull)
             {
                 throw new GXDLMSException("Not enought data to parse frame.");
@@ -664,7 +736,7 @@ namespace Gurux.DLMS
             {
                 throw new GXDLMSException("Wrong Checksum.");
             }
-            RequestTypes more = GetDataFromFrame(new List<byte>(receivedData), 0, out receiveID, true, out error, true, out packetFull, out wrongCrc, out command);
+            RequestTypes more = GetDataFromFrame(new List<byte>(receivedData), 0, out receiveID, true, out error, true, out packetFull, out wrongCrc, out command, false);
             if (!packetFull)
             {
                 throw new GXDLMSException("Not enought data to parse frame.");
@@ -703,11 +775,11 @@ namespace Gurux.DLMS
             //Check reply id.
             List<byte> tmp = new List<byte>(data);
             byte command;
-            RequestTypes more = GetDataFromFrame(tmp, 0, out id, true, out error, true, out packetFull, out wrongCrc, out command);
+            RequestTypes more = GetDataFromFrame(tmp, 0, out id, true, out error, true, out packetFull, out wrongCrc, out command, false);
             if (!packetFull)
             {
                 //Check send id.
-                more = GetDataFromFrame(tmp, 0, out id, false, out error, false, out packetFull, out wrongCrc, out command);
+                more = GetDataFromFrame(tmp, 0, out id, false, out error, false, out packetFull, out wrongCrc, out command, false);
                 if (!packetFull)
                 {
                     throw new GXDLMSException("Not enought data to parse frame.");
@@ -738,25 +810,29 @@ namespace Gurux.DLMS
             set;
         }       
 
+        public byte[] GetCipheredData(byte[] data, GXCiphering ciphering)
+        {
+            return GXDLMSChippering.DecryptAesGcm(data, ciphering.SystemTitle, ciphering.BlockCipherKey, ciphering.AuthenticationKey);
+
+        }
+
+        /// <summary>
+        /// Split packet to frames.
+        /// </summary>
+        /// <param name="packet"></param>
+        /// <param name="blockIndex"></param>
+        /// <param name="index"></param>
+        /// <param name="count"></param>
+        /// <param name="cmd"></param>
+        /// <returns></returns>
         byte[][] SplitToFrames(List<byte> packet, uint blockIndex, ref int index, int count, Command cmd)
         {
-            List<byte> tmp = new List<byte>(count + 13);
-            if (this.InterfaceType == InterfaceType.General)
-            {
-                if (Server)
-                {
-                    tmp.AddRange(GXCommon.LLCReplyBytes);
-                }
-                else
-                {
-                    tmp.AddRange(GXCommon.LLCSendBytes);
-                }
-            }
+            List<byte> tmp = new List<byte>(count + 13);            
             if (cmd != Command.None && this.UseLogicalNameReferencing)
             {
                 bool moreBlocks = packet.Count > MaxReceivePDUSize && packet.Count > index + count;
                 //Command, multiple blocks and Invoke ID and priority.
-                tmp.AddRange(new byte[] { (byte)cmd, (byte)(moreBlocks ? 2 : 1), 0x81 });
+                tmp.AddRange(new byte[] { (byte)cmd, (byte)(moreBlocks ? 2 : 1), GetInvokeIDPriority() });
                 if (Server)
                 {
                     tmp.Add(0x0); // Get-Data-Result choice data
@@ -772,6 +848,62 @@ namespace Gurux.DLMS
             {
                 tmp.Add((byte)cmd);
             }
+            //Crypt message in first run.
+            if (Ciphering.Security != Security.None && FrameSequence != -1)
+            {
+                tmp.AddRange(packet.ToArray());
+                packet.Clear();
+                ++Ciphering.FrameCounter;
+                Command gloCmd;
+                if (cmd == Command.ReadRequest || cmd == Command.GetRequest)
+                {
+                    gloCmd = Command.GloGetRequest;
+                }
+                else if (cmd == Command.WriteRequest || cmd == Command.SetRequest)
+                {
+                    gloCmd = Command.GloSetRequest;
+                }
+                else if (cmd == Command.MethodRequest)
+                {
+                    gloCmd = Command.GloMethodRequest;
+                }
+                else if (cmd == Command.ReadResponse || cmd == Command.GetResponse)
+                {
+                    gloCmd = Command.GloGetResponse;
+                }
+                else if (cmd == Command.WriteResponse || cmd == Command.SetResponse)
+                {
+                    gloCmd = Command.GloSetResponse;
+                }
+                else if (cmd == Command.MethodResponse)
+                {
+                    gloCmd = Command.GloMethodResponse;
+                }
+                else
+                {
+                    throw new GXDLMSException("Invalid GLO command.");
+                }
+                packet.AddRange(GXDLMSChippering.EncryptAesGcm(gloCmd, Ciphering.Security, 
+                    Ciphering.FrameCounter, Ciphering.SystemTitle, Ciphering.BlockCipherKey, 
+                    Ciphering.AuthenticationKey, tmp.ToArray()));
+                tmp.Clear();
+                if (!UseLogicalNameReferencing)
+                {
+                    count = packet.Count;
+                }
+            }
+            if (this.InterfaceType == InterfaceType.General)
+            {
+                if (Server)
+                {
+                    tmp.InsertRange(0, GXCommon.LLCReplyBytes);
+                }
+                else
+                {
+                    tmp.InsertRange(0, GXCommon.LLCSendBytes);
+                }
+            }
+
             int dataSize;
             if (this.InterfaceType == InterfaceType.Net)
             {
@@ -834,15 +966,11 @@ namespace Gurux.DLMS
         /// <param name="packet">Packet to send.</param>
         /// <returns>Array of byte arrays that are sent to device.</returns>
         internal byte[][] SplitToBlocks(List<byte> packet, Command cmd)
-        {
-            if (Ciphering.Enabled)
-            {
-
-            }
+        {            
             int index = 0;
             if (!UseLogicalNameReferencing)//SN
             {                                
-                return SplitToFrames(packet, 0, ref index, packet.Count, cmd);
+                return SplitToFrames(packet, 1, ref index, packet.Count, cmd);
             }           
             //If LN           
             //Split to Blocks.
@@ -896,7 +1024,7 @@ namespace Gurux.DLMS
             byte command;
             if (sendData != null)
             {
-                GetDataFromFrame(new List<byte>(sendData), index, out frame, false, out err, false, out packetFull, out wrongCrc, out command);
+                GetDataFromFrame(new List<byte>(sendData), index, out frame, false, out err, false, out packetFull, out wrongCrc, out command, false);
                 if (!packetFull)
                 {
                     throw new GXDLMSException("Not enought data to parse frame.");
@@ -910,7 +1038,7 @@ namespace Gurux.DLMS
                     return null;
                 }
             }
-            RequestTypes moreData = GetDataFromFrame(new List<byte>(receivedData), index, out frame, true, out err, false, out packetFull, out wrongCrc, out command);
+            RequestTypes moreData = GetDataFromFrame(new List<byte>(receivedData), index, out frame, true, out err, false, out packetFull, out wrongCrc, out command, false);
             if (!packetFull)
             {
                 throw new GXDLMSException("Not enought data to parse frame.");
@@ -1291,6 +1419,10 @@ namespace Gurux.DLMS
         internal object GetAddress(byte[] buff, ref int index)
         {
             int size = 0;
+            if (InterfaceType == InterfaceType.Net)
+            {
+                return GXCommon.GetInt16(buff, ref index);
+            }
             for (int pos = index; pos != buff.Length; ++pos)
             {
                 ++size;
@@ -1317,7 +1449,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Reserved for internal use.
         /// </summary>
-        internal RequestTypes GetDataFromFrame(List<byte> buff, int index, out byte frame, bool bReply, out int pError, bool skipLLC, out bool packetFull, out bool wrongCrc, out byte command)
+        internal RequestTypes GetDataFromFrame(List<byte> buff, int index, out byte frame, bool bReply, out int pError, bool skipLLC, out bool packetFull, out bool wrongCrc, out byte command, bool ciphering)
         {
             command = 0;
             wrongCrc = false;
@@ -1406,7 +1538,7 @@ namespace Gurux.DLMS
                         DataLen = buff.Count - index - 1;                        
                         if (DataLen > 5)
                         {
-                            return GetDataFromFrame(buff, index, out frame, bReply, out pError, skipLLC, out packetFull, out wrongCrc, out command);
+                            return GetDataFromFrame(buff, index, out frame, bReply, out pError, skipLLC, out packetFull, out wrongCrc, out command, ciphering);
                         }
                         packetFull = false;
                         return RequestTypes.None;
@@ -1472,17 +1604,31 @@ namespace Gurux.DLMS
                         wrongCrc = true;
                         return RequestTypes.None;
                     }
+                    bool chiphering = false;
                     //CheckLLCBytes returns false if LLC bytes are not used.
                     if (!skipLLC && CheckLLCBytes(buff, ref index))
                     {
                         //TODO: LLC voi skipata SNRM ja Disconnect.
                         //Check response.
-                        command = buff[index];
-                        if (command == (byte)Command.Aarq ||
-                            command == (byte)Command.DisconnectRequest)
+                        command = buff[index];                                                
+                        //If chiphering is used.
+                        if (command == (byte)Command.GloGetRequest ||
+                            command == (byte)Command.GloGetResponse ||
+                            command == (byte)Command.GloSetRequest ||
+                            command == (byte)Command.GloSetResponse ||
+                            command == (byte)Command.GloMethodRequest ||
+                            command == (byte)Command.GloMethodResponse ||
+                            command == (byte)Command.Aarq ||
+                            command == (byte)Command.DisconnectRequest ||
+                            command == 0x60 ||
+                            command == 0x61)
                         {
                         }
-                        else if (bReply && command != 0x61 && command != 0x60)
+                        else if (bReply && (command == (byte)Command.GetRequest || command == (byte)Command.GetResponse ||
+                            command == (byte)Command.MethodRequest || command == (byte)Command.MethodResponse ||
+                            command == (byte)Command.ReadRequest || command == (byte)Command.ReadResponse ||
+                            command == (byte)Command.SetRequest || command == (byte)Command.SetResponse ||
+                            command == (byte)Command.WriteRequest || command == (byte)Command.WriteResponse))
                         {
                             //If LN is used, check is there more data available.
                             if (this.UseLogicalNameReferencing)
@@ -1498,7 +1644,11 @@ namespace Gurux.DLMS
                                 GetSNData(buff, ref index, ref pError, command);
                             }
                         }
-                    }
+                        else
+                        {
+                            throw new GXDLMSException(string.Format("Invalid command %d", command));
+                        }
+                    }                   
                     //Skip data header and data CRC and EOP.
                     if (index + 3 > buff.Count)
                     {
@@ -1511,7 +1661,10 @@ namespace Gurux.DLMS
                     else
                     {
                         //Remove all except payload.
-                        buff.RemoveRange(len - 3, 3);
+                        if (!chiphering)
+                        {                            
+                            buff.RemoveRange(len - 3, 3);
+                        }
                         buff.RemoveRange(0, index);
                     }
                 }
@@ -1528,8 +1681,15 @@ namespace Gurux.DLMS
                 {
                     // IEC62056-53 Sections 8.3 and 8.6.1
                     // If Get.Response.Normal.
-                    command = buff[index];
-                    if (command == (byte)Command.Aarq ||
+                    command = buff[index];                   
+                    //If chiphering is used.
+                    if (command == (byte)Command.GloGetRequest ||
+                        command == (byte)Command.GloGetResponse ||
+                        command == (byte)Command.GloSetRequest ||
+                        command == (byte)Command.GloSetResponse ||
+                        command == (byte)Command.GloMethodRequest ||
+                        command == (byte)Command.GloMethodResponse ||
+                        command == (byte)Command.Aarq ||
                         command == (byte)Command.DisconnectRequest ||
                         command == (byte)Command.DisconnectResponse)
                     {
@@ -1550,6 +1710,57 @@ namespace Gurux.DLMS
                 buff.RemoveRange(0, index);
             }
             return MoreData;
+        }
+
+        public byte[] Decrypt(byte[] buff, out Command command)
+        {
+            int index = 0;
+            command = (Command) buff[index];
+            if (!(command == Command.GloGetRequest ||
+                command == Command.GloSetRequest ||
+                command == Command.GloMethodRequest ||
+                command == Command.GloGetResponse ||
+                command == Command.GloSetResponse ||
+                command == Command.GloMethodResponse))            
+            {
+                throw new GXDLMSException("Invalid data format.");
+            }            
+            int len = buff[++index];
+            if (buff.Length - 2 != len)
+            {
+                throw new GXDLMSException("Invalid data format.");
+            }
+            byte value = buff[++index];
+            if (value != 0x10 && value != 0x20 && value != 0x30)
+            {
+                throw new ArgumentOutOfRangeException("Invalid security value.");
+            }
+            if (this.Ciphering.Security == Security.None)
+            {
+                this.Ciphering.Security = (Security)value;
+            }
+            else if (this.Ciphering.Security != (Security)value)
+            {
+                throw new GXDLMSException("Security method can't change after initialized.");
+            }
+            List<byte> tmp = new List<byte>(GetCipheredData(buff, Ciphering));
+            command = (Command)tmp[0];
+            index = 0;
+            int pError = 0;
+            RequestTypes MoreData = RequestTypes.None;
+            if (this.UseLogicalNameReferencing)
+            {
+                if (!GetLNData(tmp, ref index, ref pError, ref MoreData, tmp[0]))
+                {
+                    throw new GXDLMSException("Invalid data format.");
+                }
+            }
+            else
+            {
+                GetSNData(tmp, ref index, ref pError, tmp[0]);
+            }
+            tmp.RemoveRange(0, index);
+            return tmp.ToArray();
         }
 
         private static void GetSNData(List<byte> buff, ref int index, ref int pError, byte res)

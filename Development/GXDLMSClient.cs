@@ -108,6 +108,14 @@ namespace Gurux.DLMS
             return m_Base.GetFrameNumber(data);
         }
 
+        public GXCiphering Ciphering
+        {
+            get
+            {
+                return m_Base.Ciphering;
+            }
+        }
+
         /// <summary>
         /// Client ID is the identification of the device that is used as a client.
         /// Client ID is aka HDLC Address.
@@ -408,6 +416,48 @@ namespace Gurux.DLMS
             }
         }
 
+        public Priority Priority
+        {
+            get
+            {
+                return m_Base.Priority;
+            }
+            set
+            {
+                m_Base.Priority = value;
+            }
+        }
+
+        /// <summary>
+        /// Used service class.
+        /// </summary>
+        public ServiceClass ServiceClass
+        {
+             get
+            {
+                return m_Base.ServiceClass;
+            }
+            set
+            {
+                m_Base.ServiceClass = value;
+            }
+        }
+
+        /// <summary>
+        /// Invoke ID.
+        /// </summary>
+        public byte InvokeID
+        {
+            get
+            {
+                return m_Base.InvokeID;
+            }
+            set
+            {
+                m_Base.InvokeID = value;
+            }
+        }
+
         /// <summary>
         /// Determines the type of the connection
         /// </summary>
@@ -485,7 +535,7 @@ namespace Gurux.DLMS
             List<byte> arr = new List<byte>(data);
             bool packetFull, wrongCrc;
             byte command;
-            m_Base.GetDataFromFrame(arr, index, out frame, true, out error, true, out packetFull, out wrongCrc, out command);
+            m_Base.GetDataFromFrame(arr, index, out frame, true, out error, true, out packetFull, out wrongCrc, out command, false);
             if (!packetFull)
             {
                 throw new GXDLMSException("Not enought data to parse frame.");
@@ -613,7 +663,7 @@ namespace Gurux.DLMS
             List<byte> arr = new List<byte>(reply);
             bool packetFull, wrongCrc;
             byte command;
-            m_Base.GetDataFromFrame(arr, index, out frame, true, out error, false, out packetFull, out wrongCrc, out command);
+            m_Base.GetDataFromFrame(arr, index, out frame, true, out error, false, out packetFull, out wrongCrc, out command, false);
             if (!packetFull)
             {
                 throw new GXDLMSException("Not enought data to parse frame.");
@@ -670,6 +720,8 @@ namespace Gurux.DLMS
         /// <summary>
         /// Is authentication Required.
         /// </summary>
+        /// <seealso cref="GetApplicationAssociationRequest"/>
+        /// <seealso cref="ParseApplicationAssociationResponse"/>
         public bool IsAuthenticationRequired
         {
             get;
@@ -680,14 +732,19 @@ namespace Gurux.DLMS
         /// Get challenge request if HLS authentication is used.
         /// </summary>
         /// <returns></returns>
-        public byte[] GetApplicationAssociationRequest()
+        /// <seealso cref="IsAuthenticationRequired"/>
+        /// <seealso cref="ParseApplicationAssociationResponse"/>
+        public byte[][] GetApplicationAssociationRequest()
         {
             if (Password == null || Password.Length == 0)
             {
                 throw new ArgumentException("Password is invalid.");
             }
             List<byte> CtoS = new List<byte>(Password);
-            CtoS.AddRange(m_Base.StoCChallenge);
+            if (m_Base.StoCChallenge != null)
+            {
+                CtoS.AddRange(m_Base.StoCChallenge);
+            }
             byte[] challenge = GXDLMS.Chipher(this.Authentication, CtoS.ToArray());
             if (UseLogicalNameReferencing)
             {
@@ -700,6 +757,8 @@ namespace Gurux.DLMS
         /// Parse server's challenge if HLS authentication is used.
         /// </summary>
         /// <param name="reply"></param>
+        /// <seealso cref="IsAuthenticationRequired"/>
+        /// <seealso cref="GetApplicationAssociationRequest"/>        
         public void ParseApplicationAssociationResponse(byte[] reply)
         {
             byte frame;
@@ -707,7 +766,7 @@ namespace Gurux.DLMS
             List<byte> arr = new List<byte>(reply);
             bool packetFull, wrongCrc;
             byte command;
-            m_Base.GetDataFromFrame(arr, index, out frame, true, out error, false, out packetFull, out wrongCrc, out command);
+            m_Base.GetDataFromFrame(arr, index, out frame, true, out error, false, out packetFull, out wrongCrc, out command, true);
             if (!packetFull)
             {
                 throw new GXDLMSException("Not enought data to parse frame.");
@@ -1042,6 +1101,11 @@ namespace Gurux.DLMS
         /// <returns>Collection of COSEM objects.</returns>
         public GXDLMSObjectCollection ParseObjects(byte[] data, bool onlyKnownObjects)
         {
+            if (Ciphering.Security != Security.None)
+            {
+                Command cmd;
+                data = m_Base.Decrypt(data, out cmd);
+            }
             if (data == null || data.Length == 0)
             {
                 throw new GXDLMSException("ParseObjects failed. Invalid parameter.");
@@ -1156,20 +1220,23 @@ namespace Gurux.DLMS
                     items.Add(comp);
                 }
                 //Update data type and scaler unit if register.
-                GXDLMSObject tmp = Objects.FindByLN(comp.ObjectType, comp.LogicalName);
-                if (tmp != null)
+                if (Objects != null)
                 {
-                    if (comp is GXDLMSRegister)
+                    GXDLMSObject tmp = Objects.FindByLN(comp.ObjectType, comp.LogicalName);
+                    if (tmp != null)
                     {
-                        int index2 = tmp.SelectedAttributeIndex;
-                        //Some meters return zero.
-                        if (index2 == 0)
+                        if (comp is GXDLMSRegister)
                         {
-                            index2 = 2;
+                            int index2 = tmp.SelectedAttributeIndex;
+                            //Some meters return zero.
+                            if (index2 == 0)
+                            {
+                                index2 = 2;
+                            }
+                            comp.SetUIDataType(index2, tmp.GetUIDataType(index2));
+                            (comp as GXDLMSRegister).Scaler = (tmp as GXDLMSRegister).Scaler;
+                            (comp as GXDLMSRegister).Unit = (tmp as GXDLMSRegister).Unit;
                         }
-                        comp.SetUIDataType(index2, tmp.GetUIDataType(index2));
-                        (comp as GXDLMSRegister).Scaler = (tmp as GXDLMSRegister).Scaler;
-                        (comp as GXDLMSRegister).Unit = (tmp as GXDLMSRegister).Unit;
                     }
                 }
             }            
@@ -1195,7 +1262,12 @@ namespace Gurux.DLMS
         /// <returns></returns>
         /// <seealso cref="TryGetValue"/>
         public object GetValue(byte[] data, GXDLMSObject target, int attributeIndex)
-        {        
+        {
+            if (Ciphering.Security != Security.None)
+            {
+                Command cmd;
+                data = m_Base.Decrypt(data, out cmd);
+            }
             DataType type = target.GetUIDataType(attributeIndex);
             Object value = GetValue(data);
             if (value is byte[] && type != DataType.None)
@@ -1404,7 +1476,7 @@ namespace Gurux.DLMS
         /// <param name="item">object to write.</param>
         /// <param name="index">Attribute index where data is write.</param>
         /// <returns></returns>
-        public byte[] Method(GXDLMSObject item, int index, Object data)
+        public byte[][] Method(GXDLMSObject item, int index, Object data)
         {
             return Method(item.Name, item.ObjectType, index, data, DataType.None);
         }
@@ -1417,7 +1489,7 @@ namespace Gurux.DLMS
         /// <param name="data">Additional data.</param>
         /// <param name="type">Additional data type.</param>
         /// <returns></returns>
-        public byte[] Method(GXDLMSObject item, int index, Object data, DataType type)
+        public byte[][] Method(GXDLMSObject item, int index, Object data, DataType type)
         {
             return Method(item.Name, item.ObjectType, index, data, type);
         }
@@ -1429,7 +1501,7 @@ namespace Gurux.DLMS
         /// <param name="objectType">Object type.</param>
         /// <param name="index">Methdod index.</param>
         /// <returns></returns>
-        public byte[] Method(object name, ObjectType objectType, int index, Object data, DataType type)
+        public byte[][] Method(object name, ObjectType objectType, int index, Object data, DataType type)
         {
             if (name == null || index < 1)
             {
@@ -1452,7 +1524,7 @@ namespace Gurux.DLMS
                 }
                 index = (value + (index - 1) * 0x8);
             }
-            return m_Base.GenerateMessage(name, 0, buff.ToArray(), objectType, index, Command.MethodRequest)[0];
+            return m_Base.GenerateMessage(name, 0, buff.ToArray(), objectType, index, Command.MethodRequest);
         }
 
 
@@ -1672,6 +1744,12 @@ namespace Gurux.DLMS
         public int GetMaxProgressStatus(byte[] data)
         {
             return m_Base.GetMaxProgressStatus(data);
+        }
+
+        public byte[] GetCipheredData(byte[] data)
+        {
+            return GXDLMSChippering.DecryptAesGcm(data, Ciphering.SystemTitle, 
+                Ciphering.BlockCipherKey, Ciphering.AuthenticationKey);
         }
 
         /// <summary>

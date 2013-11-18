@@ -48,7 +48,7 @@ namespace Gurux.DLMS
     {
         internal GXDLMSLimits()
         {
-            //Mikko
+            //TODO:
             //MaxInfoTX = (byte)128;
             //MaxInfoRX = (byte)62;
             MaxInfoRX = MaxInfoTX = (byte)128;

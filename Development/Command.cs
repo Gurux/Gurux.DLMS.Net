@@ -60,6 +60,13 @@ namespace Gurux.DLMS
         Snrm = 0x93,
         Aarq = 0x60,
         DisconnectRequest = 0x62,
-        DisconnectResponse = 0x63
+        DisconnectResponse = 0x63,
+        //Clo messages
+        GloGetRequest = 0xC8,
+        GloGetResponse = 0xCC,
+        GloSetRequest = 0xC9,
+        GloSetResponse = 0xCD,
+        GloMethodRequest = 0xCB,
+        GloMethodResponse = 0xCF,
     }
 }

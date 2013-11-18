@@ -352,3 +352,27 @@ GXDLMSAutoAnswer item = Client.Object.FindByLN("0.0.2.2.0.255", ObjectType.AutoA
 item.ListeningWindow.Add(new KeyValuePair<GXDateTime, GXDateTime>(new GXDateTime(-1, -1, -1, 6, -1, -1, -1), new GXDateTime(-1, -1, -1, 8, -1, -1, -1)));
 ReadDLMSPacket(Client.Write(item, 3));
 ``` 
+
+Transport security
+
+DLMS supports tree different transport security. When transport security is used each packet is secured using GMAC security. Security level are:
+* Authentication
+* Encryption
+* AuthenticationEncryption
+
+Using secured messages is easy. Before security can be used following properties must set:
+* Security
+* SystemTitle
+* AuthenticationKey
+* BlockCipherKey
+* FrameCounter
+
+If we want communicate with Gurux DLMS server you just need to set the following settings.
+
+
+```csharp
+Client.Ciphering.Security = Security.Encryption;
+//Default security when using gurux test server.
+Client.Ciphering.SystemTitle = ASCIIEncoding.ASCII.GetBytes("GRX12345");
+
+``` 

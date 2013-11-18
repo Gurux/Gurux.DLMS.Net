@@ -148,6 +148,7 @@
     <Compile Include="Objects\IGXDLMSBase.cs" />
     <Compile Include="Objects\OpticalProtocolMode.cs" />
     <Compile Include="ObjectType.cs" />
+    <Compile Include="Priority.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -156,6 +157,7 @@
     </Compile>
     <Compile Include="RequestTypes.cs" />
     <Compile Include="Security.cs" />
+    <Compile Include="ServiceClass.cs" />
     <Compile Include="Shared\GXCommon.cs">
       <SubType>Code</SubType>
     </Compile>
