@@ -360,7 +360,7 @@ DLMS supports tree different transport security. When transport security is used
 * Encryption
 * AuthenticationEncryption
 
-Using secured messages is easy. Before security can be used following properties must set:
+Using secured messages (glo services) is easy. Before security can be used following properties must set:
 * Security
 * SystemTitle
 * AuthenticationKey

@@ -1482,7 +1482,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Generates a write message.
+        /// Generate Method (Action) request.
         /// </summary>
         /// <param name="item">object to write.</param>
         /// <param name="index">Attribute index where data is write.</param>

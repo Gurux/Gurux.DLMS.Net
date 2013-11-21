@@ -675,22 +675,21 @@ namespace Gurux.DLMS
             M[1] = new uint[16][];
             M[0][0] = new uint[4];
             M[1][0] = new uint[4];
-            M[1][8] = GetUint128(H);            
+            M[1][8] = GetUint128(H);
+            uint[] tmp;
             for (int pos = 4; pos >= 1; pos >>= 1)            
             {
-                uint[] tmp = (uint[])M[1][pos + pos].Clone();
+                tmp = (uint[])M[1][pos + pos].Clone();
                 MultiplyP(tmp);
                 M[1][pos] = tmp;
             }
-            {
-                uint[] tmp = (uint[])M[1][1].Clone();
-                MultiplyP(tmp);
-                M[0][8] = tmp;
-            }
+            tmp = (uint[])M[1][1].Clone();
+            MultiplyP(tmp);
+            M[0][8] = tmp;
 
             for (int pos = 4; pos >= 1; pos >>= 1)
             {
-                uint[] tmp = (uint[])M[0][pos + pos].Clone();
+                tmp = (uint[])M[0][pos + pos].Clone();
                 MultiplyP(tmp);
                 M[0][pos] = tmp;
             }
@@ -701,7 +700,7 @@ namespace Gurux.DLMS
                 {
                     for (int k = 1; k < pos2; ++k)
                     {
-                        uint[] tmp = (uint[])M[pos1][pos2].Clone();
+                        tmp = (uint[])M[pos1][pos2].Clone();
                         Xor(tmp, M[pos1][k]);
                         M[pos1][pos2 + k] = tmp;
                     }
@@ -718,7 +717,7 @@ namespace Gurux.DLMS
                     M[pos1][0] = new uint[4];
                     for (int pos = 8; pos > 0; pos >>= 1)
                     {
-                        uint[] tmp = (uint[])M[pos1 - 2][pos].Clone();
+                        tmp = (uint[])M[pos1 - 2][pos].Clone();
                         MultiplyP8(tmp);
                         M[pos1][pos] = tmp;
                     }
@@ -778,11 +777,7 @@ namespace Gurux.DLMS
             S = GetGHash(Aad);
             counter = (byte[]) J0.Clone();
             BytesRemaining = 0;
-            totalLength = 0;
-            if (bufBlock != null)
-            {
-                Array.Clear(bufBlock, 0, bufBlock.Length);
-            }
+            totalLength = 0;            
         }
 
         /// <summary>

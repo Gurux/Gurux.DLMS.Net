@@ -1149,7 +1149,6 @@ namespace Gurux.DLMS
                     byte frame;
                     byte command;
                     RequestTypes ret = m_Base.GetDataFromPacket(data, ref allData, out frame, out command);
-                    System.Diagnostics.Debug.WriteLine(Convert.ToString(frame, 16));
                     ReceivedData.Clear();
                     //Ask next part.
                     if ((ret & (RequestTypes.Frame | RequestTypes.DataBlock)) != 0)

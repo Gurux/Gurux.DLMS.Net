@@ -82,7 +82,6 @@ namespace Gurux.DLMS
             byte[] tmp = BitConverter.GetBytes(FrameCounter).Reverse().ToArray();
             byte[] aad = GetAuthenticatedData(security, AuthenticationKey, plainText);
             GXDLMSChipperingStream gcm = new GXDLMSChipperingStream(security, true, BlockCipherKey, aad, GetNonse(FrameCounter, systemTitle), null);
-            //byte[] tag = null;
             // Encrypt the secret message
             if (security != Security.Authentication)
             {                
@@ -102,8 +101,6 @@ namespace Gurux.DLMS
                 if ((type & CountType.Tag) != 0)
                 {
                     countTag = gcm.GetTag();
-                    //tag = new List<byte>(gcm.GetTag());
-                    //tag.RemoveRange(12, tag.Count - 12);
                     data.AddRange(countTag);                    
                 }
             }
