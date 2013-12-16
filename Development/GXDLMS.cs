@@ -385,7 +385,7 @@ namespace Gurux.DLMS
                             buff.Add(Convert.ToByte(it));
                         }
                         buff.Add((byte)AttributeOrdinal);
-                        buff.Add(0x0); //Items count
+                        buff.Add((byte) parameterCount); //Items count
                     }
                 }
                 else

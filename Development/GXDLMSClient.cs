@@ -1524,7 +1524,7 @@ namespace Gurux.DLMS
                 }
                 index = (value + (index - 1) * 0x8);
             }
-            return m_Base.GenerateMessage(name, 0, buff.ToArray(), objectType, index, Command.MethodRequest);
+            return m_Base.GenerateMessage(name, type == DataType.None ? 0 : 1, buff.ToArray(), objectType, index, Command.MethodRequest);
         }
 
 
@@ -1641,7 +1641,7 @@ namespace Gurux.DLMS
             GXCommon.SetData(buff, DataType.UInt32, count);//Add Count
             GXCommon.SetData(buff, DataType.UInt16, 0);//Read all columns.
             GXCommon.SetData(buff, DataType.UInt16, 0);
-            return m_Base.GenerateMessage(name, 4, buff.ToArray(), ObjectType.ProfileGeneric, 2, this.UseLogicalNameReferencing ? Command.GetRequest : Command.ReadRequest)[0];
+            return m_Base.GenerateMessage(name, 1, buff.ToArray(), ObjectType.ProfileGeneric, 2, this.UseLogicalNameReferencing ? Command.GetRequest : Command.ReadRequest)[0];
         }
 
         /// <summary>
@@ -1679,7 +1679,7 @@ namespace Gurux.DLMS
             //Add array of read columns. Read All...
             buff.Add(0x01); //Add item count   
             buff.Add(0x00); //Add item count   
-            return m_Base.GenerateMessage(name, 4, buff.ToArray(), ObjectType.ProfileGeneric, 2, this.UseLogicalNameReferencing ? Command.GetRequest : Command.ReadRequest)[0];
+            return m_Base.GenerateMessage(name, 1, buff.ToArray(), ObjectType.ProfileGeneric, 2, this.UseLogicalNameReferencing ? Command.GetRequest : Command.ReadRequest)[0];
         }
 
         /// <summary>

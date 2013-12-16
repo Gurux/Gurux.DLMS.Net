@@ -306,6 +306,71 @@ namespace Gurux.DLMS
         [XmlEnum("51")]
         Conductance, 
         /// <summary>
+        /// Temperature in Kelvin.
+        /// </summary>
+        [XmlEnum("52")]
+        Kelvin,
+        /// <summary>
+        /// 1/(V2h) RU2h , volt-squared hour meter constant or pulse value.
+        /// </summary>
+        [XmlEnum("53")]
+        RU2h,
+        /// <summary>
+        /// 1/(A2h) RI2h , ampere-squared hour meter constant or pulse value.
+        /// </summary>
+        [XmlEnum("54")]
+        RI2h,
+        /// <summary>
+        /// 1/m3 RV , meter constant or pulse value (volume).
+        /// </summary>
+        [XmlEnum("55")]
+        CubicMeterRV,
+        /// <summary>
+        /// Percentage
+        /// </summary>
+        [XmlEnum("56")]
+        Percentage,
+        // Ah ampere-hours 
+        [XmlEnum("57")]
+        AmpereHour,
+        /// <summary>
+        /// Wh/m3 energy per volume 3,6*103 J/m3.
+        /// </summary>
+        [XmlEnum("60")]        
+        EnergyPerVolume = 60,
+        /// <summary>
+        /// J/m3 calorific value, wobbe.
+        /// </summary>
+        [XmlEnum("61")]        
+        Wobbe = 61,
+        /// <summary>
+        /// Mol % molar fraction of gas composition mole percent (Basic gas composition unit)
+        /// </summary>
+        [XmlEnum("62")]        
+        MolePercent = 62,
+        /// <summary>
+        /// g/m3 mass density, quantity of material.
+        /// </summary>
+        [XmlEnum("63")]        
+        MassDensity = 63,
+        /// <summary>
+        /// Pa s dynamic viscosity pascal second (Characteristic of gas stream).
+        /// </summary>
+        [XmlEnum("64")]        
+        PascalSecond = 64,
+        /// <summary>
+        /// J/kg Specific energy 
+        /// NOTE The amount of energy per unit of mass of a 
+        /// substance Joule / kilogram m2 . kg . s -2 / kg = m2 . s –2
+        /// </summary>
+        [XmlEnum("65")]        
+        JouleKilogram = 65,
+        /// <summary>
+        /// dBm Signal strength (e.g. of GSM radio systems)
+        /// </summary>
+        [XmlEnum("70")]        
+        SignalStrength = 70,
+        /// <summary>
         /// Other Unit is used.
         /// </summary>
         [XmlEnum("254")]
