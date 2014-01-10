@@ -1131,6 +1131,7 @@ namespace Gurux.DLMS
                         //We do not communicate if server ID not found.
                         if (m_Base.ServerID == null)
                         {
+                            System.Diagnostics.Debug.WriteLine("Invalid server ID: " + sid.ToString());
                             InvalidConnection(new ConnectionEventArgs(sid));
                             return null;
                         }

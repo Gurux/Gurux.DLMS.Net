@@ -264,6 +264,14 @@ namespace Gurux.DLMS
         [XmlEnum("21")]
         RegisterMonitor = 21,
 
+        /// <summary>
+        /// Instances of the Disconnect control IC manage an internal or external disconnect unit 
+        /// of the meter (e.g. electricity breaker, gas valve) in order to connect or disconnect 
+        /// – partly or entirely – the premises of the consumer to / from the supply.     
+        /// </summary>
+        [XmlEnum("70")]
+        DisconnectControl = 70,
+
         ///<summary>
         ///RegisterTable stores identical attributes of objects, in a selected 
         ///collection of objects. All the objects in the collection need to be of 
@@ -298,6 +306,13 @@ namespace Gurux.DLMS
         ///</summary>
         [XmlEnum("17")]
         SapAssignment = 17,
+
+        /// <summary>
+        /// Instances of the Image transfer IC model the mechanism of 
+        /// transferring binary files, called firmware Images to COSEM servers. 
+        /// </summary>
+        [XmlEnum("18")]
+        ImageTransfer = 18,
 
         ///<summary>
         ///To handle time and date driven actions, use Schedule, with an object of 
