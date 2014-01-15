@@ -167,6 +167,13 @@ namespace Gurux.DLMS
         ///</remarks>
         String = 10,
         ///<summary>
+        ///Data type is UTF8 String.
+        ///</summary>
+        ///<remarks>
+        /// DLMS/COSEM type is: utf8-string.
+        ///</remarks>
+        StringUTF8 = 12,
+        ///<summary>
         ///Data type is Structure.
         ///</summary>
         ///<remarks>

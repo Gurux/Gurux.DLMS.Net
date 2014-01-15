@@ -447,12 +447,12 @@ namespace Gurux.DLMS.Internal
                 }
                 value = GXCommon.GetUInt32(buff, ref pos);
             }
-            else if (type == DataType.String)
+            else if (type == DataType.StringUTF8)
             {
                 int len = 0;
                 if (knownType)
                 {
-                    len = buff.Length;                    
+                    len = buff.Length;
                 }
                 else
                 {
@@ -462,7 +462,32 @@ namespace Gurux.DLMS.Internal
                         pos = -1;
                         return null;
                     }
-                }                
+                }
+                if (len > 0)
+                {
+                    value = ASCIIEncoding.UTF8.GetString(GXCommon.RawData(buff, ref pos, len));
+                }
+                else
+                {
+                    value = "";
+                }
+            }
+            else if (type == DataType.String)
+            {
+                int len = 0;
+                if (knownType)
+                {
+                    len = buff.Length;
+                }
+                else
+                {
+                    len = GXCommon.GetObjectCount(buff, ref pos);
+                    if (buff.Length - pos < len) //If there is not enought data available.
+                    {
+                        pos = -1;
+                        return null;
+                    }
+                }
                 if (len > 0)
                 {
                     bool octetString = false;
@@ -546,11 +571,11 @@ namespace Gurux.DLMS.Internal
                     pos = -1;
                     return null;
                 }
-                value = GXCommon.GetInt16(buff, ref pos);                
+                value = GXCommon.GetInt16(buff, ref pos);
             }
             else if (type == DataType.UInt8)
             {
-                value = buff[pos++];                
+                value = buff[pos++];
             }
             else if (type == DataType.UInt16)
             {
@@ -572,7 +597,7 @@ namespace Gurux.DLMS.Internal
                     pos = -1;
                     return null;
                 }
-                value = GXCommon.GetInt64(buff, ref pos);                
+                value = GXCommon.GetInt64(buff, ref pos);
             }
             else if (type == DataType.UInt64)
             {
@@ -581,7 +606,7 @@ namespace Gurux.DLMS.Internal
                     pos = -1;
                     return null;
                 }
-                value = GXCommon.GetUInt64(buff, ref pos);                
+                value = GXCommon.GetUInt64(buff, ref pos);
             }
             else if (type == DataType.Enum)
             {
@@ -599,7 +624,7 @@ namespace Gurux.DLMS.Internal
                     pos = -1;
                     return null;
                 }
-                value = GXCommon.ToFloat(buff, ref pos);                
+                value = GXCommon.ToFloat(buff, ref pos);
             }
             else if (type == DataType.Float64)
             {
@@ -608,7 +633,7 @@ namespace Gurux.DLMS.Internal
                     pos = -1;
                     return null;
                 }
-                value = GXCommon.ToDouble(buff, ref pos);                
+                value = GXCommon.ToDouble(buff, ref pos);
             }
             else if (type == DataType.DateTime)
             {
@@ -625,13 +650,13 @@ namespace Gurux.DLMS.Internal
                         throw new Exception("Invalid datetime format.");
                     }
                 }
-                GXDateTime dt = new GXDateTime();                
+                GXDateTime dt = new GXDateTime();
                 //Get year.
                 int year = GXCommon.GetUInt16(buff, ref pos);
                 if (year == 0xFFFF)
                 {
                     year = DateTime.MinValue.Year;
-                    dt.Skip |= DateTimeSkips.Year;                    
+                    dt.Skip |= DateTimeSkips.Year;
                 }
                 //Get month
                 int month = buff[pos++];
@@ -684,7 +709,7 @@ namespace Gurux.DLMS.Internal
                     pos = 0xFF;
                     return null;
                 }
-                GXDateTime dt = new GXDateTime();   
+                GXDateTime dt = new GXDateTime();
                 //Get year.
                 int year = GXCommon.GetUInt16(buff, ref pos);
                 if (year == 0xFFFF)
@@ -714,7 +739,7 @@ namespace Gurux.DLMS.Internal
                     DayOfWeek = 1;
                 }
                 dt.Skip |= DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms;
-                return dt;        
+                return dt;
             }
             else if (type == DataType.Time)
             {
@@ -895,6 +920,22 @@ namespace Gurux.DLMS.Internal
                 value = tmp.ToArray();
                 reverse = false;
             }
+            else if (type == DataType.StringUTF8)
+            {                
+                if (value != null)
+                {
+                    string str = value.ToString();
+                    byte[] tmp1 = ASCIIEncoding.UTF8.GetBytes(str);
+                    SetObjectCount(tmp1.Length, tmp);
+                    tmp.AddRange(tmp1);
+                }
+                else
+                {
+                    SetObjectCount(0, tmp);
+                }
+                value = tmp.ToArray();
+                reverse = false;
+            }                
             else if (type == DataType.Array || type == DataType.Structure)
             {
                 if (value != null)

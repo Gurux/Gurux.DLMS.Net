@@ -274,7 +274,7 @@ namespace Gurux.DLMS.Objects
                     foreach (Object[] it in (Object[])value)
                     {
                         string ln = GXDLMSObject.toLogicalName((byte[])it[0]);
-                        byte[] index_list = (byte[])it[0];
+                        byte[] index_list = (byte[])it[1];
                         MaskList.Add(new KeyValuePair<string, byte[]>(ln, index_list));
                     }                    
                 }                

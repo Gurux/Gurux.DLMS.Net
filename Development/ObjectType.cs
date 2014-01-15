@@ -131,7 +131,7 @@ namespace Gurux.DLMS
         ///supports both block, and sliding demand calculation, and it also provides 
         ///resetting the value average, and periodic averages.
         ///</summary>
-        [XmlEnum("9")]
+        [XmlEnum("5")]
         DemandRegister = 5,
 
         ///<summary>
