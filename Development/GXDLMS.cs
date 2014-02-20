@@ -175,7 +175,7 @@ namespace Gurux.DLMS
         /// Generate challenge for the meter.
         /// </summary>
         /// <returns>Generated challenge.</returns>
-        static public byte[] GenerateChallenge()
+        static public byte[] GenerateChallenge()        
         {
             Random rnd = new Random();
             // Random challenge is 8 to 64 bytes.
@@ -349,7 +349,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Reserved for internal use.
         /// </summary>
-        internal byte[][] GenerateMessage(object name, int parameterCount, byte[] data, ObjectType interfaceClass, int AttributeOrdinal, Command cmd)
+        internal byte[][] GenerateMessage(object name, byte[] data, ObjectType interfaceClass, int AttributeOrdinal, Command cmd)
         {
             if (Limits.MaxInfoRX == null)
             {
@@ -420,13 +420,17 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        buff.Add((byte)parameterCount);
-                        ushort base_address = Convert.ToUInt16(name);
-                        if (cmd == Command.MethodRequest)
+                        if (data == null || data.Length == 0)
                         {
-                            base_address += (ushort)AttributeOrdinal;
+                            buff.Add(2);
                         }
-                        else
+                        else //if Parameterised Access
+                        {
+                            buff.Add(4);
+                        }                                                                       
+                        ushort base_address = Convert.ToUInt16(name);
+                        //AttributeOrdinal is count already for action.
+                        if (AttributeOrdinal != 0)
                         {
                             base_address += (ushort)((AttributeOrdinal - 1) * 8);
                         }
@@ -488,12 +492,6 @@ namespace Gurux.DLMS
             {
                 throw new GXDLMSException("Packet rejected.");
             }
-            if (command == (byte)Command.GloGetResponse)
-            {
-                Command cmd;
-                data = Decrypt(arr.ToArray(), out cmd);
-                command = (byte)cmd;
-            }
             int len = 0;
             if (data != null)
             {
@@ -506,6 +504,17 @@ namespace Gurux.DLMS
             }
             Array.Copy(arr.ToArray(), 0, tmp, len, arr.Count);
             data = tmp;
+            if (moreData == RequestTypes.None && Ciphering.Security != Security.None &&
+                (command == (byte)Command.GloGetResponse ||
+                command == (byte)Command.GloSetResponse ||
+                command == (byte)Command.GloMethodResponse || 
+                command == (byte)Command.None) &&
+                data.Length != 0)
+            {
+                Command cmd;
+                data = Decrypt(data, out cmd);
+                command = (byte)cmd;
+            }
             return moreData;
         }        
 
@@ -607,7 +616,11 @@ namespace Gurux.DLMS
                     CacheData = value;
                     CacheType = type;
                 }
-            }            
+            }
+            else
+            {
+                CacheData = value;
+            }
             ItemCount += read;
             MaxItemCount = total;           
         }
@@ -987,7 +1000,7 @@ namespace Gurux.DLMS
             {
                 byte[][] frames = SplitToFrames(packet, ++blockIndex, ref index, MaxReceivePDUSize, cmd);
                 buff.AddRange(frames);
-                if (frames.Length != 1)
+                if (cmd != Command.WriteRequest && cmd != Command.MethodRequest && frames.Length != 1)
                 {
                     ExpectedFrame += 3;
                 }
@@ -1202,8 +1215,8 @@ namespace Gurux.DLMS
             //In keep alive msg send ID might be same as receiver ID.
             bool ret = send == received || //If echo.
                     ((send >> 5) & 0x7) == ((received >> 1) & 0x7) ||
-                    //If U-Frame...
-                    ((send & 0x1) == 0x1 && (received & 0x1) == 1);
+                    //If U-Frame or S-Frame
+                    ((send & 0x1) == 0x1 || (received & 0x1) == 1);
             if (!ret)
             {
                 return ret;
@@ -1611,7 +1624,6 @@ namespace Gurux.DLMS
                         wrongCrc = true;
                         return RequestTypes.None;
                     }
-                    bool chiphering = false;
                     //CheckLLCBytes returns false if LLC bytes are not used.
                     if (!skipLLC && CheckLLCBytes(buff, ref index))
                     {
@@ -1668,10 +1680,7 @@ namespace Gurux.DLMS
                     else
                     {
                         //Remove all except payload.
-                        if (!chiphering)
-                        {                            
-                            buff.RemoveRange(len - 3, 3);
-                        }
+                        buff.RemoveRange(len - 3, 3);
                         buff.RemoveRange(0, index);
                     }
                 }
@@ -1722,7 +1731,7 @@ namespace Gurux.DLMS
         public byte[] Decrypt(byte[] buff, out Command command)
         {
             int index = 0;
-            command = (Command) buff[index];
+            command = (Command) buff[index++];
             if (!(command == Command.GloGetRequest ||
                 command == Command.GloSetRequest ||
                 command == Command.GloMethodRequest ||
@@ -1731,13 +1740,13 @@ namespace Gurux.DLMS
                 command == Command.GloMethodResponse))            
             {
                 throw new GXDLMSException("Invalid data format.");
-            }            
-            int len = buff[++index];
-            if (buff.Length - 2 != len)
+            }
+            int len = Gurux.DLMS.Internal.GXCommon.GetObjectCount(buff, ref index);
+            if (buff.Length - index != len)
             {
                 throw new GXDLMSException("Invalid data format.");
             }
-            byte value = buff[++index];
+            byte value = buff[index++];
             if (value != 0x10 && value != 0x20 && value != 0x30)
             {
                 throw new ArgumentOutOfRangeException("Invalid security value.");
@@ -1771,7 +1780,7 @@ namespace Gurux.DLMS
         }
 
         private static void GetSNData(List<byte> buff, ref int index, ref int pError, byte res)
-        {                        
+        {
             //Check that this is reply
             if (res != (byte)Command.ReadRequest && res != (byte)Command.WriteRequest &&
                 res != (byte)Command.SetRequest && res != (byte)Command.SetResponse && 
@@ -1815,7 +1824,7 @@ namespace Gurux.DLMS
             {
                 case ObjectType.Data:
                 case ObjectType.ActionSchedule:
-                case ObjectType.All:
+                case ObjectType.None:
                 case ObjectType.AutoAnswer:
                 case ObjectType.AutoConnect:
                 case ObjectType.MacAddressSetup:
@@ -1836,6 +1845,10 @@ namespace Gurux.DLMS
                 case ObjectType.Tunnel:
                 case ObjectType.UtilityTables:
                     throw new Exception("Target do not support Action.");
+                case ObjectType.ImageTransfer:
+                    value = 0x40;
+                    count = 4;
+                    break;
                 case ObjectType.ActivityCalendar:
                     value = 0x50;
                     count = 1;
@@ -1864,7 +1877,7 @@ namespace Gurux.DLMS
                     value = 0x60;
                     count = 3;
                     break;
-                case ObjectType.MbusSetup:
+                case ObjectType.MBusSlavePortSetup:
                     value = 0x60;
                     count = 8;
                     break;
@@ -1939,9 +1952,6 @@ namespace Gurux.DLMS
             else if (res == (int)Command.SetRequest)
             {
                 
-            }
-            else if (res == (int)Command.MethodRequest)
-            {                
             }
             else
             {

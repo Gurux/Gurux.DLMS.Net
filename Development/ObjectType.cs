@@ -46,6 +46,12 @@ namespace Gurux.DLMS
     public enum ObjectType : int
     {
         ///<summary>
+        ///Default value, no object type is set.
+        ///</summary>
+        [XmlEnum("0")]
+        None = 0,
+
+        ///<summary>
         ///When communicating with a meter, the application may demand periodical 
         ///actions. If these actions are not linked to tariffication  = ActivityCalendar 
         ///or Schedule, use an object of type ActionSchedule  = 0x16.
@@ -73,12 +79,6 @@ namespace Gurux.DLMS
         ///</summary>
         [XmlEnum("20")]
         ActivityCalendar = 20,
-
-        ///<summary>
-        ///All object types are used.
-        ///</summary>
-        [XmlEnum("0")]
-        All = 0,
 
         ///<summary>
         ///AssociationLogicalName object type is used with meters that utilize 
@@ -197,19 +197,13 @@ namespace Gurux.DLMS
         ///To determine the M-BUS settings, use the MbusSetup object.
         ///</summary>
         [XmlEnum("25")]
-        MbusSetup = 25,
+        MBusSlavePortSetup = 25,
 
         ///<summary>
         ///To determine modem settings, use ModemConfiguration object.
         ///</summary>
         [XmlEnum("27")]
         ModemConfiguration = 27,
-
-        ///<summary>
-        ///Default value, no object type is set.
-        ///</summary>
-        [XmlEnum("0")]
-        None = 0,
 
         ///<summary>
         ///To determine PPP  = Point-to-Point Protocol settings, use the PppSetup object.
@@ -271,6 +265,12 @@ namespace Gurux.DLMS
         /// </summary>
         [XmlEnum("70")]
         DisconnectControl = 70,
+
+        [XmlEnum("71")]
+        Limiter = 71,
+
+        [XmlEnum("72")]
+        MBusClient = 72,
 
         ///<summary>
         ///RegisterTable stores identical attributes of objects, in a selected 
@@ -352,6 +352,9 @@ namespace Gurux.DLMS
         ///</summary>
         [XmlEnum("63")]
         StatusMapping = 63,
+
+        [XmlEnum("64")]
+        SecuritySetup = 64,
 
         ///<summary>
         ///To determine Internet TCP/UDP protocol settings, use the TcpUdpSetup object.

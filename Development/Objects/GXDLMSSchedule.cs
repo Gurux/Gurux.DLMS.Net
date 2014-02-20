@@ -42,7 +42,7 @@ using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Objects
 {
-    public class GXDLMSSchedule : GXDLMSObject
+    public class GXDLMSSchedule : GXDLMSObject, IGXDLMSBase
     {
         /// <summary> 
         /// Constructor.
@@ -71,10 +71,107 @@ namespace Gurux.DLMS.Objects
         {
         }
 
+        /// <summary>
+        /// TODO:
+        /// </summary>        
+        [XmlIgnore()]
+        public object Entries
+        {
+            get;
+            set;
+        }
+
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, };
+            return new object[] { LogicalName, Entries };
         }
+
+        #region IGXDLMSBase Members
+
+        /// <summary>
+        /// Data interface do not have any methods.
+        /// </summary>
+        /// <param name="index"></param>
+        byte[] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
+        {
+            throw new ArgumentException("Invoke failed. Invalid attribute index.");
+        }
+
+        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        {
+            List<int> attributes = new List<int>();
+            //LN is static and read only once.
+            if (string.IsNullOrEmpty(LogicalName))
+            {
+                attributes.Add(1);
+            }
+            //Entries
+            if (CanRead(2))
+            {
+                attributes.Add(2);
+            }
+            return attributes.ToArray();
+        }
+
+        int IGXDLMSBase.GetAttributeCount()
+        {
+            return 2;
+        }
+
+        int IGXDLMSBase.GetMethodCount()
+        {
+            return 3;
+        }
+
+        override public DataType GetDataType(int index)
+        {
+            if (index == 1)
+            {
+                return DataType.OctetString;
+            }
+            if (index == 2)
+            {
+                return DataType.Array;
+            }
+            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+        }
+
+        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
+        {
+            if (index == 1)
+            {
+                return GXDLMSObject.GetLogicalName(this.LogicalName);
+            }
+            if (index == 2)
+            {
+                return Entries;
+            }
+            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+        }
+
+        void IGXDLMSBase.SetValue(int index, object value, bool raw)
+        {
+            if (index == 1)
+            {
+                if (value is string)
+                {
+                    LogicalName = value.ToString();
+                }
+                else
+                {
+                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                }
+            }
+            else if (index == 2)
+            {                
+                Entries = value;
+            }
+            else
+            {
+                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+            }
+        }
+        #endregion
     }
 }

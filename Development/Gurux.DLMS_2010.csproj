@@ -52,7 +52,8 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\Gurux.DLMS.XML</DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -84,6 +85,7 @@
     <Compile Include="GXStandardObisObjectCollection.cs" />
     <Compile Include="Internal\GXAPDU.cs" />
     <Compile Include="GXApplicationContextName.cs" />
+    <Compile Include="Internal\GXBer.cs" />
     <Compile Include="Internal\GXCommon.cs" />
     <Compile Include="GXDLMS.cs" />
     <Compile Include="GXDLMSException.cs" />
@@ -95,6 +97,8 @@
     <Compile Include="Objects\AutoAnswerStatus.cs" />
     <Compile Include="Objects\AutoConnectMode.cs" />
     <Compile Include="Objects\BaudRate.cs" />
+    <Compile Include="Objects\GXApplicationContextName.cs" />
+    <Compile Include="Objects\GXAuthenticationMechanismName.cs" />
     <Compile Include="Objects\GXDLMSActionItem.cs" />
     <Compile Include="Objects\GXDLMSActionSet.cs" />
     <Compile Include="Objects\GXDLMSCCallback.cs" />
@@ -164,6 +168,7 @@
     <Compile Include="Objects\GXDLMSTcpUdpSetup.cs" />
     <Compile Include="Objects\GXDLMSWeekProfile.cs" />
     <Compile Include="Objects\GXProfileGenericUpdater.cs" />
+    <Compile Include="Objects\GXxDLMSContextType.cs" />
     <Compile Include="Objects\IGXDLMSBase.cs" />
     <Compile Include="Objects\OpticalProtocolMode.cs" />
     <Compile Include="ObjectType.cs" />

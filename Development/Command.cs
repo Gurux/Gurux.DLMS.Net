@@ -58,10 +58,12 @@ namespace Gurux.DLMS
         /// 
         Rejected = 0x97,
         Snrm = 0x93,
+        Ua = 0x73,
         Aarq = 0x60,
+        Aare = 0x61,
         DisconnectRequest = 0x62,
         DisconnectResponse = 0x63,
-        //Clo messages
+        //Glo messages
         GloGetRequest = 0xC8,
         GloGetResponse = 0xCC,
         GloSetRequest = 0xC9,

@@ -246,26 +246,53 @@ namespace Gurux.DLMS.Internal
         }
 
 
+        internal static void SetObjectCount(int count, List<byte> buff)
+        {
+            SetObjectCount(count, buff, -1);
+        }
+
         /// <summary>
         /// Set item count.
         /// </summary>
         /// <param name="count"></param>
         /// <param name="buff"></param>
-        internal static void SetObjectCount(int count, List<byte> buff)
+        internal static void SetObjectCount(int count, List<byte> buff, int index)
         {
             if (count > 0x7F)
             {
                 int cnt = 0;
-                while (count >> (7 * ++cnt) > 0);                
-                buff.Add((byte)(0x80 + cnt));
+                while (count >> (7 * ++cnt) > 0);
+                if (index == -1)
+                {
+                    buff.Add((byte)(0x80 + cnt));
+                }
+                else
+                {
+                    buff.Insert(index, (byte)(0x80 + cnt));
+                    ++index;
+                }
                 List<byte> tmp = new List<byte>(BitConverter.GetBytes(count));                
                 tmp = tmp.GetRange(0, cnt);
                 tmp.Reverse();
-                buff.AddRange(tmp);
+                if (index == -1)
+                {
+                    buff.AddRange(tmp);
+                }
+                else
+                {
+                    buff.InsertRange(index, tmp);
+                }
             }
             else
             {
-                buff.Add((byte)count);
+                if (index == -1)
+                {
+                    buff.Add((byte)count);
+                }
+                else
+                {
+                    buff.Insert(index, (byte)count);
+                }
             }
         }
 
@@ -313,6 +340,27 @@ namespace Gurux.DLMS.Internal
             }
             index += pos;
             return true;
+        }
+
+        static string ToBitString(byte value, int count)
+        {
+            if (count > 8)
+            {
+                count = 8;
+            }
+            char[] data = new char[count];
+            for (int pos = 0; pos != count; ++pos)
+            {
+                if ((value & (1 << pos)) != 0)
+                {
+                    data[count - pos - 1] = '1';
+                }
+                else
+                {
+                    data[count - pos - 1] = '0';
+                }
+            }
+            return new string(data);
         }
 
 
@@ -375,16 +423,6 @@ namespace Gurux.DLMS.Internal
                     }
                     if (pos == -1)
                     {
-                        /*
-                        if (colCount == colIndex)
-                        {                            
-                            index += 1;
-                        }
-                        else if (action == ActionType.Index)
-                        {
-                            index += colCount;
-                        }
-                         * */
                         break;
                     }
                     else
@@ -404,8 +442,9 @@ namespace Gurux.DLMS.Internal
             }
             else if (type == DataType.BitString)
             {
-                int cnt = buff[pos++];
-                --size;
+                int oldPos = pos;
+                int cnt = GetObjectCount(buff, ref pos);
+                size -= pos - oldPos;
                 double t = cnt;
                 t /= 8;
                 if (cnt % 8 != 0)
@@ -417,17 +456,14 @@ namespace Gurux.DLMS.Internal
                 {
                     pos = -1;
                     return null;
-                }
-                char[] tmp = new char[cnt];
-                for (int a = 0; a != cnt; ++a)
+                }         
+                string str = "";
+                while (cnt > 0)
                 {
-                    int i = a / 8;
-                    byte b = buff[pos + i];
-                    int val = (b >> (a % 8)) & 0x1;
-                    tmp[cnt - a - 1] = val == 0 ? '0' : '1';
-                }                
-                pos += (int)t;
-                value = new string(tmp);
+                    str += ToBitString(buff[pos++], cnt);
+                    cnt -= 8;
+                }                               
+                value = str;
             }
             else if (type == DataType.Int32)
             {
@@ -660,7 +696,7 @@ namespace Gurux.DLMS.Internal
                 }
                 //Get month
                 int month = buff[pos++];
-                if (month == 0xFF || month == 0xFE || month == 0xFD)
+                if (month == 0 || month == 0xFF || month == 0xFE || month == 0xFD)
                 {
                     month = 1;
                     dt.Skip |= DateTimeSkips.Month;
@@ -709,25 +745,31 @@ namespace Gurux.DLMS.Internal
                     pos = 0xFF;
                     return null;
                 }
-                GXDateTime dt = new GXDateTime();
+                DateTimeSkips skip = DateTimeSkips.None;
                 //Get year.
-                int year = GXCommon.GetUInt16(buff, ref pos);
+                int year = GXCommon.GetUInt16(buff, ref pos);                
                 if (year == 0xFFFF)
                 {
-                    dt.Skip |= DateTimeSkips.Year;
+                    skip |= DateTimeSkips.Year;
                     year = DateTime.MinValue.Year;
+                }
+                //Iskra meter returns bytes in wrong order.
+                else if (year > 2100)
+                {
+                    pos -= 2;
+                    year = buff[pos++] | buff[pos++] << 8;                    
                 }
                 //Get month
                 int month = buff[pos++];
                 if (month == 0xFF || month == 0xFE || month == 0xFD)
                 {
-                    dt.Skip |= DateTimeSkips.Month;
+                    skip |= DateTimeSkips.Month;
                     month = 1;
                 }
                 int day = buff[pos++];
                 if (day < 0 || day > 31)
                 {
-                    dt.Skip |= DateTimeSkips.Day;
+                    skip |= DateTimeSkips.Day;
                     day = 1;
                 }
                 //Skip week day
@@ -735,10 +777,11 @@ namespace Gurux.DLMS.Internal
                 //If day of week are not used.                
                 if (DayOfWeek == 0xFF)
                 {
-                    dt.Skip |= DateTimeSkips.DayOfWeek;
+                    skip |= DateTimeSkips.DayOfWeek;
                     DayOfWeek = 1;
                 }
-                dt.Skip |= DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms;
+                GXDateTime dt = new GXDateTime(year, month, day, -1, -1, 1, -1);
+                dt.Skip |= skip;
                 return dt;
             }
             else if (type == DataType.Time)
@@ -880,7 +923,7 @@ namespace Gurux.DLMS.Internal
             bool reverse = true;
             List<byte> tmp = new List<byte>();
              //If byte array is added do not add type.
-            if (type == DataType.Array && value is byte[])
+            if ((type == DataType.Array || type == DataType.Structure) && value is byte[])
             {
                 buff.AddRange((byte[]) value);
                 return;
@@ -895,7 +938,86 @@ namespace Gurux.DLMS.Internal
             }
             else if (type == DataType.BitString)
             {
-                throw new Exception("Invalid data type.");
+                byte val = 0;
+                int index = 0;
+                if (value is string)
+                {
+                    string str = value as string;
+                    SetObjectCount(str.Length, tmp);
+                    foreach (char it in str)
+                    {
+                        if (it == '1')
+                        {
+                            val |= (byte)(1 << index++);
+                        }
+                        else if (it == '0')
+                        {
+                            index++;
+                        }
+                        else 
+                        {
+                            throw new ArgumentException("Not a bit string.");
+                        }
+                        if (index == 8)
+                        {
+                            index = 0;
+                            tmp.Add(val);
+                            val = 0;
+                        }
+                    }
+                    if (index != 0)
+                    {
+                        tmp.Add(val);
+                    }
+                    value = tmp.ToArray();
+                    reverse = false;
+                }
+                else if (value is byte[])
+                {
+                    byte[] arr = value as byte[];
+                    SetObjectCount(arr.Length, tmp);
+                    tmp.AddRange(arr);
+                    value = tmp.ToArray();
+                    reverse = false;
+                }
+                else if (value is bool[])
+                {
+                    bool[] arr = value as bool[];
+                    SetObjectCount(arr.Length, tmp);
+                    foreach (bool it in arr)
+                    {
+                        if (it)
+                        {
+                            val |= (byte)(1 << index++);
+                        }
+                        else
+                        {
+                            ++index;
+                        }
+                        if (index == 8)
+                        {
+                            index = 0;
+                            tmp.Add(val);
+                            val = 0;
+                        }
+                    }
+                    if (index != 0)
+                    {
+                        tmp.Add(val);
+                    }
+                    value = tmp.ToArray();
+                    reverse = false;
+                }
+                else if (value == null)
+                {
+                    tmp.Add(0);
+                    value = tmp.ToArray();
+                    reverse = false;
+                }
+                else
+                {
+                    throw new Exception("BitString must give as string.");
+                }
             }
             else if (type == DataType.Int32)
             {

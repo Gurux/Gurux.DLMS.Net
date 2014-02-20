@@ -52,5 +52,10 @@ namespace Gurux.DLMS.Objects
             get;
             set;
         }
+
+        public override string ToString()
+        {
+            return LogicalName + " " + ScriptSelector.ToString();
+        }
     }    
 }

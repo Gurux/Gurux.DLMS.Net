@@ -32,39 +32,36 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.ComponentModel;
 using Gurux.DLMS;
-
-
-
+using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 
 namespace Gurux.DLMS.Objects
 {
-    public class GXDLMSHdlcSetup : GXDLMSObject, IGXDLMSBase
+    public class GXDLMSMBusClient : GXDLMSObject, IGXDLMSBase
     {
         /// <summary> 
         /// Constructor.
         /// </summary> 
-        public GXDLMSHdlcSetup()
-            : base(ObjectType.IecHdlcSetup)
+        public GXDLMSMBusClient()
+            : base(ObjectType.MBusClient)
         {
-            CommunicationSpeed = BaudRate.Baudrate9600;
-            WindowSizeReceive = WindowSizeTransmit = 1;
-            MaximumInfoLengthTransmit = MaximumInfoLengthReceive = 128;
+            CaptureDefinition = new List<KeyValuePair<string, string>>();
         }
 
         /// <summary> 
         /// Constructor.
         /// </summary> 
         /// <param name="ln">Logican Name of the object.</param>
-        public GXDLMSHdlcSetup(string ln)
-            : base(ObjectType.IecHdlcSetup, ln, 0)
+        public GXDLMSMBusClient(string ln)
+            : base(ObjectType.MBusClient, ln, 0)
         {
+            CaptureDefinition = new List<KeyValuePair<string, string>>();
         }
 
         /// <summary> 
@@ -72,69 +69,93 @@ namespace Gurux.DLMS.Objects
         /// </summary> 
         /// <param name="ln">Logican Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
-        public GXDLMSHdlcSetup(string ln, ushort sn)
-            : base(ObjectType.IecHdlcSetup, ln, 0)
+        public GXDLMSMBusClient(string ln, ushort sn)
+            : base(ObjectType.MBusClient, ln, 0)
         {
-        }       
-
+            CaptureDefinition = new List<KeyValuePair<string, string>>();
+        }
+                
+        /// <summary>
+        /// Provides reference to an “M-Bus master port setup” object, used to configure
+        /// an M-Bus port, each interface allowing to exchange data with one or more
+        /// M-Bus slave devices
+        /// </summary>
         [XmlIgnore()]
-        public BaudRate CommunicationSpeed
+        public string MBusPortReference
         {
             get;
             set;
         }
 
         [XmlIgnore()]
-        [DefaultValue(1)]
-        public int WindowSizeTransmit
+        public List<KeyValuePair<string, string>> CaptureDefinition
+        {
+            get;
+            internal set;
+        }
+
+        [XmlIgnore()]
+        public UInt32 CapturePeriod
         {
             get;
             set;
         }
 
         [XmlIgnore()]
-        [DefaultValue(1)]
-        public int WindowSizeReceive
+        public int PrimaryAddress
         {
             get;
             set;
         }
 
         [XmlIgnore()]
-        [DefaultValue(128)]
-        public int MaximumInfoLengthTransmit
+        public UInt32 IdentificationNumber
         {
             get;
             set;
         }
 
         [XmlIgnore()]
-        [DefaultValue(128)]
-        public int MaximumInfoLengthReceive
+        public UInt16 ManufacturerID
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Carries the Version element of the data header as specified in 
+        /// EN 13757-3 sub-clause 5.6.
+        /// </summary>
+        [XmlIgnore()]
+        public int DataHeaderVersion
         {
             get;
             set;
         }
 
         [XmlIgnore()]
-        [DefaultValue(30)]
-        public int InterCharachterTimeout
+        public int DeviceType
         {
             get;
             set;
         }
 
         [XmlIgnore()]
-        [DefaultValue(120)]
-        public int InactivityTimeout
+        public int AccessNumber
         {
             get;
             set;
         }
 
         [XmlIgnore()]
-        [DefaultValue(0)]
-        public int DeviceAddress
+        public int Status
+        {
+            get;
+            set;
+        }
+
+        [XmlIgnore()]
+        public int Alarm
         {
             get;
             set;
@@ -143,13 +164,21 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, CommunicationSpeed, 
-                WindowSizeTransmit, WindowSizeReceive, 
-                MaximumInfoLengthTransmit, MaximumInfoLengthReceive, 
-                InterCharachterTimeout, InactivityTimeout, DeviceAddress };
+            return new object[] { LogicalName, MBusPortReference, CaptureDefinition, CapturePeriod, 
+            PrimaryAddress, IdentificationNumber, ManufacturerID, DataHeaderVersion, DeviceType, AccessNumber, 
+            Status, Alarm};
         }
 
         #region IGXDLMSBase Members
+
+        /// <summary>
+        /// Data interface do not have any methods.
+        /// </summary>
+        /// <param name="index"></param>
+        byte[] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
+        {
+            throw new ArgumentException("Invoke failed. Invalid attribute index.");
+        }
 
         int[] IGXDLMSBase.GetAttributeIndexToRead()
         {
@@ -159,57 +188,72 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(1);
             }
-            //CommunicationSpeed
-            if (!base.IsRead(2))
+            //MBusPortReference
+            if (CanRead(2))
             {
                 attributes.Add(2);
             }
-            //WindowSizeTransmit
-            if (!base.IsRead(3))
+            //CaptureDefinition
+            if (CanRead(3))
             {
                 attributes.Add(3);
             }
-            //WindowSizeReceive
-            if (!base.IsRead(4))
+            //CapturePeriod
+            if (CanRead(4))
             {
                 attributes.Add(4);
             }
-            //MaximumInfoLengthTransmit
-            if (!base.IsRead(5))
+            //PrimaryAddress
+            if (CanRead(5))
             {
                 attributes.Add(5);
             }
-            //MaximumInfoLengthReceive
-            if (!base.IsRead(6))
+            //IdentificationNumber
+            if (CanRead(6))
             {
                 attributes.Add(6);
             }
-            //InterCharachterTimeout
-            if (!base.IsRead(7))
+            //ManufacturerID
+            if (CanRead(7))
             {
                 attributes.Add(7);
             }
-            //InactivityTimeout
-            if (!base.IsRead(8))
+            //Version
+            if (CanRead(8))
             {
                 attributes.Add(8);
             }
-            //DeviceAddress
-            if (!base.IsRead(9))
+            //DeviceType
+            if (CanRead(9))
             {
                 attributes.Add(9);
+            }
+            //AccessNumber
+            if (CanRead(10))
+            {
+                attributes.Add(10);
+            }
+            //Status
+            if (CanRead(11))
+            {
+                attributes.Add(11);
+            }
+            //Alarm
+            if (CanRead(12))
+            {
+                attributes.Add(12);
             }
             return attributes.ToArray();
         }
 
         int IGXDLMSBase.GetAttributeCount()
         {
-            return 9;
+            return 12;
         }
 
         int IGXDLMSBase.GetMethodCount()
         {
-            return 0;
+            return 8;
         }
 
         override public DataType GetDataType(int index)
@@ -220,23 +264,23 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 2)
             {
-                return DataType.Enum;
+                return DataType.OctetString;
             }
             if (index == 3)
             {
-                return DataType.UInt8;
+                return DataType.Array;
             }
             if (index == 4)
             {
-                return DataType.UInt8;
+                return DataType.UInt32;
             }
             if (index == 5)
             {
-                return DataType.UInt16;
+                return DataType.UInt8;
             }
             if (index == 6)
             {
-                return DataType.UInt16;
+                return DataType.UInt32;
             }
             if (index == 7)
             {
@@ -244,11 +288,23 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 8)
             {
-                return DataType.UInt16;
+                return DataType.UInt8;
             }
             if (index == 9)
             {
-                return DataType.UInt16;
+                return DataType.UInt8;
+            }
+            if (index == 10)
+            {
+                return DataType.UInt8;
+            }
+            if (index == 11)
+            {
+                return DataType.UInt8;
+            }
+            if (index == 12)
+            {
+                return DataType.UInt8;
             }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
@@ -258,38 +314,50 @@ namespace Gurux.DLMS.Objects
             if (index == 1)
             {
                 return GXDLMSObject.GetLogicalName(this.LogicalName);
-            }
+            }            
             if (index == 2)
             {
-                return this.CommunicationSpeed;
+                return GXDLMSObject.GetLogicalName(MBusPortReference);
             }
             if (index == 3)
             {
-                return this.WindowSizeTransmit;
+                return CaptureDefinition;//TODO:
             }
             if (index == 4)
             {
-                return this.WindowSizeReceive;
+                return CapturePeriod;
             }
             if (index == 5)
             {
-                return this.MaximumInfoLengthTransmit;
+                return PrimaryAddress;
             }
             if (index == 6)
             {
-                return this.MaximumInfoLengthReceive;
+                return IdentificationNumber;
             }
             if (index == 7)
             {
-                return InterCharachterTimeout;
+                return ManufacturerID;
             }
             if (index == 8)
             {
-                return InactivityTimeout;
+                return DataHeaderVersion;
             }
             if (index == 9)
             {
-                return DeviceAddress;
+                return DeviceType;
+            }
+            if (index == 10)
+            {
+                return AccessNumber;
+            }
+            if (index == 11)
+            {
+                return Status;
+            }
+            if (index == 12)
+            {
+                return Alarm;
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
@@ -305,51 +373,69 @@ namespace Gurux.DLMS.Objects
                 else
                 {
                     LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
-                }
+                }                
             }
             else if (index == 2)
             {
-                CommunicationSpeed = (BaudRate) Convert.ToInt32(value);
+                if (value is string)
+                {
+                    MBusPortReference = value.ToString();
+                }
+                else
+                {
+                    MBusPortReference = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                }   
             }
             else if (index == 3)
             {
-                WindowSizeTransmit = Convert.ToInt32(value);
+                CaptureDefinition.Clear();
+                foreach (object[] it in (object[])value)
+                {                    
+                    CaptureDefinition.Add(new KeyValuePair<string, string>(GXDLMSClient.ChangeType((byte[])it[0], DataType.OctetString).ToString(),
+                        GXDLMSClient.ChangeType((byte[])it[1], DataType.OctetString).ToString()));
+                }
             }
             else if (index == 4)
             {
-                WindowSizeReceive = Convert.ToInt32(value);
+                CapturePeriod = Convert.ToUInt32(value);
             }
             else if (index == 5)
             {
-                MaximumInfoLengthTransmit = Convert.ToInt32(value);
+                PrimaryAddress = Convert.ToByte(value);
             }
             else if (index == 6)
             {
-                MaximumInfoLengthReceive = Convert.ToInt32(value);
+                IdentificationNumber = Convert.ToUInt32(value);
             }
             else if (index == 7)
             {
-                InterCharachterTimeout = Convert.ToInt32(value);
+                ManufacturerID = Convert.ToUInt16(value);
             }
             else if (index == 8)
             {
-                InactivityTimeout = Convert.ToInt32(value);
+                DataHeaderVersion = Convert.ToByte(value);
             }
             else if (index == 9)
             {
-                DeviceAddress = Convert.ToInt32(value);
+                DeviceType = Convert.ToByte(value);
+            }
+            else if (index == 10)
+            {
+                AccessNumber = Convert.ToByte(value);
+            }
+            else if (index == 11)
+            {
+                Status = Convert.ToByte(value);
+            }
+            else if (index == 12)
+            {
+                Alarm = Convert.ToByte(value);
             }
             else
             {
                 throw new ArgumentException("SetValue failed. Invalid attribute index.");
             }
         }
-
-        byte[] IGXDLMSBase.Invoke(object sender, int index, object parameters)
-        {
-            throw new NotImplementedException();
-        }
-
         #endregion
     }
 }

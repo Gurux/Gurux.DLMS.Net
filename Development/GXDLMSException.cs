@@ -48,7 +48,10 @@ namespace Gurux.DLMS
         {
             string str = null;
             switch (errCode)
-            {                    
+            {
+                case -1:
+                    str = "Not a reply";
+                    break;
                 case 1: //Access Error : Device reports a hardware fault
                     str = Gurux.DLMS.Properties.Resources.HardwareFaultTxt;
                     break;
@@ -97,7 +100,8 @@ namespace Gurux.DLMS
         internal GXDLMSException(AssociationResult result, SourceDiagnostic diagnostic)
             : base("Connection is " + GetResult(result) + Environment.NewLine + GetDiagnostic(diagnostic))
         {
-
+            Result = result;
+            Diagnostic = diagnostic;
         }
 
         /// <summary>

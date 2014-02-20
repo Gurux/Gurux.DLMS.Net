@@ -139,25 +139,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         }
 
         public override string ToString()
-        {
-            if (Parent != null && Parent.Parent is GXObisCode)
-            {
-                GXObisCode obj = Parent.Parent as GXObisCode;
-                Type type = GXDLMS.AvailableObjectTypes[obj.ObjectType];
-                if (type != null)
-                {
-                    PropertyDescriptorCollection pdc = TypeDescriptor.GetProperties(type);
-                    foreach (PropertyDescriptor it in pdc)
-                    {
-                        GXDLMSAttribute att = it.Attributes[typeof(GXDLMSAttribute)] as GXDLMSAttribute;
-                        if (att != null && att.Index == Index)
-                        {
-                            return obj.ObjectType.ToString() + "." + it.DisplayName;
-                        }
-                    }
-                }
-                return obj.ObjectType.ToString() + " " + Index.ToString();
-            }
+        {            
             return Name + Index.ToString();
         }
 

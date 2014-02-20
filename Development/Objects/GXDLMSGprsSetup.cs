@@ -158,26 +158,43 @@ namespace Gurux.DLMS.Objects
             return 0;
         }
 
-        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
+        override public DataType GetDataType(int index)
         {
             if (index == 1)
             {
-                type = DataType.OctetString;
+                return DataType.OctetString;
+            }
+            if (index == 2)
+            {
+                return DataType.OctetString;
+            }
+            if (index == 3)
+            {
+                return DataType.UInt16;
+            }
+            if (index == 4)
+            {
+                return DataType.Array;
+            }
+            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+        }
+
+        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
+        {
+            if (index == 1)
+            {
                 return GXDLMSObject.GetLogicalName(this.LogicalName);
             }
             if (index == 2)
             {
-                type = DataType.OctetString;
                 return APN;
             }
             if (index == 3)
             {
-                type = DataType.UInt16;
                 return PINCode;
             }
             if (index == 4)
             {
-                type = DataType.Array;
                 List<byte> data = new List<byte>();
                 data.Add((byte)DataType.Structure);
                 //Add count            
@@ -242,7 +259,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    APN = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                    APN = GXDLMSClient.ChangeType((byte[])value, DataType.String).ToString();
                 }
             }
             else if (index == 3)

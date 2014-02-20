@@ -76,7 +76,7 @@ namespace Gurux.DLMS.Objects
         }
 
         [XmlIgnore()]
-        public object SecuritySetupReference
+        public string SecuritySetupReference
         {
             get;
             set;
@@ -118,10 +118,10 @@ namespace Gurux.DLMS.Objects
                 byte[] serverChallenge = GXDLMS.Chipher(b.Authentication, challenge.ToArray());
                 byte[] clientChallenge = (byte[]) parameters;
                 int pos = 0;
-                if (GXCommon.Compare(serverChallenge, ref pos, clientChallenge))
+                if (GXCommon.Compare(clientChallenge, ref pos, serverChallenge))
                 {
                     CtoS.AddRange(b.CtoSChallenge);
-                    return s.Acknowledge(Command.MethodResponse, 0, GXDLMS.Chipher(b.Authentication, CtoS.ToArray()), DataType.OctetString);
+                    return s.Acknowledge(Command.WriteResponse, 0, GXDLMS.Chipher(b.Authentication, CtoS.ToArray()), DataType.OctetString);
                 }
                 else
                 {
@@ -197,7 +197,28 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
+        override public DataType GetDataType(int index)
+        {
+            if (index == 1)
+            {
+                return DataType.OctetString;
+            }
+            else if (index == 2)
+            {
+                return DataType.Array;
+            }
+            else if (index == 3)
+            {
+                return DataType.Array;                
+            }
+            else if (index == 4)
+            {
+                return DataType.OctetString;
+            }
+            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+        }
+
+        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
         {
             if (ObjectList == null)
             {
@@ -205,12 +226,10 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 1)
             {
-                type = DataType.OctetString;
                 return GXDLMSObject.GetLogicalName(this.LogicalName);
             }
             else if (index == 2)
             {
-                type = DataType.Array;
                 int cnt = ObjectList.Count;
                 List<byte> data = new List<byte>();
                 data.Add((byte)DataType.Array);
@@ -241,7 +260,6 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 3)
             {
-                type = DataType.Array;
                 bool lnExists = ObjectList.FindBySN(this.ShortName) != null;
                 //Add count        
                 int cnt = ObjectList.Count;
@@ -264,7 +282,9 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 4)
             {
-
+                List<byte> data = new List<byte>();
+                GXCommon.SetData(data, DataType.OctetString, SecuritySetupReference);
+                return data.ToArray();
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
@@ -291,15 +311,6 @@ namespace Gurux.DLMS.Objects
                     }
                 }
             }
-        }
-
-        override public DataType GetDataType(int index)
-        {
-            if (index == 2 || index == 3)
-            {
-                return DataType.Array;
-            }
-            return base.GetDataType(index);
         }
 
         void IGXDLMSBase.SetValue(int index, object value, bool raw)
@@ -356,7 +367,14 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 4)
             {
-                
+                if (value is string)
+                {
+                    SecuritySetupReference = value.ToString();
+                }
+                else
+                {
+                    SecuritySetupReference = GXDLMSClient.ChangeType(value as byte[], DataType.OctetString).ToString();
+                }
             }
             else
             {

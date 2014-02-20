@@ -42,14 +42,14 @@ using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 
 namespace Gurux.DLMS.Objects
-{    
+{
     public class GXDLMSMBusSlavePortSetup : GXDLMSObject, IGXDLMSBase
     {
         /// <summary> 
         /// Constructor.
         /// </summary> 
         public GXDLMSMBusSlavePortSetup()
-            : base(ObjectType.MbusSetup)
+            : base(ObjectType.MBusSlavePortSetup)
         {
         }
 
@@ -58,7 +58,7 @@ namespace Gurux.DLMS.Objects
         /// </summary> 
         /// <param name="ln">Logican Name of the object.</param>
         public GXDLMSMBusSlavePortSetup(string ln)
-            : base(ObjectType.MbusSetup, ln, 0)
+            : base(ObjectType.MBusSlavePortSetup, ln, 0)
         {
         }
 
@@ -68,13 +68,14 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logican Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSMBusSlavePortSetup(string ln, ushort sn)
-            : base(ObjectType.MbusSetup, ln, 0)
+            : base(ObjectType.MBusSlavePortSetup, ln, 0)
         {
         }
 
         /// <summary>
         /// Defines the baud rate for the opening sequence.
         /// </summary>
+        [XmlIgnore()]
         public BaudRate DefaultBaud
         {
             get;
@@ -84,6 +85,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Defines the baud rate for the opening sequence.
         /// </summary>
+        [XmlIgnore()]
         public BaudRate AvailableBaud
         {
             get;
@@ -93,8 +95,8 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Defines whether or not the device has been assigned an address
         /// since last power up of the device.
-        /// </summary>
-        /// <returns></returns>
+        /// </summary>        
+        [XmlIgnore()]
         public AddressState AddressState
         {
             get;
@@ -105,6 +107,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Defines the baud rate for the opening sequence.
         /// </summary>
+        [XmlIgnore()]
         public int BusAddress
         {
             get;
@@ -169,31 +172,51 @@ namespace Gurux.DLMS.Objects
             return 0;
         }
 
-        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
+        override public DataType GetDataType(int index)
         {
             if (index == 1)
             {
-                type = DataType.OctetString;
+                return DataType.OctetString;                
+            }
+            if (index == 2)
+            {
+                return DataType.Enum;
+            }
+            if (index == 3)
+            {
+                return DataType.Enum;
+            }
+            if (index == 4)
+            {
+                return DataType.Enum;
+            }
+            if (index == 5)
+            {
+                return DataType.UInt16;
+            }
+            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+        }
+
+        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
+        {
+            if (index == 1)
+            {
                 return GXDLMSObject.GetLogicalName(this.LogicalName);
             }
             if (index == 2)
             {
-                type = DataType.Enum;
                 return DefaultBaud;
             }
             if (index == 3)
             {
-                type = DataType.Enum;
                 return AvailableBaud;
             }
             if (index == 4)
             {
-                type = DataType.Enum;
                 return AddressState;
             }
             if (index == 5)
             {
-                type = DataType.UInt16;
                 return BusAddress;
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");

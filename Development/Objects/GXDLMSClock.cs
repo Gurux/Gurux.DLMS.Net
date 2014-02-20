@@ -404,51 +404,83 @@ namespace Gurux.DLMS.Objects
             return 6;
         }
 
-        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
+        override public DataType GetDataType(int index)
         {
             if (index == 1)
             {
-                type = DataType.OctetString;
+                return DataType.OctetString;
+            }
+            if (index == 2)
+            {
+                return DataType.DateTime;
+            }
+            if (index == 3)
+            {
+                return DataType.Int16;
+            }
+            if (index == 4)
+            {
+                return DataType.UInt8;
+            }
+            if (index == 5)
+            {
+                return DataType.DateTime;
+            }
+            if (index == 6)
+            {
+                return DataType.DateTime;
+            }
+            if (index == 7)
+            {
+                return DataType.Int8;
+            }
+            if (index == 8)
+            {
+                return DataType.Boolean;
+            }
+            if (index == 9)
+            {
+                return DataType.Enum;
+            }
+            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+        }
+
+        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
+        {
+            if (index == 1)
+            {
                 return GXDLMSObject.GetLogicalName(this.LogicalName);
             }
             if (index == 2)
             {
-                type = DataType.DateTime;
                 return Time;
             }
             if (index == 3)
             {
-                type = DataType.Int16;
                 return TimeZone;
             }
             if (index == 4)
             {
-                type = DataType.UInt8;
                 return Status;
             }
             if (index == 5)
             {
-                type = DataType.DateTime;
                 return Begin;
             }
             if (index == 6)
             {
-                type = DataType.DateTime;
                 return End;
             }
             if (index == 7)
             {
-                type = DataType.Int8;
                 return Deviation;
             }
             if (index == 8)
             {
-                type = DataType.Boolean;
                 return Enabled;
             }
             if (index == 9)
             {
-                type = DataType.Enum;
                 return ClockBase;
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");

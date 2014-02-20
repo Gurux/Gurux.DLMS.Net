@@ -43,29 +43,23 @@ using Gurux.DLMS.ManufacturerSettings;
 
 namespace Gurux.DLMS.Objects
 {
-    public class GXDLMSTcpUdpSetup : GXDLMSObject, IGXDLMSBase
+    public class GXDLMSSecuritySetup : GXDLMSObject, IGXDLMSBase
     {
         /// <summary> 
         /// Constructor.
         /// </summary> 
-        public GXDLMSTcpUdpSetup()
-            : base(ObjectType.TcpUdpSetup, "0.0.25.0.0.255", 0)
+        public GXDLMSSecuritySetup()
+            : base(ObjectType.SecuritySetup)
         {
-            Port = 4059;
-            InactivityTimeout = 180;
-            MaximumSegmentSize = 576;
         }
 
         /// <summary> 
         /// Constructor.
         /// </summary> 
         /// <param name="ln">Logican Name of the object.</param>
-        public GXDLMSTcpUdpSetup(string ln)
-            : base(ObjectType.TcpUdpSetup, ln, 0)
+        public GXDLMSSecuritySetup(string ln)
+            : base(ObjectType.SecuritySetup, ln, 0)
         {
-            Port = 4059;
-            InactivityTimeout = 180;
-            MaximumSegmentSize = 576;
         }
 
         /// <summary> 
@@ -73,93 +67,52 @@ namespace Gurux.DLMS.Objects
         /// </summary> 
         /// <param name="ln">Logican Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
-        public GXDLMSTcpUdpSetup(string ln, ushort sn)
-            : base(ObjectType.TcpUdpSetup, ln, 0)
+        public GXDLMSSecuritySetup(string ln, ushort sn)
+            : base(ObjectType.SecuritySetup, ln, 0)
         {
-            Port = 4059;
-            InactivityTimeout = 180;
-            MaximumSegmentSize = 576;
         }
 
-        /// <inheritdoc cref="GXDLMSObject.LogicalName"/>
-        [DefaultValue("0.0.25.0.0.255")]
-        override public string LogicalName
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// TCP/UDP port number on which the physical device is 
-        /// listening for the DLMS/COSEM application.
-        /// </summary>
         [XmlIgnore()]
-        [DefaultValue(4059)]
-        public int Port
+        public SecurityPolicy SecurityPolicy
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// References an IP setup object by its logical name. The referenced object
-        /// contains information about the IP Address settings of the IP layer 
-        /// supporting the TCP-UDP layer.
-        /// </summary>
         [XmlIgnore()]
-        public string IPReference
+        public SecuritySuite SecuritySuite
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// TCP can indicate the maximum receive segment size to its partner.
-        /// </summary>
         [XmlIgnore()]
-        [DefaultValue(576)]
-        public int MaximumSegmentSize
+        public string ClientSystemTitle
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// The maximum number of simultaneous connections the COSEM 
-        /// TCP/UDP based transport layer is able to support.
-        /// </summary>
         [XmlIgnore()]
-        public int MaximumSimultaneousConnections
+        public string ServerSystemTitle
         {
             get;
             set;
-        }
-
-        /// <summary>
-        /// Defines the time, expressed in seconds over which, if no frame is 
-        /// received from the COSEM client, the inactive TCP connection shall be aborted.
-        /// When this value is set to 0, this means that the inactivity_time_out is
-        /// not operational. In other words, a TCP connection, once established,
-        /// in normal conditions – no power failure, etc. – will never be aborted by the COSEM server.
-        /// </summary>
-        [XmlIgnore()]
-        [DefaultValue(180)]
-        public int InactivityTimeout
-        {
-            get;
-            set;
-        }
+        }        
 
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, Port, IPReference, 
-                MaximumSegmentSize, MaximumSimultaneousConnections, 
-                InactivityTimeout };
+            return new object[] { LogicalName, SecurityPolicy, SecuritySuite, 
+            ClientSystemTitle, ServerSystemTitle};
         }
 
         #region IGXDLMSBase Members
 
+        /// <summary>
+        /// Data interface do not have any methods.
+        /// </summary>
+        /// <param name="index"></param>
         byte[] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
         {
             throw new ArgumentException("Invoke failed. Invalid attribute index.");
@@ -173,42 +126,38 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(1);
             }
-            //Port
-            if (!base.IsRead(2))
+            //SecurityPolicy
+            if (CanRead(2))
             {
                 attributes.Add(2);
             }
-            //IPReference
-            if (!base.IsRead(3))
+            //SecuritySuite
+            if (CanRead(3))
             {
                 attributes.Add(3);
             }
-            //MaximumSegmentSize
-            if (!base.IsRead(4))
+
+            //ClientSystemTitle
+            if (CanRead(4))
             {
                 attributes.Add(4);
             }
-            //MaximumSimultaneousConnections
-            if (!base.IsRead(5))
+            //ServerSystemTitle
+            if (CanRead(5))
             {
                 attributes.Add(5);
             }
-            //InactivityTimeout
-            if (!base.IsRead(6))
-            {
-                attributes.Add(6);
-            }            
             return attributes.ToArray();
         }
 
         int IGXDLMSBase.GetAttributeCount()
         {
-            return 6;
+            return 5;
         }
 
         int IGXDLMSBase.GetMethodCount()
         {
-            return 0;
+            return 2;
         }
 
         override public DataType GetDataType(int index)
@@ -219,23 +168,19 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 2)
             {
-                return DataType.UInt16;                
+                return DataType.Enum;                
             }
             if (index == 3)
             {
-                return DataType.OctetString;                
+                return DataType.Enum;                
             }
             if (index == 4)
             {
-                return DataType.UInt16;                
+                return DataType.OctetString;                
             }
             if (index == 5)
             {
-                return DataType.UInt8;                
-            }
-            if (index == 6)
-            {
-                return DataType.UInt16;                
+                return DataType.OctetString;                
             }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
@@ -248,23 +193,19 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 2)
             {
-                return Port;
+                return SecurityPolicy;
             }
             if (index == 3)
             {
-                return IPReference;
+                return SecuritySuite;
             }
             if (index == 4)
             {
-                return MaximumSegmentSize;
+                return ClientSystemTitle;
             }
             if (index == 5)
             {
-                return MaximumSimultaneousConnections;
-            }
-            if (index == 6)
-            {
-                return InactivityTimeout;
+                return ServerSystemTitle;
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
@@ -280,27 +221,37 @@ namespace Gurux.DLMS.Objects
                 else
                 {
                     LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
-                }
+                }                
             }
             else if (index == 2)
             {
-                Port = Convert.ToInt32(value);
+                SecurityPolicy = (SecurityPolicy)Convert.ToInt32(value);
             }
             else if (index == 3)
             {
-                IPReference = Convert.ToString(value);
+                SecuritySuite = (SecuritySuite)Convert.ToInt32(value);
             }
             else if (index == 4)
             {
-                MaximumSegmentSize = Convert.ToInt32(value);
+                if (value is string)
+                {
+                    ClientSystemTitle = value.ToString();
+                }
+                else
+                {
+                    ClientSystemTitle = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                }                
             }
             else if (index == 5)
             {
-                MaximumSimultaneousConnections = Convert.ToInt32(value);
-            }
-            else if (index == 6)
-            {
-                InactivityTimeout = Convert.ToInt32(value);
+                if (value is string)
+                {
+                    ServerSystemTitle = value.ToString();
+                }
+                else
+                {
+                    ServerSystemTitle = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                }                
             }
             else
             {

@@ -239,51 +239,83 @@ namespace Gurux.DLMS.Objects
             return 0;
         }
 
-        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
+        override public DataType GetDataType(int index)
         {
             if (index == 1)
             {
-                type = DataType.OctetString;
+                return DataType.OctetString;
+            }
+            if (index == 2)
+            {
+                return DataType.Enum;
+            }
+            if (index == 3)
+            {
+                return DataType.Enum;
+            }
+            if (index == 4)
+            {
+                return DataType.Enum;
+            }
+            if (index == 5)
+            {
+                return DataType.Enum;
+            }
+            if (index == 6)
+            {
+                return DataType.OctetString;
+            }
+            if (index == 7)
+            {
+                return DataType.OctetString;
+            }
+            if (index == 8)
+            {
+                return DataType.OctetString;
+            }
+            if (index == 9)
+            {
+                return DataType.OctetString;
+            }
+            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+        }
+
+        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
+        {
+            if (index == 1)
+            {
                 return GXDLMSObject.GetLogicalName(this.LogicalName);
             }
             if (index == 2)
             {
-                type = DataType.Enum;
                 return this.DefaultMode;
             }
             if (index == 3)
             {
-                type = DataType.Enum;
                 return this.DefaultBaudrate;
             }
             if (index == 4)
             {
-                type = DataType.Enum;
                 return this.ProposedBaudrate;
             }
             if (index == 5)
             {
-                type = DataType.Enum;
                 return this.ResponseTime;
             }
             if (index == 6)
             {
-                type = DataType.OctetString;
                 return ASCIIEncoding.ASCII.GetBytes(DeviceAddress);
             }
             if (index == 7)
             {
-                type = DataType.OctetString;
                 return ASCIIEncoding.ASCII.GetBytes(Password1);
             }
             if (index == 8)
             {
-                type = DataType.OctetString;
                 return ASCIIEncoding.ASCII.GetBytes(Password2);
             }
             if (index == 9)
             {
-                type = DataType.OctetString;
                 return ASCIIEncoding.ASCII.GetBytes(Password5);
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");

@@ -188,31 +188,56 @@ namespace Gurux.DLMS.Objects
             return 0;
         }
 
-        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
+        override public DataType GetDataType(int index)
         {
             if (index == 1)
             {
-                type = DataType.OctetString;
+                return DataType.OctetString;
+            }
+            if (index == 2)
+            {
+                return DataType.Enum;
+            }
+            if (index == 3)
+            {
+                return DataType.UInt8;
+            }
+            if (index == 4)
+            {
+                return DataType.UInt16;
+            }
+            if (index == 5)
+            {
+                return DataType.Array;
+            }
+            if (index == 6)
+            {
+                return DataType.Array;
+            }
+            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+        }
+
+
+        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
+        {
+            if (index == 1)
+            {
                 return GXDLMSObject.GetLogicalName(this.LogicalName);
             }
             if (index == 2)
             {
-                type = DataType.Enum;
                 return (byte) Mode;
             }
             if (index == 3)
             {
-                type = DataType.UInt8;
                 return Repetitions;
             }
             if (index == 4)
             {
-                type = DataType.UInt16;
                 return RepetitionDelay;
             }
             if (index == 5)
             {
-                type = DataType.Array;
                 int cnt = CallingWindow.Count;
                 List<byte> data = new List<byte>();
                 data.Add((byte)DataType.Array);
@@ -232,7 +257,6 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 6)
             {
-                type = DataType.Array;                
                 List<byte> data = new List<byte>();
                 data.Add((byte)DataType.Array);
                 if (Destinations == null)

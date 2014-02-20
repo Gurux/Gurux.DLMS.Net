@@ -164,7 +164,7 @@ namespace Gurux.DLMS.Objects
         {
             foreach (GXDLMSObject it in this)
             {
-                if ((type == Gurux.DLMS.ObjectType.All || it.ObjectType == type) && it.LogicalName.Trim() == ln)
+                if ((type == Gurux.DLMS.ObjectType.None || it.ObjectType == type) && it.LogicalName.Trim() == ln)
                 {
                     return it;
                 }

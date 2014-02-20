@@ -100,12 +100,22 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Parameterised access selector.
+        /// </summary>
+        public int Selector
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
-        internal ValueEventArgs(GXDLMSObject target, int index)
+        internal ValueEventArgs(GXDLMSObject target, int index, int selector)
         {
             Target = target;
             Index = index;
+            Selector = selector;
         }
     }
 }

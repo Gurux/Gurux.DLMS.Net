@@ -100,7 +100,11 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
-        public enum GXDLMSPppSetupPppAuthenticationType
+
+        /// <summary>
+        /// Ppp Authentication Type
+        /// </summary>
+        public enum PppAuthenticationType
         {
             /// <summary>
             /// No authentication.
@@ -116,8 +120,31 @@ namespace Gurux.DLMS.Objects
             CHAP = 2
         }
 
+        /// <summary>
+        /// PPP authentication procedure type.
+        /// </summary>
         [XmlIgnore()]
-        public object PPPAuthentication
+        public PppAuthenticationType Authentication
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// PPP authentication procedure user name.
+        /// </summary>
+        [XmlIgnore()]
+        public byte[] UserName
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// PPP authentication procedure password.
+        /// </summary>
+        [XmlIgnore()]
+        public byte[] Password
         {
             get;
             set;
@@ -126,7 +153,16 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, PHYReference, LCPOptions, IPCPOptions, PPPAuthentication };
+            string str = "";
+            if (UserName != null)
+            {
+                str = ASCIIEncoding.ASCII.GetString(UserName);
+            }
+            if (Password != null)
+            {
+                str += " " + ASCIIEncoding.ASCII.GetString(Password);
+            }
+            return new object[] { LogicalName, PHYReference, LCPOptions, IPCPOptions, str };
         }
 
         #region IGXDLMSBase Members
@@ -176,23 +212,45 @@ namespace Gurux.DLMS.Objects
         int IGXDLMSBase.GetMethodCount()
         {
             return 0;
-        }         
+        }
 
-        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
+        override public DataType GetDataType(int index)
         {
             if (index == 1)
             {
-                type = DataType.OctetString;
+                return DataType.OctetString;
+            }
+            if (index == 2)
+            {
+                return DataType.OctetString;
+            }
+            if (index == 3)
+            {
+                return DataType.Array;
+            }
+            if (index == 4)
+            {
+                return DataType.Array;
+            }
+            if (index == 5)
+            {
+                return DataType.Structure;
+            } 
+            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+        }
+
+        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
+        {
+            if (index == 1)
+            {
                 return GXDLMSObject.GetLogicalName(this.LogicalName);
             }
             if (index == 2)
             {
-                type = DataType.OctetString;
                 return PHYReference;
             }
             if (index == 3)
             {
-                type = DataType.Array;
                 List<byte> data = new List<byte>();
                 data.Add((byte)DataType.Array);
                 if (LCPOptions == null)
@@ -215,30 +273,6 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 4)
             {
-                type = DataType.Array;
-                List<byte> data = new List<byte>();
-                data.Add((byte)DataType.Array);
-                if (PPPAuthentication == null)
-                {
-                    data.Add(0);
-                }
-                else
-                {
-                    data.Add((byte)IPCPOptions.Length);
-                    foreach (GXDLMSPppSetupIPCPOption it in IPCPOptions)
-                    {
-                        data.Add((byte)DataType.Structure);
-                        data.Add((byte)3);
-                        GXCommon.SetData(data, DataType.UInt8, it.Type);
-                        GXCommon.SetData(data, DataType.UInt8, it.Length);
-                        GXCommon.SetData(data, GXCommon.GetValueType(it.Data), it.Data);
-                    }
-                }
-                return data.ToArray();
-            }
-            if (index == 5)
-            {
-                type = DataType.Array;
                 List<byte> data = new List<byte>();
                 data.Add((byte)DataType.Array);
                 if (IPCPOptions == null)
@@ -259,7 +293,15 @@ namespace Gurux.DLMS.Objects
                 }
                 return data.ToArray();
             }
-            //TODO:
+            else if (index == 5)
+            {
+                List<byte> data = new List<byte>();
+                data.Add((byte)DataType.Structure);
+                data.Add(2);
+                GXCommon.SetData(data, DataType.OctetString, UserName);
+                GXCommon.SetData(data, DataType.OctetString, Password);
+                return data.ToArray();
+            }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
@@ -318,6 +360,11 @@ namespace Gurux.DLMS.Objects
                     }
                 }
                 IPCPOptions = items.ToArray();
+            }
+            else if (index == 5)
+            {
+                UserName = (byte[]) ((Object[])value)[0];
+                Password = (byte[])((Object[])value)[1];
             }
             else
             {

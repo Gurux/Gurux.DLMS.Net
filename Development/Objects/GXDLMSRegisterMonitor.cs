@@ -146,21 +146,39 @@ namespace Gurux.DLMS.Objects
             return 0;
         }
 
-        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
+        override public DataType GetDataType(int index)
         {
             if (index == 1)
             {
-                type = DataType.OctetString;
+                return DataType.OctetString;
+            }
+            if (index == 2)
+            {
+                return DataType.Array;
+            }
+            if (index == 3)
+            {
+                return DataType.Array;
+            }
+            if (index == 4)
+            {
+                return DataType.Array;
+            }
+            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+        }
+
+        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
+        {
+            if (index == 1)
+            {
                 return GXDLMSObject.GetLogicalName(this.LogicalName);
             }
             if (index == 2)
             {
-                type = DataType.None;
                 return this.Thresholds;
             }
             if (index == 3)
             {
-                type = DataType.Array;
                 List<byte> data = new List<byte>();
                 data.Add((int) DataType.Structure);
                 data.Add(3);
@@ -171,7 +189,6 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 4)
             {
-                type = DataType.Array;
                 List<byte> data = new List<byte>();
                 data.Add((int)DataType.Structure);
                 if (Actions == null)

@@ -52,7 +52,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// </summary>
         /// <param name="index"></param>
         /// <param name="item"></param>
-        public void Insert(int index, GXObisValueItem item)
+        new public void Insert(int index, GXObisValueItem item)
         {
             if (!this.Contains(item))
             {
@@ -81,7 +81,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// </summary>
         /// <param name="item">The GXObisValueItem to locate in the collection.</param>
         /// <returns></returns>
-        public bool Contains(GXObisValueItem item)
+        new public bool Contains(GXObisValueItem item)
         {
             foreach (GXObisValueItem it in this)
             {

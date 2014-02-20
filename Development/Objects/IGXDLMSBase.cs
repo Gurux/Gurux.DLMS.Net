@@ -62,6 +62,8 @@ namespace Gurux.DLMS.Objects
         /// <returns></returns>
         int GetMethodCount();
 
+        DataType GetDataType(int index);
+
         /// <summary>
         /// Returns value of given attribute.
         /// </summary>
@@ -70,8 +72,7 @@ namespace Gurux.DLMS.Objects
         /// </remarks>
         /// <param name="index">Attribute index</param>
         /// <returns>Value of the attribute index.</returns>
-        /// <param name="raw">Is value get as raw value.</param>
-        Object GetValue(int index, out DataType type, byte[] parameters, bool raw);
+        Object GetValue(int index, int selector, object parameters);
 
         /// <summary>
         /// Set value of given attribute.

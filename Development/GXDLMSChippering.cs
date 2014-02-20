@@ -131,7 +131,7 @@ namespace Gurux.DLMS
             }
             if (type == CountType.Packet)
             {
-                data.Insert(0, (byte)data.Count);
+                Gurux.DLMS.Internal.GXCommon.SetObjectCount(data.Count, data, 0);
                 data.Insert(0, (byte)command);
             }
             return data.ToArray();        
@@ -175,8 +175,8 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentOutOfRangeException("cryptedData");
             }
-            int pos = -1;
-            Command cmd = (Command) cryptedText[++pos];
+            int pos = 0;
+            Command cmd = (Command) cryptedText[pos++];
             if (!(cmd == Command.GloGetRequest ||
                 cmd == Command.GloGetResponse ||
                 cmd == Command.GloSetRequest ||
@@ -186,17 +186,16 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentOutOfRangeException("cryptedData");
             }
-            int len = cryptedText[++pos];
-            Security security = (Security)cryptedText[++pos];
-            byte[] FrameCounterData = new byte[4];            
-            FrameCounterData[3] = cryptedText[++pos];
-            FrameCounterData[2] = cryptedText[++pos];
-            FrameCounterData[1] = cryptedText[++pos];
-            FrameCounterData[0] = cryptedText[++pos];
+            int len = Gurux.DLMS.Internal.GXCommon.GetObjectCount(cryptedText, ref pos);
+            Security security = (Security)cryptedText[pos++];
+            byte[] FrameCounterData = new byte[4];
+            FrameCounterData[3] = cryptedText[pos++];
+            FrameCounterData[2] = cryptedText[pos++];
+            FrameCounterData[1] = cryptedText[pos++];
+            FrameCounterData[0] = cryptedText[pos++];
             UInt32 frameCounter = BitConverter.ToUInt32(FrameCounterData, 0);
             byte[] tag = new byte[12];
             byte[] encryptedData;
-            ++pos;
             int length;
             if (security == Security.Authentication)
             {

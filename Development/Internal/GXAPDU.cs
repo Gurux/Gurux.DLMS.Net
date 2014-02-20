@@ -290,7 +290,7 @@ namespace Gurux.DLMS.Internal
                         throw new Exception("Invalid tag.");
                     }
                     int tmp = buff[index++];
-                    if (tmp < 0 || tmp > 4)
+                    if (tmp < 0 || tmp > 5)
                     {
                         throw new Exception("Invalid tag.");
                     }

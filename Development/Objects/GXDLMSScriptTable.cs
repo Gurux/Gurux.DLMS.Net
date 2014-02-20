@@ -127,16 +127,27 @@ namespace Gurux.DLMS.Objects
             return 1;
         }
 
-        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
+        override public DataType GetDataType(int index)
         {
             if (index == 1)
             {
-                type = DataType.OctetString;
+                return DataType.OctetString;                
+            }
+            if (index == 2)
+            {
+                return DataType.Array;                
+            }   
+            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+        }
+
+        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
+        {
+            if (index == 1)
+            {
                 return GXDLMSObject.GetLogicalName(this.LogicalName);
             }
             if (index == 2)
             {
-                type = DataType.Array;
                 int cnt = Scripts.Count;
                 List<byte> data = new List<byte>();
                 data.Add((byte) DataType.Array);
@@ -180,22 +191,41 @@ namespace Gurux.DLMS.Objects
             else if (index == 2)
             {
                 Scripts.Clear();
-                if (value != null)
+                //Fix Xemex bug here.
+                //Xemex meters do not return array as they shoul be according standard.
+                if (value is Object[] && ((Object[])value).Length != 0)
                 {
-                    foreach(Object[] item in (Object[])value)
-                    { 
-                        int script_identifier = Convert.ToInt32(item[0]);
-                        foreach (Object[] arr in (Object[])item[1])
-                        { 
+                    if (((Object[])value)[0] is Object[])
+                    {
+                        foreach (Object[] item in (Object[])value)
+                        {
+                            int script_identifier = Convert.ToInt32(item[0]);
+                            foreach (Object[] arr in (Object[])item[1])
+                            {
+                                GXDLMSScriptAction it = new GXDLMSScriptAction();
+                                it.Type = (GXDLMSScriptActionType)Convert.ToInt32(arr[0]);
+                                it.ObjectType = (ObjectType)Convert.ToInt32(arr[1]);
+                                it.LogicalName = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString).ToString();
+                                it.Index = Convert.ToInt32(arr[3]);
+                                it.Parameter = arr[4];
+                                Scripts.Add(new KeyValuePair<int, GXDLMSScriptAction>(script_identifier, it));
+                            }
+                        }
+                    }
+                    else //Read Xemex meter here.
+                    {
+                        int script_identifier = Convert.ToInt32(((Object[])value)[0]);
+                        Object[] arr = (Object[])((Object[])value)[1];
+                        {
                             GXDLMSScriptAction it = new GXDLMSScriptAction();
                             it.Type = (GXDLMSScriptActionType)Convert.ToInt32(arr[0]);
-                            it.ObjectType = (ObjectType)Convert.ToInt32(arr[1]);                            
+                            it.ObjectType = (ObjectType)Convert.ToInt32(arr[1]);
                             it.LogicalName = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString).ToString();
                             it.Index = Convert.ToInt32(arr[3]);
                             it.Parameter = arr[4];
-                            Scripts.Add(new KeyValuePair<int,GXDLMSScriptAction>(script_identifier, it));
+                            Scripts.Add(new KeyValuePair<int, GXDLMSScriptAction>(script_identifier, it));
                         }
-                    }               
+                    }
                 }
             }            
             else

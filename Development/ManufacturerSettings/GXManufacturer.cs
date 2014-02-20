@@ -340,11 +340,7 @@ namespace Gurux.DLMS.ManufacturerSettings
             {
                 if (addressing == HDLCAddressType.SerialNumber)
                 {
-                    Type type = physicalAddress.GetType();
-                    if (type != typeof(byte) && type != typeof(UInt16) && type != typeof(UInt32))
-                    {
-                        type = typeof(UInt16);
-                    }
+                    Type type = typeof(UInt32);
                     physicalAddress = Convert.ChangeType(EvaluateSN(Convert.ToInt32(physicalAddress), formula), type);
                 }
                 if (physicalAddress is byte)

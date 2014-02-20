@@ -58,6 +58,31 @@ namespace Gurux.DLMS
         {
             m_Base = new GXDLMS(false);
             this.Authentication = Authentication.None;
+            Objects = new GXDLMSObjectCollection();
+        }
+        
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="useLogicalNameReferencing">Is Logical or short name referencing used.</param>
+        /// <param name="clientID">Client ID. Default is 0x21</param>
+        /// <param name="ServerID">Server ID. Default is 3.</param>
+        /// <param name="authentication">Authentication type. Default is None</param>
+        /// <param name="password">Password if authentication is used.</param>
+        /// <param name="interfaceType">Interface type. Default is general.</param>
+        public GXDLMSClient(bool useLogicalNameReferencing, 
+            object clientID, object ServerID, Authentication authentication,
+            string password, InterfaceType interfaceType)
+        {
+            m_Base = new GXDLMS(false);
+            Objects = new GXDLMSObjectCollection();
+            this.UseLogicalNameReferencing = useLogicalNameReferencing;
+            this.InterfaceType = interfaceType;
+            this.Authentication = authentication;
+            this.ClientID = clientID;
+            this.ServerID = ServerID;
+            this.Password = ASCIIEncoding.ASCII.GetBytes(password);
         }
         
         /// <summary>
@@ -774,13 +799,9 @@ namespace Gurux.DLMS
             if (wrongCrc)
             {
                 throw new GXDLMSException("Wrong Checksum.");
-            }
-            //Skip invoke ID and priority.
-            index += 2;
-            //Skip Error
-            ++index;
+            }          
             //Skip item count
-            ++index;
+            ++index;            
             //Skip item status
             ++index;
             int total = 0, read = 0, CacheIndex = 0;
@@ -891,19 +912,12 @@ namespace Gurux.DLMS
             }
             GXDLMSObjectCollection items = new GXDLMSObjectCollection(this);
             long cnt = GXCommon.GetObjectCount(buff, ref index);
-            int total, count;
-            int[] values = null;
-            if (onlyKnownObjects)
-            {
-                Array arr = Enum.GetValues(typeof(ObjectType));
-                values = new int[arr.Length];
-                arr.CopyTo(values, 0);
-            }
+            int total, count;            
             for (long objPos = 0; objPos != cnt; ++objPos)
             {
-                DataType type = DataType.None;
+                DataType dt = DataType.None;
                 int cachePosition = 0;
-                object[] objects = (object[])GXCommon.GetData(buff, ref index, ActionType.None, out total, out count, ref type, ref cachePosition);
+                object[] objects = (object[])GXCommon.GetData(buff, ref index, ActionType.None, out total, out count, ref dt, ref cachePosition);
                 if (index == -1)
                 {
                     throw new OutOfMemoryException();
@@ -912,13 +926,13 @@ namespace Gurux.DLMS
                 {
                     throw new GXDLMSException("Invalid structure format.");
                 }
-                int type2 = Convert.ToInt16(objects[1]);
-                if (!onlyKnownObjects || values.Contains(type2))
-                {
-                    int baseName = Convert.ToInt32(objects[0]) & 0xFFFF;
+                int ot = Convert.ToInt16(objects[1]);
+                int baseName = Convert.ToInt32(objects[0]) & 0xFFFF;
+                if (!onlyKnownObjects || GXDLMS.AvailableObjectTypes.ContainsKey((ObjectType)ot))                
+                {                    
                     if (baseName > 0)
                     {
-                        GXDLMSObject comp = CreateDLMSObject(type2, objects[2], baseName, objects[3], null, 0, 0);
+                        GXDLMSObject comp = CreateDLMSObject(ot, objects[2], baseName, objects[3], null, 0, 0);
                         if (comp != null)
                         {
                             items.Add(comp);
@@ -927,7 +941,7 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine(string.Format("Unknown object : {0} {1}", type2, objects[0]));
+                    System.Diagnostics.Debug.WriteLine(string.Format("Unknown object : {0} {1}", ot, baseName));
                 }
             }
             return items;
@@ -955,24 +969,26 @@ namespace Gurux.DLMS
                 {
                     int id = Convert.ToInt32(attributeAccess[0]);
                     AccessMode mode = (AccessMode)Convert.ToInt32(attributeAccess[1]);
-                    //TODO: Check why...
                     //With some meters id is negative. 
                     if (id > 0)
                     {
                         obj.SetAccess(id, mode);
                     }
                 }
-                if (obj.ShortName == 0) //If Logical Name is used.
+                foreach (object[] methodAccess in (object[])access[1])
                 {
-                }
-                else //If Short Name is used.
-                {
-                    foreach (object[] methodAccess in (object[])access[1])
+                    int id = Convert.ToInt32(methodAccess[0]);
+                    int tmp;
+                    //If version is 0.
+                    if (methodAccess[1] is Boolean)
                     {
-                        int id = Convert.ToInt32(methodAccess[0]);
-                        MethodAccessMode mode = (MethodAccessMode)Convert.ToInt32(methodAccess[1]);
-                        obj.SetMethodAccess(id, mode);
+                        tmp = ((Boolean)methodAccess[1]) ? 1 : 0;
                     }
+                    else//If version is 1.
+                    {
+                        tmp = Convert.ToInt32(methodAccess[1]);
+                    }
+                    obj.SetMethodAccess(id, (MethodAccessMode)tmp);
                 }
             }
             ((IGXDLMSColumnObject)obj).SelectedAttributeIndex = attributeIndex;
@@ -1064,6 +1080,11 @@ namespace Gurux.DLMS
                         {
                             code.DataType = "26";
                         }
+                        //Active firmware identifier
+                        else if (GXStandardObisCodeCollection.EqualsMask("1.0.0.2.0.255", it.LogicalName))
+                        {
+                            code.DataType = "10";
+                        }
                     }
                     if (code.DataType != "*" && code.DataType != string.Empty && !code.DataType.Contains(","))
                     {
@@ -1091,7 +1112,7 @@ namespace Gurux.DLMS
         public GXDLMSObjectCollection Objects
         {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -1101,11 +1122,6 @@ namespace Gurux.DLMS
         /// <returns>Collection of COSEM objects.</returns>
         public GXDLMSObjectCollection ParseObjects(byte[] data, bool onlyKnownObjects)
         {
-            if (Ciphering.Security != Security.None)
-            {
-                Command cmd;
-                data = m_Base.Decrypt(data, out cmd);
-            }
             if (data == null || data.Length == 0)
             {
                 throw new GXDLMSException("ParseObjects failed. Invalid parameter.");
@@ -1141,19 +1157,13 @@ namespace Gurux.DLMS
             int objectCnt = 0;
             GXDLMSObjectCollection items = new GXDLMSObjectCollection(this);
             int total, count;
-            int[] values = null;
-            if (onlyKnownObjects)
-            {
-                Array arr = Enum.GetValues(typeof(ObjectType));
-                values = new int[arr.Length];
-                arr.CopyTo(values, 0);
-            }
+            
             //Some meters give wrong item count.
             while (index != buff.Length && cnt != objectCnt)
             {
-                DataType type = DataType.None;
+                DataType dt = DataType.None;
                 int cachePosition = 0;
-                object[] objects = (object[])GXCommon.GetData(buff, ref index, ActionType.None, out total, out count, ref type, ref cachePosition);
+                object[] objects = (object[])GXCommon.GetData(buff, ref index, ActionType.None, out total, out count, ref dt, ref cachePosition);
                 if (index == -1)
                 {
                     throw new OutOfMemoryException();
@@ -1163,15 +1173,15 @@ namespace Gurux.DLMS
                     throw new GXDLMSException("Invalid structure format.");
                 }
                 ++objectCnt;
-                int type2 = Convert.ToInt16(objects[0]);
-                if (!onlyKnownObjects || values.Contains(type2))
+                int ot = Convert.ToInt16(objects[0]);
+                if (!onlyKnownObjects || GXDLMS.AvailableObjectTypes.ContainsKey((ObjectType) ot))
                 {
-                    GXDLMSObject comp = CreateDLMSObject(type2, objects[1], 0, objects[2], objects[3], 0, 0);
+                    GXDLMSObject comp = CreateDLMSObject(ot, objects[1], 0, objects[2], objects[3], 0, 0);
                     items.Add(comp);                    
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine(string.Format("Unknown object : {0} {1}", type2, objects[2]));
+                    System.Diagnostics.Debug.WriteLine(string.Format("Unknown object : {0} {1}", ot, objects[2]));
                 }
             }
             return items;
@@ -1263,11 +1273,6 @@ namespace Gurux.DLMS
         /// <seealso cref="TryGetValue"/>
         public object GetValue(byte[] data, GXDLMSObject target, int attributeIndex)
         {
-            if (Ciphering.Security != Security.None)
-            {
-                Command cmd;
-                data = m_Base.Decrypt(data, out cmd);
-            }
             DataType type = target.GetUIDataType(attributeIndex);
             Object value = GetValue(data);
             if (value is byte[] && type != DataType.None)
@@ -1513,6 +1518,11 @@ namespace Gurux.DLMS
                 type = GXCommon.GetValueType(data);
             }
             List<byte> buff = new List<byte>();
+            if (!UseLogicalNameReferencing && data != null)
+            {
+                //Add access selector.
+                buff.Add(2);
+            }
             GXCommon.SetData(buff, type, data);
             if (!this.UseLogicalNameReferencing)
             {
@@ -1523,8 +1533,11 @@ namespace Gurux.DLMS
                     throw new ArgumentOutOfRangeException("methodIndex");
                 }
                 index = (value + (index - 1) * 0x8);
-            }
-            return m_Base.GenerateMessage(name, type == DataType.None ? 0 : 1, buff.ToArray(), objectType, index, Command.MethodRequest);
+                name = Convert.ToUInt16(name) + index;
+                index = 0;
+            }            
+            return m_Base.GenerateMessage(name, buff.ToArray(), objectType,
+                index, UseLogicalNameReferencing ? Command.MethodRequest : Command.WriteRequest);
         }
 
 
@@ -1540,8 +1553,12 @@ namespace Gurux.DLMS
             {
                 throw new GXDLMSException("Invalid parameter");
             }
-            DataType type;
-            Object value = (item as IGXDLMSBase).GetValue(index, out type, null, true);
+            Object value = (item as IGXDLMSBase).GetValue(index, 0, null);
+            DataType type = item.GetDataType(index);
+            if (type == DataType.None)
+            {
+                type = Gurux.DLMS.Internal.GXCommon.GetValueType(value);
+            }
             return Write(item.Name, value, type, item.ObjectType, index);
         }
 
@@ -1567,7 +1584,7 @@ namespace Gurux.DLMS
             m_Base.ClearProgress();
             List<byte> data = new List<byte>();
             GXCommon.SetData(data, type, value);            
-            return m_Base.GenerateMessage(name, 2, data.ToArray(), objectType, index, UseLogicalNameReferencing ? Command.SetRequest : Command.WriteRequest);
+            return m_Base.GenerateMessage(name, data.ToArray(), objectType, index, UseLogicalNameReferencing ? Command.SetRequest : Command.WriteRequest);
         }
 
         /// <summary>
@@ -1585,7 +1602,7 @@ namespace Gurux.DLMS
             }
             //Clear cache
             m_Base.ClearProgress();
-            return m_Base.GenerateMessage(name, 2, new byte[0], objectType, attributeOrdinal, this.UseLogicalNameReferencing ? Command.GetRequest : Command.ReadRequest);
+            return m_Base.GenerateMessage(name, new byte[0], objectType, attributeOrdinal, this.UseLogicalNameReferencing ? Command.GetRequest : Command.ReadRequest);
         }
 
         /// <summary>
@@ -1602,7 +1619,7 @@ namespace Gurux.DLMS
             }
             //Clear cache
             m_Base.ClearProgress();
-            return m_Base.GenerateMessage(item.Name, 2, new byte[0], item.ObjectType, attributeOrdinal, this.UseLogicalNameReferencing ? Command.GetRequest : Command.ReadRequest);
+            return m_Base.GenerateMessage(item.Name, new byte[0], item.ObjectType, attributeOrdinal, this.UseLogicalNameReferencing ? Command.GetRequest : Command.ReadRequest);
         }
 
         /// <summary>
@@ -1639,9 +1656,9 @@ namespace Gurux.DLMS
             buff.Add(0x04); //Add item count
             GXCommon.SetData(buff, DataType.UInt32, index); //Add start index
             GXCommon.SetData(buff, DataType.UInt32, count);//Add Count
-            GXCommon.SetData(buff, DataType.UInt16, 0);//Read all columns.
+            GXCommon.SetData(buff, DataType.UInt16, 1);//Read all columns.
             GXCommon.SetData(buff, DataType.UInt16, 0);
-            return m_Base.GenerateMessage(name, 4, buff.ToArray(), ObjectType.ProfileGeneric, 2, this.UseLogicalNameReferencing ? Command.GetRequest : Command.ReadRequest)[0];
+            return m_Base.GenerateMessage(name, buff.ToArray(), ObjectType.ProfileGeneric, 2, this.UseLogicalNameReferencing ? Command.GetRequest : Command.ReadRequest)[0];
         }
 
         /// <summary>
@@ -1679,7 +1696,7 @@ namespace Gurux.DLMS
             //Add array of read columns. Read All...
             buff.Add(0x01); //Add item count   
             buff.Add(0x00); //Add item count   
-            return m_Base.GenerateMessage(name, 4, buff.ToArray(), ObjectType.ProfileGeneric, 2, this.UseLogicalNameReferencing ? Command.GetRequest : Command.ReadRequest)[0];
+            return m_Base.GenerateMessage(name, buff.ToArray(), ObjectType.ProfileGeneric, 2, this.UseLogicalNameReferencing ? Command.GetRequest : Command.ReadRequest)[0];
         }
 
         /// <summary>

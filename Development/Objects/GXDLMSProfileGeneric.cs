@@ -313,7 +313,7 @@ namespace Gurux.DLMS.Objects
             int pos = -1;
             foreach (GXDLMSObject obj in CaptureObjects)
             {
-                ValueEventArgs e = new ValueEventArgs(obj, obj.SelectedAttributeIndex);
+                ValueEventArgs e = new ValueEventArgs(obj, obj.SelectedAttributeIndex, 0);
                 (Owner as GXDLMSServerBase).Read(e);
                 if (e.Handled)
                 {
@@ -465,23 +465,24 @@ namespace Gurux.DLMS.Objects
             return data.ToArray();
         }
 
-        byte[] GetProfileGenericData(byte[] data)
-        {
-            int selector;
-            object from, to;
+        byte[] GetProfileGenericData(int selector, object parameters)
+        {                        
             //If all data is readed.
-            if (data == null || data.Length == 0)
+            if (selector == 0 || parameters == null)
             {
                 return GetData(Buffer);
             }
-            GetAccessSelector(data, out selector, out from, out to);
+            object[] arr = (object[])parameters;
             List<object[]> table = new List<object[]>();
             lock (Buffer)
             {
                 if (selector == 1) //Read by range
                 {
-                    GXDateTime start = (GXDateTime)from;
-                    GXDateTime end = (GXDateTime)to;
+                    DataType dt = DataType.DateTime;
+                    int a, b, c = 0, pos = 0;
+                    GXDateTime start = (GXDateTime)GXCommon.GetData((byte[])arr[1], ref pos, ActionType.None, out a, out b, ref dt, ref c);
+                    c = pos = 0;
+                    GXDateTime end = (GXDateTime)GXCommon.GetData((byte[])arr[2], ref pos, ActionType.None, out a, out b, ref dt, ref c);
                     foreach (object[] row in Buffer)
                     {
                         DateTime tm = Convert.ToDateTime(row[0]);
@@ -493,8 +494,8 @@ namespace Gurux.DLMS.Objects
                 }
                 else if (selector == 2)//Read by entry.
                 {
-                    int start = Convert.ToInt32(from);
-                    int count = Convert.ToInt32(to);
+                    int start = Convert.ToInt32(arr[0]);
+                    int count = Convert.ToInt32(arr[1]);
                     for (int pos = 0; pos < count; ++pos)
                     {
                         if (pos + start == Buffer.Count)
@@ -504,62 +505,13 @@ namespace Gurux.DLMS.Objects
                         table.Add(Buffer[start + pos]);
                     }
                 }
+                else
+                {
+                    throw new Exception("Invalid selector.");
+                }
             }
             return GetData(Buffer);
         }
-
-        void GetAccessSelector(byte[] data, out int selector, out object start, out object to)
-        {
-            selector = data[0];
-            int pos;
-            DataType type = DataType.None;
-            //Start index
-            int index = 0, count = 0, cachePos = 0;
-            if (selector == 1)//Read by range
-            {
-                if (data[1] != (int)DataType.Structure ||
-                    data[2] != 4 ||
-                    data[3] != (int)DataType.Structure ||
-                    data[4] != 4)
-                {
-                    throw new GXDLMSException("Invalid parameter");
-                }
-                pos = 5;
-                object classId = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos);
-                type = DataType.None;
-                object ln = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos);
-                type = DataType.None;
-                object attributeIndex = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos);
-                type = DataType.None;
-                object version = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos);
-                type = DataType.None;
-                byte[] tmp = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos) as byte[];
-                start = GXDLMSClient.ChangeType(tmp, DataType.DateTime);
-                type = DataType.None;
-                tmp = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos) as byte[];
-                to = GXDLMSClient.ChangeType(tmp, DataType.DateTime);
-            }
-            else if (selector == 2)//Read by entry.
-            {
-                if (data[1] != (int)DataType.Structure ||
-                    data[2] != 4)
-                {
-                    throw new GXDLMSException("Invalid parameter");
-                }
-                pos = 3;
-                start = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos);
-                type = DataType.None;
-                to = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos);
-                if (Convert.ToUInt32(start) > Convert.ToUInt32(to))
-                {
-                    throw new GXDLMSException("Invalid parameter");
-                }
-            }
-            else
-            {
-                throw new GXDLMSException("Invalid parameter");
-            }
-        }        
 
         /// <summary>
         /// Returns captured objects.
@@ -584,36 +536,67 @@ namespace Gurux.DLMS.Objects
             return data.ToArray();
         }
 
-        object IGXDLMSBase.GetValue(int index, out DataType type, byte[] parameters, bool raw)
+        override public DataType GetDataType(int index)
         {
             if (index == 1)
             {
-                type = DataType.OctetString;
+                return DataType.OctetString;                
+            }
+            if (index == 2)
+            {
+                return DataType.Array;
+            }
+            if (index == 3)
+            {
+                return DataType.Array;
+            }
+            if (index == 4)
+            {
+                return DataType.Int8;
+            }
+            if (index == 5)
+            {
+                return DataType.Int8;                
+            }
+            if (index == 6)
+            {
+                return DataType.Array;                
+            }
+            if (index == 7)
+            {
+                return DataType.Int8;                
+            }
+            if (index == 8)
+            {
+                return DataType.Int8;                
+            }
+            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+        }
+
+        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
+        {
+            if (index == 1)
+            {
                 return GXDLMSObject.GetLogicalName(this.LogicalName);
             }
             if (index == 2)
             {
-                type = DataType.Array;
-                return GetProfileGenericData(parameters);   
+                return GetProfileGenericData(selector, parameters);   
             }
             if (index == 3)
             {
-                type = DataType.Array;
                 return GetColumns();
             }
             if (index == 4)
             {
-                type = DataType.Int8;
                 return CapturePeriod;
             }
             if (index == 5)
             {
-                type = DataType.Int8;
                 return SortMethod;
             }
             if (index == 6)
             {                
-                type = DataType.Array;                
                 List<byte> data = new List<byte>();            
                 data.Add((byte)DataType.Structure);
                 data.Add((byte) 4); //Count  
@@ -635,12 +618,10 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 7)
             {
-                type = DataType.Int8;
                 return EntriesInUse;
             }
             if (index == 8)
             {
-                type = DataType.Int8;
                 return ProfileEntries;
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
@@ -715,19 +696,11 @@ namespace Gurux.DLMS.Objects
                     string ln = GXDLMSObject.toLogicalName((byte[]) tmp[1]);
                     int attributeIndex = Convert.ToInt16(tmp[2]);
                     int dataIndex = Convert.ToInt16(tmp[3]);
-                    GXDLMSObject obj = null;
-                    if (Owner is GXDLMSServerBase)
-                    {
-                        obj = (Owner as GXDLMSServerBase).Items.FindByLN(type, ln);
-                    }
-                    else if (Owner is GXDLMSClient)
-                    {
-                        obj = (Owner as GXDLMSClient).Objects.FindByLN(type, ln);
-                    }
-                    else
+                    GXDLMSObject obj = Parent.FindByLN(type, ln);
+                    if (obj == null)
                     {
                         obj = GXDLMSClient.CreateDLMSObject((int)type, null, 0, ln, 0, attributeIndex, dataIndex);
-                    }
+                    }                    
                     obj.SelectedAttributeIndex = attributeIndex;
                     obj.SelectedDataIndex = dataIndex;
                     CaptureObjects.Add(obj);
@@ -743,16 +716,23 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 6)
             {
-                object[] tmp = value as object[];
-                if (tmp.Length != 4)
+                if (value != null)
                 {
-                    throw new GXDLMSException("Invalid structure format.");
+                    object[] tmp = value as object[];
+                    if (tmp.Length != 4)
+                    {
+                        throw new GXDLMSException("Invalid structure format.");
+                    }
+                    ObjectType type = (ObjectType)Convert.ToInt16(tmp[0]);
+                    string ln = GXDLMSObject.toLogicalName((byte[])tmp[1]);
+                    int attributeIndex = Convert.ToInt16(tmp[2]);
+                    int dataIndex = Convert.ToInt16(tmp[3]);
+                    SortObject = CaptureObjects.FindByLN(type, ln);
                 }
-                ObjectType type = (ObjectType)Convert.ToInt16(tmp[0]);
-                string ln = GXDLMSObject.toLogicalName((byte[])tmp[1]);
-                int attributeIndex = Convert.ToInt16(tmp[2]);
-                int dataIndex = Convert.ToInt16(tmp[3]);
-                SortObject = CaptureObjects.FindByLN(type, ln);
+                else
+                {
+                    SortObject = null;
+                }
             }
             else if (index == 7)
             {

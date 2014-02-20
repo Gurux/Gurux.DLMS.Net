@@ -34,23 +34,45 @@
 
 namespace Gurux.DLMS.Objects
 {
-    public enum GXDLMSPppSetupIPCompressionProtocol
+    /// <summary>
+    /// Configures the behaviour of the disconnect control object for all
+    /// triggers, i.e. the possible state transitions.
+    /// </summary>
+    public enum ControlMode
     {
         /// <summary>
-        /// No IP Compression is used (default).
+        /// The disconnect control object is always in 'connected' state,
         /// </summary>
-        None = 0,
+        None,
         /// <summary>
-        /// Van Jacobson (RFC 1332).
+        /// Disconnection: Remote (b, c), manual (f), local (g) 
+        /// Reconnection: Remote (d), manual (e).
         /// </summary>
-        VanJacobson = 0x002d,
+        Mode1,
         /// <summary>
-        /// IP Header Compression (RFC 2507, 3544).
+        /// Disconnection: Remote (b, c), manual (f), local (g) 
+        /// Reconnection: Remote (a), manual (e).
         /// </summary>
-        IPHeaderCompression = 0x0061,
+        Mode2,
         /// <summary>
-        /// Robust Header Compression (RFC 3241).
+        /// Disconnection: Remote (b, c), manual (-), local (g) 
+        /// Reconnection: Remote (d), manual (e).
         /// </summary>
-        RobustHeaderCompression = 0x0003
+        Mode3,
+        /// <summary>
+        /// Disconnection: Remote (b, c), manual (-), local (g) 
+        /// Reconnection: Remote (a), manual (e)
+        /// </summary>
+        Mode4,
+        /// <summary>
+        /// Disconnection: Remote (b, c), manual (f), local (g) 
+        /// Reconnection: Remote (d), manual (e), local (h),
+        /// </summary>
+        Mode5,
+        /// <summary>
+        ///Disconnection: Remote (b, c), manual (-), local (g) 
+        ///Reconnection: Remote (d), manual (e), local (h)
+        /// </summary>
+        Mode6,
     }
 }
