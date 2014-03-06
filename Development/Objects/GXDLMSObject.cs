@@ -573,7 +573,7 @@ namespace Gurux.DLMS.Objects
         /// <returns></returns>
         public virtual void SetValue(int index, object value)
         {
-            (this as IGXDLMSBase).SetValue(index, value, false);
+            (this as IGXDLMSBase).SetValue(index, value);
         }
 
         protected GXDLMSAttributeSettings GetAttribute(int index, GXAttributeCollection attributes)
@@ -582,6 +582,11 @@ namespace Gurux.DLMS.Objects
             if (att == null)
             {                
                 att = new GXDLMSAttributeSettings(index);
+                //LN is read only.
+                if (index == 1)
+                {
+                    att.Access = AccessMode.Read;
+                }
                 if (attributes != null)
                 {
                     attributes.Add(att);

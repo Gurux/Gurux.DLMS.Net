@@ -82,13 +82,12 @@ namespace Gurux.DLMS.Objects
         /// </remarks>
         /// <param name="index">Attribute index</param>
         /// <param name="value">Value of the attribute index.</param>
-        /// <param name="raw">Is value set as raw.</param>
-        void SetValue(int index, Object value, bool raw);
+        void SetValue(int index, Object value);
 
         /// <summary>
         /// Invokes method.
         /// </summary>
         /// <param name="index">Method index.</param>
-        byte[] Invoke(object sender, int index, Object parameters);
+        byte[][] Invoke(object sender, int index, Object parameters);
     }
 }

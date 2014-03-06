@@ -53,6 +53,7 @@
     <Compile Include="AccessMode.cs" />
     <Compile Include="AssociationResult.cs" />
     <Compile Include="Authentication.cs" />
+    <Compile Include="ClockStatus.cs" />
     <Compile Include="GXCiphering.cs" />
     <Compile Include="GXDLMSChippering.cs" />
     <Compile Include="GXDLMSChipperingStream.cs" />

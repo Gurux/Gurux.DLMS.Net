@@ -337,7 +337,7 @@ namespace Gurux.DLMS.Objects
 
         #region IGXDLMSBase Members
 
-        byte[] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
+        byte[][] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
         {
             throw new ArgumentException("Invoke failed. Invalid attribute index.");
         }
@@ -510,7 +510,7 @@ namespace Gurux.DLMS.Objects
                     throw new Exception("Invalid selector.");
                 }
             }
-            return GetData(Buffer);
+            return GetData(table);
         }
 
         /// <summary>
@@ -627,7 +627,7 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value, bool raw)
+        void IGXDLMSBase.SetValue(int index, object value)
         {
             if (index == 1)
             {
@@ -648,6 +648,7 @@ namespace Gurux.DLMS.Objects
                 }
                 if (value != null && (value as object[]).Length != 0)
                 {
+                    int deviation = Parent.Deviation;
                     foreach(object[] row in (value as object[]))
                     {
                         if ((row as object[]).Length != CaptureObjects.Count)
@@ -659,7 +660,20 @@ namespace Gurux.DLMS.Objects
                             if (row[pos] is byte[])
                             {
                                 DataType type = CaptureObjects[pos].GetUIDataType(CaptureObjects[pos].SelectedAttributeIndex);
-                                row[pos] = GXDLMSClient.ChangeType(row[pos] as byte[], type);
+                                if (type != DataType.None && row[pos] is byte[])
+                                {
+                                    row[pos] = GXDLMSClient.ChangeType(row[pos] as byte[], type);
+
+                                    //If summer time is used.
+                                    if (type == DataType.DateTime && row[pos] is GXDateTime)
+                                    {
+                                        GXDateTime dt = (GXDateTime)row[pos];                                
+                                        if (((int) dt.Status & 0x80) != 0)
+                                        {
+                                            dt.Value.AddMinutes(deviation);
+                                        }
+                                    }
+                                }
                             }
                             if (CaptureObjects[pos] is GXDLMSRegister && CaptureObjects[pos].SelectedAttributeIndex == 2)
                             {

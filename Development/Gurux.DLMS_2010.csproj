@@ -73,6 +73,7 @@
     <Compile Include="AccessMode.cs" />
     <Compile Include="AssociationResult.cs" />
     <Compile Include="Authentication.cs" />
+    <Compile Include="ClockStatus.cs" />
     <Compile Include="Command.cs" />
     <Compile Include="DataType.cs" />
     <Compile Include="GXCiphering.cs" />
@@ -91,7 +92,6 @@
     <Compile Include="GXDLMSException.cs" />
     <Compile Include="GXDLMSLimits.cs" />
     <Compile Include="GXDLMSLNSettings.cs" />
-    <Compile Include="NamespaceDoc.cs" />
     <Compile Include="Objects\AddressState.cs" />
     <Compile Include="Objects\AutoAnswerMode.cs" />
     <Compile Include="Objects\AutoAnswerStatus.cs" />

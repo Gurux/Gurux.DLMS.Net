@@ -43,47 +43,9 @@ namespace Gurux.DLMS
 	/// DLMS specific exception class that has error description available from GetDescription method.
 	/// </summary>
     public class GXDLMSException : Exception
-    {
-        static private string GetDescription(int errCode)
-        {
-            string str = null;
-            switch (errCode)
-            {
-                case -1:
-                    str = "Not a reply";
-                    break;
-                case 1: //Access Error : Device reports a hardware fault
-                    str = Gurux.DLMS.Properties.Resources.HardwareFaultTxt;
-                    break;
-                case 2: //Access Error : Device reports a temporary failure
-                    str = Gurux.DLMS.Properties.Resources.TemporaryFailureTxt;
-                    break;
-                case 3: // Access Error : Device reports Read-Write denied
-                    str = Gurux.DLMS.Properties.Resources.ReadWriteDeniedTxt;
-                    break;
-                case 4: // Access Error : Device reports a undefined object
-                    str = Gurux.DLMS.Properties.Resources.UndefinedObjectTxt;
-                    break;
-                case 5: // Access Error : Device reports a inconsistent Class or object
-                    str = Gurux.DLMS.Properties.Resources.InconsistentClassTxt;
-                    break;
-                case 6: // Access Error : Device reports a unavailable object
-                    str = Gurux.DLMS.Properties.Resources.UnavailableObjectTxt;
-                    break;
-                case 7: // Access Error : Device reports a unmatched type
-                    str = Gurux.DLMS.Properties.Resources.UnmatchedTypeTxt;
-                    break;
-                case 8: // Access Error : Device reports scope of access violated
-                    str = Gurux.DLMS.Properties.Resources.AccessViolatedTxt;
-                    break;
-                default:
-                    str = Gurux.DLMS.Properties.Resources.UnknownErrorTxt;
-                    break;
-            }
-            return str;
-        }
+    {        
         public GXDLMSException(int errCode)
-            : base(GetDescription(errCode))
+            : base(GXDLMS.GetDescription(errCode))
         {
             ErrorCode = errCode;
         }

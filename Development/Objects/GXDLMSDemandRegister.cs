@@ -342,7 +342,7 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value, bool raw)
+        void IGXDLMSBase.SetValue(int index, object value)
         {
             if (index == 1)
             {
@@ -357,48 +357,34 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 2)
             {
-                if (!raw)
+                if (Scaler != 1)
                 {
-                    if (Scaler != 1)
+                    try
                     {
-                        try
-                        {
-                            CurrentAvarageValue = Convert.ToDouble(value) * Scaler;
-                        }
-                        catch (Exception)
-                        {
-                            //Sometimes scaler is set for wrong Object type.
-                            CurrentAvarageValue = value;
-                        }
+                        CurrentAvarageValue = Convert.ToDouble(value) * Scaler;
                     }
-                    else
+                    catch (Exception)
                     {
+                        //Sometimes scaler is set for wrong Object type.
                         CurrentAvarageValue = value;
                     }
                 }
                 else
                 {
                     CurrentAvarageValue = value;
-                }                
+                }
             }
             else if (index == 3)
             {                 
-                if (!raw)
+                if (Scaler != 1)
                 {
-                    if (Scaler != 1)
+                    try
                     {
-                        try
-                        {
-                            LastAvarageValue = Convert.ToDouble(value) * Scaler;
-                        }
-                        catch (Exception)
-                        {
-                            //Sometimes scaler is set for wrong Object type.
-                            LastAvarageValue = value;
-                        }
+                        LastAvarageValue = Convert.ToDouble(value) * Scaler;
                     }
-                    else
+                    catch (Exception)
                     {
+                        //Sometimes scaler is set for wrong Object type.
                         LastAvarageValue = value;
                     }
                 }
@@ -473,7 +459,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        byte[] IGXDLMSBase.Invoke(object sender, int index, object parameters)
+        byte[][] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
         {
             throw new NotImplementedException();
         }

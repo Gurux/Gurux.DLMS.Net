@@ -108,17 +108,19 @@ namespace Gurux.DLMS
         /// </summary>
         public GXDateTime(int year, int month, int day, int hour, int minute, int second, int millisecond)
         {
-            if (year == -1)
+            if (year == -1 || year == 0xFFFF)
             {
                 Skip |= DateTimeSkips.Year;
-                year = 2000;
+                year = DateTime.MinValue.Year;
             }
-            if (month == -1)
+            DaylightSavingsBegin = month == 0xFE;
+            DaylightSavingsEnd = month == 0xFD;
+            if (month < 0 || month > 12)
             {
                 Skip |= DateTimeSkips.Month;
                 month = 1;
             }
-            if (day == -1)
+            if (day < 1 || day > 31)
             {
                 Skip |= DateTimeSkips.Day;
                 day = 1;
@@ -138,7 +140,7 @@ namespace Gurux.DLMS
                 Skip |= DateTimeSkips.Second;
                 second = 0;
             }
-            if (millisecond < 0 || millisecond > 60)
+            if (millisecond < 0 || millisecond > 1000)
             {
                 Skip |= DateTimeSkips.Ms;
                 millisecond = 0;
@@ -163,6 +165,33 @@ namespace Gurux.DLMS
             get;
             set;
         }
+
+        /// <summary>
+        /// Daylight savings begin.
+        /// </summary>
+        public bool DaylightSavingsBegin
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Daylight savings end.
+        /// </summary>
+        public bool DaylightSavingsEnd
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Status of the clock.
+        /// </summary>
+        public ClockStatus Status
+        {
+            get;
+            set;
+        }        
 
         public override string ToString()
         {

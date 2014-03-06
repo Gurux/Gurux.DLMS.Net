@@ -242,7 +242,7 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value, bool raw)
+        void IGXDLMSBase.SetValue(int index, object value)
         {
             if (index == 1)
             {
@@ -257,29 +257,22 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 2)
             {
-                if (!raw)
+                if (Scaler != 1)
                 {
-                    if (Scaler != 1)
+                    try
                     {
-                        try
-                        {
-                            Value = Convert.ToDouble(value) * Scaler;
-                        }
-                        catch (Exception)
-                        {
-                            //Sometimes scaler is set for wrong Object type.
-                            Value = value;
-                        }
+                        Value = Convert.ToDouble(value) * Scaler;
                     }
-                    else
+                    catch (Exception)
                     {
+                        //Sometimes scaler is set for wrong Object type.
                         Value = value;
                     }
                 }
                 else
                 {
                     Value = value;
-                }                
+                }
             }
             else if (index == 3)
             {

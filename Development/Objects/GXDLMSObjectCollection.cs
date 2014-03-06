@@ -134,6 +134,15 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// Local time to GMT in minutes.
+        /// </summary>
+        public int Deviation
+        {
+            get;
+            set;
+        }
+
         public GXDLMSObjectCollection GetObjects(ObjectType type)
         {
             GXDLMSObjectCollection items = new GXDLMSObjectCollection();

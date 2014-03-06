@@ -175,7 +175,7 @@ namespace Gurux.DLMS.Objects
         /// Data interface do not have any methods.
         /// </summary>
         /// <param name="index"></param>
-        byte[] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
+        byte[][] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
         {
             throw new ArgumentException("Invoke failed. Invalid attribute index.");
         }
@@ -362,7 +362,7 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value, bool raw)
+        void IGXDLMSBase.SetValue(int index, object value)
         {
             if (index == 1)
             {

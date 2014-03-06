@@ -46,8 +46,7 @@ namespace Gurux.DLMS.Objects
 {
     public class GXDLMSImageTransfer : GXDLMSObject, IGXDLMSBase
     {
-        string ImageIdentifier;
-        UInt32 ImageSize = 0;
+        UInt32 ImageSize;
         Dictionary<uint, byte[]> ImageData = new Dictionary<uint, byte[]>();
         /// <summary> 
         /// Constructor.
@@ -57,7 +56,7 @@ namespace Gurux.DLMS.Objects
         {
             ImageBlockSize = 200;
             ImageFirstNotTransferredBlockNumber = 0;
-            ImageTransferEnabled = false;
+            ImageTransferEnabled = true;
             GXDLMSImageActivateInfo info = new GXDLMSImageActivateInfo();
             info.Size = 0;
             info.Signature = "";
@@ -74,7 +73,7 @@ namespace Gurux.DLMS.Objects
         {
             ImageBlockSize = 200;
             ImageFirstNotTransferredBlockNumber = 0;
-            ImageTransferEnabled = false;
+            ImageTransferEnabled = true;
             GXDLMSImageActivateInfo info = new GXDLMSImageActivateInfo();
             info.Size = 0;
             info.Signature = "";
@@ -92,7 +91,7 @@ namespace Gurux.DLMS.Objects
         {
             ImageBlockSize = 200;
             ImageFirstNotTransferredBlockNumber = 0;
-            ImageTransferEnabled = false;
+            ImageTransferEnabled = true;
             GXDLMSImageActivateInfo info = new GXDLMSImageActivateInfo();
             info.Size = 0;
             info.Signature = "";
@@ -173,15 +172,15 @@ namespace Gurux.DLMS.Objects
             return client.Method(this, 1, data.ToArray(), DataType.Array);
         }
 
-        public byte[][] ImageBlockTransfer(GXDLMSClient client, byte[] imageBlockValue)
+        public byte[][] ImageBlockTransfer(GXDLMSClient client, byte[] imageBlockValue, out int ImageBlockCount)
         {
-            int cnt = (int)(imageBlockValue.Length / ImageBlockSize);
+            ImageBlockCount = (int)(imageBlockValue.Length / ImageBlockSize);
             if (imageBlockValue.Length % ImageBlockSize != 0)
             {
-                ++cnt;
+                ++ImageBlockCount;
             }
             List<byte[]> packets = new List<byte[]>();
-            for (int pos = 0; pos != cnt; ++pos)
+            for (int pos = 0; pos != ImageBlockCount; ++pos)
             {
                 List<byte> data = new List<byte>();
                 data.Add((byte)DataType.Structure);
@@ -230,7 +229,7 @@ namespace Gurux.DLMS.Objects
         /// Data interface do not have any methods.
         /// </summary>
         /// <param name="index"></param>
-        byte[] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
+        byte[][] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
         {
             ImageTransferStatus = ImageTransferStatus.NotInitiated;
             GXDLMSServerBase s = sender as GXDLMSServerBase;
@@ -240,17 +239,16 @@ namespace Gurux.DLMS.Objects
                 ImageFirstNotTransferredBlockNumber = 0;
                 ImageTransferredBlocksStatus = "";
                 object[] value = (object[]) parameters;
-                ImageIdentifier = ASCIIEncoding.ASCII.GetString((byte[]) value[0]);
+                string ImageIdentifier = ASCIIEncoding.ASCII.GetString((byte[]) value[0]);
                 ImageSize = (UInt32)value[1];
                 ImageTransferStatus = ImageTransferStatus.TransferInitiated;
-
                 List<GXDLMSImageActivateInfo> list = new List<GXDLMSImageActivateInfo>(ImageActivateInfo);
                 GXDLMSImageActivateInfo item = new GXDLMSImageActivateInfo();
                 item.Size = ImageSize;
                 item.Identification = ImageIdentifier;
                 list.Add(item);
                 ImageActivateInfo = list.ToArray();
-                StringBuilder sb = new StringBuilder();
+                StringBuilder sb = new StringBuilder((int) ImageSize);
                 for (uint pos = 0; pos < ImageSize; ++pos)
                 {
                     sb.Append('0');                    
@@ -444,7 +442,7 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value, bool raw)
+        void IGXDLMSBase.SetValue(int index, object value)
         {
             if (index == 1)
             {

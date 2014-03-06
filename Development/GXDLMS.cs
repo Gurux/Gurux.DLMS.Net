@@ -420,7 +420,7 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        if (data == null || data.Length == 0)
+                        if (cmd == Command.WriteRequest || data == null || data.Length == 0)
                         {
                             buff.Add(2);
                         }
@@ -439,6 +439,10 @@ namespace Gurux.DLMS
                 }
                 if (data != null && data.Length != 0)
                 {
+                    if (cmd == Command.WriteRequest)
+                    {
+                        buff.Add(1);
+                    }
                     buff.AddRange(data);
                 }            
             }
@@ -512,7 +516,7 @@ namespace Gurux.DLMS
                 data.Length != 0)
             {
                 Command cmd;
-                data = Decrypt(data, out cmd);
+                data = Decrypt(data, out cmd, out error);
                 command = (byte)cmd;
             }
             return moreData;
@@ -667,7 +671,8 @@ namespace Gurux.DLMS
             try
             {
                 //We can't get progress status if ciphering is used.
-                if (Ciphering.Security != Security.None)
+                if (Ciphering.Security != Security.None || data == null || data.Length == 0 ||
+                    data[0] != 1)
                 {
                     return 0;
                 }
@@ -845,7 +850,7 @@ namespace Gurux.DLMS
         /// <param name="count"></param>
         /// <param name="cmd"></param>
         /// <returns></returns>
-        byte[][] SplitToFrames(List<byte> packet, uint blockIndex, ref int index, int count, Command cmd)
+        internal byte[][] SplitToFrames(List<byte> packet, uint blockIndex, ref int index, int count, Command cmd, byte resultChoice)
         {
             List<byte> tmp = new List<byte>(count + 13);            
             if (cmd != Command.None && this.UseLogicalNameReferencing)
@@ -855,7 +860,7 @@ namespace Gurux.DLMS
                 tmp.AddRange(new byte[] { (byte)cmd, (byte)(moreBlocks ? 2 : 1), GetInvokeIDPriority() });
                 if (Server)
                 {
-                    tmp.Add(0x0); // Get-Data-Result choice data
+                    tmp.Add(resultChoice); // Get-Data-Result choice data
                 }
                 if (moreBlocks)
                 {
@@ -907,10 +912,7 @@ namespace Gurux.DLMS
                     Ciphering.FrameCounter, Ciphering.SystemTitle, Ciphering.BlockCipherKey, 
                     Ciphering.AuthenticationKey, tmp.ToArray()));
                 tmp.Clear();
-                if (!UseLogicalNameReferencing)
-                {
-                    count = packet.Count;
-                }
+                count = packet.Count;
             }
             if (this.InterfaceType == InterfaceType.General)
             {
@@ -990,7 +992,7 @@ namespace Gurux.DLMS
             int index = 0;
             if (!UseLogicalNameReferencing)//SN
             {                                
-                return SplitToFrames(packet, 1, ref index, packet.Count, cmd);
+                return SplitToFrames(packet, 1, ref index, packet.Count, cmd, 0);
             }           
             //If LN           
             //Split to Blocks.
@@ -998,7 +1000,7 @@ namespace Gurux.DLMS
             uint blockIndex = 0;
             do
             {
-                byte[][] frames = SplitToFrames(packet, ++blockIndex, ref index, MaxReceivePDUSize, cmd);
+                byte[][] frames = SplitToFrames(packet, ++blockIndex, ref index, MaxReceivePDUSize, cmd, 0);
                 buff.AddRange(frames);
                 if (cmd != Command.WriteRequest && cmd != Command.MethodRequest && frames.Length != 1)
                 {
@@ -1007,6 +1009,66 @@ namespace Gurux.DLMS
             }
             while (index < packet.Count);            
             return buff.ToArray(); 
+        }
+
+        static internal string GetDescription(int errCode)
+        {
+            string str = null;
+            switch (errCode)
+            {
+                case -1:
+                    str = "Not a reply";
+                    break;
+                case 1: //Access Error : Device reports a hardware fault
+                    str = Gurux.DLMS.Properties.Resources.HardwareFaultTxt;
+                    break;
+                case 2: //Access Error : Device reports a temporary failure
+                    str = Gurux.DLMS.Properties.Resources.TemporaryFailureTxt;
+                    break;
+                case 3: // Access Error : Device reports Read-Write denied
+                    str = Gurux.DLMS.Properties.Resources.ReadWriteDeniedTxt;
+                    break;
+                case 4: // Access Error : Device reports a undefined object
+                    str = Gurux.DLMS.Properties.Resources.UndefinedObjectTxt;
+                    break;
+                case 9: // Access Error : Device reports a inconsistent Class or object
+                    str = Gurux.DLMS.Properties.Resources.InconsistentClassTxt;
+                    break;
+                case 11: // Access Error : Device reports a unavailable object
+                    str = Gurux.DLMS.Properties.Resources.UnavailableObjectTxt;
+                    break;
+                case 12: // Access Error : Device reports a unmatched type
+                    str = Gurux.DLMS.Properties.Resources.UnmatchedTypeTxt;
+                    break;
+                case 13: // Access Error : Device reports scope of access violated
+                    str = Gurux.DLMS.Properties.Resources.AccessViolatedTxt;
+                    break;
+                case 14: // Access Error : Data Block Unavailable. 
+                    str = Gurux.DLMS.Properties.Resources.DataBlockUnavailableTxt;
+                    break;
+                case 15: // Access Error : Long Get Or Read Aborted.
+                    str = Gurux.DLMS.Properties.Resources.LongGetOrReadAbortedTxt;
+                    break;
+                case 16: // Access Error : No Long Get Or Read In Progress.
+                    str = Gurux.DLMS.Properties.Resources.NoLongGetOrReadInProgressTxt;
+                    break;
+                case 17: // Access Error : Long Set Or Write Aborted.
+                    str = Gurux.DLMS.Properties.Resources.LongSetOrWriteAbortedTxt;
+                    break;
+                case 18: // Access Error : No Long Set Or Write In Progress.
+                    str = Gurux.DLMS.Properties.Resources.NoLongSetOrWriteInProgressTxt;
+                    break;
+                case 19: // Access Error : Data Block Number Invalid.
+                    str = Gurux.DLMS.Properties.Resources.DataBlockNumberInvalidTxt;
+                    break;
+                case 250: // Access Error : Other Reason.
+                    str = Gurux.DLMS.Properties.Resources.OtherReasonTxt;
+                    break;
+                default:
+                    str = Gurux.DLMS.Properties.Resources.UnknownErrorTxt;
+                    break;
+            }
+            return str;
         }
 
         /// <summary>
@@ -1058,7 +1120,8 @@ namespace Gurux.DLMS
                     return null;
                 }
             }
-            RequestTypes moreData = GetDataFromFrame(new List<byte>(receivedData), index, out frame, true, out err, false, out packetFull, out wrongCrc, out command, false);
+            List<byte> data = new List<byte>(receivedData);
+            RequestTypes moreData = GetDataFromFrame(data, index, out frame, true, out err, false, out packetFull, out wrongCrc, out command, false);
             if (!packetFull)
             {
                 throw new GXDLMSException("Not enought data to parse frame.");
@@ -1071,43 +1134,23 @@ namespace Gurux.DLMS
             {
                 throw new GXDLMSException("Frame rejected.");
             }
+            if (moreData == RequestTypes.None && Ciphering.Security != Security.None &&
+                (command == (byte)Command.GloGetResponse ||
+                command == (byte)Command.GloSetResponse ||
+                command == (byte)Command.GloMethodResponse ||
+                command == (byte)Command.None) &&
+                data.Count() != 0)
+            {
+                Command cmd;
+                Decrypt(data.ToArray(), out cmd, out err);
+                command = (byte)cmd;
+            }
 
             if (err != 0x00)
             {
-                String str = null;
-                switch (err)
-                {
-                    case 1:
-                        str = "Access Error : Device reports a hardware fault.";
-                        break;
-                    case 2:
-                        str = "Access Error : Device reports a temporary failure.";
-                        break;
-                    case 3:
-                        str = "Access Error : Device reports Read-Write denied.";
-                        break;
-                    case 4:
-                        str = "Access Error : Device reports a undefined object.";
-                        break;
-                    case 5:
-                        str = "Access Error : Device reports a inconsistent Class or object.";
-                        break;
-                    case 6:
-                        str = "Access Error : Device reports a unavailable object.";
-                        break;
-                    case 7:
-                        str = "Access Error : Device reports a unmatched type.";
-                        break;
-                    case 8:
-                        str = "Access Error : Device reports scope of access violated.";
-                        break;
-                    default:
-                        str = "Unknown error: " + err;
-                        break;
-                }
                 object[,] list = new object[1, 2];
                 list[0, 0] = err;
-                list[0, 1] = str;
+                list[0, 1] = GetDescription(err);
                 return list;
             }
             return null;
@@ -1728,8 +1771,9 @@ namespace Gurux.DLMS
             return MoreData;
         }
 
-        public byte[] Decrypt(byte[] buff, out Command command)
+        public byte[] Decrypt(byte[] buff, out Command command, out int error)
         {
+            error = 0;
             int index = 0;
             command = (Command) buff[index++];
             if (!(command == Command.GloGetRequest ||
@@ -1762,18 +1806,17 @@ namespace Gurux.DLMS
             List<byte> tmp = new List<byte>(GetCipheredData(buff, Ciphering));
             command = (Command)tmp[0];
             index = 0;
-            int pError = 0;
             RequestTypes MoreData = RequestTypes.None;
             if (this.UseLogicalNameReferencing)
             {
-                if (!GetLNData(tmp, ref index, ref pError, ref MoreData, tmp[0]))
+                if (!GetLNData(tmp, ref index, ref error, ref MoreData, tmp[0]))
                 {
                     throw new GXDLMSException("Invalid data format.");
                 }
             }
             else
             {
-                GetSNData(tmp, ref index, ref pError, tmp[0]);
+                GetSNData(tmp, ref index, ref error, tmp[0]);
             }
             tmp.RemoveRange(0, index);
             return tmp.ToArray();
@@ -1947,11 +1990,18 @@ namespace Gurux.DLMS
             }
             if (server && AttributeID == 0x2)
             {
-                MoreData = RequestTypes.DataBlock;
+                MoreData |= RequestTypes.DataBlock;
             }
             else if (res == (int)Command.SetRequest)
             {
                 
+            }
+            else if (res == (int)Command.SetResponse || res == (int)Command.MethodResponse)
+            {
+                if (buff[index++] != 0)
+                {
+                    pError = buff[index++];
+                }
             }
             else
             {

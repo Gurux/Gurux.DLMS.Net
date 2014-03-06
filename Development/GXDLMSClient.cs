@@ -773,9 +773,9 @@ namespace Gurux.DLMS
             byte[] challenge = GXDLMS.Chipher(this.Authentication, CtoS.ToArray());
             if (UseLogicalNameReferencing)
             {
-                return Method("0.0.40.0.0.255", ObjectType.AssociationLogicalName, 1, challenge, DataType.OctetString);
+                return Method("0.0.40.0.0.255", ObjectType.AssociationLogicalName, 1, challenge, 1, DataType.OctetString);
             }
-            return Method((ushort)0xFA00, ObjectType.AssociationShortName, 8, challenge, DataType.OctetString);            
+            return Method((ushort)0xFA00, ObjectType.AssociationShortName, 8, challenge, 1, DataType.OctetString);            
         }
 
         /// <summary>
@@ -800,6 +800,18 @@ namespace Gurux.DLMS
             {
                 throw new GXDLMSException("Wrong Checksum.");
             }          
+            if (Ciphering.Security != Security.None &&
+                (command == (byte)Command.GloGetResponse ||
+                command == (byte)Command.GloSetResponse ||
+                command == (byte)Command.GloMethodResponse || 
+                command == (byte)Command.None) &&
+                arr.Count != 0)
+            {
+                Command cmd;
+                byte[] tmp = m_Base.Decrypt(arr.ToArray(), out cmd, out error);
+                arr.Clear();
+                arr.AddRange(tmp);
+            }
             //Skip item count
             ++index;            
             //Skip item status
@@ -1483,7 +1495,7 @@ namespace Gurux.DLMS
         /// <returns></returns>
         public byte[][] Method(GXDLMSObject item, int index, Object data)
         {
-            return Method(item.Name, item.ObjectType, index, data, DataType.None);
+            return Method(item.Name, item.ObjectType, index, data, 1, DataType.None);
         }
 
         /// <summary>
@@ -1496,7 +1508,7 @@ namespace Gurux.DLMS
         /// <returns></returns>
         public byte[][] Method(GXDLMSObject item, int index, Object data, DataType type)
         {
-            return Method(item.Name, item.ObjectType, index, data, type);
+            return Method(item.Name, item.ObjectType, index, data, 1, type);
         }
 
         /// <summary>
@@ -1506,7 +1518,7 @@ namespace Gurux.DLMS
         /// <param name="objectType">Object type.</param>
         /// <param name="index">Methdod index.</param>
         /// <returns></returns>
-        public byte[][] Method(object name, ObjectType objectType, int index, Object data, DataType type)
+        public byte[][] Method(object name, ObjectType objectType, int index, Object data, int parameterCount, DataType type)
         {
             if (name == null || index < 1)
             {
@@ -1518,12 +1530,6 @@ namespace Gurux.DLMS
                 type = GXCommon.GetValueType(data);
             }
             List<byte> buff = new List<byte>();
-            if (!UseLogicalNameReferencing && data != null)
-            {
-                //Add access selector.
-                buff.Add(2);
-            }
-            GXCommon.SetData(buff, type, data);
             if (!this.UseLogicalNameReferencing)
             {
                 int value, count;
@@ -1535,9 +1541,15 @@ namespace Gurux.DLMS
                 index = (value + (index - 1) * 0x8);
                 name = Convert.ToUInt16(name) + index;
                 index = 0;
-            }            
+                if (data != null)
+                {
+                    //Add parameter count.
+                    buff.Add((byte) parameterCount);
+                }
+            }
+            GXCommon.SetData(buff, type, data);
             return m_Base.GenerateMessage(name, buff.ToArray(), objectType,
-                index, UseLogicalNameReferencing ? Command.MethodRequest : Command.WriteRequest);
+                index, UseLogicalNameReferencing ? Command.MethodRequest : Command.ReadRequest);
         }
 
 

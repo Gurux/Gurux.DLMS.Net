@@ -689,11 +689,6 @@ namespace Gurux.DLMS.Internal
                 GXDateTime dt = new GXDateTime();
                 //Get year.
                 int year = GXCommon.GetUInt16(buff, ref pos);
-                if (year == 0xFFFF)
-                {
-                    year = DateTime.MinValue.Year;
-                    dt.Skip |= DateTimeSkips.Year;
-                }
                 //Get month
                 int month = buff[pos++];
                 if (month == 0 || month == 0xFF || month == 0xFE || month == 0xFD)
@@ -702,40 +697,28 @@ namespace Gurux.DLMS.Internal
                     dt.Skip |= DateTimeSkips.Month;
                 }
                 int day = buff[pos++];
-                if (day < 1 || day > 31)
-                {
-                    day = 1;
-                    dt.Skip |= DateTimeSkips.Day;
-                }
                 //Skip week day
                 ++pos;
                 //Get time.
                 int hours = buff[pos++];
-                if (hours == 0xFF)
-                {
-                    hours = 0;
-                    dt.Skip |= DateTimeSkips.Hour;
-                }
                 int minutes = buff[pos++];
-                if (minutes == 0xFF)
-                {
-                    minutes = 0;
-                    dt.Skip |= DateTimeSkips.Minute;
-                }
                 int seconds = buff[pos++];
-                if (seconds == 0xFF)
-                {
-                    seconds = 0;
-                    dt.Skip |= DateTimeSkips.Second;
-                }
                 int milliseconds = buff[pos++];
-                if (milliseconds == 0xFF)
+                if (milliseconds != 0xFF)
+                {
+                    milliseconds *= 10;
+                }
+                else
                 {
                     milliseconds = 0;
-                    dt.Skip |= DateTimeSkips.Ms;
                 }
-                dt.Value = new DateTime(year, month, day, hours, minutes, seconds, milliseconds);
-                //if some elements are skipped data is return as string sot a date time.
+                int deviation = GXCommon.GetUInt16(buff, ref pos);                
+                dt.Status = (ClockStatus)buff[pos++];
+                dt.Value = DateTime.SpecifyKind(new DateTime(year, month, day, hours, minutes, seconds, milliseconds), DateTimeKind.Utc); ;
+                if (deviation != 0 && deviation != 0x8000)
+                {
+                    dt.Value.AddMinutes(deviation);
+                }
                 value = dt;
             }
             else if (type == DataType.Date)
@@ -745,43 +728,21 @@ namespace Gurux.DLMS.Internal
                     pos = 0xFF;
                     return null;
                 }
-                DateTimeSkips skip = DateTimeSkips.None;
                 //Get year.
                 int year = GXCommon.GetUInt16(buff, ref pos);                
-                if (year == 0xFFFF)
-                {
-                    skip |= DateTimeSkips.Year;
-                    year = DateTime.MinValue.Year;
-                }
                 //Iskra meter returns bytes in wrong order.
-                else if (year > 2100)
+                if (year != 0xFFFF && year > 2100)
                 {
                     pos -= 2;
                     year = buff[pos++] | buff[pos++] << 8;                    
                 }
                 //Get month
                 int month = buff[pos++];
-                if (month == 0xFF || month == 0xFE || month == 0xFD)
-                {
-                    skip |= DateTimeSkips.Month;
-                    month = 1;
-                }
                 int day = buff[pos++];
-                if (day < 0 || day > 31)
-                {
-                    skip |= DateTimeSkips.Day;
-                    day = 1;
-                }
                 //Skip week day
                 int DayOfWeek = buff[pos++];
                 //If day of week are not used.                
-                if (DayOfWeek == 0xFF)
-                {
-                    skip |= DateTimeSkips.DayOfWeek;
-                    DayOfWeek = 1;
-                }
                 GXDateTime dt = new GXDateTime(year, month, day, -1, -1, 1, -1);
-                dt.Skip |= skip;
                 return dt;
             }
             else if (type == DataType.Time)
@@ -802,34 +763,12 @@ namespace Gurux.DLMS.Internal
                         return null;
                     }
                 }
-                DateTimeSkips skip = DateTimeSkips.None;
                 //Get time.
-                int hours = buff[pos++];
-                if (hours < 0 || hours > 24)
-                {
-                    skip |= DateTimeSkips.Hour;
-                    hours = 0;
-                }
+                int hours = buff[pos++];                
                 int minutes = buff[pos++];
-                if (minutes < 0 || minutes > 60)
-                {
-                    skip |= DateTimeSkips.Minute;
-                    minutes = 0;
-                }
                 int seconds = buff[pos++];
-                if (seconds < 0 || seconds > 60)
-                {
-                    skip |= DateTimeSkips.Second;
-                    seconds = 0;
-                }
                 int milliseconds = buff[pos++];
-                if (milliseconds == -1)
-                {
-                    skip |= DateTimeSkips.Ms;
-                    milliseconds = 0;
-                }
                 GXDateTime dt = new GXDateTime(-1, -1, -1, hours, minutes, seconds, milliseconds);
-                dt.Skip |= skip;
                 value = dt;
             }
             else
@@ -1113,11 +1052,11 @@ namespace Gurux.DLMS.Internal
                 }
                 else if (value is GXDateTime)
                 {                    
-                    value = GetDateTime((value as GXDateTime).Value, (value as GXDateTime).Skip);
+                    value = GetDateTime(value as GXDateTime);
                 }
                 else if (value is DateTime)
                 {
-                    value = GetDateTime(Convert.ToDateTime(value), DateTimeSkips.None);
+                    value = GetDateTime(new GXDateTime(Convert.ToDateTime(value)));
                 }
                 else
                 {
@@ -1194,23 +1133,67 @@ namespace Gurux.DLMS.Internal
                 type = DataType.OctetString;
                 if (value is GXDateTime)
                 {
-                    value = GetDateTime((value as GXDateTime).Value, (value as GXDateTime).Skip);
+                    value = GetDateTime(value as GXDateTime);
                 }
                 else
                 {
-                    value = GetDateTime(Convert.ToDateTime(value), DateTimeSkips.None);
+                    value = GetDateTime(new GXDateTime(Convert.ToDateTime(value)));
                 }
                 reverse = false;
             }
             else if (type == DataType.Date)
             {
-                DateTime dt = Convert.ToDateTime(value);
+                GXDateTime dt;
+                if (value is GXDateTime)
+                {
+                    dt = value as GXDateTime;
+                }
+                else if (value is DateTime)
+                {
+                    dt = new GXDateTime((DateTime)value);
+                }
+                else
+                {
+                    throw new Exception("Invalid date format.");
+                }
                 type = DataType.OctetString;
                 //Add size
                 tmp.Add(5);
-                GXCommon.SetUInt16((ushort)dt.Year, tmp);
-                tmp.Add((byte)dt.Month);
-                tmp.Add((byte)dt.Day);
+                //Add year.
+                if ((dt.Skip & DateTimeSkips.Year) != 0)
+                {
+                    GXCommon.SetUInt16(0xFFFF, tmp);
+                }
+                else
+                {
+                    GXCommon.SetUInt16((ushort)dt.Value.Year, tmp);
+                }
+                //Add month.
+                if (dt.DaylightSavingsBegin)
+                {
+                    tmp.Add(0xFE);
+                }
+                else if (dt.DaylightSavingsEnd)
+                {
+                    tmp.Add(0xFD);
+                }
+                else if ((dt.Skip & DateTimeSkips.Month) != 0)
+                {
+                    tmp.Add(0xFF);
+                }
+                else
+                {
+                    tmp.Add((byte)dt.Value.Month);
+                }
+                
+                if ((dt.Skip & DateTimeSkips.Day) != 0)
+                {
+                    tmp.Add(0xFF);
+                }
+                else
+                {
+                    tmp.Add((byte)dt.Value.Day);
+                }                
                 //Week day is not spesified.
                 tmp.Add(0xFF);
                 value = tmp.ToArray();
@@ -1218,20 +1201,55 @@ namespace Gurux.DLMS.Internal
             }
             else if (type == DataType.Time)
             {
-                DateTime dt = Convert.ToDateTime(value);
+                GXDateTime dt;
+                if (value is GXDateTime)
+                {
+                    dt = value as GXDateTime;
+                }
+                else if (value is DateTime)
+                {
+                    dt = new GXDateTime((DateTime)value);
+                }
+                else
+                {
+                    throw new Exception("Invalid date format.");
+                }
                 type = DataType.OctetString;
                 //Add size
                 tmp.Add(7);
                 //Add time.
-                tmp.Add((byte)dt.Hour);
-                tmp.Add((byte)dt.Minute);
-                tmp.Add((byte)dt.Second);
+                if ((dt.Skip & DateTimeSkips.Hour) != 0)
+                {
+                    tmp.Add(0xFF);
+                }
+                else
+                {
+                    tmp.Add((byte)dt.Value.Hour);
+                } 
+                
+                if ((dt.Skip & DateTimeSkips.Minute) != 0)
+                {
+                    tmp.Add(0xFF);
+                }
+                else
+                {
+                    tmp.Add((byte)dt.Value.Minute);
+                } 
+                
+                if ((dt.Skip & DateTimeSkips.Second) != 0)
+                {
+                    tmp.Add(0xFF);
+                }
+                else
+                {
+                    tmp.Add((byte)dt.Value.Second);
+                } 
                 tmp.Add((byte)0xFF); //Hundredths of second is not used.
                 //Add deviation (Not used).
-                tmp.Add((byte)0x80);                
-                //Add clock_status
-                tmp.Add((byte)0xFF);
+                tmp.Add((byte)0x80);                                
                 tmp.Add((byte)0x00);
+                //Add clock_status
+                tmp.Add((byte)dt.Status);
                 value = tmp.ToArray();
                 reverse = false;
             }
@@ -1251,38 +1269,50 @@ namespace Gurux.DLMS.Internal
             }
         }
 
-        static byte[] GetDateTime(DateTime dt, DateTimeSkips skip)
+        static byte[] GetDateTime(GXDateTime dt)
         {
-            if (dt == DateTime.MinValue)
+            if (dt.Value == DateTime.MinValue)
             {
-                dt = new DateTime(2000, 1, 1).Date;
+                dt.Value = DateTime.SpecifyKind(new DateTime(2000, 1, 1).Date, DateTimeKind.Utc);
             }
-            else if (dt == DateTime.MaxValue)
+            else if (dt.Value == DateTime.MaxValue)
             {
-                dt = DateTime.Now.AddYears(1).Date;
+                dt.Value = DateTime.SpecifyKind(DateTime.Now.AddYears(1).Date, DateTimeKind.Utc);
             }
+            DateTime tm = dt.Value.ToUniversalTime();
             List<byte> tmp = new List<byte>();            
             //Add size
             tmp.Add(12);
-            if ((skip & DateTimeSkips.Year) == 0)
+            if ((dt.Skip & DateTimeSkips.Year) == 0)
             {
-                GXCommon.SetUInt16((ushort)dt.Year, tmp);
+                GXCommon.SetUInt16((ushort)tm.Year, tmp);
             }
             else
             {
                 GXCommon.SetUInt16((ushort)0xFFFF, tmp);
             }
-            if ((skip & DateTimeSkips.Month) == 0)
+            if ((dt.Skip & DateTimeSkips.Month) == 0)
             {
-                tmp.Add((byte)dt.Month);
+                if (dt.DaylightSavingsBegin)
+                {
+                    tmp.Add(0xFE);
+                }
+                else if (dt.DaylightSavingsEnd)
+                {
+                    tmp.Add(0xFD);
+                }
+                else
+                {
+                    tmp.Add((byte)tm.Month);
+                }
             }
             else
             {
                 tmp.Add(0xFF);
             }
-            if ((skip & DateTimeSkips.Day) == 0)
+            if ((dt.Skip & DateTimeSkips.Day) == 0)
             {
-                tmp.Add((byte)dt.Day);
+                tmp.Add((byte)tm.Day);
             }
             else
             {
@@ -1292,45 +1322,45 @@ namespace Gurux.DLMS.Internal
             //Standard defines. tmp.Add(0xFF);
             tmp.Add(0xFF);
             //Add time.
-            if ((skip & DateTimeSkips.Hour) == 0)
+            if ((dt.Skip & DateTimeSkips.Hour) == 0)
             {
-                tmp.Add((byte)dt.Hour);
+                tmp.Add((byte)tm.Hour);
             }
             else
             {
                 tmp.Add(0xFF);
             }
 
-            if ((skip & DateTimeSkips.Minute) == 0)
+            if ((dt.Skip & DateTimeSkips.Minute) == 0)
             {
-                tmp.Add((byte)dt.Minute);
+                tmp.Add((byte)tm.Minute);
             }
             else
             {
                 tmp.Add(0xFF);
             }
-            if ((skip & DateTimeSkips.Second) == 0)
+            if ((dt.Skip & DateTimeSkips.Second) == 0)
             {
-                tmp.Add((byte)dt.Second);
+                tmp.Add((byte)tm.Second);
             }
             else
             {
                 tmp.Add(0xFF);
             }
 
-            if ((skip & DateTimeSkips.Ms) == 0)
-            {                
-                tmp.Add((byte)(dt.Millisecond / 10));
+            if ((dt.Skip & DateTimeSkips.Ms) == 0)
+            {
+                tmp.Add((byte)(tm.Millisecond / 10));
             }
             else
             {
                 tmp.Add((byte)0xFF); //Hundredths of second is not used.                
             }            
             //Add deviation (Not used).
-            tmp.Add((byte)0x80);
-            //Add clock_status
+            tmp.Add((byte)0x80);            
             tmp.Add((byte)0x00);
-            tmp.Add((byte)0xFF);
+            //Add clock_status
+            tmp.Add((byte)dt.Status);
             return tmp.ToArray();
         }
     }
