@@ -728,6 +728,8 @@ namespace Gurux.DLMS
             }
             else
             {
+                m_Base.LNSettings = null;
+                m_Base.SNSettings = null;
                 throw new GXDLMSException(ret, pdu.ResultDiagnosticValue);
             }
             IsAuthenticationRequired = pdu.ResultDiagnosticValue == SourceDiagnostic.AuthenticationRequired;
@@ -856,11 +858,6 @@ namespace Gurux.DLMS
         public byte[] DisconnectRequest()
         {
             m_Base.ClearProgress();
-            //If connection is not established there is no need to send DisconnectRequest.
-            if (SNSettings == null && LNSettings == null)
-            {
-                return null;
-            }
             if (this.InterfaceType != InterfaceType.Net)
             {
                 return m_Base.AddFrame((byte)FrameType.Disconnect, false, null, 0, 0);
@@ -1037,13 +1034,13 @@ namespace Gurux.DLMS
             }
             foreach (GXDLMSObject it in objects)
             {
-                if (!string.IsNullOrEmpty(it.Description) && it.ObjectType != ObjectType.None)
+                if (!string.IsNullOrEmpty(it.Description))
                 {
                     continue;
                 }
                 GXStandardObisCode code = codes.Find(it.LogicalName, it.ObjectType);                
                 if (code != null)
-                {
+                {                    
                     it.Description = code.Description;
                     //If string is used
                     if (code.DataType.Contains("10"))
@@ -1193,7 +1190,7 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine(string.Format("Unknown object : {0} {1}", ot, objects[2]));
+                    System.Diagnostics.Debug.WriteLine(string.Format("Unknown object : {0} {1}", ot, GXDLMSObject.toLogicalName((byte[])objects[2])));
                 }
             }
             return items;
@@ -1692,6 +1689,7 @@ namespace Gurux.DLMS
             s.Skip = DateTimeSkips.Ms;
             GXDateTime e = new GXDateTime(end);
             e.Skip = DateTimeSkips.Ms;
+
             m_Base.ClearProgress();
             List<byte> buff = new List<byte>();
             buff.Add(0x01);  //Add AccessSelector

@@ -161,6 +161,20 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        [XmlIgnore()]
+        public UInt16 Configuration
+        {
+            get;
+            set;
+        }
+
+        [XmlIgnore()]
+        public int EncryptionKeyStatus
+        {
+            get;
+            set;
+        }
+        
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
@@ -243,12 +257,30 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(12);
             }
+            if (Version > 0)
+            {
+                //Configuration
+                if (CanRead(12))
+                {
+                    attributes.Add(12);
+                }
+                //EncryptionKeyStatus
+                if (CanRead(12))
+                {
+                    attributes.Add(12);
+                }
+            }
             return attributes.ToArray();
         }
 
         int IGXDLMSBase.GetAttributeCount()
         {
-            return 12;
+            if (Version == 0)
+            {
+                return 12;
+            }
+            return 14;
+
         }
 
         int IGXDLMSBase.GetMethodCount()
@@ -306,6 +338,17 @@ namespace Gurux.DLMS.Objects
             {
                 return DataType.UInt8;
             }
+            if (Version > 0)
+            {
+                if (index == 13)
+                {
+                    return DataType.UInt16;
+                }
+                if (index == 14)
+                {
+                    return DataType.Enum;
+                }
+            }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
@@ -358,6 +401,17 @@ namespace Gurux.DLMS.Objects
             if (index == 12)
             {
                 return Alarm;
+            }
+            if (Version > 0)
+            {
+                if (index == 13)
+                {
+                    return Configuration;
+                }
+                if (index == 14)
+                {
+                    return EncryptionKeyStatus;
+                }
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
@@ -430,6 +484,21 @@ namespace Gurux.DLMS.Objects
             else if (index == 12)
             {
                 Alarm = Convert.ToByte(value);
+            }
+            else if (Version > 0)
+            {
+                if (index == 13)
+                {
+                    Configuration = Convert.ToUInt16(value);
+                }
+                else if (index == 14)
+                {
+                    EncryptionKeyStatus = Convert.ToInt32(value);
+                }
+                else
+                {
+                    throw new ArgumentException("SetValue failed. Invalid attribute index.");
+                }
             }
             else
             {

@@ -87,14 +87,14 @@ namespace Gurux.DLMS.Objects
         }
 
         [XmlIgnore()]
-        public string ClientSystemTitle
+        public byte[] ClientSystemTitle
         {
             get;
             set;
         }
 
         [XmlIgnore()]
-        public string ServerSystemTitle
+        public byte[] ServerSystemTitle
         {
             get;
             set;
@@ -233,25 +233,11 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 4)
             {
-                if (value is string)
-                {
-                    ClientSystemTitle = value.ToString();
-                }
-                else
-                {
-                    ClientSystemTitle = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
-                }                
+                ClientSystemTitle = (byte[])value;
             }
             else if (index == 5)
             {
-                if (value is string)
-                {
-                    ServerSystemTitle = value.ToString();
-                }
-                else
-                {
-                    ServerSystemTitle = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
-                }                
+               ServerSystemTitle = (byte[])value;
             }
             else
             {

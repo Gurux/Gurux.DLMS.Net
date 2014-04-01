@@ -58,5 +58,10 @@ namespace Gurux.DLMS.Objects
             get;
             set;
         }
+
+        public override string ToString()
+        {
+            return Index.ToString() + " " + Date.ToString() + " " + DayId.ToString();
+        }
     }
 }

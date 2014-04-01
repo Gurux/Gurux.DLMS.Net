@@ -132,16 +132,7 @@ namespace Gurux.DLMS.Objects
         {
             get;
             set;
-        }
-
-        /// <summary>
-        /// Local time to GMT in minutes.
-        /// </summary>
-        public int Deviation
-        {
-            get;
-            set;
-        }
+        }      
 
         public GXDLMSObjectCollection GetObjects(ObjectType type)
         {
@@ -199,6 +190,22 @@ namespace Gurux.DLMS.Objects
             {
                 Add(it);
             }
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append('[');
+            foreach (GXDLMSObject it in this)
+            {
+                if (sb.Length != 1)
+                {
+                    sb.Append(", ");
+                }
+                sb.Append(it.Name.ToString());
+            }
+            sb.Append(']');
+            return sb.ToString();
         }
            
         #region IList<GXDLMSObject> Members

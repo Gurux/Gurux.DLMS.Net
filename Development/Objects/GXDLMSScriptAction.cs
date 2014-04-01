@@ -33,6 +33,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+
 namespace Gurux.DLMS.Objects
 {
     public class GXDLMSScriptAction
@@ -81,6 +82,21 @@ namespace Gurux.DLMS.Objects
         {
             get;
             set;
+        }
+
+        public override string ToString()
+        {
+            string tmp;
+            if (Parameter is byte[])
+            {
+                tmp = BitConverter.ToString((byte[])Parameter).Replace("-", " ");
+            }
+            else
+            {
+                tmp = Convert.ToString(Parameter);
+            }
+            return Type.ToString() + " " + ObjectType.ToString()  + " " + LogicalName  + " " + 
+                Index.ToString()  + " " + tmp;
         }
     }
 }

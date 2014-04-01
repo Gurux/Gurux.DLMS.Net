@@ -34,6 +34,10 @@ namespace Gurux.DLMS
         /// <summary>
         /// Daylight saving active.
         /// </summary>
-        DaylightSavingActive = 0x80
+        DaylightSavingActive = 0x80,
+        /// <summary>
+        /// Clock status is skipped on write.
+        /// </summary>
+        Skip = 0xFF
     }
 }

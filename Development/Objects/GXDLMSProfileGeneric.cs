@@ -355,13 +355,14 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(3);
             }
-            //Buffer
-            attributes.Add(2);
             //CapturePeriod
             if (!base.IsRead(4))
             {
                 attributes.Add(4);
             }
+            //Buffer
+            attributes.Add(2);
+           
             //SortMethod
             if (!base.IsRead(5))
             {
@@ -648,8 +649,8 @@ namespace Gurux.DLMS.Objects
                 }
                 if (value != null && (value as object[]).Length != 0)
                 {
-                    int deviation = Parent.Deviation;
-                    foreach(object[] row in (value as object[]))
+                    DateTime lastDate = DateTime.MinValue;
+                    foreach (object[] row in (value as object[]))
                     {
                         if ((row as object[]).Length != CaptureObjects.Count)
                         {
@@ -657,22 +658,29 @@ namespace Gurux.DLMS.Objects
                         }
                         for (int pos = 0; pos != row.Length; ++pos)
                         {
+                            DataType type = CaptureObjects[pos].GetUIDataType(CaptureObjects[pos].SelectedAttributeIndex);
                             if (row[pos] is byte[])
                             {
-                                DataType type = CaptureObjects[pos].GetUIDataType(CaptureObjects[pos].SelectedAttributeIndex);
                                 if (type != DataType.None && row[pos] is byte[])
                                 {
                                     row[pos] = GXDLMSClient.ChangeType(row[pos] as byte[], type);
-
-                                    //If summer time is used.
-                                    if (type == DataType.DateTime && row[pos] is GXDateTime)
+                                    if (row[pos] is GXDateTime)
                                     {
-                                        GXDateTime dt = (GXDateTime)row[pos];                                
-                                        if (((int) dt.Status & 0x80) != 0)
-                                        {
-                                            dt.Value.AddMinutes(deviation);
-                                        }
+                                        GXDateTime dt = (GXDateTime)row[pos];
+                                        lastDate = dt.Value;
                                     }
+                                }
+                            }
+                            else if (type == DataType.DateTime && row[pos] == null && CapturePeriod != 0)
+                            {
+                                if (lastDate == DateTime.MinValue && Buffer.Count != 0)
+                                {
+                                    lastDate = ((GXDateTime)Buffer[Buffer.Count - 1].GetValue(pos)).Value;
+                                }
+                                if (lastDate != DateTime.MinValue)
+                                {
+                                    lastDate = lastDate.AddSeconds(CapturePeriod);
+                                    row[pos] = new GXDateTime(lastDate);
                                 }
                             }
                             if (CaptureObjects[pos] is GXDLMSRegister && CaptureObjects[pos].SelectedAttributeIndex == 2)
@@ -710,7 +718,11 @@ namespace Gurux.DLMS.Objects
                     string ln = GXDLMSObject.toLogicalName((byte[]) tmp[1]);
                     int attributeIndex = Convert.ToInt16(tmp[2]);
                     int dataIndex = Convert.ToInt16(tmp[3]);
-                    GXDLMSObject obj = Parent.FindByLN(type, ln);
+                    GXDLMSObject obj = null;
+                    if (Parent != null)
+                    {
+                        obj = Parent.FindByLN(type, ln);
+                    }
                     if (obj == null)
                     {
                         obj = GXDLMSClient.CreateDLMSObject((int)type, null, 0, ln, 0, attributeIndex, dataIndex);

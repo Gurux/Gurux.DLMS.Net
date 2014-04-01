@@ -288,7 +288,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 3)
             {
-                IPReference = Convert.ToString(value);
+                IPReference = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
             }
             else if (index == 4)
             {

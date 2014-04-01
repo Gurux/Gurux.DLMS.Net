@@ -531,8 +531,8 @@ namespace Gurux.DLMS.Internal
                     {
                         //Check that this is not octet string.
                         foreach (byte it in buff)
-                        {
-                            if (it < 0x20)
+                        {                            
+                            if (it != 0 && it < 0x20)
                             {
                                 octetString = true;
                                 break;
@@ -552,11 +552,16 @@ namespace Gurux.DLMS.Internal
                     }
                     else
                     {
+                        //Remove '\0' from string if used.
+                        while (len > 0 && buff[len - 1] == 0)
+                        {
+                            --len;
+                        }
                         value = ASCIIEncoding.ASCII.GetString(GXCommon.RawData(buff, ref pos, len));
                     }
                 }
             }
-            //Excample Logical name is octet string, so do not change to string...
+            //Example Logical name is octet string, so do not change to string...
             else if (type == DataType.OctetString)
             {
                 int len = 0;
@@ -689,6 +694,11 @@ namespace Gurux.DLMS.Internal
                 GXDateTime dt = new GXDateTime();
                 //Get year.
                 int year = GXCommon.GetUInt16(buff, ref pos);
+                if (year == 0xFFFF || year == 0)
+                {
+                    year = DateTime.MinValue.Year;
+                    dt.Skip |= DateTimeSkips.Year;
+                }
                 //Get month
                 int month = buff[pos++];
                 if (month == 0 || month == 0xFF || month == 0xFE || month == 0xFD)
@@ -697,28 +707,58 @@ namespace Gurux.DLMS.Internal
                     dt.Skip |= DateTimeSkips.Month;
                 }
                 int day = buff[pos++];
+                if (day < 1 || day == 0xFF)
+                {
+                    day = 1;
+                    dt.Skip |= DateTimeSkips.Day;
+                }
+                else if (day == 0xFD || day == 0xFE)
+                {
+                    day = DateTime.DaysInMonth(year, month) + (sbyte)day + 2;
+                }
                 //Skip week day
                 ++pos;
                 //Get time.
                 int hours = buff[pos++];
+                if (hours == 0xFF)
+                {
+                    hours = 0;
+                    dt.Skip |= DateTimeSkips.Hour;
+                }
                 int minutes = buff[pos++];
+                if (minutes == 0xFF)
+                {
+                    minutes = 0;
+                    dt.Skip |= DateTimeSkips.Minute;
+                }
                 int seconds = buff[pos++];
+                if (seconds == 0xFF)
+                {
+                    seconds = 0;
+                    dt.Skip |= DateTimeSkips.Second;
+                }
                 int milliseconds = buff[pos++];
-                if (milliseconds != 0xFF)
+                if (milliseconds != 0xFF && milliseconds != 0)
                 {
                     milliseconds *= 10;
                 }
                 else
                 {
                     milliseconds = 0;
+                    dt.Skip |= DateTimeSkips.Ms;
                 }
-                int deviation = GXCommon.GetUInt16(buff, ref pos);                
-                dt.Status = (ClockStatus)buff[pos++];
-                dt.Value = DateTime.SpecifyKind(new DateTime(year, month, day, hours, minutes, seconds, milliseconds), DateTimeKind.Utc); ;
-                if (deviation != 0 && deviation != 0x8000)
+                int deviation = GXCommon.GetInt16(buff, ref pos);                
+                dt.Status = (ClockStatus)buff[pos++];                
+                if ((deviation & 0xFFFF) != 0x8000)
                 {
-                    dt.Value.AddMinutes(deviation);
+                    dt.Value = DateTime.SpecifyKind(new DateTime(year, month, day, hours, minutes, seconds, milliseconds), DateTimeKind.Utc);
+                    dt.Value = dt.Value.AddMinutes(deviation);
+                    dt.Value = dt.Value.ToLocalTime();
                 }
+                else
+                {
+                    dt.Value = new DateTime(year, month, day, hours, minutes, seconds, milliseconds);
+                }                
                 value = dt;
             }
             else if (type == DataType.Date)
@@ -747,21 +787,10 @@ namespace Gurux.DLMS.Internal
             }
             else if (type == DataType.Time)
             {
-                if (!knownType)
+                if (size < 4) //If there is not enought data available.
                 {
-                    if (size < 7) //If there is not enought data available.
-                    {
-                        pos = -1;
-                        return null;
-                    }
-                }
-                else
-                {
-                    if (size < 4) //If there is not enought data available.
-                    {
-                        pos = -1;
-                        return null;
-                    }
+                    pos = -1;
+                    return null;
                 }
                 //Get time.
                 int hours = buff[pos++];                
@@ -824,7 +853,7 @@ namespace Gurux.DLMS.Internal
             {
                 return DataType.Int64;
             }
-            if (value is DateTime)
+            if (value is DateTime || value is GXDateTime)
             {
                 return DataType.DateTime;
             }
@@ -1216,7 +1245,7 @@ namespace Gurux.DLMS.Internal
                 }
                 type = DataType.OctetString;
                 //Add size
-                tmp.Add(7);
+                tmp.Add(4);
                 //Add time.
                 if ((dt.Skip & DateTimeSkips.Hour) != 0)
                 {
@@ -1245,11 +1274,6 @@ namespace Gurux.DLMS.Internal
                     tmp.Add((byte)dt.Value.Second);
                 } 
                 tmp.Add((byte)0xFF); //Hundredths of second is not used.
-                //Add deviation (Not used).
-                tmp.Add((byte)0x80);                                
-                tmp.Add((byte)0x00);
-                //Add clock_status
-                tmp.Add((byte)dt.Status);
                 value = tmp.ToArray();
                 reverse = false;
             }
@@ -1279,7 +1303,16 @@ namespace Gurux.DLMS.Internal
             {
                 dt.Value = DateTime.SpecifyKind(DateTime.Now.AddYears(1).Date, DateTimeKind.Utc);
             }
-            DateTime tm = dt.Value.ToUniversalTime();
+            DateTime tm;
+            //If used normal time.
+            if ((dt.Skip & DateTimeSkips.Devitation) == 0)
+            {
+                tm = dt.Value;
+            }
+            else //If devitation is skipped.
+            {
+                tm = dt.Value.ToUniversalTime();
+            }            
             List<byte> tmp = new List<byte>();            
             //Add size
             tmp.Add(12);
@@ -1356,9 +1389,17 @@ namespace Gurux.DLMS.Internal
             {
                 tmp.Add((byte)0xFF); //Hundredths of second is not used.                
             }            
-            //Add deviation (Not used).
-            tmp.Add((byte)0x80);            
-            tmp.Add((byte)0x00);
+            //Add deviation.
+            if ((dt.Skip & DateTimeSkips.Devitation) == 0)
+            {
+                short devitation = (short)TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now).TotalMinutes;                   
+                GXCommon.SetInt16(devitation, tmp);                
+            }
+            else //deviation not used.
+            {
+                tmp.Add((byte)0x80);
+                tmp.Add((byte)0x00);
+            }
             //Add clock_status
             tmp.Add((byte)dt.Status);
             return tmp.ToArray();

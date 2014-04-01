@@ -40,29 +40,32 @@ using Gurux.DLMS;
 using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
-using Gurux.DLMS.Internal;
-
-
 
 namespace Gurux.DLMS.Objects
-{
-    public class GXDLMSIp4Setup : GXDLMSObject, IGXDLMSBase
+{    
+    public class GXDLMSPushSetup : GXDLMSObject, IGXDLMSBase
     {
         /// <summary> 
         /// Constructor.
         /// </summary> 
-        public GXDLMSIp4Setup()
-            : base(ObjectType.Ip4Setup)
+        public GXDLMSPushSetup()
+            : base(ObjectType.PushSetup)
         {
+            CommunicationWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
+            SendDestinationAndMethod = new GXSendDestinationAndMethod();
+            PushObjectList = new List<GXDLMSPushObject>();
         }
 
         /// <summary> 
         /// Constructor.
         /// </summary> 
         /// <param name="ln">Logican Name of the object.</param>
-        public GXDLMSIp4Setup(string ln)
-            : base(ObjectType.Ip4Setup, ln, 0)
+        public GXDLMSPushSetup(string ln)
+            : base(ObjectType.PushSetup, ln, 0)
         {
+            CommunicationWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
+            SendDestinationAndMethod = new GXSendDestinationAndMethod();
+            PushObjectList = new List<GXDLMSPushObject>();
         }
 
         /// <summary> 
@@ -70,69 +73,70 @@ namespace Gurux.DLMS.Objects
         /// </summary> 
         /// <param name="ln">Logican Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
-        public GXDLMSIp4Setup(string ln, ushort sn)
-            : base(ObjectType.Ip4Setup, ln, 0)
+        public GXDLMSPushSetup(string ln, ushort sn)
+            : base(ObjectType.PushSetup, ln, 0)
         {
+            CommunicationWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
+            SendDestinationAndMethod = new GXSendDestinationAndMethod();
+            PushObjectList = new List<GXDLMSPushObject>();
+        }        
+        
+        /// <summary>
+        /// Defines the list of attributes or objects to be pushed. 
+        /// Upon a call of the push (data) method the selected attributes are sent to the desti-nation 
+        /// defined in send_destination_and_method.
+        /// </summary>        
+        [XmlIgnore()]
+        public List<GXDLMSPushObject> PushObjectList
+        {
+            get;
+            internal set;
+        }        
+
+        [XmlIgnore()]
+        public GXSendDestinationAndMethod SendDestinationAndMethod
+        {
+            get;
+            internal set;
+        }
+         
+        /// <summary>
+        /// Contains the start and end date/time 
+        /// stamp when the communication window(s) for the push become active 
+        /// (for the start instant), or inac-tive (for the end instant).
+        /// </summary>
+        [XmlIgnore()]
+        public List<KeyValuePair<GXDateTime, GXDateTime>> CommunicationWindow
+        {
+            get;
+            internal set;
+        }
+
+        /// <summary>
+        /// To avoid simultaneous network connections of a lot of devices at ex-actly 
+        /// the same point in time, a randomisation interval in seconds can be defined.
+        /// This means that the push operation is not started imme-diately at the
+        /// beginning of the first communication window but started randomly delayed.
+        /// </summary>
+        [XmlIgnore()]
+        public UInt16 RandomisationStartInterval
+        {
+            get;
+            set;
+        }
+        /// <summary>
+        /// The maximum number of retrials in case of unsuccessful push at-tempts. After a successful push no further push attempts are made until the push setup is triggered again. 
+        /// A value of 0 means no repetitions, i.e. only the initial connection at-tempt is made.
+        /// </summary>
+        [XmlIgnore()]
+        public byte NumberOfRetries
+        {
+            get;
+            set;
         }
 
         [XmlIgnore()]
-        public string DataLinkLayerReference
-        {
-            get;
-            set;
-        }
-
-        [XmlIgnore()]
-        public UInt64 IPAddress
-        {
-            get;
-            set;
-        }
-
-        [XmlIgnore()]
-        public uint[] MulticastIPAddress
-        {
-            get;
-            set;
-        }
-
-        [XmlIgnore()]
-        public GXDLMSIp4SetupIpOption[] IPOptions
-        {
-            get;
-            set;
-        }
-
-        [XmlIgnore()]        
-        public UInt64 SubnetMask
-        {
-            get;
-            set;
-        }
-
-        [XmlIgnore()]
-        public UInt64 GatewayIPAddress
-        {
-            get;
-            set;
-        }
-
-        [XmlIgnore()]        
-        public bool UseDHCP
-        {
-            get;
-            set;
-        }
-
-        [XmlIgnore()]
-        public UInt64 PrimaryDNSAddress
-        {
-            get;
-            set;
-        }
-
-        [XmlIgnore()]
-        public UInt64 SecondaryDNSAddress
+        public UInt16 RepetitionDelay
         {
             get;
             set;
@@ -141,13 +145,16 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, DataLinkLayerReference, IPAddress, 
-                MulticastIPAddress, IPOptions, SubnetMask, GatewayIPAddress,
-                UseDHCP, PrimaryDNSAddress, SecondaryDNSAddress };
+            return new object[] { LogicalName, PushObjectList, SendDestinationAndMethod,
+            CommunicationWindow, RandomisationStartInterval, NumberOfRetries, RepetitionDelay};
         }
+
         #region IGXDLMSBase Members
 
-
+        /// <summary>
+        /// Data interface do not have any methods.
+        /// </summary>
+        /// <param name="index"></param>
         byte[][] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
         {
             throw new ArgumentException("Invoke failed. Invalid attribute index.");
@@ -161,62 +168,47 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(1);
             }
-            //DataLinkLayerReference
-            if (!base.IsRead(2))
+            //PushObjectList
+            if (CanRead(2))
             {
                 attributes.Add(2);
             }
-            //IPAddress
+            //SendDestinationAndMethod
             if (CanRead(3))
             {
                 attributes.Add(3);
             }
-            //MulticastIPAddress
+            //CommunicationWindow
             if (CanRead(4))
             {
                 attributes.Add(4);
             }
-            //IPOptions
+            //RandomisationStartInterval
             if (CanRead(5))
             {
                 attributes.Add(5);
             }
-            //SubnetMask
+            //NumberOfRetries
             if (CanRead(6))
             {
                 attributes.Add(6);
             }
-            //GatewayIPAddress
+            //RepetitionDelay
             if (CanRead(7))
             {
                 attributes.Add(7);
-            }
-            //UseDHCP
-            if (!base.IsRead(8))
-            {
-                attributes.Add(8);
-            }
-            //PrimaryDNSAddress
-            if (CanRead(9))
-            {
-                attributes.Add(9);
-            }
-            //SecondaryDNSAddress
-            if (CanRead(10))
-            {
-                attributes.Add(10);
             }
             return attributes.ToArray();
         }
 
         int IGXDLMSBase.GetAttributeCount()
         {
-            return 10;
+            return 7;
         }
 
         int IGXDLMSBase.GetMethodCount()
         {
-            return 3;
+            return 1;
         }
 
         override public DataType GetDataType(int index)
@@ -227,11 +219,11 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 2)
             {
-                return DataType.OctetString;
+                return DataType.Array;
             }
             if (index == 3)
             {
-                return DataType.UInt32;
+                return DataType.Structure;
             }
             if (index == 4)
             {
@@ -239,28 +231,16 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 5)
             {
-                return DataType.Array;
+                return DataType.UInt16;
             }
             if (index == 6)
             {
-                return DataType.UInt32;
+                return DataType.UInt8;
             }
             if (index == 7)
             {
-                return DataType.UInt32;
+                return DataType.UInt16;
             }
-            if (index == 8)
-            {
-                return DataType.Boolean;
-            }
-            if (index == 9)
-            {
-                return DataType.UInt32;
-            }
-            if (index == 10)
-            {
-                return DataType.UInt32;
-            } 
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
@@ -272,58 +252,28 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 2)
             {
-                return this.DataLinkLayerReference;
+                return PushObjectList;
             }
             if (index == 3)
             {
-                return this.IPAddress;
+                return SendDestinationAndMethod;
             }
             if (index == 4)
             {
-                return this.MulticastIPAddress;
+                return CommunicationWindow;
             }
             if (index == 5)
             {
-                List<byte> data = new List<byte>();
-                data.Add((byte)DataType.Array);
-                if (IPOptions == null)
-                {
-                    data.Add(1);
-                }
-                else
-                {
-                    GXCommon.SetObjectCount(IPOptions.Length, data);
-                    foreach (GXDLMSIp4SetupIpOption it in IPOptions)
-                    {
-                        data.Add((byte)DataType.Structure);
-                        data.Add(3);
-                        GXCommon.SetData(data, DataType.UInt8, it.Type);
-                        GXCommon.SetData(data, DataType.UInt8, it.Length);
-                        GXCommon.SetData(data, DataType.OctetString, it.Data);
-                    }
-                }
-                return data.ToArray();
+                return RandomisationStartInterval;
             }
             if (index == 6)
             {
-                return this.SubnetMask;
+                return NumberOfRetries;
             }
             if (index == 7)
             {
-                return this.GatewayIPAddress;
+                return RepetitionDelay;
             }
-            if (index == 8)
-            {
-                return this.UseDHCP;
-            }
-            if (index == 9)
-            {
-                return this.PrimaryDNSAddress;
-            }
-            if (index == 10)
-            {
-                return this.SecondaryDNSAddress;
-            } 
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
@@ -338,70 +288,60 @@ namespace Gurux.DLMS.Objects
                 else
                 {
                     LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
-                }
+                }                
             }
             else if (index == 2)
             {
-                if (value is string)
+                PushObjectList.Clear();
+                if (value is Object[])
                 {
-                    this.DataLinkLayerReference = value.ToString();
-                }
-                else
-                {
-                    this.DataLinkLayerReference = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                    foreach (object it in value as Object[])
+                    {
+                        Object[] tmp = it as Object[];
+                        GXDLMSPushObject obj = new GXDLMSPushObject();
+                        obj.Type = (ObjectType)Convert.ToInt32(tmp[0]);
+                        obj.LogicalName = GXDLMSClient.ChangeType((byte[])tmp[1], DataType.BitString).ToString();
+                        obj.AttributeIndex = Convert.ToInt32(tmp[2]);
+                        obj.DataIndex = Convert.ToInt32(tmp[3]);
+                        PushObjectList.Add(obj);
+                    }
                 }
             }
             else if (index == 3)
             {
-                IPAddress = Convert.ToUInt32(value);
+                object[] tmp = value as object[];
+                if (tmp != null)
+                {
+                    SendDestinationAndMethod.Service = (ServiceType)Convert.ToInt32(tmp[0]);
+                    SendDestinationAndMethod.Destination = ASCIIEncoding.ASCII.GetString((byte[]) tmp[1]);
+                    SendDestinationAndMethod.Message = (MessageType)Convert.ToInt32(tmp[2]);
+                }
             }
             else if (index == 4)
-            {        
-                List<uint> data = new List<uint>();
-                if (value != null)
+            {
+                CommunicationWindow.Clear();
+                if (value is Object[])
                 {
-                    foreach (object it in (Object[])value)
+                    foreach(object it in value as Object[])
                     {
-                        data.Add(Convert.ToUInt16(it));
+                        Object[] tmp = it as Object[];
+                        GXDateTime start = GXDLMSClient.ChangeType((byte[]) tmp[0], DataType.DateTime) as GXDateTime;
+                        GXDateTime end = GXDLMSClient.ChangeType((byte[]) tmp[1], DataType.DateTime) as GXDateTime;
+                        CommunicationWindow.Add(new KeyValuePair<GXDateTime, GXDateTime>(start, end));
                     }
                 }
-                MulticastIPAddress = data.ToArray();
             }
             else if (index == 5)
             {
-                List<GXDLMSIp4SetupIpOption> data = new List<GXDLMSIp4SetupIpOption>();
-                if (value != null)
-                {
-                    foreach (object[] it in (Object[])value)
-                    {
-                        GXDLMSIp4SetupIpOption item = new GXDLMSIp4SetupIpOption();
-                        item.Type = (GXDLMSIp4SetupIpOptionType)Convert.ToInt32(it[0]);
-                        item.Length = Convert.ToByte(it[1]);
-                        item.Data = (byte[]) it[2];
-                        data.Add(item);
-                    }
-                }
-                IPOptions = data.ToArray();
+                RandomisationStartInterval = (UInt16) value;
             }
             else if (index == 6)
             {
-                SubnetMask = Convert.ToUInt32(value);
+                NumberOfRetries = (byte) value;
             }
             else if (index == 7)
             {
-                GatewayIPAddress = Convert.ToUInt32(value);
-            }
-            else if (index == 8)
-            {
-                UseDHCP = Convert.ToBoolean(value);
-            }
-            else if (index == 9)
-            {
-                PrimaryDNSAddress = Convert.ToUInt32(value);
-            }
-            else if (index == 10)
-            {
-                SecondaryDNSAddress = Convert.ToUInt32(value);
+                RepetitionDelay = (UInt16)value;
             }
             else
             {

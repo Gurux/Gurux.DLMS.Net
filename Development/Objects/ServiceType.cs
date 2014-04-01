@@ -39,44 +39,12 @@ using System.Text;
 
 namespace Gurux.DLMS.Objects
 {
-    public class GXxDLMSContextType
+    public enum ServiceType
     {
-        public string Conformance
-        {
-            get;
-            set;
-        }
-        public UInt16 MaxReceivePduSize
-        {
-            get;
-            set;
-        }
-        public UInt16 MaxSendPpuSize
-        {
-            get;
-            set;
-        }
-        public Byte DlmsVersionNumber
-        {
-            get;
-            set;
-        }
-        public sbyte QualityOfService
-        {
-            get;
-            set;
-        }
-        public byte[] CypheringInfo
-        {
-            get;
-            set;
-        }
-
-        public override string ToString()
-        {
-            return Conformance + " " + MaxReceivePduSize.ToString()  + " " + MaxSendPpuSize.ToString()
-                 + " " + DlmsVersionNumber.ToString()  + " " + QualityOfService.ToString() + " " +
-                 BitConverter.ToString(CypheringInfo).Replace("-", " ");
-        }
-    };
+        Tcp = 0,
+        Udp = 1,
+        Ftp = 2,
+        Smtp = 3,
+        SMS = 4
+    }
 }

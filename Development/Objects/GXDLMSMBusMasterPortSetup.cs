@@ -1,4 +1,4 @@
-﻿//
+//
 // --------------------------------------------------------------------------
 //  Gurux Ltd
 // 
@@ -43,23 +43,25 @@ using Gurux.DLMS.ManufacturerSettings;
 
 namespace Gurux.DLMS.Objects
 {
-    public class GXDLMSMBusSlavePortSetup : GXDLMSObject, IGXDLMSBase
+    public class GXDLMSMBusMasterPortSetup : GXDLMSObject, IGXDLMSBase
     {
         /// <summary> 
         /// Constructor.
         /// </summary> 
-        public GXDLMSMBusSlavePortSetup()
-            : base(ObjectType.MBusSlavePortSetup)
+        public GXDLMSMBusMasterPortSetup()
+            : base(ObjectType.MBusMasterPortSetup)
         {
+            CommSpeed = BaudRate.Baudrate2400;
         }
 
         /// <summary> 
         /// Constructor.
         /// </summary> 
         /// <param name="ln">Logican Name of the object.</param>
-        public GXDLMSMBusSlavePortSetup(string ln)
-            : base(ObjectType.MBusSlavePortSetup, ln, 0)
+        public GXDLMSMBusMasterPortSetup(string ln)
+            : base(ObjectType.MBusMasterPortSetup, ln, 0)
         {
+            CommSpeed = BaudRate.Baudrate2400;
         }
 
         /// <summary> 
@@ -67,48 +69,17 @@ namespace Gurux.DLMS.Objects
         /// </summary> 
         /// <param name="ln">Logican Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
-        public GXDLMSMBusSlavePortSetup(string ln, ushort sn)
-            : base(ObjectType.MBusSlavePortSetup, ln, 0)
+        public GXDLMSMBusMasterPortSetup(string ln, ushort sn)
+            : base(ObjectType.MBusMasterPortSetup, ln, 0)
         {
+            CommSpeed = BaudRate.Baudrate2400;
         }
 
         /// <summary>
-        /// Defines the baud rate for the opening sequence.
-        /// </summary>
-        [XmlIgnore()]
-        public BaudRate DefaultBaud
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Defines the baud rate for the opening sequence.
-        /// </summary>
-        [XmlIgnore()]
-        public BaudRate AvailableBaud
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Defines whether or not the device has been assigned an address
-        /// since last power up of the device.
+        /// The communication speed supported by the port.
         /// </summary>        
         [XmlIgnore()]
-        public AddressState AddressState
-        {
-            get;
-            set;
-        }
-
-
-        /// <summary>
-        /// Defines the baud rate for the opening sequence.
-        /// </summary>
-        [XmlIgnore()]
-        public int BusAddress
+        public BaudRate CommSpeed
         {
             get;
             set;
@@ -117,7 +88,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new Object[] { LogicalName, DefaultBaud, AvailableBaud, AddressState, BusAddress };
+            return new object[] { LogicalName, CommSpeed };
         }
 
         #region IGXDLMSBase Members
@@ -139,32 +110,17 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(1);
             }
-            //DefaultBaud
-            if (!IsRead(2))
+            //CommSpeed
+            if (CanRead(2))
             {
                 attributes.Add(2);
             }
-            //AvailableBaud
-            if (!IsRead(3))
-            {
-                attributes.Add(3);
-            }
-            //AddressState
-            if (!IsRead(4))
-            {
-                attributes.Add(4);
-            }
-            //BusAddress
-            if (!IsRead(5))
-            {
-                attributes.Add(5);
-            }             
             return attributes.ToArray();
         }
 
         int IGXDLMSBase.GetAttributeCount()
         {
-            return 5;
+            return 2;
         }
 
         int IGXDLMSBase.GetMethodCount()
@@ -176,23 +132,12 @@ namespace Gurux.DLMS.Objects
         {
             if (index == 1)
             {
-                return DataType.OctetString;                
+                return DataType.OctetString;
             }
+            //CommSpeed
             if (index == 2)
             {
                 return DataType.Enum;
-            }
-            if (index == 3)
-            {
-                return DataType.Enum;
-            }
-            if (index == 4)
-            {
-                return DataType.Enum;
-            }
-            if (index == 5)
-            {
-                return DataType.UInt16;
             }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
@@ -205,19 +150,7 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 2)
             {
-                return DefaultBaud;
-            }
-            if (index == 3)
-            {
-                return AvailableBaud;
-            }
-            if (index == 4)
-            {
-                return AddressState;
-            }
-            if (index == 5)
-            {
-                return BusAddress;
+                return CommSpeed;
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
@@ -233,51 +166,11 @@ namespace Gurux.DLMS.Objects
                 else
                 {
                     LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
-                }
+                }                
             }
             else if (index == 2)
             {
-                if (value == null)
-                {
-                    DefaultBaud = BaudRate.Baudrate300;
-                }
-                else
-                {
-                    DefaultBaud = (BaudRate)Convert.ToInt32(value);
-                }
-            }
-            else if (index == 3)
-            {
-                if (value == null)
-                {
-                    AvailableBaud = BaudRate.Baudrate300;
-                }
-                else
-                {
-                    AvailableBaud = (BaudRate)Convert.ToInt32(value);
-                }
-            }
-            else if (index == 4)
-            {
-                if (value == null)
-                {
-                    AddressState = AddressState.None;
-                }
-                else
-                {
-                    AddressState = (AddressState)Convert.ToInt32(value);
-                }
-            }
-            else if (index == 5)
-            {
-                if (value == null)
-                {
-                    BusAddress = 0;
-                }
-                else
-                {
-                    BusAddress = Convert.ToInt32(value);
-                }
+                CommSpeed = (BaudRate)Convert.ToInt32(value);
             }
             else
             {

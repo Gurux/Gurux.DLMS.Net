@@ -32,51 +32,24 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 namespace Gurux.DLMS.Objects
 {
-    public class GXxDLMSContextType
+    public class GXSendDestinationAndMethod
     {
-        public string Conformance
+        public ServiceType Service
         {
             get;
             set;
         }
-        public UInt16 MaxReceivePduSize
+        public string Destination
         {
             get;
             set;
         }
-        public UInt16 MaxSendPpuSize
+        public MessageType Message
         {
             get;
             set;
         }
-        public Byte DlmsVersionNumber
-        {
-            get;
-            set;
-        }
-        public sbyte QualityOfService
-        {
-            get;
-            set;
-        }
-        public byte[] CypheringInfo
-        {
-            get;
-            set;
-        }
-
-        public override string ToString()
-        {
-            return Conformance + " " + MaxReceivePduSize.ToString()  + " " + MaxSendPpuSize.ToString()
-                 + " " + DlmsVersionNumber.ToString()  + " " + QualityOfService.ToString() + " " +
-                 BitConverter.ToString(CypheringInfo).Replace("-", " ");
-        }
-    };
+    }
 }

@@ -419,17 +419,17 @@ namespace Gurux.DLMS.Objects
             {
                 List<byte> data = new List<byte>();
                 data.Add((byte)DataType.Array);
-                if (DayProfileTableActive == null)
+                if (DayProfileTablePassive == null)
                 {
                     //Add count            
                     GXCommon.SetObjectCount(0, data);
                 }
                 else
                 {
-                    int cnt = DayProfileTableActive.Length;
+                    int cnt = DayProfileTablePassive.Length;
                     //Add count            
                     GXCommon.SetObjectCount(cnt, data);
-                    foreach (GXDLMSDayProfile it in DayProfileTableActive)
+                    foreach (GXDLMSDayProfile it in DayProfileTablePassive)
                     {
                         data.Add((byte)DataType.Structure);
                         data.Add(2);

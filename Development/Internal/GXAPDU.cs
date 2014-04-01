@@ -260,11 +260,13 @@ namespace Gurux.DLMS.Internal
                     ++index;
                     len = buff[index++];
                     //Get challenge
+                    index += len;
                 }
                 else if (tag == 0x8B || tag == 0x89) //Authentication.
                 {
                     tag = buff[index++];
                     len = buff[index++];
+                    bool IsAuthenticationTag = len > 7;
                     if (buff[index++] != 0x60)
                     {
                         throw new Exception("Invalid tag.");
@@ -294,22 +296,29 @@ namespace Gurux.DLMS.Internal
                     {
                         throw new Exception("Invalid tag.");
                     }
-                    Authentication = (Authentication)tmp;
-                    byte tag2 = buff[index++];
-                    if (tag2 != 0xAC && tag2 != 0xAA)
+                    if (IsAuthenticationTag)
                     {
-                        throw new Exception("Invalid tag.");
+                        Authentication = (Authentication)tmp;
+                        byte tag2 = buff[index++];
+                        if (tag2 != 0xAC && tag2 != 0xAA)
+                        {
+                            throw new Exception("Invalid tag.");
+                        }
+                        len = buff[index++];
+                        //Get authentication information.
+                        if (buff[index++] != 0x80)
+                        {
+                            throw new Exception("Invalid tag.");
+                        }
+                        len = buff[index++];
+                        Password = new byte[len];
+                        Array.Copy(buff, index, Password, 0, len);
+                        index += len;
                     }
-                    len = buff[index++];
-                    //Get authentication information.
-                    if (buff[index++] != 0x80)
+                    else
                     {
-                        throw new Exception("Invalid tag.");
+                        Authentication = Authentication.None;
                     }
-                    len = buff[index++];
-                    Password = new byte[len];
-                    Array.Copy(buff, index, Password, 0, len);
-                    index += len;
                 }
                 //Unknown tags.
                 else

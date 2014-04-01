@@ -331,8 +331,8 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 3)
             {
-                List<GXDLMSPppSetupLcpOption> items = new List<GXDLMSPppSetupLcpOption>();                
-                if (value != null)
+                List<GXDLMSPppSetupLcpOption> items = new List<GXDLMSPppSetupLcpOption>();
+                if (value is Object[])
                 {
                     foreach (Object[] item in (Object[])value)
                     {
@@ -348,7 +348,7 @@ namespace Gurux.DLMS.Objects
             else if (index == 4)
             {
                 List<GXDLMSPppSetupIPCPOption> items = new List<GXDLMSPppSetupIPCPOption>();
-                if (value != null)
+                if (value is Object[])
                 {
                     foreach (Object[] item in (Object[])value)
                     {

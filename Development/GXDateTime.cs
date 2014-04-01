@@ -80,6 +80,10 @@ namespace Gurux.DLMS
         /// Hundreds of seconds part of date time is skipped.
         /// </summary>
         Ms = 0x80,
+        /// <summary>
+        /// Devitation is skipped on write.
+        /// </summary>
+        Devitation = 0x100        
     }
 
     /// <summary>
@@ -108,7 +112,7 @@ namespace Gurux.DLMS
         /// </summary>
         public GXDateTime(int year, int month, int day, int hour, int minute, int second, int millisecond)
         {
-            if (year == -1 || year == 0xFFFF)
+            if (year < 1 || year == 0xFFFF)
             {
                 Skip |= DateTimeSkips.Year;
                 year = DateTime.MinValue.Year;
@@ -220,7 +224,8 @@ namespace Gurux.DLMS
                 {
                     shortTimePattern.Remove("mm");
                 }
-                if ((Skip & DateTimeSkips.Second) != 0)
+                if ((Skip & DateTimeSkips.Second) != 0 ||
+                    (shortTimePattern.Count == 1 && Value.Second == 0))
                 {
                     shortTimePattern.Remove("ss");
                 }

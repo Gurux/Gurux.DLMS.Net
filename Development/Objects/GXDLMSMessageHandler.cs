@@ -1,4 +1,4 @@
-ï»¿//
+//
 // --------------------------------------------------------------------------
 //  Gurux Ltd
 // 
@@ -43,23 +43,27 @@ using Gurux.DLMS.ManufacturerSettings;
 
 namespace Gurux.DLMS.Objects
 {
-    public class GXDLMSMBusSlavePortSetup : GXDLMSObject, IGXDLMSBase
+    public class GXDLMSMessageHandler : GXDLMSObject, IGXDLMSBase
     {
         /// <summary> 
         /// Constructor.
         /// </summary> 
-        public GXDLMSMBusSlavePortSetup()
-            : base(ObjectType.MBusSlavePortSetup)
+        public GXDLMSMessageHandler()
+            : base(ObjectType.MessageHandler)
         {
+            ListeningWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
+            SendersAndActions = new List<KeyValuePair<string, KeyValuePair<int, GXDLMSScriptAction>>>();
         }
 
         /// <summary> 
         /// Constructor.
         /// </summary> 
         /// <param name="ln">Logican Name of the object.</param>
-        public GXDLMSMBusSlavePortSetup(string ln)
-            : base(ObjectType.MBusSlavePortSetup, ln, 0)
+        public GXDLMSMessageHandler(string ln)
+            : base(ObjectType.MessageHandler, ln, 0)
         {
+            ListeningWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
+            SendersAndActions = new List<KeyValuePair<string, KeyValuePair<int, GXDLMSScriptAction>>>();
         }
 
         /// <summary> 
@@ -67,57 +71,48 @@ namespace Gurux.DLMS.Objects
         /// </summary> 
         /// <param name="ln">Logican Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
-        public GXDLMSMBusSlavePortSetup(string ln, ushort sn)
-            : base(ObjectType.MBusSlavePortSetup, ln, 0)
+        public GXDLMSMessageHandler(string ln, ushort sn)
+            : base(ObjectType.MessageHandler, ln, 0)
         {
+            ListeningWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
+            SendersAndActions = new List<KeyValuePair<string, KeyValuePair<int, GXDLMSScriptAction>>>();
         }
 
         /// <summary>
-        /// Defines the baud rate for the opening sequence.
-        /// </summary>
-        [XmlIgnore()]
-        public BaudRate DefaultBaud
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Defines the baud rate for the opening sequence.
-        /// </summary>
-        [XmlIgnore()]
-        public BaudRate AvailableBaud
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Defines whether or not the device has been assigned an address
-        /// since last power up of the device.
+        /// Listening Window.
         /// </summary>        
         [XmlIgnore()]
-        public AddressState AddressState
+        public List<KeyValuePair<GXDateTime, GXDateTime>> ListeningWindow
         {
             get;
-            set;
+            internal set;
         }
-
 
         /// <summary>
-        /// Defines the baud rate for the opening sequence.
-        /// </summary>
+        /// List of allowed Senders.
+        /// </summary>        
         [XmlIgnore()]
-        public int BusAddress
+        public string[] AllowedSenders
         {
             get;
             set;
         }
+
+        /// <summary>
+        /// Contains the logical name of a “Script table” object and the script selector of the 
+        /// script to be executed if an empty message is received from a match-ing sender.
+        /// </summary>        
+        [XmlIgnore()]
+        public List<KeyValuePair<string, KeyValuePair<int, GXDLMSScriptAction>>> SendersAndActions
+        {
+            get;
+            internal set;
+        }        
 
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new Object[] { LogicalName, DefaultBaud, AvailableBaud, AddressState, BusAddress };
+            return new object[] { LogicalName, ListeningWindow, AllowedSenders, SendersAndActions };
         }
 
         #region IGXDLMSBase Members
@@ -139,32 +134,27 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(1);
             }
-            //DefaultBaud
-            if (!IsRead(2))
+            //ListeningWindow
+            if (CanRead(2))
             {
                 attributes.Add(2);
             }
-            //AvailableBaud
-            if (!IsRead(3))
+            //AllowedSenders
+            if (CanRead(3))
             {
                 attributes.Add(3);
             }
-            //AddressState
-            if (!IsRead(4))
+            //SendersAndActions
+            if (CanRead(4))
             {
                 attributes.Add(4);
             }
-            //BusAddress
-            if (!IsRead(5))
-            {
-                attributes.Add(5);
-            }             
             return attributes.ToArray();
         }
 
         int IGXDLMSBase.GetAttributeCount()
         {
-            return 5;
+            return 4;
         }
 
         int IGXDLMSBase.GetMethodCount()
@@ -176,24 +166,23 @@ namespace Gurux.DLMS.Objects
         {
             if (index == 1)
             {
-                return DataType.OctetString;                
+                return DataType.OctetString;
             }
+            //ListeningWindow
             if (index == 2)
             {
-                return DataType.Enum;
+                return DataType.Array;
             }
+            //AllowedSenders
             if (index == 3)
             {
-                return DataType.Enum;
+                return DataType.Array;
             }
+            //SendersAndActions
             if (index == 4)
             {
-                return DataType.Enum;
-            }
-            if (index == 5)
-            {
-                return DataType.UInt16;
-            }
+                return DataType.Array;
+            }            
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
@@ -205,20 +194,16 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 2)
             {
-                return DefaultBaud;
+                return ListeningWindow;
             }
             if (index == 3)
             {
-                return AvailableBaud;
+                return AllowedSenders;
             }
             if (index == 4)
             {
-                return AddressState;
-            }
-            if (index == 5)
-            {
-                return BusAddress;
-            }
+                return SendersAndActions;
+            }            
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
@@ -233,56 +218,60 @@ namespace Gurux.DLMS.Objects
                 else
                 {
                     LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
-                }
+                }                
             }
             else if (index == 2)
             {
-                if (value == null)
+                ListeningWindow.Clear();
+                if (value is Object[])
                 {
-                    DefaultBaud = BaudRate.Baudrate300;
+                    foreach(object it in value as Object[])
+                    {
+                        Object[] tmp = it as Object[];
+                        GXDateTime start = GXDLMSClient.ChangeType((byte[]) tmp[0], DataType.DateTime) as GXDateTime;
+                        GXDateTime end = GXDLMSClient.ChangeType((byte[]) tmp[1], DataType.DateTime) as GXDateTime;
+                        ListeningWindow.Add(new KeyValuePair<GXDateTime, GXDateTime>(start, end));
+                    }
                 }
-                else
-                {
-                    DefaultBaud = (BaudRate)Convert.ToInt32(value);
-                }
+                
             }
             else if (index == 3)
             {
-                if (value == null)
+                if (value is Object[])
                 {
-                    AvailableBaud = BaudRate.Baudrate300;
+                    List<string> tmp = new List<string>();
+                    foreach (object it in value as Object[])
+                    {
+                        tmp.Add(ASCIIEncoding.ASCII.GetString((byte[])it));
+                    }
+                    AllowedSenders = tmp.ToArray();
                 }
                 else
                 {
-                    AvailableBaud = (BaudRate)Convert.ToInt32(value);
+                    AllowedSenders = new string[0];
                 }
             }
             else if (index == 4)
             {
-                if (value == null)
-                {
-                    AddressState = AddressState.None;
-                }
-                else
-                {
-                    AddressState = (AddressState)Convert.ToInt32(value);
-                }
-            }
-            else if (index == 5)
-            {
-                if (value == null)
-                {
-                    BusAddress = 0;
-                }
-                else
-                {
-                    BusAddress = Convert.ToInt32(value);
+                SendersAndActions.Clear();
+                if (value is Object[])
+                {                    
+                    foreach (object it in value as Object[])
+                    {
+                        Object[] tmp = it as Object[];
+                        string id = ASCIIEncoding.ASCII.GetString((byte[])tmp[0]);
+                        Object[] tmp2 = tmp[1] as Object[];
+                        /*TODO:
+                        KeyValuePair<int, GXDLMSScriptAction> executed_script = new KeyValuePair<int, GXDLMSScriptAction>(Convert.ToInt32(tmp2[1], tmp2[2]));
+                        SendersAndActions.Add(new KeyValuePair<string, KeyValuePair<int, GXDLMSScriptAction>>(id, tmp[1] as GXDateTime));
+                         * */
+                    }
                 }
             }
             else
             {
                 throw new ArgumentException("SetValue failed. Invalid attribute index.");
-            }
+            }            
         }
         #endregion
     }

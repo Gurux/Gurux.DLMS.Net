@@ -87,8 +87,13 @@ namespace Gurux.DLMS
             {
                 throw new Exception("Encoding failed. Not enought data.");
             }
-            ++index;
+            if (buff[index++] != 0x6)
+            {
+                throw new Exception("Encoding failed. Not an Object ID.");
+            }
+            //Object ID length.
             len = buff[index++];
+            //Compare Object ID to check is Logical name used.
             UseLN = GXCommon.Compare(buff, ref index, GXCommon.LogicalNameObjectID);
             if (!UseLN)
             {

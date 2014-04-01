@@ -39,34 +39,15 @@ using System.Text;
 
 namespace Gurux.DLMS.Objects
 {
-    public class GXxDLMSContextType
+    public class GXDLMSObjectDefinition
     {
-        public string Conformance
+        public ObjectType ClassId
         {
             get;
             set;
         }
-        public UInt16 MaxReceivePduSize
-        {
-            get;
-            set;
-        }
-        public UInt16 MaxSendPpuSize
-        {
-            get;
-            set;
-        }
-        public Byte DlmsVersionNumber
-        {
-            get;
-            set;
-        }
-        public sbyte QualityOfService
-        {
-            get;
-            set;
-        }
-        public byte[] CypheringInfo
+
+        public string LogicalName
         {
             get;
             set;
@@ -74,9 +55,7 @@ namespace Gurux.DLMS.Objects
 
         public override string ToString()
         {
-            return Conformance + " " + MaxReceivePduSize.ToString()  + " " + MaxSendPpuSize.ToString()
-                 + " " + DlmsVersionNumber.ToString()  + " " + QualityOfService.ToString() + " " +
-                 BitConverter.ToString(CypheringInfo).Replace("-", " ");
+            return ClassId.ToString() + " " + LogicalName;
         }
-    };
+    }
 }

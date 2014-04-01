@@ -34,8 +34,8 @@
 
 using System;
 namespace Gurux.DLMS.Objects
-{
-    public class GXDLMSCCallback
+{    
+    public class GXDLMSCallback
     {
         public bool Active
         {

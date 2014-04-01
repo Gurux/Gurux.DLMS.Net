@@ -81,5 +81,13 @@ namespace Gurux.DLMS.Objects
             get;
             internal set;
         }
+
+        public override string ToString()
+        {
+            return LogicalName + " " + JointIsoCtt.ToString() + " " + 
+                Country.ToString() + " " + CountryName.ToString() + " " + 
+                IdentifiedOrganization.ToString() + " " + DlmsUA.ToString() + " " + 
+                ApplicationContext.ToString() + " " + ContextId.ToString();
+        }
     }
 }

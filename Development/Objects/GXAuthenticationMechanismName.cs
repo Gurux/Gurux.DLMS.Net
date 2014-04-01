@@ -40,8 +40,7 @@ using System.Text;
 namespace Gurux.DLMS.Objects
 {
     public class GXAuthenticationMechanismName
-    {
-        
+    {        
         public byte JointIsoCtt
         {
             get;
@@ -77,6 +76,14 @@ namespace Gurux.DLMS.Objects
         {
             get;
             set;
+        }
+
+        public override string ToString()
+        {
+            return JointIsoCtt.ToString() + " " + Country.ToString() + " " + 
+                CountryName.ToString() + " " + IdentifiedOrganization.ToString() + " " + 
+                DlmsUA.ToString() + " " + AuthenticationMechanismName.ToString() + " " + 
+                MechanismId.ToString();
         }
     }
 }

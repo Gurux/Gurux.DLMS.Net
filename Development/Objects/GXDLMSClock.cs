@@ -170,7 +170,7 @@ namespace Gurux.DLMS.Objects
         /// Clock base of COSEM Clock object.
         /// </summary>
         [XmlIgnore()]
-        public int ClockBase
+        public ClockBase ClockBase
         {
             get;
             set;
@@ -548,7 +548,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 9)
             {
-                ClockBase = Convert.ToInt32(value);
+                ClockBase = (ClockBase)Convert.ToInt32(value);
             }
             else
             {

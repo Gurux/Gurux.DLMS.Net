@@ -43,22 +43,7 @@ using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
-{
-    public class GXDLMSObjectDefinition
-    {
-        public ObjectType ClassId
-        {
-            get;
-            set;
-        }
-        
-        public string LogicalName
-        {
-            get;
-            set;
-        }
-    }
-
+{   
     public class GXDLMSRegisterActivation : GXDLMSObject, IGXDLMSBase
     {        
         /// <summary> 
@@ -67,7 +52,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSRegisterActivation()
             : base(ObjectType.RegisterActivation)
         {
-            MaskList = new List<KeyValuePair<string, byte[]>>();
+            MaskList = new List<KeyValuePair<byte[], byte[]>>();
         }
 
         /// <summary> 
@@ -77,7 +62,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSRegisterActivation(string ln)
             : base(ObjectType.RegisterActivation, ln, 0)
         {
-            MaskList = new List<KeyValuePair<string, byte[]>>();
+            MaskList = new List<KeyValuePair<byte[], byte[]>>();
         }
 
         /// <summary> 
@@ -88,7 +73,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSRegisterActivation(string ln, ushort sn)
             : base(ObjectType.RegisterActivation, ln, 0)
         {
-            MaskList = new List<KeyValuePair<string, byte[]>>();
+            MaskList = new List<KeyValuePair<byte[], byte[]>>();
         }
 
         /// <summary>
@@ -105,7 +90,7 @@ namespace Gurux.DLMS.Objects
         ///
         /// </summary>
         [XmlIgnore()]
-        public List<KeyValuePair<string, byte[]>> MaskList
+        public List<KeyValuePair<byte[], byte[]>> MaskList
         {
             get;
             set;
@@ -115,7 +100,7 @@ namespace Gurux.DLMS.Objects
         ///
         /// </summary>
         [XmlIgnore()]
-        public string ActiveMask
+        public byte[] ActiveMask
         {
             get;
             set;
@@ -233,11 +218,11 @@ namespace Gurux.DLMS.Objects
                 else
                 {
                     data.Add((byte)MaskList.Count);
-                    foreach (KeyValuePair<string, byte[]> it in MaskList)
+                    foreach (KeyValuePair<byte[], byte[]> it in MaskList)
                     {
                         data.Add((byte)DataType.Structure);
                         data.Add(2);
-                        GXCommon.SetData(data, DataType.OctetString, GXDLMSObject.GetLogicalName(it.Key));
+                        GXCommon.SetData(data, DataType.OctetString, it.Key);
                         data.Add((byte)DataType.Array);
                         data.Add((byte)it.Value.Length);
                         foreach (byte b in it.Value)
@@ -250,7 +235,7 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 4)
             {
-                return ASCIIEncoding.ASCII.GetBytes(ActiveMask);
+                return ActiveMask;
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
@@ -290,13 +275,12 @@ namespace Gurux.DLMS.Objects
                 {                   
                     foreach (Object[] it in (Object[])value)
                     {
-                        string ln = GXDLMSObject.toLogicalName((byte[])it[0]);
                         List<byte> index_list = new List<byte>();
                         foreach(byte b in (Object[]) it[1])
                         {
                             index_list.Add(b);
-                        }                        
-                        MaskList.Add(new KeyValuePair<string, byte[]>(ln, index_list.ToArray()));
+                        }
+                        MaskList.Add(new KeyValuePair<byte[], byte[]>((byte[])it[0], index_list.ToArray()));
                     }                    
                 }                
             }
@@ -308,7 +292,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    ActiveMask = GXDLMSClient.ChangeType((byte[])value, DataType.String).ToString();
+                    ActiveMask = (byte[])value;
                 }
             }   
             else

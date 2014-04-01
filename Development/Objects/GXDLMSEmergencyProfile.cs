@@ -52,6 +52,11 @@ namespace Gurux.DLMS.Objects
             get;
             set;
         }
+
+        public override string ToString()
+        {
+            return ID.ToString() + " " + ActivationTime.ToString() + " " + Duration.ToString();
+        }
     }
 
 }

@@ -132,7 +132,8 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, ExecutedScriptLogicalName + " " + ExecutedScriptSelector , Type, ExecutionTime };
+            return new object[] { LogicalName, ExecutedScriptLogicalName + " " + ExecutedScriptSelector, 
+                Type, ExecutionTime };
         }
 
         #region IGXDLMSBase Members
@@ -274,7 +275,7 @@ namespace Gurux.DLMS.Objects
                         tm.Value.AddMonths(date.Value.Month - 1);
                         tm.Value.AddDays(date.Value.Day - 1);
                         tm.Skip |= date.Skip;
-                        items.Add(tm);
+                        items.Add(tm);                        
                     }
                     ExecutionTime = items.ToArray();
                 }

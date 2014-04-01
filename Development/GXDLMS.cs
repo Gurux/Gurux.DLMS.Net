@@ -145,7 +145,9 @@ namespace Gurux.DLMS
                     return Activator.CreateInstance(AvailableObjectTypes[type]) as GXDLMSObject;
                 }
             }
-            return null;
+            GXDLMSObject obj = new GXDLMSObject();
+            obj.ObjectType = type;
+            return obj;
         }
 
         static public byte[] Chipher(Authentication auth, byte[] plainText)
@@ -998,16 +1000,22 @@ namespace Gurux.DLMS
             //Split to Blocks.
             List<byte[]> buff = new List<byte[]>();
             uint blockIndex = 0;
+            bool multibleFrames = false;
             do
             {
                 byte[][] frames = SplitToFrames(packet, ++blockIndex, ref index, MaxReceivePDUSize, cmd, 0);
                 buff.AddRange(frames);
-                if (cmd != Command.WriteRequest && cmd != Command.MethodRequest && frames.Length != 1)
+                if (frames.Length != 1)
                 {
                     ExpectedFrame += 3;
+                    multibleFrames = true;
                 }
             }
-            while (index < packet.Count);            
+            while (index < packet.Count);
+            if (multibleFrames)
+            {
+                ExpectedFrame -= 3;
+            }
             return buff.ToArray(); 
         }
 
@@ -2017,11 +2025,11 @@ namespace Gurux.DLMS
                     }
                     if (AttributeID == 0x01 && Priority != 0)
                     {
-                        pError = buff[index++];
                         if (buff.Count - 1 < index)
                         {
                             return false;
                         }
+                        pError = buff[index++];                        
                     }
                     else
                     {

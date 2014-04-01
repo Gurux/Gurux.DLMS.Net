@@ -193,6 +193,18 @@ namespace Gurux.DLMS
         [XmlEnum("42")]
         Ip4Setup = 42,
 
+        /// <summary>
+        /// 
+        /// </summary>
+        [XmlEnum("47")]
+        GSMDiagnostic = 47,
+
+        ///<summary>
+        ///To determine the IP 6 settings, use the Ip6Setup object.
+        ///</summary>  
+        [XmlEnum("48")]
+        Ip6Setup = 48, 
+
         ///<summary>
         ///To determine the M-BUS settings, use the MbusSetup object.
         ///</summary>
@@ -204,6 +216,9 @@ namespace Gurux.DLMS
         ///</summary>
         [XmlEnum("27")]
         ModemConfiguration = 27,
+
+        [XmlEnum("40")]
+        PushSetup = 40,
 
         ///<summary>
         ///To determine PPP  = Point-to-Point Protocol settings, use the PppSetup object.
@@ -271,6 +286,31 @@ namespace Gurux.DLMS
 
         [XmlEnum("72")]
         MBusClient = 72,
+
+        /// <summary>
+        /// How the device manages incoming messages such as SMS, MMS, e-mail, etc. 
+        /// as well as the execution of dedicated actions based on the identification of the sender. 
+        /// The message service used is implicitly defined by the modem used.
+        /// </summary>
+        [XmlEnum("60")]
+        MessageHandler = 60,
+
+        [XmlEnum("65")]
+        ParameterMonitor = 65,
+
+        /// <summary>
+        /// Defines the operational parameters for 
+        /// communication using the mode Q interfaces.
+        /// </summary>
+        [XmlEnum("73")]
+        WirelessModeQchannel = 73,
+
+        /// <summary>
+        /// Defines the operational parameters for communication using the 
+        /// EN 13757-2 interfaces if the device acts as an M-bus master.
+        /// </summary>
+        [XmlEnum("74")]
+        MBusMasterPortSetup = 74,
 
         ///<summary>
         ///RegisterTable stores identical attributes of objects, in a selected 

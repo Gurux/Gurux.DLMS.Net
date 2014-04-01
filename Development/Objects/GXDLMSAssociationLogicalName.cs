@@ -527,15 +527,15 @@ namespace Gurux.DLMS.Objects
                         ObjectType type = (ObjectType)Convert.ToInt32(item[0]);
                         int version = Convert.ToInt32(item[1]);
                         String ln = GXDLMSObject.toLogicalName((byte[])item[2]);
-                        GXDLMSObject obj = Gurux.DLMS.GXDLMSClient.CreateObject(type);
-                        if (obj != null)
+                        GXDLMSObject obj = Parent.FindByLN(type, ln);                           
+                        if (obj == null)
                         {
-                            obj.LogicalName = ln;
-                            UpdateAccessRights(obj, (Object[])item[3]);
-                            obj.LogicalName = ln;
-                            obj.Version = version;
-                            ObjectList.Add(obj);
+                            obj = Gurux.DLMS.GXDLMSClient.CreateObject(type);
+                            obj.LogicalName = ln;                            
+                            obj.Version = version;                            
                         }
+                        UpdateAccessRights(obj, (Object[])item[3]);
+                        ObjectList.Add(obj);
                     }
                 }
             }
@@ -737,7 +737,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 9)
             {
-                SecuritySetupReference = (Convert.ToString(value));
+                SecuritySetupReference = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
             }
             else
             {
