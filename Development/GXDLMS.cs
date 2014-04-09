@@ -58,6 +58,12 @@ namespace Gurux.DLMS
         internal GXCiphering Ciphering;
 
         uint PacketIndex;
+        /// <summary>
+        /// HDLC Sequency number.
+        /// </summary>
+        internal int ReceiveSequenceNo = -1, SendSequenceNo = -1;
+        bool Segmented = false;
+
         bool bIsLastMsgKeepAliveMsg;
         internal int ExpectedFrame, FrameSequence;
         //Cached data.
@@ -222,6 +228,15 @@ namespace Gurux.DLMS
         /// </summary>
         public GXDLMS(bool server)
         {
+            if (server)
+            {
+                SendSequenceNo = -1;
+                ReceiveSequenceNo = 0;
+            }
+            else
+            {
+                ReceiveSequenceNo = SendSequenceNo = -1;
+            }
             Priority = Priority.High;
             InvokeID = 1;
             Ciphering = new GXCiphering(ASCIIEncoding.ASCII.GetBytes("ABCDEFGH"));
@@ -534,7 +549,14 @@ namespace Gurux.DLMS
         {
             if (!UseLogicalNameReferencing || type == RequestTypes.Frame)
             {
-                return AddFrame(GenerateSupervisoryFrame((byte)0), false, null, 0, 0);
+                byte id = GenerateSupervisoryFrame((byte)0);
+                byte id2 = GenerateACK();
+                if (id != id2)
+                {
+                    System.Diagnostics.Debug.WriteLine("Mikko3 : " + id.ToString() + " " + id2.ToString());
+                    //System.Diagnostics.Debug.Assert(false);
+                }
+                return AddFrame(id, false, null, 0, 0);
             }
             List<byte> buff = new List<byte>(10);
             if (this.InterfaceType == InterfaceType.General)
@@ -969,10 +991,22 @@ namespace Gurux.DLMS
                 if (pos == 0)
                 {
                     id = GenerateIFrame();
+                    byte id2 = GenerateIFrame(true);
+                    if (id != id2)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Mikko : " + id.ToString() + " " + id2.ToString());
+//Mikko                        System.Diagnostics.Debug.Assert(false);
+                    }
                 }
                 else
                 {
                     id = GenerateNextFrame();
+                    byte id2 = GenerateIFrame(false);
+                    if (id != id2)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Mikko2 : " + id.ToString() + " " + id2.ToString());
+                        //                        System.Diagnostics.Debug.Assert(false);
+                    }
                 }
                 if (start + dataSize > tmp.Count)
                 {
@@ -1201,7 +1235,93 @@ namespace Gurux.DLMS
             get;
             internal set;
         }
-       
+        internal enum UFrameMode
+        {
+            SNRM = 0x10, 
+            //SNRME, SARM, SARME, SABM, SABME, 
+            UA = 0xC
+                //, DM, RIM, SIM, RD, DISC
+        }
+
+        //Mikko
+        static internal byte GenerateUFrame(UFrameMode mode)
+        {
+            return (byte) ((((int)mode & 0x1C) << 3) | 0x10 | (((int)mode & 3) << 2) | 3);
+        }
+
+        /// <summary>
+        /// Generate I-frame: Information frame. Reserved for internal use.
+        /// </summary>
+        /// <returns></returns>
+        internal byte GenerateIFrame(bool Pf) //Mikko
+        {
+            int value = 0;
+            //if (Pf)
+            {
+                value |= 0x10;
+            }
+            if (Pf)
+            {
+                ++ReceiveSequenceNo;
+            }
+            if (!Segmented)
+            {
+                SendSequenceNo = ++SendSequenceNo & 0x7;
+            }
+            else
+            {
+                if (Server)
+                {
+                    SendSequenceNo = (SendSequenceNo + 3) & 0x7;
+                    //SendSequenceNo = ++SendSequenceNo & 0x7;
+                }
+                else
+                {
+                    SendSequenceNo = ++SendSequenceNo & 0x7;
+                }
+            }
+            value |= ((ReceiveSequenceNo & 7) << 5 | ((SendSequenceNo & 0x7) << 1));
+            if (Segmented)
+            {
+                if (Server)
+                {
+                    //++SendSequenceNo;
+                   // SendSequenceNo += 2;
+                }
+                else
+                {
+                    //--SendSequenceNo;
+                }
+                Segmented = false;
+            }
+
+            /*
+            int value = 0;
+            if (Server)
+            {
+                value |= 0x10;
+                ++ReceiveSequenceNo;
+                ++SendSequenceNo;
+            }
+            value |= ((ReceiveSequenceNo & 7) << 5 | ((SendSequenceNo & 0x7) << 1));
+            if (!Server)
+            {
+                value |= 0x10;
+                ++ReceiveSequenceNo;
+                ++SendSequenceNo;
+            }
+             * */
+            return (byte)value;
+        }
+
+        byte GenerateACK()
+        {
+            Segmented = true;
+            int value = ((++ReceiveSequenceNo & 7) << 5 | 1);
+            value |= 0x10;
+            return (byte) value;
+        }
+
         /// <summary>
         /// Generate I-frame: Information frame. Reserved for internal use.
         /// </summary>
@@ -1265,7 +1385,8 @@ namespace Gurux.DLMS
         {
             //In keep alive msg send ID might be same as receiver ID.
             bool ret = send == received || //If echo.
-                    ((send >> 5) & 0x7) == ((received >> 1) & 0x7) ||
+                    (((send >> 5) & 0x7) == ((received >> 1) & 0x7) &&
+                    ((received >> 5) & 0x7) == ((((send >> 1) & 0x7) + 1) & 0x7)) ||
                     //If U-Frame or S-Frame
                     ((send & 0x1) == 0x1 || (received & 0x1) == 1);
             if (!ret)
@@ -1659,6 +1780,11 @@ namespace Gurux.DLMS
                 }
                 else
                 {
+                    //If S-frame
+                    if ((frame & 3) == 0x1)
+                    {
+                        Segmented = true;
+                    }
                     //Check that header crc is corrent.
                     int crcCount = GXFCS16.CountFCS16(buff.ToArray(), PacketStartID + 1, index - PacketStartID - 1);
                     int crcRead = GXCommon.GetUInt16(buff, ref index);
@@ -2006,9 +2132,9 @@ namespace Gurux.DLMS
             }
             else if (res == (int)Command.SetResponse || res == (int)Command.MethodResponse)
             {
-                if (buff[index++] != 0)
+                if ((pError = buff[index++]) != 0)
                 {
-                    pError = buff[index++];
+                    return true;
                 }
             }
             else

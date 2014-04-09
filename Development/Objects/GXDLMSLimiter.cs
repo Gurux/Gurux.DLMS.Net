@@ -334,7 +334,7 @@ namespace Gurux.DLMS.Objects
         {
             if (index == 1)
             {
-                return GXDLMSObject.GetLogicalName(this.LogicalName);
+                return this.LogicalName;
             }
             else if (index == 2)
             {
@@ -344,7 +344,7 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetData(data, DataType.Int16, MonitoredValue.ObjectType);
                 GXCommon.SetData(data, DataType.OctetString, MonitoredValue.LogicalName);
                 GXCommon.SetData(data, DataType.UInt8, MonitoredValue.SelectedAttributeIndex);
-                return data;
+                return data.ToArray();
             }
             else if (index == 3)
             {
@@ -374,7 +374,7 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetData(data, DataType.UInt16, EmergencyProfile.ID);
                 GXCommon.SetData(data, DataType.DateTime, EmergencyProfile.ActivationTime);
                 GXCommon.SetData(data, DataType.UInt32, EmergencyProfile.Duration);
-                return data;
+                return data.ToArray();
             }
             else if (index == 9)
             {
@@ -385,7 +385,7 @@ namespace Gurux.DLMS.Objects
                 {
                     GXCommon.SetData(data, DataType.UInt16, it);
                 }
-                return data;
+                return data.ToArray();
             }
             else if (index == 10)
             {
@@ -404,7 +404,7 @@ namespace Gurux.DLMS.Objects
                 data.Add(2);
                 GXCommon.SetData(data, DataType.OctetString, ActionUnderThreshold.LogicalName);
                 GXCommon.SetData(data, DataType.UInt16, ActionUnderThreshold.ScriptSelector);
-                return data;
+                return data.ToArray();
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }

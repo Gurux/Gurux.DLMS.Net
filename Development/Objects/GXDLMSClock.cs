@@ -435,7 +435,7 @@ namespace Gurux.DLMS.Objects
         {
             if (index == 1)
             {
-                return GXDLMSObject.GetLogicalName(this.LogicalName);
+                return this.LogicalName;
             }
             if (index == 2)
             {

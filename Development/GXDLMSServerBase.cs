@@ -794,7 +794,9 @@ namespace Gurux.DLMS
                 buff.InsertRange(0, Gurux.DLMS.Internal.GXCommon.LLCReplyBytes);
             }
             m_Base.ExpectedFrame = 0;
-            m_Base.FrameSequence = -1;            
+            m_Base.FrameSequence = -1;
+            m_Base.ReceiveSequenceNo = 1;
+            m_Base.SendSequenceNo = 0;            
             return m_Base.AddFrame(m_Base.GenerateIFrame(), false, buff, 0, buff.Count);
         }
 
@@ -831,7 +833,7 @@ namespace Gurux.DLMS
             buff.Insert(0, 0x81); //FromatID
             buff.Insert(1, 0x80); //GroupID
             buff.Insert(2, len); //len           
-            return m_Base.AddFrame((byte)FrameType.UA, false, buff, 0, buff.Count);
+            return m_Base.AddFrame(GXDLMS.GenerateUFrame(GXDLMS.UFrameMode.UA), false, buff, 0, buff.Count);
         }
 
         /// <summary>
@@ -966,6 +968,11 @@ namespace Gurux.DLMS
             if (tp == DataType.None)
             {
                 tp = Gurux.DLMS.Internal.GXCommon.GetValueType(value);
+            }
+            //If data is shown as string, but it's OCTECT String.
+            if (tp == DataType.OctetString && value is string && item.GetUIDataType(index) == DataType.String)
+            {
+                value = ASCIIEncoding.ASCII.GetBytes((string)value);
             }
             if (tp != DataType.None || (value == null && tp == DataType.None))
             {
@@ -1123,6 +1130,7 @@ namespace Gurux.DLMS
                     }                 
                     else if (command == (int)Command.DisconnectRequest)
                     {
+                        System.Diagnostics.Debug.WriteLine("Disconnecting");
                         SendData.Add(GenerateDisconnectRequest());
                         return SendData[FrameIndex];
                     }
@@ -1318,14 +1326,14 @@ namespace Gurux.DLMS
                         }
                     }
                     //Return HW error.
-                    SendData.AddRange(ServerReportError((Command) command, 5));
+                    SendData.AddRange(ServerReportError((Command) command, 1));
                     return SendData[FrameIndex];
                 }
                 catch(Exception ex)
                 {
                     //Return HW error.
                     ReceivedFrame.Clear();
-                    SendData.AddRange(ServerReportError((Command) command, 5));
+                    SendData.AddRange(ServerReportError((Command) command, 1));
                     return SendData[FrameIndex];
                 }
             }
@@ -1406,10 +1414,10 @@ namespace Gurux.DLMS
             {
                 buff.Add(0x01);
                 buff.Add(0x01);
-            }
-            buff.Add(serviceErrorCode);
+                buff.Add(serviceErrorCode);
+            }            
             int index = 0;
-            return m_Base.SplitToFrames(buff, 1, ref index, buff.Count, cmd, 1);
+            return m_Base.SplitToFrames(buff, 1, ref index, buff.Count, cmd, serviceErrorCode);
         }
     }
 }

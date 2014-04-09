@@ -53,6 +53,10 @@ namespace Gurux.Shared
 			{
 				return new byte[0];
 			}
+            if (value is byte[])
+            {
+                return (byte[])value;
+            }
 			if (value is string)
 			{
 				return Encoding.UTF8.GetBytes((string)value);

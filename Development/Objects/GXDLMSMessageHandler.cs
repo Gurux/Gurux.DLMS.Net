@@ -40,6 +40,7 @@ using Gurux.DLMS;
 using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
@@ -190,19 +191,46 @@ namespace Gurux.DLMS.Objects
         {
             if (index == 1)
             {
-                return GXDLMSObject.GetLogicalName(this.LogicalName);
+                return this.LogicalName;
             }
             if (index == 2)
             {
-                return ListeningWindow;
+                List<byte> buff = new List<byte>();
+                buff.Add((byte)DataType.Array);
+                GXCommon.SetObjectCount(ListeningWindow.Count, buff);
+                foreach (KeyValuePair<GXDateTime, GXDateTime> it in ListeningWindow)
+                {
+                    buff.Add((byte)DataType.Structure);
+                    buff.Add(2);
+                    GXCommon.SetData(buff, DataType.DateTime, it.Key);
+                    GXCommon.SetData(buff, DataType.DateTime, it.Value);
+                }
+                return buff.ToArray();
             }
             if (index == 3)
             {
-                return AllowedSenders;
+                List<byte> buff = new List<byte>();
+                buff.Add((byte)DataType.Array);
+                GXCommon.SetObjectCount(AllowedSenders.Length, buff);
+                foreach (string it in AllowedSenders)
+                {
+                    GXCommon.SetData(buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it));
+                }
+                return buff.ToArray();
             }
             if (index == 4)
             {
-                return SendersAndActions;
+                List<byte> buff = new List<byte>();
+                buff.Add((byte)DataType.Array);
+                GXCommon.SetObjectCount(SendersAndActions.Count, buff);
+                foreach (KeyValuePair<string, KeyValuePair<int, GXDLMSScriptAction>> it in SendersAndActions)
+                {
+                    buff.Add((byte)DataType.Structure);
+                    buff.Add(2);
+                    GXCommon.SetData(buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Key));
+                    //TODO: GXCommon.SetData(buff, DataType.OctetString, (it.Value.));
+                }
+                return buff.ToArray();
             }            
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }

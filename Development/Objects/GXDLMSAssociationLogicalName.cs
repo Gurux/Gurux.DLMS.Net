@@ -192,8 +192,8 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    //Return error.
-                    return s.ServerReportError(Command.MethodRequest, 5);
+                    //Return HW error.
+                    return s.ServerReportError(Command.MethodRequest, 1);
                 }
             }
             else
@@ -424,7 +424,7 @@ namespace Gurux.DLMS.Objects
         {
             if (index == 1)
             {
-                return GXDLMSObject.GetLogicalName(this.LogicalName);
+                return this.LogicalName;
             }
             if (index == 2)
             {
@@ -534,8 +534,12 @@ namespace Gurux.DLMS.Objects
                             obj.LogicalName = ln;                            
                             obj.Version = version;                            
                         }
-                        UpdateAccessRights(obj, (Object[])item[3]);
-                        ObjectList.Add(obj);
+                        //Unknown objects are not shown.
+                        if (obj is IGXDLMSBase)
+                        {
+                            UpdateAccessRights(obj, (Object[])item[3]);
+                            ObjectList.Add(obj);
+                        }
                     }
                 }
             }

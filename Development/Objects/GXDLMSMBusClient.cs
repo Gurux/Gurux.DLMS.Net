@@ -40,6 +40,7 @@ using Gurux.DLMS;
 using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
@@ -356,15 +357,25 @@ namespace Gurux.DLMS.Objects
         {
             if (index == 1)
             {
-                return GXDLMSObject.GetLogicalName(this.LogicalName);
+                return this.LogicalName;
             }            
             if (index == 2)
             {
-                return GXDLMSObject.GetLogicalName(MBusPortReference);
+                return MBusPortReference;
             }
             if (index == 3)
             {
-                return CaptureDefinition;//TODO:
+                List<byte> buff = new List<byte>();
+                buff.Add((byte) DataType.Array);
+                GXCommon.SetObjectCount(CaptureDefinition.Count, buff);
+                foreach (KeyValuePair<string, string> it in CaptureDefinition)
+                {
+                    buff.Add((byte)DataType.Structure);
+                    buff.Add(2);
+                    GXCommon.SetData(buff, DataType.UInt8, it.Key);
+                    GXCommon.SetData(buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Value));
+                }
+                return buff.ToArray();
             }
             if (index == 4)
             {

@@ -221,6 +221,22 @@ namespace Gurux.DLMS.Internal
             data.AddRange(Swap(BitConverter.GetBytes(value), 0, 4));
         }
 
+        internal byte[] GetLogicalName(string logicalName)
+        {
+            byte[] ln = new byte[6];
+            string[] items = logicalName.Split('.');
+            if (items.Length != 6)
+            {
+                throw new Exception("Invalid Logical name.");
+            }
+            int pos = -1;
+            foreach (string it in items)
+            {
+                ln[++pos] = byte.Parse(it);
+            }
+            return ln;
+        }
+
         /// <summary>
         /// Get object count.
         /// </summary>
@@ -748,8 +764,8 @@ namespace Gurux.DLMS.Internal
                     dt.Skip |= DateTimeSkips.Ms;
                 }
                 int deviation = GXCommon.GetInt16(buff, ref pos);                
-                dt.Status = (ClockStatus)buff[pos++];                
-                if ((deviation & 0xFFFF) != 0x8000)
+                dt.Status = (ClockStatus)buff[pos++];
+                if ((deviation & 0xFFFF) != 0x8000 && year != 1)
                 {
                     dt.Value = DateTime.SpecifyKind(new DateTime(year, month, day, hours, minutes, seconds, milliseconds), DateTimeKind.Utc);
                     dt.Value = dt.Value.AddMinutes(deviation);
@@ -1043,29 +1059,27 @@ namespace Gurux.DLMS.Internal
                 }
                 value = tmp.ToArray();
                 reverse = false;
-            }
-            //Example Logical name is octet string, so do not change to string...
+            }            
             else if (type == DataType.OctetString)
             {
                 reverse = false;
                 if (value is string)
                 {
-                    string str = value as string;
-                    string[] items = str.Split('.');
-                    if (items.Length == 1 && items[0].Equals(str))
+                    if ((value as string) == "")
                     {
-                        SetObjectCount(str.Length, tmp);
-                        tmp.AddRange(ASCIIEncoding.ASCII.GetBytes(str));
-                        value = tmp.ToArray(); 
+                        SetObjectCount(0, tmp);
+                        value = tmp.ToArray();                    
                     }
                     else
                     {
+                        string[] items = (value as string).Split('.');
+                        tmp.Clear();
                         SetObjectCount(items.Length, tmp);
                         foreach (string it in items)
                         {
                             tmp.Add(byte.Parse(it));
                         }
-                        value = tmp.ToArray();                        
+                        value = tmp.ToArray();            
                     }
                 }
                 else if (value == null)
@@ -1123,7 +1137,7 @@ namespace Gurux.DLMS.Internal
             }
             else if (type == DataType.Int16)
             {
-                value = Convert.ToInt16(value);
+                value = (short) Convert.ToInt32(value);
             }
             else if (type == DataType.UInt8)
             {

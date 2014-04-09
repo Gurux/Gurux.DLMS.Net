@@ -388,7 +388,7 @@ namespace Gurux.DLMS.Objects
         {
             if (index == 1)
             {                
-                return GXDLMSObject.GetLogicalName(this.LogicalName);
+                return this.LogicalName;
             }
             if (index == 2)
             {
@@ -429,7 +429,7 @@ namespace Gurux.DLMS.Objects
                         GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(Convert.ToString(it.Identification)));
                         if (it.Signature == null || it.Signature.Length == 0)
                         {
-                            GXCommon.SetData(data, DataType.OctetString, "");
+                            GXCommon.SetData(data, DataType.OctetString, null);
                         }
                         else
                         {

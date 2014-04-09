@@ -543,7 +543,7 @@ namespace Gurux.DLMS
             {
                 return null;
             }
-            return m_Base.AddFrame((byte)FrameType.SNRM, false, null, 0, 0);
+            return m_Base.AddFrame(GXDLMS.GenerateUFrame(GXDLMS.UFrameMode.SNRM), false, null, 0, 0);
         }
         
         /// <summary>
@@ -656,6 +656,8 @@ namespace Gurux.DLMS
             aarq.CodeData(buff, this.InterfaceType, m_Base.CtoSChallenge);
             m_Base.FrameSequence = -1;
             m_Base.ExpectedFrame = -1;
+            //Mikko
+            m_Base.ReceiveSequenceNo = m_Base.SendSequenceNo = -1;
             return m_Base.SplitToBlocks(buff, Command.None);
         }
 

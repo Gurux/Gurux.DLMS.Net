@@ -40,6 +40,7 @@ using Gurux.DLMS;
 using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {    
@@ -248,19 +249,47 @@ namespace Gurux.DLMS.Objects
         {
             if (index == 1)
             {
-                return GXDLMSObject.GetLogicalName(this.LogicalName);
+                return this.LogicalName;
             }
             if (index == 2)
             {
-                return PushObjectList;
+                List<byte> buff = new List<byte>();
+                buff.Add((byte)DataType.Array);
+                GXCommon.SetObjectCount(PushObjectList.Count, buff);
+                foreach (GXDLMSPushObject it in PushObjectList)
+                {
+                    buff.Add((byte)DataType.Structure);
+                    buff.Add(4);
+                    GXCommon.SetData(buff, DataType.UInt8, it.Type);
+                    GXCommon.SetData(buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.LogicalName));
+                    GXCommon.SetData(buff, DataType.UInt8, it.AttributeIndex);
+                    GXCommon.SetData(buff, DataType.UInt8, it.DataIndex);
+                }
+                return buff.ToArray();                
             }
             if (index == 3)
             {
-                return SendDestinationAndMethod;
+                List<byte> buff = new List<byte>();
+                buff.Add((byte)DataType.Structure);
+                buff.Add(3);
+                GXCommon.SetData(buff, DataType.UInt8, SendDestinationAndMethod.Service);
+                GXCommon.SetData(buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(SendDestinationAndMethod.Destination));
+                GXCommon.SetData(buff, DataType.UInt8, SendDestinationAndMethod.Message);
+                return buff.ToArray();     
             }
             if (index == 4)
             {
-                return CommunicationWindow;
+                List<byte> buff = new List<byte>();
+                buff.Add((byte)DataType.Array);
+                GXCommon.SetObjectCount(CommunicationWindow.Count, buff);
+                foreach (KeyValuePair<GXDateTime, GXDateTime> it in CommunicationWindow)
+                {
+                    buff.Add((byte)DataType.Structure);
+                    buff.Add(2);
+                    GXCommon.SetData(buff, DataType.DateTime, it.Key);
+                    GXCommon.SetData(buff, DataType.DateTime, it.Value);
+                }
+                return buff.ToArray(); 
             }
             if (index == 5)
             {

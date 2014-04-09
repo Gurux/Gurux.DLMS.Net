@@ -125,8 +125,8 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    //Return error.
-                    return s.ServerReportError(Command.MethodRequest, 5);                    
+                    //Return HW error.
+                    return s.ServerReportError(Command.MethodRequest, 1);
                 }
             }
             else
@@ -226,7 +226,7 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 1)
             {
-                return GXDLMSObject.GetLogicalName(this.LogicalName);
+                return this.LogicalName;
             }
             else if (index == 2)
             {
@@ -241,7 +241,7 @@ namespace Gurux.DLMS.Objects
                     {
                         data.Add((byte)DataType.Structure);
                         data.Add((byte)4); //Count
-                        GXCommon.SetData(data, DataType.UInt16, it.ShortName); //base address.
+                        GXCommon.SetData(data, DataType.Int16, it.ShortName); //base address.
                         GXCommon.SetData(data, DataType.UInt16, it.ObjectType); //ClassID
                         GXCommon.SetData(data, DataType.UInt8, 0); //Version
                         GXCommon.SetData(data, DataType.OctetString, it.LogicalName); //LN
@@ -250,7 +250,7 @@ namespace Gurux.DLMS.Objects
                     {
                         data.Add((byte)DataType.Structure);
                         data.Add((byte)4); //Count
-                        GXCommon.SetData(data, DataType.UInt16, this.ShortName); //base address.
+                        GXCommon.SetData(data, DataType.Int16, this.ShortName); //base address.
                         GXCommon.SetData(data, DataType.UInt16, this.ObjectType); //ClassID
                         GXCommon.SetData(data, DataType.UInt8, 0); //Version
                         GXCommon.SetData(data, DataType.OctetString, this.LogicalName); //LN

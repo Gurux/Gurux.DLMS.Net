@@ -210,21 +210,6 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Returns logican name as byte array.
-        /// </summary>
-        /// <returns></returns>
-        internal static byte[] GetLogicalName(string ln)
-        {
-            string[] items = ln.Split('.');
-            List<byte> tmp = new List<byte>();
-            foreach (string it in items)
-            {
-                tmp.Add(byte.Parse(it));
-            }
-            return tmp.ToArray();
-        }
-
-        /// <summary>
         /// Reserved for internal use.
         /// </summary>
         /// <param name="buff"></param>
