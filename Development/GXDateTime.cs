@@ -119,7 +119,7 @@ namespace Gurux.DLMS
             }
             DaylightSavingsBegin = month == 0xFE;
             DaylightSavingsEnd = month == 0xFD;
-            if (month < 0 || month > 12)
+            if (month < 1 || month > 12)
             {
                 Skip |= DateTimeSkips.Month;
                 month = 1;
