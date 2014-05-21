@@ -161,6 +161,15 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        string[] IGXDLMSBase.GetNames()
+        {
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, 
+                "Object List",
+                "Access Rights List",
+                "Security Setup Reference"};
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 4;
@@ -337,12 +346,24 @@ namespace Gurux.DLMS.Objects
                         ObjectType type = (ObjectType)Convert.ToInt32(item[1]);
                         int version = Convert.ToInt32(item[2]);
                         String ln = GXDLMSObject.toLogicalName((byte[])item[3]);
-                        GXDLMSObject obj = Gurux.DLMS.GXDLMSClient.CreateObject(type);
-                        if (obj != null)
+                        GXDLMSObject obj = null;
+                        if (Parent != null)
                         {
-                            obj.LogicalName = ln;
-                            obj.ShortName = sn;
-                            obj.Version = version;
+                            obj = Parent.FindByLN(type, ln);
+                        }
+                        if (obj == null)
+                        {
+                            obj = Gurux.DLMS.GXDLMSClient.CreateObject(type);
+                            if (obj != null)
+                            {
+                                obj.LogicalName = ln;
+                                obj.ShortName = sn;
+                                obj.Version = version;                                
+                            }
+                        }
+                        //Unknown objects are not shown.
+                        if (obj is IGXDLMSBase)
+                        {
                             ObjectList.Add(obj);
                         }
                     }

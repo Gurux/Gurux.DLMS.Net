@@ -153,6 +153,13 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        string[] IGXDLMSBase.GetNames()
+        {
+            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Listening Window", 
+                "Allowed Senders", "Senders And Actions" };            
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 4;

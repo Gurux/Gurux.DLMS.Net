@@ -168,6 +168,17 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        string[] IGXDLMSBase.GetNames()
+        {
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, 
+            "Mode", 
+            "Listening Window",
+            "Status",
+            "Number Of Calls", 
+            "Number Of Rings In Listening Window"};            
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 6;

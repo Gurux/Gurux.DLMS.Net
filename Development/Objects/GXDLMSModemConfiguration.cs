@@ -144,6 +144,13 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        string[] IGXDLMSBase.GetNames()
+        {
+            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Communication Speed", 
+                "Initialisation Strings", "Modem Profile" };            
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 4;

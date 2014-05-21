@@ -72,40 +72,7 @@ namespace Gurux.DLMS.Objects
             : base(ObjectType.ExtendedRegister, ln, 0)
         {
         }
-
-        /// <inheritdoc cref="GXDLMSObject.UpdateDefaultValueItems"/>
-        public override void UpdateDefaultValueItems()
-        {
-            GXDLMSAttributeSettings att = this.Attributes.Find(4);
-            if (att == null)
-            {
-                att = new GXDLMSAttribute(4, DataType.Int32, DataType.Int32);
-                att.Access = AccessMode.Read;
-                Attributes.Add(att);
-            }
-            att.Values.Add(new GXObisValueItem(0, "Null"));
-            att.Values.Add(new GXObisValueItem(4, "Bit String"));
-            att.Values.Add(new GXObisValueItem(6, "Double Long Unsigned"));
-            att.Values.Add(new GXObisValueItem(9, "Octet String"));
-            att.Values.Add(new GXObisValueItem(10, "Visible String"));
-            att.Values.Add(new GXObisValueItem(12, "UTF8 String"));
-            att.Values.Add(new GXObisValueItem(17, "Unsigned"));
-            att.Values.Add(new GXObisValueItem(18, "Long Unsigned"));
-            att = this.Attributes.Find(9);
-            if (att == null)
-            {
-                att = new GXDLMSAttribute(9);
-                att.Access = AccessMode.Read;
-                Attributes.Add(att);
-            }            
-            att.Values.Add(new GXObisValueItem(0, "Not defined"));
-            att.Values.Add(new GXObisValueItem(1, "Internal Crystal"));
-            att.Values.Add(new GXObisValueItem(2, "Mains frequency 50 Hz"));
-            att.Values.Add(new GXObisValueItem(3, "Mains Frequency 60 Hz"));
-            att.Values.Add(new GXObisValueItem(4, "GPS (Global Positioning System)"));
-            att.Values.Add(new GXObisValueItem(5, "Radio Controlled"));
-        }
-
+       
         /// <summary>
         /// Status
         /// </summary>
@@ -179,6 +146,16 @@ namespace Gurux.DLMS.Objects
                 attributes.Add(5);
             }
             return attributes.ToArray();
+        }
+
+        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        string[] IGXDLMSBase.GetNames()
+        {
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt,                 
+                "Value", 
+                "Scaler and Unit", 
+                "Status", 
+                "CaptureTime"};                
         }
 
         int IGXDLMSBase.GetAttributeCount()

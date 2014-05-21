@@ -1325,7 +1325,15 @@ namespace Gurux.DLMS.Internal
             }
             else //If devitation is skipped.
             {
-                tm = dt.Value.ToUniversalTime();
+                //If value is given as UTC time.
+                if (TimeZone.CurrentTimeZone.GetUtcOffset(dt.Value).TotalMinutes == 0)
+                {
+                    tm = dt.Value;
+                }
+                else
+                {
+                    tm = dt.Value.ToUniversalTime();
+                }
             }            
             List<byte> tmp = new List<byte>();            
             //Add size
@@ -1406,12 +1414,12 @@ namespace Gurux.DLMS.Internal
             //Add deviation.
             if ((dt.Skip & DateTimeSkips.Devitation) == 0)
             {
-                short devitation = (short)TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now).TotalMinutes;                   
+                short devitation = (short)TimeZone.CurrentTimeZone.GetUtcOffset(dt.Value).TotalMinutes;                   
                 GXCommon.SetInt16(devitation, tmp);                
             }
             else //deviation not used.
             {
-                tmp.Add((byte)0x80);
+                tmp.Add((byte)0x00);
                 tmp.Add((byte)0x00);
             }
             //Add clock_status

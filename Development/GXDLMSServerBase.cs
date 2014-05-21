@@ -619,11 +619,11 @@ namespace Gurux.DLMS
                         {
                             throw new Exception("Invalid Profile Entries. Profile entries tells amount of rows in the table.");
                         }
-                        foreach (GXDLMSObject obj in pg.CaptureObjects)
+                        foreach (var obj in pg.CaptureObjects)
                         {
-                            if (obj.SelectedAttributeIndex < 1)
+                            if (obj.Value.AttributeIndex < 1)
                             {
-                                throw new Exception("Invalid attribute index. SelectedAttributeIndex is not set for " + obj.Name);
+                                throw new Exception("Invalid attribute index. SelectedAttributeIndex is not set for " + obj.Key.Name);
                             }
                         }                       
                         if (pg.ProfileEntries < 1)
@@ -869,6 +869,24 @@ namespace Gurux.DLMS
         /// </summary>
         internal bool GetAddress(byte[] buff, ref object clientId, ref object serverId)
         {
+            if (this.InterfaceType == DLMS.InterfaceType.General)
+            {
+                if (buff.Length < 5)
+                {
+                    return false;
+                }
+            }
+            else if (this.InterfaceType == DLMS.InterfaceType.Net)
+            {
+                if (buff.Length < 6)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                throw new Exception("Unknown interface type.");
+            }
             byte[] serverAddress = Gurux.Shared.GXCommon.GetAsByteArray(serverId);            
             int index = 0;
             int PacketStartID = 0, len = buff.Length;
@@ -1020,6 +1038,12 @@ namespace Gurux.DLMS
                     {
                         object sid = null, cid = null;
                         GetAddress(data, ref cid, ref sid);
+                        //If there is not enought data yet.
+                        if (cid == null || sid == null)
+                        {
+                            ReceivedFrame.AddRange(buff);
+                            return null;
+                        }
                         foreach (object it in this.ServerIDs)
                         {
                             if (sid.Equals(it))

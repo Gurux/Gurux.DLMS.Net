@@ -148,6 +148,14 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        string[] IGXDLMSBase.GetNames()
+        {
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, 
+                "APN", "PIN Code",
+                "Default Quality Of Service and Requested Quality Of Service"};
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 4;

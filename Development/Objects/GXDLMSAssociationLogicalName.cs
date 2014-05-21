@@ -258,6 +258,31 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        string[] IGXDLMSBase.GetNames()
+        {
+            if (Version == 0)
+            {
+                return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, 
+                    "Object List",
+                    "Aassociated_partners_id", 
+                    "Application Context Name", 
+                    "xDLMS Context Info", 
+                    "Authentication Mechanism Name", 
+                    "Secret", 
+                    "Association Status"};
+            }
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, 
+                "Object List",
+                "Aassociated_partners_id", 
+                "Application Context Name", 
+                "xDLMS Context Info", 
+                "Authentication Mechanism Name", 
+                "Secret", 
+                "Association Status", 
+                "Security Setup Reference"};
+        }                
+
         int IGXDLMSBase.GetAttributeCount()
         {
             //Security Setup Reference is from version 1.
@@ -527,7 +552,11 @@ namespace Gurux.DLMS.Objects
                         ObjectType type = (ObjectType)Convert.ToInt32(item[0]);
                         int version = Convert.ToInt32(item[1]);
                         String ln = GXDLMSObject.toLogicalName((byte[])item[2]);
-                        GXDLMSObject obj = Parent.FindByLN(type, ln);                           
+                        GXDLMSObject obj = null;
+                        if (Parent != null)
+                        {
+                            obj = Parent.FindByLN(type, ln);
+                        }
                         if (obj == null)
                         {
                             obj = Gurux.DLMS.GXDLMSClient.CreateObject(type);

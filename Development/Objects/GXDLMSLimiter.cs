@@ -93,6 +93,16 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
+        /// Attribute index of monitored value.
+        /// </summary>
+        [XmlIgnore()]
+        public int MonitoredAttributeIndex
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Provides the active threshold value to which the attribute monitored is compared.
         /// </summary>
         public object ThresholdActive
@@ -271,6 +281,15 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        string[] IGXDLMSBase.GetNames()
+        {
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Monitored Value", 
+                "Active Threshold", "Normal Threshold", "Emergency Threshold", "Threshold Duration Min Over", 
+                "Threshold Duration Min Under", "Emergency Profile", "Emergency Profile Group", 
+                "Emergency Profile Active", "Actions"};            
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 11;
@@ -343,7 +362,7 @@ namespace Gurux.DLMS.Objects
                 data.Add(3);
                 GXCommon.SetData(data, DataType.Int16, MonitoredValue.ObjectType);
                 GXCommon.SetData(data, DataType.OctetString, MonitoredValue.LogicalName);
-                GXCommon.SetData(data, DataType.UInt8, MonitoredValue.SelectedAttributeIndex);
+                GXCommon.SetData(data, DataType.UInt8, MonitoredAttributeIndex);
                 return data.ToArray();
             }
             else if (index == 3)
@@ -428,10 +447,7 @@ namespace Gurux.DLMS.Objects
                 string ln = GXDLMSClient.ChangeType((byte[])((object[])value)[1], DataType.OctetString).ToString();
                 int attIndex = Convert.ToInt32(((object[])value)[2]);
                 MonitoredValue = Parent.FindByLN(ot, ln);
-                if (MonitoredValue != null)
-                {
-                    MonitoredValue.SelectedAttributeIndex = attIndex;
-                }
+                MonitoredAttributeIndex = attIndex;
             }
             else if (index == 3)
             {

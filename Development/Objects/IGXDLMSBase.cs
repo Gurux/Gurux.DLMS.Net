@@ -62,7 +62,18 @@ namespace Gurux.DLMS.Objects
         /// <returns></returns>
         int GetMethodCount();
 
+        /// <summary>
+        /// Returns data type of selected attribute index.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
         DataType GetDataType(int index);
+
+        /// <summary>
+        /// Returns names of attribute indexes.
+        /// </summary>
+        /// <returns></returns>
+        string[] GetNames();
 
         /// <summary>
         /// Returns value of given attribute.

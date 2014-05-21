@@ -204,6 +204,13 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        string[] IGXDLMSBase.GetNames()
+        {
+            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "PHY Reference", 
+                                "LCP Options", "IPCP Options", "PPP Authentication"};            
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 5;

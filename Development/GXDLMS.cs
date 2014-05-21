@@ -590,6 +590,24 @@ namespace Gurux.DLMS
             int error;
             try
             {
+                if (this.InterfaceType == DLMS.InterfaceType.General)
+                {
+                    if (data.Length < 5)
+                    {
+                        return false;
+                    }
+                }
+                else if (this.InterfaceType == DLMS.InterfaceType.Net)
+                {
+                    if (data.Length < 6)
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    throw new Exception("Unknown interface type.");
+                }
                 bool packetFull, wrongCrc;
                 byte command;
                 GetDataFromFrame(new List<byte>(data), 0, out frame, true, out error, false, out packetFull, out wrongCrc, out command, false);

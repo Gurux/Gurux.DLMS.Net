@@ -70,6 +70,15 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Standard data types.
+        /// </summary>
+        public string UIDataType
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Convert to string.
         /// </summary>
         /// <returns></returns>

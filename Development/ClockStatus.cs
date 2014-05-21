@@ -14,7 +14,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// OK.
         /// </summary>
-        None = 0,
+        Ok = 0,
         /// <summary>
         /// Invalid a value,
         /// </summary>

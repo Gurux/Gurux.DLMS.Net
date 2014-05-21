@@ -150,6 +150,13 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        string[] IGXDLMSBase.GetNames()
+        {
+            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Security Policy", 
+                "Security Suite", "Client System Title", "Server System Title" };            
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 5;

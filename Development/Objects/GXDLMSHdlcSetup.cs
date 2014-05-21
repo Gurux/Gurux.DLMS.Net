@@ -202,6 +202,20 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        string[] IGXDLMSBase.GetNames()
+        {
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, 
+                "Communication Speed", 
+                "Window Size Transmit", 
+                "Window Size Receive", 
+                "Maximum Info Length Transmit", 
+                "Maximum Info Length Receive", 
+                "InterCharachter Timeout", 
+                "Inactivity Timeout", 
+                "Device Address"};
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 9;

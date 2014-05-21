@@ -149,6 +149,12 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        string[] IGXDLMSBase.GetNames()
+        {
+            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Register Assignment", "Mask List", "Active Mask" };            
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 4;

@@ -76,20 +76,20 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Current avarage value of COSEM Data object.
+        /// Current average value of COSEM Data object.
         /// </summary>
         [XmlIgnore()]
-        public object CurrentAvarageValue
+        public object CurrentAverageValue
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Last avarage value of COSEM Data object.
+        /// Last average value of COSEM Data object.
         /// </summary>
         [XmlIgnore()]
-        public object LastAvarageValue
+        public object LastAverageValue
         {
             get;
             set;
@@ -163,9 +163,9 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// The number of periods used to calculate the LastAvarageValue.
-        /// NumberOfPeriods >= 1 NumberOfPeriods > 1 indicates that the LastAvarageValue represents “sliding demand”.
-        /// NumberOfPeriods = 1 indicates that the LastAvarageValue represents "block demand".
+        /// The number of periods used to calculate the LastAverageValue.
+        /// NumberOfPeriods >= 1 NumberOfPeriods > 1 indicates that the LastAverageValue represents “sliding demand”.
+        /// NumberOfPeriods = 1 indicates that the LastAverageValue represents "block demand".
         /// The behaviour of the meter after writing a new value to this attribute shall be 
         /// specified by the manufacturer.
         /// </summary>
@@ -188,7 +188,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, CurrentAvarageValue, LastAvarageValue, "Scaler: " + Scaler + " Unit: " + Unit, 
+            return new object[] { LogicalName, CurrentAverageValue, LastAverageValue, "Scaler: " + Scaler + " Unit: " + Unit, 
                             Status, CaptureTime, StartTimeCurrent, Period, NumberOfPeriods };
         }
 
@@ -202,17 +202,19 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(1);
             }
-            //ScalerUnit
+
+            //Scaler and Unit                        
             if (!IsRead(4))
             {
                 attributes.Add(4);
             }
-            //CurrentAvarageValue
+            //CurrentAverageValue
             if (CanRead(2))
             {
                 attributes.Add(2);
             }
-            //LastAvarageValue            
+
+            //LastAverageValue
             if (CanRead(3))
             {
                 attributes.Add(3);
@@ -243,6 +245,20 @@ namespace Gurux.DLMS.Objects
                 attributes.Add(9);
             }
             return attributes.ToArray();
+        }
+
+        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        string[] IGXDLMSBase.GetNames()
+        {
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, 
+                "Current Average Value", 
+                "Last Average Value", 
+                "Scaler and Unit", 
+                "Status", 
+                "Capture Time", 
+                "Start Time Current", 
+                "Period", 
+                "Number Of Periods"};            
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -304,11 +320,11 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 2)
             {
-                return this.CurrentAvarageValue;
+                return this.CurrentAverageValue;
             }
             if (index == 3)
             {
-                return this.LastAvarageValue;
+                return this.LastAverageValue;
             }
             if (index == 4)
             {
@@ -361,17 +377,17 @@ namespace Gurux.DLMS.Objects
                 {
                     try
                     {
-                        CurrentAvarageValue = Convert.ToDouble(value) * Scaler;
+                        CurrentAverageValue = Convert.ToDouble(value) * Scaler;
                     }
                     catch (Exception)
                     {
                         //Sometimes scaler is set for wrong Object type.
-                        CurrentAvarageValue = value;
+                        CurrentAverageValue = value;
                     }
                 }
                 else
                 {
-                    CurrentAvarageValue = value;
+                    CurrentAverageValue = value;
                 }
             }
             else if (index == 3)
@@ -380,17 +396,17 @@ namespace Gurux.DLMS.Objects
                 {
                     try
                     {
-                        LastAvarageValue = Convert.ToDouble(value) * Scaler;
+                        LastAverageValue = Convert.ToDouble(value) * Scaler;
                     }
                     catch (Exception)
                     {
                         //Sometimes scaler is set for wrong Object type.
-                        LastAvarageValue = value;
+                        LastAverageValue = value;
                     }
                 }
                 else
                 {
-                    LastAvarageValue = value;
+                    LastAverageValue = value;
                 }
             }
             else if (index == 4)

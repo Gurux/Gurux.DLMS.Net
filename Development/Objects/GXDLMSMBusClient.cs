@@ -274,6 +274,21 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        string[] IGXDLMSBase.GetNames()
+        {
+            if (Version == 0)
+            {
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, "MBus Port Reference", 
+                "Capture Definition", "Capture Period", "Primary Address", "Identification Number", 
+                "Manufacturer ID", "Version", "Device Type", "Access Number", "Status", "Alarm"};
+            }
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, "MBus Port Reference", 
+                "Capture Definition", "Capture Period", "Primary Address", "Identification Number", 
+                "Manufacturer ID", "Version", "Device Type", "Access Number", "Status", "Alarm", 
+                "Configuration", "Encryption Key Status"};
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             if (Version == 0)

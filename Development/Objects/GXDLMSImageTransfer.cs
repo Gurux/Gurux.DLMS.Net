@@ -341,6 +341,15 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        string[] IGXDLMSBase.GetNames()
+        {
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, 
+                "Image Block Size", "Image Transferred Blocks Status", 
+                "Image FirstNot Transferred Block Number", 
+                "Image Transfer Enabled", "Image Transfer Status", "Image Activate Info"};            
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 7;

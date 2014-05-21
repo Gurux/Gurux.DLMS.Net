@@ -201,6 +201,13 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        string[] IGXDLMSBase.GetNames()
+        {
+            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Port", "IP Reference", 
+                            "Maximum Segment Size", "Maximum Simultaneous Connections", "Inactivity Timeout" };            
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 6;

@@ -209,6 +209,17 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        string[] IGXDLMSBase.GetNames()
+        {
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, 
+                "Data LinkLayer Reference", "IP Address", "Multicast IP Address", 
+                "IP Options", "Subnet Mask", "Gateway IP Address", "Use DHCP", 
+                "Primary DNS Address", "Secondary DNS Address"
+            };
+
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 10;

@@ -891,7 +891,7 @@ namespace Gurux.DLMS
         /// <param name="AttributeIndex"></param>
         /// <param name="dataIndex"></param>
         /// <returns></returns>
-        internal static GXDLMSObject CreateDLMSObject(int ClassID, object Version, int BaseName, object LN, object AccessRights, int AttributeIndex, int dataIndex)
+        internal static GXDLMSObject CreateDLMSObject(int ClassID, object Version, int BaseName, object LN, object AccessRights)
         {
             GXDLMSObject obj = null;
             ObjectType type = (ObjectType)ClassID;
@@ -904,7 +904,7 @@ namespace Gurux.DLMS
             {
                 obj = new GXDLMSObject();
             }
-            UpdateObjectData(obj, type, Version, BaseName, LN, AccessRights, AttributeIndex, dataIndex);
+            UpdateObjectData(obj, type, Version, BaseName, LN, AccessRights);
             return obj;
         }
 
@@ -943,7 +943,7 @@ namespace Gurux.DLMS
                 {                    
                     if (baseName > 0)
                     {
-                        GXDLMSObject comp = CreateDLMSObject(ot, objects[2], baseName, objects[3], null, 0, 0);
+                        GXDLMSObject comp = CreateDLMSObject(ot, objects[2], baseName, objects[3], null);
                         if (comp != null)
                         {
                             items.Add(comp);
@@ -968,7 +968,7 @@ namespace Gurux.DLMS
         /// <param name="accessRights"></param>
         /// <param name="attributeIndex"></param>
         /// <param name="dataIndex"></param>
-        internal static void UpdateObjectData(GXDLMSObject obj, ObjectType objectType, object version, object baseName, object logicalName, object accessRights, int attributeIndex, int dataIndex)
+        internal static void UpdateObjectData(GXDLMSObject obj, ObjectType objectType, object version, object baseName, object logicalName, object accessRights)
         {
             obj.ObjectType = objectType;
             // Check access rights...            
@@ -1001,9 +1001,7 @@ namespace Gurux.DLMS
                     }
                     obj.SetMethodAccess(id, (MethodAccessMode)tmp);
                 }
-            }
-            ((IGXDLMSColumnObject)obj).SelectedAttributeIndex = attributeIndex;
-            ((IGXDLMSColumnObject)obj).SelectedDataIndex = dataIndex;
+            }           
             if (baseName != null)
             {
                 obj.ShortName = Convert.ToUInt16(baseName);
@@ -1022,7 +1020,7 @@ namespace Gurux.DLMS
             }
         }
 
-        static void UpdateOBISCodes(GXDLMSObjectCollection objects)
+        internal static void UpdateOBISCodes(GXDLMSObjectCollection objects)
         {
             GXStandardObisCodeCollection codes = new GXStandardObisCodeCollection();
             string[] rows = Gurux.DLMS.Properties.Resources.OBISCodes.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
@@ -1047,12 +1045,12 @@ namespace Gurux.DLMS
                     //If string is used
                     if (code.DataType.Contains("10"))
                     {
-                        code.DataType = "10";
+                        code.UIDataType = "10";
                     }
                     //If date time is used.
                     else if (code.DataType.Contains("25") || code.DataType.Contains("26"))
                     {
-                        code.DataType = "25";
+                        code.UIDataType = code.DataType = "25";
                     }                    
                     //Time stamps of the billing periods objects (first scheme if there are two)
                     else if (code.DataType.Contains("9"))
@@ -1079,38 +1077,53 @@ namespace Gurux.DLMS
                             //Date of last reset (Second billing period scheme)
                         GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.15.255", it.LogicalName)))
                         {
-                            code.DataType = "25";
+                            code.UIDataType = "25";
                         }
                         //Local time
                         else if (GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.1.255", it.LogicalName))
                         {
-                            code.DataType = "27";
+                            code.UIDataType = "27";
                         }
                         //Local date
                         else if (GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.2.255", it.LogicalName))
                         {
-                            code.DataType = "26";
+                            code.UIDataType = "26";
                         }
                         //Active firmware identifier
                         else if (GXStandardObisCodeCollection.EqualsMask("1.0.0.2.0.255", it.LogicalName))
                         {
-                            code.DataType = "10";
+                            code.UIDataType = "10";
                         }
                     }
                     if (code.DataType != "*" && code.DataType != string.Empty && !code.DataType.Contains(","))
                     {
-                        DataType type = (DataType)int.Parse(code.DataType);
+                        DataType type = (DataType)int.Parse(code.DataType);                       
                         switch (it.ObjectType)
                         {                            
                             case ObjectType.Data:
                             case ObjectType.Register:
                             case ObjectType.RegisterActivation:
                             case ObjectType.ExtendedRegister:
-                                it.SetUIDataType(2, type);
+                                it.SetDataType(2, type);
                                 break;
                             default:
                                 break;
                         }                        
+                    }                    
+                    if (!string.IsNullOrEmpty(code.UIDataType))
+                    {
+                        DataType uiType = (DataType)int.Parse(code.UIDataType);
+                        switch (it.ObjectType)
+                        {
+                            case ObjectType.Data:
+                            case ObjectType.Register:
+                            case ObjectType.RegisterActivation:
+                            case ObjectType.ExtendedRegister:
+                                it.SetUIDataType(2, uiType);
+                                break;
+                            default:
+                                break;
+                        }                      
                     }                    
                 }
                 else
@@ -1187,7 +1200,7 @@ namespace Gurux.DLMS
                 int ot = Convert.ToInt16(objects[0]);
                 if (!onlyKnownObjects || GXDLMS.AvailableObjectTypes.ContainsKey((ObjectType) ot))
                 {
-                    GXDLMSObject comp = CreateDLMSObject(ot, objects[1], 0, objects[2], objects[3], 0, 0);
+                    GXDLMSObject comp = CreateDLMSObject(ot, objects[1], 0, objects[2], objects[3]);
                     items.Add(comp);                    
                 }
                 else
@@ -1203,7 +1216,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public GXDLMSObjectCollection ParseColumns(byte[] data)
+        public List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> ParseColumns(byte[] data)
         {
             if (data == null)
             {
@@ -1221,6 +1234,7 @@ namespace Gurux.DLMS
             int objectCnt = 0;
             GXDLMSObjectCollection items = new GXDLMSObjectCollection();
             int total, count;
+            List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> list = new List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
             while (index != data.Length && cnt != objectCnt)
             {
                 DataType type = DataType.None;
@@ -1235,11 +1249,13 @@ namespace Gurux.DLMS
                     throw new GXDLMSException("Invalid structure format.");
                 }
                 ++objectCnt;
-                GXDLMSObject comp = CreateDLMSObject(Convert.ToInt16(objects[0]), null, 0, objects[1], 0, Convert.ToInt16(objects[2]), Convert.ToInt16(objects[3]));
+                GXDLMSObject comp = CreateDLMSObject(Convert.ToInt16(objects[0]), null, 0, objects[1], 0);
+                int attributeIndex = Convert.ToInt16(objects[2]);
                 if (comp != null)
                 {
                     items.Add(comp);
-                }
+                    list.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(comp, new GXDLMSCaptureObject(attributeIndex, Convert.ToInt16(objects[3]))));
+                }                
                 //Update data type and scaler unit if register.
                 if (Objects != null)
                 {
@@ -1248,13 +1264,12 @@ namespace Gurux.DLMS
                     {
                         if (comp is GXDLMSRegister)
                         {
-                            int index2 = tmp.SelectedAttributeIndex;
                             //Some meters return zero.
-                            if (index2 == 0)
+                            if (attributeIndex == 0)
                             {
-                                index2 = 2;
+                                attributeIndex = 2;
                             }
-                            comp.SetUIDataType(index2, tmp.GetUIDataType(index2));
+                            comp.SetUIDataType(attributeIndex, tmp.GetUIDataType(attributeIndex));
                             (comp as GXDLMSRegister).Scaler = (tmp as GXDLMSRegister).Scaler;
                             (comp as GXDLMSRegister).Unit = (tmp as GXDLMSRegister).Unit;
                         }
@@ -1262,7 +1277,7 @@ namespace Gurux.DLMS
                 }
             }            
             UpdateOBISCodes(items);
-            return items;
+            return list;
         }
 
         /// <summary>
@@ -1687,9 +1702,17 @@ namespace Gurux.DLMS
         /// <returns></returns>
         public byte[] ReadRowsByRange(object name, string ln, ObjectType objectType, int version, DateTime start, DateTime end)
         {
-            GXDateTime s = new GXDateTime(start);
+            GXDateTime s = new GXDateTime(start.ToUniversalTime());
+            if (start == DateTime.MinValue || start == DateTime.MaxValue)
+            {
+                s.Value = start;
+            }
             s.Skip = DateTimeSkips.Ms;
-            GXDateTime e = new GXDateTime(end);
+            GXDateTime e = new GXDateTime(end.ToUniversalTime());
+            if (end == DateTime.MinValue || end == DateTime.MaxValue)
+            {
+                e.Value = end;
+            }
             e.Skip = DateTimeSkips.Ms;
 
             m_Base.ClearProgress();

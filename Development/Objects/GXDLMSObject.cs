@@ -46,51 +46,7 @@ using System.Runtime.Serialization;
 using System.Reflection;
 
 namespace Gurux.DLMS.Objects
-{
-    public interface IGXDLMSColumnObject
-    {
-        /// <summary>
-        /// Index of the object, if it is in a profile generic table. 
-        /// </summary>
-        /// <remarks>
-        /// Retrieves the index of the DLMS object, if the object is a part of a  
-        /// profile generic table. If the object is not a part of a profile generic 
-        /// table, the value is 0.
-        /// </remarks>
-        [ReadOnly(true)]
-        [DefaultValue(0)]
-        [XmlElement("AttributeIndex")]
-        int SelectedAttributeIndex
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Data index of DLMS object, if it is in a profile generic table. 
-        /// </summary>
-        [ReadOnly(true)]
-        [DefaultValue(0)]
-        [XmlElement("DataIndex")]
-        int SelectedDataIndex
-        {
-            get;
-            set;
-        }
-
-        string SourceLogicalName
-        {
-            get;
-            set;
-        }
-        
-        ObjectType SourceObjectType
-        {
-            get;
-            set;
-        }
-    }
-
+{  
     /// <summary>
     /// Notifiest that user has change value.
     /// </summary>
@@ -103,7 +59,7 @@ namespace Gurux.DLMS.Objects
     /// <summary>
     /// GXDLMSObject provides an interface to DLMS registers. 
     /// </summary>
-    public class GXDLMSObject : IGXDLMSColumnObject
+    public class GXDLMSObject
     {        
         /// <summary>
         /// Is attribute read.
@@ -277,55 +233,6 @@ namespace Gurux.DLMS.Objects
                 }
                 return LogicalName;
             }
-        }
-
-        /// <summary>
-        /// Index of the object, if it is in a profile generic table. 
-        /// </summary>
-        /// <remarks>
-        /// Retrieves the index of the DLMS object, if the object is a part of a  
-        /// profile generic table. If the object is not a part of a profile generic 
-        /// table, the value is 0.
-        /// </remarks>
-        [ReadOnly(true)]
-        [DefaultValue(0)]
-        [XmlElement("AttributeIndex")]
-        public int SelectedAttributeIndex
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Data index of DLMS object, if it is in a profile generic table. 
-        /// </summary>
-        [ReadOnly(true)]
-        [DefaultValue(0)]
-        [XmlElement("DataIndex")]
-        public int SelectedDataIndex
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Logical Name of parent object.
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public string SourceLogicalName
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// object type of parent object.
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public ObjectType SourceObjectType
-        {
-            get;
-            set;
         }
        
         /// <summary>

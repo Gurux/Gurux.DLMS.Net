@@ -176,18 +176,18 @@ namespace Gurux.DLMS.Objects
             if (CanRead(6))
             {
                 attributes.Add(6);
-            } 
-            //SeasonProfileActive
+            }
+            //SeasonProfilePassive
             if (CanRead(7))
             {
                 attributes.Add(7);
             }
-            //WeekProfileTableActive
+            //WeekProfileTablePassive
             if (CanRead(8))
             {
                 attributes.Add(8);
             }
-            //DayProfileTableActive
+            //DayProfileTablePassive
             if (CanRead(9))
             {
                 attributes.Add(9);
@@ -198,6 +198,14 @@ namespace Gurux.DLMS.Objects
                 attributes.Add(10);
             }             
             return attributes.ToArray();
+        }
+
+        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        string[] IGXDLMSBase.GetNames()
+        {
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Active Calendar Name ", "Active Season Profile", "Active Week Profile Table", 
+                "Active Day Profile Table", "Passive Calendar Name", "Passive Season Profile", "Passive Week Profile Table", "Passive Day Profile Table", "Time"};
+
         }
 
         int IGXDLMSBase.GetAttributeCount()

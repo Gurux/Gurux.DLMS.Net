@@ -46,6 +46,47 @@ using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
+    [Serializable]
+    public struct GXKeyValuePair<K, V>
+    {
+        private K m_Key;
+        private V m_Value;
+
+        public K Key
+        {
+            get
+            {
+                return m_Key;
+            }
+            set
+            {
+                m_Key = value;
+            }
+        }
+        public V Value
+        {
+            get
+            {
+                return m_Value;
+            }
+            set
+            {
+                m_Value = value;
+            }
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        public GXKeyValuePair(K key, V value)
+        {
+            m_Key = key;
+            m_Value = value;
+        }
+    }
+
     public enum AccessRange
     {
         /// <summary>
@@ -99,6 +140,46 @@ namespace Gurux.DLMS.Objects
         FarestFromZero
     }
 
+    public class GXDLMSCaptureObject
+    {
+        /// <summary>
+        /// Attribute Index of DLMS object in the profile generic table.
+        /// </summary>
+        public int AttributeIndex
+        {
+            get;
+            set;
+        }
+        
+        /// <summary>
+        /// Data index of DLMS object in the profile generic table. 
+        /// </summary>
+        public int DataIndex
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        public GXDLMSCaptureObject()
+        {
+
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="attributeIndex">Attribute index.</param>
+        /// <param name="dataIndex">Data Index.</param>
+        public GXDLMSCaptureObject(int attributeIndex, int dataIndex)
+        {
+            AttributeIndex = attributeIndex;
+            DataIndex = dataIndex;
+        }
+    }
+
     public class GXDLMSProfileGeneric : GXDLMSObject, IGXDLMSBase
     {
         object Owner
@@ -142,8 +223,7 @@ namespace Gurux.DLMS.Objects
             To = DateTime.Now.AddDays(1);
             AccessSelector = AccessRange.Last;
             Buffer = new List<object[]>();
-            CaptureObjects = new GXDLMSObjectCollection();
-            CaptureObjects2 = new List<KeyValuePair<GXDLMSObject, int>>();
+            CaptureObjects = new List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
         }
 
         /// <inheritdoc cref="GXDLMSObject.UpdateDefaultValueItems"/>
@@ -211,14 +291,14 @@ namespace Gurux.DLMS.Objects
         /// Captured Objects.
         /// </summary>
         [XmlArray("Columns")]
-        public GXDLMSObjectCollection CaptureObjects
+        public GXDLMSObjectCollection CaptureObjects3
         {
             get;
             set;
         }
 
         [XmlArray("CaptureObjects")]
-        public List<KeyValuePair<GXDLMSObject, int>> CaptureObjects2
+        public List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> CaptureObjects
         {
             get;
             set;
@@ -251,6 +331,28 @@ namespace Gurux.DLMS.Objects
         [XmlIgnore()]
         [DefaultValue(null)]
         public GXDLMSObject SortObject
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Sort object's attribute index.
+        /// </summary>
+        [XmlIgnore()]
+        [DefaultValue(0)]
+        public int SortAttributeIndex
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Sort object's data index.
+        /// </summary>
+        [XmlIgnore()]
+        [DefaultValue(0)]
+        public int SortDataIndex
         {
             get;
             set;
@@ -311,9 +413,9 @@ namespace Gurux.DLMS.Objects
             }
             object[] values = new object[CaptureObjects.Count];
             int pos = -1;
-            foreach (GXDLMSObject obj in CaptureObjects)
+            foreach (var obj in CaptureObjects)
             {
-                ValueEventArgs e = new ValueEventArgs(obj, obj.SelectedAttributeIndex, 0);
+                ValueEventArgs e = new ValueEventArgs(obj.Key, obj.Value.AttributeIndex, 0);
                 (Owner as GXDLMSServerBase).Read(e);
                 if (e.Handled)
                 {
@@ -321,7 +423,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    values[++pos] = obj.GetValues()[obj.SelectedAttributeIndex - 1];
+                    values[++pos] = obj.Key.GetValues()[obj.Value.AttributeIndex - 1];
                 }
             }
             lock (Buffer)
@@ -383,6 +485,13 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        string[] IGXDLMSBase.GetNames()
+        {
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, "CaptureObjects", 
+                "Capture Period", "Buffer", "Sort Method", "Sort Object", "Entries In Use", "Profile Entries"};            
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 8;
@@ -414,57 +523,7 @@ namespace Gurux.DLMS.Objects
                 }
             }
             return data.ToArray();
-        }
-
-        /// <summary>
-        /// Returns Association View.
-        /// </summary>
-        /// <param name="sortObject">Object to used in sort.</param>
-        /// <returns></returns>
-        byte[] GetSortObject(GXDLMSObject sortObject)
-        {
-            List<byte> data = new List<byte>();
-            data.Add((byte)DataType.Structure);
-            data.Add(4);//Count    
-            if (sortObject == null)
-            {
-                GXCommon.SetData(data, DataType.UInt16, 0);//ClassID
-                GXCommon.SetData(data, DataType.OctetString, new byte[6]);//LN
-                GXCommon.SetData(data, DataType.Int8, 0); //Selected Attribute Index
-                GXCommon.SetData(data, DataType.UInt16, 0); //Selected Data Index                
-            }
-            else
-            {
-                GXCommon.SetData(data, DataType.UInt16, sortObject.ObjectType);//ClassID
-                GXCommon.SetData(data, DataType.OctetString, sortObject.LogicalName);//LN
-                GXCommon.SetData(data, DataType.Int8, sortObject.SelectedAttributeIndex); //Selected Attribute Index
-                GXCommon.SetData(data, DataType.UInt16, sortObject.SelectedDataIndex); //Selected Data Index                
-            }
-            return data.ToArray();
-        }
-
-        /// <summary>
-        /// Returns Association View.
-        /// </summary>
-        /// <param name="items"></param>
-        /// <returns></returns>
-        byte[] GetColumns(GXDLMSObjectCollection items)
-        {
-            List<byte> data = new List<byte>();
-            data.Add((byte)DataType.Array);
-            //Add count
-            GXCommon.SetObjectCount(items.Count, data);
-            foreach (GXDLMSObject it in items)
-            {
-                data.Add((byte)DataType.Structure);
-                data.Add(4);//Count    
-                GXCommon.SetData(data, DataType.UInt16, it.ObjectType);//ClassID
-                GXCommon.SetData(data, DataType.OctetString, it.LogicalName);//LN
-                GXCommon.SetData(data, DataType.Int8, it.SelectedAttributeIndex); //Selected Attribute Index
-                GXCommon.SetData(data, DataType.UInt16, it.SelectedDataIndex); //Selected Data Index                
-            }
-            return data.ToArray();
-        }
+        }             
 
         byte[] GetProfileGenericData(int selector, object parameters)
         {                        
@@ -525,14 +584,14 @@ namespace Gurux.DLMS.Objects
             data.Add((byte)DataType.Array);
             //Add count
             GXCommon.SetObjectCount(CaptureObjects.Count, data);
-            foreach (GXDLMSObject it in CaptureObjects)
+            foreach (var it in CaptureObjects)
             {
                 data.Add((byte)DataType.Structure);
                 data.Add(4);//Count    
-                GXCommon.SetData(data, DataType.UInt16, it.ObjectType);//ClassID
-                GXCommon.SetData(data, DataType.OctetString, it.LogicalName);//LN
-                GXCommon.SetData(data, DataType.Int8, it.SelectedAttributeIndex); //Selected Attribute Index
-                GXCommon.SetData(data, DataType.UInt16, it.SelectedDataIndex); //Selected Data Index                
+                GXCommon.SetData(data, DataType.UInt16, it.Key.ObjectType);//ClassID
+                GXCommon.SetData(data, DataType.OctetString, it.Key.LogicalName);//LN
+                GXCommon.SetData(data, DataType.Int8, it.Value.AttributeIndex); //Selected Attribute Index
+                GXCommon.SetData(data, DataType.UInt16, it.Value.DataIndex); //Selected Data Index                
             }
             return data.ToArray();
         }
@@ -612,8 +671,8 @@ namespace Gurux.DLMS.Objects
                 {
                     GXCommon.SetData(data, DataType.UInt16, SortObject.ObjectType); //ClassID
                     GXCommon.SetData(data, DataType.OctetString, SortObject.LogicalName); //LN
-                    GXCommon.SetData(data, DataType.Int8, SortObject.SelectedAttributeIndex); //Selected Attribute Index
-                    GXCommon.SetData(data, DataType.UInt16, SortObject.SelectedDataIndex); //Selected Data Index
+                    GXCommon.SetData(data, DataType.Int8, SortAttributeIndex); //Selected Attribute Index
+                    GXCommon.SetData(data, DataType.UInt16, SortDataIndex); //Selected Data Index
                 }            
                 return data.ToArray();
             }
@@ -658,7 +717,7 @@ namespace Gurux.DLMS.Objects
                         }
                         for (int pos = 0; pos != row.Length; ++pos)
                         {
-                            DataType type = CaptureObjects[pos].GetUIDataType(CaptureObjects[pos].SelectedAttributeIndex);
+                            DataType type = CaptureObjects[pos].Key.GetUIDataType(CaptureObjects[pos].Value.AttributeIndex);
                             if (row[pos] is byte[])
                             {
                                 if (type != DataType.None && row[pos] is byte[])
@@ -683,9 +742,9 @@ namespace Gurux.DLMS.Objects
                                     row[pos] = new GXDateTime(lastDate);
                                 }
                             }
-                            if (CaptureObjects[pos] is GXDLMSRegister && CaptureObjects[pos].SelectedAttributeIndex == 2)
+                            if (CaptureObjects[pos].Key is GXDLMSRegister && CaptureObjects[pos].Value.AttributeIndex == 2)
                             {
-                                double scaler = (CaptureObjects[pos] as GXDLMSRegister).Scaler;
+                                double scaler = (CaptureObjects[pos].Key as GXDLMSRegister).Scaler;
                                 if (scaler != 1)
                                 {
                                     try
@@ -706,7 +765,8 @@ namespace Gurux.DLMS.Objects
             else if (index == 3)
             {
                 Buffer.Clear();                
-                CaptureObjects.Clear();                
+                CaptureObjects.Clear();
+                GXDLMSObjectCollection objects = new GXDLMSObjectCollection();
                 foreach (object it in value as object[])
                 {
                     object[] tmp = it as object[];
@@ -725,12 +785,12 @@ namespace Gurux.DLMS.Objects
                     }
                     if (obj == null)
                     {
-                        obj = GXDLMSClient.CreateDLMSObject((int)type, null, 0, ln, 0, attributeIndex, dataIndex);
-                    }                    
-                    obj.SelectedAttributeIndex = attributeIndex;
-                    obj.SelectedDataIndex = dataIndex;
-                    CaptureObjects.Add(obj);
+                        obj = GXDLMSClient.CreateDLMSObject((int)type, null, 0, ln, 0);
+                    }
+                    CaptureObjects.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, new GXDLMSCaptureObject(attributeIndex, dataIndex)));
+                    objects.Add(obj);
                 }
+                GXDLMSClient.UpdateOBISCodes(objects);
             }
             else if (index == 4)
             {
@@ -751,9 +811,17 @@ namespace Gurux.DLMS.Objects
                     }
                     ObjectType type = (ObjectType)Convert.ToInt16(tmp[0]);
                     string ln = GXDLMSObject.toLogicalName((byte[])tmp[1]);
-                    int attributeIndex = Convert.ToInt16(tmp[2]);
-                    int dataIndex = Convert.ToInt16(tmp[3]);
-                    SortObject = CaptureObjects.FindByLN(type, ln);
+                    SortAttributeIndex = Convert.ToInt16(tmp[2]);
+                    SortDataIndex = Convert.ToInt16(tmp[3]);
+                    SortObject = null;
+                    foreach (var it in CaptureObjects)
+                    {
+                        if (it.Key.ObjectType == type && it.Key.LogicalName == ln)
+                        {
+                            SortObject = it.Key;
+                            break;
+                        }
+                    }
                 }
                 else
                 {

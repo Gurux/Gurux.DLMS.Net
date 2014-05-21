@@ -229,6 +229,20 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        string[] IGXDLMSBase.GetNames()
+        {
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, 
+                "Default Mode", 
+                "Default Baud rate",
+                "Proposed Baud rate", 
+                "Response Time", 
+                "Device Address", 
+                "Password 1", 
+                "Password 2", 
+                "Password 5"};
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 9;

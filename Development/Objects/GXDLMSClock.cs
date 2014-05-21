@@ -92,21 +92,7 @@ namespace Gurux.DLMS.Objects
         {
             get;
             set;
-        }
-
-        /// <inheritdoc cref="GXDLMSObject.UpdateDefaultValueItems"/>
-        public override void UpdateDefaultValueItems()
-        {
-            SetDataType(2, DataType.DateTime);
-            GXDLMSAttributeSettings att = this.Attributes.Find(4);
-            if (att == null)
-            {
-                att = new GXDLMSAttribute(4);
-                att.Access = AccessMode.Read;
-                att.Name = "Status";
-                Attributes.Add(att);
-            }
-        }
+        }       
 
         /// <summary>
         /// Time of COSEM Clock object.
@@ -378,6 +364,20 @@ namespace Gurux.DLMS.Objects
                 attributes.Add(9);
             }
             return attributes.ToArray();
+        }
+
+        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        string[] IGXDLMSBase.GetNames()
+        {
+            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, 
+                "Time", 
+                "Time Zone", 
+                "Status", 
+                "Begin", 
+                "End", 
+                "Deviation", 
+                "Enabled", 
+                "Clock Base" };            
         }
 
         int IGXDLMSBase.GetAttributeCount()
