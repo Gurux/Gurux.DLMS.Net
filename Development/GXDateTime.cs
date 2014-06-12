@@ -106,6 +106,30 @@ namespace Gurux.DLMS
         {
             Value = value;
         }
+       
+        /// <summary>
+        /// Convert DateTime to GXDateTime.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static implicit operator GXDateTime(DateTime value)
+        {
+            return new GXDateTime(value);
+        }
+
+        /// <summary>
+        /// Convert GXDateTime to DateTime.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static implicit operator DateTime(GXDateTime value)
+        {
+            if (value != null)
+            {
+                return value.Value;
+            }
+            return DateTime.MinValue;
+        }
 
         /// <summary>
         /// Constructor.

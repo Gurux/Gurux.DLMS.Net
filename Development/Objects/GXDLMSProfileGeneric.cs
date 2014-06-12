@@ -285,17 +285,7 @@ namespace Gurux.DLMS.Objects
         {
             get;
             set;
-        }
-
-        /// <summary>
-        /// Captured Objects.
-        /// </summary>
-        [XmlArray("Columns")]
-        public GXDLMSObjectCollection CaptureObjects3
-        {
-            get;
-            set;
-        }
+        }        
 
         [XmlArray("CaptureObjects")]
         public List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> CaptureObjects
@@ -385,6 +375,21 @@ namespace Gurux.DLMS.Objects
                 CapturePeriod, SortMethod, 
                 SortObject, EntriesInUse, ProfileEntries };
         }
+        
+        /// <summary>
+        /// Get captured objects.
+        /// </summary>
+        /// <returns></returns>
+        public GXDLMSObject[] GetCaptureObject() 
+        {
+            List<GXDLMSObject> list = new List<GXDLMSObject>();
+            foreach (var it in CaptureObjects)
+            {
+                list.Add(it.Key);                
+            }
+            return list.ToArray();
+        }
+        
 
         /// <summary>
         /// Clears the buffer.
