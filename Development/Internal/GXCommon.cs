@@ -698,15 +698,7 @@ namespace Gurux.DLMS.Internal
                 {
                     pos = -1;
                     return null;
-                }
-                if (!knownType)
-                {
-                    byte sz = buff[pos++];
-                    if (sz != 12)
-                    {
-                        throw new Exception("Invalid datetime format.");
-                    }
-                }
+                }                
                 GXDateTime dt = new GXDateTime();
                 //Get year.
                 int year = GXCommon.GetUInt16(buff, ref pos);
