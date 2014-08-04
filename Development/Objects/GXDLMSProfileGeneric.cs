@@ -403,6 +403,7 @@ namespace Gurux.DLMS.Objects
             lock (this)
             {
                 Buffer.Clear();
+                EntriesInUse = 0;
             }
         }
 
@@ -439,6 +440,7 @@ namespace Gurux.DLMS.Objects
                     Buffer.RemoveAt(0);
                 }
                 Buffer.Add(values);
+                EntriesInUse = Buffer.Count;
             }
         }
 
@@ -764,12 +766,14 @@ namespace Gurux.DLMS.Objects
                             }                            
                         }
                         Buffer.Add(row);
-                    }                    
+                    }
+                    EntriesInUse = Buffer.Count;
                 }
             }
             else if (index == 3)
             {
-                Buffer.Clear();                
+                Buffer.Clear();
+                EntriesInUse = 0;
                 CaptureObjects.Clear();
                 GXDLMSObjectCollection objects = new GXDLMSObjectCollection();
                 foreach (object it in value as object[])
