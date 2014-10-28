@@ -468,7 +468,7 @@ namespace Gurux.DLMS.Internal
                     ++t;
                 }
                 int byteCnt = (int)Math.Floor(t);
-                if (size < byteCnt) //If there is not enought data available.
+                if (size < byteCnt) //If there is not enough data available.
                 {
                     pos = -1;
                     return null;
@@ -483,7 +483,7 @@ namespace Gurux.DLMS.Internal
             }
             else if (type == DataType.Int32)
             {
-                if (size < 4) //If there is not enought data available.
+                if (size < 4) //If there is not enough data available.
                 {
                     pos = -1;
                     return null;
@@ -492,7 +492,7 @@ namespace Gurux.DLMS.Internal
             }
             else if (type == DataType.UInt32)
             {
-                if (size < 4) //If there is not enought data available.
+                if (size < 4) //If there is not enough data available.
                 {
                     pos = -1;
                     return null;
@@ -509,7 +509,7 @@ namespace Gurux.DLMS.Internal
                 else
                 {
                     len = GXCommon.GetObjectCount(buff, ref pos);
-                    if (buff.Length - pos < len) //If there is not enought data available.
+                    if (buff.Length - pos < len) //If there is not enough data available.
                     {
                         pos = -1;
                         return null;
@@ -534,7 +534,7 @@ namespace Gurux.DLMS.Internal
                 else
                 {
                     len = GXCommon.GetObjectCount(buff, ref pos);
-                    if (buff.Length - pos < len) //If there is not enought data available.
+                    if (buff.Length - pos < len) //If there is not enough data available.
                     {
                         pos = -1;
                         return null;
@@ -588,7 +588,7 @@ namespace Gurux.DLMS.Internal
                 else
                 {
                     len = GXCommon.GetObjectCount(buff, ref pos);
-                    if (buff.Length - pos < len) //If there is not enought data available.
+                    if (buff.Length - pos < len) //If there is not enough data available.
                     {
                         pos = -1;
                         return null;
@@ -623,7 +623,7 @@ namespace Gurux.DLMS.Internal
             }
             else if (type == DataType.Int16)
             {
-                if (size < 2) //If there is not enought data available.
+                if (size < 2) //If there is not enough data available.
                 {
                     pos = -1;
                     return null;
@@ -636,7 +636,7 @@ namespace Gurux.DLMS.Internal
             }
             else if (type == DataType.UInt16)
             {
-                if (size < 2) //If there is not enought data available.
+                if (size < 2) //If there is not enough data available.
                 {
                     pos = -1;
                     return null;
@@ -649,7 +649,7 @@ namespace Gurux.DLMS.Internal
             }
             else if (type == DataType.Int64)
             {
-                if (size < 8) //If there is not enought data available.
+                if (size < 8) //If there is not enough data available.
                 {
                     pos = -1;
                     return null;
@@ -658,7 +658,7 @@ namespace Gurux.DLMS.Internal
             }
             else if (type == DataType.UInt64)
             {
-                if (size < 8) //If there is not enought data available.
+                if (size < 8) //If there is not enough data available.
                 {
                     pos = -1;
                     return null;
@@ -667,7 +667,7 @@ namespace Gurux.DLMS.Internal
             }
             else if (type == DataType.Enum)
             {
-                if (size < 1) //If there is not enought data available.
+                if (size < 1) //If there is not enough data available.
                 {
                     pos = -1;
                     return null;
@@ -676,7 +676,7 @@ namespace Gurux.DLMS.Internal
             }
             else if (type == DataType.Float32)
             {
-                if (size < 4) //If there is not enought data available.
+                if (size < 4) //If there is not enough data available.
                 {
                     pos = -1;
                     return null;
@@ -685,7 +685,7 @@ namespace Gurux.DLMS.Internal
             }
             else if (type == DataType.Float64)
             {
-                if (size < 8) //If there is not enought data available.
+                if (size < 8) //If there is not enough data available.
                 {
                     pos = -1;
                     return null;
@@ -694,7 +694,7 @@ namespace Gurux.DLMS.Internal
             }
             else if (type == DataType.DateTime)
             {
-                if (size < 12) //If there is not enought data available.
+                if (size < 12) //If there is not enough data available.
                 {
                     pos = -1;
                     return null;
@@ -763,7 +763,7 @@ namespace Gurux.DLMS.Internal
                     dt.Value = dt.Value.AddMinutes(deviation);
                     dt.Value = dt.Value.ToLocalTime();
                 }
-                else
+                else //Use current time if deviation is not defined.
                 {
                     dt.Value = new DateTime(year, month, day, hours, minutes, seconds, milliseconds);
                 }                
@@ -771,14 +771,14 @@ namespace Gurux.DLMS.Internal
             }
             else if (type == DataType.Date)
             {
-                if (size < 5) //If there is not enought data available.
+                if (size < 5) //If there is not enough data available.
                 {
                     pos = 0xFF;
                     return null;
                 }
                 //Get year.
                 int year = GXCommon.GetUInt16(buff, ref pos);                
-                //Iskra meter returns bytes in wrong order.
+                //IskraEmeco meter returns bytes in wrong order.
                 if (year != 0xFFFF && year > 2100)
                 {
                     pos -= 2;
@@ -795,7 +795,7 @@ namespace Gurux.DLMS.Internal
             }
             else if (type == DataType.Time)
             {
-                if (size < 4) //If there is not enought data available.
+                if (size < 4) //If there is not enough data available.
                 {
                     pos = -1;
                     return null;

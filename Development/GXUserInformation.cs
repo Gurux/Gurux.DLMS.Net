@@ -98,7 +98,7 @@ namespace Gurux.DLMS
             int len = data[index++];
             if (data.Length - index < len)
             {
-                throw new Exception("Not enought data.");
+                throw new Exception("Not enough data.");
             }
             //Excoding the choice for user information
             tag = data[index++];

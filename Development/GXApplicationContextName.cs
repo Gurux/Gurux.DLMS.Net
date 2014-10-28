@@ -85,7 +85,7 @@ namespace Gurux.DLMS
             int len = buff[index++];
             if (buff.Length - index < len)
             {
-                throw new Exception("Encoding failed. Not enought data.");
+                throw new Exception("Encoding failed. Not enough data.");
             }
             if (buff[index++] != 0x6)
             {

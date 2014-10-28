@@ -563,7 +563,7 @@ namespace Gurux.DLMS
             m_Base.GetDataFromFrame(arr, index, out frame, true, out error, true, out packetFull, out wrongCrc, out command, false);
             if (!packetFull)
             {
-                throw new GXDLMSException("Not enought data to parse frame.");
+                throw new GXDLMSException("Not enough data to parse frame.");
             }
             if (wrongCrc)
             {
@@ -656,7 +656,6 @@ namespace Gurux.DLMS
             aarq.CodeData(buff, this.InterfaceType, m_Base.CtoSChallenge);
             m_Base.FrameSequence = -1;
             m_Base.ExpectedFrame = -1;
-            //Mikko
             m_Base.ReceiveSequenceNo = m_Base.SendSequenceNo = -1;
             return m_Base.SplitToBlocks(buff, Command.None);
         }
@@ -693,7 +692,7 @@ namespace Gurux.DLMS
             m_Base.GetDataFromFrame(arr, index, out frame, true, out error, false, out packetFull, out wrongCrc, out command, false);
             if (!packetFull)
             {
-                throw new GXDLMSException("Not enought data to parse frame.");
+                throw new GXDLMSException("Not enough data to parse frame.");
             }
             if (wrongCrc)
             {
@@ -798,7 +797,7 @@ namespace Gurux.DLMS
             m_Base.GetDataFromFrame(arr, index, out frame, true, out error, false, out packetFull, out wrongCrc, out command, true);
             if (!packetFull)
             {
-                throw new GXDLMSException("Not enought data to parse frame.");
+                throw new GXDLMSException("Not enough data to parse frame.");
             }
             if (wrongCrc)
             {
@@ -986,20 +985,39 @@ namespace Gurux.DLMS
                         obj.SetAccess(id, mode);
                     }
                 }
-                foreach (object[] methodAccess in (object[])access[1])
+                if (((object[])access[1])[0] is object[])
                 {
-                    int id = Convert.ToInt32(methodAccess[0]);
+                    foreach (object[] methodAccess in (object[])access[1])
+                    {
+                        int id = Convert.ToInt32(methodAccess[0]);
+                        int tmp;
+                        //If version is 0.
+                        if (methodAccess[1] is Boolean)
+                        {
+                            tmp = ((Boolean)methodAccess[1]) ? 1 : 0;
+                        }
+                        else//If version is 1.
+                        {
+                            tmp = Convert.ToInt32(methodAccess[1]);
+                        }
+                        obj.SetMethodAccess(id, (MethodAccessMode)tmp);
+                    }
+                }
+                else //All versions from Actaris SL 7000 do not return collection as standard says.
+                {
+                    object[] arr = (object[])access[1];
+                    int id = Convert.ToInt32(arr[0]) + 1;
                     int tmp;
                     //If version is 0.
-                    if (methodAccess[1] is Boolean)
+                    if (arr[1] is Boolean)
                     {
-                        tmp = ((Boolean)methodAccess[1]) ? 1 : 0;
+                        tmp = ((Boolean)arr[1]) ? 1 : 0;
                     }
                     else//If version is 1.
                     {
-                        tmp = Convert.ToInt32(methodAccess[1]);
-                    }
-                    obj.SetMethodAccess(id, (MethodAccessMode)tmp);
+                        tmp = Convert.ToInt32(arr[1]);
+                    }                    
+                    obj.SetMethodAccess(id, (MethodAccessMode)tmp);                    
                 }
             }           
             if (baseName != null)

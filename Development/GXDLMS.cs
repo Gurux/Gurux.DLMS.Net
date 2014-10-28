@@ -503,7 +503,7 @@ namespace Gurux.DLMS
             RequestTypes moreData = GetDataFromFrame(arr, 0, out frame, true, out error, false, out packetFull, out wrongCrc, out command, true);
             if (!packetFull)
             {
-                throw new GXDLMSException("Not enought data to parse frame.");
+                throw new GXDLMSException("Not enough data to parse frame.");
             }
             if (wrongCrc)
             {
@@ -553,8 +553,7 @@ namespace Gurux.DLMS
                 byte id2 = GenerateACK();
                 if (id != id2)
                 {
-                    System.Diagnostics.Debug.WriteLine("Mikko3 : " + id.ToString() + " " + id2.ToString());
-                    //System.Diagnostics.Debug.Assert(false);
+                    System.Diagnostics.Debug.WriteLine("TODO: " + id.ToString() + " " + id2.ToString());
                 }
                 return AddFrame(id, false, null, 0, 0);
             }
@@ -755,7 +754,7 @@ namespace Gurux.DLMS
             GetDataFromFrame(new List<byte>(sendData), 0, out sendID, false, out error, false, out packetFull, out wrongCrc, out command, false);
             if (!packetFull)
             {
-                throw new GXDLMSException("Not enought data to parse frame.");
+                throw new GXDLMSException("Not enough data to parse frame.");
             }
             if (wrongCrc)
             {
@@ -764,7 +763,7 @@ namespace Gurux.DLMS
             RequestTypes more = GetDataFromFrame(new List<byte>(receivedData), 0, out receiveID, true, out error, true, out packetFull, out wrongCrc, out command, false);
             if (!packetFull)
             {
-                throw new GXDLMSException("Not enought data to parse frame.");
+                throw new GXDLMSException("Not enough data to parse frame.");
             }
             if (wrongCrc)
             {
@@ -797,7 +796,7 @@ namespace Gurux.DLMS
             GetDataFromFrame(new List<byte>(sendData), 0, out sendID, false, out error, false, out packetFull, out wrongCrc, out command, false);
             if (!packetFull)
             {
-                throw new GXDLMSException("Not enought data to parse frame.");
+                throw new GXDLMSException("Not enough data to parse frame.");
             }
             if (wrongCrc)
             {
@@ -806,7 +805,7 @@ namespace Gurux.DLMS
             RequestTypes more = GetDataFromFrame(new List<byte>(receivedData), 0, out receiveID, true, out error, true, out packetFull, out wrongCrc, out command, false);
             if (!packetFull)
             {
-                throw new GXDLMSException("Not enought data to parse frame.");
+                throw new GXDLMSException("Not enough data to parse frame.");
             }
             if (wrongCrc)
             {
@@ -849,7 +848,7 @@ namespace Gurux.DLMS
                 more = GetDataFromFrame(tmp, 0, out id, false, out error, false, out packetFull, out wrongCrc, out command, false);
                 if (!packetFull)
                 {
-                    throw new GXDLMSException("Not enought data to parse frame.");
+                    throw new GXDLMSException("Not enough data to parse frame.");
                 }
             }
             if (wrongCrc)
@@ -1012,8 +1011,7 @@ namespace Gurux.DLMS
                     byte id2 = GenerateIFrame(true);
                     if (id != id2)
                     {
-                        System.Diagnostics.Debug.WriteLine("Mikko : " + id.ToString() + " " + id2.ToString());
-//Mikko                        System.Diagnostics.Debug.Assert(false);
+                        System.Diagnostics.Debug.WriteLine("TODO : " + id.ToString() + " " + id2.ToString());
                     }
                 }
                 else
@@ -1022,8 +1020,7 @@ namespace Gurux.DLMS
                     byte id2 = GenerateIFrame(false);
                     if (id != id2)
                     {
-                        System.Diagnostics.Debug.WriteLine("Mikko2 : " + id.ToString() + " " + id2.ToString());
-                        //                        System.Diagnostics.Debug.Assert(false);
+                        System.Diagnostics.Debug.WriteLine("TODO : " + id.ToString() + " " + id2.ToString());
                     }
                 }
                 if (start + dataSize > tmp.Count)
@@ -1169,7 +1166,7 @@ namespace Gurux.DLMS
                 GetDataFromFrame(new List<byte>(sendData), index, out frame, false, out err, false, out packetFull, out wrongCrc, out command, false);
                 if (!packetFull)
                 {
-                    throw new GXDLMSException("Not enought data to parse frame.");
+                    throw new GXDLMSException("Not enough data to parse frame.");
                 }
                 if (wrongCrc)
                 {
@@ -1184,7 +1181,7 @@ namespace Gurux.DLMS
             RequestTypes moreData = GetDataFromFrame(data, index, out frame, true, out err, false, out packetFull, out wrongCrc, out command, false);
             if (!packetFull)
             {
-                throw new GXDLMSException("Not enought data to parse frame.");
+                throw new GXDLMSException("Not enough data to parse frame.");
             }
             if (wrongCrc)
             {
@@ -1261,7 +1258,7 @@ namespace Gurux.DLMS
                 //, DM, RIM, SIM, RD, DISC
         }
 
-        //Mikko
+        //TODO:
         static internal byte GenerateUFrame(UFrameMode mode)
         {
             return (byte) ((((int)mode & 0x1C) << 3) | 0x10 | (((int)mode & 3) << 2) | 3);
@@ -1271,7 +1268,7 @@ namespace Gurux.DLMS
         /// Generate I-frame: Information frame. Reserved for internal use.
         /// </summary>
         /// <returns></returns>
-        internal byte GenerateIFrame(bool Pf) //Mikko
+        internal byte GenerateIFrame(bool Pf) //TODO:
         {
             int value = 0;
             //if (Pf)
@@ -1698,7 +1695,7 @@ namespace Gurux.DLMS
                 {
                     FrameLen = ((frame & 0x7) << 8);
                 }
-                //If not enought data.
+                //If not enough data.
                 FrameLen += buff[index++];
                 if (len < FrameLen + index - 1)
                 {

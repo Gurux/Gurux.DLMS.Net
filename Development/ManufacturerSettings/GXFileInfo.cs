@@ -48,12 +48,14 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <summary>
         /// Opens up directory access for Everyone at FullAccess.
         /// </summary>
-        /// <param name="dirPath">Directory to updated.</param>
-        public static void UpdateDirectorySecurity(string dirPath)
+        /// <param name="path">Directory to updated.</param>
+        public static void UpdateDirectorySecurity(string path)
         {
-            DirectorySecurity access = Directory.GetAccessControl(dirPath);
-            SecurityIdentifier everyone = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
-            access.AddAccessRule(new FileSystemAccessRule(everyone, FileSystemRights.ReadAndExecute, AccessControlType.Allow));
+            DirectoryInfo dInfo = new DirectoryInfo(path);
+            DirectorySecurity dSecurity = dInfo.GetAccessControl();
+            dSecurity.AddAccessRule(new FileSystemAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null),
+                FileSystemRights.FullControl, InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.NoPropagateInherit, AccessControlType.Allow));
+            dInfo.SetAccessControl(dSecurity);
         }
 
         /// <summary>
@@ -62,9 +64,12 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <param name="filePath">File path.</param>
         public static void UpdateFileSecurity(string filePath)
         {
-            FileSecurity access = File.GetAccessControl(filePath);
             SecurityIdentifier everyone = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
-            access.AddAccessRule(new FileSystemAccessRule(everyone, FileSystemRights.ReadAndExecute, AccessControlType.Allow));
-        }    
+            FileInfo fInfo = new FileInfo(filePath);
+            FileSecurity fSecurity = File.GetAccessControl(filePath);
+            fSecurity.AddAccessRule(new FileSystemAccessRule(everyone, FileSystemRights.FullControl,
+                        InheritanceFlags.None, PropagationFlags.NoPropagateInherit, AccessControlType.Allow));
+            fInfo.SetAccessControl(fSecurity);
+        }
     }
 }

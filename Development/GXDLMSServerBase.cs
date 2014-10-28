@@ -708,7 +708,7 @@ namespace Gurux.DLMS
             m_Base.GetDataFromFrame(arr, index, out frame, true, out error, false, out packetFull, out wrongCrc, out command, false);
             if (!packetFull)
             {
-                throw new GXDLMSException("Not enought data to parse frame.");
+                throw new GXDLMSException("Not enough data to parse frame.");
             }
             if (wrongCrc)
             {
@@ -921,7 +921,7 @@ namespace Gurux.DLMS
                 {
                     FrameLen = ((frame & 0x7) << 8);
                 }                
-                //If not enought data.
+                //If not enough data.
                 FrameLen += buff[index++];
                 if (len < FrameLen + index - 1)
                 {
@@ -1038,7 +1038,7 @@ namespace Gurux.DLMS
                     {
                         object sid = null, cid = null;
                         GetAddress(data, ref cid, ref sid);
-                        //If there is not enought data yet.
+                        //If there is not enough data yet.
                         if (cid == null || sid == null)
                         {
                             ReceivedFrame.AddRange(buff);

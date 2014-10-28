@@ -203,7 +203,7 @@ namespace Gurux.Shared
         /// <returns></returns>
 		public static int IndexOf(byte[] input, byte[] pattern, int index, int count)
 		{
-			//If not enought data available.
+			//If not enough data available.
             if (count < pattern.Length)
 			{
 				return -1;

@@ -90,7 +90,7 @@ namespace Gurux.DLMS.Objects
     public enum AccessRange
     {
         /// <summary>
-        /// Read emtries.
+        /// Read entries.
         /// </summary>
         Entry,
         /// <summary>
@@ -131,7 +131,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         Smallest,
         /// <summary>
-        /// Nearst to zero is first.
+        /// Nearest to zero is first.
         /// </summary>
         NearestToZero,
         /// <summary>
@@ -205,7 +205,7 @@ namespace Gurux.DLMS.Objects
         /// <summary> 
         /// Constructor.
         /// </summary> 
-        /// <param name="ln">Logican Name of the object.</param>
+        /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSProfileGeneric(string ln)
             : this(ln, 0)
         {
@@ -214,7 +214,7 @@ namespace Gurux.DLMS.Objects
         /// <summary> 
         /// Constructor.
         /// </summary> 
-        /// <param name="ln">Logican Name of the object.</param>
+        /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSProfileGeneric(string ln, ushort sn)
             : base(ObjectType.ProfileGeneric, ln, 0)
@@ -534,7 +534,7 @@ namespace Gurux.DLMS.Objects
 
         byte[] GetProfileGenericData(int selector, object parameters)
         {                        
-            //If all data is readed.
+            //If all data is read.
             if (selector == 0 || parameters == null)
             {
                 return GetData(Buffer);

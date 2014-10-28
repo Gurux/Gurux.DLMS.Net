@@ -201,7 +201,7 @@ namespace Gurux.DLMS.Internal
             int size = buff.Length - index;
             if (len > size)
             {
-                throw new Exception("Not enought data.");
+                throw new Exception("Not enough data.");
             }
             while (index < buff.Length)
             {
