@@ -155,13 +155,57 @@ namespace Gurux.DLMS.ManufacturerSettings
             get;
             set;
         }
-
+ 
         /// <summary>
-        /// Used password.
+        /// Shared secret.
         /// </summary>
         [Browsable(false)]
         [DefaultValue(null)]
         public byte[] SharedSecret
+        {
+            get;
+            set;
+        } 
+
+        /// <summary>
+        /// Used GMAC Security type.
+        /// </summary>
+        [Browsable(false)]
+        [DefaultValue(Security.None)]
+        public Security Security
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// GMAC System Title.
+        /// </summary>
+        [Browsable(false)]
+        [DefaultValue(null)]
+        public byte[] SystemTitle
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// GMAC block cipher key.
+        /// </summary>
+        [Browsable(false)]
+        [DefaultValue(null)]
+        public byte[] BlockCipherKey
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// GMAC authentication key.
+        /// </summary>
+        [Browsable(false)]
+        [DefaultValue(null)]
+        public byte[] AuthenticationKey
         {
             get;
             set;

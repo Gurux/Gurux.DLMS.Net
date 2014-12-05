@@ -115,13 +115,13 @@ namespace Gurux.DLMS.Objects
                         break;
                     }
                 }
-                byte[] serverChallenge = GXDLMS.Chipher(b.Authentication, challenge.ToArray());
+                byte[] serverChallenge = GXDLMS.Chipher(b.Authentication, challenge.ToArray(), null);
                 byte[] clientChallenge = (byte[]) parameters;
                 int pos = 0;
                 if (GXCommon.Compare(clientChallenge, ref pos, serverChallenge))
                 {
                     CtoS.AddRange(b.CtoSChallenge);
-                    return s.Acknowledge(Command.WriteResponse, 0, GXDLMS.Chipher(b.Authentication, CtoS.ToArray()), DataType.OctetString);
+                    return s.Acknowledge(Command.WriteResponse, 0, GXDLMS.Chipher(b.Authentication, CtoS.ToArray(), null), DataType.OctetString);
                 }
                 else
                 {

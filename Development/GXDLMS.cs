@@ -41,6 +41,7 @@ using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Objects;
 using Gurux.DLMS.Internal;
 using System.Security.Cryptography;
+using System.IO;
 
 namespace Gurux.DLMS
 {            
@@ -59,7 +60,7 @@ namespace Gurux.DLMS
 
         uint PacketIndex;
         /// <summary>
-        /// HDLC Sequency number.
+        /// HDLC sequence number.
         /// </summary>
         internal int ReceiveSequenceNo = -1, SendSequenceNo = -1;
         bool Segmented = false;
@@ -156,8 +157,33 @@ namespace Gurux.DLMS
             return obj;
         }
 
-        static public byte[] Chipher(Authentication auth, byte[] plainText)
+        static public byte[] Chipher(Authentication auth, byte[] plainText, byte[] secret)
         {
+            if (auth == Authentication.High)
+            {
+                using (AesManaged aesAlg = new AesManaged())
+                {
+                    //aesAlg.Key = plainText;
+                    //aesAlg.IV = plainText;
+                    // Create a decrytor to perform the stream transform.
+                    ICryptoTransform encryptor = aesAlg.CreateEncryptor();//secret, new byte[] { 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36 });
+                    // Create the streams used for encryption. 
+                    using (MemoryStream msEncrypt = new MemoryStream())
+                    {
+                        using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+                        {
+                            using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
+                            {
+
+                                //Write all data to the stream.
+                                swEncrypt.Write(plainText);
+                            }
+                            return msEncrypt.ToArray();
+                        }
+                    }
+                    //byte[] encrypted = EncryptStringToBytes_Aes(original, myAes.Key, myAes.IV);
+                }
+            }
             if (auth == Authentication.HighMD5)
             {
                 using (MD5 md5Hash = MD5.Create())
@@ -174,7 +200,9 @@ namespace Gurux.DLMS
             }
             if (auth == Authentication.HighGMAC)
             {
-
+                GXDLMSChipperingStream tmp = new GXDLMSChipperingStream(Security.Authentication, true, plainText, plainText, null, null);
+                tmp.Write(plainText);
+                return tmp.FlushFinalBlock();
             }
             return plainText;
         }
@@ -202,7 +230,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <returns></returns>
         /// <remarks>
-        /// This can be used with serizlization.
+        /// This can be used with serialization.
         /// </remarks>
         public static Type[] GetObjectTypes()
         {
@@ -1740,8 +1768,8 @@ namespace Gurux.DLMS
                     if (GXCommon.Compare(buff.ToArray(), ref index, serverBuff) &&
                         //Check that server addresses match.
                        GXCommon.Compare(buff.ToArray(), ref index, clientBuff))
-                    {                        
-                        index = 2 + FrameLen;
+                    {
+                        index = PacketStartID + 2 + FrameLen;
                         DataLen = buff.Count - index - 1;                        
                         if (DataLen > 5)
                         {
@@ -1800,7 +1828,7 @@ namespace Gurux.DLMS
                     {
                         Segmented = true;
                     }
-                    //Check that header crc is corrent.
+                    //Check that header crc is correct.
                     int crcCount = GXFCS16.CountFCS16(buff.ToArray(), PacketStartID + 1, index - PacketStartID - 1);
                     int crcRead = GXCommon.GetUInt16(buff, ref index);
                     if (crcRead != crcCount)
@@ -1819,10 +1847,10 @@ namespace Gurux.DLMS
                     //CheckLLCBytes returns false if LLC bytes are not used.
                     if (!skipLLC && CheckLLCBytes(buff, ref index))
                     {
-                        //TODO: LLC voi skipata SNRM ja Disconnect.
+                        //TODO: LLC can be skipped with SNRM ja Disconnect.
                         //Check response.
                         command = buff[index];                                                
-                        //If chiphering is used.
+                        //If ciphering is used.
                         if (command == (byte)Command.GloGetRequest ||
                             command == (byte)Command.GloGetResponse ||
                             command == (byte)Command.GloSetRequest ||

@@ -109,12 +109,12 @@ namespace Gurux.DLMS.Internal
         ///<summary>
         ///Retrieves the string that indicates the level of authentication, if any. 
         ///</summary>
-        internal void GetAuthenticationString(List<byte> data, byte[] challenge)
+        internal void GetAuthenticationString(List<byte> data)
         {
-            //If low authentication is used.
+            //If authentication is used.
             if (this.Authentication != Authentication.None)
             {
-                //Add sender ACSE-requirenents field component.
+                //Add sender ACSE-requirements field component.
                 data.Add(0x8A);
                 data.Add(2);
                 GXCommon.SetUInt16(0x0780, data);
@@ -124,27 +124,16 @@ namespace Gurux.DLMS.Internal
                 data.AddRange(p);
                 //Add Calling authentication information.
                 int len = 0;
-                if (this.Authentication == Authentication.Low || this.Authentication == Authentication.High)
+                if (Password != null)
                 {
-                    if (Password != null)
-                    {
-                        len = Password.Length;
-                    }
-                }
-                else
-                {                    
-                    len = challenge.Length;
+                    len = Password.Length;
                 }
                 data.Add(0xAC);
                 data.Add((byte)(2 + len));
                 //Add authentication information.
                 data.Add((byte)0x80);
                 data.Add((byte)len);
-                if (challenge != null)
-                {
-                    data.AddRange(challenge);
-                }
-                else if (Password != null)
+                if (len != 0)
                 {
                     data.AddRange(Password);
                 }
@@ -154,7 +143,7 @@ namespace Gurux.DLMS.Internal
         ///<summary>
         ///CodeData
         ///</summary>
-        internal void CodeData(List<byte> data, InterfaceType interfaceType, byte[] challenge)
+        internal void CodeData(List<byte> data, InterfaceType interfaceType)
         {
             //AARQ APDU Tag
             data.Add(GXCommon.AARQTag);
@@ -164,7 +153,7 @@ namespace Gurux.DLMS.Internal
             ///////////////////////////////////////////
             // Add Application context name.
             ApplicationContextName.CodeData(data);
-            GetAuthenticationString(data, challenge);            
+            GetAuthenticationString(data);            
             UserInformation.CodeData(data);
             //Add extra tags...
             if (Tags != null)
@@ -259,8 +248,10 @@ namespace Gurux.DLMS.Internal
                     len = buff[index++];
                     ++index;
                     len = buff[index++];
-                    //Get challenge
-                    index += len;
+                    //Get challenge and save it to the PW.
+                    Password = new byte[len];
+                    Array.Copy(buff, index, Password, 0, len);
+                    index += len;                    
                 }
                 else if (tag == 0x8B || tag == 0x89) //Authentication.
                 {
@@ -296,9 +287,9 @@ namespace Gurux.DLMS.Internal
                     {
                         throw new Exception("Invalid tag.");
                     }
+                    Authentication = (Authentication)tmp;
                     if (IsAuthenticationTag)
-                    {
-                        Authentication = (Authentication)tmp;
+                    {                        
                         byte tag2 = buff[index++];
                         if (tag2 != 0xAC && tag2 != 0xAA)
                         {
@@ -314,10 +305,6 @@ namespace Gurux.DLMS.Internal
                         Password = new byte[len];
                         Array.Copy(buff, index, Password, 0, len);
                         index += len;
-                    }
-                    else
-                    {
-                        Authentication = Authentication.None;
                     }
                 }
                 //Unknown tags.

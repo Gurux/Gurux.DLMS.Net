@@ -41,6 +41,7 @@ using Gurux.DLMS.Internal;
 using Gurux.DLMS.Objects;
 using Gurux.DLMS.ManufacturerSettings;
 using System.Reflection;
+using System.Security.Cryptography;
 
 namespace Gurux.DLMS
 {
@@ -82,7 +83,10 @@ namespace Gurux.DLMS
             this.Authentication = authentication;
             this.ClientID = clientID;
             this.ServerID = ServerID;
-            this.Password = ASCIIEncoding.ASCII.GetBytes(password);
+            if (password != null)
+            {
+                this.Password = ASCIIEncoding.ASCII.GetBytes(password);
+            }
         }
         
         /// <summary>
@@ -158,7 +162,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Server ID is the indentification of the device that is used as a server.
+        /// Server ID is the identification of the device that is used as a server.
         /// Server ID is aka HDLC Address.
         /// </summary>
         public object ServerID
@@ -538,7 +542,7 @@ namespace Gurux.DLMS
             IsAuthenticationRequired = false;
             m_Base.MaxReceivePDUSize = 0xFFFF;
             m_Base.ClearProgress();
-            //SNRM reguest is not used in network connections.
+            //SNRM request is not used in network connections.
             if (this.InterfaceType == InterfaceType.Net)
             {
                 return null;
@@ -645,7 +649,7 @@ namespace Gurux.DLMS
             aarq.UserInformation.DLMSVersioNumber = DLMSVersion;
             aarq.UserInformation.MaxReceivePDUSize = MaxReceivePDUSize;
             m_Base.StoCChallenge = null;
-            if (Authentication > Authentication.High)
+            if (Authentication > Authentication.Low)//If High Security Level
             {
                 m_Base.CtoSChallenge = GXDLMS.GenerateChallenge();
             }
@@ -653,7 +657,7 @@ namespace Gurux.DLMS
             {
                 m_Base.CtoSChallenge = null;
             }
-            aarq.CodeData(buff, this.InterfaceType, m_Base.CtoSChallenge);
+            aarq.CodeData(buff, this.InterfaceType);
             m_Base.FrameSequence = -1;
             m_Base.ExpectedFrame = -1;
             m_Base.ReceiveSequenceNo = m_Base.SendSequenceNo = -1;
@@ -734,6 +738,10 @@ namespace Gurux.DLMS
                 throw new GXDLMSException(ret, pdu.ResultDiagnosticValue);
             }
             IsAuthenticationRequired = pdu.ResultDiagnosticValue == SourceDiagnostic.AuthenticationRequired;
+            if (IsAuthenticationRequired)
+            {
+                System.Diagnostics.Debug.WriteLine("Authentication is used.");
+            }
             System.Diagnostics.Debug.WriteLine("- Server max PDU size is " + MaxReceivePDUSize);
             System.Diagnostics.Debug.WriteLine("- Value of quality of service is " + ValueOfQualityOfService);
             System.Diagnostics.Debug.WriteLine("- Server DLMS version number is " + DLMSVersion);
@@ -773,7 +781,7 @@ namespace Gurux.DLMS
             {
                 CtoS.AddRange(m_Base.StoCChallenge);
             }
-            byte[] challenge = GXDLMS.Chipher(this.Authentication, CtoS.ToArray());
+            byte[] challenge = GXDLMS.Chipher(this.Authentication, CtoS.ToArray(), Password);
             if (UseLogicalNameReferencing)
             {
                 return Method("0.0.40.0.0.255", ObjectType.AssociationLogicalName, 1, challenge, 1, DataType.OctetString);
@@ -821,15 +829,20 @@ namespace Gurux.DLMS
             ++index;
             int total = 0, read = 0, CacheIndex = 0;
             DataType type = DataType.None;
+            //If server do not send challenge.
+            if (arr.Count == 0)
+            {
+                throw new Exception("Invalid challenge.");
+            }
             byte[] serverChallenge = (byte[])GXCommon.GetData(arr.ToArray(), ref index, ActionType.None, out total, out read, ref type, ref CacheIndex);
             List<byte> challenge = new List<byte>(Password);
             challenge.AddRange(m_Base.CtoSChallenge);
-            byte[] clientChallenge = GXDLMS.Chipher(this.Authentication, challenge.ToArray());
+            byte[] clientChallenge = GXDLMS.Chipher(this.Authentication, challenge.ToArray(), Password);
             int pos = 0;
             if (!GXCommon.Compare(serverChallenge, ref pos, clientChallenge))
             {
                 throw new Exception("Server returns invalid challenge.");
-            }
+            }            
         }
 
         /// <summary>
@@ -872,7 +885,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <returns></returns>
         /// <remarks>
-        /// This can be used with serizlization.
+        /// This can be used with serialization.
         /// </remarks>
         public static Type[] GetObjectTypes()
         {
@@ -985,39 +998,42 @@ namespace Gurux.DLMS
                         obj.SetAccess(id, mode);
                     }
                 }
-                if (((object[])access[1])[0] is object[])
+                if (((object[])access[1]).Length != 0)
                 {
-                    foreach (object[] methodAccess in (object[])access[1])
+                    if (((object[])access[1])[0] is object[])
                     {
-                        int id = Convert.ToInt32(methodAccess[0]);
+                        foreach (object[] methodAccess in (object[])access[1])
+                        {
+                            int id = Convert.ToInt32(methodAccess[0]);
+                            int tmp;
+                            //If version is 0.
+                            if (methodAccess[1] is Boolean)
+                            {
+                                tmp = ((Boolean)methodAccess[1]) ? 1 : 0;
+                            }
+                            else//If version is 1.
+                            {
+                                tmp = Convert.ToInt32(methodAccess[1]);
+                            }
+                            obj.SetMethodAccess(id, (MethodAccessMode)tmp);
+                        }
+                    }
+                    else //All versions from Actaris SL 7000 do not return collection as standard says.
+                    {
+                        object[] arr = (object[])access[1];
+                        int id = Convert.ToInt32(arr[0]) + 1;
                         int tmp;
                         //If version is 0.
-                        if (methodAccess[1] is Boolean)
+                        if (arr[1] is Boolean)
                         {
-                            tmp = ((Boolean)methodAccess[1]) ? 1 : 0;
+                            tmp = ((Boolean)arr[1]) ? 1 : 0;
                         }
                         else//If version is 1.
                         {
-                            tmp = Convert.ToInt32(methodAccess[1]);
+                            tmp = Convert.ToInt32(arr[1]);
                         }
                         obj.SetMethodAccess(id, (MethodAccessMode)tmp);
                     }
-                }
-                else //All versions from Actaris SL 7000 do not return collection as standard says.
-                {
-                    object[] arr = (object[])access[1];
-                    int id = Convert.ToInt32(arr[0]) + 1;
-                    int tmp;
-                    //If version is 0.
-                    if (arr[1] is Boolean)
-                    {
-                        tmp = ((Boolean)arr[1]) ? 1 : 0;
-                    }
-                    else//If version is 1.
-                    {
-                        tmp = Convert.ToInt32(arr[1]);
-                    }                    
-                    obj.SetMethodAccess(id, (MethodAccessMode)tmp);                    
                 }
             }           
             if (baseName != null)
@@ -1548,7 +1564,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="name">Method object short name or Logical Name.</param>
         /// <param name="objectType">Object type.</param>
-        /// <param name="index">Methdod index.</param>
+        /// <param name="index">Method index.</param>
         /// <returns></returns>
         public byte[][] Method(object name, ObjectType objectType, int index, Object data, int parameterCount, DataType type)
         {
