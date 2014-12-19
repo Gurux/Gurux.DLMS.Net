@@ -50,7 +50,7 @@ namespace Gurux.DLMS
         /// </summary>
         General,
         /// <summary>
-        /// Nwtwork interface type is used for meters that support 
+        /// Network interface type is used for meters that support 
         /// IEC 62056-47 COSEM transport layers for IPv4 networks.
         /// </summary>
         Net

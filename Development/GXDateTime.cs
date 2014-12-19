@@ -173,7 +173,14 @@ namespace Gurux.DLMS
                 Skip |= DateTimeSkips.Ms;
                 millisecond = 0;
             }
-            Value = new DateTime(year, month, day, hour, minute, second, millisecond);
+            try
+            {
+                Value = new DateTime(year, month, day, hour, minute, second, millisecond);
+            }
+            catch
+            {
+                Value = DateTime.MaxValue;
+            }
         }
 
         /// <summary>

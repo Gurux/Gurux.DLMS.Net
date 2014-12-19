@@ -782,7 +782,12 @@ namespace Gurux.DLMS.Internal
                 if (year != 0xFFFF && year > 2100)
                 {
                     pos -= 2;
-                    year = buff[pos++] | buff[pos++] << 8;                    
+                    year = buff[pos++] | buff[pos++] << 8;
+                    //If Actaris SL 7000 and ACE 6000 returns invalid date.
+                    if (year == 0x5C13)
+                    {
+                        year = -1;
+                    }
                 }
                 //Get month
                 int month = buff[pos++];
