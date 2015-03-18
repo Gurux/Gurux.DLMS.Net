@@ -84,6 +84,7 @@
     <Compile Include="GXDLMSServerBase.cs" />
     <Compile Include="GXStandardObisObject.cs" />
     <Compile Include="GXStandardObisObjectCollection.cs" />
+    <Compile Include="Internal\GXAes128.cs" />
     <Compile Include="Internal\GXAPDU.cs" />
     <Compile Include="GXApplicationContextName.cs" />
     <Compile Include="Internal\GXBer.cs" />

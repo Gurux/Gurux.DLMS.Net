@@ -161,28 +161,20 @@ namespace Gurux.DLMS
         {
             if (auth == Authentication.High)
             {
-                using (AesManaged aesAlg = new AesManaged())
+                byte[] p = new byte[plainText.Length];
+                byte[] s;
+                if (secret.Length < 16)
                 {
-                    //aesAlg.Key = plainText;
-                    //aesAlg.IV = plainText;
-                    // Create a decrytor to perform the stream transform.
-                    ICryptoTransform encryptor = aesAlg.CreateEncryptor();//secret, new byte[] { 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36 });
-                    // Create the streams used for encryption. 
-                    using (MemoryStream msEncrypt = new MemoryStream())
-                    {
-                        using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
-                        {
-                            using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
-                            {
-
-                                //Write all data to the stream.
-                                swEncrypt.Write(plainText);
-                            }
-                            return msEncrypt.ToArray();
-                        }
-                    }
-                    //byte[] encrypted = EncryptStringToBytes_Aes(original, myAes.Key, myAes.IV);
+                    s = new byte[16];
                 }
+                else
+                {
+                    s = new byte[secret.Length];
+                }
+                plainText.CopyTo(p, 0);
+                secret.CopyTo(s, 0);
+                GXAes128.Encrypt(p, s);
+                return plainText;
             }
             if (auth == Authentication.HighMD5)
             {
@@ -376,7 +368,7 @@ namespace Gurux.DLMS
         /// <remarks>
         /// Referencing depends on the device to communicate with.
         /// Normally, a device supports only either Logical or Short name referencing.
-        /// The referencing is defined by the device manufacurer.
+        /// The referencing is defined by the device manufacturer.
         /// If the referencing is wrong, the SNMR message will fail.
         /// </remarks>
         /// <seealso cref="ClientID"/>
@@ -398,8 +390,9 @@ namespace Gurux.DLMS
         {
             if (Limits.MaxInfoRX == null)
             {
-                throw new GXDLMSException("Invalid arguement.");
+                throw new GXDLMSException("Invalid argument.");
             }
+            bool asList = false;
             List<byte> buff = null;
             if (name is byte[])
             {
@@ -417,70 +410,102 @@ namespace Gurux.DLMS
                     buff = new List<byte>(20 + len);                     
                     if (cmd == Command.GetRequest || cmd == Command.SetRequest || cmd == Command.MethodRequest)
                     {
-                        //Interface class.
-                        GXCommon.SetUInt16((ushort)interfaceClass, buff);
-                        //Add LN
-                        string[] items = ((string)name).Split('.');
-                        if (items.Length != 6)
+                        if (name is List<KeyValuePair<GXDLMSObject, int>>)
                         {
-                            throw new GXDLMSException("Invalid Logical Name.");
-                        }
-                        foreach (string it in items)
-                        {
-                            buff.Add(Convert.ToByte(it));
-                        }
-                        buff.Add((byte)AttributeOrdinal);
-                        if (data == null || data.Length == 0 || cmd == Command.SetRequest)
-                        {
-                            buff.Add(0); //Items count
+                            asList = true;
+                            List<KeyValuePair<GXDLMSObject, int>> tmp = (List<KeyValuePair<GXDLMSObject, int>>)name;
+                            //Item count
+                            buff.Add((byte)tmp.Count);
+                            foreach (KeyValuePair<GXDLMSObject, int> it in (List<KeyValuePair<GXDLMSObject, int>>)name)
+                            {
+                                //Interface class.
+                                GXCommon.SetUInt16((ushort)it.Key.ObjectType, buff);
+                                //Add LN
+                                string[] items = it.Key.LogicalName.Split('.');
+                                if (items.Length != 6)
+                                {
+                                    throw new GXDLMSException("Invalid Logical Name.");
+                                }
+                                foreach (string it2 in items)
+                                {
+                                    buff.Add(Convert.ToByte(it2));
+                                }
+                                buff.Add((byte)it.Value);
+                                //Add Access type.
+                                buff.Add(0);
+                            }
                         }
                         else
                         {
-                            buff.Add(1); //Items count
+                            //Interface class.
+                            GXCommon.SetUInt16((ushort)interfaceClass, buff);
+                            //Add LN
+                            string[] items = ((string)name).Split('.');
+                            if (items.Length != 6)
+                            {
+                                throw new GXDLMSException("Invalid Logical Name.");
+                            }
+                            foreach (string it in items)
+                            {
+                                buff.Add(Convert.ToByte(it));
+                            }
+                            buff.Add((byte)AttributeOrdinal);
+                            if (data == null || data.Length == 0 || cmd == Command.SetRequest)
+                            {
+                                buff.Add(0); //Items count
+                            }
+                            else
+                            {
+                                buff.Add(1); //Items count
+                            }
                         }
                     }
                 }
                 else
                 {
                     int len = data == null ? 0 : data.Length;
-                    buff = new List<byte>(11 + len);
-                    //Add name count.
-                    if (name.GetType().IsArray)
+                    buff = new List<byte>(11 + len);                    
+                    if (name is List<KeyValuePair<GXDLMSObject, int>>)
                     {
-                        foreach (object it in (Array)name)
+                        List<KeyValuePair<GXDLMSObject, int>> tmp = (List<KeyValuePair<GXDLMSObject, int>>)name;
+                        //Item count
+                        buff.Add((byte) tmp.Count);
+                        foreach (KeyValuePair<GXDLMSObject, int> it in (List<KeyValuePair<GXDLMSObject, int>>)name)
                         {
+                            //Size
                             buff.Add(2);
-                            ushort base_address = Convert.ToUInt16(it);
-                            base_address += (ushort)((AttributeOrdinal - 1) * 8);
+                            ushort base_address = Convert.ToUInt16(it.Key.ShortName);
+                            base_address += (ushort)((it.Value - 1) * 8);
                             GXCommon.SetUInt16(base_address, buff);
                         }
                     }
                     else
                     {
+                        //Add item count.
                         buff.Add(1);
-                    }
-                    if (cmd == Command.ReadResponse || cmd == Command.WriteResponse)
-                    {
-                        buff.Add(0x0);
-                    }
-                    else
-                    {
-                        if (cmd == Command.WriteRequest || data == null || data.Length == 0)
+                        if (cmd == Command.ReadResponse || cmd == Command.WriteResponse)
                         {
-                            buff.Add(2);
+                            buff.Add(0x0);
                         }
-                        else //if Parameterised Access
+                        else
                         {
-                            buff.Add(4);
-                        }                                                                       
-                        ushort base_address = Convert.ToUInt16(name);
-                        //AttributeOrdinal is count already for action.
-                        if (AttributeOrdinal != 0)
-                        {
-                            base_address += (ushort)((AttributeOrdinal - 1) * 8);
+                            if (cmd == Command.WriteRequest || data == null || data.Length == 0)
+                            {
+                                buff.Add(2);
+                            }
+                            else //if Parameterized Access
+                            {
+                                buff.Add(4);
+                            }
+                            ushort base_address = Convert.ToUInt16(name);
+                            //AttributeOrdinal is count already for action.
+                            if (AttributeOrdinal != 0)
+                            {
+                                base_address += (ushort)((AttributeOrdinal - 1) * 8);
+                            }
+                            GXCommon.SetUInt16(base_address, buff);
                         }
-                        GXCommon.SetUInt16(base_address, buff);
-                    }
+                    }                    
                 }
                 if (data != null && data.Length != 0)
                 {
@@ -491,7 +516,7 @@ namespace Gurux.DLMS
                     buff.AddRange(data);
                 }            
             }
-            return SplitToBlocks(buff, cmd);
+            return SplitToBlocks(buff, cmd, asList);
         }
 
         /// <summary>
@@ -620,6 +645,23 @@ namespace Gurux.DLMS
                 if (this.InterfaceType == DLMS.InterfaceType.General)
                 {
                     if (data.Length < 5)
+                    {
+                        return false;
+                    }
+                    bool compleate = false;
+                    //Find start of HDLC frame.
+                    for (int index = 0; index < data.Length; ++index)
+                    {
+                        if (data[index] == GXCommon.HDLCFrameStartEnd)
+                        {
+                            if (2 + data[index + 2] <= data.Count())
+                            {
+                                compleate = true;                                
+                            }
+                            break;
+                        }
+                    }
+                    if (!compleate)
                     {
                         return false;
                     }
@@ -919,14 +961,21 @@ namespace Gurux.DLMS
         /// <param name="count"></param>
         /// <param name="cmd"></param>
         /// <returns></returns>
-        internal byte[][] SplitToFrames(List<byte> packet, uint blockIndex, ref int index, int count, Command cmd, byte resultChoice)
+        internal byte[][] SplitToFrames(List<byte> packet, uint blockIndex, ref int index, int count, Command cmd, byte resultChoice, bool asList)
         {
             List<byte> tmp = new List<byte>(count + 13);            
             if (cmd != Command.None && this.UseLogicalNameReferencing)
             {
                 bool moreBlocks = packet.Count > MaxReceivePDUSize && packet.Count > index + count;
                 //Command, multiple blocks and Invoke ID and priority.
-                tmp.AddRange(new byte[] { (byte)cmd, (byte)(moreBlocks ? 2 : 1), GetInvokeIDPriority() });
+                if (asList)
+                {
+                    tmp.AddRange(new byte[] { (byte)cmd, 3, GetInvokeIDPriority() });
+                }
+                else
+                {
+                    tmp.AddRange(new byte[] { (byte)cmd, (byte)(moreBlocks ? 2 : 1), GetInvokeIDPriority() });
+                }
                 if (Server)
                 {
                     tmp.Add(resultChoice); // Get-Data-Result choice data
@@ -1002,8 +1051,7 @@ namespace Gurux.DLMS
             }
             else
             {
-                if (cmd == Command.GetRequest || cmd == Command.MethodRequest || cmd == Command.ReadRequest || 
-                    cmd == Command.SetRequest || cmd == Command.WriteRequest)
+                if (this.Server)
                 {
                     dataSize = Convert.ToInt32(Limits.MaxInfoTX);
                 }
@@ -1066,12 +1114,12 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="packet">Packet to send.</param>
         /// <returns>Array of byte arrays that are sent to device.</returns>
-        internal byte[][] SplitToBlocks(List<byte> packet, Command cmd)
+        internal byte[][] SplitToBlocks(List<byte> packet, Command cmd, bool asList)
         {            
             int index = 0;
             if (!UseLogicalNameReferencing)//SN
-            {                                
-                return SplitToFrames(packet, 1, ref index, packet.Count, cmd, 0);
+            {
+                return SplitToFrames(packet, 1, ref index, packet.Count, cmd, 0, asList);
             }           
             //If LN           
             //Split to Blocks.
@@ -1080,7 +1128,7 @@ namespace Gurux.DLMS
             bool multibleFrames = false;
             do
             {
-                byte[][] frames = SplitToFrames(packet, ++blockIndex, ref index, MaxReceivePDUSize, cmd, 0);
+                byte[][] frames = SplitToFrames(packet, ++blockIndex, ref index, MaxReceivePDUSize, cmd, 0, asList);
                 buff.AddRange(frames);
                 if (frames.Length != 1)
                 {
@@ -2212,6 +2260,10 @@ namespace Gurux.DLMS
                             index += 1;
                             //Get data length.
                             int dataLength = GXCommon.GetObjectCount(buff, ref index);
+                        }
+                        else if (AttributeID == 0x03) //If list.
+                        {
+                            index += 1;
                         }
                     }
                 }

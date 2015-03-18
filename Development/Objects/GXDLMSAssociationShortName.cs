@@ -53,7 +53,7 @@ namespace Gurux.DLMS.Objects
         /// <summary> 
         /// Constructor.
         /// </summary> 
-        /// <param name="ln">Logican Name of the object.</param>
+        /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSAssociationShortName(string ln, ushort sn)
             : base(ObjectType.AssociationShortName, ln, 0)
@@ -349,7 +349,7 @@ namespace Gurux.DLMS.Objects
                         GXDLMSObject obj = null;
                         if (Parent != null)
                         {
-                            obj = Parent.FindByLN(type, ln);
+                            obj = Parent.FindBySN(sn);
                         }
                         if (obj == null)
                         {

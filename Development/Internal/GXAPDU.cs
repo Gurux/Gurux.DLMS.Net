@@ -231,7 +231,7 @@ namespace Gurux.DLMS.Internal
                 else if (tag == 0x8A || tag == 0x88) //Authentication.
                 {
                     tag = buff[index++];
-                    //Get sender ACSE-requirenents field component.
+                    //Get sender ACSE-requirements field component.
                     if (buff[index++] != 2)
                     {
                         throw new Exception("Invalid tag.");
@@ -253,11 +253,25 @@ namespace Gurux.DLMS.Internal
                     Array.Copy(buff, index, Password, 0, len);
                     index += len;                    
                 }
+                else if (tag == 0xAC) //Password.                
+                {
+                    tag = buff[index++];
+                    len = buff[index++];
+                    //Get authentication information.
+                    if (buff[index++] != 0x80)
+                    {
+                        throw new Exception("Invalid tag.");
+                    }
+                    len = buff[index++];
+                    //Get password.
+                    Password = new byte[len];
+                    Array.Copy(buff, index, Password, 0, len);
+                    index += len;
+                }
                 else if (tag == 0x8B || tag == 0x89) //Authentication.
                 {
                     tag = buff[index++];
                     len = buff[index++];
-                    bool IsAuthenticationTag = len > 7;
                     if (buff[index++] != 0x60)
                     {
                         throw new Exception("Invalid tag.");
@@ -287,25 +301,7 @@ namespace Gurux.DLMS.Internal
                     {
                         throw new Exception("Invalid tag.");
                     }
-                    Authentication = (Authentication)tmp;
-                    if (IsAuthenticationTag)
-                    {                        
-                        byte tag2 = buff[index++];
-                        if (tag2 != 0xAC && tag2 != 0xAA)
-                        {
-                            throw new Exception("Invalid tag.");
-                        }
-                        len = buff[index++];
-                        //Get authentication information.
-                        if (buff[index++] != 0x80)
-                        {
-                            throw new Exception("Invalid tag.");
-                        }
-                        len = buff[index++];
-                        Password = new byte[len];
-                        Array.Copy(buff, index, Password, 0, len);
-                        index += len;
-                    }
+                    Authentication = (Authentication)tmp;                    
                 }
                 //Unknown tags.
                 else

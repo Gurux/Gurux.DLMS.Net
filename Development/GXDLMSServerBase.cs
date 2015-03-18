@@ -208,7 +208,7 @@ namespace Gurux.DLMS
         /// Collection of server IDs.
         /// </summary>
         /// <remarks>
-        /// Server ID is the indentification of the device that is used as a server.
+        /// Server ID is the identification of the device that is used as a server.
         /// Server ID is aka HDLC Address.        
         /// </remarks>
         public List<object> ServerIDs
@@ -264,7 +264,7 @@ namespace Gurux.DLMS
         /// <remarks>
         /// Referencing depends on the device to communicate with.
         /// Normally, a device supports only either Logical or Short name referencing.
-        /// The referencing is defined by the device manufacurer.
+        /// The referencing is defined by the device manufacturer.
         /// If the referencing is wrong, the SNMR message will fail.
         /// </remarks>
         /// <seealso cref="DLMSVersion"/>
@@ -366,7 +366,7 @@ namespace Gurux.DLMS
                         }                                               
                         Authentications.Add(new GXAuthentication(Authentication.None, "", (byte)0x10));
                         Authentications.Add(new GXAuthentication(Authentication.Low, "GuruxLow", (byte)0x20));
-                        Authentications.Add(new GXAuthentication(Authentication.High, "GuruxHigh", (byte)0x40));
+                        Authentications.Add(new GXAuthentication(Authentication.High, "00000000", (byte)0x40));
                         Authentications.Add(new GXAuthentication(Authentication.HighMD5, "GuruxHighMD5", (byte)0x40));
                         Authentications.Add(new GXAuthentication(Authentication.HighSHA1, "GuruxHighSHA1", (byte)0x40));
                         Authentications.Add(new GXAuthentication(Authentication.HighGMAC, "GuruxHighGMAC", (byte)0x40));
@@ -607,7 +607,8 @@ namespace Gurux.DLMS
                 for (int pos = 0; pos != Items.Count; ++pos)
                 {                    
                     GXDLMSObject it = Items[pos];
-                    if (string.IsNullOrEmpty(it.LogicalName) || it.LogicalName.Split('.').Length != 6)
+                    if (this.UseLogicalNameReferencing && 
+                        (string.IsNullOrEmpty(it.LogicalName) || it.LogicalName.Split('.').Length != 6))
                     {
                         throw new Exception("Invalid Logical Name.");
                     }                    
@@ -762,7 +763,7 @@ namespace Gurux.DLMS
                     if (aarq.Authentication == Authentication.Low)
                     {
                         //If Low authentication is used and pw don't match.
-                        if (string.Compare(auth.Password, ASCIIEncoding.ASCII.GetString(aarq.Password)) != 0)
+                        if (aarq.Password == null || string.Compare(auth.Password, ASCIIEncoding.ASCII.GetString(aarq.Password)) != 0)
                         {
                             result = AssociationResult.PermanentRejected;
                             diagnostic = SourceDiagnostic.AuthenticationFailure;
@@ -1405,7 +1406,7 @@ namespace Gurux.DLMS
                 GXCommon.SetData(buff, type, data);
             }
             int index = 0;
-            return m_Base.SplitToFrames(buff, 1, ref index, buff.Count, cmd, 0);
+            return m_Base.SplitToFrames(buff, 1, ref index, buff.Count, cmd, 0, false);
         }
 
         /// <summary>
@@ -1441,7 +1442,7 @@ namespace Gurux.DLMS
                 buff.Add(serviceErrorCode);
             }            
             int index = 0;
-            return m_Base.SplitToFrames(buff, 1, ref index, buff.Count, cmd, serviceErrorCode);
+            return m_Base.SplitToFrames(buff, 1, ref index, buff.Count, cmd, serviceErrorCode, false);
         }
     }
 }

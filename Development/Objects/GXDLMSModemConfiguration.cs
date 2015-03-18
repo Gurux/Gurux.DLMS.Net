@@ -67,7 +67,7 @@ namespace Gurux.DLMS.Objects
         /// <summary> 
         /// Constructor.
         /// </summary> 
-        /// <param name="ln">Logican Name of the object.</param>
+        /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSModemConfiguration(string ln)
             : base(ObjectType.ModemConfiguration, ln, 0)
         {
@@ -79,7 +79,7 @@ namespace Gurux.DLMS.Objects
         /// <summary> 
         /// Constructor.
         /// </summary> 
-        /// <param name="ln">Logican Name of the object.</param>
+        /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSModemConfiguration(string ln, ushort sn)
             : base(ObjectType.ModemConfiguration, ln, 0)

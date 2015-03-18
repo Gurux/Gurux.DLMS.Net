@@ -60,7 +60,7 @@ namespace Gurux.DLMS.Objects
         /// <summary> 
         /// Constructor.
         /// </summary> 
-        /// <param name="ln">Logican Name of the object.</param>
+        /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSLimiter(string ln)
             : base(ObjectType.Limiter, ln, 0)
         {
@@ -72,7 +72,7 @@ namespace Gurux.DLMS.Objects
         /// <summary> 
         /// Constructor.
         /// </summary> 
-        /// <param name="ln">Logican Name of the object.</param>
+        /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSLimiter(string ln, ushort sn)
             : base(ObjectType.Limiter, ln, 0)

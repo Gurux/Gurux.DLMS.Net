@@ -66,7 +66,7 @@ namespace Gurux.DLMS.Objects
         /// <summary> 
         /// Constructor.
         /// </summary> 
-        /// <param name="ln">Logican Name of the object.</param>
+        /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSAssociationLogicalName(string ln)
             : base(ObjectType.AssociationLogicalName, ln, 0)
         {
@@ -175,20 +175,20 @@ namespace Gurux.DLMS.Objects
                 foreach (GXAuthentication it in s.Authentications)
                 {
                     if (it.Type == b.Authentication)
-                    {
+                    {                        
                         CtoS = new List<byte>(it.SharedSecret);
                         challenge = new List<byte>(it.SharedSecret);
                         challenge.AddRange(b.StoCChallenge);
                         break;
                     }
                 }
-                byte[] serverChallenge = GXDLMS.Chipher(b.Authentication, challenge.ToArray(), null);
+                byte[] serverChallenge = GXDLMS.Chipher(b.Authentication, challenge.ToArray(), CtoS.ToArray());
                 byte[] clientChallenge = (byte[])parameters;
                 int pos = 0;
                 if (GXCommon.Compare(serverChallenge, ref pos, clientChallenge))
                 {
                     CtoS.AddRange(b.CtoSChallenge);
-                    return s.Acknowledge(Command.MethodResponse, 0, GXDLMS.Chipher(b.Authentication, CtoS.ToArray(), null), DataType.OctetString);
+                    return s.Acknowledge(Command.MethodResponse, 0, GXDLMS.Chipher(b.Authentication, CtoS.ToArray(), CtoS.ToArray()), DataType.OctetString);
                 }
                 else
                 {

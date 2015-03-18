@@ -54,7 +54,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Constructor.
         /// </summary>
-        internal GXDLMSSNSettings(byte[] conformanceBlock)
+        public GXDLMSSNSettings(byte[] conformanceBlock)
         {
             m_ConformanceBlock = conformanceBlock;
         }
@@ -118,6 +118,9 @@ namespace Gurux.DLMS
             }
         }
 
+        /// <summary>
+        /// Check can several data objects read with one query.
+        /// </summary>
         public bool MultipleReferences
         {
             get
@@ -130,6 +133,14 @@ namespace Gurux.DLMS
             }
         }
 
+        /// <summary>
+        /// Is parameterize access used.
+        /// </summary>
+        /// <remarks>
+        /// Example Profile generic uses parameterize access if data is read using range or entry.
+        /// With Logical Name referencing this is called SelectiveAccess.
+        /// </remarks>
+        /// <seealso cref="GXDLMSLNSettings.SelectiveAccess"/>
         public bool ParameterizedAccess
         {
             get

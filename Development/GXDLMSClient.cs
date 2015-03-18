@@ -644,24 +644,25 @@ namespace Gurux.DLMS
                 m_Base.LNSettings = null;
                 m_Base.SNSettings = new GXDLMSSNSettings(new byte[] { 0x1C, 0x03, 0x20 });
                 aarq.UserInformation.ConformanceBlock = SNSettings.m_ConformanceBlock;
-            }
-            aarq.SetAuthentication(this.Authentication, Password);            
+            }            
             aarq.UserInformation.DLMSVersioNumber = DLMSVersion;
             aarq.UserInformation.MaxReceivePDUSize = MaxReceivePDUSize;
             m_Base.StoCChallenge = null;
             if (Authentication > Authentication.Low)//If High Security Level
             {
                 m_Base.CtoSChallenge = GXDLMS.GenerateChallenge();
+                aarq.SetAuthentication(this.Authentication, m_Base.CtoSChallenge);            
             }
             else
             {
                 m_Base.CtoSChallenge = null;
+                aarq.SetAuthentication(this.Authentication, Password);
             }
             aarq.CodeData(buff, this.InterfaceType);
             m_Base.FrameSequence = -1;
             m_Base.ExpectedFrame = -1;
             m_Base.ReceiveSequenceNo = m_Base.SendSequenceNo = -1;
-            return m_Base.SplitToBlocks(buff, Command.None);
+            return m_Base.SplitToBlocks(buff, Command.None, false);
         }
 
         /// <summary>
@@ -1397,7 +1398,35 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// TryGetValue try parse multirow value from byte array to variant.
+        /// Update list values.
+        /// </summary>
+        public void UpdateValues(List<KeyValuePair<GXDLMSObject, int>> list, byte[] data)
+        {
+            Object value;
+            DataType type;
+            int read, total, index = 0, lastIndex = 0;
+            foreach(KeyValuePair<GXDLMSObject, int> it in list)
+            {
+                type = DataType.None;
+                if (index != 0)
+                {
+                    //Check status.
+                    if (data[index] != 0)
+                    {
+                        throw new GXDLMSException(data[index]);
+                    }
+                    //Skip status code.
+                    ++index;
+                }
+                lastIndex = 0;
+                value = GXCommon.GetData(data, ref index, ActionType.None, out total, out read, ref type, ref lastIndex);
+                (it.Key as IGXDLMSBase).SetValue(it.Value, value);
+            }            
+        }
+
+
+        /// <summary>
+        /// TryGetValue try parse multi-row value from byte array to variant.
         /// </summary>
         /// <remarks>
         /// This method can be used when Profile Generic is read and if 
@@ -1675,11 +1704,34 @@ namespace Gurux.DLMS
         {
             if ((attributeOrdinal < 1))
             {
-                throw new GXDLMSException("Invalid parameter");
+                throw new ArgumentOutOfRangeException("Invalid parameter");
             }
             //Clear cache
             m_Base.ClearProgress();
-            return m_Base.GenerateMessage(item.Name, new byte[0], item.ObjectType, attributeOrdinal, this.UseLogicalNameReferencing ? Command.GetRequest : Command.ReadRequest);
+            return m_Base.GenerateMessage(item.Name, new byte[0], item.ObjectType, 
+                attributeOrdinal, this.UseLogicalNameReferencing ? Command.GetRequest : Command.ReadRequest);
+        }
+
+        /// <summary>
+        /// Read list of COSEM objects.
+        /// </summary>
+        /// <param name="item">DLMS object to read.</param>
+        /// <param name="attributeOrdinal">Read attribute index.</param>
+        /// <returns>Read request as byte array.</returns>
+        public byte[][] ReadList(List<KeyValuePair<GXDLMSObject, int>> list)
+        {            
+            if (list == null || list.Count == 0)
+            {
+                throw new ArgumentOutOfRangeException("Invalid parameter.");
+            }
+            if (UseLogicalNameReferencing && list.Count > 10)
+            {
+                throw new ArgumentOutOfRangeException("Max 10 items can be read at the time.");
+            }
+            //Clear cache
+            m_Base.ClearProgress();
+            return m_Base.GenerateMessage(list, new byte[0], ObjectType.None, 0, 
+                this.UseLogicalNameReferencing ? Command.GetRequest : Command.ReadRequest);            
         }
 
         /// <summary>
@@ -1692,7 +1744,7 @@ namespace Gurux.DLMS
         public byte[] GetKeepAlive()
         {
             m_Base.ClearProgress();
-            //There is no keepalive in IEC 62056-47.
+            //There is no keep alive in IEC 62056-47.
             if (this.InterfaceType == InterfaceType.Net)
             {
                 return null;
@@ -1716,7 +1768,7 @@ namespace Gurux.DLMS
             buff.Add(0x04); //Add item count
             GXCommon.SetData(buff, DataType.UInt32, index); //Add start index
             GXCommon.SetData(buff, DataType.UInt32, count);//Add Count
-            GXCommon.SetData(buff, DataType.UInt16, 1);//Read all columns.
+            GXCommon.SetData(buff, DataType.UInt16, UseLogicalNameReferencing ? 1 : 0);//Read all columns.
             GXCommon.SetData(buff, DataType.UInt16, 0);
             return m_Base.GenerateMessage(name, buff.ToArray(), ObjectType.ProfileGeneric, 2, this.UseLogicalNameReferencing ? Command.GetRequest : Command.ReadRequest)[0];
         }

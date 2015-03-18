@@ -54,7 +54,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Constructor.
         /// </summary>
-        internal GXDLMSLNSettings(byte[] conformanceBlock)
+        public GXDLMSLNSettings(byte[] conformanceBlock)
         {
             //Set default values.
             m_ConformanceBlock = conformanceBlock;
@@ -154,6 +154,9 @@ namespace Gurux.DLMS
 
         }
 
+        /// <summary>
+        /// Check can several data objects read with one query.
+        /// </summary>
         public bool MultipleReferences
         {
             get
@@ -174,11 +177,11 @@ namespace Gurux.DLMS
         {
             get
             {
-                return GXCommon.GetBits(m_ConformanceBlock[2], 0x8);
+                return GXCommon.GetBits(m_ConformanceBlock[2], 0x10);
             }
             set
             {
-                GXCommon.SetBits(m_ConformanceBlock[2], 0x8, value);
+                GXCommon.SetBits(m_ConformanceBlock[2], 0x10, value);
             }
 
         }
@@ -190,14 +193,17 @@ namespace Gurux.DLMS
         {
             get
             {
-                return GXCommon.GetBits(m_ConformanceBlock[2], 0x4);
+                return GXCommon.GetBits(m_ConformanceBlock[2], 0x8);
             }
             set
             {
-                GXCommon.SetBits(m_ConformanceBlock[2], 0x4, value);
+                GXCommon.SetBits(m_ConformanceBlock[2], 0x8, value);
             }
         }
 
+        /// <summary>
+        /// Can client call actions.
+        /// </summary>
         public bool Action
         {
             get
@@ -228,15 +234,20 @@ namespace Gurux.DLMS
         /// <summary>
         /// Is selective access used.
         /// </summary>
+        /// <remarks>
+        /// Example Profile generic uses selective access if data is read using range or entry.
+        /// With Short Name referencing this is called ParameterizedAccess.
+        /// </remarks>
+        /// <seealso cref="GXDLMSSNSettings.ParameterizedAccess"/>
         public bool SelectiveAccess
         {
             get
             {
-                return GXCommon.GetBits(m_ConformanceBlock[2], 0x80);
+                return GXCommon.GetBits(m_ConformanceBlock[2], 0x4);
             }
             set
             {
-                GXCommon.SetBits(m_ConformanceBlock[2], 0x80, value);
+                GXCommon.SetBits(m_ConformanceBlock[2], 0x4, value);
             }
         }
     }

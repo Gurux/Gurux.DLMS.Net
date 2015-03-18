@@ -59,7 +59,7 @@ namespace Gurux.DLMS.Objects
         /// <summary> 
         /// Constructor.
         /// </summary> 
-        /// <param name="ln">Logican Name of the object.</param>
+        /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSTcpUdpSetup(string ln)
             : base(ObjectType.TcpUdpSetup, ln, 0)
         {
@@ -71,7 +71,7 @@ namespace Gurux.DLMS.Objects
         /// <summary> 
         /// Constructor.
         /// </summary> 
-        /// <param name="ln">Logican Name of the object.</param>
+        /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSTcpUdpSetup(string ln, ushort sn)
             : base(ObjectType.TcpUdpSetup, ln, 0)
