@@ -547,7 +547,43 @@ namespace Gurux.DLMS
             {
                 return null;
             }
-            return m_Base.AddFrame(GXDLMS.GenerateUFrame(GXDLMS.UFrameMode.SNRM), false, null, 0, 0);
+            List<byte> data = new List<byte>();
+            //If custom HDLC parameters are used.
+            if (!GXDLMSLimitsDefault.DefaultMaxInfoTX.Equals(this.Limits.MaxInfoTX))
+            {
+                data.Add((byte)HDLCInfo.MaxInfoTX);
+                GXDLMSLimitsDefault.SetValue(data, Limits.MaxInfoTX);
+            }
+            if (!GXDLMSLimitsDefault.DefaultMaxInfoRX.Equals(this.Limits.MaxInfoRX))
+            {
+                data.Add((byte)HDLCInfo.MaxInfoRX);
+                GXDLMSLimitsDefault.SetValue(data, Limits.MaxInfoRX);
+            }
+            if (!GXDLMSLimitsDefault.DefaultWindowSizeTX.Equals(this.Limits.WindowSizeTX))
+            {
+                data.Add((byte)HDLCInfo.WindowSizeTX);
+                GXDLMSLimitsDefault.SetValue(data, Limits.WindowSizeTX);
+            }
+            if (!GXDLMSLimitsDefault.DefaultWindowSizeRX.Equals(this.Limits.WindowSizeRX))
+            {   
+                data.Add((byte)HDLCInfo.WindowSizeRX);
+                GXDLMSLimitsDefault.SetValue(data, Limits.WindowSizeRX);                
+            }
+            //If default HDLC parameters are not used.
+            int cnt = 0;
+            if (data.Count == 0)
+            {
+                data = null;
+            }
+            else
+            {
+                byte len = (byte)data.Count;
+                data.Insert(0, 0x81); //FromatID
+                data.Insert(1, 0x80); //GroupID
+                data.Insert(2, len); //len
+                cnt = data.Count;
+            }
+            return m_Base.AddFrame(GXDLMS.GenerateUFrame(GXDLMS.UFrameMode.SNRM), false, data, 0, cnt);
         }
         
         /// <summary>
@@ -577,45 +613,48 @@ namespace Gurux.DLMS
             {
                 throw new GXDLMSException("Not a UA response :" + frame);
             }
-            byte FromatID = arr[index++];
-            byte GroupID = arr[index++];
-            byte GroupLen = arr[index++];
-            object val;
-            while (index < arr.Count)
+            if (arr.Count > 3)
             {
-                HDLCInfo id = (HDLCInfo)arr[index++];
-                byte len = arr[index++];
-                switch (len)
+                byte FromatID = arr[index++];
+                byte GroupID = arr[index++];
+                byte GroupLen = arr[index++];
+                object val;
+                while (index < arr.Count)
                 {
-                    case 1:
-                        val = (byte)arr[index];
-                        break;
-                    case 2:
-                        val = BitConverter.ToUInt16(GXCommon.Swap(arr, index, len), 0);
-                        break;
-                    case 4:
-                        val = BitConverter.ToUInt32(GXCommon.Swap(arr, index, len), 0);
-                        break;
-                    default:
-                        throw new GXDLMSException("Invalid Exception.");
-                }
-                index += len;
-                switch (id)
-                {
-                    case HDLCInfo.MaxInfoTX:
-                        Limits.MaxInfoTX = val;
-                        break;
-                    case HDLCInfo.MaxInfoRX:
-                        Limits.MaxInfoRX = val;
-                        break;
-                    case HDLCInfo.WindowSizeTX:
-                        Limits.WindowSizeTX = val;
-                        break;
-                    case HDLCInfo.WindowSizeRX:
-                        Limits.WindowSizeRX = val;
-                        break;
-                    default:
-                        throw new GXDLMSException("Invalid UA response.");
+                    HDLCInfo id = (HDLCInfo)arr[index++];
+                    byte len = arr[index++];
+                    switch (len)
+                    {
+                        case 1:
+                            val = (byte)arr[index];
+                            break;
+                        case 2:
+                            val = BitConverter.ToUInt16(GXCommon.Swap(arr, index, len), 0);
+                            break;
+                        case 4:
+                            val = BitConverter.ToUInt32(GXCommon.Swap(arr, index, len), 0);
+                            break;
+                        default:
+                            throw new GXDLMSException("Invalid Exception.");
+                    }
+                    index += len;
+                    switch (id)
+                    {
+                        case HDLCInfo.MaxInfoTX:
+                            Limits.MaxInfoTX = val;
+                            break;
+                        case HDLCInfo.MaxInfoRX:
+                            Limits.MaxInfoRX = val;
+                            break;
+                        case HDLCInfo.WindowSizeTX:
+                            Limits.WindowSizeTX = val;
+                            break;
+                        case HDLCInfo.WindowSizeRX:
+                            Limits.WindowSizeRX = val;
+                            break;
+                        default:
+                            throw new GXDLMSException("Invalid UA response.");
+                    }
                 }
             }
         }

@@ -37,6 +37,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.ComponentModel;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS
 {
@@ -48,11 +49,10 @@ namespace Gurux.DLMS
     {
         internal GXDLMSLimits()
         {
-            //TODO:
-            //MaxInfoTX = (byte)128;
-            //MaxInfoRX = (byte)62;
-            MaxInfoRX = MaxInfoTX = (byte)128;
-            WindowSizeRX = WindowSizeTX = (byte) 1;            
+            MaxInfoRX = GXDLMSLimitsDefault.DefaultMaxInfoRX;
+            MaxInfoTX = GXDLMSLimitsDefault.DefaultMaxInfoTX;
+            WindowSizeRX = GXDLMSLimitsDefault.DefaultWindowSizeRX;
+            WindowSizeTX = GXDLMSLimitsDefault.DefaultWindowSizeTX;
         }
 
         /// <summary>

@@ -1464,4 +1464,24 @@ namespace Gurux.DLMS.Internal
         WindowSizeTX = 0x7,
         WindowSizeRX = 0x8
     }
+
+    class GXDLMSLimitsDefault
+    {
+        internal const byte DefaultMaxInfoRX = 128;
+        internal const byte DefaultMaxInfoTX = 128;
+        internal const byte DefaultWindowSizeRX = 1;
+        internal const byte DefaultWindowSizeTX = 1;
+
+        internal static void SetValue(List<byte> buff, object data)
+        {
+            byte[] tmp = Gurux.Shared.GXCommon.GetAsByteArray(data);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(tmp);
+            }
+            buff.Add((byte)tmp.Length);
+            buff.AddRange(tmp);
+        } 
+
+    }
 }

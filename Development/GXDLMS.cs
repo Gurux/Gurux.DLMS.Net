@@ -606,7 +606,7 @@ namespace Gurux.DLMS
                 byte id2 = GenerateACK();
                 if (id != id2)
                 {
-                    System.Diagnostics.Debug.WriteLine("TODO: " + id.ToString() + " " + id2.ToString());
+                    //System.Diagnostics.Debug.WriteLine("TODO: " + id.ToString() + " " + id2.ToString());
                 }
                 return AddFrame(id, false, null, 0, 0);
             }
@@ -650,7 +650,7 @@ namespace Gurux.DLMS
                     }
                     bool compleate = false;
                     //Find start of HDLC frame.
-                    for (int index = 0; index < data.Length; ++index)
+                    for (int index = 0; index < data.Length - 2; ++index)
                     {
                         if (data[index] == GXCommon.HDLCFrameStartEnd)
                         {
@@ -1214,7 +1214,7 @@ namespace Gurux.DLMS
         {
             int index = 0;
             bool ret = true;
-            if (sendData != null)
+            if (sendData != null && sendData.Length != 0)
             {
                 ret = IsReplyPacket(sendData, receivedData);
             }
@@ -1237,7 +1237,7 @@ namespace Gurux.DLMS
             byte frame;
             bool packetFull, wrongCrc;
             byte command;
-            if (sendData != null)
+            if (sendData != null && sendData.Length != 0)
             {
                 GetDataFromFrame(new List<byte>(sendData), index, out frame, false, out err, false, out packetFull, out wrongCrc, out command, false);
                 if (!packetFull)
@@ -1849,8 +1849,9 @@ namespace Gurux.DLMS
                     frame == (byte)FrameType.Disconnect)
                 {
                     //Check that CRC match.
+                    index = PacketStartID + FrameLen - 1;
                     int crcRead = GXCommon.GetUInt16(buff, ref index);
-                    int crcCount = GXFCS16.CountFCS16(buff.ToArray(), PacketStartID + 1, len - PacketStartID - 4);                                        
+                    int crcCount = GXFCS16.CountFCS16(buff.ToArray(), PacketStartID + 1, FrameLen - PacketStartID - 2);                                        
                     if (crcRead != crcCount)
                     {
                         packetFull = false;
@@ -1884,8 +1885,8 @@ namespace Gurux.DLMS
                         //Do nothing because Actaris is counting wrong CRC to the header.
                     }
                     //Check that CRC match.
-                    crcCount = GXFCS16.CountFCS16(buff.ToArray(), PacketStartID + 1, len - PacketStartID - 4);
-                    int pos = len - 3;
+                    crcCount = GXFCS16.CountFCS16(buff.ToArray(), PacketStartID + 1, FrameLen - PacketStartID - 2);
+                    int pos = FrameLen - 1;
                     crcRead = GXCommon.GetUInt16(buff, ref pos);
                     if (crcRead != crcCount)
                     {
@@ -1948,7 +1949,8 @@ namespace Gurux.DLMS
                     else
                     {
                         //Remove all except payload.
-                        buff.RemoveRange(len - 3, 3);
+                        len = FrameLen - PacketStartID - 1;
+                        buff.RemoveRange(len, 3);
                         buff.RemoveRange(0, index);
                     }
                 }

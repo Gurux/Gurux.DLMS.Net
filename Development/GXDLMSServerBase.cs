@@ -695,7 +695,7 @@ namespace Gurux.DLMS
         }
        
         /// <summary>
-        /// Parse AARQ request that cliend send and returns AARE request.
+        /// Parse AARQ request that client send and returns AARE request.
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
@@ -800,18 +800,7 @@ namespace Gurux.DLMS
             m_Base.SendSequenceNo = 0;            
             return m_Base.AddFrame(m_Base.GenerateIFrame(), false, buff, 0, buff.Count);
         }
-
-        void SetValue(List<byte> buff, object data)
-        {
-            byte[] tmp = Gurux.Shared.GXCommon.GetAsByteArray(data);
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(tmp);
-            }
-            buff.Add((byte)tmp.Length);
-            buff.AddRange(tmp);
-        } 
-
+        
         /// <summary>
         /// Parse SNRM Request.
         /// </summary>
@@ -823,13 +812,13 @@ namespace Gurux.DLMS
         {
             List<byte> buff = new List<byte>();
             buff.Add((byte)HDLCInfo.MaxInfoTX);
-            SetValue(buff, Limits.MaxInfoTX);
+            GXDLMSLimitsDefault.SetValue(buff, Limits.MaxInfoTX);
             buff.Add((byte)HDLCInfo.MaxInfoRX);
-            SetValue(buff, Limits.MaxInfoRX);
+            GXDLMSLimitsDefault.SetValue(buff, Limits.MaxInfoRX);
             buff.Add((byte)HDLCInfo.WindowSizeTX);
-            SetValue(buff, Limits.WindowSizeTX);
+            GXDLMSLimitsDefault.SetValue(buff, Limits.WindowSizeTX);
             buff.Add((byte)HDLCInfo.WindowSizeRX);
-            SetValue(buff, Limits.WindowSizeRX);
+            GXDLMSLimitsDefault.SetValue(buff, Limits.WindowSizeRX);
             byte len = (byte)buff.Count;
             buff.Insert(0, 0x81); //FromatID
             buff.Insert(1, 0x80); //GroupID
@@ -851,13 +840,13 @@ namespace Gurux.DLMS
                 return m_Base.AddFrame(0, false, buff, 0, buff.Count);
             }            
             buff.Add((byte)HDLCInfo.MaxInfoTX);
-            SetValue(buff, Limits.MaxInfoTX);
+            GXDLMSLimitsDefault.SetValue(buff, Limits.MaxInfoTX);
             buff.Add((byte)HDLCInfo.MaxInfoRX);
-            SetValue(buff, Limits.MaxInfoRX);
+            GXDLMSLimitsDefault.SetValue(buff, Limits.MaxInfoRX);
             buff.Add((byte)HDLCInfo.WindowSizeTX);
-            SetValue(buff, Limits.WindowSizeTX);
+            GXDLMSLimitsDefault.SetValue(buff, Limits.WindowSizeTX);
             buff.Add((byte)HDLCInfo.WindowSizeRX);
-            SetValue(buff, Limits.WindowSizeRX);
+            GXDLMSLimitsDefault.SetValue(buff, Limits.WindowSizeRX);
             byte len = (byte)buff.Count;
             buff.Insert(0, 0x81); //FromatID
             buff.Insert(1, 0x80); //GroupID

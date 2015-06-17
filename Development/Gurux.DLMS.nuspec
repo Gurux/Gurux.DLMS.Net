@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>Gurux.DLMS</id>
+        <version>$version$</version>
+        <title>Gurux.DLMS</title>
+        <authors>Gurux Ltd</authors>
+        <owners>Gurux Ltd</owners>
+        <licenseUrl>http://www.gnu.org/licenses/gpl-2.0.txt</licenseUrl>
+        <projectUrl>http://www.gurux.org/index.php?q=GXDLMSCOSEM</projectUrl>
+        <iconUrl>http://www.gurux.org/gurux.ico</iconUrl>
+        <requireLicenseAcceptance>true</requireLicenseAcceptance>
+        <description>With Gurux DLMS/COSEM protocol component you can easily build your own AMR (Automatic Meter Reading) system for electricity consumption meters, through either TCP/IP, or Serial connection. If you are no expert in DLMS/COSEM, use our UI application, GXDLMSDirector, for the component to get started. Both the component, and its UI are OpenSource, and therefor available to anyone interested</description>
+        <summary>With Gurux DLMS/COSEM protocol component you can easily read your smart meters.</summary>
+        <copyright>Copyright (c) 1998-2015 Gurux Ltd. All rights reserved.</copyright>
+        <language>en-US</language>
+        <tags>DLMS COSEM AMI ARM</tags>
+    </metadata>
+    <files>
+        <file src="content\Gurux.DLMS.XML" target="content\Gurux.DLMS.XML" />
+        <file src="lib\net35\Gurux.DLMS.dll" target="lib\net35\Gurux.DLMS.dll" />
+    </files>
+</package>
