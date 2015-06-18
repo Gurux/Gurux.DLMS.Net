@@ -157,11 +157,11 @@ namespace Gurux.DLMS
             return obj;
         }
 
-        static public byte[] Chipher(Authentication auth, byte[] plainText, byte[] secret)
+        static public byte[] Chipher(Authentication auth, byte[] challenge, byte[] secret)
         {
             if (auth == Authentication.High)
             {
-                byte[] p = new byte[plainText.Length];
+                byte[] p = new byte[challenge.Length];
                 byte[] s;
                 if (secret.Length < 16)
                 {
@@ -171,32 +171,42 @@ namespace Gurux.DLMS
                 {
                     s = new byte[secret.Length];
                 }
-                plainText.CopyTo(p, 0);
+                challenge.CopyTo(p, 0);
                 secret.CopyTo(s, 0);
-                GXAes128.Encrypt(p, s);
-                return plainText;
+                GXAes128.Encrypt(s, p);
+                return s;
             }
             if (auth == Authentication.HighMD5)
             {
                 using (MD5 md5Hash = MD5.Create())
-                {                    
-                    return md5Hash.ComputeHash(plainText);
+                {
+                    byte[] tmp = new byte[challenge.Length + secret.Length];
+                    challenge.CopyTo(tmp, 0);
+                    secret.CopyTo(tmp, challenge.Length);
+                    tmp = md5Hash.ComputeHash(tmp);
+                    Array.Reverse(tmp);
+                    return tmp;
                 }
             }
             if (auth == Authentication.HighSHA1)
             {
                 using (SHA1 sha = new SHA1CryptoServiceProvider())
-                {                    
-                    return sha.ComputeHash(plainText);
+                {
+                    byte[] tmp = new byte[challenge.Length + secret.Length];
+                    challenge.CopyTo(tmp, 0);
+                    secret.CopyTo(tmp, challenge.Length);
+                    tmp = sha.ComputeHash(tmp);
+                    Array.Reverse(tmp);
+                    return tmp;
                 }
             }
             if (auth == Authentication.HighGMAC)
             {
-                GXDLMSChipperingStream tmp = new GXDLMSChipperingStream(Security.Authentication, true, plainText, plainText, null, null);
-                tmp.Write(plainText);
+                GXDLMSChipperingStream tmp = new GXDLMSChipperingStream(Security.Authentication, true, challenge, challenge, null, null);
+                tmp.Write(challenge);
                 return tmp.FlushFinalBlock();
             }
-            return plainText;
+            return challenge;
         }
 
         /// <summary>
