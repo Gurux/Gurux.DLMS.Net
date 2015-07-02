@@ -1395,7 +1395,7 @@ namespace Gurux.DLMS
                 GXCommon.SetData(buff, type, data);
             }
             int index = 0;
-            return m_Base.SplitToFrames(buff, 1, ref index, buff.Count, cmd, 0, false);
+            return m_Base.SplitToFrames(buff, 0, ref index, buff.Count, cmd, 0, false, null);
         }
 
         /// <summary>
@@ -1429,9 +1429,9 @@ namespace Gurux.DLMS
                 buff.Add(0x01);
                 buff.Add(0x01);
                 buff.Add(serviceErrorCode);
-            }            
+            }
             int index = 0;
-            return m_Base.SplitToFrames(buff, 1, ref index, buff.Count, cmd, serviceErrorCode, false);
+            return m_Base.SplitToFrames(buff, 0, ref index, buff.Count, cmd, serviceErrorCode, false, null);
         }
     }
 }

@@ -82,6 +82,10 @@ namespace Gurux.DLMS.Objects
         /// <param name="value"></param>
         public GXKeyValuePair(K key, V value)
         {
+            if (key == null)
+            {
+                throw new InvalidOperationException("Invalid key.");
+            }
             m_Key = key;
             m_Value = value;
         }

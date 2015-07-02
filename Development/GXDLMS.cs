@@ -184,7 +184,6 @@ namespace Gurux.DLMS
                     challenge.CopyTo(tmp, 0);
                     secret.CopyTo(tmp, challenge.Length);
                     tmp = md5Hash.ComputeHash(tmp);
-                    Array.Reverse(tmp);
                     return tmp;
                 }
             }
@@ -196,7 +195,6 @@ namespace Gurux.DLMS
                     challenge.CopyTo(tmp, 0);
                     secret.CopyTo(tmp, challenge.Length);
                     tmp = sha.ComputeHash(tmp);
-                    Array.Reverse(tmp);
                     return tmp;
                 }
             }
@@ -425,7 +423,7 @@ namespace Gurux.DLMS
                             asList = true;
                             List<KeyValuePair<GXDLMSObject, int>> tmp = (List<KeyValuePair<GXDLMSObject, int>>)name;
                             //Item count
-                            buff.Add((byte)tmp.Count);
+                            GXCommon.SetObjectCount(tmp.Count, buff); 
                             foreach (KeyValuePair<GXDLMSObject, int> it in (List<KeyValuePair<GXDLMSObject, int>>)name)
                             {
                                 //Interface class.
@@ -460,7 +458,17 @@ namespace Gurux.DLMS
                                 buff.Add(Convert.ToByte(it));
                             }
                             buff.Add((byte)AttributeOrdinal);
-                            if (data == null || data.Length == 0 || cmd == Command.SetRequest)
+                            if (cmd == Command.SetRequest)
+                            {
+                                //Access selector.
+                                buff.Add(0);
+                                //If data is not fit to PDU size.
+                                if (UseLogicalNameReferencing && data.Length + buff.Count >= this.MaxReceivePDUSize)
+                                {
+                                    return SplitToBlocks(new List<byte>(data), cmd, false, buff.ToArray());
+                                }
+                            }
+                            else if (data == null || data.Length == 0)
                             {
                                 buff.Add(0); //Items count
                             }
@@ -526,7 +534,7 @@ namespace Gurux.DLMS
                     buff.AddRange(data);
                 }            
             }
-            return SplitToBlocks(buff, cmd, asList);
+            return SplitToBlocks(buff, cmd, asList, null);
         }
 
         /// <summary>
@@ -678,7 +686,7 @@ namespace Gurux.DLMS
                 }
                 else if (this.InterfaceType == DLMS.InterfaceType.Net)
                 {
-                    if (data.Length < 6)
+                    if (data.Length < 8)
                     {
                         return false;
                     }
@@ -691,6 +699,10 @@ namespace Gurux.DLMS
                 byte command;
                 GetDataFromFrame(new List<byte>(data), 0, out frame, true, out error, false, out packetFull, out wrongCrc, out command, false);
                 return packetFull;
+            }
+            catch (GXDLMSException ex)
+            {
+                throw ex;
             }
             catch
             {
@@ -971,29 +983,48 @@ namespace Gurux.DLMS
         /// <param name="count"></param>
         /// <param name="cmd"></param>
         /// <returns></returns>
-        internal byte[][] SplitToFrames(List<byte> packet, uint blockIndex, ref int index, int count, Command cmd, byte resultChoice, bool asList)
+        internal byte[][] SplitToFrames(List<byte> packet, uint blockIndex, ref int index, int count, Command cmd, byte resultChoice, bool asList, byte[] initialData)
         {
-            List<byte> tmp = new List<byte>(count + 13);            
+            List<byte> tmp = new List<byte>(count + 13);
             if (cmd != Command.None && this.UseLogicalNameReferencing)
             {
-                bool moreBlocks = packet.Count > MaxReceivePDUSize && packet.Count > index + count;
+                int len = packet.Count;
+                if (initialData != null && blockIndex == 1)
+                {
+                    len += initialData.Length;
+                }
+                bool moreBlocks = len > MaxReceivePDUSize && len > index + count;
                 //Command, multiple blocks and Invoke ID and priority.
-                if (asList)
+                if (asList || (cmd == Command.SetRequest && blockIndex != 1))
                 {
                     tmp.AddRange(new byte[] { (byte)cmd, 3, GetInvokeIDPriority() });
                 }
                 else
                 {
-                    tmp.AddRange(new byte[] { (byte)cmd, (byte)(moreBlocks ? 2 : 1), GetInvokeIDPriority() });
+                    tmp.AddRange(new byte[] { (byte)cmd, (byte)(moreBlocks || blockIndex != 1 ? 2 : 1), GetInvokeIDPriority() });
+                    if (initialData != null)
+                    {
+                        tmp.AddRange(initialData);
+                    }
                 }
                 if (Server)
                 {
                     tmp.Add(resultChoice); // Get-Data-Result choice data
                 }
-                if (moreBlocks)
+                if (moreBlocks || blockIndex != 1)
                 {
+                    //Last block.
+                    tmp.Add((byte)(moreBlocks ? 0 : 1));
+
                     GXCommon.SetUInt32(blockIndex, tmp);
-                    tmp.Add(0);
+                    if (index + count > len)
+                    {
+                        count = len - index;
+                    }
+                    if (moreBlocks)
+                    {
+                        count -= (tmp.Count + 3);
+                    }
                     GXCommon.SetObjectCount(count, tmp);
                 }
             }
@@ -1073,7 +1104,7 @@ namespace Gurux.DLMS
             if (count + index > packet.Count)
             {
                 count = packet.Count - index;
-            }            
+            }
             tmp.AddRange(packet.GetRange(index, count));
             index += count;
             count = tmp.Count;            
@@ -1091,22 +1122,25 @@ namespace Gurux.DLMS
             for (uint pos = 0; pos < cnt; ++pos)
             {
                 byte id = 0;
-                if (pos == 0)
+                if (this.InterfaceType == DLMS.InterfaceType.General)
                 {
-                    id = GenerateIFrame();
-                    byte id2 = GenerateIFrame(true);
-                    if (id != id2)
+                    if (pos == 0)
                     {
-                        System.Diagnostics.Debug.WriteLine("TODO : " + id.ToString() + " " + id2.ToString());
+                        id = GenerateIFrame();
+                        byte id2 = GenerateIFrame(true);
+                        if (id != id2)
+                        {
+                            System.Diagnostics.Debug.WriteLine("TODO : " + id.ToString() + " " + id2.ToString());
+                        }
                     }
-                }
-                else
-                {
-                    id = GenerateNextFrame();
-                    byte id2 = GenerateIFrame(false);
-                    if (id != id2)
+                    else
                     {
-                        System.Diagnostics.Debug.WriteLine("TODO : " + id.ToString() + " " + id2.ToString());
+                        id = GenerateNextFrame();
+                        byte id2 = GenerateIFrame(false);
+                        if (id != id2)
+                        {
+                            System.Diagnostics.Debug.WriteLine("TODO : " + id.ToString() + " " + id2.ToString());
+                        }
                     }
                 }
                 if (start + dataSize > tmp.Count)
@@ -1124,12 +1158,12 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="packet">Packet to send.</param>
         /// <returns>Array of byte arrays that are sent to device.</returns>
-        internal byte[][] SplitToBlocks(List<byte> packet, Command cmd, bool asList)
+        internal byte[][] SplitToBlocks(List<byte> packet, Command cmd, bool asList, byte[] initialData)
         {            
             int index = 0;
             if (!UseLogicalNameReferencing)//SN
             {
-                return SplitToFrames(packet, 1, ref index, packet.Count, cmd, 0, asList);
+                return SplitToFrames(packet, 1, ref index, packet.Count, cmd, 0, asList, initialData);
             }           
             //If LN           
             //Split to Blocks.
@@ -1138,7 +1172,7 @@ namespace Gurux.DLMS
             bool multibleFrames = false;
             do
             {
-                byte[][] frames = SplitToFrames(packet, ++blockIndex, ref index, MaxReceivePDUSize, cmd, 0, asList);
+                byte[][] frames = SplitToFrames(packet, ++blockIndex, ref index, MaxReceivePDUSize, cmd, 0, asList, initialData);
                 buff.AddRange(frames);
                 if (frames.Length != 1)
                 {

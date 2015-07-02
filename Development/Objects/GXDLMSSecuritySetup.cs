@@ -98,7 +98,17 @@ namespace Gurux.DLMS.Objects
         {
             get;
             set;
-        }        
+        }
+
+        /// <summary>
+        /// TODO:
+        /// </summary>
+        [XmlIgnore()]
+        public Object Certificates
+        {
+            get;
+            set;
+        }  
 
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
@@ -147,24 +157,42 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(5);
             }
+            //Certificates
+            if (CanRead(6))
+            {
+                attributes.Add(6);
+            } 
             return attributes.ToArray();
         }
 
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
+            if (this.Version == 0)
+            {
+                return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Security Policy", 
+                "Security Suite"};
+            }
             return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Security Policy", 
-                "Security Suite", "Client System Title", "Server System Title" };            
+                "Security Suite", "Client System Title", "Server System Title" , "Certificates"};            
         }
 
         int IGXDLMSBase.GetAttributeCount()
         {
-            return 5;
+            if (this.Version == 0)
+            {
+                return 3;
+            }
+            return 6;
         }
 
         int IGXDLMSBase.GetMethodCount()
         {
-            return 2;
+            if (this.Version == 0)
+            {
+                return 3;
+            }
+            return 8;
         }
 
         override public DataType GetDataType(int index)
@@ -188,6 +216,10 @@ namespace Gurux.DLMS.Objects
             if (index == 5)
             {
                 return DataType.OctetString;                
+            }
+            if (index == 6)
+            {
+                return DataType.OctetString;
             }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
@@ -213,6 +245,10 @@ namespace Gurux.DLMS.Objects
             if (index == 5)
             {
                 return ServerSystemTitle;
+            }
+            if (index == 5)
+            {
+                return Certificates;
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
@@ -245,6 +281,10 @@ namespace Gurux.DLMS.Objects
             else if (index == 5)
             {
                ServerSystemTitle = (byte[])value;
+            }
+            else if (index == 6)
+            {
+                Certificates = value;
             }
             else
             {

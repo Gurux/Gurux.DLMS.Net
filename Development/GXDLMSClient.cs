@@ -701,7 +701,7 @@ namespace Gurux.DLMS
             m_Base.FrameSequence = -1;
             m_Base.ExpectedFrame = -1;
             m_Base.ReceiveSequenceNo = m_Base.SendSequenceNo = -1;
-            return m_Base.SplitToBlocks(buff, Command.None, false);
+            return m_Base.SplitToBlocks(buff, Command.None, false, null);
         }
 
         /// <summary>

@@ -17,7 +17,7 @@
         <tags>DLMS COSEM AMI ARM</tags>
     </metadata>
     <files>
-        <file src="content\Gurux.DLMS.XML" target="content\Gurux.DLMS.XML" />
-        <file src="lib\net35\Gurux.DLMS.dll" target="lib\net35\Gurux.DLMS.dll" />
+        <file src="bin\Release\**" target="lib\portable-win+net35" />
+        <file src="**\*.cs" exclude="**\obj\**\*.*" target="src" />
     </files>
 </package>

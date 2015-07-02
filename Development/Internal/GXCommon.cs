@@ -274,42 +274,45 @@ namespace Gurux.DLMS.Internal
         /// <param name="buff"></param>
         internal static void SetObjectCount(int count, List<byte> buff, int index)
         {
-            if (count > 0x7F)
+            List<byte> tmp = new List<byte>();
+            if (count < 0x80)
             {
-                int cnt = 0;
-                while (count >> (7 * ++cnt) > 0);
-                if (index == -1)
-                {
-                    buff.Add((byte)(0x80 + cnt));
-                }
-                else
-                {
-                    buff.Insert(index, (byte)(0x80 + cnt));
-                    ++index;
-                }
-                List<byte> tmp = new List<byte>(BitConverter.GetBytes(count));                
-                tmp = tmp.GetRange(0, cnt);
-                tmp.Reverse();
-                if (index == -1)
-                {
-                    buff.AddRange(tmp);
-                }
-                else
-                {
-                    buff.InsertRange(index, tmp);
-                }
+                tmp.Add((byte)count);
+            }
+            else if (count < 0x100)
+            {
+                tmp.Add((byte)(0x81));
+                tmp.Add((byte)count);
+            }
+            else if (count < 0x10000)
+            {
+                tmp.Add((byte)(0x82));
+                tmp.Add((byte)(count >> 8));
+                tmp.Add((byte)count);
+            }
+            else if (count < 0x1000000)
+            {
+                tmp.Add((byte)(0x83));
+                tmp.Add((byte)(count >> 16));
+                tmp.Add((byte)(count >> 8));
+                tmp.Add((byte)count);
             }
             else
             {
-                if (index == -1)
-                {
-                    buff.Add((byte)count);
-                }
-                else
-                {
-                    buff.Insert(index, (byte)count);
-                }
+                tmp.Add((byte)(0x84));
+                tmp.Add((byte)(count >> 24));
+                tmp.Add((byte)(count >> 16));
+                tmp.Add((byte)(count >> 8));
+                tmp.Add((byte)count);
             }
+            if (index == -1)
+            {
+                buff.AddRange(tmp);
+            }
+            else
+            {
+                buff.InsertRange(index, tmp);
+            }            
         }
 
         /// <summary>
