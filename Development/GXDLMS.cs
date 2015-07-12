@@ -1929,8 +1929,8 @@ namespace Gurux.DLMS
                         //Do nothing because Actaris is counting wrong CRC to the header.
                     }
                     //Check that CRC match.
-                    crcCount = GXFCS16.CountFCS16(buff.ToArray(), PacketStartID + 1, FrameLen - PacketStartID - 2);
-                    int pos = FrameLen - 1;
+                    crcCount = GXFCS16.CountFCS16(buff.ToArray(), PacketStartID + 1, FrameLen - 2);
+                    int pos = PacketStartID + FrameLen - 1;
                     crcRead = GXCommon.GetUInt16(buff, ref pos);
                     if (crcRead != crcCount)
                     {
@@ -1993,7 +1993,7 @@ namespace Gurux.DLMS
                     else
                     {
                         //Remove all except payload.
-                        len = FrameLen - PacketStartID - 1;
+                        len = FrameLen + PacketStartID - 1;
                         buff.RemoveRange(len, 3);
                         buff.RemoveRange(0, index);
                     }
