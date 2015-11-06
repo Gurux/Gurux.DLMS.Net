@@ -101,6 +101,7 @@
     <Compile Include="Objects\ClockBase.cs" />
     <Compile Include="Objects\ControlMode.cs" />
     <Compile Include="Objects\ControlState.cs" />
+    <Compile Include="Objects\GXDLMSIecTwistedPairSetup.cs" />
     <Compile Include="Objects\GXApplicationContextName.cs" />
     <Compile Include="Objects\GXAuthenticationMechanismName.cs" />
     <Compile Include="Objects\GXDLMSActionItem.cs" />

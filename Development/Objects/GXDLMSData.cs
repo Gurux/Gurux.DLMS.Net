@@ -68,7 +68,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSData(string ln, ushort sn)
-            : base(ObjectType.Data, ln, 0)
+            : base(ObjectType.Data, ln, sn)
         {
         }
 

@@ -71,7 +71,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSRegisterActivation(string ln, ushort sn)
-            : base(ObjectType.RegisterActivation, ln, 0)
+            : base(ObjectType.RegisterActivation, ln, sn)
         {
             MaskList = new List<KeyValuePair<byte[], byte[]>>();
         }

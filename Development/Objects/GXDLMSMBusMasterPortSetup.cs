@@ -70,7 +70,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSMBusMasterPortSetup(string ln, ushort sn)
-            : base(ObjectType.MBusMasterPortSetup, ln, 0)
+            : base(ObjectType.MBusMasterPortSetup, ln, sn)
         {
             CommSpeed = BaudRate.Baudrate2400;
         }

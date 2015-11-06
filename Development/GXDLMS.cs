@@ -161,20 +161,23 @@ namespace Gurux.DLMS
         {
             if (auth == Authentication.High)
             {
-                byte[] p = new byte[challenge.Length];
-                byte[] s;
+                byte[] p = new byte[challenge.Length + 15];
+                byte[] s = new byte[16];
+                byte[] x = new byte[16];
+                int i;
                 if (secret.Length < 16)
-                {
-                    s = new byte[16];
+                {                   
+                    challenge.CopyTo(p, 0);
+                    secret.CopyTo(s, 0);
+                    for (i = 0; i < p.Length; i += 16)
+                    {
+                        Buffer.BlockCopy(p, i, x, 0, 16);
+                        GXAes128.Encrypt(x, s);
+                        x.CopyTo(p, i);
+                    }
+                    return p;
                 }
-                else
-                {
-                    s = new byte[secret.Length];
-                }
-                challenge.CopyTo(p, 0);
-                secret.CopyTo(s, 0);
-                GXAes128.Encrypt(s, p);
-                return s;
+                throw new ArgumentException("Chipher failed. Invalid secret.");               
             }
             if (auth == Authentication.HighMD5)
             {
@@ -1978,7 +1981,7 @@ namespace Gurux.DLMS
                         }
                         else
                         {
-                            throw new GXDLMSException(string.Format("Invalid command %d", command));
+                            throw new GXDLMSException("Invalid command 0x" + command.ToString("X"));
                         }
                     }                   
                     //Skip data header and data CRC and EOP.
@@ -2142,7 +2145,6 @@ namespace Gurux.DLMS
                 case ObjectType.AutoAnswer:
                 case ObjectType.AutoConnect:
                 case ObjectType.MacAddressSetup:
-                case ObjectType.Event:
                 case ObjectType.GprsSetup:
                 case ObjectType.IecHdlcSetup:
                 case ObjectType.IecLocalPortSetup:
@@ -2150,13 +2152,14 @@ namespace Gurux.DLMS
                 case ObjectType.ModemConfiguration:
                 case ObjectType.PppSetup:
                 case ObjectType.RegisterMonitor:
-                case ObjectType.RemoteAnalogueControl:
-                case ObjectType.RemoteDigitalControl:
+                case ObjectType.SapAssignment:
+                case ObjectType.ZigBeeSasStartup:
+                case ObjectType.ZigBeeSasJoin:
+                case ObjectType.ZigBeeSasApsFragmentation:
                 case ObjectType.Schedule:
                 case ObjectType.SmtpSetup:
                 case ObjectType.StatusMapping:
                 case ObjectType.TcpUdpSetup:
-                case ObjectType.Tunnel:
                 case ObjectType.UtilityTables:
                     throw new Exception("Target do not support Action.");
                 case ObjectType.ImageTransfer:
@@ -2210,10 +2213,6 @@ namespace Gurux.DLMS
                 case ObjectType.RegisterTable:
                     value = 0x28;
                     count = 2;
-                    break;
-                case ObjectType.SapAssignment:
-                    value = 0x20;
-                    count = 1;
                     break;
                 case ObjectType.ScriptTable:
                     value = 0x20;

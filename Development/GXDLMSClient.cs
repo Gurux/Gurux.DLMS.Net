@@ -1827,13 +1827,13 @@ namespace Gurux.DLMS
         /// <returns></returns>
         public byte[] ReadRowsByRange(object name, string ln, ObjectType objectType, int version, DateTime start, DateTime end)
         {
-            GXDateTime s = new GXDateTime(start.ToUniversalTime());
+            GXDateTime s = new GXDateTime(start);
             if (start == DateTime.MinValue || start == DateTime.MaxValue)
             {
                 s.Value = start;
             }
             s.Skip = DateTimeSkips.Ms;
-            GXDateTime e = new GXDateTime(end.ToUniversalTime());
+            GXDateTime e = new GXDateTime(end);
             if (end == DateTime.MinValue || end == DateTime.MaxValue)
             {
                 e.Value = end;

@@ -40,6 +40,102 @@ using Gurux.DLMS;
 using System.ComponentModel;
 using System.Xml.Serialization;
 
+/// <summary>
+/// Executed scripts.
+/// </summary>
+public class GXScheduleEntry
+{
+    /// <summary>
+    /// Schedule entry index.
+    /// </summary>
+    public byte Index
+    {
+        get;
+        set;
+    }
+
+    /// <summary>
+    /// Is Schedule entry enabled.
+    /// </summary>
+    public bool Enable
+    {
+        get;
+        set;
+    }
+
+    /// <summary>
+    /// Logical name of the Script table object.
+    /// </summary>
+    public string LogicalName
+    {
+        get;
+        set;
+    }
+
+    /// <summary>
+    /// Script identifier of the script to be executed. 
+    /// </summary>
+    public byte ScriptSelector
+    {
+        get;
+        set;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public GXDateTime SwitchTime
+    {
+        get;
+        set;
+    }
+
+    /// <summary>
+    /// Defines a period in minutes, in which an entry shall be processed after power fail. 
+    /// </summary>
+    public byte ValidityWindow
+    {
+        get;
+        set;
+    }
+
+    /// <summary>
+    /// Days of the week on which the entry is valid.
+    /// </summary>
+    public String ExecWeekdays
+    {
+        get;
+        set;
+    }
+
+    /// <summary>
+    /// Perform the link to the IC “Special days table”, day_id.
+    /// </summary>
+    public String ExecSpecDays
+    {
+        get;
+        set;
+    }
+
+    /// <summary>
+    /// Date starting period in which the entry is valid.
+    /// </summary>
+    public GXDateTime BeginDate
+    {
+        get;
+        set;
+    }
+
+    /// <summary>
+    /// Date starting period in which the entry is valid.
+    /// </summary>
+    public GXDateTime EndDate
+    {
+        get;
+        set;
+    }
+}
+
 namespace Gurux.DLMS.Objects
 {
     public class GXDLMSSchedule : GXDLMSObject, IGXDLMSBase
@@ -50,6 +146,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSSchedule()
             : base(ObjectType.Schedule)
         {
+            Entries = new List<GXScheduleEntry>();
         }
 
         /// <summary> 
@@ -59,6 +156,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSSchedule(string ln)
             : base(ObjectType.Schedule, ln, 0)
         {
+            Entries = new List<GXScheduleEntry>();
         }
 
         /// <summary> 
@@ -67,15 +165,16 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSSchedule(string ln, ushort sn)
-            : base(ObjectType.Schedule, ln, 0)
+            : base(ObjectType.Schedule, ln, sn)
         {
+            Entries = new List<GXScheduleEntry>();
         }
 
         /// <summary>
-        /// TODO:
+        /// Specifies the scripts to be executed at given times.
         /// </summary>        
         [XmlIgnore()]
-        public object Entries
+        public List<GXScheduleEntry> Entries
         {
             get;
             set;
@@ -151,7 +250,86 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 2)
             {
-                return Entries;
+                List<byte> data = new List<byte>();
+                data.Add((byte)DataType.Array);
+                data.Add((byte)Entries.Count);
+                /*
+                foreach (GXScheduleEntry it in Entries)
+                {
+                    data.Add((byte)DataType.Structure);
+                    data.Add(10);
+                    //Add index.
+                    data.Add((byte)DataType.UInt8);
+                    data.Add(it.Index);
+                    //Add enable.
+                    data.Add((byte)DataType.Boolean);
+                    data.Add((byte) (it.Enable ? 1 : 0));
+
+                    //Add logical Name.
+                    data.Add((byte)DataType.OctetString);
+                    data.Add((byte) it.LogicalName.Length);
+                    //TODO: data.Add((byte)it.LogicalName.Length);
+
+                    //Add script selector.
+                    data.Add((byte)DataType.UInt8);
+                    data.Add(it.ScriptSelector);
+
+                    //Add switch time.
+                    ret = var_setDateTime(&tmp, &se->switchTime);
+                    if (ret != 0)
+                    {
+                        var_clear(&tmp);
+                        break;
+                    }
+                    ret = var_getBytes(&tmp, &value->byteArr);
+                    var_clear(&tmp);
+                    if (ret != 0)
+                    {
+                        break;
+                    }
+                    //Add validity window.
+                    data.Add((byte)DataType.UInt8);
+                    data.Add(it.ValidityWindow);
+
+                    //Add exec week days.
+                    ba_setUInt8(&value->byteArr, DLMS_DATA_TYPE_BIT_STRING);
+                    setObjectCount(se->execWeekdays.size, &value->byteArr);
+                    ba_addRange(&value->byteArr, se->execWeekdays.data, bit_getByteCount(se->execWeekdays.size));
+
+                    //Add exec spec days.
+                    ba_setUInt8(&value->byteArr, DLMS_DATA_TYPE_BIT_STRING);
+                    setObjectCount(se->execSpecDays.size, &value->byteArr);
+                    ba_addRange(&value->byteArr, se->execSpecDays.data, bit_getByteCount(se->execSpecDays.size));
+
+                    //Add begin date.
+                    ret = var_setDateTime(&tmp, &se->beginDate);
+                    if (ret != 0)
+                    {
+                        var_clear(&tmp);
+                        break;
+                    }
+                    ret = var_getBytes(&tmp, &value->byteArr);
+                    var_clear(&tmp);
+                    if (ret != 0)
+                    {
+                        break;
+                    }
+                    //Add end date.
+                    ret = var_setDateTime(&tmp, &se->endDate);
+                    if (ret != 0)
+                    {
+                        var_clear(&tmp);
+                        break;
+                    }
+                    ret = var_getBytes(&tmp, &value->byteArr);
+                    var_clear(&tmp);
+                    if (ret != 0)
+                    {
+                        break;
+                    }
+                }
+                 * */
+                return data.ToArray();
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
@@ -170,8 +348,25 @@ namespace Gurux.DLMS.Objects
                 }
             }
             else if (index == 2)
-            {                
-                Entries = value;
+            {
+                Entries.Clear();
+                Object[] arr = (Object[])value;
+                foreach (var it in arr)
+                {
+                    GXScheduleEntry item = new GXScheduleEntry();
+                    Object[] tmp = (Object[])it;
+                    item.Index = Convert.ToByte(tmp[0]);
+                    item.Enable = (bool) tmp[1];
+                    item.LogicalName = GXDLMSClient.ChangeType((byte[])tmp[2], DataType.OctetString).ToString();
+                    item.ScriptSelector = Convert.ToByte(tmp[3]);
+                    item.SwitchTime = (GXDateTime) GXDLMSClient.ChangeType((byte[])tmp[4], DataType.DateTime);
+                    item.ValidityWindow = Convert.ToByte(tmp[5]);
+                    item.ExecWeekdays = (string) tmp[6];
+                    item.ExecSpecDays = (string)tmp[7];
+                    item.BeginDate = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[8], DataType.DateTime);
+                    item.EndDate = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[9], DataType.DateTime);
+                    Entries.Add(item);
+                }
             }
             else
             {

@@ -56,7 +56,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSAssociationShortName(string ln, ushort sn)
-            : base(ObjectType.AssociationShortName, ln, 0)
+            : base(ObjectType.AssociationShortName, ln, sn)
         {
             ObjectList = new GXDLMSObjectCollection();
         }

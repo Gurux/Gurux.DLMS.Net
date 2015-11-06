@@ -142,17 +142,7 @@ namespace Gurux.DLMS
         ///allow a more general use.
         ///</remarks>
         [XmlEnum("43")]
-        MacAddressSetup = 43,        
-
-        ///<summary>
-        ///When a certain occasion should cause a certain action, use an object of 
-        ///type Event, which the client system can enable. When enabled, and when the 
-        ///specified occasion occures, the event is sent the soonest possible. 
-        ///Information of the time of the occasion, the acknowledgement of the event, 
-        ///and its response time is included.
-        ///</summary>
-        [XmlEnum("100")]
-        Event = 100,
+        MacAddressSetup = 43,             
 
         ///<summary>
         ///ExtendedRegister stores a value, and understands the type of the value. 
@@ -325,20 +315,24 @@ namespace Gurux.DLMS
         RegisterTable = 61,
 
         ///<summary>
-        ///To create a table of setpoints within the logical device, and to connect 
-        ///any / all entries to an analogue control point of the physical device, use 
-        ///RemoteAnalogueControl.
-        ///</summary>
-        [XmlEnum("102")]
-        RemoteAnalogueControl = 102,
-
-        ///<summary>
-        ///To create an array of switches within the logical device, and to connect 
-        ///any / all entries to a digital relay, to switch on or off any equipment 
-        /// = that is connected to the physical device, use RemoteDigitalControl.
+        ///Configure a ZigBee PRO device with information necessary 
+        ///to create or join the network.
         ///</summary>
         [XmlEnum("101")]
-        RemoteDigitalControl = 101,
+        ZigBeeSasStartup = 101,
+
+        ///<summary>
+        ///Configure the behaviour of a ZigBee PRO device on 
+        ///joining or loss of connection to the network. 
+        ///</summary>
+        [XmlEnum("102")]
+        ZigBeeSasJoin = 102,
+
+        ///<summary>
+        ///Configure the fragmentation feature of ZigBee PRO transport layer. 
+        ///</summary>
+        [XmlEnum("103")]
+        ZigBeeSasApsFragmentation = 103,       
 
         ///<summary>
         ///SapAssigment stores information of assignment of the logical devices to 
@@ -401,17 +395,6 @@ namespace Gurux.DLMS
         ///</summary>
         [XmlEnum("41")]
         TcpUdpSetup = 41,
-
-        ///<summary>
-        ///Use Tunnel, when you need to transfer data of a source by DLMS. All different 
-        ///kinds of sources need to implement a corresponding Tunnel to match the 
-        ///attributes, such as source, destination, QoS  = Quality od Service, message 
-        ///length, and EOM  = End of Message. Though source and destination addresses 
-        ///come from lower layers, the message should include information of the source 
-        ///and destination, too.
-        ///</summary>
-        [XmlEnum("103")]
-        Tunnel = 103,
 
         ///<summary>
         ///In an object of type UtilityTables each "Table"  = ANSI C12.19:1997 table data 

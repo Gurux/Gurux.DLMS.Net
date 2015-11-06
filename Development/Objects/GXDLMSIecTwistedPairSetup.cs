@@ -32,39 +32,54 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.ComponentModel;
 using Gurux.DLMS;
-
-
-
+using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 
 namespace Gurux.DLMS.Objects
 {
-    public class GXDLMSHdlcSetup : GXDLMSObject, IGXDLMSBase
+    /// <summary>
+    /// IEC Twisted pair setup working mode.
+    /// </summary>
+    public enum  IecTwistedPairSetupMode
+    {
+        /// <summary>
+        /// The interface ignores all received frames.
+        /// </summary>
+        Inactive = 0,
+        
+        /// <summary>
+        /// Active, 
+        /// </summary>
+        Active = 1
+    }
+
+    public class GXDLMSIecTwistedPairSetup : GXDLMSObject, IGXDLMSBase
     {
         /// <summary> 
         /// Constructor.
         /// </summary> 
-        public GXDLMSHdlcSetup()
-            : base(ObjectType.IecHdlcSetup)
+        public GXDLMSIecTwistedPairSetup()
+            : base(ObjectType.IecTwistedPairSetup)
         {
-            CommunicationSpeed = BaudRate.Baudrate9600;
-            WindowSizeReceive = WindowSizeTransmit = 1;
-            MaximumInfoLengthTransmit = MaximumInfoLengthReceive = 128;
+            PrimaryAddresses = new byte[0];
+            Tabis = new sbyte[0];
         }
 
         /// <summary> 
         /// Constructor.
         /// </summary> 
         /// <param name="ln">Logical Name of the object.</param>
-        public GXDLMSHdlcSetup(string ln)
-            : base(ObjectType.IecHdlcSetup, ln, 0)
+        public GXDLMSIecTwistedPairSetup(string ln)
+            : base(ObjectType.IecTwistedPairSetup, ln, 0)
         {
+            PrimaryAddresses = new byte[0];
+            Tabis = new sbyte[0];
         }
 
         /// <summary> 
@@ -72,84 +87,69 @@ namespace Gurux.DLMS.Objects
         /// </summary> 
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
-        public GXDLMSHdlcSetup(string ln, ushort sn)
-            : base(ObjectType.IecHdlcSetup, ln, sn)
+        public GXDLMSIecTwistedPairSetup(string ln, ushort sn)
+            : base(ObjectType.IecTwistedPairSetup, ln, sn)
         {
-        }       
+            PrimaryAddresses = new byte[0];
+            Tabis = new sbyte[0];
+        }
 
+        /// <summary>
+        /// Working mode.
+        /// </summary>        
         [XmlIgnore()]
-        public BaudRate CommunicationSpeed
+        public IecTwistedPairSetupMode Mode
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// Communication speed. 
+        /// </summary>        
         [XmlIgnore()]
-        [DefaultValue(1)]
-        public int WindowSizeTransmit
+        public BaudRate Speed
         {
             get;
             set;
         }
 
-        [XmlIgnore()]
-        [DefaultValue(1)]
-        public int WindowSizeReceive
+        /// <summary>
+        /// List of Primary Station Addresses.
+        /// </summary>
+        public byte[] PrimaryAddresses
         {
             get;
             set;
         }
 
-        [XmlIgnore()]
-        [DefaultValue(128)]
-        public int MaximumInfoLengthTransmit
+        /// <summary>
+        /// List of the TAB(i) for which the real equipment has been programmed 
+        /// in the case of forgotten station call. 
+        /// </summary>
+        public sbyte[] Tabis
         {
             get;
             set;
         }
-
-        [XmlIgnore()]
-        [DefaultValue(128)]
-        public int MaximumInfoLengthReceive
-        {
-            get;
-            set;
-        }
-
-        [XmlIgnore()]
-        [DefaultValue(30)]
-        public int InterCharachterTimeout
-        {
-            get;
-            set;
-        }
-
-        [XmlIgnore()]
-        [DefaultValue(120)]
-        public int InactivityTimeout
-        {
-            get;
-            set;
-        }
-
-        [XmlIgnore()]
-        [DefaultValue(0)]
-        public int DeviceAddress
-        {
-            get;
-            set;
-        }
+        
 
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, CommunicationSpeed, 
-                WindowSizeTransmit, WindowSizeReceive, 
-                MaximumInfoLengthTransmit, MaximumInfoLengthReceive, 
-                InterCharachterTimeout, InactivityTimeout, DeviceAddress };
+            return new object[] { LogicalName, Mode, Speed, PrimaryAddresses, Tabis };
         }
 
         #region IGXDLMSBase Members
+
+        /// <summary>
+        /// Data interface do not have any methods.
+        /// </summary>
+        /// <param name="index"></param>
+        byte[][] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
+        {
+            throw new ArgumentException("Invoke failed. Invalid attribute index.");
+        }
 
         int[] IGXDLMSBase.GetAttributeIndexToRead()
         {
@@ -159,45 +159,25 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(1);
             }
-            //CommunicationSpeed
-            if (!base.IsRead(2))
+            //Mode
+            if (CanRead(2))
             {
                 attributes.Add(2);
             }
-            //WindowSizeTransmit
-            if (!base.IsRead(3))
+            //Speed
+            if (CanRead(3))
             {
                 attributes.Add(3);
             }
-            //WindowSizeReceive
-            if (!base.IsRead(4))
+            //PrimaryAddresses
+            if (CanRead(4))
             {
                 attributes.Add(4);
             }
-            //MaximumInfoLengthTransmit
-            if (!base.IsRead(5))
+            //Tabis
+            if (CanRead(5))
             {
                 attributes.Add(5);
-            }
-            //MaximumInfoLengthReceive
-            if (!base.IsRead(6))
-            {
-                attributes.Add(6);
-            }
-            //InterCharachterTimeout
-            if (!base.IsRead(7))
-            {
-                attributes.Add(7);
-            }
-            //InactivityTimeout
-            if (!base.IsRead(8))
-            {
-                attributes.Add(8);
-            }
-            //DeviceAddress
-            if (!base.IsRead(9))
-            {
-                attributes.Add(9);
             }
             return attributes.ToArray();
         }
@@ -205,20 +185,12 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, 
-                "Communication Speed", 
-                "Window Size Transmit", 
-                "Window Size Receive", 
-                "Maximum Info Length Transmit", 
-                "Maximum Info Length Receive", 
-                "InterCharachter Timeout", 
-                "Inactivity Timeout", 
-                "Device Address"};
+            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Value" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
         {
-            return 9;
+            return 5;
         }
 
         int IGXDLMSBase.GetMethodCount()
@@ -238,31 +210,15 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 3)
             {
-                return DataType.UInt8;
+                return DataType.Enum;
             }
             if (index == 4)
             {
-                return DataType.UInt8;
+                return DataType.Array;
             }
             if (index == 5)
             {
-                return DataType.UInt16;
-            }
-            if (index == 6)
-            {
-                return DataType.UInt16;
-            }
-            if (index == 7)
-            {
-                return DataType.UInt16;
-            }
-            if (index == 8)
-            {
-                return DataType.UInt16;
-            }
-            if (index == 9)
-            {
-                return DataType.UInt16;
+                return DataType.Array;
             }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
@@ -275,35 +231,49 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 2)
             {
-                return this.CommunicationSpeed;
+                return (byte) Mode;
             }
             if (index == 3)
             {
-                return this.WindowSizeTransmit;
+                return (byte) Speed;
             }
             if (index == 4)
             {
-                return this.WindowSizeReceive;
+                List<byte> data = new List<byte>();
+                data.Add((byte)DataType.Array);
+                if (PrimaryAddresses == null)
+                {
+                    data.Add(0);
+                }
+                else
+                {
+                    data.Add((byte) PrimaryAddresses.Length);
+                    foreach (byte it in PrimaryAddresses)
+                    {
+                        data.Add((byte)DataType.UInt8);
+                        data.Add(it);
+                    }
+                }
+                return data.ToArray();
             }
             if (index == 5)
             {
-                return this.MaximumInfoLengthTransmit;
-            }
-            if (index == 6)
-            {
-                return this.MaximumInfoLengthReceive;
-            }
-            if (index == 7)
-            {
-                return InterCharachterTimeout;
-            }
-            if (index == 8)
-            {
-                return InactivityTimeout;
-            }
-            if (index == 9)
-            {
-                return DeviceAddress;
+                List<byte> data = new List<byte>();
+                data.Add((byte)DataType.Array);
+                if (Tabis == null)
+                {
+                    data.Add(0);
+                }
+                else
+                {
+                    data.Add((byte)Tabis.Length);
+                    foreach (sbyte it in Tabis)
+                    {
+                        data.Add((byte)DataType.UInt8);
+                        data.Add((byte) it);
+                    }
+                }
+                return data.ToArray();
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
@@ -319,51 +289,39 @@ namespace Gurux.DLMS.Objects
                 else
                 {
                     LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
-                }
+                }                
             }
             else if (index == 2)
             {
-                CommunicationSpeed = (BaudRate) Convert.ToInt32(value);
+                Mode = (IecTwistedPairSetupMode) value;
             }
             else if (index == 3)
             {
-                WindowSizeTransmit = Convert.ToInt32(value);
+                Speed = (BaudRate) value;
             }
             else if (index == 4)
             {
-                WindowSizeReceive = Convert.ToInt32(value);
+                List<byte> list = new List<byte>();
+                foreach (object it in (object[])value)
+                {
+                    list.Add((byte)it);
+                }
+                PrimaryAddresses = list.ToArray();
             }
             else if (index == 5)
             {
-                MaximumInfoLengthTransmit = Convert.ToInt32(value);
-            }
-            else if (index == 6)
-            {
-                MaximumInfoLengthReceive = Convert.ToInt32(value);
-            }
-            else if (index == 7)
-            {
-                InterCharachterTimeout = Convert.ToInt32(value);
-            }
-            else if (index == 8)
-            {
-                InactivityTimeout = Convert.ToInt32(value);
-            }
-            else if (index == 9)
-            {
-                DeviceAddress = Convert.ToInt32(value);
+                List<sbyte> list = new List<sbyte>();
+                foreach (object it in (object[])value)
+                {
+                    list.Add((sbyte)it);
+                }
+                Tabis = list.ToArray();
             }
             else
             {
                 throw new ArgumentException("SetValue failed. Invalid attribute index.");
             }
         }
-
-        byte[][] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
-        {
-            throw new NotImplementedException();
-        }
-
         #endregion
     }
 }

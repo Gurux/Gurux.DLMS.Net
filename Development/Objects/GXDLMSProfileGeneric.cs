@@ -104,7 +104,11 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Read between days
         /// </summary>
-        Range
+        Range,
+        /// <summary>
+        /// Read All.
+        /// </summary>
+        All
     };
 
     /// <summary>
@@ -221,7 +225,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSProfileGeneric(string ln, ushort sn)
-            : base(ObjectType.ProfileGeneric, ln, 0)
+            : base(ObjectType.ProfileGeneric, ln, sn)
         {
             From = DateTime.Now.Date;
             To = DateTime.Now.AddDays(1);
@@ -510,7 +514,7 @@ namespace Gurux.DLMS.Objects
 
         int IGXDLMSBase.GetMethodCount()
         {
-            return 1;
+            return 2;
         }
 
         /// <summary>

@@ -73,7 +73,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSPppSetup(string ln, ushort sn)
-            : base(ObjectType.PppSetup, ln, 0)
+            : base(ObjectType.PppSetup, ln, sn)
         {
             LCPOptions = new GXDLMSPppSetupLcpOption[0];
             IPCPOptions = new GXDLMSPppSetupIPCPOption[0];

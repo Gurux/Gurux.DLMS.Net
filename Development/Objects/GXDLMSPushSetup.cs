@@ -75,7 +75,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSPushSetup(string ln, ushort sn)
-            : base(ObjectType.PushSetup, ln, 0)
+            : base(ObjectType.PushSetup, ln, sn)
         {
             CommunicationWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
             SendDestinationAndMethod = new GXSendDestinationAndMethod();

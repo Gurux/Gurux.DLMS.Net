@@ -87,7 +87,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSImageTransfer(string ln, ushort sn)
-            : base(ObjectType.ImageTransfer, ln, 0)
+            : base(ObjectType.ImageTransfer, ln, sn)
         {
             ImageBlockSize = 200;
             ImageFirstNotTransferredBlockNumber = 0;

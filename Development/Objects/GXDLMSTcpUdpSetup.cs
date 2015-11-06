@@ -74,7 +74,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSTcpUdpSetup(string ln, ushort sn)
-            : base(ObjectType.TcpUdpSetup, ln, 0)
+            : base(ObjectType.TcpUdpSetup, ln, sn)
         {
             Port = 4059;
             InactivityTimeout = 180;

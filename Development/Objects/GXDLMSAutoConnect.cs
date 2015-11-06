@@ -74,7 +74,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSAutoConnect(string ln, ushort sn)
-            : base(ObjectType.AutoConnect, ln, 0)
+            : base(ObjectType.AutoConnect, ln, sn)
         {
             CallingWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
         }

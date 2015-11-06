@@ -73,7 +73,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSMessageHandler(string ln, ushort sn)
-            : base(ObjectType.MessageHandler, ln, 0)
+            : base(ObjectType.MessageHandler, ln, sn)
         {
             ListeningWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
             SendersAndActions = new List<KeyValuePair<string, KeyValuePair<int, GXDLMSScriptAction>>>();

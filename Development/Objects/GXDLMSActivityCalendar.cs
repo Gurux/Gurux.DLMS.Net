@@ -68,7 +68,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSActivityCalendar(string ln, ushort sn)
-            : base(ObjectType.ActivityCalendar, ln, 0)
+            : base(ObjectType.ActivityCalendar, ln, sn)
         {
         }
 

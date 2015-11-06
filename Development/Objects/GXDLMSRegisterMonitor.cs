@@ -73,7 +73,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSRegisterMonitor(string ln, ushort sn)
-            : base(ObjectType.RegisterMonitor, ln, 0)
+            : base(ObjectType.RegisterMonitor, ln, sn)
         {
             this.Thresholds = new object[0];
             MonitoredValue = new GXDLMSMonitoredValue();

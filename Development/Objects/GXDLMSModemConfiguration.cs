@@ -82,7 +82,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSModemConfiguration(string ln, ushort sn)
-            : base(ObjectType.ModemConfiguration, ln, 0)
+            : base(ObjectType.ModemConfiguration, ln, sn)
         {
             InitialisationStrings = new GXDLMSModemInitialisation[0];
             CommunicationSpeed = BaudRate.Baudrate300;

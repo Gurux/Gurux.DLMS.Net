@@ -54,6 +54,11 @@ namespace Gurux.DLMS.Internal
     /// </summary>
     class GXCommon
     {
+        /// <summary>
+        /// Set spesific time zone. This is used for debugging purposes.
+        /// </summary>
+        public static TimeZoneInfo CurrentTimeZoneInfo = null;
+
         internal const byte HDLCFrameStartEnd = 0x7E;
         internal const byte InitialRequest = 0x1;
         internal const byte InitialResponce = 0x8;
@@ -759,17 +764,22 @@ namespace Gurux.DLMS.Internal
                     dt.Skip |= DateTimeSkips.Ms;
                 }
                 int deviation = GXCommon.GetInt16(buff, ref pos);                
-                dt.Status = (ClockStatus)buff[pos++];
+                dt.Status = (ClockStatus)buff[pos++];                
                 if ((deviation & 0xFFFF) != 0x8000 && year != 1)
                 {
                     dt.Value = DateTime.SpecifyKind(new DateTime(year, month, day, hours, minutes, seconds, milliseconds), DateTimeKind.Utc);
-                    dt.Value = dt.Value.AddMinutes(deviation);
+                    dt.Value = dt.Value.AddMinutes(-deviation);
                     dt.Value = dt.Value.ToLocalTime();
                 }
                 else //Use current time if deviation is not defined.
                 {
                     dt.Value = new DateTime(year, month, day, hours, minutes, seconds, milliseconds);
-                }                
+                }
+                //If meter is summer time and we are not.
+                if ((dt.Status & ClockStatus.DaylightSavingActive) != 0 && !dt.Value.IsDaylightSavingTime())
+                {
+                    dt.Value = dt.Value.AddHours(1);
+                }
                 value = dt;
             }
             else if (type == DataType.Date)
@@ -1317,24 +1327,7 @@ namespace Gurux.DLMS.Internal
             {
                 dt.Value = DateTime.SpecifyKind(DateTime.Now.AddYears(1).Date, DateTimeKind.Utc);
             }
-            DateTime tm;
-            //If used normal time.
-            if ((dt.Skip & DateTimeSkips.Devitation) == 0)
-            {
-                tm = dt.Value;
-            }
-            else //If devitation is skipped.
-            {
-                //If value is given as UTC time.
-                if (TimeZone.CurrentTimeZone.GetUtcOffset(dt.Value).TotalMinutes == 0)
-                {
-                    tm = dt.Value;
-                }
-                else
-                {
-                    tm = dt.Value.ToUniversalTime();
-                }
-            }            
+            DateTime tm = dt.Value;
             List<byte> tmp = new List<byte>();            
             //Add size
             tmp.Add(12);
@@ -1413,17 +1406,31 @@ namespace Gurux.DLMS.Internal
             }            
             //Add deviation.
             if ((dt.Skip & DateTimeSkips.Devitation) == 0)
-            {
-                short devitation = (short)TimeZone.CurrentTimeZone.GetUtcOffset(dt.Value).TotalMinutes;                   
+            {                
+                short devitation;
+                if (CurrentTimeZoneInfo != null)
+                {
+                    devitation = (short)CurrentTimeZoneInfo.GetUtcOffset(dt.Value).TotalMinutes;
+                }
+                else{
+                    devitation = (short)TimeZone.CurrentTimeZone.GetUtcOffset(dt.Value).TotalMinutes;
+                }
                 GXCommon.SetInt16(devitation, tmp);                
             }
             else //deviation not used.
             {
-                tmp.Add((byte)0x00);
+                tmp.Add((byte)0x80);
                 tmp.Add((byte)0x00);
             }
             //Add clock_status
-            tmp.Add((byte)dt.Status);
+            if (dt.Value.IsDaylightSavingTime())
+            {
+                tmp.Add((byte)(dt.Status | ClockStatus.DaylightSavingActive));
+            }
+            else
+            {
+                tmp.Add((byte)dt.Status);
+            }
             return tmp.ToArray();
         }
     }
@@ -1472,8 +1479,8 @@ namespace Gurux.DLMS.Internal
     {
         internal const byte DefaultMaxInfoRX = 128;
         internal const byte DefaultMaxInfoTX = 128;
-        internal const byte DefaultWindowSizeRX = 1;
-        internal const byte DefaultWindowSizeTX = 1;
+        internal const UInt32 DefaultWindowSizeRX = 1;
+        internal const UInt32 DefaultWindowSizeTX = 1;
 
         internal static void SetValue(List<byte> buff, object data)
         {

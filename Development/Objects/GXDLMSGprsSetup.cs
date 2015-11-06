@@ -73,7 +73,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSGprsSetup(string ln, ushort sn)
-            : base(ObjectType.GprsSetup, ln, 0)
+            : base(ObjectType.GprsSetup, ln, sn)
         {
             DefaultQualityOfService = new GXDLMSQosElement();
             RequestedQualityOfService = new GXDLMSQosElement();

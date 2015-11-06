@@ -71,7 +71,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSSapAssignment(string ln, ushort sn)
-            : base(ObjectType.SapAssignment, ln, 0)
+            : base(ObjectType.SapAssignment, ln, sn)
         {
             SapAssignmentList = new List<KeyValuePair<UInt16, string>>();
         }

@@ -75,7 +75,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSRegister(string ln, ushort sn)
-            : this(ObjectType.Register, ln, 0)
+            : this(ObjectType.Register, ln, sn)
         {
         }
 

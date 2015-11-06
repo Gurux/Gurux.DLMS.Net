@@ -68,7 +68,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSSecuritySetup(string ln, ushort sn)
-            : base(ObjectType.SecuritySetup, ln, 0)
+            : base(ObjectType.SecuritySetup, ln, sn)
         {
         }
 
@@ -146,22 +146,24 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(3);
             }
-
-            //ClientSystemTitle
-            if (CanRead(4))
+            if (this.Version > 0)
             {
-                attributes.Add(4);
+                //ClientSystemTitle
+                if (CanRead(4))
+                {
+                    attributes.Add(4);
+                }
+                //ServerSystemTitle
+                if (CanRead(5))
+                {
+                    attributes.Add(5);
+                }
+                //Certificates
+                if (CanRead(6))
+                {
+                    attributes.Add(6);
+                } 
             }
-            //ServerSystemTitle
-            if (CanRead(5))
-            {
-                attributes.Add(5);
-            }
-            //Certificates
-            if (CanRead(6))
-            {
-                attributes.Add(6);
-            } 
             return attributes.ToArray();
         }
 
@@ -209,19 +211,29 @@ namespace Gurux.DLMS.Objects
             {
                 return DataType.Enum;                
             }
-            if (index == 4)
+            if (this.Version > 0)
             {
-                return DataType.OctetString;                
+                if (index == 4)
+                {
+                    return DataType.OctetString;
+                }
+                if (index == 5)
+                {
+                    return DataType.OctetString;
+                }
+                if (index == 6)
+                {
+                    return DataType.OctetString;
+                }
+                else
+                {
+                    throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+                }
             }
-            if (index == 5)
+            else
             {
-                return DataType.OctetString;                
+                throw new ArgumentException("GetDataType failed. Invalid attribute index.");
             }
-            if (index == 6)
-            {
-                return DataType.OctetString;
-            }
-            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
         object IGXDLMSBase.GetValue(int index, int selector, object parameters)
@@ -238,17 +250,20 @@ namespace Gurux.DLMS.Objects
             {
                 return SecuritySuite;
             }
-            if (index == 4)
+            if (this.Version > 0)
             {
-                return ClientSystemTitle;
-            }
-            if (index == 5)
-            {
-                return ServerSystemTitle;
-            }
-            if (index == 5)
-            {
-                return Certificates;
+                if (index == 4)
+                {
+                    return ClientSystemTitle;
+                }
+                if (index == 5)
+                {
+                    return ServerSystemTitle;
+                }
+                if (index == 5)
+                {
+                    return Certificates;
+                }
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }

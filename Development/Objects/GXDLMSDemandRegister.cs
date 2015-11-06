@@ -71,7 +71,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSDemandRegister(string ln, ushort sn)
-            : base(ObjectType.DemandRegister, ln, 0)
+            : base(ObjectType.DemandRegister, ln, sn)
         {
         }
 
@@ -178,7 +178,7 @@ namespace Gurux.DLMS.Objects
 
         public override bool IsRead(int index)
         {
-            if (index == 3)
+            if (index == 4)
             {
                 return this.Unit != Unit.None;
             }
@@ -331,8 +331,8 @@ namespace Gurux.DLMS.Objects
                 List<byte> data = new List<byte>();
                 data.Add((byte)DataType.Structure);
                 data.Add(2);
-                GXCommon.SetData(data, DataType.UInt8, m_Scaler);
-                GXCommon.SetData(data, DataType.UInt8, Unit);
+                GXCommon.SetData(data, DataType.Int8, m_Scaler);
+                GXCommon.SetData(data, DataType.Enum, Unit);
                 return data.ToArray();
             }
             if (index == 5)

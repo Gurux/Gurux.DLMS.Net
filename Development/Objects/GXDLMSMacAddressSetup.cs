@@ -68,7 +68,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSMacAddressSetup(string ln, ushort sn)
-            : base(ObjectType.MacAddressSetup, ln, 0)
+            : base(ObjectType.MacAddressSetup, ln, sn)
         {
         }
 

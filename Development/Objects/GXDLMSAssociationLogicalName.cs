@@ -574,8 +574,11 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 3)
             {
-                ClientSAP = Convert.ToByte(((Object[])value)[0]);
-                ServerSAP = Convert.ToUInt16(((Object[])value)[1]);
+                if (value != null)
+                {
+                    ClientSAP = Convert.ToByte(((Object[])value)[0]);
+                    ServerSAP = Convert.ToUInt16(((Object[])value)[1]);
+                }
             }
             else if (index == 4)
             {                
@@ -648,7 +651,7 @@ namespace Gurux.DLMS.Objects
                         ApplicationContextName.ContextId = arr[++pos];
                     }
                 }
-                else
+                else if (value != null)
                 {
                     Object[] arr = (Object[])value;
                     ApplicationContextName.JointIsoCtt = Convert.ToByte(arr[0]);
@@ -662,13 +665,16 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 5)
             {
-                Object[] arr = (Object[])value;
-                XDLMSContextInfo.Conformance = arr[0].ToString();
-                XDLMSContextInfo.MaxReceivePduSize = Convert.ToUInt16(arr[1]);
-                XDLMSContextInfo.MaxSendPpuSize = Convert.ToUInt16(arr[2]);
-                XDLMSContextInfo.DlmsVersionNumber = Convert.ToByte(arr[3]);
-                XDLMSContextInfo.QualityOfService = Convert.ToSByte(arr[4]);
-                XDLMSContextInfo.CypheringInfo = (byte[])arr[5];
+                if (value != null)
+                {
+                    Object[] arr = (Object[])value;
+                    XDLMSContextInfo.Conformance = arr[0].ToString();
+                    XDLMSContextInfo.MaxReceivePduSize = Convert.ToUInt16(arr[1]);
+                    XDLMSContextInfo.MaxSendPpuSize = Convert.ToUInt16(arr[2]);
+                    XDLMSContextInfo.DlmsVersionNumber = Convert.ToByte(arr[3]);
+                    XDLMSContextInfo.QualityOfService = Convert.ToSByte(arr[4]);
+                    XDLMSContextInfo.CypheringInfo = (byte[])arr[5];
+                }
             }
             else if (index == 6)
             {
@@ -741,7 +747,7 @@ namespace Gurux.DLMS.Objects
                         AuthenticationMechanismMame.MechanismId = (Authentication) arr[++pos];
                     }
                 }
-                else
+                else if (value != null)
                 {
                     Object[] arr = (Object[])value;
                     AuthenticationMechanismMame.JointIsoCtt = Convert.ToByte(arr[0]);
