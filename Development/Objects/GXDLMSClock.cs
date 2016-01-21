@@ -42,6 +42,8 @@ using Gurux.DLMS;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.Objects.Enums;
+using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.Objects
 {   
@@ -171,9 +173,9 @@ namespace Gurux.DLMS.Objects
 
         #region IGXDLMSBase Members
 
-        byte[][] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
         {
-            DateTime tm = this.Time.Value;
+            DateTimeOffset tm = this.Time.Value;
             // Resets the value to the default value. 
             // The default value is an instance specific constant.
             if (index == 1)
@@ -292,13 +294,13 @@ namespace Gurux.DLMS.Objects
         /// <returns></returns>
         public byte[][] PresetAdjustingTime(GXDLMSClient client, DateTime presetTime, DateTime validityIntervalStart, DateTime validityIntervalEnd)
         {
-            List<byte> buff = new List<byte>();
+            GXByteBuffer buff = new GXByteBuffer();
             buff.Add((byte)DataType.Structure);
             buff.Add((byte)3);
             GXCommon.SetData(buff, DataType.DateTime, presetTime);
             GXCommon.SetData(buff, DataType.DateTime, validityIntervalStart);
             GXCommon.SetData(buff, DataType.DateTime, validityIntervalEnd);
-            return client.Method(this, 5, buff.ToArray(), DataType.Array);            
+            return client.Method(this, 5, buff.Array(), DataType.Array);            
         }
 
         /// <summary>
@@ -431,7 +433,7 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
         {
             if (index == 1)
             {
@@ -472,7 +474,7 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
         {
             if (index == 1)
             {

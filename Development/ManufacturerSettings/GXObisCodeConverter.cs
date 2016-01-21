@@ -34,6 +34,7 @@
 
 using System;
 using System.ComponentModel;
+using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.ManufacturerSettings
 {
@@ -47,8 +48,8 @@ namespace Gurux.DLMS.ManufacturerSettings
         {
             PropertyDescriptorCollection pdc = TypeDescriptor.GetProperties(value, attributes);
             PropertyDescriptorCollection properties = new PropertyDescriptorCollection(null);
-            Gurux.DLMS.ObjectType type = ((GXObisCode)value).ObjectType;
-            bool bBrowsable = type == Gurux.DLMS.ObjectType.Data || type == Gurux.DLMS.ObjectType.Register || type == Gurux.DLMS.ObjectType.ExtendedRegister || type == Gurux.DLMS.ObjectType.DemandRegister;
+            ObjectType type = ((GXObisCode)value).ObjectType;
+            bool bBrowsable = type == ObjectType.Data || type == ObjectType.Register || type == ObjectType.ExtendedRegister || type == ObjectType.DemandRegister;
             foreach (PropertyDescriptor it in pdc)
             {
                 if ((it.Name == "UIType" || it.Name == "Type") && !bBrowsable)

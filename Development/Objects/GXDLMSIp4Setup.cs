@@ -41,6 +41,8 @@ using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.Enums;
+using Gurux.DLMS.Objects.Enums;
 
 
 
@@ -148,7 +150,7 @@ namespace Gurux.DLMS.Objects
         #region IGXDLMSBase Members
 
 
-        byte[][] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
         {
             throw new ArgumentException("Invoke failed. Invalid attribute index.");
         }
@@ -275,7 +277,7 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
         {
             if (index == 1)
             {
@@ -295,25 +297,25 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 5)
             {
-                List<byte> data = new List<byte>();
-                data.Add((byte)DataType.Array);
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte)DataType.Array);
                 if (IPOptions == null)
                 {
-                    data.Add(1);
+                    data.SetUInt8(1);
                 }
                 else
                 {
                     GXCommon.SetObjectCount(IPOptions.Length, data);
                     foreach (GXDLMSIp4SetupIpOption it in IPOptions)
                     {
-                        data.Add((byte)DataType.Structure);
-                        data.Add(3);
+                        data.SetUInt8((byte)DataType.Structure);
+                        data.SetUInt8(3);
                         GXCommon.SetData(data, DataType.UInt8, it.Type);
                         GXCommon.SetData(data, DataType.UInt8, it.Length);
                         GXCommon.SetData(data, DataType.OctetString, it.Data);
                     }
                 }
-                return data.ToArray();
+                return data.Array();
             }
             if (index == 6)
             {
@@ -338,7 +340,7 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
         {
             if (index == 1)
             {
@@ -386,7 +388,7 @@ namespace Gurux.DLMS.Objects
                     foreach (object[] it in (Object[])value)
                     {
                         GXDLMSIp4SetupIpOption item = new GXDLMSIp4SetupIpOption();
-                        item.Type = (GXDLMSIp4SetupIpOptionType)Convert.ToInt32(it[0]);
+                        item.Type = (Ip4SetupIpOptionType)Convert.ToInt32(it[0]);
                         item.Length = Convert.ToByte(it[1]);
                         item.Data = (byte[]) it[2];
                         data.Add(item);

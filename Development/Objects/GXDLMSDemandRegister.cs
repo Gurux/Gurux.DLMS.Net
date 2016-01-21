@@ -41,12 +41,13 @@ using Gurux.DLMS;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.Objects
 {
     public class GXDLMSDemandRegister : GXDLMSObject, IGXDLMSBase
     {
-        protected int m_Scaler;
+        protected int _scaler;
 
         /// <summary> 
         /// Constructor.
@@ -103,11 +104,11 @@ namespace Gurux.DLMS.Objects
         {
             get
             {
-                return Math.Pow(10, m_Scaler);
+                return Math.Pow(10, _scaler);
             }
             set
             {
-                m_Scaler = (int)Math.Log10(value);
+                _scaler = (int)Math.Log10(value);
             }
         }
 
@@ -312,7 +313,7 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
         {
             if (index == 1)
             {
@@ -328,12 +329,12 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 4)
             {
-                List<byte> data = new List<byte>();
-                data.Add((byte)DataType.Structure);
-                data.Add(2);
-                GXCommon.SetData(data, DataType.Int8, m_Scaler);
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte)DataType.Structure);
+                data.SetUInt8(2);
+                GXCommon.SetData(data, DataType.Int8, _scaler);
                 GXCommon.SetData(data, DataType.Enum, Unit);
-                return data.ToArray();
+                return data.Array();
             }
             if (index == 5)
             {
@@ -358,7 +359,7 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
         {
             if (index == 1)
             {
@@ -423,7 +424,7 @@ namespace Gurux.DLMS.Objects
                     {
                         throw new Exception("setValue failed. Invalid scaler unit value.");
                     }
-                    m_Scaler = Convert.ToInt32(arr[0]);
+                    _scaler = Convert.ToInt32(arr[0]);
                     Unit = (Unit)Convert.ToInt32(arr[1]);
                 }             
             }
@@ -475,7 +476,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        byte[][] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
         {
             throw new NotImplementedException();
         }

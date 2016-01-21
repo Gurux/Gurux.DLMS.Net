@@ -1,0 +1,460 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Gurux.Net</name>
+    </assembly>
+    <members>
+        <member name="T:Gurux.Net.NetworkType">
+            <summary>
+            Determines the valid network protocols to be used in data transfer.
+            </summary>
+        </member>
+        <member name="F:Gurux.Net.NetworkType.Udp">
+            <summary>
+            UDP protocol.
+            </summary>
+        </member>
+        <member name="F:Gurux.Net.NetworkType.Tcp">
+            <summary>
+            TCP/IP protocol.
+            </summary>
+        </member>
+        <member name="T:Gurux.Net.Properties.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:Gurux.Net.Properties.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:Gurux.Net.Properties.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:Gurux.Net.Properties.Resources.ClientSettings">
+            <summary>
+              Looks up a localized string similar to Client Settings:.
+            </summary>
+        </member>
+        <member name="P:Gurux.Net.Properties.Resources.HostNameTxt">
+            <summary>
+              Looks up a localized string similar to Host:.
+            </summary>
+        </member>
+        <member name="P:Gurux.Net.Properties.Resources.InvalidClient">
+            <summary>
+              Looks up a localized string similar to Invalid client..
+            </summary>
+        </member>
+        <member name="P:Gurux.Net.Properties.Resources.InvalidConnection">
+            <summary>
+              Looks up a localized string similar to Invalid connection..
+            </summary>
+        </member>
+        <member name="P:Gurux.Net.Properties.Resources.InvalidHostName">
+            <summary>
+              Looks up a localized string similar to Invalid host name..
+            </summary>
+        </member>
+        <member name="P:Gurux.Net.Properties.Resources.InvalidPortName">
+            <summary>
+              Looks up a localized string similar to Invalid port name..
+            </summary>
+        </member>
+        <member name="P:Gurux.Net.Properties.Resources.PortTxt">
+            <summary>
+              Looks up a localized string similar to Port:.
+            </summary>
+        </member>
+        <member name="P:Gurux.Net.Properties.Resources.ProtocolTxt">
+            <summary>
+              Looks up a localized string similar to Protocol.
+            </summary>
+        </member>
+        <member name="P:Gurux.Net.Properties.Resources.ServerSettings">
+            <summary>
+              Looks up a localized string similar to Server Settings:.
+            </summary>
+        </member>
+        <member name="P:Gurux.Net.Properties.Resources.ServerTxt">
+            <summary>
+              Looks up a localized string similar to Server.
+            </summary>
+        </member>
+        <member name="P:Gurux.Net.Properties.Resources.SettingsTxt">
+            <summary>
+              Looks up a localized string similar to Network Settings.
+            </summary>
+        </member>
+        <member name="P:Gurux.Net.Properties.Resources.UseIPv6Txt">
+            <summary>
+              Looks up a localized string similar to Use IPv6.
+            </summary>
+        </member>
+        <member name="F:Gurux.Net.Settings.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:Gurux.Net.Settings.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+        </member>
+        <member name="M:Gurux.Net.Settings.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="F:Gurux.Shared.GXSynchronousMediaBase.Trace">
+            <summary>
+            Trace level.
+            </summary>
+        </member>
+        <member name="F:Gurux.Shared.PropertiesForm.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:Gurux.Shared.PropertiesForm.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:Gurux.Shared.PropertiesForm.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="M:Gurux.Shared.PropertiesForm.#ctor(System.Windows.Forms.Form,System.String,System.Boolean)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="properties"></param>
+            <param name="title"></param>
+            <param name="open"></param>
+        </member>
+        <member name="T:Gurux.Net.AvailableMediaSettings">
+            <summary>
+            Describes available settings for the media.
+            </summary>
+        </member>
+        <member name="F:Gurux.Net.AvailableMediaSettings.All">
+            <summary>
+            All network properties are shown.
+            </summary>
+        </member>
+        <member name="F:Gurux.Net.AvailableMediaSettings.Server">
+            <summary>
+            Is Server is shown.
+            </summary>
+        </member>
+        <member name="F:Gurux.Net.AvailableMediaSettings.Protocol">
+            <summary>
+            Network protocol is shown.
+            </summary>
+        </member>
+        <member name="F:Gurux.Net.AvailableMediaSettings.Port">
+            <summary>
+            Port number is shown.
+            </summary>
+        </member>
+        <member name="F:Gurux.Net.AvailableMediaSettings.Host">
+            <summary>
+            Host Name is shown.
+            </summary>
+        </member>
+        <member name="F:Gurux.Net.AvailableMediaSettings.UseIPv6">
+            <summary>
+            Use IP v6 is shown.
+            </summary>
+        </member>
+        <member name="T:Gurux.Net.GXNet">
+            <summary>
+            The GXNet component determines methods that make the communication possible using Internet. 
+            See help in http://www.gurux.org/index.php?q=Gurux.Net
+            </summary>
+        </member>
+        <member name="M:Gurux.Net.GXNet.#ctor">
+            <summary>
+            Constructor.
+            </summary>
+        </member>
+        <member name="M:Gurux.Net.GXNet.#ctor(Gurux.Net.NetworkType,System.String,System.Int32)">
+            <summary>
+            Client Constructor.
+            </summary>
+            <param name="protocol">Used protocol.</param>
+            <param name="hostName">Host name.</param>
+            <param name="port">Client port.</param>
+        </member>
+        <member name="M:Gurux.Net.GXNet.#ctor(Gurux.Net.NetworkType,System.Int32)">
+            <summary>
+            Constructor used when server is started.
+            </summary>
+            <param name="protocol">Used protocol.</param>
+            <param name="port">Server port.</param>
+        </member>
+        <member name="M:Gurux.Net.GXNet.Finalize">
+            <summary>
+            Destructor.
+            </summary>
+        </member>
+        <member name="M:Gurux.Net.GXNet.Gurux#Common#IGXVirtualMedia#DataReceived(System.Byte[],System.String)">
+            <summary>
+            Called when new data is received to the virtual media.
+            </summary>
+            <param name="data">received data</param>
+            <param name="sender">Data sender.</param>
+        </member>
+        <member name="M:Gurux.Net.GXNet.AboutBox">
+            <summary>   
+            Displays the copyright of the control, user license, and version information, in a dialog box. 
+            </summary>  
+        </member>
+        <member name="M:Gurux.Net.GXNet.Send(System.Object,System.String)">
+            <summary>
+            Sends data asynchronously. <br/>
+            No reply from the receiver, whether or not the operation was successful, is expected.
+            </summary>
+            <param name="data">Data to send to the device.</param>
+            <param name="receiver">IP address of the receiver (optional).</param>
+            <remarks>Reply data is received through OnReceived event.<br/>
+            If data is send synchronously use Synchronous</remarks>
+            <seealso cref="E:Gurux.Net.GXNet.OnReceived"/>
+            <seealso cref="P:Gurux.Net.GXNet.Synchronous"/>
+        </member>
+        <member name="M:Gurux.Net.GXNet.RecieveComplete(System.IAsyncResult)">
+            <summary>
+            New data is received.
+            </summary>
+            <param name="result"></param>
+        </member>
+        <member name="M:Gurux.Net.GXNet.OnClientConnect(System.IAsyncResult)">
+            <summary>
+            New client is connected to the server.
+            </summary>
+            <param name="result"></param>
+        </member>
+        <member name="M:Gurux.Net.GXNet.Open">
+            <summary>
+            Opens the connection.
+            </summary>
+            <remarks>
+            Protocol, Port and HostName must be set, before calling the Open method.
+            </remarks>
+            <seealso cref="P:Gurux.Net.GXNet.Port">Port</seealso>
+            <seealso cref="P:Gurux.Net.GXNet.HostName">HostName</seealso>
+            <seealso cref="P:Gurux.Net.GXNet.Protocol">Protocol</seealso>
+            <seealso cref="P:Gurux.Net.GXNet.Server">Server</seealso>
+            <seealso cref="M:Gurux.Net.GXNet.Close">Close</seealso>
+        </member>
+        <member name="M:Gurux.Net.GXNet.Close">
+            <inheritdoc cref="M:Gurux.Common.IGXMedia.Close"/>        
+        </member>
+        <member name="M:Gurux.Net.GXNet.Receive``1(Gurux.Common.ReceiveParameters{``0})">
+            <inheritdoc cref="M:Gurux.Common.IGXMedia.Receive``1(Gurux.Common.ReceiveParameters{``0})"/>       
+        </member>
+        <member name="M:Gurux.Net.GXNet.ResetByteCounters">
+            <summary>
+            Resets BytesReceived and BytesSent counters.
+            </summary>
+            <seealso cref="P:Gurux.Net.GXNet.BytesSent">BytesSent</seealso>
+            <seealso cref="P:Gurux.Net.GXNet.BytesReceived">BytesReceived</seealso>
+        </member>
+        <member name="M:Gurux.Net.GXNet.DisconnectClient(System.String)">
+            <summary>
+            Disconnect selected client.
+            </summary>
+        </member>
+        <member name="M:Gurux.Net.GXNet.GetActiveClients">
+            <summary>
+            Returns list IP addresses and port numbers, of active clients in TCP/IP protocol.
+            </summary>
+        </member>
+        <member name="M:Gurux.Net.GXNet.Properties(System.Windows.Forms.Form)">
+            <summary>
+            Shows the network Properties dialog.
+            </summary>
+            <param name="parent">Owner window of the Properties dialog.</param>
+            <returns>True, if the user has accepted the changes.</returns>
+            <seealso cref="P:Gurux.Net.GXNet.Port">Port</seealso>
+            <seealso cref="P:Gurux.Net.GXNet.HostName">HostName</seealso>
+            <seealso cref="P:Gurux.Net.GXNet.Protocol">Protocol</seealso>
+            <seealso cref="P:Gurux.Net.GXNet.Server">Server</seealso>        
+            <seealso href="PropertiesDialog.html">Properties Dialog</seealso>
+        </member>
+        <member name="M:Gurux.Net.GXNet.ResetSynchronousBuffer">
+            <inheritdoc cref="M:Gurux.Common.IGXMedia.ResetSynchronousBuffer"/>
+        </member>
+        <member name="M:Gurux.Net.GXNet.Validate">
+            <inheritdoc cref="M:Gurux.Common.IGXMedia.Validate"/>
+        </member>
+        <member name="M:Gurux.Net.GXNet.Dispose">
+            <summary>
+            Closes the connection.
+            </summary>
+        </member>
+        <member name="P:Gurux.Net.GXNet.UseIPv6">
+            <summary>
+            Is IPv6 used. Default is False (IPv4).
+            </summary>        
+        </member>
+        <member name="P:Gurux.Net.GXNet.Trace">
+            <summary>
+            What level of tracing is used.
+            </summary>
+        </member>
+        <member name="P:Gurux.Net.GXNet.ConfigurableSettings">
+            <inheritdoc cref="P:Gurux.Common.IGXMedia.ConfigurableSettings"/>
+        </member>
+        <member name="P:Gurux.Net.GXNet.Tag">
+            <inheritdoc cref="P:Gurux.Common.IGXMedia.Tag"/>
+        </member>
+        <member name="P:Gurux.Net.GXNet.Gurux#Common#IGXMedia#MediaContainer">
+            <inheritdoc cref="P:Gurux.Common.IGXMedia.MediaContainer"/>
+        </member>
+        <member name="P:Gurux.Net.GXNet.SyncRoot">
+            <inheritdoc cref="P:Gurux.Common.IGXMedia.SyncRoot"/>
+        </member>
+        <member name="P:Gurux.Net.GXNet.Gurux#Common#IGXVirtualMedia#Virtual">
+            <inheritdoc cref="P:Gurux.Common.IGXVirtualMedia.Virtual"/>
+        </member>
+        <member name="E:Gurux.Net.GXNet.Gurux#Common#IGXVirtualMedia#OnGetPropertyValue">
+            <summary>
+            Occurs when a property value is asked.
+            </summary>
+        </member>
+        <member name="E:Gurux.Net.GXNet.Gurux#Common#IGXVirtualMedia#OnDataSend">
+            <summary>
+            Occurs when data is sent on virtual mode.
+            </summary>
+        </member>
+        <member name="P:Gurux.Net.GXNet.PropertiesForm">
+            <inheritdoc cref="P:Gurux.Common.IGXMedia.PropertiesForm"/>
+        </member>
+        <member name="P:Gurux.Net.GXNet.IsOpen">
+            <inheritdoc cref="P:Gurux.Common.IGXMedia.IsOpen"/>
+            <seealso cref="M:Gurux.Net.GXNet.Open">Open</seealso>
+            <seealso cref="M:Gurux.Net.GXNet.Close">Close</seealso>
+        </member>
+        <member name="P:Gurux.Net.GXNet.Protocol">
+            <summary>
+            Retrieves or sets the protocol.
+            </summary>
+            <remarks>
+            Defaut protocol is UDP.
+            </remarks>
+            <value>
+            Protocol
+            </value>
+        </member>
+        <member name="P:Gurux.Net.GXNet.HostName">
+            <summary>
+            Retrieves or sets the name or IP address of the host.
+            </summary>
+            <value>
+            The name of the host.
+            </value>
+            <seealso cref="M:Gurux.Net.GXNet.Open">Open</seealso>
+            <seealso cref="P:Gurux.Net.GXNet.Port">Port</seealso>
+            <seealso cref="P:Gurux.Net.GXNet.Protocol">Protocol</seealso>
+        </member>
+        <member name="P:Gurux.Net.GXNet.Port">
+            <summary>
+            Retrieves or sets the host or server port number.
+            </summary>
+            <value>
+            Host or server port number.
+            </value>
+            <seealso cref="M:Gurux.Net.GXNet.Open">Open</seealso>
+            <seealso cref="P:Gurux.Net.GXNet.HostName">HostName</seealso>  	
+            <seealso cref="P:Gurux.Net.GXNet.Protocol">Protocol</seealso>
+        </member>
+        <member name="P:Gurux.Net.GXNet.Server">
+            <summary>
+            Determines if the component is in server, or in client, mode.
+            </summary>
+            <value>
+            True, if component is a server. False, if component is a client.
+            </value>
+            <seealso cref="M:Gurux.Net.GXNet.Open">Open</seealso> 	
+        </member>
+        <member name="P:Gurux.Net.GXNet.BytesSent">
+            <summary>
+            Sent byte count.
+            </summary>
+            <seealso cref="P:Gurux.Net.GXNet.BytesReceived">BytesReceived</seealso>
+            <seealso cref="M:Gurux.Net.GXNet.ResetByteCounters">ResetByteCounters</seealso>
+        </member>
+        <member name="P:Gurux.Net.GXNet.BytesReceived">
+            <summary>
+            Received byte count.
+            </summary>
+            <seealso cref="P:Gurux.Net.GXNet.BytesSent">BytesSent</seealso>
+            <seealso cref="M:Gurux.Net.GXNet.ResetByteCounters">ResetByteCounters</seealso>
+        </member>
+        <member name="P:Gurux.Net.GXNet.MaxClientCount">
+            <summary>
+            Retrieves or sets maximum count of connected clients.
+            </summary>
+        </member>
+        <member name="P:Gurux.Net.GXNet.Settings">
+            <summary>
+            Media settings as a XML string.
+            </summary>
+        </member>
+        <member name="E:Gurux.Net.GXNet.PropertyChanged">
+            <summary>
+            Occurs when a property value changes.
+            </summary>
+        </member>
+        <member name="E:Gurux.Net.GXNet.OnReceived">
+            <summary>
+            GXNet component sends received data through this method.
+            </summary>
+        </member>
+        <member name="E:Gurux.Net.GXNet.OnError">
+            <summary>
+            Errors that occur after the connection is established, are sent through this method. 
+            </summary>       
+        </member>
+        <member name="E:Gurux.Net.GXNet.OnMediaStateChange">
+            <summary>
+            Media component sends notification, when its state changes.
+            </summary>       
+        </member>
+        <member name="E:Gurux.Net.GXNet.OnClientConnected">
+            <summary>
+            Called when the client is establishing a connection with a Net Server.
+            </summary>
+        </member>
+        <member name="E:Gurux.Net.GXNet.OnClientDisconnected">
+            <summary>
+            Called when the client has been disconnected from the network server.
+            </summary>
+        </member>
+        <member name="E:Gurux.Net.GXNet.OnTrace">
+            <inheritdoc cref="T:Gurux.Common.TraceEventHandler"/>
+        </member>
+        <member name="P:Gurux.Net.GXNet.Synchronous">
+            <inheritdoc cref="P:Gurux.Common.IGXMedia.Synchronous"/>
+        </member>
+        <member name="P:Gurux.Net.GXNet.IsSynchronous">
+            <inheritdoc cref="P:Gurux.Common.IGXMedia.IsSynchronous"/>
+        </member>
+        <member name="P:Gurux.Net.GXNet.Eop">
+            <inheritdoc cref="P:Gurux.Common.IGXMedia.Eop"/>
+        </member>
+        <member name="P:Gurux.Net.GXNet.Gurux#Common#IGXMedia#ConfigurableSettings">
+            <inheritdoc cref="P:Gurux.Common.IGXMedia.ConfigurableSettings"/>
+        </member>
+    </members>
+</doc>

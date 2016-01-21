@@ -43,105 +43,95 @@ namespace Gurux.DLMS
     /// <summary>
     /// Reserved for internal use. 
     /// </summary>
-    class GXUserInformation
+    sealed class GXUserInformation
     {
-        internal byte DLMSVersioNumber;
-        internal ushort MaxReceivePDUSize;
-
-        /// <summary>
-        /// Reserved for internal use.
-        /// </summary>
-        internal byte[] ConformanceBlock = new byte[3];
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public GXUserInformation()
-        {
-            MaxReceivePDUSize = 0xFFFF;
-            DLMSVersioNumber = 6;
-        }
-
         /// <summary>
         /// Reserved for internal use.
         /// </summary>
         /// <param name="data"></param>
-        internal void CodeData(List<byte> data)
+        static internal void CodeData(GXDLMSSettings settings, GXByteBuffer data)
         {
-            data.Add(0xBE); //Tag
-            data.Add(0x10); //Length for AARQ user field
-            data.Add(0x04); //Coding the choice for user-information (Octet STRING, universal)
-            data.Add(0x0E); //Length
-            data.Add(GXCommon.InitialRequest); // Tag for xDLMS-Initiate request
-            data.Add(0x00); // Usage field for dedicated-key component � not used
-            data.Add(0x00); // Usage field for the response allowed component � not used
-            data.Add(0x00); // Usage field of the proposed-quality-of-service component � not used
-            data.Add(DLMSVersioNumber); // Tag for conformance block
-            data.Add(0x5F);
-            data.Add(0x1F);
-            data.Add(0x04);// length of the conformance block
-            data.Add(0x00);// encoding the number of unused bits in the bit string
-            data.AddRange(ConformanceBlock);
-            GXCommon.SetUInt16(MaxReceivePDUSize, data);
+            data.SetUInt8(0xBE); //Tag
+            data.SetUInt8(0x10); //Length for AARQ user field
+            data.SetUInt8(0x04); //Coding the choice for user-information (Octet STRING, universal)
+            data.SetUInt8(0x0E); //Length
+            data.SetUInt8(GXCommon.InitialRequest); // Tag for xDLMS-Initiate request
+            data.SetUInt8(0x00); // Usage field for dedicated-key component. Not used
+            data.SetUInt8(0x00); // Usage field for the response allowed component. Not used
+            data.SetUInt8(0x00); // Usage field of the proposed-quality-of-service component. Not used
+            data.SetUInt8(settings.DLMSVersion); // Tag for conformance block
+            data.SetUInt8(0x5F);
+            data.SetUInt8(0x1F);
+            data.SetUInt8(0x04);// length of the conformance block
+            data.SetUInt8(0x00);// encoding the number of unused bits in the bit string
+            if (settings.UseLogicalNameReferencing)
+            {
+                data.Set(settings.LnSettings.ConformanceBlock);
+            }
+            else
+            {
+                data.Set(settings.SnSettings.ConformanceBlock);
+            }
+            data.SetUInt16(settings.MaxReceivePDUSize);
         }
 
         /// <summary>
         /// Reserved for internal use.
         /// </summary>
-        internal void EncodeData(byte[] data, ref int index)
+        internal static void EncodeData(GXDLMSSettings settings, GXByteBuffer data)
         {
-            int tag = data[index++];
+            int tag = data.GetUInt8();
             if (tag != 0xBE)
             {
                 throw new Exception("Invalid tag.");
             }
-            int len = data[index++];
-            if (data.Length - index < len)
+            byte len = data.GetUInt8();
+            if (data.Size - data.Position < len)
             {
                 throw new Exception("Not enough data.");
             }
             //Excoding the choice for user information
-            tag = data[index++];
+            tag = data.GetUInt8();
             if (tag != 0x4)
             {
                 throw new Exception("Invalid tag.");
             }
-            len = data[index++];
+            len = data.GetUInt8();
             //Tag for xDLMS-Initate.response
-            tag = data[index++];
+            tag = data.GetUInt8();
             bool response = tag == GXCommon.InitialResponce;
             if (response)
             {
                 //Optional usage field of the negotiated quality of service component
-                tag = data[index++];
+                tag = data.GetUInt8();
                 if (tag != 0)//Skip if used.
                 {
-                    len = data[index++];
-                    index += len;
+                    len = data.GetUInt8();
+                    data.Position += len;
                 }
             }
             else if (tag == GXCommon.InitialRequest)
             {
                 //Optional usage field of the negotiated quality of service component
-                tag = data[index++];
+                tag = data.GetUInt8();
                 if (tag != 0)//Skip if used.
                 {
-                    len = data[index++];
-                    index += len;
+                    len = data.GetUInt8();
+                    data.Position += len;
                 }
                 //Optional usage field of the negotiated quality of service component
-                tag = data[index++];
+                tag = data.GetUInt8();
                 if (tag != 0)//Skip if used.
                 {
-                    len = data[index++];
-                    index += len;
+                    len = data.GetUInt8();
+                    data.Position += len;
                 }
                 //Optional usage field of the negotiated quality of service component
-                tag = data[index++];
+                tag = data.GetUInt8();
                 if (tag != 0)//Skip if used.
                 {
-                    len = data[index++];
-                    index += len;
+                    len = data.GetUInt8();
+                    data.Position += len;
                 }
             }
             else
@@ -149,29 +139,80 @@ namespace Gurux.DLMS
                 throw new Exception("Invalid tag.");
             }
             //Get DLMS version number.
-            DLMSVersioNumber = data[index++];
+            if (settings.IsServer)
+            {
+                settings.DlmsVersionNumber = data.GetUInt8();
+            }
+            else
+            {
+                if (data.GetUInt8() != 6)
+                {
+                    throw new Exception("Invalid DLMS version number.");
+                }
+            }
+
             //Tag for conformance block
-            tag = data[index++];
+            tag = data.GetUInt8();
             if (tag != 0x5F)
             {
                 throw new Exception("Invalid tag.");
             }
             //Old Way...
-            if (data[index] == 0x1F)
+            if (data.GetUInt8(data.Position) == 0x1F)
             {
-                ++index;
+                data.GetUInt8();
             }
-            len = data[index++];
+            len = data.GetUInt8();
             //The number of unused bits in the bit string.
-            tag = data[index++];
-            Array.Copy(data, index, ConformanceBlock, 0, 3);
-            index += 3;
-            MaxReceivePDUSize = GXCommon.GetUInt16(data, ref index);
+            tag = data.GetUInt8();
+            if (settings.UseLogicalNameReferencing)
+            {
+                if (settings.LnSettings == null)
+                {
+                    settings.LnSettings = new GXDLMSLNSettings();
+                }
+                if (settings.IsServer)
+                {
+                    //Skip settings what client asks.
+                    //All server settings are always returned.
+                    byte[] tmp = new byte[3];
+                    data.Get(tmp);
+                }
+                else
+                {
+                    data.Get(settings.LnSettings.ConformanceBlock);
+                }
+            }
+            else
+            {
+                if (settings.SnSettings == null)
+                {
+                    settings.SnSettings = new GXDLMSSNSettings();
+                }
+                if (settings.IsServer)
+                {
+                    //Skip settings what client asks.
+                    //All server settings are always returned.
+                    byte[] tmp = new byte[3];
+                    data.Get(tmp);
+                }
+                else
+                {
+                    data.Get(settings.SnSettings.ConformanceBlock);
+                }
+            }
+            if (settings.IsServer)
+            {
+                data.GetUInt16();
+            }
+            else
+            {
+                settings.MaxReceivePDUSize = data.GetUInt16();
+            }
             if (response)
             {
                 //VAA Name
-                tag = data[index++];
-                tag = data[index++];
+                tag = data.GetUInt16();
             }
         }
     }

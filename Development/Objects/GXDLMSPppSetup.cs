@@ -41,6 +41,8 @@ using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.Enums;
+using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
 {
@@ -100,26 +102,6 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
-
-        /// <summary>
-        /// Ppp Authentication Type
-        /// </summary>
-        public enum PppAuthenticationType
-        {
-            /// <summary>
-            /// No authentication.
-            /// </summary>
-            None = 0,
-            /// <summary>
-            /// PAP Login
-            /// </summary>
-            PAP = 1,
-            /// <summary>
-            /// CHAP-algorithm
-            /// </summary>
-            CHAP = 2
-        }
-
         /// <summary>
         /// PPP authentication procedure type.
         /// </summary>
@@ -168,7 +150,7 @@ namespace Gurux.DLMS.Objects
         #region IGXDLMSBase Members
 
 
-        byte[][] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
         {
             throw new ArgumentException("Invoke failed. Invalid attribute index.");
         }
@@ -246,7 +228,7 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
         {
             if (index == 1)
             {
@@ -258,61 +240,61 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 3)
             {
-                List<byte> data = new List<byte>();
-                data.Add((byte)DataType.Array);
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte)DataType.Array);
                 if (LCPOptions == null)
                 {
-                    data.Add(0);
+                    data.SetUInt8(0);
                 }
                 else
                 {
-                    data.Add((byte)IPCPOptions.Length);
+                    data.SetUInt8((byte)IPCPOptions.Length);
                     foreach (GXDLMSPppSetupLcpOption it in LCPOptions)
                     {
-                        data.Add((byte)DataType.Structure);
-                        data.Add((byte)3);
+                        data.SetUInt8((byte)DataType.Structure);
+                        data.SetUInt8((byte)3);
                         GXCommon.SetData(data, DataType.UInt8, it.Type);
                         GXCommon.SetData(data, DataType.UInt8, it.Length);
                         GXCommon.SetData(data, GXCommon.GetValueType(it.Data), it.Data);
                     }
                 }
-                return data.ToArray();
+                return data.Array();
             }
             if (index == 4)
             {
-                List<byte> data = new List<byte>();
-                data.Add((byte)DataType.Array);
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte)DataType.Array);
                 if (IPCPOptions == null)
                 {
-                    data.Add(0);
+                    data.SetUInt8(0);
                 }
                 else
                 {
-                    data.Add((byte)IPCPOptions.Length);
+                    data.SetUInt8((byte)IPCPOptions.Length);
                     foreach (GXDLMSPppSetupIPCPOption it in IPCPOptions)
                     {
-                        data.Add((byte)DataType.Structure);
-                        data.Add((byte)3);
+                        data.SetUInt8((byte)DataType.Structure);
+                        data.SetUInt8((byte)3);
                         GXCommon.SetData(data, DataType.UInt8, it.Type);
                         GXCommon.SetData(data, DataType.UInt8, it.Length);
                         GXCommon.SetData(data, GXCommon.GetValueType(it.Data), it.Data);
                     }
                 }
-                return data.ToArray();
+                return data.Array();
             }
             else if (index == 5)
             {
-                List<byte> data = new List<byte>();
-                data.Add((byte)DataType.Structure);
-                data.Add(2);
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte)DataType.Structure);
+                data.SetUInt8(2);
                 GXCommon.SetData(data, DataType.OctetString, UserName);
                 GXCommon.SetData(data, DataType.OctetString, Password);
-                return data.ToArray();
+                return data.Array();
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
         {
             if (index == 1)
             {
@@ -344,7 +326,7 @@ namespace Gurux.DLMS.Objects
                     foreach (Object[] item in (Object[])value)
                     {
                         GXDLMSPppSetupLcpOption it = new GXDLMSPppSetupLcpOption();
-                        it.Type = (GXDLMSPppSetupLcpOptionType)Convert.ToByte(item[0]);
+                        it.Type = (PppSetupLcpOptionType)Convert.ToByte(item[0]);
                         it.Length = Convert.ToByte(item[1]);
                         it.Data = item[2];
                         items.Add(it);
@@ -360,7 +342,7 @@ namespace Gurux.DLMS.Objects
                     foreach (Object[] item in (Object[])value)
                     {
                         GXDLMSPppSetupIPCPOption it = new GXDLMSPppSetupIPCPOption();
-                        it.Type = (GXDLMSPppSetupIPCPOptionType)Convert.ToByte(item[0]);
+                        it.Type = (PppSetupIPCPOptionType)Convert.ToByte(item[0]);
                         it.Length = Convert.ToByte(item[1]);
                         it.Data = item[2];
                         items.Add(it);

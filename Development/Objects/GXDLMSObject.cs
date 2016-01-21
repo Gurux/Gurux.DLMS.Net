@@ -44,6 +44,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Reflection;
+using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.Objects
 {  
@@ -105,7 +106,7 @@ namespace Gurux.DLMS.Objects
         /// <summary> 
         /// Constructor,
         /// </summary> 
-        protected GXDLMSObject(Gurux.DLMS.ObjectType objectType) 
+        protected GXDLMSObject(ObjectType objectType) 
             : this(objectType, null, 0)
         {
         }
@@ -113,7 +114,7 @@ namespace Gurux.DLMS.Objects
         /// <summary> 
         /// Constructor,
         /// </summary> 
-        protected GXDLMSObject(Gurux.DLMS.ObjectType objectType, string ln, ushort sn)
+        protected GXDLMSObject(ObjectType objectType, string ln, ushort sn)
         {
             Attributes = new Gurux.DLMS.ManufacturerSettings.GXAttributeCollection();
             MethodAttributes = new Gurux.DLMS.ManufacturerSettings.GXAttributeCollection();
@@ -170,7 +171,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="buff"></param>
         /// <returns></returns>
-        internal static string toLogicalName(byte[] buff)
+        internal static string ToLogicalName(byte[] buff)
         {
             if (buff.Length == 6)
             {            
@@ -416,18 +417,6 @@ namespace Gurux.DLMS.Objects
         }
         
         /// <summary>
-        /// Override this function to update default values for COSEM object.
-        /// </summary>
-        /// <remarks>
-        /// This functionality is added because several manufacturers has 
-        /// different device and UI values.
-        /// </remarks>
-        [Browsable(false)]
-        public virtual void UpdateDefaultValueItems()
-        {
-        }
-
-        /// <summary>
         /// Returns device data type of selected attribute index.
         /// </summary>
         /// <param name="index">Attribute index of the object.</param>
@@ -457,15 +446,6 @@ namespace Gurux.DLMS.Objects
         public virtual object[] GetValues()
         {
             throw new NotImplementedException("GetValues");
-        }
-
-        /// <summary>
-        /// Set new value.
-        /// </summary>
-        /// <returns></returns>
-        public virtual void SetValue(int index, object value)
-        {
-            (this as IGXDLMSBase).SetValue(index, value);
         }
 
         protected GXDLMSAttributeSettings GetAttribute(int index, GXAttributeCollection attributes)

@@ -38,6 +38,7 @@ using System.Linq;
 using System.Text;
 using System.ComponentModel;
 using System.Xml.Serialization;
+using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.ManufacturerSettings
 {
@@ -173,8 +174,8 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <summary>
         /// Attribute data type.
         /// </summary>
-        [DefaultValue(Gurux.DLMS.DataType.None)]
-        public Gurux.DLMS.DataType Type
+        [DefaultValue(DataType.None)]
+        public DataType Type
         {
             get;
             set;
@@ -183,8 +184,8 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <summary>
         /// Data type that user ẃant's to see.
         /// </summary>
-        [DefaultValue(Gurux.DLMS.DataType.None)]
-        public Gurux.DLMS.DataType UIType
+        [DefaultValue(DataType.None)]
+        public DataType UIType
         {
             get;
             set;

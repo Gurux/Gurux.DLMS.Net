@@ -40,25 +40,11 @@ using Gurux.DLMS;
 using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
+using Gurux.DLMS.Objects.Enums;
+using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.Objects
 {
-    /// <summary>
-    /// IEC Twisted pair setup working mode.
-    /// </summary>
-    public enum  IecTwistedPairSetupMode
-    {
-        /// <summary>
-        /// The interface ignores all received frames.
-        /// </summary>
-        Inactive = 0,
-        
-        /// <summary>
-        /// Active, 
-        /// </summary>
-        Active = 1
-    }
-
     public class GXDLMSIecTwistedPairSetup : GXDLMSObject, IGXDLMSBase
     {
         /// <summary> 
@@ -146,7 +132,7 @@ namespace Gurux.DLMS.Objects
         /// Data interface do not have any methods.
         /// </summary>
         /// <param name="index"></param>
-        byte[][] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
         {
             throw new ArgumentException("Invoke failed. Invalid attribute index.");
         }
@@ -223,7 +209,7 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
         {
             if (index == 1)
             {
@@ -239,46 +225,46 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 4)
             {
-                List<byte> data = new List<byte>();
-                data.Add((byte)DataType.Array);
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte)DataType.Array);
                 if (PrimaryAddresses == null)
                 {
-                    data.Add(0);
+                    data.SetUInt8(0);
                 }
                 else
                 {
-                    data.Add((byte) PrimaryAddresses.Length);
+                    data.SetUInt8((byte) PrimaryAddresses.Length);
                     foreach (byte it in PrimaryAddresses)
                     {
-                        data.Add((byte)DataType.UInt8);
-                        data.Add(it);
+                        data.SetUInt8((byte)DataType.UInt8);
+                        data.SetUInt8(it);
                     }
                 }
-                return data.ToArray();
+                return data.Array();
             }
             if (index == 5)
             {
-                List<byte> data = new List<byte>();
-                data.Add((byte)DataType.Array);
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte)DataType.Array);
                 if (Tabis == null)
                 {
-                    data.Add(0);
+                    data.SetUInt8(0);
                 }
                 else
                 {
-                    data.Add((byte)Tabis.Length);
+                    data.SetUInt8((byte)Tabis.Length);
                     foreach (sbyte it in Tabis)
                     {
-                        data.Add((byte)DataType.UInt8);
-                        data.Add((byte) it);
+                        data.SetUInt8((byte)DataType.UInt8);
+                        data.SetUInt8((byte) it);
                     }
                 }
-                return data.ToArray();
+                return data.Array();
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
         {
             if (index == 1)
             {
@@ -301,12 +287,12 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 4)
             {
-                List<byte> list = new List<byte>();
+                GXByteBuffer list = new GXByteBuffer();
                 foreach (object it in (object[])value)
                 {
                     list.Add((byte)it);
                 }
-                PrimaryAddresses = list.ToArray();
+                PrimaryAddresses = list.Array();
             }
             else if (index == 5)
             {

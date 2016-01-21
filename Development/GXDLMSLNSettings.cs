@@ -49,7 +49,15 @@ namespace Gurux.DLMS
         /// <summary>
         /// Settings.
         /// </summary>
-        internal byte[] m_ConformanceBlock = new byte[3];
+        internal byte[] ConformanceBlock;
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public GXDLMSLNSettings()
+        {
+            ConformanceBlock = new byte[3];
+        }
 
         /// <summary>
         /// Constructor.
@@ -57,12 +65,12 @@ namespace Gurux.DLMS
         public GXDLMSLNSettings(byte[] conformanceBlock)
         {
             //Set default values.
-            m_ConformanceBlock = conformanceBlock;
+            ConformanceBlock = conformanceBlock;
         }
 
         public void CopyTo(GXDLMSLNSettings target)
         {
-            target.m_ConformanceBlock = this.m_ConformanceBlock;
+            target.ConformanceBlock = this.ConformanceBlock;
         }
 
         /// <summary>
@@ -72,11 +80,11 @@ namespace Gurux.DLMS
         {
             get
             {
-                return GXCommon.GetBits(m_ConformanceBlock[1], 0x80);
+                return GXCommon.GetBits(ConformanceBlock[1], 0x80);
             }
             set
             {
-                GXCommon.SetBits(m_ConformanceBlock[1], 0x80, !value);
+                GXCommon.SetBits(ref ConformanceBlock[1], 0x80, !value);
             }
         }
 
@@ -87,11 +95,11 @@ namespace Gurux.DLMS
         {
             get
             {
-                return GXCommon.GetBits(m_ConformanceBlock[1], 0x40);
+                return GXCommon.GetBits(ConformanceBlock[1], 0x40);
             }
             set
             {
-                GXCommon.SetBits(m_ConformanceBlock[1], 0x40, value);
+                GXCommon.SetBits(ref ConformanceBlock[1], 0x40, value);
             }
         }
 
@@ -102,11 +110,11 @@ namespace Gurux.DLMS
         {
             get
             {
-                return GXCommon.GetBits(m_ConformanceBlock[1], 0x20);
+                return GXCommon.GetBits(ConformanceBlock[1], 0x20);
             }
             set
             {
-                GXCommon.SetBits(m_ConformanceBlock[1], 0x20, value);
+                GXCommon.SetBits(ref ConformanceBlock[1], 0x20, value);
             }
         }
 
@@ -117,11 +125,11 @@ namespace Gurux.DLMS
         {
             get
             {
-                return GXCommon.GetBits(m_ConformanceBlock[1], 0x10);
+                return GXCommon.GetBits(ConformanceBlock[1], 0x10);
             }
             set
             {
-                GXCommon.SetBits(m_ConformanceBlock[1], 0x10, value);
+                GXCommon.SetBits(ref ConformanceBlock[1], 0x10, value);
             }
         }
 
@@ -132,11 +140,11 @@ namespace Gurux.DLMS
         {
             get
             {
-                return GXCommon.GetBits(m_ConformanceBlock[1], 0x8);
+                return GXCommon.GetBits(ConformanceBlock[1], 0x8);
             }
             set
             {
-                GXCommon.SetBits(m_ConformanceBlock[1], 0x8, value);
+                GXCommon.SetBits(ref ConformanceBlock[1], 0x8, value);
             }
 
         }
@@ -145,27 +153,27 @@ namespace Gurux.DLMS
         {
             get
             {
-                return GXCommon.GetBits(m_ConformanceBlock[1], 0x4);
+                return GXCommon.GetBits(ConformanceBlock[1], 0x4);
             }
             set
             {
-                GXCommon.SetBits(m_ConformanceBlock[1], 0x4, value);
+                GXCommon.SetBits(ref ConformanceBlock[1], 0x4, value);
             }
 
         }
 
         /// <summary>
-        /// Check can several data objects read with one query.
+        /// Is Short Name referencing also supported.
         /// </summary>
         public bool MultipleReferences
         {
             get
             {
-                return GXCommon.GetBits(m_ConformanceBlock[1], 0x2);
+                return GXCommon.GetBits(ConformanceBlock[1], 0x2);
             }
             set
             {
-                GXCommon.SetBits(m_ConformanceBlock[1], 0x2, value);
+                GXCommon.SetBits(ref ConformanceBlock[1], 0x2, value);
             }
         }
 
@@ -177,11 +185,11 @@ namespace Gurux.DLMS
         {
             get
             {
-                return GXCommon.GetBits(m_ConformanceBlock[2], 0x10);
+                return GXCommon.GetBits(ConformanceBlock[2], 0x10);
             }
             set
             {
-                GXCommon.SetBits(m_ConformanceBlock[2], 0x10, value);
+                GXCommon.SetBits(ref ConformanceBlock[2], 0x10, value);
             }
 
         }
@@ -193,11 +201,11 @@ namespace Gurux.DLMS
         {
             get
             {
-                return GXCommon.GetBits(m_ConformanceBlock[2], 0x8);
+                return GXCommon.GetBits(ConformanceBlock[2], 0x8);
             }
             set
             {
-                GXCommon.SetBits(m_ConformanceBlock[2], 0x8, value);
+                GXCommon.SetBits(ref ConformanceBlock[2], 0x8, value);
             }
         }
 
@@ -208,11 +216,11 @@ namespace Gurux.DLMS
         {
             get
             {
-                return GXCommon.GetBits(m_ConformanceBlock[2], 0x2);
+                return GXCommon.GetBits(ConformanceBlock[2], 0x2);
             }
             set
             {
-                GXCommon.SetBits(m_ConformanceBlock[2], 0x2, value);
+                GXCommon.SetBits(ref ConformanceBlock[2], 0x2, value);
             }
 
         }
@@ -221,11 +229,11 @@ namespace Gurux.DLMS
         {
             get
             {
-                return GXCommon.GetBits(m_ConformanceBlock[2], 0x1);
+                return GXCommon.GetBits(ConformanceBlock[2], 0x1);
             }
             set
             {
-                GXCommon.SetBits(m_ConformanceBlock[2], 0x1, value);
+                GXCommon.SetBits(ref ConformanceBlock[2], 0x1, value);
             }
 
         }
@@ -243,11 +251,11 @@ namespace Gurux.DLMS
         {
             get
             {
-                return GXCommon.GetBits(m_ConformanceBlock[2], 0x4);
+                return GXCommon.GetBits(ConformanceBlock[2], 0x4);
             }
             set
             {
-                GXCommon.SetBits(m_ConformanceBlock[2], 0x4, value);
+                GXCommon.SetBits(ref ConformanceBlock[2], 0x4, value);
             }
         }
     }

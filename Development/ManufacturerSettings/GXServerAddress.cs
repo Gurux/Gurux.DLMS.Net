@@ -85,7 +85,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXServerAddress(HDLCAddressType address, object value, bool enabled)
+        public GXServerAddress(HDLCAddressType address, int value, bool enabled)
         {
             HDLCAddress = address;
             PhysicalAddress = value;            
@@ -115,7 +115,7 @@ namespace Gurux.DLMS.ManufacturerSettings
 
         [Browsable(false)]
         [DefaultValue(null)]
-        public object PhysicalAddress
+        public int PhysicalAddress
         {
             get;
             set;

@@ -44,7 +44,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Gurux Ltd")]
 [assembly: AssemblyProduct("Gurux.DLMS")]
-[assembly: AssemblyCopyright("Copyright (c) 1998-2015 Gurux Ltd. All rights reserved.")]
+[assembly: AssemblyCopyright("Copyright (c) 1998-2016 Gurux Ltd. All rights reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -55,5 +55,5 @@ using System.Runtime.InteropServices;
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("9d9674d8-2b76-4d81-8b28-ac21bd7bc6f9")]
-[assembly: AssemblyVersion("7.0.3.1")] //DO NOT CHANGE!
-[assembly: AssemblyFileVersion("7.3.31.1")]
+[assembly: AssemblyVersion("8.0.0.2")]
+[assembly: AssemblyFileVersion("8.0.0.2")]

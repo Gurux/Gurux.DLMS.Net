@@ -32,11 +32,12 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using Gurux.DLMS.Objects.Enums;
 namespace Gurux.DLMS.Objects
 {
     public class GXDLMSIp4SetupIpOption
     {
-        public GXDLMSIp4SetupIpOptionType Type
+        public Ip4SetupIpOptionType Type
         {
             get;
             set;

@@ -35,17 +35,18 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.ManufacturerSettings
 {
     [Serializable]
     public class GXObisCodeCollection : List<GXObisCode>
     {
-        public GXObisCode FindByLN(Gurux.DLMS.ObjectType type, string ln, GXObisCode skipItem)
+        public GXObisCode FindByLN(ObjectType type, string ln, GXObisCode skipItem)
         {
             foreach (GXObisCode it in this)
             {
-                if ((it.ObjectType == type || type == Gurux.DLMS.ObjectType.None) && it.LogicalName == ln && it != skipItem)
+                if ((it.ObjectType == type || type == ObjectType.None) && it.LogicalName == ln && it != skipItem)
                 {
                     return it;
                 }

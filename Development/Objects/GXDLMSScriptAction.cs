@@ -33,6 +33,8 @@
 //---------------------------------------------------------------------------
 
 using System;
+using Gurux.DLMS.Enums;
+using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
 {
@@ -42,7 +44,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Defines which action to be applied to the referenced object.
         /// </summary>
-        public GXDLMSScriptActionType Type
+        public ScriptActionType Type
         {
             get;
             set;

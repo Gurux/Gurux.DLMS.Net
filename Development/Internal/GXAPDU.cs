@@ -36,6 +36,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.Internal
 {
@@ -48,46 +49,13 @@ namespace Gurux.DLMS.Internal
     ///</summary>
     class GXAPDU
     {
-        public byte[] Password;
-        public Authentication Authentication;
-        GXApplicationContextName ApplicationContextName = new GXApplicationContextName();
-        AssociationResult ResultValue;
-        GXDLMSTagCollection Tags;
-        internal GXUserInformation UserInformation = new GXUserInformation();
-
-        ///<summary>
-        ///Constructor.
-        ///</summary>
-        public GXAPDU(GXDLMSTagCollection tags)
-        {
-            this.Authentication = Authentication.None;
-            Tags = tags;
-        }
-
-        ///<summary>
-        ///UseLN
-        ///</summary>
-        public bool UseLN
-        {
-            get
-            {
-                return ApplicationContextName.UseLN;
-            }
-            set
-            {
-                ApplicationContextName.UseLN = value;
-            }
-        }
-
         ///<summary>
         ///AssociationResult
         ///</summary>
         internal AssociationResult ResultComponent
         {
-            get
-            {
-                return ResultValue;
-            }
+            get;
+            set;
         }
         ///<summary>
         ///SourceDiagnostic
@@ -96,46 +64,38 @@ namespace Gurux.DLMS.Internal
         {
             get;
             set;
-        }
-        ///<summary>
-        ///Determines the authentication level, and password, if used.
-        ///</summary>
-        internal void SetAuthentication(Authentication val, byte[] pw)
-        {
-            Authentication = val;
-            Password = pw;
-        }
+        }       
 
         ///<summary>
         ///Retrieves the string that indicates the level of authentication, if any. 
         ///</summary>
-        internal void GetAuthenticationString(List<byte> data)
+        internal static void GetAuthenticationString(GXDLMSSettings settings, GXByteBuffer data)
         {
             //If authentication is used.
-            if (this.Authentication != Authentication.None)
+            if (settings.Authentication != Authentication.None)
             {
                 //Add sender ACSE-requirements field component.
-                data.Add(0x8A);
-                data.Add(2);
-                GXCommon.SetUInt16(0x0780, data);
-                data.Add(0x8B);
-                data.Add(7);
-                byte[] p = { (byte)0x60, (byte)0x85, (byte)0x74, (byte)0x05, (byte)0x08, (byte)0x02, (byte)this.Authentication };
-                data.AddRange(p);
+                data.SetUInt8(0x8A);
+                data.SetUInt8(2);
+                data.SetUInt16(0x0780);
+                data.SetUInt8(0x8B);
+                data.SetUInt8(7);
+                byte[] p = { (byte)0x60, (byte)0x85, (byte)0x74, (byte)0x05, (byte)0x08, (byte)0x02, (byte)settings.Authentication };
+                data.Set(p);
                 //Add Calling authentication information.
                 int len = 0;
-                if (Password != null)
+                if (settings.Password != null)
                 {
-                    len = Password.Length;
+                    len = settings.Password.Length;
                 }
-                data.Add(0xAC);
-                data.Add((byte)(2 + len));
+                data.SetUInt8(0xAC);
+                data.SetUInt8((byte)(2 + len));
                 //Add authentication information.
-                data.Add((byte)0x80);
-                data.Add((byte)len);
+                data.SetUInt8((byte)0x80);
+                data.SetUInt8((byte)len);
                 if (len != 0)
                 {
-                    data.AddRange(Password);
+                    data.Set(settings.Password);
                 }
             }
         }
@@ -143,100 +103,86 @@ namespace Gurux.DLMS.Internal
         ///<summary>
         ///CodeData
         ///</summary>
-        internal void CodeData(List<byte> data, InterfaceType interfaceType)
+        internal void CodeData(GXDLMSSettings settings, bool ciphering, GXByteBuffer data)
         {
             //AARQ APDU Tag
-            data.Add(GXCommon.AARQTag);
+            data.SetUInt8(GXCommon.AARQTag);
             //Length
-            int LenPos = data.Count;
-            data.Add(0);
+            UInt16 offset = data.Size;
+            data.SetUInt8(0);
             ///////////////////////////////////////////
             // Add Application context name.
-            ApplicationContextName.CodeData(data);
-            GetAuthenticationString(data);            
-            UserInformation.CodeData(data);
-            //Add extra tags...
-            if (Tags != null)
-            {
-                for (int a = 0; a < Tags.Count; ++a)
-                {
-                    GXDLMSTag tag = Tags[a];
-                    if (tag != null)
-                    {
-                        //Add data ID.
-                        data.Add((byte)tag.ID);
-                        //Add data len.
-                        data.Add((byte)tag.Data.Length);
-                        //Add data.
-                        data.AddRange(tag.Data);
-                    }
-                }
-            }
-            data[LenPos] = (byte)(data.Count() - LenPos - 1);
+            GXApplicationContextName.CodeData(settings, data, ciphering);
+            GetAuthenticationString(settings, data);
+            GXUserInformation.CodeData(settings, data);
+            data.SetUInt8(offset, (byte)(data.Size - offset - 1));
         }
 
         ///<summary>
         ///EncodeData
         ///</summary>
-        internal void EncodeData(byte[] buff, ref int index)
+        internal bool EncodeData(GXDLMSSettings settings, GXByteBuffer buff)
         {
             // Get AARE tag and length
-            int tag = buff[index++];
+            int tag = buff.GetUInt8();
             if (tag != 0x61 && tag != 0x60 && tag != 0x81 && tag != 0x80)
             {
                 throw new Exception("Invalid tag.");
             }
-            int len = buff[index++];
-            int size = buff.Length - index;
+            int len = buff.GetUInt8();
+            int size = buff.Size - buff.Position;
             if (len > size)
             {
                 throw new Exception("Not enough data.");
             }
-            while (index < buff.Length)
+            while (buff.Position < buff.Size)
             {
-                tag = buff[index];
+                tag = buff.GetUInt8(buff.Position);
                 if (tag == 0xA1)
                 {
-                    ApplicationContextName.EncodeData(buff, ref index);
+                    if (!GXApplicationContextName.EncodeData(settings, buff))
+                    {
+                        return false;
+                    }
                 }
                 else if (tag == 0xBE)
                 {
-                    if (ResultValue != AssociationResult.Accepted && ResultDiagnosticValue != SourceDiagnostic.None)
+                    if (this.ResultComponent != AssociationResult.Accepted && ResultDiagnosticValue != SourceDiagnostic.None)
                     {
-                        return;
+                        return true;
                     }
-                    UserInformation.EncodeData(buff, ref index);
+                    GXUserInformation.EncodeData(settings, buff);
                 }
                 else if (tag == 0xA2) //Result
                 {
-                    tag = buff[index++];
-                    len = buff[index++];
+                    tag = buff.GetUInt8();
+                    len = buff.GetUInt8();
                     //Choice for result (INTEGER, universal)
-                    tag = buff[index++];
-                    len = buff[index++];
-                    ResultValue = (AssociationResult)buff[index++];
+                    tag = buff.GetUInt8();
+                    len = buff.GetUInt8();
+                    this.ResultComponent = (AssociationResult)buff.GetUInt8();
                 }
                 else if (tag == 0xA3) //SourceDiagnostic
                 {
-                    tag = buff[index++];
-                    len = buff[index++];
+                    tag = buff.GetUInt8();
+                    len = buff.GetUInt8();
                     // ACSE service user tag.
-                    tag = buff[index++];
-                    len = buff[index++];
+                    tag = buff.GetUInt8();
+                    len = buff.GetUInt8();
                     // Result source diagnostic component.
-                    tag = buff[index++];
-                    len = buff[index++];
-                    ResultDiagnosticValue = (SourceDiagnostic)buff[index++];
+                    tag = buff.GetUInt8();
+                    len = buff.GetUInt8();
+                    ResultDiagnosticValue = (SourceDiagnostic)buff.GetUInt8();
                 }
                 else if (tag == 0x8A || tag == 0x88) //Authentication.
                 {
-                    tag = buff[index++];
+                    tag = buff.GetUInt8();
                     //Get sender ACSE-requirements field component.
-                    if (buff[index++] != 2)
+                    if (buff.GetUInt8() != 2)
                     {
                         throw new Exception("Invalid tag.");
                     }
-                    int val = GXCommon.GetUInt16(buff, ref index);
+                    int val = buff.GetUInt16();
                     if (val != 0x0780 && val != 0x0680)
                     {
                         throw new Exception("Invalid tag.");
@@ -244,154 +190,177 @@ namespace Gurux.DLMS.Internal
                 }               
                 else if (tag == 0xAA) //Server Challenge.                
                 {
-                    tag = buff[index++];
-                    len = buff[index++];
-                    ++index;
-                    len = buff[index++];
+                    tag = buff.GetUInt8();
+                    len = buff.GetUInt8();
+                    ++buff.Position;
+                    len = buff.GetUInt8();
                     //Get challenge and save it to the PW.
-                    Password = new byte[len];
-                    Array.Copy(buff, index, Password, 0, len);
-                    index += len;                    
-                }
-                else if (tag == 0xAC) //Password.                
-                {
-                    tag = buff[index++];
-                    len = buff[index++];
-                    //Get authentication information.
-                    if (buff[index++] != 0x80)
-                    {
-                        throw new Exception("Invalid tag.");
-                    }
-                    len = buff[index++];
-                    //Get password.
-                    Password = new byte[len];
-                    Array.Copy(buff, index, Password, 0, len);
-                    index += len;
+                    settings.StoCChallenge = new byte[len];
+                    buff.Get(settings.StoCChallenge);
                 }
                 else if (tag == 0x8B || tag == 0x89) //Authentication.
                 {
-                    tag = buff[index++];
-                    len = buff[index++];
-                    if (buff[index++] != 0x60)
+                    tag = buff.GetUInt8();
+                    len = buff.GetUInt8();
+                    if (buff.GetUInt8() != 0x60)
                     {
                         throw new Exception("Invalid tag.");
                     }
-                    if (buff[index++] != 0x85)
+                    if (buff.GetUInt8() != 0x85)
                     {
                         throw new Exception("Invalid tag.");
                     }
-                    if (buff[index++] != 0x74)
+                    if (buff.GetUInt8() != 0x74)
                     {
                         throw new Exception("Invalid tag.");
                     }
-                    if (buff[index++] != 0x05)
+                    if (buff.GetUInt8() != 0x05)
                     {
                         throw new Exception("Invalid tag.");
                     }
-                    if (buff[index++] != 0x08)
+                    if (buff.GetUInt8() != 0x08)
                     {
                         throw new Exception("Invalid tag.");
                     }
-                    if (buff[index++] != 0x02)
+                    if (buff.GetUInt8() != 0x02)
                     {
                         throw new Exception("Invalid tag.");
                     }
-                    int tmp = buff[index++];
+                    int tmp = buff.GetUInt8();
                     if (tmp < 0 || tmp > 5)
                     {
                         throw new Exception("Invalid tag.");
                     }
-                    Authentication = (Authentication)tmp;                    
+                    settings.Authentication = (Authentication)tmp;
+                    if (tmp != 0)
+                    {
+                        byte tag2 = buff.GetUInt8();
+                        if (tag2 != 0xAC && tag2 != 0xAA)
+                        {
+                            throw new Exception("Invalid tag.");
+                        }
+                        len = buff.GetUInt8();
+                        // Get authentication information.
+                        if ((buff.GetUInt8() & 0xFF) != 0x80)
+                        {
+                            throw new Exception("Invalid tag.");
+                        }
+                        len = buff.GetUInt8() & 0xFF;
+                        byte[] tmp2 = new byte[len];
+                        buff.Get(tmp2);
+                        if (tmp < 2)
+                        {
+                            settings.Password = tmp2;
+                        }
+                        else
+                        {
+                            if (settings.IsServer)
+                            {
+                                settings.CtoSChallenge = tmp2;
+                            }
+                            else
+                            {
+                                settings.StoCChallenge = tmp2;
+                            }
+                        }
+                    }
                 }
                 //Unknown tags.
                 else
                 {
-                    tag = buff[index++];
-                    len = buff[index++];
-                    if (Tags != null)
-                    {
-                        GXDLMSTag tmp = new GXDLMSTag();
-                        tmp.ID = tag;
-                        tmp.Data = new byte[len];
-                        tmp.Data = GXCommon.Swap(buff, index, len);
-                        Tags.Add(tmp);
-                    }
-                    index += len;
+                    System.Diagnostics.Debug.WriteLine("Unknown tag.");
+                    tag = buff.GetUInt8();
+                    len = buff.GetUInt8();
+                    buff.Position += (UInt16)len;
                 }
             }
+            return true;
         }       
 
         ///<summary>
         ///Server generates AARE message.
         ///</summary>
-        internal void GenerateAARE(List<byte> data, Authentication authentication, byte[] challenge, ushort maxReceivePDUSize, byte[] conformanceBlock, AssociationResult result, SourceDiagnostic diagnostic)
+        internal void GenerateAARE(GXDLMSSettings settings, GXByteBuffer data, 
+            AssociationResult result, SourceDiagnostic diagnostic, bool ciphering)
         {
+            int offset = data.Position;
             // Set AARE tag and length
-            data.Add(0x61);
-            ApplicationContextName.CodeData(data);
+            data.SetUInt8(0x61);
+            // Length is updated later.
+            data.SetUInt8(0);
+            GXApplicationContextName.CodeData(settings, data, ciphering);
             //Result
-            data.Add(0xA2);
-            data.Add(3); //len
-            data.Add(2); //Tag
+            data.SetUInt8(0xA2);
+            data.SetUInt8(3); //len
+            data.SetUInt8(2); //Tag
             //Choice for result (INTEGER, universal)
-            data.Add(1); //Len
-            data.Add((byte) result); //ResultValue            
+            data.SetUInt8(1); //Len
+            data.SetUInt8((byte) result); //ResultValue            
             //SourceDiagnostic
-            data.Add(0xA3);
-            data.Add(5); //len
-            data.Add(0xA1); //Tag
-            data.Add(3); //len
-            data.Add(2); //Tag
+            data.SetUInt8(0xA3);
+            data.SetUInt8(5); //len
+            data.SetUInt8(0xA1); //Tag
+            data.SetUInt8(3); //len
+            data.SetUInt8(2); //Tag
             //Choice for result (INTEGER, universal)
-            data.Add(1); //Len
-            data.Add((byte)diagnostic); //diagnostic            
-            if (diagnostic == SourceDiagnostic.AuthenticationRequired)
+            data.SetUInt8(1); //Len
+            data.SetUInt8((byte)diagnostic); //diagnostic            
+            if (result != AssociationResult.PermanentRejected && diagnostic == SourceDiagnostic.AuthenticationRequired)
             {                
                 //Add server ACSE-requirenents field component.
-                data.Add(0x88);
-                data.Add(0x02);  //Len.
-                GXCommon.SetUInt16(0x0780, data);
+                data.SetUInt8(0x88);
+                data.SetUInt8(0x02);  //Len.
+                data.SetUInt16(0x0780);
                 //Add tag.
-                data.Add(0x89);
-                data.Add(0x07);//Len
-                data.Add(0x60);
-                data.Add(0x85);
-                data.Add(0x74);
-                data.Add(0x05);
-                data.Add(0x08);
-                data.Add(0x02);
-                data.Add((byte) authentication);
+                data.SetUInt8(0x89);
+                data.SetUInt8(0x07);//Len
+                data.SetUInt8(0x60);
+                data.SetUInt8(0x85);
+                data.SetUInt8(0x74);
+                data.SetUInt8(0x05);
+                data.SetUInt8(0x08);
+                data.SetUInt8(0x02);
+                data.SetUInt8((byte) settings.Authentication);
                 //Add tag.
-                data.Add(0xAA);
-                data.Add((byte) (2 + challenge.Length));//Len
-                data.Add(0x80);
-                data.Add((byte) challenge.Length);
-                data.AddRange(challenge);
+                data.SetUInt8(0xAA);
+                data.SetUInt8((byte)(2 + settings.StoCChallenge.Length));//Len
+                data.SetUInt8(0x80);
+                data.SetUInt8((byte)settings.StoCChallenge.Length);
+                data.Set(settings.StoCChallenge);
             }            
             //Add User Information
-            data.Add(0xBE); //Tag
-            data.Add(0x10); //Length for AARQ user field
-            data.Add(0x04); //Coding the choice for user-information (Octet STRING, universal)
-            data.Add(0xE); //Length
-            data.Add(GXCommon.InitialResponce); // Tag for xDLMS-Initiate response
-            data.Add(0x00); // Usage field for the response allowed component (not used)
-            data.Add(6); // DLMSVersioNumber
-            data.Add(0x5F);
-            data.Add(0x1F);
-            data.Add(0x04);// length of the conformance block
-            data.Add(0x00);// encoding the number of unused bits in the bit string            
-            data.AddRange(conformanceBlock);
-            GXCommon.SetUInt16(maxReceivePDUSize, data);
-            //VAA Name VAA name (0x0007 for LN referencing and 0xFA00 for SN)
-            if (UseLN)
+            data.SetUInt8(0xBE); //Tag
+            data.SetUInt8(0x11); //Length for AARQ user field
+            data.SetUInt8(0x04); //Coding the choice for user-information (Octet STRING, universal)
+            data.SetUInt8(0xF); //Length
+            data.SetUInt8(GXCommon.InitialResponce); // Tag for xDLMS-Initiate response
+            data.SetUInt8(0x01);
+            data.SetUInt8(0x00); // Usage field for the response allowed component (not used)
+            data.SetUInt8(6); // DLMSVersioNumber
+            data.SetUInt8(0x5F);
+            data.SetUInt8(0x1F);
+            data.SetUInt8(0x04);// length of the conformance block
+            data.SetUInt8(0x00);// encoding the number of unused bits in the bit string            
+            if (settings.UseLogicalNameReferencing)
             {
-                GXCommon.SetUInt16(0x0007, data);
+                data.Set(settings.LnSettings.ConformanceBlock);
             }
             else
             {
-                GXCommon.SetUInt16(0xFA00, data);
-            }            
-            data.Insert(1, (byte) (data.Count - 1));
+                data.Set(settings.SnSettings.ConformanceBlock);
+
+            }
+            data.SetUInt16(settings.MaxReceivePDUSize);
+            //VAA Name VAA name (0x0007 for LN referencing and 0xFA00 for SN)
+            if (settings.UseLogicalNameReferencing)
+            {
+                data.SetUInt16(0x0007);
+            }
+            else
+            {
+                data.SetUInt16(0xFA00);
+            }
+            data.SetUInt8((UInt16)(offset + 1), (byte) (data.Size - offset - 2));
         }
     }
 }

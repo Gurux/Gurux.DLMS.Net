@@ -41,6 +41,8 @@ using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.Enums;
+using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
 {
@@ -96,7 +98,7 @@ namespace Gurux.DLMS.Objects
         #region IGXDLMSBase Members
 
 
-        byte[][] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
         {
             throw new ArgumentException("Invoke failed. Invalid attribute index.");            
         }
@@ -146,7 +148,7 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
         {
             if (index == 1)
             {
@@ -155,19 +157,19 @@ namespace Gurux.DLMS.Objects
             if (index == 2)
             {
                 int cnt = Scripts.Count;
-                List<byte> data = new List<byte>();
-                data.Add((byte) DataType.Array);
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte) DataType.Array);
                 //Add count            
                 GXCommon.SetObjectCount(cnt, data);
                 if (cnt != 0)
                 {
                     foreach (var it in Scripts)
                     {
-                        data.Add((byte) DataType.Structure);
-                        data.Add(2); //Count
+                        data.SetUInt8((byte)DataType.Structure);
+                        data.SetUInt8(2); //Count
                         GXCommon.SetData(data, DataType.UInt16, it.Key); //Script_identifier:
-                        data.Add((byte)DataType.Array);
-                        data.Add(5); //Count
+                        data.SetUInt8((byte)DataType.Array);
+                        data.SetUInt8(5); //Count
                         GXDLMSScriptAction tmp = it.Value;
                         GXCommon.SetData(data, DataType.Enum, tmp.Type); //service_id
                         GXCommon.SetData(data, DataType.UInt16, tmp.ObjectType); //class_id
@@ -176,12 +178,12 @@ namespace Gurux.DLMS.Objects
                         GXCommon.SetData(data, GXCommon.GetValueType(tmp.Parameter), tmp.Parameter); //parameter
                     }
                 }
-                return data.ToArray();
+                return data.Array();
             }            
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
         {
             if (index == 1)
             {
@@ -209,7 +211,7 @@ namespace Gurux.DLMS.Objects
                             foreach (Object[] arr in (Object[])item[1])
                             {
                                 GXDLMSScriptAction it = new GXDLMSScriptAction();
-                                it.Type = (GXDLMSScriptActionType)Convert.ToInt32(arr[0]);
+                                it.Type = (ScriptActionType)Convert.ToInt32(arr[0]);
                                 it.ObjectType = (ObjectType)Convert.ToInt32(arr[1]);
                                 it.LogicalName = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString).ToString();
                                 it.Index = Convert.ToInt32(arr[3]);
@@ -224,7 +226,7 @@ namespace Gurux.DLMS.Objects
                         Object[] arr = (Object[])((Object[])value)[1];
                         {
                             GXDLMSScriptAction it = new GXDLMSScriptAction();
-                            it.Type = (GXDLMSScriptActionType)Convert.ToInt32(arr[0]);
+                            it.Type = (ScriptActionType)Convert.ToInt32(arr[0]);
                             it.ObjectType = (ObjectType)Convert.ToInt32(arr[1]);
                             it.LogicalName = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString).ToString();
                             it.Index = Convert.ToInt32(arr[3]);

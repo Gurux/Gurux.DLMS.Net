@@ -36,29 +36,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.Internal
 {
     /// <summary>
-    /// Reserved for internal use.
+    /// Reserved for internal use. 
     /// </summary>
-    enum ActionType
+    internal class GXCommon
     {
-        None = 0,
-        Index = 1,
-        Count = 2,
-    }    
-
-    /// <summary>
-    /// Reserved for internal use.
-    /// </summary>
-    class GXCommon
-    {
-        /// <summary>
-        /// Set spesific time zone. This is used for debugging purposes.
-        /// </summary>
-        public static TimeZoneInfo CurrentTimeZoneInfo = null;
-
         internal const byte HDLCFrameStartEnd = 0x7E;
         internal const byte InitialRequest = 0x1;
         internal const byte InitialResponce = 0x8;
@@ -66,16 +52,81 @@ namespace Gurux.DLMS.Internal
         internal const byte AARETag = 0x61;
         internal static readonly byte[] LogicalNameObjectID = { 0x60, 0x85, 0x74, 0x05, 0x08, 0x01, 0x01 };
         internal static readonly byte[] ShortNameObjectID = { 0x60, 0x85, 0x74, 0x05, 0x08, 0x01, 0x02 };
+        internal static readonly byte[] LogicalNameObjectIdWithCiphering = { 0x60, (byte)0x85, 0x74, 0x05, 0x08, 0x01, 0x01 };
+        internal static readonly byte[] ShortNameObjectIdWithCiphering = { 0x60, (byte)0x85, 0x74, 0x05, 0x08, 0x01, 0x02 };
+
+        /// <summary>
+        /// Sent LLC bytes.
+        /// </summary>
         internal static readonly byte[] LLCSendBytes = { 0xE6, 0xE6, 0x00 };
+        /// <summary>
+        /// Received LLC bytes.
+        /// </summary>
         internal static readonly byte[] LLCReplyBytes = { 0xE6, 0xE7, 0x00 };
 
-        /**
-         * Reserved for internal use.
-         * @param value
-         * @param BitMask
-         * @param val 
-         */
-        internal static void SetBits(byte value, byte BitMask, bool val)
+        public static byte GetSize(Object value)
+        {
+            if (value is byte)
+            {
+                return 1;
+            }
+            if (value is UInt16)
+            {
+                return 2;
+            }
+            if (value is UInt32)
+            {
+                return 4;
+            }
+            if (value is UInt64)
+            {
+                return 8;
+            }
+            throw new ArgumentException("Invalid object type.");
+        }
+
+        public static string ToHex(byte[] bytes, bool addSpace)
+        {
+            return ToHex(bytes, addSpace, 0, bytes.Length);
+        }
+
+        /// <summary>
+        /// Convert byte array to hex string.
+        /// </summary>
+        /// <param name="bytes">Byte array to convert.</param>
+        /// <param name="addSpace">Is space added between bytes.</param>
+        /// <returns>Byte array as hex string.</returns>
+        public static string ToHex(byte[] bytes, bool addSpace, int index, int count)
+        {
+            if (bytes == null || bytes.Length == 0 || count == 0)
+            {
+                return string.Empty;
+            }
+            int len = count * 3;
+            char[] str = new char[len];
+            int tmp;
+            len = -1;
+            for (int pos = 0; pos != count; ++pos)
+            {
+                tmp = (bytes[index + pos] >> 4);
+                str[++len] = (char)(tmp > 9 ? tmp + 0x37 : tmp + 0x30);
+                tmp = (bytes[index + pos] & 0x0F);
+                str[++len] = (char)(tmp > 9 ? tmp + 0x37 : tmp + 0x30);
+                if (addSpace)
+                {
+                    str[++len] = ' ';
+                }
+            }
+            return new string(str, 0, len);
+        }
+
+        /// <summary>
+        /// Reserved for internal use.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="BitMask"></param>
+        /// <param name="val"></param>
+        internal static void SetBits(ref byte value, byte BitMask, bool val)
         {
             value &= (byte)~BitMask;
             //Set bit.
@@ -89,141 +140,51 @@ namespace Gurux.DLMS.Internal
             }
         }
 
-        /**
-         * Reserved for internal use.
-         * @param value
-         * @param BitMask
-         * @return 
-         */
+        /// <summary>
+        /// Is bit set.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="BitMask"></param>
+        /// <returns></returns>
         internal static bool GetBits(byte value, int BitMask)
         {
             return (value & BitMask) != 0;
         }
 
-
-        internal static byte[] RawData(byte[] data, ref int index, int count)
+        /// <summary>
+        /// Get HDLC address from byte array.
+        /// </summary>
+        /// <param name="GXByteBuffer">Byte array.</param>
+        /// <returns>HDLC address.</returns>
+        public static int GetHDLCAddress(GXByteBuffer buff)
         {
-            byte[] buff = new byte[count];
-            Array.Copy(data, index, buff, 0, count);
-            index += count;
-            return buff;
-        }
-
-        internal static byte[] Swap(byte[] data, int index, int count)
-        {
-            byte[] buff = new byte[count];
-            Array.Copy(data, index, buff, 0, count);
-            Array.Reverse(buff);
-            return buff;
-        }
-
-        internal static byte[] Swap(List<byte> data, int index, int count)
-        {
-            return Swap(data.ToArray(), index, count);
-        }
-
-        internal static Int16 GetInt16(byte[] data, ref int index)
-        {
-            Int16 value = (Int16)(BitConverter.ToInt16(Swap(data, index, 2), 0) & 0xFFFF);
-            index += 2;
-            return value;
-        }
-
-        internal static int GetInt32(byte[] data, ref int index)
-        {
-            int value = BitConverter.ToInt32(Swap(data, index, 4), 0);
-            index += 4;
-            return value;
-        }
-
-        internal static long GetInt64(byte[] data, ref int index)
-        {
-            long value = BitConverter.ToInt64(Swap(data, index, 8), 0);
-            index += 8;
-            return value;
-        }
-
-        internal static float ToFloat(byte[] data, ref int index)
-        {
-            float value = BitConverter.ToSingle(Swap(data, index, 4), 0);
-            index += 4;
-            return value;
-        }
-
-        internal static double ToDouble(byte[] data, ref int index)
-        {
-            double value = BitConverter.ToDouble(Swap(data, index, 8), 0);
-            index += 8;
-            return value;
-        }
-
-        internal static ushort GetUInt16(byte[] data, ref int index)
-        {
-            ushort value = (ushort)(BitConverter.ToUInt16(Swap(data, index, 2), 0) & 0xFFFF);
-            index += 2;
-            return value;
-        }
-
-        internal static uint GetUInt32(byte[] data, ref int index)
-        {
-            uint value = BitConverter.ToUInt32(Swap(data, index, 4), 0);
-            index += 4;
-            return value;
-        }
-
-        internal static ulong GetUInt64(byte[] data, ref int index)
-        {
-            ulong value = BitConverter.ToUInt64(Swap(data, index, 8), 0);
-            index += 8;
-            return value;
-        }
-
-        internal static short GetInt16(List<byte> data, ref int index)
-        {
-            short value = BitConverter.ToInt16(Swap(data, index, 2), 0);
-            index += 2;
-            return value;
-        }
-
-        internal static int GetInt32(List<byte> data, ref int index)
-        {
-            int value = BitConverter.ToInt32(Swap(data, index, 4), 0);
-            index += 4;
-            return value;
-        }
-
-        internal static ushort GetUInt16(List<byte> data, ref int index)
-        {
-            ushort value = BitConverter.ToUInt16(Swap(data, index, 2), 0);
-            index += 2;
-            return value;
-        }
-
-        internal static uint GetUInt32(List<byte> data, ref int index)
-        {
-            uint value = BitConverter.ToUInt32(Swap(data, index, 4), 0);
-            index += 4;
-            return value;
-        }
-
-        internal static void SetInt16(short value, List<byte> data)
-        {
-            data.AddRange(Swap(BitConverter.GetBytes(value), 0, 2));
-        }
-
-        internal static void SetInt32(int value, List<byte> data)
-        {
-            data.AddRange(Swap(BitConverter.GetBytes(value), 0, 4));
-        }
-
-        internal static void SetUInt16(ushort value, List<byte> data)
-        {
-            data.AddRange(Swap(BitConverter.GetBytes(value), 0, 2));
-        }
-
-        internal static void SetUInt32(uint value, List<byte> data)
-        {
-            data.AddRange(Swap(BitConverter.GetBytes(value), 0, 4));
+            int size = 0;
+            for (int pos = buff.Position; pos != buff.Size; ++pos)
+            {
+                ++size;
+                if ((buff.GetUInt8(pos) & 0x1) == 1)
+                {
+                    break;
+                }
+            }
+            if (size == 1)
+            {
+                return (byte)((buff.GetUInt8() & 0xFE) >> 1);
+            }
+            else if (size == 2)
+            {
+                size = buff.GetUInt16();
+                size = ((size & 0xFE) >> 1) | ((size & 0xFE00) >> 2);
+                return size;
+            }
+            else if (size == 4)
+            {
+                UInt32 tmp = buff.GetUInt32();
+                tmp = ((tmp & 0xFE) >> 1) | ((tmp & 0xFE00) >> 2)
+                        | ((tmp & 0xFE0000) >> 3) | ((tmp & 0xFE000000) >> 4);
+                return (int) tmp;
+            }
+            throw new ArgumentException("Wrong size.");
         }
 
         internal byte[] GetLogicalName(string logicalName)
@@ -242,100 +203,60 @@ namespace Gurux.DLMS.Internal
             return ln;
         }
 
-        /// <summary>
-        /// Get object count.
-        /// </summary>
-        /// <remarks>
-        /// If first byte > 0x80 it will tell bytes count.
-        /// </remarks>
-        /// <param name="buff"></param>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        internal static int GetObjectCount(byte[] buff, ref int index)
-        {
-            int cnt = buff[index++] & 0xFF;
-            if (cnt > 0x80)
-            {
-                int tmp = cnt;
-                cnt = 0;
-                for (int pos = tmp - 0x81; pos > -1; --pos)
-                {
-                    cnt += (buff[index++] & 0xFF) << (8 * pos);
-                }
-            }
-            return cnt;
-        }
-
-
-        internal static void SetObjectCount(int count, List<byte> buff)
-        {
-            SetObjectCount(count, buff, -1);
-        }
 
         /// <summary>
         /// Set item count.
         /// </summary>
         /// <param name="count"></param>
         /// <param name="buff"></param>
-        internal static void SetObjectCount(int count, List<byte> buff, int index)
+        internal static void SetObjectCount(int count, GXByteBuffer buff)
         {
-            List<byte> tmp = new List<byte>();
             if (count < 0x80)
             {
-                tmp.Add((byte)count);
+                buff.SetUInt8((byte)count);
             }
             else if (count < 0x100)
             {
-                tmp.Add((byte)(0x81));
-                tmp.Add((byte)count);
+                buff.SetUInt8(0x81);
+                buff.SetUInt8((byte)count);
             }
             else if (count < 0x10000)
             {
-                tmp.Add((byte)(0x82));
-                tmp.Add((byte)(count >> 8));
-                tmp.Add((byte)count);
-            }
-            else if (count < 0x1000000)
-            {
-                tmp.Add((byte)(0x83));
-                tmp.Add((byte)(count >> 16));
-                tmp.Add((byte)(count >> 8));
-                tmp.Add((byte)count);
+                buff.SetUInt8(0x82);
+                buff.SetUInt16((UInt16)count);
             }
             else
             {
-                tmp.Add((byte)(0x84));
-                tmp.Add((byte)(count >> 24));
-                tmp.Add((byte)(count >> 16));
-                tmp.Add((byte)(count >> 8));
-                tmp.Add((byte)count);
+                buff.SetUInt8(0x84);
+                buff.SetUInt32((UInt32)count);
             }
-            if (index == -1)
-            {
-                buff.AddRange(tmp);
-            }
-            else
-            {
-                buff.InsertRange(index, tmp);
-            }            
         }
 
         /// <summary>
-        /// Get object count. If first byte > 0x80 it will tell bytes count.
+        /// Get object count. If first byte is 0x80 or higger it will tell bytes count.
         /// </summary>
-        /// <param name="buff"></param>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        internal static int GetObjectCount(List<byte> buff, ref int index)
+        /// <param name="data">Received data.</param>
+        /// <returns>Object count.</returns>
+        public static int GetObjectCount(GXByteBuffer data)
         {
-            int cnt = buff[index++] & 0xFF;
+            int cnt = data.GetUInt8();
             if (cnt > 0x80)
             {
-                int tmp = cnt;
-                cnt = 0;
-                for (int pos = tmp - 0x81; pos > -1; --pos)
+                if (cnt == 0x81)
                 {
-                    cnt += (buff[index++] & 0xFF) << (8 * pos);
+                    return data.GetUInt8();
+                }
+                else if (cnt == 0x82)
+                {
+                    return data.GetUInt16();
+                }
+                else if (cnt == 0x84)
+                {
+                    return (int)data.GetUInt32();
+                }
+                else
+                {
+                    throw new System.ArgumentException("Invalid count.");
                 }
             }
             return cnt;
@@ -366,7 +287,13 @@ namespace Gurux.DLMS.Internal
             return true;
         }
 
-        static string ToBitString(byte value, int count)
+        /// <summary>
+        /// Append bitstring to string.
+        /// </summary>
+        /// <param name="sb">String where bit string is append.</param>
+        /// <param name="value">Byte value</param>
+        /// <param name="count">Bit count to add.</param>
+        static void ToBitString(StringBuilder sb, byte value, int count)
         {
             if (count > 8)
             {
@@ -384,453 +311,805 @@ namespace Gurux.DLMS.Internal
                     data[count - pos - 1] = '0';
                 }
             }
-            return new string(data);
+            sb.Append(data);
         }
 
 
-        /// <summary>
-        /// Reserved for internal use.
-        /// </summary>
-        internal static object GetData(byte[] buff, ref int pos, ActionType action, out int count, out int index, ref DataType type, ref int cachePosition)
+        ///<summary>
+        ///Get data from DLMS frame.
+        ///</summary>
+        ///<param name="data">
+        ///received data.
+        ///</param>
+        ///<param name="info"> Data info.
+        ///</param>
+        ///<returns>Parsed object.</returns>
+        ///     
+        public static object GetData(GXByteBuffer data, GXDataInfo info)
         {
-            count = 0;
-            index = 0;            
             object value = null;
-            if (pos == buff.Length)
+            int startIndex = data.Position;
+            if (data.Position == data.Size)
             {
-                pos = -1;
+                info.Compleate = false;
                 return null;
             }
-            bool knownType = type != DataType.None;
+            info.Compleate = true;
+            bool knownType = info.Type != DataType.None;
+            // Get data type if it is unknown.
             if (!knownType)
             {
-                type = (DataType)buff[pos++];
+                info.Type = (DataType)data.GetUInt8();
             }
-            if (type == DataType.None)
+            if (info.Type == DataType.None)
             {
                 return value;
             }
-            if (pos == buff.Length)
+            if (data.Position == data.Size)
             {
-                pos = -1;
+                info.Compleate = false;
                 return null;
             }
-            int size = buff.Length - pos;
-            if (type == DataType.Array ||
-                    type == DataType.Structure)
+            switch (info.Type)
             {
-                count = GXCommon.GetObjectCount(buff, ref pos);
-                if (action == ActionType.Count)
+                case DataType.Array:
+                case DataType.Structure:
+                    value = GetArray(data, info, startIndex);
+                    break;
+                case DataType.Boolean:
+                    value = GetBoolean(data, info);
+                    break;
+                case DataType.BitString:
+                    value = GetBitString(data, info);
+                    break;
+                case DataType.Int32:
+                    value = GetInt32(data, info);
+                    break;
+                case DataType.UInt32:
+                    value = GetUInt32(data, info);
+                    break;
+                case DataType.String:
+                    value = GetString(data, info, knownType);
+                    break;
+                case DataType.StringUTF8:
+                    value = GetUtfString(data, info, knownType);
+                    break;
+                case DataType.OctetString:
+                    value = GetOctetString(data, info, knownType);
+                    break;
+                case DataType.BinaryCodedDesimal:
+                    value = GetBcd(data, info, knownType);
+                    break;
+                case DataType.Int8:
+                    value = GetInt8(data, info);
+                    break;
+                case DataType.Int16:
+                    value = GetInt16(data, info);
+                    break;
+                case DataType.UInt8:
+                    value = GetUInt8(data, info);
+                    break;
+                case DataType.UInt16:
+                    value = GetUInt16(data, info);
+                    break;
+                case DataType.CompactArray:
+                    throw new Exception("Invalid data type.");
+                case DataType.Int64:
+                    value = GetInt64(data, info);
+                    break;
+                case DataType.UInt64:
+                    value = GetUInt64(data, info);
+                    break;
+                case DataType.Enum:
+                    value = GetEnum(data, info);
+                    break;
+                case DataType.Float32:
+                    value = Getfloat(data, info);
+                    break;
+                case DataType.Float64:
+                    value = GetDouble(data, info);
+                    break;
+                case DataType.DateTime:
+                    value = GetDateTime(data, info);
+                    break;
+                case DataType.Date:
+                    value = GetDate(data, info);
+                    break;
+                case DataType.Time:
+                    value = GetTime(data, info);
+                    break;
+                default:
+                    throw new Exception("Invalid data type.");
+            }
+            return value;
+        }
+
+        ///<summary>
+        ///Get array from DLMS data.
+        ///</summary>
+        ///<param name="buff">
+        ///Received DLMS data. 
+        ///</param>
+        ///<param name="info">
+        ///Data info. 
+        ///</param>
+        ///<param name="index">
+        ///starting index. 
+        ///</param>
+        ///<returns>Object array.
+        ///</returns>
+        private static object GetArray(GXByteBuffer buff, GXDataInfo info, int index)
+        {
+            object value;
+            if (info.Count == 0)
+            {
+                info.Count = GXCommon.GetObjectCount(buff);
+            }
+            int size = buff.Size - buff.Position;
+            if (info.Count != 0 && size < 1)
+            {
+                info.Compleate = false;
+                return null;
+            }
+            int startIndex = index;
+            List<object> arr = new List<object>(info.Count - info.Index);
+            // Position where last row was found. Cache uses this info.
+            int pos = info.Index;
+            for (; pos != info.Count; ++pos)
+            {
+                GXDataInfo info2 = new GXDataInfo();
+                object tmp = GetData(buff, info2);
+                if (!info2.Compleate)
                 {
-                    return value; //Don't go further. Only object's count is resolved.
+                    buff.Position = (UInt16)startIndex;
+                    info.Compleate = false;
+                    break;
                 }
-                if (cachePosition > pos)
+                else
                 {
-                    pos = cachePosition;
-                }
-                size = buff.Length - pos;
-                if (count != 0 && size < 1)
-                {
-                    pos = -1;
-                    return null;
-                }                
-                List<object> arr = new List<object>(count);                
-                for (index = 0; index != count; ++index)
-                {
-                    DataType itemType = DataType.None;
-                    int colCount, colIndex;                                           
-                    int tmpPos = 0;
-                    object tmp = GetData(buff, ref pos, ActionType.None, out colCount, out colIndex, ref itemType, ref tmpPos);
-                    if (colCount == colIndex && pos != -1)
+                    if (info2.Count == info2.Index)
                     {
+                        startIndex = buff.Position;
                         arr.Add(tmp);
                     }
-                    if (pos == -1)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        cachePosition = pos;
-                    }             
-                }
-                if (index == count && pos != -1)
-                {
-                    cachePosition = buff.Length;
-                }
-                value = arr.ToArray();
-            }
-            else if (type == DataType.Boolean)
-            {
-                value = buff[pos++] != 0;
-            }
-            else if (type == DataType.BitString)
-            {
-                int oldPos = pos;
-                int cnt = GetObjectCount(buff, ref pos);
-                size -= pos - oldPos;
-                double t = cnt;
-                t /= 8;
-                if (cnt % 8 != 0)
-                {
-                    ++t;
-                }
-                int byteCnt = (int)Math.Floor(t);
-                if (size < byteCnt) //If there is not enough data available.
-                {
-                    pos = -1;
-                    return null;
-                }         
-                string str = "";
-                while (cnt > 0)
-                {
-                    str += ToBitString(buff[pos++], cnt);
-                    cnt -= 8;
-                }                               
-                value = str;
-            }
-            else if (type == DataType.Int32)
-            {
-                if (size < 4) //If there is not enough data available.
-                {
-                    pos = -1;
-                    return null;
-                }
-                value = GXCommon.GetInt32(buff, ref pos);
-            }
-            else if (type == DataType.UInt32)
-            {
-                if (size < 4) //If there is not enough data available.
-                {
-                    pos = -1;
-                    return null;
-                }
-                value = GXCommon.GetUInt32(buff, ref pos);
-            }
-            else if (type == DataType.StringUTF8)
-            {
-                int len = 0;
-                if (knownType)
-                {
-                    len = buff.Length;
-                }
-                else
-                {
-                    len = GXCommon.GetObjectCount(buff, ref pos);
-                    if (buff.Length - pos < len) //If there is not enough data available.
-                    {
-                        pos = -1;
-                        return null;
-                    }
-                }
-                if (len > 0)
-                {
-                    value = ASCIIEncoding.UTF8.GetString(GXCommon.RawData(buff, ref pos, len));
-                }
-                else
-                {
-                    value = "";
                 }
             }
-            else if (type == DataType.String)
+            info.Index = pos;
+            value = arr.ToArray();
+            return value;
+        }
+
+        ///<summary>
+        ///Get time from DLMS data.
+        ///</summary>
+        ///<param name="buff">
+        ///Received DLMS data. 
+        ///</param>
+        ///<param name="info">
+        ///Data info. 
+        ///</param>
+        ///<returns> 
+        ///Parsed time. 
+        ///</returns>
+        private static object GetTime(GXByteBuffer buff, GXDataInfo info)
+        {
+            object value;
+            if (buff.Size - buff.Position < 4)
             {
-                int len = 0;
-                if (knownType)
-                {
-                    len = buff.Length;
-                }
-                else
-                {
-                    len = GXCommon.GetObjectCount(buff, ref pos);
-                    if (buff.Length - pos < len) //If there is not enough data available.
-                    {
-                        pos = -1;
-                        return null;
-                    }
-                }
-                if (len > 0)
-                {
-                    bool octetString = false;
-                    if (knownType)
-                    {
-                        //Check that this is not octet string.
-                        foreach (byte it in buff)
-                        {                            
-                            if (it != 0 && it < 0x20)
-                            {
-                                octetString = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (octetString)
-                    {
-                        StringBuilder sb = new StringBuilder(3 * buff.Length);
-                        foreach (byte it in buff)
-                        {
-                            sb.Append(it);
-                            sb.Append('.');
-                        }
-                        sb.Remove(sb.Length - 1, 1);
-                        value = sb.ToString();
-                    }
-                    else
-                    {
-                        //Remove '\0' from string if used.
-                        while (len > 0 && buff[len - 1] == 0)
-                        {
-                            --len;
-                        }
-                        value = ASCIIEncoding.ASCII.GetString(GXCommon.RawData(buff, ref pos, len));
-                    }
-                }
+                // If there is not enough data available.
+                info.Compleate = false;
+                return null;
             }
-            //Example Logical name is octet string, so do not change to string...
-            else if (type == DataType.OctetString)
+            // Get time.
+            int hour = buff.GetUInt8();
+            int minute = buff.GetUInt8();
+            int second = buff.GetUInt8();
+            int ms = buff.GetUInt8();
+            GXDateTime dt = new GXDateTime(-1, -1, -1, hour, minute, second, ms);
+            value = dt;
+            return value;
+        }
+
+        ///<summary>
+        ///Get date from DLMS data.
+        ///</summary>
+        ///<param name="buff">
+        ///Received DLMS data. 
+        ///</param>
+        ///<param name="info">
+        ///Data info. 
+        ///</param>
+        ///<returns> 
+        ///Parsed date. 
+        ///</returns>
+        private static object GetDate(GXByteBuffer buff, GXDataInfo info)
+        {
+            object value;
+            if (buff.Size - buff.Position < 5)
             {
-                int len = 0;
-                if (knownType)
-                {
-                    len = buff.Length;
-                }
-                else
-                {
-                    len = GXCommon.GetObjectCount(buff, ref pos);
-                    if (buff.Length - pos < len) //If there is not enough data available.
-                    {
-                        pos = -1;
-                        return null;
-                    }
-                }
-                value = GXCommon.RawData(buff, ref pos, len);
+                // If there is not enough data available.
+                info.Compleate = false;
+                return null;
             }
-            else if (type == DataType.BinaryCodedDesimal)
+            // Get year.
+            int year = buff.GetUInt16();
+            // Get month
+            int month = buff.GetUInt8();
+            // Get day
+            int day = buff.GetUInt8();
+            // Skip week day
+            buff.GetUInt8();
+            GXDateTime dt = new GXDateTime(year, month, day, -1, -1, -1, -1);
+            value = dt;
+            return value;
+        }
+
+        ///<summary>
+        ///Get date and time from DLMS data.
+        ///</summary>
+        ///<param name="buff">
+        ///Received DLMS data.
+        ///</param>
+        ///<param name="info">
+        ///Data info. 
+        ///</param>
+        ///<returns> 
+        ///Parsed date and time.
+        ///</returns>
+        private static object GetDateTime(GXByteBuffer buff, GXDataInfo info)
+        {
+            // If there is not enough data available.
+            if (buff.Size - buff.Position < 12)
             {
-                int len;
-                if (knownType)
-                {
-                    len = buff.Length;
-                }
-                else
-                {
-                    len = GXCommon.GetObjectCount(buff, ref pos);
-                }
-                StringBuilder bcd = new StringBuilder(len * 2);
-                for (int a = 0; a != len; ++a)
-                {
-                    int idHigh = buff[pos] >> 4;
-                    int idLow = buff[pos] & 0x0F;
-                    ++pos;
-                    bcd.Append(string.Format("{0}{1}", idHigh, idLow));
-                }
-                return bcd.ToString();
+                info.Compleate = false;
+                return null;
             }
-            else if (type == DataType.Int8)
+
+            GXDateTime dt = new GXDateTime();
+            //Get year.
+            int year = buff.GetUInt16();
+            if (year == 0xFFFF || year == 0)
             {
-                value = (sbyte)buff[pos++];
+                year = DateTime.Now.Year;
+                dt.Skip |= DateTimeSkips.Year;
             }
-            else if (type == DataType.Int16)
+            //Get month
+            int month = buff.GetUInt8();
+            if (month == 0 || month == 0xFF || month == 0xFE || month == 0xFD)
             {
-                if (size < 2) //If there is not enough data available.
-                {
-                    pos = -1;
-                    return null;
-                }
-                value = GXCommon.GetInt16(buff, ref pos);
+                month = 1;
+                dt.Skip |= DateTimeSkips.Month;
             }
-            else if (type == DataType.UInt8)
+            int day = buff.GetUInt8();
+            if (day < 1 || day == 0xFF)
             {
-                value = buff[pos++];
+                day = 1;
+                dt.Skip |= DateTimeSkips.Day;
             }
-            else if (type == DataType.UInt16)
+            else if (day == 0xFD || day == 0xFE)
             {
-                if (size < 2) //If there is not enough data available.
-                {
-                    pos = -1;
-                    return null;
-                }
-                value = GXCommon.GetUInt16(buff, ref pos);
+                day = DateTime.DaysInMonth(year, month) + (sbyte)day + 2;
             }
-            else if (type == DataType.CompactArray)
+            //Skip week day
+            buff.GetUInt8();
+            //Get time.
+            int hours = buff.GetUInt8();
+            if (hours == 0xFF)
             {
-                throw new Exception("Invalid data type.");
+                hours = 0;
+                dt.Skip |= DateTimeSkips.Hour;
             }
-            else if (type == DataType.Int64)
+            int minutes = buff.GetUInt8();
+            if (minutes == 0xFF)
             {
-                if (size < 8) //If there is not enough data available.
-                {
-                    pos = -1;
-                    return null;
-                }
-                value = GXCommon.GetInt64(buff, ref pos);
+                minutes = 0;
+                dt.Skip |= DateTimeSkips.Minute;
             }
-            else if (type == DataType.UInt64)
+            int seconds = buff.GetUInt8();
+            if (seconds == 0xFF)
             {
-                if (size < 8) //If there is not enough data available.
-                {
-                    pos = -1;
-                    return null;
-                }
-                value = GXCommon.GetUInt64(buff, ref pos);
+                seconds = 0;
+                dt.Skip |= DateTimeSkips.Second;
             }
-            else if (type == DataType.Enum)
+            int milliseconds = buff.GetUInt8();
+            if (milliseconds != 0xFF && milliseconds != 0)
             {
-                if (size < 1) //If there is not enough data available.
-                {
-                    pos = -1;
-                    return null;
-                }
-                value = buff[pos++];
-            }
-            else if (type == DataType.Float32)
-            {
-                if (size < 4) //If there is not enough data available.
-                {
-                    pos = -1;
-                    return null;
-                }
-                value = GXCommon.ToFloat(buff, ref pos);
-            }
-            else if (type == DataType.Float64)
-            {
-                if (size < 8) //If there is not enough data available.
-                {
-                    pos = -1;
-                    return null;
-                }
-                value = GXCommon.ToDouble(buff, ref pos);
-            }
-            else if (type == DataType.DateTime)
-            {
-                if (size < 12) //If there is not enough data available.
-                {
-                    pos = -1;
-                    return null;
-                }                
-                GXDateTime dt = new GXDateTime();
-                //Get year.
-                int year = GXCommon.GetUInt16(buff, ref pos);
-                if (year == 0xFFFF || year == 0)
-                {
-                    year = DateTime.MinValue.Year;
-                    dt.Skip |= DateTimeSkips.Year;
-                }
-                //Get month
-                int month = buff[pos++];
-                if (month == 0 || month == 0xFF || month == 0xFE || month == 0xFD)
-                {
-                    month = 1;
-                    dt.Skip |= DateTimeSkips.Month;
-                }
-                int day = buff[pos++];
-                if (day < 1 || day == 0xFF)
-                {
-                    day = 1;
-                    dt.Skip |= DateTimeSkips.Day;
-                }
-                else if (day == 0xFD || day == 0xFE)
-                {
-                    day = DateTime.DaysInMonth(year, month) + (sbyte)day + 2;
-                }
-                //Skip week day
-                ++pos;
-                //Get time.
-                int hours = buff[pos++];
-                if (hours == 0xFF)
-                {
-                    hours = 0;
-                    dt.Skip |= DateTimeSkips.Hour;
-                }
-                int minutes = buff[pos++];
-                if (minutes == 0xFF)
-                {
-                    minutes = 0;
-                    dt.Skip |= DateTimeSkips.Minute;
-                }
-                int seconds = buff[pos++];
-                if (seconds == 0xFF)
-                {
-                    seconds = 0;
-                    dt.Skip |= DateTimeSkips.Second;
-                }
-                int milliseconds = buff[pos++];
-                if (milliseconds != 0xFF && milliseconds != 0)
-                {
-                    milliseconds *= 10;
-                }
-                else
-                {
-                    milliseconds = 0;
-                    dt.Skip |= DateTimeSkips.Ms;
-                }
-                int deviation = GXCommon.GetInt16(buff, ref pos);                
-                dt.Status = (ClockStatus)buff[pos++];                
-                if ((deviation & 0xFFFF) != 0x8000 && year != 1)
-                {
-                    dt.Value = DateTime.SpecifyKind(new DateTime(year, month, day, hours, minutes, seconds, milliseconds), DateTimeKind.Utc);
-                    dt.Value = dt.Value.AddMinutes(-deviation);
-                    dt.Value = dt.Value.ToLocalTime();
-                }
-                else //Use current time if deviation is not defined.
-                {
-                    dt.Value = new DateTime(year, month, day, hours, minutes, seconds, milliseconds);
-                }
-                //If meter is summer time and we are not.
-                if ((dt.Status & ClockStatus.DaylightSavingActive) != 0 && !dt.Value.IsDaylightSavingTime())
-                {
-                    dt.Value = dt.Value.AddHours(1);
-                }
-                value = dt;
-            }
-            else if (type == DataType.Date)
-            {
-                if (size < 5) //If there is not enough data available.
-                {
-                    pos = 0xFF;
-                    return null;
-                }
-                //Get year.
-                int year = GXCommon.GetUInt16(buff, ref pos);                
-                //IskraEmeco meter returns bytes in wrong order.
-                if (year != 0xFFFF && year > 2100)
-                {
-                    pos -= 2;
-                    year = buff[pos++] | buff[pos++] << 8;
-                    //If Actaris SL 7000 and ACE 6000 returns invalid date.
-                    if (year == 0x5C13)
-                    {
-                        year = -1;
-                    }
-                }
-                //Get month
-                int month = buff[pos++];
-                int day = buff[pos++];
-                //Skip week day
-                int DayOfWeek = buff[pos++];
-                //If day of week are not used.                
-                GXDateTime dt = new GXDateTime(year, month, day, -1, -1, 1, -1);
-                return dt;
-            }
-            else if (type == DataType.Time)
-            {
-                if (size < 4) //If there is not enough data available.
-                {
-                    pos = -1;
-                    return null;
-                }
-                //Get time.
-                int hours = buff[pos++];                
-                int minutes = buff[pos++];
-                int seconds = buff[pos++];
-                int milliseconds = buff[pos++];
-                GXDateTime dt = new GXDateTime(-1, -1, -1, hours, minutes, seconds, milliseconds);
-                value = dt;
+                milliseconds *= 10;
             }
             else
             {
-                throw new Exception("Invalid data type.");
+                milliseconds = 0;
+                dt.Skip |= DateTimeSkips.Ms;
+            }
+            int deviation = buff.GetInt16();
+            dt.Status = (ClockStatus)buff.GetUInt8();
+            dt.Deviation = deviation;
+            //0x8000 == -32768
+            if (deviation != -32768 && year != 1)
+            {
+                dt.Value = new DateTimeOffset(new DateTime(year, month, day, hours, minutes, seconds, milliseconds), 
+                    new TimeSpan(0, deviation, 0));
+            }
+            else //Use current time if deviation is not defined.
+            {
+
+                DateTime tmp = new DateTime(year, month, day, hours, minutes, seconds, milliseconds, DateTimeKind.Local);
+                dt.Value = new DateTimeOffset(tmp, TimeZoneInfo.Local.GetUtcOffset(tmp));
+            }
+            return dt;
+        }
+
+        ///<summary>
+        ///Get double value from DLMS data.
+        ///</summary>
+        ///<param name="buff">
+        ///Received DLMS data. 
+        ///</param>
+        ///<param name="info">
+        ///Data info. 
+        ///</param>
+        ///<returns> 
+        ///Parsed double value. 
+        ///</returns>
+        private static object GetDouble(GXByteBuffer buff, GXDataInfo info)
+        {
+            // If there is not enough data available.
+            if (buff.Size - buff.Position < 8)
+            {
+                info.Compleate = false;
+                return null;
+            }
+            return buff.GetDouble();
+        }
+
+        ///<summary>
+        ///Get float value from DLMS data.
+        ///</summary>
+        ///<param name="buff">
+        ///Received DLMS data. 
+        ///</param>
+        ///<param name="info">
+        ///Data info. 
+        ///</param>
+        ///<returns> 
+        ///Parsed float value. 
+        ///</returns>
+        private static object Getfloat(GXByteBuffer buff, GXDataInfo info)
+        {
+            // If there is not enough data available.
+            if (buff.Size - buff.Position < 4)
+            {
+                info.Compleate = false;
+                return null;
+            }
+            return buff.GetFloat();
+        }
+
+        ///<summary>
+        ///Get enumeration value from DLMS data.
+        ///</summary>
+        ///<param name="buff">
+        ///Received DLMS data. 
+        ///</param>
+        ///<param name="info">
+        ///Data info.
+        ///</param>
+        ///<returns> 
+        ///Parsed enumeration value.
+        ///</returns>
+        private static object GetEnum(GXByteBuffer buff, GXDataInfo info)
+        {
+            // If there is not enough data available.
+            if (buff.Size - buff.Position < 1)
+            {
+                info.Compleate = false;
+                return null;
+            }
+            return buff.GetUInt8();
+        }
+
+        ///<summary>
+        ///Get UInt64 value from DLMS data.
+        ///</summary>
+        ///<param name="buff">
+        ///Received DLMS data. 
+        ///</param>
+        ///<param name="info">
+        ///Data info. 
+        ///</param>
+        ///<returns> 
+        ///Parsed UInt64 value. 
+        ///</returns>
+        private static object GetUInt64(GXByteBuffer buff, GXDataInfo info)
+        {
+            // If there is not enough data available.
+            if (buff.Size - buff.Position < 8)
+            {
+                info.Compleate = false;
+                return null;
+            }
+            return buff.GetUInt64();
+        }
+
+        ///<summary>
+        ///Get Int64 value from DLMS data.
+        ///</summary>
+        ///<param name="buff">
+        ///Received DLMS data. 
+        ///</param>
+        ///<param name="info">
+        ///Data info. 
+        ///</param>
+        ///<returns>
+        ///Parsed Int64 value.
+        ///</returns>
+        private static object GetInt64(GXByteBuffer buff, GXDataInfo info)
+        {
+            // If there is not enough data available.
+            if (buff.Size - buff.Position < 8)
+            {
+                info.Compleate = false;
+                return null;
+            }
+            return buff.GetInt64();
+        }
+
+        ///<summary>
+        ///Get UInt16 value from DLMS data.
+        ///</summary>
+        ///<param name="buff">
+        ///Received DLMS data. 
+        ///</param>
+        ///<param name="info">
+        ///Data info.
+        ///</param>
+        ///<returns>
+        ///Parsed UInt16 value.
+        ///</returns>
+        private static object GetUInt16(GXByteBuffer buff, GXDataInfo info)
+        {
+            // If there is not enough data available.
+            if (buff.Size - buff.Position < 2)
+            {
+                info.Compleate = false;
+                return null;
+            }
+            return buff.GetUInt16();
+        }
+
+        ///<summary>
+        ///Get UInt8 value from DLMS data.
+        ///</summary>
+        ///<param name="buff">
+        ///Received DLMS data. 
+        ///</param>
+        ///<param name="info">
+        ///Data info. 
+        ///</param>
+        ///<returns> 
+        ///Parsed UInt8 value. 
+        ///</returns>
+        private static object GetUInt8(GXByteBuffer buff, GXDataInfo info)
+        {
+            // If there is not enough data available.
+            if (buff.Size - buff.Position < 1)
+            {
+                info.Compleate = false;
+                return null;
+            }
+            return buff.GetUInt8();
+        }
+
+        ///<summary>
+        ///Get Int16 value from DLMS data.
+        ///</summary>
+        ///<param name="buff">
+        ///Received DLMS data. 
+        ///</param>
+        ///<param name="info">
+        ///Data info.
+        ///</param>
+        ///<returns> 
+        ///Parsed Int16 value.
+        ///</returns>
+        private static object GetInt16(GXByteBuffer buff, GXDataInfo info)
+        {
+            // If there is not enough data available.
+            if (buff.Size - buff.Position < 2)
+            {
+                info.Compleate = false;
+                return null;
+            }
+            return buff.GetInt16();
+        }
+
+        ///<summary>
+        ///Get Int8 value from DLMS data.
+        ///</summary>
+        ///<param name="buff">
+        ///Received DLMS data. 
+        ///</param>
+        ///<param name="info">
+        ///Data info.
+        ///</param>
+        ///<returns> 
+        ///Parsed Int8 value. 
+        ///</returns>
+        private static object GetInt8(GXByteBuffer buff, GXDataInfo info)
+        {
+            // If there is not enough data available.
+            if (buff.Size - buff.Position < 1)
+            {
+                info.Compleate = false;
+                return null;
+            }
+            return buff.GetInt8();
+        }
+
+        ///<summary>
+        ///Get BCD value from DLMS data.
+        ///</summary>
+        ///<param name="buff">
+        ///Received DLMS data. 
+        ///</param>
+        ///<param name="info">
+        ///Data info. 
+        ///</param>
+        ///<returns> 
+        ///Parsed BCD value. 
+        ///</returns>
+        private static object GetBcd(GXByteBuffer buff, GXDataInfo info, bool knownType)
+        {
+            object value;
+            int len;
+            if (knownType)
+            {
+                len = buff.Size;
+            }
+            else
+            {
+                len = GXCommon.GetObjectCount(buff);
+                // If there is not enough data available.
+                if (buff.Size - buff.Position < len)
+                {
+                    info.Compleate = false;
+                    return null;
+                }
+            }
+            StringBuilder bcd = new StringBuilder(len * 2);
+            for (int a = 0; a != len; ++a)
+            {
+                sbyte ch = buff.GetInt8();
+                int idHigh = (int)((uint)ch >> 4);
+                int idLow = ch & 0x0F;
+                bcd.Append(Convert.ToString(idHigh) + Convert.ToString(idLow));
+            }
+            value = bcd.ToString();
+            return value;
+        }
+
+        ///<summary>
+        ///Get UTF string value from DLMS data.
+        ///</summary>
+        ///<param name="buff">
+        ///Received DLMS data. 
+        ///</param>
+        ///<param name="info">
+        ///Data info. 
+        ///</param>
+        ///<returns> 
+        ///Parsed UTF string value. 
+        ///</returns>
+        private static object GetUtfString(GXByteBuffer buff, GXDataInfo info, bool knownType)
+        {
+            object value;
+            int len;
+            if (knownType)
+            {
+                len = buff.Size;
+            }
+            else
+            {
+                len = GXCommon.GetObjectCount(buff);
+                // If there is not enough data available.
+                if (buff.Size - buff.Position < len)
+                {
+                    info.Compleate = false;
+                    return null;
+                }
+            }
+            if (len > 0)
+            {
+                value = buff.GetString(buff.Position, len);
+            }
+            else
+            {
+                value = "";
             }
             return value;
+        }
+
+        ///<summary>
+        ///Get octect string value from DLMS data.
+        ///</summary>
+        ///<param name="buff">
+        ///Received DLMS data. 
+        ///</param>
+        ///<param name="info">
+        ///Data info. 
+        ///</param>
+        ///<returns> 
+        ///Parsed octet string value. 
+        ///</returns>
+        private static object GetOctetString(GXByteBuffer buff, GXDataInfo info, bool knownType)
+        {
+            object value;
+            int len;
+            if (knownType)
+            {
+                len = buff.Size;
+            }
+            else
+            {
+                len = GXCommon.GetObjectCount(buff);
+                // If there is not enough data available.
+                if (buff.Size - buff.Position < len)
+                {
+                    info.Compleate = false;
+                    return null;
+                }
+            }
+            byte[] tmp = new byte[len];
+            buff.Get(tmp);
+            value = tmp;
+            return value;
+        }
+
+        ///<summary>
+        ///Get string value from DLMS data.
+        ///</summary>
+        ///<param name="buff">
+        ///Received DLMS data. 
+        ///</param>
+        ///<param name="info">
+        ///Data info. 
+        ///</param>
+        ///<returns> 
+        ///Parsed string value. 
+        ///</returns>
+        private static object GetString(GXByteBuffer buff, GXDataInfo info, bool knownType)
+        {
+            object value;
+            int len;
+            if (knownType)
+            {
+                len = buff.Size;
+            }
+            else
+            {
+                len = GXCommon.GetObjectCount(buff);
+                // If there is not enough data available.
+                if (buff.Size - buff.Position < len)
+                {
+                    info.Compleate = false;
+                    return null;
+                }
+            }
+            if (len > 0)
+            {
+                value = buff.GetString(len);
+            }
+            else
+            {
+                value = "";
+            }
+            return value;
+        }
+
+        ///<summary>
+        ///Get UInt32 value from DLMS data.
+        ///</summary>
+        ///<param name="buff">
+        ///Received DLMS data. 
+        ///</param>
+        ///<param name="info">
+        ///Data info. 
+        ///</param>
+        ///<returns> 
+        ///Parsed UInt32 value. 
+        /// </returns>
+        private static object GetUInt32(GXByteBuffer buff, GXDataInfo info)
+        {
+            // If there is not enough data available.
+            if (buff.Size - buff.Position < 4)
+            {
+                info.Compleate = false;
+                return null;
+            }
+            return buff.GetUInt32();
+        }
+
+        ///<summary>
+        ///Get Int32 value from DLMS data.
+        ///</summary>
+        ///<param name="buff">
+        ///Received DLMS data.
+        ///</param>
+        ///<param name="info">
+        ///Data info. 
+        ///</param>
+        ///<returns> 
+        ///Parsed Int32 value. 
+        ///</returns>
+        private static object GetInt32(GXByteBuffer buff, GXDataInfo info)
+        {
+            // If there is not enough data available.
+            if (buff.Size - buff.Position < 4)
+            {
+                info.Compleate = false;
+                return null;
+            }
+            return buff.GetInt32();
+        }
+
+        ///<summary>
+        ///Get bit string value from DLMS data.
+        ///</summary>
+        ///<param name="buff">
+        ///Received DLMS data.
+        ///</param>
+        ///<param name="info">
+        ///Data info. 
+        ///</param>
+        ///<returns>
+        ///Parsed bit string value.
+        ///</returns>
+        private static string GetBitString(GXByteBuffer buff, GXDataInfo info)
+        {
+            int cnt = GetObjectCount(buff);
+            double t = cnt;
+            t /= 8;
+            if (cnt % 8 != 0)
+            {
+                ++t;
+            }
+            int byteCnt = (int)Math.Floor(t);
+            // If there is not enough data available.
+            if (buff.Size - buff.Position < byteCnt)
+            {
+                info.Compleate = false;
+                return null;
+            }
+            StringBuilder sb = new StringBuilder();
+            while (cnt > 0)
+            {
+                ToBitString(sb, buff.GetUInt8(), cnt);
+                cnt -= 8;
+            }
+            return sb.ToString();
+        }
+
+        ///<summary>
+        ///Get boolean value from DLMS data.
+        ///</summary>
+        ///<param name="buff">
+        ///Received DLMS data. 
+        ///</param>
+        ///<param name="info">
+        ///Data info. 
+        ///</param>
+        ///<returns> 
+        ///Parsed boolean value. 
+        ///</returns>
+        private static object GetBoolean(GXByteBuffer buff, GXDataInfo info)
+        {
+            // If there is not enough data available.
+            if (buff.Size - buff.Position < 1)
+            {
+                info.Compleate = false;
+                return null;
+            }
+            return buff.GetUInt8() != 0;
         }
 
         public static DataType GetValueType(object value)
@@ -870,7 +1149,7 @@ namespace Gurux.DLMS.Internal
             if (value is Int32)
             {
                 return DataType.Int32;
-            } 
+            }
             if (value is UInt64)
             {
                 return DataType.UInt64;
@@ -906,592 +1185,627 @@ namespace Gurux.DLMS.Internal
             throw new Exception("Invalid value.");
         }
 
-        /// <summary>
-        /// Reserved for internal use.
-        /// </summary>
-        /// <param name="buff"></param>
-        /// <param name="type"></param>
-        /// <param name="value"></param>
-        public static void SetData(List<byte> buff, DataType type, object value)
-        {
-            bool reverse = true;
-            List<byte> tmp = new List<byte>();
-             //If byte array is added do not add type.
-            if ((type == DataType.Array || type == DataType.Structure) && value is byte[])
+        ///<summary>
+        ///Convert object to DLMS bytes.
+        ///</summary>
+        ///<param name="buff">
+        ///Byte buffer where data is write.
+        ///</param>
+        ///<param name="dataType">
+        ///Data type.
+        ///</param>
+        ///<param name="value">
+        /// Added Value.
+        ///</param>
+        public static void SetData(GXByteBuffer buff, DataType type, object value)
+        {      
+            if (type == DataType.OctetString && (value is GXDateTime || value is DateTime))
             {
-                buff.AddRange((byte[]) value);
+                type = DataType.DateTime;
+            }
+            if (type == DataType.DateTime || type == DataType.Date || type == DataType.Time)
+            {
+                buff.SetUInt8((byte)DataType.OctetString);
+            }
+            else if ((type == DataType.Array || type == DataType.Structure) && value is byte[])
+            {
+                // If byte array is added do not add type.
+                buff.Set((byte[])value);
                 return;
+            }
+            else
+            {
+                buff.SetUInt8((byte)type);
             }
             if (type == DataType.None)
             {
-                value = null;
+                return;
             }
-            else if (type == DataType.Boolean)
+            if (type == DataType.Boolean)
             {
-                value = (byte) (Convert.ToBoolean(value) ? 1 : 0);
-            }
-            else if (type == DataType.BitString)
-            {
-                byte val = 0;
-                int index = 0;
-                if (value is string)
+                if (Convert.ToBoolean(value.ToString()))
                 {
-                    string str = value as string;
-                    SetObjectCount(str.Length, tmp);
-                    foreach (char it in str)
-                    {
-                        if (it == '1')
-                        {
-                            val |= (byte)(1 << index++);
-                        }
-                        else if (it == '0')
-                        {
-                            index++;
-                        }
-                        else 
-                        {
-                            throw new ArgumentException("Not a bit string.");
-                        }
-                        if (index == 8)
-                        {
-                            index = 0;
-                            tmp.Add(val);
-                            val = 0;
-                        }
-                    }
-                    if (index != 0)
-                    {
-                        tmp.Add(val);
-                    }
-                    value = tmp.ToArray();
-                    reverse = false;
-                }
-                else if (value is byte[])
-                {
-                    byte[] arr = value as byte[];
-                    SetObjectCount(arr.Length, tmp);
-                    tmp.AddRange(arr);
-                    value = tmp.ToArray();
-                    reverse = false;
-                }
-                else if (value is bool[])
-                {
-                    bool[] arr = value as bool[];
-                    SetObjectCount(arr.Length, tmp);
-                    foreach (bool it in arr)
-                    {
-                        if (it)
-                        {
-                            val |= (byte)(1 << index++);
-                        }
-                        else
-                        {
-                            ++index;
-                        }
-                        if (index == 8)
-                        {
-                            index = 0;
-                            tmp.Add(val);
-                            val = 0;
-                        }
-                    }
-                    if (index != 0)
-                    {
-                        tmp.Add(val);
-                    }
-                    value = tmp.ToArray();
-                    reverse = false;
-                }
-                else if (value == null)
-                {
-                    tmp.Add(0);
-                    value = tmp.ToArray();
-                    reverse = false;
+                    buff.SetUInt8(1);
                 }
                 else
                 {
-                    throw new Exception("BitString must give as string.");
+                    buff.SetUInt8(0);
                 }
-            }
-            else if (type == DataType.Int32)
-            {
-                value = Convert.ToInt32(value);
-            }
-            else if (type == DataType.UInt32)
-            {
-                value = Convert.ToUInt32(value);
-            }
-            else if (type == DataType.String)
-            {                
-                if (value != null)
-                {
-                    string str = value.ToString();
-                    SetObjectCount(str.Length, tmp);
-                    tmp.AddRange(ASCIIEncoding.ASCII.GetBytes(str));
-                }
-                else
-                {
-                    SetObjectCount(0, tmp);
-                }
-                value = tmp.ToArray();
-                reverse = false;
-            }
-            else if (type == DataType.StringUTF8)
-            {                
-                if (value != null)
-                {
-                    string str = value.ToString();
-                    byte[] tmp1 = ASCIIEncoding.UTF8.GetBytes(str);
-                    SetObjectCount(tmp1.Length, tmp);
-                    tmp.AddRange(tmp1);
-                }
-                else
-                {
-                    SetObjectCount(0, tmp);
-                }
-                value = tmp.ToArray();
-                reverse = false;
-            }                
-            else if (type == DataType.Array || type == DataType.Structure)
-            {
-                if (value != null)
-                {
-                    Array arr = (Array)value;
-                    SetObjectCount(arr.Length, tmp);
-                    foreach (object it in arr)
-                    {
-                        SetData(tmp, GetValueType(it), it);
-                    }
-                }
-                else
-                {
-                    SetObjectCount(0, tmp);
-                }
-                value = tmp.ToArray();
-                reverse = false;
-            }            
-            else if (type == DataType.OctetString)
-            {
-                reverse = false;
-                if (value is string)
-                {
-                    if ((value as string) == "")
-                    {
-                        SetObjectCount(0, tmp);
-                        value = tmp.ToArray();                    
-                    }
-                    else
-                    {
-                        string[] items = (value as string).Split('.');
-                        tmp.Clear();
-                        SetObjectCount(items.Length, tmp);
-                        foreach (string it in items)
-                        {
-                            tmp.Add(byte.Parse(it));
-                        }
-                        value = tmp.ToArray();            
-                    }
-                }
-                else if (value == null)
-                {
-                    SetObjectCount(0, tmp);
-                    value = tmp.ToArray();                    
-                }
-                else if (value is byte[])
-                {
-                    SetObjectCount((value as byte[]).Length, tmp);
-                    tmp.AddRange(value as byte[]);
-                    value = tmp.ToArray();                    
-                }
-                else if (value is GXDateTime)
-                {                    
-                    value = GetDateTime(value as GXDateTime);
-                }
-                else if (value is DateTime)
-                {
-                    value = GetDateTime(new GXDateTime(Convert.ToDateTime(value)));
-                }
-                else
-                {
-                    value = Convert.ToString(value);
-                }
-            }
-            else if (type == DataType.BinaryCodedDesimal)
-            {
-                if (!(value is string))
-                {
-                    throw new Exception("BCD value must give as string.");
-                }
-                string str = value.ToString().Trim();
-                int len = str.Length;
-                if (len % 2 != 0)
-                {
-                    str = "0" + str;
-                    ++len;
-                }
-                len /= 2;
-                List<byte> val = new List<byte>(len);
-                val.Add((byte)(len));
-                for (int pos = 0; pos != len; ++pos)
-                {
-                    byte ch1 = byte.Parse(str.Substring(2 * pos, 1));
-                    byte ch2 = byte.Parse(str.Substring(2 * pos + 1, 1));
-                    val.Add((byte)(ch1 << 4 | ch2));
-                }
-                reverse = false;
-                value = val.ToArray();
             }
             else if (type == DataType.Int8)
             {
-                value = Convert.ToSByte(value);
+                buff.SetUInt8((byte) Convert.ToSByte(value));
+            }
+            else if (type == DataType.UInt8 || type == DataType.Enum)
+            {
+                buff.SetUInt8(Convert.ToByte(value));
             }
             else if (type == DataType.Int16)
             {
-                value = (short) Convert.ToInt32(value);
-            }
-            else if (type == DataType.UInt8)
-            {
-                value = Convert.ToByte(value);
+                if (value is UInt16)
+                {
+                    buff.SetUInt16((UInt16)value);
+                }
+                else
+                {
+                    buff.SetUInt16((UInt16)(Convert.ToInt16(value) & 0xFFFF));
+                }
             }
             else if (type == DataType.UInt16)
             {
-                value = Convert.ToUInt16(value);
+                buff.SetUInt16(Convert.ToUInt16(value));
+            }
+            else if (type == DataType.Int32)
+            {
+                buff.SetUInt32((UInt32)Convert.ToInt32(value));
+            }
+            else if (type == DataType.UInt32)
+            {
+                buff.SetUInt32(Convert.ToUInt32(value));
+            }
+            else if (type == DataType.Int64)
+            {
+                buff.SetUInt64((UInt64)Convert.ToInt64(value));
+            }
+            else if (type == DataType.UInt64)
+            {
+                buff.SetUInt64(Convert.ToUInt64(value));
+            }
+            else if (type == DataType.Float32)
+            {
+                buff.Set(BitConverter.GetBytes((float)value));
+            }
+            else if (type == DataType.Float64)
+            {
+                buff.Set(BitConverter.GetBytes((double)value));
+            }
+            else if (type == DataType.BitString)
+            {
+                SetBitString(buff, value);
+            }
+            else if (type == DataType.String)
+            {
+                SetString(buff, value);
+            }
+            else if (type == DataType.StringUTF8)
+            {
+                SetUtcString(buff, value);
+            }
+            else if (type == DataType.OctetString)
+            {
+                setOctetString(buff, value);
+            }
+            else if (type == DataType.Array || type == DataType.Structure)
+            {
+                SetArray(buff, value);
+            }
+            else if (type == DataType.BinaryCodedDesimal)
+            {
+                SetBcd(buff, value);
             }
             else if (type == DataType.CompactArray)
             {
                 throw new Exception("Invalid data type.");
             }
-            else if (type == DataType.Int64)
-            {
-                value = Convert.ToInt64(value);
-            }
-            else if (type == DataType.UInt64)
-            {
-                value = Convert.ToUInt64(value);
-            }
-            else if (type == DataType.Enum)
-            {
-                value = Convert.ToByte(value);
-            }
-            else if (type == DataType.Float32)
-            {
-                value = Convert.ToSingle(value);
-            }
-            else if (type == DataType.Float64)
-            {
-                value = Convert.ToDouble(value);
-            }
             else if (type == DataType.DateTime)
             {
-                type = DataType.OctetString;
-                if (value is GXDateTime)
-                {
-                    value = GetDateTime(value as GXDateTime);
-                }
-                else
-                {
-                    value = GetDateTime(new GXDateTime(Convert.ToDateTime(value)));
-                }
-                reverse = false;
+                SetDateTime(buff, value);
             }
             else if (type == DataType.Date)
             {
-                GXDateTime dt;
-                if (value is GXDateTime)
-                {
-                    dt = value as GXDateTime;
-                }
-                else if (value is DateTime)
-                {
-                    dt = new GXDateTime((DateTime)value);
-                }
-                else
-                {
-                    throw new Exception("Invalid date format.");
-                }
-                type = DataType.OctetString;
-                //Add size
-                tmp.Add(5);
-                //Add year.
-                if ((dt.Skip & DateTimeSkips.Year) != 0)
-                {
-                    GXCommon.SetUInt16(0xFFFF, tmp);
-                }
-                else
-                {
-                    GXCommon.SetUInt16((ushort)dt.Value.Year, tmp);
-                }
-                //Add month.
-                if (dt.DaylightSavingsBegin)
-                {
-                    tmp.Add(0xFE);
-                }
-                else if (dt.DaylightSavingsEnd)
-                {
-                    tmp.Add(0xFD);
-                }
-                else if ((dt.Skip & DateTimeSkips.Month) != 0)
-                {
-                    tmp.Add(0xFF);
-                }
-                else
-                {
-                    tmp.Add((byte)dt.Value.Month);
-                }
-                
-                if ((dt.Skip & DateTimeSkips.Day) != 0)
-                {
-                    tmp.Add(0xFF);
-                }
-                else
-                {
-                    tmp.Add((byte)dt.Value.Day);
-                }                
-                //Week day is not spesified.
-                tmp.Add(0xFF);
-                value = tmp.ToArray();
-                reverse = false;
+                SetDate(buff, value);
             }
             else if (type == DataType.Time)
             {
-                GXDateTime dt;
-                if (value is GXDateTime)
-                {
-                    dt = value as GXDateTime;
-                }
-                else if (value is DateTime)
-                {
-                    dt = new GXDateTime((DateTime)value);
-                }
-                else
-                {
-                    throw new Exception("Invalid date format.");
-                }
-                type = DataType.OctetString;
-                //Add size
-                tmp.Add(4);
-                //Add time.
-                if ((dt.Skip & DateTimeSkips.Hour) != 0)
-                {
-                    tmp.Add(0xFF);
-                }
-                else
-                {
-                    tmp.Add((byte)dt.Value.Hour);
-                } 
-                
-                if ((dt.Skip & DateTimeSkips.Minute) != 0)
-                {
-                    tmp.Add(0xFF);
-                }
-                else
-                {
-                    tmp.Add((byte)dt.Value.Minute);
-                } 
-                
-                if ((dt.Skip & DateTimeSkips.Second) != 0)
-                {
-                    tmp.Add(0xFF);
-                }
-                else
-                {
-                    tmp.Add((byte)dt.Value.Second);
-                } 
-                tmp.Add((byte)0xFF); //Hundredths of second is not used.
-                value = tmp.ToArray();
-                reverse = false;
+                SetTime(buff, value);
             }
             else
             {
                 throw new Exception("Invalid data type.");
             }
-            buff.Add((byte)type);
-            if (value != null)
-            {
-                byte[] data = Gurux.Shared.GXCommon.GetAsByteArray(value);
-                if (reverse)
-                {
-                    Array.Reverse(data);
-                }
-                buff.AddRange(data);
-            }
         }
 
-        static byte[] GetDateTime(GXDateTime dt)
+        ///<summary>
+        ///Convert time to DLMS bytes.
+        ///</summary>
+        ///<param name="buff">
+        ///Byte buffer where data is write. 
+        ///</param>
+        ///<param name="value">
+        ///Added value. 
+        ///</param>
+        private static void SetTime(GXByteBuffer buff, object value)
         {
-            if (dt.Value == DateTime.MinValue)
+            GXDateTime dt;
+            if (value is GXDateTime)
             {
-                dt.Value = DateTime.SpecifyKind(new DateTime(2000, 1, 1).Date, DateTimeKind.Utc);
+                dt = (GXDateTime)value;
             }
-            else if (dt.Value == DateTime.MaxValue)
+            else if (value is DateTime)
             {
-                dt.Value = DateTime.SpecifyKind(DateTime.Now.AddYears(1).Date, DateTimeKind.Utc);
+                dt = new GXDateTime((DateTime)value);
             }
-            DateTime tm = dt.Value;
-            List<byte> tmp = new List<byte>();            
-            //Add size
-            tmp.Add(12);
-            if ((dt.Skip & DateTimeSkips.Year) == 0)
+            else if (value is DateTimeOffset)
             {
-                GXCommon.SetUInt16((ushort)tm.Year, tmp);
+                dt = new GXDateTime((DateTimeOffset)value);
+            }
+            else if (value is string)
+            {
+                dt = DateTime.Parse((string)value);
             }
             else
             {
-                GXCommon.SetUInt16((ushort)0xFFFF, tmp);
+                throw new Exception("Invalid date format.");
+            }
+            //Add size
+            buff.SetUInt8(4);
+            //Add time.
+            if ((dt.Skip & DateTimeSkips.Hour) != 0)
+            {
+                buff.SetUInt8(0xFF);
+            }
+            else
+            {
+                buff.SetUInt8((byte)dt.Value.Hour);
+            }
+
+            if ((dt.Skip & DateTimeSkips.Minute) != 0)
+            {
+                buff.SetUInt8(0xFF);
+            }
+            else
+            {
+                buff.SetUInt8((byte)dt.Value.Minute);
+            }
+
+            if ((dt.Skip & DateTimeSkips.Second) != 0)
+            {
+                buff.SetUInt8(0xFF);
+            }
+            else
+            {
+                buff.SetUInt8((byte)dt.Value.Second);
+            }
+            //Hundredths of second is not used.
+            buff.SetUInt8(0xFF);
+        }
+
+        ///<summary>
+        ///Convert date to DLMS bytes.
+        ///</summary>
+        ///<param name="buff">
+        ///Byte buffer where data is write. 
+        ///</param>
+        ///<param name="value">
+        ///Added value. 
+        ///</param>
+        private static void SetDate(GXByteBuffer buff, object value)
+        {
+            GXDateTime dt;
+            if (value is GXDateTime)
+            {
+                dt = (GXDateTime)value;
+            }
+            else if (value is DateTime)
+            {
+                dt = new GXDateTime((DateTime)value);
+            }
+            else if (value is DateTimeOffset)
+            {
+                dt = new GXDateTime((DateTimeOffset)value);
+            }
+            else if (value is string)
+            {
+                dt = DateTime.Parse((string)value);
+            }
+            else
+            {
+                throw new Exception("Invalid date format.");
+            }
+
+            // Add size
+            buff.SetUInt8(5);
+            // Add year.
+            if ((dt.Skip & DateTimeSkips.Year) != 0)
+            {
+                buff.SetUInt16(0xFFFF);
+            }
+            else
+            {
+                buff.SetUInt16((UInt16)dt.Value.Year);
+            }
+            // Add month
+            if (dt.DaylightSavingsBegin)
+            {
+                buff.SetUInt8(0xFE);
+            }
+            else if (dt.DaylightSavingsEnd)
+            {
+                buff.SetUInt8(0xFD);
+            }
+            else if ((dt.Skip & DateTimeSkips.Month) != 0)
+            {
+                buff.SetUInt8(0xFF);
+            }
+            else
+            {
+                buff.SetUInt8((byte)dt.Value.Month);
+            }
+            // Add day
+            if ((dt.Skip & DateTimeSkips.Day) != 0)
+            {
+                buff.SetUInt8(0xFF);
+            }
+            else
+            {
+                buff.SetUInt8((byte)dt.Value.Day);
+            }
+            // Week day is not spesified.
+            buff.SetUInt8(0xFF);
+        }
+
+        ///<summary>
+        ///Convert date time to DLMS bytes.
+        ///</summary>
+        ///<param name="buff">
+        ///Byte buffer where data is write. 
+        ///</param>
+        ///<param name="value">
+        ///Added value. 
+        ///</param>
+        private static void SetDateTime(GXByteBuffer buff, object value)
+        {
+            GXDateTime dt;
+            if (value is GXDateTime)
+            {
+                dt = (GXDateTime)value;
+            }
+            else if (value is DateTime)
+            {
+                dt = new GXDateTime((DateTime)value);
+                dt.Skip = dt.Skip | DateTimeSkips.Ms;
+            }
+            else if (value is string)
+            {
+                dt = new GXDateTime(DateTime.Parse((string)value));
+                dt.Skip = dt.Skip | DateTimeSkips.Ms;
+            }
+            else
+            {
+                throw new Exception("Invalid date format.");
+            }
+            if (dt.Value.LocalDateTime == DateTime.MinValue)
+            {
+                dt.Value = DateTime.SpecifyKind(new DateTime(2000, 1, 1).Date, DateTimeKind.Utc);
+            }
+            else if (dt.Value.LocalDateTime == DateTime.MaxValue)
+            {
+                dt.Value = DateTime.SpecifyKind(DateTime.Now.AddYears(1).Date, DateTimeKind.Utc);
+            }
+            DateTimeOffset tm = dt.Value;
+            //Add size
+            buff.SetUInt8(12);
+            if ((dt.Skip & DateTimeSkips.Year) == 0)
+            {
+                buff.SetUInt16((ushort)tm.Year);
+            }
+            else
+            {
+                buff.SetUInt16(0xFFFF);
             }
             if ((dt.Skip & DateTimeSkips.Month) == 0)
             {
                 if (dt.DaylightSavingsBegin)
                 {
-                    tmp.Add(0xFE);
+                    buff.SetUInt8(0xFE);
                 }
                 else if (dt.DaylightSavingsEnd)
                 {
-                    tmp.Add(0xFD);
+                    buff.SetUInt8(0xFD);
                 }
                 else
                 {
-                    tmp.Add((byte)tm.Month);
+                    buff.SetUInt8((byte)tm.Month);
                 }
             }
             else
             {
-                tmp.Add(0xFF);
+                buff.SetUInt8(0xFF);
             }
             if ((dt.Skip & DateTimeSkips.Day) == 0)
             {
-                tmp.Add((byte)tm.Day);
+                buff.SetUInt8((byte)tm.Day);
             }
             else
             {
-                tmp.Add(0xFF);
-            }            
+                buff.SetUInt8(0xFF);
+            }
             //Week day is not spesified.
             //Standard defines. tmp.Add(0xFF);
-            tmp.Add(0xFF);
+            buff.SetUInt8(0xFF);
             //Add time.
             if ((dt.Skip & DateTimeSkips.Hour) == 0)
             {
-                tmp.Add((byte)tm.Hour);
+                buff.SetUInt8((byte)tm.Hour);
             }
             else
             {
-                tmp.Add(0xFF);
+                buff.SetUInt8(0xFF);
             }
 
             if ((dt.Skip & DateTimeSkips.Minute) == 0)
             {
-                tmp.Add((byte)tm.Minute);
+                buff.SetUInt8((byte)tm.Minute);
             }
             else
             {
-                tmp.Add(0xFF);
+                buff.SetUInt8(0xFF);
             }
             if ((dt.Skip & DateTimeSkips.Second) == 0)
             {
-                tmp.Add((byte)tm.Second);
+                buff.SetUInt8((byte)tm.Second);
             }
             else
             {
-                tmp.Add(0xFF);
+                buff.SetUInt8(0xFF);
             }
 
             if ((dt.Skip & DateTimeSkips.Ms) == 0)
             {
-                tmp.Add((byte)(tm.Millisecond / 10));
+                buff.SetUInt8((byte)(tm.Millisecond / 10));
             }
             else
             {
-                tmp.Add((byte)0xFF); //Hundredths of second is not used.                
-            }            
+                buff.SetUInt8((byte)0xFF); //Hundredths of second is not used.                
+            }
             //Add deviation.
             if ((dt.Skip & DateTimeSkips.Devitation) == 0)
-            {                
-                short devitation;
-                if (CurrentTimeZoneInfo != null)
-                {
-                    devitation = (short)CurrentTimeZoneInfo.GetUtcOffset(dt.Value).TotalMinutes;
-                }
-                else{
-                    devitation = (short)TimeZone.CurrentTimeZone.GetUtcOffset(dt.Value).TotalMinutes;
-                }
-                GXCommon.SetInt16(devitation, tmp);                
+            {
+                buff.SetUInt16((UInt16)dt.Value.Offset.TotalMinutes);
             }
             else //deviation not used.
             {
-                tmp.Add((byte)0x80);
-                tmp.Add((byte)0x00);
+                buff.SetUInt16(0x8000);
             }
             //Add clock_status
-            if (dt.Value.IsDaylightSavingTime())
+            if (dt.Value.LocalDateTime.IsDaylightSavingTime())
             {
-                tmp.Add((byte)(dt.Status | ClockStatus.DaylightSavingActive));
+                buff.SetUInt8((byte)(dt.Status | ClockStatus.DaylightSavingActive));
             }
             else
             {
-                tmp.Add((byte)dt.Status);
+                buff.SetUInt8((byte)dt.Status);
             }
-            return tmp.ToArray();
         }
-    }
 
-    /// <summary>
-    /// Reserved for internal use.
-    /// </summary>
-    enum FrameType : byte
-    {
-        //////////////////////////////////////////////////////////
-        // This command is used to set the secondary station in connected mode and reset
-        // its sequence number variables.
-        SNRM = 0x93, // Set Normal Response Mode (SNRM)
-        //////////////////////////////////////////////////////////
-        // This response is used to confirm that the secondary received and acted on an SNRM or DISC command.
-        UA = 0x73, // Unnumbered Acknowledge (UA)
-        //////////////////////////////////////////////////////////
-        // This command and response is used to transfer a block of data together with its sequence number.
-        // The command also includes the sequence number of the next frame the transmitting station expects to see.
-        // This way, it works as an RR. Like RR, it enables transmission of I frames from the opposite side.
-        Information = 0x10, // Information (I)
-        //////////////////////////////////////////////////////////
-        // This response is used to indicate an error condition. The two most likely error conditions are:
-        // Invalid command or Sequence number problem.
-        Rejected = 0x97,  // Frame Reject
-        //////////////////////////////////////////////////////////
-        // This command is used to terminate the connection.
-        Disconnect = 0x53,
-        //////////////////////////////////////////////////////////
-        // This response is used to inform the primary station that the secondary is disconnected.
-        DisconnectMode = 0x1F // Disconnected Mode
-    }
-
-    /**
-     * Reserved for internal use.
-     */
-    internal enum HDLCInfo : byte
-    {
-        MaxInfoTX = 0x5,
-        MaxInfoRX = 0x6,
-        WindowSizeTX = 0x7,
-        WindowSizeRX = 0x8
-    }
-
-    class GXDLMSLimitsDefault
-    {
-        internal const byte DefaultMaxInfoRX = 128;
-        internal const byte DefaultMaxInfoTX = 128;
-        internal const UInt32 DefaultWindowSizeRX = 1;
-        internal const UInt32 DefaultWindowSizeTX = 1;
-
-        internal static void SetValue(List<byte> buff, object data)
+        ///<summary>
+        ///Convert BCD to DLMS bytes.
+        ///</summary>
+        ///<param name="buff">
+        ///Byte buffer where data is write. 
+        ///</param>
+        ///<param name="value">
+        ///Added value. 
+        ///</param>
+        private static void SetBcd(GXByteBuffer buff, object value)
         {
-            byte[] tmp = Gurux.Shared.GXCommon.GetAsByteArray(data);
-            if (BitConverter.IsLittleEndian)
+            if (!(value is string))
             {
-                Array.Reverse(tmp);
+                throw new Exception("BCD value must give as string.");
             }
-            buff.Add((byte)tmp.Length);
-            buff.AddRange(tmp);
-        } 
+            string str = value.ToString().Trim();
+            int len = str.Length;
+            if (len % 2 != 0)
+            {
+                str = "0" + str;
+                ++len;
+            }
+            len /= 2;
+            SetObjectCount(len, buff);
+            for (int pos = 0; pos != len; ++pos)
+            {
+                int ch1 = Convert.ToInt32(str.Substring(2 * pos, 1));
+                int ch2 = Convert.ToInt32(str.Substring(2 * pos + 1, 1));
+                buff.SetUInt8((byte)(ch1 << 4 | ch2));
+            }
+        }
 
+        ///<summary>
+        ///Convert Array to DLMS bytes.
+        ///</summary>
+        ///<param name="buff">
+        ///Byte buffer where data is write. 
+        ///</param>
+        ///<param name="value">
+        ///Added value. 
+        ///</param>
+        private static void SetArray(GXByteBuffer buff, object value)
+        {
+            if (value != null)
+            {
+                object[] arr = (object[])value;
+                SetObjectCount(arr.Length, buff);
+                foreach (object it in arr)
+                {
+                    SetData(buff, GetValueType(it), it);
+                }
+            }
+            else
+            {
+                SetObjectCount(0, buff);
+            }
+        }
+
+        ///<summary>
+        ///Convert Octet string to DLMS bytes.
+        ///</summary>
+        ///<param name="buff">
+        ///Byte buffer where data is write. 
+        ///</param>
+        ///<param name="value">
+        ///Added value. 
+        ///</param>
+        private static void setOctetString(GXByteBuffer buff, object value)
+        {
+            // Example Logical name is octet string, so do not change to
+            // string...
+            if (value is string)
+            {
+                string[] items = ((string)value).Split('.');
+                // If data is string.
+                if (items.Length == 1)
+                {
+                    byte[] tmp = ASCIIEncoding.ASCII.GetBytes((string)value);
+                    SetObjectCount(tmp.Length, buff);
+                    buff.Set(tmp);
+                }
+                else
+                {
+                    SetObjectCount(items.Length, buff);
+                    foreach (string it in items)
+                    {
+                        buff.SetUInt8(Convert.ToByte(it));
+                    }
+                }
+            }
+            else if (value is sbyte[])
+            {
+                SetObjectCount(((byte[])value).Length, buff);
+                buff.Set((byte[])value);
+            }
+            else if (value == null)
+            {
+                SetObjectCount(0, buff);
+            }
+            else
+            {
+                throw new Exception("Invalid data type.");
+            }
+        }
+
+        ///<summary>
+        ///Convert UTC string to DLMS bytes.
+        ///</summary>
+        ///<param name="buff">
+        ///Byte buffer where data is write. 
+        ///</param>
+        ///<param name="value">
+        ///Added value. 
+        ///</param>
+        private static void SetUtcString(GXByteBuffer buff, object value)
+        {
+            if (value != null)
+            {
+                string str = value.ToString();
+                SetObjectCount(str.Length, buff);
+                buff.Set(ASCIIEncoding.UTF8.GetBytes(str));
+            }
+            else
+            {
+                buff.SetUInt8(0);
+            }
+        }
+
+        ///<summary>
+        ///Convert ASCII string to DLMS bytes.
+        ///</summary>
+        ///<param name="buff">
+        ///Byte buffer where data is write. 
+        ///</param>
+        ///<param name="value">
+        ///Added value.
+        ///</param>
+        private static void SetString(GXByteBuffer buff, object value)
+        {
+            if (value != null)
+            {
+                string str = Convert.ToString(value);
+                SetObjectCount(str.Length, buff);
+                buff.Set(ASCIIEncoding.ASCII.GetBytes(str));
+            }
+            else
+            {
+                buff.SetUInt8(0);
+            }
+        }
+
+        ///<summary>
+        ///Convert Bit string to DLMS bytes.
+        ///</summary>
+        ///<param name="buff">
+        ///Byte buffer where data is write. 
+        ///</param>
+        ///<param name="value">
+        ///Added value. 
+        ///</param>
+        private static void SetBitString(GXByteBuffer buff, object value)
+        {
+            if (value is string)
+            {
+                byte val = 0;
+                int index = 0;
+                string str = ((string)value).Reverse().ToString();
+                SetObjectCount(str.Length, buff);
+                foreach (char it in str.ToCharArray())
+                {
+                    if (it == '1')
+                    {
+                        val |= (byte)(1 << index++);
+                    }
+                    else if (it == '0')
+                    {
+                        index++;
+                    }
+                    else
+                    {
+                        throw new Exception("Not a bit string.");
+                    }
+                    if (index == 8)
+                    {
+                        index = 0;
+                        buff.SetUInt8(val);
+                        val = 0;
+                    }
+                }
+                if (index != 0)
+                {
+                    buff.SetUInt8(val);
+                }
+            }
+            else if (value is sbyte[])
+            {
+                byte[] arr = (byte[])value;
+                SetObjectCount(arr.Length, buff);
+                buff.Set(arr);
+            }
+            else if (value == null)
+            {
+                buff.SetUInt8(0);
+            }
+            else
+            {
+                throw new Exception("BitString must give as string.");
+            }
+        }
     }
 }

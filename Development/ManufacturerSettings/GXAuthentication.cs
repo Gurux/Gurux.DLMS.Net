@@ -37,6 +37,7 @@ using System.Collections.Generic;
 using System.Text;
 using Gurux.DLMS;
 using System.ComponentModel;
+using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.ManufacturerSettings
 {
@@ -59,9 +60,9 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// Constructor.
         /// </summary>
         /// <param name="auth">Authentication type</param>
-        /// <param name="clientID">Client Id.</param>
-        public GXAuthentication(Authentication type, object clientID) :
-            this(type, "", clientID)
+        /// <param name="clientAddress">Client address.</param>
+        public GXAuthentication(Authentication type, int clientAddress) :
+            this(type, "", clientAddress)
         {
         }
 
@@ -70,8 +71,8 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// </summary>
         /// <param name="auth">Authentication type</param>
         /// <param name="pw">Used password.</param>
-        /// <param name="clientID">Client Id.</param>
-        public GXAuthentication(Authentication type, string pw, object clientID)
+        /// <param name="clientAddress">Client address.</param>
+        public GXAuthentication(Authentication type, string pw, int clientAddress)
         {
             Type = type;
             if (type == Authentication.None)
@@ -86,7 +87,7 @@ namespace Gurux.DLMS.ManufacturerSettings
             {
                 SharedSecret = ASCIIEncoding.ASCII.GetBytes(pw);
             }
-            ClientID = clientID;
+            ClientAddress = clientAddress;
         }
 
         /// <summary>
@@ -94,8 +95,8 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// </summary>
         /// <param name="auth">Authentication type</param>
         /// <param name="sharedSecret">Shared secret.</param>
-        /// <param name="clientID">Client Id.</param>
-        public GXAuthentication(Authentication type, byte[] sharedSecret, object clientID)
+        /// <param name="clientAddress">Client address.</param>
+        public GXAuthentication(Authentication type, byte[] sharedSecret, int clientAddress)
         {
             Type = type;
             if (type == Authentication.None)
@@ -110,7 +111,7 @@ namespace Gurux.DLMS.ManufacturerSettings
             {
                 SharedSecret = sharedSecret;
             }
-            ClientID = clientID;
+            ClientAddress = clientAddress;
         }
 
         /// <summary>
@@ -138,11 +139,28 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// Client address.
         /// </summary>
         [Browsable(false)]
-        [DefaultValue(null)]
-        public object ClientID
+        [DefaultValue(0)]
+        public int ClientAddress
         {
             get;
             set;
+        }
+
+        /// <summary>
+        /// Client address has replace this. Opsolite
+        /// </summary>
+        [Browsable(false)]
+        [DefaultValue(0)]
+        public object ClientID
+        {
+            get
+            {
+                return ClientAddress;
+            }
+            set
+            {
+                ClientAddress = Convert.ToInt32(value);
+            }
         }
 
         /// <summary>

@@ -41,6 +41,7 @@ using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.Objects
 {
@@ -122,7 +123,7 @@ namespace Gurux.DLMS.Objects
         /// Data interface do not have any methods.
         /// </summary>
         /// <param name="index"></param>
-        byte[][] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
         {
             throw new ArgumentException("Invoke failed. Invalid attribute index.");
         }
@@ -194,7 +195,7 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
         {
             if (index == 1)
             {
@@ -202,7 +203,7 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 2)
             {
-                List<byte> buff = new List<byte>();
+                GXByteBuffer buff = new GXByteBuffer();
                 buff.Add((byte)DataType.Array);
                 GXCommon.SetObjectCount(ListeningWindow.Count, buff);
                 foreach (KeyValuePair<GXDateTime, GXDateTime> it in ListeningWindow)
@@ -212,22 +213,22 @@ namespace Gurux.DLMS.Objects
                     GXCommon.SetData(buff, DataType.DateTime, it.Key);
                     GXCommon.SetData(buff, DataType.DateTime, it.Value);
                 }
-                return buff.ToArray();
+                return buff.Array();
             }
             if (index == 3)
             {
-                List<byte> buff = new List<byte>();
+                GXByteBuffer buff = new GXByteBuffer();
                 buff.Add((byte)DataType.Array);
                 GXCommon.SetObjectCount(AllowedSenders.Length, buff);
                 foreach (string it in AllowedSenders)
                 {
                     GXCommon.SetData(buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it));
                 }
-                return buff.ToArray();
+                return buff.Array();
             }
             if (index == 4)
             {
-                List<byte> buff = new List<byte>();
+                GXByteBuffer buff = new GXByteBuffer();
                 buff.Add((byte)DataType.Array);
                 GXCommon.SetObjectCount(SendersAndActions.Count, buff);
                 foreach (KeyValuePair<string, KeyValuePair<int, GXDLMSScriptAction>> it in SendersAndActions)
@@ -237,12 +238,12 @@ namespace Gurux.DLMS.Objects
                     GXCommon.SetData(buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Key));
                     //TODO: GXCommon.SetData(buff, DataType.OctetString, (it.Value.));
                 }
-                return buff.ToArray();
+                return buff.Array();
             }            
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
         {
             if (index == 1)
             {

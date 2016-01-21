@@ -37,6 +37,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.ComponentModel;
 using System.Xml.Serialization;
+using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.ManufacturerSettings
 {   
@@ -61,7 +62,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXObisCode(string ln, Gurux.DLMS.ObjectType objectType, int index)
+        public GXObisCode(string ln, ObjectType objectType, int index)
             : this(ln, objectType, null)
         {
             AttributeIndex = index;            
@@ -70,7 +71,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXObisCode(string ln, Gurux.DLMS.ObjectType objectType, string description) : this()
+        public GXObisCode(string ln, ObjectType objectType, string description) : this()
         {            
             LogicalName = ln;
             ObjectType = objectType;            
@@ -160,8 +161,8 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// </summary>
         /// <remarks>        
         /// </remarks>
-        [Browsable(false), DefaultValue(Gurux.DLMS.DataType.None)]                
-        public Gurux.DLMS.DataType Type
+        [Browsable(false), DefaultValue(DataType.None)]                
+        public DataType Type
         {
             get
             {
@@ -185,8 +186,8 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// </summary>
         /// <remarks>        
         /// </remarks>
-        [Browsable(false), DefaultValue(Gurux.DLMS.DataType.None)]
-        public Gurux.DLMS.DataType UIType
+        [Browsable(false), DefaultValue(DataType.None)]
+        public DataType UIType
         {
             get
             {

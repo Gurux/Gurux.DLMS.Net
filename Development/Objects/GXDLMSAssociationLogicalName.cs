@@ -39,16 +39,12 @@ using System.Text;
 using Gurux.DLMS.ManufacturerSettings;
 using System.Xml.Serialization;
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.Secure;
+using Gurux.DLMS.Enums;
+using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
 {
-    public enum AssociationStatus
-    {
-        NonAssociated = 0,
-        AssociationPending = 1,
-        Associated = 2
-    }
-
     public class GXDLMSAssociationLogicalName : GXDLMSObject, IGXDLMSBase
     {
         /// <summary> 
@@ -157,43 +153,32 @@ namespace Gurux.DLMS.Objects
 
         #region IGXDLMSBase Members
 
-        byte[][] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
         {
             //Check reply_to_HLS_authentication
             if (index == 1)
             {
-                GXDLMSServerBase s = sender as GXDLMSServerBase;
-                if (s == null)
-                {
-                    throw new ArgumentException("sender");
-                }
-                GXDLMS b = s.m_Base;
-                //Get server Challenge.
-                List<byte> challenge = null;
-                List<byte> CtoS = null;
-                //Find shared secret
-                foreach (GXAuthentication it in s.Authentications)
-                {
-                    if (it.Type == b.Authentication)
-                    {                        
-                        CtoS = new List<byte>(it.SharedSecret);
-                        challenge = new List<byte>(it.SharedSecret);
-                        challenge.AddRange(b.StoCChallenge);
-                        break;
-                    }
-                }
-                byte[] serverChallenge = GXDLMS.Chipher(b.Authentication, challenge.ToArray(), CtoS.ToArray());
+                byte[] serverChallenge =
+                    GXSecure.Secure(settings.Authentication,
+                            settings.StoCChallenge, Secret);
                 byte[] clientChallenge = (byte[])parameters;
                 int pos = 0;
                 if (GXCommon.Compare(serverChallenge, ref pos, clientChallenge))
                 {
-                    CtoS.AddRange(b.CtoSChallenge);
-                    return s.Acknowledge(Command.MethodResponse, 0, GXDLMS.Chipher(b.Authentication, CtoS.ToArray(), CtoS.ToArray()), DataType.OctetString);
+                    byte[] tmp = GXSecure.Secure(settings.Authentication,
+                            settings.CtoSChallenge, Secret);
+                    GXByteBuffer challenge = new GXByteBuffer();
+                    // ReturnParameters.
+                    challenge.SetUInt8(1);
+                    challenge.SetUInt8(0);
+                    challenge.SetUInt8((byte) DataType.OctetString);
+                    GXCommon.SetObjectCount(tmp.Length, challenge);
+                    challenge.Set(tmp);
+                    return challenge.Array();
                 }
                 else
                 {
-                    //Return HW error.
-                    return s.ServerReportError(Command.MethodRequest, 1);
+                    throw new ArgumentException("Invoke failed. Invalid attribute index.");
                 }
             }
             else
@@ -301,8 +286,8 @@ namespace Gurux.DLMS.Objects
         /// </summary>     
         private byte[] GetObjects()
         {
-            List<byte> stream = new List<byte>();
-            stream.Add((byte)DataType.Array);
+            GXByteBuffer data = new GXByteBuffer();
+            data.SetUInt8((byte)DataType.Array);
             bool lnExists = ObjectList.FindByLN(ObjectType.AssociationLogicalName, this.LogicalName) != null;
             //Add count        
             int cnt = ObjectList.Count();
@@ -310,41 +295,41 @@ namespace Gurux.DLMS.Objects
             {
                 ++cnt;
             }
-            GXCommon.SetObjectCount(cnt, stream);
+            GXCommon.SetObjectCount(cnt, data);
             foreach (GXDLMSObject it in ObjectList)
             {
-                stream.Add((byte)DataType.Structure);
-                stream.Add((byte)4); //Count
-                GXCommon.SetData(stream, DataType.UInt16, it.ObjectType); //ClassID
-                GXCommon.SetData(stream, DataType.UInt8, it.Version); //Version
-                GXCommon.SetData(stream, DataType.OctetString, it.LogicalName); //LN
-                GetAccessRights(it, stream); //Access rights.
+                data.SetUInt8((byte)DataType.Structure);
+                data.SetUInt8((byte)4); //Count
+                GXCommon.SetData(data, DataType.UInt16, it.ObjectType); //ClassID
+                GXCommon.SetData(data, DataType.UInt8, it.Version); //Version
+                GXCommon.SetData(data, DataType.OctetString, it.LogicalName); //LN
+                GetAccessRights(it, data); //Access rights.
             }
             if (!lnExists)
             {
-                stream.Add((byte)DataType.Structure);
-                stream.Add((byte)4); //Count
-                GXCommon.SetData(stream, DataType.UInt16, this.ObjectType); //ClassID
-                GXCommon.SetData(stream, DataType.UInt8, this.Version); //Version
-                GXCommon.SetData(stream, DataType.OctetString, this.LogicalName); //LN
-                GetAccessRights(this, stream); //Access rights.
+                data.SetUInt8((byte)DataType.Structure);
+                data.SetUInt8((byte)4); //Count
+                GXCommon.SetData(data, DataType.UInt16, this.ObjectType); //ClassID
+                GXCommon.SetData(data, DataType.UInt8, this.Version); //Version
+                GXCommon.SetData(data, DataType.OctetString, this.LogicalName); //LN
+                GetAccessRights(this, data); //Access rights.
             }
-            return stream.ToArray();
+            return data.Array();
         }
 
-        private void GetAccessRights(GXDLMSObject item, List<byte> data)
+        private void GetAccessRights(GXDLMSObject item, GXByteBuffer data)
         {
-            data.Add((byte)DataType.Structure);
-            data.Add((byte)2);
-            data.Add((byte)DataType.Array);
+            data.SetUInt8((byte)DataType.Structure);
+            data.SetUInt8((byte)2);
+            data.SetUInt8((byte)DataType.Array);
             GXAttributeCollection attributes = item.Attributes;
             int cnt = (item as IGXDLMSBase).GetAttributeCount();
-            data.Add((byte)cnt);
+            data.SetUInt8((byte)cnt);
             for (int pos = 0; pos != cnt; ++pos)
             {
                 GXDLMSAttributeSettings att = attributes.Find(pos + 1);
-                data.Add((byte)DataType.Structure); //attribute_access_item
-                data.Add((byte)3);
+                data.SetUInt8((byte)DataType.Structure); //attribute_access_item
+                data.SetUInt8((byte)3);
                 GXCommon.SetData(data, DataType.Int8, pos + 1);
                 //If attribute is not set return read only.
                 if (att == null)
@@ -357,15 +342,15 @@ namespace Gurux.DLMS.Objects
                 }
                 GXCommon.SetData(data, DataType.None, null);
             }
-            data.Add((byte)DataType.Array);
+            data.SetUInt8((byte)DataType.Array);
             attributes = item.MethodAttributes;
             cnt = (item as IGXDLMSBase).GetMethodCount();
-            data.Add((byte)cnt);
+            data.SetUInt8((byte)cnt);
             for (int pos = 0; pos != cnt; ++pos)
             {
                 GXDLMSAttributeSettings att = attributes.Find(pos + 1);
-                data.Add((byte)DataType.Structure); //attribute_access_item
-                data.Add((byte)2);
+                data.SetUInt8((byte)DataType.Structure); //attribute_access_item
+                data.SetUInt8((byte)2);
                 GXCommon.SetData(data, DataType.Int8, pos + 1);
                 //If method attribute is not set return no access.
                 if (att == null)
@@ -445,7 +430,7 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
         {
             if (index == 1)
             {
@@ -457,22 +442,22 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 3)
             {
-                List<byte> data = new List<byte>();
-                data.Add((byte)DataType.Array);
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte)DataType.Array);
                 //Add count            
-                data.Add(2);
-                data.Add((byte)DataType.UInt8);
-                data.Add(ClientSAP);
-                data.Add((byte)DataType.UInt16);
-                GXCommon.SetUInt16(ServerSAP, data);
-                return data.ToArray();
+                data.SetUInt8(2);
+                data.SetUInt8((byte)DataType.UInt8);
+                data.SetUInt16(ClientSAP);
+                data.SetUInt8((byte)DataType.UInt16);
+                data.SetUInt16(ServerSAP);
+                return data.Array();
             }
             if (index == 4)
             {
-                List<byte> data = new List<byte>();
-                data.Add((byte)DataType.Structure);
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte)DataType.Structure);
                 //Add count            
-                data.Add(0x7);
+                data.SetUInt8(0x7);
                 GXCommon.SetData(data, DataType.UInt8, ApplicationContextName.JointIsoCtt);
                 GXCommon.SetData(data, DataType.UInt8, ApplicationContextName.Country);
                 GXCommon.SetData(data, DataType.UInt16, ApplicationContextName.CountryName);
@@ -480,27 +465,27 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetData(data, DataType.UInt8, ApplicationContextName.DlmsUA);
                 GXCommon.SetData(data, DataType.UInt8, ApplicationContextName.ApplicationContext);
                 GXCommon.SetData(data, DataType.UInt8, ApplicationContextName.ContextId);
-                return data.ToArray();               
+                return data.Array();               
             }
             if (index == 5)
             {
-                List<byte> data = new List<byte>();
-                data.Add((byte)DataType.Structure);
-                data.Add(6);
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte)DataType.Structure);
+                data.SetUInt8(6);
                 GXCommon.SetData(data, DataType.BitString, XDLMSContextInfo.Conformance);
                 GXCommon.SetData(data, DataType.UInt16, XDLMSContextInfo.MaxReceivePduSize);
                 GXCommon.SetData(data, DataType.UInt16, XDLMSContextInfo.MaxSendPpuSize);
                 GXCommon.SetData(data, DataType.UInt8, XDLMSContextInfo.DlmsVersionNumber);
                 GXCommon.SetData(data, DataType.Int8, XDLMSContextInfo.QualityOfService);
                 GXCommon.SetData(data, DataType.OctetString, XDLMSContextInfo.CypheringInfo);
-                return data.ToArray();     
+                return data.Array();     
             }
             if (index == 6)
             {
-                List<byte> data = new List<byte>();
-                data.Add((byte)DataType.Structure);
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte)DataType.Structure);
                 //Add count            
-                data.Add(0x7);
+                data.SetUInt8(0x7);
                 GXCommon.SetData(data, DataType.UInt8, AuthenticationMechanismMame.JointIsoCtt);
                 GXCommon.SetData(data, DataType.UInt8, AuthenticationMechanismMame.Country);
                 GXCommon.SetData(data, DataType.UInt16, AuthenticationMechanismMame.CountryName);
@@ -508,7 +493,7 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetData(data, DataType.UInt8, AuthenticationMechanismMame.DlmsUA);
                 GXCommon.SetData(data, DataType.UInt8, AuthenticationMechanismMame.AuthenticationMechanismName);
                 GXCommon.SetData(data, DataType.UInt8, AuthenticationMechanismMame.MechanismId);
-                return data.ToArray();     
+                return data.Array();     
             }
             if (index == 7)
             {
@@ -529,7 +514,7 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
         {
             if (index == 1)
             {
@@ -551,7 +536,7 @@ namespace Gurux.DLMS.Objects
                     {
                         ObjectType type = (ObjectType)Convert.ToInt32(item[0]);
                         int version = Convert.ToInt32(item[1]);
-                        String ln = GXDLMSObject.toLogicalName((byte[])item[2]);
+                        String ln = GXDLMSObject.ToLogicalName((byte[])item[2]);
                         GXDLMSObject obj = null;
                         if (Parent != null)
                         {
@@ -585,70 +570,70 @@ namespace Gurux.DLMS.Objects
                 //Value of the object identifier encoded in BER
                 if (value is byte[])
                 {                    
-                    int pos = -1;
-                    byte[] arr = value as byte[];
-                    if (arr[0] == 0x60)
+                    GXByteBuffer arr = new GXByteBuffer(value as byte[]);
+                    if (arr.GetUInt8(0) == 0x60)
                     {
+
                         ApplicationContextName.JointIsoCtt = 0;
-                        ++pos;                        
+                        ++arr.Position;                        
                         ApplicationContextName.Country = 0;
-                        ++pos;
+                        ++arr.Position;
                         ApplicationContextName.CountryName = 0;
-                        ++pos;
-                        ApplicationContextName.IdentifiedOrganization = arr[++pos];
-                        ApplicationContextName.DlmsUA = arr[++pos];
-                        ApplicationContextName.ApplicationContext = arr[++pos];
-                        ApplicationContextName.ContextId = arr[++pos];
+                        ++arr.Position;
+                        ApplicationContextName.IdentifiedOrganization = arr.GetUInt8();
+                        ApplicationContextName.DlmsUA = arr.GetUInt8();
+                        ApplicationContextName.ApplicationContext = arr.GetUInt8();
+                        ApplicationContextName.ContextId = arr.GetUInt8();
                     }
                     else
                     {
                         //Get Tag and Len.
-                        if (arr[++pos] != (int)GXBer.IntegerTag && arr[++pos] != 7)
+                        if (arr.GetUInt8() != (int)GXBer.IntegerTag && arr.GetUInt8() != 7)
                         {
                             throw new ArgumentOutOfRangeException();
                         }
                         //Get tag
-                        if (arr[++pos] != 0x11)
+                        if (arr.GetUInt8() != 0x11)
                         {
                             throw new ArgumentOutOfRangeException();
                         }
-                        ApplicationContextName.JointIsoCtt = arr[++pos];
+                        ApplicationContextName.JointIsoCtt = arr.GetUInt8();
                         //Get tag
-                        if (arr[++pos] != 0x11)
+                        if (arr.GetUInt8() != 0x11)
                         {
                             throw new ArgumentOutOfRangeException();
                         }
-                        ApplicationContextName.Country = arr[++pos];
+                        ApplicationContextName.Country = arr.GetUInt8();
                         //Get tag
-                        if (arr[++pos] != 0x12)
+                        if (arr.GetUInt8() != 0x12)
                         {
                             throw new ArgumentOutOfRangeException();
                         }
-                        ApplicationContextName.CountryName = GXCommon.GetUInt16(arr, ref pos);
+                        ApplicationContextName.CountryName = arr.GetUInt16();
                         //Get tag
-                        if (arr[++pos] != 0x11)
+                        if (arr.GetUInt8() != 0x11)
                         {
                             throw new ArgumentOutOfRangeException();
                         }
-                        ApplicationContextName.IdentifiedOrganization = arr[++pos];
+                        ApplicationContextName.IdentifiedOrganization = arr.GetUInt8();
                         //Get tag
-                        if (arr[++pos] != 0x11)
+                        if (arr.GetUInt8() != 0x11)
                         {
                             throw new ArgumentOutOfRangeException();
                         }
-                        ApplicationContextName.DlmsUA = arr[++pos];
+                        ApplicationContextName.DlmsUA = arr.GetUInt8();
                         //Get tag
-                        if (arr[++pos] != 0x11)
+                        if (arr.GetUInt8() != 0x11)
                         {
                             throw new ArgumentOutOfRangeException();
                         }
-                        ApplicationContextName.ApplicationContext = arr[++pos];
+                        ApplicationContextName.ApplicationContext = arr.GetUInt8();
                         //Get tag
-                        if (arr[++pos] != 0x11)
+                        if (arr.GetUInt8() != 0x11)
                         {
                             throw new ArgumentOutOfRangeException();
                         }
-                        ApplicationContextName.ContextId = arr[++pos];
+                        ApplicationContextName.ContextId = arr.GetUInt8();
                     }
                 }
                 else if (value != null)
@@ -681,70 +666,69 @@ namespace Gurux.DLMS.Objects
                 //Value of the object identifier encoded in BER
                 if (value is byte[])
                 {
-                    int pos = -1;
-                    byte[] arr = value as byte[];
-                    if (arr[0] == 0x60)
+                    GXByteBuffer arr = new GXByteBuffer(value as byte[]);
+                    if (arr.GetUInt8(0) == 0x60)
                     {
                         AuthenticationMechanismMame.JointIsoCtt = 0;
-                        ++pos;
+                        ++arr.Position;
                         AuthenticationMechanismMame.Country = 0;
-                        ++pos;
+                        ++arr.Position;
                         AuthenticationMechanismMame.CountryName = 0;
-                        ++pos;
-                        AuthenticationMechanismMame.IdentifiedOrganization = arr[++pos];
-                        AuthenticationMechanismMame.DlmsUA = arr[++pos];
-                        AuthenticationMechanismMame.AuthenticationMechanismName = arr[++pos];
-                        AuthenticationMechanismMame.MechanismId = (Authentication)arr[++pos];
+                        ++arr.Position;
+                        AuthenticationMechanismMame.IdentifiedOrganization = arr.GetUInt8();
+                        AuthenticationMechanismMame.DlmsUA = arr.GetUInt8();
+                        AuthenticationMechanismMame.AuthenticationMechanismName = arr.GetUInt8();
+                        AuthenticationMechanismMame.MechanismId = (Authentication)arr.GetUInt8();
                     }
                     else
                     {
                         //Get Tag and Len.
-                        if (arr[++pos] != (int)GXBer.IntegerTag && arr[++pos] != 7)
+                        if (arr.GetUInt8() != (int)GXBer.IntegerTag && arr.GetUInt8() != 7)
                         {
                             throw new ArgumentOutOfRangeException();
                         }
                         //Get tag
-                        if (arr[++pos] != 0x11)
+                        if (arr.GetUInt8() != 0x11)
                         {
                             throw new ArgumentOutOfRangeException();
                         }
-                        AuthenticationMechanismMame.JointIsoCtt = arr[++pos];
+                        AuthenticationMechanismMame.JointIsoCtt = arr.GetUInt8();
                         //Get tag
-                        if (arr[++pos] != 0x11)
+                        if (arr.GetUInt8() != 0x11)
                         {
                             throw new ArgumentOutOfRangeException();
                         }
-                        AuthenticationMechanismMame.Country = arr[++pos];
+                        AuthenticationMechanismMame.Country = arr.GetUInt8();
                         //Get tag
-                        if (arr[++pos] != 0x12)
+                        if (arr.GetUInt8() != 0x12)
                         {
                             throw new ArgumentOutOfRangeException();
                         }
-                        AuthenticationMechanismMame.CountryName = GXCommon.GetUInt16(arr, ref pos);
+                        AuthenticationMechanismMame.CountryName = arr.GetUInt16();
                         //Get tag
-                        if (arr[++pos] != 0x11)
+                        if (arr.GetUInt8() != 0x11)
                         {
                             throw new ArgumentOutOfRangeException();
                         }
-                        AuthenticationMechanismMame.IdentifiedOrganization = arr[++pos];
+                        AuthenticationMechanismMame.IdentifiedOrganization = arr.GetUInt8();
                         //Get tag
-                        if (arr[++pos] != 0x11)
+                        if (arr.GetUInt8() != 0x11)
                         {
                             throw new ArgumentOutOfRangeException();
                         }
-                        AuthenticationMechanismMame.DlmsUA = arr[++pos];
+                        AuthenticationMechanismMame.DlmsUA = arr.GetUInt8();
                         //Get tag
-                        if (arr[++pos] != 0x11)
+                        if (arr.GetUInt8() != 0x11)
                         {
                             throw new ArgumentOutOfRangeException();
                         }
-                        AuthenticationMechanismMame.AuthenticationMechanismName = arr[++pos];
+                        AuthenticationMechanismMame.AuthenticationMechanismName = arr.GetUInt8();
                         //Get tag
-                        if (arr[++pos] != 0x11)
+                        if (arr.GetUInt8() != 0x11)
                         {
                             throw new ArgumentOutOfRangeException();
                         }
-                        AuthenticationMechanismMame.MechanismId = (Authentication) arr[++pos];
+                        AuthenticationMechanismMame.MechanismId = (Authentication) arr.GetUInt8();
                     }
                 }
                 else if (value != null)

@@ -1,0 +1,608 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Gurux.Serial</name>
+    </assembly>
+    <members>
+        <member name="F:Gurux.Shared.PropertiesForm.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:Gurux.Shared.PropertiesForm.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:Gurux.Shared.PropertiesForm.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="M:Gurux.Shared.PropertiesForm.#ctor(System.Windows.Forms.Form,System.String,System.Boolean)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="properties"></param>
+            <param name="title"></param>
+            <param name="open"></param>
+        </member>
+        <member name="M:Gurux.Serial.GXReceiveThread.Receive">
+            <summary>
+            Receive data from the server using the established socket connection
+            </summary>
+            <returns>The data received from the server</returns>
+        </member>
+        <member name="T:Gurux.Serial.Settings">
+            <summary>
+            Settings dialog.
+            </summary>
+        </member>
+        <member name="M:Gurux.Serial.Settings.#ctor(Gurux.Serial.GXSerial)">
+            <summary>
+            Constructor.
+            </summary>
+        </member>
+        <member name="F:Gurux.Serial.Settings.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:Gurux.Serial.Settings.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:Gurux.Serial.Settings.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="T:Gurux.Serial.Properties.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.Properties.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.Properties.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.Properties.Resources.BaudRateTxt">
+            <summary>
+              Looks up a localized string similar to Baud Rate:.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.Properties.Resources.DataBitsTxt">
+            <summary>
+              Looks up a localized string similar to Data Bits:.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.Properties.Resources.EopTxt">
+            <summary>
+              Looks up a localized string similar to Eop:.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.Properties.Resources.ParityTxt">
+            <summary>
+              Looks up a localized string similar to Parity:.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.Properties.Resources.PortNameTxt">
+            <summary>
+              Looks up a localized string similar to Port Name:.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.Properties.Resources.SettingsTxt">
+            <summary>
+              Looks up a localized string similar to Serial Port Settings:.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.Properties.Resources.StopBitsTxt">
+            <summary>
+              Looks up a localized string similar to Stop Bits:.
+            </summary>
+        </member>
+        <member name="T:Gurux.Serial.GXSerial">
+            <summary>
+            A media component that enables communication of serial port.
+            </summary>
+        </member>
+        <member name="M:Gurux.Serial.GXSerial.GetAvailableBaudRates(System.String)">
+            <summary>
+            Get baud rates supported by given serial port.
+            </summary>
+        </member>
+        <member name="M:Gurux.Serial.GXSerial.#ctor">
+            <summary>
+            Constructor.
+            </summary>
+        </member>
+        <member name="M:Gurux.Serial.GXSerial.#ctor(System.String)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="portName">Used serial port.</param>
+        </member>
+        <member name="M:Gurux.Serial.GXSerial.ReadExisting">
+            <summary>
+             Reads all immediately available bytes asn returns them as string.
+            </summary>
+            <returns>Content as string.</returns>
+        </member>
+        <member name="M:Gurux.Serial.GXSerial.Close">
+            <summary>
+            Closes the port connection, sets the System.IO.Ports.SerialPort.IsOpen property to false, and disposes of the internal System.IO.Stream object.
+            </summary>
+        </member>
+        <member name="M:Gurux.Serial.GXSerial.DiscardInBuffer">
+            <summary>
+            Discards data from the serial driver's receive buffer.
+            </summary>
+        </member>
+        <member name="M:Gurux.Serial.GXSerial.DiscardOutBuffer">
+            <summary>
+            Discards data from the serial driver's transmit buffer.
+            </summary>
+        </member>
+        <member name="M:Gurux.Serial.GXSerial.GetPortNames">
+            <summary>
+            Gets an array of serial port names for the current computer.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Gurux.Serial.GXSerial.Open">
+            <summary>
+            Opens a new serial port connection.
+            </summary>
+            <remarks>
+            Remember to set <see cref="P:Gurux.Serial.GXSerial.DtrEnable"/> and <see cref="P:Gurux.Serial.GXSerial.RtsEnable"/> to True before start communicate.
+            </remarks>
+        </member>
+        <member name="M:Gurux.Serial.GXSerial.Gurux#Common#IGXVirtualMedia#DataReceived(System.Byte[],System.String)">
+            <summary>
+            Called when new data is received to the virtual media.
+            </summary>
+            <param name="data">received data</param>
+            <param name="sender">Data sender.</param>
+        </member>
+        <member name="M:Gurux.Serial.GXSerial.ResetSynchronousBuffer">
+            <inheritdoc cref="M:Gurux.Common.IGXMedia.ResetSynchronousBuffer"/>
+        </member>
+        <member name="M:Gurux.Serial.GXSerial.ResetByteCounters">
+            <summary>
+            Resets BytesReceived and BytesSent counters.
+            </summary>
+            <seealso cref="P:Gurux.Serial.GXSerial.BytesSent">BytesSent</seealso>
+            <seealso cref="P:Gurux.Serial.GXSerial.BytesReceived">BytesReceived</seealso>
+        </member>
+        <member name="M:Gurux.Serial.GXSerial.Properties(System.Windows.Forms.Form)">
+            <summary>
+            Shows the serial port Properties dialog.
+            </summary>
+            <param name="parent">Owner window of the Properties dialog.</param>
+            <returns>True, if the user has accepted the changes.</returns>
+            <seealso cref="P:Gurux.Serial.GXSerial.PortName">PortName</seealso>
+            <seealso cref="P:Gurux.Serial.GXSerial.BaudRate">BaudRate</seealso>
+            <seealso cref="P:Gurux.Serial.GXSerial.DataBits">DataBits</seealso>
+            <seealso href="PropertiesDialog.html">Properties Dialog</seealso>
+        </member>
+        <member name="M:Gurux.Serial.GXSerial.Send(System.Object)">
+            <summary>
+            Sends data asynchronously. <br/>
+            No reply from the receiver, whether or not the operation was successful, is expected.
+            </summary>
+        </member>
+        <member name="M:Gurux.Serial.GXSerial.Receive``1(Gurux.Common.ReceiveParameters{``0})">
+            <inheritdoc cref="M:Gurux.Common.IGXMedia.Receive``1(Gurux.Common.ReceiveParameters{``0})"/>
+            <example>
+            <code>
+            'Send long and wait until OK reply is received or 5 seconds.
+            'Data is returned as string.
+            lock (GXSerial11.Synchronous)
+            {        
+                dim params as new Receiveparameters
+                params.Eop = "OK"
+                params.WaitTime = 10000
+                params.Type = typeof(string)
+                GXSerial11.Send((byte) 0x13)
+                GXSerial11.Receive(params)
+                ' While all data is not received read more data.
+                ' This is done because reply data might include "OK" but all data is not read yet.
+                'While PacketIsNotCompleted
+                    GXSerial11.Receive(params)
+                'Wend
+            }
+            
+            'Send data and wait until 4 bytes is received.
+            'Received data is received as long (Int32)
+            lock (GXSerial11.Synchronous)
+            {           
+                dim params as new Receiveparameters
+                params.Count = 4
+                params.WaitTime = 10000
+                params.Type = typeof(string)
+                GXSerial11.Send((byte) 0x13)
+                GXSerial11.Receive(params)
+            }
+            </code>
+            </example>
+        </member>
+        <member name="M:Gurux.Serial.GXSerial.Validate">
+            <inheritdoc cref="M:Gurux.Common.IGXMedia.Validate"/>
+        </member>
+        <member name="M:Gurux.Serial.GXSerial.Dispose">
+            <summary>
+            Closes the connection.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.Trace">
+            <summary>
+            What level of tracing is used.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.BaseStream">
+            <summary>
+            Gets the underlying System.IO.Stream object for a System.IO.Ports.SerialPort object.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.BaudRate">
+            <summary>
+            Used baud rate for communication.
+            </summary>
+            <remarks>Can be changed without disconnecting.</remarks>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.BreakState">
+            <summary>
+            True if the port is in a break state; otherwise, false.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.BytesToRead">
+            <summary>
+            Gets the number of bytes in the receive buffer.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.BytesToWrite">
+            <summary>
+            Gets the number of bytes in the send buffer.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.CDHolding">
+            <summary>
+            Gets the state of the Carrier Detect line for the port.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.CtsHolding">
+            <summary>
+            Gets the state of the Clear-to-Send line.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.EofChar">
+            <summary>
+            Eof Char.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.ErrorChar">
+            <summary>
+            Error Char.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.EventChar">
+            <summary>
+            Event Char of serial port.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.XonChar">
+            <summary>
+            Xon Char of serial port.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.XoffChar">
+            <summary>
+            Xoff Char of serial port.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.DataBits">
+            <summary>
+            Gets or sets the standard length of data bits per byte.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.DiscardNull">
+            <summary>
+            Gets or sets a value indicating whether null bytes are ignored when transmitted between the port and the receive buffer.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.DsrHolding">
+            <summary>
+            Gets the state of the Data Set Ready (DSR) signal.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.DtrEnable">
+            <summary>
+            Gets or sets a value that enables the Data Terminal Ready (DTR) signal during serial communication.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.Encoding">
+            <summary>
+            Gets or sets the byte encoding for pre- and post-transmission conversion of text.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.Handshake">
+            <summary>
+            Gets or sets the handshaking protocol for serial port transmission of data.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.IsOpen">
+            <summary>
+            Gets a value indicating the open or closed status of the System.IO.Ports.SerialPort object.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.Parity">
+            <summary>
+            Gets or sets the parity-checking protocol.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.ParityReplace">
+            <summary>
+            Gets or sets the byte that replaces invalid bytes in a data stream when a parity error occurs.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.PortName">
+            <summary>
+            Gets or sets the port for communications, including but not limited to all available COM ports.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.ReadBufferSize">
+            <summary>
+            Gets or sets the size of the System.IO.Ports.SerialPort input buffer.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.ReadTimeout">
+            <summary>
+            Gets or sets the number of milliseconds before a time-out occurs when a read operation does not finish.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.ReceivedBytesThreshold">
+            <summary>
+            Gets or sets the number of bytes in the internal input buffer before a System.IO.Ports.SerialPort.DataReceived event occurs.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.RtsEnable">
+            <summary>
+            Gets or sets a value indicating whether the Request to Send (RTS) signal is enabled during serial communication.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.StopBits">
+            <summary>
+            Gets or sets the standard number of stopbits per byte.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.WriteBufferSize">
+            <summary>
+            Gets or sets the size of the serial port output buffer.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.WriteTimeout">
+            <summary>
+            Gets or sets the number of milliseconds before a time-out occurs when a write operation does not finish.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.AvailablePorts">
+            <summary>
+            User defined available ports.
+            </summary>
+            <remarks>If this is not set ports are retrieved from current system.</remarks>
+        </member>
+        <member name="E:Gurux.Serial.GXSerial.OnReceived">
+            <summary>
+            GXNet component sends received data through this method.
+            </summary>
+        </member>
+        <member name="E:Gurux.Serial.GXSerial.OnError">
+            <summary>
+            Errors that occur after the connection is established, are sent through this method. 
+            </summary>       
+        </member>
+        <member name="E:Gurux.Serial.GXSerial.OnMediaStateChange">
+            <summary>
+            Media component sends notification, when its state changes.
+            </summary>       
+        </member>
+        <member name="E:Gurux.Serial.GXSerial.OnClientConnected">
+            <summary>
+            Called when the client is establishing a connection with a Net Server.
+            </summary>
+        </member>
+        <member name="E:Gurux.Serial.GXSerial.OnClientDisconnected">
+            <summary>
+            Called when the client has been disconnected from the network server.
+            </summary>
+        </member>
+        <member name="E:Gurux.Serial.GXSerial.System#ComponentModel#INotifyPropertyChanged#PropertyChanged">
+            <summary>
+            Occurs when a property value changes.
+            </summary>
+        </member>
+        <member name="E:Gurux.Serial.GXSerial.OnTrace">
+            <inheritdoc cref="T:Gurux.Common.TraceEventHandler"/>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.ConfigurableSettings">
+            <inheritdoc cref="P:Gurux.Common.IGXMedia.ConfigurableSettings"/>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.Tag">
+            <inheritdoc cref="P:Gurux.Common.IGXMedia.Tag"/>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.Gurux#Common#IGXMedia#MediaContainer">
+            <inheritdoc cref="P:Gurux.Common.IGXMedia.MediaContainer"/>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.Gurux#Common#IGXVirtualMedia#Virtual">
+            <inheritdoc cref="P:Gurux.Common.IGXVirtualMedia.Virtual"/>
+        </member>
+        <member name="E:Gurux.Serial.GXSerial.Gurux#Common#IGXVirtualMedia#OnGetPropertyValue">
+            <summary>
+            Occurs when a property value is asked.
+            </summary>
+        </member>
+        <member name="E:Gurux.Serial.GXSerial.Gurux#Common#IGXVirtualMedia#OnDataSend">
+            <summary>
+            Occurs when data is sent on virtual mode.
+            </summary>
+        </member>
+        <member name="E:Gurux.Serial.GXSerial.OnPinChanged">
+            <summary>
+            Occurs when serial port PIN changed.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.Synchronous">
+            <inheritdoc cref="P:Gurux.Common.IGXMedia.Synchronous"/>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.IsSynchronous">
+            <inheritdoc cref="P:Gurux.Common.IGXMedia.IsSynchronous"/>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.BytesSent">
+            <summary>
+            Sent byte count.
+            </summary>
+            <seealso cref="P:Gurux.Serial.GXSerial.BytesReceived">BytesReceived</seealso>
+            <seealso cref="M:Gurux.Serial.GXSerial.ResetByteCounters">ResetByteCounters</seealso>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.BytesReceived">
+            <summary>
+            Received byte count.
+            </summary>
+            <seealso cref="P:Gurux.Serial.GXSerial.BytesSent">BytesSent</seealso>
+            <seealso cref="M:Gurux.Serial.GXSerial.ResetByteCounters">ResetByteCounters</seealso>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.Eop">
+            <inheritdoc cref="P:Gurux.Common.IGXMedia.Eop"/>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.Settings">
+            <summary>
+            Media settings as a XML string.
+            </summary>
+        </member>
+        <member name="P:Gurux.Serial.GXSerial.PropertiesForm">
+            <summary>
+            Returns a new instance of the Settings form.
+            </summary>
+        </member>
+        <member name="T:Gurux.Serial.NamespaceDoc">
+            <summary>
+            <p>Join the Gurux Community or follow <a href="https://twitter.com/guruxorg" title="@Gurux">@Gurux</a> for project updates.</p>
+            <p>Open Source GXSerial media component, made by Gurux Ltd, is a part of GXMedias set of media components, which programming interfaces help you implement communication by chosen connection type. Our media components also support the following connection types: network, terminal.</p>
+            <p>For more info check out <a href="http://www.gurux.org/" title="Gurux">Gurux</a>.</p>
+            <p>We are updating documentation on Gurux web page. </p>
+            <p>If you have problems you can ask your questions in Gurux <a href="http://www.gurux.org/forum">Forum</a>.</p>
+            <h1><a name="simple-example" class="anchor" href="#simple-example"><span class="mini-icon mini-icon-link"></span></a>Simple example</h1>
+            <p>Before use you must set following settings:</p>
+            <ul>
+            <li><see cref="P:Gurux.Serial.GXSerial.PortName"/></li>
+            <li><see cref="P:Gurux.Serial.GXSerial.BaudRate"/></li>
+            <li><see cref="P:Gurux.Serial.GXSerial.DataBits"/></li>
+            <li><see cref="P:Gurux.Serial.GXSerial.Parity"/></li>
+            <li><see cref="P:Gurux.Serial.GXSerial.StopBits"/></li>
+            </ul><p>It is also good to listen following events:</p>
+            <ul>
+            <li><see cref="E:Gurux.Serial.GXSerial.OnError"/></li>
+            <li><see cref="E:Gurux.Serial.GXSerial.OnReceived"/></li>
+            <li><see cref="E:Gurux.Serial.GXSerial.OnMediaStateChange"/></li>
+            </ul>
+            <example>
+            <code>
+            GXSerial cl = new GXSerial();
+            cl.PortName = Gurux.Serial.GXSerial.GetPortNames()[0];
+            cl.BaudRate = 9600;
+            cl.DataBits = 8;
+            cl.Parity = System.IO.Ports.Parity.Odd;
+            cl.StopBits = System.IO.Ports.StopBits.One;
+            cl.Open();
+            </code>
+            </example>
+            Data is send with send command.
+            <example>
+            <code>
+            cl.Send("Hello World!");
+            </code>
+            </example>
+            In default mode received data is coming as asynchronously from OnReceived event.
+            <example>
+            <code>
+            cl.OnReceived += new ReceivedEventHandler(this.OnReceived);
+            </code>
+            </example>
+            Data can be send as syncronous if needed:
+            <example>
+            <code lang="csharp">
+            lock (cl.Synchronous)
+            {
+                string reply = "";
+                ReceiveParameters&lt;string&gt; p = new ReceiveParameters&lt;string&gt;()
+                //ReceiveParameters&lt;byte[]&gt; p = new ReceiveParameters&lt;byte[]&gt;()
+                {
+                    //Wait time tells how long data is waited.
+                    WaitTime = 1000,
+                    //Eop tells End Of Packet charachter.
+                    p.Eop = '\\r'
+                }      
+                gxSerial1.Send("Hello World!");
+                if (gxSerial1.Receive(p))
+                {
+                    reply = Convert.ToString(p.Reply)
+                }
+            }
+            </code>
+            </example>
+            </summary>
+        </member>
+        <member name="F:Gurux.Shared.GXSynchronousMediaBase.Trace">
+            <summary>
+            Trace level.
+            </summary>
+        </member>
+        <member name="T:Gurux.Serial.AvailableMediaSettings">
+            <summary>
+            Describes available settings for the media.
+            </summary>
+        </member>
+        <member name="F:Gurux.Serial.AvailableMediaSettings.All">
+            <summary>
+            All serial port properties are shown.
+            </summary>
+        </member>
+        <member name="F:Gurux.Serial.AvailableMediaSettings.PortName">
+            <summary>
+            Is port name shown.
+            </summary>
+        </member>
+        <member name="F:Gurux.Serial.AvailableMediaSettings.BaudRate">
+            <summary>
+            Is baud rate shown.
+            </summary>
+        </member>
+        <member name="F:Gurux.Serial.AvailableMediaSettings.DataBits">
+            <summary>
+            Is data bits shown.
+            </summary>
+        </member>
+        <member name="F:Gurux.Serial.AvailableMediaSettings.Parity">
+            <summary>
+            Is Parity shown.
+            </summary>
+        </member>
+        <member name="F:Gurux.Serial.AvailableMediaSettings.StopBits">
+            <summary>
+            Is stop bits shown.
+            </summary>
+        </member>
+    </members>
+</doc>

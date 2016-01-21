@@ -36,56 +36,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS
 {
-    /// <summary>
-    /// DataType enumerates skipped fields from date time.
-    /// </summary>
-    public enum DateTimeSkips
-    {
-        /// <summary>
-        /// Nothing is skipped from date time.
-        /// </summary>
-        None = 0x0,
-        /// <summary>
-        /// Year part of date time is skipped.
-        /// </summary>
-        Year = 0x1,
-        /// <summary>
-        /// Month part of date time is skipped.
-        /// </summary>
-        Month = 0x2,
-        /// <summary>
-        /// Day part is skipped.
-        /// </summary>
-        Day = 0x4,
-        /// <summary>
-        /// Day of week part of date time is skipped.
-        /// </summary>
-        DayOfWeek = 0x8,
-        /// <summary>
-        /// Hours part of date time is skipped.
-        /// </summary>
-        Hour = 0x10,
-        /// <summary>
-        /// Minute part of date time is skipped.
-        /// </summary>
-        Minute = 0x20,
-        /// <summary>
-        /// Seconds part of date time is skipped.
-        /// </summary>
-        Second = 0x40,
-        /// <summary>
-        /// Hundreds of seconds part of date time is skipped.
-        /// </summary>
-        Ms = 0x80,
-        /// <summary>
-        /// Devitation is skipped on write.
-        /// </summary>
-        Devitation = 0x100        
-    }
-
     /// <summary>
     /// This class is used because in COSEM object model some fields from date time can be ignored.
     /// Default behavior of DateTime do not allow this.
@@ -104,9 +58,35 @@ namespace Gurux.DLMS
         /// </summary>
         public GXDateTime(DateTime value)
         {
+            if (value == DateTime.MinValue)
+            {
+                Value = DateTimeOffset.MinValue;
+            }
+            else if (value == DateTime.MaxValue)
+            {
+                Value = DateTimeOffset.MaxValue;
+            }
+            else
+            {
+                if (value.Kind == DateTimeKind.Utc)
+                {
+                    Value = new DateTimeOffset(value, TimeZoneInfo.Utc.GetUtcOffset(value));
+                }
+                else
+                {
+                    Value = new DateTimeOffset(value, TimeZoneInfo.Local.GetUtcOffset(value));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public GXDateTime(DateTimeOffset value)
+        {
             Value = value;
         }
-       
+
         /// <summary>
         /// Convert DateTime to GXDateTime.
         /// </summary>
@@ -126,7 +106,7 @@ namespace Gurux.DLMS
         {
             if (value != null)
             {
-                return value.Value;
+                return value.Value.LocalDateTime;
             }
             return DateTime.MinValue;
         }
@@ -139,7 +119,7 @@ namespace Gurux.DLMS
             if (year < 1 || year == 0xFFFF)
             {
                 Skip |= DateTimeSkips.Year;
-                year = DateTime.MinValue.Year;
+                year = 2;
             }
             DaylightSavingsBegin = month == 0xFE;
             DaylightSavingsEnd = month == 0xFD;
@@ -175,7 +155,7 @@ namespace Gurux.DLMS
             }
             try
             {
-                Value = new DateTime(year, month, day, hour, minute, second, millisecond);
+                Value = new DateTime(year, month, day, hour, minute, second, millisecond, DateTimeKind.Local);
             }
             catch
             {
@@ -186,7 +166,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Used date time value.
         /// </summary>
-        public DateTime Value
+        public DateTimeOffset Value
         {
             get;
             set;
@@ -226,7 +206,16 @@ namespace Gurux.DLMS
         {
             get;
             set;
-        }        
+        }
+
+        /// <summary>
+        /// Deviation.
+        /// </summary>
+        public int Deviation
+        {
+            get;
+            set;
+        }  
 
         public override string ToString()
         {
@@ -281,9 +270,9 @@ namespace Gurux.DLMS
                 {
                     return "";
                 }
-                return Value.ToString(format);
+                return Value.LocalDateTime.ToString(format);
             }
-            return Value.ToString();
+            return Value.LocalDateTime.ToString();
         }
 
         #region IConvertible Members
@@ -310,7 +299,7 @@ namespace Gurux.DLMS
 
         DateTime IConvertible.ToDateTime(IFormatProvider provider)
         {
-            return Value;
+            return Value.LocalDateTime;
         }
 
         decimal IConvertible.ToDecimal(IFormatProvider provider)

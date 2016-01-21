@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gurux.DLMS.Server.Example", "Gurux.DLMS.Server.Example\Gurux.DLMS.Server.Example.csproj", "{60FE2A68-A783-4F3F-B034-2657E9718F66}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gurux.DLMS", "..\Development\Gurux.DLMS.csproj", "{EFD71BFF-AD54-45ED-B473-305813C2F83A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{60FE2A68-A783-4F3F-B034-2657E9718F66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60FE2A68-A783-4F3F-B034-2657E9718F66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60FE2A68-A783-4F3F-B034-2657E9718F66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60FE2A68-A783-4F3F-B034-2657E9718F66}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFD71BFF-AD54-45ED-B473-305813C2F83A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFD71BFF-AD54-45ED-B473-305813C2F83A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFD71BFF-AD54-45ED-B473-305813C2F83A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFD71BFF-AD54-45ED-B473-305813C2F83A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

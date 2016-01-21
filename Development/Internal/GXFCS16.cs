@@ -44,7 +44,7 @@ namespace Gurux.DLMS.Internal
     /// </summary>
     class GXFCS16
     {
-        internal static readonly ushort[] m_FCS16Table = {
+        internal static readonly ushort[] _scs16Table = {
             0x0000, 0x1189, 0x2312, 0x329B, 0x4624, 0x57AD, 0x6536, 0x74BF,
             0x8C48, 0x9DC1, 0xAF5A, 0xBED3, 0xCA6C, 0xDBE5, 0xE97E, 0xF8F7,
             0x1081, 0x0108, 0x3393, 0x221A, 0x56A5, 0x472C, 0x75B7, 0x643E,
@@ -92,7 +92,7 @@ namespace Gurux.DLMS.Internal
             int FCS16 = 0xFFFF;
             for (int pos = index; pos < index + count; ++pos)
             {
-                FCS16 = (int)(((FCS16 >> 8) ^ m_FCS16Table[(FCS16 ^ buff[pos]) & 0xFF]) & 0xFFFF);
+                FCS16 = (int)(((FCS16 >> 8) ^ _scs16Table[(FCS16 ^ buff[pos]) & 0xFF]) & 0xFFFF);
             }
             FCS16 = ~FCS16;
             FCS16 = ((FCS16 >> 8) & 0xFF) | (FCS16 << 8);

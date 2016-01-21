@@ -41,6 +41,7 @@ using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.Objects
 {
@@ -208,7 +209,7 @@ namespace Gurux.DLMS.Objects
         /// Data interface do not have any methods.
         /// </summary>
         /// <param name="index"></param>
-        byte[][] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
         {
             throw new ArgumentException("Invoke failed. Invalid attribute index.");
         }
@@ -349,21 +350,21 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
         {
             if (index == 1)
             {
                 return this.LogicalName;
             }
             else if (index == 2)
-            {
-                List<byte> data = new List<byte>();
-                data.Add((byte) DataType.Structure);
-                data.Add(3);
+            {                
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte) DataType.Structure);
+                data.SetUInt8(3);
                 GXCommon.SetData(data, DataType.Int16, MonitoredValue.ObjectType);
                 GXCommon.SetData(data, DataType.OctetString, MonitoredValue.LogicalName);
                 GXCommon.SetData(data, DataType.UInt8, MonitoredAttributeIndex);
-                return data.ToArray();
+                return data.Array();
             }
             else if (index == 3)
             {
@@ -387,24 +388,24 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 8)
             {
-                List<byte> data = new List<byte>();
-                data.Add((byte) DataType.Structure);
-                data.Add(3);                
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte) DataType.Structure);
+                data.SetUInt8(3);                
                 GXCommon.SetData(data, DataType.UInt16, EmergencyProfile.ID);
                 GXCommon.SetData(data, DataType.DateTime, EmergencyProfile.ActivationTime);
                 GXCommon.SetData(data, DataType.UInt32, EmergencyProfile.Duration);
-                return data.ToArray();
+                return data.Array();
             }
             else if (index == 9)
             {
-                List<byte> data = new List<byte>();
-                data.Add((byte) DataType.Array);
-                data.Add((byte)EmergencyProfileGroupIDs.Length);                               
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte) DataType.Array);
+                data.SetUInt8((byte)EmergencyProfileGroupIDs.Length);                               
                 foreach (object it in EmergencyProfileGroupIDs)
                 {
                     GXCommon.SetData(data, DataType.UInt16, it);
                 }
-                return data.ToArray();
+                return data.Array();
             }
             else if (index == 10)
             {
@@ -412,23 +413,23 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 11)
             {
-                List<byte> data = new List<byte>();
-                data.Add((byte)DataType.Structure);
-                data.Add(2);
-                data.Add((byte)DataType.Structure);
-                data.Add(2);
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte)DataType.Structure);
+                data.SetUInt8(2);
+                data.SetUInt8((byte)DataType.Structure);
+                data.SetUInt8(2);
                 GXCommon.SetData(data, DataType.OctetString, ActionOverThreshold.LogicalName);
                 GXCommon.SetData(data, DataType.UInt16, ActionOverThreshold.ScriptSelector);
-                data.Add((byte)DataType.Structure);
-                data.Add(2);
+                data.SetUInt8((byte)DataType.Structure);
+                data.SetUInt8(2);
                 GXCommon.SetData(data, DataType.OctetString, ActionUnderThreshold.LogicalName);
                 GXCommon.SetData(data, DataType.UInt16, ActionUnderThreshold.ScriptSelector);
-                return data.ToArray();
+                return data.Array();
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
         {
             if (index == 1)
             {
@@ -479,9 +480,12 @@ namespace Gurux.DLMS.Objects
             else if (index == 9)
             {
                 List<UInt16> list = new List<UInt16>();
-                foreach(object it in (object[])value)
+                if (value != null)
                 {
-                    list.Add(Convert.ToUInt16(it));
+                    foreach (object it in (object[])value)
+                    {
+                        list.Add(Convert.ToUInt16(it));
+                    }
                 }
                 EmergencyProfileGroupIDs = list.ToArray();
             }

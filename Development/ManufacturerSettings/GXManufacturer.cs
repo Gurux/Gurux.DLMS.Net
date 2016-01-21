@@ -72,6 +72,7 @@ using System.Text;
 using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS;
+using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.ManufacturerSettings
 {
@@ -108,7 +109,6 @@ namespace Gurux.DLMS.ManufacturerSettings
     [Serializable]
     public class GXManufacturer
     {
-        private GXObisCodeCollection m_ObisCodes;
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -116,7 +116,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         {
             InactivityMode = InactivityMode.KeepAlive;
             StartProtocol = StartProtocolType.IEC;
-            m_ObisCodes = new GXObisCodeCollection();
+            ObisCodes = new GXObisCodeCollection();
             Settings = new List<GXAuthentication>();
             ServerSettings = new List<GXServerAddress>();
             KeepAliveInterval = 40000;
@@ -178,10 +178,8 @@ namespace Gurux.DLMS.ManufacturerSettings
         [Browsable(false)]
         public GXObisCodeCollection ObisCodes
         {
-            get
-            {
-                return m_ObisCodes;
-            }
+            get;
+            set;
         }
 
         /// <summary>
@@ -304,75 +302,6 @@ namespace Gurux.DLMS.ManufacturerSettings
                 return this.ServerSettings[0];
             }
             return null;
-        }
-
-        /// <summary>
-        /// Count serial nummber.
-        /// </summary>
-        /// <param name="expression"></param>
-        /// <returns></returns>
-        static int EvaluateSN(int sn, string expression)
-        {
-            expression = expression.Replace("SN", sn.ToString());
-            var loDataTable = new System.Data.DataTable();
-            var loDataColumn = new System.Data.DataColumn("Eval", typeof(int), expression);
-            loDataTable.Columns.Add(loDataColumn);
-            loDataTable.Rows.Add(0);
-            return (int)(loDataTable.Rows[0]["Eval"]);
-        }
-
-        /// <summary>
-        /// Count server address from physical and logical addresses.
-        /// </summary>
-        /// <param name="addressing"></param>
-        /// <param name="formula"></param>
-        /// <param name="physicalAddress"></param>
-        /// <param name="LogicalAddress"></param>
-        /// <returns></returns>
-        public static object CountServerAddress(HDLCAddressType addressing, string formula, object physicalAddress, int LogicalAddress)
-        {
-            object value;
-            if (addressing == HDLCAddressType.Custom)
-            {
-                value = Convert.ChangeType(physicalAddress, physicalAddress.GetType());
-            }
-            else if (addressing == HDLCAddressType.Default || addressing == HDLCAddressType.SerialNumber)
-            {
-                if (addressing == HDLCAddressType.SerialNumber)
-                {
-                    Type type = typeof(UInt32);
-                    physicalAddress = Convert.ChangeType(EvaluateSN(Convert.ToInt32(physicalAddress), formula), type);
-                }
-                if (physicalAddress is byte)
-                {
-                    value = ((LogicalAddress & 0x7) << 5) | (((byte)physicalAddress & 0x7) << 1) | 0x1;
-                    value = Convert.ChangeType(value, typeof(byte));
-                }
-                else if (physicalAddress is UInt16)
-                {
-                    int physicalID = Convert.ToInt32(physicalAddress);
-                    int logicalID = Convert.ToInt32(LogicalAddress);
-                    int total = (physicalID) << 1 | 1;
-                    value = Convert.ToUInt32(total | (logicalID << 9));                    
-                    value = Convert.ChangeType(value, typeof(UInt16));
-                }
-                else if (physicalAddress is UInt32)
-                {
-                    int physicalID = Convert.ToInt32(physicalAddress);
-                    int logicalID = Convert.ToInt32(LogicalAddress);
-                    int total = (((physicalID >> 7) & 0x7F) << 8) | (physicalID & 0x7F);
-                    value = Convert.ToUInt32(((total << 1) | 1 | (logicalID << 17)));
-                }
-                else
-                {
-                    throw new Exception("Unknown physical address type.");
-                }
-            }
-            else
-            {
-                throw new Exception("Invalid HDLCAddressing");
-            }
-            return value;
         }
     }
 }

@@ -36,6 +36,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS
 {
@@ -45,7 +46,7 @@ namespace Gurux.DLMS
     public class GXDLMSException : Exception
     {        
         public GXDLMSException(int errCode)
-            : base(GXDLMS.GetDescription(errCode))
+            : base(GXDLMS.GetDescription((ErrorCode)errCode))
         {
             ErrorCode = errCode;
         }
@@ -59,8 +60,46 @@ namespace Gurux.DLMS
         /// <summary>
         /// Constructor for AARE error.
         /// </summary>
+        internal GXDLMSException(StateError stateError, ServiceError serviceError)
+            : base("Meter returns " + GetStateError(stateError) + " exception. " + GetServiceError(serviceError))
+        {
+            StateError = stateError;
+            ServiceError = serviceError;
+        }
+
+        private static string GetStateError(StateError stateError)
+        {
+            switch (stateError)
+            {
+                case StateError.ServiceNotAllowed:
+                    return "Service not allowed";
+                case StateError.ServiceUnknown:
+                    return "Service unknown";
+            }
+            return string.Empty;
+        }
+
+        private static string GetServiceError(ServiceError serviceError)
+        {
+            switch (serviceError)
+            {
+                case ServiceError.OperationNotPossible:
+                    return "Operation not possible";
+                case ServiceError.OtherReason:
+                    return "Other reason";
+                case ServiceError.ServiceNotSupported:
+                    return "Service not supported";
+
+            }
+            return string.Empty;
+        }
+        
+
+        /// <summary>
+        /// Constructor for AARE error.
+        /// </summary>
         internal GXDLMSException(AssociationResult result, SourceDiagnostic diagnostic)
-            : base("Connection is " + GetResult(result) + Environment.NewLine + GetDiagnostic(diagnostic))
+            : base("Connection is " + GetResult(result) + ". " + GetDiagnostic(diagnostic))
         {
             Result = result;
             Diagnostic = diagnostic;
@@ -144,6 +183,24 @@ namespace Gurux.DLMS
         {
             get;
             internal set;
+        }
+
+        /// <summary>
+        /// State error.
+        /// </summary>
+        public StateError StateError
+        {
+            get;
+            private set;
+        }
+        
+        /// <summary>
+        /// Service error.
+        /// </summary>
+        public ServiceError ServiceError
+        {
+            get;
+            private set;
         }
     }
 }

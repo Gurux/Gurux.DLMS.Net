@@ -43,151 +43,11 @@ using System.Xml.Serialization;
 using System.Collections;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.Enums;
+using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
-{
-    [Serializable]
-    public struct GXKeyValuePair<K, V>
-    {
-        private K m_Key;
-        private V m_Value;
-
-        public K Key
-        {
-            get
-            {
-                return m_Key;
-            }
-            set
-            {
-                m_Key = value;
-            }
-        }
-        public V Value
-        {
-            get
-            {
-                return m_Value;
-            }
-            set
-            {
-                m_Value = value;
-            }
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        public GXKeyValuePair(K key, V value)
-        {
-            if (key == null)
-            {
-                throw new InvalidOperationException("Invalid key.");
-            }
-            m_Key = key;
-            m_Value = value;
-        }
-    }
-
-    public enum AccessRange
-    {
-        /// <summary>
-        /// Read entries.
-        /// </summary>
-        Entry,
-        /// <summary>
-        /// Read last N days.
-        /// </summary>
-        Last,
-        /// <summary>
-        /// Read between days
-        /// </summary>
-        Range,
-        /// <summary>
-        /// Read All.
-        /// </summary>
-        All
-    };
-
-    /// <summary>
-    /// Sort methods.
-    /// </summary>
-    public enum SortMethod
-    {
-        /// <summary>
-        /// First in first out
-        /// </summary>        
-        /// <remarks>
-        /// When circle buffer is full first item is removed.
-        /// </remarks>
-        FiFo = 0,
-        /// <summary>
-        /// Last in first out.
-        /// </summary>
-        /// <remarks>
-        /// When circle buffer is full last item is removed.
-        /// </remarks>
-        LiFo,
-        /// <summary>
-        /// Largest is first.
-        /// </summary>
-        Largest,
-        /// <summary>
-        /// Smallest is first.
-        /// </summary>
-        Smallest,
-        /// <summary>
-        /// Nearest to zero is first.
-        /// </summary>
-        NearestToZero,
-        /// <summary>
-        /// Farest from zero is first.
-        /// </summary>
-        FarestFromZero
-    }
-
-    public class GXDLMSCaptureObject
-    {
-        /// <summary>
-        /// Attribute Index of DLMS object in the profile generic table.
-        /// </summary>
-        public int AttributeIndex
-        {
-            get;
-            set;
-        }
-        
-        /// <summary>
-        /// Data index of DLMS object in the profile generic table. 
-        /// </summary>
-        public int DataIndex
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        public GXDLMSCaptureObject()
-        {
-
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="attributeIndex">Attribute index.</param>
-        /// <param name="dataIndex">Data Index.</param>
-        public GXDLMSCaptureObject(int attributeIndex, int dataIndex)
-        {
-            AttributeIndex = attributeIndex;
-            DataIndex = dataIndex;
-        }
-    }
-
+{   
     public class GXDLMSProfileGeneric : GXDLMSObject, IGXDLMSBase
     {
         object Owner
@@ -201,7 +61,7 @@ namespace Gurux.DLMS.Objects
                 return null;
             }
         }
-        
+
         /// <summary> 
         /// Constructor.
         /// </summary> 
@@ -232,23 +92,6 @@ namespace Gurux.DLMS.Objects
             AccessSelector = AccessRange.Last;
             Buffer = new List<object[]>();
             CaptureObjects = new List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
-        }
-
-        /// <inheritdoc cref="GXDLMSObject.UpdateDefaultValueItems"/>
-        public override void UpdateDefaultValueItems()
-        {
-            GXDLMSAttributeSettings att = this.Attributes.Find(5);
-            if (att == null)
-            {
-                att = new GXDLMSAttribute(5);
-                Attributes.Add(att);
-            }
-            att.Values.Add(new GXObisValueItem(SortMethod.FiFo, "FIFO"));
-            att.Values.Add(new GXObisValueItem(SortMethod.LiFo, "LIFO"));
-            att.Values.Add(new GXObisValueItem(SortMethod.Largest, "Largest"));
-            att.Values.Add(new GXObisValueItem(SortMethod.Smallest, "Smallest"));
-            att.Values.Add(new GXObisValueItem(SortMethod.NearestToZero, "Nearest To Zero"));
-            att.Values.Add(new GXObisValueItem(SortMethod.FarestFromZero, "Farest from Zero"));
         }
 
         /// <summary>
@@ -293,7 +136,7 @@ namespace Gurux.DLMS.Objects
         {
             get;
             set;
-        }        
+        }
 
         [XmlArray("CaptureObjects")]
         public List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> CaptureObjects
@@ -364,7 +207,7 @@ namespace Gurux.DLMS.Objects
         {
             get;
             set;
-        }    
+        }
 
         /// <summary>
         /// Maximum Entries (rows) count.
@@ -383,21 +226,21 @@ namespace Gurux.DLMS.Objects
                 CapturePeriod, SortMethod, 
                 SortObject, EntriesInUse, ProfileEntries };
         }
-        
+
         /// <summary>
         /// Get captured objects.
         /// </summary>
         /// <returns></returns>
-        public GXDLMSObject[] GetCaptureObject() 
+        public GXDLMSObject[] GetCaptureObject()
         {
             List<GXDLMSObject> list = new List<GXDLMSObject>();
             foreach (var it in CaptureObjects)
             {
-                list.Add(it.Key);                
+                list.Add(it.Key);
             }
             return list.ToArray();
         }
-        
+
 
         /// <summary>
         /// Clears the buffer.
@@ -454,7 +297,7 @@ namespace Gurux.DLMS.Objects
 
         #region IGXDLMSBase Members
 
-        byte[][] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
         {
             throw new ArgumentException("Invoke failed. Invalid attribute index.");
         }
@@ -479,7 +322,7 @@ namespace Gurux.DLMS.Objects
             }
             //Buffer
             attributes.Add(2);
-           
+
             //SortMethod
             if (!base.IsRead(5))
             {
@@ -504,7 +347,7 @@ namespace Gurux.DLMS.Objects
         string[] IGXDLMSBase.GetNames()
         {
             return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, "CaptureObjects", 
-                "Capture Period", "Buffer", "Sort Method", "Sort Object", "Entries In Use", "Profile Entries"};            
+                "Capture Period", "Buffer", "Sort Method", "Sort Object", "Entries In Use", "Profile Entries"};
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -524,24 +367,24 @@ namespace Gurux.DLMS.Objects
         /// <returns></returns>
         byte[] GetData(List<object[]> table)
         {
-            List<byte> data = new List<byte>();
-            data.Add((byte)DataType.Array);
+            GXByteBuffer data = new GXByteBuffer();
+            data.SetUInt8((byte)DataType.Array);
             GXCommon.SetObjectCount(table.Count, data);
             foreach (object[] items in table)
             {
-                data.Add((byte)DataType.Structure);
+                data.SetUInt8((byte)DataType.Structure);
                 GXCommon.SetObjectCount(items.Length, data);
                 foreach (object value in items)
                 {
-                    Gurux.DLMS.DataType tp = Gurux.DLMS.Internal.GXCommon.GetValueType(value);
+                    DataType tp = Gurux.DLMS.Internal.GXCommon.GetValueType(value);
                     GXCommon.SetData(data, tp, value);
                 }
             }
-            return data.ToArray();
-        }             
+            return data.Array();
+        }
 
         byte[] GetProfileGenericData(int selector, object parameters)
-        {                        
+        {
             //If all data is read.
             if (selector == 0 || parameters == null)
             {
@@ -553,15 +396,16 @@ namespace Gurux.DLMS.Objects
             {
                 if (selector == 1) //Read by range
                 {
-                    DataType dt = DataType.DateTime;
-                    int a, b, c = 0, pos = 0;
-                    GXDateTime start = (GXDateTime)GXCommon.GetData((byte[])arr[1], ref pos, ActionType.None, out a, out b, ref dt, ref c);
-                    c = pos = 0;
-                    GXDateTime end = (GXDateTime)GXCommon.GetData((byte[])arr[2], ref pos, ActionType.None, out a, out b, ref dt, ref c);
+                    GXDataInfo info = new GXDataInfo();
+                    info.Type = DataType.DateTime;
+                    DateTime start = ((GXDateTime)GXCommon.GetData(new GXByteBuffer((byte[])arr[1]), info)).Value.LocalDateTime;
+                    info.Clear();
+                    info.Type = DataType.DateTime;
+                    DateTime end = ((GXDateTime)GXCommon.GetData(new GXByteBuffer((byte[])arr[2]), info)).Value.LocalDateTime;
                     foreach (object[] row in Buffer)
                     {
                         DateTime tm = Convert.ToDateTime(row[0]);
-                        if (tm >= start.Value && tm <= end.Value)
+                        if (tm >= start && tm <= end)
                         {
                             table.Add(row);
                         }
@@ -595,27 +439,27 @@ namespace Gurux.DLMS.Objects
         /// <returns></returns>
         byte[] GetColumns()
         {
-            List<byte> data = new List<byte>();
-            data.Add((byte)DataType.Array);
+            GXByteBuffer data = new GXByteBuffer();
+            data.SetUInt8((byte)DataType.Array);
             //Add count
             GXCommon.SetObjectCount(CaptureObjects.Count, data);
             foreach (var it in CaptureObjects)
             {
-                data.Add((byte)DataType.Structure);
-                data.Add(4);//Count    
+                data.SetUInt8((byte)DataType.Structure);
+                data.SetUInt8(4);//Count    
                 GXCommon.SetData(data, DataType.UInt16, it.Key.ObjectType);//ClassID
                 GXCommon.SetData(data, DataType.OctetString, it.Key.LogicalName);//LN
                 GXCommon.SetData(data, DataType.Int8, it.Value.AttributeIndex); //Selected Attribute Index
                 GXCommon.SetData(data, DataType.UInt16, it.Value.DataIndex); //Selected Data Index                
             }
-            return data.ToArray();
+            return data.Array();
         }
 
         override public DataType GetDataType(int index)
         {
             if (index == 1)
             {
-                return DataType.OctetString;                
+                return DataType.OctetString;
             }
             if (index == 2)
             {
@@ -631,24 +475,24 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 5)
             {
-                return DataType.Int8;                
+                return DataType.Int8;
             }
             if (index == 6)
             {
-                return DataType.Array;                
+                return DataType.Array;
             }
             if (index == 7)
             {
-                return DataType.Int8;                
+                return DataType.Int8;
             }
             if (index == 8)
             {
-                return DataType.Int8;                
+                return DataType.Int8;
             }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
         {
             if (index == 1)
             {
@@ -656,7 +500,7 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 2)
             {
-                return GetProfileGenericData(selector, parameters);   
+                return GetProfileGenericData(selector, parameters);
             }
             if (index == 3)
             {
@@ -671,10 +515,10 @@ namespace Gurux.DLMS.Objects
                 return SortMethod;
             }
             if (index == 6)
-            {                
-                List<byte> data = new List<byte>();            
-                data.Add((byte)DataType.Structure);
-                data.Add((byte) 4); //Count  
+            {
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte)DataType.Structure);
+                data.SetUInt8((byte)4); //Count  
                 if (SortObject == null)
                 {
                     GXCommon.SetData(data, DataType.UInt16, 0); //ClassID
@@ -688,8 +532,8 @@ namespace Gurux.DLMS.Objects
                     GXCommon.SetData(data, DataType.OctetString, SortObject.LogicalName); //LN
                     GXCommon.SetData(data, DataType.Int8, SortAttributeIndex); //Selected Attribute Index
                     GXCommon.SetData(data, DataType.UInt16, SortDataIndex); //Selected Data Index
-                }            
-                return data.ToArray();
+                }
+                return data.Array();
             }
             if (index == 7)
             {
@@ -702,7 +546,7 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value)
         {
             if (index == 1)
             {
@@ -741,7 +585,7 @@ namespace Gurux.DLMS.Objects
                                     if (row[pos] is GXDateTime)
                                     {
                                         GXDateTime dt = (GXDateTime)row[pos];
-                                        lastDate = dt.Value;
+                                        lastDate = dt.Value.LocalDateTime;
                                     }
                                 }
                             }
@@ -749,7 +593,7 @@ namespace Gurux.DLMS.Objects
                             {
                                 if (lastDate == DateTime.MinValue && Buffer.Count != 0)
                                 {
-                                    lastDate = ((GXDateTime)Buffer[Buffer.Count - 1].GetValue(pos)).Value;
+                                    lastDate = ((GXDateTime)Buffer[Buffer.Count - 1].GetValue(pos)).Value.LocalDateTime;
                                 }
                                 if (lastDate != DateTime.MinValue)
                                 {
@@ -771,7 +615,7 @@ namespace Gurux.DLMS.Objects
                                         //Skip error
                                     }
                                 }
-                            }                            
+                            }
                         }
                         Buffer.Add(row);
                     }
@@ -792,7 +636,7 @@ namespace Gurux.DLMS.Objects
                         throw new GXDLMSException("Invalid structure format.");
                     }
                     ObjectType type = (ObjectType)Convert.ToInt16(tmp[0]);
-                    string ln = GXDLMSObject.toLogicalName((byte[]) tmp[1]);
+                    string ln = GXDLMSObject.ToLogicalName((byte[])tmp[1]);
                     int attributeIndex = Convert.ToInt16(tmp[2]);
                     int dataIndex = Convert.ToInt16(tmp[3]);
                     GXDLMSObject obj = null;
@@ -827,7 +671,7 @@ namespace Gurux.DLMS.Objects
                         throw new GXDLMSException("Invalid structure format.");
                     }
                     ObjectType type = (ObjectType)Convert.ToInt16(tmp[0]);
-                    string ln = GXDLMSObject.toLogicalName((byte[])tmp[1]);
+                    string ln = GXDLMSObject.ToLogicalName((byte[])tmp[1]);
                     SortAttributeIndex = Convert.ToInt16(tmp[2]);
                     SortDataIndex = Convert.ToInt16(tmp[3]);
                     SortObject = null;

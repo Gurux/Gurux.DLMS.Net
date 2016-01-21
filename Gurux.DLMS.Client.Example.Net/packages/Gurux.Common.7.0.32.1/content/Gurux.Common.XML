@@ -1,0 +1,1521 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Gurux.Common</name>
+    </assembly>
+    <members>
+        <member name="T:Gurux.Common.TraceTypes">
+            <summary>
+            Trace Type enumerates where trace is sent.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.TraceTypes.Sent">
+            <summary>
+            Data is sent.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.TraceTypes.Received">
+            <summary>
+            Data is received.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.TraceTypes.Error">
+            <summary>
+            Error has occurred.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.TraceTypes.Warning">
+            <summary>
+            Warning.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.TraceTypes.Info">
+            <summary>
+            Info. Example Media states are notified as info.
+            </summary>
+        </member>
+        <member name="T:Gurux.Common.CreateObjectEventhandler">
+            <summary>
+            JSON parser want's to create 
+            </summary>
+            <param name="sender"></param>
+            <param name="type"></param>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Gurux.Common.GXJsonParser">
+            <summary>
+            This class is used to handle JSON serialization and deserialization.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.GXJsonParser.SerializedObjects">
+            <summary>
+            Serialized and deserialization objects are saved to cache to make serialization faster.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.GXJsonParser.ParseObjects(System.String)">
+            <summary>
+            Parse JSON Objects.
+            </summary>
+            <param name="data">data string.</param>
+            <returns>Name/value pair of found objects.</returns>
+        </member>
+        <member name="M:Gurux.Common.GXJsonParser.ParseObjectsFromFile(System.String)">
+            <summary>
+            Parse JSON Objects from File.
+            </summary>
+            <param name="data">data string.</param>
+            <returns>Name/value pair of found objects.</returns>
+        </member>
+        <member name="M:Gurux.Common.GXJsonParser.GetDateTime(System.String)">
+            <summary>
+            Convert JSON epoch time to DateTime.
+            </summary>
+            <param name="str"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Gurux.Common.GXJsonParser.ToString(System.DateTime)">
+            <summary>
+            Convert date time to epoch string.
+            </summary>
+            <param name="dt"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Gurux.Common.GXJsonParser.SetValue(System.Object,System.Reflection.PropertyInfo,System.Reflection.FieldInfo,System.String,System.Type)">
+            <summary>
+            Set object value.
+            </summary>
+            <param name="target"></param>
+            <param name="pd"></param>
+            <param name="value"></param>
+            <param name="type"></param>
+        </member>
+        <member name="M:Gurux.Common.GXJsonParser.Deserialize``1(System.String)">
+            <summary>
+            Deserialize JSON data to objects.
+            </summary>
+            <typeparam name="T">Deserialized type.</typeparam>
+            <param name="data">JSON data.</param>
+            <returns>Deserialized object.</returns>
+        </member>
+        <member name="M:Gurux.Common.GXJsonParser.Deserialize(System.String,System.Type)">
+            <summary>
+            Deserialize JSON data to objects.
+            </summary>
+            <param name="type">Data type.</param>
+            <param name="data">JSON data as a string.</param>
+            <returns>JSON data.</returns>
+        </member>
+        <member name="M:Gurux.Common.GXJsonParser.Save(System.Object,System.String)">
+            <summary>
+            Save object as JSON object.
+            </summary>
+            <param name="target">object to save.</param>
+            <param name="path">File path.</param>
+        </member>
+        <member name="M:Gurux.Common.GXJsonParser.GetValue(System.String,System.String)">
+            <summary>
+            Get JSON value by name.
+            </summary>
+            <param name="data">JSON data.</param>
+            <param name="name">object name.</param>
+            <returns>Found value or null if name not found.</returns>
+        </member>
+        <member name="M:Gurux.Common.GXJsonParser.Load``1(System.String)">
+            <summary>
+            Load JSON object.
+            </summary>
+            <typeparam name="T">Onject type to load.</typeparam>
+            <param name="path">File path.</param>
+            <returns>Loaded object.</returns>
+        </member>
+        <member name="M:Gurux.Common.GXJsonParser.IsJSONFile(System.String)">
+            <summary>
+            Is file JSON file.
+            </summary>
+            <param name="path"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Gurux.Common.GXJsonParser.TryLoad``1(System.String,``0@)">
+            <summary>
+            Try load JSON object.
+            </summary>
+            <typeparam name="T">Onject type to load.</typeparam>
+            <param name="path">File path.</param>
+            <returns>Loaded object.</returns>
+        </member>
+        <member name="M:Gurux.Common.GXJsonParser.Load(System.String,System.Type)">
+            <summary>
+            Load JSON object.
+            </summary>
+            <param name="path">File path.</param>
+            <param name="type">Object type</param>
+        </member>
+        <member name="M:Gurux.Common.GXJsonParser.LoadFile(System.String,System.Type)">
+            <summary>
+            Load JSON object.
+            </summary>
+            <param name="path">File path.</param>
+            <param name="type">Object type</param>
+        </member>
+        <member name="M:Gurux.Common.GXJsonParser.Serialize(System.Object)">
+            <summary>
+            Serialize object to JSON string.
+            </summary>
+            <param name="target"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Gurux.Common.GXJsonParser.GetValues(System.Type)">
+            <summary>
+            Get serialized property and field values.
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Gurux.Common.GXJsonParser.Serialize(System.Object,System.Text.StringBuilder,System.Boolean,System.Boolean)">
+            <summary>
+            Serialize object to JSON string.
+            </summary>
+            <param name="target"></param>
+            <param name="get"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Gurux.Common.GXJsonParser.Deserialize(System.Collections.Generic.Dictionary{System.String,System.Object},System.Type)">
+            <summary>
+            Deserialize JSON data to objects.
+            </summary>
+            <param name="data"></param>
+            <param name="type"></param>        
+            <returns></returns>
+        </member>
+        <member name="M:Gurux.Common.GXJsonParser.Deserialize(System.Collections.Generic.Dictionary{System.String,System.Object},System.Type,System.Object)">
+            <summary>
+            Deserialize JSON data to objects.
+            </summary>
+            <param name="data"></param>
+            <param name="type"></param>        
+            <returns></returns>
+        </member>
+        <member name="M:Gurux.Common.GXJsonParser.UpdateValue(System.Object,System.Collections.Generic.KeyValuePair{System.String,Gurux.Common.GXJsonParser.GXSerializedItem},System.Collections.Generic.KeyValuePair{System.String,System.Object})">
+            <summary>
+            Update serialized value.
+            </summary>
+            <param name="target">Component where value is updated.</param>
+            <param name="item">Property where data is updated.</param>
+            <param name="serializedItem">Serialized data</param>
+            <returns>True, if value is updated.</returns>
+        </member>
+        <member name="M:Gurux.Common.GXJsonParser.ParseObjects(System.String,System.Int32@,System.String,System.Boolean)">
+            <summary>
+            Parse JSON Objects.
+            </summary>
+            <param name="data">data string.</param>
+            <param name="index">index of string.</param>
+            <param name="tagName">Tag name to find. When tag is found parse is breaked.</param>
+            <returns>Name/value pair of found objects.</returns>
+        </member>
+        <member name="P:Gurux.Common.GXJsonParser.Address">
+            <summary>
+            Server address.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.GXJsonParser.Indent">
+            <summary>
+             Indent elements.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.GXJsonParser.Tag">
+            <summary>
+             Gets or sets an object that contains data to associate with the parser.
+            </summary>
+        </member>
+        <member name="E:Gurux.Common.GXJsonParser.OnCreateObject">
+            <summary>
+            Notifies that abstract class is created.
+            </summary>
+        </member>
+        <member name="T:Gurux.Common.LibraryVersionsDlg">
+            <summary>
+            Show library versions.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.LibraryVersionsDlg.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.LibraryVersionsDlg.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:Gurux.Common.LibraryVersionsDlg.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.LibraryVersionsDlg.#ctor">
+            <summary>
+            Initializes a new instance of the LibraryVersionsDlg class.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.LibraryVersionsDlg.OnHelpRequested(System.Windows.Forms.HelpEventArgs)">
+            <summary>
+            Show help not available message.
+            </summary>
+            <param name="hevent">A HelpEventArgs that contains the event data.</param>
+        </member>
+        <member name="T:Gurux.Common.AsyncTransaction">
+            <summary>
+            Method to execute.
+            </summary>
+            <param name="sender">Work creator.</param>
+            <param name="work">Work to execute.</param>
+            <param name="parameters">Additional parameters.</param>
+        </member>
+        <member name="T:Gurux.Common.AsyncStateChangeEventHandler">
+            <summary>
+            Status of work is changed.
+            </summary>
+            <param name="work">Work to execute</param>
+            <param name="sender">Sender Form.</param>
+            <param name="parameters">Work parameters.</param>   
+            <param name="state">New state.</param>
+            <param name="text">Shown text.</param>
+        </member>
+        <member name="T:Gurux.Common.GXAsyncWork">
+            <summary>
+            This class is used to start work that requires thread.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.GXAsyncWork.#ctor(System.Object,Gurux.Common.AsyncStateChangeEventHandler,Gurux.Common.AsyncTransaction,Gurux.Common.ErrorEventHandler,System.String,System.Object[])">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+            <param name="command"></param>
+            <param name="error"></param>
+            <param name="text"></param>
+            <param name="parameters"></param>
+        </member>
+        <member name="M:Gurux.Common.GXAsyncWork.Start">
+            <summary>
+            Start work.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.GXAsyncWork.Cancel">
+            <summary>
+            Cancel work.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.GXAsyncWork.Wait(System.Int32)">
+            <summary>
+            Wait until work is done.
+            </summary>
+            <param name="wt">Wait time in ms.</param>
+        </member>
+        <member name="P:Gurux.Common.GXAsyncWork.Result">
+            <summary>
+            Result of async work.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.GXAsyncWork.IsRunning">
+            <summary>
+            Is Async work active.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.GXAsyncWork.IsCanceled">
+            <summary>
+            Is work canceled.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.AboutBox1.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.AboutBox1.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.AboutBox1.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="T:Gurux.Common.ReceiveParameters`1">
+            <summary>
+            ReceiveArgs class is used when data ir read synchronously.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.ReceiveParameters`1.#ctor">
+            <summary>
+            Constructor.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.ReceiveParameters`1.Peek">
+            <summary>
+            If true, returns the bytes from the buffer without removing.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.ReceiveParameters`1.Eop">
+            <summary>
+            The end of packet (EOP) waited for.
+            </summary>
+            <remarks>
+            The EOP can, for example be a single byte ('0xA1'), 
+            a string ("OK") or an array of bytes.        
+            </remarks>
+        </member>
+        <member name="P:Gurux.Common.ReceiveParameters`1.Count">
+            <summary>
+            The number of reply data bytes to be read.
+            </summary>
+            <remarks>
+            Count can be between 0 and n bytes.
+            </remarks>
+        </member>
+        <member name="P:Gurux.Common.ReceiveParameters`1.WaitTime">
+            <summary>
+            Maximum time, in milliseconds, to wait for reply data. 
+            WaitTime -1 (Default value) indicates infinite wait time.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.ReceiveParameters`1.AllData">
+            <summary>
+            If True, all the reply data is moved to ReplyData.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.ReceiveParameters`1.Reply">
+            <summary>
+            Received reply data.
+            </summary>
+        </member>
+        <member name="T:Gurux.Common.GXWizardButtons">
+            <summary>
+            Defines the type of a button on a wizard dialog.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.GXWizardButtons.All">
+            <summary>
+            All buttons are shown.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.GXWizardButtons.None">
+            <summary>
+            No buttons is shown.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.GXWizardButtons.Next">
+            <summary>
+            Next button is shown.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.GXWizardButtons.Back">
+            <summary>
+            Back button is shown.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.GXWizardButtons.Finish">
+            <summary>
+            Finish button is shown.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.GXWizardButtons.Cancel">
+            <summary>
+            Cancel button is shown.
+            </summary>
+        </member>
+        <member name="T:Gurux.Common.IGXPropertyPage">
+            <summary>
+            Property page must implement this interface.
+            </summary>
+            <remarks>
+            Media components that want to show property pages must implement this interface.
+            </remarks>
+        </member>
+        <member name="M:Gurux.Common.IGXPropertyPage.Initialize">
+            <summary>
+            Page becomes visible.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.IGXPropertyPage.Apply">
+            <summary>
+            Updates the data to the GXDevice.
+            </summary>
+        </member>
+        <member name="T:Gurux.Common.IGXWizardPage">
+            <summary>
+            Interface for Gurux wizard pages.
+            </summary>
+            <remarks>
+            The IGXWizardPage interface defines methods common to all wizard pages.
+            </remarks>
+        </member>
+        <member name="M:Gurux.Common.IGXWizardPage.IsShown">
+            <summary>
+            Returns True, if the page is shown.
+            </summary>
+            <remarks>
+            This property is used to hide wizard pages at run time.
+            </remarks>
+            <returns>True if the page is shown.</returns>
+        </member>
+        <member name="M:Gurux.Common.IGXWizardPage.Next">
+            <summary>
+            Validates the input and gets ready to move to next page.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.IGXWizardPage.Back">
+            <summary>
+            Resets the input if needed.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.IGXWizardPage.Finish">
+            <summary>
+            Updates the data to the GXDevice.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.IGXWizardPage.Cancel">
+            <summary>
+            Closes connections etc.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.IGXWizardPage.Initialize">
+            <summary>
+            Initialize page
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.IGXWizardPage.EnabledButtons">
+            <summary>
+            Returns enabled buttons.
+            </summary>
+            <remarks>
+            By default all buttons are enabled.
+            </remarks>
+        </member>
+        <member name="P:Gurux.Common.IGXWizardPage.Caption">
+            <summary>
+            The title test of the dialog.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.IGXWizardPage.Description">
+            <summary>
+            Gets a string that describes the wizard page object.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.IGXWizardPage.Target">
+            <summary>
+            Get/Set target.
+            </summary>
+            <remarks>
+            This is used so user can change target type from the wizard.
+            </remarks>
+        </member>
+        <member name="F:Gurux.Common.AddInStates.Available">
+            <summary>
+            New AddIn is available.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.AddInStates.Download">
+            <summary>
+            New AddIn is marked to download.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.AddInStates.Installed">
+            <summary>
+            AddIn is installed.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.AddInStates.Disabled">
+            <summary>
+            AddIn is disabled.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.AddInStates.Update">
+            <summary>
+            Version is update to installed one.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.GXAddIn.#ctor">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.GXAddIn.InstalledVersion">
+            <summary>
+            Installed version number.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.GXAddIn.Version">
+            <summary>
+            Update version number.
+            </summary>
+        </member>
+        <member name="T:Gurux.Common.NamespaceDoc">
+            <summary>
+            Gurux.Common class implements interfaces that are needed for Gurux Media components and Gurux Device Framework.
+            </summary>
+        </member>
+        <member name="T:Gurux.Common.MediaStateEventArgs">
+            <summary>
+            An argument class for media state changed event.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.MediaStateEventArgs.#ctor">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.MediaStateEventArgs.#ctor(Gurux.Common.MediaState)">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.MediaStateEventArgs.State">
+            <summary>
+            Status information from media state.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.MediaStateEventArgs.Accept">
+            <summary>
+            True is returned if media state change succeeded.
+            </summary>
+        </member>
+        <member name="T:Gurux.Common.ProtocolUpdateStatus">
+            <summary>
+            Is there any updates.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.ProtocolUpdateStatus.None">
+            <summary>
+            There are no new updates available.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.ProtocolUpdateStatus.Changed">
+            <summary>
+            Updates are installed.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.ProtocolUpdateStatus.Restart">
+            <summary>
+            Updates are installed and restart is required.
+            </summary>
+        </member>
+        <member name="T:Gurux.Common.CheckUpdatesEventHandler">
+            <summary>
+            Represents the method that will handle the event that has no event data.
+            </summary>
+        </member>
+        <member name="T:Gurux.Common.GXUpdateChecker">
+            <summary>
+            This class is used to check new updates from Gurux web pages.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.GXUpdateChecker.UpdateProtocols">
+            <summary>
+            Update protocols from the Gurux www server.
+            </summary>        
+        </member>
+        <member name="M:Gurux.Common.GXUpdateChecker.UpdateApplications">
+            <summary>
+            Update applications from the Gurux www server.
+            </summary>        
+        </member>
+        <member name="M:Gurux.Common.GXUpdateChecker.ShowUpdates(System.Windows.Forms.IWin32Window,System.Boolean,System.Boolean)">
+            <summary>
+            Show updates.
+            </summary>
+            <param name="owner"></param>
+            <param name="showAddins"></param>
+            <param name="onlyNew"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Gurux.Common.GXUpdateChecker.ShowUpdates(System.Windows.Forms.IWin32Window,System.Boolean,System.Boolean,System.String[]@)">
+            <summary>
+            Show updates.
+            </summary>
+            <param name="owner"></param>
+            <param name="showAddins">Are addIns show or only application updates.</param>
+            <param name="onlyNew"></param>
+            <param name="DisabledItems">collection of disabled addins.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Gurux.Common.GXUpdateChecker.IsUpdatesOnline">
+            <summary>
+            Is there any new updates avaialble.
+            </summary>
+            <returns>Returns True, if new updates are available.</returns>
+        </member>
+        <member name="M:Gurux.Common.GXUpdateChecker.IsNewVersion(System.String,System.String)">
+            <summary>
+            Compares version strings. A ersion string is assumed to 
+            contain four digits separated by '.' or ',', for example "1.2.3.4".
+            </summary>
+            <param name="newVersion"></param>
+            <param name="installerVersion"></param>
+            <returns>Returns true if this is new version.</returns>
+        </member>
+        <member name="M:Gurux.Common.GXUpdateChecker.GetUpdatesOnline(System.Boolean)">
+            <summary>
+            Check if there are any updates available in Gurux www server.
+            </summary>
+            <returns>Returns true if there are any updates available.</returns>
+        </member>
+        <member name="M:Gurux.Common.GXUpdateChecker.CheckUpdates(System.Object)">
+            <summary>
+            Check if new updates are available.
+            </summary>
+            <param name="target"></param>
+        </member>
+        <member name="E:Gurux.Common.GXUpdateChecker.OnCheckUpdates">
+            <summary>
+            Represents the method that will handle the event that has no event data.
+            </summary>
+        </member>
+        <member name="T:Gurux.Common.GXFileSystemSecurity">
+            <summary>
+            This class is used to handle file elevation.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.GXFileSystemSecurity.UpdateDirectorySecurity(System.String)">
+            <summary>
+            Opens up directory access for Everyone at FullAccess.
+            </summary>
+            <param name="path">Directory to updated.</param>
+        </member>
+        <member name="M:Gurux.Common.GXFileSystemSecurity.UpdateFileSecurity(System.String)">
+            <summary>
+            Opens up file access for Everyone at FullAccess.
+            </summary>
+            <param name="filePath">File path.</param>
+        </member>
+        <member name="T:Gurux.Common.ReceiveEventArgs">
+            <summary>
+            Argument class for IGXMedia data received events.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.ReceiveEventArgs.#ctor">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.ReceiveEventArgs.#ctor(System.Object,System.String)">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.ReceiveEventArgs.Data">
+            <summary>
+            Pointer to the byte buffer containing the data, 
+            which is received from the device.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.ReceiveEventArgs.SenderInfo">
+            <summary>
+            Media depend sender information.
+            </summary>
+        </member>
+        <member name="T:Gurux.Common.GXAboutForm">
+            <summary>
+            This class is used to shown general About dialog.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.GXAboutForm.ShowAbout(System.Windows.Forms.IWin32Window,System.String)">
+            <summary>
+            Show About dialog.
+            </summary>        
+            <param name="owner"> An implementation of IWin32Window that will own the modal dialog box.</param>
+            <param name="version">Version number.</param>
+        </member>
+        <member name="P:Gurux.Common.GXAboutForm.Application">
+            <summary>
+            Application name.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.GXAboutForm.Title">
+            <summary>
+            Title of the About dialog.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.GXAboutForm.CopyrightText">
+            <summary>
+            Copyright text.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.GXAboutForm.AboutText">
+            <summary>
+            About text.
+            </summary>
+        </member>
+        <member name="T:Gurux.Common.MediaState">
+            <summary>
+            Available media state changes.
+            </summary>    
+        </member>
+        <member name="F:Gurux.Common.MediaState.Closed">
+            <summary>
+            Media is closed.<br/>            
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.MediaState.Open">
+            <summary>
+            Media is open.<br/>            
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.MediaState.Opening">
+            <summary>
+            Media is opening.<br/>
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.MediaState.Closing">
+            <summary>
+            Media is closing.<br/>            
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.MediaState.Changed">
+            <summary>
+            GXClients Media type has changed.<br/>            
+            </summary>
+        </member>
+        <member name="T:Gurux.Common.ErrorEventHandler">
+            <summary>
+            Represents the method that will handle the error event of a Gurux component.
+            </summary>
+            <param name="sender">The source of the event.</param>
+            <param name="ex">An Exception object that contains the event data.</param>
+        </member>
+        <member name="T:Gurux.Common.ReceivedEventHandler">
+            <summary>
+            Media component sends received data through this method.
+            </summary>
+            <param name="sender">The source of the event.</param>
+            <param name="e">Event arguments.</param>
+        </member>
+        <member name="T:Gurux.Common.MediaStateChangeEventHandler">
+            <summary>
+            Media component sends notification, when its state changes.
+            </summary>
+            <param name="sender">The source of the event.</param>    
+            <param name="e">Event arguments.</param>
+        </member>
+        <member name="T:Gurux.Common.ClientConnectedEventHandler">
+            <summary>
+            Called when the client is establishing a connection with a GXNet Server.
+            </summary>
+            <param name="sender">The source of the event.</param>    
+            <param name="e">Event arguments.</param>
+        </member>
+        <member name="T:Gurux.Common.ClientDisconnectedEventHandler">
+            <summary>
+            Called when the client has been disconnected from the GXNet server.
+            </summary>
+            <param name="sender">The source of the event.</param>    
+            <param name="e">Event arguments.</param>
+        </member>
+        <member name="T:Gurux.Common.TraceEventHandler">
+            <summary>
+            Called when the Media is sending or receiving data.
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+            <seealso cref="P:Gurux.Common.IGXMedia.Trace">Trace</seealso>seealso&gt;
+        </member>
+        <member name="T:Gurux.Common.IGXMedia">
+            <summary>
+            Common interface for all Media components.<br/>
+            Using this interface GXCommunication library enables communication with
+            different medias.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.IGXMedia.Copy(System.Object)">
+            <summary>
+            Copies the content of the media to target media.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.IGXMedia.Open">
+            <summary>
+            Opens the media.
+            </summary>            
+        </member>
+        <member name="M:Gurux.Common.IGXMedia.Close">
+            <summary>
+            Closes the active connection.
+            </summary>            
+            <seealso cref="M:Gurux.Common.IGXMedia.Open">Open</seealso>
+        </member>
+        <member name="M:Gurux.Common.IGXMedia.Properties(System.Windows.Forms.Form)">
+            <summary>
+            Shows the media Properties dialog.
+            </summary>
+            <param name="parent">Parent window.</param>
+            <returns>Returns True if user has accect changes. Otherwice false.</returns>
+        </member>
+        <member name="M:Gurux.Common.IGXMedia.Send(System.Object,System.String)">
+            <summary>
+            Sends data asynchronously. <br/>
+            No reply from the receiver, whether or not the operation was successful, is expected.
+            </summary>
+            <param name="data">Data to send to the device.</param>
+            <param name="receiver">Media depend information of the receiver (optional).</param>
+            <seealso cref="M:Gurux.Common.IGXMedia.Receive``1(Gurux.Common.ReceiveParameters{``0})">Receive</seealso>
+        </member>
+        <member name="M:Gurux.Common.IGXMedia.Receive``1(Gurux.Common.ReceiveParameters{``0})">
+            <summary>
+            Waits for more reply data After SendSync if whole packet is not received yet.
+            </summary>
+            <param name="args">Receive data arguments.</param>
+            <returns>True, if the send operation was successful.</returns>
+            <seealso cref="M:Gurux.Common.IGXMedia.Send(System.Object,System.String)">SendSync</seealso>
+            <seealso cref="P:Gurux.Common.IGXMedia.Synchronous">Synchronous</seealso>
+        </member>
+        <member name="M:Gurux.Common.IGXMedia.ResetSynchronousBuffer">
+            <summary>
+            Resets synchronous buffer.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.IGXMedia.ResetByteCounters">
+            <summary>
+            Resets BytesReceived and BytesSent counters.
+            </summary>
+            <seealso cref="P:Gurux.Common.IGXMedia.BytesSent">BytesSent</seealso>
+            <seealso cref="P:Gurux.Common.IGXMedia.BytesReceived">BytesReceived</seealso>            
+        </member>
+        <member name="M:Gurux.Common.IGXMedia.Validate">
+            <summary>
+            Validate Media settings for connection open. Returns table of media properties that must be set before media is valid to open. Return NULL if media is capable to open with these settings.
+            </summary>
+            <returns>List of media properties that must set before connection can be established.</returns>
+        </member>
+        <member name="E:Gurux.Common.IGXMedia.OnReceived">
+            <inheritdoc cref="T:Gurux.Common.ReceivedEventHandler"/>
+        </member>
+        <member name="E:Gurux.Common.IGXMedia.OnError">
+            <inheritdoc cref="T:Gurux.Common.ErrorEventHandler"/>
+        </member>
+        <member name="E:Gurux.Common.IGXMedia.OnMediaStateChange">
+            <inheritdoc cref="T:Gurux.Common.MediaStateChangeEventHandler"/>
+        </member>
+        <member name="E:Gurux.Common.IGXMedia.OnClientConnected">
+            <inheritdoc cref="T:Gurux.Common.ClientConnectedEventHandler"/>
+        </member>
+        <member name="E:Gurux.Common.IGXMedia.OnClientDisconnected">
+            <inheritdoc cref="T:Gurux.Common.ClientDisconnectedEventHandler"/>
+        </member>
+        <member name="E:Gurux.Common.IGXMedia.OnTrace">
+            <inheritdoc cref="T:Gurux.Common.TraceEventHandler"/>
+        </member>
+        <member name="P:Gurux.Common.IGXMedia.Name">
+            <summary>
+            Returns name of the media.
+            </summary>
+            <remarks>
+            Media name is used to identify media connection, so two different media connection can not return same media name.
+            </remarks>
+        </member>
+        <member name="P:Gurux.Common.IGXMedia.Trace">
+            <summary>
+            Trace level of the IGXMedia for System.Diagnostic.Trace.Writes.
+            </summary>
+            <seealso cref="E:Gurux.Common.IGXMedia.OnTrace"/>        
+        </member>
+        <member name="P:Gurux.Common.IGXMedia.IsOpen">
+            <summary>
+            Checks if the connection is established.
+            </summary>	
+            <returns>True, if the connection is established.</returns>		
+        </member>
+        <member name="P:Gurux.Common.IGXMedia.PropertiesForm">
+            <summary>
+            Returns Media debended Properties form.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.IGXMedia.MediaType">
+            <summary>
+            Returns media type as a string.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.IGXMedia.Enabled">
+            <summary>
+            Return is media enabled.
+            </summary>
+            <remarks>
+            Media is disabled example if there is no serial port in the machine.
+            </remarks>
+        </member>
+        <member name="P:Gurux.Common.IGXMedia.Settings">
+            <summary>
+            Media settings as a XML string.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.IGXMedia.Synchronous">
+            <summary>
+            Locking this property makes the connection synchronized and stops sending OnReceived events.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.IGXMedia.IsSynchronous">
+            <summary>
+            Checks if the connection is in synchronous mode.
+            </summary>	
+            <returns>True, if the connection is in synchronous mode.</returns>		
+        </member>
+        <member name="P:Gurux.Common.IGXMedia.BytesSent">
+            <summary>
+            Sent byte count.
+            </summary>
+            <seealso cref="P:Gurux.Common.IGXMedia.BytesReceived">BytesReceived</seealso>
+            <seealso cref="M:Gurux.Common.IGXMedia.ResetByteCounters">ResetByteCounters</seealso>            
+        </member>
+        <member name="P:Gurux.Common.IGXMedia.BytesReceived">
+            <summary>
+            Received byte count.
+            </summary>
+            <seealso cref="P:Gurux.Common.IGXMedia.BytesSent">BytesSent</seealso>
+            <seealso cref="M:Gurux.Common.IGXMedia.ResetByteCounters">ResetByteCounters</seealso>            
+        </member>
+        <member name="P:Gurux.Common.IGXMedia.Eop">
+            <summary>
+            Data is buffered until EOP is received.
+            </summary>            
+        </member>
+        <member name="P:Gurux.Common.IGXMedia.ConfigurableSettings">
+            <summary>
+            Visible controls on the properties dialog.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.IGXMedia.Tag">
+            <summary>
+            Gets or sets an object that contains data to associate with the item.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.IGXMedia.MediaContainer">
+            <summary>
+            Parent media container if Gateway is used.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.IGXMedia.SyncRoot">
+            <summary>
+            Gets an object that can be used to synchronize the media.
+            </summary>        
+        </member>
+        <member name="T:Gurux.Common.IGXMediaContainer">
+            <summary>
+            Media container is used to create Gateway Media.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.IGXMediaContainer.Media">
+            <summary>
+            Child media.
+            </summary>
+        </member>
+        <member name="T:Gurux.Common.GetPropertyValueEventHandler">
+            <summary>
+            Get value of virtual property.
+            </summary>
+            <param name="propertyName"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Gurux.Common.IGXVirtualMedia">
+            <summary>
+            Virtual media is used to create virtual media.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.IGXVirtualMedia.DataReceived(System.Byte[],System.String)">
+            <summary>
+            Called when new data is received to the virtual media.
+            </summary>
+            <param name="data">Received data.</param>
+            <param name="sender">Data sender.</param>
+        </member>
+        <member name="P:Gurux.Common.IGXVirtualMedia.Virtual">
+            <summary>
+            Is media virtual.
+            </summary>
+            <remarks>
+            If media is virtual actual data is not send only notifications.
+            </remarks>
+        </member>
+        <member name="E:Gurux.Common.IGXVirtualMedia.OnGetPropertyValue">
+            <summary>
+            Occurs when a property value is asked.
+            </summary>
+        </member>
+        <member name="E:Gurux.Common.IGXVirtualMedia.OnDataSend">
+            <summary>
+            Notifies that new data is received.
+            </summary>
+        </member>
+        <member name="T:Gurux.Common.GXCommon">
+            <summary>
+            Common Gurux helpers. 
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.GXCommon.CheckFramework">
+            <summary>
+            Check that correct framework is installed.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.GXCommon.Title">
+            <summary>
+            Title of messagebox
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.GXCommon.Owner">
+            <summary>
+            Parent window of messagebox
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.GXCommon.ToHex(System.Byte[],System.Boolean)">
+            <summary>
+            Convert byte array to hex string.
+            </summary>
+            <param name="bytes">Byte array to convert.</param>
+            <param name="addSpace">Is space added between bytes.</param>
+            <returns>Byte array as hex string.</returns>
+        </member>
+        <member name="M:Gurux.Common.GXCommon.HexToBytes(System.String,System.Boolean)">
+            <summary>
+            Convert string to byte array.
+            </summary>
+            <param name="str">Hex string</param>
+            <param name="includeSpace">Is there space between hex values.</param>
+            <returns>Byte array.</returns>
+        </member>
+        <member name="M:Gurux.Common.GXCommon.TraceWriteLine(System.String)">
+            <summary>
+            Writes a timestamped line using System.Diagnostics.Trace.WriteLine
+            </summary>
+            <param name="line">Trace string</param>
+        </member>
+        <member name="M:Gurux.Common.GXCommon.TraceWrite(System.String)">
+            <summary>
+            Writes a timestamped string using System.Diagnostics.Trace.Write
+            </summary>
+            <param name="line">Trace string</param>
+        </member>
+        <member name="M:Gurux.Common.GXCommon.GetAsByteArray(System.Object)">
+            <summary>
+            Convert object to byte array.
+            </summary>
+            <param name="value"></param>
+            <returns>Object as byte array.</returns>
+        </member>
+        <member name="M:Gurux.Common.GXCommon.ByteArrayToObject(System.Byte[],System.Type,System.Int32,System.Int32,System.Boolean,System.Int32@)">
+            <summary>
+            Convert byte array to object.
+            </summary>
+            <param name="byteArray">Byte array where Object uis created.</param>
+            <param name="type">Object type.</param>
+            <param name="index">Byte array index.</param>
+            <param name="count">Byte count.</param>
+            <param name="reverse">Is value reversed.</param>
+            <param name="readBytes">Count of read bytes.</param>
+            <returns>Return object of given type.</returns>
+        </member>
+        <member name="M:Gurux.Common.GXCommon.ByteArrayToObject(System.Byte[],System.Type,System.Int32@)">
+            <summary>
+            Convert received byte stream to wanted object.
+            </summary>
+            <param name="byteArray">Bytes to parse.</param>
+            <param name="type">Object type.</param>
+            <param name="readBytes">Read byte count.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Gurux.Common.GXCommon.IndexOf(System.Byte[],System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Searches for the specified pattern and returns the index of the first occurrence
+            within the range of elements in the byte buffer that starts at the specified
+            index and contains the specified number of elements.
+            </summary>
+            <param name="input">Input byte buffer</param>
+            <param name="pattern"></param>
+            <param name="index">Index where search is started.</param>
+            <param name="count">Maximum search buffer size.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Gurux.Common.GXCommon.EqualBytes(System.Byte[],System.Byte[])">
+            <summary>
+            Compares two byte or byte array values.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.GXCommon.ShowError(System.Windows.Forms.IWin32Window,System.String,System.Exception)">
+            <summary>
+            Shows an error message.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.GXCommon.ShowError(System.Exception)">
+            <summary>
+            Shows an error message.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.GXCommon.ShowQuestion(System.String)">
+            <summary>
+            Shows an error question dialog.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.GXCommon.ShowExclamation(System.String)">
+            <summary>
+            Shows an error exclamation dialog.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.GXCommon.ShowError(System.Windows.Forms.IWin32Window,System.Exception)">
+            <summary>
+            Shows an error message.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.GXCommon.ShowQuestion(System.Windows.Forms.IWin32Window,System.String)">
+            <summary>
+            Shows an error question dialog.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.GXCommon.ShowExclamation(System.Windows.Forms.IWin32Window,System.String)">
+            <summary>
+            Shows an error exclamation dialog.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.GXCommon.ShowQuestion(System.Windows.Forms.IWin32Window,System.String,System.String)">
+            <summary>
+            Shows an error question dialog.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.GXCommon.ShowExclamation(System.Windows.Forms.IWin32Window,System.String,System.String)">
+            <summary>
+            Shows an error exclamation dialog.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.GXCommon.ReplaceEx(System.String,System.String,System.String)">
+            <summary>
+            Removes case sensitivity of given string.
+            </summary>
+            <param name="original">Original string.</param>
+            <param name="pattern">String to replace.</param>
+            <param name="replacement">Replacing string.</param>
+            <returns>The replaced string.</returns>
+        </member>
+        <member name="P:Gurux.Common.GXCommon.ApplicationDataPath">
+            <summary>
+            Retrieves the path to application data.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.GXCommon.ProtocolAddInsPath">
+            <summary>
+            If we are runnign program from debugger, all protocol Add-Ins are loaded from child "Protocols"- directory. 
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.GXCommon.UserDataPath">
+            <summary>
+            Retrieves application data path from environment variables.
+            </summary>
+        </member>
+        <member name="T:Gurux.Common.TraceEventArgs">
+            <summary>
+            Argument class for IGXMedia connection and disconnection events.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.TraceEventArgs.DataToString(System.Boolean)">
+            <summary>
+            Convert data to string.
+            </summary>
+            <param name="ascii">Is content get as ascii or hex string.</param>
+            <returns>Content of data as string.</returns>
+        </member>
+        <member name="M:Gurux.Common.TraceEventArgs.ToString">
+            <summary>
+            Show trace event content as string.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Gurux.Common.TraceEventArgs.#ctor(Gurux.Common.TraceTypes,System.Object,System.String)">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.TraceEventArgs.#ctor(Gurux.Common.TraceTypes,System.Byte[],System.Int32,System.Int32,System.String)">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.TraceEventArgs.Timestamp">
+            <summary>
+            Timestamp.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.TraceEventArgs.Type">
+            <summary>
+            Is data send or received and type of trace.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.TraceEventArgs.Data">
+            <summary>
+            Received/send data.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.TraceEventArgs.Receiver">
+            <summary>
+            Data receiver.
+            </summary>
+        </member>
+        <member name="T:Gurux.Common.ConnectionEventArgs">
+            <summary>
+            Argument class for IGXMedia connection and disconnection events.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.ConnectionEventArgs.#ctor">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.ConnectionEventArgs.#ctor(System.String)">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.ConnectionEventArgs.Info">
+            <summary>
+            Media depend information.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.ConnectionEventArgs.Accept">
+            <summary>
+            False, if the client is not accepted to connect.
+            </summary>
+        </member>
+        <member name="T:Gurux.Common.ClipboardCopy">
+            <summary>
+            Because MTA threading model is used clipboard can't access directly.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.ClipboardCopy.CopyDataToClipboard(System.Object)">
+            <summary>
+            Copies data from items and sub items in the list view to the clipboard.
+            </summary>
+            <param name="data">Data to copy.</param>
+        </member>
+        <member name="T:Gurux.Common.AddInsForm">
+            <summary>
+            This class is used to show a text editor in property grid.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.AddInsForm.#ctor(Gurux.Common.GXAddInList,System.Boolean,System.Boolean)">
+            <summary>
+            Initializes a new instance of the AddIns form.
+            </summary>
+        </member>
+        <member name="M:Gurux.Common.AddInsForm.Dispose(System.Boolean)">
+            <summary> 
+            Cleans up any resources being used.
+            </summary>
+        </member>
+        <member name="T:Gurux.Common.Properties.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.Available">
+            <summary>
+              Looks up a localized string similar to Available.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.AvailableAddIns">
+            <summary>
+              Looks up a localized string similar to Available AddIns.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.AvailableTxt">
+            <summary>
+              Looks up a localized string similar to Available:.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.AvailableUpdatesTxt">
+            <summary>
+              Looks up a localized string similar to Available Updates.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.CancelHelp">
+            <summary>
+              Looks up a localized string similar to Closes the dialog box without saving any changes you have made..
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.CancelTxt">
+            <summary>
+              Looks up a localized string similar to Cancel.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.ClosesTheDialogBoxWithoutSavingAnyChangesYouHaveMade">
+            <summary>
+              Looks up a localized string similar to Closes the dialog box without saving any changes you have made..
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.CopyTxt">
+            <summary>
+              Looks up a localized string similar to Copy.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.Disable">
+            <summary>
+              Looks up a localized string similar to Disable.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.Disabled">
+            <summary>
+              Looks up a localized string similar to Disabled.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.Download">
+            <summary>
+              Looks up a localized string similar to Download.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.Enable">
+            <summary>
+              Looks up a localized string similar to Enable.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.FindingProtocols">
+            <summary>
+              Looks up a localized string similar to Finding protocols..
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.HelpNotAvailable">
+            <summary>
+              Looks up a localized string similar to No Help topic is associated with this item..
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.Installed">
+            <summary>
+              Looks up a localized string similar to Installed:.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.InUse">
+            <summary>
+              Looks up a localized string similar to In use.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.LibraryCopyHelp">
+            <summary>
+              Looks up a localized string similar to Copies files to the clipboard..
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.LibraryListHelp">
+            <summary>
+              Looks up a localized string similar to Shows product and library versions..
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.LibraryVersionsTxt">
+            <summary>
+              Looks up a localized string similar to Library Versions.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.LocationTxt">
+            <summary>
+              Looks up a localized string similar to Location.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.NameTxt">
+            <summary>
+              Looks up a localized string similar to Name.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.NETFramework35">
+            <summary>
+              Looks up a localized string similar to .NET Framework 3.5.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.NetFramework35SP1MustBeInstalledBeforeTheApplicationCanBeUsed">
+            <summary>
+              Looks up a localized string similar to .Net framework 3.5 SP1 must be installed before the application can be used..
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.NetFramework35SP1Or40MustBeInstalledBeforeTheApplicationCanBeUsed">
+            <summary>
+              Looks up a localized string similar to .Net framework 3.5 SP1 or 4.0 must be installed before the application can be used..
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.NETFramework40">
+            <summary>
+              Looks up a localized string similar to .NET Framework 4.0.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.NewProtocolsAvailableTxt">
+            <summary>
+              Looks up a localized string similar to New updates available.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.NewProtocolsDownloadTxt">
+            <summary>
+              Looks up a localized string similar to There are new updates available. Do you want to download them?.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.NotHexString">
+            <summary>
+              Looks up a localized string similar to Not hex string.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.ProtocolsTxt">
+            <summary>
+              Looks up a localized string similar to Protocols.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.SP">
+            <summary>
+              Looks up a localized string similar to  SP .
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.State">
+            <summary>
+              Looks up a localized string similar to State.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.UnknownType">
+            <summary>
+              Looks up a localized string similar to Unknown type .
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.UpdateAvailable">
+            <summary>
+              Looks up a localized string similar to Update available.
+            </summary>
+        </member>
+        <member name="P:Gurux.Common.Properties.Resources.VersionTxt">
+            <summary>
+              Looks up a localized string similar to Version.
+            </summary>
+        </member>
+        <member name="T:Gurux.Common.AsyncState">
+            <summary>
+            Async state.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.AsyncState.Start">
+            <summary>
+            New work is started.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.AsyncState.Finish">
+            <summary>
+            Work is done.
+            </summary>
+        </member>
+        <member name="F:Gurux.Common.AsyncState.Cancel">
+            <summary>
+            Work ic chanceled.
+            </summary>
+        </member>
+    </members>
+</doc>

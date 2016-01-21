@@ -39,6 +39,7 @@ using System.Text;
 using Gurux.DLMS;
 using System.ComponentModel;
 using System.Xml.Serialization;
+using Gurux.DLMS.Enums;
 
 /// <summary>
 /// Executed scripts.
@@ -192,7 +193,7 @@ namespace Gurux.DLMS.Objects
         /// Data interface do not have any methods.
         /// </summary>
         /// <param name="index"></param>
-        byte[][] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
         {
             throw new ArgumentException("Invoke failed. Invalid attribute index.");
         }
@@ -242,7 +243,7 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
         {
             if (index == 1)
             {
@@ -250,29 +251,29 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 2)
             {
-                List<byte> data = new List<byte>();
-                data.Add((byte)DataType.Array);
-                data.Add((byte)Entries.Count);
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte)DataType.Array);
+                data.SetUInt8((byte)Entries.Count);
                 /*
                 foreach (GXScheduleEntry it in Entries)
                 {
-                    data.Add((byte)DataType.Structure);
-                    data.Add(10);
+                    data.SetUInt8((byte)DataType.Structure);
+                    data.SetUInt8(10);
                     //Add index.
-                    data.Add((byte)DataType.UInt8);
-                    data.Add(it.Index);
+                    data.SetUInt8((byte)DataType.UInt8);
+                    data.SetUInt8(it.Index);
                     //Add enable.
-                    data.Add((byte)DataType.Boolean);
-                    data.Add((byte) (it.Enable ? 1 : 0));
+                    data.SetUInt8((byte)DataType.Boolean);
+                    data.SetUInt8((byte) (it.Enable ? 1 : 0));
 
                     //Add logical Name.
-                    data.Add((byte)DataType.OctetString);
-                    data.Add((byte) it.LogicalName.Length);
-                    //TODO: data.Add((byte)it.LogicalName.Length);
+                    data.SetUInt8((byte)DataType.OctetString);
+                    data.SetUInt8((byte) it.LogicalName.Length);
+                    //TODO: data.SetUInt8((byte)it.LogicalName.Length);
 
                     //Add script selector.
-                    data.Add((byte)DataType.UInt8);
-                    data.Add(it.ScriptSelector);
+                    data.SetUInt8((byte)DataType.UInt8);
+                    data.SetUInt8(it.ScriptSelector);
 
                     //Add switch time.
                     ret = var_setDateTime(&tmp, &se->switchTime);
@@ -288,8 +289,8 @@ namespace Gurux.DLMS.Objects
                         break;
                     }
                     //Add validity window.
-                    data.Add((byte)DataType.UInt8);
-                    data.Add(it.ValidityWindow);
+                    data.SetUInt8((byte)DataType.UInt8);
+                    data.SetUInt8(it.ValidityWindow);
 
                     //Add exec week days.
                     ba_setUInt8(&value->byteArr, DLMS_DATA_TYPE_BIT_STRING);
@@ -329,12 +330,12 @@ namespace Gurux.DLMS.Objects
                     }
                 }
                  * */
-                return data.ToArray();
+                return data.Array();
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
         {
             if (index == 1)
             {

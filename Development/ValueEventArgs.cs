@@ -45,7 +45,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Server ID that client try to use to make connection.
         /// </summary>
-        public object ServerID     
+        public object ServerAddress     
         {
             get;
             private set;
@@ -57,7 +57,7 @@ namespace Gurux.DLMS
         /// <param name="serverId"></param>
         internal ConnectionEventArgs(object serverId)
         {
-            ServerID = serverId;
+            ServerAddress = serverId;
         }
     }
 

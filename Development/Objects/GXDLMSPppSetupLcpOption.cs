@@ -33,11 +33,12 @@
 //---------------------------------------------------------------------------
 
 using System;
+using Gurux.DLMS.Objects.Enums;
 namespace Gurux.DLMS.Objects
 {
     public class GXDLMSPppSetupLcpOption
     {
-        public GXDLMSPppSetupLcpOptionType Type
+        public PppSetupLcpOptionType Type
         {
             get;
             set;

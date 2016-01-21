@@ -39,6 +39,7 @@ using System.Text;
 using System.ComponentModel;
 
 using System.Collections;
+using Gurux.DLMS.Enums;
 
 
 namespace Gurux.DLMS.Objects
@@ -160,11 +161,11 @@ namespace Gurux.DLMS.Objects
             return items;
         }
 
-        public GXDLMSObject FindByLN(Gurux.DLMS.ObjectType type, string ln)
+        public GXDLMSObject FindByLN(ObjectType type, string ln)
         {
             foreach (GXDLMSObject it in this)
             {
-                if ((type == Gurux.DLMS.ObjectType.None || it.ObjectType == type) && it.LogicalName.Trim() == ln)
+                if ((type == ObjectType.None || it.ObjectType == type) && it.LogicalName.Trim() == ln)
                 {
                     return it;
                 }

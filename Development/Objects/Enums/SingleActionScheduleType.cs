@@ -1,0 +1,74 @@
+//
+// --------------------------------------------------------------------------
+//  Gurux Ltd
+// 
+//
+//
+// Filename:        $HeadURL$
+//
+// Version:         $Revision$,
+//                  $Date$
+//                  $Author$
+//
+// Copyright (c) Gurux Ltd
+//
+//---------------------------------------------------------------------------
+//
+//  DESCRIPTION
+//
+// This file is a part of Gurux Device Framework.
+//
+// Gurux Device Framework is Open Source software; you can redistribute it
+// and/or modify it under the terms of the GNU General Public License 
+// as published by the Free Software Foundation; version 2 of the License.
+// Gurux Device Framework is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of 
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// See the GNU General Public License for more details.
+//
+// More information of Gurux products: http://www.gurux.org
+//
+// This code is licensed under the GNU General Public License v2. 
+// Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
+//---------------------------------------------------------------------------
+
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Gurux.DLMS;
+using System.ComponentModel;
+using System.Xml.Serialization;
+using Gurux.DLMS.ManufacturerSettings;
+using Gurux.DLMS.Internal;
+
+namespace Gurux.DLMS.Objects.Enums
+{
+    public enum SingleActionScheduleType
+    {
+        /// <summary>
+        /// Size of execution_time = 1. Wildcard in date allowed.
+        /// </summary>
+        SingleActionScheduleType1,
+        /// <summary>
+        /// Size of execution_time = n. 
+        /// All time values are the same, wildcards in date not allowed.
+        /// </summary>
+        SingleActionScheduleType2,
+        /// <summary>
+        /// Size of execution_time = n. 
+        /// All time values are the same, wildcards in date are allowed,
+        /// </summary>
+        SingleActionScheduleType3,
+        /// <summary>
+        /// Size of execution_time = n.
+        /// Time values may be different, wildcards in date not allowed,
+        /// </summary>
+        SingleActionScheduleType4,
+        /// <summary>
+        /// Size of execution_time = n.
+        /// Time values may be different, wildcards in date are allowed
+        /// </summary>
+        SingleActionScheduleType5                       
+    }
+}

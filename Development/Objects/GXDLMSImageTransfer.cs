@@ -41,6 +41,8 @@ using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.Enums;
+using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
 {
@@ -164,12 +166,12 @@ namespace Gurux.DLMS.Objects
             {
                 throw new Exception("Invalid image block size");
             }
-            List<byte> data = new List<byte>();
-            data.Add((byte)DataType.Structure);
-            data.Add((byte)2);
+            GXByteBuffer data = new GXByteBuffer();
+            data.SetUInt8((byte)DataType.Structure);
+            data.SetUInt8((byte)2);
             GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(imageIdentifier));
             GXCommon.SetData(data, DataType.UInt32, imageSize);
-            return client.Method(this, 1, data.ToArray(), DataType.Array);
+            return client.Method(this, 1, data.Array(), DataType.Array);
         }
 
         public byte[][] ImageBlockTransfer(GXDLMSClient client, byte[] imageBlockValue, out int ImageBlockCount)
@@ -182,9 +184,9 @@ namespace Gurux.DLMS.Objects
             List<byte[]> packets = new List<byte[]>();
             for (int pos = 0; pos != ImageBlockCount; ++pos)
             {
-                List<byte> data = new List<byte>();
-                data.Add((byte)DataType.Structure);
-                data.Add((byte)2);
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte)DataType.Structure);
+                data.SetUInt8((byte)2);
                 GXCommon.SetData(data, DataType.UInt32, pos);
                 byte[] tmp;
                 int bytes = (int)(imageBlockValue.Length - ((pos + 1) * ImageBlockSize));
@@ -201,7 +203,7 @@ namespace Gurux.DLMS.Objects
                     Array.Copy(imageBlockValue, (pos * ImageBlockSize), tmp, 0, ImageBlockSize);
                 }
                 GXCommon.SetData(data, DataType.OctetString, tmp);
-                packets.AddRange(client.Method(this, 2, data.ToArray(), DataType.Array));
+                packets.AddRange(client.Method(this, 2, data.Array(), DataType.Array));
             }
             return packets.ToArray();
         }
@@ -229,10 +231,9 @@ namespace Gurux.DLMS.Objects
         /// Data interface do not have any methods.
         /// </summary>
         /// <param name="index"></param>
-        byte[][] IGXDLMSBase.Invoke(object sender, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
         {
             ImageTransferStatus = ImageTransferStatus.NotInitiated;
-            GXDLMSServerBase s = sender as GXDLMSServerBase;
             //Image transfer initiate
             if (index == 1)
             {
@@ -254,7 +255,7 @@ namespace Gurux.DLMS.Objects
                     sb.Append('0');                    
                 }
                 ImageTransferredBlocksStatus = sb.ToString();
-                return s.Acknowledge(Command.MethodResponse, 0);
+                return new byte[] { 0 };
             }
             //Image block transfer
             else if (index == 2)
@@ -267,7 +268,7 @@ namespace Gurux.DLMS.Objects
                 ImageFirstNotTransferredBlockNumber = imageIndex + 1;
                 ImageData[imageIndex] = (byte[])value[1];
                 ImageTransferStatus = ImageTransferStatus.TransferInitiated;
-                return s.Acknowledge(Command.MethodResponse, 0);
+                return new byte[] { 0 };
             }
             //Image verify
             else if (index == 3)
@@ -286,13 +287,13 @@ namespace Gurux.DLMS.Objects
                     throw new Exception("Invalid image size.");
                 }
                 ImageTransferStatus = ImageTransferStatus.VerificationSuccessful;
-                return s.Acknowledge(Command.MethodResponse, 0);
+                return new byte[] { 0 };
             }
             //Image activate.
             else if (index == 4)
             {
                 ImageTransferStatus = ImageTransferStatus.ActivationSuccessful;
-                return s.Acknowledge(Command.MethodResponse, 0);
+                return new byte[] { 0 };
             }
             else
             {
@@ -393,7 +394,7 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
         {
             if (index == 1)
             {                
@@ -421,8 +422,8 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 7)
             {
-                List<byte> data = new List<byte>();
-                data.Add((byte) DataType.Array);
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte) DataType.Array);
                 if (ImageActivateInfo == null)
                 {
                     GXCommon.SetObjectCount(0, data);
@@ -432,8 +433,8 @@ namespace Gurux.DLMS.Objects
                     GXCommon.SetObjectCount(ImageActivateInfo.Length, data);
                     foreach (GXDLMSImageActivateInfo it in ImageActivateInfo)
                     {
-                        data.Add((byte)DataType.Structure);
-                        data.Add(3);
+                        data.SetUInt8((byte)DataType.Structure);
+                        data.SetUInt8(3);
                         GXCommon.SetData(data, DataType.UInt32, it.Size);
                         GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(Convert.ToString(it.Identification)));
                         if (it.Signature == null || it.Signature.Length == 0)
@@ -446,12 +447,12 @@ namespace Gurux.DLMS.Objects
                         }
                     }
                 }
-                return data.ToArray();
+                return data.Array();
             }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
-        void IGXDLMSBase.SetValue(int index, object value)
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
         {
             if (index == 1)
             {

@@ -46,60 +46,82 @@ namespace Gurux.DLMS
     /// </summary>
     class GXApplicationContextName
     {
-
         /// <summary>
         /// Reserved for internal use.
         /// </summary>
         /// <param name="data"></param>
-        internal void CodeData(List<byte> data)
+        internal static void CodeData(GXDLMSSettings settings, GXByteBuffer data, bool ciphered)
         {
             //Application context name tag
-            data.Add(0xA1);
+            data.SetUInt8(0xA1);
             //Len
-            data.Add(0x09);
-            data.Add(0x06);
-            data.Add(0x07);
-            if (UseLN)
+            data.SetUInt8(0x09);
+            data.SetUInt8(0x06);
+            data.SetUInt8(0x07);
+            if (settings.UseLogicalNameReferencing)
             {
-                data.AddRange(GXCommon.LogicalNameObjectID);
+                if (ciphered)
+                {
+                    data.Set(GXCommon.LogicalNameObjectIdWithCiphering);
+
+                }
+                else
+                {
+                    data.Set(GXCommon.LogicalNameObjectID);
+                }
             }
             else
             {
-                data.AddRange(GXCommon.ShortNameObjectID);
+                if (ciphered)
+                {
+                    data.Set(GXCommon.ShortNameObjectIdWithCiphering);
+                }
+                else
+                {
+                    data.Set(GXCommon.ShortNameObjectID);
+                }
             }
         }
 
         /// <summary>
         /// Reserved for internal use.
         /// </summary>
+        /// <param name="settings"></param>
         /// <param name="buff"></param>
-        /// <param name="index"></param>
-        internal void EncodeData(byte[] buff, ref int index)
+        internal static bool EncodeData(GXDLMSSettings settings, GXByteBuffer buff)
         {
-            int tag = buff[index++];
+            int tag = buff.GetUInt8();
             if (tag != 0xA1)
             {
                 throw new Exception("Invalid tag.");
             }
             //Get length.
-            int len = buff[index++];
-            if (buff.Length - index < len)
+            int len = buff.GetUInt8();
+            if (buff.Size - buff.Position < len)
             {
                 throw new Exception("Encoding failed. Not enough data.");
             }
-            if (buff[index++] != 0x6)
+            if (buff.GetUInt8() != 0x6)
             {
                 throw new Exception("Encoding failed. Not an Object ID.");
             }
             //Object ID length.
-            len = buff[index++];
-            //Compare Object ID to check is Logical name used.
-            UseLN = GXCommon.Compare(buff, ref index, GXCommon.LogicalNameObjectID);
-            if (!UseLN)
+            len = buff.GetUInt8();
+            if (settings.UseLogicalNameReferencing)
             {
-                index += GXCommon.ShortNameObjectID.Length;
+                if (buff.Compare(GXCommon.LogicalNameObjectID))
+                {
+                    return true;
+                }
+                // If ciphering is used.
+                return buff.Compare(GXCommon.LogicalNameObjectIdWithCiphering);
             }
+            if (buff.Compare(GXCommon.ShortNameObjectID))
+            {
+                return true;
+            }
+            // If ciphering is used.
+            return buff.Compare(GXCommon.ShortNameObjectIdWithCiphering);
         }
-        internal bool UseLN = false;
     }
 }

@@ -46,7 +46,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <summary>
         /// Internal list of properties.
         /// </summary>
-        protected System.Collections.IList m_List = null;
+        protected System.Collections.IList _list = null;
         /// <summary>
         /// Index of the current instance.
         /// </summary>
@@ -60,7 +60,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         public GXCollectionPropertyDescriptor(int idx, System.Collections.IList list) :
             base("#" + idx.ToString(), null)
         {
-            m_List = list;
+            _list = list;
             this.Index = idx;
         }
 
@@ -79,7 +79,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         {
             get
             {
-                return m_List.GetType();
+                return _list.GetType();
             }
         }
 
@@ -88,11 +88,11 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// </summary>
         public override object GetValue(object component)
         {
-            if (m_List.Count <= Index)
+            if (_list.Count <= Index)
             {
                 return string.Empty;
             }
-            return m_List[Index];
+            return _list[Index];
         }
 
         /// <summary>
@@ -113,7 +113,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         {
             get
             {
-                return m_List[Index].GetType();
+                return _list[Index].GetType();
             }
         }
 
@@ -161,7 +161,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         {
             get
             {
-                return (GXAttributeCollection)m_List;
+                return (GXAttributeCollection)_list;
             }
         }
 
@@ -194,7 +194,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// </summary>
         public override object GetValue(object component)
         {
-            if (m_List.Count <= Index)
+            if (_list.Count <= Index)
             {
                 return string.Empty;
             }
