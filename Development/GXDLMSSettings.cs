@@ -162,7 +162,7 @@ namespace Gurux.DLMS
         ///Increase sender sequence.
         ///</summary>
         ///<param name="value">
-        /// Incresed frame value. 
+        /// Increase frame value. 
         ///</param>
         ///<returns> 
         /// Increased sender frame sequence. 
@@ -220,8 +220,9 @@ namespace Gurux.DLMS
                 }
             }
             //If S-frame sent.
-            else if ((frame & 0xE0) == (ReceiverFrame & 0xE0) &&
-                (frame & 0xE) == ((ReceiverFrame + 2) & 0xE)) 
+            else if (frame == ReceiverFrame ||
+                ((frame & 0xE0) == (ReceiverFrame & 0xE0) &&
+                (frame & 0xE) == ((ReceiverFrame + 2) & 0xE))) 
             {
                 ReceiverFrame = frame;
                 return true;

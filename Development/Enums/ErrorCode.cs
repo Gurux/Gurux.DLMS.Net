@@ -7,6 +7,10 @@ namespace Gurux.DLMS.Enums
     public enum ErrorCode
     {
         /// <summary>
+        /// Connection is rejected.
+        /// </summary>
+        Rejected = -2,
+        /// <summary>
         /// Not a reply.
         /// </summary>
         InvalidHdlcReply = -1,

@@ -120,7 +120,7 @@ namespace Gurux.DLMS
         ///<summary>
         /// Received error. 
         ///</summary>
-        public byte Error
+        public short Error
         {
             get;
             set;

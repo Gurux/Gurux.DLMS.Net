@@ -200,7 +200,6 @@ namespace Gurux.DLMS.Client.Example
                     objects = comm.GetAssociationView();
                     GXDLMSObjectCollection objs = objects.GetObjects(new ObjectType[] { ObjectType.Register, ObjectType.ExtendedRegister, ObjectType.DemandRegister });
                     Console.WriteLine("Read scalers and units from the device.");
-                    //Read and update columns scalers.
                     foreach (GXDLMSObject it in objs)
                     {
                         if (it is GXDLMSRegister)

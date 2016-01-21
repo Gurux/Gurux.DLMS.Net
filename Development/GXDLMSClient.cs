@@ -428,6 +428,7 @@ namespace Gurux.DLMS
             {
                 data = null;
             }
+            Settings.ResetFrameSequence();
             return GXDLMS.SplitToHdlcFrames(Settings, (byte)FrameType.SNRM, data)[0];
         }
 
@@ -1500,7 +1501,7 @@ namespace Gurux.DLMS
             {
                 cmd = Command.GetRequest;
                 // Add length.
-                bb.SetUInt8((byte)list.Count);
+                GXCommon.SetObjectCount(list.Count, bb);
                 foreach (KeyValuePair<GXDLMSObject, int> it in list)
                 {
                     // CI.
@@ -1524,7 +1525,7 @@ namespace Gurux.DLMS
             {
                 cmd = Command.ReadRequest;
                 // Add length.
-                bb.SetUInt8((byte)list.Count);
+                GXCommon.SetObjectCount(list.Count, bb);
                 foreach (KeyValuePair<GXDLMSObject, int> it in list)
                 {
                     // Add variable type.
@@ -1627,7 +1628,7 @@ namespace Gurux.DLMS
                 // CI
                 GXCommon.SetData(buff, DataType.UInt16, 8);
                 // LN
-                GXCommon.SetData(buff, DataType.OctetString, "0.0.1.0.0.1");
+                GXCommon.SetData(buff, DataType.OctetString, "0.0.1.0.0.255");
                 // Add attribute index.
                 GXCommon.SetData(buff, DataType.Int8, 2);
                 // Add version

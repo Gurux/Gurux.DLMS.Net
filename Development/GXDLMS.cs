@@ -204,6 +204,9 @@ namespace Gurux.DLMS
                 case ErrorCode.Ok:
                     str = "";
                     break;
+                case ErrorCode.Rejected:
+                    str = "Connection rejected.";
+                    break;
                 case ErrorCode.InvalidHdlcReply:
                     str = "Not a reply";
                     break;
@@ -841,8 +844,14 @@ namespace Gurux.DLMS
                     throw new Exception("Wrong CRC.");
                 }
             }
- 
-            if (type == FrameType.Disconnect)
+
+            if (type == FrameType.Rejected)
+            {
+                // Get EOP.
+                reply.GetUInt8();
+                data.Error = (int) ErrorCode.Rejected;
+            } 
+            else if (type == FrameType.Disconnect)
             {
                 // Get EOP.
                 reply.GetUInt8();
