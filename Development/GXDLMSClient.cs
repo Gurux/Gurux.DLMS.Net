@@ -1770,22 +1770,7 @@ namespace Gurux.DLMS
         /// <returns>Server address.</returns>
         public static int GetServerAddress(int serialNumber, string formula)
         {
-            string tag;
-            int value = 0;
-            int pos = 0, lastSpace = 0;
-            foreach (char it in formula)
-            {
-                if (it == ' ' || it == '+' || it == '%')
-                {
-                    tag = formula.Substring(lastSpace, pos - 1);
-                    if (string.Compare(tag, "SN", true) == 0)
-                    {
-                        value = serialNumber;
-                    }
-                }
-                ++pos;
-            }
-            return value;
+            return SerialnumberCounter.Count(serialNumber, formula);
         }
 
         /// <summary>

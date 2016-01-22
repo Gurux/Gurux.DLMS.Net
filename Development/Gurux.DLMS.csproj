@@ -78,6 +78,7 @@
     <Compile Include="GXKeyValuePair.cs" />
     <Compile Include="GXServerReply.cs" />
     <Compile Include="GXSNInfo.cs" />
+    <Compile Include="Internal\SerialnumberCounter.cs" />
     <Compile Include="Objects\Enums\AssociationStatus.cs" />
     <Compile Include="Objects\Enums\AccessRange.cs" />
     <Compile Include="Objects\Enums\SortMethod.cs" />
