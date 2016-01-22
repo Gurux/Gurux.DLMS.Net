@@ -4,14 +4,14 @@ Join the Gurux Community or follow [@Gurux](https://twitter.com/guruxorg "@Gurux
 
 Gurux.DLMS library is a high-performance .NET component that helps you to read you DLMS/COSEM compatible electricity, gas or water meters. We have try to make component so easy to use that you do not need understand protocol at all.
 
-For more info check out [Gurux.DLMS](http://www.gurux.fi/index.php?q=Gurux.DLMS "Gurux.DLMS").
+For more info check out [Gurux.DLMS](http://gurux.fi.www10.zoner-asiakas.fi/index.php?q=Gurux.DLMS "Gurux.DLMS").
 
 We are updating documentation on Gurux web page. 
 
-Read should read [DLMS/COSEM FAQ](http://www.gurux.org/index.php?q=DLMSCOSEMFAQ) first to get started. Read Instructions for making your own [meter reading application](http://www.gurux.org/index.php?q=DLMSIntro) or build own 
-DLMS/COSEM [meter/simulator/proxy](http://www.gurux.org/index.php?q=OwnDLMSMeter).
+Read should read [DLMS/COSEM FAQ](http://gurux.fi.www10.zoner-asiakas.fi/index.php?q=DLMSCOSEMFAQ) first to get started. Read Instructions for making your own [meter reading application](http://www.gurux.org/index.php?q=DLMSIntro) or build own 
+DLMS/COSEM [meter/simulator/proxy](http://gurux.fi.www10.zoner-asiakas.fi/index.php?q=OwnDLMSMeter).
 
-If you have problems you can ask your questions in Gurux [Forum](http://www.gurux.org/forum).
+If you have problems you can ask your questions in Gurux [Forum](http://gurux.fi.www10.zoner-asiakas.fi/?q=GXForum).
 
 You do not nesessary need to use Gurux.Serial or Gurux.Net. 
 You can use any connection library you want to.
@@ -34,7 +34,7 @@ client.UseLogicalNameReferencing = true;
 // Is used HDLC or COSEM transport layers for IPv4 networks
 client.InterfaceType = InterfaceType.General;
 
-// Read http://www.gurux.fi/index.php?q=node/336 
+// Read http://gurux.fi.www10.zoner-asiakas.fi/index.php?q=node/336
 // to find out how Client and Server addresses are counted.
 // Some manufacturers might use own Server and Client addresses.
 
