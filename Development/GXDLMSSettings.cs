@@ -240,7 +240,11 @@ namespace Gurux.DLMS
         /// </returns>
         public bool IsGenerated()
         {
-            return SenderFrame != 0;
+            if (IsServer)
+            {
+                return SenderFrame != 0x1E || ReceiverFrame != 0xFE;
+            }
+            return SenderFrame != 0x10 ||  ReceiverFrame != 0xE;
         }
 
         ///<summary>

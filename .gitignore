@@ -15,6 +15,7 @@ local.properties
 .classpath
 .settings/
 .loadpath
+Gurux.DLMS.Client.Example.Net/packages/
 
 # External tool builders
 .externalToolBuilders/

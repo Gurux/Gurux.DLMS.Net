@@ -486,10 +486,8 @@ namespace Gurux.DLMS
         /// <summary>
         /// Generate AARQ request. 
         /// </summary>
-        /// <param name="Tags">Reserved for future use.</param>
         /// <returns>AARQ request as byte array.</returns>
         /// <seealso cref="ParseAAREResponse"/>
-        /// <seealso cref="IsDLMSPacketComplete"/>
         public byte[][] AARQRequest()
         {
             GXByteBuffer buff = new GXByteBuffer(20);
@@ -1762,14 +1760,35 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Convert physical address and logical address to server address.
+        /// Converts meter serial number to server address.
+        /// Default formula is used.
         /// </summary>
-        /// <param name="logicalAddress">Server logical address.</param>
-        /// <param name="physicalAddress">Server physical address.</param>
-        /// <param name="addressSize">Address size in bytes.</param>
+        /// <remarks>
+        /// All meters do not use standard formula or support serial number addressing at all.
+        /// </remarks>
+        /// <param name="serialNumber">Meter serial number.</param>
         /// <returns>Server address.</returns>
+        public static int GetServerAddress(int serialNumber)
+        {
+            return GetServerAddress(serialNumber, null);
+        }
+        /// <summary>
+        /// Converts meter serial number to server address.
+        /// </summary>
+        /// <param name="serialNumber">Meter serial number.</param>
+        /// <param name="formula">Formula used to convert serial number to server address.</param>
+        /// <returns>Server address.</returns>
+        /// <remarks>
+        /// All meters do not use standard formula or support serial number addressing at all.
+        /// </remarks>
         public static int GetServerAddress(int serialNumber, string formula)
         {
+            //If formula is not given use default formula.
+            //This formula is defined in DLMS specification.
+            if (String.IsNullOrEmpty(formula))
+            {
+                formula = "SN % 10000 + 1000";
+            }
             return SerialnumberCounter.Count(serialNumber, formula);
         }
 

@@ -297,38 +297,7 @@ namespace Gurux.DLMS
                 throw new ArgumentException("Invalid Server Address");
             }
         }
-
-
-        internal static byte[] GetLLCBytes(Command command)
-        {
-            switch (command)
-            {
-                case Command.GetRequest:
-                case Command.ReadRequest:
-                case Command.Aarq:
-                case Command.SetRequest:
-                case Command.WriteRequest:
-                case Command.MethodRequest:
-                case Command.GloGetRequest:
-                case Command.GloMethodRequest:
-                case Command.GloSetRequest:
-                    return GXCommon.LLCSendBytes;
-                case Command.GetResponse:
-                case Command.ReadResponse:
-                case Command.Aare:
-                case Command.SetResponse:
-                case Command.WriteResponse:
-                case Command.MethodResponse:
-                case Command.GloGetResponse:
-                case Command.GloMethodResponse:
-                case Command.GloSetResponse:
-                    return GXCommon.LLCReplyBytes;
-                // LLC bytes are not added.
-                default:
-                    return null;
-            }
-        }
-
+     
         internal static void AppedData(GXDLMSObject obj, int index, GXByteBuffer bb, Object value)
         {
             DataType tp = obj.GetDataType(index);
