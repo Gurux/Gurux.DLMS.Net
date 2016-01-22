@@ -32,14 +32,14 @@ GXDLMSClient client = new GXDLMSClient();
 client.UseLogicalNameReferencing = true;
 
 // Is used HDLC or COSEM transport layers for IPv4 networks
-client.InterfaceType = InterfaceType.General;
+client.InterfaceType = InterfaceType.HDLC;
 
-// Read http://www.gurux.fi/index.php?q=node/336 
+// Read http://www.gurux.org/dlmsAddress
 // to find out how Client and Server addresses are counted.
 // Some manufacturers might use own Server and Client addresses.
 
-client.ClientID = (byte) 0x21;
-client.ServerID = (byte) 0x3;
+client.ClientAddress = 16;
+client.ServerAddress = 1;
 
 ```
 
@@ -173,13 +173,15 @@ After that you will send AARQ request and handle AARE response.
 
 ```csharp
 
-byte[] data, reply = null;
+GXReplyData reply = new GXReplyData();
+GXDLMSClient client = new GXDLMSClient();
+byte[] data;
 data = client.SNRMRequest();
 if (data != null)
 {
-    reply = ReadDLMSPacket(data);
+    ReadDLMSPacket(data, reply);
     //Has server accepted client.
-    client.ParseUAResponse(reply);
+    client.ParseUAResponse(reply.Data);
     Console.WriteLine("Parsing UA reply succeeded.");
 }
 
@@ -188,10 +190,11 @@ if (data != null)
 //If password is used all data might not fit to one packet.
 foreach (byte[] it in client.AARQRequest(null))
 {
-    reply = ReadDLMSPacket(it);
+    reply.Clear();
+    ReadDLMSPacket(it, reply);
 }
 //Parse reply.
-client.ParseAAREResponse(reply);
+client.ParseAAREResponse(reply.Data);
 Console.WriteLine("Connection succeeded.");
 
 ```
@@ -201,15 +204,17 @@ Next you can read Association view and show all objects that meter can offer.
 
 ```csharp
 /// Read Association View from the meter.
-byte[] reply = ReadDataBlock(client.GetObjects());
-GXDLMSObjectCollection objects = client.ParseObjects(reply, true);
+GXReplyData reply = new GXReplyData();
+ReadDataBlock(client.GetObjects(), reply);
+GXDLMSObjectCollection objects = client.ParseObjects(reply.Data, true);
 
 ```
 Now you can read wanted objects. After read you must close the connection by sending
 disconnecting request.
 
 ```csharp
-ReadDLMSPacket(m_Parser.DisconnectRequest());
+GXReplyData reply = new GXReplyData();
+ReadDLMSPacket(m_Parser.DisconnectRequest(), reply);
 Media.Close();
 
 ```
@@ -219,20 +224,17 @@ Media.Close();
 /// <summary>
 /// Read DLMS Data from the device.
 /// </summary>
-/// <remarks>
-/// If access is denied return null.
-/// </remarks>
 /// <param name="data">Data to send.</param>
 /// <returns>Received data.</returns>
-public byte[] ReadDLMSPacket(byte[] data)
+public void ReadDLMSPacket(byte[] data, GXReplyData reply)
 {
     if (data == null)
     {
-        return null;
+        return;
     }
     object eop = (byte)0x7E;
     //In network connection terminator is not used.
-    if (client.InterfaceType == InterfaceType.Net && Media is GXNet)
+    if (Client.InterfaceType == InterfaceType.WRAPPER && Media is GXNet)
     {
         eop = null;
     }
@@ -248,11 +250,17 @@ public byte[] ReadDLMSPacket(byte[] data)
     lock (Media.Synchronous)
     {
         while (!succeeded && pos != 3)
-        {            
+        {
+            WriteTrace("<- " + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(data, true));
             Media.Send(data, null);
             succeeded = Media.Receive(p);
             if (!succeeded)
             {
+                //If Eop is not set read one byte at time.
+                if (p.Eop == null)
+                {
+                    p.Count = 1;
+                }
                 //Try to read again...
                 if (++pos != 3)
                 {
@@ -262,13 +270,18 @@ public byte[] ReadDLMSPacket(byte[] data)
                 throw new Exception("Failed to receive reply from the device in given time.");
             }
         }
-        //Loop until whole Cosem packet is received.                
-        while (!client.IsDLMSPacketComplete(p.Reply))
+        //Loop until whole COSEM packet is received.                
+        while (!Client.GetData(p.Reply, reply))
         {
+            //If Eop is not set read one byte at time.
+            if (p.Eop == null)
+            {
+                p.Count = 1;
+            }
             if (!Media.Receive(p))
             {
                 //Try to read again...
-                if (++pos != 3)
+                if (pos != 3)
                 {
                     System.Diagnostics.Debug.WriteLine("Data send failed. Try to resend " + pos.ToString() + "/3");
                     continue;
@@ -276,15 +289,12 @@ public byte[] ReadDLMSPacket(byte[] data)
                 throw new Exception("Failed to receive reply from the device in given time.");
             }
         }
-    }    
-    object errors = client.CheckReplyErrors(data, p.Reply);
-    if (errors != null)
-    {
-        object[,] arr = (object[,])errors;
-        int error = (int)arr[0, 0];
-        throw new GXDLMSException(error);
     }
-    return p.Reply;
+    WriteTrace("-> " + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(p.Reply, true));
+    if (reply.Error != 0)
+    {
+        throw new GXDLMSException(reply.Error);
+    }
 }
 ```
 
@@ -321,8 +331,9 @@ Client.ParseAAREResponse(reply);
 //Get challenge Is HSL authentication is used.
 if (Client.IsAuthenticationRequired)
 {
-    reply = ReadDLMSPacket(Client.GetApplicationAssociationRequest());
-    Client.ParseApplicationAssociationResponse(reply);
+    reply.Clear();
+    ReadDLMSPacket(Client.GetApplicationAssociationRequest(), reply);
+    Client.ParseApplicationAssociationResponse(reply.Data);
 }
 ``` 
 
@@ -333,7 +344,7 @@ Writing values to the meter is very simple. There are two ways to do this.
 First is using Write -method of GXDLMSClient.
 
 ```csharp
-ReadDLMSPacket(Client.Write("0.0.1.0.0.255", DateTime.Now, 2, DataType.OctetString, ObjectType.Clock, 2));
+ReadDLMSPacket(Client.Write("0.0.1.0.0.255", DateTime.Now, 2, DataType.OctetString, ObjectType.Clock, 2), reply);
 ``` 
 
 
@@ -350,7 +361,7 @@ In this example we want to update listening window of GXDLMSAutoAnswer object.
 GXDLMSAutoAnswer item = Client.Object.FindByLN("0.0.2.2.0.255", ObjectType.AutoAnswer);
 //Window time is from 6am to 8am.
 item.ListeningWindow.Add(new KeyValuePair<GXDateTime, GXDateTime>(new GXDateTime(-1, -1, -1, 6, -1, -1, -1), new GXDateTime(-1, -1, -1, 8, -1, -1, -1)));
-ReadDLMSPacket(Client.Write(item, 3));
+ReadDLMSPacket(Client.Write(item, 3), reply);
 ``` 
 
 Transport security
@@ -371,8 +382,9 @@ If we want communicate with Gurux DLMS server you just need to set the following
 
 
 ```csharp
-Client.Ciphering.Security = Security.Encryption;
-//Default security when using gurux test server.
-Client.Ciphering.SystemTitle = ASCIIEncoding.ASCII.GetBytes("GRX12345");
+GXDLMSSecureClient sc = new GXDLMSSecureClient();
+sc.Ciphering.Security = Security.Encryption;
+//Default security when using Gurux test server.
+sc.Ciphering.SystemTitle = ASCIIEncoding.ASCII.GetBytes("GRX12345");
 
 ``` 
