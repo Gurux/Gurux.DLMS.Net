@@ -149,48 +149,6 @@ namespace Gurux.DLMS
             return SplitPdu(settings, Command.GetRequest, 2, bb, ErrorCode.Ok, cipher)[0][0];
         }
 
-        ///<summary>
-        /// Checks, whether the received packet is a reply to the sent packet.
-        ///</summary>
-        ///<param name="sendData">
-        /// The sent data as a byte array. 
-        ///</param>
-        ///<param name="receivedData">
-        /// The received data as a byte array.
-        ///</param>
-        ///<returns>
-        ///True, if the received packet is a reply to the sent packet. False, if not.
-        ///</returns>
-        public static bool IsReplyPacket(GXDLMSSettings settings, GXByteBuffer sendData, GXByteBuffer receivedData)
-        {
-
-            GXReplyData info = new GXReplyData();
-            if (settings.InterfaceType == InterfaceType.WRAPPER)
-            {
-                return true;
-            }
-
-            short sid = GetHdlcData(!settings.IsServer, settings, sendData, info);
-            if (!info.IsComplete)
-            {
-                throw new GXDLMSException("Not enought data to parse frame.");
-            }
-
-            short rid = GetHdlcData(settings.IsServer, settings, receivedData, info);
-            if (!info.IsComplete)
-            {
-                throw new GXDLMSException("Not enought data to parse frame.");
-            }
-            if (info.Command == Command.Rejected)
-            {
-                throw new GXDLMSException("Frame rejected.");
-            }
-            bool ret = rid == (byte)FrameType.Rejected || 
-                (sid == (byte)FrameType.Disconnect && rid == (byte)FrameType.UA) ||
-                IsExpectedFrame(sid, rid);
-            return ret;
-        }
-
         /// <summary>
         /// Get error description.
         /// </summary>
@@ -260,27 +218,7 @@ namespace Gurux.DLMS
                     break;
             }
             return str;
-        }
-
-        /// <summary>
-        /// Return true if frame sequences are same. Reserved for internal use.
-        /// </summary>
-        /// <param name="send">Send frame.</param>
-        /// <param name="received">Received frame.</param>
-        /// <returns>Returns true if received frame is reply to sent frame.</returns>
-        private static bool IsExpectedFrame(int send, int received)
-        {
-            // In keep alive message send ID might be same as receiver ID. If echo.
-            bool ret = send == received
-                    || ((send >> 5) & 0x7) == ((received >> 1) & 0x7)
-                    || ((send & 0x1) == 0x1 || (received & 0x1) == 1);
-            // If U-Frame...
-            if (!ret)
-            {
-                return ret;
-            }
-            return ret;
-        }
+        }      
 
         /// <summary>
         /// Reserved for internal use.

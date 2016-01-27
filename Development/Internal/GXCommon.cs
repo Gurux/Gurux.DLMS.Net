@@ -1293,7 +1293,7 @@ namespace Gurux.DLMS.Internal
             }
             else if (type == DataType.OctetString)
             {
-                setOctetString(buff, value);
+                SetOctetString(buff, value);
             }
             else if (type == DataType.Array || type == DataType.Structure)
             {
@@ -1494,11 +1494,11 @@ namespace Gurux.DLMS.Internal
             {
                 throw new Exception("Invalid date format.");
             }
-            if (dt.Value.LocalDateTime == DateTime.MinValue)
+            if (dt.Value.UtcDateTime == DateTime.MinValue)
             {
                 dt.Value = DateTime.SpecifyKind(new DateTime(2000, 1, 1).Date, DateTimeKind.Utc);
             }
-            else if (dt.Value.LocalDateTime == DateTime.MaxValue)
+            else if (dt.Value.UtcDateTime == DateTime.MaxValue)
             {
                 dt.Value = DateTime.SpecifyKind(DateTime.Now.AddYears(1).Date, DateTimeKind.Utc);
             }
@@ -1665,7 +1665,7 @@ namespace Gurux.DLMS.Internal
         ///<param name="value">
         ///Added value. 
         ///</param>
-        private static void setOctetString(GXByteBuffer buff, object value)
+        private static void SetOctetString(GXByteBuffer buff, object value)
         {
             // Example Logical name is octet string, so do not change to
             // string...

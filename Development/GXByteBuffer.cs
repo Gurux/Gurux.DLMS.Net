@@ -204,16 +204,8 @@
             {
                 Capacity = (UInt16) (index + ArrayCapacity);
             }
-            if (BitConverter.IsLittleEndian)
-            {
-                Data[index] = (byte)((value >> 8) & 0xFF);
-                Data[index + 1] = (byte)(value & 0xFF);
-            }
-            else
-            {
-                Data[index + 1] = (byte)((value >> 8) & 0xFF);
-                Data[index] = (byte)(value & 0xFF);
-            }
+            Data[index] = (byte)((value >> 8) & 0xFF);
+            Data[index + 1] = (byte)(value & 0xFF);
         }
 
         /// <summary>
@@ -247,20 +239,10 @@
             {
                 Capacity = (UInt16) (index + ArrayCapacity);
             }
-            if (BitConverter.IsLittleEndian)
-            {
-                Data[index] = (byte)((item >> 24) & 0xFF);
-                Data[index + 1] = (byte)((item >> 16) & 0xFF);
-                Data[index + 2] = (byte)((item >> 8) & 0xFF);
-                Data[index + 3] = (byte)(item & 0xFF);
-            }
-            else
-            {
-                Data[index + 3] = (byte)((item >> 24) & 0xFF);
-                Data[index + 2] = (byte)((item >> 16) & 0xFF);
-                Data[index + 1] = (byte)((item >> 8) & 0xFF);
-                Data[index] = (byte)(item & 0xFF);
-            }
+            Data[index] = (byte)((item >> 24) & 0xFF);
+            Data[index + 1] = (byte)((item >> 16) & 0xFF);
+            Data[index + 2] = (byte)((item >> 8) & 0xFF);
+            Data[index + 3] = (byte)(item & 0xFF);
         }
 
         /// <summary>
@@ -294,28 +276,14 @@
             {
                 Capacity = (UInt16) (index + ArrayCapacity);
             }
-            if (BitConverter.IsLittleEndian)
-            {
-                Data[Size + 7] = (byte)((item >> 56) & 0xFF);
-                Data[Size + 6] = (byte)((item >> 48) & 0xFF);
-                Data[Size + 5] = (byte)((item >> 40) & 0xFF);
-                Data[Size + 4] = (byte)((item >> 32) & 0xFF);
-                Data[Size + 3] = (byte)((item >> 24) & 0xFF);
-                Data[Size + 2] = (byte)((item >> 16) & 0xFF);
-                Data[Size + 1] = (byte)((item >> 8) & 0xFF);
-                Data[Size] = (byte)(item & 0xFF);
-            }
-            else
-            {
-                Data[Size] = (byte)((item >> 56) & 0xFF);
-                Data[Size + 1] = (byte)((item >> 48) & 0xFF);
-                Data[Size + 2] = (byte)((item >> 40) & 0xFF);
-                Data[Size + 3] = (byte)((item >> 32) & 0xFF);
-                Data[Size + 4] = (byte)((item >> 24) & 0xFF);
-                Data[Size + 5] = (byte)((item >> 16) & 0xFF);
-                Data[Size + 6] = (byte)((item >> 8) & 0xFF);
-                Data[Size + 7] = (byte)(item & 0xFF);
-            }
+            Data[Size + 7] = (byte)((item >> 56) & 0xFF);
+            Data[Size + 6] = (byte)((item >> 48) & 0xFF);
+            Data[Size + 5] = (byte)((item >> 40) & 0xFF);
+            Data[Size + 4] = (byte)((item >> 32) & 0xFF);
+            Data[Size + 3] = (byte)((item >> 24) & 0xFF);
+            Data[Size + 2] = (byte)((item >> 16) & 0xFF);
+            Data[Size + 1] = (byte)((item >> 8) & 0xFF);
+            Data[Size] = (byte)(item & 0xFF);
         }
 
         /// <summary>
@@ -351,14 +319,7 @@
             {
                 throw new System.OutOfMemoryException();
             }
-            if (BitConverter.IsLittleEndian)
-            {
-                return (UInt16)(((Data[index] & 0xFF) << 8) | (Data[index + 1] & 0xFF));
-            }
-            else
-            {
-                return (UInt16)(((Data[index + 1] & 0xFF) << 8) | (Data[index] & 0xFF));
-            }
+            return (UInt16)(((Data[index] & 0xFF) << 8) | (Data[index + 1] & 0xFF));
         }
 
         /// <summary>
@@ -391,14 +352,7 @@
             {
                 throw new System.OutOfMemoryException();
             }
-            if (BitConverter.IsLittleEndian)
-            {
-                return (Int16)(((Data[index] & 0xFF) << 8) | (Data[index + 1] & 0xFF));
-            }
-            else
-            {
-                return (Int16)(((Data[index + 1] & 0xFF) << 8) | (Data[index] & 0xFF));
-            }
+            return (Int16)(((Data[index] & 0xFF) << 8) | (Data[index + 1] & 0xFF));
         }
 
         /// <summary>
@@ -411,16 +365,8 @@
             {
                 throw new System.OutOfMemoryException();
             }
-            if (BitConverter.IsLittleEndian)
-            {
-                return (UInt32)((Data[index] & 0xFF) << 24 | (Data[index + 1] & 0xFF) << 16 |
-                    (Data[index + 2] & 0xFF) << 8 | (Data[index + 3] & 0xFF));
-            }
-            else
-            {
-                return (UInt32)((Data[index + 3] & 0xFF) << 24 | (Data[index + 2] & 0xFF) << 16 |
-                    (Data[index + 1] & 0xFF) << 8 | (Data[index] & 0xFF));
-            }
+            return (UInt32)((Data[index] & 0xFF) << 24 | (Data[index + 1] & 0xFF) << 16 |
+                (Data[index + 2] & 0xFF) << 8 | (Data[index + 3] & 0xFF));            
         }
 
         /// <summary>
