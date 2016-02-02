@@ -396,7 +396,7 @@ namespace Gurux.DLMS.Client.Example
         {
             GXReplyData reply = new GXReplyData();
             ReadDataBlock(Client.ReadRowsByRange(it, start, end), reply);
-            return (object[])Client.UpdateValue(it, 2, reply);
+            return (object[])Client.UpdateValue(it, 2, reply.Value);
         }
 
         /// <summary>
