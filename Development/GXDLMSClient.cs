@@ -629,9 +629,9 @@ namespace Gurux.DLMS
             // If connection is not established, there is no need to send
             // DisconnectRequest.
             if (Settings.InterfaceType == InterfaceType.WRAPPER
-                    || !Settings.IsGenerated())
+                    || (Settings.LnSettings == null && Settings.SnSettings == null))
             {
-                return new byte[0];
+                return null;
             }
             return GXDLMS.SplitToHdlcFrames(Settings, (byte)FrameType.DisconnectMode, null)[0];
         }
@@ -642,19 +642,20 @@ namespace Gurux.DLMS
         /// <returns>Disconnected request, as byte array.</returns>
         public byte[] DisconnectRequest()
         {
+            // If connection is not established, there is no need to send
+            // DisconnectRequest.
+            if (Settings.SnSettings == null && Settings.LnSettings == null)
+            {
+                return null;
+            }
             if (Settings.InterfaceType == InterfaceType.HDLC)
             {
                 return GXDLMS.SplitToHdlcFrames(Settings, (byte)FrameType.Disconnect, null)[0];
             }
-            //Disconnect request is generated only if connection is made successfully.
-            if (Settings.SnSettings != null || Settings.LnSettings != null)
-            {
-                GXByteBuffer bb = new GXByteBuffer(2);
-                bb.SetUInt8((byte)Command.DisconnectRequest);
-                bb.SetUInt8(0x0);
-                return GXDLMS.SplitToWrapperFrames(Settings, bb)[0];
-            }
-            return null;
+            GXByteBuffer bb = new GXByteBuffer(2);
+            bb.SetUInt8((byte)Command.DisconnectRequest);
+            bb.SetUInt8(0x0);
+            return GXDLMS.SplitToWrapperFrames(Settings, bb)[0];
         }
 
         /// <summary>
@@ -1598,7 +1599,17 @@ namespace Gurux.DLMS
         /// <returns></returns>
         public byte[][] ReadRowsByRange(GXDLMSProfileGeneric pg, DateTime start, DateTime end)
         {
-            GXByteBuffer buff = new GXByteBuffer(50);
+            GXDLMSObject sort = pg.SortObject;
+            if (sort == null && pg.CaptureObjects.Count != 0)
+            {
+                sort = pg.CaptureObjects[0].Key;                
+            }
+            //If sort object is not found or it is not clock object read all.
+            if (sort == null || sort.ObjectType != ObjectType.Clock)
+            {
+                return Read(pg, 2);
+            }
+            GXByteBuffer buff = new GXByteBuffer(51);
             // Add AccessSelector value.
             buff.SetUInt8(0x01);
             // Add enum tag.
@@ -1609,31 +1620,19 @@ namespace Gurux.DLMS
             buff.SetUInt8(0x02);
             // Add item count
             buff.SetUInt8(0x04);
-            if (pg.SortObject != null)
-            {
-                // CI
-                GXCommon.SetData(buff, DataType.UInt16,
-                        pg.SortObject.ObjectType);
-                // LN
-                GXCommon.SetData(buff, DataType.OctetString, pg.SortObject.LogicalName);
-                // Add attribute index.
-                GXCommon.SetData(buff, DataType.Int8, 2);
-                // Add version
-                GXCommon.SetData(buff, DataType.UInt16, pg.SortObject.Version);
-            }
-            else
-            {
-                // CI
-                GXCommon.SetData(buff, DataType.UInt16, 8);
-                // LN
-                GXCommon.SetData(buff, DataType.OctetString, "0.0.1.0.0.255");
-                // Add attribute index.
-                GXCommon.SetData(buff, DataType.Int8, 2);
-                // Add version
-                GXCommon.SetData(buff, DataType.UInt16, 0);
-            }
-            GXCommon.SetData(buff, DataType.DateTime, start); // Add start time
-            GXCommon.SetData(buff, DataType.DateTime, end); // Add start time
+            // CI
+            GXCommon.SetData(buff, DataType.UInt16,
+                    sort.ObjectType);
+            // LN
+            GXCommon.SetData(buff, DataType.OctetString, sort.LogicalName);
+            // Add attribute index.
+            GXCommon.SetData(buff, DataType.Int8, 2);
+            // Add version.
+            GXCommon.SetData(buff, DataType.UInt16, sort.Version);
+            // Add start time.
+            GXCommon.SetData(buff, DataType.DateTime, start);
+            // Add end time.
+            GXCommon.SetData(buff, DataType.DateTime, end);
             // Add array of read columns. Read All...
             buff.SetUInt8(0x01);
             // Add item count
@@ -1702,7 +1701,6 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="logicalAddress">Server logical address.</param>
         /// <param name="physicalAddress">Server physical address.</param>
-        /// <param name="addressSize">Address size in bytes. </param>
         /// <returns>Server address.</returns>
         public static int GetServerAddress(int logicalAddress, int physicalAddress)
         {
@@ -1718,15 +1716,20 @@ namespace Gurux.DLMS
         /// <returns>Server address.</returns>
         public static int GetServerAddress(int logicalAddress, int physicalAddress, int addressSize)
         {
+            int value;
             if (addressSize < 4 && physicalAddress < 0x80 && logicalAddress < 0x80)
             {
-                return logicalAddress << 7 | physicalAddress;
+                value = logicalAddress << 7 | physicalAddress;
             }
-            if (physicalAddress < 0x4000 && logicalAddress < 0x4000)
+            else if (physicalAddress < 0x4000 && logicalAddress < 0x4000)
             {
-                return logicalAddress << 14 | physicalAddress;
+                value = logicalAddress << 14 | physicalAddress;
             }
-            throw new ArgumentException("Invalid logical or physical address.");
+            else
+            {
+                throw new ArgumentException("Invalid logical or physical address.");
+            }
+            return value;
         }
 
 

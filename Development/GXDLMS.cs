@@ -488,16 +488,13 @@ namespace Gurux.DLMS
             return bb.Array();
         }
 
-        /**
-         * Split DLMS PDU to HDLC frames.
-         * 
-         * @param settings
-         *            DLMS settings.
-         * @param frame
-         *            Frame ID. If zero new is generated.
-         * @param data
-         *            Data to add
-         */
+        /// <summary>
+        ///  Split DLMS PDU to HDLC frames.
+        /// </summary>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="frame">Frame ID. If zero new is generated.</param>
+        /// <param name="data">Data to add.</param>
+        /// <returns>HDLC frames.</returns>
         internal static byte[][] SplitToHdlcFrames(GXDLMSSettings settings, byte frame, GXByteBuffer data)
         {
             int frameSize, len;
@@ -814,6 +811,20 @@ namespace Gurux.DLMS
             return frame;
         }
 
+        private static void GetServerAddress(int address, out int logical, out int physical)
+        {
+            if (address < 0x4000)
+            {
+                logical = address >> 7;
+                physical = address & 0x7F;
+            }
+            else
+            {
+                logical = address >> 14;
+                physical = address & 0x3FFF;
+            }
+        }
+
         private static bool CheckHdlcAddress(bool server, GXDLMSSettings settings, GXByteBuffer reply,
                 GXReplyData data, int index, int count)
         {
@@ -862,7 +873,6 @@ namespace Gurux.DLMS
                         reply.Position = (UInt16)(index + count + 1);
                         return false;
                     }
-
                     throw new GXDLMSException(
                             "Destination addresses do not match. It is "
                                     + target.ToString() + ". It should be "
@@ -872,12 +882,20 @@ namespace Gurux.DLMS
                 // Check that server addresses match.
                 if (settings.ServerAddress != source)
                 {
-                    throw new GXDLMSException(
-                            "Source addresses do not match. It is "
-                                    + source.ToString() + ". It should be "
-                                    + settings.ServerAddress.ToString()
-                                    + ".");
-
+                    //Check logical and physical address separately.
+                    //This is done because some meters might send four bytes 
+                    //when only two bytes is needed.
+                    int readLogical, readPhysical, logical, physical;
+                    GetServerAddress(source, out readLogical, out readPhysical);
+                    GetServerAddress(settings.ServerAddress, out logical, out physical);
+                    if (readLogical != logical || readPhysical != physical)
+                    {
+                        throw new GXDLMSException(
+                                "Source addresses do not match. It is "
+                                        + source.ToString() + ". It should be "
+                                        + settings.ServerAddress.ToString()
+                                        + ".");
+                    }
                 }
             }
             return true;
@@ -892,6 +910,13 @@ namespace Gurux.DLMS
         static void GetTcpData(GXDLMSSettings settings,
                 GXByteBuffer buff, GXReplyData data)
         {
+            // If whole frame is not received yet.
+            if (buff.Size - buff.Position < 8)
+            {
+                data.IsComplete = false;
+                return;
+            }
+            UInt16 pos = buff.Position;
             int value;
             // Get version
             value = buff.GetUInt16();
@@ -905,6 +930,10 @@ namespace Gurux.DLMS
             // Get length.
             value = buff.GetUInt16();
             data.IsComplete = !((buff.Size - buff.Position) < value);
+            if (!data.IsComplete)
+            {
+                buff.Position = pos;
+            }
         }
 
         private static void CheckWrapperAddress(GXDLMSSettings settings,

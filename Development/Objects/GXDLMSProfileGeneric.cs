@@ -567,6 +567,7 @@ namespace Gurux.DLMS.Objects
                 }
                 if (value != null && (value as object[]).Length != 0)
                 {
+                    int index2 = 0;
                     DateTime lastDate = DateTime.MinValue;
                     foreach (object[] row in (value as object[]))
                     {
@@ -576,7 +577,17 @@ namespace Gurux.DLMS.Objects
                         }
                         for (int pos = 0; pos != row.Length; ++pos)
                         {
-                            DataType type = CaptureObjects[pos].Key.GetUIDataType(CaptureObjects[pos].Value.AttributeIndex);
+                            index2 = CaptureObjects[pos].Value.AttributeIndex;
+                            DataType type;
+                            //Actaris SL 7000 and ACE 6000 returns 0.
+                            if (index2 != 0)
+                            {
+                                type = CaptureObjects[pos].Key.GetUIDataType(index2);
+                            }
+                            else
+                            {
+                                type = DataType.None;
+                            }
                             if (row[pos] is byte[])
                             {
                                 if (type != DataType.None && row[pos] is byte[])
@@ -601,7 +612,7 @@ namespace Gurux.DLMS.Objects
                                     row[pos] = new GXDateTime(lastDate);
                                 }
                             }
-                            if (CaptureObjects[pos].Key is GXDLMSRegister && CaptureObjects[pos].Value.AttributeIndex == 2)
+                            if (CaptureObjects[pos].Key is GXDLMSRegister && index2 == 2)
                             {
                                 double scaler = (CaptureObjects[pos].Key as GXDLMSRegister).Scaler;
                                 if (scaler != 1)

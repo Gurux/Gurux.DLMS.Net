@@ -99,8 +99,6 @@ namespace Gurux.DLMS.Client.Example
             {
                 Client.ServerAddress = GXDLMSClient.GetServerAddress(server.LogicalAddress, server.PhysicalAddress);
             }
-            Client.ClientAddress = 1;
-            Client.ServerAddress = 16401;
         }
 
         void InitSerial()

@@ -232,21 +232,6 @@ namespace Gurux.DLMS
             return true;
         }
 
-        /// <summary>
-        /// Is frame generated. This is used to tell is any packet send to the server.
-        /// </summary>
-        /// <returns>
-        /// True, if any packet is sent to the server.
-        /// </returns>
-        public bool IsGenerated()
-        {
-            if (IsServer)
-            {
-                return SenderFrame != 0x1E || ReceiverFrame != 0xFE;
-            }
-            return SenderFrame != 0x10 ||  ReceiverFrame != 0xE;
-        }
-
         ///<summary>
         /// Generates I-frame. 
         ///</summary>
