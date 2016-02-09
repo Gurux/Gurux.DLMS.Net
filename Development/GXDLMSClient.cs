@@ -514,7 +514,7 @@ namespace Gurux.DLMS
             }
             bool ciphering = Cipher != null && Cipher.IsCiphered();
             aarq.CodeData(Settings, ciphering, buff);
-            return GXDLMS.SplitPdu(Settings, Command.Aarq, 0, buff, ErrorCode.Ok, Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, Command.Aarq, 0, buff, ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
         }
 
         /// <summary>
@@ -824,6 +824,10 @@ namespace Gurux.DLMS
 
         internal static void UpdateOBISCodes(GXDLMSObjectCollection objects)
         {
+            if (objects.Count == 0)
+            {
+                return;
+            }
             GXStandardObisCodeCollection codes = new GXStandardObisCodeCollection();
             string[] rows = Gurux.DLMS.Properties.Resources.OBISCodes.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string it in rows)
@@ -847,7 +851,7 @@ namespace Gurux.DLMS
                     //If string is used
                     if (code.DataType.Contains("10"))
                     {
-                        code.UIDataType = "10";
+                        code.UIDataType = "10";                        
                     }
                     //If date time is used.
                     else if (code.DataType.Contains("25") || code.DataType.Contains("26"))
@@ -935,6 +939,9 @@ namespace Gurux.DLMS
             }
         }
 
+        /// <summary>
+        /// Available objects.
+        /// </summary>
         public GXDLMSObjectCollection Objects
         {
             get
@@ -1006,46 +1013,7 @@ namespace Gurux.DLMS
                 }
             }
             return items;
-        }
-
-        /// <summary>
-        /// Returns collection of push objects.
-        /// </summary>
-        /// <param name="data">Received data.</param>
-        /// <returns>Array of objects and called indexes.</returns>
-        public List<KeyValuePair<GXDLMSObject, int>> GetPushObjects(GXByteBuffer data)
-        {
-
-            GXReplyData reply = new GXReplyData();
-            reply.Data = data;
-            List<KeyValuePair<GXDLMSObject, int>> items = new List<KeyValuePair<GXDLMSObject, int>>();
-            GXDLMS.GetValueFromData(Settings, reply);
-            Object[] list = (Object[])reply.Value;
-            foreach (Object it in (Object[])list[0])
-            {
-                Object[] tmp = (Object[])it;
-                int classID = ((UInt16)(tmp[0])) & 0xFFFF;
-                if (classID > 0)
-                {
-                    GXDLMSObject comp =
-                            CreateDLMSObject(classID, 0, 0, tmp[1], null);
-                    if ((comp is IGXDLMSBase))
-                    {
-                        items.Add(new KeyValuePair<GXDLMSObject, int>(comp, (sbyte)tmp[2]));
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine(string.Format("Unknown object : {0} {1}",
-                            classID, GXDLMSObject.ToLogicalName((byte[])tmp[1])));
-                    }
-                }
-            }
-            for (int pos = 0; pos < list.Length; ++pos)
-            {
-                (items[pos].Key as IGXDLMSBase).SetValue(Settings, items[pos].Value, list[pos]);
-            }
-            return items;
-        }
+        }       
 
         /// <summary>
         /// Get Value from byte array received from the meter.
@@ -1310,7 +1278,7 @@ namespace Gurux.DLMS
             {
                 GXCommon.SetData(bb, type, value);
             }
-            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, ErrorCode.Ok, Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
         }
 
 
@@ -1391,7 +1359,7 @@ namespace Gurux.DLMS
                 bb.SetUInt8(1);
             }
             GXCommon.SetData(bb, type, value);
-            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, ErrorCode.Ok, Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
         }
 
         /// <summary>
@@ -1467,7 +1435,7 @@ namespace Gurux.DLMS
                     bb.Set(data.Data, 0, data.Size);
                 }
             }
-            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, ErrorCode.Ok, Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
         }
 
         /// <summary>
@@ -1534,7 +1502,7 @@ namespace Gurux.DLMS
                     bb.SetUInt16((UInt16)sn);
                 }
             }
-            return GXDLMS.SplitPdu(Settings, cmd, 3, bb, ErrorCode.Ok, Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, cmd, 3, bb, ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
         }
 
         /// <summary>
@@ -1673,11 +1641,37 @@ namespace Gurux.DLMS
         ///<returns>
         /// Is frame complete.
         ///</returns>
-        public virtual bool GetData(byte[] reply, GXReplyData data)
+        public bool GetData(byte[] reply, GXReplyData data)
         {
             return GXDLMS.GetData(Settings, new GXByteBuffer(reply), data, Cipher);
         }
 
+        /// <summary>
+        /// Get value from DLMS byte stream.
+        /// </summary>
+        /// <param name="data">Received data.</param>
+        /// <returns>Parsed value.</returns>
+        public static object GetValue(GXByteBuffer data)
+        {
+            return GetValue(data, DataType.None);
+        }
+
+        /// <summary>
+        /// Get value from DLMS byte stream.
+        /// </summary>
+        /// <param name="data">Received data.</param>
+        /// <param name="type">Conversion type is used if returned data is byte array.</param>
+        /// <returns>Parsed value.</returns>
+        public static object GetValue(GXByteBuffer data, DataType type)
+        {
+            GXDataInfo info = new GXDataInfo();
+            object value = GXCommon.GetData(data, info);
+            if (value is byte[] && type != DataType.None)
+            {
+                value = GXDLMSClient.ChangeType((byte[]) value, type);
+            }
+            return value;
+        }
 
         ///<summary>
         ///Removes the HDLC frame from the packet, and returns COSEM data only.

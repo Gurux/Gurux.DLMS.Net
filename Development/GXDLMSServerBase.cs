@@ -694,7 +694,7 @@ namespace Gurux.DLMS
             {
                 bb.Add((obj as IGXDLMSBase).Invoke(Settings, id, parameters));
             }
-            return GXDLMS.SplitPdu(Settings, Command.MethodResponse, 1, bb, ErrorCode.Ok, Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, Command.MethodResponse, 1, bb, ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
         }
 
         ///<summary>
@@ -793,7 +793,7 @@ namespace Gurux.DLMS
                 Settings.ResetBlockIndex();
                 error = ErrorCode.HardwareFault;
             }
-            return GXDLMS.SplitPdu(Settings, Command.SetResponse, 1, bb, error, Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, Command.SetResponse, 1, bb, error, DateTime.MinValue, Cipher)[0];
         }
 
         private byte[][] HandleGetRequest()
@@ -840,7 +840,7 @@ namespace Gurux.DLMS
                     object value = (obj as IGXDLMSBase).GetValue(Settings, attributeIndex, selector, parameters);
                     GXDLMS.AppedData(obj, attributeIndex, bb, value);
                 }
-                ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 1, bb, error, Cipher);
+                ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 1, bb, error, DateTime.MinValue, Cipher);
 
             }
             else if (type == 2)
@@ -851,7 +851,8 @@ namespace Gurux.DLMS
                 if (index != Settings.BlockIndex + 1)
                 {
                     Debug.WriteLine("handleGetRequest failed. Invalid block number. " + Settings.BlockIndex + "/" + index);
-                    ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 1, bb, ErrorCode.DataBlockNumberInvalid, Cipher);
+                    ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 1, bb, 
+                        ErrorCode.DataBlockNumberInvalid, DateTime.MinValue, Cipher);
                     index = 0;
                     ServerReply.Index = index;
                 }
@@ -904,14 +905,14 @@ namespace Gurux.DLMS
                         }
                     }
                 }
-                ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 3, bb, error, Cipher);
+                ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 3, bb, error, DateTime.MinValue, Cipher);
             }
             else
             {
                 Debug.WriteLine("handleGetRequest failed. Invalid command type.");
                 Settings.ResetBlockIndex();
                 // Access Error : Device reports a hardware fault.
-                ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 1, bb, ErrorCode.HardwareFault, Cipher);
+                ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 1, bb, ErrorCode.HardwareFault, DateTime.MinValue, Cipher);
             }
             ServerReply.Index = index;
             return ServerReply.ReplyMessages[index];
@@ -1068,7 +1069,8 @@ namespace Gurux.DLMS
                     throw new System.ArgumentException("Invalid Command.");
                 }
             }
-            return GXDLMS.SplitPdu(Settings, Command.ReadResponse, 1, bb, ErrorCode.Ok, Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, Command.ReadResponse, 1, bb, 
+                                ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
         }
 
         ///<summary>
@@ -1158,7 +1160,7 @@ namespace Gurux.DLMS
                 }
                 bb.SetUInt8(ret);
             }
-            return GXDLMS.SplitPdu(Settings, Command.WriteResponse, 1, bb, ErrorCode.Ok, Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, Command.WriteResponse, 1, bb, ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
         }
 
         ///<summary>
@@ -1232,7 +1234,8 @@ namespace Gurux.DLMS
             GXByteBuffer buff = new GXByteBuffer(150);
             bool ciphering = Cipher != null && Cipher.IsCiphered();
             aarq.GenerateAARE(Settings, buff, result, diagnostic, ciphering);
-            return GXDLMS.SplitPdu(Settings, Command.Aare, 0, buff, ErrorCode.Ok, Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, Command.Aare, 0, buff, 
+                            ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
         }
 
         ///<summary>
@@ -1277,7 +1280,7 @@ namespace Gurux.DLMS
                 buff = new GXByteBuffer(2);
                 buff.SetUInt8(0x63);
                 buff.SetUInt8(0x0);
-                return GXDLMS.SplitPdu(Settings, Command.DisconnectResponse, 0, buff, ErrorCode.Ok, Cipher)[0];
+                return GXDLMS.SplitPdu(Settings, Command.DisconnectResponse, 0, buff, ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
             }
             else
             {

@@ -1,4 +1,37 @@
-﻿namespace Gurux.DLMS
+﻿//
+// --------------------------------------------------------------------------
+//  Gurux Ltd
+// 
+//
+//
+// Filename:        $HeadURL$
+//
+// Version:         $Revision$,
+//                  $Date$
+//                  $Author$
+//
+// Copyright (c) Gurux Ltd
+//
+//---------------------------------------------------------------------------
+//
+//  DESCRIPTION
+//
+// This file is a part of Gurux Device Framework.
+//
+// Gurux Device Framework is Open Source software; you can redistribute it
+// and/or modify it under the terms of the GNU General Public License 
+// as published by the Free Software Foundation; version 2 of the License.
+// Gurux Device Framework is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of 
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// See the GNU General Public License for more details.
+//
+// More information of Gurux products: http://www.gurux.org
+//
+// This code is licensed under the GNU General Public License v2. 
+// Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
+//---------------------------------------------------------------------------
+namespace Gurux.DLMS
 {
     using System;
     using System.Text;
@@ -131,6 +164,21 @@
         }
 
         /// <summary>
+        /// Move content from source to destanation.
+        /// </summary>
+        /// <param name="srcPos">Source position.</param>
+        /// <param name="destPos">Destination position.</param>
+        /// <param name="count">Item count.</param>
+        public void Move(int srcPos, int destPos, int count)
+        {
+            if (count < 0)
+            {
+                throw new ArgumentOutOfRangeException("count");
+            }
+            Buffer.BlockCopy(Data, srcPos, Data, destPos, count);
+        }
+
+        /// <summary>
         /// Push the given byte into this buffer at the current position, and then increments the position.
         /// </summary>
         /// <param name="value">The value to be added.</param>       
@@ -184,6 +232,16 @@
         }
 
         /// <summary>
+        /// Push the given Int16 into this buffer at the current position, and then increments the position.
+        /// </summary>
+        /// <param name="value">The value to be added.</param>    
+        public void SetInt16(Int16 value)
+        {
+            SetInt16(Size, value);
+            Size += 2;
+        }
+
+        /// <summary>
         /// Get UInt16 value from byte array from the current position and then increments the position.
         /// </summary>
         public UInt16 GetUInt16()
@@ -209,12 +267,37 @@
         }
 
         /// <summary>
+        /// Push the given Int16 into this buffer at the given position.
+        /// </summary>
+        /// <param name="index">Zero based byte index where value is set.</param>
+        /// <param name="value">The value to be added.</param>    
+        public void SetInt16(int index, Int16 value)
+        {
+            if (index + 2 >= Capacity)
+            {
+                Capacity = (UInt16)(index + ArrayCapacity);
+            }
+            Data[index] = (byte)((value >> 8) & 0xFF);
+            Data[index + 1] = (byte)(value & 0xFF);
+        }
+
+        /// <summary>
         /// Push the given UInt32 into this buffer at the current position, and then increments the position.
         /// </summary>
         /// <param name="value"> The value to be added.</param>    
         public void SetUInt32(UInt32 value)
         {
             SetUInt32(Size, value);
+            Size += 4;
+        }
+
+        /// <summary>
+        /// Push the given UInt32 into this buffer at the current position, and then increments the position.
+        /// </summary>
+        /// <param name="value"> The value to be added.</param>    
+        public void SetInt32(Int32 value)
+        {
+            SetInt32(Size, value);
             Size += 4;
         }
 
@@ -246,6 +329,23 @@
         }
 
         /// <summary>
+        /// Push the given UInt32 into this buffer at the given position.
+        /// </summary>
+        /// <param name="index">Zero based byte index where value is set.</param>
+        /// <param name="value"> The value to be added.</param>    
+        public void SetInt32(int index, Int32 item)
+        {
+            if (index + 4 >= Capacity)
+            {
+                Capacity = (UInt16)(index + ArrayCapacity);
+            }
+            Data[index] = (byte)((item >> 24) & 0xFF);
+            Data[index + 1] = (byte)((item >> 16) & 0xFF);
+            Data[index + 2] = (byte)((item >> 8) & 0xFF);
+            Data[index + 3] = (byte)(item & 0xFF);
+        }
+
+        /// <summary>
         /// Push the given UInt64 into this buffer at the current position, and then increments the position.
         /// </summary>
         /// <param name="value"> The value to be added.</param>    
@@ -254,6 +354,17 @@
             SetUInt64(Size, value);
             Size += 8;
         }
+
+        /// <summary>
+        /// Push the given UInt64 into this buffer at the current position, and then increments the position.
+        /// </summary>
+        /// <param name="value"> The value to be added.</param>    
+        public void SetInt64(Int64 value)
+        {
+            SetInt64(Size, value);
+            Size += 8;
+        }
+
 
         /// <summary>
         /// Get UInt64 value from byte array from the current position and then increments the position.
@@ -275,6 +386,27 @@
             if (index + 8 >= Capacity)
             {
                 Capacity = (UInt16) (index + ArrayCapacity);
+            }
+            Data[Size + 7] = (byte)((item >> 56) & 0xFF);
+            Data[Size + 6] = (byte)((item >> 48) & 0xFF);
+            Data[Size + 5] = (byte)((item >> 40) & 0xFF);
+            Data[Size + 4] = (byte)((item >> 32) & 0xFF);
+            Data[Size + 3] = (byte)((item >> 24) & 0xFF);
+            Data[Size + 2] = (byte)((item >> 16) & 0xFF);
+            Data[Size + 1] = (byte)((item >> 8) & 0xFF);
+            Data[Size] = (byte)(item & 0xFF);
+        }
+
+        /// <summary>
+        /// Push the given UInt64 into this buffer at the given position.
+        /// </summary>
+        /// <param name="index">Zero based byte index where value is set.</param>
+        /// <param name="value"> The value to be added.</param>    
+        public void SetInt64(int index, Int64 item)
+        {
+            if (index + 8 >= Capacity)
+            {
+                Capacity = (UInt16)(index + ArrayCapacity);
             }
             Data[Size + 7] = (byte)((item >> 56) & 0xFF);
             Data[Size + 6] = (byte)((item >> 48) & 0xFF);
@@ -501,6 +633,19 @@
                 {
                     SetUInt64((UInt64)value);
                 }
+                else if (value is Int16)
+                {
+                    SetInt16((Int16)value);
+                }
+                else if (value is Int32)
+                {
+                    SetInt32((Int32)value);
+                }
+                else if (value is Int64)
+                {
+                    SetInt64((Int64)value);
+                }
+
                 else if (value is string)
                 {
                     Set(ASCIIEncoding.ASCII.GetBytes((string) value));
@@ -550,7 +695,7 @@
 
         public override string ToString()
         {
-            return Gurux.DLMS.Internal.GXCommon.ToHex(Data, true);
+            return Gurux.DLMS.Internal.GXCommon.ToHex(Data, true, 0, Size);
         }
     }
 }

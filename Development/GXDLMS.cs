@@ -144,9 +144,9 @@ namespace Gurux.DLMS
             settings.IncreaseBlockIndex();
             if (settings.IsServer)
             {
-                return SplitPdu(settings, Command.GetResponse, 2, bb, ErrorCode.Ok, cipher)[0][0];
+                return SplitPdu(settings, Command.GetResponse, 2, bb, ErrorCode.Ok, DateTime.MinValue, cipher)[0][0];
             }
-            return SplitPdu(settings, Command.GetRequest, 2, bb, ErrorCode.Ok, cipher)[0][0];
+            return SplitPdu(settings, Command.GetRequest, 2, bb, ErrorCode.Ok, DateTime.MinValue, cipher)[0][0];
         }
 
         /// <summary>
@@ -261,7 +261,7 @@ namespace Gurux.DLMS
         }
 
         internal static List<byte[][]> SplitPdu(GXDLMSSettings settings, Command command, int commandParameter,
-                GXByteBuffer data, ErrorCode error, GXICipher cp)
+                GXByteBuffer data, ErrorCode error, DateTime date, GXICipher cp)
         {
             GXByteBuffer bb = new GXByteBuffer();
             List<byte[][]> list = new List<byte[][]>();
@@ -298,7 +298,7 @@ namespace Gurux.DLMS
             else
             {
                 List<byte[]> pdus =
-                        GetLnPdus(settings, (byte)commandParameter, data, command, error);
+                        GetLnPdus(settings, (byte)commandParameter, data, command, error, date);
                 foreach (byte[] it in pdus)
                 {                   
                     // If Ciphering is used.
@@ -342,10 +342,11 @@ namespace Gurux.DLMS
         }
 
         private static List<byte[]> GetLnPdus(GXDLMSSettings settings, byte commandParameter, GXByteBuffer buff,
-                Command cmd, ErrorCode error)
+                Command cmd, ErrorCode error, DateTime date)
         {
             List<byte[]> arr = new List<byte[]>();
             GXByteBuffer bb;
+            UInt32 index = 0;
             int len;
             if (buff == null)
             {
@@ -365,7 +366,10 @@ namespace Gurux.DLMS
                 }
             }
             bb = new GXByteBuffer();
-            UInt32 index = settings.BlockIndex - 1;
+            if (cmd != Command.Push)
+            {
+                index = settings.BlockIndex - 1;
+            }
             bool multibleBlocks = buff.Size > len;
             do
             {
@@ -378,8 +382,41 @@ namespace Gurux.DLMS
                 {
                     // Add command.
                     bb.SetUInt8((byte)cmd);
+                    if (cmd == Command.Push)
+                    {
+                        // Is last block
+                        if (bb.Position + len < buff.Size)
+                        {
+                            bb.SetUInt8(0);
+                        }
+                        else
+                        {
+                            bb.SetUInt8(0x80);
+                        }
+                        // Set block number sent.
+                        bb.SetUInt8(0);
+                        // Set block number acknowledged
+                        bb.SetUInt8((byte)++index);
+                        // Add APU tag.
+                        bb.SetUInt8(0);
+                        // Add Addl fields
+                        bb.SetUInt8(0);
+                        // Add Data-Notification
+                        bb.SetUInt8(0x0F);
+                        // Add Long-Invoke-Id-And-Priority
+                        bb.SetUInt32(++settings.BlockIndex);
+                        // Add date time.
+                        if (date == DateTime.MinValue || date == DateTime.MaxValue)
+                        {
+                            bb.SetUInt8(DataType.None);
+                        }
+                        else
+                        {
+                            GXCommon.SetData(bb, DataType.DateTime, date);
+                        } 
+                    }
                     // If all data is not fit to one PDU.
-                    if (multibleBlocks)
+                    else if (multibleBlocks)
                     {
                         bb.SetUInt8(2);
                         // Add Invoke Id And Priority.
@@ -405,7 +442,10 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        bb.SetUInt8(commandParameter);
+                        if (cmd != Command.DataNotification)
+                        {
+                            bb.SetUInt8(commandParameter);
+                        }
                         // Add Invoke Id And Priority.
                         bb.SetUInt8(GetInvokeIDPriority(settings));
                         // Add error code if reply and not Get Response With List.
@@ -1329,6 +1369,11 @@ namespace Gurux.DLMS
                         cmd = (Command)ch;
                         data.Command = cmd;
                         // Server handles this.
+                        break;
+                    case Command.DataNotification:
+                        //Get invoke id.
+                        ch = data.Data.GetUInt8();
+                        //Client handles this.
                         break;
                     default:
                         throw new ArgumentException("Invalid Command.");

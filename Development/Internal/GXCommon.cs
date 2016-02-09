@@ -1762,19 +1762,21 @@ namespace Gurux.DLMS.Internal
         {
             if (value is string)
             {
+                GXByteBuffer tmp = new GXByteBuffer();
                 byte val = 0;
                 int index = 0;
-                string str = ((string)value).Reverse().ToString();
+                string str = ((string)value);
                 SetObjectCount(str.Length, buff);
-                foreach (char it in str.ToCharArray())
+                foreach (char it in  str.Reverse())
                 {
                     if (it == '1')
                     {
-                        val |= (byte)(1 << index++);
+                        val |= (byte)(1 << index);
+                        ++index;
                     }
                     else if (it == '0')
                     {
-                        index++;
+                        ++index;
                     }
                     else
                     {
@@ -1783,13 +1785,17 @@ namespace Gurux.DLMS.Internal
                     if (index == 8)
                     {
                         index = 0;
-                        buff.SetUInt8(val);
+                        tmp.SetUInt8(val);
                         val = 0;
                     }
                 }
                 if (index != 0)
                 {
-                    buff.SetUInt8(val);
+                    tmp.SetUInt8(val);
+                }
+                for (int pos = tmp.Size - 1; pos != -1; --pos)
+                {
+                    buff.SetUInt8(tmp.GetUInt8(pos));
                 }
             }
             else if (value is sbyte[])

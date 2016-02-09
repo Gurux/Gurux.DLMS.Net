@@ -260,27 +260,26 @@ namespace Gurux.DLMS.Objects
             {
                 return this.LogicalName;
             }
+            GXByteBuffer buff = new GXByteBuffer();
             if (index == 2)
             {
-                GXByteBuffer buff = new GXByteBuffer();
-                buff.Add((byte)DataType.Array);
+                buff.SetUInt8(DataType.Array);
                 GXCommon.SetObjectCount(PushObjectList.Count, buff);
                 foreach (GXDLMSPushObject it in PushObjectList)
                 {
-                    buff.Add((byte)DataType.Structure);
-                    buff.Add(4);
-                    GXCommon.SetData(buff, DataType.UInt8, it.Type);
-                    GXCommon.SetData(buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.LogicalName));
-                    GXCommon.SetData(buff, DataType.UInt8, it.AttributeIndex);
-                    GXCommon.SetData(buff, DataType.UInt8, it.DataIndex);
+                    buff.SetUInt8(DataType.Structure);
+                    buff.SetUInt8(4);
+                    GXCommon.SetData(buff, DataType.UInt16, it.Type);
+                    GXCommon.SetData(buff, DataType.OctetString, it.LogicalName);
+                    GXCommon.SetData(buff, DataType.Int8, it.AttributeIndex);
+                    GXCommon.SetData(buff, DataType.UInt16, it.DataIndex);
                 }
                 return buff.Array();                
             }
             if (index == 3)
             {
-                GXByteBuffer buff = new GXByteBuffer();
-                buff.Add((byte)DataType.Structure);
-                buff.Add(3);
+                buff.SetUInt8(DataType.Structure);
+                buff.SetUInt8(3);
                 GXCommon.SetData(buff, DataType.UInt8, SendDestinationAndMethod.Service);
                 GXCommon.SetData(buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(SendDestinationAndMethod.Destination));
                 GXCommon.SetData(buff, DataType.UInt8, SendDestinationAndMethod.Message);
@@ -288,13 +287,12 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 4)
             {
-                GXByteBuffer buff = new GXByteBuffer();
-                buff.Add((byte)DataType.Array);
+                buff.SetUInt8(DataType.Array);
                 GXCommon.SetObjectCount(CommunicationWindow.Count, buff);
                 foreach (KeyValuePair<GXDateTime, GXDateTime> it in CommunicationWindow)
                 {
-                    buff.Add((byte)DataType.Structure);
-                    buff.Add(2);
+                    buff.SetUInt8(DataType.Structure);
+                    buff.SetUInt8(2);
                     GXCommon.SetData(buff, DataType.DateTime, it.Key);
                     GXCommon.SetData(buff, DataType.DateTime, it.Value);
                 }
@@ -337,10 +335,10 @@ namespace Gurux.DLMS.Objects
                     {
                         Object[] tmp = it as Object[];
                         GXDLMSPushObject obj = new GXDLMSPushObject();
-                        obj.Type = (ObjectType)Convert.ToInt32(tmp[0]);
-                        obj.LogicalName = GXDLMSClient.ChangeType((byte[])tmp[1], DataType.BitString).ToString();
+                        obj.Type = (ObjectType)Convert.ToUInt16(tmp[0]);
+                        obj.LogicalName = GXDLMSClient.ChangeType((byte[])tmp[1], DataType.OctetString).ToString();
                         obj.AttributeIndex = Convert.ToInt32(tmp[2]);
-                        obj.DataIndex = Convert.ToInt32(tmp[3]);
+                        obj.DataIndex = Convert.ToUInt16(tmp[3]);
                         PushObjectList.Add(obj);
                     }
                 }

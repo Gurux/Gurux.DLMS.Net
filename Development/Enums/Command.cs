@@ -144,6 +144,11 @@ namespace Gurux.DLMS
         Push = 0xE0,
 
         /// <summary>
+        /// Data Notification request.
+        /// </summary>
+        DataNotification = 0x0F,
+
+        /// <summary>
         /// Glo get request.
         /// </summary>
         GloGetRequest = 0xC8,
