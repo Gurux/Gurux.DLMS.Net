@@ -76,7 +76,7 @@
     <Compile Include="Enums\MethodAccessMode.cs" />
     <Compile Include="Enums\DateTimeSkips.cs" />
     <Compile Include="GXKeyValuePair.cs" />
-    <Compile Include="GXDLMSNotifyClient.cs" />
+    <Compile Include="GXDLMSNotifyHandler.cs" />
     <Compile Include="GXServerReply.cs" />
     <Compile Include="GXSNInfo.cs" />
     <Compile Include="Internal\SerialnumberCounter.cs" />

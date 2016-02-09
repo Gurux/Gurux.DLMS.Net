@@ -44,7 +44,7 @@ namespace Gurux.DLMS
     /// <summary>
     /// This class is used to send data notify and push messages to the clients. 
     /// </summary>
-    public class GXDLMSNotifyClient
+    public class GXDLMSNotifyHandler
     {
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace Gurux.DLMS
         /// <param name="clientAddress">Client address. Default is 0x10</param>
         /// <param name="ServerAddress">Server ID. Default is 1.</param>
         /// <param name="interfaceType">Interface type. Default is general.</param>
-        public GXDLMSNotifyClient(bool useLogicalNameReferencing,
+        public GXDLMSNotifyHandler(bool useLogicalNameReferencing,
             int clientAddress, int serverAddress, InterfaceType interfaceType)
         {
             Settings = new GXDLMSSettings(true);
@@ -250,7 +250,7 @@ namespace Gurux.DLMS
         /// <param name="date">Date time. Set To Min or Max if not added</param>
         /// <param name="objects">List of objects and attribute indexes to notify.</param>
         /// <returns>Generated data notification message(s).</returns>
-        public byte[][] GetDataNotificationMessage(DateTime date, List<KeyValuePair<GXDLMSObject, int>> objects)
+        public byte[][] GenerateDataNotificationMessage(DateTime date, List<KeyValuePair<GXDLMSObject, int>> objects)
         {
             if (objects == null)
             {
@@ -280,7 +280,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="data">Received data.</param>
         /// <returns>Array of objects and called indexes.</returns>
-        public List<KeyValuePair<GXDLMSObject, int>> GetPushObjects(GXByteBuffer data)
+        public List<KeyValuePair<GXDLMSObject, int>> ParsePushObjects(GXByteBuffer data)
         {
             int index;
             GXDLMSObject obj;
@@ -335,7 +335,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="objects">List of objects and attribute indexes to push.</param>
         /// <returns>Generated push message(s).</returns>
-        public byte[][] GetPushMessage(DateTime date, List<KeyValuePair<GXDLMSObject, int>> objects)
+        public byte[][] GeneratePushMessage(DateTime date, List<KeyValuePair<GXDLMSObject, int>> objects)
         {
             DataType dt;
             object value;
