@@ -47,9 +47,11 @@ namespace Gurux.DLMS
     class GXApplicationContextName
     {
         /// <summary>
-        /// Reserved for internal use.
+        /// Code application context name.
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="data">Byte buffer where data is saved.</param>
+        /// <param name="ciphered">Is chiohering used.</param>
         internal static void CodeData(GXDLMSSettings settings, GXByteBuffer data, bool ciphered)
         {
             //Application context name tag

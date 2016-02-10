@@ -50,18 +50,6 @@ namespace Gurux.DLMS.Objects
 {   
     public class GXDLMSProfileGeneric : GXDLMSObject, IGXDLMSBase
     {
-        object Owner
-        {
-            get
-            {
-                if (Parent != null)
-                {
-                    return Parent.Parent;
-                }
-                return null;
-            }
-        }
-
         /// <summary> 
         /// Constructor.
         /// </summary> 
@@ -247,10 +235,6 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         public void Reset()
         {
-            if (!(Owner is GXDLMSServerBase))
-            {
-                throw new Exception("This functionality is available only in server side.");
-            }
             lock (this)
             {
                 Buffer.Clear();
@@ -262,18 +246,14 @@ namespace Gurux.DLMS.Objects
         /// Copies the values of the objects to capture 
         /// into the buffer by reading capture objects.
         /// </summary>
-        public void Capture()
+        public void Capture(GXDLMSServerBase server)
         {
-            if (!(Owner is GXDLMSServerBase))
-            {
-                throw new Exception("This functionality is available only in server side.");
-            }
             object[] values = new object[CaptureObjects.Count];
             int pos = -1;
             foreach (var obj in CaptureObjects)
             {
                 ValueEventArgs e = new ValueEventArgs(obj.Key, obj.Value.AttributeIndex, 0);
-                (Owner as GXDLMSServerBase).Read(e);
+                server.Read(e);
                 if (e.Handled)
                 {
                     values[++pos] = e.Value;
@@ -651,9 +631,9 @@ namespace Gurux.DLMS.Objects
                     int attributeIndex = Convert.ToInt16(tmp[2]);
                     int dataIndex = Convert.ToInt16(tmp[3]);
                     GXDLMSObject obj = null;
-                    if (Parent != null)
+                    if (settings.Objects != null)
                     {
-                        obj = Parent.FindByLN(type, ln);
+                        obj = settings.Objects.FindByLN(type, ln);
                     }
                     if (obj == null)
                     {

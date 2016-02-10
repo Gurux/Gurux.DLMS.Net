@@ -63,12 +63,15 @@ namespace Gurux.DLMS.Objects
             ObjectList = new GXDLMSObjectCollection();
         }
 
+        /// <summary>
+        /// Secret used in Authentication
+        /// </summary>
         [XmlIgnore()]
-               /// <summary>
-       /// Secret used in Authentication
-       /// </summary>
         public byte[] Secret;
 
+        /// <summary>
+        /// List of available objects in short name referencing.
+        /// </summary>
         [XmlIgnore()]
         public GXDLMSObjectCollection ObjectList
         {
@@ -76,6 +79,9 @@ namespace Gurux.DLMS.Objects
             internal set;
         }
 
+        /// <summary>
+        /// List of access rights.
+        /// </summary>
         [XmlIgnore()]
         public object AccessRightsList
         {
@@ -83,6 +89,9 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// Security setup reference.
+        /// </summary>
         [XmlIgnore()]
         public string SecuritySetupReference
         {
@@ -343,9 +352,9 @@ namespace Gurux.DLMS.Objects
                         int version = Convert.ToInt32(item[2]);
                         String ln = GXDLMSObject.ToLogicalName((byte[])item[3]);
                         GXDLMSObject obj = null;
-                        if (Parent != null)
+                        if (settings.Objects != null)
                         {
-                            obj = Parent.FindBySN(sn);
+                            obj = settings.Objects.FindBySN(sn);
                         }
                         if (obj == null)
                         {

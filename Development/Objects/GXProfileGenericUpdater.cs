@@ -56,7 +56,7 @@ namespace Gurux.DLMS.Objects
             while (true)
             {
                 Thread.Sleep(Target.CapturePeriod * 1000);
-                Target.Capture();
+                Target.Capture(Server);
             }
         }
     }

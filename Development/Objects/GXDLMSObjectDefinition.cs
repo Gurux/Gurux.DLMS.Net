@@ -40,20 +40,30 @@ using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Register activation uses this class to save register assigments.
+    /// </summary>
     public class GXDLMSObjectDefinition
     {
+        /// <summary>
+        /// Class ID tells object type.
+        /// </summary>
         public ObjectType ClassId
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// Logical name of the object.
+        /// </summary>
         public string LogicalName
         {
             get;
             set;
         }
 
+        /// <inheritdoc cref="object.ToString"/>
         public override string ToString()
         {
             return ClassId.ToString() + " " + LogicalName;

@@ -538,9 +538,9 @@ namespace Gurux.DLMS.Objects
                         int version = Convert.ToInt32(item[1]);
                         String ln = GXDLMSObject.ToLogicalName((byte[])item[2]);
                         GXDLMSObject obj = null;
-                        if (Parent != null)
+                        if (settings.Objects != null)
                         {
-                            obj = Parent.FindByLN(type, ln);
+                            obj = settings.Objects.FindByLN(type, ln);
                         }
                         if (obj == null)
                         {

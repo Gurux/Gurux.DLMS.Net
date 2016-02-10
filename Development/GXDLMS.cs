@@ -824,8 +824,9 @@ namespace Gurux.DLMS
             }
             else
             {
-                // If Keep Alive or get next frame
-                if ((frame & 0x1) == 1)
+                // If Keep Alive or get next frame.
+                // Check that value is not 1. One meter returns wrong value here.
+                if ((frame & 0x1) == 1 && frame != 0x1)
                 {
                     // Get EOP.
                     reply.GetUInt8();

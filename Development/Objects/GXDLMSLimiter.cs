@@ -447,7 +447,7 @@ namespace Gurux.DLMS.Objects
                 ObjectType ot = (ObjectType) Convert.ToInt16(((object[])value)[0]);
                 string ln = GXDLMSClient.ChangeType((byte[])((object[])value)[1], DataType.OctetString).ToString();
                 int attIndex = Convert.ToInt32(((object[])value)[2]);
-                MonitoredValue = Parent.FindByLN(ot, ln);
+                MonitoredValue = settings.Objects.FindByLN(ot, ln);
                 MonitoredAttributeIndex = attIndex;
             }
             else if (index == 3)

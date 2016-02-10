@@ -390,7 +390,6 @@ namespace Gurux.DLMS
                     if (it is GXDLMSProfileGeneric)
                     {
                         GXDLMSProfileGeneric pg = it as GXDLMSProfileGeneric;
-                        pg.Parent.Parent = this;
                         if (pg.ProfileEntries < 1)
                         {
                             throw new Exception("Invalid Profile Entries. Profile entries tells amount of rows in the table.");

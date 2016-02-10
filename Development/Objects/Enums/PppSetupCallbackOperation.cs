@@ -34,19 +34,34 @@
 
 namespace Gurux.DLMS.Objects.Enums
 {
+    /// <summary>
+    /// Point to point setup callback operations.
+    /// </summary>
     public enum PppSetupCallbackOperation
     {
-        //Location is determined by user authentication.
+        /// <summary>
+        /// Location is determined by user authentication.
+        /// </summary>
         User = 0,
-        //Dialling string,
+        /// <summary>
+        /// Dialling string.
+        /// </summary>
         Dialling = 1,
-        // Location identifier.
+        /// <summary>
+        /// Location identifier.
+        /// </summary>
         Location = 2,
-        //E.164 number.
+        /// <summary>
+        /// E.164 number.
+        /// </summary>
         E_164 = 3,
-        //X500 distinguished name.
+        /// <summary>
+        /// X500 distinguished name.
+        /// </summary>
         X500 = 4,
-        //Location is determined during CBCP negotiation.
+        /// <summary>
+        /// Location is determined during CBCP negotiation.
+        /// </summary>
         CBCP = 6
     }
 }

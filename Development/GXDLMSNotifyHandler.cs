@@ -169,6 +169,23 @@ namespace Gurux.DLMS
             }
         }
 
+        ///<summary>
+        /// Removes the HDLC frame from the packet, and returns COSEM data only.
+        ///</summary>
+        ///<param name="reply">
+        /// The received data from the device. 
+        ///</param>
+        ///<param name="data">
+        /// Information from the received data. 
+        ///</param>
+        ///<returns>
+        /// Is frame complete.
+        ///</returns>
+        public bool GetData(byte[] reply, GXReplyData data)
+        {
+            return GXDLMS.GetData(Settings, new GXByteBuffer(reply), data, Cipher);
+        }
+
         /// <summary>
         /// Add value of COSEM object to byte buffer.
         /// </summary>
@@ -201,7 +218,7 @@ namespace Gurux.DLMS
         /// <param name="buff">Byte buffer.</param>
         /// <remarks>
         /// AddData method can be used with GetDataNotificationMessage -method.
-        /// DLMS spesification do not specify the structure of Data-Notification body.
+        /// DLMS specification do not specify the structure of Data-Notification body.
         /// So each manufacture can sent different data.
         /// </remarks>
         /// <seealso cref="GetDataNotificationMessage"/>
