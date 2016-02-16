@@ -12,6 +12,7 @@ using Gurux.DLMS.Objects;
 using System.IO;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
+using System.Threading;
 
 namespace Gurux.DLMS.Client.Example
 {
@@ -19,7 +20,7 @@ namespace Gurux.DLMS.Client.Example
     {
         public bool Trace = false;
         public Gurux.DLMS.GXDLMSClient Client;
-        int WaitTime = 10000;
+        int WaitTime = 5000;
         IGXMedia Media;
         bool InitializeIEC;
         GXManufacturer Manufacturer;
@@ -341,7 +342,18 @@ namespace Gurux.DLMS.Client.Example
         public object Read(GXDLMSObject it, int attributeIndex)
         {
             GXReplyData reply = new GXReplyData();
-            ReadDataBlock(Client.Read(it, attributeIndex), reply);
+            if (!ReadDataBlock(Client.Read(it, attributeIndex), reply))
+            {
+                reply.Clear();
+                Thread.Sleep(1000);
+                if (!ReadDataBlock(Client.Read(it, attributeIndex), reply))
+                {
+                    if (reply.Error != 0)
+                    {
+                        throw new GXDLMSException(reply.Error);
+                    }
+                }
+            }
             //Update data type.
             if (it.GetDataType(attributeIndex) == DataType.None)
             {
@@ -421,8 +433,6 @@ namespace Gurux.DLMS.Client.Example
             }
         }
 
-
-
         /// <summary>
         /// Read DLMS Data from the device.
         /// </summary>
@@ -434,6 +444,7 @@ namespace Gurux.DLMS.Client.Example
             {
                 return;
             }
+            reply.Error = 0;
             object eop = (byte)0x7E;
             //In network connection terminator is not used.
             if (Client.InterfaceType == InterfaceType.WRAPPER && Media is GXNet)
@@ -444,7 +455,6 @@ namespace Gurux.DLMS.Client.Example
             bool succeeded = false;
             ReceiveParameters<byte[]> p = new ReceiveParameters<byte[]>()
             {
-                AllData = true,
                 Eop = eop,
                 Count = 5,
                 WaitTime = WaitTime,
@@ -472,28 +482,46 @@ namespace Gurux.DLMS.Client.Example
                         throw new Exception("Failed to receive reply from the device in given time.");
                     }
                 }
-                //Loop until whole COSEM packet is received.                
-                while (!Client.GetData(p.Reply, reply))
+                try
                 {
-                    //If Eop is not set read one byte at time.
-                    if (p.Eop == null)
-                    {
-                        p.Count = 1;
-                    }
-                    if (!Media.Receive(p))
-                    {
-                        //Try to read again...
-                        if (pos != 3)
+                    //Loop until whole COSEM packet is received.                
+                    while (!Client.GetData(p.Reply, reply))
+                    {                       
+                        //If Eop is not set read one byte at time.
+                        if (p.Eop == null)
                         {
-                            System.Diagnostics.Debug.WriteLine("Data send failed. Try to resend " + pos.ToString() + "/3");
-                            continue;
+                            p.Count = 1;
                         }
-                        throw new Exception("Failed to receive reply from the device in given time.");
+                        while(!Media.Receive(p))
+                        {
+                            //If echo.
+                            if (p.Reply.Length == data.Length)
+                            {
+                                Media.Send(data, null);
+                            }
+                            //Try to read again...
+                            if (++pos != 3)
+                            {
+                                System.Diagnostics.Debug.WriteLine("Data send failed. Try to resend " + pos.ToString() + "/3");
+                                continue;
+                            } 
+                            //If Eop is not set read one byte at time.
+                            if (p.Eop == null)
+                            {
+                                p.Count = 1;
+                            }
+                            throw new Exception("Failed to receive reply from the device in given time.");
+                        }
                     }
+                }
+                catch (Exception ex)
+                {
+                    WriteTrace("-> " + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(p.Reply, true));
+                    throw ex;
                 }
             }
             WriteTrace("-> " + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(p.Reply, true));
-            if (reply.Error != 0)
+            if (reply.Error != 0 && reply.Error != (short)ErrorCode.Rejected)
             {
                 throw new GXDLMSException(reply.Error);
             }
@@ -565,13 +593,18 @@ namespace Gurux.DLMS.Client.Example
             ReadDataBlock(target.ImageActivate(Client), reply);
         }
 
-        public void ReadDataBlock(byte[][] data, GXReplyData reply)
+        public bool ReadDataBlock(byte[][] data, GXReplyData reply)
         {
             foreach (byte[] it in data)
             {
                 reply.Clear();
                 ReadDataBlock(it, reply);
+                if (reply.Error == (short) ErrorCode.Rejected)
+                {
+                    return false;
+                }
             }
+            return true;
         }
 
         /// <summary>
@@ -584,10 +617,22 @@ namespace Gurux.DLMS.Client.Example
         public void ReadDataBlock(byte[] data, GXReplyData reply)
         {
             ReadDLMSPacket(data, reply);
+            RequestTypes rt;
             while (reply.IsMoreData)
             {
-                data = Client.ReceiverReady(reply.MoreData);                    
+                rt = reply.MoreData;
+                data = Client.ReceiverReady(rt);
                 ReadDLMSPacket(data, reply);
+                if (reply.Error == (short)ErrorCode.Rejected)
+                {
+                    Thread.Sleep(1000);
+                    data = Client.ReceiverReady(rt);
+                    ReadDLMSPacket(data, reply);
+                    if (reply.Error != 0)
+                    {
+                        throw new GXDLMSException(reply.Error);
+                    }
+                }
                 if (!Trace)
                 {
                     //If data block is read.

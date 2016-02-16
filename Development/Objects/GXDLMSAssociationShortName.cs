@@ -115,8 +115,7 @@ namespace Gurux.DLMS.Objects
                byte[] serverChallenge =
                     GXSecure.Secure(settings.Authentication,settings.StoCChallenge, Secret);
                 byte[] clientChallenge = (byte[]) parameters;
-                int pos = 0;
-                if (GXCommon.Compare(serverChallenge, ref pos, clientChallenge))
+                if (GXCommon.Compare(serverChallenge, clientChallenge))
                 {
                     byte[] tmp = GXSecure.Secure(settings.Authentication, settings.CtoSChallenge, Secret);
                     GXByteBuffer challenge = new GXByteBuffer();

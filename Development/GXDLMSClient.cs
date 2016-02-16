@@ -204,6 +204,25 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Client to Server custom challenge. 
+        /// </summary>
+        /// <remarks>
+        /// This is for debugging purposes. Reset custom challenge settings CtoSChallenge to null.
+        /// </remarks>
+        public byte[] CtoSChallenge
+        {
+            get
+            {
+                return Settings.CtoSChallenge;
+            }
+            set
+            {
+                Settings.UseCustomChallenge = value != null;
+                Settings.CtoSChallenge = value;
+            }
+        }
+
+        /// <summary>
         /// Retrieves the password that is used in communication.
         /// </summary>
         /// <remarks>
@@ -490,30 +509,24 @@ namespace Gurux.DLMS
         /// <seealso cref="ParseAAREResponse"/>
         public byte[][] AARQRequest()
         {
+            Settings.Connected = false;
             GXByteBuffer buff = new GXByteBuffer(20);
             GXDLMS.CheckInit(Settings);
             GXAPDU aarq = new GXAPDU();
-            if (UseLogicalNameReferencing)
-            {
-                Settings.SnSettings = null;
-                Settings.LnSettings = new GXDLMSLNSettings(new byte[] { 0x00, 0x7E, 0x1F });
-            }
-            else
-            {
-                Settings.LnSettings = null;
-                Settings.SnSettings = new GXDLMSSNSettings(new byte[] { 0x1C, 0x03, 0x20 });
-            }
             Settings.StoCChallenge = null;
-            if (Authentication > Authentication.Low)
+            //If authentication or ciphering is used.
+            if (Authentication > Authentication.Low || (Cipher != null && Cipher.IsCiphered()))
             {
-                Settings.CtoSChallenge = GXSecure.GenerateChallenge(Settings.Authentication);
+                if (!Settings.UseCustomChallenge)
+                { 
+                    Settings.CtoSChallenge = GXSecure.GenerateChallenge(Settings.Authentication);
+                }
             }
             else
             {
                 Settings.CtoSChallenge = null;
             }
-            bool ciphering = Cipher != null && Cipher.IsCiphered();
-            aarq.CodeData(Settings, ciphering, buff);
+            aarq.CodeData(Settings, Cipher, buff);
             return GXDLMS.SplitPdu(Settings, Command.Aarq, 0, buff, ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
         }
 
@@ -542,12 +555,11 @@ namespace Gurux.DLMS
         public void ParseAAREResponse(GXByteBuffer reply)
         {
             GXAPDU pdu = new GXAPDU();
-            pdu.EncodeData(Settings, reply);
+            pdu.EncodeData(Settings, Cipher, reply);
             AssociationResult ret = pdu.ResultComponent;
+            Settings.Connected = true;
             if (ret != AssociationResult.Accepted)
             {
-                Settings.LnSettings = null;
-                Settings.SnSettings = null;
                 throw new GXDLMSException(ret, pdu.ResultDiagnosticValue);
             }
             SourceDiagnostic res = pdu.ResultDiagnosticValue;
@@ -628,8 +640,7 @@ namespace Gurux.DLMS
         {
             // If connection is not established, there is no need to send
             // DisconnectRequest.
-            if (Settings.InterfaceType == InterfaceType.WRAPPER
-                    || (Settings.LnSettings == null && Settings.SnSettings == null))
+            if (!Settings.Connected)
             {
                 return null;
             }
@@ -644,7 +655,7 @@ namespace Gurux.DLMS
         {
             // If connection is not established, there is no need to send
             // DisconnectRequest.
-            if (Settings.SnSettings == null && Settings.LnSettings == null)
+            if (!Settings.Connected)
             {
                 return null;
             }

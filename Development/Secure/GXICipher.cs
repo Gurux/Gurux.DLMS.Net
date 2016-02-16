@@ -1,4 +1,6 @@
-﻿namespace Gurux.DLMS.Secure
+﻿using System;
+using Gurux.DLMS.Enums;
+namespace Gurux.DLMS.Secure
 {
     internal interface GXICipher
     {
@@ -26,5 +28,34 @@
         /// </summary>
         /// <returns></returns> 
         bool IsCiphered();
+
+        /// <summary>
+        /// Used security.
+        /// </summary>
+        Security Security
+        {
+            get;
+            set;
+        }
+
+        byte[] SystemTitle
+        {
+            get;
+        }
+
+        UInt32 FrameCounter
+        {
+            get;
+        }
+
+        byte[] AuthenticationKey
+        {
+            get;
+        }
+
+        byte[] BlockCipherKey
+        {
+            get;
+        }
     }
 }

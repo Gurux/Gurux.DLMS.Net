@@ -11,6 +11,7 @@ using System.Xml.Serialization;
 using Gurux.DLMS.Objects;
 using Gurux.Net;
 using Gurux.DLMS.Enums;
+using System.Threading;
 
 namespace Gurux.DLMS.Client.Example
 {
@@ -200,6 +201,7 @@ namespace Gurux.DLMS.Client.Example
                     objects = comm.GetAssociationView();
                     GXDLMSObjectCollection objs = objects.GetObjects(new ObjectType[] { ObjectType.Register, ObjectType.ExtendedRegister, ObjectType.DemandRegister });
                     Console.WriteLine("Read scalers and units from the device.");
+                    Thread.Sleep(1000);
                     foreach (GXDLMSObject it in objs)
                     {
                         if (it is GXDLMSRegister)
@@ -213,6 +215,7 @@ namespace Gurux.DLMS.Client.Example
                             comm.Read(it, 4);
                         }
                     }
+                    Thread.Sleep(1000);
                     //Read Profile Generic columns first.
                     foreach (GXDLMSObject it in objects.GetObjects(ObjectType.ProfileGeneric))
                     {
@@ -267,6 +270,7 @@ namespace Gurux.DLMS.Client.Example
                         Console.WriteLine(it.Name + " " + it.Description);
                     }
                 }
+                Thread.Sleep(1000);
                 foreach (GXDLMSObject it in objects)
                 {
                     // Profile generics are read later because they are special cases.
@@ -344,6 +348,7 @@ namespace Gurux.DLMS.Client.Example
                         }
                     }
                 }
+                Thread.Sleep(1000);
                 //Find profile generics and read them.                
                 foreach (GXDLMSObject it in objects.GetObjects(ObjectType.ProfileGeneric))
                 {

@@ -48,12 +48,14 @@ namespace Gurux.DLMS.Internal
         internal const byte HDLCFrameStartEnd = 0x7E;
         internal const byte InitialRequest = 0x1;
         internal const byte InitialResponce = 0x8;
+        internal const byte InitialRequestGlo = 0x21;
+        internal const byte InitialResponceGlo = 0x28;
         internal const byte AARQTag = 0x60;
         internal const byte AARETag = 0x61;
         internal static readonly byte[] LogicalNameObjectID = { 0x60, 0x85, 0x74, 0x05, 0x08, 0x01, 0x01 };
         internal static readonly byte[] ShortNameObjectID = { 0x60, 0x85, 0x74, 0x05, 0x08, 0x01, 0x02 };
-        internal static readonly byte[] LogicalNameObjectIdWithCiphering = { 0x60, (byte)0x85, 0x74, 0x05, 0x08, 0x01, 0x01 };
-        internal static readonly byte[] ShortNameObjectIdWithCiphering = { 0x60, (byte)0x85, 0x74, 0x05, 0x08, 0x01, 0x02 };
+        internal static readonly byte[] LogicalNameObjectIdWithCiphering = { 0x60, (byte)0x85, 0x74, 0x05, 0x08, 0x01, 0x03 };
+        internal static readonly byte[] ShortNameObjectIdWithCiphering = { 0x60, (byte)0x85, 0x74, 0x05, 0x08, 0x01, 0x04 };
 
         /// <summary>
         /// Sent LLC bytes.
@@ -266,24 +268,22 @@ namespace Gurux.DLMS.Internal
         /// Compares, whether two given arrays are similar.
         /// </summary>
         /// <param name="arr1">First array to compare.</param>
-        /// <param name="index">Starting index of table, for first array.</param>
         /// <param name="arr2">Second array to compare.</param>
         /// <returns>True, if arrays are similar. False, if the arrays differ.</returns>
-        public static bool Compare(byte[] arr1, ref int index, byte[] arr2)
+        public static bool Compare(byte[] arr1, byte[] arr2)
         {
-            if (arr1.Length - index < arr2.Length)
+            if (arr1.Length != arr2.Length)
             {
                 return false;
             }
             int pos;
             for (pos = 0; pos != arr2.Length; ++pos)
             {
-                if (arr1[pos + index] != arr2[pos])
+                if (arr1[pos] != arr2[pos])
                 {
                     return false;
                 }
             }
-            index += pos;
             return true;
         }
 
@@ -457,7 +457,7 @@ namespace Gurux.DLMS.Internal
             int pos = info.Index;
             for (; pos != info.Count; ++pos)
             {
-                GXDataInfo info2 = new GXDataInfo();
+                GXDataInfo info2 = new GXDataInfo();               
                 object tmp = GetData(buff, info2);
                 if (!info2.Compleate)
                 {

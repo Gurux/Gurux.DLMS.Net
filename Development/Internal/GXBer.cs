@@ -10,13 +10,40 @@ namespace Gurux.DLMS.Internal
 	Constructed = 0x20,
 	BooleanTag = 0x1,
     IntegerTag = 0x2,
+    /// <summary>
+    /// Bit String, Universal.
+    /// </summary>
     BitStringTag = 0x3,
+    /// <summary>
+    /// Octet string, Universal.
+    /// </summary>
     OctetStringTag = 0x4,
+    
     NullTag = 0x5,
+    /// <summary>
+    /// Object identifier, Universal.
+    /// </summary>
     ObjectIdentifierTag = 0x6,
-    RealTag = 0x9,
-	EnumeratedTag = 0xA,
-	Utf8StringTag = 0xC,
+    /// <summary>
+    /// Object Descriptor.
+    /// </summary>
+    ObjectDescriptor = 7,
+    /// <summary>
+    /// External
+    /// </summary>
+    External = 8,
+    /// <summary>
+    /// Real (float).
+    /// </summary>
+    RealTag = 9,
+    /// <summary>
+    /// Enumerated.
+    /// </summary>
+	EnumeratedTag = 10,
+	/// <summary>
+    /// Utf8 String.
+	/// </summary>
+    Utf8StringTag = 12,
     NumericStringTag = 0x12,
 	PrintableStringTag = 0x13,
     TeletexStringTag = 0x14,

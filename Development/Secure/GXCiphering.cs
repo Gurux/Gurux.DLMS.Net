@@ -15,7 +15,6 @@ namespace Gurux.DLMS.Secure
         byte[] authenticationKey;
         byte[] systemTitle;
         byte[] blockCipherKey;
-        public UInt32 frameCounter = 0;
 
         /// <summary>
         /// Constructor.
@@ -48,7 +47,7 @@ namespace Gurux.DLMS.Secure
         public GXCiphering(UInt32 frameCounter, byte[] systemTitle, byte[] blockCipherKey, byte[] authenticationKey)
         {
             Security = Security.None;            
-            this.frameCounter = frameCounter;
+            FrameCounter = frameCounter;
             SystemTitle = systemTitle;
             BlockCipherKey = blockCipherKey;
             AuthenticationKey = authenticationKey;
@@ -58,6 +57,15 @@ namespace Gurux.DLMS.Secure
         /// Used security.
         /// </summary>
         public Security Security
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Frame counter.
+        /// </summary>
+        public UInt32 FrameCounter
         {
             get;
             set;
@@ -127,17 +135,19 @@ namespace Gurux.DLMS.Secure
         {
             if (Security != Security.None && command != Command.Aarq && command != Command.Aare)
             {
-                ++frameCounter;
-                return GXDLMSChippering.EncryptAesGcm(command, Security,
-                        frameCounter, SystemTitle, BlockCipherKey,
+                byte[] tmp = GXDLMSChippering.EncryptAesGcm(command, Security,
+                        FrameCounter, SystemTitle, BlockCipherKey,
                        AuthenticationKey, data);
+                ++FrameCounter;                
+                return tmp;
             }
             return data;
         }
 
         void GXICipher.Decrypt(GXByteBuffer data)
         {
-            byte[] tmp = GXDLMSChippering.DecryptAesGcm(data, SystemTitle, BlockCipherKey, AuthenticationKey);
+            AesGcmParameter p = new AesGcmParameter(SystemTitle, BlockCipherKey, AuthenticationKey, data);
+            byte[] tmp = GXDLMSChippering.DecryptAesGcm(p);
             data.Clear();
             data.Set(tmp);
         }
@@ -145,7 +155,7 @@ namespace Gurux.DLMS.Secure
         public void Reset()
         {
             Security = Security.None;
-            frameCounter = 0;
+            FrameCounter = 0;
         }
 
         bool GXICipher.IsCiphered()

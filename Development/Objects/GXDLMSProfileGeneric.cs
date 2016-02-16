@@ -631,7 +631,7 @@ namespace Gurux.DLMS.Objects
                     int attributeIndex = Convert.ToInt16(tmp[2]);
                     int dataIndex = Convert.ToInt16(tmp[3]);
                     GXDLMSObject obj = null;
-                    if (settings.Objects != null)
+                    if (settings != null && settings.Objects != null)
                     {
                         obj = settings.Objects.FindByLN(type, ln);
                     }

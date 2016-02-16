@@ -37,6 +37,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.Secure;
+using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS
 {
@@ -45,25 +47,38 @@ namespace Gurux.DLMS
     /// </summary>
     sealed class GXUserInformation
     {
-        /// <summary>
-        /// Reserved for internal use.
-        /// </summary>
-        /// <param name="data"></param>
-        static internal void CodeData(GXDLMSSettings settings, GXByteBuffer data)
+        static void GetInitiateRequest(GXDLMSSettings settings, GXICipher cipher, GXByteBuffer data)
         {
-            data.SetUInt8(0xBE); //Tag
-            data.SetUInt8(0x10); //Length for AARQ user field
-            data.SetUInt8(0x04); //Coding the choice for user-information (Octet STRING, universal)
-            data.SetUInt8(0x0E); //Length
             data.SetUInt8(GXCommon.InitialRequest); // Tag for xDLMS-Initiate request
-            data.SetUInt8(0x00); // Usage field for dedicated-key component. Not used
-            data.SetUInt8(0x00); // Usage field for the response allowed component. Not used
-            data.SetUInt8(0x00); // Usage field of the proposed-quality-of-service component. Not used
-            data.SetUInt8(settings.DLMSVersion); // Tag for conformance block
+            // Usage field for the response allowed component. Not used
+            if (cipher == null || !cipher.IsCiphered())
+            {
+                // Usage field for dedicated-key component. Not used
+                data.SetUInt8(0x00);
+                data.SetUInt8(0x00);
+            }
+            else
+            {
+                // Usage field for dedicated-key component. 
+                data.SetUInt8(0x01);
+                //Add dedicated key len.
+                data.SetUInt8((byte) settings.CtoSChallenge.Length);
+                //Add dedicated key.
+                data.Set(settings.CtoSChallenge);
+                //encoding of the response-allowed component (BOOLEAN DEFAULT TRUE) 
+                // usage flag (FALSE, default value TRUE conveyed) 
+                data.SetUInt8(0);
+            }
+            // Usage field of the proposed-quality-of-service component. Not used
+            data.SetUInt8(0x00);
+            data.SetUInt8(settings.DLMSVersion);
+            // Tag for conformance block
             data.SetUInt8(0x5F);
             data.SetUInt8(0x1F);
-            data.SetUInt8(0x04);// length of the conformance block
-            data.SetUInt8(0x00);// encoding the number of unused bits in the bit string
+            // length of the conformance block
+            data.SetUInt8(0x04);
+            // encoding the number of unused bits in the bit string
+            data.SetUInt8(0x00);
             if (settings.UseLogicalNameReferencing)
             {
                 data.Set(settings.LnSettings.ConformanceBlock);
@@ -74,24 +89,51 @@ namespace Gurux.DLMS
             }
             data.SetUInt16(settings.MaxReceivePDUSize);
         }
+        /// <summary>
+        /// Reserved for internal use.
+        /// </summary>
+        /// <param name="data"></param>
+        static internal void CodeData(GXDLMSSettings settings, GXICipher cipher, GXByteBuffer data)
+        {
+            data.SetUInt8((byte)GXBer.ContextClass | (byte)GXBer.Constructed | (byte) GXAarqApdu.UserInformation);
+            if (cipher == null || !cipher.IsCiphered())
+            {
+                //Length for AARQ user field
+                data.SetUInt8(0x10); 
+                //Coding the choice for user-information (Octet STRING, universal)
+                data.SetUInt8(GXBer.OctetStringTag);
+                //Length
+                data.SetUInt8(0x0E);
+                GetInitiateRequest(settings, cipher, data);
+            }
+            else
+            {
+                GXByteBuffer tmp = new GXByteBuffer();
+                GetInitiateRequest(settings, cipher, tmp);
+                AesGcmParameter p = new AesGcmParameter(0x21, cipher.Security, cipher.FrameCounter,
+                    cipher.SystemTitle, cipher.BlockCipherKey, cipher.AuthenticationKey, tmp);
+                byte[] crypted = GXDLMSChippering.EncryptAesGcm(p);
+                //Length for AARQ user field
+                data.SetUInt8((byte) (2 + crypted.Length));
+                //Coding the choice for user-information (Octet STRING, universal)
+                data.SetUInt8(GXBer.OctetStringTag);
+                data.SetUInt8((byte) crypted.Length);
+                data.Set(crypted);
+            }
+        }
 
         /// <summary>
         /// Reserved for internal use.
         /// </summary>
-        internal static void EncodeData(GXDLMSSettings settings, GXByteBuffer data)
+        internal static void EncodeData(GXDLMSSettings settings, GXICipher cipher, GXByteBuffer data)
         {
-            int tag = data.GetUInt8();
-            if (tag != 0xBE)
-            {
-                throw new Exception("Invalid tag.");
-            }
             byte len = data.GetUInt8();
             if (data.Size - data.Position < len)
             {
                 throw new Exception("Not enough data.");
             }
             //Excoding the choice for user information
-            tag = data.GetUInt8();
+            int tag = data.GetUInt8();
             if (tag != 0x4)
             {
                 throw new Exception("Invalid tag.");
@@ -99,6 +141,23 @@ namespace Gurux.DLMS
             len = data.GetUInt8();
             //Tag for xDLMS-Initate.response
             tag = data.GetUInt8();
+            if (tag == GXCommon.InitialResponceGlo)
+            {
+                --data.Position;
+                AesGcmParameter p = new AesGcmParameter(cipher.SystemTitle, cipher.BlockCipherKey, cipher.AuthenticationKey, data);
+                data = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p));
+                cipher.Security = p.Security;
+                tag = data.GetUInt8();
+            }
+            else if (tag == GXCommon.InitialRequestGlo)
+            {
+                --data.Position;
+                AesGcmParameter p = new AesGcmParameter(cipher.SystemTitle, cipher.BlockCipherKey, cipher.AuthenticationKey, data);
+                data = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p));
+                //InitiateRequest
+                cipher.Security = p.Security;
+                tag = data.GetUInt8();               
+            }       
             bool response = tag == GXCommon.InitialResponce;
             if (response)
             {
@@ -114,11 +173,20 @@ namespace Gurux.DLMS
             {
                 //Optional usage field of the negotiated quality of service component
                 tag = data.GetUInt8();
+                //CtoS.
+                if (tag != 0)
+                {
+                    len = data.GetUInt8();
+                    settings.CtoSChallenge = new byte[len];
+                    data.Get(settings.CtoSChallenge);
+                }
+                /*
                 if (tag != 0)//Skip if used.
                 {
                     len = data.GetUInt8();
                     data.Position += len;
                 }
+                 * */
                 //Optional usage field of the negotiated quality of service component
                 tag = data.GetUInt8();
                 if (tag != 0)//Skip if used.
@@ -126,14 +194,14 @@ namespace Gurux.DLMS
                     len = data.GetUInt8();
                     data.Position += len;
                 }
-                //Optional usage field of the negotiated quality of service component
+                //Optional usage field of the proposed quality of service component
                 tag = data.GetUInt8();
                 if (tag != 0)//Skip if used.
                 {
                     len = data.GetUInt8();
                     data.Position += len;
                 }
-            }
+            }                 
             else
             {
                 throw new Exception("Invalid tag.");
@@ -167,10 +235,6 @@ namespace Gurux.DLMS
             tag = data.GetUInt8();
             if (settings.UseLogicalNameReferencing)
             {
-                if (settings.LnSettings == null)
-                {
-                    settings.LnSettings = new GXDLMSLNSettings();
-                }
                 if (settings.IsServer)
                 {
                     //Skip settings what client asks.
@@ -185,10 +249,6 @@ namespace Gurux.DLMS
             }
             else
             {
-                if (settings.SnSettings == null)
-                {
-                    settings.SnSettings = new GXDLMSSNSettings();
-                }
                 if (settings.IsServer)
                 {
                     //Skip settings what client asks.
@@ -213,6 +273,27 @@ namespace Gurux.DLMS
             {
                 //VAA Name
                 tag = data.GetUInt16();
+                if (tag == 0x0007)
+                {
+                    // If LN
+                    if (!settings.UseLogicalNameReferencing)
+                    {
+                        throw new ArgumentException("Invalid VAA.");
+                    }
+                }
+                else if (tag == 0xFA00)
+                {
+                    // If SN
+                    if (settings.UseLogicalNameReferencing)
+                    {
+                        throw new ArgumentException("Invalid VAA.");
+                    }
+                }
+                else
+                {
+                    // Unknown VAA.
+                    throw new ArgumentException("Invalid VAA.");
+                }
             }
         }
     }

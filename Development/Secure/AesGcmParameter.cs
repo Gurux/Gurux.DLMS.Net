@@ -7,9 +7,9 @@ using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.Secure
 {
-    class AesGcmParameter
+    internal class AesGcmParameter
     {
-        public Command Command
+        public byte Tag
         {
             get;
             set;
@@ -41,7 +41,10 @@ namespace Gurux.DLMS.Secure
             get;
             set;
         }
-        public byte[] PlainText
+        /// <summary>
+        /// Crypted text in decrypt or plain text in encryption.
+        /// </summary>
+        public GXByteBuffer Data
         {
             get;
             set;
@@ -67,18 +70,36 @@ namespace Gurux.DLMS.Secure
         /// <param name="blockCipherKey"></param>
         /// <param name="authenticationKey"></param>
         /// <param name="plainText"></param>
-        public AesGcmParameter(Command command, Security security,
+        public AesGcmParameter(byte tag, Security security,
             UInt32 frameCounter, byte[] systemTitle,
             byte[] blockCipherKey, byte[] authenticationKey,
-            byte[] plainText)
+            GXByteBuffer plainText)
         {
-            Command = command;
+            Tag = tag;
             Security = security;
             FrameCounter = frameCounter;
             SystemTitle = systemTitle;
             BlockCipherKey = blockCipherKey;
             AuthenticationKey = authenticationKey;
-            PlainText = plainText;
+            Data = plainText;
+            Type = CountType.Packet;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="systemTitle"></param>
+        /// <param name="blockCipherKey"></param>
+        /// <param name="authenticationKey"></param>
+        /// <param name="crypted">Crypted data.</param>
+        public AesGcmParameter(byte[] systemTitle,
+            byte[] blockCipherKey, byte[] authenticationKey,
+            GXByteBuffer crypted)
+        {
+            SystemTitle = systemTitle;
+            BlockCipherKey = blockCipherKey;
+            AuthenticationKey = authenticationKey;
+            Data = crypted;
             Type = CountType.Packet;
         }
     }

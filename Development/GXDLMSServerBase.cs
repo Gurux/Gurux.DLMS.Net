@@ -58,7 +58,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// DLMS Settings.
         /// </summary>
-        private GXDLMSSettings Settings;
+        protected GXDLMSSettings Settings;
 
         private GXServerReply ServerReply = new GXServerReply();
 
@@ -118,8 +118,6 @@ namespace Gurux.DLMS
             Settings = new GXDLMSSettings(true);
             Settings.UseLogicalNameReferencing = logicalNameReferencing;
             Reset();
-            Settings.LnSettings = new GXDLMSLNSettings(new byte[] { 0x00, 0x7E, 0x1F });
-            Settings.SnSettings = new GXDLMSSNSettings(new byte[] { 0x1C, 0x03, 0x20 });
             ServerAddress = new List<int>();
             this.InterfaceType = type;
         }
@@ -640,7 +638,7 @@ namespace Gurux.DLMS
                     Frames = HandleSnrmRequest();
                     break;
                 case Command.Aarq:
-                    Frames = handleAarqRequest();
+                    Frames = HandleAarqRequest();
                     break;
                 case Command.DisconnectRequest:
                     Frames = GenerateDisconnectRequest();
@@ -1168,14 +1166,14 @@ namespace Gurux.DLMS
         ///<returns> 
         ///Reply to the client. 
         ///</returns>
-        private byte[][] handleAarqRequest()
+        private byte[][] HandleAarqRequest()
         {
             GXAPDU aarq = new GXAPDU();
             AssociationResult result = AssociationResult.Accepted;
             SourceDiagnostic diagnostic = SourceDiagnostic.None;
             Settings.CtoSChallenge = null;
             Settings.StoCChallenge = null;
-            if (!aarq.EncodeData(Settings, Reply.Data))
+            if (!aarq.EncodeData(Settings, Cipher, Reply.Data))
             {
                 result = AssociationResult.PermanentRejected;
                 diagnostic = SourceDiagnostic.ApplicationContextNameNotSupported;
@@ -1211,7 +1209,7 @@ namespace Gurux.DLMS
                     // If Low authentication is used and pw don't match.
                     if (Settings.Authentication == Authentication.Low)
                     {
-                        if (string.Compare(auth.Password, ASCIIEncoding.ASCII.GetString(Settings.Password)) != 0)
+                        if (!GXCommon.Compare(ASCIIEncoding.ASCII.GetBytes(auth.Password), Settings.Password))
                         {
                             Debug.WriteLine("Password does not match: '" +
                                 auth.Password + "''" +
@@ -1231,8 +1229,7 @@ namespace Gurux.DLMS
             }
             // Generate AARE packet.
             GXByteBuffer buff = new GXByteBuffer(150);
-            bool ciphering = Cipher != null && Cipher.IsCiphered();
-            aarq.GenerateAARE(Settings, buff, result, diagnostic, ciphering);
+            aarq.GenerateAARE(Settings, buff, result, diagnostic, Cipher);
             return GXDLMS.SplitPdu(Settings, Command.Aare, 0, buff, 
                             ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
         }

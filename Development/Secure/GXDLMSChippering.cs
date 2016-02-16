@@ -42,8 +42,8 @@ using Gurux.DLMS.Enums;
 
 
 namespace Gurux.DLMS.Secure
-{        
-    class GXDLMSChippering
+{
+    internal class GXDLMSChippering
     {        
         /// <summary>
         /// Get Nonse from frame counter and system title.
@@ -60,7 +60,7 @@ namespace Gurux.DLMS.Secure
             return nonce;
         }
 
-        static public byte[] EncryptAesGcm(Command cmd, Security security, UInt32 frameCounter, byte[] systemTitle,
+        static internal byte[] EncryptAesGcm(Command cmd, Security security, UInt32 frameCounter, byte[] systemTitle,
             byte[] blockCipherKey, byte[] authenticationKey, byte[] plainText)
         {
             switch (cmd)
@@ -90,12 +90,12 @@ namespace Gurux.DLMS.Secure
                 default:
                     throw new GXDLMSException("Invalid GLO command.");
             }
-            AesGcmParameter p = new AesGcmParameter(cmd, security, frameCounter,
-                    systemTitle, blockCipherKey, authenticationKey, plainText);
+            AesGcmParameter p = new AesGcmParameter((byte) cmd, security, frameCounter,
+                    systemTitle, blockCipherKey, authenticationKey, new GXByteBuffer(plainText));
             return EncryptAesGcm(p);
         }
 
-        static private byte[] EncryptAesGcm(AesGcmParameter param)
+        static internal byte[] EncryptAesGcm(AesGcmParameter param)
         {
             param.CountTag = null;
             GXByteBuffer data = new GXByteBuffer();
@@ -104,13 +104,13 @@ namespace Gurux.DLMS.Secure
                 data.SetUInt8((byte)param.Security);
             }
             byte[] tmp = BitConverter.GetBytes(param.FrameCounter).Reverse().ToArray();
-            byte[] aad = GetAuthenticatedData(param.Security, param.AuthenticationKey, param.PlainText);
+            byte[] aad = GetAuthenticatedData(param.Security, param.AuthenticationKey, param.Data.Array());
             GXDLMSChipperingStream gcm = new GXDLMSChipperingStream(param.Security, true, param.BlockCipherKey,
                 aad, GetNonse(param.FrameCounter, param.SystemTitle), null);
             // Encrypt the secret message
             if (param.Security != Security.Authentication)
             {
-                gcm.Write(param.PlainText);
+                gcm.Write(param.Data.Array());
             }
             byte[] ciphertext = gcm.FlushFinalBlock();
             if (param.Security == Security.Authentication)
@@ -121,7 +121,7 @@ namespace Gurux.DLMS.Secure
                 }
                 if ((param.Type & CountType.Data) != 0)
                 {
-                    data.Set(param.PlainText);
+                    data.Set(param.Data.Array());
                 }
                 if ((param.Type & CountType.Tag) != 0)
                 {
@@ -157,7 +157,7 @@ namespace Gurux.DLMS.Secure
             if (param.Type == CountType.Packet)
             {
                 GXByteBuffer tmp2 = new GXByteBuffer((ushort) (10 + data.Size));
-                tmp2.SetUInt8((byte) param.Command);
+                tmp2.SetUInt8(param.Tag);
                 GXCommon.SetObjectCount(data.Size, tmp2);
                 tmp2.Set(data.Array());
                 return tmp2.Array();
@@ -192,19 +192,17 @@ namespace Gurux.DLMS.Secure
         /// <summary>
         /// Decrypt data.
         /// </summary>
-        /// <param name="cryptedText">Crypted data.</param>
-        /// <param name="systemTitle"></param>
-        /// <param name="BlockCipherKey"></param>
-        /// <param name="AuthenticationKey"></param>
-        /// <returns></returns>
-        public static byte[] DecryptAesGcm(GXByteBuffer cryptedText, byte[] systemTitle, byte[] blockCipherKey, byte[] authenticationKey)
+        /// <param name="p">Decryption parameters</param>
+        /// <returns>Decrypted data.</returns>
+        public static byte[] DecryptAesGcm(AesGcmParameter p)
         {
-            if (cryptedText == null || cryptedText.Size < 2)
+            if (p.Data == null || p.Data.Size < 2)
             {
                 throw new ArgumentOutOfRangeException("cryptedData");
             }
-            Command cmd = (Command) cryptedText.GetUInt8();
-            if (!(cmd == Command.GloGetRequest ||
+            Command cmd = (Command)p.Data.GetUInt8();
+            if (!((byte) cmd == 0x21 || (byte) cmd == 0x28 ||
+                cmd == Command.GloGetRequest ||
                 cmd == Command.GloGetResponse ||
                 cmd == Command.GloSetRequest ||
                 cmd == Command.GloSetResponse ||
@@ -213,22 +211,25 @@ namespace Gurux.DLMS.Secure
             {
                 throw new ArgumentOutOfRangeException("cryptedData");
             }
-            int len = Gurux.DLMS.Internal.GXCommon.GetObjectCount(cryptedText);
-            Security security = (Security)cryptedText.GetUInt8();
-            UInt32 frameCounter = cryptedText.GetUInt32();
+            int len = Gurux.DLMS.Internal.GXCommon.GetObjectCount(p.Data);
+            p.Security = (Security)p.Data.GetUInt8();
+            UInt32 frameCounter = p.Data.GetUInt32();
             byte[] tag = new byte[12];
             byte[] encryptedData;
             int length;
-            if (security == Security.Authentication)
+            if (p.Security == Security.Authentication)
             {
-                length = cryptedText.Size - cryptedText.Position - 12;
+                length = p.Data.Size - p.Data.Position - 12;
                 encryptedData = new byte[length];
-                cryptedText.Get(encryptedData);
-                cryptedText.Get(tag);
+                p.Data.Get(encryptedData);
+                p.Data.Get(tag);
+                /*
                 // Check tag.
                 AesGcmParameter p = new AesGcmParameter(Command.None, security,
                         frameCounter, systemTitle, blockCipherKey,
                         authenticationKey, encryptedData);
+                
+                 * */
                 EncryptAesGcm(p);
                 if (!GXDLMSChipperingStream.TagsEquals(tag, p.CountTag))
                 {
@@ -237,21 +238,21 @@ namespace Gurux.DLMS.Secure
                 return encryptedData;
             }
             byte[] ciphertext = null;
-            if (security == Security.Encryption)
+            if (p.Security == Security.Encryption)
             {
-                length = cryptedText.Size - cryptedText.Position;
+                length = p.Data.Size - p.Data.Position;
                 ciphertext = new byte[length];
-                cryptedText.Get(ciphertext);
+                p.Data.Get(ciphertext);
             }
-            else if (security == Security.AuthenticationEncryption)
+            else if (p.Security == Security.AuthenticationEncryption)
             {
-                length = cryptedText.Size - cryptedText.Position - 12;
+                length = p.Data.Size - p.Data.Position - 12;
                 ciphertext = new byte[length];
-                cryptedText.Get(ciphertext);
-                cryptedText.Get(tag);
-            }            
-            byte[] aad = GetAuthenticatedData(security, authenticationKey, cryptedText.Array());
-            GXDLMSChipperingStream gcm = new GXDLMSChipperingStream(security, false, blockCipherKey, aad, GetNonse(frameCounter, systemTitle), tag);
+                p.Data.Get(ciphertext);
+                p.Data.Get(tag);
+            }
+            byte[] aad = GetAuthenticatedData(p.Security, p.AuthenticationKey, p.Data.Array());
+            GXDLMSChipperingStream gcm = new GXDLMSChipperingStream(p.Security, false, p.BlockCipherKey, aad, GetNonse(frameCounter, p.SystemTitle), tag);
             gcm.Write(ciphertext);
             return gcm.FlushFinalBlock();            
         }

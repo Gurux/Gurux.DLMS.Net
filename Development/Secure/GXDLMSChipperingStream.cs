@@ -779,16 +779,14 @@ namespace Gurux.DLMS.Secure
             foreach (byte it in input)
             {
                 bufBlock[BytesRemaining++] = it;
-                if (BytesRemaining == BlockSize)//bufBlock.Length
-                //if (bufOff == bufBlock.Length)
+                if (BytesRemaining == BlockSize)
                 {
                     gCTRBlock(bufBlock, BlockSize);
                     if (!Encrypt)
                     {
                         Array.Copy(bufBlock, BlockSize, bufBlock, 0, Tag.Length);
                     }
-                    //bufOff = bufBlock.Length - BlockSize;
-                    BytesRemaining = 0;// bufBlock.Length - BlockSize;
+                    BytesRemaining = 0;
                 }
             }
         }

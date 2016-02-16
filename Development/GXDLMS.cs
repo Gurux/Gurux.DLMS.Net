@@ -162,6 +162,9 @@ namespace Gurux.DLMS
                 case ErrorCode.Ok:
                     str = "";
                     break;
+                case ErrorCode.DisconnectRequest:
+                    str = "Connection closed.";
+                    break; 
                 case ErrorCode.Rejected:
                     str = "Connection rejected.";
                     break;
@@ -385,7 +388,7 @@ namespace Gurux.DLMS
                     if (cmd == Command.Push)
                     {
                         // Is last block
-                        if (bb.Position + len < buff.Size)
+                        if (buff.Position + len < buff.Size)
                         {
                             bb.SetUInt8(0);
                         }
@@ -404,7 +407,8 @@ namespace Gurux.DLMS
                         // Add Data-Notification
                         bb.SetUInt8(0x0F);
                         // Add Long-Invoke-Id-And-Priority
-                        bb.SetUInt32(++settings.BlockIndex);
+                        bb.SetUInt32(settings.BlockIndex);
+                        ++settings.BlockIndex;
                         // Add date time.
                         if (date == DateTime.MinValue || date == DateTime.MaxValue)
                         {
@@ -699,7 +703,7 @@ namespace Gurux.DLMS
         static short GetHdlcData(bool server, GXDLMSSettings settings, GXByteBuffer reply, GXReplyData data)
         {
             short ch;
-            int pos, packetStartID = 0, frameLen = 0;
+            int pos, packetStartID = reply.Position, frameLen = 0;
             int crc, crcRead;
             // If whole frame is not received yet.
             if (reply.Size - reply.Position < 9)
@@ -718,12 +722,20 @@ namespace Gurux.DLMS
                     break;
                 }
             }
-            // Not a HDLC frame.
+            // Not a HDLC frame. 
+            // Sometimes meters can send some strange data between DLMS frames.
             if (reply.Position == reply.Size)
             {
-                throw new GXDLMSException("Invalid data format.");
+                data.IsComplete = false;
+                // Not enough data to parse;
+                return 0;
             }
             byte frame = reply.GetUInt8();
+            if ((frame & 0xF0) != 0xA0)
+            {
+                //If same strage data.
+                return GetHdlcData(server, settings, reply, data);
+            }
             // Check frame length.
             if ((frame & 0x7) != 0)
             {
@@ -748,11 +760,12 @@ namespace Gurux.DLMS
             }
 
             // Check addresses.
-            if (!CheckHdlcAddress(server, settings, reply, data, packetStartID, len))
+            if (!CheckHdlcAddress(server, settings, reply, data, len))
             {
                 //If echo,
                 return GetHdlcData(server, settings, reply, data);
             }
+
             // Is there more data available.
             if ((frame & 0x8) != 0)
             {
@@ -775,8 +788,7 @@ namespace Gurux.DLMS
             if (crc != crcRead)
             {
                 throw new Exception("Wrong CRC.");
-            }
-
+            }           
             // Check that packet CRC match only if there is a data part.
             if (reply.Position != packetStartID + frameLen + 1)
             {
@@ -791,8 +803,7 @@ namespace Gurux.DLMS
 
             if (type == FrameType.Rejected)
             {
-                // Get EOP.
-                reply.GetUInt8();
+                reply.Position = reply.Size;
                 data.Error = (int) ErrorCode.Rejected;
             } 
             else if (type == FrameType.Disconnect)
@@ -805,7 +816,14 @@ namespace Gurux.DLMS
             {
                 // Get EOP.
                 reply.GetUInt8();
-                data.Command = Command.DisconnectRequest;
+                if (settings.IsServer)
+                {
+                    data.Command = Command.DisconnectRequest;
+                }
+                else
+                {
+                    data.Error = (int)ErrorCode.DisconnectRequest;
+                }
             }
             else if (type == FrameType.UA)
             {
@@ -824,15 +842,8 @@ namespace Gurux.DLMS
             }
             else
             {
-                // If Keep Alive or get next frame.
-                // Check that value is not 1. One meter returns wrong value here.
-                if ((frame & 0x1) == 1 && frame != 0x1)
-                {
-                    // Get EOP.
-                    reply.GetUInt8();
-                    data.MoreData = RequestTypes.Frame;
-                }
-                else
+                // If I frame.
+                if ((frame & 1) == 0)
                 {
                     GetLLCBytes(server, reply);
                     if (settings.IsServer)
@@ -842,6 +853,12 @@ namespace Gurux.DLMS
                             data.Command = Command.Aarq;
                         }
                     }
+                }
+                else //If U or S frame.
+                {
+                    // Get EOP.
+                    reply.GetUInt8();
+                    data.MoreData = RequestTypes.Frame;                   
                 }
             }
             // Skip data CRC and EOP.
@@ -867,7 +884,7 @@ namespace Gurux.DLMS
         }
 
         private static bool CheckHdlcAddress(bool server, GXDLMSSettings settings, GXByteBuffer reply,
-                GXReplyData data, int index, int count)
+                GXReplyData data, int index)
         {
             int source, target;
             // Get destination and source addresses.
@@ -911,7 +928,7 @@ namespace Gurux.DLMS
                     if (settings.ClientAddress == source && 
                         settings.ServerAddress == target)
                     {
-                        reply.Position = (UInt16)(index + count + 1);
+                        reply.Position = (UInt16)(index + 1);
                         return false;
                     }
                     throw new GXDLMSException(
@@ -1236,6 +1253,11 @@ namespace Gurux.DLMS
                 }
                 // Get Block number.
                 number = data.GetUInt32();
+                //If meter's block index is zero based.
+                if (number == 0 && settings.BlockIndex == 1)
+                {
+                    settings.BlockIndex = 0;
+                }
                 UInt32 expectedIndex = settings.BlockIndex;
                 if (number != expectedIndex)
                 {
@@ -1340,7 +1362,7 @@ namespace Gurux.DLMS
                     case Command.Aarq:
                     case Command.Aare:
                         // This is parsed later.
-                        data.Data.Position = (UInt16)(data.Data.Position - 1);
+                        --data.Data.Position;
                         break;
                     case Command.DisconnectResponse:
                         break;

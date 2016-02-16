@@ -35,5 +35,21 @@ namespace Gurux.DLMS.Secure
             get;
             private set;
         }
+
+        /// <summary>
+        /// Server to Client challenge.         
+        /// </summary>
+        public byte[] StoCChallenge
+        {
+            get
+            {
+                return Settings.StoCChallenge;
+            }
+            set
+            {
+                Settings.StoCChallenge = value;
+            }
+        }
+        
     }
 }

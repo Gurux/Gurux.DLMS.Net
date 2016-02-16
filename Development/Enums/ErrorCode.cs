@@ -7,6 +7,10 @@ namespace Gurux.DLMS.Enums
     public enum ErrorCode
     {
         /// <summary>
+        /// Server is close connection.
+        /// </summary>
+        DisconnectRequest = -3,
+        /// <summary>
         /// Connection is rejected.
         /// </summary>
         Rejected = -2,

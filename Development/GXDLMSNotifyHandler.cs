@@ -362,7 +362,7 @@ namespace Gurux.DLMS
             }
             GXByteBuffer buff = new GXByteBuffer();           
             //Add data
-            buff.SetUInt8(DataType.Array);
+            buff.SetUInt8(DataType.Structure);
             GXCommon.SetObjectCount(objects.Count, buff);
             foreach (KeyValuePair<GXDLMSObject, int> it in objects)
             {

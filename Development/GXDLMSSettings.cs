@@ -34,12 +34,6 @@ namespace Gurux.DLMS
         private byte invokeID = 0x1;
 
         ///<summary>
-        /// Is custom challenges used. If custom challenge is used new challenge is
-        /// not generated if it is set. This is for debugging purposes. 
-        ///</summary>
-        private bool customChallenges = false;
-
-        ///<summary>
         ///Client to server challenge.
         ///</summary>
         private byte[] ctoSChallenge;
@@ -69,6 +63,7 @@ namespace Gurux.DLMS
         ///</summary>
         internal GXDLMSSettings(bool isServer)
         {
+            UseCustomChallenge = false;
             BlockIndex = 1;
             DLMSVersion = 6;
             InvokeID = 0x1;
@@ -78,6 +73,15 @@ namespace Gurux.DLMS
             Server = isServer;
             Objects = new GXDLMSObjectCollection();
             Limits = new GXDLMSLimits();
+            if (isServer)
+            {
+                LnSettings = new GXDLMSLNSettings(new byte[] { 0x00, 0x7C, 0x1F });
+            }
+            else
+            {
+                LnSettings = new GXDLMSLNSettings(new byte[] { 0x00, 0x7E, 0x1F });
+            }
+            SnSettings = new GXDLMSSNSettings(new byte[] { 0x1C, 0x03, 0x20 });
             ResetFrameSequence();
         }
 
@@ -92,7 +96,7 @@ namespace Gurux.DLMS
             }
             set
             {
-                if (!customChallenges || ctoSChallenge == null)
+                if (!UseCustomChallenge || ctoSChallenge == null)
                 {
                     ctoSChallenge = value;
                 }
@@ -110,7 +114,7 @@ namespace Gurux.DLMS
             }
             set
             {
-                if (!customChallenges || stoCChallenge == null)
+                if (!UseCustomChallenge || stoCChallenge == null)
                 {
                     stoCChallenge = value;
                 }
@@ -141,8 +145,10 @@ namespace Gurux.DLMS
         public byte DlmsVersionNumber
         {
             get;
-            set;
+            internal set;
         }
+
+        internal bool Connected = false;
 
         ///<summary>
         /// Increase receiver sequence.
@@ -235,7 +241,7 @@ namespace Gurux.DLMS
         ///<summary>
         /// Generates I-frame. 
         ///</summary>
-        public byte NextSend()
+        internal byte NextSend()
         {
             SenderFrame = IncreaseReceiverSequence(IncreaseSendSequence(SenderFrame));
             return SenderFrame;
@@ -244,7 +250,7 @@ namespace Gurux.DLMS
         ///<summary>
         ///Generates Receiver Ready S-frame. 
         ///</summary>
-        public byte ReceiverReady()
+        internal byte ReceiverReady()
         {
             SenderFrame = (byte)(IncreaseReceiverSequence(SenderFrame) | 1);
             return (byte)(SenderFrame & 0xF1);           
@@ -253,7 +259,7 @@ namespace Gurux.DLMS
         ///<summary>
         ///Generates Keep Alive S-frame. 
         ///</summary>
-        public byte KeepAlive()
+        internal byte KeepAlive()
         {
             SenderFrame = (byte)(SenderFrame | 1);
             return (byte)(SenderFrame & 0xF1);
@@ -265,7 +271,7 @@ namespace Gurux.DLMS
         public GXDLMSLNSettings LnSettings
         {
             get;
-            set;
+            internal set;
         }
 
         ///<summary>
@@ -274,7 +280,7 @@ namespace Gurux.DLMS
         public GXDLMSSNSettings SnSettings
         {
             get;
-            set;
+            internal set;
         }
 
         ///<summary>
@@ -288,7 +294,7 @@ namespace Gurux.DLMS
         ///<summary>
         /// Resets block index to default value.
         ///</summary>
-        public void ResetBlockIndex()
+        internal void ResetBlockIndex()
         {
             BlockIndex = 1;
         }
@@ -296,7 +302,7 @@ namespace Gurux.DLMS
         ///<summary>
         /// Increases block index.
         ///</summary>
-        public void IncreaseBlockIndex()
+        internal void IncreaseBlockIndex()
         {
             BlockIndex += 1;
         }
@@ -304,7 +310,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Is this server or client settings.
         /// </summary>
-        public bool IsServer
+        internal bool IsServer
         {
             get
             {
@@ -318,7 +324,7 @@ namespace Gurux.DLMS
         public GXDLMSLimits Limits
         {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -421,9 +427,10 @@ namespace Gurux.DLMS
             internal set;
         }
 
-        /// <summary>
-        /// Is custom challenge used.
-        /// </summary>
+        ///<summary>
+        /// Is custom challenges used. If custom challenge is used new challenge is
+        /// not generated if it is set. This is for debugging purposes. 
+        ///</summary>
         public bool UseCustomChallenge
         {
             get;
