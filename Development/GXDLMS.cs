@@ -263,6 +263,54 @@ namespace Gurux.DLMS
             GXCommon.SetData(bb, tp, value);
         }
 
+        /// <summary>
+        /// Get used glo message.
+        /// </summary>
+        /// <param name="command">Executed command.</param>
+        /// <returns>Integer value of glo message.</returns>
+        private static byte GetGloMessage(Command cmd) 
+        {
+            switch (cmd)
+            {
+                case Command.ReadRequest:
+                case Command.GetRequest:
+                    cmd = Command.GloGetRequest;
+                    break;
+                case Command.WriteRequest:
+                case Command.SetRequest:
+                    cmd = Command.GloSetRequest;
+                    break;
+                case Command.MethodRequest:
+                    cmd = Command.GloMethodRequest;
+                    break;
+                case Command.ReadResponse:
+                case Command.GetResponse:
+                    cmd = Command.GloGetResponse;
+                    break;
+                case Command.WriteResponse:
+                case Command.SetResponse:
+                    cmd = Command.GloSetResponse;
+                    break;
+                case Command.MethodResponse:
+                    cmd = Command.MethodResponse;
+                    break;
+                default:
+                    throw new GXDLMSException("Invalid GLO command.");
+            }
+            return (byte) cmd;
+        }
+
+        /// <summary>
+        /// Split PDU to blocks and frames.
+        /// </summary>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="command">Command</param>
+        /// <param name="commandParameter">Command parameter value.</param>
+        /// <param name="data">Data to send.</param>
+        /// <param name="error">Error number.</param>
+        /// <param name="date">Optional date time value.</param>
+        /// <param name="cp">Ciphering interface.</param>
+        /// <returns>List of frames to send.</returns>
         internal static List<byte[][]> SplitPdu(GXDLMSSettings settings, Command command, int commandParameter,
                 GXByteBuffer data, ErrorCode error, DateTime date, GXICipher cp)
         {
@@ -274,9 +322,9 @@ namespace Gurux.DLMS
             {
                 byte[] tmp = GetSnPdus(settings, data, command);              
                 // If Ciphering is used.
-                if (cp != null)
+                if (cp != null && command != Command.Aarq && command != Command.Aare)
                 {
-                    bb.Set(cp.Encrypt(command, tmp));
+                    bb.Set(cp.Encrypt(GetGloMessage(command), cp.SystemTitle, tmp));
                 }
                 else
                 {
@@ -305,9 +353,9 @@ namespace Gurux.DLMS
                 foreach (byte[] it in pdus)
                 {                   
                     // If Ciphering is used.
-                    if (cp != null)
+                    if (cp != null && command != Command.Aarq && command != Command.Aare)
                     {
-                        bb.Set(cp.Encrypt(command, it));
+                        bb.Set(cp.Encrypt(GetGloMessage(command), cp.SystemTitle, it));
                     }
                     else
                     {
@@ -1385,13 +1433,21 @@ namespace Gurux.DLMS
                             throw new Exception(
                                     "Secure connection is not supported.");
                         }
-                        data.Data.Position = (UInt16)(data.Data.Position - 1);
-                        cipher.Decrypt(data.Data);
+                        --data.Data.Position;
+                        cipher.Decrypt(settings.SourceSystemTitle, data.Data);
                         // Get command.
                         ch = data.Data.GetUInt8();
                         cmd = (Command)ch;
                         data.Command = cmd;
                         // Server handles this.
+                        break;
+                    case Command.GloGetResponse:
+                    case Command.GloSetResponse:
+                    case Command.GloMethodResponse:
+                        --data.Data.Position;
+                        cipher.Decrypt(settings.SourceSystemTitle, data.Data);
+                        data.Command = Command.None;
+                        GetPdu(settings, data, cipher);
                         break;
                     case Command.DataNotification:
                         //Get invoke id.

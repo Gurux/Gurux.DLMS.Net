@@ -512,10 +512,9 @@ namespace Gurux.DLMS
             Settings.Connected = false;
             GXByteBuffer buff = new GXByteBuffer(20);
             GXDLMS.CheckInit(Settings);
-            GXAPDU aarq = new GXAPDU();
             Settings.StoCChallenge = null;
-            //If authentication or ciphering is used.
-            if (Authentication > Authentication.Low || (Cipher != null && Cipher.IsCiphered()))
+            //If High authentication is used.
+            if (Authentication > Authentication.Low)
             {
                 if (!Settings.UseCustomChallenge)
                 { 
@@ -526,7 +525,7 @@ namespace Gurux.DLMS
             {
                 Settings.CtoSChallenge = null;
             }
-            aarq.CodeData(Settings, Cipher, buff);
+            GXAPDU.GenerateAarq(Settings, Cipher, buff);
             return GXDLMS.SplitPdu(Settings, Command.Aarq, 0, buff, ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
         }
 
@@ -554,16 +553,8 @@ namespace Gurux.DLMS
         /// <seealso cref="SNSettings"/>
         public void ParseAAREResponse(GXByteBuffer reply)
         {
-            GXAPDU pdu = new GXAPDU();
-            pdu.EncodeData(Settings, Cipher, reply);
-            AssociationResult ret = pdu.ResultComponent;
             Settings.Connected = true;
-            if (ret != AssociationResult.Accepted)
-            {
-                throw new GXDLMSException(ret, pdu.ResultDiagnosticValue);
-            }
-            SourceDiagnostic res = pdu.ResultDiagnosticValue;
-            IsAuthenticationRequired = res == SourceDiagnostic.AuthenticationRequired;
+            IsAuthenticationRequired = GXAPDU.ParsePDU(Settings, Cipher, reply) == SourceDiagnostic.AuthenticationRequired;
             if (IsAuthenticationRequired)
             {
                 System.Diagnostics.Debug.WriteLine("Authentication is required.");

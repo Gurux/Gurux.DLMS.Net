@@ -81,7 +81,7 @@ namespace Gurux.DLMS.Objects
 
         /// <summary>
         /// Contains the identifiers of the COSEM client APs within the physical devices hosting these APs, 
-        /// which belong to the AA modelled by the “Association LN” object.
+        /// which belong to the AA modelled by the ï¿½Association LNï¿½ object.
         /// </summary>
         [XmlIgnore()]
         public byte ClientSAP
@@ -92,7 +92,7 @@ namespace Gurux.DLMS.Objects
 
         /// <summary>
         /// Contains the identifiers of the COSEM server (logical device) APs within the physical 
-        /// devices hosting these APs, which belong to the AA modelled by the “Association LN” object.
+        /// devices hosting these APs, which belong to the AA modelled by the ï¿½Association LNï¿½ object.
         /// </summary>
         [XmlIgnore()]
         public UInt16 ServerSAP
@@ -587,7 +587,7 @@ namespace Gurux.DLMS.Objects
                     else
                     {
                         //Get Tag and Len.
-                        if (arr.GetUInt8() != (int)GXBer.IntegerTag && arr.GetUInt8() != 7)
+                        if (arr.GetUInt8() != (int)BerType.Integer && arr.GetUInt8() != 7)
                         {
                             throw new ArgumentOutOfRangeException();
                         }
@@ -682,7 +682,7 @@ namespace Gurux.DLMS.Objects
                     else
                     {
                         //Get Tag and Len.
-                        if (arr.GetUInt8() != (int)GXBer.IntegerTag && arr.GetUInt8() != 7)
+                        if (arr.GetUInt8() != (int)BerType.Integer && arr.GetUInt8() != 7)
                         {
                             throw new ArgumentOutOfRangeException();
                         }

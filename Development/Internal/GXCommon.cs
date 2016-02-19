@@ -104,20 +104,26 @@ namespace Gurux.DLMS.Internal
             {
                 return string.Empty;
             }
-            int len = count * 3;
-            char[] str = new char[len];
+            char[] str = new char[count * 3];
             int tmp;
-            len = -1;
+            int len = 0;
             for (int pos = 0; pos != count; ++pos)
             {
                 tmp = (bytes[index + pos] >> 4);
-                str[++len] = (char)(tmp > 9 ? tmp + 0x37 : tmp + 0x30);
+                str[len] = (char)(tmp > 9 ? tmp + 0x37 : tmp + 0x30);
+                ++len;
                 tmp = (bytes[index + pos] & 0x0F);
-                str[++len] = (char)(tmp > 9 ? tmp + 0x37 : tmp + 0x30);
+                str[len] = (char)(tmp > 9 ? tmp + 0x37 : tmp + 0x30);
+                ++len;
                 if (addSpace)
                 {
-                    str[++len] = ' ';
+                    str[len] = ' ';
+                    ++len;
                 }
+            }
+            if (addSpace)
+            {
+                --len;
             }
             return new string(str, 0, len);
         }

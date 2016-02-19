@@ -361,7 +361,7 @@ namespace Gurux.DLMS.Enums
         /// <summary>
         /// J/kg Specific energy 
         /// NOTE The amount of energy per unit of mass of a 
-        /// substance Joule / kilogram m2 . kg . s -2 / kg = m2 . s –2
+        /// substance Joule / kilogram m2 . kg . s -2 / kg = m2 . s ï¿½2
         /// </summary>
         [XmlEnum("65")]        
         JouleKilogram = 65,

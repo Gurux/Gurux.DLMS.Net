@@ -32,7 +32,6 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -141,7 +140,7 @@ namespace Gurux.DLMS.Objects
         /// received from the COSEM client, the inactive TCP connection shall be aborted.
         /// When this value is set to 0, this means that the inactivity_time_out is
         /// not operational. In other words, a TCP connection, once established,
-        /// in normal conditions – no power failure, etc. – will never be aborted by the COSEM server.
+        /// in normal conditions ï¿½ no power failure, etc. ï¿½ will never be aborted by the COSEM server.
         /// </summary>
         [XmlIgnore()]
         [DefaultValue(180)]

@@ -32,7 +32,6 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -207,7 +206,7 @@ namespace Gurux.DLMS.Objects
                 tm = tm.AddMilliseconds(-tm.Millisecond);
                 this.Time.Value = tm;
             }
-            // Sets the meter’s time to the nearest minute.
+            // Sets the meterï¿½s time to the nearest minute.
             else if (index == 3)
             {                
                 tm = this.Time.Value;
@@ -244,7 +243,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Sets the meter’s time to the nearest (+/-) quarter of an hour value (*:00, *:15, *:30, *:45).
+        /// Sets the meterï¿½s time to the nearest (+/-) quarter of an hour value (*:00, *:15, *:30, *:45).
         /// </summary>
         /// <returns></returns>
         public byte[][] AdjustToQuarter(GXDLMSClient client)
@@ -254,7 +253,7 @@ namespace Gurux.DLMS.Objects
 
 
         /// <summary>
-        /// Sets the meter’s time to the nearest (+/-) starting point of a measuring period.
+        /// Sets the meterï¿½s time to the nearest (+/-) starting point of a measuring period.
         /// </summary>
         /// <returns></returns>
         public byte[][] AdjustToMeasuringPeriod(GXDLMSClient client)
@@ -263,9 +262,9 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Sets the meter’s time to the nearest minute.
+        /// Sets the meterï¿½s time to the nearest minute.
         /// If second_counter < 30 s, so second_counter is set to 0.
-        /// If second_counter ³ 30 s, so second_counter is set to 0, and
+        /// If second_counter ï¿½ 30 s, so second_counter is set to 0, and
         /// minute_counter and all depending clock values are incremented if necessary.
         /// </summary>
         /// <returns></returns>
@@ -276,7 +275,7 @@ namespace Gurux.DLMS.Objects
 
         /// <summary>
         /// This Method is used in conjunction with the preset_adjusting_time
-        /// Method. If the meter’s time lies between validity_interval_start and
+        /// Method. If the meterï¿½s time lies between validity_interval_start and
         /// validity_interval_end, then time is set to preset_time.
         /// </summary>
         /// <returns></returns>

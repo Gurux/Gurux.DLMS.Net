@@ -32,7 +32,6 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -78,7 +77,7 @@ namespace Gurux.DLMS.Objects
         }
                 
         /// <summary>
-        /// Provides reference to an “M-Bus master port setup” object, used to configure
+        /// Provides reference to an ï¿½M-Bus master port setupï¿½ object, used to configure
         /// an M-Bus port, each interface allowing to exchange data with one or more
         /// M-Bus slave devices
         /// </summary>

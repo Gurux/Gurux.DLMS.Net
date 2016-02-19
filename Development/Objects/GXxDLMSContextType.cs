@@ -1,4 +1,4 @@
-﻿//
+//
 // --------------------------------------------------------------------------
 //  Gurux Ltd
 // 
@@ -76,7 +76,7 @@ namespace Gurux.DLMS.Objects
         {
             return Conformance + " " + MaxReceivePduSize.ToString()  + " " + MaxSendPpuSize.ToString()
                  + " " + DlmsVersionNumber.ToString()  + " " + QualityOfService.ToString() + " " +
-                 BitConverter.ToString(CypheringInfo).Replace("-", " ");
+                 Gurux.DLMS.Internal.GXCommon.ToHex(CypheringInfo, true);
         }
     };
 }

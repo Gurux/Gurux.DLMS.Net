@@ -32,7 +32,6 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -110,7 +109,7 @@ public class GXScheduleEntry
     }
 
     /// <summary>
-    /// Perform the link to the IC “Special days table”, day_id.
+    /// Perform the link to the IC ï¿½Special days tableï¿½, day_id.
     /// </summary>
     public String ExecSpecDays
     {

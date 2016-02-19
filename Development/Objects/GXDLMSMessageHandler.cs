@@ -32,7 +32,6 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -101,7 +100,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Contains the logical name of a “Script table” object and the script selector of the 
+        /// Contains the logical name of a ï¿½Script tableï¿½ object and the script selector of the 
         /// script to be executed if an empty message is received from a match-ing sender.
         /// </summary>        
         [XmlIgnore()]

@@ -33,103 +33,124 @@
 //---------------------------------------------------------------------------
 
 
-namespace Gurux.DLMS.Enums
+namespace Gurux.DLMS.Internal
 {
     /// <summary>
-    ///  Enumerated DLMS error codes.
+    /// BER encoding enumeration values.
     /// </summary>
-    public enum ErrorCode
+    enum BerType
     {
         /// <summary>
-        /// Server is close connection.
+        /// End of Content.
         /// </summary>
-        DisconnectRequest = -3,
+        EOC = 0x00,
         /// <summary>
-        /// Connection is rejected.
+        /// Boolean.
         /// </summary>
-        Rejected = -2,
+        Boolean = 0x1,
         /// <summary>
-        /// Not a reply.
+        /// Integer.
         /// </summary>
-        InvalidHdlcReply = -1,
-
+        Integer = 0x2,
         /// <summary>
-        /// No error has occurred.
+        /// Bit String.
         /// </summary>
-        Ok = 0,
+        BitString = 0x3,
         /// <summary>
-        /// Access Error : Device reports a hardware fault.
+        /// Octet string.
         /// </summary>
-        HardwareFault = 1,
-
+        OctetString = 0x4,
         /// <summary>
-        /// Access Error : Device reports a temporary failure.
+        /// Null value.
         /// </summary>
-        TemporaryFailure = 2,
-
+        Null = 0x5,
         /// <summary>
-        /// Access Error : Device reports Read-Write denied.
+        /// Object identifier.
         /// </summary>
-        ReadWriteDenied = 3,
-
+        ObjectIdentifier = 0x6,
         /// <summary>
-        /// Access Error : Device reports a undefined object
+        /// Object Descriptor.
         /// </summary>
-        UndefinedObject = 4,
-
+        ObjectDescriptor = 7,
         /// <summary>
-        /// Access Error : Device reports a inconsistent Class or object
+        /// External
         /// </summary>
-        InconsistentClass = 9,
-
+        External = 8,
         /// <summary>
-        /// Access Error : Device reports a unavailable object
+        /// Real (float).
         /// </summary>
-        UnavailableObject = 11,
-
+        Real = 9,
         /// <summary>
-        /// Access Error : Device reports a unmatched type
+        /// Enumerated.
         /// </summary>
-        UnmatchedType = 12,
-
+        Enumerated = 10,
         /// <summary>
-        /// Access Error : Device reports scope of access violated
+        /// Utf8 String.
         /// </summary>
-        AccessViolated = 13,
-
+        Utf8StringTag = 12,
         /// <summary>
-        /// Access Error : Data Block Unavailable.
+        /// Numeric string.
         /// </summary>
-        DataBlockUnavailable = 14,
-
+        NumericString = 18,
         /// <summary>
-        /// Access Error : Long Get Or Read Aborted.
+        /// Printable string.
         /// </summary>
-        LongGetOrReadAborted = 15,
-
+        PrintableString = 19,
         /// <summary>
-        /// Access Error : No Long Get Or Read In Progress.
+        /// Teletex string.
         /// </summary>
-        NoLongGetOrReadInProgress = 16,
-
+        TeletexString = 20,
         /// <summary>
-        /// Access Error : Long Set Or Write Aborted.
+        /// Videotex string.
         /// </summary>
-        LongSetOrWriteAborted = 17,
-
+        VideotexString = 21,        
         /// <summary>
-        /// Access Error : No Long Set Or Write In Progress.
+        /// Ia5 string
         /// </summary>
-        NoLongSetOrWriteInProgress = 18,
-
+        Ia5String = 22,
         /// <summary>
-        /// Access Error : Data Block Number Invalid.
+        /// Utc time.
         /// </summary>
-        DataBlockNumberInvalid = 19,
-
+        UtcTime = 23,
         /// <summary>
-        /// Access Error : Other Reason.
+        /// Generalized time.
         /// </summary>
-        OtherReason = 250
+        GeneralizedTime = 24,
+        /// <summary>
+        /// Graphic string.
+        /// </summary>
+        GraphicString = 25,
+        /// <summary>
+        /// Visible string.
+        /// </summary>
+        VisibleString = 26,
+        /// <summary>
+        /// General string.
+        /// </summary>
+        GeneralString = 27,
+        /// <summary>
+        /// Universal string.
+        /// </summary>
+        UniversalString = 28,
+        /// <summary>
+        /// Bmp string.
+        /// </summary>
+        BmpString = 30,
+        /// <summary>
+        /// Application class.
+        /// </summary>
+        Application = 0x40,
+        /// <summary>
+        /// Context class.
+        /// </summary>
+        Context = 0x80,
+        /// <summary>
+        /// Private class.
+        /// </summary>
+        Private = 0xc0,
+        /// <summary>
+        /// Constructed.
+        /// </summary>
+        Constructed = 0x20         
     }
 }

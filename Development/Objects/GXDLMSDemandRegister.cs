@@ -32,7 +32,6 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -165,7 +164,7 @@ namespace Gurux.DLMS.Objects
 
         /// <summary>
         /// The number of periods used to calculate the LastAverageValue.
-        /// NumberOfPeriods >= 1 NumberOfPeriods > 1 indicates that the LastAverageValue represents “sliding demand”.
+        /// NumberOfPeriods >= 1 NumberOfPeriods > 1 indicates that the LastAverageValue represents ï¿½sliding demandï¿½.
         /// NumberOfPeriods = 1 indicates that the LastAverageValue represents "block demand".
         /// The behaviour of the meter after writing a new value to this attribute shall be 
         /// specified by the manufacturer.

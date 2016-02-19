@@ -70,6 +70,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Internal\PduType.cs" />
     <Compile Include="Enums\AccessMode.cs" />
     <Compile Include="Enums\StateError.cs" />
     <Compile Include="Enums\ServiceError.cs" />
@@ -118,8 +119,7 @@
     <Compile Include="Internal\FrameType.cs" />
     <Compile Include="Internal\GXAes128.cs" />
     <Compile Include="Internal\GXAPDU.cs" />
-    <Compile Include="GXApplicationContextName.cs" />
-    <Compile Include="Internal\GXBer.cs" />
+    <Compile Include="Internal\BerType.cs" />
     <Compile Include="Internal\GXCommon.cs" />
     <Compile Include="GXDLMS.cs" />
     <Compile Include="GXDLMSException.cs" />
@@ -164,7 +164,6 @@
     <Compile Include="Objects\GXDLMSObjectCollection.cs" />
     <Compile Include="GXDLMSSNSettings.cs" />
     <Compile Include="Internal\GXFCS16.cs" />
-    <Compile Include="GXUserInformation.cs" />
     <Compile Include="Enums\InterfaceType.cs" />
     <Compile Include="ManufacturerSettings\GXAttribute.cs" />
     <Compile Include="ManufacturerSettings\GXAttributeCollection.cs" />

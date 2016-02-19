@@ -1,9 +1,44 @@
-﻿using System;
+//
+// --------------------------------------------------------------------------
+//  Gurux Ltd
+// 
+//
+//
+// Filename:        $HeadURL$
+//
+// Version:         $Revision$,
+//                  $Date$
+//                  $Author$
+//
+// Copyright (c) Gurux Ltd
+//
+//---------------------------------------------------------------------------
+//
+//  DESCRIPTION
+//
+// This file is a part of Gurux Device Framework.
+//
+// Gurux Device Framework is Open Source software; you can redistribute it
+// and/or modify it under the terms of the GNU General Public License 
+// as published by the Free Software Foundation; version 2 of the License.
+// Gurux Device Framework is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of 
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// See the GNU General Public License for more details.
+//
+// More information of Gurux products: http://www.gurux.org
+//
+// This code is licensed under the GNU General Public License v2. 
+// Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
+//---------------------------------------------------------------------------
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Gurux.DLMS.Secure;
 using Gurux.DLMS.Enums;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Secure
 {
@@ -41,14 +76,6 @@ namespace Gurux.DLMS.Secure
             get;
             set;
         }
-        /// <summary>
-        /// Crypted text in decrypt or plain text in encryption.
-        /// </summary>
-        public GXByteBuffer Data
-        {
-            get;
-            set;
-        }
         public CountType Type
         {
             get;
@@ -72,8 +99,7 @@ namespace Gurux.DLMS.Secure
         /// <param name="plainText"></param>
         public AesGcmParameter(byte tag, Security security,
             UInt32 frameCounter, byte[] systemTitle,
-            byte[] blockCipherKey, byte[] authenticationKey,
-            GXByteBuffer plainText)
+            byte[] blockCipherKey, byte[] authenticationKey)
         {
             Tag = tag;
             Security = security;
@@ -81,7 +107,6 @@ namespace Gurux.DLMS.Secure
             SystemTitle = systemTitle;
             BlockCipherKey = blockCipherKey;
             AuthenticationKey = authenticationKey;
-            Data = plainText;
             Type = CountType.Packet;
         }
 
@@ -91,16 +116,29 @@ namespace Gurux.DLMS.Secure
         /// <param name="systemTitle"></param>
         /// <param name="blockCipherKey"></param>
         /// <param name="authenticationKey"></param>
-        /// <param name="crypted">Crypted data.</param>
         public AesGcmParameter(byte[] systemTitle,
-            byte[] blockCipherKey, byte[] authenticationKey,
-            GXByteBuffer crypted)
+            byte[] blockCipherKey, byte[] authenticationKey)
         {
             SystemTitle = systemTitle;
             BlockCipherKey = blockCipherKey;
             AuthenticationKey = authenticationKey;
-            Data = crypted;
             Type = CountType.Packet;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("Security: ");
+            sb.Append(Security);
+            sb.Append(" FrameCounter: ");
+            sb.Append(FrameCounter);
+            sb.Append(" SystemTitle: ");
+            sb.Append(GXCommon.ToHex(SystemTitle, true));
+            sb.Append(" AuthenticationKey: ");
+            sb.Append(GXCommon.ToHex(AuthenticationKey, true));
+            sb.Append(" BlockCipherKey: ");
+            sb.Append(GXCommon.ToHex(BlockCipherKey, true));
+            return sb.ToString();
         }
     }
 }

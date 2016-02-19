@@ -1168,12 +1168,11 @@ namespace Gurux.DLMS
         ///</returns>
         private byte[][] HandleAarqRequest()
         {
-            GXAPDU aarq = new GXAPDU();
             AssociationResult result = AssociationResult.Accepted;
-            SourceDiagnostic diagnostic = SourceDiagnostic.None;
             Settings.CtoSChallenge = null;
             Settings.StoCChallenge = null;
-            if (!aarq.EncodeData(Settings, Cipher, Reply.Data))
+            SourceDiagnostic diagnostic = GXAPDU.ParsePDU(Settings, Cipher, Reply.Data);
+            if (diagnostic != SourceDiagnostic.None)
             {
                 result = AssociationResult.PermanentRejected;
                 diagnostic = SourceDiagnostic.ApplicationContextNameNotSupported;
@@ -1229,7 +1228,7 @@ namespace Gurux.DLMS
             }
             // Generate AARE packet.
             GXByteBuffer buff = new GXByteBuffer(150);
-            aarq.GenerateAARE(Settings, buff, result, diagnostic, Cipher);
+            GXAPDU.GenerateAARE(Settings, buff, result, diagnostic, Cipher);
             return GXDLMS.SplitPdu(Settings, Command.Aare, 0, buff, 
                             ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
         }
@@ -1276,7 +1275,7 @@ namespace Gurux.DLMS
                 buff = new GXByteBuffer(2);
                 buff.SetUInt8(0x63);
                 buff.SetUInt8(0x0);
-                return GXDLMS.SplitPdu(Settings, Command.DisconnectResponse, 0, buff, ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
+                return GXDLMS.SplitToWrapperFrames(Settings, buff);
             }
             else
             {

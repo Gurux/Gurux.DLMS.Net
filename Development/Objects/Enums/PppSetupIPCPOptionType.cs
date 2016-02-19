@@ -1,4 +1,4 @@
-﻿//
+//
 // --------------------------------------------------------------------------
 //  Gurux Ltd
 // 
@@ -34,6 +34,9 @@
 
 namespace Gurux.DLMS.Objects.Enums
 {
+    /// <summary>
+    /// PPP Setup IPCP option types.
+    /// </summary>
     public enum PppSetupIPCPOptionType
     {
         IPCompressionProtocol = 2,

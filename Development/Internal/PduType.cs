@@ -36,53 +36,76 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Gurux.DLMS.Internal;
+using Gurux.DLMS.Secure;
+using Gurux.DLMS.Enums;
 
-namespace Gurux.DLMS.Enums
+namespace Gurux.DLMS.Internal
 {
     /// <summary>
-    /// DataType enumerates skipped fields from date time.
+    /// APDU types.
     /// </summary>
-    public enum DateTimeSkips
+    enum PduType
     {
         /// <summary>
-        /// Nothing is skipped from date time.
+        /// IMPLICIT BIT STRING {version1 (0)} DEFAULT {version1}
         /// </summary>
-        None = 0x0,
+        ProtocolVersion = 0,
         /// <summary>
-        /// Year part of date time is skipped.
+        /// Application-context-name
         /// </summary>
-        Year = 0x1,
+        ApplicationContextName,
         /// <summary>
-        /// Month part of date time is skipped.
+        /// AP-title OPTIONAL
         /// </summary>
-        Month = 0x2,
+        CalledApTitle,
         /// <summary>
-        /// Day part is skipped.
+        /// AE-qualifier OPTIONAL.
         /// </summary>
-        Day = 0x4,
+        CalledAeQualifier,
         /// <summary>
-        /// Day of week part of date time is skipped.
+        /// AP-invocation-identifier OPTIONAL.
         /// </summary>
-        DayOfWeek = 0x8,
+        CalledApInvocationId,
         /// <summary>
-        /// Hours part of date time is skipped.
+        /// AE-invocation-identifier OPTIONAL
         /// </summary>
-        Hour = 0x10,
+        CalledAeInvocationId,
         /// <summary>
-        /// Minute part of date time is skipped.
+        /// AP-title OPTIONAL
         /// </summary>
-        Minute = 0x20,
+        CallingApTitle,
         /// <summary>
-        /// Seconds part of date time is skipped.
+        /// AE-qualifier OPTIONAL
         /// </summary>
-        Second = 0x40,
+        CallingAeQualifier,
         /// <summary>
-        /// Hundreds of seconds part of date time is skipped.
+        /// AP-invocation-identifier OPTIONAL
         /// </summary>
-        Ms = 0x80,
+        CallingApInvocationId,
         /// <summary>
-        /// Devitation is skipped on write.
+        /// AE-invocation-identifier OPTIONAL
         /// </summary>
-        Devitation = 0x100        
+        CallingAeInvocationId,
+        /// <summary>
+        /// The following field shall not be present if only the kernel is used.
+        /// </summary>
+        SenderAcseRequirements,
+        /// <summary>
+        /// The following field shall only be present if the authentication functional unit is selected.     
+        /// </summary>
+        MechanismName = 11,
+        /// <summary>
+        /// The following field shall only be present if the authentication functional unit is selected.
+        /// </summary>
+        CallingAuthenticationValue = 12,
+        /// <summary>
+        /// Implementation-data.
+        /// </summary>
+        ImplementationInformation = 29,
+        /// <summary>
+        /// Association-information OPTIONAL 
+        /// </summary>
+        UserInformation = 30
     }
 }
