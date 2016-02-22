@@ -17,6 +17,13 @@ You do not nesessary need to use Gurux media component like Gurux.Net.
 You can use any connection library you want to.
 Gurux.DLMS classes only parse the data.
 
+Build
+=========================== 
+
+If you want to build source codes you need Nuget package manager for Visual Studio.
+You can get it here:
+https://visualstudiogallery.msdn.microsoft.com/27077b70-9dad-4c64-adcf-c7cf6bc9970c
+
 
 Simple example
 =========================== 
