@@ -89,7 +89,7 @@ namespace Gurux.DLMS.Internal
 
         public static string ToHex(byte[] bytes, bool addSpace)
         {
-            return ToHex(bytes, addSpace, 0, bytes.Length);
+            return ToHex(bytes, addSpace, 0, bytes == null ? 0 : bytes.Length);
         }
 
         /// <summary>

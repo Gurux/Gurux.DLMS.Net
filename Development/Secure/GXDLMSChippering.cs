@@ -61,6 +61,7 @@ namespace Gurux.DLMS.Secure
 
         static internal byte[] EncryptAesGcm(AesGcmParameter param, byte[] plainText)
         {
+            System.Diagnostics.Debug.WriteLine("Encrypt settings: " + param.ToString());
             param.CountTag = null;
             GXByteBuffer data = new GXByteBuffer();
             if (param.Type == CountType.Packet)
@@ -129,7 +130,9 @@ namespace Gurux.DLMS.Secure
                 tmp2.Set(data.Array());
                 return tmp2.Array();
             }
-            return data.Array();        
+            byte[] crypted = data.Array();
+            System.Diagnostics.Debug.WriteLine("Crypted: " + GXCommon.ToHex(crypted, true));
+            return crypted; 
         }
 
         private static byte[] GetAuthenticatedData(Security security, byte[] AuthenticationKey, byte[] plainText)
@@ -181,6 +184,9 @@ namespace Gurux.DLMS.Secure
             int len = Gurux.DLMS.Internal.GXCommon.GetObjectCount(data);
             p.Security = (Security)data.GetUInt8();
             p.FrameCounter = data.GetUInt32();
+            System.Diagnostics.Debug.WriteLine("Decrypt settings: " + p.ToString());
+            System.Diagnostics.Debug.WriteLine("Encrypted: " + GXCommon.ToHex(data.Array(), true));
+
             byte[] tag = new byte[12];
             byte[] encryptedData;
             int length;
