@@ -95,7 +95,10 @@ namespace Gurux.DLMS.Secure
             }
             else if (param.Security == Security.Encryption)
             {
-                data.Set(tmp);
+                if (param.Type == CountType.Packet)
+                {
+                    data.Set(tmp);
+                }
                 data.Set(ciphertext);
             }
             else if (param.Security == Security.AuthenticationEncryption)

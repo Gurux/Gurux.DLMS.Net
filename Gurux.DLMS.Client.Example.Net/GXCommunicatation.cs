@@ -538,12 +538,7 @@ namespace Gurux.DLMS.Client.Example
                             {
                                 System.Diagnostics.Debug.WriteLine("Data send failed. Try to resend " + pos.ToString() + "/3");
                                 continue;
-                            } 
-                            //If Eop is not set read one byte at time.
-                            if (p.Eop == null)
-                            {
-                                p.Count = 1;
-                            }
+                            }                             
                             throw new Exception("Failed to receive reply from the device in given time.");
                         }
                     }

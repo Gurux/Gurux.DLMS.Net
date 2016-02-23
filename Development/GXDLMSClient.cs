@@ -65,6 +65,14 @@ namespace Gurux.DLMS
         private static Dictionary<ObjectType, Type> AvailableObjectTypes = new Dictionary<ObjectType, Type>();
 
         /// <summary>
+        /// Static Constructor. This is called only once. Get available COSEM objects.
+        /// </summary>
+        static GXDLMSClient()
+        {
+            GXDLMS.GetAvailableObjects(AvailableObjectTypes);
+        }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         public GXDLMSClient()

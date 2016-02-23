@@ -98,6 +98,18 @@ namespace Gurux.DLMS
             }
         }
 
+        /// <summary>
+        /// Get available COSEM objects.
+        /// </summary>
+        /// <param name="availableObjectTypes"></param>
+        internal static void GetAvailableObjects(Dictionary<ObjectType, Type> availableObjectTypes)
+        {
+            lock (availableObjectTypes)
+            {
+                GetObjectTypes(availableObjectTypes);
+            }
+        }
+
         internal static GXDLMSObject CreateObject(ObjectType type, Dictionary<ObjectType, Type> availableObjectTypes)
         {
             lock (availableObjectTypes)

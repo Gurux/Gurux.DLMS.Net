@@ -16,6 +16,7 @@ local.properties
 .settings/
 .loadpath
 Gurux.DLMS.Client.Example.Net/packages/
+Gurux.DLMS.Server.Example.Net/packages/
 
 # External tool builders
 .externalToolBuilders/
@@ -166,3 +167,4 @@ pip-log.txt
 # Mac crap
 .DS_Store
 *.nupkg
+*.XML
