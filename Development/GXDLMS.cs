@@ -790,6 +790,7 @@ namespace Gurux.DLMS
                 // Not enough data to parse;
                 return 0;
             }
+            data.IsEcho = false;
             byte frame = reply.GetUInt8();
             if ((frame & 0xF0) != 0xA0)
             {
@@ -810,19 +811,19 @@ namespace Gurux.DLMS
                 reply.Position = (UInt16) packetStartID;
                 // Not enough data to parse;
                 return 0;
-
             }
-            int len = frameLen + packetStartID + 1;
-            ch = reply.GetUInt8(len);
+            int eopPos = frameLen + packetStartID + 1;
+            ch = reply.GetUInt8(eopPos);
             if (ch != GXCommon.HDLCFrameStartEnd)
             {
                 throw new GXDLMSException("Invalid data format.");
             }
 
             // Check addresses.
-            if (!CheckHdlcAddress(server, settings, reply, data, len))
+            if (!CheckHdlcAddress(server, settings, reply, data, eopPos))
             {
                 //If echo,
+                data.IsEcho = true;
                 return GetHdlcData(server, settings, reply, data);
             }
 
@@ -924,7 +925,7 @@ namespace Gurux.DLMS
             // Skip data CRC and EOP.
             if (reply.Position != reply.Size)
             {
-                reply.Size = (UInt16)(reply.Size - 3);
+                reply.Size = (UInt16)(eopPos - 2);
             }
             return frame;
         }

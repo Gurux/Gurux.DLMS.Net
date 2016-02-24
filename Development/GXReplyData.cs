@@ -87,6 +87,15 @@ namespace Gurux.DLMS
 
 
         ///<summary>
+        /// Is echo. 
+        ///</summary>
+        public bool IsEcho
+        {
+            get;
+            internal set;
+        }
+
+        ///<summary>
         /// Last read position. This is used in peek to solve how far data is read.
         ///</summary>
         public UInt16 ReadPosition
