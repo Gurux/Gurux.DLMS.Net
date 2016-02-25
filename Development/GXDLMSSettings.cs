@@ -41,6 +41,7 @@ namespace Gurux.DLMS
     using System.Text;
     using Gurux.DLMS.Objects;
     using Gurux.DLMS.Enums;
+    using Gurux.DLMS.Secure;
 
     /// <summary> 
     /// This class includes DLMS communication settings.
@@ -96,6 +97,18 @@ namespace Gurux.DLMS
         /// Source system title.
         /// </summary>
         internal byte[] SourceSystemTitle;
+
+        /// <summary>
+        /// Cipher interface.
+        /// </summary>
+        /// <remarks>
+        /// GXDLMSAssociationShortName and GXDLMSAssociationLogicalName use this is GMAC authentication is used.
+        /// </remarks>
+        internal GXICipher Cipher
+        {
+            get;
+            set;
+        }
 
         ///<summary>
         ///Constructor. 

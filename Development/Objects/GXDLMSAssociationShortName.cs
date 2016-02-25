@@ -112,12 +112,33 @@ namespace Gurux.DLMS.Objects
             //Check reply_to_HLS_authentication
             if (index == 8)
             {
-               byte[] serverChallenge =
-                    GXSecure.Secure(settings.Authentication,settings.StoCChallenge, Secret);
+                UInt32 ic = 0;
+                byte[] secret;
+                if (settings.Authentication == Authentication.HighGMAC)
+                {
+                    secret = settings.SourceSystemTitle;
+                    GXByteBuffer bb = new GXByteBuffer(parameters as byte[]);
+                    bb.GetUInt8();
+                    ic = bb.GetUInt32();
+                }
+                else
+                {
+                    secret = Secret;
+                }
+                byte[] serverChallenge = GXSecure.Secure(settings, settings.Cipher, ic, settings.StoCChallenge, secret);
                 byte[] clientChallenge = (byte[]) parameters;
                 if (GXCommon.Compare(serverChallenge, clientChallenge))
                 {
-                    byte[] tmp = GXSecure.Secure(settings.Authentication, settings.CtoSChallenge, Secret);
+                    if (settings.Authentication == Authentication.HighGMAC)
+                    {
+                        secret = settings.Cipher.SystemTitle;
+                    }
+                    else
+                    {
+                        secret = Secret;
+                    }
+                    ic = settings.Cipher.FrameCounter;
+                    byte[] tmp = GXSecure.Secure(settings, settings.Cipher, ic, settings.CtoSChallenge, secret);
                     GXByteBuffer challenge = new GXByteBuffer();
                     // Add status.
                     challenge.SetUInt8(0);

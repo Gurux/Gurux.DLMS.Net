@@ -57,6 +57,8 @@ namespace Gurux.DLMS.Objects
             ApplicationContextName = new GXApplicationContextName();
             XDLMSContextInfo = new GXxDLMSContextType();
             AuthenticationMechanismMame = new GXAuthenticationMechanismName();
+            //Default shared secred.
+            Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
         }
 
         /// <summary> 
@@ -70,6 +72,8 @@ namespace Gurux.DLMS.Objects
             ApplicationContextName = new GXApplicationContextName();
             XDLMSContextInfo = new GXxDLMSContextType();
             AuthenticationMechanismMame = new GXAuthenticationMechanismName();
+            //Default shared secred.
+            Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
         }
 
         [XmlIgnore()]
@@ -158,19 +162,38 @@ namespace Gurux.DLMS.Objects
             //Check reply_to_HLS_authentication
             if (index == 1)
             {
-                byte[] serverChallenge =
-                    GXSecure.Secure(settings.Authentication,
-                            settings.StoCChallenge, Secret);
+                UInt32 ic = 0;
+                byte[] secret;
+                if (settings.Authentication == Authentication.HighGMAC)
+                {
+                    secret = settings.SourceSystemTitle;
+                    GXByteBuffer bb = new GXByteBuffer(parameters as byte[]);                    
+                    bb.GetUInt8();
+                    ic = bb.GetUInt32();
+                }
+                else
+                {
+                    secret = Secret;
+                }
+                byte[] serverChallenge = GXSecure.Secure(settings, settings.Cipher, ic, settings.StoCChallenge, secret);
                 byte[] clientChallenge = (byte[])parameters;
                 if (GXCommon.Compare(serverChallenge, clientChallenge))
                 {
-                    byte[] tmp = GXSecure.Secure(settings.Authentication,
-                            settings.CtoSChallenge, Secret);
+                    if (settings.Authentication == Authentication.HighGMAC)
+                    {
+                        secret = settings.Cipher.SystemTitle;
+                    }
+                    else
+                    {
+                        secret = Secret;
+                    }
+                    ic = settings.Cipher.FrameCounter;
+                    byte[] tmp = GXSecure.Secure(settings, settings.Cipher, ic, settings.CtoSChallenge, secret);
                     GXByteBuffer challenge = new GXByteBuffer();
                     // ReturnParameters.
                     challenge.SetUInt8(1);
                     challenge.SetUInt8(0);
-                    challenge.SetUInt8((byte) DataType.OctetString);
+                    challenge.SetUInt8((byte)DataType.OctetString);
                     GXCommon.SetObjectCount(tmp.Length, challenge);
                     challenge.Set(tmp);
                     return challenge.Array();

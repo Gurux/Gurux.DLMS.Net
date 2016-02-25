@@ -80,5 +80,29 @@ namespace Gurux.DLMS.Secure
             get;
             set;
         }
+
+        /// <summary>
+        /// Block cipher key.
+        /// </summary>
+        byte[] BlockCipherKey
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Authentication key.
+        /// </summary>
+        byte[] AuthenticationKey
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Frame counter. Invocation counter.
+        /// </summary>
+        UInt32 FrameCounter
+        {
+            get;
+        }
     }
 }

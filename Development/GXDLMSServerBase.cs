@@ -123,15 +123,6 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Cipher interface that is used to Cipher PDU.
-        /// </summary>
-        internal GXICipher Cipher
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// List of objects that meter supports.
         /// </summary>
         public GXDLMSObjectCollection Items
@@ -308,12 +299,12 @@ namespace Gurux.DLMS
                             Authentications.Clear();
                             ServerAddress.Clear();
                         }
-                        Authentications.Add(new GXAuthentication(Authentication.None, "", (byte)0x10));
-                        Authentications.Add(new GXAuthentication(Authentication.Low, "Gurux", (byte)0x20));
-                        Authentications.Add(new GXAuthentication(Authentication.High, "Gurux", (byte)0x40));
-                        Authentications.Add(new GXAuthentication(Authentication.HighMD5, "Gurux", (byte)0x40));
-                        Authentications.Add(new GXAuthentication(Authentication.HighSHA1, "Gurux", (byte)0x41));
-                        Authentications.Add(new GXAuthentication(Authentication.HighGMAC, "Gurux", (byte)0x42));
+                        Authentications.Add(new GXAuthentication(Authentication.None, "", 16));
+                        Authentications.Add(new GXAuthentication(Authentication.Low, "Gurux", 17));
+                        Authentications.Add(new GXAuthentication(Authentication.High, "Gurux", 18));
+                        Authentications.Add(new GXAuthentication(Authentication.HighMD5, "Gurux", 19));
+                        Authentications.Add(new GXAuthentication(Authentication.HighSHA1, "Gurux", 20));
+                        Authentications.Add(new GXAuthentication(Authentication.HighGMAC, "Gurux", 21));
                         ServerAddress.Add(1);
                     }
                     else
@@ -327,12 +318,12 @@ namespace Gurux.DLMS
                             Authentications.Clear();
                             ServerAddress.Clear();
                         }
-                        Authentications.Add(new GXAuthentication(Authentication.None, "", (ushort)0x10));
-                        Authentications.Add(new GXAuthentication(Authentication.Low, "Gurux", (ushort)0x20));
-                        Authentications.Add(new GXAuthentication(Authentication.High, "Gurux", (ushort)0x40));
-                        Authentications.Add(new GXAuthentication(Authentication.HighMD5, "Gurux", (ushort)0x40));
-                        Authentications.Add(new GXAuthentication(Authentication.HighSHA1, "Gurux", (ushort)0x40));
-                        Authentications.Add(new GXAuthentication(Authentication.HighGMAC, "Gurux", (ushort)0x40));
+                        Authentications.Add(new GXAuthentication(Authentication.None, "", 1));
+                        Authentications.Add(new GXAuthentication(Authentication.Low, "Gurux", 1));
+                        Authentications.Add(new GXAuthentication(Authentication.High, "Gurux", 1));
+                        Authentications.Add(new GXAuthentication(Authentication.HighMD5, "Gurux", 1));
+                        Authentications.Add(new GXAuthentication(Authentication.HighSHA1, "Gurux", 1));
+                        Authentications.Add(new GXAuthentication(Authentication.HighGMAC, "Gurux", 1));
                         ServerAddress.Add((ushort)1);
                     }
                 }
@@ -475,9 +466,9 @@ namespace Gurux.DLMS
             Settings.ServerAddress = 0;
             Settings.ClientAddress = 0;
             Settings.Authentication = Authentication.None;
-            if (Cipher != null)
+            if (Settings.Cipher != null)
             {
-                Cipher.Reset();
+                Settings.Cipher.Reset();
             }
         }
 
@@ -540,7 +531,7 @@ namespace Gurux.DLMS
         private byte[] GetPacket(byte[] buff)
         {
             GXByteBuffer receivedFrame = new GXByteBuffer(buff);
-            GXDLMS.GetData(Settings, receivedFrame, Reply, Cipher);
+            GXDLMS.GetData(Settings, receivedFrame, Reply, Settings.Cipher);
             // If all data is not received yet.
             if (!Reply.IsComplete)
             {
@@ -691,7 +682,7 @@ namespace Gurux.DLMS
             {
                 bb.Add((obj as IGXDLMSBase).Invoke(Settings, id, parameters));
             }
-            return GXDLMS.SplitPdu(Settings, Command.MethodResponse, 1, bb, ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, Command.MethodResponse, 1, bb, ErrorCode.Ok, DateTime.MinValue, Settings.Cipher)[0];
         }
 
         ///<summary>
@@ -790,7 +781,7 @@ namespace Gurux.DLMS
                 Settings.ResetBlockIndex();
                 error = ErrorCode.HardwareFault;
             }
-            return GXDLMS.SplitPdu(Settings, Command.SetResponse, 1, bb, error, DateTime.MinValue, Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, Command.SetResponse, 1, bb, error, DateTime.MinValue, Settings.Cipher)[0];
         }
 
         private byte[][] HandleGetRequest()
@@ -837,7 +828,7 @@ namespace Gurux.DLMS
                     object value = (obj as IGXDLMSBase).GetValue(Settings, attributeIndex, selector, parameters);
                     GXDLMS.AppedData(obj, attributeIndex, bb, value);
                 }
-                ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 1, bb, error, DateTime.MinValue, Cipher);
+                ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 1, bb, error, DateTime.MinValue, Settings.Cipher);
 
             }
             else if (type == 2)
@@ -848,8 +839,8 @@ namespace Gurux.DLMS
                 if (index != Settings.BlockIndex + 1)
                 {
                     Debug.WriteLine("handleGetRequest failed. Invalid block number. " + Settings.BlockIndex + "/" + index);
-                    ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 1, bb, 
-                        ErrorCode.DataBlockNumberInvalid, DateTime.MinValue, Cipher);
+                    ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 1, bb,
+                        ErrorCode.DataBlockNumberInvalid, DateTime.MinValue, Settings.Cipher);
                     index = 0;
                     ServerReply.Index = index;
                 }
@@ -902,14 +893,14 @@ namespace Gurux.DLMS
                         }
                     }
                 }
-                ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 3, bb, error, DateTime.MinValue, Cipher);
+                ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 3, bb, error, DateTime.MinValue, Settings.Cipher);
             }
             else
             {
                 Debug.WriteLine("handleGetRequest failed. Invalid command type.");
                 Settings.ResetBlockIndex();
                 // Access Error : Device reports a hardware fault.
-                ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 1, bb, ErrorCode.HardwareFault, DateTime.MinValue, Cipher);
+                ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 1, bb, ErrorCode.HardwareFault, DateTime.MinValue, Settings.Cipher);
             }
             ServerReply.Index = index;
             return ServerReply.ReplyMessages[index];
@@ -1066,8 +1057,8 @@ namespace Gurux.DLMS
                     throw new System.ArgumentException("Invalid Command.");
                 }
             }
-            return GXDLMS.SplitPdu(Settings, Command.ReadResponse, 1, bb, 
-                                ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, Command.ReadResponse, 1, bb,
+                                ErrorCode.Ok, DateTime.MinValue, Settings.Cipher)[0];
         }
 
         ///<summary>
@@ -1157,7 +1148,7 @@ namespace Gurux.DLMS
                 }
                 bb.SetUInt8(ret);
             }
-            return GXDLMS.SplitPdu(Settings, Command.WriteResponse, 1, bb, ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, Command.WriteResponse, 1, bb, ErrorCode.Ok, DateTime.MinValue, Settings.Cipher)[0];
         }
 
         ///<summary>
@@ -1170,8 +1161,11 @@ namespace Gurux.DLMS
         {
             AssociationResult result = AssociationResult.Accepted;
             Settings.CtoSChallenge = null;
-            Settings.StoCChallenge = null;
-            SourceDiagnostic diagnostic = GXAPDU.ParsePDU(Settings, Cipher, Reply.Data);
+            if (!Settings.UseCustomChallenge)
+            {
+                Settings.StoCChallenge = null;
+            }
+            SourceDiagnostic diagnostic = GXAPDU.ParsePDU(Settings, Settings.Cipher, Reply.Data);
             if (diagnostic != SourceDiagnostic.None)
             {
                 result = AssociationResult.PermanentRejected;
@@ -1183,7 +1177,7 @@ namespace Gurux.DLMS
                 GXAuthentication auth = null;
                 foreach (GXAuthentication it in Authentications)
                 {
-                    if (it.ClientAddress == Settings.ClientAddress)
+                    if (it.Type == Settings.Authentication)
                     {
                         auth = it;
                         break;
@@ -1228,9 +1222,9 @@ namespace Gurux.DLMS
             }
             // Generate AARE packet.
             GXByteBuffer buff = new GXByteBuffer(150);
-            GXAPDU.GenerateAARE(Settings, buff, result, diagnostic, Cipher);
-            return GXDLMS.SplitPdu(Settings, Command.Aare, 0, buff, 
-                            ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
+            GXAPDU.GenerateAARE(Settings, buff, result, diagnostic, Settings.Cipher);
+            return GXDLMS.SplitPdu(Settings, Command.Aare, 0, buff,
+                            ErrorCode.Ok, DateTime.MinValue, Settings.Cipher)[0];
         }
 
         ///<summary>

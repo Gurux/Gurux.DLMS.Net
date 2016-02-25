@@ -43,7 +43,7 @@ namespace Gurux.DLMS.Secure
     using Gurux.DLMS.Internal;
     using Gurux.DLMS.Enums;
 
-    public class GXSecure
+    internal class GXSecure
     {
 
         ///<summary> 
@@ -57,8 +57,14 @@ namespace Gurux.DLMS.Secure
         ///<summary>
         /// Chipher text.
         ///</summary>
-        ///<param name="auth">
-        ///Authentication level. 
+        ///<param name="settings">
+        ///DLMS settings. 
+        ///</param>
+        ///<param name="cipher">
+        ///Cipher. 
+        ///</param>
+        ///<param name="ic">
+        ///Invocation counter.
         ///</param>
         ///<param name="data">
         ///Text to chipher. 
@@ -69,10 +75,10 @@ namespace Gurux.DLMS.Secure
         ///<returns>
         ///Chiphered text.
         ///</returns>
-        public static byte[] Secure(Authentication auth, byte[] data, byte[] secret)
+        public static byte[] Secure(GXDLMSSettings settings, GXICipher cipher, UInt32 ic, byte[] data, byte[] secret)
         {
             byte[] tmp;
-            if (auth == Authentication.High)
+            if (settings.Authentication == Authentication.High)
             {
                 byte[] p = new byte[secret.Length + 15];
                 byte[] s = new byte[16];
@@ -91,10 +97,17 @@ namespace Gurux.DLMS.Secure
             // Get server Challenge.
             GXByteBuffer challenge = new GXByteBuffer();
             // Get shared secret
-            challenge.Set(secret);
-            challenge.Set(data);
+            if (settings.Authentication == Authentication.HighGMAC)
+            {
+                challenge.Set(data);              
+            }
+            else
+            {
+                challenge.Set(secret);
+                challenge.Set(data);
+            }
             tmp = challenge.Array();
-            if (auth == Authentication.HighMD5)
+            if (settings.Authentication == Authentication.HighMD5)
             {
                 using (MD5 md5Hash = MD5.Create())
                 {
@@ -102,13 +115,26 @@ namespace Gurux.DLMS.Secure
                     return tmp;
                 }
             }
-            if (auth == Authentication.HighSHA1)
+            else if (settings.Authentication == Authentication.HighSHA1)
             {
                 using (SHA1 sha = new SHA1CryptoServiceProvider())
                 {
                     tmp = sha.ComputeHash(tmp);
                     return tmp;
                 }
+            }
+            else if (settings.Authentication == Authentication.HighGMAC)
+            {
+                //SC is always Security.Authentication.
+                AesGcmParameter p = new AesGcmParameter(0, Security.Authentication, ic,
+                    secret, cipher.BlockCipherKey, cipher.AuthenticationKey);
+                p.Type = CountType.Tag;
+                challenge.Clear();
+                challenge.SetUInt8((byte)Security.Authentication);
+                challenge.SetUInt32(p.FrameCounter);
+                challenge.Set(GXDLMSChippering.EncryptAesGcm(p, tmp));
+                tmp = challenge.Array();
+                return tmp;
             }
             return data;
         }

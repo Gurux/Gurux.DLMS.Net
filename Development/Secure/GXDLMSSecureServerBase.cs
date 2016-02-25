@@ -58,7 +58,7 @@ namespace Gurux.DLMS.Secure
             base(logicalNameReferencing, type)
         {
             Ciphering = new GXCiphering(ASCIIEncoding.ASCII.GetBytes("ABCDEFGH"));
-            Cipher = Ciphering;
+            Settings.Cipher = Ciphering;
         }
 
         /// <summary>
@@ -81,6 +81,7 @@ namespace Gurux.DLMS.Secure
             }
             set
             {
+                Settings.UseCustomChallenge = value != null;
                 Settings.StoCChallenge = value;
             }
         }

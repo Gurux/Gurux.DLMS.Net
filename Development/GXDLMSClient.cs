@@ -55,12 +55,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// DLMS settings.
         /// </summary>
-        private GXDLMSSettings Settings;
-
-        /// <summary>
-        /// Cipher interface that is used to cipher PDU.
-        /// </summary>
-        internal GXICipher Cipher = null;
+        protected GXDLMSSettings Settings;
 
         private static Dictionary<ObjectType, Type> AvailableObjectTypes = new Dictionary<ObjectType, Type>();
 
@@ -235,6 +230,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <remarks>
         /// If authentication is set to none, password is not used.
+        /// For HighSHA1, HighMD5 and HighGMAC password is worked as a shared secret.
         /// </remarks>
         /// <seealso cref="Authentication"/>
         public byte[] Password
@@ -533,8 +529,8 @@ namespace Gurux.DLMS
             {
                 Settings.CtoSChallenge = null;
             }
-            GXAPDU.GenerateAarq(Settings, Cipher, buff);
-            return GXDLMS.SplitPdu(Settings, Command.Aarq, 0, buff, ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
+            GXAPDU.GenerateAarq(Settings, Settings.Cipher, buff);
+            return GXDLMS.SplitPdu(Settings, Command.Aarq, 0, buff, ErrorCode.Ok, DateTime.MinValue, Settings.Cipher)[0];
         }
 
         /// <summary>
@@ -562,7 +558,7 @@ namespace Gurux.DLMS
         public void ParseAAREResponse(GXByteBuffer reply)
         {
             Settings.Connected = true;
-            IsAuthenticationRequired = GXAPDU.ParsePDU(Settings, Cipher, reply) == SourceDiagnostic.AuthenticationRequired;
+            IsAuthenticationRequired = GXAPDU.ParsePDU(Settings, Settings.Cipher, reply) == SourceDiagnostic.AuthenticationRequired;
             if (IsAuthenticationRequired)
             {
                 System.Diagnostics.Debug.WriteLine("Authentication is required.");
@@ -597,7 +593,16 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentException("Password is invalid.");
             }
-            byte[] challenge = GXSecure.Secure(Authentication, Settings.StoCChallenge, Settings.Password);
+            byte[] pw;
+            if (Settings.Authentication == Enums.Authentication.HighGMAC)
+            {
+                pw = Settings.Cipher.SystemTitle;
+            }
+            else
+            {
+                pw = Settings.Password;
+            }
+            byte[] challenge = GXSecure.Secure(Settings, Settings.Cipher, Settings.Cipher.FrameCounter, Settings.StoCChallenge, pw);
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetUInt8((byte)DataType.OctetString);
             GXCommon.SetObjectCount(challenge.Length, bb);
@@ -621,7 +626,20 @@ namespace Gurux.DLMS
         {
             GXDataInfo info = new GXDataInfo();
             byte[] value = (byte[])GXCommon.GetData(reply, info);
-            byte[] tmp = GXSecure.Secure(Settings.Authentication, Settings.CtoSChallenge, Settings.Password);
+            byte[] secret;
+            UInt32 ic = 0;
+            if (Settings.Authentication == Authentication.HighGMAC)
+            {
+                secret = Settings.SourceSystemTitle;
+                GXByteBuffer bb = new GXByteBuffer(value);
+                bb.GetUInt8();
+                ic = bb.GetUInt32();
+            }
+            else
+            {
+                secret = Settings.Password;
+            }
+            byte[] tmp = GXSecure.Secure(Settings, Settings.Cipher, ic, Settings.CtoSChallenge, secret);
             GXByteBuffer challenge = new GXByteBuffer(tmp);
             if (!challenge.Compare(value))
             {
@@ -1288,7 +1306,7 @@ namespace Gurux.DLMS
             {
                 GXCommon.SetData(bb, type, value);
             }
-            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, ErrorCode.Ok, DateTime.MinValue, Settings.Cipher)[0];
         }
 
 
@@ -1369,7 +1387,7 @@ namespace Gurux.DLMS
                 bb.SetUInt8(1);
             }
             GXCommon.SetData(bb, type, value);
-            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, ErrorCode.Ok, DateTime.MinValue, Settings.Cipher)[0];
         }
 
         /// <summary>
@@ -1445,7 +1463,7 @@ namespace Gurux.DLMS
                     bb.Set(data.Data, 0, data.Size);
                 }
             }
-            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, ErrorCode.Ok, DateTime.MinValue, Settings.Cipher)[0];
         }
 
         /// <summary>
@@ -1512,7 +1530,7 @@ namespace Gurux.DLMS
                     bb.SetUInt16((UInt16)sn);
                 }
             }
-            return GXDLMS.SplitPdu(Settings, cmd, 3, bb, ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, cmd, 3, bb, ErrorCode.Ok, DateTime.MinValue, Settings.Cipher)[0];
         }
 
         /// <summary>
@@ -1636,7 +1654,7 @@ namespace Gurux.DLMS
         /// <returns>Acknowledgment message as byte array.</returns>
         public byte[] ReceiverReady(RequestTypes type)
         {
-            return GXDLMS.ReceiverReady(Settings, type, Cipher);
+            return GXDLMS.ReceiverReady(Settings, type, Settings.Cipher);
         }
 
         ///<summary>
@@ -1653,7 +1671,7 @@ namespace Gurux.DLMS
         ///</returns>
         public bool GetData(byte[] reply, GXReplyData data)
         {
-            return GXDLMS.GetData(Settings, new GXByteBuffer(reply), data, Cipher);
+            return GXDLMS.GetData(Settings, new GXByteBuffer(reply), data, Settings.Cipher);
         }
 
         /// <summary>
@@ -1697,7 +1715,7 @@ namespace Gurux.DLMS
         ///</returns>
         public virtual bool GetData(GXByteBuffer reply, GXReplyData data)
         {
-            return GXDLMS.GetData(Settings, reply, data, Cipher);
+            return GXDLMS.GetData(Settings, reply, data, Settings.Cipher);
         }
 
         /// <summary>

@@ -72,9 +72,22 @@ namespace Gurux.DLMS.Internal
                 data.Set(p);
                 //Add Calling authentication information.
                 int len = 0;
-                if (settings.Password != null)
+                byte[] pw = null;
+                if (settings.Authentication < Authentication.HighMD5)
                 {
-                    len = settings.Password.Length;
+                    pw = settings.Password;
+                    if (pw != null)
+                    {
+                        len = pw.Length;
+                    }
+                }
+                else
+                {
+                    pw = settings.CtoSChallenge;
+                    if (pw != null)
+                    {
+                        len = pw.Length;
+                    }
                 }
                 data.SetUInt8((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingAuthenticationValue); //0xAC
                 //Len
@@ -83,9 +96,9 @@ namespace Gurux.DLMS.Internal
                 data.SetUInt8((byte)BerType.Context);
                 //Len.
                 data.SetUInt8((byte)len);
-                if (len != 0)
+                if (pw != null)
                 {
-                    data.Set(settings.Password);
+                    data.Set(pw);
                 }
             }
         }
@@ -128,8 +141,8 @@ namespace Gurux.DLMS.Internal
                     data.Set(GXCommon.ShortNameObjectID);
                 }
             }
-            //Add system title.
-            if (!settings.IsServer && ciphered)
+            //Add system title if cipher or GMAC authentication is used..
+            if (!settings.IsServer && (ciphered || settings.Authentication == Authentication.HighGMAC))
             {
                 if (cipher.SystemTitle == null || cipher.SystemTitle.Length == 0)
                 {
@@ -156,21 +169,8 @@ namespace Gurux.DLMS.Internal
         {
             // Tag for xDLMS-Initiate request
             data.SetUInt8(GXCommon.InitialRequest);
-            // Usage field for the response allowed component. Not used
-            if (settings.CtoSChallenge == null || settings.CtoSChallenge.Length == 0)
-            {
-                // Usage field for dedicated-key component. Not used
-                data.SetUInt8(0x00);
-            }
-            else
-            {
-                // Usage field for dedicated-key component. 
-                data.SetUInt8(0x01);
-                //Add dedicated key len.
-                data.SetUInt8((byte)settings.CtoSChallenge.Length);
-                //Add dedicated key.
-                data.Set(settings.CtoSChallenge);
-            }
+            // Usage field for dedicated-key component. Not used
+            data.SetUInt8(0x00);
             //encoding of the response-allowed component (BOOLEAN DEFAULT TRUE) 
             // usage flag (FALSE, default value TRUE conveyed) 
             data.SetUInt8(0);
@@ -611,8 +611,16 @@ namespace Gurux.DLMS.Internal
                             throw new Exception("Invalid tag.");
                         }
                         len = buff.GetUInt8();
-                        settings.Password = new byte[len];
-                        buff.Get(settings.Password);
+                        if (settings.Authentication < Authentication.HighMD5)
+                        {
+                            settings.Password = new byte[len];
+                            buff.Get(settings.Password);
+                        }
+                        else
+                        {
+                            settings.CtoSChallenge = new byte[len];
+                            buff.Get(settings.CtoSChallenge);
+                        }
                         break;
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.UserInformation://0xBE
                         if (resultComponent != AssociationResult.Accepted && resultDiagnosticValue != SourceDiagnostic.None)
@@ -636,8 +644,9 @@ namespace Gurux.DLMS.Internal
         {
             GXByteBuffer data = new GXByteBuffer();
             data.SetUInt8(GXCommon.InitialResponce); // Tag for xDLMS-Initiate response
-            data.SetUInt8(0x01);
-            data.SetUInt8(0x00); // Usage field for the response allowed component (not used)
+            // NegotiatedQualityOfService (not used)
+            data.SetUInt8(0x1);
+            data.SetUInt8(0x00);
             // DLMS Version Number
             data.SetUInt8(06); 
             data.SetUInt8(0x5F);
@@ -700,7 +709,7 @@ namespace Gurux.DLMS.Internal
             data.SetUInt8((byte)diagnostic); //diagnostic   
 
             //SystemTitle
-            if (cipher != null && cipher.IsCiphered())
+            if (cipher != null && (cipher.IsCiphered() || settings.Authentication == Authentication.HighGMAC))
             {
                 data.SetUInt8((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CalledApInvocationId);
                 data.SetUInt8((byte)(2 + cipher.SystemTitle.Length));
