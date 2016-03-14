@@ -116,7 +116,7 @@ namespace Gurux.DLMS
         internal GXDLMSSettings(bool isServer)
         {
             UseCustomChallenge = false;
-            BlockIndex = 1;
+            StartingBlockIndex = BlockIndex = 1;
             DLMSVersion = 6;
             InvokeID = 0x1;
             Priority = Priority.High;
@@ -249,6 +249,11 @@ namespace Gurux.DLMS
 
         public bool CheckFrame(byte frame)
         {
+            //If server rejects frame.
+            if (frame == 0x97)
+            {
+                return true;
+            }
             //If U frame.
             if ((frame & 0x3) == 3)
             {
@@ -343,12 +348,23 @@ namespace Gurux.DLMS
             internal set;
         }
 
+        /// <summary>
+        ///  Gets starting block index. Default is One based, but some meters use Zero based value. 
+        ///  Usually this is not used.
+        /// </summary>
+        public UInt32 StartingBlockIndex
+        {
+            get;
+            internal set;
+        }
+
+
         ///<summary>
         /// Resets block index to default value.
         ///</summary>
         internal void ResetBlockIndex()
         {
-            BlockIndex = 1;
+            BlockIndex = StartingBlockIndex;
         }
 
         ///<summary>
@@ -405,7 +421,16 @@ namespace Gurux.DLMS
             get;
             set;
         }
-        
+
+        /// <summary>
+        /// Size of Server address.
+        /// </summary>
+        public byte ServerAddressSize
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// DLMS version number.
         /// </summary>

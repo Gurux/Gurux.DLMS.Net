@@ -43,7 +43,7 @@ namespace Gurux.DLMS.Secure
     using Gurux.DLMS.Internal;
     using Gurux.DLMS.Enums;
 
-    public abstract class GXDLMSSecureServerBase : GXDLMSServerBase
+    public abstract class GXDLMSSecureServer : GXDLMSServer
     {       
         ///<summary>
         /// Constructor.
@@ -54,7 +54,7 @@ namespace Gurux.DLMS.Secure
         ///<param name="type">
         /// Interface type. 
         ///</param>
-        public GXDLMSSecureServerBase(bool logicalNameReferencing, InterfaceType type) :
+        public GXDLMSSecureServer(bool logicalNameReferencing, InterfaceType type) :
             base(logicalNameReferencing, type)
         {
             Ciphering = new GXCiphering(ASCIIEncoding.ASCII.GetBytes("ABCDEFGH"));

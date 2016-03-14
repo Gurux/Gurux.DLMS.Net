@@ -70,6 +70,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GXDLMSConverter.cs" />
     <Compile Include="Internal\PduType.cs" />
     <Compile Include="Enums\AccessMode.cs" />
     <Compile Include="Enums\StateError.cs" />
@@ -77,7 +78,7 @@
     <Compile Include="Enums\MethodAccessMode.cs" />
     <Compile Include="Enums\DateTimeSkips.cs" />
     <Compile Include="GXKeyValuePair.cs" />
-    <Compile Include="GXDLMSNotifyHandler.cs" />
+    <Compile Include="GXDLMSNotify.cs" />
     <Compile Include="GXServerReply.cs" />
     <Compile Include="GXSNInfo.cs" />
     <Compile Include="Internal\SerialnumberCounter.cs" />
@@ -100,7 +101,7 @@
     <Compile Include="Enums\DataType.cs" />
     <Compile Include="Enums\ErrorCode.cs" />
     <Compile Include="GXByteBuffer.cs" />
-    <Compile Include="Secure\GXDLMSSecureServerBase.cs" />
+    <Compile Include="Secure\GXDLMSSecureServer.cs" />
     <Compile Include="Secure\GXDLMSSecureClient.cs" />
     <Compile Include="Secure\GXCiphering.cs" />
     <Compile Include="GXDataInfo.cs" />
@@ -108,7 +109,7 @@
     <Compile Include="Secure\GXDLMSChippering.cs" />
     <Compile Include="Secure\GXDLMSChipperingStream.cs" />
     <Compile Include="GXDLMSClient.cs" />
-    <Compile Include="GXDLMSServerBase.cs" />
+    <Compile Include="GXDLMSServer.cs" />
     <Compile Include="GXDLMSSettings.cs">
       <ExcludeFromStyleCop>True</ExcludeFromStyleCop>
     </Compile>

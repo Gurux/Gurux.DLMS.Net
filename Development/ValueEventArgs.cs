@@ -109,13 +109,24 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Optional parameters.
+        /// </summary>
+        public object Parameters
+        {
+            get;
+            private set;
+        }
+
+
+        /// <summary>
         /// Constructor.
         /// </summary>
-        internal ValueEventArgs(GXDLMSObject target, int index, int selector)
+        internal ValueEventArgs(GXDLMSObject target, int index, int selector, object parameters)
         {
             Target = target;
             Index = index;
             Selector = selector;
+            Parameters = parameters;
         }
     }
 }

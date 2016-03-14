@@ -44,8 +44,8 @@ namespace Gurux.DLMS.Objects
     class GXProfileGenericUpdater
     {
         GXDLMSProfileGeneric Target;
-        GXDLMSServerBase Server;
-        public GXProfileGenericUpdater(GXDLMSServerBase server, GXDLMSProfileGeneric pg)
+        GXDLMSServer Server;
+        public GXProfileGenericUpdater(GXDLMSServer server, GXDLMSProfileGeneric pg)
         {
             Server = server;
             Target = pg;

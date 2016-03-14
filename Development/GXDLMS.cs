@@ -138,7 +138,7 @@ namespace Gurux.DLMS
         ///<returns>
         ///Acknowledgment message as byte array.
         ///</returns>
-        internal static byte[] ReceiverReady(GXDLMSSettings settings, RequestTypes type, GXICipher cipher)
+        internal static byte[] ReceiverReady(GXDLMSSettings settings, RequestTypes type)
         {
             if (type == RequestTypes.None)
             {
@@ -156,9 +156,9 @@ namespace Gurux.DLMS
             settings.IncreaseBlockIndex();
             if (settings.IsServer)
             {
-                return SplitPdu(settings, Command.GetResponse, 2, bb, ErrorCode.Ok, DateTime.MinValue, cipher)[0][0];
+                return SplitPdu(settings, Command.GetResponse, 2, bb, ErrorCode.Ok, DateTime.MinValue)[0][0];
             }
-            return SplitPdu(settings, Command.GetRequest, 2, bb, ErrorCode.Ok, DateTime.MinValue, cipher)[0][0];
+            return SplitPdu(settings, Command.GetRequest, 2, bb, ErrorCode.Ok, DateTime.MinValue)[0][0];
         }
 
         /// <summary>
@@ -324,7 +324,7 @@ namespace Gurux.DLMS
         /// <param name="cp">Ciphering interface.</param>
         /// <returns>List of frames to send.</returns>
         internal static List<byte[][]> SplitPdu(GXDLMSSettings settings, Command command, int commandParameter,
-                GXByteBuffer data, ErrorCode error, DateTime date, GXICipher cp)
+                GXByteBuffer data, ErrorCode error, DateTime date)
         {
             GXByteBuffer bb = new GXByteBuffer();
             List<byte[][]> list = new List<byte[][]>();
@@ -334,9 +334,9 @@ namespace Gurux.DLMS
             {
                 byte[] tmp = GetSnPdus(settings, data, command);              
                 // If Ciphering is used.
-                if (cp != null && command != Command.Aarq && command != Command.Aare)
+                if (settings.Cipher != null && command != Command.Aarq && command != Command.Aare)
                 {
-                    bb.Set(cp.Encrypt(GetGloMessage(command), cp.SystemTitle, tmp));
+                    bb.Set(settings.Cipher.Encrypt(GetGloMessage(command), settings.Cipher.SystemTitle, tmp));
                 }
                 else
                 {
@@ -365,9 +365,9 @@ namespace Gurux.DLMS
                 foreach (byte[] it in pdus)
                 {                   
                     // If Ciphering is used.
-                    if (cp != null && command != Command.Aarq && command != Command.Aare)
+                    if (settings.Cipher != null && command != Command.Aarq && command != Command.Aare)
                     {
-                        bb.Set(cp.Encrypt(GetGloMessage(command), cp.SystemTitle, it));
+                        bb.Set(settings.Cipher.Encrypt(GetGloMessage(command), settings.Cipher.SystemTitle, it));
                     }
                     else
                     {
@@ -545,13 +545,13 @@ namespace Gurux.DLMS
             return bb.Array();
         }
 
-        internal static Object GetAddress(int value)
+        internal static Object GetAddress(int value, byte size)
         {
-            if (value < 0x80)
+            if (size < 2 && value < 0x80)
             {
                 return (byte)(value << 1 | 1);
             }
-            if (value < 0x4000)
+            if (size < 4 && value < 0x4000)
             {
                 return (UInt16)((value & 0x3F80) << 2 | (value & 0x7F) << 1 | 1);
             }
@@ -569,9 +569,9 @@ namespace Gurux.DLMS
         /// <param name="value"></param>
         /// <param name="size">Address size in bytes.</param>
         /// <returns></returns>
-        private static byte[] GetAddressBytes(int value)
+        private static byte[] GetAddressBytes(int value, byte size)
         {
-            Object tmp = GetAddress(value);
+            Object tmp = GetAddress(value, size);
             GXByteBuffer bb = new GXByteBuffer();
             if (tmp is byte)
             {
@@ -605,13 +605,13 @@ namespace Gurux.DLMS
             byte[] primaryAddress, secondaryAddress;
             if (settings.IsServer)
             {
-                primaryAddress = GetAddressBytes(settings.ClientAddress);
-                secondaryAddress = GetAddressBytes(settings.ServerAddress);
+                primaryAddress = GetAddressBytes(settings.ClientAddress, 0);
+                secondaryAddress = GetAddressBytes(settings.ServerAddress, settings.ServerAddressSize);
             }
             else
             {
-                primaryAddress = GetAddressBytes(settings.ServerAddress);
-                secondaryAddress = GetAddressBytes(settings.ClientAddress);
+                primaryAddress = GetAddressBytes(settings.ServerAddress, settings.ServerAddressSize);
+                secondaryAddress = GetAddressBytes(settings.ClientAddress, 0);
             }
 
             frameSize = Convert.ToInt32(settings.Limits.MaxInfoTX);
@@ -964,7 +964,7 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    data.ServerAddress = target;
+                    settings.ServerAddress = target;
                 }
                 // Check that client addresses match.
                 if (settings.ClientAddress != 0 && settings.ClientAddress != source)
@@ -977,7 +977,7 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    data.ClientAddress = source;
+                    settings.ClientAddress = source;
                 }
             }
             else
@@ -1074,7 +1074,7 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    data.ClientAddress = value;
+                    settings.ClientAddress = value;
                 }
 
                 value = buff.GetUInt16();
@@ -1090,7 +1090,7 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    data.ServerAddress = value;
+                    settings.ServerAddress = value;
                 }
             }
             else
@@ -1109,7 +1109,7 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    data.ServerAddress = value;
+                    settings.ServerAddress = value;
                 }
 
                 value = buff.GetUInt16();
@@ -1125,7 +1125,7 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    data.ClientAddress = value;
+                    settings.ClientAddress = value;
                 }
             }
         }
@@ -1376,9 +1376,8 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
         /// <param name="data">received data.</param>
-        /// <param name="cipher"></param>
         public static void GetPdu(GXDLMSSettings settings,
-                GXReplyData data, GXICipher cipher)
+                GXReplyData data)
         {
             short ch;
             Command cmd = data.Command;
@@ -1441,13 +1440,13 @@ namespace Gurux.DLMS
                     case Command.GloGetRequest:
                     case Command.GloSetRequest:
                     case Command.GloMethodRequest:
-                        if (cipher == null)
+                        if (settings.Cipher == null)
                         {
                             throw new Exception(
                                     "Secure connection is not supported.");
                         }
                         --data.Data.Position;
-                        cipher.Decrypt(settings.SourceSystemTitle, data.Data);
+                        settings.Cipher.Decrypt(settings.SourceSystemTitle, data.Data);
                         // Get command.
                         ch = data.Data.GetUInt8();
                         cmd = (Command)ch;
@@ -1457,10 +1456,14 @@ namespace Gurux.DLMS
                     case Command.GloGetResponse:
                     case Command.GloSetResponse:
                     case Command.GloMethodResponse:
-                        --data.Data.Position;
-                        cipher.Decrypt(settings.SourceSystemTitle, data.Data);
+                        if (settings.Cipher == null)
+                        {
+                            throw new Exception(
+                                    "Secure connection is not supported.");
+                        }--data.Data.Position;
+                        settings.Cipher.Decrypt(settings.SourceSystemTitle, data.Data);
                         data.Command = Command.None;
-                        GetPdu(settings, data, cipher);
+                        GetPdu(settings, data);
                         break;
                     case Command.DataNotification:
                         //Get invoke id.
@@ -1571,8 +1574,7 @@ namespace Gurux.DLMS
         }
 
         public static bool GetData(GXDLMSSettings settings,
-                GXByteBuffer reply, GXReplyData data,
-                GXICipher cipher)
+                GXByteBuffer reply, GXReplyData data)
         {
             short frame = 0;
             // If DLMS frame is generated.
@@ -1609,7 +1611,7 @@ namespace Gurux.DLMS
                     && data.Command != Command.Aare
                     && frame != (byte)FrameType.Disconnect)
             {
-                GetPdu(settings, data, cipher);
+                GetPdu(settings, data);
             }
             return true;
         }

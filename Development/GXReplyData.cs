@@ -114,24 +114,6 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
-        /// Client address. 
-        ///</summary>
-        public int ClientAddress
-        {
-            get;
-            set;
-        }
-
-        ///<summary>
-        /// Server address. 
-        ///</summary>        
-        public int ServerAddress
-        {
-            get;
-            set;
-        }
-
-        ///<summary>
         /// Received command. 
         ///</summary>
         internal Command Command

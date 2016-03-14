@@ -427,6 +427,10 @@ namespace Gurux.DLMS.Internal
             {
                 throw new Exception("Encoding failed. Not an Object ID.");
             }
+            if (settings.IsServer)
+            {
+                settings.Cipher.Security = Security.None;
+            }
             //Object ID length.
             len = buff.GetUInt8();
             if (settings.UseLogicalNameReferencing)

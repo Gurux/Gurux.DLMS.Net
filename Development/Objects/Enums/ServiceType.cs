@@ -39,12 +39,30 @@ using System.Text;
 
 namespace Gurux.DLMS.Objects.Enums
 {
+    /// <summary>
+    /// Type of service used to push the data.
+    /// </summary>
     public enum ServiceType
     {
+        /// <summary>
+        /// Transport service type is TCP/IP.
+        /// </summary>
         Tcp = 0,
+        /// <summary>
+        /// Transport service type is UDP.
+        /// </summary>
         Udp = 1,
+        /// <summary>
+        /// Transport service type is FTP.
+        /// </summary>
         Ftp = 2,
+        /// <summary>
+        /// Transport service type is SMTP.
+        /// </summary>
         Smtp = 3,
+        /// <summary>
+        /// Transport service type is SMS.
+        /// </summary>
         SMS = 4
     }
 }

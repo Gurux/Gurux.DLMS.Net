@@ -245,13 +245,13 @@ namespace Gurux.DLMS.Objects
         /// Copies the values of the objects to capture 
         /// into the buffer by reading capture objects.
         /// </summary>
-        public void Capture(GXDLMSServerBase server)
+        public void Capture(GXDLMSServer server)
         {
             object[] values = new object[CaptureObjects.Count];
             int pos = -1;
             foreach (var obj in CaptureObjects)
             {
-                ValueEventArgs e = new ValueEventArgs(obj.Key, obj.Value.AttributeIndex, 0);
+                ValueEventArgs e = new ValueEventArgs(obj.Key, obj.Value.AttributeIndex, 0, null);
                 server.Read(e);
                 if (e.Handled)
                 {
@@ -641,7 +641,6 @@ namespace Gurux.DLMS.Objects
                     CaptureObjects.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, new GXDLMSCaptureObject(attributeIndex, dataIndex)));
                     objects.Add(obj);
                 }
-                GXDLMSClient.UpdateOBISCodes(objects);
             }
             else if (index == 4)
             {

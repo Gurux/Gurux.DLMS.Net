@@ -31,41 +31,6 @@
 // This code is licensed under the GNU General Public License v2. 
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
-
-//
-// --------------------------------------------------------------------------
-//  Gurux Ltd
-// 
-//
-//
-// Filename:        $HeadURL:  $
-//
-// Version:         $Revision: $,
-//                  $Date:  $
-//                  $Author: $
-//
-// Copyright (c) Gurux Ltd
-//
-//---------------------------------------------------------------------------
-//
-//  DESCRIPTION
-//
-// This file is a part of Gurux Device Framework.
-//
-// Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
-// as published by the Free Software Foundation; version 2 of the License.
-// Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
-// See the GNU General Public License for more details.
-//
-// More information of Gurux DLMS/COSEM Director: http://www.gurux.org/GXDLMSDirector
-//
-// This code is licensed under the GNU General Public License v2. 
-// Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
-//---------------------------------------------------------------------------
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -81,7 +46,7 @@ namespace GuruxDLMSServerExample
     /// <summary>
     /// All example servers are using same objects.
     /// </summary>
-    class GXDLMSBase : GXDLMSServerBase
+    class GXDLMSBase : GXDLMSServer
     {
         public GXDLMSBase(bool logicalNameReferencing, InterfaceType type)
             : base(logicalNameReferencing, type)
@@ -345,6 +310,35 @@ namespace GuruxDLMSServerExample
         public override void Action(ValueEventArgs e)
         {
         }
+
+        /// <summary>
+        /// Our example server accept all connections.
+        /// </summary>
+        public override bool IsTarget(int serverAddress, int clientAddress)
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Our example server accept all authentications.        
+        /// </summary>
+        public override SourceDiagnostic ValidateAuthentication(Authentication authentication, byte[] password)
+        {
+            return SourceDiagnostic.None;
+        }
+
+        /// <summary>
+        /// All objects are static in our example.
+        /// </summary>
+        /// <param name="objectType"></param>
+        /// <param name="sn"></param>
+        /// <param name="ln"></param>
+        /// <returns></returns>
+        public override GXDLMSObject FindObject(ObjectType objectType, int sn, string ln)
+        {
+            return null;
+        }
+
 
         /// <summary>
         /// Client has close connection.

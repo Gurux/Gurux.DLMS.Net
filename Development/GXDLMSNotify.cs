@@ -45,7 +45,7 @@ namespace Gurux.DLMS
     /// <summary>
     /// This class is used to send data notify and push messages to the clients. 
     /// </summary>
-    public class GXDLMSNotifyHandler
+    public class GXDLMSNotify
     {
 
         /// <summary>
@@ -54,18 +54,13 @@ namespace Gurux.DLMS
         private GXDLMSSettings Settings;
 
         /// <summary>
-        /// Cipher interface that is used to cipher PDU.
-        /// </summary>
-        internal GXICipher Cipher = null;
-
-        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="useLogicalNameReferencing">Is Logical or short name referencing used.</param>
         /// <param name="clientAddress">Client address. Default is 0x10</param>
         /// <param name="ServerAddress">Server ID. Default is 1.</param>
         /// <param name="interfaceType">Interface type. Default is general.</param>
-        public GXDLMSNotifyHandler(bool useLogicalNameReferencing,
+        public GXDLMSNotify(bool useLogicalNameReferencing,
             int clientAddress, int serverAddress, InterfaceType interfaceType)
         {
             Settings = new GXDLMSSettings(true);
@@ -184,7 +179,7 @@ namespace Gurux.DLMS
         ///</returns>
         public bool GetData(byte[] reply, GXReplyData data)
         {
-            return GXDLMS.GetData(Settings, new GXByteBuffer(reply), data, Cipher);
+            return GXDLMS.GetData(Settings, new GXByteBuffer(reply), data);
         }
 
         /// <summary>
@@ -234,7 +229,6 @@ namespace Gurux.DLMS
         /// <param name="date">Date time. Set To Min or Max if not added</param>
         /// <param name="data">Notification body.</param>
         /// <returns>Generated data notification message(s).</returns>
-        /// <seealso cref="AddData"/>
         public byte[][] GetDataNotificationMessage(DateTime date, byte[] data)
         {
             GXByteBuffer buff = new GXByteBuffer();
@@ -247,7 +241,7 @@ namespace Gurux.DLMS
                 GXCommon.SetData(buff, DataType.DateTime, date);
             }
             buff.Set(data);
-            return GXDLMS.SplitPdu(Settings, Command.DataNotification, 0, buff, ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, Command.DataNotification, 0, buff, ErrorCode.Ok, DateTime.MinValue)[0];
         }
 
         /// <summary>
@@ -256,7 +250,6 @@ namespace Gurux.DLMS
         /// <param name="date">Date time. Set To Min or Max if not added</param>
         /// <param name="data">Notification body.</param>
         /// <returns>Generated data notification message(s).</returns>
-        /// <seealso cref="AddData"/>
         public byte[][] GetDataNotificationMessage(DateTime date, GXByteBuffer data)
         {
             return GetDataNotificationMessage(date, data.Array());
@@ -289,7 +282,7 @@ namespace Gurux.DLMS
             {
                 AddData(it.Key, it.Value, buff);
             }
-            return GXDLMS.SplitPdu(Settings, Command.DataNotification, 0, buff, ErrorCode.Ok, DateTime.MinValue, Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, Command.DataNotification, 0, buff, ErrorCode.Ok, DateTime.MinValue)[0];
         }
 
 
@@ -334,7 +327,6 @@ namespace Gurux.DLMS
                     }
                 }
             }
-            GXDLMSClient.UpdateOBISCodes(objects);
             for (int pos = 0; pos < list.Length; ++pos)
             {
                 obj = items[pos].Key as GXDLMSObject;
@@ -375,7 +367,7 @@ namespace Gurux.DLMS
                 }
                 GXCommon.SetData(buff, dt, value);
             }
-            List<byte[][]> list = GXDLMS.SplitPdu(Settings, Command.Push, 0, buff, ErrorCode.Ok, DateTime.MinValue, Cipher);
+            List<byte[][]> list = GXDLMS.SplitPdu(Settings, Command.Push, 0, buff, ErrorCode.Ok, DateTime.MinValue);
             List<byte[]> arr = new List<byte[]>();
             foreach (byte[][] it in list)
             {

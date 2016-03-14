@@ -45,7 +45,7 @@ namespace Gurux.DLMS.Enums
     public enum SourceDiagnostic
     {
         /// <summary>
-        /// An unknown error has occurred.
+        /// OK.
         /// </summary>
         None = 0,
         /// <summary>

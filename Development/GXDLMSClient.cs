@@ -58,6 +58,10 @@ namespace Gurux.DLMS
         protected GXDLMSSettings Settings;
 
         private static Dictionary<ObjectType, Type> AvailableObjectTypes = new Dictionary<ObjectType, Type>();
+        /// <summary>
+        /// Standard OBIS code
+        /// </summary>
+        private static GXStandardObisCodeCollection codes = new GXStandardObisCodeCollection();
 
         /// <summary>
         /// Static Constructor. This is called only once. Get available COSEM objects.
@@ -141,6 +145,21 @@ namespace Gurux.DLMS
             set
             {
                 Settings.ServerAddress = value;
+            }
+        }
+
+        /// <summary>
+        /// Size of server address.
+        /// </summary>
+        public byte ServerAddressSize
+        {
+            get
+            {
+                return Settings.ServerAddressSize;
+            }
+            set
+            {
+                Settings.ServerAddressSize = value;
             }
         }
 
@@ -297,20 +316,25 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Set starting packet index. Default is One based, but some meters use Zero based value. Usually this is not used.
+        /// Set starting block index in HDLC framing. 
+        /// Default is One based, but some meters use Zero based value.
+        /// Usually this is not used.
         /// </summary>
-        public UInt32 StartingPacketIndex
+        public UInt32 StartingBlockIndex
         {
             get
             {
-                return Settings.BlockIndex;
+                return Settings.StartingBlockIndex;
             }
             set
             {
-                Settings.BlockIndex = value;
+                Settings.StartingBlockIndex = value;
             }
         }
 
+        /// <summary>
+        /// Used priority in HDLC framing.
+        /// </summary>
         public Priority Priority
         {
             get
@@ -324,7 +348,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Used service class.
+        /// Used service class in HDLC framing.
         /// </summary>
         public ServiceClass ServiceClass
         {
@@ -513,6 +537,7 @@ namespace Gurux.DLMS
         /// <seealso cref="ParseAAREResponse"/>
         public byte[][] AARQRequest()
         {
+            Settings.ResetBlockIndex();
             Settings.Connected = false;
             GXByteBuffer buff = new GXByteBuffer(20);
             GXDLMS.CheckInit(Settings);
@@ -530,7 +555,7 @@ namespace Gurux.DLMS
                 Settings.CtoSChallenge = null;
             }
             GXAPDU.GenerateAarq(Settings, Settings.Cipher, buff);
-            return GXDLMS.SplitPdu(Settings, Command.Aarq, 0, buff, ErrorCode.Ok, DateTime.MinValue, Settings.Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, Command.Aarq, 0, buff, ErrorCode.Ok, DateTime.MinValue)[0];
         }
 
         /// <summary>
@@ -593,6 +618,7 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentException("Password is invalid.");
             }
+            Settings.ResetBlockIndex();
             byte[] pw;
             if (Settings.Authentication == Enums.Authentication.HighGMAC)
             {
@@ -602,7 +628,12 @@ namespace Gurux.DLMS
             {
                 pw = Settings.Password;
             }
-            byte[] challenge = GXSecure.Secure(Settings, Settings.Cipher, Settings.Cipher.FrameCounter, Settings.StoCChallenge, pw);
+            UInt32 ic = 0;
+            if (Settings.Cipher != null)
+            {
+                ic = Settings.Cipher.FrameCounter;
+            }
+            byte[] challenge = GXSecure.Secure(Settings, Settings.Cipher, ic, Settings.StoCChallenge, pw);
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetUInt8((byte)DataType.OctetString);
             GXCommon.SetObjectCount(challenge.Length, bb);
@@ -850,123 +881,6 @@ namespace Gurux.DLMS
             }
         }
 
-        internal static void UpdateOBISCodes(GXDLMSObjectCollection objects)
-        {
-            if (objects.Count == 0)
-            {
-                return;
-            }
-            GXStandardObisCodeCollection codes = new GXStandardObisCodeCollection();
-            string[] rows = Gurux.DLMS.Properties.Resources.OBISCodes.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (string it in rows)
-            {
-                string[] items = it.Split(new char[] { ';' });
-                string[] obis = items[0].Split(new char[] { '.' });
-                GXStandardObisCode code = new GXStandardObisCode(obis, items[3] + "; " + items[4] + "; " +
-                    items[5] + "; " + items[6] + "; " + items[7], items[1], items[2]);
-                codes.Add(code);
-            }
-            foreach (GXDLMSObject it in objects)
-            {
-                if (!string.IsNullOrEmpty(it.Description))
-                {
-                    continue;
-                }
-                GXStandardObisCode code = codes.Find(it.LogicalName, it.ObjectType);
-                if (code != null)
-                {
-                    it.Description = code.Description;
-                    //If string is used
-                    if (code.DataType.Contains("10"))
-                    {
-                        code.UIDataType = "10";                        
-                    }
-                    //If date time is used.
-                    else if (code.DataType.Contains("25") || code.DataType.Contains("26"))
-                    {
-                        code.UIDataType = code.DataType = "25";
-                    }
-                    //Time stamps of the billing periods objects (first scheme if there are two)
-                    else if (code.DataType.Contains("9"))
-                    {
-                        if ((GXStandardObisCodeCollection.EqualsMask("0.0-64.96.7.10-14.255", it.LogicalName) ||
-                            //Time stamps of the billing periods objects (second scheme)
-                        GXStandardObisCodeCollection.EqualsMask("0.0-64.0.1.5.0-99,255", it.LogicalName) ||
-                            //Time of power failure
-                        GXStandardObisCodeCollection.EqualsMask("0.0-64.0.1.2.0-99,255", it.LogicalName) ||
-                            //Time stamps of the billing periods objects (first scheme if there are two)                        
-                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.1.2.0-99,255", it.LogicalName) ||
-                            //Time stamps of the billing periods objects (second scheme)
-                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.1.5.0-99,255", it.LogicalName) ||
-                            //Time expired since last end of billing period
-                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.0.255", it.LogicalName) ||
-                            //Time of last reset
-                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.6.255", it.LogicalName) ||
-                            //Date of last reset
-                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.7.255", it.LogicalName) ||
-                            //Time expired since last end of billing period (Second billing period scheme)
-                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.13.255", it.LogicalName) ||
-                            //Time of last reset (Second billing period scheme)
-                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.14.255", it.LogicalName) ||
-                            //Date of last reset (Second billing period scheme)
-                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.15.255", it.LogicalName)))
-                        {
-                            code.UIDataType = "25";
-                        }
-                        //Local time
-                        else if (GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.1.255", it.LogicalName))
-                        {
-                            code.UIDataType = "27";
-                        }
-                        //Local date
-                        else if (GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.2.255", it.LogicalName))
-                        {
-                            code.UIDataType = "26";
-                        }
-                        //Active firmware identifier
-                        else if (GXStandardObisCodeCollection.EqualsMask("1.0.0.2.0.255", it.LogicalName))
-                        {
-                            code.UIDataType = "10";
-                        }
-                    }
-                    if (code.DataType != "*" && code.DataType != string.Empty && !code.DataType.Contains(","))
-                    {
-                        DataType type = (DataType)int.Parse(code.DataType);
-                        switch (it.ObjectType)
-                        {
-                            case ObjectType.Data:
-                            case ObjectType.Register:
-                            case ObjectType.RegisterActivation:
-                            case ObjectType.ExtendedRegister:
-                                it.SetDataType(2, type);
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                    if (!string.IsNullOrEmpty(code.UIDataType))
-                    {
-                        DataType uiType = (DataType)int.Parse(code.UIDataType);
-                        switch (it.ObjectType)
-                        {
-                            case ObjectType.Data:
-                            case ObjectType.Register:
-                            case ObjectType.RegisterActivation:
-                            case ObjectType.ExtendedRegister:
-                                it.SetUIDataType(2, uiType);
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("Unknown OBIS Code: " + it.LogicalName + " Type: " + it.ObjectType);
-                }
-            }
-        }
-
         /// <summary>
         /// Available objects.
         /// </summary>
@@ -998,7 +912,6 @@ namespace Gurux.DLMS
             {
                 objects = ParseSNObjects(data, onlyKnownObjects);
             }
-            UpdateOBISCodes(objects);
             Settings.Objects = objects;
             return objects;
         }
@@ -1184,6 +1097,7 @@ namespace Gurux.DLMS
         public byte[] GetObjectsRequest()
         {
             object name;
+            Settings.ResetBlockIndex();
             if (UseLogicalNameReferencing)
             {
                 name = "0.0.40.0.0.255";
@@ -1232,6 +1146,7 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentOutOfRangeException("Invalid parameter");
             }
+            Settings.ResetBlockIndex();
             if (type == DataType.None && value != null)
             {
                 type = GXCommon.GetValueType(value);
@@ -1306,7 +1221,7 @@ namespace Gurux.DLMS
             {
                 GXCommon.SetData(bb, type, value);
             }
-            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, ErrorCode.Ok, DateTime.MinValue, Settings.Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, ErrorCode.Ok, DateTime.MinValue)[0];
         }
 
 
@@ -1342,6 +1257,7 @@ namespace Gurux.DLMS
         /// <returns></returns>
         public byte[][] Write(object name, object value, DataType type, ObjectType objectType, int index)
         {
+            Settings.ResetBlockIndex();
             if (type == DataType.None && value != null)
             {
                 type = GXCommon.GetValueType(value);
@@ -1387,7 +1303,7 @@ namespace Gurux.DLMS
                 bb.SetUInt8(1);
             }
             GXCommon.SetData(bb, type, value);
-            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, ErrorCode.Ok, DateTime.MinValue, Settings.Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, ErrorCode.Ok, DateTime.MinValue)[0];
         }
 
         /// <summary>
@@ -1408,6 +1324,7 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentException("Invalid parameter");
             }
+            Settings.ResetBlockIndex();
             Command cmd;
             GXByteBuffer bb = new GXByteBuffer();
             if (UseLogicalNameReferencing)
@@ -1463,7 +1380,7 @@ namespace Gurux.DLMS
                     bb.Set(data.Data, 0, data.Size);
                 }
             }
-            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, ErrorCode.Ok, DateTime.MinValue, Settings.Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, ErrorCode.Ok, DateTime.MinValue)[0];
         }
 
         /// <summary>
@@ -1489,6 +1406,7 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentOutOfRangeException("Invalid parameter.");
             }
+            Settings.ResetBlockIndex();
 
             Command cmd;
             GXByteBuffer bb = new GXByteBuffer();
@@ -1530,7 +1448,7 @@ namespace Gurux.DLMS
                     bb.SetUInt16((UInt16)sn);
                 }
             }
-            return GXDLMS.SplitPdu(Settings, cmd, 3, bb, ErrorCode.Ok, DateTime.MinValue, Settings.Cipher)[0];
+            return GXDLMS.SplitPdu(Settings, cmd, 3, bb, ErrorCode.Ok, DateTime.MinValue)[0];
         }
 
         /// <summary>
@@ -1559,6 +1477,7 @@ namespace Gurux.DLMS
         /// <returns>Read message as byte array.</returns>
         public byte[][] ReadRowsByEntry(GXDLMSProfileGeneric pg, int index, int count)
         {
+            Settings.ResetBlockIndex();
             GXByteBuffer buff = new GXByteBuffer(19);
             // Add AccessSelector value
             buff.SetUInt8(0x02);
@@ -1595,6 +1514,7 @@ namespace Gurux.DLMS
         /// <returns></returns>
         public byte[][] ReadRowsByRange(GXDLMSProfileGeneric pg, DateTime start, DateTime end)
         {
+            Settings.ResetBlockIndex();
             GXDLMSObject sort = pg.SortObject;
             if (sort == null && pg.CaptureObjects.Count != 0)
             {
@@ -1613,7 +1533,7 @@ namespace Gurux.DLMS
             // Add item count
             buff.SetUInt8(0x04);
             // Add enum tag.
-            buff.SetUInt8(0x02);
+            buff.SetUInt8((byte)DataType.Structure);
             // Add item count
             buff.SetUInt8(0x04);
             // CI
@@ -1654,7 +1574,7 @@ namespace Gurux.DLMS
         /// <returns>Acknowledgment message as byte array.</returns>
         public byte[] ReceiverReady(RequestTypes type)
         {
-            return GXDLMS.ReceiverReady(Settings, type, Settings.Cipher);
+            return GXDLMS.ReceiverReady(Settings, type);
         }
 
         ///<summary>
@@ -1671,7 +1591,7 @@ namespace Gurux.DLMS
         ///</returns>
         public bool GetData(byte[] reply, GXReplyData data)
         {
-            return GXDLMS.GetData(Settings, new GXByteBuffer(reply), data, Settings.Cipher);
+            return GXDLMS.GetData(Settings, new GXByteBuffer(reply), data);
         }
 
         /// <summary>
@@ -1715,7 +1635,7 @@ namespace Gurux.DLMS
         ///</returns>
         public virtual bool GetData(GXByteBuffer reply, GXReplyData data)
         {
-            return GXDLMS.GetData(Settings, reply, data, Settings.Cipher);
+            return GXDLMS.GetData(Settings, reply, data);
         }
 
         /// <summary>
@@ -1815,125 +1735,6 @@ namespace Gurux.DLMS
                 formula = "SN % 10000 + 1000";
             }
             return SerialnumberCounter.Count(serialNumber, formula);
-        }
-
-        /// <summary>
-        /// Returns unit text.
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static string GetUnit(Unit value)
-        {
-            switch (value)
-            {
-                case Unit.Year:
-                    return Gurux.DLMS.Properties.Resources.UnitYearTxt;
-                case Unit.Month:
-                    return Gurux.DLMS.Properties.Resources.UnitMonthTxt;
-                case Unit.Week:
-                    return Gurux.DLMS.Properties.Resources.UnitWeekTxt;
-                case Unit.Day:
-                    return Gurux.DLMS.Properties.Resources.UnitDayTxt;
-                case Unit.Hour:
-                    return Gurux.DLMS.Properties.Resources.UnitHourTxt;
-                case Unit.Minute:
-                    return Gurux.DLMS.Properties.Resources.UnitMinuteTxt;
-                case Unit.Second:
-                    return Gurux.DLMS.Properties.Resources.UnitSecondTxt;
-                case Unit.PhaseAngleGegree:
-                    return Gurux.DLMS.Properties.Resources.UnitPhasAngleGegreeTxt;
-                case Unit.Temperature:
-                    return Gurux.DLMS.Properties.Resources.UnitTemperatureTxt;
-                case Unit.LocalCurrency:
-                    return Gurux.DLMS.Properties.Resources.UnitLocalCurrencyTxt;
-                case Unit.Length:
-                    return Gurux.DLMS.Properties.Resources.UnitLengthTxt;
-                case Unit.Speed:
-                    return Gurux.DLMS.Properties.Resources.UnitSpeedTxt;
-                case Unit.VolumeCubicMeter:
-                    return Gurux.DLMS.Properties.Resources.UnitVolumeCubicMeterTxt;
-                case Unit.CorrectedVolume:
-                    return Gurux.DLMS.Properties.Resources.UnitCorrectedVolumeTxt;
-                case Unit.VolumeFluxHour:
-                    return Gurux.DLMS.Properties.Resources.UnitVolumeFluxHourTxt;
-                case Unit.CorrectedVolumeFluxHour:
-                    return Gurux.DLMS.Properties.Resources.UnitCorrectedVolumeFluxHourTxt;
-                case Unit.VolumeFluxDay:
-                    return Gurux.DLMS.Properties.Resources.UnitVolumeFluxDayTxt;
-                case Unit.CorrecteVolumeFluxDay:
-                    return Gurux.DLMS.Properties.Resources.UnitCorrecteVolumeFluxDayTxt;
-                case Unit.VolumeLiter:
-                    return Gurux.DLMS.Properties.Resources.UnitVolumeLiterTxt;
-                case Unit.MassKg:
-                    return Gurux.DLMS.Properties.Resources.UnitMassKgTxt;
-                case Unit.Force:
-                    return Gurux.DLMS.Properties.Resources.UnitForceTxt;
-                case Unit.Energy:
-                    return Gurux.DLMS.Properties.Resources.UnitEnergyTxt;
-                case Unit.PressurePascal:
-                    return Gurux.DLMS.Properties.Resources.UnitPressurePascalTxt;
-                case Unit.PressureBar:
-                    return Gurux.DLMS.Properties.Resources.UnitPressureBarTxt;
-                case Unit.EnergyJoule:
-                    return Gurux.DLMS.Properties.Resources.UnitEnergyJouleTxt;
-                case Unit.ThermalPower:
-                    return Gurux.DLMS.Properties.Resources.UnitThermalPowerTxt;
-                case Unit.ActivePower:
-                    return Gurux.DLMS.Properties.Resources.UnitActivePowerTxt;
-                case Unit.ApparentPower:
-                    return Gurux.DLMS.Properties.Resources.UnitApparentPowerTxt;
-                case Unit.ReactivePower:
-                    return Gurux.DLMS.Properties.Resources.UnitReactivePowerTxt;
-                case Unit.ActiveEnergy:
-                    return Gurux.DLMS.Properties.Resources.UnitActiveEnergyTxt;
-                case Unit.ApparentEnergy:
-                    return Gurux.DLMS.Properties.Resources.UnitApparentEnergyTxt;
-                case Unit.ReactiveEnergy:
-                    return Gurux.DLMS.Properties.Resources.UnitReactiveEnergyTxt;
-                case Unit.Current:
-                    return Gurux.DLMS.Properties.Resources.UnitCurrentTxt;
-                case Unit.ElectricalCharge:
-                    return Gurux.DLMS.Properties.Resources.UnitElectricalChargeTxt;
-                case Unit.Voltage:
-                    return Gurux.DLMS.Properties.Resources.UnitVoltageTxt;
-                case Unit.ElectricalFieldStrength:
-                    return Gurux.DLMS.Properties.Resources.UnitElectricalFieldStrengthTxt;
-                case Unit.Capacity:
-                    return Gurux.DLMS.Properties.Resources.UnitCapacityTxt;
-                case Unit.Resistance:
-                    return Gurux.DLMS.Properties.Resources.UnitResistanceTxt;
-                case Unit.Resistivity:
-                    return Gurux.DLMS.Properties.Resources.UnitResistivityTxt;
-                case Unit.MagneticFlux:
-                    return Gurux.DLMS.Properties.Resources.UnitMagneticFluxTxt;
-                case Unit.Induction:
-                    return Gurux.DLMS.Properties.Resources.UnitInductionTxt;
-                case Unit.Magnetic:
-                    return Gurux.DLMS.Properties.Resources.UnitMagneticTxt;
-                case Unit.Inductivity:
-                    return Gurux.DLMS.Properties.Resources.UnitInductivityTxt;
-                case Unit.Frequency:
-                    return Gurux.DLMS.Properties.Resources.UnitFrequencyTxt;
-                case Unit.Active:
-                    return Gurux.DLMS.Properties.Resources.UnitActiveTxt;
-                case Unit.Reactive:
-                    return Gurux.DLMS.Properties.Resources.UnitReactiveTxt;
-                case Unit.Apparent:
-                    return Gurux.DLMS.Properties.Resources.UnitApparentTxt;
-                case Unit.V260:
-                    return Gurux.DLMS.Properties.Resources.UnitV260Txt;
-                case Unit.A260:
-                    return Gurux.DLMS.Properties.Resources.UnitA260Txt;
-                case Unit.MassKgPerSecond:
-                    return Gurux.DLMS.Properties.Resources.UnitMassKgPerSecondTxt;
-                case Unit.Conductance:
-                    return Gurux.DLMS.Properties.Resources.UnitConductanceTxt;
-                case Unit.OtherUnit:
-                    return Gurux.DLMS.Properties.Resources.UnitOtherTxt;
-                case Unit.NoUnit:
-                    return Gurux.DLMS.Properties.Resources.UnitNoneTxt;
-            }
-            return "";
-        }
+        }       
     }
 }

@@ -43,145 +43,119 @@ using Gurux.DLMS.ManufacturerSettings;
 using System.Reflection;
 using System.Data;
 using System.Threading;
+using System.Security.Cryptography;
+using Gurux.DLMS.Enums;
+using Gurux.DLMS.Secure;
+using System.Diagnostics;
 
 namespace Gurux.DLMS
 {
-    public delegate void ValueEventHandler(object sender, ValueEventArgs e);
-
-    public delegate void InvalidConnectionEventHandler(object sender, ConnectionEventArgs e);    
-
     /// <summary>
     /// GXDLMSServer implements methods to implement DLMS/COSEM meter/proxy.
     /// </summary>
-    public class GXDLMSServer
+    public abstract class GXDLMSServer
     {
-        internal ValueEventHandler m_OnRead;
-        GXDLMS m_Base;
-        List<byte> ReceivedData = new List<byte>();
-        List<byte[]> SendData = new List<byte[]>();
-        int FrameIndex = 0;
-        bool Initialized = false;
-        //TODO: StartProtocolType Protocol;
+        /// <summary>
+        /// DLMS Settings.
+        /// </summary>
+        protected GXDLMSSettings Settings;
 
+        private GXServerReply ServerReply = new GXServerReply();
+
+        /// <summary>
+        /// Frames to send.
+        /// </summary>
+        private byte[][] Frames = null;
+
+        /// <summary>
+        /// Received and parsed data from the client.
+        /// </summary>
+        private GXReplyData Reply = new GXReplyData();
+
+        /// <summary>
+        /// Connected server address.
+        /// </summary>
+        private int ConnectedServerAddress = 0;
+        /// <summary>
+        /// Connected client address.
+        /// </summary>
+        private int ConnectedClientAddress = 0;
+
+        /**
+         * Frame index.
+         */
+        private int FrameIndex = 0;
+        bool Initialized = false;
         private SortedDictionary<ushort, GXDLMSObject> SortedItems = new SortedDictionary<ushort, GXDLMSObject>();
 
         /// <summary>
-        /// Occurs when client reads value from the server.
+        /// Find object.
         /// </summary>
-        public event ValueEventHandler OnRead
-        {
-            add
-            {
-                m_OnRead += value;
-            }
-            remove
-            {
-                m_OnRead += value;
-            }
-
-        }
+        /// <param name="objectType">Object type. In Short Name referencing this is not used.</param>
+        /// <param name="sn">Short Name. In Logical name referencing this is not used.</param>
+        /// <param name="ln">Logical Name. In Short Name referencing this is not used.</param>
+        /// <returns>Found object or null if object is not found.</returns>
+        public abstract GXDLMSObject FindObject(ObjectType objectType, int sn, String ln);
 
         /// <summary>
-        /// Occurs when client writes new value to the server.
+        /// Check is data sent to this server.
         /// </summary>
-        public event ValueEventHandler OnWrite;
+        /// <param name="serverAddress">Server address.</param>
+        /// <param name="clientAddress">Client address.</param>
+        /// <returns>True, if data is sent to this server.</returns>
+        public abstract bool IsTarget(int serverAddress, int clientAddress);
+
 
         /// <summary>
-        /// Occurs when client makes action.
+        /// Check whether the authentication and password are correct.
         /// </summary>
-        public event ValueEventHandler OnAction;
+        /// <param name="authentication">Authentication level.</param>
+        /// <param name="password">Password</param>
+        /// <returns>Source diagnostic.</returns>
+        public abstract SourceDiagnostic ValidateAuthentication(
+                Authentication authentication, byte[] password);
 
-        
+
         /// <summary>
-        /// Occurs when client makes connection that is not accepted.
+        /// Read selected item.
         /// </summary>
-        public event InvalidConnectionEventHandler OnInvalidConnection;
+        /// <param name="e"></param>
+        abstract public void Read(ValueEventArgs e);
+
+        /// <summary>
+        /// Write selected item.
+        /// </summary>
+        /// <param name="e"></param>
+        abstract public void Write(ValueEventArgs e);
+
+        /// <summary>
+        /// Client attempts to connect with the wrong server or client address.
+        /// </summary>
+        abstract public void InvalidConnection(ConnectionEventArgs e);
+
+        /// <summary>
+        /// Action is occurred.
+        /// </summary>
+        /// <param name="e"></param>
+        abstract public void Action(ValueEventArgs e);
 
         /// <summary>
         /// Constructor.
         /// </summary>        
-        public GXDLMSServer() : this(false)
+        public GXDLMSServer()
+            : this(false, InterfaceType.HDLC)
         {
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>        
-        public GXDLMSServer(bool logicalNameReferencing)
+        public GXDLMSServer(bool logicalNameReferencing, InterfaceType type)
         {
-            m_Base = new GXDLMS(true);
-            m_Base.UseLogicalNameReferencing = logicalNameReferencing;
-            //TODO: StartProtocol = StartProtocolType.DLMS;
+            Settings = new GXDLMSSettings(true);
+            Settings.UseLogicalNameReferencing = logicalNameReferencing;
             Reset();
-            Items = new GXDLMSObjectCollection();            
-            m_Base.LNSettings = new GXDLMSLNSettings(new byte[] { 0x00, 0x7E, 0x1F });
-            m_Base.SNSettings = new GXDLMSSNSettings(new byte[] { 0x1C, 0x03, 0x20 });
-            Authentications = new List<GXAuthentication>();
-            Authentications.Add(new GXAuthentication(Authentication.None, "", (byte) 0x10));
-            Authentications.Add(new GXAuthentication(Authentication.Low, "GuruxLow", (byte) 0x20));
-            Authentications.Add(new GXAuthentication(Authentication.High, "GuruxHigh", (byte) 0x40));
-            ServerIDs = new List<object>();
-            ServerIDs.Add(CountServerID((byte)1, 0));
-        }
-
-        /// <summary>
-        /// Count server ID from serial number.
-        /// </summary>
-        /// <param name="serialNumber"></param>
-        /// <returns>Server ID.</returns>
-        static public uint CountServerIDFromSerialNumber(uint serialNumber)
-        {
-            return (uint) GXManufacturer.CountServerAddress(HDLCAddressType.SerialNumber, "SN%10000+1000", serialNumber, 0);            
-        }
-        /* TODO: Add IEC handshake later.
-        /// <summary>
-        /// Start protocol.
-        /// </summary>
-        public StartProtocolType StartProtocol
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// IEC manufacturer ID.
-        /// </summary>
-        public string ManufacturerID
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// IEC Baudrate ID.
-        /// </summary>
-        public int BaudRateID
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// IEC device ID.
-        /// </summary>
-        public string DeviceID
-        {
-            get;
-            set;
-        }
-         * */
-
-        /// <summary>
-        /// Count server ID from physical and logical addresses.
-        /// </summary>
-        /// <returns>Server ID.</returns>
-        public object CountServerID(object physicalAddress, int LogicalAddress)
-        {
-            if (this.InterfaceType == InterfaceType.Net)
-            {
-                return Convert.ToUInt16(physicalAddress);
-            }
-            return GXManufacturer.CountServerAddress(HDLCAddressType.Default, null, physicalAddress, LogicalAddress);
+            this.InterfaceType = type;
         }
 
         /// <summary>
@@ -189,8 +163,10 @@ namespace Gurux.DLMS
         /// </summary>
         public GXDLMSObjectCollection Items
         {
-            get;
-            internal set;
+            get
+            {
+                return Settings.Objects;
+            }
         }
 
         /// <summary>
@@ -200,44 +176,7 @@ namespace Gurux.DLMS
         {
             get
             {
-                return m_Base.Limits;
-            }
-        }
-
-        static GXDLMSObject CreateObject(Gurux.DLMS.ObjectType type)
-        {
-            return GXDLMS.CreateObject(type);
-        }
-
-        /// <summary>
-        /// Collection of server IDs.
-        /// </summary>
-        /// <remarks>
-        /// Server ID is the indentification of the device that is used as a server.
-        /// Server ID is aka HDLC Address.        
-        /// </remarks>
-        public List<object> ServerIDs
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// DLMS version number. 
-        /// </summary>
-        /// <remarks>
-        /// Gurux DLMS component supports DLMS version number 6.
-        /// </remarks>
-        [DefaultValue(6)]
-        public byte DLMSVersion
-        {
-            get
-            {
-                return m_Base.DLMSVersion;
-            }
-            set
-            {
-                m_Base.DLMSVersion = value;
+                return Settings.Limits;
             }
         }
 
@@ -255,11 +194,11 @@ namespace Gurux.DLMS
         {
             get
             {
-                return m_Base.MaxReceivePDUSize;
+                return Settings.MaxReceivePDUSize;
             }
             set
             {
-                m_Base.MaxReceivePDUSize = value;
+                Settings.MaxReceivePDUSize = value;
             }
         }
 
@@ -269,7 +208,7 @@ namespace Gurux.DLMS
         /// <remarks>
         /// Referencing depends on the device to communicate with.
         /// Normally, a device supports only either Logical or Short name referencing.
-        /// The referencing is defined by the device manufacurer.
+        /// The referencing is defined by the device manufacturer.
         /// If the referencing is wrong, the SNMR message will fail.
         /// </remarks>
         /// <seealso cref="DLMSVersion"/>
@@ -279,23 +218,71 @@ namespace Gurux.DLMS
         {
             get
             {
-                return m_Base.UseLogicalNameReferencing;
+                return Settings.UseLogicalNameReferencing;
+            }
+            private set
+            {
+                Settings.UseLogicalNameReferencing = value;
+            }
+        }
+
+        public Priority Priority
+        {
+            get
+            {
+                return Settings.Priority;
             }
             set
             {
-                m_Base.UseLogicalNameReferencing = value;
+                Settings.Priority = value;
             }
         }
 
         /// <summary>
-        /// Used Authentication password pairs.
+        /// Used service class.
         /// </summary>
-        public List<GXAuthentication> Authentications
+        public ServiceClass ServiceClass
         {
-            get;
-            private set;
+            get
+            {
+                return Settings.ServiceClass;
+            }
+            set
+            {
+                Settings.ServiceClass = value;
+            }
         }
-       
+
+        /// <summary>
+        /// Set starting packet index. Default is One based, but some meters use Zero based value. Usually this is not used.
+        /// </summary>
+        public UInt32 StartingPacketIndex
+        {
+            get
+            {
+                return Settings.BlockIndex;
+            }
+            set
+            {
+                Settings.BlockIndex = value;
+            }
+        }
+
+        /// <summary>
+        /// Invoke ID.
+        /// </summary>
+        public byte InvokeID
+        {
+            get
+            {
+                return Settings.InvokeID;
+            }
+            set
+            {
+                Settings.InvokeID = value;
+            }
+        }
+
         /// <summary>
         /// Determines the type of the connection
         /// </summary>
@@ -308,337 +295,34 @@ namespace Gurux.DLMS
         {
             get
             {
-                return m_Base.InterfaceType;
+                return Settings.InterfaceType;
             }
-            set
+            private set
             {
-                m_Base.InterfaceType = value;
+                Settings.InterfaceType = value;
             }
         }
 
         /// <summary>
-        /// Gets Logical Name settings, read from the device. 
+        /// Gets Logical Name Settings, read from the device. 
         /// </summary>
         public GXDLMSLNSettings LNSettings
         {
             get
             {
-                return m_Base.LNSettings;
+                return Settings.LnSettings;
             }
         }
 
         /// <summary>
-        /// Gets Short Name settings, read from the device.
+        /// Gets Short Name Settings, read from the device.
         /// </summary>
         public GXDLMSSNSettings SNSettings
         {
             get
             {
-                return m_Base.SNSettings;
+                return Settings.SnSettings;
             }
-        }
-
-        /// <summary>
-        /// Quality Of Service is an analysis of nonfunctional aspects of the software properties.
-        /// </summary>
-        /// <returns></returns>
-        public int ValueOfQualityOfService
-        {
-            get
-            {
-                return m_Base.ValueOfQualityOfService;
-            }
-            set
-            {
-                m_Base.ValueOfQualityOfService = value;
-            }
-        }
-
-        /// <summary>
-        /// Retrieves the amount of unused bits.
-        /// </summary>
-        /// <returns></returns>
-        public int NumberOfUnusedBits
-        {
-            get
-            {
-                return m_Base.NumberOfUnusedBits;
-            }
-            set
-            {
-                m_Base.NumberOfUnusedBits = value;
-            }
-        }
-
-        /// <summary>
-        /// Returns object types.
-        /// </summary>
-        /// <returns></returns>
-        /// <remarks>
-        /// This can be used with serizlization.
-        /// </remarks>
-        public static Type[] GetObjectTypes()
-        {
-            return GXDLMS.GetObjectTypes();
-        }
-
-        /// <summary>
-        /// Get command, OBIS Code and attribute index.
-        /// </summary>
-        /// <param name="data"></param>        
-        /// <param name="name"></param>
-        /// <param name="attributeIndex"></param>
-        private void GetCommand(byte[] data, out ObjectType type, out object name, out int attributeIndex, out byte[] parameters)
-        {
-            type = ObjectType.None;
-            parameters = null;
-            int index = 0;
-            if (this.UseLogicalNameReferencing)
-            {
-                type = (ObjectType)GXCommon.GetUInt16(data, ref index);
-                string str = null;
-                List<byte> tmp = new List<byte>(GXCommon.RawData(data, ref index, 6));
-                foreach (byte it in tmp)
-                {
-                    if (!string.IsNullOrEmpty(str))
-                    {
-                        str += ".";
-                    }
-                    str += it.ToString();
-                }
-                name = str;
-                attributeIndex = data[index++];
-                //Skip data index
-                ++index;
-                int cnt = data.Length - index;
-                parameters = new byte[cnt];
-                Array.Copy(data, index, parameters, 0, cnt);
-            }
-            else
-            {
-                attributeIndex = 0;
-                byte cnt = data[index++];
-                ++index;//Len.
-                name = GXCommon.GetUInt16(data, ref index);
-            }
-        }
-
-        List<byte> GetAccessRights(GXDLMSObject item)
-        {
-            GXAttributeCollection attribs = new GXAttributeCollection();
-            attribs.AddRange(item.Attributes);
-            PropertyDescriptorCollection pdc = TypeDescriptor.GetProperties(item);
-            foreach (PropertyDescriptor it in pdc)
-            {
-                GXDLMSAttribute att = it.Attributes[typeof(GXDLMSAttribute)] as GXDLMSAttribute;
-                if (att != null && attribs.Find(att.Index) == null)
-                {
-                    attribs.Add(att);
-                }
-            }
-            List<byte> data = new List<byte>();
-            data.Add((byte)DataType.Structure);
-            data.Add(2);
-            data.Add((byte)DataType.Array);
-            data.Add((byte)attribs.Count);
-            foreach (GXDLMSAttributeSettings att in attribs)
-            {
-                data.Add((byte)DataType.Structure); //attribute_access_item
-                data.Add(3);
-                GXCommon.SetData(data, DataType.Int8, att.Index);
-                GXCommon.SetData(data, DataType.Enum, att.Access);
-                GXCommon.SetData(data, DataType.None, 0);
-            }
-            data.Add((byte)DataType.Array);
-            data.Add((byte)item.MethodAttributes.Count);            
-            foreach (GXDLMSAttributeSettings it in item.MethodAttributes)
-            {
-                data.Add((byte)DataType.Structure); //attribute_access_item
-                data.Add(2);
-                GXCommon.SetData(data, DataType.Int8, it.Index);
-                GXCommon.SetData(data, DataType.Enum, it.MethodAccess);
-            }
-            return data;
-        }
-
-        /// <summary>
-        /// Returns access rights collection.
-        /// </summary>
-        /// <param name="items"></param>
-        /// <returns></returns>
-        List<byte> GetAccessRights(GXDLMSObjectCollection items)
-        {
-            List<byte> data = new List<byte>();
-            if (!UseLogicalNameReferencing)
-            {
-                data.AddRange(new byte[] { (byte)Command.ReadResponse, 1, 0 });
-            }
-            data.Add((byte)DataType.None);
-            /* TODO: Implement Access rights...
-            data.Add((byte)DataType.Array);
-            GXCommon.SetObjectCount(items.Length, data);
-            foreach (GXDLMSObject it in items)
-            {
-                data.AddRange(GetAccessRights(it));
-            }
-             * */
-            return data;
-        }
-        
-        /// <summary>
-        /// Returns Association View.
-        /// </summary>
-        /// <param name="table"></param>
-        /// <returns></returns>
-        byte[][] GetData(DataTable table)
-        {
-            List<byte> data = new List<byte>();
-            if (!UseLogicalNameReferencing)
-            {
-                data.AddRange(new byte[] { (byte)Command.ReadResponse, 1, 0 });
-            }
-            data.Add((byte)DataType.Array);
-            GXCommon.SetObjectCount(table.Rows.Count, data);
-            foreach (DataRow row in table.Rows)
-            {
-                object[] items = row.ItemArray;
-                data.Add((byte)DataType.Structure);
-                GXCommon.SetObjectCount(items.Length, data);
-                foreach (object value in items)
-                {
-                    Gurux.DLMS.DataType tp = Gurux.DLMS.Internal.GXCommon.GetValueType(value);
-                    GXCommon.SetData(data, tp, value);                    
-                }
-            }
-            return m_Base.SplitToBlocks(data, Command.GetResponse);
-        }
-
-        /// <summary>
-        /// Returns Association View.
-        /// </summary>
-        /// <param name="sortObject">Object to used in sort.</param>
-        /// <returns></returns>
-        byte[][] GetSortObject(GXDLMSObject sortObject)
-        {
-            List<byte> data = new List<byte>();
-            if (!UseLogicalNameReferencing)
-            {
-                data.AddRange(new byte[] { (byte)Command.ReadResponse, 1, 0 });
-            }
-            data.Add((byte)DataType.Structure);
-            data.Add(4);//Count    
-            if (sortObject == null)
-            {
-                GXCommon.SetData(data, DataType.UInt16, 0);//ClassID
-                GXCommon.SetData(data, DataType.OctetString, new byte[6]);//LN
-                GXCommon.SetData(data, DataType.Int8, 0); //Selected Attribute Index
-                GXCommon.SetData(data, DataType.UInt16, 0); //Selected Data Index                
-            }
-            else
-            {
-                GXCommon.SetData(data, DataType.UInt16, sortObject.ObjectType);//ClassID
-                GXCommon.SetData(data, DataType.OctetString, sortObject.LogicalName);//LN
-                GXCommon.SetData(data, DataType.Int8, sortObject.SelectedAttributeIndex); //Selected Attribute Index
-                GXCommon.SetData(data, DataType.UInt16, sortObject.SelectedDataIndex); //Selected Data Index                
-            }
-            return m_Base.SplitToBlocks(data, Command.GetResponse);
-        }
-
-        /// <summary>
-        /// Returns Association View.
-        /// </summary>
-        /// <param name="items"></param>
-        /// <returns></returns>
-        byte[][] GetColumns(GXDLMSObjectCollection items)
-        {
-            List<byte> data = new List<byte>();
-            if (!UseLogicalNameReferencing)
-            {
-                data.AddRange(new byte[] { (byte)Command.ReadResponse, 1, 0 });
-            }
-            data.Add((byte)DataType.Array);
-            //Add count
-            GXCommon.SetObjectCount(items.Count, data);
-            foreach (GXDLMSObject it in items)
-            {
-                data.Add((byte)DataType.Structure);
-                data.Add(4);//Count    
-                GXCommon.SetData(data, DataType.UInt16, it.ObjectType);//ClassID
-                GXCommon.SetData(data, DataType.OctetString, it.LogicalName);//LN
-                GXCommon.SetData(data, DataType.Int8, it.SelectedAttributeIndex); //Selected Attribute Index
-                GXCommon.SetData(data, DataType.UInt16, it.SelectedDataIndex); //Selected Data Index                
-            }
-            return m_Base.SplitToBlocks(data, Command.GetResponse);
-        }
-       
-        /// <summary>
-        /// Returns Association View.
-        /// </summary>
-        /// <param name="items"></param>
-        /// <returns></returns>
-        byte[][] GetObjects(GXDLMSObjectCollection items)
-        {
-            List<byte> data = new List<byte>();
-            if (!UseLogicalNameReferencing)
-            {
-                data.AddRange(new byte[] { (byte)Command.ReadResponse, 1, 0 });
-            }
-            data.Add((byte)DataType.Array);
-            //Add count
-            GXCommon.SetObjectCount(items.Count, data);
-            foreach (GXDLMSObject it in items)
-            {
-                data.Add((byte)DataType.Structure);
-                data.Add(4);//Count    
-                if (UseLogicalNameReferencing)
-                {
-                    GXCommon.SetData(data, DataType.UInt16, it.ObjectType);//ClassID
-                    GXCommon.SetData(data, DataType.UInt8, it.Version);//Version
-                    GXCommon.SetData(data, DataType.OctetString, it.LogicalName);//LN                    
-                    data.AddRange(GetAccessRights(it)); //Access rights.
-                }
-                else
-                {
-                    GXCommon.SetData(data, DataType.UInt16, it.ShortName);//base address.
-                    GXCommon.SetData(data, DataType.UInt16, it.ObjectType);//ClassID
-                    GXCommon.SetData(data, DataType.UInt8, 0);//Version
-                    GXCommon.SetData(data, DataType.OctetString, it.LogicalName);//LN
-                }
-            }
-            return m_Base.SplitToBlocks(data, Command.GetResponse);
-        }
-
-        /// <summary>
-        /// Generates an acknowledgment message, with which the server is informed to 
-        /// send next packets.
-        /// </summary>
-        /// <param name="type">Frame type</param>
-        /// <returns>Acknowledgment message as byte array.</returns>
-        byte[] ReceiverReady(RequestTypes type)
-        {
-            return m_Base.ReceiverReady(type);
-        }
-
-        /// <summary>
-        /// This method is used to solve current index of received DLMS packet, 
-        /// by retrieving the current progress status.
-        /// </summary>
-        /// <param name="data">DLMS data to parse.</param>
-        /// <returns>The current index of the packet.</returns>
-        public int GetCurrentProgressStatus(byte[] data)
-        {
-            return m_Base.GetCurrentProgressStatus(data);
-        }
-
-        /// <summary>
-        /// This method is used to solve the total amount of received items,
-        /// by retrieving the maximum progress status.
-        /// </summary>
-        /// <param name="data">DLMS data to parse.</param>
-        /// <returns>Total amount of received items.</returns>
-        public int GetMaxProgressStatus(byte[] data)
-        {
-            return m_Base.GetMaxProgressStatus(data);
         }
 
         /// <summary>
@@ -649,78 +333,52 @@ namespace Gurux.DLMS
         /// </remarks>
         public void Initialize()
         {
-            if (Authentications.Count == 0)
-            {
-                throw new Exception("Authentications is not set.");
-            }
             bool association = false;
-            Initialized = true;            
+            Initialized = true;
             if (SortedItems.Count != Items.Count)
             {
                 for (int pos = 0; pos != Items.Count; ++pos)
-                {                    
+                {
                     GXDLMSObject it = Items[pos];
-                    if (string.IsNullOrEmpty(it.LogicalName))
+                    if (this.UseLogicalNameReferencing &&
+                        (string.IsNullOrEmpty(it.LogicalName) || it.LogicalName.Split('.').Length != 6))
                     {
                         throw new Exception("Invalid Logical Name.");
-                    }                    
-                    if (it is GXDLMSRegister)
-                    {
-                        GXDLMSRegister r = it as GXDLMSRegister;
-                        if (r.ScalerUnit == null)
-                        {
-                            r.Scaler = 1;
-                        }
                     }
-                    else if (it is GXDLMSDemandRegister)
-                    {
-                        GXDLMSDemandRegister r = it as GXDLMSDemandRegister;
-                        if (r.ScalerUnit == null)
-                        {
-                            r.Scaler = 1;
-                        }
-                    }
-                    else if (it is GXDLMSProfileGeneric)
+                    if (it is GXDLMSProfileGeneric)
                     {
                         GXDLMSProfileGeneric pg = it as GXDLMSProfileGeneric;
                         if (pg.ProfileEntries < 1)
                         {
                             throw new Exception("Invalid Profile Entries. Profile entries tells amount of rows in the table.");
                         }
-                        foreach (GXDLMSObject obj in pg.CaptureObjects)
+                        foreach (var obj in pg.CaptureObjects)
                         {
-                            if (obj.SelectedAttributeIndex < 1)
+                            if (obj.Value.AttributeIndex < 1)
                             {
-                                throw new Exception("Invalid attribute index. SelectedAttributeIndex is not set for " + obj.Name);
+                                throw new Exception("Invalid attribute index. SelectedAttributeIndex is not set for " + obj.Key.Name);
                             }
-                            Type type = GXCommon.GetDataType(obj.GetDataType(obj.SelectedAttributeIndex));
-                            DataColumn col = pg.Buffer.Columns.Add();
-                            if (type != null)
-                            {
-                                col.DataType = type;
-                            }
-                        }                       
+                        }
                         if (pg.ProfileEntries < 1)
                         {
                             throw new Exception("Invalid Profile Entries. Profile entries tells amount of rows in the table.");
                         }
-
-                        GXProfileGenericUpdater p = new GXProfileGenericUpdater(this, pg);
-                        Thread thread = new Thread(new ThreadStart(p.UpdateProfileGenericData));
-                        thread.IsBackground = true;
-                        thread.Start();
+                        if (pg.CapturePeriod != 0)
+                        {
+                            GXProfileGenericUpdater p = new GXProfileGenericUpdater(this, pg);
+                            Thread thread = new Thread(new ThreadStart(p.UpdateProfileGenericData));
+                            thread.IsBackground = true;
+                            thread.Start();
+                        }
                     }
-                    else if (it is GXDLMSData || it is GXDLMSClock || it is GXDLMSTcpUdpSetup)
-                    {
-                    }
-                    else if ((it is GXDLMSAssociationShortName && !this.UseLogicalNameReferencing)||
+                    else if ((it is GXDLMSAssociationShortName && !this.UseLogicalNameReferencing) ||
                         (it is GXDLMSAssociationLogicalName && this.UseLogicalNameReferencing))
                     {
                         association = true;
                     }
-                    else //Remove unsupported items.
+                    else if (!(it is IGXDLMSBase))//Remove unsupported items.
                     {
-                        System.Diagnostics.Debug.WriteLine(it.ObjectType.ToString() + " not supported.");
+                        Debug.WriteLine(it.ObjectType.ToString() + " not supported.");
                         Items.RemoveAt(pos);
                         --pos;
                     }
@@ -731,12 +389,14 @@ namespace Gurux.DLMS
                     if (UseLogicalNameReferencing)
                     {
                         GXDLMSAssociationLogicalName it = new GXDLMSAssociationLogicalName();
-                        it.LogicalName = "0.0.40.0.0.255";
+                        it.ObjectList = this.Items;
                         Items.Add(it);
                     }
                     else
                     {
-                        Items.Add(new GXDLMSAssociationShortName());
+                        GXDLMSAssociationShortName it = new GXDLMSAssociationShortName();
+                        it.ObjectList = this.Items;
+                        Items.Add(it);
                     }
                 }
                 //Arrange items by Short Name.
@@ -767,250 +427,32 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Parse AARQ request that cliend send and returns AARE request.
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        byte[] HandleAARQRequest(byte[] data)
-        {
-            int index = 0, error;
-            byte frame;            
-            List<byte> arr = new List<byte>(data);
-            bool packetFull, wrongCrc;
-            byte command;
-            m_Base.GetDataFromFrame(arr, index, out frame, true, out error, false, out packetFull, out wrongCrc, out command);
-            if (!packetFull)
-            {
-                throw new GXDLMSException("Not enought data to parse frame.");
-            }
-            if (wrongCrc)
-            {
-                throw new GXDLMSException("Wrong Checksum.");
-            }
-            GXAPDU aarq = new GXAPDU(null);
-            aarq.UseLN = this.UseLogicalNameReferencing;
-            int pos = 0;
-            aarq.EncodeData(arr.ToArray(), ref pos);
-            AssociationResult result = AssociationResult.Accepted;
-            SourceDiagnostic diagnostic = SourceDiagnostic.None;
-            if (this.UseLogicalNameReferencing != aarq.UseLN)
-            {
-                result = AssociationResult.PermanentRejected;
-                diagnostic = SourceDiagnostic.ApplicationContextNameNotSupported;
-            }
-            else
-            {
-                GXAuthentication auth = null;
-                foreach (GXAuthentication it in Authentications)
-                {
-                    if (it.Type == aarq.Authentication)
-                    {
-                        auth = it;
-                        break;
-                    }
-                }
-                if (auth == null)
-                {
-                    result = AssociationResult.PermanentRejected;
-                    //If authentication is required.
-                    if (aarq.Authentication == Authentication.None)
-                    {
-                        diagnostic = SourceDiagnostic.AuthenticationRequired;
-                    }
-                    else
-                    {
-                        diagnostic = SourceDiagnostic.AuthenticationMechanismNameNotRecognised;
-                    }
-                }
-                //If authentication is used check pw.
-                else if (aarq.Authentication != Authentication.None && auth.Password != aarq.Password && string.IsNullOrEmpty(auth.Password) != string.IsNullOrEmpty((aarq.Password)))
-                {
-                    result = AssociationResult.PermanentRejected;
-                    diagnostic = SourceDiagnostic.AuthenticationFailure;
-                }
-            }
-            //Generate AARE packet.
-            List<byte> buff = new List<byte>();
-            byte[] conformanceBlock;
-            if (UseLogicalNameReferencing)
-            {
-                conformanceBlock = LNSettings.m_ConformanceBlock;
-            }
-            else
-            {
-                conformanceBlock = SNSettings.m_ConformanceBlock;
-            }
-            aarq.GenerateAARE(buff, MaxReceivePDUSize, conformanceBlock, result, diagnostic);
-            if (this.InterfaceType == InterfaceType.General)
-            {
-                buff.InsertRange(0, new byte[] { 0xE6, 0xE7, 0x00 });
-            }
-            m_Base.ExpectedFrame = 0;
-            m_Base.FrameSequence = -1;            
-            return m_Base.AddFrame(m_Base.GenerateIFrame(), false, buff, 0, buff.Count);
-        }
-
-        void SetValue(List<byte> buff, object data)
-        {
-            byte[] tmp = Gurux.Shared.GXCommon.GetAsByteArray(data);
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(tmp);
-            }
-            buff.Add((byte)tmp.Length);
-            buff.AddRange(tmp);
-        } 
-
-        /// <summary>
-        /// Parse SNRM Request.
-        /// </summary>
-        /// <remarks>
-        /// If server do not accept client empty byte array is returned.
-        /// </remarks>
-        /// <returns>Returns returned UA packet.</returns>
-        byte[] HandleSnrmRequest()
-        {
-            List<byte> buff = new List<byte>();
-            buff.Add((byte)HDLCInfo.MaxInfoTX);
-            SetValue(buff, Limits.MaxInfoTX);
-            buff.Add((byte)HDLCInfo.MaxInfoRX);
-            SetValue(buff, Limits.MaxInfoRX);
-            buff.Add((byte)HDLCInfo.WindowSizeTX);
-            SetValue(buff, Limits.WindowSizeTX);
-            buff.Add((byte)HDLCInfo.WindowSizeRX);
-            SetValue(buff, Limits.WindowSizeRX);
-            byte len = (byte)buff.Count;
-            buff.Insert(0, 0x81); //FromatID
-            buff.Insert(1, 0x80); //GroupID
-            buff.Insert(2, len); //len           
-            return m_Base.AddFrame((byte)FrameType.UA, false, buff, 0, buff.Count);
-        }
-
-        /// <summary>
-        /// Generate disconnect request.
-        /// </summary>
-        /// <returns></returns>
-        byte[] GenerateDisconnectRequest()
-        {
-            List<byte> buff = new List<byte>();
-            buff.Add((byte)HDLCInfo.MaxInfoTX);
-            SetValue(buff, Limits.MaxInfoTX);
-            buff.Add((byte)HDLCInfo.MaxInfoRX);
-            SetValue(buff, Limits.MaxInfoRX);
-            buff.Add((byte)HDLCInfo.WindowSizeTX);
-            SetValue(buff, Limits.WindowSizeTX);
-            buff.Add((byte)HDLCInfo.WindowSizeRX);
-            SetValue(buff, Limits.WindowSizeRX);
-            byte len = (byte)buff.Count;
-            buff.Insert(0, 0x81); //FromatID
-            buff.Insert(1, 0x80); //GroupID
-            buff.Insert(2, len); //len
-            return m_Base.AddFrame((byte)FrameType.UA, false, buff, 0, buff.Count);
-        }
-
-        /// <summary>
-        /// Reserved for internal use.
-        /// </summary>
-        object GetAdd(byte[] buff, ref int index, int size)
-        {
-            if (size == 1)
-            {
-                return buff[index++];
-            }
-            else if (size == 2)
-            {
-                return GXCommon.GetUInt16(buff, ref index);
-            }
-            else if (size == 4)
-            {
-                return GXCommon.GetUInt32(buff, ref index);
-            }
-            throw new OutOfMemoryException();
-        }         
-
-        /// <summary>
-        /// Reserved for internal use.
-        /// </summary>
-        internal bool GetAddress(byte[] buff, ref object clientId, ref object serverId)
-        {
-            byte[] serverAddress = Gurux.Shared.GXCommon.GetAsByteArray(serverId);            
-            int index = 0;
-            int PacketStartID = 0, len = buff.Length;
-            int FrameLen = 0;
-            //If DLMS frame is generated.
-            if (InterfaceType != InterfaceType.Net)
-            {
-                //Find start of HDLC frame.
-                for (; index < len; ++index)
-                {
-                    if (buff[index] == GXCommon.HDLCFrameStartEnd)
-                    {
-                        PacketStartID = index;
-                        ++index;
-                        break;
-                    }
-                }
-                if (index == len) //Not a HDLC frame.
-                {
-                    throw new GXDLMSException("Invalid data format.");
-                }
-                byte frame = buff[index++];
-                RequestTypes MoreData = RequestTypes.None;
-                //Is there more data available.
-                if (frame == GXCommon.HDLCFrameTypeMoreData)
-                {
-                    MoreData = RequestTypes.Frame;
-                }
-                //If not enought data.
-                FrameLen = buff[index++];
-                if (len < FrameLen + index - 1)
-                {
-                    return false;
-                }
-                if ((frame != GXCommon.HDLCFrameType && frame != GXCommon.HDLCFrameTypeMoreData) || //Check BOP
-                        (MoreData == RequestTypes.None && buff[FrameLen + PacketStartID + 1] != GXCommon.HDLCFrameStartEnd))//Check EOP
-                {
-                    throw new GXDLMSException("Invalid data format.");
-                }
-                serverId = GetAdd(buff, ref index, serverAddress.Length);
-                clientId = GetAdd(buff, ref index, 1); //Client address is always one byte.
-            }
-            else
-            {
-                //Get version
-                int ver = (buff[index++] & 0xFF) << 8;
-                ver |= buff[index++] & 0xFF;
-                if (ver != 1)
-                {
-                    throw new GXDLMSException("Unknown version.");
-                }
-                clientId = GXCommon.GetUInt16(buff, ref index);
-                serverId = GXCommon.GetUInt16(buff, ref index);
-            }
-            return true;
-        }
-
-        /// <summary>
         /// Reset after connection is closed.
         /// </summary>
         public void Reset()
         {
-            //TODO: Protocol = StartProtocol;
-            m_Base.ServerID = null;
-            m_Base.ClientID = null;
+            ConnectedClientAddress = 0;
+            Reply.Clear();
+            Settings.ServerAddress = 0;
+            Settings.ClientAddress = 0;
+            Settings.Authentication = Authentication.None;
+            if (Settings.Cipher != null)
+            {
+                Settings.Cipher.Reset();
+            }
         }
 
-        /// <summary>
-        /// Mandles client request.
+        ///<summary>
+        /// Handles client request.
         /// </summary>
-        /// <param name="buff">Received data from the client.</param>
-        /// <returns>Response to the request.</returns>        
-        /// <remarks>
-        /// Response is null if request packet is not compleate.
-        /// </remarks>
-        public byte[] HandleRequest(byte[] buff)
+        ///<param name="buff">
+        /// Received data from the client. </param>
+        ///<returns> 
+        ///Response to the request. Response is null if request packet is not complete.
+        ///</returns>
+        public virtual byte[] HandleRequest(byte[] buff)
         {
-            if (buff == null)
+            if (buff == null || buff.Length == 0)
             {
                 return null;
             }
@@ -1019,615 +461,820 @@ namespace Gurux.DLMS
                 throw new Exception("Server not Initialized.");
             }
             try
-            {                
-                byte[] data = null;
-                if (ReceivedData.Count != 0)
+            {
+                byte[] data = GetPacket(buff);
+                // If all data is not received yet or message is not accepted.
+                if (!Reply.IsComplete)
                 {
-                    ReceivedData.AddRange(buff);
-                    data = ReceivedData.ToArray();
+                    return null;
                 }
-                else
+                if (data != null)
                 {
-                    data = buff;
+                    return data;
                 }
-                /* TODO:
-                if (Protocol == StartProtocolType.IEC)
+                HandleCommand();
+                if (!Reply.IsMoreData)
                 {
-                    if (buff.Length > 6 && Gurux.Shared.GXCommon.IndexOf(data, new byte[] { 0x0d, 0x0a}, 0, data.Length) != -1)
-                    {
-                    //Change To Programming Mode
-                    int pos = Gurux.Shared.GXCommon.IndexOf(data, new byte[] { 0x06, 0x02}, 0, data.Length);
-                    if (pos != -1)
-                    {
-                        pos += 2;
-                        int BaudRate = 0;
-                        char baudrate = (char) data[pos++];
-                        switch (baudrate)
-                        {
-                            case '0':
-                                BaudRate = 300;
-                                break;
-                            case '1':
-                                BaudRate = 600;
-                                break;
-                            case '2':
-                                BaudRate = 1200;
-                                break;
-                            case '3':
-                                BaudRate = 2400;
-                                break;
-                            case '4':
-                                BaudRate = 4800;
-                                break;                            
-                            case '6':
-                                BaudRate = 19200;
-                                break;
-                            case '5':
-                            default:
-                                BaudRate = 9600;
-                                break;
-                        }
-                        if (data[pos++] != '2') // ModeControlCharacter
-                        {
-                            return null;
-                        }
-                        return null;
-                    }
-                    string str = ASCIIEncoding.ASCII.GetString(data);
-                    if (str == "/?!\r\n")
-                    {
-                        str = "/" + ManufacturerID + BaudRateID.ToString() + "\\" + DeviceID + "\r\n";
-                        return ASCIIEncoding.ASCII.GetBytes(str);
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                    }
-                    else
-                    {
-                        return null;
-                    }
+                    Reply.Clear();
                 }
-                 * */
-                if (m_Base.ServerID == null)
+                data = Frames[FrameIndex++];
+                return data;
+            }
+            catch (Exception e)
+            {
+                // Disconnect.
+                Debug.WriteLine(e.ToString());
+                byte[] data = GXDLMS.SplitToHdlcFrames(Settings, (byte)FrameType.Rejected, null)[0];
+                Reset();
+                return data;
+            }
+        }
+
+        ///<summary>
+        /// Get packet from received data.
+        ///</summary>
+        ///<param name="buff">
+        /// Received data. </param>
+        ///<returns>
+        ///Reply if any.
+        ///</returns>
+        private byte[] GetPacket(byte[] buff)
+        {
+            GXByteBuffer receivedFrame = new GXByteBuffer(buff);
+            // Save position where data was. This is used if data is not sent to
+            // this server.
+            ushort offset = Reply.Data.Size;
+
+            GXDLMS.GetData(Settings, receivedFrame, Reply);
+            // If all data is not received yet.
+            if (!Reply.IsComplete)
+            {
+                return null;
+            }           
+            byte[] data;
+            // If client sends keepalive or get next frame request.
+            if ((Reply.MoreData & RequestTypes.Frame) != 0)
+            {
+                if (Frames != null && Frames.Length > FrameIndex)
                 {
-                    object sid = null, cid = null;
-                    foreach (object it in this.ServerIDs)
-                    {
-                        sid = it;
-                        if (GetAddress(data, ref cid, ref sid))
-                        {
-                            if (sid.Equals(it))
-                            {
-                                m_Base.ServerID = sid;
-                                m_Base.ClientID = cid;
-                            }
-                            break;
-                        }                        
-                    }
-                    //We do not communicate if server ID not found.
-                    if (m_Base.ServerID == null)
-                    {
-                        if (OnInvalidConnection != null)
-                        {
-                            OnInvalidConnection(this, new ConnectionEventArgs(sid));
-                        }
-                        return null;
-                    }
-                }
-                if (!m_Base.IsDLMSPacketComplete(data))
-                {
-                    if (ReceivedData.Count == 0)
-                    {
-                        ReceivedData.AddRange(buff);
-                    }
-                    return null; //Wait more data.
-                }
-                object name;
-                GXDLMSObject item = null;
-                byte[] allData = null;
-                byte frame;
-                RequestTypes ret = m_Base.GetDataFromPacket(data, ref allData, out frame);
-                System.Diagnostics.Debug.WriteLine(Convert.ToString(frame, 16));
-                ReceivedData.Clear();
-                //Ask next part.
-                if ((ret & (RequestTypes.Frame | RequestTypes.DataBlock)) != 0)
-                {                    
-                    if (ret == RequestTypes.DataBlock)
-                    {
-                        ++FrameIndex;
-                        int index = 0;
-                        int BlockIndex = (int)GXCommon.GetUInt32(allData, ref index);
-                        return SendData[FrameIndex];
-                    }
-                    else
-                    {
-                        ++FrameIndex;
-                        //Keep alive...
-                        if (FrameIndex >= SendData.Count)
-                        {
-                            FrameIndex = 0;
-                            SendData.Add(m_Base.AddFrame(m_Base.GenerateAliveFrame(), false, null, 0, 0));
-                            return SendData[FrameIndex];                            
-                        }
-                        return SendData[FrameIndex];
-                    }
-                }
-                //If I-frame
-                if ((frame & 0x1) == 0)
-                {
-                    //TODO: Search item.
+                    data = Frames[FrameIndex++];
+                    return data;
                 }
                 FrameIndex = 0;
-                SendData.Clear();
-                if (ret == RequestTypes.Aarq)
-                {
-                    SendData.Add(HandleAARQRequest(data));
-                    return SendData[FrameIndex];
-                }
-                else if (ret == RequestTypes.Snrm)
-                {
-                    SendData.Add(HandleSnrmRequest());
-                    return SendData[FrameIndex];
-                }
-                else if (ret == RequestTypes.Disconnect)
-                {
-                    SendData.Add(GenerateDisconnectRequest());
-                    return SendData[FrameIndex];
-                }
-                else if (ret == RequestTypes.Write)
-                {                    
-                    int index = 0;
-                    object value = null;
-                    if (!UseLogicalNameReferencing)
-                    {
-                        int cnt = allData[index++];//Get item count.
-                        int len = allData[index++];//Get item len.
-                        ushort sn = GXCommon.GetUInt16(allData, ref index);
-                        //Convert DLMS data to object type.
-                        int count, index2, pos = 0;
-                        foreach (var it in SortedItems)
-                        {
-                            if (it.Key > sn)
-                            {
-                                break;
-                            }
-                            item = it.Value;
-                        }
-                        //If item is last item.
-                        if (item == null)
-                        {
-                            item = SortedItems.Values.ToArray()[Items.Count - 1];
-                        }
-                        int attributeIndex = ((sn - item.ShortName) / 8) + 1;
-                        System.Diagnostics.Debug.WriteLine(string.Format("Writing {0}, attribute index {1}", item.Name, attributeIndex));
-                        DataType type = item.GetDataType(attributeIndex);
-                        DataType type2 = DataType.None;
-                        value = GXCommon.GetData(allData, ref index, ActionType.None, out count, out index2, ref type2, ref pos);
-                        if (value is byte[] && type != DataType.None)
-                        {
-                            value = GXDLMSClient.ChangeType((byte[])value, type);
-                        }
-                        index = attributeIndex;
-                    }
-                    else
-                    {
-                        ObjectType type;
-                        byte[] parameter;
-                        GetCommand(allData, out type, out name, out index, out parameter);
-                        DataType type2 = DataType.None;
-                        int pos = 0, index2, count, index3 = 0;
-                        value = GXCommon.GetData(parameter, ref index3, ActionType.None, out count, out index2, ref type2, ref pos);                        
-                        item = Items.FindByLN(type, name.ToString());
-                    }
-                    if (item != null)
-                    {
-                        if (value is byte[])
-                        {
-                            DataType tp = item.GetUIDataType(index);
-                            if (tp != DataType.None)
-                            {
-                                value = GXDLMSClient.ChangeType((byte[])value, tp);
-                            }
-                        }
-                        if (OnWrite != null && item != null)
-                        {
-                            ValueEventArgs e = new ValueEventArgs(item, index);
-                            e.Value = value;
-                            OnWrite(this, e);
-                            if (e.Handled)
-                            {
-                                SendData.Add(Acknowledge(UseLogicalNameReferencing ? Command.GetResponse : Command.SetResponse, 0));
-                                return SendData[FrameIndex];
-                            }
-                        }
-                        GXDLMSAttribute att;
-                        PropertyInfo info;
-                        PropertyInfo it = GXDLMSClient.GetPropertyInfo(item, index, out att, out info);
-                        if (it != null)
-                        {
-                            if (it.PropertyType.IsEnum)
-                            {
-                                value = Enum.ToObject(it.PropertyType, Convert.ToInt32(value));
-                            }
-                            else if (value != null && !value.GetType().IsArray && it.PropertyType != typeof(object))
-                            {
-                                value = Convert.ChangeType(value, it.PropertyType);
-                            }
-                            it.SetValue(item, value, null);
-                            SendData.Add(Acknowledge(UseLogicalNameReferencing ? Command.GetResponse : Command.SetResponse, 0));
-                            return SendData[FrameIndex];
-                        }                      
-                    }
-                }
-                else if (ret == RequestTypes.Read)
-                {                    
-                    ObjectType type;                    
-                    int index;
-                    byte[] parameter;
-                    GetCommand(allData, out type, out name, out index, out parameter);
-                    if (UseLogicalNameReferencing)
-                    {
-                        System.Diagnostics.Debug.WriteLine(string.Format("Reading {0}, attribute index {1}", name, index));
-                        item = Items.FindByLN(type, name.ToString());
-                        if (m_OnRead != null)
-                        {
-                            ValueEventArgs e = new ValueEventArgs(item, index);
-                            m_OnRead(this, e);
-                            if (e.Handled)
-                            {
-                                Gurux.DLMS.DataType tp = Gurux.DLMS.Internal.GXCommon.GetValueType(e.Value);
-                                SendData.AddRange(ReadReply(name, type, index, e.Value, tp));
-                                return SendData[FrameIndex];
-                            }
-                        }
-                        if (item is GXDLMSAssociationLogicalName)
-                        {                            
-                            if (index == 2) //Get list of LN objects.
-                            {
-                                SendData.AddRange(GetObjects(Items));
-                                return SendData[FrameIndex];
-                            }                           
-                        }
-                        else if (item is GXDLMSProfileGeneric)
-                        {
-                            GXDLMSProfileGeneric pg = item as GXDLMSProfileGeneric;
-                            if (index == 2) //Get list of objects.
-                            {
-                                GetProfileGenericData(pg, parameter);
-                                return SendData[FrameIndex];
-                            }
-                            if (index == 3) //Get list of objects.
-                            {
-                                SendData.AddRange(GetColumns(pg.CaptureObjects));
-                                return SendData[FrameIndex];
-                            }
-                            if (index == 6) //Get sort object
-                            {
-                                SendData.AddRange(GetSortObject(pg.SortObject));
-                                return SendData[FrameIndex];
-                            }
-                        }
-                    }
-                    else
-                    {
-                        ushort sn = Convert.ToUInt16(name);
-                        foreach (var it in SortedItems)
-                        {
-                            if (it.Key > sn)
-                            {
-                                break;
-                            }
-                            item = it.Value;
-                        }
-                        //If item is last item.
-                        if (item == null)
-                        {
-                            item = SortedItems.Values.ToArray()[Items.Count - 1];
-                        }
-                        index = ((sn - item.ShortName) / 8) + 1;
-                        System.Diagnostics.Debug.WriteLine(string.Format("Reading {0}, attribute index {1}", item.Name, index));
-                        if (m_OnRead != null)
-                        {
-                            ValueEventArgs e = new ValueEventArgs(item, index);
-                            m_OnRead(this, e);
-                            if (e.Handled)
-                            {
-                                Gurux.DLMS.DataType tp = Gurux.DLMS.Internal.GXCommon.GetValueType(e.Value);
-                                SendData.AddRange(ReadReply(name, type, index, e.Value, tp));
-                                return SendData[FrameIndex];
-                            }
-                        }
-                        if (item is GXDLMSAssociationShortName)
-                        {
-                            if (index == 2) //Get list of SN objects.
-                            {                                
-                                SendData.AddRange(GetObjects(Items));
-                                return SendData[FrameIndex];
-                            }
-                            if (index == 3) //Get access rights list.
-                            {
-                                SendData.AddRange(m_Base.SplitToBlocks(GetAccessRights(Items), Command.GetResponse));
-                                return SendData[FrameIndex];
-                            }
-                            if (index == 4) //Get Security Setup Reference.
-                            {
-                                SendData.Add(ServerReportError(1, 5, 3));
-                                return SendData[FrameIndex];
-                            }
-                        }
-                        else if (item is GXDLMSProfileGeneric)
-                        {
-                            GXDLMSProfileGeneric pg = item as GXDLMSProfileGeneric;
-                            if (index == 2) //Get list of objects.
-                            {
-                                GetProfileGenericData(pg, parameter);                                
-                                return SendData[FrameIndex];
-                            }
-                            if (index == 3) //Get list of objects.
-                            {
-                                SendData.AddRange(GetColumns(pg.CaptureObjects));
-                                return SendData[FrameIndex];
-                            }
-                            if (index == 6) //Get sort object
-                            {
-                                SendData.AddRange(GetSortObject(pg.SortObject));
-                                return SendData[FrameIndex];
-                            }
-                        }
-                    }
-                    if (item != null)
-                    {
-                        return GetValue(name, item, index);
-                    }
-                }
-                else if (ret == RequestTypes.Action)
-                {
-                    ObjectType type;
-                    int index;
-                    byte[] parameter;
-                    GetCommand(allData, out type, out name, out index, out parameter);
-                    if (UseLogicalNameReferencing)
-                    {
-                        System.Diagnostics.Debug.WriteLine(string.Format("Action on {0}, attribute index {1}", name, index));
-                        item = Items.FindByLN(type, name.ToString());
-                    }
-                    else
-                    {
-                        ushort sn = Convert.ToUInt16(name);
-                        foreach (var it in SortedItems)
-                        {
-                            if (it.Key > sn)
-                            {
-                                break;
-                            }
-                            item = it.Value;
-                        }
-                        //If item is last item.
-                        if (item == null)
-                        {
-                            item = SortedItems.Values.ToArray()[Items.Count - 1];
-                        }
-                        int value, count;
-                        GXDLMSClient.GetActionInfo(item.ObjectType, out value, out count);
-                        index = ((sn - item.ShortName - value) / value);
-                        System.Diagnostics.Debug.WriteLine(string.Format("Reading {0}, attribute index {1}", item.Name, index));
-                    }
-                    if (item != null)
-                    {
-                        if (OnAction != null && item != null)
-                        {
-                            ValueEventArgs e = new ValueEventArgs(item, index);
-                            OnAction(this, e);
-                        }
-                        SendData.Add(Acknowledge(Command.MethodResponse, 0));
-                        return SendData[FrameIndex];
-                    }
-                }
-                //Return HW error.
-                SendData.Add(ServerReportError(1, 5, 3));
-                return SendData[FrameIndex];
+                data = GXDLMS.SplitToHdlcFrames(Settings, Settings.KeepAlive(), null)[0];
+                return data;
             }
-            catch
+
+            // Check is data sent to this server.
+            if (ConnectedServerAddress == 0 || ConnectedClientAddress == 0)
             {
-                //Return HW error.
-                ReceivedData.Clear();
-                SendData.Add(ServerReportError(1, 5, 3));
-                return SendData[FrameIndex];
+                // Check is data send to this server.
+                if (!IsTarget(Settings.ServerAddress, Settings.ClientAddress))
+                {
+                    Reply.Data.Size = offset;
+                    Reply.IsComplete = false;
+                }
+                ConnectedServerAddress = Settings.ServerAddress;
+                ConnectedClientAddress = Settings.ClientAddress;
             }
+            else if (Settings.ServerAddress != ConnectedServerAddress
+                  || Settings.ClientAddress != ConnectedClientAddress)
+            {
+                Reply.Data.Size = offset;
+                Reply.IsComplete = false;
+            }
+
+
+            // Clear received data.
+            receivedFrame.Clear();
+            ServerReply.Data = Reply.Data;
+            FrameIndex = 0;
+            return null;
         }
 
-        void GetProfileGenericData(GXDLMSProfileGeneric pg, byte[] data)
+        ///<summary>
+        /// Handle received command. 
+        ///</summary>
+        private void HandleCommand()
         {
-            int selector;
-            object from, to;
-            //If all data is readed.
-            if (data.Length == 0)
+            switch (Reply.Command)
             {
-                SendData.AddRange(GetData(pg.Buffer));
-                return;
+                case Command.SetRequest:
+                    Frames = HandleSetRequest();
+                    break;
+                case Command.WriteRequest:
+                    Frames = HandleWriteRequest();
+                    break;
+                case Command.GetRequest:
+                    Frames = HandleGetRequest();
+                    break;
+                case Command.ReadRequest:
+                    Frames = HandleReadRequest();
+                    break;
+                case Command.MethodRequest:
+                    Frames = HandleMethodRequest();
+                    break;
+                case Command.Snrm:
+                    Frames = HandleSnrmRequest();
+                    break;
+                case Command.Aarq:
+                    Frames = HandleAarqRequest();
+                    break;
+                case Command.DisconnectRequest:
+                    Frames = GenerateDisconnectRequest();
+                    break;
+                default:
+                    Debug.WriteLine("Invalid command: " + Reply.Command.ToString());
+                    Frames = GXDLMS.SplitToHdlcFrames(Settings, (byte)FrameType.Rejected, null);
+                    break;
             }
-            GetAccessSelector(data, out selector, out from, out to);
-            DataTable table = pg.Buffer.Clone();
-            if (selector == 1) //Read by range
-            {                
-                DateTime start = (DateTime)from;
-                DateTime end = (DateTime)to;
-                foreach (DataRow row in pg.Buffer.Rows)
-                {
-                    DateTime tm = Convert.ToDateTime(row[0]);
-                    if (tm >= start && tm <= end)
-                    {
-                        table.Rows.Add(row.ItemArray);
-                    }
-                }
-            }
-            else if (selector == 2)//Read by entry.
-            {                
-                int start = Convert.ToInt32(from);
-                int count = Convert.ToInt32(to);
-                if (start + count < pg.Buffer.Rows.Count)
-                {
-                    for (int pos = 0; pos < count; ++pos)
-                    {
-                        if (pos == pg.Buffer.Rows.Count)
-                        {
-                            break;
-                        }
-                        table.Rows.Add(pg.Buffer.Rows[start + pos].ItemArray);                       
-                    }
-                }
-            }
-            SendData.AddRange(GetData(table));
         }
 
-        void GetAccessSelector(byte[] data, out int selector, out object start, out object to)
-        {            
-            selector = data[0];
-            if (data[1] != (int)DataType.Structure ||
-                data[2] != 4 ||
-                data[3] != (int)DataType.Structure ||
-                data[4] != 4)
+        ///<summary>
+        /// Handle action request.
+        ///</summary>
+        ///<param name="Reply">
+        /// Received data from the client.
+        ///</param>
+        ///<returns>
+        ///Reply. 
+        ///</returns>
+        private byte[][] HandleMethodRequest()
+        {
+            GXByteBuffer data = Reply.Data;
+            GXByteBuffer bb = new GXByteBuffer();
+            // Get type.
+            data.GetUInt8();
+            // Get invoke ID and priority.
+            data.GetUInt8();
+            // CI
+            ObjectType ci = (ObjectType)data.GetUInt16();
+            byte[] ln = new byte[6];
+            data.Get(ln);
+            // Attribute Id
+            int id = data.GetUInt8();
+            // Get parameters.
+            object parameters = null;
+            if (data.GetUInt8() != 0)
             {
-                throw new GXDLMSException("Invalid parameter");
+                GXDataInfo info = new GXDataInfo();
+                parameters = GXCommon.GetData(data, info);
             }
-            int pos = 5;
-            DataType type = DataType.None;
-            //Start index
-            int index = 0, count = 0, cachePos = 0;
-            if (selector == 1)//Read by range
+            GXDLMSObject obj = Settings.Objects.FindByLN(ci, GXDLMSObject.ToLogicalName(ln));
+            if (obj == null)
             {
-                object classId = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos);
-                type = DataType.None;
-                object ln = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos);
-                type = DataType.None;
-                object attributeIndex = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos);
-                type = DataType.None;
-                object version = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos);
-                type = DataType.None;
-                byte[] tmp = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos) as byte[];
-                start = GXDLMSClient.ChangeType(tmp, DataType.DateTime);
-                type = DataType.None;
-                tmp = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos) as byte[];
-                to = GXDLMSClient.ChangeType(tmp, DataType.DateTime);
+                obj = FindObject(ci, 0, GXDLMSObject.ToLogicalName(ln));
             }
-            else if (selector == 2)//Read by entry.
+            if (obj == null)
             {
-                start = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos);
-                type = DataType.None;
-                to = GXCommon.GetData(data, ref pos, ActionType.None, out count, out index, ref type, ref cachePos);
-                if (Convert.ToUInt32(start) > Convert.ToUInt32(to))
+                // Device reports a undefined object.
+                addError(ErrorCode.UndefinedObject, bb);
+                Debug.WriteLine("Undefined object.");
+            }
+            else
+            {
+                ValueEventArgs e = new ValueEventArgs(obj, id, 0, parameters);
+                Action(e);
+                if (e.Handled)
                 {
-                    throw new GXDLMSException("Invalid parameter");
+                    bb.Add((obj as IGXDLMSBase).Invoke(Settings, id, parameters));
+                }
+                else
+                {
+                    bb.Add((obj as IGXDLMSBase).Invoke(Settings, id, parameters));
+                }
+            }
+            return GXDLMS.SplitPdu(Settings, Command.MethodResponse, 1, bb, ErrorCode.Ok, DateTime.MinValue)[0];
+        }
+
+        ///<summary>
+        /// Server reports error.
+        ///</summary>
+        ///<param name="error">
+        /// Error code. </param>
+        ///<param name="bb">
+        /// Byte buffer where error info is saved.
+        ///</param>
+        private static void addError(ErrorCode error, GXByteBuffer bb)
+        {
+            if (error == ErrorCode.Ok)
+            {
+                bb.SetUInt8(0);
+            }
+            else
+            {
+                bb.SetUInt8(1);
+                bb.SetUInt8((byte)error);
+            }
+        }
+
+        ///<summary>
+        ///Handle set request.
+        ///</summary>
+        ///<returns>
+        ///Reply to the client.
+        ///</returns>
+        private byte[][] HandleSetRequest()
+        {
+            ErrorCode error = ErrorCode.Ok;
+            GXByteBuffer data = Reply.Data;
+            GXDataInfo info = new GXDataInfo();
+            GXByteBuffer bb = new GXByteBuffer();
+            // Get type.
+            short type = data.GetUInt8();
+            // Get invoke ID and priority.
+            data.GetUInt8();
+            // SetRequest normal
+            if (type == 1)
+            {
+                Settings.ResetBlockIndex();
+                ServerReply.Index = 0;
+                // CI
+                ObjectType ci = (ObjectType)data.GetUInt16();
+                byte[] ln = new byte[6];
+                data.Get(ln);
+                // Attribute index.
+                int index = data.GetUInt8();
+                // Get Access Selection.
+                data.GetUInt8();
+                object value = GXCommon.GetData(data, info);
+                GXDLMSObject obj = Settings.Objects.FindByLN(ci, GXDLMSObject.ToLogicalName(ln));
+                if (obj == null)
+                {
+                    obj = FindObject(ci, 0, GXDLMSObject.ToLogicalName(ln));
+                }
+                // If target is unknown.
+                if (obj == null)
+                {
+                    Debug.WriteLine("Undefined object.");
+                    // Device reports a undefined object.
+                    error = ErrorCode.UndefinedObject;
+                }
+                else
+                {
+                    AccessMode am = obj.GetAccess(index);
+                    // If write is denied.
+                    if (am != AccessMode.Write && am != AccessMode.ReadWrite)
+                    {
+                        Debug.WriteLine("Read Write denied.");
+                        error = ErrorCode.ReadWriteDenied;
+                    }
+                    else
+                    {
+                        try
+                        {
+                            if (value is byte[])
+                            {
+                                DataType dt = (obj as IGXDLMSBase).GetDataType(index);
+                                if (dt != DataType.None)
+                                {
+                                    value = GXDLMSClient.ChangeType((byte[])value, dt);
+                                }
+                            }
+                            ValueEventArgs e = new ValueEventArgs(obj, index, 0, null);
+                            Write(e);
+                            if (!e.Handled)
+                            {
+                                (obj as IGXDLMSBase).SetValue(Settings, index, value);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.WriteLine(e.Message);
+                            error = ErrorCode.HardwareFault;
+                        }
+                    }
                 }
             }
             else
             {
-                throw new GXDLMSException("Invalid parameter");
+                Debug.WriteLine("handleSetRequest failed. Unknown command.");
+                Settings.ResetBlockIndex();
+                error = ErrorCode.HardwareFault;
             }
+            return GXDLMS.SplitPdu(Settings, Command.SetResponse, 1, bb, error, DateTime.MinValue)[0];
         }
 
-        private byte[] GetValue(object name, GXDLMSObject item, int index)
-        {            
-            object[] values = item.GetValues();
-            if (index <= values.Length)
+        private byte[][] HandleGetRequest()
+        {
+            ErrorCode error = ErrorCode.Ok;
+            GXByteBuffer data = Reply.Data;
+            GXByteBuffer bb = new GXByteBuffer();
+            short type;
+            int index = 0;
+            object parameters = null;
+            // Get type.
+            type = data.GetUInt8();
+            // Get invoke ID and priority.
+            data.GetUInt8();
+            // GetRequest normal
+            if (type == 1)
             {
-                object value = values[index - 1];
-                Gurux.DLMS.DataType tp = item.GetDataType(index);
-                if (tp == DataType.None)
+                Settings.ResetBlockIndex();
+                ServerReply.Index = 0;
+                parameters = null;
+                // CI
+                ObjectType ci = (ObjectType)data.GetUInt16();
+                byte[] ln = new byte[6];
+                data.Get(ln);
+                // Attribute Id
+                int attributeIndex = data.GetUInt8();
+                GXDLMSObject obj = Settings.Objects.FindByLN(ci, GXDLMSObject.ToLogicalName(ln));
+                if (obj == null)
                 {
-                    tp = Gurux.DLMS.Internal.GXCommon.GetValueType(value);
+                    obj = FindObject(ci, 0, GXDLMSObject.ToLogicalName(ln));
                 }
-                if (tp != DataType.None || (value == null && tp == DataType.None))
+                if (obj == null)
                 {
-                    SendData.AddRange(ReadReply(name, item.ObjectType, index, value, tp));
-                    return SendData[FrameIndex];
-                }
-            }
-            //Return HW error.
-            SendData.Add(ServerReportError(1, 5, 3));
-            return SendData[FrameIndex];
-        }
-
-        /// <summary>
-        /// Generates a read message.
-        /// </summary>
-        /// <param name="name">Short or Logical Name.</param>
-        /// <param name="objectType">Read Interface.</param>
-        /// <param name="attributeOrdinal">Read attribute index.</param>
-        /// <returns>Read request as byte array.</returns>
-        public byte[][] ReadReply(object name, ObjectType objectType, int attributeOrdinal, object value, DataType type)
-        {
-            if ((objectType != ObjectType.None && attributeOrdinal < 0))
-            {
-                throw new GXDLMSException("Invalid parameter");
-            }
-            List<byte> data = new List<byte>();
-            GXCommon.SetData(data, type, value);
-            return m_Base.GenerateMessage(name, 0, data.ToArray(), objectType, attributeOrdinal, this.UseLogicalNameReferencing ? Command.GetResponse : Command.ReadResponse);
-        }
-
-        /// <summary>
-        /// Generates a acknowledge message.
-        /// </summary>
-        internal byte[] Acknowledge(Command cmd, byte status)
-        {
-            List<byte> data = new List<byte>();
-            data.Add((byte)cmd);
-            data.Add(0x01);
-            data.Add(0x81);
-            data.Add(status);
-            return m_Base.AddFrame(m_Base.GenerateIFrame(), false, data, 0, data.Count);
-        }
-
-        /// <summary>
-        /// Generates a acknowledge message.
-        /// </summary>
-        internal byte[] ServerReportError(byte serviceErrorCode, byte type, byte code)
-        {
-            List<byte> buff = new List<byte>(10);
-            if (this.InterfaceType == InterfaceType.General)
-            {
-                if (m_Base.Server)
-                {
-                    buff.AddRange(GXCommon.LLCReplyBytes);
+                    // "Access Error : Device reports a undefined object."
+                    error = ErrorCode.UndefinedObject;
                 }
                 else
                 {
-                    buff.AddRange(GXCommon.LLCSendBytes);
+                    // AccessSelection
+                    int selection = data.GetUInt8();
+                    int selector = 0;
+                    if (selection != 0)
+                    {
+                        selector = data.GetUInt8();
+                        GXDataInfo info = new GXDataInfo();
+                        parameters = GXCommon.GetData(data, info);
+                    }
+
+                    ValueEventArgs e = new ValueEventArgs(obj, attributeIndex, 0, parameters);
+                    Read(e);
+                    object value;
+                    if (e.Handled)
+                    {
+                        value = e.Value;
+                    }
+                    else
+                    {
+                        value = (obj as IGXDLMSBase).GetValue(Settings, attributeIndex, selector, parameters);
+                    }
+                    GXDLMS.AppedData(obj, attributeIndex, bb, value);
                 }
+                ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 1, bb, error, DateTime.MinValue);
+
             }
-            byte cmd;
-            if (m_Base.Server)
+            else if (type == 2)
             {
-                if (this.UseLogicalNameReferencing)
+                // Get request for next data block
+                // Get block index.
+                index = (int)data.GetUInt32();
+                if (index != Settings.BlockIndex + 1)
                 {
-                    cmd = (byte)Command.GetResponse;
+                    Debug.WriteLine("handleGetRequest failed. Invalid block number. " + Settings.BlockIndex + "/" + index);
+                    ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 1, bb,
+                        ErrorCode.DataBlockNumberInvalid, DateTime.MinValue);
+                    index = 0;
+                    ServerReply.Index = index;
                 }
                 else
                 {
-                    cmd = (byte)Command.ReadResponse;
+                    Settings.IncreaseBlockIndex();
+                    index = ServerReply.Index + 1;
+                    ServerReply.Index = index;
                 }
+            }
+            else if (type == 3)
+            {
+                // Get request with a list.
+                int cnt = GXCommon.GetObjectCount(data);
+                GXCommon.SetObjectCount(cnt, bb);
+                for (int pos = 0; pos != cnt; ++pos)
+                {
+                    ObjectType ci = (ObjectType)data.GetUInt16();
+                    byte[] ln = new byte[6];
+                    data.Get(ln);
+                    short attributeIndex = data.GetUInt8();
+
+                    GXDLMSObject obj = Settings.Objects.FindByLN(ci, GXDLMSObject.ToLogicalName(ln));
+                    if (obj == null)
+                    {
+                        obj = FindObject(ci, 0, GXDLMSObject.ToLogicalName(ln));
+                    }
+                    if (obj == null)
+                    {
+                        // "Access Error : Device reports a undefined object."
+                        error = ErrorCode.UndefinedObject;
+                    }
+                    else
+                    {
+                        // AccessSelection
+                        int selection = data.GetUInt8();
+                        int selector = 0;
+                        if (selection != 0)
+                        {
+                            selector = data.GetUInt8();
+                            GXDataInfo info = new GXDataInfo();
+                            parameters = GXCommon.GetData(data, info);
+                        }
+                        try
+                        {
+                            ValueEventArgs e = new ValueEventArgs(obj, attributeIndex, 0, parameters);
+                            Read(e);
+                            object value;
+                            if (e.Handled)
+                            {
+                                value = e.Value;
+                            }
+                            else
+                            {
+                                value = (obj as IGXDLMSBase).GetValue(Settings, attributeIndex, selector, parameters);
+                            }
+                            bb.SetUInt8(ErrorCode.Ok);
+                            GXDLMS.AppedData(obj, attributeIndex, bb, value);
+                        }
+                        catch (Exception)
+                        {
+                            bb.SetUInt8(1);
+                            bb.SetUInt8(ErrorCode.HardwareFault);
+                        }
+                    }
+                }
+                ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 3, bb, error, DateTime.MinValue);
             }
             else
             {
-                if (this.UseLogicalNameReferencing)
+                Debug.WriteLine("handleGetRequest failed. Invalid command type.");
+                Settings.ResetBlockIndex();
+                // Access Error : Device reports a hardware fault.
+                ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 1, bb, ErrorCode.HardwareFault, DateTime.MinValue);
+            }
+            ServerReply.Index = index;
+            return ServerReply.ReplyMessages[index];
+        }
+
+        ///<summary>
+        /// Find Short Name object.
+        ///</summary>
+        ///<param name="sn">
+        ///Short name to find.
+        ///</param>
+        private GXSNInfo FindSNObject(int sn)
+        {
+            GXSNInfo info = new GXSNInfo();
+            foreach (KeyValuePair<ushort, GXDLMSObject> it in SortedItems)
+            {
+                int aCnt = ((IGXDLMSBase)it.Value).GetAttributeCount();
+                if (sn >= it.Key && sn <= (it.Key + (8 * aCnt)))
                 {
-                    cmd = (byte)Command.GetRequest;
+                    info.IsAction = false;
+                    info.Item = it.Value;
+                    info.Index = ((sn - info.Item.ShortName) / 8) + 1;
+                    Debug.WriteLine(string.Format("Reading {0:D}, attribute index {1:D}", info.Item.Name, info.Index));
+                    break;
+                }
+                else if (sn >= it.Key + aCnt && ((IGXDLMSBase)it.Value).GetMethodCount() != 0)
+                {
+                    // Check if action.
+
+                    // Convert DLMS data to object type.
+                    int value2, count;
+                    GXDLMS.GetActionInfo(it.Value.ObjectType, out value2, out count);
+                    if (sn <= it.Key + value2 + (8 * count))
+                    {
+                        info.Item = it.Value;
+                        info.IsAction = true;
+                        info.Index = (sn - it.Value.ShortName - value2) / 8 + 1;
+                        break;
+                    }
+                }
+            }
+            if (info.Item == null)
+            {
+                info.Item = FindObject(ObjectType.None, sn, null);
+            }
+            if (info.Item == null)
+            {
+                throw new System.ArgumentException("Invalid SN Command.");
+            }
+            return info;
+        }
+
+        ///    
+        ///<summary>Handle read request.
+        /// </summary>
+        ///<returns> Reply to the client. </returns>
+        ///     
+        private byte[][] HandleReadRequest()
+        {
+            GXByteBuffer data = Reply.Data;
+            short type;
+            object value = null;
+            GXByteBuffer bb = new GXByteBuffer();
+            int cnt = GXCommon.GetObjectCount(data);
+            GXCommon.SetObjectCount(cnt, bb);
+            GXSNInfo info;
+            for (int pos = 0; pos != cnt; ++pos)
+            {
+                type = data.GetUInt8();
+                // GetRequest normal
+                if (type == 2)
+                {
+                    int sn = data.GetUInt16();
+                    info = FindSNObject(sn);
+                    if (!info.IsAction)
+                    {
+                        ValueEventArgs e = new ValueEventArgs(info.Item, info.Index, 0, null);
+                        Read(e);
+                        if (e.Handled)
+                        {
+                            value = e.Value;
+                        }
+                        else
+                        {
+                            value = (info.Item as IGXDLMSBase).GetValue(Settings, info.Index, 0, null);
+                        }
+                        // Set status.
+                        bb.SetUInt8(0);
+                        GXDLMS.AppedData(info.Item, info.Index, bb, value);
+                    }
+                    else
+                    {
+                        ValueEventArgs e = new ValueEventArgs(info.Item, info.Index, 0, null);
+                        Action(e);
+                        if (e.Handled)
+                        {
+                            value = e.Value;
+                        }
+                        else
+                        {
+                            value = ((IGXDLMSBase)info.Item).Invoke(Settings, info.Index, null);
+                        }
+                        // Set status.
+                        bb.SetUInt8(0);
+                        // Add value
+                        bb.SetUInt8(GXCommon.GetValueType(value));
+                        bb.Add(value);
+                    }
+                }
+                else if (type == 2)
+                {
+                    // Get request for next data block
+                    throw new System.ArgumentException("TODO: Invalid Command.");
+                }
+                else if (type == 4)
+                {
+                    // Parameterised access.
+                    int sn = data.GetUInt16();
+                    int selector = data.GetUInt8();
+                    GXDataInfo di = new GXDataInfo();
+                    object parameters = GXCommon.GetData(data, di);
+                    info = FindSNObject(sn);
+                    if (!info.IsAction)
+                    {
+                        ValueEventArgs e = new ValueEventArgs(info.Item, info.Index, 0, parameters);
+                        Read(e);
+                        if (e.Handled)
+                        {
+                            value = e.Value;
+                        }
+                        else
+                        {
+                            value = (info.Item as IGXDLMSBase).GetValue(Settings, info.Index, selector, parameters);
+                        }
+                        // Set status.
+                        bb.SetUInt8(0);
+                        GXDLMS.AppedData(info.Item, info.Index, bb, value);
+                    }
+                    else
+                    {
+                        ValueEventArgs e = new ValueEventArgs(info.Item, info.Index, 0, parameters);
+                        e.Value = parameters;
+                        Action(e);
+                        if (e.Handled)
+                        {
+                            value = e.Value;
+                        }
+                        else
+                        {
+                            value = ((IGXDLMSBase)info.Item).Invoke(Settings, info.Index, parameters);
+                        }
+                        // Add value
+                        bb.Add(value);
+                    }
                 }
                 else
                 {
-                    cmd = (byte)Command.ReadRequest;
+                    throw new System.ArgumentException("Invalid Command.");
                 }
             }
-            //Get request normal
-            buff.Add(cmd);
-            buff.Add(serviceErrorCode);
-            //Invoke ID and priority.
-            buff.Add(type);
-            buff.Add(code);
-            return m_Base.AddFrame(m_Base.GenerateIFrame(), false, buff, 0, buff.Count);
+            return GXDLMS.SplitPdu(Settings, Command.ReadResponse, 1, bb,
+                                ErrorCode.Ok, DateTime.MinValue)[0];
+        }
+
+        ///<summary>
+        /// Handle write request.
+        ///</summary>
+        ///<param name="Reply">
+        /// Received data from the client.
+        /// </param>
+        ///<returns> 
+        /// Reply.
+        ///</returns>
+        private byte[][] HandleWriteRequest()
+        {
+            GXByteBuffer data = Reply.Data;
+            short type;
+            object value;
+            // Get object count.
+            IList<GXSNInfo> targets = new List<GXSNInfo>();
+            int cnt = GXCommon.GetObjectCount(data);
+            GXByteBuffer results = new GXByteBuffer((ushort)cnt);
+            for (int pos = 0; pos != cnt; ++pos)
+            {
+                type = data.GetUInt8();
+                if (type == 2)
+                {
+                    int sn = data.GetUInt16();
+                    GXSNInfo info = FindSNObject(sn);
+                    targets.Add(info);
+                    // If target is unknown.
+                    if (info == null)
+                    {
+                        // Device reports a undefined object.
+                        results.SetUInt8(ErrorCode.UndefinedObject);
+                    }
+                    else
+                    {
+                        results.SetUInt8(ErrorCode.Ok);
+                    }
+                }
+                else
+                {
+                    // Device reports a HW error.
+                    results.SetUInt8(ErrorCode.HardwareFault);
+                }
+            }
+            // Get data count.
+            cnt = GXCommon.GetObjectCount(data);
+            GXDataInfo di = new GXDataInfo();
+            for (int pos = 0; pos != cnt; ++pos)
+            {
+                if (results.GetUInt8(pos) == 0)
+                {
+                    // If object has found.
+                    GXSNInfo target = targets[pos];
+                    value = GXCommon.GetData(data, di);
+                    if (value is byte[])
+                    {
+                        DataType dt = target.Item.GetDataType(target.Index);
+                        if (dt != DataType.None && dt != DataType.OctetString)
+                        {
+                            value = GXDLMSClient.ChangeType((byte[])value, dt);
+                        }
+                    }
+                    di.Clear();
+                    AccessMode am = target.Item.GetAccess(target.Index);
+                    // If write is denied.
+                    if (am != AccessMode.Write && am != AccessMode.ReadWrite)
+                    {
+                        results.SetUInt8((byte)pos, (byte)ErrorCode.ReadWriteDenied);
+                    }
+                    else
+                    {
+                        ValueEventArgs e = new ValueEventArgs(target.Item, target.Index, 0, null);
+                        e.Value = value;
+                        Write(e);
+                        if (!e.Handled)
+                        {
+                            (target.Item as IGXDLMSBase).SetValue(Settings, target.Index, value);
+                        }
+                    }
+                }
+            }
+            GXByteBuffer bb = new GXByteBuffer((UInt16)(2 * cnt + 2));
+            GXCommon.SetObjectCount(cnt, bb);
+            byte ret;
+            for (int pos = 0; pos != cnt; ++pos)
+            {
+                ret = results.GetUInt8(pos);
+                // If meter returns error.
+                if (ret != 0)
+                {
+                    bb.SetUInt8(1);
+                }
+                bb.SetUInt8(ret);
+            }
+            return GXDLMS.SplitPdu(Settings, Command.WriteResponse, 1, bb, ErrorCode.Ok, DateTime.MinValue)[0];
+        }
+
+        ///<summary>
+        ///Parse AARQ request that client send and returns AARE request.
+        /// </summary>
+        ///<returns> 
+        ///Reply to the client. 
+        ///</returns>
+        private byte[][] HandleAarqRequest()
+        {
+            AssociationResult result = AssociationResult.Accepted;
+            Settings.CtoSChallenge = null;
+            if (!Settings.UseCustomChallenge)
+            {
+                Settings.StoCChallenge = null;
+            }
+            SourceDiagnostic diagnostic = GXAPDU.ParsePDU(Settings, Settings.Cipher, Reply.Data);
+            if (diagnostic != SourceDiagnostic.None)
+            {
+                result = AssociationResult.PermanentRejected;
+                diagnostic = SourceDiagnostic.ApplicationContextNameNotSupported;
+            }
+            else
+            {
+                // Check that user can access server.
+                diagnostic = ValidateAuthentication(Settings.Authentication, Settings.Password);
+                if (diagnostic != SourceDiagnostic.None)
+                {
+                    result = AssociationResult.PermanentRejected;
+                }
+                else if (Settings.Authentication > Authentication.Low)
+                {
+                    // If High authentication is used.
+                    Settings.StoCChallenge = GXSecure.GenerateChallenge(Settings.Authentication);
+                    result = AssociationResult.Accepted;
+                    diagnostic = SourceDiagnostic.AuthenticationRequired;
+                }
+            }
+            // Generate AARE packet.
+            GXByteBuffer buff = new GXByteBuffer(150);
+            GXAPDU.GenerateAARE(Settings, buff, result, diagnostic, Settings.Cipher);
+            return GXDLMS.SplitPdu(Settings, Command.Aare, 0, buff,
+                            ErrorCode.Ok, DateTime.MinValue)[0];
+        }
+
+        ///<summary>
+        ///Parse SNRM Request. If server do not accept client empty byte array is returned.
+        /// </summary>
+        ///<returns>
+        ///Returns returned UA packet. 
+        ///</returns>
+        private byte[][] HandleSnrmRequest()
+        {
+            GXByteBuffer bb = new GXByteBuffer(25);
+            bb.SetUInt8(0x81); // FromatID
+            bb.SetUInt8(0x80); // GroupID
+            bb.SetUInt8(0); // Length
+            bb.SetUInt8(HDLCInfo.MaxInfoTX);
+            bb.SetUInt8(GXCommon.GetSize(Limits.MaxInfoTX));
+            bb.Add(Limits.MaxInfoTX);
+            bb.SetUInt8(HDLCInfo.MaxInfoRX);
+            bb.SetUInt8(GXCommon.GetSize(Limits.MaxInfoRX));
+            bb.Add(Limits.MaxInfoRX);
+            bb.SetUInt8(HDLCInfo.WindowSizeTX);
+            bb.SetUInt8(GXCommon.GetSize(Limits.WindowSizeTX));
+            bb.Add(Limits.WindowSizeTX);
+            bb.SetUInt8(HDLCInfo.WindowSizeRX);
+            bb.SetUInt8(GXCommon.GetSize(Limits.WindowSizeRX));
+            bb.Add(Limits.WindowSizeRX);
+            bb.SetUInt8(2, (byte)(bb.Size - 3));
+            return GXDLMS.SplitToHdlcFrames(Settings, (byte)Command.Ua, bb);
+        }
+
+        ///<summary>
+        ///Generates disconnect request.
+        /// </summary>
+        ///<returns>
+        ///Disconnect request. 
+        ///</returns>
+        private byte[][] GenerateDisconnectRequest()
+        {
+            GXByteBuffer buff;
+            if (this.InterfaceType == InterfaceType.WRAPPER)
+            {
+                buff = new GXByteBuffer(2);
+                buff.SetUInt8(0x63);
+                buff.SetUInt8(0x0);
+                return GXDLMS.SplitToWrapperFrames(Settings, buff);
+            }
+            else
+            {
+                buff = new GXByteBuffer(22);
+                buff.SetUInt8(0x81); // FromatID
+                buff.SetUInt8(0x80); // GroupID
+                buff.SetUInt8(0); // Length
+
+                buff.SetUInt8(HDLCInfo.MaxInfoTX);
+                buff.SetUInt8(GXCommon.GetSize(Limits.MaxInfoTX));
+                buff.Add(Limits.MaxInfoTX);
+
+                buff.SetUInt8(HDLCInfo.MaxInfoRX);
+                buff.SetUInt8(GXCommon.GetSize(Limits.MaxInfoRX));
+                buff.Add(Limits.MaxInfoRX);
+
+                buff.SetUInt8(HDLCInfo.WindowSizeTX);
+                buff.SetUInt8(GXCommon.GetSize(Limits.WindowSizeTX));
+                buff.Add(Limits.WindowSizeTX);
+
+                buff.SetUInt8(HDLCInfo.WindowSizeRX);
+                buff.SetUInt8(GXCommon.GetSize(Limits.WindowSizeRX));
+                buff.Add(Limits.WindowSizeRX);
+
+                int len = buff.Position - 3;
+                buff.SetUInt8(2, (byte)len); // Length.
+            }
+            return GXDLMS.SplitToHdlcFrames(Settings, (byte)Command.Ua, buff);
         }
     }
 }
