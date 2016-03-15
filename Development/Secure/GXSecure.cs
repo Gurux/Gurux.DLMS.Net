@@ -103,8 +103,8 @@ namespace Gurux.DLMS.Secure
             }
             else
             {
-                challenge.Set(secret);
                 challenge.Set(data);
+                challenge.Set(secret);
             }
             tmp = challenge.Array();
             if (settings.Authentication == Authentication.HighMD5)

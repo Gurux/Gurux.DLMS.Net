@@ -655,7 +655,6 @@ namespace Gurux.DLMS.Client.Example
                 if (reply.Error == (short)ErrorCode.Rejected)
                 {
                     Thread.Sleep(1000);
-                    data = Client.ReceiverReady(rt);
                     ReadDLMSPacket(data, reply);
                     if (reply.Error != 0)
                     {
