@@ -329,6 +329,7 @@ namespace Gurux.DLMS
             set
             {
                 Settings.StartingBlockIndex = value;
+                Settings.ResetBlockIndex();
             }
         }
 
@@ -429,6 +430,7 @@ namespace Gurux.DLMS
         /// <seealso cref="ParseUAResponse"/>    
         public byte[] SNRMRequest()
         {
+            Settings.Connected = false;
             IsAuthenticationRequired = false;
             Settings.MaxReceivePDUSize = 0xFFFF;
             // SNRM request is not used in network connections.
@@ -1546,9 +1548,9 @@ namespace Gurux.DLMS
             // Add version.
             GXCommon.SetData(buff, DataType.UInt16, sort.Version);
             // Add start time.
-            GXCommon.SetData(buff, DataType.DateTime, start);
+            GXCommon.SetData(buff, DataType.OctetString, start);
             // Add end time.
-            GXCommon.SetData(buff, DataType.DateTime, end);
+            GXCommon.SetData(buff, DataType.OctetString, end);
             // Add array of read columns. Read All...
             buff.SetUInt8(0x01);
             // Add item count

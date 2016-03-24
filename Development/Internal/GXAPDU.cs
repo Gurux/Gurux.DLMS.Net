@@ -427,7 +427,7 @@ namespace Gurux.DLMS.Internal
             {
                 throw new Exception("Encoding failed. Not an Object ID.");
             }
-            if (settings.IsServer)
+            if (settings.IsServer && settings.Cipher != null)
             {
                 settings.Cipher.Security = Security.None;
             }

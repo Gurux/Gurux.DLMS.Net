@@ -243,7 +243,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Sets the meter�s time to the nearest (+/-) quarter of an hour value (*:00, *:15, *:30, *:45).
+        /// Sets the meter's time to the nearest (+/-) quarter of an hour value (*:00, *:15, *:30, *:45).
         /// </summary>
         /// <returns></returns>
         public byte[][] AdjustToQuarter(GXDLMSClient client)
@@ -253,7 +253,7 @@ namespace Gurux.DLMS.Objects
 
 
         /// <summary>
-        /// Sets the meter�s time to the nearest (+/-) starting point of a measuring period.
+        /// Sets the meter's time to the nearest (+/-) starting point of a measuring period.
         /// </summary>
         /// <returns></returns>
         public byte[][] AdjustToMeasuringPeriod(GXDLMSClient client)
@@ -262,7 +262,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Sets the meter�s time to the nearest minute.
+        /// Sets the meter's time to the nearest minute.
         /// If second_counter < 30 s, so second_counter is set to 0.
         /// If second_counter � 30 s, so second_counter is set to 0, and
         /// minute_counter and all depending clock values are incremented if necessary.
@@ -275,7 +275,7 @@ namespace Gurux.DLMS.Objects
 
         /// <summary>
         /// This Method is used in conjunction with the preset_adjusting_time
-        /// Method. If the meter�s time lies between validity_interval_start and
+        /// Method. If the meter's time lies between validity_interval_start and
         /// validity_interval_end, then time is set to preset_time.
         /// </summary>
         /// <returns></returns>
@@ -296,9 +296,9 @@ namespace Gurux.DLMS.Objects
             GXByteBuffer buff = new GXByteBuffer();
             buff.Add((byte)DataType.Structure);
             buff.Add((byte)3);
-            GXCommon.SetData(buff, DataType.DateTime, presetTime);
-            GXCommon.SetData(buff, DataType.DateTime, validityIntervalStart);
-            GXCommon.SetData(buff, DataType.DateTime, validityIntervalEnd);
+            GXCommon.SetData(buff, DataType.OctetString, presetTime);
+            GXCommon.SetData(buff, DataType.OctetString, validityIntervalStart);
+            GXCommon.SetData(buff, DataType.OctetString, validityIntervalEnd);
             return client.Method(this, 5, buff.Array(), DataType.Array);            
         }
 
@@ -399,7 +399,7 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 2)
             {
-                return DataType.DateTime;
+                return DataType.OctetString;
             }
             if (index == 3)
             {
@@ -411,11 +411,11 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 5)
             {
-                return DataType.DateTime;
+                return DataType.OctetString;
             }
             if (index == 6)
             {
-                return DataType.DateTime;
+                return DataType.OctetString;
             }
             if (index == 7)
             {

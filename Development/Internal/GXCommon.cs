@@ -1205,15 +1205,7 @@ namespace Gurux.DLMS.Internal
         ///</param>
         public static void SetData(GXByteBuffer buff, DataType type, object value)
         {      
-            if (type == DataType.OctetString && (value is GXDateTime || value is DateTime))
-            {
-                type = DataType.DateTime;
-            }
-            if (type == DataType.DateTime || type == DataType.Date || type == DataType.Time)
-            {
-                buff.SetUInt8((byte)DataType.OctetString);
-            }
-            else if ((type == DataType.Array || type == DataType.Structure) && value is byte[])
+            if ((type == DataType.Array || type == DataType.Structure) && value is byte[])
             {
                 // If byte array is added do not add type.
                 buff.Set((byte[])value);
@@ -1299,7 +1291,36 @@ namespace Gurux.DLMS.Internal
             }
             else if (type == DataType.OctetString)
             {
-                SetOctetString(buff, value);
+                if (value is GXDateTime)
+                {
+                    GXDateTime tmp = value as GXDateTime;
+                    //If only date part is written.
+                    if ((tmp.Skip & (DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms)) == 
+                        (DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms))
+                    {
+                        SetDate(buff, value);
+                    }
+                    //If only time part is written.
+                    else if ((tmp.Skip & (DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek)) ==
+                        (DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek))
+                    {
+                        SetTime(buff, value);
+                    }
+                        //Write date and time.
+                    else
+                    {
+                        SetDateTime(buff, value);
+                    }
+                }
+                //Date time is always written as date time.
+                else if (value is DateTime)
+                {
+                    SetDateTime(buff, value);
+                }
+                else
+                {
+                    SetOctetString(buff, value);
+                }
             }
             else if (type == DataType.Array || type == DataType.Structure)
             {

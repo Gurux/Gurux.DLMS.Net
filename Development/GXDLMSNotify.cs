@@ -238,7 +238,7 @@ namespace Gurux.DLMS
             }
             else
             {
-                GXCommon.SetData(buff, DataType.DateTime, date);
+                GXCommon.SetData(buff, DataType.OctetString, date);
             }
             buff.Set(data);
             return GXDLMS.SplitPdu(Settings, Command.DataNotification, 0, buff, ErrorCode.Ok, DateTime.MinValue)[0];
@@ -274,7 +274,7 @@ namespace Gurux.DLMS
             }
             else
             {
-                GXCommon.SetData(buff, DataType.DateTime, date);
+                GXCommon.SetData(buff, DataType.OctetString, date);
             }
             buff.SetUInt8(DataType.Array);
             GXCommon.SetObjectCount(objects.Count, buff);
@@ -302,6 +302,7 @@ namespace Gurux.DLMS
             List<KeyValuePair<GXDLMSObject, int>> items = new List<KeyValuePair<GXDLMSObject, int>>();
             GXDLMS.GetValueFromData(Settings, reply);
             Object[] list = (Object[])reply.Value;
+            GXDLMSConverter c = new GXDLMSConverter();
             GXDLMSObjectCollection objects = new GXDLMSObjectCollection();
             foreach (Object it in (Object[])list[0])
             {
@@ -314,6 +315,7 @@ namespace Gurux.DLMS
                     if (comp == null)
                     {
                         comp = GXDLMSClient.CreateDLMSObject(classID, 0, 0, tmp[1], null);
+                        c.UpdateOBISCodeInformation(comp); 
                         objects.Add(comp);
                     }
                     if ((comp is IGXDLMSBase))

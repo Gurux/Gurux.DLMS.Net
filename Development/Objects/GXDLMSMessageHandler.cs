@@ -209,8 +209,8 @@ namespace Gurux.DLMS.Objects
                 {
                     buff.Add((byte)DataType.Structure);
                     buff.Add(2);
-                    GXCommon.SetData(buff, DataType.DateTime, it.Key);
-                    GXCommon.SetData(buff, DataType.DateTime, it.Value);
+                    GXCommon.SetData(buff, DataType.OctetString, it.Key);
+                    GXCommon.SetData(buff, DataType.OctetString, it.Value);
                 }
                 return buff.Array();
             }

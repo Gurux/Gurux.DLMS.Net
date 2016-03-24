@@ -431,6 +431,7 @@ namespace Gurux.DLMS
         /// </summary>
         public void Reset()
         {
+            Settings.Connected = false;
             ConnectedClientAddress = 0;
             Reply.Clear();
             Settings.ServerAddress = 0;
@@ -579,9 +580,11 @@ namespace Gurux.DLMS
                     break;
                 case Command.Aarq:
                     Frames = HandleAarqRequest();
+                    Settings.Connected = true;
                     break;
                 case Command.DisconnectRequest:
                     Frames = GenerateDisconnectRequest();
+                    Settings.Connected = false;
                     break;
                 default:
                     Debug.WriteLine("Invalid command: " + Reply.Command.ToString());
@@ -812,7 +815,7 @@ namespace Gurux.DLMS
                     {
                         value = (obj as IGXDLMSBase).GetValue(Settings, attributeIndex, selector, parameters);
                     }
-                    GXDLMS.AppedData(obj, attributeIndex, bb, value);
+                    GXDLMS.AppendData(obj, attributeIndex, bb, value);
                 }
                 ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 1, bb, error, DateTime.MinValue);
 
@@ -884,7 +887,7 @@ namespace Gurux.DLMS
                                 value = (obj as IGXDLMSBase).GetValue(Settings, attributeIndex, selector, parameters);
                             }
                             bb.SetUInt8(ErrorCode.Ok);
-                            GXDLMS.AppedData(obj, attributeIndex, bb, value);
+                            GXDLMS.AppendData(obj, attributeIndex, bb, value);
                         }
                         catch (Exception)
                         {
@@ -989,7 +992,7 @@ namespace Gurux.DLMS
                         }
                         // Set status.
                         bb.SetUInt8(0);
-                        GXDLMS.AppedData(info.Item, info.Index, bb, value);
+                        GXDLMS.AppendData(info.Item, info.Index, bb, value);
                     }
                     else
                     {
@@ -1037,7 +1040,7 @@ namespace Gurux.DLMS
                         }
                         // Set status.
                         bb.SetUInt8(0);
-                        GXDLMS.AppedData(info.Item, info.Index, bb, value);
+                        GXDLMS.AppendData(info.Item, info.Index, bb, value);
                     }
                     else
                     {

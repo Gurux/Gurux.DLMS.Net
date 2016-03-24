@@ -129,7 +129,6 @@ namespace GuruxDLMSServerExample
             ac.CallingWindow.Add(new KeyValuePair<GXDateTime, GXDateTime>(new GXDateTime(-1, -1, -1, 1, 0, 0, -1), new GXDateTime(-1, -1, -1, 6, 0, 0, -1)));
             ac.Destinations = new string[] { "www.gurux.org" };
             Items.Add(ac);
-
             ///////////////////////////////////////////////////////////////////////
             //Add Activity Calendar object.
             GXDLMSActivityCalendar activity = new GXDLMSActivityCalendar();
@@ -143,7 +142,6 @@ namespace GuruxDLMSServerExample
             activity.DayProfileTablePassive = new GXDLMSDayProfile[] { new GXDLMSDayProfile(1, new GXDLMSDayProfileAction[] { new GXDLMSDayProfileAction(new GXDateTime(DateTime.Now), "0.0.1.0.0.255", 1) }) };
             activity.Time = new GXDateTime(DateTime.Now);
             Items.Add(activity);
-
             ///////////////////////////////////////////////////////////////////////
             //Add Optical Port Setup object.
             GXDLMSIECOpticalPortSetup optical = new GXDLMSIECOpticalPortSetup();
@@ -182,7 +180,6 @@ namespace GuruxDLMSServerExample
             rm.Actions = new GXDLMSActionSet[] { set };
             rm.MonitoredValue.Update(r, 2);
             Items.Add(rm);
-
             ///////////////////////////////////////////////////////////////////////
             //Add action schedule object.
             GXDLMSActionSchedule actionS = new GXDLMSActionSchedule();

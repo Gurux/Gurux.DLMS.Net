@@ -251,7 +251,7 @@ namespace Gurux.DLMS
             }
         }
      
-        internal static void AppedData(GXDLMSObject obj, int index, GXByteBuffer bb, Object value)
+        internal static void AppendData(GXDLMSObject obj, int index, GXByteBuffer bb, Object value)
         {
             DataType tp = obj.GetDataType(index);
             if (tp == DataType.Array)
@@ -270,6 +270,11 @@ namespace Gurux.DLMS
                 if (tp == DataType.None)
                 {
                     tp = GXCommon.GetValueType(value);
+                    //If data type is not defined for Date Time it is write as Octect string.
+                    if (tp == DataType.DateTime)
+                    {
+                        tp = DataType.OctetString;
+                    }
                 }
             }
             GXCommon.SetData(bb, tp, value);
@@ -476,7 +481,7 @@ namespace Gurux.DLMS
                         }
                         else
                         {
-                            GXCommon.SetData(bb, DataType.DateTime, date);
+                            GXCommon.SetData(bb, DataType.OctetString, date);
                         } 
                     }
                     // If all data is not fit to one PDU.
@@ -907,7 +912,7 @@ namespace Gurux.DLMS
                 if ((frame & 1) == 0)
                 {
                     GetLLCBytes(server, reply);
-                    if (settings.IsServer)
+                    if (!settings.Connected && settings.IsServer)
                     {
                         if (type == FrameType.Information)
                         {
@@ -1185,18 +1190,22 @@ namespace Gurux.DLMS
                 // Response normal. Get data if exists.
                 if (data.Data.Position < data.Data.Size)
                 {
-                    if (data.Data.GetUInt8() != 1)
+                    int size = data.Data.GetUInt8();
+                    if (size != 0)
                     {
-                        throw new GXDLMSException(
-                                "parseApplicationAssociationResponse failed. "
-                                        + "Invalid tag.");
+                        if (size != 1)
+                        {
+                            throw new GXDLMSException(
+                                    "parseApplicationAssociationResponse failed. "
+                                            + "Invalid tag.");
+                        }
+                        ret = data.Data.GetUInt8();
+                        if (ret != 0)
+                        {
+                            throw new GXDLMSException(ret);
+                        }
+                        GetDataFromBlock(data.Data, 0);
                     }
-                    ret = data.Data.GetUInt8();
-                    if (ret != 0)
-                    {
-                        throw new GXDLMSException(ret);
-                    }
-                    GetDataFromBlock(data.Data, 0);
                 }
             }
             else

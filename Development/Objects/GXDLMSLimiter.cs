@@ -391,7 +391,7 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8((byte) DataType.Structure);
                 data.SetUInt8(3);                
                 GXCommon.SetData(data, DataType.UInt16, EmergencyProfile.ID);
-                GXCommon.SetData(data, DataType.DateTime, EmergencyProfile.ActivationTime);
+                GXCommon.SetData(data, DataType.OctetString, EmergencyProfile.ActivationTime);
                 GXCommon.SetData(data, DataType.UInt32, EmergencyProfile.Duration);
                 return data.Array();
             }

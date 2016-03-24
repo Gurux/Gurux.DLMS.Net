@@ -292,8 +292,8 @@ namespace Gurux.DLMS.Objects
                 {
                     buff.SetUInt8(DataType.Structure);
                     buff.SetUInt8(2);
-                    GXCommon.SetData(buff, DataType.DateTime, it.Key);
-                    GXCommon.SetData(buff, DataType.DateTime, it.Value);
+                    GXCommon.SetData(buff, DataType.OctetString, it.Key);
+                    GXCommon.SetData(buff, DataType.OctetString, it.Value);
                 }
                 return buff.Array(); 
             }

@@ -550,9 +550,17 @@ namespace Gurux.DLMS.Client.Example
                 }
             }
             WriteTrace("-> " + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(p.Reply, true));
-            if (reply.Error != 0 && reply.Error != (short)ErrorCode.Rejected)
+            if (reply.Error != 0)
             {
-                throw new GXDLMSException(reply.Error);
+                if (reply.Error == (short)ErrorCode.Rejected)
+                {
+                    Thread.Sleep(1000);
+                    ReadDLMSPacket(data, reply);
+                }
+                else
+                {
+                    throw new GXDLMSException(reply.Error);
+                }
             }
         }
 
@@ -628,10 +636,6 @@ namespace Gurux.DLMS.Client.Example
             {
                 reply.Clear();
                 ReadDataBlock(it, reply);
-                if (reply.Error == (short) ErrorCode.Rejected)
-                {
-                    return false;
-                }
             }
             return true;
         }
@@ -646,21 +650,10 @@ namespace Gurux.DLMS.Client.Example
         public void ReadDataBlock(byte[] data, GXReplyData reply)
         {
             ReadDLMSPacket(data, reply);
-            RequestTypes rt;
             while (reply.IsMoreData)
             {
-                rt = reply.MoreData;
-                data = Client.ReceiverReady(rt);
-                ReadDLMSPacket(data, reply);
-                if (reply.Error == (short)ErrorCode.Rejected)
-                {
-                    Thread.Sleep(1000);
-                    ReadDLMSPacket(data, reply);
-                    if (reply.Error != 0)
-                    {
-                        throw new GXDLMSException(reply.Error);
-                    }
-                }
+                data = Client.ReceiverReady(reply.MoreData);
+                ReadDLMSPacket(data, reply);                
                 if (!Trace)
                 {
                     //If data block is read.
