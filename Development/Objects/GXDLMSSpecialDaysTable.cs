@@ -164,7 +164,7 @@ namespace Gurux.DLMS.Objects
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8((byte)3); //Count
                         GXCommon.SetData(data, DataType.UInt16, it.Index);
-                        GXCommon.SetData(data, DataType.OctetString, it.Date);
+                        GXCommon.SetData(data, DataType.DateTime, it.Date);
                         GXCommon.SetData(data, DataType.UInt8, it.DayId);
                     }
                 }

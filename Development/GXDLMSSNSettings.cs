@@ -64,12 +64,44 @@ namespace Gurux.DLMS
         /// </summary>
         public GXDLMSSNSettings(byte[] conformanceBlock)
         {
+            SetConformanceBlock(conformanceBlock);
+        }
+
+        /// <summary>
+        /// User can initialize own conformance block.
+        /// </summary>
+        /// <param name="conformanceBlock"></param> 
+        public void SetConformanceBlock(byte[] conformanceBlock)
+        {
+            if (conformanceBlock == null || conformanceBlock.Length != 3)
+            {
+                throw new ArgumentException("Invalid conformance block.");
+            }
             ConformanceBlock = conformanceBlock;
+        }
+
+        /// <summary>
+        /// Get conformance block bytes.
+        /// </summary>
+        /// <returns></returns>
+        public byte[] GetConformanceBlock()
+        {
+            return ConformanceBlock;
         }
 
         public void CopyTo(GXDLMSSNSettings target)
         {
             target.ConformanceBlock = this.ConformanceBlock;
+        }
+
+        /// <summary>
+        /// Clear all bits.
+        /// </summary>
+        public void Clear()
+        {
+            ConformanceBlock[0] = 0;
+            ConformanceBlock[1] = 0;
+            ConformanceBlock[2] = 0;
         }
 
         /// <summary>

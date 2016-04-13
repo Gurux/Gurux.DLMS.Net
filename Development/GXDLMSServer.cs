@@ -119,14 +119,14 @@ namespace Gurux.DLMS
         /// <summary>
         /// Read selected item.
         /// </summary>
-        /// <param name="e"></param>
-        abstract public void Read(ValueEventArgs e);
+        /// <param name="args">Handled read requests.</param>
+        abstract public void Read(ValueEventArgs[] args);
 
         /// <summary>
         /// Write selected item.
         /// </summary>
-        /// <param name="e"></param>
-        abstract public void Write(ValueEventArgs e);
+        /// <param name="args">Handled write requests.</param>
+        abstract public void Write(ValueEventArgs[] args);
 
         /// <summary>
         /// Client attempts to connect with the wrong server or client address.
@@ -136,8 +136,8 @@ namespace Gurux.DLMS
         /// <summary>
         /// Action is occurred.
         /// </summary>
-        /// <param name="e"></param>
-        abstract public void Action(ValueEventArgs e);
+        /// <param name="args">Handled action requests.</param>
+        abstract public void Action(ValueEventArgs[] args);
 
         /// <summary>
         /// Constructor.
@@ -637,7 +637,7 @@ namespace Gurux.DLMS
             else
             {
                 ValueEventArgs e = new ValueEventArgs(obj, id, 0, parameters);
-                Action(e);
+                Action(new ValueEventArgs[] { e });
                 if (e.Handled)
                 {
                     bb.Add((obj as IGXDLMSBase).Invoke(Settings, id, parameters));
@@ -735,7 +735,7 @@ namespace Gurux.DLMS
                                 }
                             }
                             ValueEventArgs e = new ValueEventArgs(obj, index, 0, null);
-                            Write(e);
+                            Write(new ValueEventArgs[] { e });
                             if (!e.Handled)
                             {
                                 (obj as IGXDLMSBase).SetValue(Settings, index, value);
@@ -805,7 +805,7 @@ namespace Gurux.DLMS
                     }
 
                     ValueEventArgs e = new ValueEventArgs(obj, attributeIndex, 0, parameters);
-                    Read(e);
+                    Read(new ValueEventArgs[] { e });
                     object value;
                     if (e.Handled)
                     {
@@ -845,6 +845,8 @@ namespace Gurux.DLMS
                 // Get request with a list.
                 int cnt = GXCommon.GetObjectCount(data);
                 GXCommon.SetObjectCount(cnt, bb);
+                List<ValueEventArgs> list = new List<ValueEventArgs>();
+
                 for (int pos = 0; pos != cnt; ++pos)
                 {
                     ObjectType ci = (ObjectType)data.GetUInt16();
@@ -873,28 +875,24 @@ namespace Gurux.DLMS
                             GXDataInfo info = new GXDataInfo();
                             parameters = GXCommon.GetData(data, info);
                         }
-                        try
-                        {
-                            ValueEventArgs e = new ValueEventArgs(obj, attributeIndex, 0, parameters);
-                            Read(e);
-                            object value;
-                            if (e.Handled)
-                            {
-                                value = e.Value;
-                            }
-                            else
-                            {
-                                value = (obj as IGXDLMSBase).GetValue(Settings, attributeIndex, selector, parameters);
-                            }
-                            bb.SetUInt8(ErrorCode.Ok);
-                            GXDLMS.AppendData(obj, attributeIndex, bb, value);
-                        }
-                        catch (Exception)
-                        {
-                            bb.SetUInt8(1);
-                            bb.SetUInt8(ErrorCode.HardwareFault);
-                        }
+                        ValueEventArgs e = new ValueEventArgs(obj, attributeIndex, 0, parameters);
+                        list.Add(e);
                     }
+                }
+                Read(list.ToArray());
+                object value;
+                foreach (ValueEventArgs it in list)
+                {
+                    if (it.Handled)
+                    {
+                        value = it.Value;
+                    }
+                    else
+                    {
+                        value = (it.Target as IGXDLMSBase).GetValue(Settings, it.Index, it.Selector, it.Parameters);
+                    }
+                    bb.SetUInt8(ErrorCode.Ok);
+                    GXDLMS.AppendData(it.Target, it.Index, bb, value);
                 }
                 ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 3, bb, error, DateTime.MinValue);
             }
@@ -981,7 +979,7 @@ namespace Gurux.DLMS
                     if (!info.IsAction)
                     {
                         ValueEventArgs e = new ValueEventArgs(info.Item, info.Index, 0, null);
-                        Read(e);
+                        Read(new ValueEventArgs[]{e});
                         if (e.Handled)
                         {
                             value = e.Value;
@@ -997,7 +995,7 @@ namespace Gurux.DLMS
                     else
                     {
                         ValueEventArgs e = new ValueEventArgs(info.Item, info.Index, 0, null);
-                        Action(e);
+                        Action(new ValueEventArgs[] { e });
                         if (e.Handled)
                         {
                             value = e.Value;
@@ -1029,7 +1027,7 @@ namespace Gurux.DLMS
                     if (!info.IsAction)
                     {
                         ValueEventArgs e = new ValueEventArgs(info.Item, info.Index, 0, parameters);
-                        Read(e);
+                        Read(new ValueEventArgs[] { e });
                         if (e.Handled)
                         {
                             value = e.Value;
@@ -1046,7 +1044,7 @@ namespace Gurux.DLMS
                     {
                         ValueEventArgs e = new ValueEventArgs(info.Item, info.Index, 0, parameters);
                         e.Value = parameters;
-                        Action(e);
+                        Action(new ValueEventArgs[] { e });
                         if (e.Handled)
                         {
                             value = e.Value;
@@ -1140,7 +1138,7 @@ namespace Gurux.DLMS
                     {
                         ValueEventArgs e = new ValueEventArgs(target.Item, target.Index, 0, null);
                         e.Value = value;
-                        Write(e);
+                        Write(new ValueEventArgs[] { e });
                         if (!e.Handled)
                         {
                             (target.Item as IGXDLMSBase).SetValue(Settings, target.Index, value);

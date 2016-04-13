@@ -37,6 +37,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Gurux.DLMS.Enums;
+using System.ComponentModel;
 
 namespace Gurux.DLMS
 {
@@ -212,6 +213,19 @@ namespace Gurux.DLMS
         /// Deviation.
         /// </summary>
         public int Deviation
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Is data time serialized as octet string. Default value is false.
+        /// </summary>
+        ///<remarks>
+        ///Meters are serializing date, time and date time usually as octet string.
+        ///Some meters want to serialize date, time and date time using own data structure.
+        ///</remarks>
+        public bool SerializeUsingOwnType
         {
             get;
             set;

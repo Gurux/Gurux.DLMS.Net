@@ -242,61 +242,64 @@ namespace GuruxDLMSServerExample
         /// </summary>
         /// <param name="server"></param>
         /// <param name="e"></param>
-        public override void Read(ValueEventArgs e)
+        public override void Read(ValueEventArgs[] args)
         {
-            //Framework will handle Association objects automatically.
-            if (e.Target is GXDLMSAssociationLogicalName ||
-                e.Target is GXDLMSAssociationShortName ||
-                //Framework will handle profile generic automatically.
-                e.Target is GXDLMSProfileGeneric)
+            foreach (ValueEventArgs e in args)
             {
-                return;
-            }            
-            Console.WriteLine(string.Format("Client Read value from {0} attribute: {1}.", e.Target.Name, e.Index));
-            if (e.Target.GetUIDataType(e.Index) == DataType.DateTime ||
-                e.Target.GetDataType(e.Index) == DataType.DateTime)
-            {
-                e.Value = DateTime.Now;
-                e.Handled = true;
-            }
-            else if (e.Target is GXDLMSClock)
-            {
-                //Implement specific clock handling here.
-                //Otherwise initial values are used.                
-            }
-            else if (e.Target is GXDLMSRegisterMonitor && e.Index == 2)
-            {
-                //Update Register Monitor Thresholds values.
-                e.Value = new object[]{new Random().Next(0, 1000)};
-                e.Handled = true;
-            }
-            else 
-            {
-                //If data is not assigned and value type is unknown return number.            
-                object[] values = e.Target.GetValues();
-                if (e.Index <= values.Length)
+                //Framework will handle Association objects automatically.
+                if (e.Target is GXDLMSAssociationLogicalName ||
+                    e.Target is GXDLMSAssociationShortName ||
+                    //Framework will handle profile generic automatically.
+                    e.Target is GXDLMSProfileGeneric)
                 {
-                    if (values[e.Index - 1] == null)
+                    continue;
+                }
+                Console.WriteLine(string.Format("Client Read value from {0} attribute: {1}.", e.Target.Name, e.Index));
+                if (e.Target.GetUIDataType(e.Index) == DataType.DateTime ||
+                    e.Target.GetDataType(e.Index) == DataType.DateTime)
+                {
+                    e.Value = DateTime.Now;
+                    e.Handled = true;
+                }
+                else if (e.Target is GXDLMSClock)
+                {
+                    //Implement specific clock handling here.
+                    //Otherwise initial values are used.                
+                }
+                else if (e.Target is GXDLMSRegisterMonitor && e.Index == 2)
+                {
+                    //Update Register Monitor Thresholds values.
+                    e.Value = new object[] { new Random().Next(0, 1000) };
+                    e.Handled = true;
+                }
+                else
+                {
+                    //If data is not assigned and value type is unknown return number.            
+                    object[] values = e.Target.GetValues();
+                    if (e.Index <= values.Length)
                     {
-                        DataType tp = e.Target.GetDataType(e.Index);
-                        if (tp == DataType.None || tp == DataType.Int8 || tp == DataType.Int16 ||
-                            tp == DataType.Int32 || tp == DataType.Int64 || tp == DataType.UInt8 || tp == DataType.UInt16 ||
-                            tp == DataType.UInt32 || tp == DataType.UInt64)
+                        if (values[e.Index - 1] == null)
                         {
-                            e.Value = new Random().Next(0, 1000);
-                            e.Handled = true;
-                        }
-                        if (tp == DataType.String)
-                        {
-                            e.Value = "Gurux";
-                            e.Handled = true;
+                            DataType tp = e.Target.GetDataType(e.Index);
+                            if (tp == DataType.None || tp == DataType.Int8 || tp == DataType.Int16 ||
+                                tp == DataType.Int32 || tp == DataType.Int64 || tp == DataType.UInt8 || tp == DataType.UInt16 ||
+                                tp == DataType.UInt32 || tp == DataType.UInt64)
+                            {
+                                e.Value = new Random().Next(0, 1000);
+                                e.Handled = true;
+                            }
+                            if (tp == DataType.String)
+                            {
+                                e.Value = "Gurux";
+                                e.Handled = true;
+                            }
                         }
                     }
                 }
             }
         }
 
-        public override void Write(ValueEventArgs e)
+        public override void Write(ValueEventArgs[] args)
         {
         }
 
@@ -304,7 +307,7 @@ namespace GuruxDLMSServerExample
         {
         }
 
-        public override void Action(ValueEventArgs e)
+        public override void Action(ValueEventArgs[] args)
         {
         }
 

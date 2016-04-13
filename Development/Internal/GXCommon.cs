@@ -1204,12 +1204,29 @@ namespace Gurux.DLMS.Internal
         /// Added Value.
         ///</param>
         public static void SetData(GXByteBuffer buff, DataType type, object value)
-        {      
+        {
+            bool asOctectString = true;
             if ((type == DataType.Array || type == DataType.Structure) && value is byte[])
             {
                 // If byte array is added do not add type.
                 buff.Set((byte[])value);
                 return;
+            }
+            else if (value is GXDateTime)
+            {
+                asOctectString = !((GXDateTime)value).SerializeUsingOwnType;
+                if (asOctectString)
+                {
+                    buff.SetUInt8(DataType.OctetString);
+                }
+                else
+                {
+                    buff.SetUInt8((byte)type);
+                }                
+            }
+            else if (value is DateTime)
+            {
+                buff.SetUInt8(DataType.OctetString);
             }
             else
             {
@@ -1298,24 +1315,24 @@ namespace Gurux.DLMS.Internal
                     if ((tmp.Skip & (DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms)) == 
                         (DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms))
                     {
-                        SetDate(buff, value);
+                        SetDate(buff, value, asOctectString);
                     }
                     //If only time part is written.
                     else if ((tmp.Skip & (DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek)) ==
                         (DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek))
                     {
-                        SetTime(buff, value);
+                        SetTime(buff, value, asOctectString);
                     }
                         //Write date and time.
                     else
                     {
-                        SetDateTime(buff, value);
+                        SetDateTime(buff, value, asOctectString);
                     }
                 }
                 //Date time is always written as date time.
                 else if (value is DateTime)
                 {
-                    SetDateTime(buff, value);
+                    SetDateTime(buff, value, asOctectString);
                 }
                 else
                 {
@@ -1336,15 +1353,15 @@ namespace Gurux.DLMS.Internal
             }
             else if (type == DataType.DateTime)
             {
-                SetDateTime(buff, value);
+                SetDateTime(buff, value, asOctectString);
             }
             else if (type == DataType.Date)
             {
-                SetDate(buff, value);
+                SetDate(buff, value, asOctectString);
             }
             else if (type == DataType.Time)
             {
-                SetTime(buff, value);
+                SetTime(buff, value, asOctectString);
             }
             else
             {
@@ -1361,7 +1378,7 @@ namespace Gurux.DLMS.Internal
         ///<param name="value">
         ///Added value. 
         ///</param>
-        private static void SetTime(GXByteBuffer buff, object value)
+        private static void SetTime(GXByteBuffer buff, object value, bool asOctectString)
         {
             GXDateTime dt;
             if (value is GXDateTime)
@@ -1385,7 +1402,10 @@ namespace Gurux.DLMS.Internal
                 throw new Exception("Invalid date format.");
             }
             //Add size
-            buff.SetUInt8(4);
+            if (asOctectString)
+            {
+                buff.SetUInt8(4);
+            }
             //Add time.
             if ((dt.Skip & DateTimeSkips.Hour) != 0)
             {
@@ -1426,7 +1446,7 @@ namespace Gurux.DLMS.Internal
         ///<param name="value">
         ///Added value. 
         ///</param>
-        private static void SetDate(GXByteBuffer buff, object value)
+        private static void SetDate(GXByteBuffer buff, object value, bool asOctectString)
         {
             GXDateTime dt;
             if (value is GXDateTime)
@@ -1451,7 +1471,10 @@ namespace Gurux.DLMS.Internal
             }
 
             // Add size
-            buff.SetUInt8(5);
+            if (asOctectString)
+            {
+                buff.SetUInt8(5);
+            }
             // Add year.
             if ((dt.Skip & DateTimeSkips.Year) != 0)
             {
@@ -1500,7 +1523,7 @@ namespace Gurux.DLMS.Internal
         ///<param name="value">
         ///Added value. 
         ///</param>
-        private static void SetDateTime(GXByteBuffer buff, object value)
+        private static void SetDateTime(GXByteBuffer buff, object value, bool asOctectString)
         {
             GXDateTime dt;
             if (value is GXDateTime)
@@ -1531,7 +1554,10 @@ namespace Gurux.DLMS.Internal
             }
             DateTimeOffset tm = dt.Value;
             //Add size
-            buff.SetUInt8(12);
+            if (asOctectString)
+            {
+                buff.SetUInt8(12);
+            }
             if ((dt.Skip & DateTimeSkips.Year) == 0)
             {
                 buff.SetUInt16((ushort)tm.Year);

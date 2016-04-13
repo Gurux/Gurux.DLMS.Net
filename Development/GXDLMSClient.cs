@@ -1219,7 +1219,7 @@ namespace Gurux.DLMS
             {
                 bb.Set((byte[])value);
             }
-            else
+            else if (type != DataType.None)
             {
                 GXCommon.SetData(bb, type, value);
             }

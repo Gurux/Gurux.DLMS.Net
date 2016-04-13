@@ -252,7 +252,7 @@ namespace Gurux.DLMS.Objects
             foreach (var obj in CaptureObjects)
             {
                 ValueEventArgs e = new ValueEventArgs(obj.Key, obj.Value.AttributeIndex, 0, null);
-                server.Read(e);
+                server.Read(new ValueEventArgs[]{e});
                 if (e.Handled)
                 {
                     values[++pos] = e.Value;

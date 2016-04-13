@@ -911,14 +911,7 @@ namespace Gurux.DLMS
                 // If I frame.
                 if ((frame & 1) == 0)
                 {
-                    GetLLCBytes(server, reply);
-                    if (!settings.Connected && settings.IsServer)
-                    {
-                        if (type == FrameType.Information)
-                        {
-                            data.Command = Command.Aarq;
-                        }
-                    }
+                    GetLLCBytes(server, reply);                   
                 }
                 else //If U or S frame.
                 {

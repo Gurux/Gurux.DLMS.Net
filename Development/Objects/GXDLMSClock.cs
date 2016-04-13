@@ -206,7 +206,7 @@ namespace Gurux.DLMS.Objects
                 tm = tm.AddMilliseconds(-tm.Millisecond);
                 this.Time.Value = tm;
             }
-            // Sets the meter�s time to the nearest minute.
+            // Sets the meter's time to the nearest minute.
             else if (index == 3)
             {                
                 tm = this.Time.Value;
@@ -296,9 +296,9 @@ namespace Gurux.DLMS.Objects
             GXByteBuffer buff = new GXByteBuffer();
             buff.Add((byte)DataType.Structure);
             buff.Add((byte)3);
-            GXCommon.SetData(buff, DataType.OctetString, presetTime);
-            GXCommon.SetData(buff, DataType.OctetString, validityIntervalStart);
-            GXCommon.SetData(buff, DataType.OctetString, validityIntervalEnd);
+            GXCommon.SetData(buff, DataType.DateTime, presetTime);
+            GXCommon.SetData(buff, DataType.DateTime, validityIntervalStart);
+            GXCommon.SetData(buff, DataType.DateTime, validityIntervalEnd);
             return client.Method(this, 5, buff.Array(), DataType.Array);            
         }
 
@@ -399,7 +399,7 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 2)
             {
-                return DataType.OctetString;
+                return DataType.DateTime;
             }
             if (index == 3)
             {
@@ -411,11 +411,11 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 5)
             {
-                return DataType.OctetString;
+                return DataType.DateTime;
             }
             if (index == 6)
             {
-                return DataType.OctetString;
+                return DataType.DateTime;
             }
             if (index == 7)
             {
