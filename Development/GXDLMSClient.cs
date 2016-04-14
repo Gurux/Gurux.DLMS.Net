@@ -490,6 +490,11 @@ namespace Gurux.DLMS
         /// <seealso cref="ParseUAResponse"/>        
         public void ParseUAResponse(GXByteBuffer data)
         {
+            //If default settings are used.
+            if (data.Size == 0)
+            {
+                return;
+            }
             data.GetUInt8(); // Skip FromatID
             data.GetUInt8(); // Skip Group ID.
             data.GetUInt8(); // Skip Group len
@@ -813,7 +818,7 @@ namespace Gurux.DLMS
         {
             obj.ObjectType = objectType;
             // Check access rights...            
-            if (accessRights != null && accessRights.GetType().IsArray)
+            if (accessRights is object[] && ((object[])accessRights).Length == 2)
             {
                 //access_rights: access_right
                 object[] access = (object[])accessRights;

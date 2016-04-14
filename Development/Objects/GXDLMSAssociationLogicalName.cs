@@ -182,12 +182,12 @@ namespace Gurux.DLMS.Objects
                     if (settings.Authentication == Authentication.HighGMAC)
                     {
                         secret = settings.Cipher.SystemTitle;
+                        ic = settings.Cipher.FrameCounter;
                     }
                     else
                     {
                         secret = Secret;
                     }
-                    ic = settings.Cipher.FrameCounter;
                     byte[] tmp = GXSecure.Secure(settings, settings.Cipher, ic, settings.CtoSChallenge, secret);
                     GXByteBuffer challenge = new GXByteBuffer();
                     // ReturnParameters.

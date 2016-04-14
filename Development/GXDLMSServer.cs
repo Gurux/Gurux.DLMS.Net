@@ -483,11 +483,10 @@ namespace Gurux.DLMS
             }
             catch (Exception e)
             {
-                // Disconnect.
+                // TODO: Disconnect.
                 Debug.WriteLine(e.ToString());
-                byte[] data = GXDLMS.SplitToHdlcFrames(Settings, (byte)FrameType.Rejected, null)[0];
                 Reset();
-                return data;
+                return null;
             }
         }
 
@@ -1185,7 +1184,10 @@ namespace Gurux.DLMS
             else
             {
                 // Check that user can access server.
-                diagnostic = ValidateAuthentication(Settings.Authentication, Settings.Password);
+                if (Settings.Authentication == Authentication.Low)
+                {
+                    diagnostic = ValidateAuthentication(Settings.Authentication, Settings.Password);
+                }
                 if (diagnostic != SourceDiagnostic.None)
                 {
                     result = AssociationResult.PermanentRejected;

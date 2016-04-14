@@ -40,13 +40,14 @@ using Gurux.DLMS;
 using Gurux.Net;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
+using Gurux.DLMS.Secure;
 
 namespace GuruxDLMSServerExample
 {
     /// <summary>
     /// All example servers are using same objects.
     /// </summary>
-    class GXDLMSBase : GXDLMSServer
+    class GXDLMSBase : GXDLMSSecureServer
     {
         public GXDLMSBase(bool logicalNameReferencing, InterfaceType type)
             : base(logicalNameReferencing, type)
