@@ -105,6 +105,36 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Is general protection supported.
+        /// </summary>
+        public bool GeneralProtection
+        {
+            get
+            {
+                return GXCommon.GetBits(ConformanceBlock[0], 0x40);
+            }
+            set
+            {
+                GXCommon.SetBits(ref ConformanceBlock[0], 0x40, value);
+            }
+        }
+
+        /// <summary>
+        /// Is general block transfer supported.
+        /// </summary>
+        public bool GeneralBlockTransfer
+        {
+            get
+            {
+                return GXCommon.GetBits(ConformanceBlock[0], 0x20);
+            }
+            set
+            {
+                GXCommon.SetBits(ref ConformanceBlock[0], 0x20, value);
+            }
+        }
+
+        /// <summary>
         /// Checks, whether data can be read from the server.
         /// </summary>
         public bool Read
@@ -133,7 +163,10 @@ namespace Gurux.DLMS
                 GXCommon.SetBits(ref ConformanceBlock[0], 0x8, value);
             }
         }
-        
+
+        /// <summary>
+        /// Is unconfirmed write supported.
+        /// </summary>
         public bool UnconfirmedWrite
         {
             get
@@ -146,16 +179,35 @@ namespace Gurux.DLMS
             }
         }
 
-        public bool InformationReport
+        /// <summary>
+        /// Checks, if data from the server can be read in blocks.
+        /// </summary>
+        public bool ReadBlockTransfer
         {
             get
             {
-                return GXCommon.GetBits(ConformanceBlock[1], 0x1);
+                return GXCommon.GetBits(ConformanceBlock[1], 0x10);
             }
             set
             {
-                GXCommon.SetBits(ref ConformanceBlock[1], 0x1, value);
+                GXCommon.SetBits(ref ConformanceBlock[1], 0x10, value);
             }
+        }
+
+        /// <summary>
+        /// Checks, if data to the server can be written in blocks.
+        /// </summary>
+        public bool WriteBlockTransfer
+        {
+            get
+            {
+                return GXCommon.GetBits(ConformanceBlock[1], 0x8);
+            }
+            set
+            {
+                GXCommon.SetBits(ref ConformanceBlock[1], 0x8, value);
+            }
+
         }
 
         /// <summary>
@@ -170,6 +222,36 @@ namespace Gurux.DLMS
             set
             {
                 GXCommon.SetBits(ref ConformanceBlock[1], 0x2, value);
+            }
+        }
+
+        /// <summary>
+        /// Is information report supported.
+        /// </summary>
+        public bool InformationReport
+        {
+            get
+            {
+                return GXCommon.GetBits(ConformanceBlock[1], 0x1);
+            }
+            set
+            {
+                GXCommon.SetBits(ref ConformanceBlock[1], 0x1, value);
+            }
+        }
+
+        /// <summary>
+        /// Is datan notification supported.
+        /// </summary>
+        public bool DataNotification
+        {
+            get
+            {
+                return GXCommon.GetBits(ConformanceBlock[2], 0x80);
+            }
+            set
+            {
+                GXCommon.SetBits(ref ConformanceBlock[2], 0x80, value);
             }
         }
 

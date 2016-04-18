@@ -72,22 +72,19 @@ namespace Gurux.DLMS.Internal
                 data.Set(p);
                 //Add Calling authentication information.
                 int len = 0;
-                byte[] pw = null;
-                if (settings.Authentication < Authentication.HighMD5)
+                byte[] callingAuthenticationValue = null;
+                if (settings.Authentication == Authentication.Low)
                 {
-                    pw = settings.Password;
-                    if (pw != null)
+                    if (settings.Password != null)
                     {
-                        len = pw.Length;
+                        callingAuthenticationValue = settings.Password;
+                        len = callingAuthenticationValue.Length;
                     }
                 }
                 else
                 {
-                    pw = settings.CtoSChallenge;
-                    if (pw != null)
-                    {
-                        len = pw.Length;
-                    }
+                    callingAuthenticationValue = settings.CtoSChallenge;
+                    len = callingAuthenticationValue.Length;
                 }
                 data.SetUInt8((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingAuthenticationValue); //0xAC
                 //Len
@@ -96,9 +93,9 @@ namespace Gurux.DLMS.Internal
                 data.SetUInt8((byte)BerType.Context);
                 //Len.
                 data.SetUInt8((byte)len);
-                if (pw != null)
+                if (len != 0)
                 {
-                    data.Set(pw);
+                    data.Set(callingAuthenticationValue);
                 }
             }
         }
@@ -608,23 +605,7 @@ namespace Gurux.DLMS.Internal
                         settings.Authentication = (Authentication)tmp;
                         break;
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingAuthenticationValue://0xAC
-                        len = buff.GetUInt8();
-                        // Get authentication information.
-                        if (buff.GetUInt8() != 0x80)
-                        {
-                            throw new Exception("Invalid tag.");
-                        }
-                        len = buff.GetUInt8();
-                        if (settings.Authentication < Authentication.HighMD5)
-                        {
-                            settings.Password = new byte[len];
-                            buff.Get(settings.Password);
-                        }
-                        else
-                        {
-                            settings.CtoSChallenge = new byte[len];
-                            buff.Get(settings.CtoSChallenge);
-                        }
+                        len = updatePassword(settings, buff);
                         break;
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.UserInformation://0xBE
                         if (resultComponent != AssociationResult.Accepted && resultDiagnosticValue != SourceDiagnostic.None)
@@ -642,6 +623,28 @@ namespace Gurux.DLMS.Internal
                 }
             }
             return resultDiagnosticValue;
+        }
+
+        private static int updatePassword(GXDLMSSettings settings, GXByteBuffer buff)
+        {
+            int len = buff.GetUInt8();
+            // Get authentication information.
+            if (buff.GetUInt8() != 0x80)
+            {
+                throw new Exception("Invalid tag.");
+            }
+            len = buff.GetUInt8();
+            if (settings.Authentication == Authentication.Low)
+            {
+                settings.Password = new byte[len];
+                buff.Get(settings.Password);
+            }
+            else
+            {
+                settings.CtoSChallenge = new byte[len];
+                buff.Get(settings.CtoSChallenge);
+            }
+            return len;
         }
 
         private static byte[] GetUserInformation(GXDLMSSettings settings, GXICipher cipher)

@@ -110,6 +110,36 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Is general protection supported.
+        /// </summary>
+        public bool GeneralProtection
+        {
+            get
+            {
+                return GXCommon.GetBits(ConformanceBlock[0], 0x40);
+            }
+            set
+            {
+                GXCommon.SetBits(ref ConformanceBlock[0], 0x40, value);
+            }
+        }
+
+        /// <summary>
+        /// Is general block transfer supported.
+        /// </summary>
+        public bool GeneralBlockTransfer
+        {
+            get
+            {
+                return GXCommon.GetBits(ConformanceBlock[0], 0x20);
+            }
+            set
+            {
+                GXCommon.SetBits(ref ConformanceBlock[0], 0x20, value);
+            }
+        }
+
+        /// <summary>
         /// Is attribute 0 set supported.
         /// </summary>
         public bool Attribute0SetReferencing
@@ -185,6 +215,9 @@ namespace Gurux.DLMS
 
         }
 
+        /// <summary>
+        /// Is Action block transfer supported.
+        /// </summary>
         public bool ActionBlockTransfer
         {
             get
@@ -213,6 +246,35 @@ namespace Gurux.DLMS
             }
         }
 
+        /// <summary>
+        /// Is data notification supported.
+        /// </summary>
+        public bool DataNotification
+        {
+            get
+            {
+                return GXCommon.GetBits(ConformanceBlock[2], 0x80);
+            }
+            set
+            {
+                GXCommon.SetBits(ref ConformanceBlock[2], 0x80, value);
+            }
+        }
+
+        /// <summary>
+        /// Is access used.
+        /// </summary>
+        public bool Access
+        {
+            get
+            {
+                return GXCommon.GetBits(ConformanceBlock[2], 0x40);
+            }
+            set
+            {
+                GXCommon.SetBits(ref ConformanceBlock[2], 0x40, value);
+            }
+        }
 
         /// <summary>
         /// Checks, if data can be read from the server.
@@ -246,36 +308,6 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Can client call actions.
-        /// </summary>
-        public bool Action
-        {
-            get
-            {
-                return GXCommon.GetBits(ConformanceBlock[2], 0x1);
-            }
-            set
-            {
-                GXCommon.SetBits(ref ConformanceBlock[2], 0x1, value);
-            }
-
-        }
-
-        public bool EventNotification
-        {
-            get
-            {
-                return GXCommon.GetBits(ConformanceBlock[2], 0x2);
-            }
-            set
-            {
-                GXCommon.SetBits(ref ConformanceBlock[2], 0x2, value);
-            }
-
-        }
-
-
-        /// <summary>
         /// Is selective access used.
         /// </summary>
         /// <remarks>
@@ -293,6 +325,35 @@ namespace Gurux.DLMS
             {
                 GXCommon.SetBits(ref ConformanceBlock[2], 0x4, value);
             }
+        }
+
+        public bool EventNotification
+        {
+            get
+            {
+                return GXCommon.GetBits(ConformanceBlock[2], 0x2);
+            }
+            set
+            {
+                GXCommon.SetBits(ref ConformanceBlock[2], 0x2, value);
+            }
+
+        }
+
+        /// <summary>
+        /// Can client call actions.
+        /// </summary>
+        public bool Action
+        {
+            get
+            {
+                return GXCommon.GetBits(ConformanceBlock[2], 0x1);
+            }
+            set
+            {
+                GXCommon.SetBits(ref ConformanceBlock[2], 0x1, value);
+            }
+
         }
     }
 }

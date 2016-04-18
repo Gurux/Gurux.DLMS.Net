@@ -1390,6 +1390,11 @@ namespace Gurux.DLMS
             // If header is not read yet.
             if (data.Command == Command.None)
             {
+                //If PDU is missing.
+                if (data.Data.Size - data.Data.Position == 0)
+                {
+                    throw new InvalidOperationException("Invalid PDU.");
+                }
                 int index = data.Data.Position;
                 // Get command.
                 ch = data.Data.GetUInt8();
