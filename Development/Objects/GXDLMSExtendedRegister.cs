@@ -183,7 +183,7 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 5)
             {
-                return DataType.DateTime;                
+                return DataType.OctetString;                
             }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }

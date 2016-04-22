@@ -652,7 +652,7 @@ namespace Gurux.DLMS.Internal
             GXByteBuffer data = new GXByteBuffer();
             data.SetUInt8(GXCommon.InitialResponce); // Tag for xDLMS-Initiate response
             // NegotiatedQualityOfService (not used)
-            data.SetUInt8(0x1);
+//            data.SetUInt8(0x1);
             data.SetUInt8(0x00);
             // DLMS Version Number
             data.SetUInt8(06); 

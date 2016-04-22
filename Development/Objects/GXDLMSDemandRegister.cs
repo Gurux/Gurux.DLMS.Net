@@ -295,11 +295,11 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 6)
             {
-                return DataType.DateTime;
+                return DataType.OctetString;
             }
             if (index == 7)
             {
-                return DataType.DateTime;
+                return DataType.OctetString;
             }
             if (index == 8)
             {

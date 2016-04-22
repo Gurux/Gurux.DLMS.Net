@@ -1205,167 +1205,105 @@ namespace Gurux.DLMS.Internal
         ///</param>
         public static void SetData(GXByteBuffer buff, DataType type, object value)
         {
-            bool asOctectString = true;
             if ((type == DataType.Array || type == DataType.Structure) && value is byte[])
             {
                 // If byte array is added do not add type.
                 buff.Set((byte[])value);
                 return;
             }
-            else if (value is GXDateTime)
+            buff.SetUInt8((byte)type);
+            switch (type)
             {
-                asOctectString = !((GXDateTime)value).SerializeUsingOwnType;
-                if (asOctectString)
-                {
-                    buff.SetUInt8(DataType.OctetString);
-                }
-                else
-                {
-                    buff.SetUInt8((byte)type);
-                }                
-            }
-            else if (value is DateTime)
-            {
-                buff.SetUInt8(DataType.OctetString);
-            }
-            else
-            {
-                buff.SetUInt8((byte)type);
-            }
-            if (type == DataType.None)
-            {
-                return;
-            }
-            if (type == DataType.Boolean)
-            {
-                if (Convert.ToBoolean(value.ToString()))
-                {
-                    buff.SetUInt8(1);
-                }
-                else
-                {
-                    buff.SetUInt8(0);
-                }
-            }
-            else if (type == DataType.Int8)
-            {
-                buff.SetUInt8((byte) Convert.ToSByte(value));
-            }
-            else if (type == DataType.UInt8 || type == DataType.Enum)
-            {
-                buff.SetUInt8(Convert.ToByte(value));
-            }
-            else if (type == DataType.Int16)
-            {
-                if (value is UInt16)
-                {
-                    buff.SetUInt16((UInt16)value);
-                }
-                else
-                {
-                    buff.SetUInt16((UInt16)(Convert.ToInt16(value) & 0xFFFF));
-                }
-            }
-            else if (type == DataType.UInt16)
-            {
-                buff.SetUInt16(Convert.ToUInt16(value));
-            }
-            else if (type == DataType.Int32)
-            {
-                buff.SetUInt32((UInt32)Convert.ToInt32(value));
-            }
-            else if (type == DataType.UInt32)
-            {
-                buff.SetUInt32(Convert.ToUInt32(value));
-            }
-            else if (type == DataType.Int64)
-            {
-                buff.SetUInt64((UInt64)Convert.ToInt64(value));
-            }
-            else if (type == DataType.UInt64)
-            {
-                buff.SetUInt64(Convert.ToUInt64(value));
-            }
-            else if (type == DataType.Float32)
-            {
-                buff.Set(BitConverter.GetBytes((float)value));
-            }
-            else if (type == DataType.Float64)
-            {
-                buff.Set(BitConverter.GetBytes((double)value));
-            }
-            else if (type == DataType.BitString)
-            {
-                SetBitString(buff, value);
-            }
-            else if (type == DataType.String)
-            {
-                SetString(buff, value);
-            }
-            else if (type == DataType.StringUTF8)
-            {
-                SetUtcString(buff, value);
-            }
-            else if (type == DataType.OctetString)
-            {
-                if (value is GXDateTime)
-                {
-                    GXDateTime tmp = value as GXDateTime;
-                    //If only date part is written.
-                    if ((tmp.Skip & (DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms)) == 
-                        (DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms))
+                case DataType.None:
+                    break;
+                case DataType.Boolean:
+                    if (Convert.ToBoolean(value.ToString()))
                     {
-                        SetDate(buff, value, asOctectString);
+                        buff.SetUInt8(1);
                     }
-                    //If only time part is written.
-                    else if ((tmp.Skip & (DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek)) ==
-                        (DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek))
-                    {
-                        SetTime(buff, value, asOctectString);
-                    }
-                        //Write date and time.
                     else
                     {
-                        SetDateTime(buff, value, asOctectString);
+                        buff.SetUInt8(0);
                     }
-                }
-                //Date time is always written as date time.
-                else if (value is DateTime)
-                {
-                    SetDateTime(buff, value, asOctectString);
-                }
-                else
-                {
-                    SetOctetString(buff, value);
-                }
-            }
-            else if (type == DataType.Array || type == DataType.Structure)
-            {
-                SetArray(buff, value);
-            }
-            else if (type == DataType.BinaryCodedDesimal)
-            {
-                SetBcd(buff, value);
-            }
-            else if (type == DataType.CompactArray)
-            {
-                throw new Exception("Invalid data type.");
-            }
-            else if (type == DataType.DateTime)
-            {
-                SetDateTime(buff, value, asOctectString);
-            }
-            else if (type == DataType.Date)
-            {
-                SetDate(buff, value, asOctectString);
-            }
-            else if (type == DataType.Time)
-            {
-                SetTime(buff, value, asOctectString);
-            }
-            else
-            {
-                throw new Exception("Invalid data type.");
+                    break;
+                case DataType.Int8:
+                    buff.SetUInt8((byte)Convert.ToSByte(value));
+                    break;
+                case DataType.UInt8:
+                case DataType.Enum:
+                    buff.SetUInt8(Convert.ToByte(value));
+                    break;
+                case DataType.Int16:
+                    if (value is UInt16)
+                    {
+                        buff.SetUInt16((UInt16)value);
+                    }
+                    else
+                    {
+                        buff.SetUInt16((UInt16)(Convert.ToInt16(value) & 0xFFFF));
+                    }
+                    break;
+                case DataType.UInt16:
+                    buff.SetUInt16(Convert.ToUInt16(value));
+                    break;
+                case DataType.Int32:
+                    buff.SetUInt32((UInt32)Convert.ToInt32(value));
+                    break;
+                case DataType.UInt32:
+
+                    buff.SetUInt32(Convert.ToUInt32(value));
+                    break;
+                case DataType.Int64:
+                    buff.SetUInt64((UInt64)Convert.ToInt64(value));
+                    break;
+                case DataType.UInt64:
+                    buff.SetUInt64(Convert.ToUInt64(value));
+                    break;
+                case DataType.Float32:
+                    buff.Set(BitConverter.GetBytes((float)value));
+                    break;
+                case DataType.Float64:
+                    buff.Set(BitConverter.GetBytes((double)value));
+                    break;
+                case DataType.BitString:
+                    SetBitString(buff, value);
+                    break;
+                case DataType.String:
+                    SetString(buff, value);
+                    break;
+                case DataType.StringUTF8:
+                    SetUtcString(buff, value);
+                    break;
+                case DataType.OctetString:
+                    if (value is GXDateTime || value is DateTime)
+                    {
+                        SetDateTime(buff, value, true);
+                    }
+                    else
+                    {
+                        SetOctetString(buff, value);
+                    }
+                    break;
+                case DataType.Array:
+                case DataType.Structure:
+                    SetArray(buff, value);
+                    break;
+                case DataType.BinaryCodedDesimal:
+                    SetBcd(buff, value);
+                    break;
+                case DataType.CompactArray:
+                    throw new Exception("Invalid data type.");
+                case DataType.DateTime:
+                    SetDateTime(buff, value, false);
+                    break;
+                case DataType.Date:
+                    SetDate(buff, value);
+                    break;
+                case DataType.Time:
+                    SetTime(buff, value);
+                    break;
+                default:
+                    throw new Exception("Invalid data type.");
             }
         }
 
@@ -1378,7 +1316,7 @@ namespace Gurux.DLMS.Internal
         ///<param name="value">
         ///Added value. 
         ///</param>
-        private static void SetTime(GXByteBuffer buff, object value, bool asOctectString)
+        private static void SetTime(GXByteBuffer buff, object value)
         {
             GXDateTime dt;
             if (value is GXDateTime)
@@ -1400,11 +1338,6 @@ namespace Gurux.DLMS.Internal
             else
             {
                 throw new Exception("Invalid date format.");
-            }
-            //Add size
-            if (asOctectString)
-            {
-                buff.SetUInt8(4);
             }
             //Add time.
             if ((dt.Skip & DateTimeSkips.Hour) != 0)
@@ -1446,7 +1379,7 @@ namespace Gurux.DLMS.Internal
         ///<param name="value">
         ///Added value. 
         ///</param>
-        private static void SetDate(GXByteBuffer buff, object value, bool asOctectString)
+        private static void SetDate(GXByteBuffer buff, object value)
         {
             GXDateTime dt;
             if (value is GXDateTime)
@@ -1468,13 +1401,7 @@ namespace Gurux.DLMS.Internal
             else
             {
                 throw new Exception("Invalid date format.");
-            }
-
-            // Add size
-            if (asOctectString)
-            {
-                buff.SetUInt8(5);
-            }
+            }           
             // Add year.
             if ((dt.Skip & DateTimeSkips.Year) != 0)
             {

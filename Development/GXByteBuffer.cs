@@ -683,7 +683,7 @@ namespace Gurux.DLMS
         /// <returns>True, if arrays are similar. False, if the arrays differ.</returns>
         public bool Compare(byte[] arr)
         {
-            if (Size - Position < arr.Length)
+            if (arr == null || Size - Position < arr.Length)
             {
                 return false;
             }

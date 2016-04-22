@@ -147,9 +147,11 @@ namespace Gurux.DLMS.Objects
             }
             else
             {
-                throw new ArgumentException("Invoke failed. Invalid attribute index.");
+                //Return error.
+                return new byte[] { 01, (byte)ErrorCode.ReadWriteDenied };
             }
-            return new byte[0];
+            //Return status.
+            return new byte[] {(byte)ErrorCode.Ok };
         }
 
         public override bool IsRead(int index)

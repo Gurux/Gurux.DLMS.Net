@@ -235,21 +235,44 @@ namespace Gurux.DLMS.Client.Example
                     objects = comm.GetAssociationView();
                     GXDLMSObjectCollection objs = objects.GetObjects(new ObjectType[] { ObjectType.Register, ObjectType.ExtendedRegister, ObjectType.DemandRegister });
                     Console.WriteLine("Read scalers and units from the device.");
-                    Thread.Sleep(1000);
-                    foreach (GXDLMSObject it in objs)
+                    List<KeyValuePair<GXDLMSObject, int>> list = new List<KeyValuePair<GXDLMSObject, int>>();
+                    try
                     {
-                        if (it is GXDLMSRegister)
+                        foreach (GXDLMSObject it in objs)
                         {
-                            Console.WriteLine(it.Name);
-                            comm.Read(it, 3);
+                            if (it is GXDLMSRegister)
+                            {
+                                list.Add(new KeyValuePair<GXDLMSObject, int>(it, 3));
+                            }
+                            if (it is GXDLMSDemandRegister)
+                            {
+                                list.Add(new KeyValuePair<GXDLMSObject, int>(it, 4));
+                            }
+                            if (list.Count == 1)
+                            {
+                                break;
+                            }
                         }
-                        if (it is GXDLMSDemandRegister)
+                        comm.ReadList(list);
+                    }
+                    catch
+                    {
+                        //If this fails meter is not supporting reading read by list method.
+                        //Read values one by one.
+                        foreach (GXDLMSObject it in objs)
                         {
-                            Console.WriteLine(it.Name);
-                            comm.Read(it, 4);
+                            if (it is GXDLMSRegister)
+                            {
+                                Console.WriteLine(it.Name);
+                                comm.Read(it, 3);
+                            }
+                            if (it is GXDLMSDemandRegister)
+                            {
+                                Console.WriteLine(it.Name);
+                                comm.Read(it, 4);
+                            }
                         }
                     }
-                    Thread.Sleep(1000);
                     //Read Profile Generic columns first.
                     foreach (GXDLMSObject it in objects.GetObjects(ObjectType.ProfileGeneric))
                     {

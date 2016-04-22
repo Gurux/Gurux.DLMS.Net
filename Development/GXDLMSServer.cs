@@ -521,7 +521,7 @@ namespace Gurux.DLMS
                     return data;
                 }
                 FrameIndex = 0;
-                data = GXDLMS.SplitToHdlcFrames(Settings, Settings.KeepAlive(), null)[0];
+                data = GXDLMS.SplitToHdlcFrames(Settings, Settings.ReceiverReady(), null)[0];
                 return data;
             }
 
@@ -582,12 +582,13 @@ namespace Gurux.DLMS
                     Settings.Connected = true;
                     break;
                 case Command.DisconnectRequest:
+                case Command.Disc:
                     Frames = GenerateDisconnectRequest();
                     Settings.Connected = false;
                     break;
                 default:
                     Debug.WriteLine("Invalid command: " + Reply.Command.ToString());
-                    Frames = GXDLMS.SplitToHdlcFrames(Settings, (byte)FrameType.Rejected, null);
+                    Frames = GXDLMS.SplitToHdlcFrames(Settings, (byte)Command.Rejected, null);
                     break;
             }
         }
@@ -637,16 +638,23 @@ namespace Gurux.DLMS
             {
                 ValueEventArgs e = new ValueEventArgs(obj, id, 0, parameters);
                 Action(new ValueEventArgs[] { e });
+                byte[] actionReply;
                 if (e.Handled)
                 {
-                    bb.Add((obj as IGXDLMSBase).Invoke(Settings, id, parameters));
+                    actionReply = (obj as IGXDLMSBase).Invoke(Settings, id, parameters);
                 }
                 else
                 {
-                    bb.Add((obj as IGXDLMSBase).Invoke(Settings, id, parameters));
+                    actionReply = (obj as IGXDLMSBase).Invoke(Settings, id, parameters);
                 }
+                //Set default action reply if not given.
+                if (actionReply == null)
+                {
+                    actionReply = new byte[] {(byte) ErrorCode.Ok };
+                }
+                bb.Add(actionReply);
             }
-            return GXDLMS.SplitPdu(Settings, Command.MethodResponse, 1, bb, ErrorCode.Ok, DateTime.MinValue)[0];
+            return GXDLMS.SplitPdu(Settings, Command.MethodResponse, 1, bb, DateTime.MinValue)[0];
         }
 
         ///<summary>
@@ -678,7 +686,6 @@ namespace Gurux.DLMS
         ///</returns>
         private byte[][] HandleSetRequest()
         {
-            ErrorCode error = ErrorCode.Ok;
             GXByteBuffer data = Reply.Data;
             GXDataInfo info = new GXDataInfo();
             GXByteBuffer bb = new GXByteBuffer();
@@ -708,9 +715,8 @@ namespace Gurux.DLMS
                 // If target is unknown.
                 if (obj == null)
                 {
-                    Debug.WriteLine("Undefined object.");
                     // Device reports a undefined object.
-                    error = ErrorCode.UndefinedObject;
+                    bb.SetUInt8(ErrorCode.UndefinedObject);
                 }
                 else
                 {
@@ -718,8 +724,8 @@ namespace Gurux.DLMS
                     // If write is denied.
                     if (am != AccessMode.Write && am != AccessMode.ReadWrite)
                     {
-                        Debug.WriteLine("Read Write denied.");
-                        error = ErrorCode.ReadWriteDenied;
+                        //Read Write denied.
+                        bb.SetUInt8(ErrorCode.ReadWriteDenied);
                     }
                     else
                     {
@@ -739,11 +745,11 @@ namespace Gurux.DLMS
                             {
                                 (obj as IGXDLMSBase).SetValue(Settings, index, value);
                             }
+                            bb.SetUInt8(ErrorCode.Ok);
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
-                            Debug.WriteLine(e.Message);
-                            error = ErrorCode.HardwareFault;
+                            bb.SetUInt8(ErrorCode.HardwareFault);
                         }
                     }
                 }
@@ -752,14 +758,13 @@ namespace Gurux.DLMS
             {
                 Debug.WriteLine("handleSetRequest failed. Unknown command.");
                 Settings.ResetBlockIndex();
-                error = ErrorCode.HardwareFault;
+                bb.SetUInt8(ErrorCode.HardwareFault);
             }
-            return GXDLMS.SplitPdu(Settings, Command.SetResponse, 1, bb, error, DateTime.MinValue)[0];
+            return GXDLMS.SplitPdu(Settings, Command.SetResponse, 1, bb, DateTime.MinValue)[0];
         }
 
         private byte[][] HandleGetRequest()
         {
-            ErrorCode error = ErrorCode.Ok;
             GXByteBuffer data = Reply.Data;
             GXByteBuffer bb = new GXByteBuffer();
             short type;
@@ -789,7 +794,7 @@ namespace Gurux.DLMS
                 if (obj == null)
                 {
                     // "Access Error : Device reports a undefined object."
-                    error = ErrorCode.UndefinedObject;
+                    bb.SetUInt8(ErrorCode.UndefinedObject);
                 }
                 else
                 {
@@ -814,9 +819,11 @@ namespace Gurux.DLMS
                     {
                         value = (obj as IGXDLMSBase).GetValue(Settings, attributeIndex, selector, parameters);
                     }
+                    //Add status.
+                    bb.SetUInt8(ErrorCode.Ok);
                     GXDLMS.AppendData(obj, attributeIndex, bb, value);
                 }
-                ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 1, bb, error, DateTime.MinValue);
+                ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 1, bb, DateTime.MinValue);
 
             }
             else if (type == 2)
@@ -827,8 +834,8 @@ namespace Gurux.DLMS
                 if (index != Settings.BlockIndex + 1)
                 {
                     Debug.WriteLine("handleGetRequest failed. Invalid block number. " + Settings.BlockIndex + "/" + index);
-                    ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 1, bb,
-                        ErrorCode.DataBlockNumberInvalid, DateTime.MinValue);
+                    bb.SetUInt8(ErrorCode.DataBlockNumberInvalid);
+                    ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 1, bb, DateTime.MinValue);
                     index = 0;
                     ServerReply.Index = index;
                 }
@@ -861,7 +868,7 @@ namespace Gurux.DLMS
                     if (obj == null)
                     {
                         // "Access Error : Device reports a undefined object."
-                        error = ErrorCode.UndefinedObject;
+                        bb.SetUInt8(ErrorCode.UndefinedObject);
                     }
                     else
                     {
@@ -893,14 +900,15 @@ namespace Gurux.DLMS
                     bb.SetUInt8(ErrorCode.Ok);
                     GXDLMS.AppendData(it.Target, it.Index, bb, value);
                 }
-                ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 3, bb, error, DateTime.MinValue);
+                ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 3, bb, DateTime.MinValue);
             }
             else
             {
                 Debug.WriteLine("handleGetRequest failed. Invalid command type.");
                 Settings.ResetBlockIndex();
                 // Access Error : Device reports a hardware fault.
-                ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 1, bb, ErrorCode.HardwareFault, DateTime.MinValue);
+                bb.SetUInt8(ErrorCode.HardwareFault);
+                ServerReply.ReplyMessages = GXDLMS.SplitPdu(Settings, Command.GetResponse, 1, bb, DateTime.MinValue);
             }
             ServerReply.Index = index;
             return ServerReply.ReplyMessages[index];
@@ -988,7 +996,7 @@ namespace Gurux.DLMS
                             value = (info.Item as IGXDLMSBase).GetValue(Settings, info.Index, 0, null);
                         }
                         // Set status.
-                        bb.SetUInt8(0);
+                        bb.SetUInt8(ErrorCode.Ok);
                         GXDLMS.AppendData(info.Item, info.Index, bb, value);
                     }
                     else
@@ -1004,7 +1012,7 @@ namespace Gurux.DLMS
                             value = ((IGXDLMSBase)info.Item).Invoke(Settings, info.Index, null);
                         }
                         // Set status.
-                        bb.SetUInt8(0);
+                        bb.SetUInt8(ErrorCode.Ok);
                         // Add value
                         bb.SetUInt8(GXCommon.GetValueType(value));
                         bb.Add(value);
@@ -1013,7 +1021,8 @@ namespace Gurux.DLMS
                 else if (type == 2)
                 {
                     // Get request for next data block
-                    throw new System.ArgumentException("TODO: Invalid Command.");
+                    bb.Add(01);
+                    bb.SetUInt8(ErrorCode.HardwareFault);
                 }
                 else if (type == 4)
                 {
@@ -1036,7 +1045,7 @@ namespace Gurux.DLMS
                             value = (info.Item as IGXDLMSBase).GetValue(Settings, info.Index, selector, parameters);
                         }
                         // Set status.
-                        bb.SetUInt8(0);
+                        bb.SetUInt8(ErrorCode.Ok);
                         GXDLMS.AppendData(info.Item, info.Index, bb, value);
                     }
                     else
@@ -1052,6 +1061,8 @@ namespace Gurux.DLMS
                         {
                             value = ((IGXDLMSBase)info.Item).Invoke(Settings, info.Index, parameters);
                         }
+                        // Set status.
+                        bb.SetUInt8(ErrorCode.Ok);
                         // Add value
                         bb.Add(value);
                     }
@@ -1061,8 +1072,7 @@ namespace Gurux.DLMS
                     throw new System.ArgumentException("Invalid Command.");
                 }
             }
-            return GXDLMS.SplitPdu(Settings, Command.ReadResponse, 1, bb,
-                                ErrorCode.Ok, DateTime.MinValue)[0];
+            return GXDLMS.SplitPdu(Settings, Command.ReadResponse, 1, bb, DateTime.MinValue)[0];
         }
 
         ///<summary>
@@ -1158,7 +1168,7 @@ namespace Gurux.DLMS
                 }
                 bb.SetUInt8(ret);
             }
-            return GXDLMS.SplitPdu(Settings, Command.WriteResponse, 1, bb, ErrorCode.Ok, DateTime.MinValue)[0];
+            return GXDLMS.SplitPdu(Settings, Command.WriteResponse, 1, bb, DateTime.MinValue)[0];
         }
 
         ///<summary>
@@ -1203,8 +1213,7 @@ namespace Gurux.DLMS
             // Generate AARE packet.
             GXByteBuffer buff = new GXByteBuffer(150);
             GXAPDU.GenerateAARE(Settings, buff, result, diagnostic, Settings.Cipher);
-            return GXDLMS.SplitPdu(Settings, Command.Aare, 0, buff,
-                            ErrorCode.Ok, DateTime.MinValue)[0];
+            return GXDLMS.SplitPdu(Settings, Command.Aare, 0, buff, DateTime.MinValue)[0];
         }
 
         ///<summary>

@@ -188,7 +188,8 @@ namespace Gurux.DLMS.Objects
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8(2);
-                GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(ExecutedScriptLogicalName)); //Time
+                //LN
+                GXCommon.SetData(data, DataType.OctetString, ExecutedScriptLogicalName); 
                 GXCommon.SetData(data, DataType.UInt16, ExecutedScriptSelector); //Time
                 return data.Array();
             }
@@ -250,8 +251,8 @@ namespace Gurux.DLMS.Objects
                     List<GXDateTime> items = new List<GXDateTime>();
                     foreach (object[] it in (object[])value)
                     {
-                        GXDateTime tm = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[0], DataType.Time);
-                        GXDateTime date = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[1], DataType.Date);
+                        GXDateTime tm = (GXDateTime)it[0];
+                        GXDateTime date = (GXDateTime)it[1];
                         tm.Value.AddYears(date.Value.Year - 1);
                         tm.Value.AddMonths(date.Value.Month - 1);
                         tm.Value.AddDays(date.Value.Day - 1);

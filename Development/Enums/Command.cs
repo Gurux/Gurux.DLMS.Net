@@ -125,12 +125,17 @@ namespace Gurux.DLMS
         Aare = 0x61,
 
         /// <summary>
-        /// Disconnect request.
+        /// Disconnect request for HDLC framing.
+        /// </summary>
+        Disc = 0x53,
+
+        /// <summary>
+        /// Disconnect request for WRAPPER.
         /// </summary>
         DisconnectRequest = 0x62,
 
         /// <summary>
-        /// Disconnect response.
+        /// Disconnect response for WRAPPER.
         /// </summary>
         DisconnectResponse = 0x63,
 

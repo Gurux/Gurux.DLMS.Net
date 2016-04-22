@@ -80,7 +80,7 @@ namespace Gurux.DLMS.Secure
             byte[] tmp;
             if (settings.Authentication == Authentication.High)
             {
-                byte[] p = new byte[secret.Length + 15];
+                byte[] p = new byte[secret.Length + 16];
                 byte[] s = new byte[16];
                 byte[] x = new byte[16];
                 int i;
@@ -92,7 +92,8 @@ namespace Gurux.DLMS.Secure
                     GXAes128.Encrypt(x, s);
                     x.CopyTo(p, i);
                 }
-                return p;
+                Buffer.BlockCopy(p, 0, x, 0, 16);
+                return x;
             }
             // Get server Challenge.
             GXByteBuffer challenge = new GXByteBuffer();

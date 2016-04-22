@@ -42,6 +42,7 @@ namespace Gurux.DLMS
     using Gurux.DLMS.Objects;
     using Gurux.DLMS.Enums;
     using Gurux.DLMS.Secure;
+    using Gurux.DLMS.Internal;
 
     /// <summary> 
     /// This class includes DLMS communication settings.
@@ -238,7 +239,8 @@ namespace Gurux.DLMS
             if (IsServer)
             {
                 SenderFrame = 0x1E;
-                ReceiverFrame = 0xFE;
+                //ReceiverFrame = 0xFE;
+                ReceiverFrame = 0xEE;
             }
             else
             {
@@ -249,50 +251,35 @@ namespace Gurux.DLMS
 
         public bool CheckFrame(byte frame)
         {
-            //If server rejects frame.
-            if (frame == 0x97)
-            {
-                return true;
-            }
             //If U frame.
-            if ((frame & 0x3) == 3)
+            if ((frame & (byte)HdlcFrameType.Uframe) == (byte)HdlcFrameType.Uframe)
             {
-                ResetFrameSequence();
-                return true;
-            }
-            //If S -frame
-            if ((frame & 0x3) == 1)
-            {
-                if ((frame & 0xE0) == ((ReceiverFrame) & 0xE0))
+                if (frame == 0x73 || frame == 0x93)
                 {
-                    ReceiverFrame = frame;
-                    return true;
-                }
-                System.Diagnostics.Debug.WriteLine("Frame ID do not match.");
-                return true;
-            }
-
-            //If I frame sent.
-            if ((SenderFrame & 0x1) == 0)
-            {
-                if ((frame & 0xE0) == ((ReceiverFrame + 0x20) & 0xE0) &&
-                    (frame & 0xE) == ((ReceiverFrame + 2) & 0xE)) 
-                {
-                    ReceiverFrame = (byte)(frame);
+                    ResetFrameSequence();
                     return true;
                 }
             }
-            //If S-frame sent.
-            else if (frame == ReceiverFrame ||
-                ((frame & 0xE0) == (ReceiverFrame & 0xE0) &&
-                (frame & 0xE) == ((ReceiverFrame + 2) & 0xE))) 
+            //If S -frame.
+            if ((frame & (byte)HdlcFrameType.Sframe) == (byte)HdlcFrameType.Sframe)
+            {
+                ReceiverFrame = IncreaseReceiverSequence(ReceiverFrame);
+                return true;
+            }
+            //Handle I-frame.
+            if (frame == (byte) IncreaseReceiverSequence(IncreaseSendSequence(ReceiverFrame)))
             {
                 ReceiverFrame = frame;
                 return true;
             }
-
+            //If answer for RR.
+            if (frame == (byte)IncreaseSendSequence(ReceiverFrame))
+            {
+                ReceiverFrame = frame;
+                return true;
+            }
             System.Diagnostics.Debug.WriteLine("Frame ID do not match.");
-            return true;
+            return false;
         }
 
         ///<summary>

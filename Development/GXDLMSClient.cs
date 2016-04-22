@@ -478,7 +478,7 @@ namespace Gurux.DLMS
                 data = null;
             }
             Settings.ResetFrameSequence();
-            return GXDLMS.SplitToHdlcFrames(Settings, (byte)FrameType.SNRM, data)[0];
+            return GXDLMS.SplitToHdlcFrames(Settings, (byte)Command.Snrm, data)[0];
         }
 
         /// <summary>
@@ -562,7 +562,7 @@ namespace Gurux.DLMS
                 Settings.CtoSChallenge = null;
             }
             GXAPDU.GenerateAarq(Settings, Settings.Cipher, buff);
-            return GXDLMS.SplitPdu(Settings, Command.Aarq, 0, buff, ErrorCode.Ok, DateTime.MinValue)[0];
+            return GXDLMS.SplitPdu(Settings, Command.Aarq, 0, buff, DateTime.MinValue)[0];
         }
 
         /// <summary>
@@ -663,45 +663,33 @@ namespace Gurux.DLMS
         public void ParseApplicationAssociationResponse(GXByteBuffer reply)
         {
             GXDataInfo info = new GXDataInfo();
+            bool equals = false;
             byte[] value = (byte[])GXCommon.GetData(reply, info);
-            byte[] secret;
-            UInt32 ic = 0;
-            if (Settings.Authentication == Authentication.HighGMAC)
+            if (value != null)
             {
-                secret = Settings.SourceSystemTitle;
-                GXByteBuffer bb = new GXByteBuffer(value);
-                bb.GetUInt8();
-                ic = bb.GetUInt32();
+                byte[] secret;
+                UInt32 ic = 0;
+                if (Settings.Authentication == Authentication.HighGMAC)
+                {
+                    secret = Settings.SourceSystemTitle;
+                    GXByteBuffer bb = new GXByteBuffer(value);
+                    bb.GetUInt8();
+                    ic = bb.GetUInt32();
+                }
+                else
+                {
+                    secret = Settings.Password;
+                }
+                byte[] tmp = GXSecure.Secure(Settings, Settings.Cipher, ic, Settings.CtoSChallenge, secret);
+                GXByteBuffer challenge = new GXByteBuffer(tmp);
+                equals = challenge.Compare(value);
             }
-            else
+            if (!equals)
             {
-                secret = Settings.Password;
-            }
-            byte[] tmp = GXSecure.Secure(Settings, Settings.Cipher, ic, Settings.CtoSChallenge, secret);
-            GXByteBuffer challenge = new GXByteBuffer(tmp);
-            if (!challenge.Compare(value))
-            {
-                throw new GXDLMSException(
-                        "parseApplicationAssociationResponse failed. "
-                                + " Server to Client do not match.");
+                throw new GXDLMSException("Invalid passowrd. Server to Client do not match.");
             }
         }
-
-        /// <summary>
-        /// Generates a disconnect mode request.
-        /// </summary>
-        /// <returns>Disconnect mode request, as byte array.</returns>
-        public byte[] DisconnectedModeRequest()
-        {
-            // If connection is not established, there is no need to send
-            // DisconnectRequest.
-            if (!Settings.Connected)
-            {
-                return null;
-            }
-            return GXDLMS.SplitToHdlcFrames(Settings, (byte)FrameType.DisconnectMode, null)[0];
-        }
-
+     
         /// <summary>
         /// Generates a disconnect request.
         /// </summary>
@@ -716,7 +704,7 @@ namespace Gurux.DLMS
             }
             if (Settings.InterfaceType == InterfaceType.HDLC)
             {
-                return GXDLMS.SplitToHdlcFrames(Settings, (byte)FrameType.Disconnect, null)[0];
+                return GXDLMS.SplitToHdlcFrames(Settings, (byte)Command.Disc, null)[0];
             }
             GXByteBuffer bb = new GXByteBuffer(2);
             bb.SetUInt8((byte)Command.DisconnectRequest);
@@ -919,6 +907,8 @@ namespace Gurux.DLMS
             {
                 objects = ParseSNObjects(data, onlyKnownObjects);
             }
+            GXDLMSConverter c = new GXDLMSConverter();
+            c.UpdateOBISCodeInformation(objects);
             Settings.Objects = objects;
             return objects;
         }
@@ -1228,7 +1218,7 @@ namespace Gurux.DLMS
             {
                 GXCommon.SetData(bb, type, value);
             }
-            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, ErrorCode.Ok, DateTime.MinValue)[0];
+            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, DateTime.MinValue)[0];
         }
 
 
@@ -1310,7 +1300,7 @@ namespace Gurux.DLMS
                 bb.SetUInt8(1);
             }
             GXCommon.SetData(bb, type, value);
-            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, ErrorCode.Ok, DateTime.MinValue)[0];
+            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, DateTime.MinValue)[0];
         }
 
         /// <summary>
@@ -1387,7 +1377,7 @@ namespace Gurux.DLMS
                     bb.Set(data.Data, 0, data.Size);
                 }
             }
-            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, ErrorCode.Ok, DateTime.MinValue)[0];
+            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, DateTime.MinValue)[0];
         }
 
         /// <summary>
@@ -1455,14 +1445,15 @@ namespace Gurux.DLMS
                     bb.SetUInt16((UInt16)sn);
                 }
             }
-            return GXDLMS.SplitPdu(Settings, cmd, 3, bb, ErrorCode.Ok, DateTime.MinValue)[0];
+            return GXDLMS.SplitPdu(Settings, cmd, 3, bb, DateTime.MinValue)[0];
         }
 
         /// <summary>
         /// Generates the keep alive message. 
         /// </summary>
         /// <remarks>
-        /// Keep alive message is sent to keep the connection to the device alive.
+        /// Keepalive message is needed only HDLC framing.
+        /// For keepalive we are reading logical name for fist object.
         /// </remarks>
         /// <returns>Returns Keep alive message, as byte array.</returns>
         public byte[] GetKeepAlive()
@@ -1472,7 +1463,11 @@ namespace Gurux.DLMS
             {
                 return new byte[0];
             }
-            return GXDLMS.SplitToHdlcFrames(Settings, Settings.KeepAlive(), null)[0];
+            if (this.Objects.Count != 0)
+            {
+                return Read(this.Objects[0], 1)[0];
+            }
+            return new byte[0];
         }
 
         /// <summary>

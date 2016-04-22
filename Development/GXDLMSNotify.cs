@@ -241,7 +241,7 @@ namespace Gurux.DLMS
                 GXCommon.SetData(buff, DataType.OctetString, date);
             }
             buff.Set(data);
-            return GXDLMS.SplitPdu(Settings, Command.DataNotification, 0, buff, ErrorCode.Ok, DateTime.MinValue)[0];
+            return GXDLMS.SplitPdu(Settings, Command.DataNotification, 0, buff, DateTime.MinValue)[0];
         }
 
         /// <summary>
@@ -282,7 +282,7 @@ namespace Gurux.DLMS
             {
                 AddData(it.Key, it.Value, buff);
             }
-            return GXDLMS.SplitPdu(Settings, Command.DataNotification, 0, buff, ErrorCode.Ok, DateTime.MinValue)[0];
+            return GXDLMS.SplitPdu(Settings, Command.DataNotification, 0, buff, DateTime.MinValue)[0];
         }
 
 
@@ -369,7 +369,7 @@ namespace Gurux.DLMS
                 }
                 GXCommon.SetData(buff, dt, value);
             }
-            List<byte[][]> list = GXDLMS.SplitPdu(Settings, Command.Push, 0, buff, ErrorCode.Ok, DateTime.MinValue);
+            List<byte[][]> list = GXDLMS.SplitPdu(Settings, Command.Push, 0, buff, DateTime.MinValue);
             List<byte[]> arr = new List<byte[]>();
             foreach (byte[][] it in list)
             {

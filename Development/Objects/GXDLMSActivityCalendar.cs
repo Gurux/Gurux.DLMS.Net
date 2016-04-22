@@ -260,7 +260,7 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 10)
             {
-                return DataType.DateTime;
+                return DataType.OctetString;
             }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
@@ -294,7 +294,7 @@ namespace Gurux.DLMS.Objects
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8(3);
                         GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Name));
-                        GXCommon.SetData(data, DataType.DateTime, it.Start);
+                        GXCommon.SetData(data, DataType.OctetString, it.Start);
                         GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.WeekName));
                     }
                 }
@@ -356,8 +356,8 @@ namespace Gurux.DLMS.Objects
                         {
                             data.SetUInt8((byte)DataType.Structure);
                             data.SetUInt8(3);
-                            GXCommon.SetData(data, DataType.Time, action.StartTime.Value);
-                            GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(action.ScriptLogicalName));
+                            GXCommon.SetData(data, DataType.Time, action.StartTime);
+                            GXCommon.SetData(data, DataType.OctetString, action.ScriptLogicalName);
                             GXCommon.SetData(data, DataType.UInt16, action.ScriptSelector);
                         }
                     }
@@ -542,7 +542,7 @@ namespace Gurux.DLMS.Objects
                         foreach (object[] it2 in (object[])item[1])
                         {
                             GXDLMSDayProfileAction ac = new GXDLMSDayProfileAction();
-                            ac.StartTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])it2[0], DataType.Time);
+                            ac.StartTime = (GXDateTime)it2[0];
                             ac.ScriptLogicalName = GXDLMSClient.ChangeType((byte[])it2[1], DataType.String).ToString();
                             ac.ScriptSelector = Convert.ToUInt16(it2[2]);
                             actions.Add(ac);
@@ -617,7 +617,7 @@ namespace Gurux.DLMS.Objects
                         foreach (object[] it2 in (object[])item[1])
                         {
                             GXDLMSDayProfileAction ac = new GXDLMSDayProfileAction();
-                            ac.StartTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])it2[0], DataType.Time);
+                            ac.StartTime = (GXDateTime)it2[0];
                             ac.ScriptLogicalName = GXDLMSClient.ChangeType((byte[])it2[1], DataType.String).ToString();
                             ac.ScriptSelector = Convert.ToUInt16(it2[2]);
                             actions.Add(ac);

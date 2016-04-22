@@ -41,7 +41,7 @@ namespace Gurux.DLMS.Internal
 {
     class GXDLMSLimitsDefault
     {
-        internal const byte DefaultMaxInfoRX = 128;
+        internal const byte DefaultMaxInfoRX = 62;
         internal const byte DefaultMaxInfoTX = 128;
         internal const UInt32 DefaultWindowSizeRX = 1;
         internal const UInt32 DefaultWindowSizeTX = 1;

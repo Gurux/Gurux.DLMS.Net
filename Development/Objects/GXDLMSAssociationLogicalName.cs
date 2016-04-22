@@ -191,16 +191,16 @@ namespace Gurux.DLMS.Objects
                     byte[] tmp = GXSecure.Secure(settings, settings.Cipher, ic, settings.CtoSChallenge, secret);
                     GXByteBuffer challenge = new GXByteBuffer();
                     // ReturnParameters.
-                    challenge.SetUInt8(1);
                     challenge.SetUInt8(0);
+                    challenge.SetUInt8(1);
                     challenge.SetUInt8((byte)DataType.OctetString);
                     GXCommon.SetObjectCount(tmp.Length, challenge);
                     challenge.Set(tmp);
                     return challenge.Array();
                 }
-                else
+                else //If PW do not match.
                 {
-                    throw new ArgumentException("Invoke failed. Invalid attribute index.");
+                    return new byte[] {0 };
                 }
             }
             else

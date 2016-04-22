@@ -71,6 +71,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GXDLMSConverter.cs" />
+    <Compile Include="Internal\HdlcFrameType.cs" />
+    <Compile Include="Internal\HdlcControlFrame.cs" />
     <Compile Include="Internal\PduType.cs" />
     <Compile Include="Enums\AccessMode.cs" />
     <Compile Include="Enums\StateError.cs" />
@@ -117,7 +119,6 @@
     <Compile Include="GXReplyData.cs" />
     <Compile Include="GXStandardObisObject.cs" />
     <Compile Include="GXStandardObisObjectCollection.cs" />
-    <Compile Include="Internal\FrameType.cs" />
     <Compile Include="Internal\GXAes128.cs" />
     <Compile Include="Internal\GXAPDU.cs" />
     <Compile Include="Internal\BerType.cs" />

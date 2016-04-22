@@ -156,9 +156,9 @@ namespace Gurux.DLMS
             settings.IncreaseBlockIndex();
             if (settings.IsServer)
             {
-                return SplitPdu(settings, Command.GetResponse, 2, bb, ErrorCode.Ok, DateTime.MinValue)[0][0];
+                return SplitPdu(settings, Command.GetResponse, 2, bb, DateTime.MinValue)[0][0];
             }
-            return SplitPdu(settings, Command.GetRequest, 2, bb, ErrorCode.Ok, DateTime.MinValue)[0][0];
+            return SplitPdu(settings, Command.GetRequest, 2, bb, DateTime.MinValue)[0][0];
         }
 
         /// <summary>
@@ -324,12 +324,11 @@ namespace Gurux.DLMS
         /// <param name="command">Command</param>
         /// <param name="commandParameter">Command parameter value.</param>
         /// <param name="data">Data to send.</param>
-        /// <param name="error">Error number.</param>
         /// <param name="date">Optional date time value.</param>
         /// <param name="cp">Ciphering interface.</param>
         /// <returns>List of frames to send.</returns>
         internal static List<byte[][]> SplitPdu(GXDLMSSettings settings, Command command, int commandParameter,
-                GXByteBuffer data, ErrorCode error, DateTime date)
+                GXByteBuffer data, DateTime date)
         {
             GXByteBuffer bb = new GXByteBuffer();
             List<byte[][]> list = new List<byte[][]>();
@@ -339,7 +338,8 @@ namespace Gurux.DLMS
             {
                 byte[] tmp = GetSnPdus(settings, data, command);              
                 // If Ciphering is used.
-                if (settings.Cipher != null && command != Command.Aarq && command != Command.Aare)
+                if (settings.Cipher != null && settings.Cipher.Security != Security.None 
+                    && command != Command.Aarq && command != Command.Aare)
                 {
                     bb.Set(settings.Cipher.Encrypt(GetGloMessage(command), settings.Cipher.SystemTitle, tmp));
                 }
@@ -366,11 +366,12 @@ namespace Gurux.DLMS
             else
             {
                 List<byte[]> pdus =
-                        GetLnPdus(settings, (byte)commandParameter, data, command, error, date);
+                        GetLnPdus(settings, (byte)commandParameter, data, command, date);
                 foreach (byte[] it in pdus)
                 {                   
                     // If Ciphering is used.
-                    if (settings.Cipher != null && command != Command.Aarq && command != Command.Aare)
+                    if (settings.Cipher != null && settings.Cipher.Security != Security.None &&
+                        command != Command.Aarq && command != Command.Aare)
                     {
                         bb.Set(settings.Cipher.Encrypt(GetGloMessage(command), settings.Cipher.SystemTitle, it));
                     }
@@ -410,7 +411,7 @@ namespace Gurux.DLMS
         }
 
         private static List<byte[]> GetLnPdus(GXDLMSSettings settings, byte commandParameter, GXByteBuffer buff,
-                Command cmd, ErrorCode error, DateTime date)
+                Command cmd, DateTime date)
         {
             List<byte[]> arr = new List<byte[]>();
             GXByteBuffer bb;
@@ -517,12 +518,6 @@ namespace Gurux.DLMS
                         }
                         // Add Invoke Id And Priority.
                         bb.SetUInt8(GetInvokeIDPriority(settings));
-                        // Add error code if reply and not Get Response With List.
-                        if (IsReplyMessage(cmd) && !(cmd == Command.GetResponse
-                                && commandParameter == 3))
-                        {
-                            bb.SetUInt8((byte)error);
-                        }
                     }
                 }
 
@@ -795,7 +790,6 @@ namespace Gurux.DLMS
                 // Not enough data to parse;
                 return 0;
             }
-            data.IsEcho = false;
             byte frame = reply.GetUInt8();
             if ((frame & 0xF0) != 0xA0)
             {
@@ -828,7 +822,6 @@ namespace Gurux.DLMS
             if (!CheckHdlcAddress(server, settings, reply, data, eopPos))
             {
                 //If echo,
-                data.IsEcho = true;
                 return GetHdlcData(server, settings, reply, data);
             }
 
@@ -845,9 +838,9 @@ namespace Gurux.DLMS
             frame = reply.GetUInt8();
             if (!settings.CheckFrame(frame))
             {
-                throw new Exception("Wrong frame index.");
+                reply.Position = (UInt16) (eopPos + 1);
+                return GetHdlcData(server, settings, reply, data);
             }
-            FrameType type = (FrameType)frame;
             // Check that header CRC is correct.
             crc = GXFCS16.CountFCS16(reply.Data, packetStartID + 1, reply.Position - packetStartID - 1);
             crcRead = reply.GetUInt16();
@@ -866,60 +859,58 @@ namespace Gurux.DLMS
                     throw new Exception("Wrong CRC.");
                 }
             }
-
-            if (type == FrameType.Rejected)
+           
+            if ((frame & (byte)HdlcFrameType.Uframe) == (byte)HdlcFrameType.Uframe)
             {
-                reply.Position = reply.Size;
-                data.Error = (int) ErrorCode.Rejected;
-            } 
-            else if (type == FrameType.Disconnect)
-            {
-                // Get EOP.
-                reply.GetUInt8();
-                data.Command = Command.DisconnectRequest;
-            }
-            else if (type == FrameType.DisconnectMode)
-            {
-                // Get EOP.
-                reply.GetUInt8();
-                if (settings.IsServer)
+                //Get Eop if there is no data.
+                if (reply.Position == packetStartID + frameLen + 1)
                 {
-                    data.Command = Command.DisconnectRequest;
+                    // Get EOP.
+                    reply.GetUInt8();
+                }
+                data.Command = (Command)frame;
+            }
+            //If S-frame
+            else if ((frame & (byte)HdlcFrameType.Sframe) == (byte)HdlcFrameType.Sframe)
+            {
+                //If frame is rejected.
+                int tmp = (frame >> 2) & 0x3;
+                if (tmp == (byte)HdlcControlFrame.Reject)
+                {
+                    data.Error = (int)ErrorCode.Rejected;
+                }
+                else if (tmp == (byte)HdlcControlFrame.ReceiveNotReady)
+                {
+                    data.Error = (int)ErrorCode.Rejected;
+                }
+                else if (tmp == (byte)HdlcControlFrame.ReceiveReady && settings.IsServer)
+                {
+                    data.MoreData = RequestTypes.Frame;
+                }
+                //Get Eop if there is no data.
+                if (reply.Position == packetStartID + frameLen + 1)
+                {
+                    // Get EOP.
+                    reply.GetUInt8();
+                }
+            }
+            else //Iframe
+            {
+                //Get Eop if there is no data.
+                if (reply.Position == packetStartID + frameLen + 1)
+                {
+                    // Get EOP.
+                    reply.GetUInt8();
+                    if ((frame & 0x1) == 0x1)
+                    {
+                        data.MoreData = RequestTypes.Frame;
+                    }
                 }
                 else
                 {
-                    data.Error = (int)ErrorCode.DisconnectRequest;
+                    GetLLCBytes(server, reply);
                 }
-            }
-            else if (type == FrameType.UA)
-            {
-                if (!settings.IsServer && reply.Position == packetStartID + frameLen + 1)
-                {
-                    // Get EOP.
-                    reply.GetUInt8();
-                }
-                data.Command = Command.Ua;
-            }
-            else if (type == FrameType.SNRM)
-            {
-                data.Command = Command.Snrm;
-                // Get EOP.
-                reply.GetUInt8();
-            }
-            else
-            {
-                // If I frame.
-                if ((frame & 1) == 0)
-                {
-                    GetLLCBytes(server, reply);                   
-                }
-                else //If U or S frame.
-                {
-                    // Get EOP.
-                    reply.GetUInt8();
-                    data.MoreData = RequestTypes.Frame;                   
-                }
-            }
+            }           
             // Skip data CRC and EOP.
             if (reply.Position != reply.Size)
             {
@@ -1139,6 +1130,7 @@ namespace Gurux.DLMS
             if (GXCommon.GetObjectCount(data.Data) != 1)
             {
                 data.Data.Position = pos;
+                GetDataFromBlock(data.Data, 0);
                 return false;
             }
             else
@@ -1192,11 +1184,10 @@ namespace Gurux.DLMS
                                     "parseApplicationAssociationResponse failed. "
                                             + "Invalid tag.");
                         }
-                        ret = data.Data.GetUInt8();
-                        if (ret != 0)
-                        {
-                            throw new GXDLMSException(ret);
-                        }
+                        GXDataInfo info = new GXDataInfo();
+                        UInt16 pos = data.Data.Position;
+                        data.Value = GXCommon.GetData(data.Data, info);
+                        data.Data.Position = pos;
                         GetDataFromBlock(data.Data, 0);
                     }
                 }
@@ -1251,6 +1242,18 @@ namespace Gurux.DLMS
 
         static void HandleSetResponse(GXDLMSSettings settings, GXReplyData data)
         {
+            byte ret = data.Data.GetUInt8();
+            //SetResponseNormal
+            if (ret == 1)
+            {
+                //Invoke ID and priority.
+                data.Data.GetUInt8();
+                ret = data.Data.GetUInt8();
+                if (ret != 0)
+                {
+                    data.Error = ret;
+                }
+            }
         }
 
         /// <summary>
@@ -1268,7 +1271,6 @@ namespace Gurux.DLMS
                 {
                     ret = data.Data.GetUInt8();
                     data.Error = ret;
-                    throw new GXDLMSException(ret);
                 }
             }
         }
@@ -1604,22 +1606,13 @@ namespace Gurux.DLMS
             }
 
             GetDataFromFrame(reply, data.Data);
-
             // If keepalive or get next frame request.
             if ((frame & 0x1) != 0)
             {
                 return true;
             }
 
-            // Get data.
-            if (frame != (byte)FrameType.SNRM
-                    && frame != (byte)FrameType.UA
-                    && data.Command != Command.Aarq
-                    && data.Command != Command.Aare
-                    && frame != (byte)FrameType.Disconnect)
-            {
-                GetPdu(settings, data);
-            }
+            GetPdu(settings, data);
             return true;
         }
 
