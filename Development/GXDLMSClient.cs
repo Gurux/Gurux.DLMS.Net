@@ -55,7 +55,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// DLMS settings.
         /// </summary>
-        protected GXDLMSSettings Settings;
+        internal GXDLMSSettings Settings;
 
         private static Dictionary<ObjectType, Type> AvailableObjectTypes = new Dictionary<ObjectType, Type>();
         /// <summary>

@@ -149,14 +149,14 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    // Return error.
-                    return new byte[] { (byte)ErrorCode.HardwareFault };
+                    // If pw is not match.
+                    return new byte[] { 0 };
                 }
 
             }
             else
             {
-                throw new ArgumentException("Invoke failed. Invalid attribute index.");
+                return new byte[] { (byte)ErrorCode.ReadWriteDenied };
             }
         }
 

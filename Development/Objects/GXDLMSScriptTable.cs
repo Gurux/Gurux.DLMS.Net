@@ -57,7 +57,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSScriptTable()
             : base(ObjectType.ScriptTable)
         {
-            Scripts = new List<KeyValuePair<int, GXDLMSScriptAction>>();
+            Scripts = new List<GXDLMSScript>();
         }
 
         /// <summary> 
@@ -67,7 +67,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSScriptTable(string ln)
             : base(ObjectType.ScriptTable, ln, 0)
         {
-            Scripts = new List<KeyValuePair<int, GXDLMSScriptAction>>();
+            Scripts = new List<GXDLMSScript>();
         }
 
         /// <summary> 
@@ -78,11 +78,11 @@ namespace Gurux.DLMS.Objects
         public GXDLMSScriptTable(string ln, ushort sn)
             : base(ObjectType.ScriptTable, ln, sn)
         {
-            Scripts = new List<KeyValuePair<int, GXDLMSScriptAction>>();
+            Scripts = new List<GXDLMSScript>();
         }
 
-        [XmlIgnore()]                
-        public List<KeyValuePair<int, GXDLMSScriptAction>> Scripts
+        [XmlIgnore()]
+        public List<GXDLMSScript> Scripts
         {
             get;
             set;
@@ -157,28 +157,29 @@ namespace Gurux.DLMS.Objects
             {
                 int cnt = Scripts.Count;
                 GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((byte) DataType.Array);
+                data.SetUInt8((byte)DataType.Array);
                 //Add count            
                 GXCommon.SetObjectCount(cnt, data);
-                if (cnt != 0)
+                foreach (GXDLMSScript it in Scripts)
                 {
-                    foreach (var it in Scripts)
+                    data.SetUInt8((byte)DataType.Structure);
+                    data.SetUInt8(2); //Count
+                    GXCommon.SetData(data, DataType.UInt16, it.Id); //Script_identifier:
+                    data.SetUInt8((byte)DataType.Array);
+                    data.SetUInt8((byte)it.Actions.Count); //Count
+                    foreach (GXDLMSScriptAction a in it.Actions)
                     {
                         data.SetUInt8((byte)DataType.Structure);
-                        data.SetUInt8(2); //Count
-                        GXCommon.SetData(data, DataType.UInt16, it.Key); //Script_identifier:
-                        data.SetUInt8((byte)DataType.Array);
                         data.SetUInt8(5); //Count
-                        GXDLMSScriptAction tmp = it.Value;
-                        GXCommon.SetData(data, DataType.Enum, tmp.Type); //service_id
-                        GXCommon.SetData(data, DataType.UInt16, tmp.ObjectType); //class_id
-                        GXCommon.SetData(data, DataType.OctetString, tmp.LogicalName); //logical_name
-                        GXCommon.SetData(data, DataType.Int8, tmp.Index); //index
-                        GXCommon.SetData(data, GXCommon.GetValueType(tmp.Parameter), tmp.Parameter); //parameter
+                        GXCommon.SetData(data, DataType.Enum, a.Type); //service_id
+                        GXCommon.SetData(data, DataType.UInt16, a.ObjectType); //class_id
+                        GXCommon.SetData(data, DataType.OctetString, a.LogicalName); //logical_name
+                        GXCommon.SetData(data, DataType.Int8, a.Index); //index
+                        GXCommon.SetData(data, GXCommon.GetValueType(a.Parameter), a.Parameter); //parameter
                     }
                 }
                 return data.Array();
-            }            
+            }
             throw new ArgumentException("GetValue failed. Invalid attribute index.");
         }
 
@@ -206,7 +207,9 @@ namespace Gurux.DLMS.Objects
                     {
                         foreach (Object[] item in (Object[])value)
                         {
-                            int script_identifier = Convert.ToInt32(item[0]);
+                            GXDLMSScript script = new GXDLMSScript();
+                            script.Id = Convert.ToInt32(item[0]);
+                            Scripts.Add(script);
                             foreach (Object[] arr in (Object[])item[1])
                             {
                                 GXDLMSScriptAction it = new GXDLMSScriptAction();
@@ -215,23 +218,23 @@ namespace Gurux.DLMS.Objects
                                 it.LogicalName = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString).ToString();
                                 it.Index = Convert.ToInt32(arr[3]);
                                 it.Parameter = arr[4];
-                                Scripts.Add(new KeyValuePair<int, GXDLMSScriptAction>(script_identifier, it));
+                                script.Actions.Add(it);
                             }
                         }
                     }
                     else //Read Xemex meter here.
                     {
-                        int script_identifier = Convert.ToInt32(((Object[])value)[0]);
+                        GXDLMSScript script = new GXDLMSScript();
+                        script.Id = Convert.ToInt32(((Object[])value)[0]);
+                        Scripts.Add(script);
                         Object[] arr = (Object[])((Object[])value)[1];
-                        {
-                            GXDLMSScriptAction it = new GXDLMSScriptAction();
-                            it.Type = (ScriptActionType)Convert.ToInt32(arr[0]);
-                            it.ObjectType = (ObjectType)Convert.ToInt32(arr[1]);
-                            it.LogicalName = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString).ToString();
-                            it.Index = Convert.ToInt32(arr[3]);
-                            it.Parameter = arr[4];
-                            Scripts.Add(new KeyValuePair<int, GXDLMSScriptAction>(script_identifier, it));
-                        }
+                        GXDLMSScriptAction it = new GXDLMSScriptAction();
+                        it.Type = (ScriptActionType)Convert.ToInt32(arr[0]);
+                        it.ObjectType = (ObjectType)Convert.ToInt32(arr[1]);
+                        it.LogicalName = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString).ToString();
+                        it.Index = Convert.ToInt32(arr[3]);
+                        it.Parameter = arr[4];
+                        script.Actions.Add(it);
                     }
                 }
             }            

@@ -376,7 +376,18 @@ namespace Gurux.DLMS
         /// </summary>
         public UInt64 GetUInt64()
         {
-            UInt64 value = BitConverter.ToUInt64(Data, Position);
+            if (Position + 8 > Size)
+            {
+                throw new System.OutOfMemoryException();
+            }
+            UInt64 value = (UInt64)((Data[Position] & 0xFF) << 58 | 
+                (Data[Position + 1] & 0xFF) << 48 |
+                (Data[Position + 2] & 0xFF) << 40 | 
+                (Data[Position + 3] & 0xFF) << 32 |
+                (Data[Position + 4] & 0xFF) << 24 |
+                (Data[Position + 5] & 0xFF) << 16 |
+                (Data[Position + 6] & 0xFF) << 8 |
+                (Data[Position + 7] & 0xFF));
             Position += 8;
             return value;
         }
@@ -392,14 +403,14 @@ namespace Gurux.DLMS
             {
                 Capacity = (UInt16) (index + ArrayCapacity);
             }
-            Data[Size + 7] = (byte)((item >> 56) & 0xFF);
-            Data[Size + 6] = (byte)((item >> 48) & 0xFF);
-            Data[Size + 5] = (byte)((item >> 40) & 0xFF);
-            Data[Size + 4] = (byte)((item >> 32) & 0xFF);
-            Data[Size + 3] = (byte)((item >> 24) & 0xFF);
-            Data[Size + 2] = (byte)((item >> 16) & 0xFF);
-            Data[Size + 1] = (byte)((item >> 8) & 0xFF);
-            Data[Size] = (byte)(item & 0xFF);
+            Data[Size] = (byte)((item >> 56) & 0xFF);
+            Data[Size + 1] = (byte)((item >> 48) & 0xFF);
+            Data[Size + 2] = (byte)((item >> 40) & 0xFF);
+            Data[Size + 3] = (byte)((item >> 32) & 0xFF);
+            Data[Size + 4] = (byte)((item >> 24) & 0xFF);
+            Data[Size + 5] = (byte)((item >> 16) & 0xFF);
+            Data[Size + 6] = (byte)((item >> 8) & 0xFF);
+            Data[Size + 7] = (byte)(item & 0xFF);
         }
 
         /// <summary>
@@ -531,7 +542,18 @@ namespace Gurux.DLMS
         /// </summary>
         public Int64 GetInt64()
         {
-            Int64 value = BitConverter.ToInt64(Data, Position);
+            if (Position + 8 > Size)
+            {
+                throw new System.OutOfMemoryException();
+            }
+            Int64 value = (Int64)((Data[Position] & 0xFF) << 58 | 
+                (Data[Position + 1] & 0xFF) << 48 |
+                (Data[Position + 2] & 0xFF) << 40 | 
+                (Data[Position + 3] & 0xFF) << 32 |
+                (Data[Position + 4] & 0xFF) << 24 |
+                (Data[Position + 5] & 0xFF) << 16 |
+                (Data[Position + 6] & 0xFF) << 8 |
+                (Data[Position + 7] & 0xFF));
             Position += 8;
             return value;
         }

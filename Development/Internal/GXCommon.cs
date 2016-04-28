@@ -1211,7 +1211,15 @@ namespace Gurux.DLMS.Internal
                 buff.Set((byte[])value);
                 return;
             }
-            buff.SetUInt8((byte)type);
+            if (type == DataType.Time || 
+                type == DataType.Date)
+            {
+                buff.SetUInt8(DataType.OctetString);
+            }
+            else
+            {
+                buff.SetUInt8((byte)type);
+            }
             switch (type)
             {
                 case DataType.None:
@@ -1339,6 +1347,8 @@ namespace Gurux.DLMS.Internal
             {
                 throw new Exception("Invalid date format.");
             }
+            //Add size.
+            buff.SetUInt8(4);
             //Add time.
             if ((dt.Skip & DateTimeSkips.Hour) != 0)
             {
@@ -1366,8 +1376,16 @@ namespace Gurux.DLMS.Internal
             {
                 buff.SetUInt8((byte)dt.Value.Second);
             }
+
             //Hundredths of second is not used.
-            buff.SetUInt8(0xFF);
+            if ((dt.Skip & DateTimeSkips.Ms) != 0)
+            {
+                buff.SetUInt8(0xFF);
+            }
+            else
+            {
+                buff.SetUInt8((byte) (10 * dt.Value.Millisecond));
+            }
         }
 
         ///<summary>
@@ -1401,7 +1419,9 @@ namespace Gurux.DLMS.Internal
             else
             {
                 throw new Exception("Invalid date format.");
-            }           
+            }          
+            //Add size
+            buff.SetUInt8(5);
             // Add year.
             if ((dt.Skip & DateTimeSkips.Year) != 0)
             {
@@ -1437,8 +1457,22 @@ namespace Gurux.DLMS.Internal
             {
                 buff.SetUInt8((byte)dt.Value.Day);
             }
-            // Week day is not spesified.
-            buff.SetUInt8(0xFF);
+            // Add week day 
+            if ((dt.Skip & DateTimeSkips.DayOfWeek) != 0)
+            {
+                buff.SetUInt8(0xFF);
+            }
+            else
+            {
+                if (dt.Value.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    buff.SetUInt8(7);
+                }
+                else
+                {
+                    buff.SetUInt8((byte)(dt.Value.DayOfWeek));
+                }
+            }
         }
 
         ///<summary>
@@ -1520,9 +1554,22 @@ namespace Gurux.DLMS.Internal
             {
                 buff.SetUInt8(0xFF);
             }
-            //Week day is not spesified.
-            //Standard defines. tmp.Add(0xFF);
-            buff.SetUInt8(0xFF);
+            // Add week day 
+            if ((dt.Skip & DateTimeSkips.DayOfWeek) != 0)
+            {
+                buff.SetUInt8(0xFF);
+            }
+            else
+            {
+                if (dt.Value.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    buff.SetUInt8(7);
+                }
+                else
+                {
+                    buff.SetUInt8((byte)(dt.Value.DayOfWeek));
+                }
+            }
             //Add time.
             if ((dt.Skip & DateTimeSkips.Hour) == 0)
             {

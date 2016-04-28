@@ -435,7 +435,7 @@ namespace Gurux.DLMS
                 }
             }
             bb = new GXByteBuffer();
-            if (cmd != Command.Push)
+            if (cmd != Command.GeneralBlockTransfer)
             {
                 index = settings.BlockIndex - 1;
             }
@@ -451,7 +451,7 @@ namespace Gurux.DLMS
                 {
                     // Add command.
                     bb.SetUInt8((byte)cmd);
-                    if (cmd == Command.Push)
+                    if (cmd == Command.GeneralBlockTransfer)
                     {
                         // Is last block
                         if (buff.Position + len < buff.Size)
@@ -1385,7 +1385,7 @@ namespace Gurux.DLMS
         {
             short ch;
             Command cmd = data.Command;
-            if (data.Command == Command.Push && (data.MoreData & RequestTypes.Frame) == 0)
+            if (data.Command == Command.GeneralBlockTransfer && (data.MoreData & RequestTypes.Frame) == 0)
             {
                 data.Command = Command.None;
             }
@@ -1425,7 +1425,7 @@ namespace Gurux.DLMS
                     case Command.MethodResponse:
                         HandleMethodResponse(settings, data);
                         break;
-                    case Command.Push:
+                    case Command.GeneralBlockTransfer:
                         HandlePush(data);
                         break;
                     case Command.Aarq:

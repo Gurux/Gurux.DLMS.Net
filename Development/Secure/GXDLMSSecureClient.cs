@@ -35,6 +35,7 @@
 
 using System.Text;
 using Gurux.DLMS.Enums;
+using System;
 namespace Gurux.DLMS.Secure
 {
     public class GXDLMSSecureClient : GXDLMSClient
@@ -74,6 +75,66 @@ namespace Gurux.DLMS.Secure
         {
             get;
             private set;
+        }
+
+        /// <summary>
+        /// Encrypt data using Key Encrypting Key.
+        /// </summary>
+        /// <param name="kek">Key Encrypting Key, also known as Master key.</param>
+        /// <param name="data">Data to encrypt.</param>
+        /// <returns>Encrypt data.</returns>
+        public static byte[] Encrypt(byte[] kek, byte[] data)
+        {
+            if (kek == null)
+            {
+                throw new ArgumentNullException("Key Encrypting Key");
+            }
+            if (kek.Length < 16)
+            {
+                throw new ArgumentOutOfRangeException("Key Encrypting Key");
+            }
+            if (kek.Length % 8 != 0)
+            {
+                throw new ArgumentException("Key Encrypting Key");
+            }
+            GXDLMSChipperingStream gcm = new GXDLMSChipperingStream(true, kek);
+            return gcm.EncryptAes(data);
+        }
+
+        /// <summary>
+        /// Decrypt data using Key Encrypting Key.
+        /// </summary>
+        /// <param name="kek">Key Encrypting Key, also known as Master key.</param>
+        /// <param name="data">Data to decrypt.</param>
+        /// <returns>Decrypted data.</returns>
+        public static byte[] Decrypt(byte[] kek, byte[] data)
+        {
+            if (kek == null)
+            {
+                throw new ArgumentNullException("Key Encrypting Key");
+            } 
+            if (kek.Length < 16)
+            {
+                throw new ArgumentOutOfRangeException("Key Encrypting Key");
+            }
+            if (kek.Length % 8 != 0)
+            {
+                throw new ArgumentException("Key Encrypting Key");
+            }
+            if (data == null)
+            {
+                throw new ArgumentNullException("data");
+            }
+            if (data.Length < 16)
+            {
+                throw new ArgumentOutOfRangeException("data");
+            }
+            if (data.Length % 8 != 0)
+            {
+                throw new ArgumentException("data");
+            }
+            GXDLMSChipperingStream gcm = new GXDLMSChipperingStream(false, kek);
+            return gcm.DecryptAes(data);
         }
     }
 }

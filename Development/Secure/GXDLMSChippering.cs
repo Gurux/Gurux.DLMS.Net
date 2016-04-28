@@ -219,7 +219,8 @@ namespace Gurux.DLMS.Secure
                 data.Get(tag);
             }
             byte[] aad = GetAuthenticatedData(p.Security, p.AuthenticationKey, data.Array());
-            GXDLMSChipperingStream gcm = new GXDLMSChipperingStream(p.Security, false, p.BlockCipherKey, aad, GetNonse(p.FrameCounter, p.SystemTitle), tag);
+            byte[] iv = GetNonse(p.FrameCounter, p.SystemTitle);
+            GXDLMSChipperingStream gcm = new GXDLMSChipperingStream(p.Security, true, p.BlockCipherKey, aad, iv, tag);
             gcm.Write(ciphertext);
             return gcm.FlushFinalBlock();            
         }

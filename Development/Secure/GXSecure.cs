@@ -153,7 +153,10 @@ namespace Gurux.DLMS.Secure
         {
             Random r = new Random();
             // Random challenge is 8 to 64 bytes.
-            int len = r.Next(57) + 8;
+            // Texas Instruments accepts only 16 byte long challenge.
+            // For this reason challenge size is 16 bytes at the moment.
+            int len = 16;
+//            int len = r.Next(57) + 8;
             byte[] result = new byte[len];
             for (int pos = 0; pos != len; ++pos)
             {

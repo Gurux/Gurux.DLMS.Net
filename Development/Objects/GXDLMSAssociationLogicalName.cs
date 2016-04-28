@@ -205,7 +205,7 @@ namespace Gurux.DLMS.Objects
             }
             else
             {
-                throw new ArgumentException("Invoke failed. Invalid attribute index.");
+                return new byte[] { (byte) ErrorCode.ReadWriteDenied};
             }
         }
 
@@ -571,7 +571,7 @@ namespace Gurux.DLMS.Objects
                             obj.Version = version;                            
                         }
                         //Unknown objects are not shown.
-                        if (obj is IGXDLMSBase)
+                        if (obj is IGXDLMSBase && item[3] != null)
                         {
                             UpdateAccessRights(obj, (Object[])item[3]);
                             ObjectList.Add(obj);

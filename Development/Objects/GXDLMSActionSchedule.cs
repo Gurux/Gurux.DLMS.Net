@@ -190,7 +190,7 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8(2);
                 //LN
                 GXCommon.SetData(data, DataType.OctetString, ExecutedScriptLogicalName); 
-                GXCommon.SetData(data, DataType.UInt16, ExecutedScriptSelector); //Time
+                GXCommon.SetData(data, DataType.UInt16, ExecutedScriptSelector);
                 return data.Array();
             }
             if (index == 3)
@@ -212,8 +212,10 @@ namespace Gurux.DLMS.Objects
                     {
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8((byte)2); //Count
-                        GXCommon.SetData(data, DataType.Time, it.Value); //Time
-                        GXCommon.SetData(data, DataType.Date, it.Value); //Date
+                        //Time
+                        GXCommon.SetData(data, DataType.Time, it.Value);
+                        //Date
+                        GXCommon.SetData(data, DataType.Date, it.Value); 
                     }
                 }
                 return data.Array();
@@ -251,8 +253,8 @@ namespace Gurux.DLMS.Objects
                     List<GXDateTime> items = new List<GXDateTime>();
                     foreach (object[] it in (object[])value)
                     {
-                        GXDateTime tm = (GXDateTime)it[0];
-                        GXDateTime date = (GXDateTime)it[1];
+                        GXDateTime tm = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[0], DataType.Time);
+                        GXDateTime date = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[1], DataType.Date);
                         tm.Value.AddYears(date.Value.Year - 1);
                         tm.Value.AddMonths(date.Value.Month - 1);
                         tm.Value.AddDays(date.Value.Day - 1);

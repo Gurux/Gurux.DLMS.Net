@@ -129,6 +129,17 @@ namespace Gurux.DLMS
         abstract public void Write(ValueEventArgs[] args);
 
         /// <summary>
+        /// Accepted connection is made for the server. 
+        /// All initialization is done here.
+        /// </summary>
+        public abstract void Connected();
+
+        /// <summary>
+        /// Server has close the connection. All clean up is made here.
+        /// </summary>
+        public abstract void Disconnected();
+
+        /// <summary>
         /// Client attempts to connect with the wrong server or client address.
         /// </summary>
         abstract public void InvalidConnection(ConnectionEventArgs e);
@@ -580,11 +591,13 @@ namespace Gurux.DLMS
                 case Command.Aarq:
                     Frames = HandleAarqRequest();
                     Settings.Connected = true;
+                    Connected();
                     break;
                 case Command.DisconnectRequest:
                 case Command.Disc:
                     Frames = GenerateDisconnectRequest();
                     Settings.Connected = false;
+                    Disconnected();
                     break;
                 default:
                     Debug.WriteLine("Invalid command: " + Reply.Command.ToString());

@@ -41,6 +41,8 @@ using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
+using Gurux.DLMS.Internal;
+using Gurux.DLMS.Secure;
 
 namespace Gurux.DLMS.Objects
 {
@@ -50,7 +52,7 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary> 
         public GXDLMSSecuritySetup()
-            : base(ObjectType.SecuritySetup)
+            : this("0.0.43.0.0.255")
         {
         }
 
@@ -118,6 +120,74 @@ namespace Gurux.DLMS.Objects
             ClientSystemTitle, ServerSystemTitle};
         }
 
+        /// <summary>
+        /// Get security enum as integer value.
+        /// </summary>
+        /// <param name="security">Security level.</param>
+        /// <returns>Integer value of security level.</returns>
+        private static int GetSecurityValue(Security security)
+        {
+            int value = 0;
+            switch (security)   
+            {
+                case Security.None:
+                    value = 0;
+                    break;
+                case Security.Authentication:
+                    value = 1;
+                    break;
+                case Security.Encryption:
+                    value = 2;
+                    break;
+                case Security.AuthenticationEncryption:
+                    value = 3;
+                    break;
+                default:
+                    throw new InvalidEnumArgumentException();
+            }
+            return value;
+        }
+
+        /// <summary>
+        /// Activates and strengthens the security policy. 
+        /// </summary>
+        /// <param name="client">DLMS client that is used to generate action.</param>
+        /// <param name="security">New security level.</param>
+        /// <returns></returns>
+        public byte[][] Activate(GXDLMSClient client, Security security)
+        {          
+            return client.Method(this, 1, GetSecurityValue(security), DataType.Enum);
+        }
+       
+        /// <summary>
+        /// Updates one or more global keys. 
+        /// </summary>
+        /// <param name="client">DLMS client that is used to generate action.</param>
+        /// <param name="kek">Master key, also known as Key Encrypting Key.</param>
+        /// <param name="list">List of Global key types and keys.</param>
+        /// <returns></returns>
+        public byte[][] GlobalKeyTransfer(GXDLMSClient client, byte[] kek, List<KeyValuePair<GlobalKeyType, byte[]>> list)
+        {
+            if (list == null || list.Count == 0)
+            {
+                throw new ArgumentException("Invalid list. It is empty.");
+            }
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetUInt8(DataType.Array);
+            bb.SetUInt8((byte) list.Count);
+            byte[] tmp;
+            foreach(KeyValuePair<GlobalKeyType, byte[]> it in list)
+            {
+                bb.SetUInt8(DataType.Structure);
+                bb.SetUInt8(2);
+                GXCommon.SetData(bb, DataType.Enum, it.Key);
+                tmp = GXDLMSSecureClient.Encrypt(kek, it.Value);
+                GXCommon.SetData(bb, DataType.OctetString, tmp);
+            }
+            return client.Method(this, 2, bb.Array(), DataType.Array);
+        }
+         
+
         #region IGXDLMSBase Members
 
         /// <summary>
@@ -126,7 +196,38 @@ namespace Gurux.DLMS.Objects
         /// <param name="index"></param>
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
         {
-            throw new ArgumentException("Invoke failed. Invalid attribute index.");
+            if (index == 2)
+            {
+                foreach (object tmp in parameters as object[])
+                {
+                    object[] item = tmp as object[];
+                    GlobalKeyType type = (GlobalKeyType)Convert.ToInt32(item[0]);
+                    byte[] data = (byte[])item[1];
+                    switch (type)
+                    {
+                        case GlobalKeyType.UnicastEncryption:
+                        case GlobalKeyType.BroadcastEncryption:
+                           //Invalid type
+                           return new byte[] { (byte)ErrorCode.ReadWriteDenied };
+                        case GlobalKeyType.Authentication:
+                           //if settings.Cipher is null non secure server is used.
+                            settings.Cipher.AuthenticationKey = GXDLMSSecureClient.Decrypt(settings.Kek, data);
+                            break;
+                        case GlobalKeyType.Kek:
+                            settings.Kek = GXDLMSSecureClient.Decrypt(settings.Kek, data);
+                            break;
+                        default:
+                            //Invalid type
+                            return new byte[] {(byte)ErrorCode.ReadWriteDenied };
+                    }
+                }
+                //Return standard reply.
+                return null;
+            }
+            else
+            {
+                return new byte[] {(byte) ErrorCode.ReadWriteDenied };
+            }
         }
 
         int[] IGXDLMSBase.GetAttributeIndexToRead()
@@ -184,7 +285,7 @@ namespace Gurux.DLMS.Objects
         {
             if (this.Version == 0)
             {
-                return 3;
+                return 5;
             }
             return 6;
         }
@@ -193,7 +294,7 @@ namespace Gurux.DLMS.Objects
         {
             if (this.Version == 0)
             {
-                return 3;
+                return 2;
             }
             return 8;
         }
@@ -212,16 +313,16 @@ namespace Gurux.DLMS.Objects
             {
                 return DataType.Enum;                
             }
+            if (index == 4)
+            {
+                return DataType.OctetString;
+            }
+            if (index == 5)
+            {
+                return DataType.OctetString;
+            }
             if (this.Version > 0)
             {
-                if (index == 4)
-                {
-                    return DataType.OctetString;
-                }
-                if (index == 5)
-                {
-                    return DataType.OctetString;
-                }
                 if (index == 6)
                 {
                     return DataType.OctetString;

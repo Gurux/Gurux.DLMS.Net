@@ -70,6 +70,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GXDLMSBuilder.cs" />
     <Compile Include="GXDLMSConverter.cs" />
     <Compile Include="Internal\HdlcFrameType.cs" />
     <Compile Include="Internal\HdlcControlFrame.cs" />
@@ -86,6 +87,7 @@
     <Compile Include="Internal\SerialnumberCounter.cs" />
     <Compile Include="Objects\Enums\AssociationStatus.cs" />
     <Compile Include="Objects\Enums\AccessRange.cs" />
+    <Compile Include="Objects\Enums\GlobalKeyType.cs" />
     <Compile Include="Objects\Enums\SortMethod.cs" />
     <Compile Include="Objects\Enums\PppAuthenticationType.cs" />
     <Compile Include="Objects\Enums\PppSetupAuthenticationProtocol.cs" />
@@ -95,6 +97,7 @@
     <Compile Include="Objects\Enums\IecTwistedPairSetupMode.cs" />
     <Compile Include="Objects\Enums\SingleActionScheduleType.cs" />
     <Compile Include="Objects\GXDLMSCaptureObject.cs" />
+    <Compile Include="Objects\GXDLMSScript.cs" />
     <Compile Include="Secure\AesGcmParameter.cs" />
     <Compile Include="Enums\AssociationResult.cs" />
     <Compile Include="Enums\Authentication.cs" />
@@ -103,6 +106,7 @@
     <Compile Include="Enums\DataType.cs" />
     <Compile Include="Enums\ErrorCode.cs" />
     <Compile Include="GXByteBuffer.cs" />
+    <Compile Include="Secure\GXDLMSSecureNotify.cs" />
     <Compile Include="Secure\GXDLMSSecureServer.cs" />
     <Compile Include="Secure\GXDLMSSecureClient.cs" />
     <Compile Include="Secure\GXCiphering.cs" />

@@ -51,7 +51,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// DLMS settings.
         /// </summary>
-        private GXDLMSSettings Settings;
+        protected GXDLMSSettings Settings;
 
         /// <summary>
         /// Constructor
@@ -369,7 +369,7 @@ namespace Gurux.DLMS
                 }
                 GXCommon.SetData(buff, dt, value);
             }
-            List<byte[][]> list = GXDLMS.SplitPdu(Settings, Command.Push, 0, buff, DateTime.MinValue);
+            List<byte[][]> list = GXDLMS.SplitPdu(Settings, Command.GeneralBlockTransfer, 0, buff, DateTime.MinValue);
             List<byte[]> arr = new List<byte[]>();
             foreach (byte[][] it in list)
             {

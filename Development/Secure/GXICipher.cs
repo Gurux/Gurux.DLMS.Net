@@ -95,6 +95,7 @@ namespace Gurux.DLMS.Secure
         byte[] AuthenticationKey
         {
             get;
+            set;
         }
 
         /// <summary>

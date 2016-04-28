@@ -143,10 +143,11 @@ namespace Gurux.DLMS
         /// Exception Response.
         /// </summary>
         ExceptionResponse = 0xD8,
+        
         /// <summary>
-        /// Push request.
+        /// General Block Transfer.
         /// </summary>
-        Push = 0xE0,
+        GeneralBlockTransfer = 0xE0,
 
         /// <summary>
         /// Data Notification request.

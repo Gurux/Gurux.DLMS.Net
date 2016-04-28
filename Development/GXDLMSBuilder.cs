@@ -1,4 +1,4 @@
-//
+﻿//
 // --------------------------------------------------------------------------
 //  Gurux Ltd
 // 
@@ -32,74 +32,62 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-
-namespace Gurux.DLMS.Secure
+namespace Gurux.DLMS
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
-    using System.Security.Cryptography;
     using Gurux.DLMS.Internal;
-    using Gurux.DLMS.Enums;
+using Gurux.DLMS.Enums;
 
-    public abstract class GXDLMSSecureServer : GXDLMSServer
-    {       
-        ///<summary>
+    /// <summary>
+    /// This class is used to build custom DLMS content.
+    /// </summary>
+    public class GXDLMSBuilder
+    {
+        /// <summary>
         /// Constructor.
+        /// </summary>
+        private GXDLMSBuilder()
+        {
+        }
+
+            /// <summary>
+        /// Set item count.
+        /// </summary>
+        /// <param name="count"></param>
+        /// <param name="buff"></param>
+        internal static void SetObjectCount(int count, GXByteBuffer data)
+        {
+            GXCommon.SetObjectCount(count, data);
+        }
+
+        /// <summary>
+        /// Get object count. If first byte is 0x80 or higger it will tell bytes count.
+        /// </summary>
+        /// <param name="data">Received data.</param>
+        /// <returns>Object count.</returns>
+        public static int GetObjectCount(GXByteBuffer data)
+        {
+            return GXCommon.GetObjectCount(data);
+        }     
+
+         ///<summary>
+        ///Convert object to DLMS bytes.
         ///</summary>
-        ///<param name="logicalNameReferencing">
-        /// Is logical name referencing used. 
+        ///<param name="buff">
+        ///Byte buffer where data is write.
         ///</param>
-        ///<param name="type">
-        /// Interface type. 
+        ///<param name="dataType">
+        ///Data type.
         ///</param>
-        public GXDLMSSecureServer(bool logicalNameReferencing, InterfaceType type) :
-            base(logicalNameReferencing, type)
+        ///<param name="value">
+        /// Added Value.
+        ///</param>
+        public static void SetData(GXByteBuffer buff, DataType type, object value)
         {
-            Ciphering = new GXCiphering(ASCIIEncoding.ASCII.GetBytes("ABCDEFGH"));
-            Settings.Cipher = Ciphering;
+            GXCommon.SetData(buff, type, value);
         }
-
-        /// <summary>
-        /// Ciphering settings.
-        /// </summary>
-        public GXCiphering Ciphering
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// Key Encrypting Key, also known as Master key.
-        /// </summary>
-        public byte[] Kek
-        {
-            get
-            {
-                return Settings.Kek;
-            }
-            set
-            {
-                Settings.Kek = value;
-            }
-        }
-
-        /// <summary>
-        /// Server to Client challenge.         
-        /// </summary>
-        public byte[] StoCChallenge
-        {
-            get
-            {
-                return Settings.StoCChallenge;
-            }
-            set
-            {
-                Settings.UseCustomChallenge = value != null;
-                Settings.StoCChallenge = value;
-            }
-        }
-        
     }
 }

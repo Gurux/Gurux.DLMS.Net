@@ -100,6 +100,16 @@ namespace Gurux.DLMS
         internal byte[] SourceSystemTitle;
 
         /// <summary>
+        /// Key Encrypting Key, also known as Master key.
+        /// </summary>
+        internal byte[] Kek;
+
+        /// <summary>
+        /// When data is handled position of progress is saved here.
+        /// </summary>
+        internal UInt16 ProgressIndex;
+
+        /// <summary>
         /// Cipher interface.
         /// </summary>
         /// <remarks>
@@ -495,7 +505,7 @@ namespace Gurux.DLMS
         /// Is custom challenges used. If custom challenge is used new challenge is
         /// not generated if it is set. This is for debugging purposes. 
         ///</summary>
-        public bool UseCustomChallenge
+        internal bool UseCustomChallenge
         {
             get;
             set;

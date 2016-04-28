@@ -542,7 +542,7 @@ namespace Gurux.DLMS.Objects
                         foreach (object[] it2 in (object[])item[1])
                         {
                             GXDLMSDayProfileAction ac = new GXDLMSDayProfileAction();
-                            ac.StartTime = (GXDateTime)it2[0];
+                            ac.StartTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])it2[0], DataType.Time);
                             ac.ScriptLogicalName = GXDLMSClient.ChangeType((byte[])it2[1], DataType.String).ToString();
                             ac.ScriptSelector = Convert.ToUInt16(it2[2]);
                             actions.Add(ac);
@@ -617,7 +617,7 @@ namespace Gurux.DLMS.Objects
                         foreach (object[] it2 in (object[])item[1])
                         {
                             GXDLMSDayProfileAction ac = new GXDLMSDayProfileAction();
-                            ac.StartTime = (GXDateTime)it2[0];
+                            ac.StartTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])it2[0], DataType.Time);
                             ac.ScriptLogicalName = GXDLMSClient.ChangeType((byte[])it2[1], DataType.String).ToString();
                             ac.ScriptSelector = Convert.ToUInt16(it2[2]);
                             actions.Add(ac);
