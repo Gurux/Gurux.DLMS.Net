@@ -54,8 +54,8 @@
       <HintPath>..\packages\Gurux.Common.7.0.33.1\lib\net35\Gurux.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Gurux.DLMS, Version=8.1.0.9, Culture=neutral, PublicKeyToken=93fe906382db03b2, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gurux.DLMS.8.1.0.9\lib\net35\Gurux.DLMS.dll</HintPath>
+    <Reference Include="Gurux.DLMS, Version=8.1.0.11, Culture=neutral, PublicKeyToken=93fe906382db03b2, processorArchitecture=MSIL">
+      <HintPath>..\packages\Gurux.DLMS.8.1.0.11\lib\net35\Gurux.DLMS.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Gurux.Net, Version=7.0.28.1, Culture=neutral, PublicKeyToken=ca111c9ecfaf947d, processorArchitecture=MSIL">

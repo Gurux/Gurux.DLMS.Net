@@ -243,7 +243,7 @@ namespace GuruxDLMSServerExample
         /// </summary>
         /// <param name="server"></param>
         /// <param name="e"></param>
-        public override void Read(ValueEventArgs[] args)
+        protected override void Read(ValueEventArgs[] args)
         {
             foreach (ValueEventArgs e in args)
             {
@@ -300,22 +300,22 @@ namespace GuruxDLMSServerExample
             }
         }
 
-        public override void Write(ValueEventArgs[] args)
+        protected override void Write(ValueEventArgs[] args)
         {
         }
 
-        public override void InvalidConnection(ConnectionEventArgs e)
+        protected override void InvalidConnection(ConnectionEventArgs e)
         {
         }
 
-        public override void Action(ValueEventArgs[] args)
+        protected override void Action(ValueEventArgs[] args)
         {
         }
 
         /// <summary>
         /// Our example server accept all connections.
         /// </summary>
-        public override bool IsTarget(int serverAddress, int clientAddress)
+        protected override bool IsTarget(int serverAddress, int clientAddress)
         {
             return true;
         }
@@ -323,7 +323,7 @@ namespace GuruxDLMSServerExample
         /// <summary>
         /// Our example server accept all authentications.        
         /// </summary>
-        public override SourceDiagnostic ValidateAuthentication(Authentication authentication, byte[] password)
+        protected override SourceDiagnostic ValidateAuthentication(Authentication authentication, byte[] password)
         {
             return SourceDiagnostic.None;
         }
@@ -335,7 +335,7 @@ namespace GuruxDLMSServerExample
         /// <param name="sn"></param>
         /// <param name="ln"></param>
         /// <returns></returns>
-        public override GXDLMSObject FindObject(ObjectType objectType, int sn, string ln)
+        protected override GXDLMSObject FindObject(ObjectType objectType, int sn, string ln)
         {
             return null;
         }
@@ -389,6 +389,18 @@ namespace GuruxDLMSServerExample
             {
                 Console.WriteLine(ex.Message);
             }
-        }       
+        }
+
+        protected override void Connected()
+        {
+        }
+
+        protected override void Disconnected()
+        {
+        }
+
+        public override void Update(UpdateType type, ValueEventArgs e)
+        {
+        }
     }
 }
