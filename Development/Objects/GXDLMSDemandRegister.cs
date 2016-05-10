@@ -271,7 +271,7 @@ namespace Gurux.DLMS.Objects
             return 2;
         }
 
-        override public DataType GetDataType(int index)
+        public override DataType GetDataType(int index)
         {
             if (index == 1)
             {
@@ -312,21 +312,21 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
                 return this.LogicalName;
             }
-            if (index == 2)
+            if (e.Index == 2)
             {
                 return this.CurrentAverageValue;
             }
-            if (index == 3)
+            if (e.Index == 3)
             {
                 return this.LastAverageValue;
             }
-            if (index == 4)
+            if (e.Index == 4)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
@@ -335,90 +335,91 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetData(data, DataType.Enum, Unit);
                 return data.Array();
             }
-            if (index == 5)
+            if (e.Index == 5)
             {
                 return this.Status;
             }
-            if (index == 6)
+            if (e.Index == 6)
             {
                 return CaptureTime;
             }
-            if (index == 7)
+            if (e.Index == 7)
             {
                 return StartTimeCurrent;
             }
-            if (index == 8)
+            if (e.Index == 8)
             {
                 return Period;
             }
-            if (index == 9)
+            if (e.Index == 9)
             {
                 return NumberOfPeriods;
             }
-            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
-                if (value is string)
+                if (e.Value is string)
                 {
-                    LogicalName = value.ToString();
+                    LogicalName = e.Value.ToString();
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
                 }
             }
-            else if (index == 2)
+            else if (e.Index == 2)
             {
                 if (Scaler != 1)
                 {
                     try
                     {
-                        CurrentAverageValue = Convert.ToDouble(value) * Scaler;
+                        CurrentAverageValue = Convert.ToDouble(e.Value) * Scaler;
                     }
                     catch (Exception)
                     {
                         //Sometimes scaler is set for wrong Object type.
-                        CurrentAverageValue = value;
+                        CurrentAverageValue = e.Value;
                     }
                 }
                 else
                 {
-                    CurrentAverageValue = value;
+                    CurrentAverageValue = e.Value;
                 }
             }
-            else if (index == 3)
+            else if (e.Index == 3)
             {                 
                 if (Scaler != 1)
                 {
                     try
                     {
-                        LastAverageValue = Convert.ToDouble(value) * Scaler;
+                        LastAverageValue = Convert.ToDouble(e.Value) * Scaler;
                     }
                     catch (Exception)
                     {
                         //Sometimes scaler is set for wrong Object type.
-                        LastAverageValue = value;
+                        LastAverageValue = e.Value;
                     }
                 }
                 else
                 {
-                    LastAverageValue = value;
+                    LastAverageValue = e.Value;
                 }
             }
-            else if (index == 4)
+            else if (e.Index == 4)
             {
-                if (value == null)
+                if (e.Value == null)
                 {
                     Scaler = 1;
                     Unit = Unit.None;
                 }
                 else
                 {
-                    object[] arr = (object[])value;
+                    object[] arr = (object[])e.Value;
                     if (arr.Length != 2)
                     {
                         throw new Exception("setValue failed. Invalid scaler unit value.");
@@ -427,57 +428,58 @@ namespace Gurux.DLMS.Objects
                     Unit = (Unit)Convert.ToInt32(arr[1]);
                 }             
             }
-            else if (index == 5)
+            else if (e.Index == 5)
             {
-                Status = Convert.ToInt32(value);
+                Status = Convert.ToInt32(e.Value);
             }
-            else if (index == 6)
+            else if (e.Index == 6)
             {
-                if (value == null)
+                if (e.Value == null)
                 {
                     CaptureTime = new GXDateTime(DateTime.MinValue);
                 }
                 else
                 {
-                    if (value is byte[])
+                    if (e.Value is byte[])
                     {
-                        value = GXDLMSClient.ChangeType((byte[])value, DataType.DateTime);
+                        e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
                     }
-                    CaptureTime = (GXDateTime)value;
+                    CaptureTime = (GXDateTime)e.Value;
                 }                  
             }
-            else if (index == 7)
+            else if (e.Index == 7)
             {
-                if (value == null)
+                if (e.Value == null)
                 {
                     StartTimeCurrent = new GXDateTime(DateTime.MinValue);
                 }
                 else
                 {
-                    if (value is byte[])
+                    if (e.Value is byte[])
                     {
-                        value = GXDLMSClient.ChangeType((byte[])value, DataType.DateTime);
+                        e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
                     }
-                    StartTimeCurrent = (GXDateTime)value;
+                    StartTimeCurrent = (GXDateTime)e.Value;
                 }                
             }
-            else if (index == 8)
+            else if (e.Index == 8)
             {
-                Period = Convert.ToUInt32(value);
+                Period = Convert.ToUInt32(e.Value);
             }
-            else if (index == 9)
+            else if (e.Index == 9)
             {
-                NumberOfPeriods = Convert.ToUInt16(value);
+                NumberOfPeriods = Convert.ToUInt16(e.Value);
             }
             else
             {
-                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+                e.Error = ErrorCode.ReadWriteDenied;
             }
         }
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            throw new NotImplementedException();
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
         #endregion

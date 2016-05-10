@@ -70,6 +70,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Enums\UpdateType.cs" />
     <Compile Include="GXDLMSBuilder.cs" />
     <Compile Include="GXDLMSConverter.cs" />
     <Compile Include="Internal\HdlcFrameType.cs" />
@@ -246,7 +247,9 @@
     </Compile>
     <Compile Include="Enums\SourceDiagnostic.cs" />
     <Compile Include="Enums\Unit.cs" />
-    <Compile Include="ValueEventArgs.cs" />
+    <Compile Include="ValueEventArgs.cs">
+      <ExcludeFromStyleCop>False</ExcludeFromStyleCop>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Gurux.DLMS.snk" />

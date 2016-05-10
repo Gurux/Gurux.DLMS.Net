@@ -85,6 +85,14 @@ namespace Gurux.DLMS.Objects
             get;
             set;
         }
+        /// <summary>
+        /// Parameter data type can be used to tell spesific data type.
+        /// </summary>        
+        public DataType ParameterDataType
+        {
+            get;
+            set;
+        }
 
         public override string ToString()
         {

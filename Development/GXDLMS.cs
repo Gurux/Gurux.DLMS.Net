@@ -62,13 +62,34 @@ namespace Gurux.DLMS
             byte value = 0;
             if (settings.Priority == Priority.High)
             {
-                value |= 0x80;
+                value = 0x80;
             }
             if (settings.ServiceClass == ServiceClass.Confirmed)
             {
                 value |= 0x40;
             }
-            value |= settings.InvokeID;
+            value |= (byte)(settings.InvokeID & 0xF);
+            return value;
+        }
+
+        /// <summary>
+        /// Generates Invoke ID and priority.
+        /// </summary>
+        /// <param name="settings">DLMS settings.</param>
+        /// <returns>Invoke ID and priority.</returns>
+        static UInt32 GetLongInvokeIDPriority(GXDLMSSettings settings)
+        {
+            UInt32 value = 0;
+            if (settings.Priority == Priority.High)
+            {
+                value = 0x800000;
+            }
+            if (settings.ServiceClass == ServiceClass.Confirmed)
+            {
+                value |= 0x400000;
+            }
+            value |= (UInt32)(settings.longInvokeID & 0xFFFFFF);
+            ++settings.longInvokeID;
             return value;
         }
 
@@ -152,13 +173,13 @@ namespace Gurux.DLMS
             }
             // Get next block.
             GXByteBuffer bb = new GXByteBuffer(6);
-            bb.SetUInt32 (settings.BlockIndex);
+            bb.SetUInt32(settings.BlockIndex);
             settings.IncreaseBlockIndex();
             if (settings.IsServer)
             {
-                return SplitPdu(settings, Command.GetResponse, 2, bb, DateTime.MinValue)[0][0];
+                return GXDLMS.GetMessages(settings, Command.GetResponse, 2, bb, DateTime.MinValue)[0];
             }
-            return SplitPdu(settings, Command.GetRequest, 2, bb, DateTime.MinValue)[0][0];
+            return GXDLMS.GetMessages(settings, Command.GetRequest, 2, bb, DateTime.MinValue)[0];
         }
 
         /// <summary>
@@ -258,11 +279,13 @@ namespace Gurux.DLMS
             {
                 if (value is byte[])
                 {
-                    if (tp != DataType.OctetString)
-                    {
-                        bb.Set((byte[])value);
-                        return;
-                    }
+                    bb.Set((byte[])value);
+                    return;
+                }
+                else if (value is GXByteBuffer)
+                {
+                    bb.Set((GXByteBuffer)value);
+                    return;
                 }
             }
             else
@@ -309,241 +332,297 @@ namespace Gurux.DLMS
                     cmd = Command.GloSetResponse;
                     break;
                 case Command.MethodResponse:
-                    cmd = Command.MethodResponse;
+                    cmd = Command.GloMethodResponse;
                     break;
                 default:
                     throw new GXDLMSException("Invalid GLO command.");
             }
-            return (byte) cmd;
+            return (byte)cmd;
         }
 
         /// <summary>
-        /// Split PDU to blocks and frames.
+        /// Is multible blocks needed for send data.
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
-        /// <param name="command">Command</param>
-        /// <param name="commandParameter">Command parameter value.</param>
-        /// <param name="data">Data to send.</param>
-        /// <param name="date">Optional date time value.</param>
-        /// <param name="cp">Ciphering interface.</param>
-        /// <returns>List of frames to send.</returns>
-        internal static List<byte[][]> SplitPdu(GXDLMSSettings settings, Command command, int commandParameter,
-                GXByteBuffer data, DateTime date)
+        /// <param name="bb">Send data.</param>
+        /// <returns>Returns true if multible blocks are needed.</returns>
+        internal static bool MultibleBlocks(GXDLMSSettings settings, GXByteBuffer bb)
         {
-            GXByteBuffer bb = new GXByteBuffer();
-            List<byte[][]> list = new List<byte[][]>();
-
-            // For SN there is no need to split data for blocks.
             if (!settings.UseLogicalNameReferencing)
             {
-                byte[] tmp = GetSnPdus(settings, data, command);              
-                // If Ciphering is used.
-                if (settings.Cipher != null && settings.Cipher.Security != Security.None 
-                    && command != Command.Aarq && command != Command.Aare)
-                {
-                    bb.Set(settings.Cipher.Encrypt(GetGloMessage(command), settings.Cipher.SystemTitle, tmp));
-                }
-                else
-                {
-                    bb.Set(tmp);
-                }
-                if (settings.InterfaceType == InterfaceType.HDLC)
-                {
-                    if (command == Command.Aarq)
-                    {
-                        list.Add(SplitToHdlcFrames(settings, 0x10, bb));
-                    }
-                    else
-                    {
-                        list.Add(SplitToHdlcFrames(settings, 0, bb));
-                    }
-                }
-                else
-                {
-                    list.Add(SplitToWrapperFrames(settings, bb));
-                }
+                return false;
+            }
+            return bb.Size > settings.MaxReceivePDUSize;
+        }        
+
+        internal static UInt16 GetMaxPduSize(GXDLMSSettings settings, GXByteBuffer data, GXByteBuffer bb)
+        {
+            int offset = 0;
+            if (bb != null)
+            {
+                offset = bb.Size;
+            }
+            int value;
+            if (data.Size + offset > settings.MaxReceivePDUSize)
+            {
+                value = settings.MaxReceivePDUSize - offset;
+                value -= GXCommon.GetObjectCountSizeInBytes(value);                    
+            }
+            else if (data.Size + GXCommon.GetObjectCountSizeInBytes(data.Size) > settings.MaxReceivePDUSize)
+            {
+                value = (data.Size - GXCommon.GetObjectCountSizeInBytes(data.Size));
             }
             else
             {
-                List<byte[]> pdus =
-                        GetLnPdus(settings, (byte)commandParameter, data, command, date);
-                foreach (byte[] it in pdus)
-                {                   
-                    // If Ciphering is used.
-                    if (settings.Cipher != null && settings.Cipher.Security != Security.None &&
-                        command != Command.Aarq && command != Command.Aare)
-                    {
-                        bb.Set(settings.Cipher.Encrypt(GetGloMessage(command), settings.Cipher.SystemTitle, it));
-                    }
-                    else
-                    {
-                        bb.Set(it);
-                    }
-                    if (settings.InterfaceType == InterfaceType.HDLC)
-                    {
-                        if (command == Command.Aarq)
-                        {
-                            list.Add(SplitToHdlcFrames(settings, 0x10, bb));
-                        }
-                        else
-                        {
-                            list.Add(SplitToHdlcFrames(settings, 0, bb));
-                        }
-                    }
-                    else
-                    {
-                        list.Add(SplitToWrapperFrames(settings, bb));
-                    }
-                    bb.Clear();
-                }
+                value = data.Size;
             }
-            return list;
+            return (UInt16)value;
         }
 
-        /// <summary>
-        /// Returns true if executed command is reply.
-        /// </summary>
-        /// <param name="cmd">Executed command.</param>
-        /// <returns>Is command reply message.</returns>
-        private static bool IsReplyMessage(Command cmd)
+        internal static byte[][] GetMessages(GXDLMSSettings settings, Command command, byte commandType, GXByteBuffer data, DateTime time)
         {
-            return cmd == Command.GetResponse || cmd == Command.SetResponse || cmd == Command.MethodResponse;
+            if (settings.UseLogicalNameReferencing)
+            {
+                return GetLnMessages(settings, command, commandType, data, time);
+            }
+            return GetSnMessages(settings, command, commandType, data, time);
         }
 
-        private static List<byte[]> GetLnPdus(GXDLMSSettings settings, byte commandParameter, GXByteBuffer buff,
-                Command cmd, DateTime date)
-        {
-            List<byte[]> arr = new List<byte[]>();
-            GXByteBuffer bb;
-            UInt32 index = 0;
-            int len;
-            if (buff == null)
-            {
-                len = 0;
-            }
-            else
-            {
-                len = settings.MaxReceivePDUSize;
-                if (settings.InterfaceType == InterfaceType.HDLC)
-                {
-                    len -= 7;
-                }
-                else
-                {
-                    // Wrapper header size is 12.
-                    len -= 12;
-                }
-            }
-            bb = new GXByteBuffer();
-            if (cmd != Command.GeneralBlockTransfer)
-            {
-                index = settings.BlockIndex - 1;
-            }
-            bool multibleBlocks = buff.Size > len;
-            do
-            {
-                // If last packet.
-                if (buff.Size - buff.Position < len)
-                {
-                    len = buff.Size - buff.Position;
-                }
-                if (cmd != Command.Aarq && cmd != Command.Aare)
-                {
-                    // Add command.
-                    bb.SetUInt8((byte)cmd);
-                    if (cmd == Command.GeneralBlockTransfer)
-                    {
-                        // Is last block
-                        if (buff.Position + len < buff.Size)
-                        {
-                            bb.SetUInt8(0);
-                        }
-                        else
-                        {
-                            bb.SetUInt8(0x80);
-                        }
-                        // Set block number sent.
-                        bb.SetUInt8(0);
-                        // Set block number acknowledged
-                        bb.SetUInt8((byte)++index);
-                        // Add APU tag.
-                        bb.SetUInt8(0);
-                        // Add Addl fields
-                        bb.SetUInt8(0);
-                        // Add Data-Notification
-                        bb.SetUInt8(0x0F);
-                        // Add Long-Invoke-Id-And-Priority
-                        bb.SetUInt32(settings.BlockIndex);
-                        ++settings.BlockIndex;
-                        // Add date time.
-                        if (date == DateTime.MinValue || date == DateTime.MaxValue)
-                        {
-                            bb.SetUInt8(DataType.None);
-                        }
-                        else
-                        {
-                            GXCommon.SetData(bb, DataType.OctetString, date);
-                        } 
-                    }
-                    // If all data is not fit to one PDU.
-                    else if (multibleBlocks)
-                    {
-                        bb.SetUInt8(2);
-                        // Add Invoke Id And Priority.
-                        bb.SetUInt8(GetInvokeIDPriority(settings));
-                        // Is last packet.
-                        if (buff.Position + len < buff.Size)
-                        {
-                            bb.SetUInt8(0);
-                        }
-                        else
-                        {
-                            bb.SetUInt8(1);
-                        }
-                        // Block index.
-                        bb.SetUInt32(++index);
-                        // Add error code if reply.
-                        if (IsReplyMessage(cmd))
-                        {
-                            bb.SetUInt8(0);
-                        }
-                        // Block length.
-                        GXCommon.SetObjectCount(len, bb);
-                    }
-                    else
-                    {
-                        if (cmd != Command.DataNotification)
-                        {
-                            bb.SetUInt8(commandParameter);
-                        }
-                        // Add Invoke Id And Priority.
-                        bb.SetUInt8(GetInvokeIDPriority(settings));
-                    }
-                }
-
-                bb.Set(buff.Data, buff.Position, len);
-                buff.Position = (UInt16)(buff.Position + len);
-                arr.Add(bb.Array());
-                bb.Clear();
-            } while (buff.Position < buff.Size);
-            return arr;
-        }
-
-        private static byte[] GetSnPdus(GXDLMSSettings settings, GXByteBuffer buff, Command cmd)
+        private static byte[][] GetLnMessages(GXDLMSSettings settings, Command command, byte commandType,
+               GXByteBuffer data, DateTime time)
         {
             GXByteBuffer bb = new GXByteBuffer();
-            if (buff != null && buff.Size != 0)
+            List<byte[]> messages = new List<byte[]>();
+            byte frame = 0;
+            if (command == Command.Aarq)
             {
-                // Add command.
-                if (cmd != Command.Aarq && cmd != Command.Aare)
-                {
-                    bb.SetUInt8((byte)cmd);
-                }
-                // Add data.
-                bb.Set(buff.Data, 0, buff.Size);
+                frame = 0x10;
             }
-            return bb.Array();
+            do 
+            {
+                if (command == Command.Aarq)
+                {
+                    if (settings.InterfaceType == InterfaceType.HDLC)
+                    {
+                        bb.Set(GXCommon.LLCSendBytes);
+                    }
+                    bb.Set(data);
+                }
+                else
+                {
+                    bool multipleBlocks = MultibleBlocks(settings, data);
+                    GetLNPdu(settings, command, commandType, data, bb, 0xFF, multipleBlocks, true, time);
+                }
+                while (bb.Position != bb.Size)
+                {
+                    if (settings.InterfaceType == Enums.InterfaceType.WRAPPER)
+                    {
+                        messages.Add(GXDLMS.GetWrapperFrame(settings, bb));
+                    }
+                    else
+                    {
+                        messages.Add(GXDLMS.GetHdlcFrame(settings, frame, bb));
+                        frame = 0;
+                    }
+                }
+                bb.Clear(); 
+            }
+            while (data.Position != data.Size);
+            return messages.ToArray();
+        }        
+
+        internal static void GetLNPdu(GXDLMSSettings settings, Command command, byte commandType,
+                GXByteBuffer data, GXByteBuffer bb, byte status, bool multibleBlocks, bool lastBlock, DateTime date)
+        {
+            bool ciphering = settings.Cipher != null && settings.Cipher.Security != Security.None;
+            int offset = 0;
+            if (settings.InterfaceType == InterfaceType.HDLC)
+            {
+                if (settings.IsServer)
+                {
+                    bb.Set(0, GXCommon.LLCReplyBytes);
+                }
+                else
+                {
+                    bb.Set(0, GXCommon.LLCSendBytes);
+                }
+                offset = 3;
+            }
+            if (settings.LnSettings.GeneralBlockTransfer)
+            {
+                bb.SetUInt8((byte)Command.GeneralBlockTransfer);
+                //If multible blocks.
+                if (multibleBlocks)
+                {
+                    //If this is a last block make sure that all data is fit to it.
+                    if (lastBlock)
+                    {
+                        lastBlock = !MultibleBlocks(settings, data);
+                    }
+                }
+                // Is last block
+                if (!lastBlock)
+                {
+                    bb.SetUInt8(0);
+                }
+                else
+                {
+                    bb.SetUInt8(0x80);
+                }
+                // Set block number sent.
+                bb.SetUInt8(0);
+                // Set block number acknowledged
+                bb.SetUInt8((byte)settings.BlockIndex);
+                ++settings.BlockIndex;
+                // Add APU tag.
+                bb.SetUInt8(0);
+                // Add Addl fields
+                bb.SetUInt8(0);
+            }
+            // Add command.
+            bb.SetUInt8((byte)command);
+
+            if (command != Command.DataNotification)
+            {
+                bb.SetUInt8(commandType);
+                // Add Invoke Id And Priority.
+                bb.SetUInt8(GetInvokeIDPriority(settings));
+            }
+            else
+            {
+                // Add Long-Invoke-Id-And-Priority
+                bb.SetUInt32(GetLongInvokeIDPriority(settings));
+                // Add date time.
+                if (date == DateTime.MinValue || date == DateTime.MaxValue)
+                {
+                    bb.SetUInt8(DataType.None);
+                }
+                else
+                {
+                    GXCommon.SetData(bb, DataType.OctetString, date);
+                }
+            }
+
+            if (!settings.LnSettings.GeneralBlockTransfer)
+            {
+                //If multible blocks.
+                if (multibleBlocks)
+                {
+                    //If this is a last block make sure that all data is fit to it.
+                    if (lastBlock)
+                    {
+                        lastBlock = !MultibleBlocks(settings, data);
+                    }
+                    // Is last block.
+                    if (lastBlock)
+                    {
+                        bb.SetUInt8(1);
+                        settings.Count = settings.Index = 0;
+                    }
+                    else
+                    {
+                        bb.SetUInt8(0);
+                    }
+                    // Block index.
+                    bb.SetUInt32(settings.BlockIndex);
+                    if (status != 0)
+                    {
+                        bb.SetUInt8(1);
+                    }
+                    bb.SetUInt8(status);
+                    //Block size.
+                    if (bb != null && bb.Size != 0)
+                    {
+                        GXCommon.SetObjectCount(GetMaxPduSize(settings, data, bb), bb);
+                    }
+                }
+                else if (status != 0xFF)
+                {
+                    //If error has occurred.
+                    if (status != 0 && command == Command.GetRequest)
+                    {
+                        bb.SetUInt8(1);
+                    }
+                    bb.SetUInt8(status);
+                }
+            }
+            //Add data
+            if (data != null && data.Size != 0)
+            {
+                int len = data.Size - data.Position;
+                if (len > settings.MaxReceivePDUSize - bb.Size)
+                {
+                    len = settings.MaxReceivePDUSize - bb.Size;
+                }
+                bb.Set(data, len);
+                data.Trim();
+            }
+            if (ciphering)
+            {
+                byte[] tmp = settings.Cipher.Encrypt((byte)GetGloMessage(command), settings.Cipher.SystemTitle, bb.SubArray(offset, bb.Size - offset));
+                bb.Size = (UInt16)offset;
+                bb.Set(tmp);
+            }
         }
+
+        private static byte[][] GetSnMessages(GXDLMSSettings settings, Command command, byte commandType,
+               GXByteBuffer data, DateTime time)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            GetSNPdu(settings, command, data, bb);
+            List<byte[]> messages = new List<byte[]>();
+            byte frame = 0x0;
+            if (command == Command.Aarq)
+            {
+                frame = 0x10;
+            }
+            while (bb.Position != bb.Size)
+            {
+                if (settings.InterfaceType == Enums.InterfaceType.WRAPPER)
+                {
+                    messages.Add(GXDLMS.GetWrapperFrame(settings, bb));
+                }
+                else
+                {
+                    messages.Add(GXDLMS.GetHdlcFrame(settings, frame, bb));
+                    frame = 0;
+                }
+            }
+            return messages.ToArray();           
+        }
+
+        internal static void GetSNPdu(GXDLMSSettings settings, Command command, GXByteBuffer data, GXByteBuffer bb)
+        {
+            if (settings.InterfaceType == InterfaceType.HDLC)
+            {
+                if (settings.IsServer)
+                {
+                    bb.Set(GXCommon.LLCReplyBytes);
+                }
+                else if(bb.Size == 0)
+                {
+                    bb.Set(GXCommon.LLCSendBytes);
+                }
+            }
+            // Add command. 
+            GXByteBuffer tmp = new GXByteBuffer();
+            if (command != Command.Aarq && command != Command.Aare)
+            {
+                tmp.SetUInt8((byte)command);
+            }
+            // Add data.
+            tmp.Set(data);
+            // If Ciphering is used.
+            if (settings.Cipher != null && settings.Cipher.Security != Security.None
+                && command != Command.Aarq && command != Command.Aare)
+            {
+                bb.Set(settings.Cipher.Encrypt((byte) GetGloMessage(command), settings.Cipher.SystemTitle, tmp.Array()));
+            }
+            else
+            {
+                bb.Set(tmp);
+            }
+        }            
 
         internal static Object GetAddress(int value, byte size)
         {
@@ -701,6 +780,138 @@ namespace Gurux.DLMS
                 tmp[++pos] = it;
             }
             return tmp;
+        }
+
+        /// <summary>
+        /// Split DLMS PDU to wrapper frames.
+        /// </summary>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="data"> Wrapped data.</param>
+        /// <returns>Wrapper frames</returns>
+        internal static byte[] GetWrapperFrame(GXDLMSSettings settings, GXByteBuffer data)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            // Add version.
+            bb.SetUInt16(1);
+            if (settings.IsServer)
+            {
+                bb.SetUInt16((UInt16)settings.ServerAddress);
+                bb.SetUInt16((UInt16)settings.ClientAddress);
+            }
+            else
+            {
+                bb.SetUInt16((UInt16)settings.ClientAddress);
+                bb.SetUInt16((UInt16)settings.ServerAddress);
+            }
+            if (data == null)
+            {
+                // Data length.
+                bb.SetUInt16(0);
+            }
+            else
+            {
+                // Data length.
+                bb.SetUInt16(data.Size);
+                // Data
+                bb.Set(data);
+            }
+            //Remove sent data.
+            if (data.Size == data.Position)
+            {
+                data.Clear();
+            }
+            else
+            {
+                data.Move(data.Position, 0, data.Size - data.Position);
+            }
+            return bb.Array();
+        }
+
+        /// <summary>
+        /// Get HDLC frame for data.
+        /// </summary>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="frame">Frame ID. If zero new is generated.</param>
+        /// <param name="data">Data to add.</param>
+        /// <returns>HDLC frames.</returns>
+        internal static byte[] GetHdlcFrame(GXDLMSSettings settings, byte frame, GXByteBuffer data)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            int frameSize, len = 0;
+            byte[] primaryAddress, secondaryAddress;
+            if (settings.IsServer)
+            {
+                primaryAddress = GetAddressBytes(settings.ClientAddress, 0);
+                secondaryAddress = GetAddressBytes(settings.ServerAddress, settings.ServerAddressSize);
+            }
+            else
+            {
+                primaryAddress = GetAddressBytes(settings.ServerAddress, settings.ServerAddressSize);
+                secondaryAddress = GetAddressBytes(settings.ClientAddress, 0);
+            }
+            // Add BOP
+            bb.SetUInt8(GXCommon.HDLCFrameStartEnd);
+            frameSize = Convert.ToInt32(settings.Limits.MaxInfoTX);
+            // If no data
+            if (data == null || data.Size == 0)
+            {
+                bb.SetUInt8(0xA0);
+            }
+            else if (data.Size - data.Position <= frameSize)
+            {
+                // Is last packet.
+                bb.SetUInt8(0xA0);
+                len = data.Size - data.Position;
+            }
+            else
+            {
+                // More data to left.
+                bb.SetUInt8(0xA8);
+                len = frameSize;
+            }
+            //Frame len.
+            if (len == 0)
+            {
+                bb.SetUInt8((byte)(5 + primaryAddress.Length + secondaryAddress.Length + len));
+            }
+            else
+            {
+                bb.SetUInt8((byte)(7 + primaryAddress.Length + secondaryAddress.Length + len));
+            }
+            // Add primary address.
+            bb.Set(primaryAddress);
+            // Add secondary address.
+            bb.Set(secondaryAddress);
+
+            //Add frame ID.
+            if (frame == 0)
+            {
+                frame = settings.NextSend();
+            }
+            bb.SetUInt8(frame);
+            // Add header CRC.
+            UInt16 crc = GXFCS16.CountFCS16(bb.Data, 1, bb.Size - 1);
+            bb.SetUInt16(crc);
+            if (len != 0)
+            {
+                //Add data.
+                bb.Set(data, len);
+                // Add data CRC.
+                crc = GXFCS16.CountFCS16(bb.Data, 1, bb.Size - 1);
+                bb.SetUInt16(crc);
+            }
+            // Add EOP
+            bb.SetUInt8(GXCommon.HDLCFrameStartEnd);
+            //Remove sent data.
+            if (data.Size == data.Position)
+            {
+                data.Clear();
+            }
+            else
+            {
+                data.Move(data.Position, 0, data.Size - data.Position);
+            }
+            return bb.Array();            
         }
 
         /// <summary>
@@ -883,9 +1094,9 @@ namespace Gurux.DLMS
                 {
                     data.Error = (int)ErrorCode.Rejected;
                 }
-                else if (tmp == (byte)HdlcControlFrame.ReceiveReady && settings.IsServer)
+                else if (tmp == (byte)HdlcControlFrame.ReceiveReady)
                 {
-                    data.MoreData = RequestTypes.Frame;
+                    System.Diagnostics.Debug.WriteLine("Get next frame.");
                 }
                 //Get Eop if there is no data.
                 if (reply.Position == packetStartID + frameLen + 1)
@@ -1196,49 +1407,7 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentException("Invalid Command.");
             }
-        }
-
-        /// <summary>
-        /// Handle push response and get data from block.
-        /// </summary>
-        /// <param name="reply">Received data from the client.</param>
-        static void HandlePush(GXReplyData reply)
-        {
-            int index = reply.Data.Position - 1;
-            // Is last block
-            int last = reply.Data.GetUInt8();
-            if ((last & 0x80) == 0)
-            {
-                reply.MoreData =
-                        (RequestTypes)(reply.MoreData | RequestTypes.DataBlock);
-            }
-            else
-            {
-                reply.MoreData = (RequestTypes)(reply.MoreData & ~RequestTypes.DataBlock);
-            }
-            // Get block number sent.
-            reply.Data.GetUInt8();
-            // Get block number acknowledged
-            reply.Data.GetUInt8();
-            // Get APU tag.
-            reply.Data.GetUInt8();
-            // Addl fields
-            reply.Data.GetUInt8();
-            // Data-Notification
-            if ((reply.Data.GetUInt8() & 0x0F) == 0)
-            {
-                throw new Exception("Invalid data.");
-            }
-            // Long-Invoke-Id-And-Priority
-            reply.Data.GetUInt32();
-            // Get date time and skip it if used.
-            int len = reply.Data.GetUInt8();
-            if (len != 0)
-            {
-                reply.Data.Position = (UInt16)(reply.Data.Position + len);
-            }
-            GetDataFromBlock(reply.Data, index);
-        }
+        }        
 
         static void HandleSetResponse(GXDLMSSettings settings, GXReplyData data)
         {
@@ -1336,7 +1505,7 @@ namespace Gurux.DLMS
                 {
                     reply.Error = data.GetUInt8();
                 }
-                else
+                if (data.Position != data.Size)
                 {
                     // Get data size.
                     reply.BlockLength = GXCommon.GetObjectCount(data);
@@ -1376,6 +1545,56 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Handle General block transfer message.
+        /// </summary>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="data"></param>
+        private static void HandleGbt(GXDLMSSettings settings, GXReplyData data)
+        {
+            data.Gbt = true;
+            int index = data.Data.Position - 1;
+            byte ch = data.Data.GetUInt8();
+            //Is Last block, 
+            if ((ch & 0x80) == 0)
+            {
+                data.MoreData |= RequestTypes.DataBlock;
+            }
+            else
+            {
+                data.MoreData &= ~RequestTypes.DataBlock;
+            }
+            //Is streaming active.
+            bool streaming = (ch & 0x40) == 1;
+            byte window = (byte) (ch & 0x3F);
+            //Block number. 
+            byte bn = data.Data.GetUInt8();
+            //Block number acknowledged. 
+            byte bna = data.Data.GetUInt8();
+            // Get APU tag.
+            if (data.Data.GetUInt8() != 0)
+            {
+                throw new Exception("Invalid APU.");
+            }
+            // Get Addl tag.
+            if (data.Data.GetUInt8() != 0)
+            {
+                throw new Exception("Invalid APU.");
+            }          
+            data.Command = Command.None;
+            if (window != 0)
+            {
+                int len = GXCommon.GetObjectCount(data.Data);
+                if (len != data.Data.Size - data.Data.Position)
+                {
+                    data.IsComplete = false;
+                    return;
+                }
+            }
+            GetPdu(settings, data);
+            GetDataFromBlock(data.Data, index);
+        }
+
+        /// <summary>
         /// Get PDU from the packet.
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
@@ -1385,19 +1604,15 @@ namespace Gurux.DLMS
         {
             short ch;
             Command cmd = data.Command;
-            if (data.Command == Command.GeneralBlockTransfer && (data.MoreData & RequestTypes.Frame) == 0)
-            {
-                data.Command = Command.None;
-            }
-            // If header is not read yet.
-            if (data.Command == Command.None)
+            // If header is not read yet or GBT message.
+            if (data.Command == Command.None || data.Gbt)
             {
                 //If PDU is missing.
                 if (data.Data.Size - data.Data.Position == 0)
                 {
                     throw new InvalidOperationException("Invalid PDU.");
                 }
-                int index = data.Data.Position;
+                UInt16 index = data.Data.Position;
                 // Get command.
                 ch = data.Data.GetUInt8();
                 cmd = (Command)ch;
@@ -1426,7 +1641,7 @@ namespace Gurux.DLMS
                         HandleMethodResponse(settings, data);
                         break;
                     case Command.GeneralBlockTransfer:
-                        HandlePush(data);
+                        HandleGbt(settings, data);
                         break;
                     case Command.Aarq:
                     case Command.Aare:
@@ -1445,6 +1660,10 @@ namespace Gurux.DLMS
                     case Command.MethodRequest:
                     case Command.DisconnectRequest:
                         // Server handles this.
+                        if ((data.MoreData & RequestTypes.Frame) != 0)
+                        {
+                            break;
+                        }
                         break;
                     case Command.GloGetRequest:
                     case Command.GloSetRequest:
@@ -1454,12 +1673,20 @@ namespace Gurux.DLMS
                             throw new Exception(
                                     "Secure connection is not supported.");
                         }
-                        --data.Data.Position;
-                        settings.Cipher.Decrypt(settings.SourceSystemTitle, data.Data);
-                        // Get command.
-                        ch = data.Data.GetUInt8();
-                        cmd = (Command)ch;
-                        data.Command = cmd;
+                        //If all frames are read.
+                        if ((data.MoreData & RequestTypes.Frame) == 0)
+                        {
+                            --data.Data.Position;
+                            settings.Cipher.Decrypt(settings.SourceSystemTitle, data.Data);
+                            // Get command.
+                            ch = data.Data.GetUInt8();
+                            cmd = (Command)ch;
+                            data.Command = cmd;
+                        }
+                        else
+                        {
+                            --data.Data.Position;
+                        }
                         // Server handles this.
                         break;
                     case Command.GloGetResponse:
@@ -1469,14 +1696,31 @@ namespace Gurux.DLMS
                         {
                             throw new Exception(
                                     "Secure connection is not supported.");
-                        }--data.Data.Position;
-                        settings.Cipher.Decrypt(settings.SourceSystemTitle, data.Data);
-                        data.Command = Command.None;
-                        GetPdu(settings, data);
+                        }
+                        //If all frames are read.
+                        if ((data.MoreData & RequestTypes.Frame) == 0)
+                        {
+                            --data.Data.Position;
+                            GXByteBuffer bb = new GXByteBuffer(data.Data);
+                            data.Data.Position = data.Data.Size = index;
+                            settings.Cipher.Decrypt(settings.SourceSystemTitle, bb);
+                            data.Data.Set(bb);
+                            data.Command = Command.None;
+                            GetPdu(settings, data);
+                            data.CipherIndex = data.Data.Size;
+                        }                       
                         break;
                     case Command.DataNotification:
                         //Get invoke id.
-                        ch = data.Data.GetUInt8();
+                        data.Data.GetUInt32();
+                        //Get Date time.
+                        GXDataInfo info = new GXDataInfo();
+                        data.Time = DateTime.MinValue;
+                        byte[] tmp = (byte[])GXCommon.GetData(data.Data, info);
+                        if (tmp != null)
+                        {
+                            data.Time = (GXDateTime) GXDLMSClient.ChangeType(tmp, DataType.DateTime);
+                        }
                         //Client handles this.
                         break;
                     default:
@@ -1489,18 +1733,49 @@ namespace Gurux.DLMS
                 // peek.
                 if (!data.Peek && data.MoreData == RequestTypes.None)
                 {
-                    data.Data.Position = 0;
+                    if (data.Command == Command.Aare || data.Command == Command.Aarq)
+                    {
+                        data.Data.Position = 0;
+                    }
+                    else
+                    {
+                        data.Data.Position = 1;
+                    }
                     settings.ResetBlockIndex();
                 }
                 // Get command if operating as a server.
                 if (settings.IsServer)
                 {
-                    data.Data.GetUInt8();
+                    //Ciphered messages are handled after whole PDU is received.
+                    switch (cmd)
+                    {
+                        case Command.GloGetRequest:
+                        case Command.GloSetRequest:
+                        case Command.GloMethodRequest:
+                            data.Command = Command.None;
+                            data.Data.Position = data.CipherIndex;
+                            GetPdu(settings, data);
+                            break;
+                        default:
+                            break;
+                    }                    
                 }
                 else
                 {
                     // Client do not need a command any more.
                     data.Command = Command.None;
+                    //Ciphered messages are handled after whole PDU is received.
+                    switch (cmd)
+                    {
+                        case Command.GloGetResponse:
+                        case Command.GloSetResponse:
+                        case Command.GloMethodResponse:
+                            data.Data.Position = data.CipherIndex;
+                            GetPdu(settings, data);
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
 

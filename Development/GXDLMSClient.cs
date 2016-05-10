@@ -562,7 +562,7 @@ namespace Gurux.DLMS
                 Settings.CtoSChallenge = null;
             }
             GXAPDU.GenerateAarq(Settings, Settings.Cipher, buff);
-            return GXDLMS.SplitPdu(Settings, Command.Aarq, 0, buff, DateTime.MinValue)[0];
+            return GXDLMS.GetMessages(Settings, Command.Aarq, 0, buff, DateTime.MinValue);
         }
 
         /// <summary>
@@ -686,7 +686,7 @@ namespace Gurux.DLMS
             }
             if (!equals)
             {
-                throw new GXDLMSException("Invalid passowrd. Server to Client do not match.");
+                throw new GXDLMSException("Invalid password. Server to Client challenge do not match.");
             }
         }
      
@@ -931,7 +931,7 @@ namespace Gurux.DLMS
             GXDataInfo info = new GXDataInfo();
             //Some meters give wrong item count.
             while (buff.Position != buff.Size && cnt != objectCnt)
-            {
+            {                
                 info.Clear();
                 object[] objects = (object[])GXCommon.GetData(buff, info);
                 if (objects.Length != 4)
@@ -971,7 +971,9 @@ namespace Gurux.DLMS
                     value = ChangeType((byte[])value, type);
                 }
             }
-            (target as IGXDLMSBase).SetValue(Settings, attributeIndex, value);
+            ValueEventArgs e = new ValueEventArgs(target, attributeIndex, 0, null);
+            e.Value = value;
+            (target as IGXDLMSBase).SetValue(Settings, e);
             return target.GetValues()[attributeIndex - 1];
         }
 
@@ -993,7 +995,9 @@ namespace Gurux.DLMS
                 if (ret == 0)
                 {
                     value = GXCommon.GetData(data, info);
-                    (it.Key as IGXDLMSBase).SetValue(Settings, it.Value, value);
+                    ValueEventArgs e = new ValueEventArgs(it.Key, it.Value, 0, null);
+                    e.Value = value;
+                    (it.Key as IGXDLMSBase).SetValue(Settings, e);
                     info.Clear();
                 }
                 else
@@ -1184,30 +1188,36 @@ namespace Gurux.DLMS
             }
             else
             {
+                cmd = Command.ReadRequest;
                 int data, count;
                 GXDLMS.GetActionInfo(objectType, out data, out count);
                 if (index > count)
                 {
                     throw new ArgumentException("methodIndex");
                 }
-                UInt16 sn = Convert.ToUInt16(name);
-                index = (data + (index - 1) * 0x8);
-                sn += (UInt16)index;
-                cmd = Command.ReadRequest;
-                // Add SN count.
-                bb.SetUInt8(1);
-                // Add name length.
-                bb.SetUInt8(4);
-                // Add name.
-                bb.SetUInt16(sn);
-                // Method Invocation Parameters is not used.
-                if (type == DataType.None)
-                {
-                    bb.SetUInt8(0);
-                }
                 else
                 {
+                    UInt16 sn = Convert.ToUInt16(name);
+                    index = (data + (index - 1) * 0x8);
+                    sn += (UInt16)index;
+                    // Add SN count.
                     bb.SetUInt8(1);
+                    // Add VariableName.
+                    if (type == DataType.None)
+                    {
+                        bb.SetUInt8(2);
+                    }
+                    else //ParameterisedAccess
+                    {
+                        bb.SetUInt8(4);
+                    }
+                    // Add name.
+                    bb.SetUInt16(sn);
+                    // Add selector.
+                    if (type != DataType.None)
+                    {
+                        bb.SetUInt8(1);
+                    }
                 }
             }
             if ((value is byte[]))
@@ -1218,7 +1228,7 @@ namespace Gurux.DLMS
             {
                 GXCommon.SetData(bb, type, value);
             }
-            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, DateTime.MinValue)[0];
+            return GXDLMS.GetMessages(Settings, cmd, 1, bb, DateTime.MinValue);
         }
 
 
@@ -1234,7 +1244,7 @@ namespace Gurux.DLMS
             {
                 throw new GXDLMSException("Invalid parameter");
             }
-            Object value = (item as IGXDLMSBase).GetValue(Settings, index, 0, null);
+            Object value = (item as IGXDLMSBase).GetValue(Settings, new ValueEventArgs(item, index, 0, null));
             DataType type = item.GetDataType(index);
             if (type == DataType.None)
             {
@@ -1300,7 +1310,7 @@ namespace Gurux.DLMS
                 bb.SetUInt8(1);
             }
             GXCommon.SetData(bb, type, value);
-            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, DateTime.MinValue)[0];
+            return GXDLMS.GetMessages(Settings, cmd, 1, bb, DateTime.MinValue);
         }
 
         /// <summary>
@@ -1359,12 +1369,12 @@ namespace Gurux.DLMS
                 cmd = Command.ReadRequest;
                 // Add length.
                 bb.SetUInt8(1);
-                // Add Selector.
+                // parameterized-access
                 if (data != null && data.Size != 0)
                 {
                     bb.SetUInt8(4);
                 }
-                else
+                else //variable-name
                 {
                     bb.SetUInt8(2);
                 }
@@ -1377,7 +1387,7 @@ namespace Gurux.DLMS
                     bb.Set(data.Data, 0, data.Size);
                 }
             }
-            return GXDLMS.SplitPdu(Settings, cmd, 1, bb, DateTime.MinValue)[0];
+            return GXDLMS.GetMessages(Settings, cmd, 1, bb, DateTime.MinValue);
         }
 
         /// <summary>
@@ -1445,7 +1455,7 @@ namespace Gurux.DLMS
                     bb.SetUInt16((UInt16)sn);
                 }
             }
-            return GXDLMS.SplitPdu(Settings, cmd, 3, bb, DateTime.MinValue)[0];
+            return GXDLMS.GetMessages(Settings, cmd, 3, bb, DateTime.MinValue);
         }
 
         /// <summary>

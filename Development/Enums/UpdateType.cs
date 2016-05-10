@@ -32,28 +32,29 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+using System.Xml.Serialization;
 
-// General Information about an assembly is controlled through the following 
-// set of attributes. Change these attribute values to modify the information
-// associated with an assembly.
-[assembly: AssemblyTitle("Gurux.DLMS")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Gurux Ltd")]
-[assembly: AssemblyProduct("Gurux.DLMS")]
-[assembly: AssemblyCopyright("Copyright (c) 1998-2016 Gurux Ltd. All rights reserved.")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-
-// Setting ComVisible to false makes the types in this assembly not visible 
-// to COM components.  If you need to access a type in this assembly from 
-// COM, set the ComVisible attribute to true on that type.
-[assembly: ComVisible(false)]
-
-// The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("9d9674d8-2b76-4d81-8b28-ac21bd7bc6f9")]
-[assembly: AssemblyVersion("8.1.0.11")]
-[assembly: AssemblyFileVersion("8.1.0.11")]
+namespace Gurux.DLMS.Enums
+{
+    /// <summary>
+    /// Updater types.
+    /// </summary>
+    public enum UpdateType
+    {
+        /// <summary>
+        /// Progile Generic.
+        /// </summary>
+        [XmlEnum("0")]
+        ProfileGeneric,
+        /// <summary>
+        /// Scheduler.
+        /// </summary>
+        [XmlEnum("1")]
+        Scheduler,
+        /// <summary>
+        /// Notifier
+        /// </summary>
+        [XmlEnum("2")]
+        Notify
+    }
+}

@@ -37,6 +37,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Gurux.DLMS.Objects;
+using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS
 {
@@ -117,11 +118,24 @@ namespace Gurux.DLMS
             private set;
         }
 
+        /// <summary>
+        /// Occurred error.
+        /// </summary>
+        public ErrorCode Error
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Is action. This is reserved for internal use.
+        /// </summary>
+        internal bool action;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        internal ValueEventArgs(GXDLMSObject target, int index, int selector, object parameters)
+        public ValueEventArgs(GXDLMSObject target, int index, int selector, object parameters)
         {
             Target = target;
             Index = index;

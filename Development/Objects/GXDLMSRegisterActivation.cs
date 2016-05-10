@@ -118,9 +118,10 @@ namespace Gurux.DLMS.Objects
         /// Data interface do not have any methods.
         /// </summary>
         /// <param name="index"></param>
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            throw new ArgumentException("Invoke failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
         int[] IGXDLMSBase.GetAttributeIndexToRead()
@@ -165,7 +166,7 @@ namespace Gurux.DLMS.Objects
             return 3;
         }
 
-        override public DataType GetDataType(int index)
+        public override DataType GetDataType(int index)
         {
             if (index == 1)
             {
@@ -186,13 +187,13 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
                 return this.LogicalName;
             }
-            if (index == 2)
+            if (e.Index == 2)
             {
                 GXByteBuffer data = new GXByteBuffer();     
                 data.SetUInt8((byte) DataType.Array);
@@ -213,7 +214,7 @@ namespace Gurux.DLMS.Objects
                 }
                 return data.Array();
             }
-            if (index == 3)
+            if (e.Index == 3)
             {                
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Array);
@@ -239,32 +240,33 @@ namespace Gurux.DLMS.Objects
                 }
                 return data.Array();
             }
-            if (index == 4)
+            if (e.Index == 4)
             {
                 return ActiveMask;
             }
-            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
-                if (value is string)
+                if (e.Value is string)
                 {
-                    LogicalName = value.ToString();
+                    LogicalName = e.Value.ToString();
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
                 }
             }
-            else if (index == 2)
+            else if (e.Index == 2)
             {
                 List<GXDLMSObjectDefinition> items = new List<GXDLMSObjectDefinition>();
-                if (value != null)
-                {                    
-                    foreach(Object[] it in (Object[]) value)
+                if (e.Value != null)
+                {
+                    foreach (Object[] it in (Object[])e.Value)
                     {
                         GXDLMSObjectDefinition item = new GXDLMSObjectDefinition();
                         item.ClassId = (ObjectType) Convert.ToInt32(it[0]);
@@ -274,12 +276,12 @@ namespace Gurux.DLMS.Objects
                 }
                 RegisterAssignment = items.ToArray();
             }
-            else if (index == 3)
+            else if (e.Index == 3)
             {
-                MaskList.Clear();                
-                if (value != null)
-                {                   
-                    foreach (Object[] it in (Object[])value)
+                MaskList.Clear();
+                if (e.Value != null)
+                {
+                    foreach (Object[] it in (Object[])e.Value)
                     {
                         List<byte> index_list = new List<byte>();
                         foreach(byte b in (Object[]) it[1])
@@ -290,20 +292,20 @@ namespace Gurux.DLMS.Objects
                     }                    
                 }                
             }
-            else if (index == 4)
+            else if (e.Index == 4)
             {
-                if (value == null)
+                if (e.Value == null)
                 {
                     ActiveMask = null;
                 }
                 else
                 {
-                    ActiveMask = (byte[])value;
+                    ActiveMask = (byte[])e.Value;
                 }
             }   
             else
             {
-                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+                e.Error = ErrorCode.ReadWriteDenied;
             }
         }
         #endregion

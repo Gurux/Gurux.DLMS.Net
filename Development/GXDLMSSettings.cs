@@ -69,6 +69,11 @@ namespace Gurux.DLMS
         /// </summary>
         private byte invokeID = 0x1;
 
+        /// <summary>
+        /// Invoke ID.
+        /// </summary>
+        internal UInt32 longInvokeID = 0x1;
+
         ///<summary>
         ///Client to server challenge.
         ///</summary>
@@ -105,9 +110,14 @@ namespace Gurux.DLMS
         internal byte[] Kek;
 
         /// <summary>
-        /// When data is handled position of progress is saved here.
+        /// Long data count.
         /// </summary>
-        internal UInt16 ProgressIndex;
+        internal UInt16 Count;
+
+        /// <summary>
+        /// Long data index.
+        /// </summary>
+        internal UInt16 Index;       
 
         /// <summary>
         /// Cipher interface.

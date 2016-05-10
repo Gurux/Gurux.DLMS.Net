@@ -83,11 +83,9 @@ namespace Gurux.DLMS.Objects
         /// When raw parameter us not used example register multiplies value by scalar.
         /// </remarks>
         /// <param name="settings">DLMS settings.</param>
-        /// <param name="index">Attribute index.</param>
-        /// <param name="selector">Optional selector.</param>
-        /// <param name="parameters">Optional parameters.</param>
+        /// <param name="e">Get parameters.</param>
         /// <returns>Value of the attribute index.</returns>
-        Object GetValue(GXDLMSSettings settings, int index, int selector, object parameters);
+        Object GetValue(GXDLMSSettings settings, ValueEventArgs e);
 
         /// <summary>
         /// Set value of given attribute.
@@ -96,15 +94,14 @@ namespace Gurux.DLMS.Objects
         /// When raw parameter us not used example register multiplies value by scalar.
         /// </remarks>
         /// <param name="settings">DLMS settings.</param>
-        /// <param name="index">Attribute index.</param>
-        /// <param name="value">Value of the attribute index.</param>
-        void SetValue(GXDLMSSettings settings, int index, Object value);
+        /// <param name="e">Set parameters.</param>
+        void SetValue(GXDLMSSettings settings, ValueEventArgs e);
 
         /// <summary>
         /// Invokes method.
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
-        /// <param name="index">Method index.</param>
-        byte[] Invoke(GXDLMSSettings settings, int index, Object parameters);
+        /// <param name="e">Invoke parameters.</param>
+        byte[] Invoke(GXDLMSSettings settings, ValueEventArgs e);
     }
 }

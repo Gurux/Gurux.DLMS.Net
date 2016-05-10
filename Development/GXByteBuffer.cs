@@ -84,6 +84,17 @@ namespace Gurux.DLMS
             Set(value);
         }
 
+        ///<summary>
+        /// Constructor.
+        ///</summary>
+        ///<param name="value">
+        /// Byte array to attach. 
+        ///</param>        
+        public GXByteBuffer(GXByteBuffer value)
+        {
+            Capacity = (UInt16) (value.Size - value.Position);
+            Set(value);
+        }
         
         ///<summary>
         /// Clear buffer but do not release memory. 
@@ -160,11 +171,20 @@ namespace Gurux.DLMS
         /// <summary>
         /// Returs data as byte array.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Byte buffer as a byte array.</returns>
         public byte[] Array()
         {
-            byte[] tmp = new byte[Size];
-            Buffer.BlockCopy(Data, 0, tmp, 0, Size);
+            return SubArray(0, Size);
+        }
+
+        /// <summary>
+        /// Returs data as byte array.
+        /// </summary>
+        /// <returns>Byte buffer as a byte array.</returns>
+        public byte[] SubArray(int index, int count)
+        {
+            byte[] tmp = new byte[count];
+            Buffer.BlockCopy(Data, index, tmp, 0, count);
             return tmp;
         }
 
@@ -180,7 +200,31 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentOutOfRangeException("count");
             }
-            Buffer.BlockCopy(Data, srcPos, Data, destPos, count);
+            if (count != 0)
+            {
+                Buffer.BlockCopy(Data, srcPos, Data, destPos, count);
+                Size = (UInt16) (destPos + count);
+                Position = (UInt16)destPos;
+            }
+            else
+            {
+                Size = 0;
+            }
+        }
+
+        /// <summary>
+        /// Remove handled bytes.
+        /// </summary>
+        /// <remarks>
+        /// This can be used in debugging to remove handled bytes.
+        /// </remarks>
+        public void Trim()
+        {
+            Move(Position, 0, Size - Position);
+            if (Position > Size)
+            {
+                Position = Size;
+            }
         }
 
         /// <summary>
@@ -614,6 +658,20 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Push the given byte array into this buffer at the current position, and then increments the position.
+        /// </summary>
+        /// <param name="index">Byte index.</param>
+        /// <param name="value"> The value to be added.</param>
+        public void Set(int index, byte[] value)
+        {
+            if (value != null)
+            {
+                Move(index, value.Length, Size - index);
+                Set(value, index, value.Length);
+            }
+        }
+
+        /// <summary>
         /// Set new value to byte array.
         /// </summary>
         /// <param name="value">Byte array to add.</param>
@@ -623,6 +681,10 @@ namespace Gurux.DLMS
         {
             if (value != null && count != 0)
             {
+                if (count == -1)
+                {
+                    count = value.Length - index;
+                }
                 if (Size + count > Capacity)
                 {
                     Capacity = (UInt16) (Size + count + ArrayCapacity);
@@ -631,7 +693,32 @@ namespace Gurux.DLMS
                 Size += (UInt16) count;
             }
         }
-        
+
+        public void Set(GXByteBuffer value)
+        {
+            Set(value, value.Size - value.Position);
+        }
+
+        /// <summary>
+        /// Set new value to byte array.
+        /// </summary>
+        /// <param name="value">Byte array to add.</param>
+        /// <param name="index">Byte index.</param>
+        /// <param name="count">Byte count.</param>
+        public void Set(GXByteBuffer value, int count)
+        {
+            if (Size + count > Capacity)
+            {
+                Capacity = (UInt16)(Size + count + ArrayCapacity);
+            }
+            if (count != 0)
+            {
+                Buffer.BlockCopy(value.Data, value.Position, Data, Size, count);
+                Size += (UInt16)count;
+                value.Position += (ushort)count;
+            }
+        }
+ 
         /// <summary>
         /// Add new object to the byte buffer.      
         /// </summary>

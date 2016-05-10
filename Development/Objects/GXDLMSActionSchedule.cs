@@ -155,7 +155,7 @@ namespace Gurux.DLMS.Objects
             return 0;
         }
 
-        override public DataType GetDataType(int index)
+        public override DataType GetDataType(int index)
         {
             if (index == 1)
             {
@@ -177,13 +177,13 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
                 return this.LogicalName;
             }
-            if (index == 2)
+            if (e.Index == 2)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
@@ -193,11 +193,11 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetData(data, DataType.UInt16, ExecutedScriptSelector);
                 return data.Array();
             }
-            if (index == 3)
+            if (e.Index == 3)
             {
                 return this.Type;
             }
-            if (index == 4)
+            if (e.Index == 4)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Array);
@@ -220,38 +220,39 @@ namespace Gurux.DLMS.Objects
                 }
                 return data.Array();
             }
-            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
-                if (value is string)
+                if (e.Value is string)
                 {
-                    LogicalName = value.ToString();
+                    LogicalName = e.Value.ToString();
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
                 }                
             }
-            else if (index == 2)
-            {                
-                ExecutedScriptLogicalName = GXDLMSClient.ChangeType((byte[])((object[])value)[0], DataType.OctetString).ToString();
-                ExecutedScriptSelector = Convert.ToUInt16(((object[])value)[1]);
-            }
-            else if (index == 3)
+            else if (e.Index == 2)
             {
-                Type = (SingleActionScheduleType) Convert.ToInt32(value);
+                ExecutedScriptLogicalName = GXDLMSClient.ChangeType((byte[])((object[])e.Value)[0], DataType.OctetString).ToString();
+                ExecutedScriptSelector = Convert.ToUInt16(((object[])e.Value)[1]);
             }
-            else if (index == 4)
+            else if (e.Index == 3)
+            {
+                Type = (SingleActionScheduleType)Convert.ToInt32(e.Value);
+            }
+            else if (e.Index == 4)
             {
                 ExecutionTime = null;
-                if (value != null)
+                if (e.Value != null)
                 {
                     List<GXDateTime> items = new List<GXDateTime>();
-                    foreach (object[] it in (object[])value)
+                    foreach (object[] it in (object[])e.Value)
                     {
                         GXDateTime tm = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[0], DataType.Time);
                         GXDateTime date = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[1], DataType.Date);
@@ -266,21 +267,16 @@ namespace Gurux.DLMS.Objects
             }           
             else
             {
-                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+                e.Error = ErrorCode.ReadWriteDenied;
             }
         }
 
-        #endregion
+        #endregion       
 
-
-        DataType IGXDLMSBase.GetDataType(int index)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            throw new NotImplementedException();
-        }
-
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, object parameters)
-        {
-            throw new NotImplementedException();
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
     }
 }

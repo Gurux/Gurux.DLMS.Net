@@ -219,7 +219,7 @@ namespace Gurux.DLMS.Objects
             return 1;
         }
 
-        override public DataType GetDataType(int index)
+        public override DataType GetDataType(int index)
         {
             if (index == 1)
             {
@@ -265,17 +265,17 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
                 return this.LogicalName;
             }
-            if (index == 2)
+            if (e.Index == 2)
             {
                 return GXDLMSClient.ChangeType(ASCIIEncoding.ASCII.GetBytes(CalendarNameActive), DataType.OctetString);
             }
-            if (index == 3)
+            if (e.Index == 3)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Array);
@@ -300,7 +300,7 @@ namespace Gurux.DLMS.Objects
                 }
                 return data.Array();
             }
-            if (index == 4)
+            if (e.Index == 4)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Array);
@@ -330,7 +330,7 @@ namespace Gurux.DLMS.Objects
                 }
                 return data.Array();
             }
-            if (index == 5)
+            if (e.Index == 5)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Array);
@@ -364,12 +364,12 @@ namespace Gurux.DLMS.Objects
                 }
                 return data.Array();
             }
-            if (index == 6)
+            if (e.Index == 6)
             {
                 return GXDLMSClient.ChangeType(ASCIIEncoding.ASCII.GetBytes(CalendarNamePassive), DataType.OctetString);
             }
             //
-            if (index == 7)
+            if (e.Index == 7)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Array);
@@ -394,7 +394,7 @@ namespace Gurux.DLMS.Objects
                 }
                 return data.Array();
             }
-            if (index == 8)
+            if (e.Index == 8)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Array);
@@ -424,7 +424,7 @@ namespace Gurux.DLMS.Objects
                 }
                 return data.Array();
             }
-            if (index == 9)
+            if (e.Index == 9)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Array);
@@ -458,44 +458,45 @@ namespace Gurux.DLMS.Objects
                 }
                 return data.Array();
             }
-            if (index == 10)
+            if (e.Index == 10)
             {
                 return Time;
             }
-            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
-                if (value is string)
+                if (e.Value is string)
                 {
-                    LogicalName = value.ToString();
+                    LogicalName = e.Value.ToString();
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
                 }
             }
-            else if (index == 2)
+            else if (e.Index == 2)
             {
-                if (value is byte[])
+                if (e.Value is byte[])
                 {
-                    CalendarNameActive = GXDLMSClient.ChangeType((byte[])value, DataType.String).ToString();
+                    CalendarNameActive = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String).ToString();
                 }
                 else
                 {
-                    CalendarNameActive = Convert.ToString(value);
+                    CalendarNameActive = Convert.ToString(e.Value);
                 }
             }
-            else if (index == 3)
+            else if (e.Index == 3)
             {
                 SeasonProfileActive = null;
-                if (value != null)
+                if (e.Value != null)
                 {
                     List<GXDLMSSeasonProfile> items = new List<GXDLMSSeasonProfile>();
-                    foreach (object[] item in (object[])value)
+                    foreach (object[] item in (object[])e.Value)
                     {
                         GXDLMSSeasonProfile it = new GXDLMSSeasonProfile();
                         it.Name = GXDLMSClient.ChangeType((byte[]) item[0], DataType.String).ToString();
@@ -506,13 +507,13 @@ namespace Gurux.DLMS.Objects
                     SeasonProfileActive = items.ToArray();
                 }
             }
-            else if (index == 4)
+            else if (e.Index == 4)
             {
                 WeekProfileTableActive = null;
-                if (value != null)
+                if (e.Value != null)
                 {
                     List<GXDLMSWeekProfile> items = new List<GXDLMSWeekProfile>();
-                    foreach (object[] item in (object[])value)
+                    foreach (object[] item in (object[])e.Value)
                     {
                         GXDLMSWeekProfile it = new GXDLMSWeekProfile();
                         it.Name = GXDLMSClient.ChangeType((byte[])item[0], DataType.String).ToString();
@@ -528,13 +529,13 @@ namespace Gurux.DLMS.Objects
                     WeekProfileTableActive = items.ToArray();
                 }
             }
-            else if (index == 5)
+            else if (e.Index == 5)
             {
                 DayProfileTableActive = null;
-                if (value != null)
+                if (e.Value != null)
                 {
                     List<GXDLMSDayProfile> items = new List<GXDLMSDayProfile>();
-                    foreach (object[] item in (object[])value)
+                    foreach (object[] item in (object[])e.Value)
                     {
                         GXDLMSDayProfile it = new GXDLMSDayProfile();
                         it.DayId = Convert.ToInt32(item[0]);
@@ -552,25 +553,25 @@ namespace Gurux.DLMS.Objects
                     }
                     DayProfileTableActive = items.ToArray();
                 }
-            }                
-            else if (index == 6)
+            }
+            else if (e.Index == 6)
             {
-                if (value is byte[])
+                if (e.Value is byte[])
                 {
-                    CalendarNamePassive = GXDLMSClient.ChangeType((byte[])value, DataType.String).ToString();
+                    CalendarNamePassive = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String).ToString();
                 }
                 else
                 {
-                    CalendarNamePassive = Convert.ToString(value);
+                    CalendarNamePassive = Convert.ToString(e.Value);
                 }
             }
-            else if (index == 7)
+            else if (e.Index == 7)
             {
                 SeasonProfilePassive = null;
-                if (value != null)
+                if (e.Value != null)
                 {
                     List<GXDLMSSeasonProfile> items = new List<GXDLMSSeasonProfile>();
-                    foreach (object[] item in (object[])value)
+                    foreach (object[] item in (object[])e.Value)
                     {
                         GXDLMSSeasonProfile it = new GXDLMSSeasonProfile();
                         it.Name = GXDLMSClient.ChangeType((byte[])item[0], DataType.String).ToString();
@@ -581,13 +582,13 @@ namespace Gurux.DLMS.Objects
                     SeasonProfilePassive = items.ToArray();
                 }
             }
-            else if (index == 8)
+            else if (e.Index == 8)
             {
                 WeekProfileTablePassive = null;
-                if (value != null)
+                if (e.Value != null)
                 {
                     List<GXDLMSWeekProfile> items = new List<GXDLMSWeekProfile>();
-                    foreach (object[] item in (object[])value)
+                    foreach (object[] item in (object[])e.Value)
                     {
                         GXDLMSWeekProfile it = new GXDLMSWeekProfile();
                         it.Name = GXDLMSClient.ChangeType((byte[])item[0], DataType.String).ToString();
@@ -603,13 +604,13 @@ namespace Gurux.DLMS.Objects
                     WeekProfileTablePassive = items.ToArray();
                 }
             }
-            else if (index == 9)
+            else if (e.Index == 9)
             {
                 DayProfileTablePassive = null;
-                if (value != null)
+                if (e.Value != null)
                 {
                     List<GXDLMSDayProfile> items = new List<GXDLMSDayProfile>();
-                    foreach (object[] item in (object[])value)
+                    foreach (object[] item in (object[])e.Value)
                     {
                         GXDLMSDayProfile it = new GXDLMSDayProfile();
                         it.DayId = Convert.ToInt32(item[0]);
@@ -628,26 +629,27 @@ namespace Gurux.DLMS.Objects
                     DayProfileTablePassive = items.ToArray();
                 }
             }
-            else if (index == 10)
+            else if (e.Index == 10)
             {
-                if (value is byte[])
+                if (e.Value is byte[])
                 {
-                    Time = (GXDateTime)GXDLMSClient.ChangeType((byte[])value, DataType.DateTime);
+                    Time = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
                 }
                 else
                 {
-                    Time = new GXDateTime(Convert.ToDateTime(value));
+                    Time = new GXDateTime(Convert.ToDateTime(e.Value));
                 }
             }
             else
             {
-                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+                e.Error = ErrorCode.ReadWriteDenied;
             }
         }
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            throw new ArgumentException("Invoke failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
         #endregion

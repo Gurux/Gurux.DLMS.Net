@@ -373,10 +373,12 @@ namespace Gurux.DLMS.Internal
             }
             if (settings.IsServer)
             {
+                //Proposed max PDU size.
                 data.GetUInt16();
             }
             else
             {
+                //Max PDU size.
                 settings.MaxReceivePDUSize = data.GetUInt16();
             }
             if (response)
@@ -692,7 +694,7 @@ namespace Gurux.DLMS.Internal
         internal static void GenerateAARE(GXDLMSSettings settings, GXByteBuffer data,
             AssociationResult result, SourceDiagnostic diagnostic, GXICipher cipher)
         {
-            int offset = data.Position;
+            int offset = data.Size;
             // Set AARE tag and length
             data.SetUInt8(((byte)BerType.Application | (byte)BerType.Constructed | (byte)PduType.ApplicationContextName)); //0x61
             // Length is updated later.

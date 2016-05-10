@@ -61,6 +61,8 @@ namespace Gurux.DLMS.Objects
             : base(ObjectType.AssociationShortName, ln, sn)
         {
             ObjectList = new GXDLMSObjectCollection();
+            //Default shared secred.
+            Secret = System.Text.ASCIIEncoding.ASCII.GetBytes("Gurux");
         }
 
         /// <summary>
@@ -107,17 +109,17 @@ namespace Gurux.DLMS.Objects
 
         #region IGXDLMSBase Members
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
         {
             //Check reply_to_HLS_authentication
-            if (index == 8)
+            if (e.Index == 8)
             {
                 UInt32 ic = 0;
                 byte[] secret;
                 if (settings.Authentication == Authentication.HighGMAC)
                 {
                     secret = settings.SourceSystemTitle;
-                    GXByteBuffer bb = new GXByteBuffer(parameters as byte[]);
+                    GXByteBuffer bb = new GXByteBuffer(e.Parameters as byte[]);
                     bb.GetUInt8();
                     ic = bb.GetUInt32();
                 }
@@ -126,7 +128,7 @@ namespace Gurux.DLMS.Objects
                     secret = Secret;
                 }
                 byte[] serverChallenge = GXSecure.Secure(settings, settings.Cipher, ic, settings.StoCChallenge, secret);
-                byte[] clientChallenge = (byte[]) parameters;
+                byte[] clientChallenge = (byte[])e.Parameters;
                 if (GXCommon.Compare(serverChallenge, clientChallenge))
                 {
                     if (settings.Authentication == Authentication.HighGMAC)
@@ -138,25 +140,19 @@ namespace Gurux.DLMS.Objects
                     {
                         secret = Secret;
                     }
-                    byte[] tmp = GXSecure.Secure(settings, settings.Cipher, ic, settings.CtoSChallenge, secret);
-                    GXByteBuffer challenge = new GXByteBuffer();
-                    // Add status.
-                    challenge.SetUInt8(0);
-                    challenge.SetUInt8((byte)DataType.OctetString);
-                    GXCommon.SetObjectCount(tmp.Length, challenge);
-                    challenge.Set(tmp);
-                    return challenge.Array();
+                    return  GXSecure.Secure(settings, settings.Cipher, ic, settings.CtoSChallenge, secret);
                 }
                 else
                 {
-                    // If pw is not match.
-                    return new byte[] { 0 };
+                    // If the password does not match.
+                    return null;
                 }
 
             }
             else
             {
-                return new byte[] { (byte)ErrorCode.ReadWriteDenied };
+                e.Error = ErrorCode.ReadWriteDenied;
+                return null;
             }
         }
 
@@ -231,7 +227,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        override public DataType GetDataType(int index)
+        public override DataType GetDataType(int index)
         {
             if (index == 1)
             {
@@ -252,34 +248,43 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (ObjectList == null)
             {
                 ObjectList = new GXDLMSObjectCollection();
             }
-            if (index == 1)
+            if (e.Index == 1)
             {
                 return this.LogicalName;
             }
-            else if (index == 2)
+            else if (e.Index == 2)
             {
                 int cnt = ObjectList.Count;
                 GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((byte)DataType.Array);
-                //Add count            
-                GXCommon.SetObjectCount(cnt, data);
+                //Add count only for first time.
+                if (settings.Index == 0)
+                {
+                    data.SetUInt8((byte)DataType.Array);
+                    GXCommon.SetObjectCount(cnt, data);
+                }
                 if (cnt != 0)
                 {
                     foreach (GXDLMSObject it in ObjectList)
                     {
                         data.SetUInt8((byte)DataType.Structure);
-                        data.SetUInt8((byte)4); //Count
-                        GXCommon.SetData(data, DataType.Int16, it.ShortName); //base address.
-                        GXCommon.SetData(data, DataType.UInt16, it.ObjectType); //ClassID
-                        GXCommon.SetData(data, DataType.UInt8, 0); //Version
-                        GXCommon.SetData(data, DataType.OctetString, it.LogicalName); //LN
+                        //Count
+                        data.SetUInt8((byte)4);
+                        //base address.
+                        GXCommon.SetData(data, DataType.Int16, it.ShortName);
+                        //ClassID
+                        GXCommon.SetData(data, DataType.UInt16, it.ObjectType);
+                        //Version
+                        GXCommon.SetData(data, DataType.UInt8, 0);
+                        //LN
+                        GXCommon.SetData(data, DataType.OctetString, it.LogicalName);
                     }
+                    //Add association view if not exists.
                     if (ObjectList.FindBySN(this.ShortName) == null)
                     {
                         data.SetUInt8((byte)DataType.Structure);
@@ -290,9 +295,9 @@ namespace Gurux.DLMS.Objects
                         GXCommon.SetData(data, DataType.OctetString, this.LogicalName); //LN
                     }
                 }
-                return data.Array();
+                return data;
             }
-            else if (index == 3)
+            else if (e.Index == 3)
             {
                 bool lnExists = ObjectList.FindBySN(this.ShortName) != null;
                 //Add count        
@@ -314,13 +319,14 @@ namespace Gurux.DLMS.Objects
                 }
                 return data.Array();
             }
-            else if (index == 4)
+            else if (e.Index == 4)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 GXCommon.SetData(data, DataType.OctetString, SecuritySetupReference);
                 return data.Array();
             }
-            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
         void UpdateAccessRights(Object[] buff)
@@ -347,25 +353,25 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
-                if (value is string)
+                if (e.Value is string)
                 {
-                    LogicalName = value.ToString();
+                    LogicalName = e.Value.ToString();
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
                 }                
             }
-            else if (index == 2)
+            else if (e.Index == 2)
             {
                 ObjectList.Clear();
-                if (value != null)
+                if (e.Value != null)
                 {
-                    foreach (Object[] item in (Object[])value)
+                    foreach (Object[] item in (Object[])e.Value)
                     {
                         ushort sn = (ushort)(Convert.ToInt32(item[0]) & 0xFFFF);
                         ObjectType type = (ObjectType)Convert.ToInt32(item[1]);
@@ -394,9 +400,9 @@ namespace Gurux.DLMS.Objects
                     }
                 }
             }
-            else if (index == 3)
+            else if (e.Index == 3)
             {
-                if (value == null)
+                if (e.Value == null)
                 {
                     foreach (GXDLMSObject it in ObjectList)
                     {
@@ -408,23 +414,23 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    UpdateAccessRights((Object[])value);
+                    UpdateAccessRights((Object[])e.Value);
                 }
             }
-            else if (index == 4)
+            else if (e.Index == 4)
             {
-                if (value is string)
+                if (e.Value is string)
                 {
-                    SecuritySetupReference = value.ToString();
+                    SecuritySetupReference = e.Value.ToString();
                 }
                 else
                 {
-                    SecuritySetupReference = GXDLMSClient.ChangeType(value as byte[], DataType.OctetString).ToString();
+                    SecuritySetupReference = GXDLMSClient.ChangeType(e.Value as byte[], DataType.OctetString).ToString();
                 }
             }
             else
             {
-                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+                e.Error = ErrorCode.ReadWriteDenied;
             }
         }
         #endregion

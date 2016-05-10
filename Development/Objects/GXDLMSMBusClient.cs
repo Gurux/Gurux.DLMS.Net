@@ -190,9 +190,10 @@ namespace Gurux.DLMS.Objects
         /// Data interface do not have any methods.
         /// </summary>
         /// <param name="index"></param>
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            throw new ArgumentException("Invoke failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
         int[] IGXDLMSBase.GetAttributeIndexToRead()
@@ -304,7 +305,7 @@ namespace Gurux.DLMS.Objects
             return 8;
         }
 
-        override public DataType GetDataType(int index)
+        public override DataType GetDataType(int index)
         {
             if (index == 1)
             {
@@ -368,17 +369,17 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
                 return this.LogicalName;
-            }            
-            if (index == 2)
+            }
+            if (e.Index == 2)
             {
                 return MBusPortReference;
             }
-            if (index == 3)
+            if (e.Index == 3)
             {
                 GXByteBuffer buff = new GXByteBuffer();
                 buff.Add((byte) DataType.Array);
@@ -392,143 +393,144 @@ namespace Gurux.DLMS.Objects
                 }
                 return buff.Array();
             }
-            if (index == 4)
+            if (e.Index == 4)
             {
                 return CapturePeriod;
             }
-            if (index == 5)
+            if (e.Index == 5)
             {
                 return PrimaryAddress;
             }
-            if (index == 6)
+            if (e.Index == 6)
             {
                 return IdentificationNumber;
             }
-            if (index == 7)
+            if (e.Index == 7)
             {
                 return ManufacturerID;
             }
-            if (index == 8)
+            if (e.Index == 8)
             {
                 return DataHeaderVersion;
             }
-            if (index == 9)
+            if (e.Index == 9)
             {
                 return DeviceType;
             }
-            if (index == 10)
+            if (e.Index == 10)
             {
                 return AccessNumber;
             }
-            if (index == 11)
+            if (e.Index == 11)
             {
                 return Status;
             }
-            if (index == 12)
+            if (e.Index == 12)
             {
                 return Alarm;
             }
             if (Version > 0)
             {
-                if (index == 13)
+                if (e.Index == 13)
                 {
                     return Configuration;
                 }
-                if (index == 14)
+                if (e.Index == 14)
                 {
                     return EncryptionKeyStatus;
                 }
             }
-            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
-                if (value is string)
+                if (e.Value is string)
                 {
-                    LogicalName = value.ToString();
+                    LogicalName = e.Value.ToString();
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
                 }                
             }
-            else if (index == 2)
+            else if (e.Index == 2)
             {
-                if (value is string)
+                if (e.Value is string)
                 {
-                    MBusPortReference = value.ToString();
+                    MBusPortReference = e.Value.ToString();
                 }
                 else
                 {
-                    MBusPortReference = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                    MBusPortReference = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
                 }   
             }
-            else if (index == 3)
+            else if (e.Index == 3)
             {
                 CaptureDefinition.Clear();
-                foreach (object[] it in (object[])value)
+                foreach (object[] it in (object[])e.Value)
                 {                    
                     CaptureDefinition.Add(new KeyValuePair<string, string>(GXDLMSClient.ChangeType((byte[])it[0], DataType.OctetString).ToString(),
                         GXDLMSClient.ChangeType((byte[])it[1], DataType.OctetString).ToString()));
                 }
             }
-            else if (index == 4)
+            else if (e.Index == 4)
             {
-                CapturePeriod = Convert.ToUInt32(value);
+                CapturePeriod = Convert.ToUInt32(e.Value);
             }
-            else if (index == 5)
+            else if (e.Index == 5)
             {
-                PrimaryAddress = Convert.ToByte(value);
+                PrimaryAddress = Convert.ToByte(e.Value);
             }
-            else if (index == 6)
+            else if (e.Index == 6)
             {
-                IdentificationNumber = Convert.ToUInt32(value);
+                IdentificationNumber = Convert.ToUInt32(e.Value);
             }
-            else if (index == 7)
+            else if (e.Index == 7)
             {
-                ManufacturerID = Convert.ToUInt16(value);
+                ManufacturerID = Convert.ToUInt16(e.Value);
             }
-            else if (index == 8)
+            else if (e.Index == 8)
             {
-                DataHeaderVersion = Convert.ToByte(value);
+                DataHeaderVersion = Convert.ToByte(e.Value);
             }
-            else if (index == 9)
+            else if (e.Index == 9)
             {
-                DeviceType = Convert.ToByte(value);
+                DeviceType = Convert.ToByte(e.Value);
             }
-            else if (index == 10)
+            else if (e.Index == 10)
             {
-                AccessNumber = Convert.ToByte(value);
+                AccessNumber = Convert.ToByte(e.Value);
             }
-            else if (index == 11)
+            else if (e.Index == 11)
             {
-                Status = Convert.ToByte(value);
+                Status = Convert.ToByte(e.Value);
             }
-            else if (index == 12)
+            else if (e.Index == 12)
             {
-                Alarm = Convert.ToByte(value);
+                Alarm = Convert.ToByte(e.Value);
             }
             else if (Version > 0)
             {
-                if (index == 13)
+                if (e.Index == 13)
                 {
-                    Configuration = Convert.ToUInt16(value);
+                    Configuration = Convert.ToUInt16(e.Value);
                 }
-                else if (index == 14)
+                else if (e.Index == 14)
                 {
-                    EncryptionKeyStatus = Convert.ToInt32(value);
+                    EncryptionKeyStatus = Convert.ToInt32(e.Value);
                 }
                 else
                 {
-                    throw new ArgumentException("SetValue failed. Invalid attribute index.");
+                    e.Error = ErrorCode.ReadWriteDenied;
                 }
             }
             else
             {
-                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+                e.Error = ErrorCode.ReadWriteDenied;
             }
         }
         #endregion

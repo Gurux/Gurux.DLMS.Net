@@ -211,6 +211,30 @@ namespace Gurux.DLMS.Internal
             return ln;
         }
 
+        /// <summary>
+        /// Return how many bytes object count takes.
+        /// </summary>
+        /// <param name="count">Value.</param>
+        /// <returns>Value size in bytes.</returns>
+        internal static int GetObjectCountSizeInBytes(int count)
+        {
+            if (count < 0x80)
+            {
+                return 1;
+            }
+            else if (count < 0x100)
+            {
+                return 2;
+            }
+            else if (count < 0x10000)
+            {
+                return 3;
+            }
+            else
+            {
+                return 5;
+            }
+        }
 
         /// <summary>
         /// Set item count.

@@ -194,11 +194,11 @@ namespace Gurux.DLMS.Objects
         /// Data interface do not have any methods.
         /// </summary>
         /// <param name="index"></param>
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            if (index == 2)
+            if (e.Index == 2)
             {
-                foreach (object tmp in parameters as object[])
+                foreach (object tmp in e.Parameters as object[])
                 {
                     object[] item = tmp as object[];
                     GlobalKeyType type = (GlobalKeyType)Convert.ToInt32(item[0]);
@@ -208,7 +208,8 @@ namespace Gurux.DLMS.Objects
                         case GlobalKeyType.UnicastEncryption:
                         case GlobalKeyType.BroadcastEncryption:
                            //Invalid type
-                           return new byte[] { (byte)ErrorCode.ReadWriteDenied };
+                           e.Error = ErrorCode.ReadWriteDenied;
+                           break;
                         case GlobalKeyType.Authentication:
                            //if settings.Cipher is null non secure server is used.
                             settings.Cipher.AuthenticationKey = GXDLMSSecureClient.Decrypt(settings.Kek, data);
@@ -218,7 +219,8 @@ namespace Gurux.DLMS.Objects
                             break;
                         default:
                             //Invalid type
-                            return new byte[] {(byte)ErrorCode.ReadWriteDenied };
+                            e.Error = ErrorCode.ReadWriteDenied;
+                            break;
                     }
                 }
                 //Return standard reply.
@@ -226,7 +228,8 @@ namespace Gurux.DLMS.Objects
             }
             else
             {
-                return new byte[] {(byte) ErrorCode.ReadWriteDenied };
+                e.Error = ErrorCode.ReadWriteDenied;
+                return null;
             }
         }
 
@@ -299,7 +302,7 @@ namespace Gurux.DLMS.Objects
             return 8;
         }
 
-        override public DataType GetDataType(int index)
+        public override DataType GetDataType(int index)
         {
             if (index == 1)
             {
@@ -338,74 +341,75 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
                 return this.LogicalName;
             }
-            if (index == 2)
+            if (e.Index == 2)
             {
                 return SecurityPolicy;
             }
-            if (index == 3)
+            if (e.Index == 3)
             {
                 return SecuritySuite;
             }
             if (this.Version > 0)
             {
-                if (index == 4)
+                if (e.Index == 4)
                 {
                     return ClientSystemTitle;
                 }
-                if (index == 5)
+                if (e.Index == 5)
                 {
                     return ServerSystemTitle;
                 }
-                if (index == 5)
+                if (e.Index == 6)
                 {
                     return Certificates;
                 }
             }
-            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
-                if (value is string)
+                if (e.Value is string)
                 {
-                    LogicalName = value.ToString();
+                    LogicalName = e.Value.ToString();
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
                 }                
             }
-            else if (index == 2)
+            else if (e.Index == 2)
             {
-                SecurityPolicy = (SecurityPolicy)Convert.ToInt32(value);
+                SecurityPolicy = (SecurityPolicy)Convert.ToInt32(e.Value);
             }
-            else if (index == 3)
+            else if (e.Index == 3)
             {
-                SecuritySuite = (SecuritySuite)Convert.ToInt32(value);
+                SecuritySuite = (SecuritySuite)Convert.ToInt32(e.Value);
             }
-            else if (index == 4)
+            else if (e.Index == 4)
             {
-                ClientSystemTitle = (byte[])value;
+                ClientSystemTitle = (byte[])e.Value;
             }
-            else if (index == 5)
+            else if (e.Index == 5)
             {
-               ServerSystemTitle = (byte[])value;
+                ServerSystemTitle = (byte[])e.Value;
             }
-            else if (index == 6)
+            else if (e.Index == 6)
             {
-                Certificates = value;
+                Certificates = e.Value;
             }
             else
             {
-                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+                e.Error = ErrorCode.ReadWriteDenied;
             }
         }
         #endregion

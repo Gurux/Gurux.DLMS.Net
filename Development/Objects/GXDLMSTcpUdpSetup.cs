@@ -160,9 +160,10 @@ namespace Gurux.DLMS.Objects
 
         #region IGXDLMSBase Members
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            throw new ArgumentException("Invoke failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
         int[] IGXDLMSBase.GetAttributeIndexToRead()
@@ -218,7 +219,7 @@ namespace Gurux.DLMS.Objects
             return 0;
         }
 
-        override public DataType GetDataType(int index)
+        public override DataType GetDataType(int index)
         {
             if (index == 1)
             {
@@ -247,71 +248,72 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
                 return this.LogicalName;
             }
-            if (index == 2)
+            if (e.Index == 2)
             {
                 return Port;
             }
-            if (index == 3)
+            if (e.Index == 3)
             {
                 return IPReference;
             }
-            if (index == 4)
+            if (e.Index == 4)
             {
                 return MaximumSegmentSize;
             }
-            if (index == 5)
+            if (e.Index == 5)
             {
                 return MaximumSimultaneousConnections;
             }
-            if (index == 6)
+            if (e.Index == 6)
             {
                 return InactivityTimeout;
             }
-            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
-                if (value is string)
+                if (e.Value is string)
                 {
-                    LogicalName = value.ToString();
+                    LogicalName = e.Value.ToString();
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
                 }
             }
-            else if (index == 2)
+            else if (e.Index == 2)
             {
-                Port = Convert.ToInt32(value);
+                Port = Convert.ToInt32(e.Value);
             }
-            else if (index == 3)
+            else if (e.Index == 3)
             {
-                IPReference = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                IPReference = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
             }
-            else if (index == 4)
+            else if (e.Index == 4)
             {
-                MaximumSegmentSize = Convert.ToInt32(value);
+                MaximumSegmentSize = Convert.ToInt32(e.Value);
             }
-            else if (index == 5)
+            else if (e.Index == 5)
             {
-                MaximumSimultaneousConnections = Convert.ToInt32(value);
+                MaximumSimultaneousConnections = Convert.ToInt32(e.Value);
             }
-            else if (index == 6)
+            else if (e.Index == 6)
             {
-                InactivityTimeout = Convert.ToInt32(value);
+                InactivityTimeout = Convert.ToInt32(e.Value);
             }
             else
             {
-                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+                e.Error = ErrorCode.ReadWriteDenied;
             }
         }
         #endregion

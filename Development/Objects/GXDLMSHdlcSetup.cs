@@ -228,7 +228,7 @@ namespace Gurux.DLMS.Objects
             return 0;
         }
 
-        override public DataType GetDataType(int index)
+        public override DataType GetDataType(int index)
         {
             if (index == 1)
             {
@@ -269,101 +269,103 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
                 return this.LogicalName;
             }
-            if (index == 2)
+            if (e.Index == 2)
             {
                 return this.CommunicationSpeed;
             }
-            if (index == 3)
+            if (e.Index == 3)
             {
                 return this.WindowSizeTransmit;
             }
-            if (index == 4)
+            if (e.Index == 4)
             {
                 return this.WindowSizeReceive;
             }
-            if (index == 5)
+            if (e.Index == 5)
             {
                 return this.MaximumInfoLengthTransmit;
             }
-            if (index == 6)
+            if (e.Index == 6)
             {
                 return this.MaximumInfoLengthReceive;
             }
-            if (index == 7)
+            if (e.Index == 7)
             {
                 return InterCharachterTimeout;
             }
-            if (index == 8)
+            if (e.Index == 8)
             {
                 return InactivityTimeout;
             }
-            if (index == 9)
+            if (e.Index == 9)
             {
                 return DeviceAddress;
             }
-            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
-                if (value is string)
+                if (e.Value is string)
                 {
-                    LogicalName = value.ToString();
+                    LogicalName = e.Value.ToString();
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
                 }
             }
-            else if (index == 2)
+            else if (e.Index == 2)
             {
-                CommunicationSpeed = (BaudRate) Convert.ToInt32(value);
+                CommunicationSpeed = (BaudRate)Convert.ToInt32(e.Value);
             }
-            else if (index == 3)
+            else if (e.Index == 3)
             {
-                WindowSizeTransmit = Convert.ToInt32(value);
+                WindowSizeTransmit = Convert.ToInt32(e.Value);
             }
-            else if (index == 4)
+            else if (e.Index == 4)
             {
-                WindowSizeReceive = Convert.ToInt32(value);
+                WindowSizeReceive = Convert.ToInt32(e.Value);
             }
-            else if (index == 5)
+            else if (e.Index == 5)
             {
-                MaximumInfoLengthTransmit = Convert.ToInt32(value);
+                MaximumInfoLengthTransmit = Convert.ToInt32(e.Value);
             }
-            else if (index == 6)
+            else if (e.Index == 6)
             {
-                MaximumInfoLengthReceive = Convert.ToInt32(value);
+                MaximumInfoLengthReceive = Convert.ToInt32(e.Value);
             }
-            else if (index == 7)
+            else if (e.Index == 7)
             {
-                InterCharachterTimeout = Convert.ToInt32(value);
+                InterCharachterTimeout = Convert.ToInt32(e.Value);
             }
-            else if (index == 8)
+            else if (e.Index == 8)
             {
-                InactivityTimeout = Convert.ToInt32(value);
+                InactivityTimeout = Convert.ToInt32(e.Value);
             }
-            else if (index == 9)
+            else if (e.Index == 9)
             {
-                DeviceAddress = Convert.ToInt32(value);
+                DeviceAddress = Convert.ToInt32(e.Value);
             }
             else
             {
-                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+                e.Error = ErrorCode.ReadWriteDenied;
             }
         }
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            throw new NotImplementedException();
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
         #endregion

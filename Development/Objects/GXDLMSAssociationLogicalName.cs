@@ -157,17 +157,17 @@ namespace Gurux.DLMS.Objects
 
         #region IGXDLMSBase Members
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
         {
             //Check reply_to_HLS_authentication
-            if (index == 1)
+            if (e.Index == 1)
             {
                 UInt32 ic = 0;
                 byte[] secret;
                 if (settings.Authentication == Authentication.HighGMAC)
                 {
                     secret = settings.SourceSystemTitle;
-                    GXByteBuffer bb = new GXByteBuffer(parameters as byte[]);                    
+                    GXByteBuffer bb = new GXByteBuffer(e.Parameters as byte[]);                    
                     bb.GetUInt8();
                     ic = bb.GetUInt32();
                 }
@@ -176,8 +176,8 @@ namespace Gurux.DLMS.Objects
                     secret = Secret;
                 }
                 byte[] serverChallenge = GXSecure.Secure(settings, settings.Cipher, ic, settings.StoCChallenge, secret);
-                byte[] clientChallenge = (byte[])parameters;
-                if (GXCommon.Compare(serverChallenge, clientChallenge))
+                byte[] clientChallenge = (byte[])e.Parameters;
+                if (serverChallenge != null && clientChallenge != null && GXCommon.Compare(serverChallenge, clientChallenge))
                 {
                     if (settings.Authentication == Authentication.HighGMAC)
                     {
@@ -188,24 +188,17 @@ namespace Gurux.DLMS.Objects
                     {
                         secret = Secret;
                     }
-                    byte[] tmp = GXSecure.Secure(settings, settings.Cipher, ic, settings.CtoSChallenge, secret);
-                    GXByteBuffer challenge = new GXByteBuffer();
-                    // ReturnParameters.
-                    challenge.SetUInt8(0);
-                    challenge.SetUInt8(1);
-                    challenge.SetUInt8((byte)DataType.OctetString);
-                    GXCommon.SetObjectCount(tmp.Length, challenge);
-                    challenge.Set(tmp);
-                    return challenge.Array();
+                    return GXSecure.Secure(settings, settings.Cipher, ic, settings.CtoSChallenge, secret);
                 }
-                else //If PW do not match.
+                else //If the password does not match.
                 {
-                    return new byte[] {0 };
+                    return null;
                 }
             }
             else
             {
-                return new byte[] { (byte) ErrorCode.ReadWriteDenied};
+                e.Error = ErrorCode.ReadWriteDenied;
+                return null;
             }
         }
 
@@ -306,10 +299,9 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Returns Association View.    
         /// </summary>     
-        private byte[] GetObjects()
+        private GXByteBuffer GetObjects(GXDLMSSettings settings)
         {
             GXByteBuffer data = new GXByteBuffer();
-            data.SetUInt8((byte)DataType.Array);
             bool lnExists = ObjectList.FindByLN(ObjectType.AssociationLogicalName, this.LogicalName) != null;
             //Add count        
             int cnt = ObjectList.Count();
@@ -317,26 +309,49 @@ namespace Gurux.DLMS.Objects
             {
                 ++cnt;
             }
-            GXCommon.SetObjectCount(cnt, data);
+            //Add count only for first time.
+            if (settings.Index == 0)
+            {
+                settings.Count = (UInt16) ObjectList.Count;
+                data.SetUInt8((byte)DataType.Array);
+                GXCommon.SetObjectCount(cnt, data);
+            }
+            ushort pos = 0;
             foreach (GXDLMSObject it in ObjectList)
             {
-                data.SetUInt8((byte)DataType.Structure);
-                data.SetUInt8((byte)4); //Count
-                GXCommon.SetData(data, DataType.UInt16, it.ObjectType); //ClassID
-                GXCommon.SetData(data, DataType.UInt8, it.Version); //Version
-                GXCommon.SetData(data, DataType.OctetString, it.LogicalName); //LN
-                GetAccessRights(it, data); //Access rights.
+                ++pos;
+                if (!(pos <= settings.Index))
+                {
+                    data.SetUInt8((byte)DataType.Structure);
+                    data.SetUInt8((byte)4); //Count
+                    GXCommon.SetData(data, DataType.UInt16, it.ObjectType); //ClassID
+                    GXCommon.SetData(data, DataType.UInt8, it.Version); //Version
+                    GXCommon.SetData(data, DataType.OctetString, it.LogicalName); //LN
+                    GetAccessRights(it, data); //Access rights.
+                    ++settings.Index;
+                    //If PDU is full.
+                    if (data.Size >= settings.MaxReceivePDUSize)
+                    {
+                       break;
+                    }
+                }
             }
+            //Add association view if not exists.
             if (!lnExists)
             {
                 data.SetUInt8((byte)DataType.Structure);
-                data.SetUInt8((byte)4); //Count
-                GXCommon.SetData(data, DataType.UInt16, this.ObjectType); //ClassID
-                GXCommon.SetData(data, DataType.UInt8, this.Version); //Version
-                GXCommon.SetData(data, DataType.OctetString, this.LogicalName); //LN
-                GetAccessRights(this, data); //Access rights.
+                //Count
+                data.SetUInt8((byte)4);
+                //ClassID
+                GXCommon.SetData(data, DataType.UInt16, this.ObjectType);
+                //Version
+                GXCommon.SetData(data, DataType.UInt8, this.Version);
+                //LN
+                GXCommon.SetData(data, DataType.OctetString, this.LogicalName);
+                //Access rights.
+                GetAccessRights(this, data); 
             }
-            return data.Array();
+            return data;
         }
 
         private void GetAccessRights(GXDLMSObject item, GXByteBuffer data)
@@ -411,7 +426,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        override public DataType GetDataType(int index)
+        public override DataType GetDataType(int index)
         {
             if (index == 1)
             {
@@ -452,17 +467,17 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
                 return this.LogicalName;
             }
-            if (index == 2)
+            if (e.Index == 2)
             {
-                return GetObjects();
+                return GetObjects(settings);
             }
-            if (index == 3)
+            if (e.Index == 3)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Array);
@@ -474,7 +489,7 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt16(ServerSAP);
                 return data.Array();
             }
-            if (index == 4)
+            if (e.Index == 4)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
@@ -489,7 +504,7 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetData(data, DataType.UInt8, ApplicationContextName.ContextId);
                 return data.Array();               
             }
-            if (index == 5)
+            if (e.Index == 5)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
@@ -502,7 +517,7 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetData(data, DataType.OctetString, XDLMSContextInfo.CypheringInfo);
                 return data.Array();     
             }
-            if (index == 6)
+            if (e.Index == 6)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
@@ -517,15 +532,15 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetData(data, DataType.UInt8, AuthenticationMechanismMame.MechanismId);
                 return data.Array();     
             }
-            if (index == 7)
+            if (e.Index == 7)
             {
                 return Secret;
             }
-            if (index == 8)
+            if (e.Index == 8)
             {
                 return AssociationStatus;
             }
-            if (index == 9)
+            if (e.Index == 9)
             {
                 if (SecuritySetupReference == null)
                 {
@@ -533,28 +548,29 @@ namespace Gurux.DLMS.Objects
                 }
                 return ASCIIEncoding.ASCII.GetBytes(SecuritySetupReference);
             }
-            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
-                if (value is string)
+                if (e.Value is string)
                 {
-                    LogicalName = value.ToString();
+                    LogicalName = e.Value.ToString();
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
                 }
             }
-            else if (index == 2)
+            else if (e.Index == 2)
             {
                 ObjectList.Clear();
-                if (value != null)
+                if (e.Value != null)
                 {
-                    foreach (Object[] item in (Object[])value)
+                    foreach (Object[] item in (Object[])e.Value)
                     {
                         ObjectType type = (ObjectType)Convert.ToInt32(item[0]);
                         int version = Convert.ToInt32(item[1]);
@@ -579,20 +595,20 @@ namespace Gurux.DLMS.Objects
                     }
                 }
             }
-            else if (index == 3)
+            else if (e.Index == 3)
             {
-                if (value != null)
+                if (e.Value != null)
                 {
-                    ClientSAP = Convert.ToByte(((Object[])value)[0]);
-                    ServerSAP = Convert.ToUInt16(((Object[])value)[1]);
+                    ClientSAP = Convert.ToByte(((Object[])e.Value)[0]);
+                    ServerSAP = Convert.ToUInt16(((Object[])e.Value)[1]);
                 }
             }
-            else if (index == 4)
+            else if (e.Index == 4)
             {                
                 //Value of the object identifier encoded in BER
-                if (value is byte[])
-                {                    
-                    GXByteBuffer arr = new GXByteBuffer(value as byte[]);
+                if (e.Value is byte[])
+                {
+                    GXByteBuffer arr = new GXByteBuffer(e.Value as byte[]);
                     if (arr.GetUInt8(0) == 0x60)
                     {
 
@@ -658,9 +674,9 @@ namespace Gurux.DLMS.Objects
                         ApplicationContextName.ContextId = arr.GetUInt8();
                     }
                 }
-                else if (value != null)
+                else if (e.Value != null)
                 {
-                    Object[] arr = (Object[])value;
+                    Object[] arr = (Object[])e.Value;
                     ApplicationContextName.JointIsoCtt = Convert.ToByte(arr[0]);
                     ApplicationContextName.Country = Convert.ToByte(arr[1]);
                     ApplicationContextName.CountryName = Convert.ToUInt16(arr[2]);
@@ -670,11 +686,11 @@ namespace Gurux.DLMS.Objects
                     ApplicationContextName.ContextId = Convert.ToByte(arr[6]);
                 }
             }
-            else if (index == 5)
+            else if (e.Index == 5)
             {
-                if (value != null)
+                if (e.Value != null)
                 {
-                    Object[] arr = (Object[])value;
+                    Object[] arr = (Object[])e.Value;
                     XDLMSContextInfo.Conformance = arr[0].ToString();
                     XDLMSContextInfo.MaxReceivePduSize = Convert.ToUInt16(arr[1]);
                     XDLMSContextInfo.MaxSendPpuSize = Convert.ToUInt16(arr[2]);
@@ -683,12 +699,12 @@ namespace Gurux.DLMS.Objects
                     XDLMSContextInfo.CypheringInfo = (byte[])arr[5];
                 }
             }
-            else if (index == 6)
+            else if (e.Index == 6)
             {
                 //Value of the object identifier encoded in BER
-                if (value is byte[])
+                if (e.Value is byte[])
                 {
-                    GXByteBuffer arr = new GXByteBuffer(value as byte[]);
+                    GXByteBuffer arr = new GXByteBuffer(e.Value as byte[]);
                     if (arr.GetUInt8(0) == 0x60)
                     {
                         AuthenticationMechanismMame.JointIsoCtt = 0;
@@ -753,9 +769,9 @@ namespace Gurux.DLMS.Objects
                         AuthenticationMechanismMame.MechanismId = (Authentication) arr.GetUInt8();
                     }
                 }
-                else if (value != null)
+                else if (e.Value != null)
                 {
-                    Object[] arr = (Object[])value;
+                    Object[] arr = (Object[])e.Value;
                     AuthenticationMechanismMame.JointIsoCtt = Convert.ToByte(arr[0]);
                     AuthenticationMechanismMame.Country = Convert.ToByte(arr[1]);
                     AuthenticationMechanismMame.CountryName = Convert.ToUInt16(arr[2]);
@@ -765,28 +781,28 @@ namespace Gurux.DLMS.Objects
                     AuthenticationMechanismMame.MechanismId = (Authentication) Convert.ToByte(arr[6]);
                 }
             }
-            else if (index == 7)
+            else if (e.Index == 7)
             {
-                Secret = (byte[])value;
+                Secret = (byte[])e.Value;
             }
-            else if (index == 8)
+            else if (e.Index == 8)
             {
-                if (value == null)
+                if (e.Value == null)
                 {
                     AssociationStatus = AssociationStatus.NonAssociated;
                 }
                 else
                 {
-                    AssociationStatus = (AssociationStatus)Convert.ToInt32(value);
+                    AssociationStatus = (AssociationStatus)Convert.ToInt32(e.Value);
                 }
             }
-            else if (index == 9)
+            else if (e.Index == 9)
             {
-                SecuritySetupReference = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                SecuritySetupReference = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
             }
             else
             {
-                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+                e.Error = ErrorCode.ReadWriteDenied;
             }
         }
         #endregion

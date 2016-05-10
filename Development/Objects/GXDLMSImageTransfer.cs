@@ -226,19 +226,15 @@ namespace Gurux.DLMS.Objects
 
         #region IGXDLMSBase Members
 
-        /// <summary>
-        /// Data interface do not have any methods.
-        /// </summary>
-        /// <param name="index"></param>
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
         {
             ImageTransferStatus = ImageTransferStatus.NotInitiated;
             //Image transfer initiate
-            if (index == 1)
+            if (e.Index == 1)
             {
                 ImageFirstNotTransferredBlockNumber = 0;
                 ImageTransferredBlocksStatus = "";
-                object[] value = (object[]) parameters;
+                object[] value = (object[])e.Parameters;
                 string ImageIdentifier = ASCIIEncoding.ASCII.GetString((byte[]) value[0]);
                 ImageSize = (UInt32)value[1];
                 ImageTransferStatus = ImageTransferStatus.TransferInitiated;
@@ -257,9 +253,9 @@ namespace Gurux.DLMS.Objects
                 return new byte[] { 0 };
             }
             //Image block transfer
-            else if (index == 2)
-            {                
-                object[] value = (object[])parameters;
+            else if (e.Index == 2)
+            {
+                object[] value = (object[])e.Parameters;
                 uint imageIndex = (uint)value[0];
                 char[] tmp = ImageTransferredBlocksStatus.ToCharArray();
                 tmp[(int)imageIndex] = '1';
@@ -270,7 +266,7 @@ namespace Gurux.DLMS.Objects
                 return new byte[] { 0 };
             }
             //Image verify
-            else if (index == 3)
+            else if (e.Index == 3)
             {
                 ImageTransferStatus = ImageTransferStatus.VerificationInitiated;
                 //Check that size match.
@@ -289,14 +285,15 @@ namespace Gurux.DLMS.Objects
                 return new byte[] { 0 };
             }
             //Image activate.
-            else if (index == 4)
+            else if (e.Index == 4)
             {
                 ImageTransferStatus = ImageTransferStatus.ActivationSuccessful;
                 return new byte[] { 0 };
             }
             else
             {
-                throw new ArgumentException("Invoke failed. Invalid attribute index.");
+                e.Error = ErrorCode.ReadWriteDenied;
+                return null;
             }            
         }
 
@@ -360,7 +357,7 @@ namespace Gurux.DLMS.Objects
             return 4;
         }
 
-        override public DataType GetDataType(int index)
+        public override DataType GetDataType(int index)
         {
             if (index == 1)
             {
@@ -393,33 +390,33 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (index == 1)
+            if (e.Index == 1)
             {                
                 return this.LogicalName;
             }
-            if (index == 2)
+            if (e.Index == 2)
             {
                 return ImageBlockSize;
             }
-            if (index == 3)
+            if (e.Index == 3)
             {
                 return ImageTransferredBlocksStatus;
             }
-            if (index == 4)
+            if (e.Index == 4)
             {
                 return ImageFirstNotTransferredBlockNumber;
             }
-            if (index == 5)
+            if (e.Index == 5)
             {
                 return ImageTransferEnabled;
             }
-            if (index == 6)
+            if (e.Index == 6)
             {
                 return ImageTransferStatus;
             }
-            if (index == 7)
+            if (e.Index == 7)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte) DataType.Array);
@@ -448,49 +445,50 @@ namespace Gurux.DLMS.Objects
                 }
                 return data.Array();
             }
-            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
-                if (value is string)
+                if (e.Value is string)
                 {
-                    LogicalName = value.ToString();
+                    LogicalName = e.Value.ToString();
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
                 }                
             }
-            else if (index == 2)
+            else if (e.Index == 2)
             {
-                ImageBlockSize = Convert.ToUInt32(value);                
+                ImageBlockSize = Convert.ToUInt32(e.Value);                
             }
-            else if (index == 3)
+            else if (e.Index == 3)
             {
-                ImageTransferredBlocksStatus = (string)value;
+                ImageTransferredBlocksStatus = (string)e.Value;
             }
-            else if (index == 4)
+            else if (e.Index == 4)
             {
-                ImageFirstNotTransferredBlockNumber = Convert.ToUInt32(value);
+                ImageFirstNotTransferredBlockNumber = Convert.ToUInt32(e.Value);
             }
-            else if (index == 5)
+            else if (e.Index == 5)
             {
-                ImageTransferEnabled = Convert.ToBoolean(value);
+                ImageTransferEnabled = Convert.ToBoolean(e.Value);
             }
-            else if (index == 6)
+            else if (e.Index == 6)
             {
-                ImageTransferStatus = (ImageTransferStatus)Convert.ToUInt32(value);                
+                ImageTransferStatus = (ImageTransferStatus)Convert.ToUInt32(e.Value);                
             }
-            else if (index == 7)
+            else if (e.Index == 7)
             {
                 ImageActivateInfo = null;
                 List<GXDLMSImageActivateInfo> list = new List<GXDLMSImageActivateInfo>();
-                if (value != null)
-                {                    
-                    foreach (Object it in (Object[])value)
+                if (e.Value != null)
+                {
+                    foreach (Object it in (Object[])e.Value)
                     {
                         GXDLMSImageActivateInfo item = new GXDLMSImageActivateInfo();
                         Object[] tmp = (Object[])it;
@@ -504,7 +502,7 @@ namespace Gurux.DLMS.Objects
             }
             else
             {
-                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+                e.Error = ErrorCode.ReadWriteDenied;
             }
         }
         #endregion

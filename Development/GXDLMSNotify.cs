@@ -71,6 +71,46 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Is General block transfer supported.
+        /// </summary>
+        public bool GeneralBlockTransfer
+        {
+            get
+            {
+                if (Settings.UseLogicalNameReferencing)
+                {
+                    return Settings.LnSettings.GeneralBlockTransfer;
+                }
+                return Settings.SnSettings.GeneralBlockTransfer;
+            }
+            set
+            {
+                if (Settings.UseLogicalNameReferencing)
+                {
+                    Settings.LnSettings.GeneralBlockTransfer = value;
+                }
+                else
+                {
+                    Settings.SnSettings.GeneralBlockTransfer = value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Used priority in General Block Transfer.
+        /// </summary>
+        public Priority Priority
+        {
+            get
+            {
+                return Settings.Priority;
+            }
+            set
+            {
+                Settings.Priority = value;
+            }
+        }
+        /// <summary>
         /// Information from the connection size that server can handle.
         /// </summary>
         public GXDLMSLimits Limits
@@ -124,18 +164,6 @@ namespace Gurux.DLMS
             private set
             {
                 Settings.UseLogicalNameReferencing = value;
-            }
-        }
-
-        public Priority Priority
-        {
-            get
-            {
-                return Settings.Priority;
-            }
-            set
-            {
-                Settings.Priority = value;
             }
         }
 
@@ -193,66 +221,39 @@ namespace Gurux.DLMS
         /// DLMS spesification do not specify the structure of Data-Notification body.
         /// So each manufacture can sent different data.
         /// </remarks>
-        /// <seealso cref="GetDataNotificationMessage"/>
+        /// <seealso cref="GetDataNotificationMessages"/>
         public void AddData(GXDLMSObject obj, int index, GXByteBuffer buff)
         {
             DataType dt;
-            object value = (obj as IGXDLMSBase).GetValue(Settings, index, 0, null);
+            object value = (obj as IGXDLMSBase).GetValue(Settings, new ValueEventArgs(obj, index, 0, null));
             dt = obj.GetDataType(index);
             if (dt == DataType.None && value != null)
             {
                 dt = GXCommon.GetValueType(value);
             }
             GXCommon.SetData(buff, dt, value);
-        }
+        } 
 
         /// <summary>
-        /// Add value of COSEM object to byte buffer.
-        /// </summary>
-        /// <param name="value">Added value.</param>
-        /// <param name="type">Value data type.</param>
-        /// <param name="buff">Byte buffer.</param>
-        /// <remarks>
-        /// AddData method can be used with GetDataNotificationMessage -method.
-        /// DLMS specification do not specify the structure of Data-Notification body.
-        /// So each manufacture can sent different data.
-        /// </remarks>
-        /// <seealso cref="GetDataNotificationMessage"/>
-        public void AddData(object value, DataType type, GXByteBuffer buff)
-        {
-            GXCommon.SetData(buff, type, value);
-        }
-
-        /// <summary>
-        /// Generates data notification message.
+        /// Generates data notification message(s).
         /// </summary>
         /// <param name="date">Date time. Set To Min or Max if not added</param>
         /// <param name="data">Notification body.</param>
         /// <returns>Generated data notification message(s).</returns>
-        public byte[][] GetDataNotificationMessage(DateTime date, byte[] data)
+        public byte[][] GetDataNotificationMessages(DateTime date, byte[] data)
         {
-            GXByteBuffer buff = new GXByteBuffer();
-            if (date == DateTime.MinValue || date == DateTime.MaxValue)
-            {
-                buff.SetUInt8(DataType.None);
-            }
-            else
-            {
-                GXCommon.SetData(buff, DataType.OctetString, date);
-            }
-            buff.Set(data);
-            return GXDLMS.SplitPdu(Settings, Command.DataNotification, 0, buff, DateTime.MinValue)[0];
+            return GXDLMS.GetMessages(Settings, Command.DataNotification, 0, new GXByteBuffer(data), date);
         }
 
         /// <summary>
-        /// Generates data notification message.
+        /// Generates data notification message(s).
         /// </summary>
         /// <param name="date">Date time. Set To Min or Max if not added</param>
         /// <param name="data">Notification body.</param>
         /// <returns>Generated data notification message(s).</returns>
         public byte[][] GetDataNotificationMessage(DateTime date, GXByteBuffer data)
         {
-            return GetDataNotificationMessage(date, data.Array());
+            return GXDLMS.GetMessages(Settings, Command.DataNotification, 0, data, date);
         }
 
         /// <summary>
@@ -261,28 +262,20 @@ namespace Gurux.DLMS
         /// <param name="date">Date time. Set To Min or Max if not added</param>
         /// <param name="objects">List of objects and attribute indexes to notify.</param>
         /// <returns>Generated data notification message(s).</returns>
-        public byte[][] GenerateDataNotificationMessage(DateTime date, List<KeyValuePair<GXDLMSObject, int>> objects)
+        public byte[][] GenerateDataNotificationMessages(DateTime date, List<KeyValuePair<GXDLMSObject, int>> objects)
         {
             if (objects == null)
             {
                 throw new ArgumentNullException("objects");
             }
             GXByteBuffer buff = new GXByteBuffer();
-            if (date == DateTime.MinValue || date == DateTime.MaxValue)
-            {
-                buff.SetUInt8(DataType.None);
-            }
-            else
-            {
-                GXCommon.SetData(buff, DataType.OctetString, date);
-            }
-            buff.SetUInt8(DataType.Array);
+            buff.SetUInt8(DataType.Structure);
             GXCommon.SetObjectCount(objects.Count, buff);
             foreach (KeyValuePair<GXDLMSObject, int> it in objects)
             {
                 AddData(it.Key, it.Value, buff);
             }
-            return GXDLMS.SplitPdu(Settings, Command.DataNotification, 0, buff, DateTime.MinValue)[0];
+            return GXDLMS.GetMessages(Settings, Command.DataNotification, 0, buff, DateTime.MinValue);
         }
 
 
@@ -291,7 +284,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="data">Received data.</param>
         /// <returns>Array of objects and called indexes.</returns>
-        public List<KeyValuePair<GXDLMSObject, int>> ParsePushObjects(GXByteBuffer data)
+        public List<KeyValuePair<GXDLMSObject, int>> ParsePush(GXByteBuffer data)
         {
             int index;
             GXDLMSObject obj;
@@ -338,44 +331,11 @@ namespace Gurux.DLMS
                 {
                     value = GXDLMSClient.ChangeType(value as byte[], dt);
                 }
-                (obj as IGXDLMSBase).SetValue(Settings, index, value);
+                ValueEventArgs e = new ValueEventArgs(obj, index, 0, null);
+                e.Value = value;
+                (obj as IGXDLMSBase).SetValue(Settings, e);
             }
             return items;
-        }
-        /// <summary>
-        /// Generates Push message.
-        /// </summary>
-        /// <param name="objects">List of objects and attribute indexes to push.</param>
-        /// <returns>Generated push message(s).</returns>
-        public byte[][] GeneratePushMessage(DateTime date, List<KeyValuePair<GXDLMSObject, int>> objects)
-        {
-            DataType dt;
-            object value;
-            if (objects == null)
-            {
-                throw new ArgumentNullException("objects");
-            }
-            GXByteBuffer buff = new GXByteBuffer();           
-            //Add data
-            buff.SetUInt8(DataType.Structure);
-            GXCommon.SetObjectCount(objects.Count, buff);
-            foreach (KeyValuePair<GXDLMSObject, int> it in objects)
-            {
-                dt = it.Key.GetDataType(it.Value);
-                value = (it.Key as IGXDLMSBase).GetValue(Settings, it.Value, 0, null);
-                if (dt == DataType.None && value != null)
-                {
-                    dt = GXCommon.GetValueType(value);
-                }
-                GXCommon.SetData(buff, dt, value);
-            }
-            List<byte[][]> list = GXDLMS.SplitPdu(Settings, Command.GeneralBlockTransfer, 0, buff, DateTime.MinValue);
-            List<byte[]> arr = new List<byte[]>();
-            foreach (byte[][] it in list)
-            {
-                arr.AddRange(it);
-            }
-            return arr.ToArray();
-        }
+        }       
     }
 }

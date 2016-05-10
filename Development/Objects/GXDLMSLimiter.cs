@@ -208,9 +208,10 @@ namespace Gurux.DLMS.Objects
         /// Data interface do not have any methods.
         /// </summary>
         /// <param name="index"></param>
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            throw new ArgumentException("Invoke failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
         int[] IGXDLMSBase.GetAttributeIndexToRead()
@@ -300,7 +301,7 @@ namespace Gurux.DLMS.Objects
             return 0;
         }
 
-        override public DataType GetDataType(int index)
+        public override DataType GetDataType(int index)
         {
             if (index == 1)
             {
@@ -349,13 +350,13 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
                 return this.LogicalName;
             }
-            else if (index == 2)
+            else if (e.Index == 2)
             {                
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte) DataType.Structure);
@@ -365,27 +366,27 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetData(data, DataType.UInt8, MonitoredAttributeIndex);
                 return data.Array();
             }
-            else if (index == 3)
+            else if (e.Index == 3)
             {
                 return ThresholdActive;
             }
-            else if (index == 4)
+            else if (e.Index == 4)
             {
                 return ThresholdNormal;
             }
-            else if (index == 5)
+            else if (e.Index == 5)
             {
                 return ThresholdEmergency;
             }
-            else if (index == 6)
+            else if (e.Index == 6)
             {
                 return MinOverThresholdDuration;
             }
-            else if (index == 7)
+            else if (e.Index == 7)
             {
                 return MinUnderThresholdDuration;
             }
-            else if (index == 8)
+            else if (e.Index == 8)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte) DataType.Structure);
@@ -395,7 +396,7 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetData(data, DataType.UInt32, EmergencyProfile.Duration);
                 return data.Array();
             }
-            else if (index == 9)
+            else if (e.Index == 9)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte) DataType.Array);
@@ -406,11 +407,11 @@ namespace Gurux.DLMS.Objects
                 }
                 return data.Array();
             }
-            else if (index == 10)
+            else if (e.Index == 10)
             {
                 return EmergencyProfileActive;
             }
-            else if (index == 11)
+            else if (e.Index == 11)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
@@ -425,76 +426,77 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetData(data, DataType.UInt16, ActionUnderThreshold.ScriptSelector);
                 return data.Array();
             }
-            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
-                if (value is string)
+                if (e.Value is string)
                 {
-                    LogicalName = value.ToString();
+                    LogicalName = e.Value.ToString();
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
                 }                
             }
-            else if (index == 2)
+            else if (e.Index == 2)
             {
-                ObjectType ot = (ObjectType) Convert.ToInt16(((object[])value)[0]);
-                string ln = GXDLMSClient.ChangeType((byte[])((object[])value)[1], DataType.OctetString).ToString();
-                int attIndex = Convert.ToInt32(((object[])value)[2]);
+                ObjectType ot = (ObjectType)Convert.ToInt16(((object[])e.Value)[0]);
+                string ln = GXDLMSClient.ChangeType((byte[])((object[])e.Value)[1], DataType.OctetString).ToString();
+                int attIndex = Convert.ToInt32(((object[])e.Value)[2]);
                 MonitoredValue = settings.Objects.FindByLN(ot, ln);
                 MonitoredAttributeIndex = attIndex;
             }
-            else if (index == 3)
+            else if (e.Index == 3)
             {
-                ThresholdActive = value;
+                ThresholdActive = e.Value;
             }
-            else if (index == 4)
+            else if (e.Index == 4)
             {
-                ThresholdNormal = value;
+                ThresholdNormal = e.Value;
             }
-            else if (index == 5)
+            else if (e.Index == 5)
             {
-                ThresholdEmergency = value;
+                ThresholdEmergency = e.Value;
             }
-            else if (index == 6)
-            {            
-                MinOverThresholdDuration = Convert.ToUInt32(value);
-            }
-            else if (index == 7)
+            else if (e.Index == 6)
             {
-                MinUnderThresholdDuration = Convert.ToUInt32(value);
+                MinOverThresholdDuration = Convert.ToUInt32(e.Value);
             }
-            else if (index == 8)
+            else if (e.Index == 7)
             {
-                object[] tmp = (object[])value;
+                MinUnderThresholdDuration = Convert.ToUInt32(e.Value);
+            }
+            else if (e.Index == 8)
+            {
+                object[] tmp = (object[])e.Value;
                 EmergencyProfile.ID = (UInt16) tmp[0];
                 EmergencyProfile.ActivationTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[1], DataType.DateTime);
                 EmergencyProfile.Duration = (UInt32) tmp[2];
             }
-            else if (index == 9)
+            else if (e.Index == 9)
             {
                 List<UInt16> list = new List<UInt16>();
-                if (value != null)
+                if (e.Value != null)
                 {
-                    foreach (object it in (object[])value)
+                    foreach (object it in (object[])e.Value)
                     {
                         list.Add(Convert.ToUInt16(it));
                     }
                 }
                 EmergencyProfileGroupIDs = list.ToArray();
             }
-            else if (index == 10)
+            else if (e.Index == 10)
             {
-                EmergencyProfileActive = Convert.ToBoolean(value);
+                EmergencyProfileActive = Convert.ToBoolean(e.Value);
             }
-            else if (index == 11)
+            else if (e.Index == 11)
             {
-                object[] tmp = (object[])value;
+                object[] tmp = (object[])e.Value;
                 object[] tmp1 = (object[])tmp[0];
                 object[] tmp2 = (object[])tmp[1];
                 ActionOverThreshold.LogicalName = GXDLMSClient.ChangeType((byte[])tmp1[0], DataType.OctetString).ToString();
@@ -504,7 +506,7 @@ namespace Gurux.DLMS.Objects
             }
             else
             {
-                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+                e.Error = ErrorCode.ReadWriteDenied;
             }
         }
         #endregion

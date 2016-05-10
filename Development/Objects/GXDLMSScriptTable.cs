@@ -97,9 +97,10 @@ namespace Gurux.DLMS.Objects
         #region IGXDLMSBase Members
 
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            throw new ArgumentException("Invoke failed. Invalid attribute index.");            
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
         int[] IGXDLMSBase.GetAttributeIndexToRead()
@@ -134,7 +135,7 @@ namespace Gurux.DLMS.Objects
             return 1;
         }
 
-        override public DataType GetDataType(int index)
+        public override DataType GetDataType(int index)
         {
             if (index == 1)
             {
@@ -147,13 +148,13 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
                 return this.LogicalName;
             }
-            if (index == 2)
+            if (e.Index == 2)
             {
                 int cnt = Scripts.Count;
                 GXByteBuffer data = new GXByteBuffer();
@@ -170,42 +171,54 @@ namespace Gurux.DLMS.Objects
                     foreach (GXDLMSScriptAction a in it.Actions)
                     {
                         data.SetUInt8((byte)DataType.Structure);
-                        data.SetUInt8(5); //Count
-                        GXCommon.SetData(data, DataType.Enum, a.Type); //service_id
-                        GXCommon.SetData(data, DataType.UInt16, a.ObjectType); //class_id
-                        GXCommon.SetData(data, DataType.OctetString, a.LogicalName); //logical_name
-                        GXCommon.SetData(data, DataType.Int8, a.Index); //index
-                        GXCommon.SetData(data, GXCommon.GetValueType(a.Parameter), a.Parameter); //parameter
+                        //Count
+                        data.SetUInt8(5); 
+                        //service_id
+                        GXCommon.SetData(data, DataType.Enum, a.Type);
+                        //class_id
+                        GXCommon.SetData(data, DataType.UInt16, a.ObjectType); 
+                        //logical_name
+                        GXCommon.SetData(data, DataType.OctetString, a.LogicalName); 
+                        //index
+                        GXCommon.SetData(data, DataType.Int8, a.Index);
+                        //parameter
+                        DataType tp = a.ParameterDataType;
+                        if (tp == DataType.None)
+                        {
+                            tp = GXCommon.GetValueType(a.Parameter);                        
+                        }
+                        GXCommon.SetData(data, tp, a.Parameter); 
                     }
                 }
                 return data.Array();
             }
-            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
-                if (value is string)
+                if (e.Value is string)
                 {
-                    LogicalName = value.ToString();
+                    LogicalName = e.Value.ToString();
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
                 }
             }
-            else if (index == 2)
+            else if (e.Index == 2)
             {
                 Scripts.Clear();
                 //Fix Xemex bug here.
                 //Xemex meters do not return array as they shoul be according standard.
-                if (value is Object[] && ((Object[])value).Length != 0)
+                if (e.Value is Object[] && ((Object[])e.Value).Length != 0)
                 {
-                    if (((Object[])value)[0] is Object[])
+                    if (((Object[])e.Value)[0] is Object[])
                     {
-                        foreach (Object[] item in (Object[])value)
+                        foreach (Object[] item in (Object[])e.Value)
                         {
                             GXDLMSScript script = new GXDLMSScript();
                             script.Id = Convert.ToInt32(item[0]);
@@ -225,9 +238,9 @@ namespace Gurux.DLMS.Objects
                     else //Read Xemex meter here.
                     {
                         GXDLMSScript script = new GXDLMSScript();
-                        script.Id = Convert.ToInt32(((Object[])value)[0]);
+                        script.Id = Convert.ToInt32(((Object[])e.Value)[0]);
                         Scripts.Add(script);
-                        Object[] arr = (Object[])((Object[])value)[1];
+                        Object[] arr = (Object[])((Object[])e.Value)[1];
                         GXDLMSScriptAction it = new GXDLMSScriptAction();
                         it.Type = (ScriptActionType)Convert.ToInt32(arr[0]);
                         it.ObjectType = (ObjectType)Convert.ToInt32(arr[1]);
@@ -240,7 +253,7 @@ namespace Gurux.DLMS.Objects
             }            
             else
             {
-                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+                e.Error = ErrorCode.ReadWriteDenied;
             }
         }
         #endregion

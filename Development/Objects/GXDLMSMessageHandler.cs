@@ -122,9 +122,10 @@ namespace Gurux.DLMS.Objects
         /// Data interface do not have any methods.
         /// </summary>
         /// <param name="index"></param>
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            throw new ArgumentException("Invoke failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
         int[] IGXDLMSBase.GetAttributeIndexToRead()
@@ -170,7 +171,7 @@ namespace Gurux.DLMS.Objects
             return 0;
         }
 
-        override public DataType GetDataType(int index)
+        public override DataType GetDataType(int index)
         {
             if (index == 1)
             {
@@ -194,13 +195,13 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
                 return this.LogicalName;
             }
-            if (index == 2)
+            if (e.Index == 2)
             {
                 GXByteBuffer buff = new GXByteBuffer();
                 buff.Add((byte)DataType.Array);
@@ -214,7 +215,7 @@ namespace Gurux.DLMS.Objects
                 }
                 return buff.Array();
             }
-            if (index == 3)
+            if (e.Index == 3)
             {
                 GXByteBuffer buff = new GXByteBuffer();
                 buff.Add((byte)DataType.Array);
@@ -225,7 +226,7 @@ namespace Gurux.DLMS.Objects
                 }
                 return buff.Array();
             }
-            if (index == 4)
+            if (e.Index == 4)
             {
                 GXByteBuffer buff = new GXByteBuffer();
                 buff.Add((byte)DataType.Array);
@@ -238,29 +239,30 @@ namespace Gurux.DLMS.Objects
                     //TODO: GXCommon.SetData(buff, DataType.OctetString, (it.Value.));
                 }
                 return buff.Array();
-            }            
-            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+            }
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
-                if (value is string)
+                if (e.Value is string)
                 {
-                    LogicalName = value.ToString();
+                    LogicalName = e.Value.ToString();
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
                 }                
             }
-            else if (index == 2)
+            else if (e.Index == 2)
             {
                 ListeningWindow.Clear();
-                if (value is Object[])
+                if (e.Value is Object[])
                 {
-                    foreach(object it in value as Object[])
+                    foreach (object it in e.Value as Object[])
                     {
                         Object[] tmp = it as Object[];
                         GXDateTime start = GXDLMSClient.ChangeType((byte[]) tmp[0], DataType.DateTime) as GXDateTime;
@@ -270,12 +272,12 @@ namespace Gurux.DLMS.Objects
                 }
                 
             }
-            else if (index == 3)
+            else if (e.Index == 3)
             {
-                if (value is Object[])
+                if (e.Value is Object[])
                 {
                     List<string> tmp = new List<string>();
-                    foreach (object it in value as Object[])
+                    foreach (object it in e.Value as Object[])
                     {
                         tmp.Add(ASCIIEncoding.ASCII.GetString((byte[])it));
                     }
@@ -286,12 +288,12 @@ namespace Gurux.DLMS.Objects
                     AllowedSenders = new string[0];
                 }
             }
-            else if (index == 4)
+            else if (e.Index == 4)
             {
                 SendersAndActions.Clear();
-                if (value is Object[])
-                {                    
-                    foreach (object it in value as Object[])
+                if (e.Value is Object[])
+                {
+                    foreach (object it in e.Value as Object[])
                     {
                         Object[] tmp = it as Object[];
                         string id = ASCIIEncoding.ASCII.GetString((byte[])tmp[0]);
@@ -305,7 +307,7 @@ namespace Gurux.DLMS.Objects
             }
             else
             {
-                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+                e.Error = ErrorCode.ReadWriteDenied;
             }            
         }
         #endregion

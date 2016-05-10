@@ -41,6 +41,10 @@ namespace Gurux.DLMS.Enums
     public enum ErrorCode
     {
         /// <summary>
+        /// Error code is ignored.
+        /// </summary>
+        Ignore = -4,
+        /// <summary>
         /// Server is close connection.
         /// </summary>
         DisconnectRequest = -3,

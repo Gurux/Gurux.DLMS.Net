@@ -151,7 +151,33 @@ namespace Gurux.DLMS
             set;
         }
 
-        
+        /// <summary>
+        /// Cipher index is position where data is descypted.
+        /// </summary>
+        public UInt16 CipherIndex
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Is received message General Block Transfer message.
+        /// </summary>
+        public bool Gbt
+        {
+            get;
+            set;
+        }
+
+        ///<summary>
+        /// Data notification date time. 
+        ///</summary>
+        public DateTime Time
+        {
+            get;
+            set;
+        }
+
         ///<summary>
         /// Reset data values to default. 
         ///</summary>         
@@ -165,8 +191,10 @@ namespace Gurux.DLMS
             TotalCount = 0;
             Value = null;
             ReadPosition = 0;
+            Gbt = false;
             BlockLength = 0;
-            this.DataType = DataType.None;
+            DataType = DataType.None;
+            CipherIndex = 0;
         }
 
         /// <summary>

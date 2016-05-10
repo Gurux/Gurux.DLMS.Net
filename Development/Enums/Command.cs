@@ -150,6 +150,15 @@ namespace Gurux.DLMS
         GeneralBlockTransfer = 0xE0,
 
         /// <summary>
+        /// Access Request.
+        /// </summary>
+        AccessRequest = 0xD9,
+        /// <summary>
+        /// Access Response.
+        /// </summary>
+        AccessResponse   = 0xDA,
+
+        /// <summary>
         /// Data Notification request.
         /// </summary>
         DataNotification = 0x0F,

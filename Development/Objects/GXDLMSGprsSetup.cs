@@ -117,9 +117,10 @@ namespace Gurux.DLMS.Objects
         #region IGXDLMSBase Members
 
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            throw new ArgumentException("Invoke failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
         int[] IGXDLMSBase.GetAttributeIndexToRead()
@@ -166,7 +167,7 @@ namespace Gurux.DLMS.Objects
             return 0;
         }
 
-        override public DataType GetDataType(int index)
+        public override DataType GetDataType(int index)
         {
             if (index == 1)
             {
@@ -187,21 +188,21 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
                 return this.LogicalName;
             }
-            if (index == 2)
+            if (e.Index == 2)
             {
                 return APN;
             }
-            if (index == 3)
+            if (e.Index == 3)
             {
                 return PINCode;
             }
-            if (index == 4)
+            if (e.Index == 4)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
@@ -243,44 +244,45 @@ namespace Gurux.DLMS.Objects
                 }
                 return data.Array();
             }
-            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }        
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
-                if (value is string)
+                if (e.Value is string)
                 {
-                    LogicalName = value.ToString();
+                    LogicalName = e.Value.ToString();
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
                 }
-            }                
-            else if (index == 2)
+            }
+            else if (e.Index == 2)
             {
-                if (value is string)
+                if (e.Value is string)
                 {
-                    APN = value.ToString();
+                    APN = e.Value.ToString();
                 }
                 else
                 {
-                    APN = GXDLMSClient.ChangeType((byte[])value, DataType.String).ToString();
+                    APN = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String).ToString();
                 }
             }
-            else if (index == 3)
+            else if (e.Index == 3)
             {
-                PINCode = Convert.ToInt16(value);
+                PINCode = Convert.ToInt16(e.Value);
             }
-            else if (index == 4)
+            else if (e.Index == 4)
             {
                 DefaultQualityOfService.Precedence = DefaultQualityOfService.Delay = DefaultQualityOfService.Reliability = DefaultQualityOfService.PeakThroughput = DefaultQualityOfService.MeanThroughput = 0;
                 RequestedQualityOfService.Precedence = RequestedQualityOfService.Delay = RequestedQualityOfService.Reliability = RequestedQualityOfService.PeakThroughput = RequestedQualityOfService.MeanThroughput = 0;
-                if (value != null)
+                if (e.Value != null)
                 {
-                    Object[] tmp = (Object[])value;
+                    Object[] tmp = (Object[])e.Value;
                     DefaultQualityOfService.Precedence = Convert.ToByte((tmp[0] as Object[])[0]);
                     DefaultQualityOfService.Delay = Convert.ToByte((tmp[0] as Object[])[1]);
                     DefaultQualityOfService.Reliability = Convert.ToByte((tmp[0] as Object[])[2]);
@@ -295,7 +297,7 @@ namespace Gurux.DLMS.Objects
             }
             else
             {
-                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+                e.Error = ErrorCode.ReadWriteDenied;
             }
         }
         #endregion

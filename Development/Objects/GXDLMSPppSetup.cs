@@ -149,9 +149,10 @@ namespace Gurux.DLMS.Objects
         #region IGXDLMSBase Members
 
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, int index, Object parameters)
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            throw new ArgumentException("Invoke failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
         int[] IGXDLMSBase.GetAttributeIndexToRead()
@@ -202,7 +203,7 @@ namespace Gurux.DLMS.Objects
             return 0;
         }
 
-        override public DataType GetDataType(int index)
+        public override DataType GetDataType(int index)
         {
             if (index == 1)
             {
@@ -227,17 +228,17 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(GXDLMSSettings settings, int index, int selector, object parameters)
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
                 return this.LogicalName;
             }
-            if (index == 2)
+            if (e.Index == 2)
             {
                 return PHYReference;
             }
-            if (index == 3)
+            if (e.Index == 3)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Array);
@@ -259,7 +260,7 @@ namespace Gurux.DLMS.Objects
                 }
                 return data.Array();
             }
-            if (index == 4)
+            if (e.Index == 4)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Array);
@@ -281,7 +282,7 @@ namespace Gurux.DLMS.Objects
                 }
                 return data.Array();
             }
-            else if (index == 5)
+            else if (e.Index == 5)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
@@ -290,39 +291,40 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetData(data, DataType.OctetString, Password);
                 return data.Array();
             }
-            throw new ArgumentException("GetValue failed. Invalid attribute index.");
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, int index, object value) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
         {
-            if (index == 1)
+            if (e.Index == 1)
             {
-                if (value is string)
+                if (e.Value is string)
                 {
-                    LogicalName = value.ToString();
+                    LogicalName = e.Value.ToString();
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
                 }
             }
-            else if (index == 2)
+            else if (e.Index == 2)
             {
-                if (value is string)
+                if (e.Value is string)
                 {
-                    PHYReference = value.ToString();
+                    PHYReference = e.Value.ToString();
                 }
                 else
                 {
-                    PHYReference = GXDLMSClient.ChangeType((byte[])value, DataType.OctetString).ToString();
+                    PHYReference = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
                 }
             }
-            else if (index == 3)
+            else if (e.Index == 3)
             {
                 List<GXDLMSPppSetupLcpOption> items = new List<GXDLMSPppSetupLcpOption>();
-                if (value is Object[])
+                if (e.Value is Object[])
                 {
-                    foreach (Object[] item in (Object[])value)
+                    foreach (Object[] item in (Object[])e.Value)
                     {
                         GXDLMSPppSetupLcpOption it = new GXDLMSPppSetupLcpOption();
                         it.Type = (PppSetupLcpOptionType)Convert.ToByte(item[0]);
@@ -333,12 +335,12 @@ namespace Gurux.DLMS.Objects
                 }
                 LCPOptions = items.ToArray();
             }
-            else if (index == 4)
+            else if (e.Index == 4)
             {
                 List<GXDLMSPppSetupIPCPOption> items = new List<GXDLMSPppSetupIPCPOption>();
-                if (value is Object[])
+                if (e.Value is Object[])
                 {
-                    foreach (Object[] item in (Object[])value)
+                    foreach (Object[] item in (Object[])e.Value)
                     {
                         GXDLMSPppSetupIPCPOption it = new GXDLMSPppSetupIPCPOption();
                         it.Type = (PppSetupIPCPOptionType)Convert.ToByte(item[0]);
@@ -349,14 +351,14 @@ namespace Gurux.DLMS.Objects
                 }
                 IPCPOptions = items.ToArray();
             }
-            else if (index == 5)
+            else if (e.Index == 5)
             {
-                UserName = (byte[]) ((Object[])value)[0];
-                Password = (byte[])((Object[])value)[1];
+                UserName = (byte[])((Object[])e.Value)[0];
+                Password = (byte[])((Object[])e.Value)[1];
             }
             else
             {
-                throw new ArgumentException("SetValue failed. Invalid attribute index.");
+                e.Error = ErrorCode.ReadWriteDenied;
             }
         }
         #endregion
