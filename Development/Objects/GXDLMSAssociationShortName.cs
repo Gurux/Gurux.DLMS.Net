@@ -140,11 +140,13 @@ namespace Gurux.DLMS.Objects
                     {
                         secret = Secret;
                     }
+                    settings.Connected = true;
                     return  GXSecure.Secure(settings, settings.Cipher, ic, settings.CtoSChallenge, secret);
                 }
                 else
                 {
                     // If the password does not match.
+                    settings.Connected = false;
                     return null;
                 }
 

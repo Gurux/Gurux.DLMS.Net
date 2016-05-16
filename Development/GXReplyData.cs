@@ -152,7 +152,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Cipher index is position where data is descypted.
+        /// Cipher index is position where data is decrypted.
         /// </summary>
         public UInt16 CipherIndex
         {
@@ -195,6 +195,7 @@ namespace Gurux.DLMS
             BlockLength = 0;
             DataType = DataType.None;
             CipherIndex = 0;
+            Time = DateTime.MinValue;
         }
 
         /// <summary>

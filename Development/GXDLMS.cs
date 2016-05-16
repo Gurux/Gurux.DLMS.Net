@@ -169,7 +169,7 @@ namespace Gurux.DLMS
             if ((type & RequestTypes.Frame) != 0)
             {
                 byte id = settings.ReceiverReady();
-                return SplitToHdlcFrames(settings, id, null)[0];
+                return GetHdlcFrame(settings, id, null);
             }
             // Get next block.
             GXByteBuffer bb = new GXByteBuffer(6);
@@ -341,12 +341,12 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Is multible blocks needed for send data.
+        /// Is multiple blocks needed for send data.
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
         /// <param name="bb">Send data.</param>
-        /// <returns>Returns true if multible blocks are needed.</returns>
-        internal static bool MultibleBlocks(GXDLMSSettings settings, GXByteBuffer bb)
+        /// <returns>Returns true if multiple blocks are needed.</returns>
+        internal static bool MultipleBlocks(GXDLMSSettings settings, GXByteBuffer bb)
         {
             if (!settings.UseLogicalNameReferencing)
             {
@@ -410,7 +410,7 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    bool multipleBlocks = MultibleBlocks(settings, data);
+                    bool multipleBlocks = MultipleBlocks(settings, data);
                     GetLNPdu(settings, command, commandType, data, bb, 0xFF, multipleBlocks, true, time);
                 }
                 while (bb.Position != bb.Size)
@@ -451,13 +451,13 @@ namespace Gurux.DLMS
             if (settings.LnSettings.GeneralBlockTransfer)
             {
                 bb.SetUInt8((byte)Command.GeneralBlockTransfer);
-                //If multible blocks.
+                //If multiple blocks.
                 if (multibleBlocks)
                 {
                     //If this is a last block make sure that all data is fit to it.
                     if (lastBlock)
                     {
-                        lastBlock = !MultibleBlocks(settings, data);
+                        lastBlock = !MultipleBlocks(settings, data);
                     }
                 }
                 // Is last block
@@ -505,13 +505,13 @@ namespace Gurux.DLMS
 
             if (!settings.LnSettings.GeneralBlockTransfer)
             {
-                //If multible blocks.
+                //If multiple blocks.
                 if (multibleBlocks)
                 {
                     //If this is a last block make sure that all data is fit to it.
                     if (lastBlock)
                     {
-                        lastBlock = !MultibleBlocks(settings, data);
+                        lastBlock = !MultipleBlocks(settings, data);
                     }
                     // Is last block.
                     if (lastBlock)
@@ -539,7 +539,7 @@ namespace Gurux.DLMS
                 else if (status != 0xFF)
                 {
                     //If error has occurred.
-                    if (status != 0 && command == Command.GetRequest)
+                    if (status != 0 && command != Command.MethodResponse)
                     {
                         bb.SetUInt8(1);
                     }
@@ -672,117 +672,6 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        ///  Split DLMS PDU to HDLC frames.
-        /// </summary>
-        /// <param name="settings">DLMS settings.</param>
-        /// <param name="frame">Frame ID. If zero new is generated.</param>
-        /// <param name="data">Data to add.</param>
-        /// <returns>HDLC frames.</returns>
-        internal static byte[][] SplitToHdlcFrames(GXDLMSSettings settings, byte frame, GXByteBuffer data)
-        {
-            int frameSize, len;
-            byte[] primaryAddress, secondaryAddress;
-            if (settings.IsServer)
-            {
-                primaryAddress = GetAddressBytes(settings.ClientAddress, 0);
-                secondaryAddress = GetAddressBytes(settings.ServerAddress, settings.ServerAddressSize);
-            }
-            else
-            {
-                primaryAddress = GetAddressBytes(settings.ServerAddress, settings.ServerAddressSize);
-                secondaryAddress = GetAddressBytes(settings.ClientAddress, 0);
-            }
-
-            frameSize = Convert.ToInt32(settings.Limits.MaxInfoTX);
-            // Remove header size.
-            frameSize -= 7 + primaryAddress.Length + secondaryAddress.Length;
-            List<byte[]> arr = new List<byte[]>();
-            GXByteBuffer bb = new GXByteBuffer();
-            // Add LLC bytes.
-            byte[] llcBytes = null;
-            int LLCbyteSize = 0;
-            if ((frame & 1) == 0)
-            {
-                LLCbyteSize = 3;
-                if (settings.IsServer)
-                {
-                    llcBytes = GXCommon.LLCReplyBytes;
-                }
-                else
-                {
-                    llcBytes = GXCommon.LLCSendBytes;
-                }
-            }
-            do
-            {
-                // Add BOP
-                bb.SetUInt8(GXCommon.HDLCFrameStartEnd);
-                if (data == null || data.Size == 0)
-                {
-                    // If no data
-                    bb.SetUInt8(0xA0);
-                    // Skip data CRC from the total size.
-                    len = -2;
-                }
-                else if (data.Size - data.Position + LLCbyteSize <= frameSize)
-                {
-                    // Is last packet.
-                    bb.SetUInt8(0xA0);
-                    len = data.Size - data.Position;
-                }
-                else
-                {
-                    // More data to left.
-                    bb.SetUInt8(0xA8);
-                    len = frameSize;
-                }
-                // Add length.
-                bb.SetUInt8((byte)(7 + primaryAddress.Length + secondaryAddress.Length + len + LLCbyteSize));
-                // Add primary address.
-                bb.Set(primaryAddress);
-                // Add secondary address.
-                bb.Set(secondaryAddress);
-                // Generate frame if not generated yet.
-                if (frame == 0)
-                {
-                    frame = settings.NextSend();
-                }
-                // Add frame.
-                bb.SetUInt8(frame);
-                // Add header CRC.
-                UInt16 crc = GXFCS16.CountFCS16(bb.Data, 1, bb.Size - 1);
-                bb.SetUInt16(crc);
-                //Add LLC bytes only once.
-                if (LLCbyteSize != 0)
-                {
-                    bb.Set(llcBytes);
-                    LLCbyteSize = 0;
-                }
-                // Add data.
-                if (data != null && data.Size != 0)
-                {
-                    bb.Set(data.Data, data.Position, len);
-                    data.Position = (UInt16)(data.Position + len);
-                    // Add data CRC.
-                    crc = GXFCS16.CountFCS16(bb.Data, 1, bb.Size - 1);
-                    bb.SetUInt16(crc);
-                }
-                // Add EOP
-                bb.SetUInt8(GXCommon.HDLCFrameStartEnd);
-                arr.Add(bb.Array());
-                bb.Clear();
-                frame = 0;
-            } while (data != null && data.Position < data.Size);
-            byte[][] tmp = new byte[arr.Count][];
-            int pos = -1;
-            foreach (byte[] it in arr)
-            {
-                tmp[++pos] = it;
-            }
-            return tmp;
-        }
-
-        /// <summary>
         /// Split DLMS PDU to wrapper frames.
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
@@ -902,56 +791,20 @@ namespace Gurux.DLMS
             }
             // Add EOP
             bb.SetUInt8(GXCommon.HDLCFrameStartEnd);
-            //Remove sent data.
-            if (data.Size == data.Position)
+            if (data != null)
             {
-                data.Clear();
-            }
-            else
-            {
-                data.Move(data.Position, 0, data.Size - data.Position);
+                //Remove sent data.
+                if (data.Size == data.Position)
+                {
+                    data.Clear();
+                }
+                else
+                {
+                    data.Move(data.Position, 0, data.Size - data.Position);
+                }
             }
             return bb.Array();            
-        }
-
-        /// <summary>
-        /// Split DLMS PDU to wrapper frames.
-        /// </summary>
-        /// <param name="settings">DLMS settings.</param>
-        /// <param name="data"> Wrapped data.</param>
-        /// <returns>Wrapper frames</returns>
-        internal static byte[][] SplitToWrapperFrames(GXDLMSSettings settings, GXByteBuffer data)
-        {
-            GXByteBuffer bb = new GXByteBuffer();
-            // Add version.
-            bb.SetUInt16(1);
-            if (settings.IsServer)
-            {
-                bb.SetUInt16((UInt16)settings.ServerAddress);
-                bb.SetUInt16((UInt16)settings.ClientAddress);
-            }
-            else
-            {
-                bb.SetUInt16((UInt16)settings.ClientAddress);
-                bb.SetUInt16((UInt16)settings.ServerAddress);
-            }
-            if (data == null)
-            {
-                // Data length.
-                bb.SetUInt16(0);
-            }
-            else
-            {
-                // Data length.
-                bb.SetUInt16(data.Size);
-                // Data
-                bb.Set(data.Data, 0, data.Size);
-            }
-            byte[][] tmp = new byte[1][];
-            tmp[0] = bb.Array();
-            return tmp;
-        }
-
+        }        
 
         /// <summary>
         ///  Check LLC bytes.
@@ -1711,16 +1564,7 @@ namespace Gurux.DLMS
                         }                       
                         break;
                     case Command.DataNotification:
-                        //Get invoke id.
-                        data.Data.GetUInt32();
-                        //Get Date time.
-                        GXDataInfo info = new GXDataInfo();
-                        data.Time = DateTime.MinValue;
-                        byte[] tmp = (byte[])GXCommon.GetData(data.Data, info);
-                        if (tmp != null)
-                        {
-                            data.Time = (GXDateTime) GXDLMSClient.ChangeType(tmp, DataType.DateTime);
-                        }
+                        HandleDataNotification(data);
                         //Client handles this.
                         break;
                     default:
@@ -1786,6 +1630,22 @@ namespace Gurux.DLMS
             {
                 GetValueFromData(settings, data);
             }
+        }
+
+        private static void HandleDataNotification(GXReplyData data)
+        {
+            int index = data.Data.Position - 1;
+            //Get invoke id.
+            data.Data.GetUInt32();
+            //Get Date time.
+            GXDataInfo info = new GXDataInfo();
+            data.Time = DateTime.MinValue;
+            byte[] tmp = (byte[])GXCommon.GetData(data.Data, info);
+            if (tmp != null)
+            {
+                data.Time = (GXDateTime)GXDLMSClient.ChangeType(tmp, DataType.DateTime);
+            }
+            GetDataFromBlock(data.Data, index);
         }
 
         /// <summary>

@@ -50,37 +50,6 @@ using System.Diagnostics;
 
 namespace Gurux.DLMS
 {
-    class GXDLMSLongTransaction
-    {
-        /// <summary>
-        /// Executed command.
-        /// </summary>
-        public Command command;
-
-        /// <summary>
-        /// Target.
-        /// </summary>
-        public ValueEventArgs[] targets;
-        
-        /// <summary>
-        /// Extra data from PDU.
-        /// </summary>
-        public GXByteBuffer data;
-       
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="forTarget"></param>
-        /// <param name="forCommand"></param>
-        /// <param name="forType"></param>
-        public GXDLMSLongTransaction(ValueEventArgs[] forTargets, Command forCommand, GXByteBuffer forData)
-        {
-            targets = forTargets;
-            command = forCommand;
-            data = forData;
-        }
-    }
-
     /// <summary>
     /// GXDLMSServer implements methods to implement DLMS/COSEM meter/proxy.
     /// </summary>
@@ -157,17 +126,18 @@ namespace Gurux.DLMS
         /// All initialization is done here. 
         /// Example access level of the COSEM objects is good to update here.
         /// </remarks>
-        protected abstract void Connected();
+        protected abstract void Connected(GXDLMSConnectionEventArgs e);
+
+        /// <summary>
+        /// Client has try to made invalid connection. Password is incorrect.
+        /// </summary>
+        /// <param name="connectionInfo">Connection information.</param>
+        protected abstract void InvalidConnection(GXDLMSConnectionEventArgs connectionInfo);
 
         /// <summary>
         /// Server has close the connection. All clean up is made here.
         /// </summary>
-        protected abstract void Disconnected();
-
-        /// <summary>
-        /// Client attempts to connect with the wrong server or client address.
-        /// </summary>
-        protected abstract void InvalidConnection(ConnectionEventArgs e);
+        protected abstract void Disconnected(GXDLMSConnectionEventArgs e);
 
         /// <summary>
         /// Action is occurred.
@@ -499,6 +469,19 @@ namespace Gurux.DLMS
         ///</returns>
         public virtual byte[] HandleRequest(byte[] buff)
         {
+            return HandleRequest(buff, new GXDLMSConnectionEventArgs());
+        }
+
+        ///<summary>
+        /// Handles client request.
+        /// </summary>
+        ///<param name="buff">
+        /// Received data from the client. </param>
+        ///<returns> 
+        ///Response to the request. Response is null if request packet is not complete.
+        ///</returns>
+        public virtual byte[] HandleRequest(byte[] buff, GXDLMSConnectionEventArgs connectionInfo)
+        {
             if (buff == null || buff.Length == 0)
             {
                 return null;
@@ -509,7 +492,8 @@ namespace Gurux.DLMS
             }
             try
             {
-                receivedData.Add(buff);
+                receivedData.Set(buff);
+                bool first = Settings.ServerAddress == 0 && Settings.ClientAddress == 0;
                 GXDLMS.GetData(Settings, receivedData, info);
                 //If all data is not received yet.
                 if (!info.IsComplete)
@@ -517,6 +501,17 @@ namespace Gurux.DLMS
                     return null;
                 }
                 receivedData.Clear();
+                if (first)
+                {
+                    // Check is data send to this server.
+                    if (!IsTarget(Settings.ServerAddress,
+                            Settings.ClientAddress))
+                    {
+                        info.Clear();
+                        return null;
+                    }
+                }
+
                 //If client want next frame.
                 if ((info.MoreData & RequestTypes.Frame) == RequestTypes.Frame)
                 {
@@ -530,13 +525,13 @@ namespace Gurux.DLMS
                         info.Command = transaction.command;
                     }
                 }
-                byte[] reply = HandleCommand(info.Command, info.Data);
+                byte[] reply = HandleCommand(info.Command, info.Data, connectionInfo);
                 info.Clear();                               
                 return reply;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Debug.WriteLine(e.ToString());
+                Debug.WriteLine(ex.ToString());
                 if (info.Command != Command.None)
                 {
                     return ReportError(info.Command, ErrorCode.HardwareFault);
@@ -547,7 +542,7 @@ namespace Gurux.DLMS
                     if (Settings.Connected)
                     {
                         Settings.Connected = false;
-                        Disconnected();
+                        Disconnected(connectionInfo);
                     }
                     return null;
                 }
@@ -557,7 +552,7 @@ namespace Gurux.DLMS
         ///<summary>
         /// Handle received command. 
         ///</summary>
-        private byte[] HandleCommand(Command cmd, GXByteBuffer data)
+        private byte[] HandleCommand(Command cmd, GXByteBuffer data, GXDLMSConnectionEventArgs connectionInfo)
         {
             byte frame = 0;
             switch (cmd)
@@ -578,22 +573,20 @@ namespace Gurux.DLMS
                     HandleReadRequest(data);
                     break;
                 case Command.MethodRequest:
-                    HandleMethodRequest(data);
+                    HandleMethodRequest(data, connectionInfo);
                     break;
                 case Command.Snrm:
-                    HandleSnrmRequest(data);
+                    HandleSnrmRequest();
                     frame = (byte) Command.Ua;
                     break;
                 case Command.Aarq:
-                    HandleAarqRequest(data);
-                    Settings.Connected = true;
-                    Connected();
+                    HandleAarqRequest(data, connectionInfo);
                     break;
                 case Command.DisconnectRequest:
                 case Command.Disc:
                     GenerateDisconnectRequest();
                     Settings.Connected = false;
-                    Disconnected();
+                    Disconnected(connectionInfo);
                     frame = (byte)Command.Ua;
                     break;
                 case Command.None:  
@@ -665,8 +658,9 @@ namespace Gurux.DLMS
         ///<returns>
         ///Reply. 
         ///</returns>
-        private void HandleMethodRequest(GXByteBuffer data)
+        private void HandleMethodRequest(GXByteBuffer data, GXDLMSConnectionEventArgs connectionInfo)
         {
+            ErrorCode error = ErrorCode.Ok;
             GXByteBuffer bb = new GXByteBuffer();
             // Get type.
             data.GetUInt8();
@@ -693,36 +687,46 @@ namespace Gurux.DLMS
             if (obj == null)
             {
                 // Device reports a undefined object.
-                Debug.WriteLine("Undefined object.");
-                GXDLMS.GetLNPdu(Settings, Command.MethodResponse, 1, bb, replyData, (byte)ErrorCode.UndefinedObject, false, true, DateTime.MinValue);
+                error = ErrorCode.UndefinedObject;
             }
             else
             {
-                ValueEventArgs e = new ValueEventArgs(obj, id, 0, parameters);
-                Action(new ValueEventArgs[] { e });
-                byte[] actionReply;
-                if (e.Handled)
+                if (obj.GetMethodAccess(id) == MethodAccessMode.NoAccess)
                 {
-                    actionReply = (obj as IGXDLMSBase).Invoke(Settings, e);
+                    error = ErrorCode.ReadWriteDenied;
                 }
                 else
                 {
-                    actionReply = (obj as IGXDLMSBase).Invoke(Settings, e);
+                    ValueEventArgs e = new ValueEventArgs(obj, id, 0, parameters);
+                    Action(new ValueEventArgs[] { e });
+                    byte[] actionReply;
+                    if (e.Handled)
+                    {
+                        actionReply = (byte[])e.Value;
+                    }
+                    else
+                    {
+                        actionReply = (obj as IGXDLMSBase).Invoke(Settings, e);
+                    }
+                    //Set default action reply if not given.
+                    if (actionReply != null && e.Error == 0)
+                    {
+                        //Add return parameters
+                        bb.SetUInt8(1);
+                        //Add parameters error code.
+                        GXCommon.SetData(bb, GXCommon.GetValueType(actionReply), actionReply);
+                    }
+                    else
+                    {
+                        error = e.Error;
+                    }
                 }
-                //Set default action reply if not given.
-                if (actionReply == null || e.Error != 0)
-                {
-                    GXDLMS.GetLNPdu(Settings, Command.MethodResponse, 1, bb, replyData, (byte)e.Error, false, true, DateTime.MinValue);
-                }
-                else
-                {
-                    //Add return parameters
-                    bb.SetUInt8(1);
-                    //Add parameters error code.
-                  //  bb.SetUInt8(0);
-                    GXCommon.SetData(bb, GXCommon.GetValueType(actionReply), actionReply);
-                    GXDLMS.GetLNPdu(Settings, Command.MethodResponse, 1, bb, replyData, 0, false, true, DateTime.MinValue);
-                }
+            }
+            GXDLMS.GetLNPdu(Settings, Command.MethodResponse, 1, bb, replyData, (byte)error, false, true, DateTime.MinValue);
+            //If High level authentication fails.
+            if (!Settings.Connected && obj is GXDLMSAssociationLogicalName && id == 1)
+            {
+                InvalidConnection(connectionInfo);
             }
         }
 
@@ -755,7 +759,7 @@ namespace Gurux.DLMS
         ///</returns>
         private void HandleSetRequest(GXByteBuffer data)
         {
-            GXDataInfo info = new GXDataInfo();
+            GXDataInfo reply = new GXDataInfo();
             GXByteBuffer bb = new GXByteBuffer();
             // Get type.
             short type = data.GetUInt8();
@@ -774,7 +778,7 @@ namespace Gurux.DLMS
                 int index = data.GetUInt8();
                 // Get Access Selection.
                 data.GetUInt8();
-                object value = GXCommon.GetData(data, info);
+                object value = GXCommon.GetData(data, reply);
                 GXDLMSObject obj = Settings.Objects.FindByLN(ci, GXDLMSObject.ToLogicalName(ln));
                 if (obj == null)
                 {
@@ -837,6 +841,7 @@ namespace Gurux.DLMS
             GXByteBuffer bb = new GXByteBuffer();
             int index = 0;
             // Get type.
+            ErrorCode status = ErrorCode.Ok;
             byte type = data.GetUInt8();
             // Get invoke ID and priority.
             data.GetUInt8();
@@ -858,42 +863,51 @@ namespace Gurux.DLMS
                 if (obj == null)
                 {
                     // "Access Error : Device reports a undefined object."
-                    bb.SetUInt8(ErrorCode.UndefinedObject);
+                    status = ErrorCode.UndefinedObject;
                 }
                 else
                 {
-                    // AccessSelection
-                    byte selection = data.GetUInt8();
-                    byte selector = 0;
-                    object parameters = null;
-                    if (selection != 0)
+                    if (obj.GetAccess(attributeIndex) == AccessMode.NoAccess)
                     {
-                        selector = data.GetUInt8();
-                        GXDataInfo info = new GXDataInfo();
-                        parameters = GXCommon.GetData(data, info);
-                    }
-
-                    e = new ValueEventArgs(obj, attributeIndex, selector, parameters);
-                    Read(new ValueEventArgs[] { e });
-                    object value;
-                    if (e.Handled)
-                    {
-                        value = e.Value;
+                        //Read Write denied.
+                        status = ErrorCode.ReadWriteDenied;
                     }
                     else
                     {
-                        value = (obj as IGXDLMSBase).GetValue(Settings, e);
+                        // AccessSelection
+                        byte selection = data.GetUInt8();
+                        byte selector = 0;
+                        object parameters = null;
+                        if (selection != 0)
+                        {
+                            selector = data.GetUInt8();
+                            GXDataInfo info = new GXDataInfo();
+                            parameters = GXCommon.GetData(data, info);
+                        }
+
+                        e = new ValueEventArgs(obj, attributeIndex, selector, parameters);
+                        Read(new ValueEventArgs[] { e });
+                        object value;
+                        if (e.Handled)
+                        {
+                            value = e.Value;
+                        }
+                        else
+                        {
+                            value = (obj as IGXDLMSBase).GetValue(Settings, e);
+                        }
+                        GXDLMS.AppendData(obj, attributeIndex, bb, value);
+                        status = e.Error;
                     }
-                    GXDLMS.AppendData(obj, attributeIndex, bb, value);
                 }
-                if (Settings.Count != Settings.Index || GXDLMS.MultibleBlocks(Settings, bb))
+                if (Settings.Count != Settings.Index || GXDLMS.MultipleBlocks(Settings, bb))
                 {
-                    GXDLMS.GetLNPdu(Settings, Command.GetResponse, 2, bb, replyData, (byte)ErrorCode.Ok, true, false, DateTime.MinValue);
+                    GXDLMS.GetLNPdu(Settings, Command.GetResponse, 2, bb, replyData, (byte)status, true, false, DateTime.MinValue);
                     transaction = new GXDLMSLongTransaction(new ValueEventArgs[] { e }, Command.GetRequest, bb);
                 }
                 else
                 {
-                    GXDLMS.GetLNPdu(Settings, Command.GetResponse, 1, bb, replyData, (byte)ErrorCode.Ok, false, false, DateTime.MinValue);
+                    GXDLMS.GetLNPdu(Settings, Command.GetResponse, 1, bb, replyData, (byte)status, false, false, DateTime.MinValue);
                 }
             }
             else if (type == 2)
@@ -921,9 +935,9 @@ namespace Gurux.DLMS
                         bool moreData = false;
                         if (Settings.Index != Settings.Count)
                         {
-                            //If there is multible blocks on the buffer.
+                            //If there is multiple blocks on the buffer.
                             //This might happen when Max PDU size is very small.
-                            if (GXDLMS.MultibleBlocks(Settings, bb))
+                            if (GXDLMS.MultipleBlocks(Settings, bb))
                             {
                                 moreData = true;
                             }
@@ -948,7 +962,7 @@ namespace Gurux.DLMS
                         }
                         else
                         {
-                            moreData = GXDLMS.MultibleBlocks(Settings, bb);
+                            moreData = GXDLMS.MultipleBlocks(Settings, bb);
                         }
                         GXDLMS.GetLNPdu(Settings, Command.GetResponse, 2, bb, replyData, (byte)ErrorCode.Ok, true, !moreData, DateTime.MinValue);
                         if (moreData || bb.Size != 0)
@@ -990,18 +1004,29 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        // AccessSelection
-                        int selection = data.GetUInt8();
-                        int selector = 0;
-                        object parameters = null;
-                        if (selection != 0)
+                        if (obj.GetAccess(attributeIndex) == AccessMode.NoAccess)
                         {
-                            selector = data.GetUInt8();
-                            GXDataInfo info = new GXDataInfo();
-                            parameters = GXCommon.GetData(data, info);
+                            //Read Write denied.
+                            status = ErrorCode.ReadWriteDenied;
+                            ValueEventArgs arg = new ValueEventArgs(obj, attributeIndex, 0, null);
+                            arg.Error = ErrorCode.ReadWriteDenied;
+                            list.Add(arg);
                         }
-                        ValueEventArgs arg = new ValueEventArgs(obj, attributeIndex, selector, parameters);
-                        list.Add(arg);
+                        else
+                        {
+                            // AccessSelection
+                            int selection = data.GetUInt8();
+                            int selector = 0;
+                            object parameters = null;
+                            if (selection != 0)
+                            {
+                                selector = data.GetUInt8();
+                                GXDataInfo info = new GXDataInfo();
+                                parameters = GXCommon.GetData(data, info);
+                            }
+                            ValueEventArgs arg = new ValueEventArgs(obj, attributeIndex, selector, parameters);
+                            list.Add(arg);
+                        }
                     }
                 }
                 Read(list.ToArray());
@@ -1032,7 +1057,7 @@ namespace Gurux.DLMS
                     }
                     pos++;
                 }
-                GXDLMS.GetLNPdu(Settings, Command.GetResponse, 3, bb, replyData, 0xFF, GXDLMS.MultibleBlocks(Settings, bb), true, DateTime.MinValue);
+                GXDLMS.GetLNPdu(Settings, Command.GetResponse, 3, bb, replyData, 0xFF, GXDLMS.MultipleBlocks(Settings, bb), true, DateTime.MinValue);
             }
             else
             {
@@ -1052,7 +1077,7 @@ namespace Gurux.DLMS
         ///</param>
         private GXSNInfo FindSNObject(int sn)
         {
-            GXSNInfo info = new GXSNInfo();
+            GXSNInfo i = new GXSNInfo();
             int offset, count;
             foreach (GXDLMSObject it in Items)
             {
@@ -1061,10 +1086,10 @@ namespace Gurux.DLMS
                     //If attribute is accessed.
                     if (sn < it.ShortName + (it as IGXDLMSBase).GetAttributeCount() * 8)
                     {
-                        info.IsAction = false;
-                        info.Item = it;
-                        info.Index = ((sn - info.Item.ShortName) / 8) + 1;
-                        Debug.WriteLine(string.Format("Reading {0:D}, attribute index {1:D}", info.Item.Name, info.Index));
+                        i.IsAction = false;
+                        i.Item = it;
+                        i.Index = ((sn - i.Item.ShortName) / 8) + 1;
+                        Debug.WriteLine(string.Format("Reading {0:D}, attribute index {1:D}", i.Item.Name, i.Index));
                         break;
                     }
                     else
@@ -1073,19 +1098,19 @@ namespace Gurux.DLMS
                         GXDLMS.GetActionInfo(it.ObjectType, out offset, out count);
                         if (sn < it.ShortName + offset + (8 * count))
                         {
-                            info.Item = it;
-                            info.IsAction = true;
-                            info.Index = (sn - it.ShortName - offset) / 8 + 1;
+                            i.Item = it;
+                            i.IsAction = true;
+                            i.Index = (sn - it.ShortName - offset) / 8 + 1;
                             break;
                         }
                     }
                 }
             }
-            if (info.Item == null)
+            if (i.Item == null)
             {
-                info.Item = FindObject(ObjectType.None, sn, null);
+                i.Item = FindObject(ObjectType.None, sn, null);
             }
-            return info;
+            return i;
         }
 
         /// <summary>
@@ -1127,13 +1152,20 @@ namespace Gurux.DLMS
                         ValueEventArgs e = new ValueEventArgs(info.Item, info.Index, 0, null);
                         e.action = info.IsAction;
                         list.Add(new KeyValuePair<ValueEventArgs, bool>(e, e.action));
-                        if (e.action)
+                        if (info.Item.GetAccess(info.Index) == AccessMode.NoAccess)
                         {
-                            actions.Add(e);
+                            e.Error = ErrorCode.ReadWriteDenied;
                         }
                         else
                         {
-                            reads.Add(e);
+                            if (e.action)
+                            {
+                                actions.Add(e);
+                            }
+                            else
+                            {
+                                reads.Add(e);
+                            }
                         }
                     }
                     else if (type == 4)
@@ -1147,13 +1179,21 @@ namespace Gurux.DLMS
                         ValueEventArgs e = new ValueEventArgs(info.Item, info.Index, 0, parameters);
                         e.action = info.IsAction;
                         list.Add(new KeyValuePair<ValueEventArgs, bool>(e, e.action));
-                        if (e.action)
+                        if ((!e.action && info.Item.GetAccess(info.Index) == AccessMode.NoAccess) ||
+                            (e.action && info.Item.GetMethodAccess(info.Index) == MethodAccessMode.NoAccess))
                         {
-                            actions.Add(e);
+                            e.Error = ErrorCode.ReadWriteDenied;
                         }
                         else
                         {
-                            reads.Add(e);
+                            if (e.action)
+                            {
+                                actions.Add(e);
+                            }
+                            else
+                            {
+                                reads.Add(e);
+                            }
                         }
                     }
                     else
@@ -1243,7 +1283,7 @@ namespace Gurux.DLMS
             short type;
             object value;
             // Get object count.
-            IList<GXSNInfo> targets = new List<GXSNInfo>();
+            List<GXSNInfo> targets = new List<GXSNInfo>();
             int cnt = GXCommon.GetObjectCount(data);
             GXByteBuffer results = new GXByteBuffer((ushort)cnt);
             for (int pos = 0; pos != cnt; ++pos)
@@ -1330,7 +1370,7 @@ namespace Gurux.DLMS
         ///<returns> 
         ///Reply to the client. 
         ///</returns>
-        private void HandleAarqRequest(GXByteBuffer data)
+        private void HandleAarqRequest(GXByteBuffer data, GXDLMSConnectionEventArgs connectionInfo)
         {
             AssociationResult result = AssociationResult.Accepted;
             Settings.CtoSChallenge = null;
@@ -1343,17 +1383,15 @@ namespace Gurux.DLMS
             {
                 result = AssociationResult.PermanentRejected;
                 diagnostic = SourceDiagnostic.ApplicationContextNameNotSupported;
+                InvalidConnection(connectionInfo);
             }
             else
             {
-                // Check that user can access server.
-                if (Settings.Authentication == Authentication.Low)
-                {
-                    diagnostic = ValidateAuthentication(Settings.Authentication, Settings.Password);
-                }
+                diagnostic = ValidateAuthentication(Settings.Authentication, Settings.Password);
                 if (diagnostic != SourceDiagnostic.None)
                 {
                     result = AssociationResult.PermanentRejected;
+                    InvalidConnection(connectionInfo);
                 }
                 else if (Settings.Authentication > Authentication.Low)
                 {
@@ -1361,6 +1399,11 @@ namespace Gurux.DLMS
                     Settings.StoCChallenge = GXSecure.GenerateChallenge(Settings.Authentication);
                     result = AssociationResult.Accepted;
                     diagnostic = SourceDiagnostic.AuthenticationRequired;
+                }
+                else
+                {
+                    Connected(connectionInfo);
+                    Settings.Connected = true;
                 }
             }
             if (Settings.InterfaceType == Enums.InterfaceType.HDLC)
@@ -1377,7 +1420,7 @@ namespace Gurux.DLMS
         ///<returns>
         ///Returns returned UA packet. 
         ///</returns>
-        private void HandleSnrmRequest(GXByteBuffer data)
+        private void HandleSnrmRequest()
         {
             replyData.SetUInt8(0x81); // FromatID
             replyData.SetUInt8(0x80); // GroupID

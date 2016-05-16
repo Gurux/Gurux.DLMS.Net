@@ -41,27 +41,6 @@ using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS
 {
-    public class ConnectionEventArgs
-    {
-        /// <summary>
-        /// Server ID that client try to use to make connection.
-        /// </summary>
-        public object ServerAddress     
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="serverId"></param>
-        internal ConnectionEventArgs(object serverId)
-        {
-            ServerAddress = serverId;
-        }
-    }
-
     public class ValueEventArgs
     {
         /// <summary>

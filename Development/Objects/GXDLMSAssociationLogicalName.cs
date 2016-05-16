@@ -85,7 +85,7 @@ namespace Gurux.DLMS.Objects
 
         /// <summary>
         /// Contains the identifiers of the COSEM client APs within the physical devices hosting these APs, 
-        /// which belong to the AA modelled by the �Association LN� object.
+        /// which belong to the AA modelled by the Association LN object.
         /// </summary>
         [XmlIgnore()]
         public byte ClientSAP
@@ -96,7 +96,7 @@ namespace Gurux.DLMS.Objects
 
         /// <summary>
         /// Contains the identifiers of the COSEM server (logical device) APs within the physical 
-        /// devices hosting these APs, which belong to the AA modelled by the �Association LN� object.
+        /// devices hosting these APs, which belong to the AA modelled by the Association LN object.
         /// </summary>
         [XmlIgnore()]
         public UInt16 ServerSAP
@@ -188,10 +188,12 @@ namespace Gurux.DLMS.Objects
                     {
                         secret = Secret;
                     }
+                    settings.Connected = true;
                     return GXSecure.Secure(settings, settings.Cipher, ic, settings.CtoSChallenge, secret);
                 }
                 else //If the password does not match.
                 {
+                    settings.Connected = false;
                     return null;
                 }
             }
@@ -403,26 +405,29 @@ namespace Gurux.DLMS.Objects
 
         void UpdateAccessRights(GXDLMSObject obj, Object[] buff)
         {
-            foreach (Object[] attributeAccess in (Object[])buff[0])
+            if (buff.Length != 0)
             {
-                int id = Convert.ToInt32(attributeAccess[0]);
-                int mode = Convert.ToInt32(attributeAccess[1]);
-                obj.SetAccess(id, (AccessMode)mode);
-            }
-            foreach (Object[] methodAccess in (Object[])buff[1])
-            {
-                int id = Convert.ToInt32(methodAccess[0]);
-                int tmp;
-                //If version is 0.
-                if (methodAccess[1] is Boolean)
+                foreach (Object[] attributeAccess in (Object[])buff[0])
                 {
-                    tmp = ((Boolean)methodAccess[1]) ? 1 : 0;
+                    int id = Convert.ToInt32(attributeAccess[0]);
+                    int mode = Convert.ToInt32(attributeAccess[1]);
+                    obj.SetAccess(id, (AccessMode)mode);
                 }
-                else//If version is 1.
+                foreach (Object[] methodAccess in (Object[])buff[1])
                 {
-                    tmp = Convert.ToInt32(methodAccess[1]);
+                    int id = Convert.ToInt32(methodAccess[0]);
+                    int tmp;
+                    //If version is 0.
+                    if (methodAccess[1] is Boolean)
+                    {
+                        tmp = ((Boolean)methodAccess[1]) ? 1 : 0;
+                    }
+                    else//If version is 1.
+                    {
+                        tmp = Convert.ToInt32(methodAccess[1]);
+                    }
+                    obj.SetMethodAccess(id, (MethodAccessMode)tmp);
                 }
-                obj.SetMethodAccess(id, (MethodAccessMode)tmp);
             }
         }
 

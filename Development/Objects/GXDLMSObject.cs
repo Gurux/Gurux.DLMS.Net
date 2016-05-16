@@ -397,7 +397,7 @@ namespace Gurux.DLMS.Objects
             {
                 return att.MethodAccess;
             }
-            return MethodAccessMode.NoAccess;
+            return MethodAccessMode.Access;
         }
 
         /// <summary>

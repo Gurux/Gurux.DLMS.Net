@@ -478,7 +478,7 @@ namespace Gurux.DLMS
                 data = null;
             }
             Settings.ResetFrameSequence();
-            return GXDLMS.SplitToHdlcFrames(Settings, (byte)Command.Snrm, data)[0];
+            return GXDLMS.GetHdlcFrame(Settings, (byte)Command.Snrm, null);
         }
 
         /// <summary>
@@ -704,12 +704,12 @@ namespace Gurux.DLMS
             }
             if (Settings.InterfaceType == InterfaceType.HDLC)
             {
-                return GXDLMS.SplitToHdlcFrames(Settings, (byte)Command.Disc, null)[0];
+                return GXDLMS.GetHdlcFrame(Settings, (byte)Command.Disc, null);
             }
             GXByteBuffer bb = new GXByteBuffer(2);
             bb.SetUInt8((byte)Command.DisconnectRequest);
             bb.SetUInt8(0x0);
-            return GXDLMS.SplitToWrapperFrames(Settings, bb)[0];
+            return GXDLMS.GetWrapperFrame(Settings, bb);
         }
 
         /// <summary>
@@ -1746,7 +1746,7 @@ namespace Gurux.DLMS
             {
                 formula = "SN % 10000 + 1000";
             }
-            return SerialnumberCounter.Count(serialNumber, formula);
+            return 0x4000 | SerialnumberCounter.Count(serialNumber, formula);
         }       
     }
 }

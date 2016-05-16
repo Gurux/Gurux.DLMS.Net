@@ -178,7 +178,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Returs data as byte array.
+        /// Returns data as byte array.
         /// </summary>
         /// <returns>Byte buffer as a byte array.</returns>
         public byte[] SubArray(int index, int count)
@@ -189,7 +189,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Move content from source to destanation.
+        /// Move content from source to destination.
         /// </summary>
         /// <param name="srcPos">Source position.</param>
         /// <param name="destPos">Destination position.</param>
@@ -661,7 +661,7 @@ namespace Gurux.DLMS
         /// Push the given byte array into this buffer at the current position, and then increments the position.
         /// </summary>
         /// <param name="index">Byte index.</param>
-        /// <param name="value"> The value to be added.</param>
+        /// <param name="value">The value to be added.</param>
         public void Set(int index, byte[] value)
         {
             if (value != null)
