@@ -304,7 +304,7 @@ namespace GuruxDLMSServerExample
         {
         }
 
-        protected override void InvalidConnection(ConnectionEventArgs e)
+        protected override void InvalidConnection(GXDLMSConnectionEventArgs e)
         {
         }
 
@@ -391,15 +391,15 @@ namespace GuruxDLMSServerExample
             }
         }
 
-        protected override void Connected()
-        {
-        }
-
-        protected override void Disconnected()
-        {
-        }
-
         public override void Update(UpdateType type, ValueEventArgs e)
+        {
+        }
+
+        protected override void Connected(GXDLMSConnectionEventArgs e)
+        {
+        }
+
+        protected override void Disconnected(GXDLMSConnectionEventArgs e)
         {
         }
     }

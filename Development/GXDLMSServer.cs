@@ -58,7 +58,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// DLMS Settings.
         /// </summary>
-        protected GXDLMSSettings Settings;
+        internal GXDLMSSettings Settings;
 
         private readonly GXReplyData info = new GXReplyData();
         /// <summary>
@@ -126,7 +126,8 @@ namespace Gurux.DLMS
         /// All initialization is done here. 
         /// Example access level of the COSEM objects is good to update here.
         /// </remarks>
-        protected abstract void Connected(GXDLMSConnectionEventArgs e);
+        /// <param name="connectionInfo">Connection information.</param>
+        protected abstract void Connected(GXDLMSConnectionEventArgs connectionInfo);
 
         /// <summary>
         /// Client has try to made invalid connection. Password is incorrect.
@@ -137,7 +138,8 @@ namespace Gurux.DLMS
         /// <summary>
         /// Server has close the connection. All clean up is made here.
         /// </summary>
-        protected abstract void Disconnected(GXDLMSConnectionEventArgs e);
+        /// <param name="connectionInfo">Connection information.</param>
+        protected abstract void Disconnected(GXDLMSConnectionEventArgs connectionInfo);
 
         /// <summary>
         /// Action is occurred.
@@ -697,7 +699,7 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    ValueEventArgs e = new ValueEventArgs(obj, id, 0, parameters);
+                    ValueEventArgs e = new ValueEventArgs(Settings, obj, id, 0, parameters);
                     Action(new ValueEventArgs[] { e });
                     byte[] actionReply;
                     if (e.Handled)
@@ -714,11 +716,14 @@ namespace Gurux.DLMS
                         //Add return parameters
                         bb.SetUInt8(1);
                         //Add parameters error code.
+                        bb.SetUInt8(0);
                         GXCommon.SetData(bb, GXCommon.GetValueType(actionReply), actionReply);
                     }
                     else
                     {
                         error = e.Error;
+                        //Add return parameters
+                        bb.SetUInt8(0);
                     }
                 }
             }
@@ -811,7 +816,7 @@ namespace Gurux.DLMS
                                     value = GXDLMSClient.ChangeType((byte[])value, dt);
                                 }
                             }
-                            ValueEventArgs e = new ValueEventArgs(obj, index, 0, null);
+                            ValueEventArgs e = new ValueEventArgs(Settings, obj, index, 0, null);
                             e.Value = value;
                             Write(new ValueEventArgs[] { e });
                             if (!e.Handled)
@@ -848,6 +853,7 @@ namespace Gurux.DLMS
             // GetRequest normal
             if (type == 1)
             {
+                Settings.Count = Settings.Index = 0;
                 Settings.ResetBlockIndex();
                 // CI
                 ObjectType ci = (ObjectType)data.GetUInt16();
@@ -885,7 +891,7 @@ namespace Gurux.DLMS
                             parameters = GXCommon.GetData(data, info);
                         }
 
-                        e = new ValueEventArgs(obj, attributeIndex, selector, parameters);
+                        e = new ValueEventArgs(Settings, obj, attributeIndex, selector, parameters);
                         Read(new ValueEventArgs[] { e });
                         object value;
                         if (e.Handled)
@@ -998,7 +1004,7 @@ namespace Gurux.DLMS
                     if (obj == null)
                     {
                         // "Access Error : Device reports a undefined object."
-                        e = new ValueEventArgs(obj, attributeIndex, 0, 0);
+                        e = new ValueEventArgs(Settings, obj, attributeIndex, 0, 0);
                         e.Error = ErrorCode.UndefinedObject;
                         list.Add(e);
                     }
@@ -1008,7 +1014,7 @@ namespace Gurux.DLMS
                         {
                             //Read Write denied.
                             status = ErrorCode.ReadWriteDenied;
-                            ValueEventArgs arg = new ValueEventArgs(obj, attributeIndex, 0, null);
+                            ValueEventArgs arg = new ValueEventArgs(Settings, obj, attributeIndex, 0, null);
                             arg.Error = ErrorCode.ReadWriteDenied;
                             list.Add(arg);
                         }
@@ -1024,7 +1030,7 @@ namespace Gurux.DLMS
                                 GXDataInfo info = new GXDataInfo();
                                 parameters = GXCommon.GetData(data, info);
                             }
-                            ValueEventArgs arg = new ValueEventArgs(obj, attributeIndex, selector, parameters);
+                            ValueEventArgs arg = new ValueEventArgs(Settings, obj, attributeIndex, selector, parameters);
                             list.Add(arg);
                         }
                     }
@@ -1149,7 +1155,7 @@ namespace Gurux.DLMS
                         // GetRequest normal
                         int sn = data.GetUInt16();
                         info = FindSNObject(sn);
-                        ValueEventArgs e = new ValueEventArgs(info.Item, info.Index, 0, null);
+                        ValueEventArgs e = new ValueEventArgs(Settings, info.Item, info.Index, 0, null);
                         e.action = info.IsAction;
                         list.Add(new KeyValuePair<ValueEventArgs, bool>(e, e.action));
                         if (info.Item.GetAccess(info.Index) == AccessMode.NoAccess)
@@ -1176,7 +1182,7 @@ namespace Gurux.DLMS
                         GXDataInfo di = new GXDataInfo();
                         object parameters = GXCommon.GetData(data, di);
                         info = FindSNObject(sn);
-                        ValueEventArgs e = new ValueEventArgs(info.Item, info.Index, 0, parameters);
+                        ValueEventArgs e = new ValueEventArgs(Settings, info.Item, info.Index, 0, parameters);
                         e.action = info.IsAction;
                         list.Add(new KeyValuePair<ValueEventArgs, bool>(e, e.action));
                         if ((!e.action && info.Item.GetAccess(info.Index) == AccessMode.NoAccess) ||
@@ -1338,7 +1344,7 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        ValueEventArgs e = new ValueEventArgs(target.Item, target.Index, 0, null);
+                        ValueEventArgs e = new ValueEventArgs(Settings, target.Item, target.Index, 0, null);
                         e.Value = value;
                         Write(new ValueEventArgs[] { e });
                         if (!e.Handled)

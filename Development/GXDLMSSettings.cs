@@ -146,14 +146,7 @@ namespace Gurux.DLMS
             Server = isServer;
             Objects = new GXDLMSObjectCollection();
             Limits = new GXDLMSLimits();
-            if (isServer)
-            {
-                LnSettings = new GXDLMSLNSettings(new byte[] { 0x00, 0x7C, 0x1F });
-            }
-            else
-            {
-                LnSettings = new GXDLMSLNSettings(new byte[] { 0x00, 0x7E, 0x1F });
-            }
+            LnSettings = new GXDLMSLNSettings(new byte[] { 0x00, 0x00, 0x1C });
             SnSettings = new GXDLMSSNSettings(new byte[] { 0x1C, 0x03, 0x20 });
             ResetFrameSequence();
         }
@@ -259,7 +252,6 @@ namespace Gurux.DLMS
             if (IsServer)
             {
                 SenderFrame = 0x1E;
-                //ReceiverFrame = 0xFE;
                 ReceiverFrame = 0xEE;
             }
             else

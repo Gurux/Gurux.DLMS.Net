@@ -225,7 +225,7 @@ namespace Gurux.DLMS
         public void AddData(GXDLMSObject obj, int index, GXByteBuffer buff)
         {
             DataType dt;
-            object value = (obj as IGXDLMSBase).GetValue(Settings, new ValueEventArgs(obj, index, 0, null));
+            object value = (obj as IGXDLMSBase).GetValue(Settings, new ValueEventArgs(Settings, obj, index, 0, null));
             dt = obj.GetDataType(index);
             if (dt == DataType.None && value != null)
             {
@@ -240,9 +240,14 @@ namespace Gurux.DLMS
         /// <param name="date">Date time. Set To Min or Max if not added</param>
         /// <param name="data">Notification body.</param>
         /// <returns>Generated data notification message(s).</returns>
-        public byte[][] GetDataNotificationMessages(DateTime date, byte[] data)
+        public byte[][] GenerateDataNotificationMessages(DateTime date, byte[] data)
         {
-            return GXDLMS.GetMessages(Settings, Command.DataNotification, 0, new GXByteBuffer(data), date);
+            byte[][] reply = GXDLMS.GetMessages(Settings, Command.DataNotification, 0, new GXByteBuffer(data), date);
+            if (!GeneralBlockTransfer && reply.Length != 1)
+            {
+                throw new ArgumentException("Data is not fit to one PDU. Use general block transfer.");
+            }
+            return reply;
         }
 
         /// <summary>
@@ -251,7 +256,7 @@ namespace Gurux.DLMS
         /// <param name="date">Date time. Set To Min or Max if not added</param>
         /// <param name="data">Notification body.</param>
         /// <returns>Generated data notification message(s).</returns>
-        public byte[][] GetDataNotificationMessage(DateTime date, GXByteBuffer data)
+        public byte[][] GenerateDataNotificationMessages(DateTime date, GXByteBuffer data)
         {
             return GXDLMS.GetMessages(Settings, Command.DataNotification, 0, data, date);
         }
@@ -295,45 +300,48 @@ namespace Gurux.DLMS
             List<KeyValuePair<GXDLMSObject, int>> items = new List<KeyValuePair<GXDLMSObject, int>>();
             GXDLMS.GetValueFromData(Settings, reply);
             Object[] list = (Object[])reply.Value;
-            GXDLMSConverter c = new GXDLMSConverter();
-            GXDLMSObjectCollection objects = new GXDLMSObjectCollection();
-            foreach (Object it in (Object[])list[0])
+            if (list != null)
             {
-                Object[] tmp = (Object[])it;
-                int classID = ((UInt16)(tmp[0])) & 0xFFFF;
-                if (classID > 0)
+                GXDLMSConverter c = new GXDLMSConverter();
+                GXDLMSObjectCollection objects = new GXDLMSObjectCollection();
+                foreach (Object it in (Object[])list[0])
                 {
-                    GXDLMSObject comp;
-                    comp = this.Objects.FindByLN((ObjectType)classID, GXDLMSObject.ToLogicalName(tmp[1] as byte[]));
-                    if (comp == null)
+                    Object[] tmp = (Object[])it;
+                    int classID = ((UInt16)(tmp[0])) & 0xFFFF;
+                    if (classID > 0)
                     {
-                        comp = GXDLMSClient.CreateDLMSObject(classID, 0, 0, tmp[1], null);
-                        c.UpdateOBISCodeInformation(comp); 
-                        objects.Add(comp);
-                    }
-                    if ((comp is IGXDLMSBase))
-                    {
-                        items.Add(new KeyValuePair<GXDLMSObject, int>(comp, (sbyte)tmp[2]));
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine(string.Format("Unknown object : {0} {1}",
-                            classID, GXDLMSObject.ToLogicalName((byte[])tmp[1])));
+                        GXDLMSObject comp;
+                        comp = this.Objects.FindByLN((ObjectType)classID, GXDLMSObject.ToLogicalName(tmp[1] as byte[]));
+                        if (comp == null)
+                        {
+                            comp = GXDLMSClient.CreateDLMSObject(classID, 0, 0, tmp[1], null);
+                            c.UpdateOBISCodeInformation(comp);
+                            objects.Add(comp);
+                        }
+                        if ((comp is IGXDLMSBase))
+                        {
+                            items.Add(new KeyValuePair<GXDLMSObject, int>(comp, (sbyte)tmp[2]));
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine(string.Format("Unknown object : {0} {1}",
+                                classID, GXDLMSObject.ToLogicalName((byte[])tmp[1])));
+                        }
                     }
                 }
-            }
-            for (int pos = 0; pos < list.Length; ++pos)
-            {
-                obj = items[pos].Key as GXDLMSObject;
-                value = list[pos];
-                index = items[pos].Value;
-                if (value is byte[] && (dt = obj.GetUIDataType(index)) != DataType.None)
+                for (int pos = 0; pos < list.Length; ++pos)
                 {
-                    value = GXDLMSClient.ChangeType(value as byte[], dt);
+                    obj = items[pos].Key as GXDLMSObject;
+                    value = list[pos];
+                    index = items[pos].Value;
+                    if (value is byte[] && (dt = obj.GetUIDataType(index)) != DataType.None)
+                    {
+                        value = GXDLMSClient.ChangeType(value as byte[], dt);
+                    }
+                    ValueEventArgs e = new ValueEventArgs(Settings, obj, index, 0, null);
+                    e.Value = value;
+                    (obj as IGXDLMSBase).SetValue(Settings, e);
                 }
-                ValueEventArgs e = new ValueEventArgs(obj, index, 0, null);
-                e.Value = value;
-                (obj as IGXDLMSBase).SetValue(Settings, e);
             }
             return items;
         }       

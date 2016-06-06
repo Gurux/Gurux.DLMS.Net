@@ -971,7 +971,7 @@ namespace Gurux.DLMS
                     value = ChangeType((byte[])value, type);
                 }
             }
-            ValueEventArgs e = new ValueEventArgs(target, attributeIndex, 0, null);
+            ValueEventArgs e = new ValueEventArgs(Settings, target, attributeIndex, 0, null);
             e.Value = value;
             (target as IGXDLMSBase).SetValue(Settings, e);
             return target.GetValues()[attributeIndex - 1];
@@ -995,7 +995,7 @@ namespace Gurux.DLMS
                 if (ret == 0)
                 {
                     value = GXCommon.GetData(data, info);
-                    ValueEventArgs e = new ValueEventArgs(it.Key, it.Value, 0, null);
+                    ValueEventArgs e = new ValueEventArgs(Settings, it.Key, it.Value, 0, null);
                     e.Value = value;
                     (it.Key as IGXDLMSBase).SetValue(Settings, e);
                     info.Clear();
@@ -1244,7 +1244,7 @@ namespace Gurux.DLMS
             {
                 throw new GXDLMSException("Invalid parameter");
             }
-            Object value = (item as IGXDLMSBase).GetValue(Settings, new ValueEventArgs(item, index, 0, null));
+            Object value = (item as IGXDLMSBase).GetValue(Settings, new ValueEventArgs(Settings, item, index, 0, null));
             DataType type = item.GetDataType(index);
             if (type == DataType.None)
             {

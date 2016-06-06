@@ -251,7 +251,7 @@ namespace Gurux.DLMS.Objects
             int pos = -1;
             foreach (var obj in CaptureObjects)
             {
-                ValueEventArgs e = new ValueEventArgs(obj.Key, obj.Value.AttributeIndex, 0, null);
+                ValueEventArgs e = new ValueEventArgs(server.Settings, obj.Key, obj.Value.AttributeIndex, 0, null);
                 server.Update(UpdateType.ProfileGeneric, e);
                 if (e.Handled)
                 {

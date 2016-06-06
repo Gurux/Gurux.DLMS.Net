@@ -159,7 +159,7 @@ namespace Gurux.DLMS.Enums
         GprsSetup = 45,
 
         ///<summary>
-        ///To determine the HDLC  = High-level Data Link Control settings, use the 
+        ///To determine the HDLC = High-level Data Link Control settings, use the 
         ///IecHdlcSetup object.
         ///</summary>
         [XmlEnum("23")]

@@ -36,112 +36,71 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Gurux.DLMS.Objects;
+using System.Xml.Serialization;
+using Gurux.DLMS.ManufacturerSettings;
+using Gurux.DLMS.Internal;
+using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Enums;
 
-namespace Gurux.DLMS
+namespace Gurux.DLMS.Objects
 {
-    public class ValueEventArgs
+    /// <summary>
+    /// Certificate info.
+    /// </summary>
+    public class GXDLMSCertificateInfo
     {
         /// <summary>
-        /// Target DLMS object.
+        /// Used certificate entity.
         /// </summary>
-        public GXDLMSObject Target
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// Attribute index of queried object.
-        /// </summary>
-        public int Index
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// object value
-        /// </summary>
-        public object Value
+        public CertificateEntity Entity
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Is request handled.
+        /// Used certificate type.
         /// </summary>
-        public bool Handled
+        public CertificateType Type
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Parameterised access selector.
+        /// Certificate serial number.
         /// </summary>
-        public int Selector
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// Optional parameters.
-        /// </summary>
-        public object Parameters
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// Occurred error.
-        /// </summary>
-        public ErrorCode Error
+        public string SerialNumber
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Is action. This is reserved for internal use.
+        /// Certificate issuer.
         /// </summary>
-        internal bool action;
-
-        /// <summary>
-        /// Occurred error.
-        /// </summary>
-        public GXDLMSSettings Settings
+        public string Issuer
         {
             get;
-            private set;
-        }
-
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public ValueEventArgs(GXDLMSSettings settings, GXDLMSObject target, int index, int selector, object parameters)
-        {
-            Settings = settings;
-            Target = target;
-            Index = index;
-            Selector = selector;
-            Parameters = parameters;
+            set;
         }
 
         /// <summary>
-        /// Constructor.
+        /// Certificate subject.
         /// </summary>
-        public ValueEventArgs(GXDLMSObject target, int index, int selector, object parameters)
+        public string Subject
         {
-            Target = target;
-            Index = index;
-            Selector = selector;
-            Parameters = parameters;
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Certificate subject alt name.
+        /// </summary>
+        public string SubjectAltName
+        {
+            get;
+            set;
         }
     }
 }

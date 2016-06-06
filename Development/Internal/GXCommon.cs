@@ -237,6 +237,25 @@ namespace Gurux.DLMS.Internal
         }
 
         /// <summary>
+        /// Add string to byte buffer.
+        /// </summary>
+        /// <param name="value">String to add.</param>
+        /// <param name="bb">Byte buffer where string is added.</param>
+        public static void AddString(string value, GXByteBuffer bb)
+        {
+            bb.SetUInt8((byte)DataType.OctetString);
+            if (value == null)
+            {
+                GXCommon.SetObjectCount(0, bb);
+            }
+            else
+            {
+                GXCommon.SetObjectCount(value.Length, bb);
+                bb.Set(ASCIIEncoding.ASCII.GetBytes(value));
+            }
+        }
+
+        /// <summary>
         /// Set item count.
         /// </summary>
         /// <param name="count"></param>

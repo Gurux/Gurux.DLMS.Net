@@ -51,11 +51,8 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary> 
         public GXDLMSPushSetup()
-            : base(ObjectType.PushSetup)
+            : this("0.7.25.9.0.255")
         {
-            CommunicationWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
-            SendDestinationAndMethod = new GXSendDestinationAndMethod();
-            PushObjectList = new List<GXDLMSPushObject>();
         }
 
         /// <summary> 
@@ -63,11 +60,8 @@ namespace Gurux.DLMS.Objects
         /// </summary> 
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSPushSetup(string ln)
-            : base(ObjectType.PushSetup, ln, 0)
+            : this(ln, 0)
         {
-            CommunicationWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
-            SendDestinationAndMethod = new GXSendDestinationAndMethod();
-            PushObjectList = new List<GXDLMSPushObject>();
         }
 
         /// <summary> 

@@ -204,11 +204,10 @@ namespace Gurux.DLMS
             {
                 Buffer.BlockCopy(Data, srcPos, Data, destPos, count);
                 Size = (UInt16) (destPos + count);
-                Position = (UInt16)destPos;
-            }
-            else
-            {
-                Size = 0;
+                if (Position > Size)
+                {
+                    Position = Size;
+                }
             }
         }
 
@@ -220,11 +219,15 @@ namespace Gurux.DLMS
         /// </remarks>
         public void Trim()
         {
-            Move(Position, 0, Size - Position);
-            if (Position > Size)
+            if (Size == Position)
             {
-                Position = Size;
+                Size = 0;
             }
+            else
+            {
+                Move(Position, 0, Size - Position);
+            }
+            Position = 0;
         }
 
         /// <summary>

@@ -73,8 +73,12 @@ namespace Gurux.DLMS.Objects
         public GXDLMSSecuritySetup(string ln, ushort sn)
             : base(ObjectType.SecuritySetup, ln, sn)
         {
+            Certificates = new List<GXDLMSCertificateInfo>();
         }
 
+        /// <summary>
+        /// Security policy.
+        /// </summary>
         [XmlIgnore()]
         public SecurityPolicy SecurityPolicy
         {
@@ -82,6 +86,9 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// Security suite.
+        /// </summary>
         [XmlIgnore()]
         public SecuritySuite SecuritySuite
         {
@@ -89,6 +96,9 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// Client system title.
+        /// </summary>
         [XmlIgnore()]
         public byte[] ClientSystemTitle
         {
@@ -96,6 +106,9 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// Server system title.
+        /// </summary>
         [XmlIgnore()]
         public byte[] ServerSystemTitle
         {
@@ -104,20 +117,20 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// TODO:
+        /// Available certificates.
         /// </summary>
         [XmlIgnore()]
-        public Object Certificates
+        public List<GXDLMSCertificateInfo> Certificates
         {
             get;
             set;
-        }  
+        }
 
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, SecurityPolicy, SecuritySuite, 
-            ClientSystemTitle, ServerSystemTitle};
+            ClientSystemTitle, ServerSystemTitle, Certificates};
         }
 
         /// <summary>
@@ -128,7 +141,7 @@ namespace Gurux.DLMS.Objects
         private static int GetSecurityValue(Security security)
         {
             int value = 0;
-            switch (security)   
+            switch (security)
             {
                 case Security.None:
                     value = 0;
@@ -153,19 +166,19 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="client">DLMS client that is used to generate action.</param>
         /// <param name="security">New security level.</param>
-        /// <returns></returns>
+        /// <returns>Generated action.</returns>
         public byte[][] Activate(GXDLMSClient client, Security security)
-        {          
+        {
             return client.Method(this, 1, GetSecurityValue(security), DataType.Enum);
         }
-       
+
         /// <summary>
         /// Updates one or more global keys. 
         /// </summary>
         /// <param name="client">DLMS client that is used to generate action.</param>
         /// <param name="kek">Master key, also known as Key Encrypting Key.</param>
         /// <param name="list">List of Global key types and keys.</param>
-        /// <returns></returns>
+        /// <returns>Generated action.</returns>
         public byte[][] GlobalKeyTransfer(GXDLMSClient client, byte[] kek, List<KeyValuePair<GlobalKeyType, byte[]>> list)
         {
             if (list == null || list.Count == 0)
@@ -174,9 +187,9 @@ namespace Gurux.DLMS.Objects
             }
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetUInt8(DataType.Array);
-            bb.SetUInt8((byte) list.Count);
+            bb.SetUInt8((byte)list.Count);
             byte[] tmp;
-            foreach(KeyValuePair<GlobalKeyType, byte[]> it in list)
+            foreach (KeyValuePair<GlobalKeyType, byte[]> it in list)
             {
                 bb.SetUInt8(DataType.Structure);
                 bb.SetUInt8(2);
@@ -186,15 +199,178 @@ namespace Gurux.DLMS.Objects
             }
             return client.Method(this, 2, bb.Array(), DataType.Array);
         }
+
+        /// <summary>
+        /// Agree on one or more symmetric keys using the key agreement algorithm.
+        /// </summary>
+        /// <param name="client"> DLMS client that is used to generate action.</param>
+        /// <param name="list"> List of keys.</param>
+        /// <returns>Generated action.</returns>
+        public byte[][] keyAgreement(GXDLMSClient client, List<KeyValuePair<GlobalKeyType, byte[]>> list)
+        {
+            if (list == null || list.Count == 0)
+            {
+                throw new ArgumentException("Invalid list. It is empty.");
+            }
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetUInt8(DataType.Array);
+            bb.SetUInt8((byte)list.Count);
+            foreach (KeyValuePair<GlobalKeyType, byte[]> it in list)
+            {
+                bb.SetUInt8(DataType.Structure);
+                bb.SetUInt8(2);
+                GXCommon.SetData(bb, DataType.Enum, it.Key);
+                GXCommon.SetData(bb, DataType.OctetString, it.Value);
+            }
+            return client.Method(this, 3, bb.Array(), DataType.Array);
+        }
+
+         /// <summary>
+        ///  Generates an asymmetric key pair as required by the security suite. 
+        /// </summary>
+        /// <param name="client">DLMS client that is used to generate action.</param>
+        /// <param name="type">New certificate type.</param>
+        /// <returns>Generated action.</returns>
+        public byte[][] GenerateKeyPair(GXDLMSClient client, CertificateType type)
+        {
+            return client.Method(this, 4, type, DataType.Enum);
+        }
          
+          /// <summary>
+        ///  Ask Server sends the Certificate Signing Request (CSR) data.
+        /// </summary>
+        /// <param name="client">DLMS client that is used to generate action.</param>
+        /// <param name="type">identifies the key pair for which the certificate will be requested.</param>
+        /// <returns>Generated action.</returns>
+        public byte[][] GenerateCertificate(GXDLMSClient client, CertificateType type)
+        {
+            return client.Method(this, 5, type, DataType.Enum);
+        }       
+
+        /// <summary>
+        ///  Imports an X.509 v3 certificate of a public key.
+        /// </summary>
+        /// <param name="client">DLMS client that is used to generate action.</param>
+        /// <param name="key">Public key.</param>
+        /// <returns>Generated action.</returns>
+        public byte[][] ImportCertificate(GXDLMSClient client, byte[] key)
+        {
+            return client.Method(this, 6, key, DataType.OctetString);
+        }
+                
+        /// <summary>
+        /// Exports an X.509 v3 certificate from the server using entity information. 
+        /// </summary>
+        /// <param name="client">DLMS client that is used to generate action.</param>
+        /// <param name="entity">Certificate entity.</param>
+        /// <param name="type">Certificate type.</param>
+        /// <param name="systemTitle">System title.</param>
+        /// <returns>Generated action.</returns>
+        public byte[][] ExportCertificateByEntity(GXDLMSClient client, CertificateEntity entity, CertificateType type, byte[] systemTitle)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetUInt8(DataType.Structure);
+            bb.SetUInt8(2);
+            //Add enum
+            bb.SetUInt8(DataType.Enum);
+            bb.SetUInt8(0);
+            //Add certificate_identification_by_entity 
+            bb.SetUInt8(DataType.Structure);
+            bb.SetUInt8(3);
+            //Add certificate_entity
+            bb.SetUInt8(DataType.Enum);
+            bb.SetUInt8(entity);
+            //Add certificate_type
+            bb.SetUInt8(DataType.Enum);
+            bb.SetUInt8(type);
+            //system_title
+            GXCommon.SetData(bb, DataType.OctetString, systemTitle);
+            return client.Method(this, 7, bb.Array(), DataType.OctetString);
+        }
+          
+        /// <summary>
+        /// Exports an X.509 v3 certificate from the server using serial information. 
+        /// </summary>
+        /// <param name="client">DLMS client that is used to generate action.</param>
+        /// <param name="serialNumber">Serial number.</param>
+        /// <param name="issuer">Issuer</param>
+        /// <returns>Generated action.</returns>
+        public byte[][] ExportCertificateBySerial(GXDLMSClient client, byte[] serialNumber, byte[] issuer)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetUInt8(DataType.Structure);
+            bb.SetUInt8(2);
+            //Add enum
+            bb.SetUInt8(DataType.Enum);
+            bb.SetUInt8(1);
+            //Add certificate_identification_by_entity 
+            bb.SetUInt8(DataType.Structure);
+            bb.SetUInt8(2);           
+            //serialNumber
+            GXCommon.SetData(bb, DataType.OctetString, serialNumber);
+            //issuer
+            GXCommon.SetData(bb, DataType.OctetString, issuer);
+            return client.Method(this, 7, bb.Array(), DataType.OctetString);
+        }
+
+        /// <summary>
+        /// Removes X.509 v3 certificate from the server using entity.
+        /// </summary>
+        /// <param name="client">DLMS client that is used to generate action.</param>
+        /// <param name="entity">Certificate entity type.</param>
+        /// <param name="type">Certificate type.</param>
+        /// <param name="systemTitle">System title.</param>
+        /// <returns>Generated action.</returns>
+        public byte[][] RemoveCertificateByEntity(GXDLMSClient client, CertificateEntity entity, CertificateType type, byte[] systemTitle)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetUInt8(DataType.Structure);
+            bb.SetUInt8(2);
+            //Add enum
+            bb.SetUInt8(DataType.Enum);
+            bb.SetUInt8(0);
+            //Add certificate_identification_by_entity 
+            bb.SetUInt8(DataType.Structure);
+            bb.SetUInt8(3);
+            //Add certificate_entity
+            bb.SetUInt8(DataType.Enum);
+            bb.SetUInt8(entity);
+            //Add certificate_type
+            bb.SetUInt8(DataType.Enum);
+            bb.SetUInt8(type);
+            //system_title
+            GXCommon.SetData(bb, DataType.OctetString, systemTitle);
+            return client.Method(this, 8, bb.Array(), DataType.OctetString);
+        }
+
+        /// <summary>
+        /// Removes X.509 v3 certificate from the server using serial number.
+        /// </summary>
+        /// <param name="client">DLMS client that is used to generate action.</param>
+        /// <param name="serialNumber">Serial number.</param>
+        /// <param name="issuer">Issuer.</param>
+        /// <returns>Generated action.</returns>
+        public byte[][] RemoveCertificateBySerial(GXDLMSClient client, byte[] serialNumber, byte[] issuer)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetUInt8(DataType.Structure);
+            bb.SetUInt8(2);
+            //Add enum
+            bb.SetUInt8(DataType.Enum);
+            bb.SetUInt8(1);
+            //Add certificate_identification_by_entity 
+            bb.SetUInt8(DataType.Structure);
+            bb.SetUInt8(2);
+            //serialNumber
+            GXCommon.SetData(bb, DataType.OctetString, serialNumber);
+            //issuer
+            GXCommon.SetData(bb, DataType.OctetString, issuer);
+            return client.Method(this, 8, bb.Array(), DataType.OctetString);
+        }
 
         #region IGXDLMSBase Members
 
-        /// <summary>
-        /// Data interface do not have any methods.
-        /// </summary>
-        /// <param name="index"></param>
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 2)
             {
@@ -207,11 +383,11 @@ namespace Gurux.DLMS.Objects
                     {
                         case GlobalKeyType.UnicastEncryption:
                         case GlobalKeyType.BroadcastEncryption:
-                           //Invalid type
-                           e.Error = ErrorCode.ReadWriteDenied;
-                           break;
+                            //Invalid type
+                            e.Error = ErrorCode.ReadWriteDenied;
+                            break;
                         case GlobalKeyType.Authentication:
-                           //if settings.Cipher is null non secure server is used.
+                            //if settings.Cipher is null non secure server is used.
                             settings.Cipher.AuthenticationKey = GXDLMSSecureClient.Decrypt(settings.Kek, data);
                             break;
                         case GlobalKeyType.Kek:
@@ -267,7 +443,7 @@ namespace Gurux.DLMS.Objects
                 if (CanRead(6))
                 {
                     attributes.Add(6);
-                } 
+                }
             }
             return attributes.ToArray();
         }
@@ -281,7 +457,7 @@ namespace Gurux.DLMS.Objects
                 "Security Suite"};
             }
             return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Security Policy", 
-                "Security Suite", "Client System Title", "Server System Title" , "Certificates"};            
+                "Security Suite", "Client System Title", "Server System Title" , "Certificates"};
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -306,15 +482,15 @@ namespace Gurux.DLMS.Objects
         {
             if (index == 1)
             {
-                return DataType.OctetString;                
+                return DataType.OctetString;
             }
             if (index == 2)
             {
-                return DataType.Enum;                
+                return DataType.Enum;
             }
             if (index == 3)
             {
-                return DataType.Enum;                
+                return DataType.Enum;
             }
             if (index == 4)
             {
@@ -339,6 +515,31 @@ namespace Gurux.DLMS.Objects
             {
                 throw new ArgumentException("GetDataType failed. Invalid attribute index.");
             }
+        }
+
+        /// <summary>
+        /// Get sertificates as byte buffer.
+        /// </summary>
+        /// <returns></returns>
+        private byte[] GetSertificates()
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetUInt8((byte)DataType.Array);
+            GXCommon.SetObjectCount(Certificates.Count, bb);
+            foreach (GXDLMSCertificateInfo it in Certificates)
+            {
+                bb.SetUInt8((byte)DataType.Structure);
+                GXCommon.SetObjectCount(6, bb);
+                bb.SetUInt8((byte)DataType.Enum);
+                bb.SetUInt8((byte)it.Entity);
+                bb.SetUInt8((byte)DataType.Enum);
+                bb.SetUInt8((byte)it.Type);
+                GXCommon.AddString(it.SerialNumber, bb);
+                GXCommon.AddString(it.Issuer, bb);
+                GXCommon.AddString(it.Subject, bb);
+                GXCommon.AddString(it.SubjectAltName, bb);
+            }
+            return bb.Array();
         }
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
@@ -367,14 +568,31 @@ namespace Gurux.DLMS.Objects
                 }
                 if (e.Index == 6)
                 {
-                    return Certificates;
+                    return GetSertificates();
                 }
             }
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
+        private void UpdateSertificates(object[] list)
+        {
+            Certificates.Clear();
+            foreach (object[] it in list)
+            {
+                GXDLMSCertificateInfo info = new GXDLMSCertificateInfo();
+                info.Entity = (CertificateEntity)Convert.ToInt32(it[0]);
+                info.Type = (CertificateType)Convert.ToInt32(it[1]);
+                info.SerialNumber = ASCIIEncoding.ASCII.GetString((byte[])it[2]);
+                info.Issuer = ASCIIEncoding.ASCII.GetString((byte[])it[3]);
+                info.Subject = ASCIIEncoding.ASCII.GetString((byte[])it[4]);
+                info.SubjectAltName = ASCIIEncoding.ASCII.GetString((byte[])it[5]);
+                Certificates.Add(info);
+            }
+
+        }
+
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {
@@ -385,7 +603,7 @@ namespace Gurux.DLMS.Objects
                 else
                 {
                     LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
-                }                
+                }
             }
             else if (e.Index == 2)
             {
@@ -405,7 +623,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 6)
             {
-                Certificates = e.Value;
+                UpdateSertificates((object[])e.Value);
             }
             else
             {

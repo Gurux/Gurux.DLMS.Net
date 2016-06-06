@@ -35,43 +35,25 @@
 namespace Gurux.DLMS.Objects.Enums
 {
     /// <summary>
-    /// Security policy Enforces authentication and/or encryption algorithm provided with security_suite.
+    /// Certificate type.
     /// </summary>
-    public enum SecurityPolicy : byte
+    public enum CertificateType
     {
         /// <summary>
-        /// Security is not used.
+        /// Certificate type is digital signature.
         /// </summary>
-        Nothing = 0,
-
+        DigitalSignature = 0,
         /// <summary>
-        /// Request is authenticated.
+        /// Certificate type is key agreement.
         /// </summary>
-        AuthenticatedRequest = 0x4,
-
+        KeyAgreement = 1,
         /// <summary>
-        /// Request is encrypted.
+        /// Certificate type is TLS.
         /// </summary>
-        EncryptedRequest = 0x8,
-
+        TLS = 2,
         /// <summary>
-        /// Request is digitally signed.
+        /// Certificate type is other.
         /// </summary>
-        DigitallySignedRequest = 0x10,
-
-        /// <summary>
-        /// Response is authenticated.
-        /// </summary>
-        AuthenticatedResponse = 0x20,
-
-        /// <summary>
-        /// Response is encrypted.
-        /// </summary>
-        EncryptedResponse = 0x40,
-
-        /// <summary>
-        /// Response is digitally signed.
-        /// </summary>
-        DigitallySignedResponse = 0x80
+        Other = 3
     }
 }
