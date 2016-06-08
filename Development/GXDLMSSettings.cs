@@ -141,12 +141,12 @@ namespace Gurux.DLMS
             DLMSVersion = 6;
             InvokeID = 0x1;
             Priority = Priority.High;
-            ServiceClass = ServiceClass.UnConfirmed;
+            ServiceClass = ServiceClass.Confirmed;
             MaxReceivePDUSize = DefaultMaxReceivePduSize;
             Server = isServer;
             Objects = new GXDLMSObjectCollection();
             Limits = new GXDLMSLimits();
-            LnSettings = new GXDLMSLNSettings(new byte[] { 0x00, 0x00, 0x1C });
+            LnSettings = new GXDLMSLNSettings(new byte[] { 0x00, 0xFE, 0x1F });
             SnSettings = new GXDLMSSNSettings(new byte[] { 0x1C, 0x03, 0x20 });
             ResetFrameSequence();
         }

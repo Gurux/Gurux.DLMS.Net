@@ -47,31 +47,31 @@ namespace Gurux.DLMS.Objects.Enums
         /// <summary>
         /// Request is authenticated.
         /// </summary>
-        AuthenticatedRequest = 0x4,
+        AuthenticatedRequest = 0x20,
 
         /// <summary>
         /// Request is encrypted.
         /// </summary>
-        EncryptedRequest = 0x8,
+        EncryptedRequest = 0x10,
 
         /// <summary>
         /// Request is digitally signed.
         /// </summary>
-        DigitallySignedRequest = 0x10,
+        DigitallySignedRequest = 0x8,
 
         /// <summary>
         /// Response is authenticated.
         /// </summary>
-        AuthenticatedResponse = 0x20,
+        AuthenticatedResponse = 0x4,
 
         /// <summary>
         /// Response is encrypted.
         /// </summary>
-        EncryptedResponse = 0x40,
+        EncryptedResponse = 0x2,
 
         /// <summary>
         /// Response is digitally signed.
         /// </summary>
-        DigitallySignedResponse = 0x80
+        DigitallySignedResponse = 0x1
     }
 }

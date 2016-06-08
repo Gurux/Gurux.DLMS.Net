@@ -1255,37 +1255,56 @@ namespace Gurux.DLMS
             type = data.Data.GetUInt8();
             // Get invoke ID and priority.
             data.Data.GetUInt8();
-            byte ret = data.Data.GetUInt8();
-            if (ret != 0)
-            {
-                data.Error = ret;
-            }
+            //Action-Response-Normal             
             if (type == 1)
             {
-                // Response normal. Get data if exists.
+                //Get Action-Result
+                byte ret = data.Data.GetUInt8();
+                if (ret != 0)
+                {
+                    data.Error = ret;
+                }
+                // Response normal. Get data if exists. Some meters do not return here anything.
                 if (data.Data.Position < data.Data.Size)
                 {
-                    int size = data.Data.GetUInt8();
-                    if (size != 0)
+                    //Get-Data-Result
+                    ret = data.Data.GetUInt8();
+                    //If data.
+                    if (ret == 0)
                     {
-                        if (size != 1)
-                        {
-                            throw new GXDLMSException(
-                                    "parseApplicationAssociationResponse failed. "
-                                            + "Invalid tag.");
-                        }
+                        GetDataFromBlock(data.Data, 0);
+                    }
+                    else if (ret == 1) //Data-Access-Result 
+                    {
+                        //Get Data-Access-Result
                         ret = data.Data.GetUInt8();
                         if (ret != 0)
                         {
                             data.Error = data.Data.GetUInt8();
                         }
-                        else
-                        {
-                            GetDataFromBlock(data.Data, 0);
-                        }
+                        GetDataFromBlock(data.Data, 0);
+                    }
+                    else
+                    {
+                        throw new GXDLMSException("parseApplicationAssociationResponse failed. Invalid tag.");
                     }
                 }
             }
+            //Action-Response-With-Pblock
+            else if  (type == 2)
+            {
+                throw new ArgumentException("Invalid Command.");
+            }
+            // Action-Response-With-List.     
+            else if  (type == 3)
+            {
+                throw new ArgumentException("Invalid Command.");
+            }
+            //Action-Response-Next-Pblock
+            else if  (type == 4)
+            {
+                throw new ArgumentException("Invalid Command.");
+            }                   
             else
             {
                 throw new ArgumentException("Invalid Command.");
