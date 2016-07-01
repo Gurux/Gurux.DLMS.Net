@@ -205,9 +205,9 @@ namespace Gurux.DLMS
         ///<returns>
         /// Is frame complete.
         ///</returns>
-        public bool GetData(byte[] reply, GXReplyData data)
+        public bool GetData(GXByteBuffer reply, GXReplyData data)
         {
-            return GXDLMS.GetData(Settings, new GXByteBuffer(reply), data);
+            return GXDLMS.GetData(Settings, reply, data);
         }
 
         /// <summary>
@@ -283,28 +283,46 @@ namespace Gurux.DLMS
             return GXDLMS.GetMessages(Settings, Command.DataNotification, 0, buff, DateTime.MinValue);
         }
 
+       /// <summary>
+        /// Generates push setup message.
+       /// </summary>
+        /// <param name="date"> Date time. Set To Min or Max if not added.</param>
+       /// <param name="push">Target Push object.</param>
+        /// <returns>Generated data notification message(s).</returns>
+        public byte[][] GeneratePushSetupMessages(DateTime date, GXDLMSPushSetup push)
+        {
+            if (push == null)
+            {
+                throw new ArgumentNullException("push");
+            }
+            GXByteBuffer buff = new GXByteBuffer();
+            buff.SetUInt8((byte)DataType.Structure);
+            GXCommon.SetObjectCount(push.PushObjectList.Count, buff);
+            foreach (KeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in push.PushObjectList)
+            {
+                AddData(it.Key, it.Value.AttributeIndex, buff);
+            }
+            return GenerateDataNotificationMessages(date, buff);
+        }
 
         /// <summary>
         /// Returns collection of push objects.
         /// </summary>
         /// <param name="data">Received data.</param>
         /// <returns>Array of objects and called indexes.</returns>
-        public List<KeyValuePair<GXDLMSObject, int>> ParsePush(GXByteBuffer data)
+        public List<KeyValuePair<GXDLMSObject, int>> 
+            ParsePush(Object[] data)
         {
             int index;
             GXDLMSObject obj;
             object value;
             DataType dt;
-            GXReplyData reply = new GXReplyData();
-            reply.Data = data;
             List<KeyValuePair<GXDLMSObject, int>> items = new List<KeyValuePair<GXDLMSObject, int>>();
-            GXDLMS.GetValueFromData(Settings, reply);
-            Object[] list = (Object[])reply.Value;
-            if (list != null)
+            if (data != null)
             {
                 GXDLMSConverter c = new GXDLMSConverter();
                 GXDLMSObjectCollection objects = new GXDLMSObjectCollection();
-                foreach (Object it in (Object[])list[0])
+                foreach (Object it in (Object[])data[0])
                 {
                     Object[] tmp = (Object[])it;
                     int classID = ((UInt16)(tmp[0])) & 0xFFFF;
@@ -329,10 +347,10 @@ namespace Gurux.DLMS
                         }
                     }
                 }
-                for (int pos = 0; pos < list.Length; ++pos)
+                for (int pos = 0; pos < data.Length; ++pos)
                 {
                     obj = items[pos].Key as GXDLMSObject;
-                    value = list[pos];
+                    value = data[pos];
                     index = items[pos].Value;
                     if (value is byte[] && (dt = obj.GetUIDataType(index)) != DataType.None)
                     {

@@ -256,17 +256,18 @@ namespace GuruxDLMSServerExample
                     continue;
                 }
                 Console.WriteLine(string.Format("Client Read value from {0} attribute: {1}.", e.Target.Name, e.Index));
-                if (e.Target.GetUIDataType(e.Index) == DataType.DateTime ||
+                if (e.Target is GXDLMSClock)
+                {
+                    //Implement specific clock handling here.
+                    //Otherwise initial values are used.                
+                }
+                else if (e.Target.GetUIDataType(e.Index) == DataType.DateTime ||
                     e.Target.GetDataType(e.Index) == DataType.DateTime)
                 {
                     e.Value = DateTime.Now;
                     e.Handled = true;
                 }
-                else if (e.Target is GXDLMSClock)
-                {
-                    //Implement specific clock handling here.
-                    //Otherwise initial values are used.                
-                }
+
                 else if (e.Target is GXDLMSRegisterMonitor && e.Index == 2)
                 {
                     //Update Register Monitor Thresholds values.

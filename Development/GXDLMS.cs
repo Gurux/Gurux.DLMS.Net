@@ -948,6 +948,12 @@ namespace Gurux.DLMS
                 {
                     throw new Exception("Wrong CRC.");
                 }
+                // Remove CRC and EOP from packet length.
+                data.PacketLength = eopPos - 2;
+            }
+            else
+            {
+                data.PacketLength = reply.Size;
             }
            
             if ((frame & (byte)HdlcFrameType.Uframe) == (byte)HdlcFrameType.Uframe)
@@ -1000,12 +1006,7 @@ namespace Gurux.DLMS
                 {
                     GetLLCBytes(server, reply);
                 }
-            }           
-            // Skip data CRC and EOP.
-            if (reply.Position != reply.Size)
-            {
-                reply.Size = (UInt16)(eopPos - 2);
-            }
+            }                      
             return frame;
         }
 
@@ -1069,13 +1070,8 @@ namespace Gurux.DLMS
                         settings.ServerAddress == target)
                     {
                         reply.Position = (UInt16)(index + 1);
-                        return false;
                     }
-                    throw new GXDLMSException(
-                            "Destination addresses do not match. It is "
-                                    + target.ToString() + ". It should be "
-                                    + settings.ClientAddress.ToString()
-                                    + ".");
+                    return false;
                 }
                 // Check that server addresses match.
                 if (settings.ServerAddress != source)
@@ -1088,11 +1084,7 @@ namespace Gurux.DLMS
                     GetServerAddress(settings.ServerAddress, out logical, out physical);
                     if (readLogical != logical || readPhysical != physical)
                     {
-                        throw new GXDLMSException(
-                                "Source addresses do not match. It is "
-                                        + source.ToString() + ". It should be "
-                                        + settings.ServerAddress.ToString()
-                                        + ".");
+                        return false;
                     }
                 }
             }
@@ -1131,6 +1123,10 @@ namespace Gurux.DLMS
             if (!data.IsComplete)
             {
                 buff.Position = pos;
+            }
+            else
+            {
+                data.PacketLength = buff.Position + value;
             }
         }
 
@@ -1215,11 +1211,9 @@ namespace Gurux.DLMS
         /// <param name="data">Received data from the client.</param>
         static bool HandleReadResponse(GXReplyData data)
         {
-            UInt16 pos = data.Data.Position;
             //If we are reading more than one value it is handled later.
             if (GXCommon.GetObjectCount(data.Data) != 1)
             {
-                data.Data.Position = pos;
                 GetDataFromBlock(data.Data, 0);
                 return false;
             }
@@ -1390,9 +1384,9 @@ namespace Gurux.DLMS
                 // Get Block number.
                 number = data.GetUInt32();
                 //If meter's block index is zero based.
-                if (number == 0 && settings.BlockIndex == 1)
+                if (number != 1 && settings.BlockIndex == 1)
                 {
-                    settings.BlockIndex = 0;
+                    settings.BlockIndex = (uint) number;
                 }
                 UInt32 expectedIndex = settings.BlockIndex;
                 if (number != expectedIndex)
@@ -1410,12 +1404,12 @@ namespace Gurux.DLMS
                 if (data.Position != data.Size)
                 {
                     // Get data size.
-                    reply.BlockLength = GXCommon.GetObjectCount(data);
+                    int blockLength = GXCommon.GetObjectCount(data);
                     // if whole block is read.
                     if ((reply.MoreData & RequestTypes.Frame) == 0)
                     {
                         // Check Block length.
-                        if (reply.BlockLength > data.Size - data.Position)
+                        if (blockLength > data.Size - data.Position)
                         {
                             throw new OutOfMemoryException();
                         }
@@ -1436,6 +1430,8 @@ namespace Gurux.DLMS
             else if (type == 3)
             {
                 //Get response with list.
+                //Get object count.
+                GXCommon.GetObjectCount(data);
                 GetDataFromBlock(data, 0);
                 return false;
             }
@@ -1484,8 +1480,8 @@ namespace Gurux.DLMS
                     return;
                 }
             }
-            GetPdu(settings, data);
             GetDataFromBlock(data.Data, index);
+            GetPdu(settings, data);
             //Is Last block, 
             if ((ch & 0x80) == 0)
             {
@@ -1498,11 +1494,11 @@ namespace Gurux.DLMS
             // Get data if all data is read or we want to peek data.
             if (data.Data.Position != data.Data.Size
                     && (data.Command == Command.ReadResponse
-                            || data.Command == Command.GetResponse
-                            || data.Command == Command.DataNotification)
+                            || data.Command == Command.GetResponse)
                     && (data.MoreData == RequestTypes.None
                             || data.Peek))
             {
+                data.Data.Position = 0;
                 GetValueFromData(settings, data);
             }
         }
@@ -1624,7 +1620,7 @@ namespace Gurux.DLMS
                         }                       
                         break;
                     case Command.DataNotification:
-                        HandleDataNotification(data);
+                        HandleDataNotification(settings, data);
                         //Client handles this.
                         break;
                     default:
@@ -1692,21 +1688,22 @@ namespace Gurux.DLMS
             }
         }
 
-        private static void HandleDataNotification(GXReplyData data)
+        private static void HandleDataNotification(GXDLMSSettings settings, GXReplyData reply)
         {
-            int index = data.Data.Position - 1;
+            int start = reply.Data.Position - 1;
             //Get invoke id.
-            data.Data.GetUInt32();
-            data.Time = DateTime.MinValue;
-            int len = data.Data.GetUInt8();
+            reply.Data.GetUInt32();
+            reply.Time = DateTime.MinValue;
+            int len = reply.Data.GetUInt8();
             // If date time is given.
             if (len != 0)
             {
                 byte[] tmp = new byte[len];
-                data.Data.Get(tmp);
-                data.Time = (GXDateTime)GXDLMSClient.ChangeType(tmp, DataType.DateTime);
+                reply.Data.Get(tmp);
+                reply.Time = (GXDateTime)GXDLMSClient.ChangeType(tmp, DataType.DateTime);
             }
-            GetDataFromBlock(data.Data, index);
+            GetDataFromBlock(reply.Data, start);
+            GetValueFromData(settings, reply);
         }
 
         /// <summary>
@@ -1739,6 +1736,10 @@ namespace Gurux.DLMS
                             reply.DataType = info.Type;
                             reply.Value = value;
                             reply.TotalCount = 0;
+                            if (reply.Command == Command.DataNotification)
+                            {
+                                reply.ReadPosition = data.Position;
+                            }
                         }
                         else
                         {
@@ -1763,6 +1764,12 @@ namespace Gurux.DLMS
                         }
                     }
                 }
+                else if (info.Compleate
+                    && reply.Command == Command.DataNotification)
+                {
+                    // If last item is null. This is a special case.
+                    reply.ReadPosition = data.Position;
+                }
             }
             finally
             {
@@ -1770,7 +1777,8 @@ namespace Gurux.DLMS
             }
 
             // If last data frame of the data block is read.
-            if (reply.MoreData == RequestTypes.None)
+            if (reply.Command != Command.DataNotification
+                && info.Compleate && reply.MoreData == RequestTypes.None)
             {
                 // If all blocks are read.
                 settings.ResetBlockIndex();
@@ -1801,7 +1809,7 @@ namespace Gurux.DLMS
                 return false;
             }
 
-            GetDataFromFrame(reply, data.Data);
+            GetDataFromFrame(reply, data);
             // If keepalive or get next frame request.
             if ((frame & 0x1) != 0)
             {
@@ -1809,6 +1817,22 @@ namespace Gurux.DLMS
             }
 
             GetPdu(settings, data);
+
+            if (data.Command == Command.DataNotification)
+            {
+                // Check is there more messages left. 
+                // This is Push message special case.
+                if (reply.Position == reply.Size)
+                {
+                    reply.Clear();
+                }
+                else
+                {
+                    int cnt = reply.Size - reply.Position;
+                    reply.Move(reply.Position, 0, cnt);
+                    reply.Position = 0;
+                }
+            }
             return true;
         }
 
@@ -1816,15 +1840,17 @@ namespace Gurux.DLMS
         /// Get data from HDLC or wrapper frame.
         /// </summary>
         /// <param name="reply">Received data that includes HDLC frame.</param>
-        /// <param name="data"> Stored data.</param>
-        private static void GetDataFromFrame(GXByteBuffer reply, GXByteBuffer data)
+        /// <param name="info">Reply data.</param>
+        private static void GetDataFromFrame(GXByteBuffer reply, GXReplyData info)
         {
+            GXByteBuffer data = info.Data;
             UInt16 offset = data.Size;
-            int cnt = reply.Size - reply.Position;
+            int cnt = info.PacketLength - reply.Position;
             if (cnt != 0)
             {
                 data.Capacity = (UInt16)(offset + cnt);
                 data.Set(reply.Data, reply.Position, cnt);
+                reply.Position = (UInt16)(reply.Position + cnt);
             }
             // Set position to begin of new data.
             data.Position = offset;

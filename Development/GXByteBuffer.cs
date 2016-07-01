@@ -144,6 +144,7 @@ namespace Gurux.DLMS
                         else
                         {
                             Buffer.BlockCopy(tmp, 0, Data, 0, Capacity);
+                            Size = Capacity;
                         }
                     }
                 }
@@ -159,13 +160,24 @@ namespace Gurux.DLMS
             set;
         }
 
+        UInt16 size;
         /// <summary>
         /// Byte buffer data size.
         /// </summary>
         public UInt16 Size
         {
-            get;
-            set;
+            get
+            {
+                return size;
+            }
+            set
+            {
+                size = value;
+                if (size > 1000)
+                {
+                    System.Diagnostics.Debug.WriteLine("Mikko: " + value);
+                }
+            }
         }
 
         /// <summary>

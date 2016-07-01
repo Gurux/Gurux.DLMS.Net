@@ -50,7 +50,7 @@ namespace Gurux.DLMS.Objects.Enums
         /// <remarks>
         /// When circle buffer is full first item is removed.
         /// </remarks>
-        FiFo = 0,
+        FiFo = 1,
         /// <summary>
         /// Last in first out.
         /// </summary>

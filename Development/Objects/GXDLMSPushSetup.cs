@@ -74,7 +74,7 @@ namespace Gurux.DLMS.Objects
         {
             CommunicationWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
             SendDestinationAndMethod = new GXSendDestinationAndMethod();
-            PushObjectList = new List<GXDLMSPushObject>();
+            PushObjectList = new List<KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
         }        
         
         /// <summary>
@@ -83,7 +83,7 @@ namespace Gurux.DLMS.Objects
         /// defined in send_destination_and_method.
         /// </summary>        
         [XmlIgnore()]
-        public List<GXDLMSPushObject> PushObjectList
+        public List<KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> PushObjectList
         {
             get;
             internal set;
@@ -259,14 +259,14 @@ namespace Gurux.DLMS.Objects
             {
                 buff.SetUInt8(DataType.Array);
                 GXCommon.SetObjectCount(PushObjectList.Count, buff);
-                foreach (GXDLMSPushObject it in PushObjectList)
+                foreach (KeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in PushObjectList)
                 {
                     buff.SetUInt8(DataType.Structure);
                     buff.SetUInt8(4);
-                    GXCommon.SetData(buff, DataType.UInt16, it.Type);
-                    GXCommon.SetData(buff, DataType.OctetString, it.LogicalName);
-                    GXCommon.SetData(buff, DataType.Int8, it.AttributeIndex);
-                    GXCommon.SetData(buff, DataType.UInt16, it.DataIndex);
+                    GXCommon.SetData(buff, DataType.UInt16, it.Key.ObjectType);
+                    GXCommon.SetData(buff, DataType.OctetString, it.Key.LogicalName);
+                    GXCommon.SetData(buff, DataType.Int8, it.Value.AttributeIndex);
+                    GXCommon.SetData(buff, DataType.UInt16, it.Value.DataIndex);
                 }
                 return buff.Array();                
             }
@@ -329,12 +329,16 @@ namespace Gurux.DLMS.Objects
                     foreach (object it in e.Value as Object[])
                     {
                         Object[] tmp = it as Object[];
-                        GXDLMSPushObject obj = new GXDLMSPushObject();
-                        obj.Type = (ObjectType)Convert.ToUInt16(tmp[0]);
-                        obj.LogicalName = GXDLMSClient.ChangeType((byte[])tmp[1], DataType.OctetString).ToString();
-                        obj.AttributeIndex = Convert.ToInt32(tmp[2]);
-                        obj.DataIndex = Convert.ToUInt16(tmp[3]);
-                        PushObjectList.Add(obj);
+                        ObjectType type = (ObjectType)Convert.ToUInt16(tmp[0]);
+                        String ln = GXDLMSClient.ChangeType((byte[])tmp[1], DataType.OctetString).ToString();
+                        GXDLMSObject obj = settings.Objects.FindByLN(type, ln);
+                        if (obj == null)
+                        {
+                            obj = GXDLMSClient.CreateObject(type);
+                            obj.LogicalName = ln;
+                        }
+                        GXDLMSCaptureObject co = new GXDLMSCaptureObject(Convert.ToInt32(tmp[2]), Convert.ToInt32(tmp[3]));
+                        PushObjectList.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, co));
                     }
                 }
             }

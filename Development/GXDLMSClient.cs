@@ -984,11 +984,6 @@ namespace Gurux.DLMS
         {
             Object value;
             GXDataInfo info = new GXDataInfo();
-            int cnt = GXCommon.GetObjectCount(data);
-            if (cnt != list.Count)
-            {
-                throw new Exception("Invalid reply. Read items count do not match.");
-            }
             foreach (KeyValuePair<GXDLMSObject, int> it in list)
             {
                 int ret = data.GetUInt8();
@@ -1414,16 +1409,27 @@ namespace Gurux.DLMS
                 throw new ArgumentOutOfRangeException("Invalid parameter.");
             }
             Settings.ResetBlockIndex();
-
+            List<byte[]> messages = new List<byte[]>();
             Command cmd;
             GXByteBuffer bb = new GXByteBuffer();
             if (this.UseLogicalNameReferencing)
             {
                 cmd = Command.GetRequest;
-                // Add length.
-                GXCommon.SetObjectCount(list.Count, bb);
-                foreach (KeyValuePair<GXDLMSObject, int> it in list)
+                //Request service primitive shall always fit in a single APDU.
+                int pos = 0, count = (Settings.MaxReceivePDUSize - 12) / 10;
+                if (list.Count < count)
                 {
+                    count = list.Count;
+                }
+                //All meters can handle 10 items.
+                if (count > 10)
+                {
+                    count = 10;
+                }
+                // Add length.
+                GXCommon.SetObjectCount(count, bb);
+                foreach (KeyValuePair<GXDLMSObject, int> it in list)
+                {                    
                     // CI.
                     bb.SetUInt16((UInt16)it.Key.ObjectType);
                     String[] items = it.Key.LogicalName.Split('.');
@@ -1439,6 +1445,20 @@ namespace Gurux.DLMS
                     bb.SetUInt8((byte)it.Value);
                     // Attribute selector is not used.
                     bb.SetUInt8(0);
+                    ++pos;
+                    if (pos % count == 0 && list.Count != pos)
+                    {
+                        messages.AddRange(GXDLMS.GetMessages(Settings, cmd, 3, bb, DateTime.MinValue));
+                        bb.Clear();
+                        if (list.Count - pos < count)
+                        {
+                            GXCommon.SetObjectCount(list.Count - pos, bb);
+                        }
+                        else
+                        {
+                            GXCommon.SetObjectCount(count, bb);
+                        }
+                    }
                 }
             }
             else
@@ -1455,7 +1475,8 @@ namespace Gurux.DLMS
                     bb.SetUInt16((UInt16)sn);
                 }
             }
-            return GXDLMS.GetMessages(Settings, cmd, 3, bb, DateTime.MinValue);
+            messages.AddRange(GXDLMS.GetMessages(Settings, cmd, 3, bb, DateTime.MinValue));
+            return messages.ToArray();
         }
 
         /// <summary>

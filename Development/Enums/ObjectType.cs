@@ -401,6 +401,9 @@ namespace Gurux.DLMS.Enums
         ///is represented as an instance, and identified by its logical name.
         ///</summary>
         [XmlEnum("26")]
-        UtilityTables = 26
+        UtilityTables = 26,
+
+        [XmlEnum("115")]
+        Token = 115
     }
 }

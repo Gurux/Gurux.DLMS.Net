@@ -5,17 +5,32 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{A6D49A2D-3991-44F5-AE6B-4C16F5C55D19}</ProjectGuid>
+    <ProjectGuid>{60FE2A68-A783-4F3F-B034-2657E9718F66}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Gurux.DLMS.Client.Example.Net_2010</RootNamespace>
-    <AssemblyName>Gurux.DLMS.Client.Example.Net_2010</AssemblyName>
+    <RootNamespace>GuruxDLMSServerExample</RootNamespace>
+    <AssemblyName>GuruxDLMSServerExample</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <OldToolsVersion>3.5</OldToolsVersion>
     <UpgradeBackupLocation />
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -36,23 +51,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Gurux.Common, Version=7.0.2.1, Culture=neutral, PublicKeyToken=00bee6c3930228bf, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.Common.7.0.33.1\lib\net35\Gurux.Common.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Gurux.DLMS, Version=8.2.0.7, Culture=neutral, PublicKeyToken=93fe906382db03b2, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.DLMS.8.2.0.7\lib\net35\Gurux.DLMS.dll</HintPath>
+      <HintPath>..\packages\Gurux.Common.7.0.33.1\lib\net35\Gurux.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Gurux.Net, Version=7.0.28.1, Culture=neutral, PublicKeyToken=ca111c9ecfaf947d, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.Net.7.0.28.1\lib\net35\Gurux.Net.dll</HintPath>
+      <HintPath>..\packages\Gurux.Net.7.0.28.1\lib\net35\Gurux.Net.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Gurux.Serial, Version=7.0.2.1, Culture=neutral, PublicKeyToken=ab7382566107b371, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.Serial.7.0.23.1\lib\net35\Gurux.Serial.dll</HintPath>
+      <HintPath>..\packages\Gurux.Serial.7.0.23.1\lib\net35\Gurux.Serial.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib, Version=0.85.4.369, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
-      <HintPath>packages\ICSharpCode.SharpZipLib.dll.0.85.4.369\lib\net20\ICSharpCode.SharpZipLib.dll</HintPath>
+      <HintPath>..\packages\ICSharpCode.SharpZipLib.dll.0.85.4.369\lib\net20\ICSharpCode.SharpZipLib.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -69,17 +80,42 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GXCommunicatation.cs" />
+    <Compile Include="GXDLMSPushListener.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Gurux.Common.XML" />
     <Content Include="Gurux.Net.XML" />
     <Content Include="Gurux.Serial.XML" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Development\Gurux.DLMS.csproj">
+      <Project>{EFD71BFF-AD54-45ED-B473-305813C2F83A}</Project>
+      <Name>Gurux.DLMS</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

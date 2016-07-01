@@ -95,9 +95,9 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
-        /// Block length. 
+        /// Packet length. 
         ///</summary>
-        public int BlockLength
+        public int PacketLength
         {
             get;
             set;
@@ -192,7 +192,7 @@ namespace Gurux.DLMS
             Value = null;
             ReadPosition = 0;
             Gbt = false;
-            BlockLength = 0;
+            PacketLength = 0;
             DataType = DataType.None;
             CipherIndex = 0;
             Time = DateTime.MinValue;

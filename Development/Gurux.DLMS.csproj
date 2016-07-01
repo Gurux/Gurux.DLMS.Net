@@ -207,7 +207,6 @@
     <Compile Include="Objects\GXDLMSPppSetupLcpOption.cs" />
     <Compile Include="Objects\Enums\PppSetupLcpOptionType.cs" />
     <Compile Include="Objects\GXDLMSProfileGeneric.cs" />
-    <Compile Include="Objects\GXDLMSPushObject.cs" />
     <Compile Include="Objects\GXDLMSPushSetup.cs" />
     <Compile Include="Objects\GXDLMSQosElement.cs" />
     <Compile Include="Objects\GXDLMSRegister.cs" />

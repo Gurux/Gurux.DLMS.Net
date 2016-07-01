@@ -50,7 +50,7 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary> 
         public GXDLMSDisconnectControl()
-            : base(ObjectType.DisconnectControl)
+            : this("0.0.96.3.10.255")
         {
         }
 
@@ -59,7 +59,7 @@ namespace Gurux.DLMS.Objects
         /// </summary> 
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSDisconnectControl(string ln)
-            : base(ObjectType.DisconnectControl, ln, 0)
+            : this(ln, 0)
         {
         }
 

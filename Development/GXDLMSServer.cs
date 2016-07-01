@@ -811,7 +811,7 @@ namespace Gurux.DLMS
                             if (value is byte[])
                             {
                                 DataType dt = (obj as IGXDLMSBase).GetDataType(index);
-                                if (dt != DataType.None)
+                                if (dt != DataType.None && dt != DataType.OctetString)
                                 {
                                     value = GXDLMSClient.ChangeType((byte[])value, dt);
                                 }
@@ -1061,7 +1061,7 @@ namespace Gurux.DLMS
                     {
                         transaction = new GXDLMSLongTransaction(list.ToArray(), Command.GetRequest, null);
                     }
-                    pos++;
+                    ++pos;
                 }
                 GXDLMS.GetLNPdu(Settings, Command.GetResponse, 3, bb, replyData, 0xFF, GXDLMS.MultipleBlocks(Settings, bb), true, DateTime.MinValue);
             }

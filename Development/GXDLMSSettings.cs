@@ -141,7 +141,7 @@ namespace Gurux.DLMS
             DLMSVersion = 6;
             InvokeID = 0x1;
             Priority = Priority.High;
-            ServiceClass = ServiceClass.Confirmed;
+            ServiceClass = ServiceClass.UnConfirmed;
             MaxReceivePDUSize = DefaultMaxReceivePduSize;
             Server = isServer;
             Objects = new GXDLMSObjectCollection();

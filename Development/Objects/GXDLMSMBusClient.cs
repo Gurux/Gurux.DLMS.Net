@@ -471,10 +471,13 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 3)
             {
                 CaptureDefinition.Clear();
-                foreach (object[] it in (object[])e.Value)
-                {                    
-                    CaptureDefinition.Add(new KeyValuePair<string, string>(GXDLMSClient.ChangeType((byte[])it[0], DataType.OctetString).ToString(),
-                        GXDLMSClient.ChangeType((byte[])it[1], DataType.OctetString).ToString()));
+                if (e.Value != null)
+                {
+                    foreach (object[] it in (object[])e.Value)
+                    {
+                        CaptureDefinition.Add(new KeyValuePair<string, string>(GXDLMSClient.ChangeType((byte[])it[0], DataType.OctetString).ToString(),
+                            GXDLMSClient.ChangeType((byte[])it[1], DataType.OctetString).ToString()));
+                    }
                 }
             }
             else if (e.Index == 4)

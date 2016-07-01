@@ -401,10 +401,25 @@ namespace Gurux.DLMS.Client.Example
         /// </summary>
         public void ReadList(List<KeyValuePair<GXDLMSObject, int>> list)
         {
+            GXByteBuffer bb = new GXByteBuffer();
+            int cnt = 0;
             byte[][] data = Client.ReadList(list);
             GXReplyData reply = new GXReplyData();
-            ReadDataBlock(data, reply);
-            Client.UpdateValues(list, reply.Data);
+            foreach (byte[] it in data)
+            {
+                reply.Clear();
+                ReadDataBlock(it, reply);
+                if (reply.IsComplete)
+                {
+                    cnt += GXDLMSBuilder.GetObjectCount(reply.Data);
+                    bb.Set(reply.Data);
+                }
+            }
+            if (cnt != list.Count)
+            {
+                throw new Exception("Invalid reply. Read items count do not match.");
+            }
+            Client.UpdateValues(list, bb);
         }
 
         /// <summary>

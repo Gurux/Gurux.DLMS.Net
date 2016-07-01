@@ -56,21 +56,25 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine("GuruxDlmsSample reads data from the DLMS/COSEM device.");
             Console.WriteLine("Note! Before first use update initial settings with /u.");
             Console.WriteLine("");
-            Console.WriteLine("GuruxDlmsSample /m=lgz /h=www.gurux.org /p=1000 [/s=] [/u]");
+            Console.WriteLine("GuruxDlmsSample /m=lgz /h=[Meter IP Address] /p=[Meter Port No] [/s=] [/u]");
             Console.WriteLine(" /u\t Update meter settings from Gurux web portal.");
             Console.WriteLine(" /m=\t manufacturer identifier.");
             Console.WriteLine(" /sp=\t serial port.");
-            Console.WriteLine(" /h=\t host name.");
+            Console.WriteLine(" /h=\t host name or IP address.");
             Console.WriteLine(" /p=\t port number or name (Example: 1000).");
             Console.WriteLine(" /s=\t start protocol (IEC or DLMS).");
             Console.WriteLine(" /a=\t Authentication (None, Low, High).");
             Console.WriteLine(" /pw=\t Password for authentication.");
-            Console.WriteLine(" /t\t Trace messages.");
+            Console.WriteLine(" /client=\t Client address.");
+            Console.WriteLine(" /server=\t Server address.");
+            Console.WriteLine(" /r=[sn, LN]\t Short name or Logican Name referencing is used.");
+            Console.WriteLine(" /wrapper\t wrapper is used.");
             Console.WriteLine("Example:");
             Console.WriteLine("Read LG device using TCP/IP connection.");
-            Console.WriteLine("GuruxDlmsSample /m=lgz /h=www.gurux.org /p=1000");
+            Console.WriteLine("GuruxDlmsSample /m=lgz /h=[Meter IP Address] /p=[Meter Port No]");
             Console.WriteLine("Read LG device using serial port connection.");
             Console.WriteLine("GuruxDlmsSample /m=lgz /sp=COM1 /s=DLMS");
+            Console.WriteLine("GuruxDlmsSample /sp=COM1 /s=DLMS /client=16 /server=1 /sn /wrapper");
         }
 
         static void Trace(TextWriter writer, string text)
@@ -94,8 +98,9 @@ namespace Gurux.DLMS.Client.Example
                 TextWriter logFile = new StreamWriter(File.Open("LogFile.txt", FileMode.Create));
                 ////////////////////////////////////////
                 //Handle command line parameters.
-                String id = "", host = "", port = "", pw = "";
+                String sn, client = "", server = "", id = "", host = "", port = "", pw = "";
                 bool trace = false, iec = true;
+                bool hdlc = true, ln = true;
                 Authentication auth = Authentication.None;
                 foreach (string it in args)
                 {
@@ -105,9 +110,29 @@ namespace Gurux.DLMS.Client.Example
                         //Get latest manufacturer settings from Gurux web server.
                         GXManufacturerCollection.UpdateManufactureSettings();
                     }
+                    else if (item.StartsWith("/sn="))//Serial number.
+                    {
+                        sn = item.Replace("/sn=", "");
+                    }
+                    else if (string.Compare(item, "/wrapper", true) == 0)//Wrapper is used.
+                    {
+                        hdlc = false;
+                    }
+                    else if (item.StartsWith("/r="))//referencing
+                    {
+                        id = item.Replace("/r=", "");
+                    }
                     else if (item.StartsWith("/m="))//Manufacturer
                     {
                         id = item.Replace("/m=", "");
+                    }
+                    else if (item.StartsWith("/client="))//Client address
+                    {
+                        client = item.Replace("/client=", "");
+                    }
+                    else if (item.StartsWith("/server="))//Server address
+                    {
+                        server = item.Replace("/server=", "");
                     }
                     else if (item.StartsWith("/h=")) //Host
                     {
@@ -248,10 +273,6 @@ namespace Gurux.DLMS.Client.Example
                             {
                                 list.Add(new KeyValuePair<GXDLMSObject, int>(it, 4));
                             }
-                            if (list.Count == 1)
-                            {
-                                break;
-                            }
                         }
                         comm.ReadList(list);
                     }
@@ -261,15 +282,22 @@ namespace Gurux.DLMS.Client.Example
                         //Read values one by one.
                         foreach (GXDLMSObject it in objs)
                         {
-                            if (it is GXDLMSRegister)
+                            try
                             {
-                                Console.WriteLine(it.Name);
-                                comm.Read(it, 3);
+                                if (it is GXDLMSRegister)
+                                {
+                                    Console.WriteLine(it.Name);
+                                    comm.Read(it, 3);
+                                }
+                                if (it is GXDLMSDemandRegister)
+                                {
+                                    Console.WriteLine(it.Name);
+                                    comm.Read(it, 4);
+                                }
                             }
-                            if (it is GXDLMSDemandRegister)
+                            catch
                             {
-                                Console.WriteLine(it.Name);
-                                comm.Read(it, 4);
+                                //Actaric SL7000 can return error here. Continue reading.
                             }
                         }
                     }
@@ -327,7 +355,6 @@ namespace Gurux.DLMS.Client.Example
                         Console.WriteLine(it.Name + " " + it.Description);
                     }
                 }
-                Thread.Sleep(1000);
                 foreach (GXDLMSObject it in objects)
                 {
                     // Profile generics are read later because they are special cases.
@@ -405,7 +432,6 @@ namespace Gurux.DLMS.Client.Example
                         }
                     }
                 }
-                Thread.Sleep(1000);
                 //Find profile generics and read them.                
                 foreach (GXDLMSObject it in objects.GetObjects(ObjectType.ProfileGeneric))
                 {
@@ -421,7 +447,7 @@ namespace Gurux.DLMS.Client.Example
                     try
                     {
                         //Read first row from Profile Generic.
-                        object[] rows = comm.ReadRowsByEntry(it as GXDLMSProfileGeneric, 0, 1);
+                        object[] rows = comm.ReadRowsByEntry(it as GXDLMSProfileGeneric, 1, 1);
                         StringBuilder sb = new StringBuilder();
                         foreach (object[] row in rows)
                         {
