@@ -37,113 +37,106 @@ using System.Collections.Generic;
 using System.Text;
 using Gurux.DLMS;
 using System.ComponentModel;
+using System.Xml.Serialization;
 using Gurux.DLMS.Enums;
 
-namespace Gurux.DLMS.ManufacturerSettings
+namespace Gurux.DLMS.Objects
 {
+
     /// <summary>
-    /// Authentication class is used to give authentication iformation to the server.
+    /// Executed scripts.
     /// </summary>
-    [Serializable]
-    public class GXAuthentication
+    public class GXScheduleEntry
     {
-        public GXAuthentication()
-        {            
-        }
-
-        public override string ToString()
-        {
-            return Type.ToString();
-        }
-
         /// <summary>
-        /// Constructor.
+        /// Schedule entry index.
         /// </summary>
-        /// <param name="auth">Authentication type</param>
-        /// <param name="clientAddress">Client address.</param>
-        public GXAuthentication(Authentication type, int clientAddress) :
-            this(type, "", clientAddress)
-        {
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="auth">Authentication type</param>
-        /// <param name="pw">Used password.</param>
-        /// <param name="clientAddress">Client address.</param>
-        public GXAuthentication(Authentication type, string pw, int clientAddress)
-        {
-            Type = type;
-            if (type == Authentication.None)
-            {
-                Password = "";
-            }
-            else
-            {
-                Password = pw;
-            }
-            ClientAddress = clientAddress;
-        }       
-
-        /// <summary>
-        /// Is authentication selected.
-        /// </summary>
-        [Browsable(false)]
-        [DefaultValue(false)]
-        public bool Selected
+        public byte Index
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Authentication type
+        /// Is Schedule entry enabled.
         /// </summary>
-        [Browsable(false)]
-        public Authentication Type
+        public bool Enable
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Client address.
+        /// Logical name of the Script table object.
         /// </summary>
-        [Browsable(false)]
-        [DefaultValue(0)]
-        public int ClientAddress
+        public string LogicalName
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Client address has replace this. Opsolite
+        /// Script identifier of the script to be executed. 
         /// </summary>
-        [Browsable(false)]
-        [DefaultValue(0)]
-        public object ClientID
-        {
-            get
-            {
-                return ClientAddress;
-            }
-            set
-            {
-                ClientAddress = Convert.ToInt32(value);
-            }
-        }
-
-        /// <summary>
-        /// Used password.
-        /// </summary>
-        [Browsable(false)]
-        [DefaultValue(null)]
-        public string Password
+        public byte ScriptSelector
         {
             get;
             set;
-        }       
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public GXDateTime SwitchTime
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Defines a period in minutes, in which an entry shall be processed after power fail. 
+        /// </summary>
+        public byte ValidityWindow
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Days of the week on which the entry is valid.
+        /// </summary>
+        public String ExecWeekdays
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Perform the link to the IC �Special days table�, day_id.
+        /// </summary>
+        public String ExecSpecDays
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Date starting period in which the entry is valid.
+        /// </summary>
+        public GXDateTime BeginDate
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Date starting period in which the entry is valid.
+        /// </summary>
+        public GXDateTime EndDate
+        {
+            get;
+            set;
+        }
     }
+
 }

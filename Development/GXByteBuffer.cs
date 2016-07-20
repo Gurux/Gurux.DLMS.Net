@@ -46,6 +46,9 @@ namespace Gurux.DLMS
     /// </summary>
     public class GXByteBuffer
     {
+        private UInt16 position;
+        private UInt16 size;
+
         /// <summary>
         /// Array capacity increase size.
         /// </summary>
@@ -156,11 +159,20 @@ namespace Gurux.DLMS
         /// </summary>
         public UInt16 Position
         {
-            get;
-            set;
+            get
+            {
+                return position;
+            }
+            set
+            {
+                if (value > Size)
+                {
+                    throw new ArgumentOutOfRangeException("Position");
+                }
+                position = value;
+            }
         }
 
-        UInt16 size;
         /// <summary>
         /// Byte buffer data size.
         /// </summary>
@@ -172,11 +184,11 @@ namespace Gurux.DLMS
             }
             set
             {
-                size = value;
-                if (size > 1000)
+                if (value > Capacity)
                 {
-                    System.Diagnostics.Debug.WriteLine("Mikko: " + value);
+                    throw new ArgumentOutOfRangeException("Size");
                 }
+                size = value;
             }
         }
 

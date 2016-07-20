@@ -80,22 +80,22 @@ namespace Gurux.DLMS.Secure
             byte[] tmp;
             if (settings.Authentication == Authentication.High)
             {
-                byte[] p = new byte[secret.Length + (16 - (secret.Length % 16))];
+                int len = secret.Length;
+                if (len % 16 != 0)
+                {
+                    len += 16 - (secret.Length % 16);
+                }
+                byte[] p = new byte[len];
                 byte[] s = new byte[16];
                 byte[] x = new byte[16];
                 int i;
                 data.CopyTo(p, 0);
                 secret.CopyTo(s, 0);
-                int len = 16;
                 for (i = 0; i < p.Length; i += 16)
                 {
-                    if (p.Length - i < 16)
-                    {
-                        len = p.Length - i;
-                    }
-                    Buffer.BlockCopy(p, i, x, 0, len);
+                    Buffer.BlockCopy(p, i, x, 0, 16);
                     GXAes128.Encrypt(x, s);
-                    Buffer.BlockCopy(x, 0, p, i, len);
+                    Buffer.BlockCopy(x, 0, p, i, 16);
                 }
                 Buffer.BlockCopy(p, 0, x, 0, 16);
                 return x;
@@ -165,11 +165,7 @@ namespace Gurux.DLMS.Secure
             byte[] result = new byte[len];
             for (int pos = 0; pos != len; ++pos)
             {
-                // Allow printable characters only.
-                do
-                {
-                    result[pos] = (byte)r.Next(0x7A);
-                } while (result[pos] < 0x21);
+                result[pos] = (byte)r.Next(0x7A);
             }
             return result;
         }

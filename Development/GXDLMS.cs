@@ -1865,6 +1865,11 @@ namespace Gurux.DLMS
         private static int GetDataFromBlock(GXByteBuffer data,
                 int index)
         {
+            if (data.Size == data.Position)
+            {
+                data.Clear();
+                return 0;
+            }
             int len = data.Position - index;
             System.Buffer.BlockCopy(data.Data, data.Position, data.Data,
                     data.Position - len, data.Size - data.Position);

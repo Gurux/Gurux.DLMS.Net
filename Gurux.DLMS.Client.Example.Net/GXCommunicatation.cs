@@ -47,13 +47,14 @@ using System.IO;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 using System.Threading;
+using Gurux.DLMS.Secure;
 
 namespace Gurux.DLMS.Client.Example
 {
     class GXCommunicatation
     {
         public bool Trace = false;
-        public Gurux.DLMS.GXDLMSClient Client;
+        public GXDLMSSecureClient Client;
         int WaitTime = 5000;
         IGXMedia Media;
         bool InitializeIEC;
@@ -63,7 +64,7 @@ namespace Gurux.DLMS.Client.Example
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXCommunicatation(Gurux.DLMS.GXDLMSClient dlms, IGXMedia media, bool initializeIEC, Authentication authentication, string password)
+        public GXCommunicatation(GXDLMSSecureClient dlms, IGXMedia media, bool initializeIEC, Authentication authentication, string password)
         {
             Client = dlms;
             Media = media;
@@ -125,14 +126,29 @@ namespace Gurux.DLMS.Client.Example
             Client.UseLogicalNameReferencing = Manufacturer.UseLogicalNameReferencing;
             //If network media is used check is manufacturer supporting IEC 62056-47
             GXServerAddress server = Manufacturer.GetServer(HDLCAddressing);
-            Client.ClientAddress = Manufacturer.GetAuthentication(Client.Authentication).ClientAddress;
-            if (HDLCAddressing == HDLCAddressType.SerialNumber)
+           //Mikko Client.ClientAddress = Manufacturer.GetAuthentication(Client.Authentication).ClientAddress;
+            if (Client.InterfaceType == InterfaceType.WRAPPER)
             {
-                Client.ServerAddress = GXDLMSClient.GetServerAddress(server.PhysicalAddress, server.Formula);
+                if (HDLCAddressing == HDLCAddressType.SerialNumber)
+                {
+                    Client.ServerAddress = GXDLMSClient.GetServerAddress(server.PhysicalAddress, server.Formula);
+                }
+                else
+                {
+                    Client.ServerAddress = server.PhysicalAddress;
+                }
+                Client.ServerAddress = Client.ClientAddress = 1; 
             }
             else
             {
-                Client.ServerAddress = GXDLMSClient.GetServerAddress(server.LogicalAddress, server.PhysicalAddress);
+                if (HDLCAddressing == HDLCAddressType.SerialNumber)
+                {
+                    Client.ServerAddress = GXDLMSClient.GetServerAddress(server.PhysicalAddress, server.Formula);
+                }
+                else
+                {
+                    Client.ServerAddress = GXDLMSClient.GetServerAddress(server.LogicalAddress, server.PhysicalAddress);
+                }
             }
         }
 

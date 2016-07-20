@@ -517,19 +517,21 @@ namespace Gurux.DLMS
                     default:
                         throw new GXDLMSException("Invalid Exception.");
                 }
+                // RX / TX are delivered from the partner's point of view =>
+                // reversed to ours
                 switch (id)
                 {
                     case HDLCInfo.MaxInfoTX:
-                        Limits.MaxInfoTX = val;
-                        break;
-                    case HDLCInfo.MaxInfoRX:
                         Limits.MaxInfoRX = val;
                         break;
+                    case HDLCInfo.MaxInfoRX:
+                        Limits.MaxInfoTX = val;
+                        break;
                     case HDLCInfo.WindowSizeTX:
-                        Limits.WindowSizeTX = val;
+                        Limits.WindowSizeRX = val;
                         break;
                     case HDLCInfo.WindowSizeRX:
-                        Limits.WindowSizeRX = val;
+                        Limits.WindowSizeTX = val;
                         break;
                     default:
                         throw new GXDLMSException("Invalid UA response.");

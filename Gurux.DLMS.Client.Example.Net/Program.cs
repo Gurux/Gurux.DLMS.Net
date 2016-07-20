@@ -46,6 +46,7 @@ using Gurux.DLMS.Objects;
 using Gurux.Net;
 using Gurux.DLMS.Enums;
 using System.Threading;
+using Gurux.DLMS.Secure;
 
 namespace Gurux.DLMS.Client.Example
 {
@@ -217,7 +218,7 @@ namespace Gurux.DLMS.Client.Example
                 {
                     throw new Exception("Unknown manufacturer: " + id);
                 }
-                GXDLMSClient dlms = new GXDLMSClient();
+                GXDLMSSecureClient dlms = new GXDLMSSecureClient();
                 //Update Obis code list so we can get right descriptions to the objects.
                 dlms.CustomObisCodes = man.ObisCodes;
                 comm = new GXCommunicatation(dlms, media, iec, auth, pw);

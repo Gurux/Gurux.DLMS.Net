@@ -86,7 +86,8 @@ namespace Gurux.DLMS.Internal
                     callingAuthenticationValue = settings.CtoSChallenge;
                     len = callingAuthenticationValue.Length;
                 }
-                data.SetUInt8((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingAuthenticationValue); //0xAC
+                //0xAC
+                data.SetUInt8((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingAuthenticationValue);
                 //Len
                 data.SetUInt8((byte)(2 + len));
                 //Add authentication information.
