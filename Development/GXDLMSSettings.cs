@@ -142,7 +142,7 @@ namespace Gurux.DLMS
             InvokeID = 0x1;
             Priority = Priority.High;
             ServiceClass = ServiceClass.UnConfirmed;
-            MaxReceivePDUSize = DefaultMaxReceivePduSize;
+            MaxServerPDUSize = MaxReceivePDUSize = DefaultMaxReceivePduSize;
             Server = isServer;
             Objects = new GXDLMSObjectCollection();
             Limits = new GXDLMSLimits();
@@ -443,6 +443,15 @@ namespace Gurux.DLMS
         /// Maximum PDU size.
         /// </summary>
         public UInt16 MaxReceivePDUSize
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Server maximum PDU size.
+        /// </summary>
+        public UInt16 MaxServerPDUSize
         {
             get;
             set;

@@ -202,11 +202,11 @@ namespace Gurux.DLMS
         {
             get
             {
-                return Settings.MaxReceivePDUSize;
+                return Settings.MaxServerPDUSize;
             }
             set
             {
-                Settings.MaxReceivePDUSize = value;
+                Settings.MaxServerPDUSize = value;
             }
         }
 
@@ -937,7 +937,6 @@ namespace Gurux.DLMS
                     else
                     {
                         bb.Set(transaction.data);
-                        //replyData.Clear();
                         bool moreData = false;
                         if (Settings.Index != Settings.Count)
                         {
@@ -971,7 +970,7 @@ namespace Gurux.DLMS
                             moreData = GXDLMS.MultipleBlocks(Settings, bb);
                         }
                         GXDLMS.GetLNPdu(Settings, Command.GetResponse, 2, bb, replyData, (byte)ErrorCode.Ok, true, !moreData, DateTime.MinValue);
-                        if (moreData || bb.Size != 0)
+                        if (moreData || bb.Size - bb.Position != 0)
                         {
                             transaction.data = bb;
                         }

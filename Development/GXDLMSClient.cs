@@ -432,7 +432,6 @@ namespace Gurux.DLMS
         {
             Settings.Connected = false;
             IsAuthenticationRequired = false;
-            Settings.MaxReceivePDUSize = 0xFFFF;
             // SNRM request is not used in network connections.
             if (InterfaceType == InterfaceType.WRAPPER)
             {

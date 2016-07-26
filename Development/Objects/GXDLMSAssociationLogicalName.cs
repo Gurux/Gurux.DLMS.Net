@@ -304,19 +304,12 @@ namespace Gurux.DLMS.Objects
         private GXByteBuffer GetObjects(GXDLMSSettings settings)
         {
             GXByteBuffer data = new GXByteBuffer();
-            bool lnExists = ObjectList.FindByLN(ObjectType.AssociationLogicalName, this.LogicalName) != null;
-            //Add count        
-            int cnt = ObjectList.Count();
-            if (!lnExists)
-            {
-                ++cnt;
-            }
             //Add count only for first time.
             if (settings.Index == 0)
             {
                 settings.Count = (UInt16) ObjectList.Count;
                 data.SetUInt8((byte)DataType.Array);
-                GXCommon.SetObjectCount(cnt, data);
+                GXCommon.SetObjectCount(ObjectList.Count, data);
             }
             ushort pos = 0;
             foreach (GXDLMSObject it in ObjectList)
@@ -337,21 +330,6 @@ namespace Gurux.DLMS.Objects
                        break;
                     }
                 }
-            }
-            //Add association view if not exists.
-            if (!lnExists)
-            {
-                data.SetUInt8((byte)DataType.Structure);
-                //Count
-                data.SetUInt8((byte)4);
-                //ClassID
-                GXCommon.SetData(data, DataType.UInt16, this.ObjectType);
-                //Version
-                GXCommon.SetData(data, DataType.UInt8, this.Version);
-                //LN
-                GXCommon.SetData(data, DataType.OctetString, this.LogicalName);
-                //Access rights.
-                GetAccessRights(this, data); 
             }
             return data;
         }

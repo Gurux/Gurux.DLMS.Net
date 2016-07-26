@@ -235,7 +235,7 @@ namespace Gurux.DLMS.Internal
             //AARQ APDU Tag
             data.SetUInt8(BerType.Application | BerType.Constructed);
             //Length is updated later.
-            UInt16 offset = data.Size;
+            int offset = data.Size;
             data.SetUInt8(0);
             ///////////////////////////////////////////
             // Add Application context name.
@@ -375,7 +375,12 @@ namespace Gurux.DLMS.Internal
             if (settings.IsServer)
             {
                 //Proposed max PDU size.
-                data.GetUInt16();
+                settings.MaxReceivePDUSize = data.GetUInt16();
+                //If client asks too high PDU.
+                if (settings.MaxReceivePDUSize > settings.MaxServerPDUSize)
+                {
+                    settings.MaxReceivePDUSize = settings.MaxServerPDUSize;
+                }
             }
             else
             {

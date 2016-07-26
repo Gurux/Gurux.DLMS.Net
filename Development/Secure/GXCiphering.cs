@@ -128,7 +128,7 @@ namespace Gurux.DLMS.Secure
             }
             set
             {
-                if (value != null && value.Length != 8)
+                if (value != null && value.Length != 8 && value.Length != 0)
                 {
                     throw new ArgumentOutOfRangeException("Invalid System Title.");
                 }
@@ -147,7 +147,7 @@ namespace Gurux.DLMS.Secure
             }
             set
             {
-                if (value != null && value.Length != 16)
+                if (value != null && value.Length != 16 && value.Length != 0)
                 {
                     throw new ArgumentOutOfRangeException("Invalid Block Cipher Key.");
                 }
@@ -166,7 +166,7 @@ namespace Gurux.DLMS.Secure
             }
             set
             {
-                if (value != null && value.Length != 16)
+                if (value != null && value.Length != 16 && value.Length != 0)
                 {
                     throw new ArgumentOutOfRangeException("Invalid Authentication Key.");
                 }

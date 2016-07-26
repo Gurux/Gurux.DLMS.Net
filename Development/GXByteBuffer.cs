@@ -46,8 +46,8 @@ namespace Gurux.DLMS
     /// </summary>
     public class GXByteBuffer
     {
-        private UInt16 position;
-        private UInt16 size;
+        private int position;
+        private int size;
 
         /// <summary>
         /// Array capacity increase size.
@@ -83,7 +83,7 @@ namespace Gurux.DLMS
         ///</param>        
         public GXByteBuffer(byte[] value)
         {
-            Capacity = (UInt16)value.Length;
+            Capacity = value.Length;
             Set(value);
         }
 
@@ -95,7 +95,7 @@ namespace Gurux.DLMS
         ///</param>        
         public GXByteBuffer(GXByteBuffer value)
         {
-            Capacity = (UInt16) (value.Size - value.Position);
+            Capacity = (value.Size - value.Position);
             Set(value);
         }
         
@@ -112,7 +112,7 @@ namespace Gurux.DLMS
         ///<summary>
         /// Buffer capacity.
         ///</summary>
-        public UInt16 Capacity
+        public int Capacity
         {
             get
             {
@@ -120,7 +120,7 @@ namespace Gurux.DLMS
                 {
                     return 0;
                 }
-                return (UInt16)Data.Length;
+                return Data.Length;
             }
             set
             {
@@ -146,7 +146,7 @@ namespace Gurux.DLMS
                         }
                         else
                         {
-                            Buffer.BlockCopy(tmp, 0, Data, 0, Capacity);
+                            Buffer.BlockCopy(tmp, 0, Data, 0, (int) Capacity);
                             Size = Capacity;
                         }
                     }
@@ -157,7 +157,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Byte buffer read position.
         /// </summary>
-        public UInt16 Position
+        public int Position
         {
             get
             {
@@ -165,7 +165,7 @@ namespace Gurux.DLMS
             }
             set
             {
-                if (value > Size)
+                if (value > Size || value < 0)
                 {
                     throw new ArgumentOutOfRangeException("Position");
                 }
@@ -176,7 +176,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Byte buffer data size.
         /// </summary>
-        public UInt16 Size
+        public int Size
         {
             get
             {
@@ -184,7 +184,7 @@ namespace Gurux.DLMS
             }
             set
             {
-                if (value > Capacity)
+                if (value > Capacity || value < 0)
                 {
                     throw new ArgumentOutOfRangeException("Size");
                 }
@@ -227,7 +227,7 @@ namespace Gurux.DLMS
             if (count != 0)
             {
                 Buffer.BlockCopy(Data, srcPos, Data, destPos, count);
-                Size = (UInt16) (destPos + count);
+                Size = (destPos + count);
                 if (Position > Size)
                 {
                     Position = Size;
@@ -288,11 +288,11 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="index">Zero based byte index where value is set.</param>
         /// <param name="value"> The byte to be added.</param>    
-        public void SetUInt8(UInt16 index, byte value)
+        public void SetUInt8(int index, byte value)
         {
             if (index >= Capacity)
             {
-                Capacity = (UInt16)(index + ArrayCapacity);
+                Capacity = (index + ArrayCapacity);
             }
             Data[index] = value;
         }
@@ -336,7 +336,7 @@ namespace Gurux.DLMS
         {
             if (index + 2 >= Capacity)
             {
-                Capacity = (UInt16) (index + ArrayCapacity);
+                Capacity = (index + ArrayCapacity);
             }
             Data[index] = (byte)((value >> 8) & 0xFF);
             Data[index + 1] = (byte)(value & 0xFF);
@@ -351,7 +351,7 @@ namespace Gurux.DLMS
         {
             if (index + 2 >= Capacity)
             {
-                Capacity = (UInt16)(index + ArrayCapacity);
+                Capacity = (index + ArrayCapacity);
             }
             Data[index] = (byte)((value >> 8) & 0xFF);
             Data[index + 1] = (byte)(value & 0xFF);
@@ -396,7 +396,7 @@ namespace Gurux.DLMS
         {
             if (index + 4 >= Capacity)
             {
-                Capacity = (UInt16) (index + ArrayCapacity);
+                Capacity = (index + ArrayCapacity);
             }
             Data[index] = (byte)((item >> 24) & 0xFF);
             Data[index + 1] = (byte)((item >> 16) & 0xFF);
@@ -413,7 +413,7 @@ namespace Gurux.DLMS
         {
             if (index + 4 >= Capacity)
             {
-                Capacity = (UInt16)(index + ArrayCapacity);
+                Capacity = (index + ArrayCapacity);
             }
             Data[index] = (byte)((item >> 24) & 0xFF);
             Data[index + 1] = (byte)((item >> 16) & 0xFF);
@@ -472,7 +472,7 @@ namespace Gurux.DLMS
         {
             if (index + 8 >= Capacity)
             {
-                Capacity = (UInt16) (index + ArrayCapacity);
+                Capacity = (index + ArrayCapacity);
             }
             Data[Size] = (byte)((item >> 56) & 0xFF);
             Data[Size + 1] = (byte)((item >> 48) & 0xFF);
@@ -493,7 +493,7 @@ namespace Gurux.DLMS
         {
             if (index + 8 >= Capacity)
             {
-                Capacity = (UInt16)(index + ArrayCapacity);
+                Capacity = (index + ArrayCapacity);
             }
             Data[Size + 7] = (byte)((item >> 56) & 0xFF);
             Data[Size + 6] = (byte)((item >> 48) & 0xFF);
@@ -646,7 +646,7 @@ namespace Gurux.DLMS
         public string GetString(int count)
         {
             string str =  ASCIIEncoding.ASCII.GetString(Data, Position, count);
-            Position = (UInt16) (Position + count);
+            Position = (Position + count);
             return str;
         }
 
@@ -714,10 +714,10 @@ namespace Gurux.DLMS
                 }
                 if (Size + count > Capacity)
                 {
-                    Capacity = (UInt16) (Size + count + ArrayCapacity);
+                    Capacity = (Size + count + ArrayCapacity);
                 }
                 Buffer.BlockCopy(value, index, Data, Size, count);
-                Size += (UInt16) count;
+                Size += count;
             }
         }
 
@@ -736,12 +736,12 @@ namespace Gurux.DLMS
         {
             if (Size + count > Capacity)
             {
-                Capacity = (UInt16)(Size + count + ArrayCapacity);
+                Capacity = (Size + count + ArrayCapacity);
             }
             if (count != 0)
             {
                 Buffer.BlockCopy(value.Data, value.Position, Data, Size, count);
-                Size += (UInt16)count;
+                Size += count;
                 value.Position += (ushort)count;
             }
         }
@@ -809,7 +809,7 @@ namespace Gurux.DLMS
                 throw new OutOfMemoryException();
             }
             Buffer.BlockCopy(Data, Position, target, 0, target.Length);
-            Position += (UInt16) target.Length;
+            Position += target.Length;
         }
                 
         /// <summary>
@@ -828,7 +828,7 @@ namespace Gurux.DLMS
             bool ret = Gurux.DLMS.Internal.GXCommon.Compare(bytes, arr);
             if (!ret)
             {
-                this.Position -= (UInt16) arr.Length;
+                this.Position -= arr.Length;
             }
             return ret;
         }

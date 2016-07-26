@@ -88,7 +88,7 @@ namespace Gurux.DLMS
         ///<summary>
         /// Last read position. This is used in peek to solve how far data is read.
         ///</summary>
-        public UInt16 ReadPosition
+        public int ReadPosition
         {
             get;
             set;
@@ -154,7 +154,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Cipher index is position where data is decrypted.
         /// </summary>
-        public UInt16 CipherIndex
+        public int CipherIndex
         {
             get;
             set;

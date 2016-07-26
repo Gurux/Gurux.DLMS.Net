@@ -378,7 +378,7 @@ namespace Gurux.DLMS
         internal static byte[][] GetMessages(GXDLMSSettings settings, Command command, byte commandType, GXByteBuffer data, DateTime time)
         {
             // Save original position.
-            ushort pos = data.Position;
+            int pos = data.Position;
             byte[][] reply;
             if (settings.UseLogicalNameReferencing)
             {
@@ -578,7 +578,7 @@ namespace Gurux.DLMS
             if (ciphering)
             {
                 byte[] tmp = settings.Cipher.Encrypt((byte)GetGloMessage(command), settings.Cipher.SystemTitle, bb.SubArray(offset, bb.Size - offset));
-                bb.Size = (UInt16)offset;
+                bb.Size = offset;
                 bb.Set(tmp);
             }
         }
@@ -718,7 +718,7 @@ namespace Gurux.DLMS
             else
             {
                 // Data length.
-                bb.SetUInt16(data.Size);
+                bb.SetUInt16((UInt16) data.Size);
                 // Data
                 bb.Set(data);
             }
@@ -897,7 +897,7 @@ namespace Gurux.DLMS
             if (reply.Size - reply.Position + 1 < frameLen)
             {
                 data.IsComplete = false;
-                reply.Position = (UInt16) packetStartID;
+                reply.Position = packetStartID;
                 // Not enough data to parse;
                 return 0;
             }
@@ -928,7 +928,7 @@ namespace Gurux.DLMS
             frame = reply.GetUInt8();
             if (!settings.CheckFrame(frame))
             {
-                reply.Position = (UInt16) (eopPos + 1);
+                reply.Position = (eopPos + 1);
                 return GetHdlcData(server, settings, reply, data);
             }
             // Check that header CRC is correct.
@@ -1069,7 +1069,7 @@ namespace Gurux.DLMS
                     if (settings.ClientAddress == source && 
                         settings.ServerAddress == target)
                     {
-                        reply.Position = (UInt16)(index + 1);
+                        reply.Position = (index + 1);
                     }
                     return false;
                 }
@@ -1106,7 +1106,7 @@ namespace Gurux.DLMS
                 data.IsComplete = false;
                 return;
             }
-            UInt16 pos = buff.Position;
+            int pos = buff.Position;
             int value;
             // Get version
             value = buff.GetUInt16();
@@ -1521,7 +1521,7 @@ namespace Gurux.DLMS
                 {
                     throw new InvalidOperationException("Invalid PDU.");
                 }
-                UInt16 index = data.Data.Position;
+                int index = data.Data.Position;
                 // Get command.
                 ch = data.Data.GetUInt8();
                 cmd = (Command)ch;
@@ -1721,7 +1721,7 @@ namespace Gurux.DLMS
                 info.Count = reply.TotalCount;
                 info.Index = reply.Count;
             }
-            UInt16 index = data.Position;
+            int index = data.Position;
             data.Position = reply.ReadPosition;
             try
             {
@@ -1844,13 +1844,13 @@ namespace Gurux.DLMS
         private static void GetDataFromFrame(GXByteBuffer reply, GXReplyData info)
         {
             GXByteBuffer data = info.Data;
-            UInt16 offset = data.Size;
+            int offset = data.Size;            
             int cnt = info.PacketLength - reply.Position;
             if (cnt != 0)
             {
-                data.Capacity = (UInt16)(offset + cnt);
+                data.Capacity = (offset + cnt);
                 data.Set(reply.Data, reply.Position, cnt);
-                reply.Position = (UInt16)(reply.Position + cnt);
+                reply.Position = (reply.Position + cnt);
             }
             // Set position to begin of new data.
             data.Position = offset;
@@ -1873,8 +1873,8 @@ namespace Gurux.DLMS
             int len = data.Position - index;
             System.Buffer.BlockCopy(data.Data, data.Position, data.Data,
                     data.Position - len, data.Size - data.Position);
-            data.Size = (UInt16)(data.Size - len);
-            data.Position = (UInt16)(data.Position - len);
+            data.Size = (data.Size - len);
+            data.Position = (data.Position - len);
             return len;
         }
 
