@@ -954,10 +954,20 @@ namespace Gurux.DLMS
             return items;
         }       
 
+        
         /// <summary>
         /// Get Value from byte array received from the meter.
         /// </summary>
         public object UpdateValue(GXDLMSObject target, int attributeIndex, object value)
+        {
+            return UpdateValue(target, attributeIndex, value, null);
+        }
+
+        /// <summary>
+        /// Get Value from byte array received from the meter.
+        /// </summary>
+        public object UpdateValue(GXDLMSObject target, int attributeIndex, object value,
+            List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
         {
             if (value is byte[])
             {
@@ -972,7 +982,7 @@ namespace Gurux.DLMS
                     value = ChangeType((byte[])value, type);
                 }
             }
-            ValueEventArgs e = new ValueEventArgs(Settings, target, attributeIndex, 0, null);
+            ValueEventArgs e = new ValueEventArgs(Settings, target, attributeIndex, 0, columns);
             e.Value = value;
             (target as IGXDLMSBase).SetValue(Settings, e);
             return target.GetValues()[attributeIndex - 1];
@@ -1502,14 +1512,27 @@ namespace Gurux.DLMS
             return new byte[0];
         }
 
+         /// <summary>
+        /// Read rows by entry.
+        /// </summary>
+        /// <param name="pg">Profile generic object to read.</param>
+        /// <param name="index">One based start index.</param>
+        /// <param name="count">Rows count to read.</param>
+        /// <returns>Read message as byte array.</returns>
+        public byte[][] ReadRowsByEntry(GXDLMSProfileGeneric pg, int index, int count)
+        {
+            return ReadRowsByEntry(pg, index, count, null);
+        }
+
         /// <summary>
         /// Read rows by entry.
         /// </summary>
         /// <param name="pg">Profile generic object to read.</param>
-        /// <param name="index">Zero bases start index.</param>
+        /// <param name="index">One based start index.</param>
         /// <param name="count">Rows count to read.</param>
         /// <returns>Read message as byte array.</returns>
-        public byte[][] ReadRowsByEntry(GXDLMSProfileGeneric pg, int index, int count)
+        public byte[][] ReadRowsByEntry(GXDLMSProfileGeneric pg, int index, int count,
+            List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
         {
             Settings.ResetBlockIndex();
             GXByteBuffer buff = new GXByteBuffer(19);
@@ -1523,16 +1546,48 @@ namespace Gurux.DLMS
             GXCommon.SetData(buff, DataType.UInt32, index);
             // Add Count
             GXCommon.SetData(buff, DataType.UInt32, count);
-            // Read all columns.
-            if (Settings.UseLogicalNameReferencing)
+            int columnIndex = 1;
+            int columnCount = 0;
+            int pos = 0;
+            // If columns are given find indexes.
+            if (columns != null && columns.Count != 0)
             {
-                GXCommon.SetData(buff, DataType.UInt16, 1);
+                if (pg.CaptureObjects == null || pg.CaptureObjects.Count == 0)
+                {
+                    throw new Exception("Read capture objects first.");
+                }
+                columnIndex = pg.CaptureObjects.Count;
+                columnCount = 1;
+                foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> c in columns)
+                {
+                    pos = 0;
+                    bool found = false;
+                    foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in pg.CaptureObjects)
+                    {
+                        ++pos;
+                        if (it.Key.ObjectType == c.Key.ObjectType
+                                && it.Key.LogicalName.CompareTo(c.Key.LogicalName) == 0
+                                && it.Value.AttributeIndex == c.Value.AttributeIndex
+                                && it.Value.DataIndex == c.Value.DataIndex)
+                        {
+                            found = true;
+                            if (pos < columnIndex)
+                            {
+                                columnIndex = pos;
+                            }
+                            columnCount = pos - columnIndex + 1;
+                            break;
+                        }
+                    }
+                    if (!found)
+                    {
+                        throw new Exception("Invalid column: " + c.Key.LogicalName);
+                    }
+                }
             }
-            else
-            {
-                GXCommon.SetData(buff, DataType.UInt16, 0);
-            }
-            GXCommon.SetData(buff, DataType.UInt16, 0);
+            // Select columns to read.
+            GXCommon.SetData(buff, DataType.UInt16, columnIndex);
+            GXCommon.SetData(buff, DataType.UInt16, columnCount);
             return Read(pg.Name, ObjectType.ProfileGeneric, 2, buff);
         }
 
@@ -1548,11 +1603,28 @@ namespace Gurux.DLMS
         /// <returns></returns>
         public byte[][] ReadRowsByRange(GXDLMSProfileGeneric pg, DateTime start, DateTime end)
         {
+            return ReadRowsByRange(pg, start, end, null);
+        }
+
+        /// <summary>
+        /// Read rows by range.
+        /// </summary>
+        /// <remarks>
+        /// Use this method to read Profile Generic table between dates.
+        /// </remarks>
+        /// <param name="pg">Profile generic object to read.</param>
+        /// <param name="start">Start time.</param>
+        /// <param name="end">End time.</param>
+        /// <param name="columns">Columns to read.</param>
+        /// <returns></returns>
+        public byte[][] ReadRowsByRange(GXDLMSProfileGeneric pg, DateTime start, DateTime end,
+            List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
+        {
             Settings.ResetBlockIndex();
             GXDLMSObject sort = pg.SortObject;
             if (sort == null && pg.CaptureObjects.Count != 0)
             {
-                sort = pg.CaptureObjects[0].Key;                
+                sort = pg.CaptureObjects[0].Key;
             }
             //If sort object is not found or it is not clock object read all.
             if (sort == null || sort.ObjectType != ObjectType.Clock)
@@ -1583,10 +1655,32 @@ namespace Gurux.DLMS
             GXCommon.SetData(buff, DataType.OctetString, start);
             // Add end time.
             GXCommon.SetData(buff, DataType.OctetString, end);
-            // Add array of read columns. Read All...
-            buff.SetUInt8(0x01);
-            // Add item count
-            buff.SetUInt8(0x00);
+
+            // Add array of read columns.
+            buff.SetUInt8(DataType.Array);
+            if (columns == null)
+            {
+                // Add item count
+                buff.SetUInt8(0x00);
+            }
+            else
+            {
+                GXCommon.SetObjectCount(columns.Count, buff);
+                foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in columns)
+                {
+                    buff.SetUInt8(DataType.Structure);
+                    // Add items count.
+                    buff.SetUInt8(4);
+                    // CI
+                    GXCommon.SetData(buff, DataType.UInt16, it.Key.ObjectType);
+                    // LN
+                    GXCommon.SetData(buff, DataType.OctetString, it.Key.LogicalName);
+                    // Add attribute index.
+                    GXCommon.SetData(buff, DataType.Int8, it.Value.AttributeIndex);
+                    // Add data index.
+                    GXCommon.SetData(buff, DataType.Int16, it.Value.DataIndex);
+                }
+            }
             return Read(pg.Name, ObjectType.ProfileGeneric, 2, buff);
         }
 
