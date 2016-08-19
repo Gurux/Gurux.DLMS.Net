@@ -73,10 +73,25 @@ namespace Gurux.DLMS.Objects
             : base(ObjectType.PushSetup, ln, sn)
         {
             CommunicationWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
-            SendDestinationAndMethod = new GXSendDestinationAndMethod();
             PushObjectList = new List<KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
-        }        
-        
+        }
+
+        public ServiceType Service
+        {
+            get;
+            set;
+        }
+        public string Destination
+        {
+            get;
+            set;
+        }
+        public MessageType Message
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// Defines the list of attributes or objects to be pushed. 
         /// Upon a call of the push (data) method the selected attributes are sent to the desti-nation 
@@ -89,12 +104,7 @@ namespace Gurux.DLMS.Objects
             internal set;
         }        
 
-        [XmlIgnore()]
-        public GXSendDestinationAndMethod SendDestinationAndMethod
-        {
-            get;
-            internal set;
-        }
+        
          
         /// <summary>
         /// Contains the start and end date/time 
@@ -136,25 +146,45 @@ namespace Gurux.DLMS.Objects
         {
             get;
             set;
-        }
+        }                             
 
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, PushObjectList, SendDestinationAndMethod,
+            return new object[] { LogicalName, PushObjectList, Service + " " + Destination + " " + Message,
             CommunicationWindow, RandomisationStartInterval, NumberOfRetries, RepetitionDelay};
         }
 
         #region IGXDLMSBase Members
 
         /// <summary>
-        /// Data interface do not have any methods.
+        /// Push interface do not have any methods.
         /// </summary>
         /// <param name="index"></param>
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
         {
+            if (e.Index == 1)
+            {
+                //Only TCP/IP push is allowed at the moment.
+                if (Service != ServiceType.Tcp || Message != MessageType.CosemApdu ||
+                    PushObjectList.Count == 0)
+                {
+                    e.Error = ErrorCode.HardwareFault;
+                    return null;
+                }
+                return null;
+            }
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
+        }
+
+        /// <summary>
+        /// Activates the push process.
+        /// </summary>
+        /// <returns></returns>
+        public byte[][] Activate(GXDLMSClient client)
+        {
+            return client.Method(this, 1, (byte) 0);
         }
 
         int[] IGXDLMSBase.GetAttributeIndexToRead()
@@ -274,9 +304,16 @@ namespace Gurux.DLMS.Objects
             {
                 buff.SetUInt8(DataType.Structure);
                 buff.SetUInt8(3);
-                GXCommon.SetData(buff, DataType.UInt8, SendDestinationAndMethod.Service);
-                GXCommon.SetData(buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(SendDestinationAndMethod.Destination));
-                GXCommon.SetData(buff, DataType.UInt8, SendDestinationAndMethod.Message);
+                GXCommon.SetData(buff, DataType.UInt8, Service);
+                if (Destination != null)
+                {
+                    GXCommon.SetData(buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(Destination));
+                }
+                else
+                {
+                    GXCommon.SetData(buff, DataType.OctetString, null);
+                }
+                GXCommon.SetData(buff, DataType.UInt8, Message);
                 return buff.Array();     
             }
             if (e.Index == 4)
@@ -347,9 +384,9 @@ namespace Gurux.DLMS.Objects
                 object[] tmp = e.Value as object[];
                 if (tmp != null)
                 {
-                    SendDestinationAndMethod.Service = (ServiceType)Convert.ToInt32(tmp[0]);
-                    SendDestinationAndMethod.Destination = ASCIIEncoding.ASCII.GetString((byte[]) tmp[1]);
-                    SendDestinationAndMethod.Message = (MessageType)Convert.ToInt32(tmp[2]);
+                    Service = (ServiceType)Convert.ToInt32(tmp[0]);
+                    Destination = ASCIIEncoding.ASCII.GetString((byte[]) tmp[1]);
+                    Message = (MessageType)Convert.ToInt32(tmp[2]);
                 }
             }
             else if (e.Index == 4)

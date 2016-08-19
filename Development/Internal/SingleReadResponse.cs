@@ -32,57 +32,29 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace Gurux.DLMS.Enums
+namespace Gurux.DLMS.Internal
 {
     /// <summary>
-    /// ServiceError enumerates service errors.
+    /// Enumerates single read response types.
     /// </summary>
-    public enum ServiceError
+    enum SingleReadResponse
     {
         /// <summary>
-        /// Application error.
+        /// Normal data.
         /// </summary>
-        ApplicationReference = 0,
+        Data = 0,
         /// <summary>
-        /// Hardware error.
+        /// Error has occured on read.
         /// </summary>
-        HardwareResource,
+        DataAccessError,
         /// <summary>
-        /// Vde state error.
+        /// Return data as blocks.
         /// </summary>
-        VdeStateError,
+        DataBlockResult,
         /// <summary>
-        /// Service error.
+        /// Return block number.
         /// </summary>
-        Service,
-        /// <summary>
-        /// Definition error.
-        /// </summary>
-        Definition,
-        /// <summary>
-        /// Access error.
-        /// </summary>
-        Access,
-        /// <summary>
-        /// Initiate error.
-        /// </summary>
-        Initiate,
-        /// <summary>
-        /// LoadDataSet error.
-        /// </summary>
-        LoadDataSet,
-        /// <summary>
-        /// Task error.
-        /// </summary>
-        Task,
-        /// <summary>
-        /// Other error describes manufacturer specific error code.
-        /// </summary>
-        OtherError
+        BlockNumber
     }
 }

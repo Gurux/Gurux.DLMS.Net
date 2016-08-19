@@ -378,6 +378,62 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
+        /// Get selected columns from parameters.
+        /// </summary>
+        /// <param name="selector">Is read by entry or range.</param>
+        /// <param name="parameters">Received parameters where columns information is found.</param>
+        /// <returns>Selected columns.</returns>
+        public List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> GetSelectedColumns(int selector, Object parameters)
+        {
+            List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns = new List<GXKeyValuePair<GXDLMSObject,GXDLMSCaptureObject>>();
+            if (selector == 0)
+            {
+                // Return all rows.
+                columns.AddRange(CaptureObjects);
+                return columns;
+            }
+            else if (selector == 1)
+            {
+                return GetColumns((Object[])((Object[])parameters)[3]);
+            }
+            else if (selector == 2)
+            {
+                Object[] arr = (Object[])parameters;
+                int colStart = 1;
+                int colCount = 0;
+                if (arr.Length > 2)
+                {
+                    colStart = Convert.ToInt32(arr[2]);
+                }
+                if (arr.Length > 3)
+                {
+                    colCount = Convert.ToInt32(arr[3]);
+                }
+                else if (colStart != 1)
+                {
+                    colCount = CaptureObjects.Count;
+                }
+                if (colStart != 1 || colCount != 0)
+                {
+                    for (int pos = 0; pos != colCount; ++pos)
+                    {
+                        columns.Add(CaptureObjects[colStart + pos - 1]);
+                    }
+                }
+                else
+                {
+                    // Return all rows.
+                    columns.AddRange(CaptureObjects);
+                }
+                return columns;
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException("Invalid selector.");
+            }
+        }
+
+        /// <summary>
         /// Get selected (filtered) columns.
         /// </summary>
         /// <param name="cols">Selected columns.</param>
@@ -448,7 +504,20 @@ namespace Gurux.DLMS.Objects
                 else if (selector == 2)//Read by entry.
                 {
                     int start = Convert.ToInt32(arr[0]);
+                    if (start == 0)
+                    {
+                        start = 1;
+                    }
                     int count = Convert.ToInt32(arr[1]);
+                    if (count == 0)
+                    {
+                        count = Buffer.Count;
+                    }
+                    if (start + count > Buffer.Count + 1)
+                    {
+                        count = Buffer.Count;
+                    }
+
                     int colStart = 1;
                     int colCount = 0;
                     if (arr.Length > 2)
@@ -471,14 +540,16 @@ namespace Gurux.DLMS.Objects
                             columns.Add(CaptureObjects[colStart + pos - 1]);
                         }
                     }
-                    
+
+                    //Get rows.
+                    // Starting index is 1.
                     for (int pos = 0; pos < count; ++pos)
                     {
-                        if (pos + start == Buffer.Count)
+                        if (pos + start - 1 == Buffer.Count)
                         {
                             break;
                         }
-                        table.Add(Buffer[start + pos]);
+                        table.Add(Buffer[start + pos - 1]);
                     }
                 }
                 else
@@ -619,11 +690,11 @@ namespace Gurux.DLMS.Objects
             {
                 throw new Exception("Read capture objects first.");
             }
+            Buffer.Clear();
             if (e.Value != null && (e.Value as object[]).Length != 0)
             {
                 int index2 = 0;
                 DateTime lastDate = DateTime.MinValue;
-                Buffer.Clear();
                 foreach (object[] row in (e.Value as object[]))
                 {
                     if ((row as object[]).Length != cols.Count)

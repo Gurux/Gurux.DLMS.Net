@@ -46,12 +46,6 @@ namespace Gurux.DLMS.Internal
     internal class GXCommon
     {
         internal const byte HDLCFrameStartEnd = 0x7E;
-        internal const byte InitialRequest = 0x1;
-        internal const byte InitialResponce = 0x8;
-        internal const byte InitialRequestGlo = 0x21;
-        internal const byte InitialResponceGlo = 0x28;
-        internal const byte AARQTag = 0x60;
-        internal const byte AARETag = 0x61;
         internal static readonly byte[] LogicalNameObjectID = { 0x60, 0x85, 0x74, 0x05, 0x08, 0x01, 0x01 };
         internal static readonly byte[] ShortNameObjectID = { 0x60, 0x85, 0x74, 0x05, 0x08, 0x01, 0x02 };
         internal static readonly byte[] LogicalNameObjectIdWithCiphering = { 0x60, (byte)0x85, 0x74, 0x05, 0x08, 0x01, 0x03 };
@@ -321,6 +315,11 @@ namespace Gurux.DLMS.Internal
         /// <returns>True, if arrays are similar. False, if the arrays differ.</returns>
         public static bool Compare(byte[] arr1, byte[] arr2)
         {
+            //If other array is null and other is not.
+            if (arr1 == null && arr2 != null || arr1 != null && arr2 == null)
+            {
+                return false;
+            }
             if (arr1.Length != arr2.Length)
             {
                 return false;

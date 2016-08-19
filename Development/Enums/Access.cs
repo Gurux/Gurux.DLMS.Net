@@ -36,53 +36,39 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Enums
 {
     /// <summary>
-    /// ServiceError enumerates service errors.
+    /// Access describes access errors.
     /// </summary>
-    public enum ServiceError
+    public enum Access
     {
         /// <summary>
-        /// Application error.
+        /// Other error.
         /// </summary>
-        ApplicationReference = 0,
+        [XmlEnum("0")]
+        Other = 0,
         /// <summary>
-        /// Hardware error.
+        /// Scope of access violated.
         /// </summary>
-        HardwareResource,
+        [XmlEnum("1")]
+        ScopeOfAccessViolated,
         /// <summary>
-        /// Vde state error.
+        /// Object access is invalid.
         /// </summary>
-        VdeStateError,
+        [XmlEnum("2")]
+        ObjectAccessInvalid,
         /// <summary>
-        /// Service error.
+        /// Hardware fault.
         /// </summary>
-        Service,
+        [XmlEnum("3")]
+        HardwareFault,
         /// <summary>
-        /// Definition error.
+        /// Object is unavailable.
         /// </summary>
-        Definition,
-        /// <summary>
-        /// Access error.
-        /// </summary>
-        Access,
-        /// <summary>
-        /// Initiate error.
-        /// </summary>
-        Initiate,
-        /// <summary>
-        /// LoadDataSet error.
-        /// </summary>
-        LoadDataSet,
-        /// <summary>
-        /// Task error.
-        /// </summary>
-        Task,
-        /// <summary>
-        /// Other error describes manufacturer specific error code.
-        /// </summary>
-        OtherError
+        [XmlEnum("4")]
+        ObjectUnavailable
     }
 }

@@ -36,53 +36,29 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Enums
 {
     /// <summary>
-    /// ServiceError enumerates service errors.
+    /// Service describes service errors.
     /// </summary>
-    public enum ServiceError
+    public enum Service
     {
         /// <summary>
-        /// Application error.
+        /// Other error.
         /// </summary>
-        ApplicationReference = 0,
+        [XmlEnum("0")]
+        Other = 0,
         /// <summary>
-        /// Hardware error.
+        /// PDU size is wrong.
         /// </summary>
-        HardwareResource,
+        [XmlEnum("1")]
+        PduSize,
         /// <summary>
-        /// Vde state error.
+        /// Service is unsupported.
         /// </summary>
-        VdeStateError,
-        /// <summary>
-        /// Service error.
-        /// </summary>
-        Service,
-        /// <summary>
-        /// Definition error.
-        /// </summary>
-        Definition,
-        /// <summary>
-        /// Access error.
-        /// </summary>
-        Access,
-        /// <summary>
-        /// Initiate error.
-        /// </summary>
-        Initiate,
-        /// <summary>
-        /// LoadDataSet error.
-        /// </summary>
-        LoadDataSet,
-        /// <summary>
-        /// Task error.
-        /// </summary>
-        Task,
-        /// <summary>
-        /// Other error describes manufacturer specific error code.
-        /// </summary>
-        OtherError
+        [XmlEnum("2")]
+        ServiceUnsupported
     }
 }

@@ -195,11 +195,11 @@ namespace Gurux.DLMS
         {
             get
             {
-                return Settings.MaxReceivePDUSize;
+                return Settings.MaxPDUSize;
             }
             set
             {
-                Settings.MaxReceivePDUSize = value;
+                Settings.MaxPDUSize = value;
             }
         }
 
@@ -563,7 +563,17 @@ namespace Gurux.DLMS
                 Settings.CtoSChallenge = null;
             }
             GXAPDU.GenerateAarq(Settings, Settings.Cipher, buff);
-            return GXDLMS.GetMessages(Settings, Command.Aarq, 0, buff, DateTime.MinValue);
+            byte[][] reply;
+            if (UseLogicalNameReferencing)
+            {
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, Command.Aarq, 0, buff, null, 0xff);
+                reply = GXDLMS.GetLnMessages(p);
+            }
+            else
+            {
+                reply = GXDLMS.GetSnMessages(new GXDLMSSNParameters(Settings, Command.Aarq, 0, 0, null, buff));
+            }
+            return reply;
         }
 
         /// <summary>
@@ -590,7 +600,6 @@ namespace Gurux.DLMS
         /// <seealso cref="SNSettings"/>
         public void ParseAAREResponse(GXByteBuffer reply)
         {
-            Settings.Connected = true;
             IsAuthenticationRequired = GXAPDU.ParsePDU(Settings, Settings.Cipher, reply) == SourceDiagnostic.AuthenticationRequired;
             if (IsAuthenticationRequired)
             {
@@ -601,6 +610,7 @@ namespace Gurux.DLMS
             {
                 throw new GXDLMSException("Invalid DLMS version number.");
             }
+            Settings.Connected = true;
         }
 
         /// <summary>
@@ -610,8 +620,14 @@ namespace Gurux.DLMS
         /// <seealso cref="ParseApplicationAssociationResponse"/>
         public bool IsAuthenticationRequired
         {
-            get;
-            private set;
+            get
+            {
+                return Settings.IsAuthenticationRequired;
+            }
+            private set
+            {
+                Settings.IsAuthenticationRequired = value;
+            }
         }
 
         /// <summary>
@@ -932,7 +948,7 @@ namespace Gurux.DLMS
             GXDataInfo info = new GXDataInfo();
             //Some meters give wrong item count.
             while (buff.Position != buff.Size && cnt != objectCnt)
-            {                
+            {
                 info.Clear();
                 object[] objects = (object[])GXCommon.GetData(buff, info);
                 if (objects.Length != 4)
@@ -991,25 +1007,19 @@ namespace Gurux.DLMS
         /// <summary>
         /// Update list values.
         /// </summary>
-        public void UpdateValues(List<KeyValuePair<GXDLMSObject, int>> list, GXByteBuffer data)
+        /// <param name="list">COSEM objects to update.</param>
+        /// <param name="values">Receeived values.</param>
+        public void UpdateValues(List<KeyValuePair<GXDLMSObject, int>> list, List<object> values)
         {
-            Object value;
             GXDataInfo info = new GXDataInfo();
+            int pos = 0;
             foreach (KeyValuePair<GXDLMSObject, int> it in list)
             {
-                int ret = data.GetUInt8();
-                if (ret == 0)
-                {
-                    value = GXCommon.GetData(data, info);
-                    ValueEventArgs e = new ValueEventArgs(Settings, it.Key, it.Value, 0, null);
-                    e.Value = value;
-                    (it.Key as IGXDLMSBase).SetValue(Settings, e);
-                    info.Clear();
-                }
-                else
-                {
-                    throw new GXDLMSException(ret);
-                }
+                ValueEventArgs e = new ValueEventArgs(Settings, it.Key, it.Value, 0, null);
+                e.Value = values[pos];
+                (it.Key as IGXDLMSBase).SetValue(Settings, e);
+                info.Clear();
+                ++pos;
             }
         }
 
@@ -1163,13 +1173,20 @@ namespace Gurux.DLMS
                             "Invalid parameter. In java value type must give.");
                 }
             }
-            GXByteBuffer bb = new GXByteBuffer();
-            Command cmd;
+            GXByteBuffer attributeDescriptor = new GXByteBuffer();
+            GXByteBuffer data = new GXByteBuffer();
+            if ((value is byte[]))
+            {
+                data.Set((byte[])value);
+            }
+            else if (type != DataType.None)
+            {
+                GXCommon.SetData(data, type, value);
+            }
             if (UseLogicalNameReferencing)
             {
-                cmd = Command.MethodRequest;
                 // CI
-                bb.SetUInt16((UInt16)objectType);
+                attributeDescriptor.SetUInt16((UInt16)objectType);
                 // Add LN
                 String[] items = ((String)name).Split('.');
                 if (items.Length != 6)
@@ -1178,65 +1195,56 @@ namespace Gurux.DLMS
                 }
                 foreach (String it2 in items)
                 {
-                    bb.SetUInt8(byte.Parse(it2));
+                    attributeDescriptor.SetUInt8(byte.Parse(it2));
                 }
                 // Attribute ID.
-                bb.SetUInt8((byte)index);
+                attributeDescriptor.SetUInt8((byte)index);
                 // Method Invocation Parameters is not used.
                 if (type == DataType.None)
                 {
-                    bb.SetUInt8(0);
+                    attributeDescriptor.SetUInt8(0);
                 }
                 else
                 {
-                    bb.SetUInt8(1);
+                    attributeDescriptor.SetUInt8(1);
                 }
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, Command.MethodRequest, (byte)ActionCommandType.Normal, attributeDescriptor, data, 0xff);
+                return GXDLMS.GetLnMessages(p);
             }
             else
             {
-                cmd = Command.ReadRequest;
-                int data, count;
-                GXDLMS.GetActionInfo(objectType, out data, out count);
+                byte requestType;
+                if (type == DataType.None)
+                {
+                    requestType = (byte)VariableAccessSpecification.VariableName;
+                }
+                else
+                {
+                    requestType = (byte)VariableAccessSpecification.ParameterisedAccess;
+                }
+                int ind, count;
+                GXDLMS.GetActionInfo(objectType, out ind, out count);
                 if (index > count)
                 {
                     throw new ArgumentException("methodIndex");
                 }
+                UInt16 sn = Convert.ToUInt16(name);
+                index = (ind + (index - 1) * 0x8);
+                sn += (UInt16)index;
+                // Add name.
+                attributeDescriptor.SetUInt16(sn);
+                // Add selector.
+                if (type != DataType.None)
+                {
+                    attributeDescriptor.SetUInt8(1);
+                }
                 else
                 {
-                    UInt16 sn = Convert.ToUInt16(name);
-                    index = (data + (index - 1) * 0x8);
-                    sn += (UInt16)index;
-                    // Add SN count.
-                    bb.SetUInt8(1);
-                    // Add VariableName.
-                    if (type == DataType.None)
-                    {
-                        bb.SetUInt8(2);
-                    }
-                    else //ParameterisedAccess
-                    {
-                        bb.SetUInt8(4);
-                    }
-                    // Add name.
-                    bb.SetUInt16(sn);
-                    // Add selector.
-                    if (type != DataType.None)
-                    {
-                        bb.SetUInt8(1);
-                    }
+                    attributeDescriptor.SetUInt8(0);
                 }
+                return GXDLMS.GetSnMessages(new GXDLMSSNParameters(Settings, Command.ReadRequest, 1, requestType, attributeDescriptor, data));
             }
-            if ((value is byte[]))
-            {
-                bb.Set((byte[])value);
-            }
-            else if (type != DataType.None)
-            {
-                GXCommon.SetData(bb, type, value);
-            }
-            return GXDLMS.GetMessages(Settings, cmd, 1, bb, DateTime.MinValue);
         }
-
 
         /// <summary>
         /// Generates a write message.
@@ -1279,13 +1287,14 @@ namespace Gurux.DLMS
                     throw new ArgumentException("Invalid parameter. Unknown value type.");
                 }
             }
-            GXByteBuffer bb = new GXByteBuffer();
-            Command cmd;
+            GXByteBuffer attributeDescriptor = new GXByteBuffer();
+            GXByteBuffer data = new GXByteBuffer();
+            byte[][] reply;
+            GXCommon.SetData(data, type, value);
             if (UseLogicalNameReferencing)
             {
-                cmd = Command.SetRequest;
                 // Add CI.
-                bb.SetUInt16((UInt16)objectType);
+                attributeDescriptor.SetUInt16((UInt16)objectType);
                 // Add LN.
                 String[] items = ((String)name).Split('.');
                 if (items.Length != 6)
@@ -1294,29 +1303,28 @@ namespace Gurux.DLMS
                 }
                 foreach (String it2 in items)
                 {
-                    bb.SetUInt8(byte.Parse(it2));
+                    attributeDescriptor.SetUInt8(byte.Parse(it2));
                 }
                 // Attribute ID.
-                bb.SetUInt8((byte)index);
+                attributeDescriptor.SetUInt8((byte)index);
                 // Access selection is not used.
-                bb.SetUInt8(0);
+                attributeDescriptor.SetUInt8(0);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, Command.SetRequest, (byte)SetCommandType.Normal, attributeDescriptor, data, 0xff);
+                reply = GXDLMS.GetLnMessages(p);
             }
             else
             {
-                cmd = Command.WriteRequest;
-                // Add SN count.
-                bb.SetUInt8(1);
-                // Add name length.
-                bb.SetUInt8(2);
                 // Add name.
                 UInt16 sn = Convert.ToUInt16(name);
                 sn += (UInt16)((index - 1) * 8);
-                bb.SetUInt16(sn);
-                // Add data count.
-                bb.SetUInt8(1);
+                attributeDescriptor.SetUInt16(sn);
+                //Data cnt.
+                attributeDescriptor.SetUInt8(1);
+                GXDLMSSNParameters p = new GXDLMSSNParameters(Settings, Command.WriteRequest, 1, 
+                    (byte)VariableAccessSpecification.VariableName, attributeDescriptor, data);
+                reply = GXDLMS.GetSnMessages(p);
             }
-            GXCommon.SetData(bb, type, value);
-            return GXDLMS.GetMessages(Settings, cmd, 1, bb, DateTime.MinValue);
+            return reply;
         }
 
         /// <summary>
@@ -1338,13 +1346,12 @@ namespace Gurux.DLMS
                 throw new ArgumentException("Invalid parameter");
             }
             Settings.ResetBlockIndex();
-            Command cmd;
-            GXByteBuffer bb = new GXByteBuffer();
+            GXByteBuffer attributeDescriptor = new GXByteBuffer();
+            byte[][] reply;
             if (UseLogicalNameReferencing)
             {
-                cmd = Command.GetRequest;
                 // CI
-                bb.SetUInt16((UInt16)objectType);
+                attributeDescriptor.SetUInt16((UInt16)objectType);
                 // Add LN
                 String[] items = ((String)name).Split('.');
                 if (items.Length != 6)
@@ -1353,47 +1360,42 @@ namespace Gurux.DLMS
                 }
                 foreach (String it2 in items)
                 {
-                    bb.SetUInt8(byte.Parse(it2));
+                    attributeDescriptor.SetUInt8(byte.Parse(it2));
                 }
                 // Attribute ID.
-                bb.SetUInt8((byte)attributeOrdinal);
+                attributeDescriptor.SetUInt8((byte)attributeOrdinal);
                 if (data == null || data.Size == 0)
                 {
                     // Access selection is not used.
-                    bb.SetUInt8(0);
+                    attributeDescriptor.SetUInt8(0);
                 }
                 else
                 {
                     // Access selection is used.
-                    bb.SetUInt8(1);
-                    // Add data.
-                    bb.Set(data.Data, 0, data.Size);
+                    attributeDescriptor.SetUInt8(1);
                 }
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, Command.GetRequest, (byte)GetCommandType.Normal, attributeDescriptor, data, 0xff);
+                reply = GXDLMS.GetLnMessages(p);
             }
             else
             {
-                cmd = Command.ReadRequest;
-                // Add length.
-                bb.SetUInt8(1);
+                byte requestType;
+                UInt16 sn = Convert.ToUInt16(name);
+                sn += (UInt16)((attributeOrdinal - 1) * 8);
+                attributeDescriptor.SetUInt16(sn);
                 // parameterized-access
                 if (data != null && data.Size != 0)
                 {
-                    bb.SetUInt8(4);
+                    requestType = (byte) VariableAccessSpecification.ParameterisedAccess;
                 }
                 else //variable-name
                 {
-                    bb.SetUInt8(2);
+                    requestType = (byte) VariableAccessSpecification.VariableName;
                 }
-                UInt16 sn = Convert.ToUInt16(name);
-                sn += (UInt16)((attributeOrdinal - 1) * 8);
-                bb.SetUInt16(sn);
-                // Add data.
-                if (data != null && data.Size != 0)
-                {
-                    bb.Set(data.Data, 0, data.Size);
-                }
-            }
-            return GXDLMS.GetMessages(Settings, cmd, 1, bb, DateTime.MinValue);
+                GXDLMSSNParameters p = new GXDLMSSNParameters(Settings, Command.ReadRequest, 1, requestType, attributeDescriptor, data);
+                reply = GXDLMS.GetSnMessages(p);
+            }          
+            return reply;
         }
 
         /// <summary>
@@ -1421,13 +1423,12 @@ namespace Gurux.DLMS
             }
             Settings.ResetBlockIndex();
             List<byte[]> messages = new List<byte[]>();
-            Command cmd;
-            GXByteBuffer bb = new GXByteBuffer();
+            GXByteBuffer data = new GXByteBuffer();
             if (this.UseLogicalNameReferencing)
             {
-                cmd = Command.GetRequest;
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, Command.GetRequest, (byte)GetCommandType.WithList, null, data, 0xff);
                 //Request service primitive shall always fit in a single APDU.
-                int pos = 0, count = (Settings.MaxReceivePDUSize - 12) / 10;
+                int pos = 0, count = (Settings.MaxPDUSize - 12) / 10;
                 if (list.Count < count)
                 {
                     count = list.Count;
@@ -1438,11 +1439,11 @@ namespace Gurux.DLMS
                     count = 10;
                 }
                 // Add length.
-                GXCommon.SetObjectCount(count, bb);
+                GXCommon.SetObjectCount(count, data);
                 foreach (KeyValuePair<GXDLMSObject, int> it in list)
                 {                    
                     // CI.
-                    bb.SetUInt16((UInt16)it.Key.ObjectType);
+                    data.SetUInt16((UInt16)it.Key.ObjectType);
                     String[] items = it.Key.LogicalName.Split('.');
                     if (items.Length != 6)
                     {
@@ -1450,43 +1451,47 @@ namespace Gurux.DLMS
                     }
                     foreach (String it2 in items)
                     {
-                        bb.SetUInt8(byte.Parse(it2));
+                        data.SetUInt8(byte.Parse(it2));
                     }
                     // Attribute ID.
-                    bb.SetUInt8((byte)it.Value);
+                    data.SetUInt8((byte)it.Value);
                     // Attribute selector is not used.
-                    bb.SetUInt8(0);
+                    data.SetUInt8(0);
                     ++pos;
                     if (pos % count == 0 && list.Count != pos)
                     {
-                        messages.AddRange(GXDLMS.GetMessages(Settings, cmd, 3, bb, DateTime.MinValue));
-                        bb.Clear();
+                        messages.AddRange(GXDLMS.GetLnMessages(p));
+                        data.Clear();
                         if (list.Count - pos < count)
                         {
-                            GXCommon.SetObjectCount(list.Count - pos, bb);
+                            GXCommon.SetObjectCount(list.Count - pos, data);
                         }
                         else
                         {
-                            GXCommon.SetObjectCount(count, bb);
+                            GXCommon.SetObjectCount(count, data);
                         }
                     }
                 }
+                messages.AddRange(GXDLMS.GetLnMessages(p));
             }
             else
             {
-                cmd = Command.ReadRequest;
-                // Add length.
-                GXCommon.SetObjectCount(list.Count, bb);
+                GXDLMSSNParameters p = new GXDLMSSNParameters(Settings, Command.ReadRequest, list.Count, 0xFF, null, data);
                 foreach (KeyValuePair<GXDLMSObject, int> it in list)
                 {
                     // Add variable type.
-                    bb.SetUInt8(2);
+                    data.SetUInt8(VariableAccessSpecification.VariableName);
                     int sn = it.Key.ShortName;
                     sn += (it.Value - 1) * 8;
-                    bb.SetUInt16((UInt16)sn);
+                    data.SetUInt16((UInt16)sn);
+                    if (data.Size >= p.settings.MaxPDUSize)
+                    {
+                        messages.AddRange(GXDLMS.GetSnMessages(p));
+                        data.Clear();
+                    }
                 }
-            }
-            messages.AddRange(GXDLMS.GetMessages(Settings, cmd, 3, bb, DateTime.MinValue));
+                messages.AddRange(GXDLMS.GetSnMessages(p));
+            }           
             return messages.ToArray();
         }
 

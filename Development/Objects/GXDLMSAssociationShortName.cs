@@ -267,12 +267,15 @@ namespace Gurux.DLMS.Objects
                 //Add count only for first time.
                 if (settings.Index == 0)
                 {
+                    settings.Count = (UInt16) cnt;
                     data.SetUInt8((byte)DataType.Array);
                     GXCommon.SetObjectCount(cnt, data);
-                }
-                if (cnt != 0)
+                } 
+                ushort pos = 0;
+                foreach (GXDLMSObject it in ObjectList)
                 {
-                    foreach (GXDLMSObject it in ObjectList)
+                    ++pos;
+                    if (!(pos <= settings.Index))
                     {
                         data.SetUInt8((byte)DataType.Structure);
                         //Count
@@ -285,16 +288,12 @@ namespace Gurux.DLMS.Objects
                         GXCommon.SetData(data, DataType.UInt8, 0);
                         //LN
                         GXCommon.SetData(data, DataType.OctetString, it.LogicalName);
-                    }
-                    //Add association view if not exists.
-                    if (ObjectList.FindBySN(this.ShortName) == null)
-                    {
-                        data.SetUInt8((byte)DataType.Structure);
-                        data.SetUInt8((byte)4); //Count
-                        GXCommon.SetData(data, DataType.Int16, this.ShortName); //base address.
-                        GXCommon.SetData(data, DataType.UInt16, this.ObjectType); //ClassID
-                        GXCommon.SetData(data, DataType.UInt8, 0); //Version
-                        GXCommon.SetData(data, DataType.OctetString, this.LogicalName); //LN
+                        ++settings.Index;
+                        //If PDU is full.
+                        if (data.Size >= settings.MaxPDUSize)
+                        {
+                            break;
+                        }
                     }
                 }
                 return data;

@@ -39,24 +39,11 @@ namespace Gurux.DLMS.Enums
     ///  Enumerated DLMS error codes.
     /// </summary>
     public enum ErrorCode
-    {
-        /// <summary>
-        /// Error code is ignored.
-        /// </summary>
-        Ignore = -4,
-        /// <summary>
-        /// Server is close connection.
-        /// </summary>
-        DisconnectRequest = -3,
+    {        
         /// <summary>
         /// Connection is rejected.
         /// </summary>
-        Rejected = -2,
-        /// <summary>
-        /// Not a reply.
-        /// </summary>
-        InvalidHdlcReply = -1,
-
+        Rejected = -1,       
         /// <summary>
         /// No error has occurred.
         /// </summary>

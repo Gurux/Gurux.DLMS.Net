@@ -125,7 +125,7 @@ namespace Gurux.DLMS.Objects
         /// <returns></returns>
         public byte[][] Reset(GXDLMSClient client)
         {
-            return client.Method(this, 1, (int)0);            
+            return client.Method(this, 1, (byte)0);            
         }
 
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>

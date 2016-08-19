@@ -85,7 +85,7 @@ namespace Gurux.DLMS
         public int Selector
         {
             get;
-            private set;
+            internal set;
         }
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace Gurux.DLMS
         public object Parameters
         {
             get;
-            private set;
+            internal set;
         }
 
         /// <summary>

@@ -40,49 +40,22 @@ using System.Text;
 namespace Gurux.DLMS.Enums
 {
     /// <summary>
-    /// ServiceError enumerates service errors.
+    /// ServiceError enumerates exception service errors.
     /// </summary>
-    public enum ServiceError
+    public enum ExceptionServiceError
     {
         /// <summary>
-        /// Application error.
+        /// Operation not possible.
         /// </summary>
-        ApplicationReference = 0,
+        OperationNotPossible = 1,
         /// <summary>
-        /// Hardware error.
+        /// Service not supported.
         /// </summary>
-        HardwareResource,
+        ServiceNotSupported = 2,
         /// <summary>
-        /// Vde state error.
+        /// Other reason.
         /// </summary>
-        VdeStateError,
-        /// <summary>
-        /// Service error.
-        /// </summary>
-        Service,
-        /// <summary>
-        /// Definition error.
-        /// </summary>
-        Definition,
-        /// <summary>
-        /// Access error.
-        /// </summary>
-        Access,
-        /// <summary>
-        /// Initiate error.
-        /// </summary>
-        Initiate,
-        /// <summary>
-        /// LoadDataSet error.
-        /// </summary>
-        LoadDataSet,
-        /// <summary>
-        /// Task error.
-        /// </summary>
-        Task,
-        /// <summary>
-        /// Other error describes manufacturer specific error code.
-        /// </summary>
-        OtherError
+        OtherReason = 3
     }
+
 }

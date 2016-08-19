@@ -170,18 +170,33 @@ namespace Gurux.DLMS.Secure
             {
                 throw new ArgumentOutOfRangeException("cryptedData");
             }
+            int len;
             Command cmd = (Command)data.GetUInt8();
-            if (!((byte) cmd == 0x21 || (byte) cmd == 0x28 ||
-                cmd == Command.GloGetRequest ||
-                cmd == Command.GloGetResponse ||
-                cmd == Command.GloSetRequest ||
-                cmd == Command.GloSetResponse ||
-                cmd == Command.GloMethodRequest ||
-                cmd == Command.GloMethodResponse))
+            switch (cmd)
             {
-                throw new ArgumentOutOfRangeException("cryptedData");
+                case Command.GloGeneralCiphering:
+                    len = GXCommon.GetObjectCount(data);
+                    p.SystemTitle = new byte[len];
+                    data.Get(p.SystemTitle);
+                    break;
+                case Command.GloInitiateRequest:
+                case Command.GloInitiateResponse:
+                case Command.GloReadRequest:
+                case Command.GloReadResponse:
+                case Command.GloWriteRequest:
+                case Command.GloWriteResponse:
+                case Command.GloGetRequest:
+                case Command.GloGetResponse:
+                case Command.GloSetRequest:
+                case Command.GloSetResponse:
+                case Command.GloMethodRequest:
+                case Command.GloMethodResponse:
+                case Command.GloEventNotificationRequest:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("cryptedData");
             }
-            int len = Gurux.DLMS.Internal.GXCommon.GetObjectCount(data);
+            len = Gurux.DLMS.Internal.GXCommon.GetObjectCount(data);
             p.Security = (Security)data.GetUInt8();
             p.FrameCounter = data.GetUInt32();
             System.Diagnostics.Debug.WriteLine("Decrypt settings: " + p.ToString());

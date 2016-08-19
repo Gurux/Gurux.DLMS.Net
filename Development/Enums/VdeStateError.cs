@@ -36,53 +36,39 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Enums
 {
     /// <summary>
-    /// ServiceError enumerates service errors.
+    /// VdeState error describes Vde state errors.
     /// </summary>
-    public enum ServiceError
+    public enum VdeStateError
     {
         /// <summary>
-        /// Application error.
+        /// Other error.
         /// </summary>
-        ApplicationReference = 0,
+        [XmlEnum("0")]
+        Other = 0,
         /// <summary>
-        /// Hardware error.
+        /// No DLMS context.
         /// </summary>
-        HardwareResource,
+        [XmlEnum("1")]
+        NoDlmsContext,
         /// <summary>
-        /// Vde state error.
+        /// Loading dataset error.
         /// </summary>
-        VdeStateError,
+        [XmlEnum("2")]
+        LoadingDataSet,
         /// <summary>
-        /// Service error.
+        /// Status No change.
         /// </summary>
-        Service,
+        [XmlEnum("3")]
+        StatusNochange,
         /// <summary>
-        /// Definition error.
+        /// Status Inoperable.
         /// </summary>
-        Definition,
-        /// <summary>
-        /// Access error.
-        /// </summary>
-        Access,
-        /// <summary>
-        /// Initiate error.
-        /// </summary>
-        Initiate,
-        /// <summary>
-        /// LoadDataSet error.
-        /// </summary>
-        LoadDataSet,
-        /// <summary>
-        /// Task error.
-        /// </summary>
-        Task,
-        /// <summary>
-        /// Other error describes manufacturer specific error code.
-        /// </summary>
-        OtherError
+        [XmlEnum("4")]
+        StatusInoperable
     }
 }

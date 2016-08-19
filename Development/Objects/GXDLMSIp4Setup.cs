@@ -53,7 +53,7 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary> 
         public GXDLMSIp4Setup()
-            : base(ObjectType.Ip4Setup)
+            : this("0.0.25.1.0.255")
         {
         }
 
@@ -62,7 +62,7 @@ namespace Gurux.DLMS.Objects
         /// </summary> 
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSIp4Setup(string ln)
-            : base(ObjectType.Ip4Setup, ln, 0)
+            : this(ln, 0)
         {
         }
 
@@ -84,7 +84,7 @@ namespace Gurux.DLMS.Objects
         }
 
         [XmlIgnore()]
-        public UInt64 IPAddress
+        public string IPAddress
         {
             get;
             set;
@@ -289,7 +289,12 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 3)
             {
-                return this.IPAddress;
+                //If IP address is not given.
+                if (IPAddress == null || IPAddress.Trim().Length == 0)
+                {
+                    return 0;
+                }
+                return BitConverter.ToInt32(System.Net.IPAddress.Parse(IPAddress).GetAddressBytes(), 0);
             }
             if (e.Index == 4)
             {
@@ -367,7 +372,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 3)
             {
-                IPAddress = Convert.ToUInt32(e.Value);
+                IPAddress = new System.Net.IPAddress(BitConverter.GetBytes(Convert.ToUInt32(e.Value))).ToString();
             }
             else if (e.Index == 4)
             {        

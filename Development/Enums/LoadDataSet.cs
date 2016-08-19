@@ -36,53 +36,54 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Enums
 {
     /// <summary>
-    /// ServiceError enumerates service errors.
+    /// LoadDataSet describes load dataset errors.
     /// </summary>
-    public enum ServiceError
+    public enum LoadDataSet
     {
         /// <summary>
-        /// Application error.
+        /// Other error.
         /// </summary>
-        ApplicationReference = 0,
+        [XmlEnum("0")]
+        Other = 0,
         /// <summary>
-        /// Hardware error.
+        /// Primitive out of sequence.
         /// </summary>
-        HardwareResource,
+        [XmlEnum("1")]
+        PrimitiveOutOfSequence,
         /// <summary>
-        /// Vde state error.
+        /// Not loadable.
         /// </summary>
-        VdeStateError,
+        [XmlEnum("2")]
+        NotLoadable,
         /// <summary>
-        /// Service error.
+        /// Dataset size is too large.
         /// </summary>
-        Service,
+        [XmlEnum("3")]
+        DatasetSizeTooLarge,
         /// <summary>
-        /// Definition error.
+        /// Not awaited segment.
         /// </summary>
-        Definition,
+        [XmlEnum("4")]
+        NotAwaitedSegment,
         /// <summary>
-        /// Access error.
+        /// Interpretation failure.
         /// </summary>
-        Access,
+        [XmlEnum("5")]
+        InterpretationFailure,
         /// <summary>
-        /// Initiate error.
+        /// Storage failure.
         /// </summary>
-        Initiate,
+        [XmlEnum("6")]
+        StorageFailure,
         /// <summary>
-        /// LoadDataSet error.
+        /// Dataset not ready.
         /// </summary>
-        LoadDataSet,
-        /// <summary>
-        /// Task error.
-        /// </summary>
-        Task,
-        /// <summary>
-        /// Other error describes manufacturer specific error code.
-        /// </summary>
-        OtherError
+        [XmlEnum("7")]
+        DatasetNotReady
     }
 }

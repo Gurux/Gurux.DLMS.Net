@@ -36,6 +36,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Enums
 {
@@ -48,15 +49,17 @@ namespace Gurux.DLMS.Enums
         /// <summary>
         /// Association request is accepted.
         /// </summary>
+        [XmlEnum("0")]
         Accepted = 0,
         /// <summary>
         /// Association request is permanently rejected.
         /// </summary>
+        [XmlEnum("1")]
         PermanentRejected = 1,
         /// <summary>
         /// Association request is transiently rejected. 
         /// </summary>
+        [XmlEnum("2")]
         TransientRejected = 2
-
     }
 }

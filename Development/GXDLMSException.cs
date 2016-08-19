@@ -44,7 +44,7 @@ namespace Gurux.DLMS
 	/// DLMS specific exception class that has error description available from GetDescription method.
 	/// </summary>
     public class GXDLMSException : Exception
-    {        
+    {
         public GXDLMSException(int errCode)
             : base(GXDLMS.GetDescription((ErrorCode)errCode))
         {
@@ -60,34 +60,121 @@ namespace Gurux.DLMS
         /// <summary>
         /// Constructor for AARE error.
         /// </summary>
-        internal GXDLMSException(StateError stateError, ServiceError serviceError)
+        internal GXDLMSException(ExceptionStateError stateError, ExceptionServiceError serviceError)
             : base("Meter returns " + GetStateError(stateError) + " exception. " + GetServiceError(serviceError))
         {
             StateError = stateError;
-            ServiceError = serviceError;
+            ExceptionServiceError = serviceError;
         }
 
-        private static string GetStateError(StateError stateError)
+        /// <summary>
+        /// Constructor for Confirmed ServiceError.
+        /// </summary>
+        internal GXDLMSException(ConfirmedServiceError service, ServiceError type, byte value)
+            : base("ServiceError " + GetConfirmedServiceError(service) + " exception. " + GetServiceError(type) + " " + GetServiceErrorValue(type, value))
+        {
+            ConfirmedServiceError = service;
+            ServiceError = type;
+            ServiceErrorValue = value;
+        }
+
+        private static string GetStateError(ExceptionStateError stateError)
         {
             switch (stateError)
             {
-                case StateError.ServiceNotAllowed:
+                case ExceptionStateError.ServiceNotAllowed:
                     return "Service not allowed";
-                case StateError.ServiceUnknown:
+                case ExceptionStateError.ServiceUnknown:
                     return "Service unknown";
             }
             return string.Empty;
         }
 
-        private static string GetServiceError(ServiceError serviceError)
+        private static string GetConfirmedServiceError(ConfirmedServiceError stateError)
+        {
+            switch (stateError)
+            {
+                case ConfirmedServiceError.InitiateError:
+                    return "Initiate Error";
+                case ConfirmedServiceError.Read:
+                    return "Read";
+                case ConfirmedServiceError.Write:
+                    return "Write";
+                default:
+                    break;
+            }
+             return string.Empty;
+        }
+
+        private static string GetServiceError(ServiceError error)
+        {
+            switch (error)
+            {
+                case ServiceError.ApplicationReference:
+                    return "ApplicationReference";
+                case ServiceError.HardwareResource:
+                    return "HardwareResource";
+                case ServiceError.VdeStateError:
+                    return "VdeStateError";
+                case ServiceError.Service:
+                    return "Service";
+                case ServiceError.Definition:
+                    return "Definition";
+                case ServiceError.Access:
+                    return "Access";
+                case ServiceError.Initiate:
+                    return "Initiate";
+                case ServiceError.LoadDataSet:
+                    return "Load data set";
+                case ServiceError.Task:
+                    return "Task";
+                case ServiceError.OtherError:
+                    return "Other Error";
+                default:
+                    break;
+            }
+             return string.Empty;
+        }
+
+        private static string GetServiceErrorValue(ServiceError error, byte value)
+        {
+            switch (error)
+            {
+                case ServiceError.ApplicationReference:
+                    return ((ApplicationReference) value).ToString();
+                case ServiceError.HardwareResource:
+                    return ((HardwareResource)value).ToString();
+                case ServiceError.VdeStateError:
+                    return ((VdeStateError)value).ToString();
+                case ServiceError.Service:
+                    return ((Service)value).ToString();
+                case ServiceError.Definition:
+                    return ((Definition)value).ToString();
+                case ServiceError.Access:
+                    return ((Access)value).ToString();
+                case ServiceError.Initiate:
+                    return ((Initiate)value).ToString();
+                case ServiceError.LoadDataSet:
+                    return ((LoadDataSet)value).ToString();
+                case ServiceError.Task:
+                    return ((Task)value).ToString();
+                case ServiceError.OtherError:
+                    return value.ToString();
+                default:
+                    break;
+            }
+             return string.Empty;
+        }
+
+        private static string GetServiceError(ExceptionServiceError serviceError)
         {
             switch (serviceError)
             {
-                case ServiceError.OperationNotPossible:
+                case ExceptionServiceError.OperationNotPossible:
                     return "Operation not possible";
-                case ServiceError.OtherReason:
+                case ExceptionServiceError.OtherReason:
                     return "Other reason";
-                case ServiceError.ServiceNotSupported:
+                case ExceptionServiceError.ServiceNotSupported:
                     return "Service not supported";
 
             }
@@ -188,7 +275,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// State error.
         /// </summary>
-        public StateError StateError
+        public ExceptionStateError StateError
         {
             get;
             private set;
@@ -197,10 +284,38 @@ namespace Gurux.DLMS
         /// <summary>
         /// Service error.
         /// </summary>
+        public ExceptionServiceError ExceptionServiceError
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Confirmed service error.
+        /// </summary>
+        public ConfirmedServiceError ConfirmedServiceError
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Service error.
+        /// </summary>
         public ServiceError ServiceError
         {
             get;
             private set;
         }
+
+        /// <summary>
+        /// Service error value.
+        /// </summary>
+        public byte ServiceErrorValue
+        {
+            get;
+            private set;
+        }
+
     }
 }

@@ -325,7 +325,7 @@ namespace Gurux.DLMS.Objects
                     GetAccessRights(it, data); //Access rights.
                     ++settings.Index;
                     //If PDU is full.
-                    if (data.Size >= settings.MaxReceivePDUSize)
+                    if (data.Size >= settings.MaxPDUSize)
                     {
                        break;
                     }

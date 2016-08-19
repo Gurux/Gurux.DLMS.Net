@@ -36,15 +36,34 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Enums
 {
     /// <summary>
-    /// StateError enumerates state errors.
+    /// Definition describes definition errors.
     /// </summary>
-    public enum StateError
+    public enum Definition
     {
-        ServiceNotAllowed = 1,
-        ServiceUnknown = 2
+        /// <summary>
+        /// Other error.
+        /// </summary>
+        [XmlEnum("0")]
+        Other = 0,
+        /// <summary>
+        /// Object is Undefined.
+        /// </summary>
+        [XmlEnum("1")]
+        ObjectUndefined,
+        /// <summary>
+        /// Object class inconsistent.
+        /// </summary>
+        [XmlEnum("2")]
+        ObjectClassInconsistent,
+        /// <summary>
+        /// Object attribute inconsistent.
+        /// </summary>
+        [XmlEnum("3")]
+        ObjectAttributeInconsistent
     }
 }

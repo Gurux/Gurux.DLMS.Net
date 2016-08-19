@@ -51,10 +51,8 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary> 
         public GXDLMSPppSetup()
-            : base(ObjectType.PppSetup)
+            : this(null)
         {
-            LCPOptions = new GXDLMSPppSetupLcpOption[0];
-            IPCPOptions = new GXDLMSPppSetupIPCPOption[0];
         }
 
         /// <summary> 
@@ -62,10 +60,8 @@ namespace Gurux.DLMS.Objects
         /// </summary> 
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSPppSetup(string ln)
-            : base(ObjectType.PppSetup, ln, 0)
+            : this(ln, 0)
         {
-            LCPOptions = new GXDLMSPppSetupLcpOption[0];
-            IPCPOptions = new GXDLMSPppSetupIPCPOption[0];
         }
 
         /// <summary> 

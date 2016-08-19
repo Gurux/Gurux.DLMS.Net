@@ -36,53 +36,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Enums
 {
     /// <summary>
-    /// ServiceError enumerates service errors.
+    /// StateError enumerates state errors.
     /// </summary>
-    public enum ServiceError
+    public enum ExceptionStateError
     {
-        /// <summary>
-        /// Application error.
-        /// </summary>
-        ApplicationReference = 0,
-        /// <summary>
-        /// Hardware error.
-        /// </summary>
-        HardwareResource,
-        /// <summary>
-        /// Vde state error.
-        /// </summary>
-        VdeStateError,
-        /// <summary>
-        /// Service error.
-        /// </summary>
-        Service,
-        /// <summary>
-        /// Definition error.
-        /// </summary>
-        Definition,
-        /// <summary>
-        /// Access error.
-        /// </summary>
-        Access,
-        /// <summary>
-        /// Initiate error.
-        /// </summary>
-        Initiate,
-        /// <summary>
-        /// LoadDataSet error.
-        /// </summary>
-        LoadDataSet,
-        /// <summary>
-        /// Task error.
-        /// </summary>
-        Task,
-        /// <summary>
-        /// Other error describes manufacturer specific error code.
-        /// </summary>
-        OtherError
+        [XmlEnum("1")]
+        ServiceNotAllowed = 1,
+        [XmlEnum("2")]
+        ServiceUnknown = 2
     }
 }

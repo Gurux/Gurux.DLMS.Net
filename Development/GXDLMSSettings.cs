@@ -117,7 +117,21 @@ namespace Gurux.DLMS
         /// <summary>
         /// Long data index.
         /// </summary>
-        internal UInt16 Index;       
+        internal UInt16 Index;
+
+        /// <summary>
+        /// Maximum PDU size.
+        /// </summary>
+        private UInt16 maxReceivePDUSize;
+
+        /// <summary>
+        /// Is authentication Required.
+        /// </summary>
+        internal bool IsAuthenticationRequired
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Cipher interface.
@@ -141,8 +155,8 @@ namespace Gurux.DLMS
             DLMSVersion = 6;
             InvokeID = 0x1;
             Priority = Priority.High;
-            ServiceClass = ServiceClass.UnConfirmed;
-            MaxServerPDUSize = MaxReceivePDUSize = DefaultMaxReceivePduSize;
+            ServiceClass = ServiceClass.Confirmed;
+            MaxServerPDUSize = MaxPDUSize = DefaultMaxReceivePduSize;
             Server = isServer;
             Objects = new GXDLMSObjectCollection();
             Limits = new GXDLMSLimits();
@@ -290,7 +304,7 @@ namespace Gurux.DLMS
                 ReceiverFrame = frame;
                 return true;
             }
-            System.Diagnostics.Debug.WriteLine("Frame ID do not match.");
+            System.Diagnostics.Debug.WriteLine("Invalid HDLC Frame ID.");
             return false;
         }
 
@@ -442,10 +456,20 @@ namespace Gurux.DLMS
         /// <summary>
         /// Maximum PDU size.
         /// </summary>
-        public UInt16 MaxReceivePDUSize
+        public UInt16 MaxPDUSize
         {
-            get;
-            set;
+            get
+            {
+                return maxReceivePDUSize;
+            }
+            set
+            {
+                if (value < 64)
+                {
+                    throw new ArgumentOutOfRangeException("MaxReceivePDUSize");
+                }
+                maxReceivePDUSize = value;
+            }
         }
 
         /// <summary>

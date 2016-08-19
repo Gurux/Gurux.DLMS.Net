@@ -166,7 +166,7 @@ namespace Gurux.DLMS.Internal
         private static void GetInitiateRequest(GXDLMSSettings settings, GXICipher cipher, GXByteBuffer data)
         {
             // Tag for xDLMS-Initiate request
-            data.SetUInt8(GXCommon.InitialRequest);
+            data.SetUInt8((byte)Command.InitiateRequest);
             // Usage field for dedicated-key component. Not used
             data.SetUInt8(0x00);
             //encoding of the response-allowed component (BOOLEAN DEFAULT TRUE) 
@@ -191,7 +191,7 @@ namespace Gurux.DLMS.Internal
             {
                 data.Set(settings.SnSettings.ConformanceBlock);
             }
-            data.SetUInt16(settings.MaxReceivePDUSize);
+            data.SetUInt16(settings.MaxPDUSize);
         }
 
         /// <summary>
@@ -217,7 +217,7 @@ namespace Gurux.DLMS.Internal
             {
                 GXByteBuffer tmp = new GXByteBuffer();
                 GetInitiateRequest(settings, cipher, tmp);
-                byte[] crypted = cipher.Encrypt(0x21, cipher.SystemTitle, tmp.Array());
+                byte[] crypted = cipher.Encrypt((byte) Command.GloInitiateRequest, cipher.SystemTitle, tmp.Array());
                 //Length for AARQ user field
                 data.SetUInt8((byte)(2 + crypted.Length));
                 //Coding the choice for user-information (Octet STRING, universal)
@@ -264,19 +264,19 @@ namespace Gurux.DLMS.Internal
             len = data.GetUInt8();
             //Tag for xDLMS-Initate.response
             tag = data.GetUInt8();
-            if (tag == GXCommon.InitialResponceGlo)
+            if (tag == (byte) Command.GloInitiateResponse)
             {
                 --data.Position;
                 cipher.Security = cipher.Decrypt(settings.SourceSystemTitle, data);
                 tag = data.GetUInt8();
             }
-            else if (tag == GXCommon.InitialRequestGlo)
+            else if (tag == (byte)Command.GloInitiateRequest)
             {
                 --data.Position;
                 cipher.Security = cipher.Decrypt(settings.SourceSystemTitle, data);
                 tag = data.GetUInt8();
             }
-            bool response = tag == GXCommon.InitialResponce;
+            bool response = tag == (byte) Command.InitiateResponse;
             if (response)
             {
                 //Optional usage field of the negotiated quality of service component
@@ -287,7 +287,7 @@ namespace Gurux.DLMS.Internal
                     data.Position += len;
                 }
             }
-            else if (tag == GXCommon.InitialRequest)
+            else if (tag == (byte) Command.InitiateRequest)
             {
                 //Optional usage field of the negotiated quality of service component
                 tag = data.GetUInt8();
@@ -375,17 +375,17 @@ namespace Gurux.DLMS.Internal
             if (settings.IsServer)
             {
                 //Proposed max PDU size.
-                settings.MaxReceivePDUSize = data.GetUInt16();
+                settings.MaxPDUSize = data.GetUInt16();
                 //If client asks too high PDU.
-                if (settings.MaxReceivePDUSize > settings.MaxServerPDUSize)
+                if (settings.MaxPDUSize > settings.MaxServerPDUSize)
                 {
-                    settings.MaxReceivePDUSize = settings.MaxServerPDUSize;
+                    settings.MaxPDUSize = settings.MaxServerPDUSize;
                 }
             }
             else
             {
                 //Max PDU size.
-                settings.MaxReceivePDUSize = data.GetUInt16();
+                settings.MaxPDUSize = data.GetUInt16();
             }
             if (response)
             {
@@ -658,7 +658,7 @@ namespace Gurux.DLMS.Internal
         private static byte[] GetUserInformation(GXDLMSSettings settings, GXICipher cipher)
         {
             GXByteBuffer data = new GXByteBuffer();
-            data.SetUInt8(GXCommon.InitialResponce); // Tag for xDLMS-Initiate response
+            data.SetUInt8(Command.InitiateResponse); // Tag for xDLMS-Initiate response
             // NegotiatedQualityOfService (not used)
 //            data.SetUInt8(0x1);
             data.SetUInt8(0x00);
@@ -677,7 +677,7 @@ namespace Gurux.DLMS.Internal
                 data.Set(settings.SnSettings.ConformanceBlock);
 
             }
-            data.SetUInt16(settings.MaxReceivePDUSize);
+            data.SetUInt16(settings.MaxPDUSize);
             //VAA Name VAA name (0x0007 for LN referencing and 0xFA00 for SN)
             if (settings.UseLogicalNameReferencing)
             {
@@ -689,7 +689,7 @@ namespace Gurux.DLMS.Internal
             }
             if (cipher != null && cipher.IsCiphered())
             {
-                return cipher.Encrypt(0x28, cipher.SystemTitle, data.Array());
+                return cipher.Encrypt((byte)Command.GloInitiateResponse, cipher.SystemTitle, data.Array());
             }
             return data.Array();
         }

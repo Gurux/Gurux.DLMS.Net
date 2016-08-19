@@ -50,6 +50,16 @@ namespace Gurux.DLMS
         None = 0,
 
         /// <summary>
+        /// Initiate request.
+        /// </summary>
+        InitiateRequest = 0x1,
+
+        /// <summary>
+        /// Initiate response.
+        /// </summary>
+        InitiateResponse = 0x8,
+
+        /// <summary>
         /// Read request.
         /// </summary>
         ReadRequest = 0x5,
@@ -140,10 +150,15 @@ namespace Gurux.DLMS
         DisconnectResponse = 0x63,
 
         /// <summary>
+        /// Confirmed Service Error.
+        /// </summary>
+        ConfirmedServiceError = 0x0E,
+
+        /// <summary>
         /// Exception Response.
         /// </summary>
         ExceptionResponse = 0xD8,
-        
+
         /// <summary>
         /// General Block Transfer.
         /// </summary>
@@ -156,7 +171,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Access Response.
         /// </summary>
-        AccessResponse   = 0xDA,
+        AccessResponse = 0xDA,
 
         /// <summary>
         /// Data Notification request.
@@ -184,6 +199,16 @@ namespace Gurux.DLMS
         GloSetResponse = 0xCD,
 
         /// <summary>
+        /// Glo general ciphering.
+        /// </summary>
+        GloGeneralCiphering = 0xDB,
+
+        /// <summary>
+        /// Glo event notification request.
+        /// </summary>
+        GloEventNotificationRequest = 0xCA,
+
+        /// <summary>
         /// Glo method request.
         /// </summary>
         GloMethodRequest = 0xCB,
@@ -191,6 +216,36 @@ namespace Gurux.DLMS
         /// <summary>
         /// Glo method response.
         /// </summary>
-        GloMethodResponse = 0xCF
+        GloMethodResponse = 0xCF,
+
+        /// <summary>
+        /// Glo Initiate request.
+        /// </summary>
+        GloInitiateRequest = 0x21,
+
+        /// <summary>
+        /// Glo read request.
+        /// </summary>
+        GloReadRequest = 37,
+
+        /// <summary>
+        /// Glo write request.
+        /// </summary>
+        GloWriteRequest = 38,
+
+        /// <summary>
+        /// Glo Initiate response.
+        /// </summary>
+        GloInitiateResponse = 0x28,
+
+        /// <summary>
+        /// Glo read response.
+        /// </summary>
+        GloReadResponse = 44,
+
+        /// <summary>
+        /// Glo write response.
+        /// </summary>
+        GloWriteResponse = 45
     }
 }

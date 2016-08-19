@@ -32,57 +32,25 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace Gurux.DLMS.Enums
+namespace Gurux.DLMS.Internal
 {
     /// <summary>
-    /// ServiceError enumerates service errors.
+    /// Enumerates Get request and response types.
     /// </summary>
-    public enum ServiceError
+    enum GetCommandType
     {
         /// <summary>
-        /// Application error.
+        /// Normal Get.
         /// </summary>
-        ApplicationReference = 0,
+        Normal = 1,
         /// <summary>
-        /// Hardware error.
+        /// Next data block.
         /// </summary>
-        HardwareResource,
+        NextDataBlock = 2,
         /// <summary>
-        /// Vde state error.
+        /// Get request with list.
         /// </summary>
-        VdeStateError,
-        /// <summary>
-        /// Service error.
-        /// </summary>
-        Service,
-        /// <summary>
-        /// Definition error.
-        /// </summary>
-        Definition,
-        /// <summary>
-        /// Access error.
-        /// </summary>
-        Access,
-        /// <summary>
-        /// Initiate error.
-        /// </summary>
-        Initiate,
-        /// <summary>
-        /// LoadDataSet error.
-        /// </summary>
-        LoadDataSet,
-        /// <summary>
-        /// Task error.
-        /// </summary>
-        Task,
-        /// <summary>
-        /// Other error describes manufacturer specific error code.
-        /// </summary>
-        OtherError
+        WithList = 3
     }
 }

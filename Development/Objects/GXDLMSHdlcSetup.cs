@@ -53,11 +53,8 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary> 
         public GXDLMSHdlcSetup()
-            : base(ObjectType.IecHdlcSetup)
+            : this(null)
         {
-            CommunicationSpeed = BaudRate.Baudrate9600;
-            WindowSizeReceive = WindowSizeTransmit = 1;
-            MaximumInfoLengthTransmit = MaximumInfoLengthReceive = 128;
         }
 
         /// <summary> 
@@ -65,7 +62,7 @@ namespace Gurux.DLMS.Objects
         /// </summary> 
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSHdlcSetup(string ln)
-            : base(ObjectType.IecHdlcSetup, ln, 0)
+            : this(ln, 0)
         {
         }
 
@@ -77,6 +74,10 @@ namespace Gurux.DLMS.Objects
         public GXDLMSHdlcSetup(string ln, ushort sn)
             : base(ObjectType.IecHdlcSetup, ln, sn)
         {
+            CommunicationSpeed = BaudRate.Baudrate9600;
+            WindowSizeReceive = WindowSizeTransmit = 1;
+            MaximumInfoLengthTransmit = MaximumInfoLengthReceive = 128;
+            InactivityTimeout = 120;
         }       
 
         [XmlIgnore()]

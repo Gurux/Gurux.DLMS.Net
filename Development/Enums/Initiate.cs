@@ -36,53 +36,39 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Enums
 {
     /// <summary>
-    /// ServiceError enumerates service errors.
+    /// Initiate describes onitiate errors.
     /// </summary>
-    public enum ServiceError
+    public enum Initiate
     {
         /// <summary>
-        /// Application error.
+        /// Other error.
         /// </summary>
-        ApplicationReference = 0,
+        [XmlEnum("0")]
+        Other = 0,
         /// <summary>
-        /// Hardware error.
+        /// Dlms version is too low.
         /// </summary>
-        HardwareResource,
+        [XmlEnum("1")]
+        DlmsVersionTooLow,
         /// <summary>
-        /// Vde state error.
+        /// Incompatible conformance.
         /// </summary>
-        VdeStateError,
+        [XmlEnum("2")]
+        IncompatibleConformance,
         /// <summary>
-        /// Service error.
+        /// Pdu size is too short.
         /// </summary>
-        Service,
+        [XmlEnum("3")]
+        PduSizeTooShort,
         /// <summary>
-        /// Definition error.
+        /// Refused by the VDE handler.
         /// </summary>
-        Definition,
-        /// <summary>
-        /// Access error.
-        /// </summary>
-        Access,
-        /// <summary>
-        /// Initiate error.
-        /// </summary>
-        Initiate,
-        /// <summary>
-        /// LoadDataSet error.
-        /// </summary>
-        LoadDataSet,
-        /// <summary>
-        /// Task error.
-        /// </summary>
-        Task,
-        /// <summary>
-        /// Other error describes manufacturer specific error code.
-        /// </summary>
-        OtherError
+        [XmlEnum("4")]
+        RefusedByTheVDEHandler
     }
 }

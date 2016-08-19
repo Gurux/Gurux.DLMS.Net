@@ -45,7 +45,7 @@ namespace Gurux.DLMS
         public Command command;
 
         /// <summary>
-        /// Target.
+        /// Targets.
         /// </summary>
         public ValueEventArgs[] targets;
 
@@ -64,7 +64,8 @@ namespace Gurux.DLMS
         {
             targets = forTargets;
             command = forCommand;
-            data = forData;
+            data = new GXByteBuffer();
+            data.Set(forData.Data, forData.Position, forData.Size - forData.Position);
         }
     }
 }

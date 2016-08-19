@@ -38,51 +38,23 @@ using System.Linq;
 using System.Text;
 
 namespace Gurux.DLMS.Enums
-{
+{   
     /// <summary>
-    /// ServiceError enumerates service errors.
+    /// Confirmed service error tells when error has occurred.
     /// </summary>
-    public enum ServiceError
+    public enum ConfirmedServiceError
     {
         /// <summary>
-        /// Application error.
+        /// Error has occurred on initialize.
         /// </summary>
-        ApplicationReference = 0,
+        InitiateError = 1,
         /// <summary>
-        /// Hardware error.
+        /// Error has occurred on read.
         /// </summary>
-        HardwareResource,
+        Read = 5,
         /// <summary>
-        /// Vde state error.
+        /// Error has occurred on write.
         /// </summary>
-        VdeStateError,
-        /// <summary>
-        /// Service error.
-        /// </summary>
-        Service,
-        /// <summary>
-        /// Definition error.
-        /// </summary>
-        Definition,
-        /// <summary>
-        /// Access error.
-        /// </summary>
-        Access,
-        /// <summary>
-        /// Initiate error.
-        /// </summary>
-        Initiate,
-        /// <summary>
-        /// LoadDataSet error.
-        /// </summary>
-        LoadDataSet,
-        /// <summary>
-        /// Task error.
-        /// </summary>
-        Task,
-        /// <summary>
-        /// Other error describes manufacturer specific error code.
-        /// </summary>
-        OtherError
+        Write = 6
     }
 }

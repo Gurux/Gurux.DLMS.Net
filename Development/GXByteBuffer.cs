@@ -128,7 +128,6 @@ namespace Gurux.DLMS
                 {
                     Data = null;
                     Size = 0;
-                    Position = 0;
                 }
                 else
                 {
@@ -189,6 +188,10 @@ namespace Gurux.DLMS
                     throw new ArgumentOutOfRangeException("Size");
                 }
                 size = value;
+                if (position > size)
+                {
+                    position = size;
+                }
             }
         }
 
@@ -198,6 +201,10 @@ namespace Gurux.DLMS
         /// <returns>Byte buffer as a byte array.</returns>
         public byte[] Array()
         {
+            if (Capacity == Size)
+            {
+                return Data;
+            }
             return SubArray(0, Size);
         }
 
@@ -226,6 +233,10 @@ namespace Gurux.DLMS
             }
             if (count != 0)
             {
+                if (destPos + count > Size)
+                {
+                    Capacity = destPos + count;
+                }
                 Buffer.BlockCopy(Data, srcPos, Data, destPos, count);
                 Size = (destPos + count);
                 if (Position > Size)
@@ -693,8 +704,19 @@ namespace Gurux.DLMS
         {
             if (value != null)
             {
-                Move(index, value.Length, Size - index);
-                Set(value, index, value.Length);
+                if (Capacity == 0)
+                {
+                    Capacity = value.Length;
+                }
+                else
+                {
+                    Move(index, value.Length, Size - index);
+                }
+                Buffer.BlockCopy(value, 0, Data, index, value.Length);
+                if (index + value.Length > Size)
+                {
+                    Size = index + value.Length;
+                }
             }
         }
 
@@ -723,7 +745,10 @@ namespace Gurux.DLMS
 
         public void Set(GXByteBuffer value)
         {
-            Set(value, value.Size - value.Position);
+            if (value != null)
+            {
+                Set(value, value.Size - value.Position);
+            }
         }
 
         /// <summary>

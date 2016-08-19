@@ -70,17 +70,36 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GXDLMSSNParameters.cs" />
+    <Compile Include="GXDLMSLNParameters.cs" />
+    <Compile Include="Enums\ConfirmedServiceError.cs" />
+    <Compile Include="Enums\ApplicationReference.cs" />
+    <Compile Include="Enums\Access.cs" />
+    <Compile Include="Enums\Task.cs" />
+    <Compile Include="Enums\LoadDataSet.cs" />
+    <Compile Include="Enums\Initiate.cs" />
+    <Compile Include="Enums\Definition.cs" />
+    <Compile Include="Enums\Service.cs" />
+    <Compile Include="Enums\VdeStateError.cs" />
+    <Compile Include="Enums\HardwareResource.cs" />
+    <Compile Include="Enums\ServiceError.cs" />
     <Compile Include="GXDLMSConnectionEventArgs.cs" />
     <Compile Include="GXDLMSLongTransaction.cs" />
     <Compile Include="Enums\UpdateType.cs" />
     <Compile Include="GXDLMSBuilder.cs" />
     <Compile Include="GXDLMSConverter.cs" />
+    <Compile Include="Internal\ActionCommandType.cs" />
+    <Compile Include="Internal\VariableAccessSpecification.cs" />
+    <Compile Include="Internal\SetCommandType.cs" />
+    <Compile Include="Internal\GetCommandType.cs" />
+    <Compile Include="Internal\SingleWriteResponse.cs" />
+    <Compile Include="Internal\SingleReadResponse.cs" />
     <Compile Include="Internal\HdlcFrameType.cs" />
     <Compile Include="Internal\HdlcControlFrame.cs" />
     <Compile Include="Internal\PduType.cs" />
     <Compile Include="Enums\AccessMode.cs" />
-    <Compile Include="Enums\StateError.cs" />
-    <Compile Include="Enums\ServiceError.cs" />
+    <Compile Include="Enums\ExceptionStateError.cs" />
+    <Compile Include="Enums\ExceptionServiceError.cs" />
     <Compile Include="Enums\MethodAccessMode.cs" />
     <Compile Include="Enums\DateTimeSkips.cs" />
     <Compile Include="GXKeyValuePair.cs" />
@@ -225,7 +244,6 @@
     <Compile Include="Objects\GXDLMSTcpUdpSetup.cs" />
     <Compile Include="Objects\GXDLMSWeekProfile.cs" />
     <Compile Include="Objects\GXProfileGenericUpdater.cs" />
-    <Compile Include="Objects\GXSendDestinationAndMethod.cs" />
     <Compile Include="Objects\GXxDLMSContextType.cs" />
     <Compile Include="Objects\IGXDLMSBase.cs" />
     <Compile Include="Objects\Enums\ImageTransferStatus.cs" />

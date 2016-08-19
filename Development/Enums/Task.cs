@@ -36,53 +36,39 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Enums
 {
     /// <summary>
-    /// ServiceError enumerates service errors.
+    /// Task describes load task errors.
     /// </summary>
-    public enum ServiceError
+    public enum Task
     {
         /// <summary>
-        /// Application error.
+        /// Other error.
         /// </summary>
-        ApplicationReference = 0,
+        [XmlEnum("0")]
+        Other = 0,
         /// <summary>
-        /// Hardware error.
+        /// No remote control.
         /// </summary>
-        HardwareResource,
+        [XmlEnum("1")]
+        NoRemoteControl,
         /// <summary>
-        /// Vde state error.
+        /// Ti is stopped.
         /// </summary>
-        VdeStateError,
+        [XmlEnum("2")]
+        TiStopped,
         /// <summary>
-        /// Service error.
+        /// Ti is running.
         /// </summary>
-        Service,
+        [XmlEnum("3")]
+        TiRunning,
         /// <summary>
-        /// Definition error.
+        /// Ti is unusable.
         /// </summary>
-        Definition,
-        /// <summary>
-        /// Access error.
-        /// </summary>
-        Access,
-        /// <summary>
-        /// Initiate error.
-        /// </summary>
-        Initiate,
-        /// <summary>
-        /// LoadDataSet error.
-        /// </summary>
-        LoadDataSet,
-        /// <summary>
-        /// Task error.
-        /// </summary>
-        Task,
-        /// <summary>
-        /// Other error describes manufacturer specific error code.
-        /// </summary>
-        OtherError
+        [XmlEnum("4")]
+        TiUnusable
     }
 }

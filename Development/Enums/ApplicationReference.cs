@@ -36,53 +36,49 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Enums
 {
     /// <summary>
-    /// ServiceError enumerates service errors.
+    /// Application reference describes application errors.
     /// </summary>
-    public enum ServiceError
+    public enum ApplicationReference
     {
         /// <summary>
-        /// Application error.
+        /// Other error is occurred.
         /// </summary>
-        ApplicationReference = 0,
+        [XmlEnum("0")]
+        Other = 0,
         /// <summary>
-        /// Hardware error.
+        /// Time elapsed.
         /// </summary>
-        HardwareResource,
+        [XmlEnum("1")]
+        TimeElapsed,
         /// <summary>
-        /// Vde state error.
+        /// Application unreachable.
         /// </summary>
-        VdeStateError,
+        [XmlEnum("2")]
+        ApplicationUnreachable,
         /// <summary>
-        /// Service error.
+        /// Application reference is invalid.
         /// </summary>
-        Service,
+        [XmlEnum("3")]
+        ApplicationReferenceInvalid,
         /// <summary>
-        /// Definition error.
+        /// Application context unsupported.
         /// </summary>
-        Definition,
+        [XmlEnum("4")]
+        ApplicationContextUnsupported,
         /// <summary>
-        /// Access error.
+        /// Provider communication error.
         /// </summary>
-        Access,
+        [XmlEnum("5")]
+        ProviderCommunicationError,
         /// <summary>
-        /// Initiate error.
+        /// Deciphering error.
         /// </summary>
-        Initiate,
-        /// <summary>
-        /// LoadDataSet error.
-        /// </summary>
-        LoadDataSet,
-        /// <summary>
-        /// Task error.
-        /// </summary>
-        Task,
-        /// <summary>
-        /// Other error describes manufacturer specific error code.
-        /// </summary>
-        OtherError
+        [XmlEnum("6")]
+        DecipheringError
     }
 }

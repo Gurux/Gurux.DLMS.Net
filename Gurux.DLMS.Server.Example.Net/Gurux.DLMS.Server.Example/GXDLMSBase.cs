@@ -41,6 +41,8 @@ using Gurux.Net;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Secure;
+using System.Net;
+using System.Net.Sockets;
 
 namespace GuruxDLMSServerExample
 {
@@ -49,6 +51,7 @@ namespace GuruxDLMSServerExample
     /// </summary>
     class GXDLMSBase : GXDLMSSecureServer
     {
+        bool trace = true;
         public GXDLMSBase(bool logicalNameReferencing, InterfaceType type)
             : base(logicalNameReferencing, type)
         {
@@ -81,14 +84,14 @@ namespace GuruxDLMSServerExample
             Media.Open();
             ///////////////////////////////////////////////////////////////////////
             //Add Logical Device Name. 123456 is meter serial number.
-            GXDLMSData d = new GXDLMSData("0.0.42.0.0.255");
-            d.Value = "Gurux123456";
+            GXDLMSData ldn = new GXDLMSData("0.0.42.0.0.255");
+            ldn.Value = "Gurux123456";
             //Set access right. Client can't change Device name.
-            d.SetAccess(2, AccessMode.ReadWrite);
+            ldn.SetAccess(2, AccessMode.ReadWrite);
             //Value is get as Octet String.
-            d.SetDataType(2, DataType.OctetString);
-            d.SetUIDataType(2, DataType.String);
-            Items.Add(d);
+            ldn.SetDataType(2, DataType.OctetString);
+            ldn.SetUIDataType(2, DataType.String);
+            Items.Add(ldn);
             //Add Last average.
             GXDLMSRegister r = new GXDLMSRegister("1.1.21.25.0.255");
             //Set access right. Client can't change average value.
@@ -226,8 +229,36 @@ namespace GuruxDLMSServerExample
             mac.MacAddress = "00:11:22:33:44:55:66";
             Items.Add(mac);
 
+            ///////////////////////////////////////////////////////////////////////
+            //Add Image transfer object.
             GXDLMSImageTransfer i = new GXDLMSImageTransfer();
             Items.Add(i);
+
+            ///////////////////////////////////////////////////////////////////////
+            //Add IP4 Setup object.
+            GXDLMSIp4Setup ip4 = new GXDLMSIp4Setup();
+            //Get local IP address.
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    ip4.IPAddress = ip.ToString();
+                }
+            }
+            Items.Add(ip4);
+
+            //Add Push Setup. (On Connectivity)
+            GXDLMSPushSetup push = new GXDLMSPushSetup("0.0.25.9.0.255");
+            //Send Push messages to this address as default.
+            push.Destination = ip4.IPAddress + ":7000";
+            Items.Add(push);
+            //Add push object itself. This is needed to tell structure of data to the Push listener.
+            push.PushObjectList.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(push, new GXDLMSCaptureObject(2, 0)));
+            //Add logical device name.
+            push.PushObjectList.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(ldn, new GXDLMSCaptureObject(2, 0)));
+            //Add .0.0.25.1.0.255 Ch. 0 IPv4 setup IP address.
+            push.PushObjectList.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(ip4, new GXDLMSCaptureObject(3, 0)));
             ///////////////////////////////////////////////////////////////////////
             //Server must initialize after all objects are added.
             Initialize();
@@ -309,8 +340,42 @@ namespace GuruxDLMSServerExample
         {
         }
 
+        void SendPush(GXDLMSPushSetup target)
+        {
+            int pos = target.Destination.IndexOf(':');
+            if (pos == -1)
+            {
+                throw new ArgumentException("Invalid destination.");
+            }
+            GXDLMSNotify notify = new GXDLMSNotify(true, 1, 1, InterfaceType.WRAPPER);
+            byte[][] data = notify.GeneratePushSetupMessages(DateTime.MinValue, target);
+            string host = target.Destination.Substring(0, pos);
+            int port = int.Parse(target.Destination.Substring(pos + 1));
+            GXNet net = new GXNet(NetworkType.Tcp, host, port);
+            try
+            {
+                net.Open();
+                foreach (byte[] it in data)
+                {
+                    net.Send(it, null);
+                }
+            }
+            finally
+            {
+                net.Close();
+            }
+        }
+
         protected override void Action(ValueEventArgs[] args)
         {
+            foreach(ValueEventArgs it in args)
+            {
+                if (it.Target is GXDLMSPushSetup && it.Index == 1)
+                {
+                    SendPush(it.Target as GXDLMSPushSetup);
+                    it.Handled = true;
+                }
+            }            
         }
 
         /// <summary>
@@ -326,6 +391,12 @@ namespace GuruxDLMSServerExample
         /// </summary>
         protected override SourceDiagnostic ValidateAuthentication(Authentication authentication, byte[] password)
         {
+            //If low authentication fails.
+            if (authentication == Authentication.Low && !Gurux.Common.GXCommon.EqualBytes(ASCIIEncoding.ASCII.GetBytes("Gurux"), password))
+            {
+                return SourceDiagnostic.AuthenticationFailure;
+            }
+            //Other authentication levels are check later.
             return SourceDiagnostic.None;
         }
 
@@ -375,13 +446,19 @@ namespace GuruxDLMSServerExample
             {
                 lock (this)
                 {
-                    Console.WriteLine("<- " + Gurux.Common.GXCommon.ToHex((byte[])e.Data, true));
+                    if (trace)
+                    {
+                        Console.WriteLine("<- " + Gurux.Common.GXCommon.ToHex((byte[])e.Data, true));
+                    }
                     byte[] reply = HandleRequest((byte[])e.Data);
                     //Reply is null if we do not want to send any data to the client.
                     //This is done if client try to make connection with wrong device ID.
                     if (reply != null)
                     {
-                        Console.WriteLine("-> " + Gurux.Common.GXCommon.ToHex(reply, true));
+                        if (trace)
+                        {
+                            Console.WriteLine("-> " + Gurux.Common.GXCommon.ToHex(reply, true));
+                        }
                         Media.Send(reply, e.SenderInfo);
                     }
                 }
@@ -396,12 +473,15 @@ namespace GuruxDLMSServerExample
         {
         }
 
+
         protected override void Connected(GXDLMSConnectionEventArgs e)
         {
+            Console.WriteLine("Connected.");
         }
 
         protected override void Disconnected(GXDLMSConnectionEventArgs e)
         {
+            Console.WriteLine("Disconnected");
         }
     }
 }

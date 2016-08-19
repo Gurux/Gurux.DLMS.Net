@@ -32,25 +32,37 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using Gurux.DLMS.Objects.Enums;
-namespace Gurux.DLMS.Objects
+
+namespace Gurux.DLMS.Internal
 {
-    public class GXSendDestinationAndMethod
+    /// <summary>
+    /// Enumerates Action request types.
+    /// </summary>
+    enum ActionCommandType
     {
-        public ServiceType Service
-        {
-            get;
-            set;
-        }
-        public string Destination
-        {
-            get;
-            set;
-        }
-        public MessageType Message
-        {
-            get;
-            set;
-        }
+        /// <summary>
+        /// Normal action.
+        /// </summary>
+        Normal = 1,
+        /// <summary>
+        /// Next block.
+        /// </summary>
+        NextBlock = 2,
+        /// <summary>
+        /// Action with list.
+        /// </summary>
+        WithList = 3,
+        /// <summary>
+        /// Action with first block.
+        /// </summary>
+        WithFirstBlock = 4,
+        /// <summary>
+        /// Action with list and first block.
+        /// </summary>
+        WithListAndFirstBlock = 5,
+        /// <summary>
+        /// Action with block.
+        /// </summary>
+        WithBlock = 6
     }
 }

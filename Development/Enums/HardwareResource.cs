@@ -36,53 +36,39 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Enums
 {
     /// <summary>
-    /// ServiceError enumerates service errors.
+    /// Hardware resource describes hardware errors.
     /// </summary>
-    public enum ServiceError
+    public enum HardwareResource
     {
         /// <summary>
-        /// Application error.
+        /// Other hardware resource error.
         /// </summary>
-        ApplicationReference = 0,
+        [XmlEnum("0")]
+        Other = 0,
         /// <summary>
-        /// Hardware error.
+        /// Memory is unavailable.
         /// </summary>
-        HardwareResource,
+        [XmlEnum("1")]
+        MemoryUnavailable,
         /// <summary>
-        /// Vde state error.
+        /// Processor resource is unavailable.
         /// </summary>
-        VdeStateError,
+        [XmlEnum("2")]
+        ProcessorResourceUnavailable,
         /// <summary>
-        /// Service error.
+        /// Mass storage is unavailable.
         /// </summary>
-        Service,
+        [XmlEnum("3")]
+        MassStorageUnavailable,
         /// <summary>
-        /// Definition error.
+        /// Other resource is unavailable.
         /// </summary>
-        Definition,
-        /// <summary>
-        /// Access error.
-        /// </summary>
-        Access,
-        /// <summary>
-        /// Initiate error.
-        /// </summary>
-        Initiate,
-        /// <summary>
-        /// LoadDataSet error.
-        /// </summary>
-        LoadDataSet,
-        /// <summary>
-        /// Task error.
-        /// </summary>
-        Task,
-        /// <summary>
-        /// Other error describes manufacturer specific error code.
-        /// </summary>
-        OtherError
+        [XmlEnum("4")]
+        OtherResourceUnavailable
     }
 }
