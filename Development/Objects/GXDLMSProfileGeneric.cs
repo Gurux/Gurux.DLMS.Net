@@ -450,7 +450,7 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 4)
             {
-                return DataType.Int8;
+                return DataType.UInt32;
             }
             if (index == 5)
             {
