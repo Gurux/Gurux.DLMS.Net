@@ -46,7 +46,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Server ID that client try to use to make connection.
         /// </summary>
-        public object ServerAddress     
+        public int ServerAddress     
         {
             get;
             set;

@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -90,8 +90,8 @@ namespace Gurux.DLMS
         /// <param name="password">Password if authentication is used.</param>
         /// <param name="interfaceType">Interface type. Default is general.</param>
         public GXDLMSClient(bool useLogicalNameReferencing,
-            int clientAddress, int serverAddress, Authentication authentication,
-            string password, InterfaceType interfaceType)
+                            int clientAddress, int serverAddress, Authentication authentication,
+                            string password, InterfaceType interfaceType)
         {
             Settings = new GXDLMSSettings(false);
             Settings.UseLogicalNameReferencing = useLogicalNameReferencing;
@@ -164,7 +164,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// DLMS version number. 
+        /// DLMS version number.
         /// </summary>
         /// <remarks>
         /// Gurux DLMS component supports DLMS version number 6.
@@ -195,16 +195,16 @@ namespace Gurux.DLMS
         {
             get
             {
-                return Settings.MaxPDUSize;
+                return Settings.MaxPduSize;
             }
             set
             {
-                Settings.MaxPDUSize = value;
+                Settings.MaxPduSize = value;
             }
         }
 
         /// <summary>
-        /// Determines, whether Logical, or Short name, referencing is used.     
+        /// Determines, whether Logical, or Short name, referencing is used.
         /// </summary>
         /// <remarks>
         /// Referencing depends on the device to communicate with.
@@ -226,7 +226,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Client to Server custom challenge. 
+        /// Client to Server custom challenge.
         /// </summary>
         /// <remarks>
         /// This is for debugging purposes. Reset custom challenge settings CtoSChallenge to null.
@@ -265,7 +265,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Gets Logical Name settings, read from the device. 
+        /// Gets Logical Name settings, read from the device.
         /// </summary>
         public GXDLMSLNSettings LNSettings
         {
@@ -295,13 +295,13 @@ namespace Gurux.DLMS
         /// set the password with the Password property.
         /// Note!
         /// For HLS authentication password (shared secret) is needed from the manufacturer.
-        /// </remarks>        
+        /// </remarks>
         /// <seealso cref="Password"/>
         /// <seealso cref="ClientAddress"/>
         /// <seealso cref="ServerAddress"/>
         /// <seealso cref="DLMSVersion"/>
         /// <seealso cref="UseLogicalNameReferencing"/>
-        /// <seealso cref="MaxReceivePDUSize"/>    
+        /// <seealso cref="MaxReceivePDUSize"/>
         [DefaultValue(Authentication.None)]
         public Authentication Authentication
         {
@@ -316,7 +316,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Set starting block index in HDLC framing. 
+        /// Set starting block index in HDLC framing.
         /// Default is One based, but some meters use Zero based value.
         /// Usually this is not used.
         /// </summary>
@@ -382,10 +382,10 @@ namespace Gurux.DLMS
         /// Determines the type of the connection
         /// </summary>
         /// <remarks>
-        /// All DLMS meters do not support the IEC 62056-47 standard.  
-        /// If the device does not support the standard, and the connection is made 
+        /// All DLMS meters do not support the IEC 62056-47 standard.
+        /// If the device does not support the standard, and the connection is made
         /// using TCP/IP, set the type to InterfaceType.General.
-        /// </remarks>    
+        /// </remarks>
         public InterfaceType InterfaceType
         {
             get
@@ -414,20 +414,20 @@ namespace Gurux.DLMS
         /// Generates SNRM request.
         /// </summary>
         /// <remarks>
-        /// his method is used to generate send SNRMRequest. 
-        /// Before the SNRM request can be generated, at least the following 
+        /// his method is used to generate send SNRMRequest.
+        /// Before the SNRM request can be generated, at least the following
         /// properties must be set:
         /// <ul>
         /// <li>ClientAddress</li>
-        /// <li>ServerAddress</li>    
+        /// <li>ServerAddress</li>
         /// </ul>
-        /// <b>Note! </b>According to IEC 62056-47: when communicating using 
+        /// <b>Note! </b>According to IEC 62056-47: when communicating using
         /// TCP/IP, the SNRM request is not send.
         /// </remarks>
         /// <returns>SNRM request as byte array.</returns>
         /// <seealso cref="ClientAddress"/>
         /// <seealso cref="ServerAddress"/>
-        /// <seealso cref="ParseUAResponse"/>    
+        /// <seealso cref="ParseUAResponse"/>
         public byte[] SNRMRequest()
         {
             Settings.Connected = false;
@@ -485,8 +485,8 @@ namespace Gurux.DLMS
         /// </summary>
         /// <remarks>
         /// </remarks>
-        /// <param name="data"></param>        
-        /// <seealso cref="ParseUAResponse"/>        
+        /// <param name="data"></param>
+        /// <seealso cref="ParseUAResponse"/>
         public void ParseUAResponse(GXByteBuffer data)
         {
             //If default settings are used.
@@ -539,7 +539,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Generate AARQ request. 
+        /// Generate AARQ request.
         /// </summary>
         /// <returns>AARQ request as byte array.</returns>
         /// <seealso cref="ParseAAREResponse"/>
@@ -554,7 +554,7 @@ namespace Gurux.DLMS
             if (Authentication > Authentication.Low)
             {
                 if (!Settings.UseCustomChallenge)
-                { 
+                {
                     Settings.CtoSChallenge = GXSecure.GenerateChallenge(Settings.Authentication);
                 }
             }
@@ -562,7 +562,7 @@ namespace Gurux.DLMS
             {
                 Settings.CtoSChallenge = null;
             }
-            GXAPDU.GenerateAarq(Settings, Settings.Cipher, buff);
+            GXAPDU.GenerateAarq(Settings, Settings.Cipher, null, buff);
             byte[][] reply;
             if (UseLogicalNameReferencing)
             {
@@ -588,7 +588,7 @@ namespace Gurux.DLMS
         /// <li>UseLogicalNameReferencing</li>
         /// <li>LNSettings or SNSettings</li>
         /// </ul>
-        /// LNSettings or SNSettings will be updated, depending on the referencing, 
+        /// LNSettings or SNSettings will be updated, depending on the referencing,
         /// Logical name or Short name.
         /// </remarks>
         /// <returns>The AARE response</returns>
@@ -600,7 +600,7 @@ namespace Gurux.DLMS
         /// <seealso cref="SNSettings"/>
         public void ParseAAREResponse(GXByteBuffer reply)
         {
-            IsAuthenticationRequired = GXAPDU.ParsePDU(Settings, Settings.Cipher, reply) == SourceDiagnostic.AuthenticationRequired;
+            IsAuthenticationRequired = GXAPDU.ParsePDU(Settings, Settings.Cipher, reply, null) == SourceDiagnostic.AuthenticationRequired;
             if (IsAuthenticationRequired)
             {
                 System.Diagnostics.Debug.WriteLine("Authentication is required.");
@@ -665,10 +665,10 @@ namespace Gurux.DLMS
             if (UseLogicalNameReferencing)
             {
                 return Method("0.0.40.0.0.255", ObjectType.AssociationLogicalName,
-                        1, bb.Array(), DataType.OctetString);
+                              1, bb.Array(), DataType.OctetString);
             }
             return Method(0xFA00, ObjectType.AssociationShortName, 8, bb.Array(),
-                    DataType.OctetString);
+                          DataType.OctetString);
         }
 
         /// <summary>
@@ -676,7 +676,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="reply"></param>
         /// <seealso cref="IsAuthenticationRequired"/>
-        /// <seealso cref="GetApplicationAssociationRequest"/>        
+        /// <seealso cref="GetApplicationAssociationRequest"/>
         public void ParseApplicationAssociationResponse(GXByteBuffer reply)
         {
             GXDataInfo info = new GXDataInfo();
@@ -706,7 +706,7 @@ namespace Gurux.DLMS
                 throw new GXDLMSException("Invalid password. Server to Client challenge do not match.");
             }
         }
-     
+
         /// <summary>
         /// Generates a disconnect request.
         /// </summary>
@@ -822,7 +822,7 @@ namespace Gurux.DLMS
         internal static void UpdateObjectData(GXDLMSObject obj, ObjectType objectType, object version, object baseName, object logicalName, object accessRights)
         {
             obj.ObjectType = objectType;
-            // Check access rights...            
+            // Check access rights...
             if (accessRights is object[] && ((object[])accessRights).Length == 2)
             {
                 //access_rights: access_right
@@ -831,7 +831,7 @@ namespace Gurux.DLMS
                 {
                     int id = Convert.ToInt32(attributeAccess[0]);
                     AccessMode mode = (AccessMode)Convert.ToInt32(attributeAccess[1]);
-                    //With some meters id is negative. 
+                    //With some meters id is negative.
                     if (id > 0)
                     {
                         obj.SetAccess(id, mode);
@@ -968,9 +968,9 @@ namespace Gurux.DLMS
                 }
             }
             return items;
-        }       
+        }
 
-        
+
         /// <summary>
         /// Get Value from byte array received from the meter.
         /// </summary>
@@ -983,7 +983,7 @@ namespace Gurux.DLMS
         /// Get Value from byte array received from the meter.
         /// </summary>
         public object UpdateValue(GXDLMSObject target, int attributeIndex, object value,
-            List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
+                                  List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
         {
             if (value is byte[])
             {
@@ -1008,19 +1008,69 @@ namespace Gurux.DLMS
         /// Update list values.
         /// </summary>
         /// <param name="list">COSEM objects to update.</param>
-        /// <param name="values">Receeived values.</param>
+        /// <param name="values">Received values.</param>
         public void UpdateValues(List<KeyValuePair<GXDLMSObject, int>> list, List<object> values)
         {
-            GXDataInfo info = new GXDataInfo();
             int pos = 0;
             foreach (KeyValuePair<GXDLMSObject, int> it in list)
             {
                 ValueEventArgs e = new ValueEventArgs(Settings, it.Key, it.Value, 0, null);
                 e.Value = values[pos];
                 (it.Key as IGXDLMSBase).SetValue(Settings, e);
-                info.Clear();
                 ++pos;
             }
+        }
+
+        /// <summary>
+        /// Parse access response.
+        /// </summary>
+        /// <param name="list">Collection of access items.</param>
+        /// <param name="data">Received data from the meter.</param>
+        /// <returns>Collection of received data and status codes.</returns>
+        public List<KeyValuePair<object, ErrorCode>> ParseAccessResponse(List<GXDLMSAccessItem> list, GXByteBuffer data)
+        {
+            int pos;
+            //Get count
+            GXDataInfo info = new GXDataInfo();
+            int cnt = GXCommon.GetObjectCount(data);
+            if (list.Count != cnt)
+            {
+                throw new ArgumentOutOfRangeException("List size and values size do not match.");
+            }
+            List<object> values = new List<object>(cnt);
+            List<KeyValuePair<object, ErrorCode>> reply = new List<KeyValuePair<object, ErrorCode>>(cnt);
+            for (pos = 0; pos != cnt; ++pos)
+            {
+                info.Clear();
+                Object value = GXCommon.GetData(data, info);
+                values.Add(value);
+            }
+            //Get status codes.
+            cnt = GXCommon.GetObjectCount(data);
+            if (values.Count != cnt)
+            {
+                throw new ArgumentOutOfRangeException("List size and values size do not match.");
+            }
+            pos = 0;
+            foreach (object it in values)
+            {
+                //Get access type.
+                data.GetUInt8();
+                //Get status.
+                reply.Add(new KeyValuePair<object, ErrorCode>(values[pos], (ErrorCode)data.GetUInt8()));// ;
+            }
+            pos = 0;
+            foreach (GXDLMSAccessItem it in list)
+            {
+                if (it.Command == AccessServiceCommandType.Get && reply[pos].Value == ErrorCode.Ok)
+                {
+                    ValueEventArgs ve = new ValueEventArgs(Settings, it.Target, it.Index, 0, null);
+                    ve.Value = values[pos];
+                    (it.Target as IGXDLMSBase).SetValue(Settings, ve);
+                }
+                ++pos;
+            }
+            return reply;
         }
 
         public static GXDLMSAttributeSettings GetAttributeInfo(GXDLMSObject item, int index)
@@ -1038,12 +1088,7 @@ namespace Gurux.DLMS
         /// <returns>Value changed by type.</returns>
         public static object ChangeType(byte[] value, DataType type)
         {
-            GXByteBuffer tmp = null;
-            if (value != null)
-            {
-                tmp = new GXByteBuffer(value);
-            }
-            return ChangeType(tmp, type);
+            return ChangeType(new GXByteBuffer(value), type);
         }
 
         /// <summary>
@@ -1074,7 +1119,7 @@ namespace Gurux.DLMS
             GXDataInfo info = new GXDataInfo();
             info.Type = type;
             Object ret = GXCommon.GetData(value, info);
-            if (!info.Compleate)
+            if (!info.Complete)
             {
                 throw new OutOfMemoryException();
             }
@@ -1167,11 +1212,6 @@ namespace Gurux.DLMS
             if (type == DataType.None && value != null)
             {
                 type = GXCommon.GetValueType(value);
-                if (type == DataType.None)
-                {
-                    throw new GXDLMSException(
-                            "Invalid parameter. In java value type must give.");
-                }
             }
             GXByteBuffer attributeDescriptor = new GXByteBuffer();
             GXByteBuffer data = new GXByteBuffer();
@@ -1208,7 +1248,7 @@ namespace Gurux.DLMS
                 {
                     attributeDescriptor.SetUInt8(1);
                 }
-                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, Command.MethodRequest, (byte)ActionCommandType.Normal, attributeDescriptor, data, 0xff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, Command.MethodRequest, (byte)ActionRequestType.Normal, attributeDescriptor, data, 0xff);
                 return GXDLMS.GetLnMessages(p);
             }
             else
@@ -1238,10 +1278,7 @@ namespace Gurux.DLMS
                 {
                     attributeDescriptor.SetUInt8(1);
                 }
-                else
-                {
-                    attributeDescriptor.SetUInt8(0);
-                }
+
                 return GXDLMS.GetSnMessages(new GXDLMSSNParameters(Settings, Command.ReadRequest, 1, requestType, attributeDescriptor, data));
             }
         }
@@ -1309,7 +1346,7 @@ namespace Gurux.DLMS
                 attributeDescriptor.SetUInt8((byte)index);
                 // Access selection is not used.
                 attributeDescriptor.SetUInt8(0);
-                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, Command.SetRequest, (byte)SetCommandType.Normal, attributeDescriptor, data, 0xff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, Command.SetRequest, (byte)SetRequestType.Normal, attributeDescriptor, data, 0xff);
                 reply = GXDLMS.GetLnMessages(p);
             }
             else
@@ -1320,8 +1357,8 @@ namespace Gurux.DLMS
                 attributeDescriptor.SetUInt16(sn);
                 //Data cnt.
                 attributeDescriptor.SetUInt8(1);
-                GXDLMSSNParameters p = new GXDLMSSNParameters(Settings, Command.WriteRequest, 1, 
-                    (byte)VariableAccessSpecification.VariableName, attributeDescriptor, data);
+                GXDLMSSNParameters p = new GXDLMSSNParameters(Settings, Command.WriteRequest, 1,
+                        (byte)VariableAccessSpecification.VariableName, attributeDescriptor, data);
                 reply = GXDLMS.GetSnMessages(p);
             }
             return reply;
@@ -1386,15 +1423,15 @@ namespace Gurux.DLMS
                 // parameterized-access
                 if (data != null && data.Size != 0)
                 {
-                    requestType = (byte) VariableAccessSpecification.ParameterisedAccess;
+                    requestType = (byte)VariableAccessSpecification.ParameterisedAccess;
                 }
                 else //variable-name
                 {
-                    requestType = (byte) VariableAccessSpecification.VariableName;
+                    requestType = (byte)VariableAccessSpecification.VariableName;
                 }
                 GXDLMSSNParameters p = new GXDLMSSNParameters(Settings, Command.ReadRequest, 1, requestType, attributeDescriptor, data);
                 reply = GXDLMS.GetSnMessages(p);
-            }          
+            }
             return reply;
         }
 
@@ -1428,7 +1465,7 @@ namespace Gurux.DLMS
             {
                 GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, Command.GetRequest, (byte)GetCommandType.WithList, null, data, 0xff);
                 //Request service primitive shall always fit in a single APDU.
-                int pos = 0, count = (Settings.MaxPDUSize - 12) / 10;
+                int pos = 0, count = (Settings.MaxPduSize - 12) / 10;
                 if (list.Count < count)
                 {
                     count = list.Count;
@@ -1441,7 +1478,7 @@ namespace Gurux.DLMS
                 // Add length.
                 GXCommon.SetObjectCount(count, data);
                 foreach (KeyValuePair<GXDLMSObject, int> it in list)
-                {                    
+                {
                     // CI.
                     data.SetUInt16((UInt16)it.Key.ObjectType);
                     String[] items = it.Key.LogicalName.Split('.');
@@ -1484,19 +1521,19 @@ namespace Gurux.DLMS
                     int sn = it.Key.ShortName;
                     sn += (it.Value - 1) * 8;
                     data.SetUInt16((UInt16)sn);
-                    if (data.Size >= p.settings.MaxPDUSize)
+                    if (data.Size >= p.settings.MaxPduSize)
                     {
                         messages.AddRange(GXDLMS.GetSnMessages(p));
                         data.Clear();
                     }
                 }
                 messages.AddRange(GXDLMS.GetSnMessages(p));
-            }           
+            }
             return messages.ToArray();
         }
 
         /// <summary>
-        /// Generates the keep alive message. 
+        /// Generates the keep alive message.
         /// </summary>
         /// <remarks>
         /// Keepalive message is needed only HDLC framing.
@@ -1517,7 +1554,7 @@ namespace Gurux.DLMS
             return new byte[0];
         }
 
-         /// <summary>
+        /// <summary>
         /// Read rows by entry.
         /// </summary>
         /// <param name="pg">Profile generic object to read.</param>
@@ -1537,7 +1574,7 @@ namespace Gurux.DLMS
         /// <param name="count">Rows count to read.</param>
         /// <returns>Read message as byte array.</returns>
         public byte[][] ReadRowsByEntry(GXDLMSProfileGeneric pg, int index, int count,
-            List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
+                                        List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
         {
             Settings.ResetBlockIndex();
             GXByteBuffer buff = new GXByteBuffer(19);
@@ -1623,7 +1660,7 @@ namespace Gurux.DLMS
         /// <param name="columns">Columns to read.</param>
         /// <returns></returns>
         public byte[][] ReadRowsByRange(GXDLMSProfileGeneric pg, DateTime start, DateTime end,
-            List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
+                                        List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
         {
             Settings.ResetBlockIndex();
             GXDLMSObject sort = pg.SortObject;
@@ -1649,7 +1686,7 @@ namespace Gurux.DLMS
             buff.SetUInt8(0x04);
             // CI
             GXCommon.SetData(buff, DataType.UInt16,
-                    sort.ObjectType);
+                             sort.ObjectType);
             // LN
             GXCommon.SetData(buff, DataType.OctetString, sort.LogicalName);
             // Add attribute index.
@@ -1700,7 +1737,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Generates an acknowledgment message, with which the server is informed to 
+        /// Generates an acknowledgment message, with which the server is informed to
         /// send next packets.
         /// </summary>
         /// <param name="type">Frame type</param>
@@ -1714,10 +1751,10 @@ namespace Gurux.DLMS
         /// Removes the HDLC frame from the packet, and returns COSEM data only.
         ///</summary>
         ///<param name="reply">
-        /// The received data from the device. 
+        /// The received data from the device.
         ///</param>
         ///<param name="data">
-        /// Information from the received data. 
+        /// Information from the received data.
         ///</param>
         ///<returns>
         /// Is frame complete.
@@ -1749,7 +1786,7 @@ namespace Gurux.DLMS
             object value = GXCommon.GetData(data, info);
             if (value is byte[] && type != DataType.None)
             {
-                value = GXDLMSClient.ChangeType((byte[]) value, type);
+                value = GXDLMSClient.ChangeType((byte[])value, type);
             }
             return value;
         }
@@ -1758,10 +1795,10 @@ namespace Gurux.DLMS
         ///Removes the HDLC frame from the packet, and returns COSEM data only.
         ///</summary>
         ///<param name="reply">
-        ///The received data from the device. 
+        ///The received data from the device.
         ///</param>
         ///<param name="data">
-        ///The exported reply information. 
+        ///The exported reply information.
         ///</param>
         ///<returns>
         /// Is frame complete.
@@ -1868,6 +1905,61 @@ namespace Gurux.DLMS
                 formula = "SN % 10000 + 1000";
             }
             return 0x4000 | SerialnumberCounter.Count(serialNumber, formula);
-        }       
+        }
+
+        /// <summary>
+        /// Generates a access service message.
+        /// </summary>
+        /// <param name="time">Send time. Set to DateTime.MinValue is not used.</param>
+        /// <param name="name">Short or Logical Name.</param>
+        /// <param name="objectType">Read Interface.</param>
+        /// <param name="attributeOrdinal">Read attribute index.</param>
+        /// <returns>Read request as byte array.</returns>
+        public byte[][] AccessRequest(DateTime time, List<GXDLMSAccessItem> list)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            GXCommon.SetObjectCount(list.Count, bb);
+            foreach (GXDLMSAccessItem it in list)
+            {
+                bb.SetUInt8(it.Command);
+                //Object type.
+                bb.SetUInt16((ushort)it.Target.ObjectType);
+                //LN
+                String[] items = it.Target.LogicalName.Split('.');
+                if (items.Length != 6)
+                {
+                    throw new ArgumentException("Invalid Logical Name.");
+                }
+                foreach (String it2 in items)
+                {
+                    bb.SetUInt8(byte.Parse(it2));
+                }
+                // Attribute ID.
+                bb.SetUInt8(it.Index);
+            }
+            //Data
+            GXCommon.SetObjectCount(list.Count, bb);
+            foreach (GXDLMSAccessItem it in list)
+            {
+                if (it.Command == AccessServiceCommandType.Get)
+                {
+                    bb.SetUInt8(0);
+                }
+                else
+                {
+                    object value = (it.Target as IGXDLMSBase).GetValue(null, new ValueEventArgs(it.Target, it.Index, 0, null));
+                    DataType type = it.Target.GetDataType(it.Index);
+                    if (type == DataType.None)
+                    {
+                        type = Gurux.DLMS.Internal.GXCommon.GetValueType(value);
+                    }
+                    GXCommon.SetData(bb, type, value);
+                }
+            }
+
+            GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, Command.AccessRequest, 0xFF, null, bb, 0xff);
+            p.time = new GXDateTime(time);
+            return GXDLMS.GetLnMessages(p);
+        }
     }
 }

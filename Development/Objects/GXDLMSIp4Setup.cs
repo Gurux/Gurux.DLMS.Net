@@ -306,7 +306,8 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8((byte)DataType.Array);
                 if (IPOptions == null)
                 {
-                    data.SetUInt8(1);
+                    //Object count is zero.
+                    data.SetUInt8(0);
                 }
                 else
                 {

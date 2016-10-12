@@ -55,9 +55,9 @@ namespace Gurux.DLMS.Enums
         ///Data type is Binary coded decimal.
         ///</summary>
         ///<remarks>
-        /// DLMS/COSEM type is: bcd.
+        /// DLMS/COSEM type is: Binary Coded Desimal.
         ///</remarks>
-        BinaryCodedDesimal = 13,
+        Bcd = 13,
         ///<summary>
         ///Data type is Bit string.
         ///</summary>

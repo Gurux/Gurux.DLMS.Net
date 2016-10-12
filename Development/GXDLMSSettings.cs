@@ -95,11 +95,6 @@ namespace Gurux.DLMS
         private byte ReceiverFrame;
 
         /// <summary>
-        /// Is this server or client.
-        /// </summary>
-        private bool Server;
-
-        /// <summary>
         /// Source system title.
         /// </summary>
         internal byte[] SourceSystemTitle;
@@ -125,6 +120,11 @@ namespace Gurux.DLMS
         private UInt16 maxReceivePDUSize;
 
         /// <summary>
+        /// Proposed conformance block.
+        /// </summary>
+        internal byte[] ConformanceBlock = new byte[3];
+
+        /// <summary>
         /// Is authentication Required.
         /// </summary>
         internal bool IsAuthenticationRequired
@@ -148,7 +148,7 @@ namespace Gurux.DLMS
         ///<summary>
         ///Constructor. 
         ///</summary>
-        internal GXDLMSSettings(bool isServer)
+        internal GXDLMSSettings(bool server)
         {
             UseCustomChallenge = false;
             StartingBlockIndex = BlockIndex = 1;
@@ -156,8 +156,8 @@ namespace Gurux.DLMS
             InvokeID = 0x1;
             Priority = Priority.High;
             ServiceClass = ServiceClass.Confirmed;
-            MaxServerPDUSize = MaxPDUSize = DefaultMaxReceivePduSize;
-            Server = isServer;
+            MaxServerPDUSize = MaxPduSize = DefaultMaxReceivePduSize;
+            IsServer = server;
             Objects = new GXDLMSObjectCollection();
             Limits = new GXDLMSLimits();
             LnSettings = new GXDLMSLNSettings(new byte[] { 0x00, 0xFE, 0x1F });
@@ -217,15 +217,6 @@ namespace Gurux.DLMS
         {
             get;
             set;
-        }
-
-        /// <summary>
-        /// DLMS version number.
-        /// </summary>
-        public byte DlmsVersionNumber
-        {
-            get;
-            internal set;
         }
 
         internal bool Connected = false;
@@ -302,6 +293,11 @@ namespace Gurux.DLMS
             if (frame == (byte)IncreaseSendSequence(ReceiverFrame))
             {
                 ReceiverFrame = frame;
+                return true;
+            }
+            //If try to find data from bytestream and not real communicating.
+            if (ReceiverFrame == 0xEE)
+            {
                 return true;
             }
             System.Diagnostics.Debug.WriteLine("Invalid HDLC Frame ID.");
@@ -393,10 +389,8 @@ namespace Gurux.DLMS
         /// </summary>
         internal bool IsServer
         {
-            get
-            {
-                return Server;
-            }
+            get;
+            set;
         }
 
         /// <summary>
@@ -456,7 +450,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Maximum PDU size.
         /// </summary>
-        public UInt16 MaxPDUSize
+        public UInt16 MaxPduSize
         {
             get
             {

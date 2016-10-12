@@ -213,9 +213,9 @@ namespace Gurux.DLMS.Objects
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8((byte)2); //Count
                         //Time
-                        GXCommon.SetData(data, DataType.Time, it.Value);
+                        GXCommon.SetData(data, DataType.OctetString, new GXTime(it));
                         //Date
-                        GXCommon.SetData(data, DataType.Date, it.Value); 
+                        GXCommon.SetData(data, DataType.OctetString, new GXDate(it)); 
                     }
                 }
                 return data.Array();

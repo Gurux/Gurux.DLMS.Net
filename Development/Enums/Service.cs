@@ -59,6 +59,6 @@ namespace Gurux.DLMS.Enums
         /// Service is unsupported.
         /// </summary>
         [XmlEnum("2")]
-        ServiceUnsupported
+        Unsupported
     }
 }

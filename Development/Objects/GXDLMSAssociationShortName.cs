@@ -63,13 +63,20 @@ namespace Gurux.DLMS.Objects
             ObjectList = new GXDLMSObjectCollection();
             //Default shared secred.
             Secret = System.Text.ASCIIEncoding.ASCII.GetBytes("Gurux");
+            HlsSecret = System.Text.ASCIIEncoding.ASCII.GetBytes("Gurux");
         }
 
         /// <summary>
-        /// Secret used in Authentication
+        /// Secret used in LLS Authentication
         /// </summary>
         [XmlIgnore()]
         public byte[] Secret;
+
+        /// <summary>
+        /// Secret used in HLS Authentication
+        /// </summary>
+        [XmlIgnore()]
+        public byte[] HlsSecret;
 
         /// <summary>
         /// List of available objects in short name referencing.
@@ -125,7 +132,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    secret = Secret;
+                    secret = HlsSecret;
                 }
                 byte[] serverChallenge = GXSecure.Secure(settings, settings.Cipher, ic, settings.StoCChallenge, secret);
                 byte[] clientChallenge = (byte[])e.Parameters;
@@ -138,7 +145,7 @@ namespace Gurux.DLMS.Objects
                     }
                     else
                     {
-                        secret = Secret;
+                        secret = HlsSecret;
                     }
                     settings.Connected = true;
                     return  GXSecure.Secure(settings, settings.Cipher, ic, settings.CtoSChallenge, secret);
@@ -250,6 +257,48 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
+        /// <summary>
+        /// Returns Association View.    
+        /// </summary>     
+        private GXByteBuffer GetObjects(GXDLMSSettings settings, ValueEventArgs e)
+        {
+            int cnt = ObjectList.Count;
+            GXByteBuffer data = new GXByteBuffer();
+            //Add count only for first time.
+            if (settings.Index == 0)
+            {
+                settings.Count = (UInt16)cnt;
+                data.SetUInt8((byte)DataType.Array);
+                GXCommon.SetObjectCount(cnt, data);
+            }
+            ushort pos = 0;
+            foreach (GXDLMSObject it in ObjectList)
+            {
+                ++pos;
+                if (!(pos <= settings.Index))
+                {
+                    data.SetUInt8((byte)DataType.Structure);
+                    //Count
+                    data.SetUInt8((byte)4);
+                    //base address.
+                    GXCommon.SetData(data, DataType.Int16, it.ShortName);
+                    //ClassID
+                    GXCommon.SetData(data, DataType.UInt16, it.ObjectType);
+                    //Version
+                    GXCommon.SetData(data, DataType.UInt8, 0);
+                    //LN
+                    GXCommon.SetData(data, DataType.OctetString, it.LogicalName);
+                    ++settings.Index;
+                    //If PDU is full.
+                    if (!e.SkipMaxPduSize && data.Size >= settings.MaxPduSize)
+                    {
+                        break;
+                    }
+                }
+            }
+            return data;
+        }
+
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (ObjectList == null)
@@ -262,41 +311,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 2)
             {
-                int cnt = ObjectList.Count;
-                GXByteBuffer data = new GXByteBuffer();
-                //Add count only for first time.
-                if (settings.Index == 0)
-                {
-                    settings.Count = (UInt16) cnt;
-                    data.SetUInt8((byte)DataType.Array);
-                    GXCommon.SetObjectCount(cnt, data);
-                } 
-                ushort pos = 0;
-                foreach (GXDLMSObject it in ObjectList)
-                {
-                    ++pos;
-                    if (!(pos <= settings.Index))
-                    {
-                        data.SetUInt8((byte)DataType.Structure);
-                        //Count
-                        data.SetUInt8((byte)4);
-                        //base address.
-                        GXCommon.SetData(data, DataType.Int16, it.ShortName);
-                        //ClassID
-                        GXCommon.SetData(data, DataType.UInt16, it.ObjectType);
-                        //Version
-                        GXCommon.SetData(data, DataType.UInt8, 0);
-                        //LN
-                        GXCommon.SetData(data, DataType.OctetString, it.LogicalName);
-                        ++settings.Index;
-                        //If PDU is full.
-                        if (data.Size >= settings.MaxPDUSize)
-                        {
-                            break;
-                        }
-                    }
-                }
-                return data;
+                return GetObjects(settings, e);               
             }
             else if (e.Index == 3)
             {

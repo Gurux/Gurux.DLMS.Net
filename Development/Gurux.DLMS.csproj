@@ -70,6 +70,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TranslatorSimpleTags.cs" />
+    <Compile Include="TranslatorStandardTags.cs" />
+    <Compile Include="GXDLMSAccessItem.cs" />
+    <Compile Include="GXTime.cs" />
+    <Compile Include="GXDate.cs" />
+    <Compile Include="Enums\Conformance.cs" />
+    <Compile Include="GXDLMSXmlSettings.cs" />
+    <Compile Include="Enums\AccessServiceCommandType.cs" />
+    <Compile Include="Internal\ReleaseRequestReason.cs" />
+    <Compile Include="Internal\SetRequestType.cs" />
+    <Compile Include="Internal\TranslatorGeneralTags.cs" />
+    <Compile Include="Internal\ActionResponseType.cs" />
+    <Compile Include="Internal\TranslatorTags.cs" />
+    <Compile Include="GXDLMSTranslatorStructure.cs" />
+    <Compile Include="Enums\TranslatorOutputType.cs" />
+    <Compile Include="GXDLMSSNCommandHandlers.cs" />
+    <Compile Include="GXDLMSLNCommandHandlers.cs" />
+    <Compile Include="GXDLMSTranslator.cs" />
     <Compile Include="GXDLMSSNParameters.cs" />
     <Compile Include="GXDLMSLNParameters.cs" />
     <Compile Include="Enums\ConfirmedServiceError.cs" />
@@ -88,9 +106,9 @@
     <Compile Include="Enums\UpdateType.cs" />
     <Compile Include="GXDLMSBuilder.cs" />
     <Compile Include="GXDLMSConverter.cs" />
-    <Compile Include="Internal\ActionCommandType.cs" />
+    <Compile Include="Internal\ActionRequestType.cs" />
     <Compile Include="Internal\VariableAccessSpecification.cs" />
-    <Compile Include="Internal\SetCommandType.cs" />
+    <Compile Include="Internal\SetResponseType.cs" />
     <Compile Include="Internal\GetCommandType.cs" />
     <Compile Include="Internal\SingleWriteResponse.cs" />
     <Compile Include="Internal\SingleReadResponse.cs" />

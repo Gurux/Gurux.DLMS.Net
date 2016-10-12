@@ -482,7 +482,7 @@ namespace Gurux.DLMS.Objects
                 {
                     LogicalName = e.Value.ToString();
                 }
-                else
+                else if (e.Value != null)
                 {
                     LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
                 }                

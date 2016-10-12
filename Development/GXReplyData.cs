@@ -62,6 +62,15 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
+        /// xml settings. This is used only on xml parser.
+        ///</summary>
+        internal GXDLMSTranslatorStructure Xml
+        {
+            get;
+            set;
+        }
+
+        ///<summary>
         /// Constructor. 
         ///</summary>         
         public GXReplyData()
@@ -111,7 +120,16 @@ namespace Gurux.DLMS
             get;
             set;
         }
-        
+
+        /// <summary>
+        /// Received command type.
+        /// </summary>
+        internal byte CommandType
+        {
+            get;
+            set;
+        }
+
 
         ///<summary>
         /// Received data. 
@@ -130,6 +148,15 @@ namespace Gurux.DLMS
             get;
             internal set;
         }
+
+        ///<summary> 
+        /// HDLC frame ID. 
+        ///</summary>         
+        public byte FrameId
+        {
+            get;
+            internal set;
+        }        
 
         ///<summary>
         /// Received error. 
@@ -185,6 +212,7 @@ namespace Gurux.DLMS
         {
             MoreData = RequestTypes.None;
             Command = Command.None;
+            CommandType = 0;
             Data.Capacity = 0;
             IsComplete = false;
             Error = 0;

@@ -57,8 +57,9 @@ namespace Gurux.DLMS.Objects
             ApplicationContextName = new GXApplicationContextName();
             XDLMSContextInfo = new GXxDLMSContextType();
             AuthenticationMechanismMame = new GXAuthenticationMechanismName();
-            //Default shared secred.
+            //Default shared secreds.
             Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
+            HlsSecret = ASCIIEncoding.ASCII.GetBytes("Gurux");
         }
 
         /// <summary> 
@@ -74,6 +75,7 @@ namespace Gurux.DLMS.Objects
             AuthenticationMechanismMame = new GXAuthenticationMechanismName();
             //Default shared secred.
             Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
+            HlsSecret = ASCIIEncoding.ASCII.GetBytes("Gurux");
         }
 
         [XmlIgnore()]
@@ -127,8 +129,21 @@ namespace Gurux.DLMS.Objects
             internal set;
         }
 
+        /// <summary>
+        /// Low Level Security secret.
+        /// </summary>
         [XmlIgnore()]
         public byte[] Secret
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// High Level Security secret.
+        /// </summary>
+        [XmlIgnore()]
+        public byte[] HlsSecret
         {
             get;
             set;
@@ -173,7 +188,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    secret = Secret;
+                    secret = HlsSecret;
                 }
                 byte[] serverChallenge = GXSecure.Secure(settings, settings.Cipher, ic, settings.StoCChallenge, secret);
                 byte[] clientChallenge = (byte[])e.Parameters;
@@ -186,7 +201,7 @@ namespace Gurux.DLMS.Objects
                     }
                     else
                     {
-                        secret = Secret;
+                        secret = HlsSecret;
                     }
                     settings.Connected = true;
                     return GXSecure.Secure(settings, settings.Cipher, ic, settings.CtoSChallenge, secret);
@@ -242,7 +257,7 @@ namespace Gurux.DLMS.Objects
                 attributes.Add(6);
             }
 
-            // Secret
+            // LLS Secret
             if (!base.IsRead(7))
             {
                 attributes.Add(7);
@@ -301,7 +316,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Returns Association View.    
         /// </summary>     
-        private GXByteBuffer GetObjects(GXDLMSSettings settings)
+        private GXByteBuffer GetObjects(GXDLMSSettings settings, ValueEventArgs e)
         {
             GXByteBuffer data = new GXByteBuffer();
             //Add count only for first time.
@@ -325,7 +340,7 @@ namespace Gurux.DLMS.Objects
                     GetAccessRights(it, data); //Access rights.
                     ++settings.Index;
                     //If PDU is full.
-                    if (data.Size >= settings.MaxPDUSize)
+                    if (!e.SkipMaxPduSize && data.Size >= settings.MaxPduSize)
                     {
                        break;
                     }
@@ -458,7 +473,7 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 2)
             {
-                return GetObjects(settings);
+                return GetObjects(settings, e);
             }
             if (e.Index == 3)
             {
@@ -467,7 +482,7 @@ namespace Gurux.DLMS.Objects
                 //Add count            
                 data.SetUInt8(2);
                 data.SetUInt8((byte)DataType.UInt8);
-                data.SetUInt16(ClientSAP);
+                data.SetUInt8(ClientSAP);
                 data.SetUInt8((byte)DataType.UInt16);
                 data.SetUInt16(ServerSAP);
                 return data.Array();

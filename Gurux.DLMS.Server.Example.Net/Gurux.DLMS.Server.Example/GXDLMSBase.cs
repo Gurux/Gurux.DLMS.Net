@@ -87,11 +87,17 @@ namespace GuruxDLMSServerExample
             GXDLMSData ldn = new GXDLMSData("0.0.42.0.0.255");
             ldn.Value = "Gurux123456";
             //Set access right. Client can't change Device name.
-            ldn.SetAccess(2, AccessMode.ReadWrite);
+            ldn.SetAccess(2, AccessMode.Read);
             //Value is get as Octet String.
             ldn.SetDataType(2, DataType.OctetString);
             ldn.SetUIDataType(2, DataType.String);
             Items.Add(ldn);
+
+            //Add firmware version.
+            GXDLMSData fw = new GXDLMSData("1.0.0.2.0.255");
+            fw.Value = "Gurux FW 0.0.1";
+            Items.Add(fw);
+
             //Add Last average.
             GXDLMSRegister r = new GXDLMSRegister("1.1.21.25.0.255");
             //Set access right. Client can't change average value.
@@ -158,7 +164,6 @@ namespace GuruxDLMSServerExample
             optical.Password2 = "Gurux2";
             optical.Password5 = "Gurux5";
             Items.Add(optical);
-
             ///////////////////////////////////////////////////////////////////////
             //Add Demand Register object.
             GXDLMSDemandRegister dr = new GXDLMSDemandRegister();
@@ -170,7 +175,6 @@ namespace GuruxDLMSServerExample
             dr.Period = 10;
             dr.NumberOfPeriods = 1;
             Items.Add(dr);
-
             ///////////////////////////////////////////////////////////////////////
             //Add Register Monitor object.
             GXDLMSRegisterMonitor rm = new GXDLMSRegisterMonitor();
@@ -193,7 +197,6 @@ namespace GuruxDLMSServerExample
             actionS.Type = SingleActionScheduleType.SingleActionScheduleType1;
             actionS.ExecutionTime = new GXDateTime[] { new GXDateTime(DateTime.Now) };
             Items.Add(actionS);
-
             ///////////////////////////////////////////////////////////////////////
             //Add SAP Assignment object.
             GXDLMSSapAssignment sap = new GXDLMSSapAssignment();
@@ -211,7 +214,6 @@ namespace GuruxDLMSServerExample
             aa.NumberOfRingsInListeningWindow = 1;
             aa.NumberOfRingsOutListeningWindow = 2;
             Items.Add(aa);
-
             ///////////////////////////////////////////////////////////////////////
             //Add Modem Configuration object.
             GXDLMSModemConfiguration mc = new GXDLMSModemConfiguration();
@@ -233,7 +235,6 @@ namespace GuruxDLMSServerExample
             //Add Image transfer object.
             GXDLMSImageTransfer i = new GXDLMSImageTransfer();
             Items.Add(i);
-
             ///////////////////////////////////////////////////////////////////////
             //Add IP4 Setup object.
             GXDLMSIp4Setup ip4 = new GXDLMSIp4Setup();

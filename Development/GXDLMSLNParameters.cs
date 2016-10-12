@@ -64,7 +64,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Send date and time. This is used in Data notification messages.
         /// </summary>
-        public DateTime time;
+        public GXDateTime time;
         /// <summary>
         /// Reply status.
         /// </summary>
@@ -99,7 +99,7 @@ namespace Gurux.DLMS
             requestType = forCommandType;
             attributeDescriptor = forAttributeDescriptor;
             data = forData;
-            time = DateTime.MinValue;
+            time = null;
             status = forStatus;
             multipleBlocks = forSettings.Count != 0;
             lastBlock = forSettings.Count == forSettings.Index;            

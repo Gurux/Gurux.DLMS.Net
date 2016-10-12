@@ -135,11 +135,11 @@ namespace Gurux.DLMS
         {
             get
             {
-                return Settings.MaxPDUSize;
+                return Settings.MaxPduSize;
             }
             set
             {
-                Settings.MaxPDUSize = value;
+                Settings.MaxPduSize = value;
             }
         }
 
@@ -291,6 +291,7 @@ namespace Gurux.DLMS
             {
                 GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, Command.DataNotification, 0, null, data, 0xff);
                 p.time = time;
+                p.time.Skip |= DateTimeSkips.Ms;
                 reply = GXDLMS.GetLnMessages(p);
             }
             else

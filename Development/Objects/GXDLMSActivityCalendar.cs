@@ -373,17 +373,17 @@ namespace Gurux.DLMS.Objects
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Array);
-                if (SeasonProfileActive == null)
+                if (SeasonProfilePassive == null)
                 {
                     //Add count            
                     GXCommon.SetObjectCount(0, data);
                 }
                 else
                 {
-                    int cnt = SeasonProfileActive.Length;
+                    int cnt = SeasonProfilePassive.Length;
                     //Add count            
                     GXCommon.SetObjectCount(cnt, data);
-                    foreach (GXDLMSSeasonProfile it in SeasonProfileActive)
+                    foreach (GXDLMSSeasonProfile it in SeasonProfilePassive)
                     {
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8(3);
@@ -398,19 +398,19 @@ namespace Gurux.DLMS.Objects
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Array);
-                if (WeekProfileTableActive == null)
+                if (WeekProfileTablePassive == null)
                 {
                     //Add count            
                     GXCommon.SetObjectCount(0, data);
                 }
                 else
                 {
-                    int cnt = WeekProfileTableActive.Length;
+                    int cnt = WeekProfileTablePassive.Length;
                     //Add count            
                     GXCommon.SetObjectCount(cnt, data);
-                    foreach (GXDLMSWeekProfile it in WeekProfileTableActive)
+                    foreach (GXDLMSWeekProfile it in WeekProfileTablePassive)
                     {
-                        data.SetUInt8((byte)DataType.Array);
+                        data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8(8);
                         GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Name));
                         GXCommon.SetData(data, DataType.UInt8, it.Monday);
@@ -543,7 +543,14 @@ namespace Gurux.DLMS.Objects
                         foreach (object[] it2 in (object[])item[1])
                         {
                             GXDLMSDayProfileAction ac = new GXDLMSDayProfileAction();
-                            ac.StartTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])it2[0], DataType.Time);
+                            if (it2[0] is GXDateTime)
+                            {
+                                ac.StartTime = (GXDateTime)it2[0];
+                            }
+                            else
+                            {
+                                ac.StartTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])it2[0], DataType.Time);
+                            }
                             ac.ScriptLogicalName = GXDLMSClient.ChangeType((byte[])it2[1], DataType.String).ToString();
                             ac.ScriptSelector = Convert.ToUInt16(it2[2]);
                             actions.Add(ac);
@@ -575,8 +582,17 @@ namespace Gurux.DLMS.Objects
                     {
                         GXDLMSSeasonProfile it = new GXDLMSSeasonProfile();
                         it.Name = GXDLMSClient.ChangeType((byte[])item[0], DataType.String).ToString();
-                        it.Start = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.Date);
-                        it.WeekName = GXDLMSClient.ChangeType((byte[])item[2], DataType.String).ToString();
+                        it.Start = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime);
+                        byte[] weekName = (byte[])item[2];
+                        //If week name is ignored.
+                        if (weekName != null && weekName.Length == 1 && weekName[0] == 0xFF)
+                        {
+                            it.WeekName = "";
+                        }
+                        else
+                        {
+                            it.WeekName = GXDLMSClient.ChangeType((byte[])item[2], DataType.String).ToString();
+                        }
                         items.Add(it);
                     }
                     SeasonProfilePassive = items.ToArray();
@@ -618,7 +634,14 @@ namespace Gurux.DLMS.Objects
                         foreach (object[] it2 in (object[])item[1])
                         {
                             GXDLMSDayProfileAction ac = new GXDLMSDayProfileAction();
-                            ac.StartTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])it2[0], DataType.Time);
+                            if (it2[0] is GXDateTime)
+                            {
+                                ac.StartTime = (GXDateTime)it2[0];
+                            }
+                            else
+                            {
+                                ac.StartTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])it2[0], DataType.Time);
+                            }
                             ac.ScriptLogicalName = GXDLMSClient.ChangeType((byte[])it2[1], DataType.String).ToString();
                             ac.ScriptSelector = Convert.ToUInt16(it2[2]);
                             actions.Add(ac);

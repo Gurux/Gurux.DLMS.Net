@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -37,11 +37,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Gurux.DLMS.Enums;
+using System.Diagnostics;
 
 namespace Gurux.DLMS.Internal
 {
     /// <summary>
-    /// Reserved for internal use. 
+    /// Reserved for internal use.
     /// </summary>
     internal class GXCommon
     {
@@ -81,6 +82,102 @@ namespace Gurux.DLMS.Internal
             throw new ArgumentException("Invalid object type.");
         }
 
+        /// <summary>
+        /// Convert char hex value to byte value.
+        /// </summary>
+        /// <param name="c">Character to convert hex.</param>
+        /// <returns> Byte value of hex char value.</returns>
+        [DebuggerStepThrough]
+        private static byte GetValue(byte c)
+        {
+            byte value = 0xFF;
+            //If number
+            if (c > 0x2F && c < 0x3A)
+            {
+                value = (byte)(c - '0');
+            }
+            //If uppercase.
+            else if (c > 0x40 && c < 'G')
+            {
+                value = (byte)(c - 'A' + 10);
+            }
+            //If lowercase.
+            else if (c > 0x60 && c < 'g')
+            {
+                value = (byte)(c - 'a' + 10);
+            }
+            return value;
+        }
+
+        [DebuggerStepThrough]
+        private static bool IsHex(byte c)
+        {
+            return GetValue(c) != 0xFF;
+        }
+
+        /// <summary>
+        ///  Convert string to byte array.
+        /// </summary>
+        /// <param name="value">Hex string.</param>
+        /// <returns></returns>
+        [DebuggerStepThrough]
+        public static byte[] HexToBytes(string value)
+        {
+            if (String.IsNullOrEmpty(value))
+            {
+                return new byte[0];
+            }
+            int len = value.Length / 2;
+            if (value.Length % 2 != 0)
+            {
+                ++len;
+            }
+            byte[] buffer = new byte[len];
+            int lastValue = -1;
+            int index = 0;
+            foreach (byte ch in value)
+            {
+                if (IsHex(ch))
+                {
+                    if (lastValue == -1)
+                    {
+                        lastValue = GetValue(ch);
+                    }
+                    else if (lastValue != -1)
+                    {
+                        buffer[index] = (byte)(lastValue << 4 | GetValue(ch));
+                        lastValue = -1;
+                        ++index;
+                    }
+                }
+                else if (lastValue != -1 && ch == ' ')
+                {
+                    buffer[index] = GetValue(ch);
+                    lastValue = -1;
+                    ++index;
+                }
+                else
+                {
+                    lastValue = -1;
+                }
+            }
+            if (lastValue != -1)
+            {
+                buffer[index] = (byte)lastValue;
+                ++index;
+            }
+
+            //If there are no spaces in the hex string.
+            if (buffer.Length == index)
+            {
+                return buffer;
+            }
+            byte[] tmp = new byte[index];
+            Buffer.BlockCopy(buffer, 0, tmp, 0, index);
+            return tmp;
+        }
+
+        [DebuggerStepThrough]
         public static string ToHex(byte[] bytes, bool addSpace)
         {
             return ToHex(bytes, addSpace, 0, bytes == null ? 0 : bytes.Length);
@@ -92,6 +189,7 @@ namespace Gurux.DLMS.Internal
         /// <param name="bytes">Byte array to convert.</param>
         /// <param name="addSpace">Is space added between bytes.</param>
         /// <returns>Byte array as hex string.</returns>
+        [DebuggerStepThrough]
         public static string ToHex(byte[] bytes, bool addSpace, int index, int count)
         {
             if (bytes == null || bytes.Length == 0 || count == 0)
@@ -183,8 +281,8 @@ namespace Gurux.DLMS.Internal
             {
                 UInt32 tmp = buff.GetUInt32();
                 tmp = ((tmp & 0xFE) >> 1) | ((tmp & 0xFE00) >> 2)
-                        | ((tmp & 0xFE0000) >> 3) | ((tmp & 0xFE000000) >> 4);
-                return (int) tmp;
+                      | ((tmp & 0xFE0000) >> 3) | ((tmp & 0xFE000000) >> 4);
+                return (int)tmp;
             }
             throw new ArgumentException("Wrong size.");
         }
@@ -372,17 +470,17 @@ namespace Gurux.DLMS.Internal
         ///<param name="info"> Data info.
         ///</param>
         ///<returns>Parsed object.</returns>
-        ///     
+        ///
         public static object GetData(GXByteBuffer data, GXDataInfo info)
         {
             object value = null;
             int startIndex = data.Position;
             if (data.Position == data.Size)
             {
-                info.Compleate = false;
+                info.Complete = false;
                 return null;
             }
-            info.Compleate = true;
+            info.Complete = true;
             bool knownType = info.Type != DataType.None;
             // Get data type if it is unknown.
             if (!knownType)
@@ -391,11 +489,15 @@ namespace Gurux.DLMS.Internal
             }
             if (info.Type == DataType.None)
             {
+                if (info.xml != null)
+                {
+                    info.xml.AppendLine("<" + info.xml.GetDataType(info.Type) + " />");
+                }
                 return value;
             }
             if (data.Position == data.Size)
             {
-                info.Compleate = false;
+                info.Complete = false;
                 return null;
             }
             switch (info.Type)
@@ -425,7 +527,7 @@ namespace Gurux.DLMS.Internal
                 case DataType.OctetString:
                     value = GetOctetString(data, info, knownType);
                     break;
-                case DataType.BinaryCodedDesimal:
+                case DataType.Bcd:
                     value = GetBcd(data, info, knownType);
                     break;
                 case DataType.Int8:
@@ -476,13 +578,13 @@ namespace Gurux.DLMS.Internal
         ///Get array from DLMS data.
         ///</summary>
         ///<param name="buff">
-        ///Received DLMS data. 
+        ///Received DLMS data.
         ///</param>
         ///<param name="info">
-        ///Data info. 
+        ///Data info.
         ///</param>
         ///<param name="index">
-        ///starting index. 
+        ///starting index.
         ///</param>
         ///<returns>Object array.
         ///</returns>
@@ -493,10 +595,15 @@ namespace Gurux.DLMS.Internal
             {
                 info.Count = GXCommon.GetObjectCount(buff);
             }
+            if (info.xml != null)
+            {
+                info.xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET | (int)info.Type, "Qty", info.xml.IntegerToHex(info.Count, 2));
+            }
+
             int size = buff.Size - buff.Position;
             if (info.Count != 0 && size < 1)
             {
-                info.Compleate = false;
+                info.Complete = false;
                 return null;
             }
             int startIndex = index;
@@ -505,12 +612,13 @@ namespace Gurux.DLMS.Internal
             int pos = info.Index;
             for (; pos != info.Count; ++pos)
             {
-                GXDataInfo info2 = new GXDataInfo();               
+                GXDataInfo info2 = new GXDataInfo();
+                info2.xml = info.xml;
                 object tmp = GetData(buff, info2);
-                if (!info2.Compleate)
+                if (!info2.Complete)
                 {
                     buff.Position = (UInt16)startIndex;
-                    info.Compleate = false;
+                    info.Complete = false;
                     break;
                 }
                 else
@@ -522,6 +630,10 @@ namespace Gurux.DLMS.Internal
                     }
                 }
             }
+            if (info.xml != null)
+            {
+                info.xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)info.Type);
+            }
             info.Index = pos;
             value = arr.ToArray();
             return value;
@@ -531,13 +643,13 @@ namespace Gurux.DLMS.Internal
         ///Get time from DLMS data.
         ///</summary>
         ///<param name="buff">
-        ///Received DLMS data. 
+        ///Received DLMS data.
         ///</param>
         ///<param name="info">
-        ///Data info. 
+        ///Data info.
         ///</param>
-        ///<returns> 
-        ///Parsed time. 
+        ///<returns>
+        ///Parsed time.
         ///</returns>
         private static object GetTime(GXByteBuffer buff, GXDataInfo info)
         {
@@ -545,15 +657,24 @@ namespace Gurux.DLMS.Internal
             if (buff.Size - buff.Position < 4)
             {
                 // If there is not enough data available.
-                info.Compleate = false;
+                info.Complete = false;
                 return null;
             }
+            if (info.xml != null)
+            {
+                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", GXCommon.ToHex(buff.Data, false, buff.Position, 4));
+            }
+
             // Get time.
             int hour = buff.GetUInt8();
             int minute = buff.GetUInt8();
             int second = buff.GetUInt8();
             int ms = buff.GetUInt8();
-            GXDateTime dt = new GXDateTime(-1, -1, -1, hour, minute, second, ms);
+            if (ms != 0xFF)
+            {
+                ms *= 10;
+            }
+            GXTime dt = new GXTime(hour, minute, second, ms);
             value = dt;
             return value;
         }
@@ -562,13 +683,13 @@ namespace Gurux.DLMS.Internal
         ///Get date from DLMS data.
         ///</summary>
         ///<param name="buff">
-        ///Received DLMS data. 
+        ///Received DLMS data.
         ///</param>
         ///<param name="info">
-        ///Data info. 
+        ///Data info.
         ///</param>
-        ///<returns> 
-        ///Parsed date. 
+        ///<returns>
+        ///Parsed date.
         ///</returns>
         private static object GetDate(GXByteBuffer buff, GXDataInfo info)
         {
@@ -576,8 +697,12 @@ namespace Gurux.DLMS.Internal
             if (buff.Size - buff.Position < 5)
             {
                 // If there is not enough data available.
-                info.Compleate = false;
+                info.Complete = false;
                 return null;
+            }
+            if (info.xml != null)
+            {
+                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", GXCommon.ToHex(buff.Data, false, buff.Position, 5));
             }
             // Get year.
             int year = buff.GetUInt16();
@@ -585,9 +710,12 @@ namespace Gurux.DLMS.Internal
             int month = buff.GetUInt8();
             // Get day
             int day = buff.GetUInt8();
+            GXDate dt = new GXDate(year, month, day);
             // Skip week day
-            buff.GetUInt8();
-            GXDateTime dt = new GXDateTime(year, month, day, -1, -1, -1, -1);
+            if (buff.GetUInt8() == 0xFF)
+            {
+                dt.Skip |= DateTimeSkips.DayOfWeek;
+            }
             value = dt;
             return value;
         }
@@ -599,9 +727,9 @@ namespace Gurux.DLMS.Internal
         ///Received DLMS data.
         ///</param>
         ///<param name="info">
-        ///Data info. 
+        ///Data info.
         ///</param>
-        ///<returns> 
+        ///<returns>
         ///Parsed date and time.
         ///</returns>
         private static object GetDateTime(GXByteBuffer buff, GXDataInfo info)
@@ -609,8 +737,23 @@ namespace Gurux.DLMS.Internal
             // If there is not enough data available.
             if (buff.Size - buff.Position < 12)
             {
-                info.Compleate = false;
+                //If time.
+                if (buff.Size - buff.Position < 5)
+                {
+                    return GetTime(buff, info);
+                }
+                //If date.
+                else if (buff.Size - buff.Position < 6)
+                {
+                    return GetDate(buff, info);
+                }
+
+                info.Complete = false;
                 return null;
+            }
+            if (info.xml != null)
+            {
+                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", GXCommon.ToHex(buff.Data, false, buff.Position, 12));
             }
 
             GXDateTime dt = new GXDateTime();
@@ -639,7 +782,10 @@ namespace Gurux.DLMS.Internal
                 day = DateTime.DaysInMonth(year, month) + (sbyte)day + 2;
             }
             //Skip week day
-            buff.GetUInt8();
+            if (buff.GetUInt8() == 0xFF)
+            {
+                dt.Skip |= DateTimeSkips.DayOfWeek;
+            }
             //Get time.
             int hours = buff.GetUInt8();
             if (hours == 0xFF)
@@ -660,7 +806,7 @@ namespace Gurux.DLMS.Internal
                 dt.Skip |= DateTimeSkips.Second;
             }
             int milliseconds = buff.GetUInt8();
-            if (milliseconds != 0xFF && milliseconds != 0)
+            if (milliseconds != 0xFF)
             {
                 milliseconds *= 10;
             }
@@ -675,12 +821,12 @@ namespace Gurux.DLMS.Internal
             //0x8000 == -32768
             if (deviation != -32768 && year != 1)
             {
-                dt.Value = new DateTimeOffset(new DateTime(year, month, day, hours, minutes, seconds, milliseconds), 
-                    new TimeSpan(0, deviation, 0));
+                dt.Value = new DateTimeOffset(new DateTime(year, month, day, hours, minutes, seconds, milliseconds),
+                                              new TimeSpan(0, deviation, 0));
             }
             else //Use current time if deviation is not defined.
             {
-
+                dt.Skip |= DateTimeSkips.Devitation;
                 DateTime tmp = new DateTime(year, month, day, hours, minutes, seconds, milliseconds, DateTimeKind.Local);
                 dt.Value = new DateTimeOffset(tmp, TimeZoneInfo.Local.GetUtcOffset(tmp));
             }
@@ -691,58 +837,72 @@ namespace Gurux.DLMS.Internal
         ///Get double value from DLMS data.
         ///</summary>
         ///<param name="buff">
-        ///Received DLMS data. 
+        ///Received DLMS data.
         ///</param>
         ///<param name="info">
-        ///Data info. 
+        ///Data info.
         ///</param>
-        ///<returns> 
-        ///Parsed double value. 
+        ///<returns>
+        ///Parsed double value.
         ///</returns>
         private static object GetDouble(GXByteBuffer buff, GXDataInfo info)
         {
             // If there is not enough data available.
             if (buff.Size - buff.Position < 8)
             {
-                info.Compleate = false;
+                info.Complete = false;
                 return null;
             }
-            return buff.GetDouble();
+            double value = buff.GetDouble();
+            if (info.xml != null)
+            {
+                GXByteBuffer tmp = new GXByteBuffer();
+                SetData(tmp, DataType.Float64, value);
+                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", GXCommon.ToHex(tmp.Data, false, 1, tmp.Size - 1));
+            }
+            return value;
         }
 
         ///<summary>
         ///Get float value from DLMS data.
         ///</summary>
         ///<param name="buff">
-        ///Received DLMS data. 
+        ///Received DLMS data.
         ///</param>
         ///<param name="info">
-        ///Data info. 
+        ///Data info.
         ///</param>
-        ///<returns> 
-        ///Parsed float value. 
+        ///<returns>
+        ///Parsed float value.
         ///</returns>
         private static object Getfloat(GXByteBuffer buff, GXDataInfo info)
         {
             // If there is not enough data available.
             if (buff.Size - buff.Position < 4)
             {
-                info.Compleate = false;
+                info.Complete = false;
                 return null;
             }
-            return buff.GetFloat();
+            float value = buff.GetFloat();
+            if (info.xml != null)
+            {
+                GXByteBuffer tmp = new GXByteBuffer();
+                SetData(tmp, DataType.Float32, value);
+                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", GXCommon.ToHex(tmp.Data, false, 1, tmp.Size - 1));
+            }
+            return value;
         }
 
         ///<summary>
         ///Get enumeration value from DLMS data.
         ///</summary>
         ///<param name="buff">
-        ///Received DLMS data. 
+        ///Received DLMS data.
         ///</param>
         ///<param name="info">
         ///Data info.
         ///</param>
-        ///<returns> 
+        ///<returns>
         ///Parsed enumeration value.
         ///</returns>
         private static object GetEnum(GXByteBuffer buff, GXDataInfo info)
@@ -750,43 +910,53 @@ namespace Gurux.DLMS.Internal
             // If there is not enough data available.
             if (buff.Size - buff.Position < 1)
             {
-                info.Compleate = false;
+                info.Complete = false;
                 return null;
             }
-            return buff.GetUInt8();
+            byte value = buff.GetUInt8();
+            if (info.xml != null)
+            {
+                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", info.xml.IntegerToHex(value, 2));
+            }
+            return value;
         }
 
         ///<summary>
         ///Get UInt64 value from DLMS data.
         ///</summary>
         ///<param name="buff">
-        ///Received DLMS data. 
+        ///Received DLMS data.
         ///</param>
         ///<param name="info">
-        ///Data info. 
+        ///Data info.
         ///</param>
-        ///<returns> 
-        ///Parsed UInt64 value. 
+        ///<returns>
+        ///Parsed UInt64 value.
         ///</returns>
         private static object GetUInt64(GXByteBuffer buff, GXDataInfo info)
         {
             // If there is not enough data available.
             if (buff.Size - buff.Position < 8)
             {
-                info.Compleate = false;
+                info.Complete = false;
                 return null;
             }
-            return buff.GetUInt64();
+            UInt64 value = buff.GetUInt64();
+            if (info.xml != null)
+            {
+                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", info.xml.IntegerToHex(value));
+            }
+            return value;
         }
 
         ///<summary>
         ///Get Int64 value from DLMS data.
         ///</summary>
         ///<param name="buff">
-        ///Received DLMS data. 
+        ///Received DLMS data.
         ///</param>
         ///<param name="info">
-        ///Data info. 
+        ///Data info.
         ///</param>
         ///<returns>
         ///Parsed Int64 value.
@@ -796,17 +966,22 @@ namespace Gurux.DLMS.Internal
             // If there is not enough data available.
             if (buff.Size - buff.Position < 8)
             {
-                info.Compleate = false;
+                info.Complete = false;
                 return null;
             }
-            return buff.GetInt64();
+            Int64 value = buff.GetInt64();
+            if (info.xml != null)
+            {
+                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", info.xml.IntegerToHex(value, 16));
+            }
+            return value;
         }
 
         ///<summary>
         ///Get UInt16 value from DLMS data.
         ///</summary>
         ///<param name="buff">
-        ///Received DLMS data. 
+        ///Received DLMS data.
         ///</param>
         ///<param name="info">
         ///Data info.
@@ -819,45 +994,55 @@ namespace Gurux.DLMS.Internal
             // If there is not enough data available.
             if (buff.Size - buff.Position < 2)
             {
-                info.Compleate = false;
+                info.Complete = false;
                 return null;
             }
-            return buff.GetUInt16();
+            UInt16 value = buff.GetUInt16();
+            if (info.xml != null)
+            {
+                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", info.xml.IntegerToHex(value, 4));
+            }
+            return value;
         }
 
         ///<summary>
         ///Get UInt8 value from DLMS data.
         ///</summary>
         ///<param name="buff">
-        ///Received DLMS data. 
+        ///Received DLMS data.
         ///</param>
         ///<param name="info">
-        ///Data info. 
+        ///Data info.
         ///</param>
-        ///<returns> 
-        ///Parsed UInt8 value. 
+        ///<returns>
+        ///Parsed UInt8 value.
         ///</returns>
         private static object GetUInt8(GXByteBuffer buff, GXDataInfo info)
         {
             // If there is not enough data available.
             if (buff.Size - buff.Position < 1)
             {
-                info.Compleate = false;
+                info.Complete = false;
                 return null;
             }
-            return buff.GetUInt8();
+            byte value = buff.GetUInt8();
+            if (info.xml != null)
+            {
+                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", info.xml.IntegerToHex(value, 2));
+            }
+            return value;
         }
 
         ///<summary>
         ///Get Int16 value from DLMS data.
         ///</summary>
         ///<param name="buff">
-        ///Received DLMS data. 
+        ///Received DLMS data.
         ///</param>
         ///<param name="info">
         ///Data info.
         ///</param>
-        ///<returns> 
+        ///<returns>
         ///Parsed Int16 value.
         ///</returns>
         private static object GetInt16(GXByteBuffer buff, GXDataInfo info)
@@ -865,74 +1050,70 @@ namespace Gurux.DLMS.Internal
             // If there is not enough data available.
             if (buff.Size - buff.Position < 2)
             {
-                info.Compleate = false;
+                info.Complete = false;
                 return null;
             }
-            return buff.GetInt16();
+            Int16 value = buff.GetInt16();
+            if (info.xml != null)
+            {
+                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", info.xml.IntegerToHex(value, 4));
+            }
+            return value;
         }
 
         ///<summary>
         ///Get Int8 value from DLMS data.
         ///</summary>
         ///<param name="buff">
-        ///Received DLMS data. 
+        ///Received DLMS data.
         ///</param>
         ///<param name="info">
         ///Data info.
         ///</param>
-        ///<returns> 
-        ///Parsed Int8 value. 
+        ///<returns>
+        ///Parsed Int8 value.
         ///</returns>
         private static object GetInt8(GXByteBuffer buff, GXDataInfo info)
         {
             // If there is not enough data available.
             if (buff.Size - buff.Position < 1)
             {
-                info.Compleate = false;
+                info.Complete = false;
                 return null;
             }
-            return buff.GetInt8();
+            sbyte value = buff.GetInt8();
+            if (info.xml != null)
+            {
+                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", value);
+            }
+            return value;
         }
 
         ///<summary>
         ///Get BCD value from DLMS data.
         ///</summary>
         ///<param name="buff">
-        ///Received DLMS data. 
+        ///Received DLMS data.
         ///</param>
         ///<param name="info">
-        ///Data info. 
+        ///Data info.
         ///</param>
-        ///<returns> 
-        ///Parsed BCD value. 
+        ///<returns>
+        ///Parsed BCD value.
         ///</returns>
         private static object GetBcd(GXByteBuffer buff, GXDataInfo info, bool knownType)
         {
-            object value;
-            int len;
-            if (knownType)
+            // If there is not enough data available.
+            if (buff.Size - buff.Position < 1)
             {
-                len = buff.Size;
+                info.Complete = false;
+                return null;
             }
-            else
+            byte value = buff.GetUInt8();
+            if (info.xml != null)
             {
-                len = GXCommon.GetObjectCount(buff);
-                // If there is not enough data available.
-                if (buff.Size - buff.Position < len)
-                {
-                    info.Compleate = false;
-                    return null;
-                }
+                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", value);
             }
-            StringBuilder bcd = new StringBuilder(len * 2);
-            for (int a = 0; a != len; ++a)
-            {
-                sbyte ch = buff.GetInt8();
-                int idHigh = (int)((uint)ch >> 4);
-                int idLow = ch & 0x0F;
-                bcd.Append(Convert.ToString(idHigh) + Convert.ToString(idLow));
-            }
-            value = bcd.ToString();
             return value;
         }
 
@@ -940,13 +1121,13 @@ namespace Gurux.DLMS.Internal
         ///Get UTF string value from DLMS data.
         ///</summary>
         ///<param name="buff">
-        ///Received DLMS data. 
+        ///Received DLMS data.
         ///</param>
         ///<param name="info">
-        ///Data info. 
+        ///Data info.
         ///</param>
-        ///<returns> 
-        ///Parsed UTF string value. 
+        ///<returns>
+        ///Parsed UTF string value.
         ///</returns>
         private static object GetUtfString(GXByteBuffer buff, GXDataInfo info, bool knownType)
         {
@@ -962,17 +1143,21 @@ namespace Gurux.DLMS.Internal
                 // If there is not enough data available.
                 if (buff.Size - buff.Position < len)
                 {
-                    info.Compleate = false;
+                    info.Complete = false;
                     return null;
                 }
             }
             if (len > 0)
             {
-                value = buff.GetString(buff.Position, len);
+                value = buff.GetStringUtf8(buff.Position, len);
             }
             else
             {
                 value = "";
+            }
+            if (info.xml != null)
+            {
+                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", value);
             }
             return value;
         }
@@ -981,13 +1166,13 @@ namespace Gurux.DLMS.Internal
         ///Get octect string value from DLMS data.
         ///</summary>
         ///<param name="buff">
-        ///Received DLMS data. 
+        ///Received DLMS data.
         ///</param>
         ///<param name="info">
-        ///Data info. 
+        ///Data info.
         ///</param>
-        ///<returns> 
-        ///Parsed octet string value. 
+        ///<returns>
+        ///Parsed octet string value.
         ///</returns>
         private static object GetOctetString(GXByteBuffer buff, GXDataInfo info, bool knownType)
         {
@@ -1003,13 +1188,17 @@ namespace Gurux.DLMS.Internal
                 // If there is not enough data available.
                 if (buff.Size - buff.Position < len)
                 {
-                    info.Compleate = false;
+                    info.Complete = false;
                     return null;
                 }
             }
             byte[] tmp = new byte[len];
             buff.Get(tmp);
             value = tmp;
+            if (info.xml != null)
+            {
+                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", GXCommon.ToHex(tmp, false));
+            }
             return value;
         }
 
@@ -1017,17 +1206,17 @@ namespace Gurux.DLMS.Internal
         ///Get string value from DLMS data.
         ///</summary>
         ///<param name="buff">
-        ///Received DLMS data. 
+        ///Received DLMS data.
         ///</param>
         ///<param name="info">
-        ///Data info. 
+        ///Data info.
         ///</param>
-        ///<returns> 
-        ///Parsed string value. 
+        ///<returns>
+        ///Parsed string value.
         ///</returns>
         private static object GetString(GXByteBuffer buff, GXDataInfo info, bool knownType)
         {
-            object value;
+            string value;
             int len;
             if (knownType)
             {
@@ -1039,7 +1228,7 @@ namespace Gurux.DLMS.Internal
                 // If there is not enough data available.
                 if (buff.Size - buff.Position < len)
                 {
-                    info.Compleate = false;
+                    info.Complete = false;
                     return null;
                 }
             }
@@ -1051,6 +1240,17 @@ namespace Gurux.DLMS.Internal
             {
                 value = "";
             }
+            if (info.xml != null)
+            {
+                if (info.xml.ShowStringAsHex)
+                {
+                    info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", GXCommon.ToHex(buff.Data, false, buff.Position - len, len));
+                }
+                else
+                {
+                    info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", value.Replace('\"', '\''));
+                }
+            }
             return value;
         }
 
@@ -1058,23 +1258,28 @@ namespace Gurux.DLMS.Internal
         ///Get UInt32 value from DLMS data.
         ///</summary>
         ///<param name="buff">
-        ///Received DLMS data. 
+        ///Received DLMS data.
         ///</param>
         ///<param name="info">
-        ///Data info. 
+        ///Data info.
         ///</param>
-        ///<returns> 
-        ///Parsed UInt32 value. 
+        ///<returns>
+        ///Parsed UInt32 value.
         /// </returns>
         private static object GetUInt32(GXByteBuffer buff, GXDataInfo info)
         {
             // If there is not enough data available.
             if (buff.Size - buff.Position < 4)
             {
-                info.Compleate = false;
+                info.Complete = false;
                 return null;
             }
-            return buff.GetUInt32();
+            UInt32 value = buff.GetUInt32();
+            if (info.xml != null)
+            {
+                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", value);
+            }
+            return value;
         }
 
         ///<summary>
@@ -1084,20 +1289,25 @@ namespace Gurux.DLMS.Internal
         ///Received DLMS data.
         ///</param>
         ///<param name="info">
-        ///Data info. 
+        ///Data info.
         ///</param>
-        ///<returns> 
-        ///Parsed Int32 value. 
+        ///<returns>
+        ///Parsed Int32 value.
         ///</returns>
         private static object GetInt32(GXByteBuffer buff, GXDataInfo info)
         {
             // If there is not enough data available.
             if (buff.Size - buff.Position < 4)
             {
-                info.Compleate = false;
+                info.Complete = false;
                 return null;
             }
-            return buff.GetInt32();
+            Int32 value = buff.GetInt32();
+            if (info.xml != null)
+            {
+                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", value);
+            }
+            return value;
         }
 
         ///<summary>
@@ -1107,7 +1317,7 @@ namespace Gurux.DLMS.Internal
         ///Received DLMS data.
         ///</param>
         ///<param name="info">
-        ///Data info. 
+        ///Data info.
         ///</param>
         ///<returns>
         ///Parsed bit string value.
@@ -1125,7 +1335,7 @@ namespace Gurux.DLMS.Internal
             // If there is not enough data available.
             if (buff.Size - buff.Position < byteCnt)
             {
-                info.Compleate = false;
+                info.Complete = false;
                 return null;
             }
             StringBuilder sb = new StringBuilder();
@@ -1134,6 +1344,10 @@ namespace Gurux.DLMS.Internal
                 ToBitString(sb, buff.GetUInt8(), cnt);
                 cnt -= 8;
             }
+            if (info.xml != null)
+            {
+                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", sb.ToString());
+            }
             return sb.ToString();
         }
 
@@ -1141,23 +1355,28 @@ namespace Gurux.DLMS.Internal
         ///Get boolean value from DLMS data.
         ///</summary>
         ///<param name="buff">
-        ///Received DLMS data. 
+        ///Received DLMS data.
         ///</param>
         ///<param name="info">
-        ///Data info. 
+        ///Data info.
         ///</param>
-        ///<returns> 
-        ///Parsed boolean value. 
+        ///<returns>
+        ///Parsed boolean value.
         ///</returns>
         private static object GetBoolean(GXByteBuffer buff, GXDataInfo info)
         {
             // If there is not enough data available.
             if (buff.Size - buff.Position < 1)
             {
-                info.Compleate = false;
+                info.Complete = false;
                 return null;
             }
-            return buff.GetUInt8() != 0;
+            byte value = buff.GetUInt8();
+            if (info.xml != null)
+            {
+                info.xml.AppendLine(GXDLMS.DATA_TYPE_OFFSET + (int)info.Type, "Value", value);
+            }
+            return value != 0;
         }
 
         public static DataType GetValueType(object value)
@@ -1206,6 +1425,14 @@ namespace Gurux.DLMS.Internal
             {
                 return DataType.Int64;
             }
+            if (value is GXDate)
+            {
+                return DataType.Date;
+            }
+            if (value is GXTime)
+            {
+                return DataType.Time;
+            }
             if (value is DateTime || value is GXDateTime)
             {
                 return DataType.DateTime;
@@ -1253,21 +1480,13 @@ namespace Gurux.DLMS.Internal
                 buff.Set((byte[])value);
                 return;
             }
-            if (type == DataType.Time || 
-                type == DataType.Date)
-            {
-                buff.SetUInt8(DataType.OctetString);
-            }
-            else
-            {
-                buff.SetUInt8((byte)type);
-            }
+            buff.SetUInt8((byte)type);
             switch (type)
             {
                 case DataType.None:
                     break;
                 case DataType.Boolean:
-                    if (Convert.ToBoolean(value.ToString()))
+                    if (Convert.ToBoolean(value))
                     {
                         buff.SetUInt8(1);
                     }
@@ -1325,9 +1544,23 @@ namespace Gurux.DLMS.Internal
                     SetUtcString(buff, value);
                     break;
                 case DataType.OctetString:
-                    if (value is GXDateTime || value is DateTime)
+                    if (value is GXDate)
                     {
-                        SetDateTime(buff, value, true);
+                        //Add size
+                        buff.SetUInt8(5);
+                        SetDate(buff, value);
+                    }
+                    else if (value is GXTime)
+                    {
+                        //Add size
+                        buff.SetUInt8(4);
+                        SetTime(buff, value);
+                    }
+                    else if (value is GXDateTime || value is DateTime)
+                    {
+                        //Add size
+                        buff.SetUInt8(12);
+                        SetDateTime(buff, value);
                     }
                     else
                     {
@@ -1338,13 +1571,13 @@ namespace Gurux.DLMS.Internal
                 case DataType.Structure:
                     SetArray(buff, value);
                     break;
-                case DataType.BinaryCodedDesimal:
+                case DataType.Bcd:
                     SetBcd(buff, value);
                     break;
                 case DataType.CompactArray:
                     throw new Exception("Invalid data type.");
                 case DataType.DateTime:
-                    SetDateTime(buff, value, false);
+                    SetDateTime(buff, value);
                     break;
                 case DataType.Date:
                     SetDate(buff, value);
@@ -1361,10 +1594,10 @@ namespace Gurux.DLMS.Internal
         ///Convert time to DLMS bytes.
         ///</summary>
         ///<param name="buff">
-        ///Byte buffer where data is write. 
+        ///Byte buffer where data is write.
         ///</param>
         ///<param name="value">
-        ///Added value. 
+        ///Added value.
         ///</param>
         private static void SetTime(GXByteBuffer buff, object value)
         {
@@ -1389,8 +1622,6 @@ namespace Gurux.DLMS.Internal
             {
                 throw new Exception("Invalid date format.");
             }
-            //Add size.
-            buff.SetUInt8(4);
             //Add time.
             if ((dt.Skip & DateTimeSkips.Hour) != 0)
             {
@@ -1426,7 +1657,7 @@ namespace Gurux.DLMS.Internal
             }
             else
             {
-                buff.SetUInt8((byte) (10 * dt.Value.Millisecond));
+                buff.SetUInt8((byte)(dt.Value.Millisecond / 10));
             }
         }
 
@@ -1434,10 +1665,10 @@ namespace Gurux.DLMS.Internal
         ///Convert date to DLMS bytes.
         ///</summary>
         ///<param name="buff">
-        ///Byte buffer where data is write. 
+        ///Byte buffer where data is write.
         ///</param>
         ///<param name="value">
-        ///Added value. 
+        ///Added value.
         ///</param>
         private static void SetDate(GXByteBuffer buff, object value)
         {
@@ -1461,9 +1692,7 @@ namespace Gurux.DLMS.Internal
             else
             {
                 throw new Exception("Invalid date format.");
-            }          
-            //Add size
-            buff.SetUInt8(5);
+            }
             // Add year.
             if ((dt.Skip & DateTimeSkips.Year) != 0)
             {
@@ -1499,7 +1728,7 @@ namespace Gurux.DLMS.Internal
             {
                 buff.SetUInt8((byte)dt.Value.Day);
             }
-            // Add week day 
+            // Add week day
             if ((dt.Skip & DateTimeSkips.DayOfWeek) != 0)
             {
                 buff.SetUInt8(0xFF);
@@ -1521,12 +1750,12 @@ namespace Gurux.DLMS.Internal
         ///Convert date time to DLMS bytes.
         ///</summary>
         ///<param name="buff">
-        ///Byte buffer where data is write. 
+        ///Byte buffer where data is write.
         ///</param>
         ///<param name="value">
-        ///Added value. 
+        ///Added value.
         ///</param>
-        private static void SetDateTime(GXByteBuffer buff, object value, bool asOctectString)
+        private static void SetDateTime(GXByteBuffer buff, object value)
         {
             GXDateTime dt;
             if (value is GXDateTime)
@@ -1556,11 +1785,6 @@ namespace Gurux.DLMS.Internal
                 dt.Value = DateTime.SpecifyKind(DateTime.Now.AddYears(1).Date, DateTimeKind.Utc);
             }
             DateTimeOffset tm = dt.Value;
-            //Add size
-            if (asOctectString)
-            {
-                buff.SetUInt8(12);
-            }
             if ((dt.Skip & DateTimeSkips.Year) == 0)
             {
                 buff.SetUInt16((ushort)tm.Year);
@@ -1596,7 +1820,7 @@ namespace Gurux.DLMS.Internal
             {
                 buff.SetUInt8(0xFF);
             }
-            // Add week day 
+            // Add week day
             if ((dt.Skip & DateTimeSkips.DayOfWeek) != 0)
             {
                 buff.SetUInt8(0xFF);
@@ -1645,7 +1869,7 @@ namespace Gurux.DLMS.Internal
             }
             else
             {
-                buff.SetUInt8((byte)0xFF); //Hundredths of second is not used.                
+                buff.SetUInt8((byte)0xFF); //Hundredths of second is not used.
             }
             //Add deviation.
             if ((dt.Skip & DateTimeSkips.Devitation) == 0)
@@ -1671,42 +1895,25 @@ namespace Gurux.DLMS.Internal
         ///Convert BCD to DLMS bytes.
         ///</summary>
         ///<param name="buff">
-        ///Byte buffer where data is write. 
+        ///Byte buffer where data is write.
         ///</param>
         ///<param name="value">
-        ///Added value. 
+        ///Added value.
         ///</param>
         private static void SetBcd(GXByteBuffer buff, object value)
         {
-            if (!(value is string))
-            {
-                throw new Exception("BCD value must give as string.");
-            }
-            string str = value.ToString().Trim();
-            int len = str.Length;
-            if (len % 2 != 0)
-            {
-                str = "0" + str;
-                ++len;
-            }
-            len /= 2;
-            SetObjectCount(len, buff);
-            for (int pos = 0; pos != len; ++pos)
-            {
-                int ch1 = Convert.ToInt32(str.Substring(2 * pos, 1));
-                int ch2 = Convert.ToInt32(str.Substring(2 * pos + 1, 1));
-                buff.SetUInt8((byte)(ch1 << 4 | ch2));
-            }
+            //Standard supports only size of byte.
+            buff.SetUInt8(Convert.ToByte(value));
         }
 
         ///<summary>
         ///Convert Array to DLMS bytes.
         ///</summary>
         ///<param name="buff">
-        ///Byte buffer where data is write. 
+        ///Byte buffer where data is write.
         ///</param>
         ///<param name="value">
-        ///Added value. 
+        ///Added value.
         ///</param>
         private static void SetArray(GXByteBuffer buff, object value)
         {
@@ -1729,10 +1936,10 @@ namespace Gurux.DLMS.Internal
         ///Convert Octet string to DLMS bytes.
         ///</summary>
         ///<param name="buff">
-        ///Byte buffer where data is write. 
+        ///Byte buffer where data is write.
         ///</param>
         ///<param name="value">
-        ///Added value. 
+        ///Added value.
         ///</param>
         private static void SetOctetString(GXByteBuffer buff, object value)
         {
@@ -1776,18 +1983,18 @@ namespace Gurux.DLMS.Internal
         ///Convert UTC string to DLMS bytes.
         ///</summary>
         ///<param name="buff">
-        ///Byte buffer where data is write. 
+        ///Byte buffer where data is write.
         ///</param>
         ///<param name="value">
-        ///Added value. 
+        ///Added value.
         ///</param>
         private static void SetUtcString(GXByteBuffer buff, object value)
         {
             if (value != null)
             {
-                string str = value.ToString();
-                SetObjectCount(str.Length, buff);
-                buff.Set(ASCIIEncoding.UTF8.GetBytes(str));
+                byte[] tmp = ASCIIEncoding.UTF8.GetBytes(Convert.ToString(value));
+                SetObjectCount(tmp.Length, buff);
+                buff.Set(tmp);
             }
             else
             {
@@ -1799,7 +2006,7 @@ namespace Gurux.DLMS.Internal
         ///Convert ASCII string to DLMS bytes.
         ///</summary>
         ///<param name="buff">
-        ///Byte buffer where data is write. 
+        ///Byte buffer where data is write.
         ///</param>
         ///<param name="value">
         ///Added value.
@@ -1822,10 +2029,10 @@ namespace Gurux.DLMS.Internal
         ///Convert Bit string to DLMS bytes.
         ///</summary>
         ///<param name="buff">
-        ///Byte buffer where data is write. 
+        ///Byte buffer where data is write.
         ///</param>
         ///<param name="value">
-        ///Added value. 
+        ///Added value.
         ///</param>
         private static void SetBitString(GXByteBuffer buff, object value)
         {
@@ -1836,7 +2043,7 @@ namespace Gurux.DLMS.Internal
                 int index = 0;
                 string str = ((string)value);
                 SetObjectCount(str.Length, buff);
-                foreach (char it in  str.Reverse())
+                foreach (char it in str.Reverse())
                 {
                     if (it == '1')
                     {

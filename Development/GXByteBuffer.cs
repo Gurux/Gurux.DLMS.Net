@@ -40,6 +40,7 @@ namespace Gurux.DLMS
 {
     using System;
     using System.Text;
+    using System.Diagnostics;
 
     /// <summary> 
     /// Byte array class is used to save received bytes.
@@ -56,7 +57,8 @@ namespace Gurux.DLMS
                 
         ///<summary>
         ///Constructor. 
-        ///</summary>        
+        ///</summary>      
+        [DebuggerStepThrough]
         public GXByteBuffer()
         {
 
@@ -69,6 +71,7 @@ namespace Gurux.DLMS
         ///<param name="capacity">
         /// Buffer capacity.
         ///</param>        
+        [DebuggerStepThrough]
         public GXByteBuffer(UInt16 capacity)
         {
             Capacity = capacity;
@@ -81,10 +84,14 @@ namespace Gurux.DLMS
         ///<param name="value">
         /// Byte array to attach. 
         ///</param>        
+        [DebuggerStepThrough]
         public GXByteBuffer(byte[] value)
         {
-            Capacity = value.Length;
-            Set(value);
+            if (value != null)
+            {
+                Capacity = value.Length;
+                Set(value);
+            }
         }
 
         ///<summary>
@@ -93,6 +100,7 @@ namespace Gurux.DLMS
         ///<param name="value">
         /// Byte array to attach. 
         ///</param>        
+        [DebuggerStepThrough]        
         public GXByteBuffer(GXByteBuffer value)
         {
             Capacity = (value.Size - value.Position);
@@ -684,6 +692,24 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Get String value from byte array.
+        /// </summary>
+        /// <param name="index">Byte index.</param>
+        /// <param name="count">Byte count.</param>
+        public string GetStringUtf8(int index, int count)
+        {
+            if (index < 0)
+            {
+                throw new ArgumentOutOfRangeException("index");
+            }
+            if (count < 0)
+            {
+                throw new ArgumentOutOfRangeException("count");
+            }
+            return Encoding.UTF8.GetString(Data, index, count);
+        }
+
+        /// <summary>
         /// Push the given byte array into this buffer at the current position, and then increments the position.
         /// </summary>
         /// <param name="value"> The value to be added.</param>
@@ -811,7 +837,6 @@ namespace Gurux.DLMS
                 {
                     SetInt64((Int64)value);
                 }
-
                 else if (value is string)
                 {
                     Set(ASCIIEncoding.ASCII.GetBytes((string) value));
@@ -856,6 +881,36 @@ namespace Gurux.DLMS
                 this.Position -= arr.Length;
             }
             return ret;
+        }
+
+        /// <summary>
+        /// Push the given hex string as byte array into this buffer at the current position, and then increments the position.
+        /// </summary>
+        /// <param name="value"> The hex string to be added.</param>
+        public void SetHexString(string value)
+        {
+            Set(Gurux.DLMS.Internal.GXCommon.HexToBytes(value));
+        }
+
+        /// <summary>
+        /// Push the given hex string as byte array into this buffer at the current position, and then increments the position.
+        /// </summary>
+        /// <param name="index">Byte index.</param>
+        /// <param name="value"> The hex string to be added.</param>
+        public void SetHexString(int index, string value)
+        {
+            Set(index, Gurux.DLMS.Internal.GXCommon.HexToBytes(value));
+        }
+
+        /// <summary>
+        /// Push the given hex string as byte array into this buffer at the current position, and then increments the position.
+        /// </summary>
+        /// <param name="value">Byte array to add.</param>
+        /// <param name="index">Byte index.</param>
+        /// <param name="count">Byte count.</param>
+        public void SetHexString(string value, int index, int count)
+        {
+            Set(Gurux.DLMS.Internal.GXCommon.HexToBytes(value), index, count);
         }
 
         public override string ToString()

@@ -120,6 +120,14 @@ namespace Gurux.DLMS
             private set;
         }
 
+        /// <summary>
+        /// Is value max PDU size skipped when converting data to bytes.
+        /// </summary>
+        public bool SkipMaxPduSize
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Constructor.

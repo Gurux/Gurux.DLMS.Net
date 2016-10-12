@@ -53,6 +53,10 @@ namespace Gurux.DLMS.Enums
         /// Network interface type is used for meters that support 
         /// IEC 62056-47 COSEM transport layers for IPv4 networks.
         /// </summary>
-        WRAPPER
+        WRAPPER,
+        /// <summary>
+        /// Plain PDU is returned.
+        /// </summary>
+        PDU
     }
 }

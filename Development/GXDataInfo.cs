@@ -71,7 +71,13 @@ namespace Gurux.DLMS
         ///<summary>
         ///Is data parsed to the end.
         ///</summary>
-        public bool Compleate
+        public bool Complete
+        {
+            get;
+            internal set;
+        }
+
+        public GXDLMSTranslatorStructure xml
         {
             get;
             internal set;
@@ -85,7 +91,7 @@ namespace Gurux.DLMS
             Index = 0;
             Count = 0;
             Type = DataType.None;
-            Compleate = true;
+            Complete = true;
         }
     }
 }

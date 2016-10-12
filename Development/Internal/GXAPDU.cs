@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -42,16 +42,16 @@ using Gurux.DLMS.Secure;
 namespace Gurux.DLMS.Internal
 {
     ///<summary>
-    ///The services to access the attributes and methods of COSEM objects are 
-    ///determined on DLMS/COSEM Application layer. The services are carried by 
-    ///Application Protocol Data Units (APDUs). 
-    ///<p />In DLMS/COSEM the meter is primarily a server, and the controlling system 
+    ///The services to access the attributes and methods of COSEM objects are
+    ///determined on DLMS/COSEM Application layer. The services are carried by
+    ///Application Protocol Data Units (APDUs).
+    ///<p />In DLMS/COSEM the meter is primarily a server, and the controlling system
     ///is a client. Also unsolicited (received without a request) messages are available.
     ///</summary>
     class GXAPDU
     {
         ///<summary>
-        ///Retrieves the string that indicates the level of authentication, if any. 
+        ///Retrieves the string that indicates the level of authentication, if any.
         ///</summary>
         private static void GetAuthenticationString(GXDLMSSettings settings, GXByteBuffer data)
         {
@@ -146,7 +146,7 @@ namespace Gurux.DLMS.Internal
                 {
                     throw new ArgumentNullException("SystemTitle");
                 }
-                //Add calling-AP-title 
+                //Add calling-AP-title
                 data.SetUInt8(((byte)BerType.Context | (byte)BerType.Constructed | 6));
                 //LEN
                 data.SetUInt8((byte)(2 + cipher.SystemTitle.Length));
@@ -169,8 +169,8 @@ namespace Gurux.DLMS.Internal
             data.SetUInt8((byte)Command.InitiateRequest);
             // Usage field for dedicated-key component. Not used
             data.SetUInt8(0x00);
-            //encoding of the response-allowed component (BOOLEAN DEFAULT TRUE) 
-            // usage flag (FALSE, default value TRUE conveyed) 
+            //encoding of the response-allowed component (BOOLEAN DEFAULT TRUE)
+            // usage flag (FALSE, default value TRUE conveyed)
             data.SetUInt8(0);
 
             // Usage field of the proposed-quality-of-service component. Not used
@@ -191,7 +191,7 @@ namespace Gurux.DLMS.Internal
             {
                 data.Set(settings.SnSettings.ConformanceBlock);
             }
-            data.SetUInt16(settings.MaxPDUSize);
+            data.SetUInt16(settings.MaxPduSize);
         }
 
         /// <summary>
@@ -200,7 +200,7 @@ namespace Gurux.DLMS.Internal
         /// <param name="settings">DLMS settings.</param>
         /// <param name="cipher"></param>
         /// <param name="data">Generated user information.</param>
-        static internal void GenerateUserInformation(GXDLMSSettings settings, GXICipher cipher, GXByteBuffer data)
+        static internal void GenerateUserInformation(GXDLMSSettings settings, GXICipher cipher, GXByteBuffer encryptedData, GXByteBuffer data)
         {
             data.SetUInt8((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.UserInformation);
             if (cipher == null || !cipher.IsCiphered())
@@ -215,22 +215,37 @@ namespace Gurux.DLMS.Internal
             }
             else
             {
-                GXByteBuffer tmp = new GXByteBuffer();
-                GetInitiateRequest(settings, cipher, tmp);
-                byte[] crypted = cipher.Encrypt((byte) Command.GloInitiateRequest, cipher.SystemTitle, tmp.Array());
-                //Length for AARQ user field
-                data.SetUInt8((byte)(2 + crypted.Length));
-                //Coding the choice for user-information (Octet STRING, universal)
-                data.SetUInt8(BerType.OctetString);
-                data.SetUInt8((byte)crypted.Length);
-                data.Set(crypted);
+                if (encryptedData != null && encryptedData.Size != 0)
+                {
+                    //Length for AARQ user field
+                    data.SetUInt8((byte)(4 + encryptedData.Size));
+                    //Tag
+                    data.SetUInt8(BerType.OctetString);
+                    data.SetUInt8((byte)(2 + encryptedData.Size));
+                    //Coding the choice for user-information (Octet STRING, universal)
+                    data.SetUInt8((byte)Command.GloInitiateRequest);
+                    data.SetUInt8((byte)encryptedData.Size);
+                    data.Set(encryptedData);
+                }
+                else
+                {
+                    GXByteBuffer tmp = new GXByteBuffer();
+                    GetInitiateRequest(settings, cipher, tmp);
+                    byte[] crypted = cipher.Encrypt((byte)Command.GloInitiateRequest, cipher.SystemTitle, tmp.Array());
+                    //Length for AARQ user field
+                    data.SetUInt8((byte)(2 + crypted.Length));
+                    //Coding the choice for user-information (Octet STRING, universal)
+                    data.SetUInt8(BerType.OctetString);
+                    data.SetUInt8((byte)crypted.Length);
+                    data.Set(crypted);
+                }
             }
         }
 
         ///<summary>
         /// Generates Aarq.
         ///</summary>
-        static internal void GenerateAarq(GXDLMSSettings settings, GXICipher cipher, GXByteBuffer data)
+        static internal void GenerateAarq(GXDLMSSettings settings, GXICipher cipher, GXByteBuffer encryptedData, GXByteBuffer data)
         {
             //AARQ APDU Tag
             data.SetUInt8(BerType.Application | BerType.Constructed);
@@ -241,19 +256,39 @@ namespace Gurux.DLMS.Internal
             // Add Application context name.
             GenerateApplicationContextName(settings, data, cipher);
             GetAuthenticationString(settings, data);
-            GenerateUserInformation(settings, cipher, data);
+            GenerateUserInformation(settings, cipher, encryptedData, data);
             data.SetUInt8(offset, (byte)(data.Size - offset - 1));
+        }
+
+        private static void GetConformance(UInt32 value, GXDLMSTranslatorStructure xml)
+        {
+            foreach (var it in Enum.GetValues(typeof(Conformance)))
+            {
+                if (((int)it & value) != 0)
+                {
+                    xml.AppendLine(TranslatorGeneralTags.ConformanceBit, "Name", it.ToString());
+                }
+            }
         }
 
         /// <summary>
         /// Parse User Information from PDU.
         /// </summary>
-        private static void ParseUserInformation(GXDLMSSettings settings, GXICipher cipher, GXByteBuffer data)
+        public static void ParseUserInformation(GXDLMSSettings settings, GXICipher cipher, GXByteBuffer data, GXDLMSTranslatorStructure xml)
         {
             byte len = data.GetUInt8();
+            GXByteBuffer tmp2 = new GXByteBuffer();
+            tmp2.SetUInt8(0);
             if (data.Size - data.Position < len)
             {
                 throw new Exception("Not enough data.");
+            }
+            if (xml != null && xml.OutputType == TranslatorOutputType.StandardXml)
+            {
+                xml.AppendLine(Command.InitiateRequest, null, GXCommon
+                               .ToHex(data.Data, false, data.Position, len));
+                data.Position = data.Position + len;
+                return;
             }
             //Excoding the choice for user information
             int tag = data.GetUInt8();
@@ -264,31 +299,65 @@ namespace Gurux.DLMS.Internal
             len = data.GetUInt8();
             //Tag for xDLMS-Initate.response
             tag = data.GetUInt8();
-            if (tag == (byte) Command.GloInitiateResponse)
+            if (tag == (byte)Command.GloInitiateResponse)
             {
+                if (xml != null)
+                {
+                    int cnt = GXCommon.GetObjectCount(data);
+                    byte[] tmp = new byte[cnt];
+                    data.Get(tmp);
+                    //<glo_InitiateResponse>
+                    xml.AppendLine(Command.GloInitiateResponse, "Value", GXCommon.ToHex(tmp, false));
+                    return;
+                }
                 --data.Position;
                 cipher.Security = cipher.Decrypt(settings.SourceSystemTitle, data);
                 tag = data.GetUInt8();
             }
             else if (tag == (byte)Command.GloInitiateRequest)
             {
+                if (xml != null)
+                {
+                    int cnt = GXCommon.GetObjectCount(data);
+                    byte[] tmp = new byte[cnt];
+                    data.Get(tmp);
+                    //<glo_InitiateRequest>
+                    xml.AppendLine(Command.GloInitiateRequest, "Value", GXCommon.ToHex(tmp, false));
+                    return;
+                }
                 --data.Position;
                 cipher.Security = cipher.Decrypt(settings.SourceSystemTitle, data);
                 tag = data.GetUInt8();
             }
-            bool response = tag == (byte) Command.InitiateResponse;
+            bool response = tag == (byte)Command.InitiateResponse;
             if (response)
             {
+                if (xml != null)
+                {
+                    //<InitiateResponse>
+                    xml.AppendStartTag(Command.InitiateResponse);
+                }
                 //Optional usage field of the negotiated quality of service component
                 tag = data.GetUInt8();
+                len = 0;
                 if (tag != 0)//Skip if used.
                 {
                     len = data.GetUInt8();
                     data.Position += len;
+                    if (len == 0 && xml != null)
+                    {
+                        //NegotiatedQualityOfService
+                        xml.AppendLine(TranslatorGeneralTags.NegotiatedQualityOfService, "Value", "00");
+                    }
                 }
             }
-            else if (tag == (byte) Command.InitiateRequest)
+            else if (tag == (byte)Command.InitiateRequest)
             {
+                if (xml != null)
+                {
+                    //<InitiateRequest>
+                    xml.AppendStartTag(Command.InitiateRequest);
+                }
                 //Optional usage field of the negotiated quality of service component
                 tag = data.GetUInt8();
                 //CtoS.
@@ -318,15 +387,27 @@ namespace Gurux.DLMS.Internal
                 throw new Exception("Invalid tag.");
             }
             //Get DLMS version number.
-            if (settings.IsServer)
+            if (!response)
             {
-                settings.DlmsVersionNumber = data.GetUInt8();
+                if (data.GetUInt8() != 6)
+                {
+                    throw new Exception("Invalid DLMS version number.");
+                }
+                //ProposedDlmsVersionNumber
+                if (xml != null)
+                {
+                    xml.AppendLine(TranslatorGeneralTags.ProposedDlmsVersionNumber, "Value", xml.IntegerToHex(settings.DLMSVersion, 2));
+                }
             }
             else
             {
                 if (data.GetUInt8() != 6)
                 {
                     throw new Exception("Invalid DLMS version number.");
+                }
+                if (xml != null)
+                {
+                    xml.AppendLine(TranslatorGeneralTags.NegotiatedDlmsVersionNumber, "Value", xml.IntegerToHex(settings.DLMSVersion, 2));
                 }
             }
 
@@ -344,53 +425,75 @@ namespace Gurux.DLMS.Internal
             len = data.GetUInt8();
             //The number of unused bits in the bit string.
             tag = data.GetUInt8();
-            if (settings.UseLogicalNameReferencing)
+            if (!response)
             {
-                if (settings.IsServer)
+                //ProposedConformance
+                if (xml != null)
                 {
-                    //Skip settings what client asks.
-                    //All server settings are always returned.
-                    byte[] tmp = new byte[3];
-                    data.Get(tmp);
+                    xml.AppendStartTag(TranslatorGeneralTags.ProposedConformance);
                 }
-                else
-                {
-                    data.Get(settings.LnSettings.ConformanceBlock);
-                }
+                data.Get(settings.ConformanceBlock);
+                tmp2.Set(settings.ConformanceBlock);
             }
             else
             {
-                if (settings.IsServer)
+                //NegotiatedConformance
+                if (xml != null)
                 {
-                    //Skip settings what client asks.
-                    //All server settings are always returned.
-                    byte[] tmp = new byte[3];
-                    data.Get(tmp);
+                    xml.AppendStartTag(TranslatorGeneralTags.NegotiatedConformance);
+                }
+                if (settings.UseLogicalNameReferencing)
+                {
+                    data.Get(settings.LnSettings.ConformanceBlock);
+                    tmp2.Set(settings.LnSettings.ConformanceBlock);
                 }
                 else
                 {
                     data.Get(settings.SnSettings.ConformanceBlock);
+                    tmp2.Set(settings.SnSettings.ConformanceBlock);
                 }
             }
-            if (settings.IsServer)
+            if (xml != null)
+            {
+                GetConformance(tmp2.GetUInt32(), xml);
+            }
+            if (!response)
             {
                 //Proposed max PDU size.
-                settings.MaxPDUSize = data.GetUInt16();
-                //If client asks too high PDU.
-                if (settings.MaxPDUSize > settings.MaxServerPDUSize)
+                settings.MaxPduSize = data.GetUInt16();
+                if (xml != null)
                 {
-                    settings.MaxPDUSize = settings.MaxServerPDUSize;
+                    //ProposedConformance closing
+                    xml.AppendEndTag(TranslatorGeneralTags.ProposedConformance);
+                    //ProposedMaxPduSize
+                    xml.AppendLine(TranslatorGeneralTags.ProposedMaxPduSize, "Value", xml.IntegerToHex(settings.MaxPduSize, 4));
+                }
+                //If client asks too high PDU.
+                if (settings.MaxPduSize > settings.MaxServerPDUSize)
+                {
+                    settings.MaxPduSize = settings.MaxServerPDUSize;
                 }
             }
             else
             {
                 //Max PDU size.
-                settings.MaxPDUSize = data.GetUInt16();
+                settings.MaxPduSize = data.GetUInt16();
+                if (xml != null)
+                {
+                    //NegotiatedConformance closing
+                    xml.AppendEndTag(TranslatorGeneralTags.NegotiatedConformance);
+                    //NegotiatedMaxPduSize
+                    xml.AppendLine(TranslatorGeneralTags.NegotiatedMaxPduSize, "Value", xml.IntegerToHex(settings.MaxPduSize, 4));
+                }
             }
             if (response)
             {
                 //VAA Name
                 tag = data.GetUInt16();
+                if (xml != null)
+                {
+                    xml.AppendLine(TranslatorGeneralTags.VaaName, "Value", xml.IntegerToHex(tag, 4));
+                }
                 if (tag == 0x0007)
                 {
                     // If LN
@@ -412,6 +515,16 @@ namespace Gurux.DLMS.Internal
                     // Unknown VAA.
                     throw new ArgumentException("Invalid VAA.");
                 }
+                if (xml != null)
+                {
+                    //<InitiateResponse>
+                    xml.AppendEndTag(Command.InitiateResponse);
+                }
+            }
+            else if (xml != null)
+            {
+                //</InitiateRequest>
+                xml.AppendEndTag(Command.InitiateRequest);
             }
         }
 
@@ -420,7 +533,7 @@ namespace Gurux.DLMS.Internal
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
         /// <param name="buff">Received data.</param>
-        private static bool ParseApplicationContextName(GXDLMSSettings settings, GXByteBuffer buff)
+        private static bool ParseApplicationContextName(GXDLMSSettings settings, GXByteBuffer buff, GXDLMSTranslatorStructure xml)
         {
             //Get length.
             int len = buff.GetUInt8();
@@ -438,6 +551,74 @@ namespace Gurux.DLMS.Internal
             }
             //Object ID length.
             len = buff.GetUInt8();
+            if (xml != null)
+            {
+                if (buff.Compare(GXCommon.LogicalNameObjectID))
+                {
+                    if (xml.OutputType == TranslatorOutputType.SimpleXml)
+                    {
+                        xml.AppendLine(TranslatorGeneralTags.ApplicationContextName,
+                                       "Value", "LN");
+                    }
+                    else
+                    {
+                        xml.AppendLine(
+                            TranslatorGeneralTags.ApplicationContextName,
+                            null, "1");
+                    }
+                    settings.UseLogicalNameReferencing = true;
+                }
+                else if (buff.Compare(GXCommon.LogicalNameObjectIdWithCiphering))
+                {
+                    if (xml.OutputType == TranslatorOutputType.SimpleXml)
+                    {
+                        xml.AppendLine(TranslatorGeneralTags.ApplicationContextName,
+                                       "Value", "LN_WITH_CIPHERING");
+                    }
+                    else
+                    {
+                        xml.AppendLine(
+                            TranslatorGeneralTags.ApplicationContextName,
+                            null, "3");
+                    }
+                    settings.UseLogicalNameReferencing = true;
+                }
+                else if (buff.Compare(GXCommon.ShortNameObjectID))
+                {
+                    if (xml.OutputType == TranslatorOutputType.SimpleXml)
+                    {
+                        xml.AppendLine(TranslatorGeneralTags.ApplicationContextName,
+                                       "Value", "SN");
+                    }
+                    else
+                    {
+                        xml.AppendLine(
+                            TranslatorGeneralTags.ApplicationContextName,
+                            null, "2");
+                    }
+                    settings.UseLogicalNameReferencing = false;
+                }
+                else if (buff.Compare(GXCommon.ShortNameObjectIdWithCiphering))
+                {
+                    if (xml.OutputType == TranslatorOutputType.SimpleXml)
+                    {
+                        xml.AppendLine(TranslatorGeneralTags.ApplicationContextName,
+                                       "Value", "SN_WITH_CIPHERING");
+                    }
+                    else
+                    {
+                        xml.AppendLine(
+                            TranslatorGeneralTags.ApplicationContextName,
+                            null, "4");
+                    }
+                    settings.UseLogicalNameReferencing = false;
+                }
+                else
+                {
+                    return false;
+                }
+                return true;
+            }
             if (settings.UseLogicalNameReferencing)
             {
                 if (buff.Compare(GXCommon.LogicalNameObjectID))
@@ -455,10 +636,70 @@ namespace Gurux.DLMS.Internal
             return buff.Compare(GXCommon.ShortNameObjectIdWithCiphering);
         }
 
+        private static void UpdateAuthentication(GXDLMSSettings settings,
+                GXByteBuffer buff)
+        {
+            byte len = buff.GetUInt8();
+            if (buff.GetUInt8() != 0x60)
+            {
+                throw new Exception("Invalid tag.");
+            }
+            if (buff.GetUInt8() != 0x85)
+            {
+                throw new Exception("Invalid tag.");
+            }
+            if (buff.GetUInt8() != 0x74)
+            {
+                throw new Exception("Invalid tag.");
+            }
+            if (buff.GetUInt8() != 0x05)
+            {
+                throw new Exception("Invalid tag.");
+            }
+            if (buff.GetUInt8() != 0x08)
+            {
+                throw new Exception("Invalid tag.");
+            }
+            if (buff.GetUInt8() != 0x02)
+            {
+                throw new Exception("Invalid tag.");
+            }
+            int tmp = buff.GetUInt8();
+            if (tmp < 0 || tmp > 5)
+            {
+                throw new Exception("Invalid tag.");
+            }
+            settings.Authentication = (Authentication)tmp;
+        }
+
+        private static void AppendServerSystemTitleToXml(
+            GXDLMSSettings settings, GXDLMSTranslatorStructure xml,
+            int tag)
+        {
+            if (xml != null)
+            {
+                // RespondingAuthentication
+                if (xml.OutputType == TranslatorOutputType.SimpleXml)
+                {
+                    xml.AppendLine(tag, "Value", GXCommon.ToHex(settings.StoCChallenge, false));
+                }
+                else
+                {
+                    xml.Append(tag, true);
+                    xml.Append((int)TranslatorGeneralTags.CharString, true);
+                    xml.Append(GXCommon.ToHex(settings.StoCChallenge, false));
+                    xml.Append((int)TranslatorGeneralTags.CharString, false);
+                    xml.Append(tag, false);
+                    xml.Append("\r\n");
+                }
+            }
+        }
+
         ///<summary>
         ///Parse APDU.
         ///</summary>
-        static internal SourceDiagnostic ParsePDU(GXDLMSSettings settings, GXICipher cipher, GXByteBuffer buff)
+        static internal SourceDiagnostic ParsePDU(GXDLMSSettings settings, GXICipher cipher,
+                GXByteBuffer buff, GXDLMSTranslatorStructure xml)
         {
             // Get AARE tag and length
             int tag = buff.GetUInt8();
@@ -482,6 +723,18 @@ namespace Gurux.DLMS.Internal
             {
                 throw new Exception("Not enough data.");
             }
+            //Opening tags
+            if (xml != null)
+            {
+                if (settings.IsServer)
+                {
+                    xml.AppendStartTag(Command.Aarq);
+                }
+                else
+                {
+                    xml.AppendStartTag(Command.Aare);
+                }
+            }
             AssociationResult resultComponent = AssociationResult.Accepted;
             SourceDiagnostic resultDiagnosticValue = SourceDiagnostic.None;
             while (buff.Position < buff.Size)
@@ -490,13 +743,13 @@ namespace Gurux.DLMS.Internal
                 switch (tag)
                 {
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.ApplicationContextName://0xA1
-                        if (!ParseApplicationContextName(settings, buff))
+                        if (!ParseApplicationContextName(settings, buff, xml))
                         {
                             throw new GXDLMSException(AssociationResult.PermanentRejected, SourceDiagnostic.ApplicationContextNameNotSupported);
                         }
                         break;
-                    case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CalledApTitle:////Result 0xA2
-                        //Get len.
+                    case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CalledApTitle://0xA2
+                                                                                                         //Get len.
                         if (buff.GetUInt8() != 3)
                         {
                             throw new Exception("Invalid tag.");
@@ -512,6 +765,11 @@ namespace Gurux.DLMS.Internal
                             throw new Exception("Invalid tag.");
                         }
                         resultComponent = (AssociationResult)buff.GetUInt8();
+                        if (xml != null)
+                        {
+                            xml.AppendLine(TranslatorGeneralTags.AssociationResult, "Value", xml.IntegerToHex((int)resultComponent, 2));
+                            xml.AppendStartTag(TranslatorGeneralTags.ResultSourceDiagnostic);
+                        }
                         break;
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CalledAeQualifier:////SourceDiagnostic 0xA3
                         len = buff.GetUInt8();
@@ -528,8 +786,14 @@ namespace Gurux.DLMS.Internal
                             throw new Exception("Invalid tag.");
                         }
                         resultDiagnosticValue = (SourceDiagnostic)buff.GetUInt8();
+                        if (xml != null)
+                        {
+                            xml.AppendLine(TranslatorGeneralTags.ACSEServiceUser, "Value", xml.IntegerToHex((int)resultDiagnosticValue, 2));
+                            xml.AppendEndTag(TranslatorGeneralTags.ResultSourceDiagnostic);
+                        }
                         break;
-                    case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CalledApInvocationId:////Result 0xA4
+                    case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CalledApInvocationId:
+                        ////Result 0xA4
                         //Get len.
                         if (buff.GetUInt8() != 0xA)
                         {
@@ -545,6 +809,11 @@ namespace Gurux.DLMS.Internal
                         len = buff.GetUInt8();
                         settings.SourceSystemTitle = new byte[len];
                         buff.Get(settings.SourceSystemTitle);
+                        if (xml != null)
+                        {
+                            //RespondingAPTitle
+                            xml.AppendLine(TranslatorGeneralTags.RespondingAPTitle, "Value", GXCommon.ToHex(settings.SourceSystemTitle, false));
+                        }
                         break;
                     //Client Challenge.
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingApTitle://0xA6
@@ -553,6 +822,11 @@ namespace Gurux.DLMS.Internal
                         len = buff.GetUInt8();
                         settings.SourceSystemTitle = new byte[len];
                         buff.Get(settings.SourceSystemTitle);
+                        if (xml != null)
+                        {
+                            //CallingAPTitle
+                            xml.AppendLine(TranslatorGeneralTags.CallingAPTitle, "Value", GXCommon.ToHex(settings.SourceSystemTitle, false));
+                        }
                         break;
                     //Server Challenge.
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.SenderAcseRequirements://0xAA
@@ -561,9 +835,13 @@ namespace Gurux.DLMS.Internal
                         len = buff.GetUInt8();
                         settings.StoCChallenge = new byte[len];
                         buff.Get(settings.StoCChallenge);
+                        AppendServerSystemTitleToXml(settings, xml, tag);
                         break;
-                    case (byte)BerType.Context | (byte)PduType.SenderAcseRequirements://0x8A
-                    case (byte)BerType.Context | (byte)PduType.CallingApInvocationId://0x88
+                    case (byte)BerType.Context | (byte)PduType.SenderAcseRequirements:
+                    //0x8A
+                    case (byte)BerType.Context | (byte)PduType.CallingApInvocationId:
+                        //0x88
+
                         //Get sender ACSE-requirements field component.
                         if (buff.GetUInt8() != 2)
                         {
@@ -577,50 +855,37 @@ namespace Gurux.DLMS.Internal
                         {
                             throw new Exception("Invalid tag.");
                         }
+                        //SenderACSERequirements
+                        if (xml != null)
+                        {
+                            xml.AppendLine(tag, "Value", "1");
+                        }
                         break;
                     case (byte)BerType.Context | (byte)PduType.MechanismName://0x8B
                     case (byte)BerType.Context | (byte)PduType.CallingAeInvocationId://0x89
-                        len = buff.GetUInt8();
-                        if (buff.GetUInt8() != 0x60)
+                        UpdateAuthentication(settings, buff);
+                        if (xml != null)
                         {
-                            throw new Exception("Invalid tag.");
+                            if (xml.OutputType == TranslatorOutputType.SimpleXml)
+                            {
+                                xml.AppendLine(tag, "Value", settings.Authentication.ToString());
+                            }
+                            else
+                            {
+                                xml.AppendLine(tag, "Value", ((int)settings.Authentication).ToString());
+                            }
                         }
-                        if (buff.GetUInt8() != 0x85)
-                        {
-                            throw new Exception("Invalid tag.");
-                        }
-                        if (buff.GetUInt8() != 0x74)
-                        {
-                            throw new Exception("Invalid tag.");
-                        }
-                        if (buff.GetUInt8() != 0x05)
-                        {
-                            throw new Exception("Invalid tag.");
-                        }
-                        if (buff.GetUInt8() != 0x08)
-                        {
-                            throw new Exception("Invalid tag.");
-                        }
-                        if (buff.GetUInt8() != 0x02)
-                        {
-                            throw new Exception("Invalid tag.");
-                        }
-                        int tmp = buff.GetUInt8();
-                        if (tmp < 0 || tmp > 5)
-                        {
-                            throw new Exception("Invalid tag.");
-                        }
-                        settings.Authentication = (Authentication)tmp;
                         break;
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingAuthenticationValue://0xAC
-                        len = updatePassword(settings, buff);
+                        updatePassword(settings, buff, xml);
                         break;
-                    case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.UserInformation://0xBE
-                        if (resultComponent != AssociationResult.Accepted && resultDiagnosticValue != SourceDiagnostic.None)
+                    case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.UserInformation:
+                        //0xBE
+                        if (xml == null && resultComponent != AssociationResult.Accepted && resultDiagnosticValue != SourceDiagnostic.None)
                         {
                             throw new GXDLMSException(resultComponent, resultDiagnosticValue);
                         }
-                        ParseUserInformation(settings, cipher, buff);
+                        ParseUserInformation(settings, cipher, buff, xml);
                         break;
                     default:
                         //Unknown tags.
@@ -630,10 +895,22 @@ namespace Gurux.DLMS.Internal
                         break;
                 }
             }
+            //Closing tags
+            if (xml != null)
+            {
+                if (settings.IsServer)
+                {
+                    xml.AppendEndTag(Command.Aarq);
+                }
+                else
+                {
+                    xml.AppendEndTag(Command.Aare);
+                }
+            }
             return resultDiagnosticValue;
         }
 
-        private static int updatePassword(GXDLMSSettings settings, GXByteBuffer buff)
+        private static void updatePassword(GXDLMSSettings settings, GXByteBuffer buff, GXDLMSTranslatorStructure xml)
         {
             int len = buff.GetUInt8();
             // Get authentication information.
@@ -652,22 +929,57 @@ namespace Gurux.DLMS.Internal
                 settings.CtoSChallenge = new byte[len];
                 buff.Get(settings.CtoSChallenge);
             }
-            return len;
+
+            if (xml != null)
+            {
+                if (xml.OutputType == TranslatorOutputType.SimpleXml)
+                {
+                    if (settings.Authentication == Authentication.Low)
+                    {
+                        xml.AppendLine(TranslatorGeneralTags.CallingAuthentication,
+                                       "Value",
+                                       GXCommon.ToHex(settings.Password, false));
+                    }
+                    else
+                    {
+                        xml.AppendLine(TranslatorGeneralTags.CallingAuthentication,
+                                       "Value",
+                                       GXCommon.ToHex(settings.CtoSChallenge, false));
+                    }
+                }
+                else
+                {
+                    xml.AppendStartTag(
+                        TranslatorGeneralTags.CallingAuthentication);
+                    xml.AppendStartTag(TranslatorGeneralTags.CharString);
+                    if (settings.Authentication == Authentication.Low)
+                    {
+                        xml.Append(GXCommon.ToHex(settings.Password, false));
+                    }
+                    else
+                    {
+                        xml.Append(
+                            GXCommon.ToHex(settings.CtoSChallenge, false));
+                    }
+                    xml.AppendEndTag(TranslatorGeneralTags.CharString);
+                    xml.AppendEndTag(TranslatorGeneralTags.CallingAuthentication);
+                }
+            }
         }
 
         private static byte[] GetUserInformation(GXDLMSSettings settings, GXICipher cipher)
         {
             GXByteBuffer data = new GXByteBuffer();
             data.SetUInt8(Command.InitiateResponse); // Tag for xDLMS-Initiate response
-            // NegotiatedQualityOfService (not used)
-//            data.SetUInt8(0x1);
+                                                     // NegotiatedQualityOfService (not used)
+            data.SetUInt8(0x1);
             data.SetUInt8(0x00);
             // DLMS Version Number
-            data.SetUInt8(06); 
+            data.SetUInt8(06);
             data.SetUInt8(0x5F);
             data.SetUInt8(0x1F);
             data.SetUInt8(0x04);// length of the conformance block
-            data.SetUInt8(0x00);// encoding the number of unused bits in the bit string            
+            data.SetUInt8(0x00);// encoding the number of unused bits in the bit string
             if (settings.UseLogicalNameReferencing)
             {
                 data.Set(settings.LnSettings.ConformanceBlock);
@@ -677,7 +989,7 @@ namespace Gurux.DLMS.Internal
                 data.Set(settings.SnSettings.ConformanceBlock);
 
             }
-            data.SetUInt16(settings.MaxPDUSize);
+            data.SetUInt16(settings.MaxPduSize);
             //VAA Name VAA name (0x0007 for LN referencing and 0xFA00 for SN)
             if (settings.UseLogicalNameReferencing)
             {
@@ -698,30 +1010,31 @@ namespace Gurux.DLMS.Internal
         ///Server generates AARE message.
         ///</summary>
         internal static void GenerateAARE(GXDLMSSettings settings, GXByteBuffer data,
-            AssociationResult result, SourceDiagnostic diagnostic, GXICipher cipher)
+                                          AssociationResult result, SourceDiagnostic diagnostic, GXICipher cipher,
+                                          GXByteBuffer encryptedData)
         {
             int offset = data.Size;
             // Set AARE tag and length
             data.SetUInt8(((byte)BerType.Application | (byte)BerType.Constructed | (byte)PduType.ApplicationContextName)); //0x61
-            // Length is updated later.
+                                                                                                                           // Length is updated later.
             data.SetUInt8(0);
             GenerateApplicationContextName(settings, data, cipher);
             //Result
             data.SetUInt8((byte)BerType.Context | (byte)BerType.Constructed | (byte)BerType.Integer);//0xA2
             data.SetUInt8(3); //len
             data.SetUInt8(BerType.Integer); //Tag
-            //Choice for result (INTEGER, universal)
+                                            //Choice for result (INTEGER, universal)
             data.SetUInt8(1); //Len
-            data.SetUInt8((byte) result); //ResultValue            
-            //SourceDiagnostic
+            data.SetUInt8((byte)result); //ResultValue
+                                         //SourceDiagnostic
             data.SetUInt8(0xA3);
             data.SetUInt8(5); //len
             data.SetUInt8(0xA1); //Tag
             data.SetUInt8(3); //len
             data.SetUInt8(2); //Tag
-            //Choice for result (INTEGER, universal)
+                              //Choice for result (INTEGER, universal)
             data.SetUInt8(1); //Len
-            data.SetUInt8((byte)diagnostic); //diagnostic   
+            data.SetUInt8((byte)diagnostic); //diagnostic
 
             //SystemTitle
             if (cipher != null && (cipher.IsCiphered() || settings.Authentication == Authentication.HighGMAC))
@@ -734,7 +1047,7 @@ namespace Gurux.DLMS.Internal
             }
 
             if (result != AssociationResult.PermanentRejected && diagnostic == SourceDiagnostic.AuthenticationRequired)
-            {                
+            {
                 //Add server ACSE-requirenents field component.
                 data.SetUInt8(0x88);
                 data.SetUInt8(0x02);  //Len.
@@ -748,23 +1061,35 @@ namespace Gurux.DLMS.Internal
                 data.SetUInt8(0x05);
                 data.SetUInt8(0x08);
                 data.SetUInt8(0x02);
-                data.SetUInt8((byte) settings.Authentication);
+                data.SetUInt8((byte)settings.Authentication);
                 //Add tag.
                 data.SetUInt8(0xAA);
                 data.SetUInt8((byte)(2 + settings.StoCChallenge.Length));//Len
                 data.SetUInt8((byte)BerType.Context);
                 data.SetUInt8((byte)settings.StoCChallenge.Length);
                 data.Set(settings.StoCChallenge);
-            }            
+            }
+            byte[] tmp;
             //Add User Information
             //Tag 0xBE
             data.SetUInt8((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.UserInformation);
-            byte[] tmp = GetUserInformation(settings, cipher);
+            if (encryptedData != null && encryptedData.Size != 0)
+            {
+                GXByteBuffer tmp2 = new GXByteBuffer((UInt16)(2 + encryptedData.Size));
+                tmp2.SetUInt8((byte)Command.GloInitiateResponse);
+                GXCommon.SetObjectCount(encryptedData.Size, tmp2);
+                tmp2.Set(encryptedData);
+                tmp = tmp2.Array();
+            }
+            else
+            {
+                tmp = GetUserInformation(settings, cipher);
+            }
             data.SetUInt8((byte)(2 + tmp.Length));
             //Coding the choice for user-information (Octet STRING, universal)
-            data.SetUInt8(BerType.OctetString); 
+            data.SetUInt8(BerType.OctetString);
             //Length
-            data.SetUInt8((byte)tmp.Length); 
+            data.SetUInt8((byte)tmp.Length);
             data.Set(tmp);
             data.SetUInt8((UInt16)(offset + 1), (byte)(data.Size - offset - 2));
         }
