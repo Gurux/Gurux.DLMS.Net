@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -47,33 +47,33 @@ namespace Gurux.DLMS.Objects
 {
     public class GXDLMSActionSchedule : GXDLMSObject, IGXDLMSBase
     {
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         public GXDLMSActionSchedule()
-            : base(ObjectType.ActionSchedule)
+        : base(ObjectType.ActionSchedule)
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSActionSchedule(string ln)
-            : base(ObjectType.ActionSchedule, ln, 0)
+        : base(ObjectType.ActionSchedule, ln, 0)
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSActionSchedule(string ln, ushort sn)
-            : base(ObjectType.ActionSchedule, ln, sn)
+        : base(ObjectType.ActionSchedule, ln, sn)
         {
         }
-                
+
         [XmlIgnore()]
         public string ExecutedScriptLogicalName
         {
@@ -88,7 +88,7 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
-        [XmlIgnore()]        
+        [XmlIgnore()]
         public SingleActionScheduleType Type
         {
             get;
@@ -105,8 +105,9 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, ExecutedScriptLogicalName + " " + ExecutedScriptSelector, 
-                Type, ExecutionTime };
+            return new object[] { LogicalName, ExecutedScriptLogicalName + " " + ExecutedScriptSelector,
+                              Type, ExecutionTime
+                            };
         }
 
         #region IGXDLMSBase Members
@@ -141,8 +142,9 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Executed Script Logical Name", 
-                                "Type", "Execution Time"};
+            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Executed Script Logical Name",
+                              "Type", "Execution Time"
+                            };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -189,7 +191,7 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8(2);
                 //LN
-                GXCommon.SetData(data, DataType.OctetString, ExecutedScriptLogicalName); 
+                GXCommon.SetData(data, DataType.OctetString, ExecutedScriptLogicalName);
                 GXCommon.SetData(data, DataType.UInt16, ExecutedScriptSelector);
                 return data.Array();
             }
@@ -212,10 +214,10 @@ namespace Gurux.DLMS.Objects
                     {
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8((byte)2); //Count
-                        //Time
+                                                //Time
                         GXCommon.SetData(data, DataType.OctetString, new GXTime(it));
                         //Date
-                        GXCommon.SetData(data, DataType.OctetString, new GXDate(it)); 
+                        GXCommon.SetData(data, DataType.OctetString, new GXDate(it));
                     }
                 }
                 return data.Array();
@@ -224,7 +226,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {
@@ -235,7 +237,7 @@ namespace Gurux.DLMS.Objects
                 else
                 {
                     LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
-                }                
+                }
             }
             else if (e.Index == 2)
             {
@@ -260,20 +262,20 @@ namespace Gurux.DLMS.Objects
                         tm.Value.AddMonths(date.Value.Month - 1);
                         tm.Value.AddDays(date.Value.Day - 1);
                         tm.Skip |= date.Skip;
-                        items.Add(tm);                        
+                        items.Add(tm);
                     }
                     ExecutionTime = items.ToArray();
                 }
-            }           
+            }
             else
             {
                 e.Error = ErrorCode.ReadWriteDenied;
             }
         }
 
-        #endregion       
+        #endregion
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             e.Error = ErrorCode.ReadWriteDenied;
             return null;

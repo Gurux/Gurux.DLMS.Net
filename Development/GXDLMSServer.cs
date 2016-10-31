@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -41,7 +41,6 @@ using Gurux.DLMS.Objects;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.ManufacturerSettings;
 using System.Reflection;
-using System.Data;
 using System.Threading;
 using System.Security.Cryptography;
 using Gurux.DLMS.Enums;
@@ -109,13 +108,13 @@ namespace Gurux.DLMS
         /// <param name="password">Password</param>
         /// <returns>Source diagnostic.</returns>
         protected abstract SourceDiagnostic ValidateAuthentication(
-                Authentication authentication, byte[] password);
+            Authentication authentication, byte[] password);
 
         /// <summary>
         /// Get selected value.
         /// </summary>
         /// <param name="e">Handle get request.</param>
-        public abstract void Update(UpdateType type, ValueEventArgs e);      
+        public abstract void Update(UpdateType type, ValueEventArgs e);
 
         /// <summary>
         /// Read selected item.
@@ -130,10 +129,10 @@ namespace Gurux.DLMS
         protected abstract void Write(ValueEventArgs[] args);
 
         /// <summary>
-        /// Accepted connection is made for the server. 
+        /// Accepted connection is made for the server.
         /// </summary>
         /// <remarks>
-        /// All initialization is done here. 
+        /// All initialization is done here.
         /// Example access level of the COSEM objects is good to update here.
         /// </remarks>
         /// <param name="connectionInfo">Connection information.</param>
@@ -159,9 +158,9 @@ namespace Gurux.DLMS
 
         /// <summary>
         /// Constructor.
-        /// </summary>        
+        /// </summary>
         public GXDLMSServer()
-            : this(false, InterfaceType.HDLC)
+        : this(false, InterfaceType.HDLC)
         {
         }
 
@@ -214,7 +213,7 @@ namespace Gurux.DLMS
 
         /// <summary>
         /// Constructor.
-        /// </summary>        
+        /// </summary>
         public GXDLMSServer(bool logicalNameReferencing, InterfaceType type)
         {
             Settings = new GXDLMSSettings(true);
@@ -267,7 +266,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Determines, whether Logical, or Short name, referencing is used.     
+        /// Determines, whether Logical, or Short name, referencing is used.
         /// </summary>
         /// <remarks>
         /// Referencing depends on the device to communicate with.
@@ -353,10 +352,10 @@ namespace Gurux.DLMS
         /// Determines the type of the connection
         /// </summary>
         /// <remarks>
-        /// All DLMS meters do not support the IEC 62056-47 standard.  
-        /// If the device does not support the standard, and the connection is made 
+        /// All DLMS meters do not support the IEC 62056-47 standard.
+        /// If the device does not support the standard, and the connection is made
         /// using TCP/IP, set the type to InterfaceType.General.
-        /// </remarks>    
+        /// </remarks>
         public InterfaceType InterfaceType
         {
             get
@@ -370,7 +369,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Gets Logical Name Settings, read from the device. 
+        /// Gets Logical Name Settings, read from the device.
         /// </summary>
         public GXDLMSLNSettings LNSettings
         {
@@ -405,7 +404,7 @@ namespace Gurux.DLMS
             {
                 GXDLMSObject it = Items[pos];
                 if (this.UseLogicalNameReferencing &&
-                    (string.IsNullOrEmpty(it.LogicalName) || it.LogicalName.Split('.').Length != 6))
+                        (string.IsNullOrEmpty(it.LogicalName) || it.LogicalName.Split('.').Length != 6))
                 {
                     throw new Exception("Invalid Logical Name.");
                 }
@@ -453,7 +452,7 @@ namespace Gurux.DLMS
                 {
                     hdlcSetup = it as GXDLMSHdlcSetup;
                 }
-                    
+
                 else if (!(it is IGXDLMSBase))//Remove unsupported items.
                 {
                     Debug.WriteLine(it.ObjectType.ToString() + " not supported.");
@@ -487,11 +486,11 @@ namespace Gurux.DLMS
                     //Generate Short Name if not given.
                     if (it.ShortName == 0)
                     {
-                        it.ShortName = (ushort) sn;                        
+                        it.ShortName = (ushort)sn;
                         //Add method index addresses.
                         GXDLMS.GetActionInfo(it.ObjectType, out offset, out count);
                         if (count != 0)
-                        {                            
+                        {
                             sn += offset + (8 * count);
                         }
                         else //If there are no methods.
@@ -541,7 +540,7 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    Settings.Cipher.Security = Security.None;
+                    Settings.Cipher.Security = Gurux.DLMS.Enums.Security.None;
                 }
             }
         }
@@ -551,7 +550,7 @@ namespace Gurux.DLMS
         /// </summary>
         ///<param name="buff">
         /// Received data from the client. </param>
-        ///<returns> 
+        ///<returns>
         ///Response to the request. Response is null if request packet is not complete.
         ///</returns>
         public virtual byte[] HandleRequest(byte[] buff)
@@ -564,7 +563,7 @@ namespace Gurux.DLMS
         /// </summary>
         ///<param name="buff">
         /// Received data from the client. </param>
-        ///<returns> 
+        ///<returns>
         ///Response to the request. Response is null if request packet is not complete.
         ///</returns>
         public virtual byte[] HandleRequest(byte[] buff, GXDLMSConnectionEventArgs connectionInfo)
@@ -592,7 +591,7 @@ namespace Gurux.DLMS
                 {
                     // Check is data send to this server.
                     if (!IsTarget(Settings.ServerAddress,
-                            Settings.ClientAddress))
+                                  Settings.ClientAddress))
                     {
                         info.Clear();
                         return null;
@@ -634,7 +633,7 @@ namespace Gurux.DLMS
                 }
 
                 byte[] reply = HandleCommand(info.Command, info.Data, connectionInfo);
-                info.Clear();                               
+                info.Clear();
                 return reply;
             }
             catch (Exception ex)
@@ -670,7 +669,7 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
-        /// Handle received command. 
+        /// Handle received command.
         ///</summary>
         private byte[] HandleCommand(Command cmd, GXByteBuffer data, GXDLMSConnectionEventArgs connectionInfo)
         {
@@ -736,7 +735,7 @@ namespace Gurux.DLMS
             switch (cmd)
             {
                 case Command.ReadRequest:
-                    cmd = Command.ReadResponse;                    
+                    cmd = Command.ReadResponse;
                     break;
                 case Command.WriteRequest:
                     cmd = Command.WriteResponse;
@@ -773,13 +772,13 @@ namespace Gurux.DLMS
             {
                 return GXDLMS.GetHdlcFrame(Settings, 0, replyData);
             }
-        }                    
+        }
 
         ///<summary>
         ///Parse AARQ request that client send and returns AARE request.
         /// </summary>
-        ///<returns> 
-        ///Reply to the client. 
+        ///<returns>
+        ///Reply to the client.
         ///</returns>
         private void HandleAarqRequest(GXByteBuffer data, GXDLMSConnectionEventArgs connectionInfo)
         {
@@ -835,7 +834,7 @@ namespace Gurux.DLMS
         ///Parse SNRM Request. If server do not accept client empty byte array is returned.
         /// </summary>
         ///<returns>
-        ///Returns returned UA packet. 
+        ///Returns returned UA packet.
         ///</returns>
         private void HandleSnrmRequest()
         {
@@ -862,7 +861,7 @@ namespace Gurux.DLMS
         ///Generates disconnect request.
         /// </summary>
         ///<returns>
-        ///Disconnect request. 
+        ///Disconnect request.
         ///</returns>
         private void GenerateDisconnectRequest()
         {
@@ -870,7 +869,7 @@ namespace Gurux.DLMS
             if (!Settings.Connected && !Settings.IsAuthenticationRequired)
             {
                 replyData.Add(GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
-                    ServiceError.Service, (byte)Service.Unsupported));
+                              ServiceError.Service, (byte)Service.Unsupported));
                 return;
             }
 
@@ -903,7 +902,7 @@ namespace Gurux.DLMS
 
                 int len = replyData.Position - 3;
                 replyData.SetUInt8(2, (byte)len); // Length.
-            }            
+            }
         }
     }
 }

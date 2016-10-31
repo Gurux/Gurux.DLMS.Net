@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -50,32 +50,32 @@ namespace Gurux.DLMS.Objects
     /// </summary>
     public class GXDLMSAutoConnect : GXDLMSObject, IGXDLMSBase
     {
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         public GXDLMSAutoConnect()
-            : base(ObjectType.AutoConnect, "0.0.2.1.0.255", 0)
+        : base(ObjectType.AutoConnect, "0.0.2.1.0.255", 0)
         {
             CallingWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSAutoConnect(string ln)
-            : base(ObjectType.AutoConnect, ln, 0)
+        : base(ObjectType.AutoConnect, ln, 0)
         {
             CallingWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSAutoConnect(string ln, ushort sn)
-            : base(ObjectType.AutoConnect, ln, sn)
+        : base(ObjectType.AutoConnect, ln, sn)
         {
             CallingWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
         }
@@ -84,7 +84,7 @@ namespace Gurux.DLMS.Objects
         /// Defines the mode controlling the auto dial functionality concerning the
         /// timing, the message type to be sent and the infrastructure to be used.
         /// </summary>
-        [XmlIgnore()]        
+        [XmlIgnore()]
         public AutoConnectMode Mode
         {
             get;
@@ -94,7 +94,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// The maximum number of trials in the case of unsuccessful dialling attempts.
         /// </summary>
-        [XmlIgnore()]        
+        [XmlIgnore()]
         public int Repetitions
         {
             get;
@@ -104,7 +104,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// The time delay, expressed in seconds until an unsuccessful dial attempt can be repeated.
         /// </summary>
-        [XmlIgnore()]        
+        [XmlIgnore()]
         public int RepetitionDelay
         {
             get;
@@ -122,12 +122,12 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Contains the list of destinations (for example phone numbers, email 
-        /// addresses or their combinations) where the message(s) have to be sent 
-        /// under certain conditions. The conditions and their link to the elements of 
+        /// Contains the list of destinations (for example phone numbers, email
+        /// addresses or their combinations) where the message(s) have to be sent
+        /// under certain conditions. The conditions and their link to the elements of
         /// the array are not defined here.
         /// </summary>
-        [XmlIgnore()]        
+        [XmlIgnore()]
         public string[] Destinations
         {
             get;
@@ -137,8 +137,9 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, Mode, Repetitions, RepetitionDelay, 
-                CallingWindow, Destinations };
+            return new object[] { LogicalName, Mode, Repetitions, RepetitionDelay,
+                              CallingWindow, Destinations
+                            };
         }
 
         #region IGXDLMSBase Members
@@ -182,12 +183,13 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, 
-                "Mode", 
-                "Repetitions", 
-                "Repetition Delay", 
-                "Calling Window", 
-                "Destinations"};
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt,
+                             "Mode",
+                             "Repetitions",
+                             "Repetition Delay",
+                             "Calling Window",
+                             "Destinations"
+                            };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -238,7 +240,7 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 2)
             {
-                return (byte) Mode;
+                return (byte)Mode;
             }
             if (e.Index == 3)
             {
@@ -253,7 +255,7 @@ namespace Gurux.DLMS.Objects
                 int cnt = CallingWindow.Count;
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Array);
-                //Add count            
+                //Add count
                 GXCommon.SetObjectCount(cnt, data);
                 if (cnt != 0)
                 {
@@ -273,13 +275,13 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8((byte)DataType.Array);
                 if (Destinations == null)
                 {
-                    //Add count            
+                    //Add count
                     GXCommon.SetObjectCount(0, data);
                 }
                 else
                 {
-                    int cnt = Destinations.Length;                                        
-                    //Add count            
+                    int cnt = Destinations.Length;
+                    //Add count
                     GXCommon.SetObjectCount(cnt, data);
                     foreach (string it in Destinations)
                     {
@@ -292,7 +294,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {
@@ -350,7 +352,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             e.Error = ErrorCode.ReadWriteDenied;
             return null;

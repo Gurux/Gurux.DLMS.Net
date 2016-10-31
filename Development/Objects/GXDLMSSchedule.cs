@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -44,39 +44,39 @@ namespace Gurux.DLMS.Objects
 {
     public class GXDLMSSchedule : GXDLMSObject, IGXDLMSBase
     {
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         public GXDLMSSchedule()
-            : base(ObjectType.Schedule)
+        : base(ObjectType.Schedule)
         {
             Entries = new List<GXScheduleEntry>();
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSSchedule(string ln)
-            : base(ObjectType.Schedule, ln, 0)
+        : base(ObjectType.Schedule, ln, 0)
         {
             Entries = new List<GXScheduleEntry>();
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSSchedule(string ln, ushort sn)
-            : base(ObjectType.Schedule, ln, sn)
+        : base(ObjectType.Schedule, ln, sn)
         {
             Entries = new List<GXScheduleEntry>();
         }
 
         /// <summary>
         /// Specifies the scripts to be executed at given times.
-        /// </summary>        
+        /// </summary>
         [XmlIgnore()]
         public List<GXScheduleEntry> Entries
         {
@@ -96,7 +96,7 @@ namespace Gurux.DLMS.Objects
         /// Data interface do not have any methods.
         /// </summary>
         /// <param name="index"></param>
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
@@ -240,7 +240,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {
@@ -262,12 +262,12 @@ namespace Gurux.DLMS.Objects
                     GXScheduleEntry item = new GXScheduleEntry();
                     Object[] tmp = (Object[])it;
                     item.Index = Convert.ToByte(tmp[0]);
-                    item.Enable = (bool) tmp[1];
+                    item.Enable = (bool)tmp[1];
                     item.LogicalName = GXDLMSClient.ChangeType((byte[])tmp[2], DataType.OctetString).ToString();
                     item.ScriptSelector = Convert.ToByte(tmp[3]);
-                    item.SwitchTime = (GXDateTime) GXDLMSClient.ChangeType((byte[])tmp[4], DataType.DateTime);
+                    item.SwitchTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[4], DataType.DateTime);
                     item.ValidityWindow = Convert.ToByte(tmp[5]);
-                    item.ExecWeekdays = (string) tmp[6];
+                    item.ExecWeekdays = (string)tmp[6];
                     item.ExecSpecDays = (string)tmp[7];
                     item.BeginDate = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[8], DataType.DateTime);
                     item.EndDate = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[9], DataType.DateTime);

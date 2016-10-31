@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -44,21 +44,21 @@ namespace Gurux.DLMS.Objects
 {
     public class GXDLMSAssociationShortName : GXDLMSObject, IGXDLMSBase
     {
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         public GXDLMSAssociationShortName()
-            : this("0.0.40.0.0.255", 0xFA00)
+        : this("0.0.40.0.0.255", 0xFA00)
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSAssociationShortName(string ln, ushort sn)
-            : base(ObjectType.AssociationShortName, ln, sn)
+        : base(ObjectType.AssociationShortName, ln, sn)
         {
             ObjectList = new GXDLMSObjectCollection();
             //Default shared secred.
@@ -116,7 +116,7 @@ namespace Gurux.DLMS.Objects
 
         #region IGXDLMSBase Members
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             //Check reply_to_HLS_authentication
             if (e.Index == 8)
@@ -148,7 +148,7 @@ namespace Gurux.DLMS.Objects
                         secret = HlsSecret;
                     }
                     settings.Connected = true;
-                    return  GXSecure.Secure(settings, settings.Cipher, ic, settings.CtoSChallenge, secret);
+                    return GXSecure.Secure(settings, settings.Cipher, ic, settings.CtoSChallenge, secret);
                 }
                 else
                 {
@@ -194,10 +194,11 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, 
-                "Object List",
-                "Access Rights List",
-                "Security Setup Reference"};
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt,
+                             "Object List",
+                             "Access Rights List",
+                             "Security Setup Reference"
+                            };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -248,7 +249,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (index == 3)
             {
-                return DataType.Array;                
+                return DataType.Array;
             }
             else if (index == 4)
             {
@@ -258,8 +259,8 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Returns Association View.    
-        /// </summary>     
+        /// Returns Association View.
+        /// </summary>
         private GXByteBuffer GetObjects(GXDLMSSettings settings, ValueEventArgs e)
         {
             int cnt = ObjectList.Count;
@@ -311,12 +312,12 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 2)
             {
-                return GetObjects(settings, e);               
+                return GetObjects(settings, e);
             }
             else if (e.Index == 3)
             {
                 bool lnExists = ObjectList.FindBySN(this.ShortName) != null;
-                //Add count        
+                //Add count
                 int cnt = ObjectList.Count;
                 if (!lnExists)
                 {
@@ -369,7 +370,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {
@@ -380,7 +381,7 @@ namespace Gurux.DLMS.Objects
                 else
                 {
                     LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
-                }                
+                }
             }
             else if (e.Index == 2)
             {
@@ -405,7 +406,7 @@ namespace Gurux.DLMS.Objects
                             {
                                 obj.LogicalName = ln;
                                 obj.ShortName = sn;
-                                obj.Version = version;                                
+                                obj.Version = version;
                             }
                         }
                         //Unknown objects are not shown.

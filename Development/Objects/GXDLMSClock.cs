@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -45,14 +45,14 @@ using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.Objects
-{   
+{
     public class GXDLMSClock : GXDLMSObject, IGXDLMSBase
     {
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         public GXDLMSClock()
-            : base(ObjectType.Clock, "0.0.1.0.0.255", 0)
+        : base(ObjectType.Clock, "0.0.1.0.0.255", 0)
         {
             Time = new GXDateTime(DateTime.MinValue);
         }
@@ -66,23 +66,23 @@ namespace Gurux.DLMS.Objects
             return base.GetUIDataType(index);
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSClock(string ln)
-            : base(ObjectType.Clock, ln, 0)
+        : base(ObjectType.Clock, ln, 0)
         {
             Time = new GXDateTime(DateTime.MinValue);
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSClock(string ln, ushort sn)
-            : base(ObjectType.Clock, ln, sn)
+        : base(ObjectType.Clock, ln, sn)
         {
             Time = new GXDateTime(DateTime.MinValue);
         }
@@ -93,7 +93,7 @@ namespace Gurux.DLMS.Objects
         {
             get;
             set;
-        }       
+        }
 
         /// <summary>
         /// Time of COSEM Clock object.
@@ -166,19 +166,20 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, Time, TimeZone, Status, Begin, End, 
-                Deviation, Enabled, ClockBase };
+            return new object[] { LogicalName, Time, TimeZone, Status, Begin, End,
+                              Deviation, Enabled, ClockBase
+                            };
         }
 
         #region IGXDLMSBase Members
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             DateTimeOffset tm = this.Time.Value;
-            // Resets the value to the default value. 
+            // Resets the value to the default value.
             // The default value is an instance specific constant.
             if (e.Index == 1)
-            {                
+            {
                 int minutes = tm.Minute;
                 if (minutes < 8)
                 {
@@ -208,7 +209,7 @@ namespace Gurux.DLMS.Objects
             }
             // Sets the meter's time to the nearest minute.
             else if (e.Index == 3)
-            {                
+            {
                 tm = this.Time.Value;
                 int s = tm.Second;
                 if (s > 30)
@@ -219,7 +220,7 @@ namespace Gurux.DLMS.Objects
                 tm = tm.AddMilliseconds(-tm.Millisecond);
                 this.Time.Value = tm;
             }
-            // Presets the time to a new value (preset_time) and defines 
+            // Presets the time to a new value (preset_time) and defines
             // avalidity_interval within which the new time can be activated.
             else if (e.Index == 5)
             {
@@ -248,7 +249,7 @@ namespace Gurux.DLMS.Objects
         /// <returns></returns>
         public byte[][] AdjustToQuarter(GXDLMSClient client)
         {
-            return client.Method(this, 1, 0, DataType.Int8);            
+            return client.Method(this, 1, 0, DataType.Int8);
         }
 
 
@@ -258,7 +259,7 @@ namespace Gurux.DLMS.Objects
         /// <returns></returns>
         public byte[][] AdjustToMeasuringPeriod(GXDLMSClient client)
         {
-            return client.Method(this, 2, 0, DataType.Int8);            
+            return client.Method(this, 2, 0, DataType.Int8);
         }
 
         /// <summary>
@@ -270,7 +271,7 @@ namespace Gurux.DLMS.Objects
         /// <returns></returns>
         public byte[][] AdjustToMinute(GXDLMSClient client)
         {
-            return client.Method(this, 3, 0, DataType.Int8);            
+            return client.Method(this, 3, 0, DataType.Int8);
         }
 
         /// <summary>
@@ -281,7 +282,7 @@ namespace Gurux.DLMS.Objects
         /// <returns></returns>
         public byte[][] AdjustToPresetTime(GXDLMSClient client)
         {
-            return client.Method(this, 4, 0, DataType.Int8);            
+            return client.Method(this, 4, 0, DataType.Int8);
         }
 
         /// <summary>
@@ -296,10 +297,10 @@ namespace Gurux.DLMS.Objects
             GXByteBuffer buff = new GXByteBuffer();
             buff.Add((byte)DataType.Structure);
             buff.Add((byte)3);
-            GXCommon.SetData(buff, DataType.OctetString,presetTime);
+            GXCommon.SetData(buff, DataType.OctetString, presetTime);
             GXCommon.SetData(buff, DataType.OctetString, validityIntervalStart);
             GXCommon.SetData(buff, DataType.OctetString, validityIntervalEnd);
-            return client.Method(this, 5, buff.Array(), DataType.Array);            
+            return client.Method(this, 5, buff.Array(), DataType.Array);
         }
 
         /// <summary>
@@ -313,7 +314,7 @@ namespace Gurux.DLMS.Objects
             {
                 throw new ArgumentOutOfRangeException("Invalid shift time.");
             }
-            return client.Method(this, 6, time, DataType.Int16);            
+            return client.Method(this, 6, time, DataType.Int16);
         }
 
         int[] IGXDLMSBase.GetAttributeIndexToRead()
@@ -370,15 +371,16 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, 
-                "Time", 
-                "Time Zone", 
-                "Status", 
-                "Begin", 
-                "End", 
-                "Deviation", 
-                "Enabled", 
-                "Clock Base" };            
+            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt,
+                              "Time",
+                              "Time Zone",
+                              "Status",
+                              "Begin",
+                              "End",
+                              "Deviation",
+                              "Enabled",
+                              "Clock Base"
+                            };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -474,7 +476,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {
@@ -485,7 +487,7 @@ namespace Gurux.DLMS.Objects
                 else if (e.Value != null)
                 {
                     LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
-                }                
+                }
             }
             else if (e.Index == 2)
             {
@@ -523,7 +525,7 @@ namespace Gurux.DLMS.Objects
                         e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
                     }
                     Begin = (GXDateTime)e.Value;
-                }                
+                }
             }
             else if (e.Index == 6)
             {
@@ -538,7 +540,7 @@ namespace Gurux.DLMS.Objects
                         e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
                     }
                     End = (GXDateTime)e.Value;
-                }                
+                }
             }
             else if (e.Index == 7)
             {

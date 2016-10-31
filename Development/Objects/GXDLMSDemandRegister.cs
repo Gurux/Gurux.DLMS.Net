@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -48,30 +48,30 @@ namespace Gurux.DLMS.Objects
     {
         protected int _scaler;
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         public GXDLMSDemandRegister()
-            : base(ObjectType.DemandRegister)
-        {
-        }        
-
-        /// <summary> 
-        /// Constructor.
-        /// </summary> 
-        /// <param name="ln">Logical Name of the object.</param>
-        public GXDLMSDemandRegister(string ln)
-            : base(ObjectType.DemandRegister, ln, 0)
+        : base(ObjectType.DemandRegister)
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
+        /// <param name="ln">Logical Name of the object.</param>
+        public GXDLMSDemandRegister(string ln)
+        : base(ObjectType.DemandRegister, ln, 0)
+        {
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSDemandRegister(string ln, ushort sn)
-            : base(ObjectType.DemandRegister, ln, sn)
+        : base(ObjectType.DemandRegister, ln, sn)
         {
         }
 
@@ -97,7 +97,7 @@ namespace Gurux.DLMS.Objects
 
         /// <summary>
         /// Scaler of COSEM Register object.
-        /// </summary>        
+        /// </summary>
         [DefaultValue(1.0)]
         public double Scaler
         {
@@ -139,7 +139,7 @@ namespace Gurux.DLMS.Objects
         {
             get;
             set;
-        }        
+        }
 
         /// <summary>
         /// Current start time of COSEM Register object.
@@ -152,7 +152,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Period is the interval between two successive updates of the Last Average Value. 
+        /// Period is the interval between two successive updates of the Last Average Value.
         /// (NumberOfPeriods * Period is the denominator for the calculation of the demand).
         /// </summary>
         [XmlIgnore()]
@@ -166,7 +166,7 @@ namespace Gurux.DLMS.Objects
         /// The number of periods used to calculate the LastAverageValue.
         /// NumberOfPeriods >= 1 NumberOfPeriods > 1 indicates that the LastAverageValue represents �sliding demand�.
         /// NumberOfPeriods = 1 indicates that the LastAverageValue represents "block demand".
-        /// The behaviour of the meter after writing a new value to this attribute shall be 
+        /// The behaviour of the meter after writing a new value to this attribute shall be
         /// specified by the manufacturer.
         /// </summary>
         [XmlIgnore()]
@@ -188,8 +188,9 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, CurrentAverageValue, LastAverageValue, "Scaler: " + Scaler + " Unit: " + Unit, 
-                            Status, CaptureTime, StartTimeCurrent, Period, NumberOfPeriods };
+            return new object[] { LogicalName, CurrentAverageValue, LastAverageValue, "Scaler: " + Scaler + " Unit: " + Unit,
+                              Status, CaptureTime, StartTimeCurrent, Period, NumberOfPeriods
+                            };
         }
 
         #region IGXDLMSBase Members
@@ -203,7 +204,7 @@ namespace Gurux.DLMS.Objects
                 attributes.Add(1);
             }
 
-            //Scaler and Unit                        
+            //Scaler and Unit
             if (!IsRead(4))
             {
                 attributes.Add(4);
@@ -250,15 +251,16 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, 
-                "Current Average Value", 
-                "Last Average Value", 
-                "Scaler and Unit", 
-                "Status", 
-                "Capture Time", 
-                "Start Time Current", 
-                "Period", 
-                "Number Of Periods"};            
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt,
+                             "Current Average Value",
+                             "Last Average Value",
+                             "Scaler and Unit",
+                             "Status",
+                             "Capture Time",
+                             "Start Time Current",
+                             "Period",
+                             "Number Of Periods"
+                            };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -359,7 +361,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {
@@ -392,7 +394,7 @@ namespace Gurux.DLMS.Objects
                 }
             }
             else if (e.Index == 3)
-            {                 
+            {
                 if (Scaler != 1)
                 {
                     try
@@ -426,7 +428,7 @@ namespace Gurux.DLMS.Objects
                     }
                     _scaler = Convert.ToInt32(arr[0]);
                     Unit = (Unit)Convert.ToInt32(arr[1]);
-                }             
+                }
             }
             else if (e.Index == 5)
             {
@@ -445,7 +447,7 @@ namespace Gurux.DLMS.Objects
                         e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
                     }
                     CaptureTime = (GXDateTime)e.Value;
-                }                  
+                }
             }
             else if (e.Index == 7)
             {
@@ -460,7 +462,7 @@ namespace Gurux.DLMS.Objects
                         e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
                     }
                     StartTimeCurrent = (GXDateTime)e.Value;
-                }                
+                }
             }
             else if (e.Index == 8)
             {
@@ -476,7 +478,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             e.Error = ErrorCode.ReadWriteDenied;
             return null;

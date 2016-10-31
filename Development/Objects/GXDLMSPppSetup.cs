@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -47,30 +47,30 @@ namespace Gurux.DLMS.Objects
 {
     public class GXDLMSPppSetup : GXDLMSObject, IGXDLMSBase
     {
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         public GXDLMSPppSetup()
-            : this(null)
+        : this(null)
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSPppSetup(string ln)
-            : this(ln, 0)
+        : this(ln, 0)
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSPppSetup(string ln, ushort sn)
-            : base(ObjectType.PppSetup, ln, sn)
+        : base(ObjectType.PppSetup, ln, sn)
         {
             LCPOptions = new GXDLMSPppSetupLcpOption[0];
             IPCPOptions = new GXDLMSPppSetupIPCPOption[0];
@@ -145,7 +145,7 @@ namespace Gurux.DLMS.Objects
         #region IGXDLMSBase Members
 
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
@@ -178,15 +178,16 @@ namespace Gurux.DLMS.Objects
             if (!base.IsRead(5))
             {
                 attributes.Add(5);
-            }            
+            }
             return attributes.ToArray();
         }
 
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "PHY Reference", 
-                                "LCP Options", "IPCP Options", "PPP Authentication"};            
+            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "PHY Reference",
+                              "LCP Options", "IPCP Options", "PPP Authentication"
+                            };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -220,7 +221,7 @@ namespace Gurux.DLMS.Objects
             if (index == 5)
             {
                 return DataType.Structure;
-            } 
+            }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
@@ -291,7 +292,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {

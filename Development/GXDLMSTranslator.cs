@@ -936,9 +936,13 @@ namespace Gurux.DLMS
                         s.settings.CtoSChallenge = GXCommon.HexToBytes(GetValue(node, s));
                     }
                     break;
-                case 0xA6:
-                    //CallingAPTitle.
-                    s.settings.CtoSChallenge = GXCommon.HexToBytes(GetValue(node, s));
+                case (int)TranslatorGeneralTags.DedicatedKey:
+                    tmp = GXCommon.HexToBytes(GetValue(node, s));
+                    s.settings.DedicatedKey = tmp;
+                    break;
+                case (int)TranslatorGeneralTags.CallingAPTitle:
+                    s.settings
+                    .CtoSChallenge = GXCommon.HexToBytes(GetValue(node, s));
                     break;
                 case 0xA4:
                     //RespondingAPTitle.
@@ -1267,7 +1271,8 @@ namespace Gurux.DLMS
             return preData;
         }
 
-        private static void ReadNode(XmlNode node, GXDLMSXmlSettings s)
+        private static void ReadNode(
+            XmlNode node, GXDLMSXmlSettings s)
         {
             int tag;
             if (s.OutputType == TranslatorOutputType.SimpleXml)

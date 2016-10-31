@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -45,42 +45,42 @@ namespace Gurux.DLMS.Objects
 {
     public class GXDLMSRegisterMonitor : GXDLMSObject, IGXDLMSBase
     {
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         public GXDLMSRegisterMonitor()
-            : base(ObjectType.RegisterMonitor)
-        {
-            this.Thresholds = new object[0];            
-            MonitoredValue = new GXDLMSMonitoredValue();
-            Actions = new GXDLMSActionSet[0];
-        }
-
-        /// <summary> 
-        /// Constructor.
-        /// </summary> 
-        /// <param name="ln">Logical Name of the object.</param>
-        public GXDLMSRegisterMonitor(string ln)
-            : base(ObjectType.RegisterMonitor, ln, 0)
+        : base(ObjectType.RegisterMonitor)
         {
             this.Thresholds = new object[0];
             MonitoredValue = new GXDLMSMonitoredValue();
             Actions = new GXDLMSActionSet[0];
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
+        /// <param name="ln">Logical Name of the object.</param>
+        public GXDLMSRegisterMonitor(string ln)
+        : base(ObjectType.RegisterMonitor, ln, 0)
+        {
+            this.Thresholds = new object[0];
+            MonitoredValue = new GXDLMSMonitoredValue();
+            Actions = new GXDLMSActionSet[0];
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSRegisterMonitor(string ln, ushort sn)
-            : base(ObjectType.RegisterMonitor, ln, sn)
+        : base(ObjectType.RegisterMonitor, ln, sn)
         {
             this.Thresholds = new object[0];
             MonitoredValue = new GXDLMSMonitoredValue();
             Actions = new GXDLMSActionSet[0];
         }
-        
+
         [XmlIgnore()]
         public object[] Thresholds
         {
@@ -140,7 +140,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Thresholds", "Monitored Value", "Actions" };            
+            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Thresholds", "Monitored Value", "Actions" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -187,7 +187,7 @@ namespace Gurux.DLMS.Objects
             if (e.Index == 3)
             {
                 GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((int) DataType.Structure);
+                data.SetUInt8((int)DataType.Structure);
                 data.SetUInt8(3);
                 GXCommon.SetData(data, DataType.UInt16, MonitoredValue.ObjectType); //ClassID
                 GXCommon.SetData(data, DataType.OctetString, MonitoredValue.LogicalName); //Logical name.
@@ -216,16 +216,16 @@ namespace Gurux.DLMS.Objects
                         data.SetUInt8((int)DataType.Structure);
                         data.SetUInt8(2);
                         GXCommon.SetData(data, DataType.OctetString, it.ActionDown.LogicalName); //Logical name.
-                        GXCommon.SetData(data, DataType.UInt16, it.ActionDown.ScriptSelector); //ScriptSelector                        
+                        GXCommon.SetData(data, DataType.UInt16, it.ActionDown.ScriptSelector); //ScriptSelector
                     }
-                }                
+                }
                 return data.Array();
             }
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {
@@ -260,7 +260,7 @@ namespace Gurux.DLMS.Objects
                     List<GXDLMSActionSet> items = new List<GXDLMSActionSet>();
                     foreach (Object[] action_set in (Object[])e.Value)
                     {
-                        GXDLMSActionSet set = new GXDLMSActionSet();                        
+                        GXDLMSActionSet set = new GXDLMSActionSet();
                         set.ActionUp.LogicalName = GXDLMSClient.ChangeType((byte[])((Object[])action_set[0])[0], DataType.OctetString).ToString();
                         set.ActionUp.ScriptSelector = Convert.ToUInt16(((Object[])action_set[0])[1]);
                         set.ActionDown.LogicalName = GXDLMSClient.ChangeType((byte[])((Object[])action_set[1])[0], DataType.OctetString).ToString();
@@ -276,7 +276,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             e.Error = ErrorCode.ReadWriteDenied;
             return null;

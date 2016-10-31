@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -47,30 +47,30 @@ namespace Gurux.DLMS.Objects
 {
     public class GXDLMSIECOpticalPortSetup : GXDLMSObject, IGXDLMSBase
     {
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         public GXDLMSIECOpticalPortSetup()
-            : base(ObjectType.IecLocalPortSetup, "0.0.20.0.0.255", 0)
+        : base(ObjectType.IecLocalPortSetup, "0.0.20.0.0.255", 0)
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSIECOpticalPortSetup(string ln)
-            : base(ObjectType.IecLocalPortSetup, ln, 0)
+        : base(ObjectType.IecLocalPortSetup, ln, 0)
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSIECOpticalPortSetup(string ln, ushort sn)
-            : base(ObjectType.IecLocalPortSetup, ln, sn)
+        : base(ObjectType.IecLocalPortSetup, ln, sn)
         {
         }
 
@@ -87,7 +87,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Default Baudrate.
         /// </summary>
-        [XmlIgnore()]        
+        [XmlIgnore()]
         public BaudRate DefaultBaudrate
         {
             get;
@@ -105,7 +105,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Defines the minimum time between the reception of a request 
+        /// Defines the minimum time between the reception of a request
         /// (end of request telegram) and the transmission of the response (begin of response telegram).
         /// </summary>
         [XmlIgnore()]
@@ -158,9 +158,10 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, DefaultMode, DefaultBaudrate, 
-                ProposedBaudrate, ResponseTime, DeviceAddress, 
-                Password1, Password2, Password5 };
+            return new object[] { LogicalName, DefaultMode, DefaultBaudrate,
+                              ProposedBaudrate, ResponseTime, DeviceAddress,
+                              Password1, Password2, Password5
+                            };
         }
 
         #region IGXDLMSBase Members
@@ -219,15 +220,16 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, 
-                "Default Mode", 
-                "Default Baud rate",
-                "Proposed Baud rate", 
-                "Response Time", 
-                "Device Address", 
-                "Password 1", 
-                "Password 2", 
-                "Password 5"};
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt,
+                             "Default Mode",
+                             "Default Baud rate",
+                             "Proposed Baud rate",
+                             "Response Time",
+                             "Device Address",
+                             "Password 1",
+                             "Password 2",
+                             "Password 5"
+                            };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -323,7 +325,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {
@@ -402,7 +404,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             e.Error = ErrorCode.ReadWriteDenied;
             return null;

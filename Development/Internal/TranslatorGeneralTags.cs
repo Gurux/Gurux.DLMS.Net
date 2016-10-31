@@ -61,6 +61,8 @@ namespace Gurux.DLMS
         CallingAPTitle = 0xA6,
         RespondingAPTitle = 0xA4,
         ResponseAllowed = 0xA4,
-        CharString = 0xA5
+        CharString = 0xA5,
+        DedicatedKey = 0xA8,
+        UserInformation = 0xA7
     }
 }

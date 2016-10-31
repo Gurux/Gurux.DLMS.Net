@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -46,30 +46,30 @@ namespace Gurux.DLMS.Objects
 {
     public class GXDLMSActivityCalendar : GXDLMSObject, IGXDLMSBase
     {
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         public GXDLMSActivityCalendar()
-            : base(ObjectType.ActivityCalendar, "0.0.13.0.0.255", 0)
+        : base(ObjectType.ActivityCalendar, "0.0.13.0.0.255", 0)
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSActivityCalendar(string ln)
-            : base(ObjectType.ActivityCalendar, ln, 0)
+        : base(ObjectType.ActivityCalendar, ln, 0)
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSActivityCalendar(string ln, ushort sn)
-            : base(ObjectType.ActivityCalendar, ln, sn)
+        : base(ObjectType.ActivityCalendar, ln, sn)
         {
         }
 
@@ -127,7 +127,7 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
-        [XmlIgnore()]        
+        [XmlIgnore()]
         public GXDateTime Time
         {
             get;
@@ -137,9 +137,10 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, CalendarNameActive, SeasonProfileActive, 
-                WeekProfileTableActive, DayProfileTableActive, CalendarNamePassive, 
-                SeasonProfilePassive, WeekProfileTablePassive, DayProfileTablePassive, Time };
+            return new object[] { LogicalName, CalendarNameActive, SeasonProfileActive,
+                              WeekProfileTableActive, DayProfileTableActive, CalendarNamePassive,
+                              SeasonProfilePassive, WeekProfileTablePassive, DayProfileTablePassive, Time
+                            };
         }
 
         #region IGXDLMSBase Members
@@ -156,23 +157,23 @@ namespace Gurux.DLMS.Objects
             if (CanRead(2))
             {
                 attributes.Add(2);
-            }            
+            }
             //SeasonProfileActive
             if (CanRead(3))
             {
                 attributes.Add(3);
-            } 
-            
+            }
+
             //WeekProfileTableActive
             if (CanRead(4))
             {
                 attributes.Add(4);
-            } 
+            }
             //DayProfileTableActive
             if (CanRead(5))
             {
                 attributes.Add(5);
-            } 
+            }
             //CalendarNamePassive
             if (CanRead(6))
             {
@@ -197,15 +198,16 @@ namespace Gurux.DLMS.Objects
             if (CanRead(10))
             {
                 attributes.Add(10);
-            }             
+            }
             return attributes.ToArray();
         }
 
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Active Calendar Name ", "Active Season Profile", "Active Week Profile Table", 
-                "Active Day Profile Table", "Passive Calendar Name", "Passive Season Profile", "Passive Week Profile Table", "Passive Day Profile Table", "Time"};
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Active Calendar Name ", "Active Season Profile", "Active Week Profile Table",
+                             "Active Day Profile Table", "Passive Calendar Name", "Passive Season Profile", "Passive Week Profile Table", "Passive Day Profile Table", "Time"
+                            };
 
         }
 
@@ -281,13 +283,13 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8((byte)DataType.Array);
                 if (SeasonProfileActive == null)
                 {
-                    //Add count            
+                    //Add count
                     GXCommon.SetObjectCount(0, data);
                 }
                 else
                 {
                     int cnt = SeasonProfileActive.Length;
-                    //Add count            
+                    //Add count
                     GXCommon.SetObjectCount(cnt, data);
                     foreach (GXDLMSSeasonProfile it in SeasonProfileActive)
                     {
@@ -306,13 +308,13 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8((byte)DataType.Array);
                 if (WeekProfileTableActive == null)
                 {
-                    //Add count            
+                    //Add count
                     GXCommon.SetObjectCount(0, data);
                 }
                 else
                 {
                     int cnt = WeekProfileTableActive.Length;
-                    //Add count            
+                    //Add count
                     GXCommon.SetObjectCount(cnt, data);
                     foreach (GXDLMSWeekProfile it in WeekProfileTableActive)
                     {
@@ -336,13 +338,13 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8((byte)DataType.Array);
                 if (DayProfileTableActive == null)
                 {
-                    //Add count            
+                    //Add count
                     GXCommon.SetObjectCount(0, data);
                 }
                 else
                 {
                     int cnt = DayProfileTableActive.Length;
-                    //Add count            
+                    //Add count
                     GXCommon.SetObjectCount(cnt, data);
                     foreach (GXDLMSDayProfile it in DayProfileTableActive)
                     {
@@ -350,8 +352,8 @@ namespace Gurux.DLMS.Objects
                         data.SetUInt8(2);
                         GXCommon.SetData(data, DataType.UInt8, it.DayId);
                         data.SetUInt8((byte)DataType.Array);
-                        //Add count            
-                        GXCommon.SetObjectCount(it.DaySchedules.Length, data);      
+                        //Add count
+                        GXCommon.SetObjectCount(it.DaySchedules.Length, data);
                         foreach (GXDLMSDayProfileAction action in it.DaySchedules)
                         {
                             data.SetUInt8((byte)DataType.Structure);
@@ -375,13 +377,13 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8((byte)DataType.Array);
                 if (SeasonProfilePassive == null)
                 {
-                    //Add count            
+                    //Add count
                     GXCommon.SetObjectCount(0, data);
                 }
                 else
                 {
                     int cnt = SeasonProfilePassive.Length;
-                    //Add count            
+                    //Add count
                     GXCommon.SetObjectCount(cnt, data);
                     foreach (GXDLMSSeasonProfile it in SeasonProfilePassive)
                     {
@@ -400,13 +402,13 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8((byte)DataType.Array);
                 if (WeekProfileTablePassive == null)
                 {
-                    //Add count            
+                    //Add count
                     GXCommon.SetObjectCount(0, data);
                 }
                 else
                 {
                     int cnt = WeekProfileTablePassive.Length;
-                    //Add count            
+                    //Add count
                     GXCommon.SetObjectCount(cnt, data);
                     foreach (GXDLMSWeekProfile it in WeekProfileTablePassive)
                     {
@@ -430,13 +432,13 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8((byte)DataType.Array);
                 if (DayProfileTablePassive == null)
                 {
-                    //Add count            
+                    //Add count
                     GXCommon.SetObjectCount(0, data);
                 }
                 else
                 {
                     int cnt = DayProfileTablePassive.Length;
-                    //Add count            
+                    //Add count
                     GXCommon.SetObjectCount(cnt, data);
                     foreach (GXDLMSDayProfile it in DayProfileTablePassive)
                     {
@@ -444,7 +446,7 @@ namespace Gurux.DLMS.Objects
                         data.SetUInt8(2);
                         GXCommon.SetData(data, DataType.UInt8, it.DayId);
                         data.SetUInt8((byte)DataType.Array);
-                        //Add count            
+                        //Add count
                         GXCommon.SetObjectCount(it.DaySchedules.Length, data);
                         foreach (GXDLMSDayProfileAction action in it.DaySchedules)
                         {
@@ -466,7 +468,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {
@@ -499,9 +501,9 @@ namespace Gurux.DLMS.Objects
                     foreach (object[] item in (object[])e.Value)
                     {
                         GXDLMSSeasonProfile it = new GXDLMSSeasonProfile();
-                        it.Name = GXDLMSClient.ChangeType((byte[]) item[0], DataType.String).ToString();
-                        it.Start = (GXDateTime) GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime);
-                        it.WeekName = GXDLMSClient.ChangeType((byte[]) item[2], DataType.String).ToString();
+                        it.Name = GXDLMSClient.ChangeType((byte[])item[0], DataType.String).ToString();
+                        it.Start = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime);
+                        it.WeekName = GXDLMSClient.ChangeType((byte[])item[2], DataType.String).ToString();
                         items.Add(it);
                     }
                     SeasonProfileActive = items.ToArray();
@@ -519,7 +521,7 @@ namespace Gurux.DLMS.Objects
                         it.Name = GXDLMSClient.ChangeType((byte[])item[0], DataType.String).ToString();
                         it.Monday = Convert.ToInt32(item[1]);
                         it.Tuesday = Convert.ToInt32(item[2]);
-                        it.Wednesday= Convert.ToInt32(item[3]);
+                        it.Wednesday = Convert.ToInt32(item[3]);
                         it.Thursday = Convert.ToInt32(item[4]);
                         it.Friday = Convert.ToInt32(item[5]);
                         it.Saturday = Convert.ToInt32(item[6]);
@@ -669,7 +671,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             e.Error = ErrorCode.ReadWriteDenied;
             return null;

@@ -52,8 +52,10 @@ namespace Gurux.DLMS
         /// <summary>
         /// Handle read request.
         /// </summary>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="server">DLMS server.</param>
         /// <param name="data">Received data.</param>
-        public static void HandleReadRequest(GXDLMSSettings Settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
+        public static void HandleReadRequest(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
         {
             GXByteBuffer bb = new GXByteBuffer();
             int cnt = 0xFF;
@@ -89,11 +91,11 @@ namespace Gurux.DLMS
                     if (type == (byte)VariableAccessSpecification.VariableName ||
                             type == (byte)VariableAccessSpecification.ParameterisedAccess)
                     {
-                        HandleRead(Settings, server, type, data, list, reads, actions, replyData, xml);
+                        HandleRead(settings, server, type, data, list, reads, actions, replyData, xml);
                     }
                     else if (type == (byte)VariableAccessSpecification.BlockNumberAccess)
                     {
-                        HandleReadBlockNumberAccess(Settings, server, data, replyData, xml);
+                        HandleReadBlockNumberAccess(settings, server, data, replyData, xml);
                         if (xml != null)
                         {
                             xml.AppendEndTag(Command.ReadRequest);
@@ -102,7 +104,7 @@ namespace Gurux.DLMS
                     }
                     else if (type == (byte)VariableAccessSpecification.ReadDataBlockAccess)
                     {
-                        HandleReadDataBlockAccess(Settings, server, Command.ReadResponse, data, cnt, replyData, xml);
+                        HandleReadDataBlockAccess(settings, server, Command.ReadResponse, data, cnt, replyData, xml);
                         if (xml != null)
                         {
                             xml.AppendEndTag(Command.ReadRequest);
@@ -111,7 +113,7 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        ReturnSNError(Settings, server, Command.ReadResponse, ErrorCode.ReadWriteDenied, replyData);
+                        ReturnSNError(settings, server, Command.ReadResponse, ErrorCode.ReadWriteDenied, replyData);
                         if (xml != null)
                         {
                             xml.AppendEndTag(Command.ReadRequest);
@@ -135,10 +137,10 @@ namespace Gurux.DLMS
                 return;
             }
 
-            byte requestType = (byte)GetReadData(Settings, list.ToArray(), bb);
-            GXDLMSSNParameters p = new GXDLMSSNParameters(Settings, Command.ReadResponse, list.Count, requestType, null, bb);
+            byte requestType = (byte)GetReadData(settings, list.ToArray(), bb);
+            GXDLMSSNParameters p = new GXDLMSSNParameters(settings, Command.ReadResponse, list.Count, requestType, null, bb);
             GXDLMS.GetSNPdu(p, replyData);
-            if (server.transaction == null && (bb.Size != bb.Position || Settings.Count != Settings.Index))
+            if (server.transaction == null && (bb.Size != bb.Position || settings.Count != settings.Index))
             {
                 List<ValueEventArgs> reads = new List<ValueEventArgs>();
                 foreach (var it in list)

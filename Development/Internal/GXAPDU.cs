@@ -547,7 +547,7 @@ namespace Gurux.DLMS.Internal
             }
             if (settings.IsServer && settings.Cipher != null)
             {
-                settings.Cipher.Security = Security.None;
+                settings.Cipher.Security = Gurux.DLMS.Enums.Security.None;
             }
             //Object ID length.
             len = buff.GetUInt8();
@@ -665,7 +665,7 @@ namespace Gurux.DLMS.Internal
                 throw new Exception("Invalid tag.");
             }
             int tmp = buff.GetUInt8();
-            if (tmp < 0 || tmp > 5)
+            if (tmp < 0 || tmp > 7)
             {
                 throw new Exception("Invalid tag.");
             }

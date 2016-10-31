@@ -1,17 +1,47 @@
-﻿// -----------------------------------------------------------------------
-// <copyright file="GXDLMSConverter.cs" company="">
-// TODO: Update copyright text.
-// </copyright>
-// -----------------------------------------------------------------------
+﻿//
+// --------------------------------------------------------------------------
+//  Gurux Ltd
+//
+//
+//
+// Filename:        $HeadURL$
+//
+// Version:         $Revision$,
+//                  $Date$
+//                  $Author$
+//
+// Copyright (c) Gurux Ltd
+//
+//---------------------------------------------------------------------------
+//
+//  DESCRIPTION
+//
+// This file is a part of Gurux Device Framework.
+//
+// Gurux Device Framework is Open Source software; you can redistribute it
+// and/or modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; version 2 of the License.
+// Gurux Device Framework is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details.
+//
+// More information of Gurux products: http://www.gurux.org
+//
+// This code is licensed under the GNU General Public License v2.
+// Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
+//---------------------------------------------------------------------------
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Gurux.DLMS.Enums;
+using Gurux.DLMS.Objects;
 
 namespace Gurux.DLMS
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using Gurux.DLMS.Enums;
-    using Gurux.DLMS.Objects;
+
 
     /// <summary>
     /// DLMS Converter is used to get string value for enumeration types.
@@ -71,7 +101,7 @@ namespace Gurux.DLMS
                 string[] items = it.Split(new char[] { ';' });
                 string[] obis = items[0].Split(new char[] { '.' });
                 GXStandardObisCode code = new GXStandardObisCode(obis, items[3] + "; " + items[4] + "; " +
-                    items[5] + "; " + items[6] + "; " + items[7], items[1], items[2]);
+                        items[5] + "; " + items[6] + "; " + items[7], items[1], items[2]);
                 codes.Add(code);
             }
         }
@@ -100,26 +130,26 @@ namespace Gurux.DLMS
                 else if (code.DataType.Contains("9"))
                 {
                     if ((GXStandardObisCodeCollection.EqualsMask("0.0-64.96.7.10-14.255", it.LogicalName) ||
-                        //Time stamps of the billing periods objects (second scheme)
-                    GXStandardObisCodeCollection.EqualsMask("0.0-64.0.1.5.0-99,255", it.LogicalName) ||
-                        //Time of power failure
-                    GXStandardObisCodeCollection.EqualsMask("0.0-64.0.1.2.0-99,255", it.LogicalName) ||
-                        //Time stamps of the billing periods objects (first scheme if there are two)                        
-                    GXStandardObisCodeCollection.EqualsMask("1.0-64.0.1.2.0-99,255", it.LogicalName) ||
-                        //Time stamps of the billing periods objects (second scheme)
-                    GXStandardObisCodeCollection.EqualsMask("1.0-64.0.1.5.0-99,255", it.LogicalName) ||
-                        //Time expired since last end of billing period
-                    GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.0.255", it.LogicalName) ||
-                        //Time of last reset
-                    GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.6.255", it.LogicalName) ||
-                        //Date of last reset
-                    GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.7.255", it.LogicalName) ||
-                        //Time expired since last end of billing period (Second billing period scheme)
-                    GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.13.255", it.LogicalName) ||
-                        //Time of last reset (Second billing period scheme)
-                    GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.14.255", it.LogicalName) ||
-                        //Date of last reset (Second billing period scheme)
-                    GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.15.255", it.LogicalName)))
+                            //Time stamps of the billing periods objects (second scheme)
+                            GXStandardObisCodeCollection.EqualsMask("0.0-64.0.1.5.0-99,255", it.LogicalName) ||
+                            //Time of power failure
+                            GXStandardObisCodeCollection.EqualsMask("0.0-64.0.1.2.0-99,255", it.LogicalName) ||
+                            //Time stamps of the billing periods objects (first scheme if there are two)
+                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.1.2.0-99,255", it.LogicalName) ||
+                            //Time stamps of the billing periods objects (second scheme)
+                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.1.5.0-99,255", it.LogicalName) ||
+                            //Time expired since last end of billing period
+                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.0.255", it.LogicalName) ||
+                            //Time of last reset
+                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.6.255", it.LogicalName) ||
+                            //Date of last reset
+                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.7.255", it.LogicalName) ||
+                            //Time expired since last end of billing period (Second billing period scheme)
+                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.13.255", it.LogicalName) ||
+                            //Time of last reset (Second billing period scheme)
+                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.14.255", it.LogicalName) ||
+                            //Date of last reset (Second billing period scheme)
+                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.15.255", it.LogicalName)))
                     {
                         code.UIDataType = "25";
                     }

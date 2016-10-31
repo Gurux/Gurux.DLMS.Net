@@ -638,7 +638,8 @@ namespace Gurux.DLMS
         /// <seealso cref="ParseApplicationAssociationResponse"/>
         public byte[][] GetApplicationAssociationRequest()
         {
-            if (Settings.Password == null || Settings.Password.Length == 0)
+            if (Settings.Authentication != Authentication.HighECDSA &&
+                    (Settings.Password == null || Settings.Password.Length == 0))
             {
                 throw new ArgumentException("Password is invalid.");
             }
@@ -657,7 +658,8 @@ namespace Gurux.DLMS
             {
                 ic = Settings.Cipher.FrameCounter;
             }
-            byte[] challenge = GXSecure.Secure(Settings, Settings.Cipher, ic, Settings.StoCChallenge, pw);
+            byte[] challenge = GXSecure.Secure(Settings, Settings.Cipher, ic,
+                                               Settings.StoCChallenge, pw);
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetUInt8((byte)DataType.OctetString);
             GXCommon.SetObjectCount(challenge.Length, bb);
@@ -697,7 +699,8 @@ namespace Gurux.DLMS
                 {
                     secret = Settings.Password;
                 }
-                byte[] tmp = GXSecure.Secure(Settings, Settings.Cipher, ic, Settings.CtoSChallenge, secret);
+                byte[] tmp = GXSecure.Secure(Settings, Settings.Cipher, ic,
+                                             Settings.CtoSChallenge, secret);
                 GXByteBuffer challenge = new GXByteBuffer(tmp);
                 equals = challenge.Compare(value);
             }
@@ -819,7 +822,13 @@ namespace Gurux.DLMS
         /// <param name="accessRights"></param>
         /// <param name="attributeIndex"></param>
         /// <param name="dataIndex"></param>
-        internal static void UpdateObjectData(GXDLMSObject obj, ObjectType objectType, object version, object baseName, object logicalName, object accessRights)
+        internal static void UpdateObjectData(
+            GXDLMSObject obj,
+            ObjectType objectType,
+            object version,
+            object baseName,
+            object logicalName,
+            object accessRights)
         {
             obj.ObjectType = objectType;
             // Check access rights...
@@ -909,7 +918,9 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="data">Received data, from the device, as byte array. </param>
         /// <returns>Collection of COSEM objects.</returns>
-        public GXDLMSObjectCollection ParseObjects(GXByteBuffer data, bool onlyKnownObjects)
+        public GXDLMSObjectCollection ParseObjects(
+            GXByteBuffer data,
+            bool onlyKnownObjects)
         {
             if (data == null || data.Size == 0)
             {
@@ -933,7 +944,9 @@ namespace Gurux.DLMS
         /// <summary>
         /// Reserved for internal use.
         /// </summary>
-        GXDLMSObjectCollection ParseLNObjects(GXByteBuffer buff, bool onlyKnownObjects)
+        GXDLMSObjectCollection ParseLNObjects(
+            GXByteBuffer buff,
+            bool onlyKnownObjects)
         {
             byte size = buff.GetUInt8();
             //Check that data is in the array.
@@ -974,7 +987,10 @@ namespace Gurux.DLMS
         /// <summary>
         /// Get Value from byte array received from the meter.
         /// </summary>
-        public object UpdateValue(GXDLMSObject target, int attributeIndex, object value)
+        public object UpdateValue(
+            GXDLMSObject target,
+            int attributeIndex,
+            object value)
         {
             return UpdateValue(target, attributeIndex, value, null);
         }
@@ -982,8 +998,11 @@ namespace Gurux.DLMS
         /// <summary>
         /// Get Value from byte array received from the meter.
         /// </summary>
-        public object UpdateValue(GXDLMSObject target, int attributeIndex, object value,
-                                  List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
+        public object UpdateValue(
+            GXDLMSObject target,
+            int attributeIndex,
+            object value,
+            List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
         {
             if (value is byte[])
             {
@@ -1027,7 +1046,9 @@ namespace Gurux.DLMS
         /// <param name="list">Collection of access items.</param>
         /// <param name="data">Received data from the meter.</param>
         /// <returns>Collection of received data and status codes.</returns>
-        public List<KeyValuePair<object, ErrorCode>> ParseAccessResponse(List<GXDLMSAccessItem> list, GXByteBuffer data)
+        public List<KeyValuePair<object, ErrorCode>> ParseAccessResponse(
+            List<GXDLMSAccessItem> list,
+            GXByteBuffer data)
         {
             int pos;
             //Get count
@@ -1073,7 +1094,9 @@ namespace Gurux.DLMS
             return reply;
         }
 
-        public static GXDLMSAttributeSettings GetAttributeInfo(GXDLMSObject item, int index)
+        public static GXDLMSAttributeSettings GetAttributeInfo(
+            GXDLMSObject item,
+            int index)
         {
             GXDLMSAttributeSettings att = item.Attributes.Find(index);
             return att;
@@ -1289,7 +1312,9 @@ namespace Gurux.DLMS
         /// <param name="item">object to write.</param>
         /// <param name="index">Attribute index where data is write.</param>
         /// <returns></returns>
-        public byte[][] Write(GXDLMSObject item, int index)
+        public byte[][] Write(
+            GXDLMSObject item,
+            int index)
         {
             if (item == null || index < 1)
             {

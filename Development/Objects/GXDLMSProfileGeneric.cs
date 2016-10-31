@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,23 +19,22 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Data;
 using Gurux.DLMS;
 using System.ComponentModel;
 using System.Xml.Serialization;
@@ -46,33 +45,33 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
-{   
+{
     public class GXDLMSProfileGeneric : GXDLMSObject, IGXDLMSBase
     {
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         public GXDLMSProfileGeneric()
-            : this(null, 0)
+        : this(null, 0)
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSProfileGeneric(string ln)
-            : this(ln, 0)
+        : this(ln, 0)
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSProfileGeneric(string ln, ushort sn)
-            : base(ObjectType.ProfileGeneric, ln, sn)
+        : base(ObjectType.ProfileGeneric, ln, sn)
         {
             From = DateTime.Now.Date;
             To = DateTime.Now.AddDays(1);
@@ -144,7 +143,7 @@ namespace Gurux.DLMS.Objects
 
         /// <summary>
         /// How columns are sorted.
-        /// </summary>       
+        /// </summary>
         [XmlIgnore()]
         [DefaultValue(SortMethod.FiFo)]
         public SortMethod SortMethod
@@ -209,9 +208,10 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, Buffer.ToArray(), CaptureObjects, 
-                CapturePeriod, SortMethod, 
-                SortObject, EntriesInUse, ProfileEntries };
+            return new object[] { LogicalName, Buffer.ToArray(), CaptureObjects,
+                              CapturePeriod, SortMethod,
+                              SortObject, EntriesInUse, ProfileEntries
+                            };
         }
 
         /// <summary>
@@ -242,7 +242,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Copies the values of the objects to capture 
+        /// Copies the values of the objects to capture
         /// into the buffer by reading capture objects.
         /// </summary>
         public void Capture(GXDLMSServer server)
@@ -276,7 +276,7 @@ namespace Gurux.DLMS.Objects
 
         #region IGXDLMSBase Members
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
@@ -326,8 +326,9 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, "CaptureObjects", 
-                "Capture Period", "Buffer", "Sort Method", "Sort Object", "Entries In Use", "Profile Entries"};
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, "CaptureObjects",
+                             "Capture Period", "Buffer", "Sort Method", "Sort Object", "Entries In Use", "Profile Entries"
+                            };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -385,7 +386,7 @@ namespace Gurux.DLMS.Objects
         /// <returns>Selected columns.</returns>
         public List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> GetSelectedColumns(int selector, Object parameters)
         {
-            List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns = new List<GXKeyValuePair<GXDLMSObject,GXDLMSCaptureObject>>();
+            List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns = new List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
             if (selector == 0)
             {
                 // Return all rows.
@@ -467,7 +468,7 @@ namespace Gurux.DLMS.Objects
             }
             return columns;
         }
-    
+
         byte[] GetProfileGenericData(int selector, object parameters)
         {
             List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns = null;
@@ -535,7 +536,7 @@ namespace Gurux.DLMS.Objects
                     if (colStart != 1 || colCount != 0)
                     {
                         columns = new List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
-                        for(int pos = 0 ; pos != colCount; ++pos)
+                        for (int pos = 0; pos != colCount; ++pos)
                         {
                             columns.Add(CaptureObjects[colStart + pos - 1]);
                         }
@@ -574,11 +575,11 @@ namespace Gurux.DLMS.Objects
             foreach (var it in CaptureObjects)
             {
                 data.SetUInt8((byte)DataType.Structure);
-                data.SetUInt8(4);//Count    
+                data.SetUInt8(4);//Count
                 GXCommon.SetData(data, DataType.UInt16, it.Key.ObjectType);//ClassID
                 GXCommon.SetData(data, DataType.OctetString, it.Key.LogicalName);//LN
                 GXCommon.SetData(data, DataType.Int8, it.Value.AttributeIndex); //Selected Attribute Index
-                GXCommon.SetData(data, DataType.UInt16, it.Value.DataIndex); //Selected Data Index                
+                GXCommon.SetData(data, DataType.UInt16, it.Value.DataIndex); //Selected Data Index
             }
             return data.Array();
         }
@@ -646,7 +647,7 @@ namespace Gurux.DLMS.Objects
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
-                data.SetUInt8((byte)4); //Count  
+                data.SetUInt8((byte)4); //Count
                 if (SortObject == null)
                 {
                     GXCommon.SetData(data, DataType.UInt16, 0); //ClassID
@@ -675,12 +676,12 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        private void SetBuffer(ValueEventArgs e) 
+        private void SetBuffer(ValueEventArgs e)
         {
             List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> cols = null;
             if (e.Parameters is List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>)
             {
-                cols = (List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>) e.Parameters;
+                cols = (List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>)e.Parameters;
             }
             if (cols == null)
             {
@@ -760,7 +761,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {

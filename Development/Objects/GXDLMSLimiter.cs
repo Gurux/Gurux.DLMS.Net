@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -46,36 +46,36 @@ namespace Gurux.DLMS.Objects
 {
     public class GXDLMSLimiter : GXDLMSObject, IGXDLMSBase
     {
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         public GXDLMSLimiter()
-            : base(ObjectType.Limiter)
+        : base(ObjectType.Limiter)
         {
             EmergencyProfile = new GXDLMSEmergencyProfile();
             ActionOverThreshold = new GXDLMSActionItem();
             ActionUnderThreshold = new GXDLMSActionItem();
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSLimiter(string ln)
-            : base(ObjectType.Limiter, ln, 0)
+        : base(ObjectType.Limiter, ln, 0)
         {
             EmergencyProfile = new GXDLMSEmergencyProfile();
             ActionOverThreshold = new GXDLMSActionItem();
             ActionUnderThreshold = new GXDLMSActionItem();
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSLimiter(string ln, ushort sn)
-            : base(ObjectType.Limiter, ln, sn)
+        : base(ObjectType.Limiter, ln, sn)
         {
             EmergencyProfile = new GXDLMSEmergencyProfile();
             ActionOverThreshold = new GXDLMSActionItem();
@@ -84,7 +84,7 @@ namespace Gurux.DLMS.Objects
 
         /// <summary>
         /// Defines an attribute of an object to be monitored.
-        /// </summary>        
+        /// </summary>
         [XmlIgnore()]
         public GXDLMSObject MonitoredValue
         {
@@ -112,7 +112,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Provides the threshold value to which the attribute monitored 
+        /// Provides the threshold value to which the attribute monitored
         /// is compared when in normal operation.
         /// </summary>
         public object ThresholdNormal
@@ -191,15 +191,16 @@ namespace Gurux.DLMS.Objects
             get;
             set;
         }
-        
-        
-        
+
+
+
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, MonitoredValue, ThresholdActive, ThresholdNormal, ThresholdEmergency,
-            MinOverThresholdDuration, MinUnderThresholdDuration, EmergencyProfile, EmergencyProfileGroupIDs, 
-            EmergencyProfileActive, new object[] {ActionOverThreshold, ActionUnderThreshold}};
+                              MinOverThresholdDuration, MinUnderThresholdDuration, EmergencyProfile, EmergencyProfileGroupIDs,
+                              EmergencyProfileActive, new object[] {ActionOverThreshold, ActionUnderThreshold}
+                            };
         }
 
         #region IGXDLMSBase Members
@@ -208,7 +209,7 @@ namespace Gurux.DLMS.Objects
         /// Data interface do not have any methods.
         /// </summary>
         /// <param name="index"></param>
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
@@ -285,10 +286,11 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Monitored Value", 
-                "Active Threshold", "Normal Threshold", "Emergency Threshold", "Threshold Duration Min Over", 
-                "Threshold Duration Min Under", "Emergency Profile", "Emergency Profile Group", 
-                "Emergency Profile Active", "Actions"};            
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Monitored Value",
+                             "Active Threshold", "Normal Threshold", "Emergency Threshold", "Threshold Duration Min Over",
+                             "Threshold Duration Min Under", "Emergency Profile", "Emergency Profile Group",
+                             "Emergency Profile Active", "Actions"
+                            };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -357,9 +359,9 @@ namespace Gurux.DLMS.Objects
                 return this.LogicalName;
             }
             else if (e.Index == 2)
-            {                
+            {
                 GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((byte) DataType.Structure);
+                data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8(3);
                 GXCommon.SetData(data, DataType.Int16, MonitoredValue.ObjectType);
                 GXCommon.SetData(data, DataType.OctetString, MonitoredValue.LogicalName);
@@ -389,8 +391,8 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 8)
             {
                 GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((byte) DataType.Structure);
-                data.SetUInt8(3);                
+                data.SetUInt8((byte)DataType.Structure);
+                data.SetUInt8(3);
                 GXCommon.SetData(data, DataType.UInt16, EmergencyProfile.ID);
                 GXCommon.SetData(data, DataType.OctetString, EmergencyProfile.ActivationTime);
                 GXCommon.SetData(data, DataType.UInt32, EmergencyProfile.Duration);
@@ -399,8 +401,8 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 9)
             {
                 GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((byte) DataType.Array);
-                data.SetUInt8((byte)EmergencyProfileGroupIDs.Length);                               
+                data.SetUInt8((byte)DataType.Array);
+                data.SetUInt8((byte)EmergencyProfileGroupIDs.Length);
                 foreach (object it in EmergencyProfileGroupIDs)
                 {
                     GXCommon.SetData(data, DataType.UInt16, it);
@@ -430,7 +432,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {
@@ -441,7 +443,7 @@ namespace Gurux.DLMS.Objects
                 else
                 {
                     LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
-                }                
+                }
             }
             else if (e.Index == 2)
             {
@@ -474,9 +476,9 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 8)
             {
                 object[] tmp = (object[])e.Value;
-                EmergencyProfile.ID = (UInt16) tmp[0];
+                EmergencyProfile.ID = (UInt16)tmp[0];
                 EmergencyProfile.ActivationTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[1], DataType.DateTime);
-                EmergencyProfile.Duration = (UInt32) tmp[2];
+                EmergencyProfile.Duration = (UInt32)tmp[2];
             }
             else if (e.Index == 9)
             {

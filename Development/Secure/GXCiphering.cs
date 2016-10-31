@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -71,10 +71,10 @@ namespace Gurux.DLMS.Secure
         /// <param name="authenticationKey"></param>
         public GXCiphering(byte[] title)
         {
-            Security = Security.None;
-            SystemTitle = title;            
+            Security = Gurux.DLMS.Enums.Security.None;
+            SystemTitle = title;
             BlockCipherKey = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F };
-            AuthenticationKey = new byte[] { 0xD0, 0xD1, 0xD2, 0xD3, 0xD4, 0xD5, 0xD6, 0xD7, 0xD8, 0xD9, 0xDA, 0xDB, 0xDC, 0xDD, 0xDE, 0xDF};
+            AuthenticationKey = new byte[] { 0xD0, 0xD1, 0xD2, 0xD3, 0xD4, 0xD5, 0xD6, 0xD7, 0xD8, 0xD9, 0xDA, 0xDB, 0xDC, 0xDD, 0xDE, 0xDF };
         }
 
         /// <summary>
@@ -89,17 +89,17 @@ namespace Gurux.DLMS.Secure
         /// <param name="authenticationKey"></param>
         public GXCiphering(UInt32 frameCounter, byte[] title, byte[] blockCipherKey, byte[] authenticationKey)
         {
-            Security = Security.None;            
+            Security = Gurux.DLMS.Enums.Security.None;
             FrameCounter = frameCounter;
             SystemTitle = title;
             BlockCipherKey = blockCipherKey;
             AuthenticationKey = authenticationKey;
         }
-        
+
         /// <summary>
         /// Used security.
         /// </summary>
-        public Security Security
+        public Gurux.DLMS.Enums.Security Security
         {
             get;
             set;
@@ -115,9 +115,9 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
-        /// The SystemTitle is a 8 bytes (64 bit) value that identifies a partner of the communication. 
+        /// The SystemTitle is a 8 bytes (64 bit) value that identifies a partner of the communication.
         /// First 3 bytes contains the three letters manufacturer ID.
-        /// The remainder of the system title holds for example a serial number. 
+        /// The remainder of the system title holds for example a serial number.
         /// </summary>
         /// <seealso href="http://www.dlms.com/organization/flagmanufacturesids">List of manufacturer ID.</seealso>
         public byte[] SystemTitle
@@ -134,7 +134,7 @@ namespace Gurux.DLMS.Secure
                 }
                 systemTitle = value;
             }
-        }        
+        }
 
         /// <summary>
         /// Each block is ciphered with this key.
@@ -176,18 +176,18 @@ namespace Gurux.DLMS.Secure
 
         byte[] GXICipher.Encrypt(byte tag, byte[] title, byte[] data)
         {
-            if (Security != Security.None)
+            if (Security != Gurux.DLMS.Enums.Security.None)
             {
                 AesGcmParameter p = new AesGcmParameter(tag, Security, FrameCounter,
-                    title, BlockCipherKey, AuthenticationKey);
+                                                        title, BlockCipherKey, AuthenticationKey);
                 byte[] tmp = GXDLMSChippering.EncryptAesGcm(p, data);
-                ++FrameCounter;                
+                ++FrameCounter;
                 return tmp;
             }
             return data;
         }
 
-        Security GXICipher.Decrypt(byte[] title, GXByteBuffer data)
+        Gurux.DLMS.Enums.Security GXICipher.Decrypt(byte[] title, GXByteBuffer data)
         {
             AesGcmParameter p = new AesGcmParameter(title, BlockCipherKey, AuthenticationKey);
             byte[] tmp = GXDLMSChippering.DecryptAesGcm(p, data);
@@ -198,13 +198,13 @@ namespace Gurux.DLMS.Secure
 
         public void Reset()
         {
-            Security = Security.None;
+            Security = Gurux.DLMS.Enums.Security.None;
             FrameCounter = 0;
         }
 
         bool GXICipher.IsCiphered()
         {
-            return Security != Security.None;
+            return Security != Gurux.DLMS.Enums.Security.None;
         }
     }
 }

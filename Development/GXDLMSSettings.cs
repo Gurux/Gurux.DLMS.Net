@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -44,18 +44,18 @@ namespace Gurux.DLMS
     using Gurux.DLMS.Secure;
     using Gurux.DLMS.Internal;
 
-    /// <summary> 
+    /// <summary>
     /// This class includes DLMS communication settings.
     /// </summary>
     public class GXDLMSSettings
     {
         ///<summary>
-        /// Server frame sequence starting number. 
+        /// Server frame sequence starting number.
         ///</summary>
         private const byte ServerStartFrameSequence = 0x0F;
 
         ///<summary>
-        /// Client frame sequence starting number. 
+        /// Client frame sequence starting number.
         ///</summary>
         private const byte ClientStartFrameSequence = 0xEE;
 
@@ -80,7 +80,7 @@ namespace Gurux.DLMS
         private byte[] ctoSChallenge;
 
         ///<summary>
-        ///Server to Client challenge. 
+        ///Server to Client challenge.
         ///</summary>
         private byte[] stoCChallenge;
 
@@ -146,7 +146,7 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
-        ///Constructor. 
+        ///Constructor.
         ///</summary>
         internal GXDLMSSettings(bool server)
         {
@@ -166,7 +166,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Client to Server challenge. 
+        /// Client to Server challenge.
         /// </summary>
         public byte[] CtoSChallenge
         {
@@ -184,7 +184,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Server to Client challenge.         
+        /// Server to Client challenge.
         /// </summary>
         public byte[] StoCChallenge
         {
@@ -202,7 +202,15 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Used authentication. 
+        /// Dedicated key.
+        /// </summary>
+        public byte[] DedicatedKey
+        {
+            get;
+            set;
+        }
+        /// <summary>
+        /// Used authentication.
         /// </summary>
         public Authentication Authentication
         {
@@ -239,10 +247,10 @@ namespace Gurux.DLMS
         ///Increase sender sequence.
         ///</summary>
         ///<param name="value">
-        /// Increase frame value. 
+        /// Increase frame value.
         ///</param>
-        ///<returns> 
-        /// Increased sender frame sequence. 
+        ///<returns>
+        /// Increased sender frame sequence.
         ///</returns>
         static byte IncreaseSendSequence(byte value)
         {
@@ -250,7 +258,7 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
-        ///Reset frame sequence. 
+        ///Reset frame sequence.
         ///</summary>
         public void ResetFrameSequence()
         {
@@ -284,7 +292,7 @@ namespace Gurux.DLMS
                 return true;
             }
             //Handle I-frame.
-            if (frame == (byte) IncreaseReceiverSequence(IncreaseSendSequence(ReceiverFrame)))
+            if (frame == (byte)IncreaseReceiverSequence(IncreaseSendSequence(ReceiverFrame)))
             {
                 ReceiverFrame = frame;
                 return true;
@@ -305,25 +313,25 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
-        /// Generates I-frame. 
+        /// Generates I-frame.
         ///</summary>
         internal byte NextSend()
         {
             SenderFrame = IncreaseReceiverSequence(IncreaseSendSequence(SenderFrame));
             return SenderFrame;
         }
-      
+
         ///<summary>
-        ///Generates Receiver Ready S-frame. 
+        ///Generates Receiver Ready S-frame.
         ///</summary>
         internal byte ReceiverReady()
         {
             SenderFrame = (byte)(IncreaseReceiverSequence(SenderFrame) | 1);
-            return (byte)(SenderFrame & 0xF1);           
+            return (byte)(SenderFrame & 0xF1);
         }
 
         ///<summary>
-        ///Generates Keep Alive S-frame. 
+        ///Generates Keep Alive S-frame.
         ///</summary>
         internal byte KeepAlive()
         {
@@ -332,7 +340,7 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
-        /// Gets Logical Name settings. 
+        /// Gets Logical Name settings.
         ///</summary>
         public GXDLMSLNSettings LnSettings
         {
@@ -350,7 +358,8 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
-        ///Current block index. 
+        ///Current block index.
+        //////</summary>
         public UInt32 BlockIndex
         {
             get;
@@ -358,7 +367,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        ///  Gets starting block index. Default is One based, but some meters use Zero based value. 
+        ///  Gets starting block index. Default is One based, but some meters use Zero based value.
         ///  Usually this is not used.
         /// </summary>
         public UInt32 StartingBlockIndex
@@ -532,7 +541,7 @@ namespace Gurux.DLMS
 
         ///<summary>
         /// Is custom challenges used. If custom challenge is used new challenge is
-        /// not generated if it is set. This is for debugging purposes. 
+        /// not generated if it is set. This is for debugging purposes.
         ///</summary>
         internal bool UseCustomChallenge
         {

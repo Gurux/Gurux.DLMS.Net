@@ -438,7 +438,7 @@ namespace Gurux.DLMS
         /// <param name="reply">Generated message.</param>
         internal static void GetLNPdu(GXDLMSLNParameters p, GXByteBuffer reply)
         {
-            bool ciphering = p.settings.Cipher != null && p.settings.Cipher.Security != Security.None;
+            bool ciphering = p.settings.Cipher != null && p.settings.Cipher.Security != Gurux.DLMS.Enums.Security.None;
             int len = 0;
             if (!ciphering && p.settings.InterfaceType == InterfaceType.HDLC)
             {
@@ -756,7 +756,7 @@ namespace Gurux.DLMS
 
         static int AppendMultipleSNBlocks(GXDLMSSNParameters p, GXByteBuffer header, GXByteBuffer reply)
         {
-            bool ciphering = p.settings.Cipher != null && p.settings.Cipher.Security != Security.None;
+            bool ciphering = p.settings.Cipher != null && p.settings.Cipher.Security != Gurux.DLMS.Enums.Security.None;
             int hSize = reply.Size + 3;
             if (header != null)
             {
@@ -820,7 +820,7 @@ namespace Gurux.DLMS
         /// <param name="reply"></param>
         internal static void GetSNPdu(GXDLMSSNParameters p, GXByteBuffer reply)
         {
-            bool ciphering = p.settings.Cipher != null && p.settings.Cipher.Security != Security.None;
+            bool ciphering = p.settings.Cipher != null && p.settings.Cipher.Security != Gurux.DLMS.Enums.Security.None;
             if (!ciphering && p.settings.InterfaceType == InterfaceType.HDLC)
             {
                 if (p.settings.IsServer)

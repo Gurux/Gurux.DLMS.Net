@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -46,30 +46,30 @@ namespace Gurux.DLMS.Objects
 {
     public class GXDLMSMBusSlavePortSetup : GXDLMSObject, IGXDLMSBase
     {
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         public GXDLMSMBusSlavePortSetup()
-            : base(ObjectType.MBusSlavePortSetup)
+        : base(ObjectType.MBusSlavePortSetup)
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSMBusSlavePortSetup(string ln)
-            : base(ObjectType.MBusSlavePortSetup, ln, 0)
+        : base(ObjectType.MBusSlavePortSetup, ln, 0)
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSMBusSlavePortSetup(string ln, ushort sn)
-            : base(ObjectType.MBusSlavePortSetup, ln, sn)
+        : base(ObjectType.MBusSlavePortSetup, ln, sn)
         {
         }
 
@@ -96,7 +96,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Defines whether or not the device has been assigned an address
         /// since last power up of the device.
-        /// </summary>        
+        /// </summary>
         [XmlIgnore()]
         public AddressState AddressState
         {
@@ -127,7 +127,7 @@ namespace Gurux.DLMS.Objects
         /// Data interface do not have any methods.
         /// </summary>
         /// <param name="index"></param>
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
@@ -160,15 +160,16 @@ namespace Gurux.DLMS.Objects
             if (!IsRead(5))
             {
                 attributes.Add(5);
-            }             
+            }
             return attributes.ToArray();
         }
 
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Default Baud Rate", 
-                "Available Baud rate", "Address State", "Bus Address" };            
+            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Default Baud Rate",
+                              "Available Baud rate", "Address State", "Bus Address"
+                            };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -185,7 +186,7 @@ namespace Gurux.DLMS.Objects
         {
             if (index == 1)
             {
-                return DataType.OctetString;                
+                return DataType.OctetString;
             }
             if (index == 2)
             {
@@ -232,7 +233,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {

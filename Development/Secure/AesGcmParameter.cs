@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -49,7 +49,7 @@ namespace Gurux.DLMS.Secure
             get;
             set;
         }
-        public Security Security
+        public Gurux.DLMS.Enums.Security Security
         {
             get;
             set;
@@ -90,16 +90,19 @@ namespace Gurux.DLMS.Secure
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="command"></param>
+        /// <param name="tag">Command.</param>
         /// <param name="security"></param>
         /// <param name="frameCounter"></param>
         /// <param name="systemTitle"></param>
         /// <param name="blockCipherKey"></param>
         /// <param name="authenticationKey"></param>
-        /// <param name="plainText"></param>
-        public AesGcmParameter(byte tag, Security security,
-            UInt32 frameCounter, byte[] systemTitle,
-            byte[] blockCipherKey, byte[] authenticationKey)
+        public AesGcmParameter(
+            byte tag,
+            Gurux.DLMS.Enums.Security security,
+            UInt32 frameCounter,
+            byte[] systemTitle,
+            byte[] blockCipherKey,
+            byte[] authenticationKey)
         {
             Tag = tag;
             Security = security;
@@ -116,8 +119,10 @@ namespace Gurux.DLMS.Secure
         /// <param name="systemTitle"></param>
         /// <param name="blockCipherKey"></param>
         /// <param name="authenticationKey"></param>
-        public AesGcmParameter(byte[] systemTitle,
-            byte[] blockCipherKey, byte[] authenticationKey)
+        public AesGcmParameter(
+            byte[] systemTitle,
+            byte[] blockCipherKey,
+            byte[] authenticationKey)
         {
             SystemTitle = systemTitle;
             BlockCipherKey = blockCipherKey;

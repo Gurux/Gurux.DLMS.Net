@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -37,9 +37,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.ComponentModel;
 using Gurux.DLMS;
-
-
-
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Objects.Enums;
@@ -49,36 +46,36 @@ namespace Gurux.DLMS.Objects
 {
     public class GXDLMSHdlcSetup : GXDLMSObject, IGXDLMSBase
     {
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         public GXDLMSHdlcSetup()
-            : this(null)
+        : this(null)
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSHdlcSetup(string ln)
-            : this(ln, 0)
+        : this(ln, 0)
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSHdlcSetup(string ln, ushort sn)
-            : base(ObjectType.IecHdlcSetup, ln, sn)
+        : base(ObjectType.IecHdlcSetup, ln, sn)
         {
             CommunicationSpeed = BaudRate.Baudrate9600;
             WindowSizeReceive = WindowSizeTransmit = 1;
             MaximumInfoLengthTransmit = MaximumInfoLengthReceive = 128;
             InactivityTimeout = 120;
-        }       
+        }
 
         [XmlIgnore()]
         public BaudRate CommunicationSpeed
@@ -146,10 +143,11 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, CommunicationSpeed, 
-                WindowSizeTransmit, WindowSizeReceive, 
-                MaximumInfoLengthTransmit, MaximumInfoLengthReceive, 
-                InterCharachterTimeout, InactivityTimeout, DeviceAddress };
+            return new object[] { LogicalName, CommunicationSpeed,
+                              WindowSizeTransmit, WindowSizeReceive,
+                              MaximumInfoLengthTransmit, MaximumInfoLengthReceive,
+                              InterCharachterTimeout, InactivityTimeout, DeviceAddress
+                            };
         }
 
         #region IGXDLMSBase Members
@@ -208,15 +206,16 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, 
-                "Communication Speed", 
-                "Window Size Transmit", 
-                "Window Size Receive", 
-                "Maximum Info Length Transmit", 
-                "Maximum Info Length Receive", 
-                "InterCharachter Timeout", 
-                "Inactivity Timeout", 
-                "Device Address"};
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt,
+                             "Communication Speed",
+                             "Window Size Transmit",
+                             "Window Size Receive",
+                             "Maximum Info Length Transmit",
+                             "Maximum Info Length Receive",
+                             "InterCharachter Timeout",
+                             "Inactivity Timeout",
+                             "Device Address"
+                            };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -312,7 +311,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {
@@ -363,7 +362,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             e.Error = ErrorCode.ReadWriteDenied;
             return null;

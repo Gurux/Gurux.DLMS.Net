@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -51,32 +51,32 @@ namespace Gurux.DLMS.Objects
     /// </summary>
     public class GXDLMSScriptTable : GXDLMSObject, IGXDLMSBase
     {
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         public GXDLMSScriptTable()
-            : base(ObjectType.ScriptTable)
+        : base(ObjectType.ScriptTable)
         {
             Scripts = new List<GXDLMSScript>();
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSScriptTable(string ln)
-            : base(ObjectType.ScriptTable, ln, 0)
+        : base(ObjectType.ScriptTable, ln, 0)
         {
             Scripts = new List<GXDLMSScript>();
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSScriptTable(string ln, ushort sn)
-            : base(ObjectType.ScriptTable, ln, sn)
+        : base(ObjectType.ScriptTable, ln, sn)
         {
             Scripts = new List<GXDLMSScript>();
         }
@@ -97,7 +97,7 @@ namespace Gurux.DLMS.Objects
         #region IGXDLMSBase Members
 
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
@@ -115,7 +115,7 @@ namespace Gurux.DLMS.Objects
             if (!base.IsRead(2))
             {
                 attributes.Add(2);
-            }           
+            }
             return attributes.ToArray();
         }
 
@@ -139,12 +139,12 @@ namespace Gurux.DLMS.Objects
         {
             if (index == 1)
             {
-                return DataType.OctetString;                
+                return DataType.OctetString;
             }
             if (index == 2)
             {
-                return DataType.Array;                
-            }   
+                return DataType.Array;
+            }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
@@ -159,7 +159,7 @@ namespace Gurux.DLMS.Objects
                 int cnt = Scripts.Count;
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Array);
-                //Add count            
+                //Add count
                 GXCommon.SetObjectCount(cnt, data);
                 foreach (GXDLMSScript it in Scripts)
                 {
@@ -172,22 +172,22 @@ namespace Gurux.DLMS.Objects
                     {
                         data.SetUInt8((byte)DataType.Structure);
                         //Count
-                        data.SetUInt8(5); 
+                        data.SetUInt8(5);
                         //service_id
                         GXCommon.SetData(data, DataType.Enum, a.Type);
                         //class_id
-                        GXCommon.SetData(data, DataType.UInt16, a.ObjectType); 
+                        GXCommon.SetData(data, DataType.UInt16, a.ObjectType);
                         //logical_name
-                        GXCommon.SetData(data, DataType.OctetString, a.LogicalName); 
+                        GXCommon.SetData(data, DataType.OctetString, a.LogicalName);
                         //index
                         GXCommon.SetData(data, DataType.Int8, a.Index);
                         //parameter
                         DataType tp = a.ParameterDataType;
                         if (tp == DataType.None)
                         {
-                            tp = GXCommon.GetValueType(a.Parameter);                        
+                            tp = GXCommon.GetValueType(a.Parameter);
                         }
-                        GXCommon.SetData(data, tp, a.Parameter); 
+                        GXCommon.SetData(data, tp, a.Parameter);
                     }
                 }
                 return data.Array();
@@ -196,7 +196,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {
@@ -250,7 +250,7 @@ namespace Gurux.DLMS.Objects
                         script.Actions.Add(it);
                     }
                 }
-            }            
+            }
             else
             {
                 e.Error = ErrorCode.ReadWriteDenied;

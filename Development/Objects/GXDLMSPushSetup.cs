@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -44,33 +44,33 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
-{    
+{
     public class GXDLMSPushSetup : GXDLMSObject, IGXDLMSBase
     {
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         public GXDLMSPushSetup()
-            : this("0.7.25.9.0.255")
+        : this("0.7.25.9.0.255")
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSPushSetup(string ln)
-            : this(ln, 0)
+        : this(ln, 0)
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSPushSetup(string ln, ushort sn)
-            : base(ObjectType.PushSetup, ln, sn)
+        : base(ObjectType.PushSetup, ln, sn)
         {
             CommunicationWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
             PushObjectList = new List<KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
@@ -93,22 +93,22 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Defines the list of attributes or objects to be pushed. 
-        /// Upon a call of the push (data) method the selected attributes are sent to the desti-nation 
+        /// Defines the list of attributes or objects to be pushed.
+        /// Upon a call of the push (data) method the selected attributes are sent to the desti-nation
         /// defined in send_destination_and_method.
-        /// </summary>        
+        /// </summary>
         [XmlIgnore()]
         public List<KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> PushObjectList
         {
             get;
             internal set;
-        }        
+        }
 
-        
-         
+
+
         /// <summary>
-        /// Contains the start and end date/time 
-        /// stamp when the communication window(s) for the push become active 
+        /// Contains the start and end date/time
+        /// stamp when the communication window(s) for the push become active
         /// (for the start instant), or inac-tive (for the end instant).
         /// </summary>
         [XmlIgnore()]
@@ -119,7 +119,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// To avoid simultaneous network connections of a lot of devices at ex-actly 
+        /// To avoid simultaneous network connections of a lot of devices at ex-actly
         /// the same point in time, a randomisation interval in seconds can be defined.
         /// This means that the push operation is not started imme-diately at the
         /// beginning of the first communication window but started randomly delayed.
@@ -131,7 +131,7 @@ namespace Gurux.DLMS.Objects
             set;
         }
         /// <summary>
-        /// The maximum number of retrials in case of unsuccessful push at-tempts. After a successful push no further push attempts are made until the push setup is triggered again. 
+        /// The maximum number of retrials in case of unsuccessful push at-tempts. After a successful push no further push attempts are made until the push setup is triggered again.
         /// A value of 0 means no repetitions, i.e. only the initial connection at-tempt is made.
         /// </summary>
         [XmlIgnore()]
@@ -146,13 +146,14 @@ namespace Gurux.DLMS.Objects
         {
             get;
             set;
-        }                             
+        }
 
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, PushObjectList, Service + " " + Destination + " " + Message,
-            CommunicationWindow, RandomisationStartInterval, NumberOfRetries, RepetitionDelay};
+                              CommunicationWindow, RandomisationStartInterval, NumberOfRetries, RepetitionDelay
+                            };
         }
 
         #region IGXDLMSBase Members
@@ -161,13 +162,13 @@ namespace Gurux.DLMS.Objects
         /// Push interface do not have any methods.
         /// </summary>
         /// <param name="index"></param>
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {
                 //Only TCP/IP push is allowed at the moment.
                 if (Service != ServiceType.Tcp || Message != MessageType.CosemApdu ||
-                    PushObjectList.Count == 0)
+                        PushObjectList.Count == 0)
                 {
                     e.Error = ErrorCode.HardwareFault;
                     return null;
@@ -184,7 +185,7 @@ namespace Gurux.DLMS.Objects
         /// <returns></returns>
         public byte[][] Activate(GXDLMSClient client)
         {
-            return client.Method(this, 1, (byte) 0);
+            return client.Method(this, 1, (byte)0);
         }
 
         int[] IGXDLMSBase.GetAttributeIndexToRead()
@@ -231,8 +232,9 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Push Object List", 
-                "Send Destination And Method", "Communication Window", "Randomisation Start Interval", "Number Of Retries", "Repetition Delay" };            
+            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Push Object List",
+                              "Send Destination And Method", "Communication Window", "Randomisation Start Interval", "Number Of Retries", "Repetition Delay"
+                            };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -298,7 +300,7 @@ namespace Gurux.DLMS.Objects
                     GXCommon.SetData(buff, DataType.Int8, it.Value.AttributeIndex);
                     GXCommon.SetData(buff, DataType.UInt16, it.Value.DataIndex);
                 }
-                return buff.Array();                
+                return buff.Array();
             }
             if (e.Index == 3)
             {
@@ -314,7 +316,7 @@ namespace Gurux.DLMS.Objects
                     GXCommon.SetData(buff, DataType.OctetString, null);
                 }
                 GXCommon.SetData(buff, DataType.UInt8, Message);
-                return buff.Array();     
+                return buff.Array();
             }
             if (e.Index == 4)
             {
@@ -327,7 +329,7 @@ namespace Gurux.DLMS.Objects
                     GXCommon.SetData(buff, DataType.OctetString, it.Key);
                     GXCommon.SetData(buff, DataType.OctetString, it.Value);
                 }
-                return buff.Array(); 
+                return buff.Array();
             }
             if (e.Index == 5)
             {
@@ -345,7 +347,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {
@@ -356,7 +358,7 @@ namespace Gurux.DLMS.Objects
                 else
                 {
                     LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
-                }                
+                }
             }
             else if (e.Index == 2)
             {
@@ -385,7 +387,7 @@ namespace Gurux.DLMS.Objects
                 if (tmp != null)
                 {
                     Service = (ServiceType)Convert.ToInt32(tmp[0]);
-                    Destination = ASCIIEncoding.ASCII.GetString((byte[]) tmp[1]);
+                    Destination = ASCIIEncoding.ASCII.GetString((byte[])tmp[1]);
                     Message = (MessageType)Convert.ToInt32(tmp[2]);
                 }
             }
@@ -397,8 +399,8 @@ namespace Gurux.DLMS.Objects
                     foreach (object it in e.Value as Object[])
                     {
                         Object[] tmp = it as Object[];
-                        GXDateTime start = GXDLMSClient.ChangeType((byte[]) tmp[0], DataType.DateTime) as GXDateTime;
-                        GXDateTime end = GXDLMSClient.ChangeType((byte[]) tmp[1], DataType.DateTime) as GXDateTime;
+                        GXDateTime start = GXDLMSClient.ChangeType((byte[])tmp[0], DataType.DateTime) as GXDateTime;
+                        GXDateTime end = GXDLMSClient.ChangeType((byte[])tmp[1], DataType.DateTime) as GXDateTime;
                         CommunicationWindow.Add(new KeyValuePair<GXDateTime, GXDateTime>(start, end));
                     }
                 }

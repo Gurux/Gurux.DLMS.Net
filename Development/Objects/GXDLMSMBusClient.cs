@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -46,36 +46,36 @@ namespace Gurux.DLMS.Objects
 {
     public class GXDLMSMBusClient : GXDLMSObject, IGXDLMSBase
     {
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         public GXDLMSMBusClient()
-            : base(ObjectType.MBusClient)
+        : base(ObjectType.MBusClient)
         {
             CaptureDefinition = new List<KeyValuePair<string, string>>();
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSMBusClient(string ln)
-            : base(ObjectType.MBusClient, ln, 0)
+        : base(ObjectType.MBusClient, ln, 0)
         {
             CaptureDefinition = new List<KeyValuePair<string, string>>();
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSMBusClient(string ln, ushort sn)
-            : base(ObjectType.MBusClient, ln, sn)
+        : base(ObjectType.MBusClient, ln, sn)
         {
             CaptureDefinition = new List<KeyValuePair<string, string>>();
         }
-                
+
         /// <summary>
         /// Provides reference to an �M-Bus master port setup� object, used to configure
         /// an M-Bus port, each interface allowing to exchange data with one or more
@@ -124,7 +124,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Carries the Version element of the data header as specified in 
+        /// Carries the Version element of the data header as specified in
         /// EN 13757-3 sub-clause 5.6.
         /// </summary>
         [XmlIgnore()]
@@ -175,13 +175,14 @@ namespace Gurux.DLMS.Objects
             get;
             set;
         }
-        
+
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, MBusPortReference, CaptureDefinition, CapturePeriod, 
-            PrimaryAddress, IdentificationNumber, ManufacturerID, DataHeaderVersion, DeviceType, AccessNumber, 
-            Status, Alarm};
+            return new object[] { LogicalName, MBusPortReference, CaptureDefinition, CapturePeriod,
+                              PrimaryAddress, IdentificationNumber, ManufacturerID, DataHeaderVersion, DeviceType, AccessNumber,
+                              Status, Alarm
+                            };
         }
 
         #region IGXDLMSBase Members
@@ -190,7 +191,7 @@ namespace Gurux.DLMS.Objects
         /// Data interface do not have any methods.
         /// </summary>
         /// <param name="index"></param>
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
@@ -280,14 +281,16 @@ namespace Gurux.DLMS.Objects
         {
             if (Version == 0)
             {
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, "MBus Port Reference", 
-                "Capture Definition", "Capture Period", "Primary Address", "Identification Number", 
-                "Manufacturer ID", "Version", "Device Type", "Access Number", "Status", "Alarm"};
+                return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, "MBus Port Reference",
+                                 "Capture Definition", "Capture Period", "Primary Address", "Identification Number",
+                                 "Manufacturer ID", "Version", "Device Type", "Access Number", "Status", "Alarm"
+                                };
             }
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, "MBus Port Reference", 
-                "Capture Definition", "Capture Period", "Primary Address", "Identification Number", 
-                "Manufacturer ID", "Version", "Device Type", "Access Number", "Status", "Alarm", 
-                "Configuration", "Encryption Key Status"};
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, "MBus Port Reference",
+                             "Capture Definition", "Capture Period", "Primary Address", "Identification Number",
+                             "Manufacturer ID", "Version", "Device Type", "Access Number", "Status", "Alarm",
+                             "Configuration", "Encryption Key Status"
+                            };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -382,7 +385,7 @@ namespace Gurux.DLMS.Objects
             if (e.Index == 3)
             {
                 GXByteBuffer buff = new GXByteBuffer();
-                buff.Add((byte) DataType.Array);
+                buff.Add((byte)DataType.Array);
                 GXCommon.SetObjectCount(CaptureDefinition.Count, buff);
                 foreach (KeyValuePair<string, string> it in CaptureDefinition)
                 {
@@ -444,7 +447,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {
@@ -455,7 +458,7 @@ namespace Gurux.DLMS.Objects
                 else
                 {
                     LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
-                }                
+                }
             }
             else if (e.Index == 2)
             {
@@ -466,7 +469,7 @@ namespace Gurux.DLMS.Objects
                 else
                 {
                     MBusPortReference = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
-                }   
+                }
             }
             else if (e.Index == 3)
             {
@@ -476,7 +479,7 @@ namespace Gurux.DLMS.Objects
                     foreach (object[] it in (object[])e.Value)
                     {
                         CaptureDefinition.Add(new KeyValuePair<string, string>(GXDLMSClient.ChangeType((byte[])it[0], DataType.OctetString).ToString(),
-                            GXDLMSClient.ChangeType((byte[])it[1], DataType.OctetString).ToString()));
+                                              GXDLMSClient.ChangeType((byte[])it[1], DataType.OctetString).ToString()));
                     }
                 }
             }

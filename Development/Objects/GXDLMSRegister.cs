@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -47,50 +47,50 @@ namespace Gurux.DLMS.Objects
     public class GXDLMSRegister : GXDLMSObject, IGXDLMSBase
     {
         protected int _scaler;
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         public GXDLMSRegister()
-            : base(ObjectType.Register)
+        : base(ObjectType.Register)
         {
         }
 
         internal GXDLMSRegister(ObjectType type, string ln, ushort sn)
-            : base(type, ln, sn)
+        : base(type, ln, sn)
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSRegister(string ln)
-            : this(ObjectType.Register, ln, 0)
+        : this(ObjectType.Register, ln, 0)
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSRegister(string ln, ushort sn)
-            : this(ObjectType.Register, ln, sn)
+        : this(ObjectType.Register, ln, sn)
         {
         }
 
         /// <summary>
         /// Scaler of COSEM Register object.
-        /// </summary>        
-        [DefaultValue(1.0)]                
+        /// </summary>
+        [DefaultValue(1.0)]
         public double Scaler
         {
             get
-            {                
+            {
                 return Math.Pow(10, _scaler);
             }
             set
-            {                
+            {
                 _scaler = (int)Math.Log10(value);
             }
         }
@@ -117,7 +117,7 @@ namespace Gurux.DLMS.Objects
         {
             get;
             set;
-        }        
+        }
 
         /// <summary>
         /// Reset value.
@@ -125,7 +125,7 @@ namespace Gurux.DLMS.Objects
         /// <returns></returns>
         public byte[][] Reset(GXDLMSClient client)
         {
-            return client.Method(this, 1, (byte)0);            
+            return client.Method(this, 1, (byte)0);
         }
 
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
@@ -137,9 +137,9 @@ namespace Gurux.DLMS.Objects
         #region IGXDLMSBase Members
 
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
-            // Resets the value to the default value. 
+            // Resets the value to the default value.
             // The default value is an instance specific constant.
             if (e.Index == 1)
             {
@@ -202,7 +202,7 @@ namespace Gurux.DLMS.Objects
         {
             if (index == 1)
             {
-                return DataType.OctetString;                
+                return DataType.OctetString;
             }
             if (index == 2)
             {
@@ -210,7 +210,7 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 3)
             {
-                return DataType.Array;                
+                return DataType.Array;
             }
             if (index == 4 && this is GXDLMSExtendedRegister)
             {
@@ -232,7 +232,7 @@ namespace Gurux.DLMS.Objects
             if (e.Index == 3)
             {
                 GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((byte) DataType.Structure);
+                data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8(2);
                 GXCommon.SetData(data, DataType.Int8, _scaler);
                 GXCommon.SetData(data, DataType.Enum, Unit);
@@ -242,7 +242,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {
@@ -294,7 +294,7 @@ namespace Gurux.DLMS.Objects
                     }
                     _scaler = Convert.ToInt32(arr[0]);
                     Unit = (Unit)(Convert.ToInt32(arr[1]) & 0xFF);
-                }               
+                }
             }
             else
             {

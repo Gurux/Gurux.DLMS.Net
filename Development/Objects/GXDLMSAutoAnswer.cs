@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -46,32 +46,32 @@ namespace Gurux.DLMS.Objects
 {
     public class GXDLMSAutoAnswer : GXDLMSObject, IGXDLMSBase
     {
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         public GXDLMSAutoAnswer()
-            : base(ObjectType.AutoAnswer, "0.0.2.2.0.255", 0)
+        : base(ObjectType.AutoAnswer, "0.0.2.2.0.255", 0)
         {
             ListeningWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSAutoAnswer(string ln)
-            : base(ObjectType.AutoAnswer, ln, 0)
+        : base(ObjectType.AutoAnswer, ln, 0)
         {
             ListeningWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSAutoAnswer(string ln, ushort sn)
-            : base(ObjectType.AutoAnswer, ln, sn)
+        : base(ObjectType.AutoAnswer, ln, sn)
         {
             ListeningWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
         }
@@ -103,9 +103,9 @@ namespace Gurux.DLMS.Objects
             get;
             set;
         }
-        
+
         /// <summary>
-        /// Number of rings within the window defined by ListeningWindow.        
+        /// Number of rings within the window defined by ListeningWindow.
         /// </summary>
         [XmlIgnore()]
         public int NumberOfRingsInListeningWindow
@@ -115,7 +115,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Number of rings outside the window defined by ListeningWindow.        
+        /// Number of rings outside the window defined by ListeningWindow.
         /// </summary>
         [XmlIgnore()]
         public int NumberOfRingsOutListeningWindow
@@ -127,8 +127,9 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, Mode, ListeningWindow, Status, 
-                NumberOfCalls, NumberOfRingsInListeningWindow + "/" + NumberOfRingsOutListeningWindow};
+            return new object[] { LogicalName, Mode, ListeningWindow, Status,
+                              NumberOfCalls, NumberOfRingsInListeningWindow + "/" + NumberOfRingsOutListeningWindow
+                            };
         }
 
         #region IGXDLMSBase Members
@@ -156,7 +157,7 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(4);
             }
-            
+
             //NumberOfCalls is static and read only once.
             if (!base.IsRead(5))
             {
@@ -173,12 +174,13 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, 
-            "Mode", 
-            "Listening Window",
-            "Status",
-            "Number Of Calls", 
-            "Number Of Rings In Listening Window"};            
+            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt,
+                             "Mode",
+                             "Listening Window",
+                             "Status",
+                             "Number Of Calls",
+                             "Number Of Rings In Listening Window"
+                            };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -235,7 +237,7 @@ namespace Gurux.DLMS.Objects
                 int cnt = ListeningWindow.Count;
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Array);
-                //Add count            
+                //Add count
                 GXCommon.SetObjectCount(cnt, data);
                 if (cnt != 0)
                 {
@@ -247,7 +249,7 @@ namespace Gurux.DLMS.Objects
                         GXCommon.SetData(data, DataType.OctetString, it.Value); //end_time
                     }
                 }
-                return data.Array();                
+                return data.Array();
             }
             if (e.Index == 4)
             {
@@ -261,17 +263,17 @@ namespace Gurux.DLMS.Objects
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
-                //Add count            
+                //Add count
                 GXCommon.SetObjectCount(2, data);
                 GXCommon.SetData(data, DataType.UInt8, NumberOfRingsInListeningWindow);
-                GXCommon.SetData(data, DataType.UInt8, NumberOfRingsOutListeningWindow);                
-                return data.Array();                
+                GXCommon.SetData(data, DataType.UInt8, NumberOfRingsOutListeningWindow);
+                return data.Array();
             }
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {
@@ -299,7 +301,7 @@ namespace Gurux.DLMS.Objects
                         GXDateTime end = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime);
                         ListeningWindow.Add(new KeyValuePair<GXDateTime, GXDateTime>(start, end));
                     }
-                }                
+                }
             }
             else if (e.Index == 4)
             {
@@ -324,7 +326,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             e.Error = ErrorCode.ReadWriteDenied;
             return null;

@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -40,7 +40,9 @@ using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Security.AccessControl;
 using System.Diagnostics;
+#if !__MOBILE__
 using System.Windows.Forms;
+#endif
 
 namespace GXDLMS.ManufacturerSettings
 {
@@ -150,7 +152,7 @@ namespace GXDLMS.ManufacturerSettings
             /// </summary>
             TokenVirtualizationEnabled = 24,
             /// <summary>
-            /// Integrity level of the token. 
+            /// Integrity level of the token.
             /// </summary>
             TokenIntegrityLevel = 25,
             /// <summary>
@@ -158,7 +160,7 @@ namespace GXDLMS.ManufacturerSettings
             /// </summary>
             TokenUIAccess = 26,
             /// <summary>
-            /// Mandatory integrity level of the token. 
+            /// Mandatory integrity level of the token.
             /// </summary>
             TokenMandatoryPolicy = 27,
             /// <summary>
@@ -179,7 +181,7 @@ namespace GXDLMS.ManufacturerSettings
         [DllImport("advapi32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool OpenProcessToken(IntPtr ProcessHandle,
-            UInt32 DesiredAccess, out IntPtr TokenHandle);
+                                            UInt32 DesiredAccess, out IntPtr TokenHandle);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern IntPtr GetCurrentProcess();
@@ -194,7 +196,7 @@ namespace GXDLMS.ManufacturerSettings
             out uint ReturnLength);
 
         /// <summary>
-        /// Loads a library by given name. 
+        /// Loads a library by given name.
         /// </summary>
         /// <param name="lpFileName">The name of the library to load.</param>
         /// <returns>A handle to the library, if successfully loaded.</returns>
@@ -223,27 +225,27 @@ namespace GXDLMS.ManufacturerSettings
         /// Opens up file access for Everyone at FullAccess.
         /// </summary>
         public static void UpdateFileSecurity(string filePath)
-        {			
-            if (!IsReallyVista() || !IsElevated())
-            {
-                return;
-            }
-            SecurityIdentifier sid = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
-            NTAccount act = (NTAccount)sid.Translate(typeof(NTAccount));
-
-            FileSecurity sec = File.GetAccessControl(filePath);
-            FileSystemAccessRule fsar = new FileSystemAccessRule(act, FileSystemRights.FullControl, AccessControlType.Allow);
-            sec.AddAccessRule(fsar);
-
-            File.SetAccessControl(filePath, sec);
+        {
+#if !__MOBILE__
+        if (!IsReallyVista() || !IsElevated())
+        {
+            return;
+        }
+        SecurityIdentifier sid = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
+        NTAccount act = (NTAccount)sid.Translate(typeof(NTAccount));
+        FileSecurity sec = File.GetAccessControl(filePath);
+        FileSystemAccessRule fsar = new FileSystemAccessRule(act, FileSystemRights.FullControl, AccessControlType.Allow);
+        sec.AddAccessRule(fsar);
+        File.SetAccessControl(filePath, sec);
+#endif
         }
 
         private static bool IsReallyVista()
         {
-			if (Environment.OSVersion.Platform == PlatformID.Unix)
-			{
-				return false;
-			}
+            if (Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                return false;
+            }
             IntPtr hmodule = LoadLibrary("kernel32");
 
             if (hmodule.ToInt32() != 0)
@@ -265,13 +267,13 @@ namespace GXDLMS.ManufacturerSettings
         ///The possible values are:
 
         ///TRUE - the current process is elevated.
-        ///	This value indicates that either UAC is enabled, and the process was elevated by 
-        ///	the administrator, or that UAC is disabled and the process was started by a user 
+        ///	This value indicates that either UAC is enabled, and the process was elevated by
+        ///	the administrator, or that UAC is disabled and the process was started by a user
         ///	who is a member of the Administrators group.
 
         ///FALSE - the current process is not elevated (limited).
-        ///	This value indicates that either UAC is enabled, and the process was started normally, 
-        ///	without the elevation, or that UAC is disabled and the process was started by a standard user. 
+        ///	This value indicates that either UAC is enabled, and the process was started normally,
+        ///	without the elevation, or that UAC is disabled and the process was started by a standard user.
 
         /// </summary>
         /// <returns>Bool indicating whether the current process is elevated</returns>
@@ -347,20 +349,20 @@ namespace GXDLMS.ManufacturerSettings
                 {
                     path += "~";
                 }
-				else
-				{
-	                //Vista: C:\ProgramData
-	                //XP: c:\Program Files\Common Files                
-	                //XP = 5.1 & Vista = 6.0
-	                if (Environment.OSVersion.Version.Major >= 6)
-	                {
-	                    path = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-	                }
-	                else
-	                {
-	                    path = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles);
-	                }
-				}
+                else
+                {
+                    //Vista: C:\ProgramData
+                    //XP: c:\Program Files\Common Files
+                    //XP = 5.1 & Vista = 6.0
+                    if (Environment.OSVersion.Version.Major >= 6)
+                    {
+                        path = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+                    }
+                    else
+                    {
+                        path = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles);
+                    }
+                }
                 path = System.IO.Path.Combine(path, "Gurux");
                 path = System.IO.Path.Combine(path, "GXDLMSDirector");
                 path = System.IO.Path.Combine(path, "GXDLMSDirector.log");

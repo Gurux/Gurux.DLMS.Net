@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -45,36 +45,36 @@ namespace Gurux.DLMS.Objects
 {
     public class GXDLMSTcpUdpSetup : GXDLMSObject, IGXDLMSBase
     {
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         public GXDLMSTcpUdpSetup()
-            : base(ObjectType.TcpUdpSetup, "0.0.25.0.0.255", 0)
+        : base(ObjectType.TcpUdpSetup, "0.0.25.0.0.255", 0)
         {
             Port = 4059;
             InactivityTimeout = 180;
             MaximumSegmentSize = 576;
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSTcpUdpSetup(string ln)
-            : base(ObjectType.TcpUdpSetup, ln, 0)
+        : base(ObjectType.TcpUdpSetup, ln, 0)
         {
             Port = 4059;
             InactivityTimeout = 180;
             MaximumSegmentSize = 576;
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSTcpUdpSetup(string ln, ushort sn)
-            : base(ObjectType.TcpUdpSetup, ln, sn)
+        : base(ObjectType.TcpUdpSetup, ln, sn)
         {
             Port = 4059;
             InactivityTimeout = 180;
@@ -90,7 +90,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// TCP/UDP port number on which the physical device is 
+        /// TCP/UDP port number on which the physical device is
         /// listening for the DLMS/COSEM application.
         /// </summary>
         [XmlIgnore()]
@@ -103,7 +103,7 @@ namespace Gurux.DLMS.Objects
 
         /// <summary>
         /// References an IP setup object by its logical name. The referenced object
-        /// contains information about the IP Address settings of the IP layer 
+        /// contains information about the IP Address settings of the IP layer
         /// supporting the TCP-UDP layer.
         /// </summary>
         [XmlIgnore()]
@@ -125,7 +125,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// The maximum number of simultaneous connections the COSEM 
+        /// The maximum number of simultaneous connections the COSEM
         /// TCP/UDP based transport layer is able to support.
         /// </summary>
         [XmlIgnore()]
@@ -136,7 +136,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Defines the time, expressed in seconds over which, if no frame is 
+        /// Defines the time, expressed in seconds over which, if no frame is
         /// received from the COSEM client, the inactive TCP connection shall be aborted.
         /// When this value is set to 0, this means that the inactivity_time_out is
         /// not operational. In other words, a TCP connection, once established,
@@ -153,14 +153,15 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, Port, IPReference, 
-                MaximumSegmentSize, MaximumSimultaneousConnections, 
-                InactivityTimeout };
+            return new object[] { LogicalName, Port, IPReference,
+                              MaximumSegmentSize, MaximumSimultaneousConnections,
+                              InactivityTimeout
+                            };
         }
 
         #region IGXDLMSBase Members
 
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
@@ -198,15 +199,17 @@ namespace Gurux.DLMS.Objects
             if (!base.IsRead(6))
             {
                 attributes.Add(6);
-            }            
+            }
             return attributes.ToArray();
         }
 
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Port", "IP Reference", 
-                            "Maximum Segment Size", "Maximum Simultaneous Connections", "Inactivity Timeout" };            
+
+            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Port", "IP Reference",
+                              "Maximum Segment Size", "Maximum Simultaneous Connections", "Inactivity Timeout"
+                            };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -223,27 +226,27 @@ namespace Gurux.DLMS.Objects
         {
             if (index == 1)
             {
-                return DataType.OctetString;                
+                return DataType.OctetString;
             }
             if (index == 2)
             {
-                return DataType.UInt16;                
+                return DataType.UInt16;
             }
             if (index == 3)
             {
-                return DataType.OctetString;                
+                return DataType.OctetString;
             }
             if (index == 4)
             {
-                return DataType.UInt16;                
+                return DataType.UInt16;
             }
             if (index == 5)
             {
-                return DataType.UInt8;                
+                return DataType.UInt8;
             }
             if (index == 6)
             {
-                return DataType.UInt16;                
+                return DataType.UInt16;
             }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
@@ -278,7 +281,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {

@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -43,35 +43,35 @@ using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.Objects
-{   
+{
     public class GXDLMSRegisterActivation : GXDLMSObject, IGXDLMSBase
-    {        
-        /// <summary> 
+    {
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         public GXDLMSRegisterActivation()
-            : base(ObjectType.RegisterActivation)
+        : base(ObjectType.RegisterActivation)
         {
             MaskList = new List<KeyValuePair<byte[], byte[]>>();
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSRegisterActivation(string ln)
-            : base(ObjectType.RegisterActivation, ln, 0)
+        : base(ObjectType.RegisterActivation, ln, 0)
         {
             MaskList = new List<KeyValuePair<byte[], byte[]>>();
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSRegisterActivation(string ln, ushort sn)
-            : base(ObjectType.RegisterActivation, ln, sn)
+        : base(ObjectType.RegisterActivation, ln, sn)
         {
             MaskList = new List<KeyValuePair<byte[], byte[]>>();
         }
@@ -118,7 +118,7 @@ namespace Gurux.DLMS.Objects
         /// Data interface do not have any methods.
         /// </summary>
         /// <param name="index"></param>
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e) 
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
@@ -153,7 +153,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Register Assignment", "Mask List", "Active Mask" };            
+            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Register Assignment", "Mask List", "Active Mask" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -174,7 +174,7 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 2)
             {
-                return DataType.Array;                
+                return DataType.Array;
             }
             if (index == 3)
             {
@@ -195,18 +195,18 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 2)
             {
-                GXByteBuffer data = new GXByteBuffer();     
-                data.SetUInt8((byte) DataType.Array);
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte)DataType.Array);
                 if (RegisterAssignment == null)
                 {
                     data.SetUInt8(0);
                 }
                 else
                 {
-                    data.SetUInt8((byte) RegisterAssignment.Length);
+                    data.SetUInt8((byte)RegisterAssignment.Length);
                     foreach (GXDLMSObjectDefinition it in RegisterAssignment)
                     {
-                        data.SetUInt8((byte) DataType.Structure);
+                        data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8(2);
                         GXCommon.SetData(data, DataType.UInt16, it.ClassId);
                         GXCommon.SetData(data, DataType.OctetString, it.LogicalName);
@@ -215,7 +215,7 @@ namespace Gurux.DLMS.Objects
                 return data.Array();
             }
             if (e.Index == 3)
-            {                
+            {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Array);
                 if (MaskList == null)
@@ -248,7 +248,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e) 
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {
@@ -269,10 +269,10 @@ namespace Gurux.DLMS.Objects
                     foreach (Object[] it in (Object[])e.Value)
                     {
                         GXDLMSObjectDefinition item = new GXDLMSObjectDefinition();
-                        item.ClassId = (ObjectType) Convert.ToInt32(it[0]);
-                        item.LogicalName = GXDLMSObject.ToLogicalName((byte[]) it[1]);
+                        item.ClassId = (ObjectType)Convert.ToInt32(it[0]);
+                        item.LogicalName = GXDLMSObject.ToLogicalName((byte[])it[1]);
                         items.Add(item);
-                    }                    
+                    }
                 }
                 RegisterAssignment = items.ToArray();
             }
@@ -284,13 +284,13 @@ namespace Gurux.DLMS.Objects
                     foreach (Object[] it in (Object[])e.Value)
                     {
                         List<byte> index_list = new List<byte>();
-                        foreach(byte b in (Object[]) it[1])
+                        foreach (byte b in (Object[])it[1])
                         {
                             index_list.Add(b);
                         }
                         MaskList.Add(new KeyValuePair<byte[], byte[]>((byte[])it[0], index_list.ToArray()));
-                    }                    
-                }                
+                    }
+                }
             }
             else if (e.Index == 4)
             {
@@ -302,7 +302,7 @@ namespace Gurux.DLMS.Objects
                 {
                     ActiveMask = (byte[])e.Value;
                 }
-            }   
+            }
             else
             {
                 e.Error = ErrorCode.ReadWriteDenied;

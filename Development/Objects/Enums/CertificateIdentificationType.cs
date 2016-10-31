@@ -36,28 +36,22 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Gurux.DLMS.Objects;
-using System.Threading;
 
-namespace Gurux.DLMS
+namespace Gurux.DLMS.Objects.Enums
 {
-    class GXProfileGenericUpdater
+    /// <summary>
+    /// Certificate is identified with entity identification
+    /// or the serial number of the certificate.
+    /// </summary>
+    public enum CertificateIdentificationType
     {
-        GXDLMSProfileGeneric Target;
-        GXDLMSServer Server;
-        public GXProfileGenericUpdater(GXDLMSServer server, GXDLMSProfileGeneric pg)
-        {
-            Server = server;
-            Target = pg;
-        }
-
-        public void UpdateProfileGenericData()
-        {
-            while (true)
-            {
-                Thread.Sleep(Target.CapturePeriod * 1000);
-                Target.Capture(Server);
-            }
-        }
+        /// <summary>
+        /// Certificate is identified with entity identification.
+        /// </summary>
+        Entity = 0,
+        /// <summary>
+        /// Certificate is identified with serial number of the certificate.
+        /// </summary>
+        Serial
     }
 }

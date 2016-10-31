@@ -1,0 +1,268 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{41BAA522-88A1-46E8-9E79-AC5B7B932CE7}</ProjectGuid>
+    <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Gurux.DLMS</RootNamespace>
+    <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
+    <AssemblyName>Gurux.DLMS</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\iOS\Debug\</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\iOS\Release\</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
+    <Reference Include="Xamarin.iOS" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Enums\Access.cs" />
+    <Compile Include="Enums\AccessMode.cs" />
+    <Compile Include="Enums\AccessServiceCommandType.cs" />
+    <Compile Include="Enums\ApplicationReference.cs" />
+    <Compile Include="Enums\AssociationResult.cs" />
+    <Compile Include="Enums\Authentication.cs" />
+    <Compile Include="Enums\ClockStatus.cs" />
+    <Compile Include="Enums\Command.cs" />
+    <Compile Include="Enums\ConfirmedServiceError.cs" />
+    <Compile Include="Enums\Conformance.cs" />
+    <Compile Include="Enums\DataType.cs" />
+    <Compile Include="Enums\DateTimeSkips.cs" />
+    <Compile Include="Enums\Definition.cs" />
+    <Compile Include="Enums\ErrorCode.cs" />
+    <Compile Include="Enums\ExceptionServiceError.cs" />
+    <Compile Include="Enums\ExceptionStateError.cs" />
+    <Compile Include="Enums\HardwareResource.cs" />
+    <Compile Include="Enums\Initiate.cs" />
+    <Compile Include="Enums\InterfaceType.cs" />
+    <Compile Include="Enums\LoadDataSet.cs" />
+    <Compile Include="Enums\MethodAccessMode.cs" />
+    <Compile Include="Enums\ObjectType.cs" />
+    <Compile Include="Enums\Priority.cs" />
+    <Compile Include="Enums\RequestTypes.cs" />
+    <Compile Include="Enums\Security.cs" />
+    <Compile Include="Enums\Service.cs" />
+    <Compile Include="Enums\ServiceClass.cs" />
+    <Compile Include="Enums\ServiceError.cs" />
+    <Compile Include="Enums\SourceDiagnostic.cs" />
+    <Compile Include="Enums\Task.cs" />
+    <Compile Include="Enums\TranslatorOutputType.cs" />
+    <Compile Include="Enums\Unit.cs" />
+    <Compile Include="Enums\UpdateType.cs" />
+    <Compile Include="Enums\VdeStateError.cs" />
+    <Compile Include="GXByteBuffer.cs" />
+    <Compile Include="GXDataInfo.cs" />
+    <Compile Include="GXDate.cs" />
+    <Compile Include="GXDateTime.cs" />
+    <Compile Include="GXDLMS.cs" />
+    <Compile Include="GXDLMSAccessItem.cs" />
+    <Compile Include="GXDLMSBuilder.cs" />
+    <Compile Include="GXDLMSClient.cs" />
+    <Compile Include="GXDLMSConnectionEventArgs.cs" />
+    <Compile Include="GXDLMSConverter.cs" />
+    <Compile Include="GXDLMSException.cs" />
+    <Compile Include="GXDLMSLimits.cs" />
+    <Compile Include="GXDLMSLNCommandHandlers.cs" />
+    <Compile Include="GXDLMSLNParameters.cs" />
+    <Compile Include="GXDLMSLNSettings.cs" />
+    <Compile Include="GXDLMSLongTransaction.cs" />
+    <Compile Include="GXDLMSNotify.cs" />
+    <Compile Include="GXDLMSServer.cs" />
+    <Compile Include="GXDLMSSettings.cs" />
+    <Compile Include="GXDLMSSNCommandHandlers.cs" />
+    <Compile Include="GXDLMSSNParameters.cs" />
+    <Compile Include="GXDLMSSNSettings.cs" />
+    <Compile Include="GXDLMSTranslator.cs" />
+    <Compile Include="GXDLMSTranslatorStructure.cs" />
+    <Compile Include="GXDLMSXmlSettings.cs" />
+    <Compile Include="GXFCS16.cs" />
+    <Compile Include="GXKeyValuePair.cs" />
+    <Compile Include="GXProfileGenericUpdater.cs" />
+    <Compile Include="GXReplyData.cs" />
+    <Compile Include="GXServerReply.cs" />
+    <Compile Include="GXSNInfo.cs" />
+    <Compile Include="GXStandardObisObject.cs" />
+    <Compile Include="GXStandardObisObjectCollection.cs" />
+    <Compile Include="GXTime.cs" />
+    <Compile Include="Internal\ActionRequestType.cs" />
+    <Compile Include="Internal\ActionResponseType.cs" />
+    <Compile Include="Internal\BerType.cs" />
+    <Compile Include="Internal\GetCommandType.cs" />
+    <Compile Include="Internal\GXAes128.cs" />
+    <Compile Include="Internal\GXAPDU.cs" />
+    <Compile Include="Internal\GXCommon.cs" />
+    <Compile Include="Internal\GXDLMSLimitsDefault.cs" />
+    <Compile Include="Internal\GXFCS16.cs" />
+    <Compile Include="Internal\HdlcControlFrame.cs" />
+    <Compile Include="Internal\HdlcFrameType.cs" />
+    <Compile Include="Internal\HDLCInfo.cs" />
+    <Compile Include="Internal\PduType.cs" />
+    <Compile Include="Internal\ReleaseRequestReason.cs" />
+    <Compile Include="Internal\SerialnumberCounter.cs" />
+    <Compile Include="Internal\SetRequestType.cs" />
+    <Compile Include="Internal\SetResponseType.cs" />
+    <Compile Include="Internal\SingleReadResponse.cs" />
+    <Compile Include="Internal\SingleWriteResponse.cs" />
+    <Compile Include="Internal\TranslatorGeneralTags.cs" />
+    <Compile Include="Internal\TranslatorTags.cs" />
+    <Compile Include="Internal\VariableAccessSpecification.cs" />
+    <Compile Include="ManufacturerSettings\GXAttribute.cs" />
+    <Compile Include="ManufacturerSettings\GXAttributeCollection.cs" />
+    <Compile Include="ManufacturerSettings\GXAuthentication.cs" />
+    <Compile Include="ManufacturerSettings\GXDateTimeConverter.cs" />
+    <Compile Include="ManufacturerSettings\GXFileInfo.cs" />
+    <Compile Include="ManufacturerSettings\GXLogWriter.cs" />
+    <Compile Include="ManufacturerSettings\GXManufacturer.cs" />
+    <Compile Include="ManufacturerSettings\GXManufacturerCollection.cs" />
+    <Compile Include="ManufacturerSettings\GXObisCode.cs" />
+    <Compile Include="ManufacturerSettings\GXObisCodeCollection.cs" />
+    <Compile Include="ManufacturerSettings\GXObisCodeConverter.cs" />
+    <Compile Include="ManufacturerSettings\GXObisValueItem.cs" />
+    <Compile Include="ManufacturerSettings\GXObisValueItemCollection.cs" />
+    <Compile Include="ManufacturerSettings\GXServerAddress.cs" />
+    <Compile Include="Objects\Enums\AccessRange.cs" />
+    <Compile Include="Objects\Enums\AddressState.cs" />
+    <Compile Include="Objects\Enums\AssociationStatus.cs" />
+    <Compile Include="Objects\Enums\AutoAnswerMode.cs" />
+    <Compile Include="Objects\Enums\AutoAnswerStatus.cs" />
+    <Compile Include="Objects\Enums\AutoConnectMode.cs" />
+    <Compile Include="Objects\Enums\BaudRate.cs" />
+    <Compile Include="Objects\Enums\CertificateEntity.cs" />
+    <Compile Include="Objects\Enums\CertificateIdentificationType.cs" />
+    <Compile Include="Objects\Enums\CertificateType.cs" />
+    <Compile Include="Objects\Enums\ClockBase.cs" />
+    <Compile Include="Objects\Enums\ControlMode.cs" />
+    <Compile Include="Objects\Enums\ControlState.cs" />
+    <Compile Include="Objects\Enums\GlobalKeyType.cs" />
+    <Compile Include="Objects\Enums\IecTwistedPairSetupMode.cs" />
+    <Compile Include="Objects\Enums\ImageTransferStatus.cs" />
+    <Compile Include="Objects\Enums\Ip4SetupIpOptionType.cs" />
+    <Compile Include="Objects\Enums\LocalPortResponseTime.cs" />
+    <Compile Include="Objects\Enums\MessageType.cs" />
+    <Compile Include="Objects\Enums\OpticalProtocolMode.cs" />
+    <Compile Include="Objects\Enums\PppAuthenticationType.cs" />
+    <Compile Include="Objects\Enums\PppSetupAuthenticationProtocol.cs" />
+    <Compile Include="Objects\Enums\PppSetupCallbackOperation.cs" />
+    <Compile Include="Objects\Enums\PppSetupIPCompressionProtocol.cs" />
+    <Compile Include="Objects\Enums\PppSetupIPCPOptionType.cs" />
+    <Compile Include="Objects\Enums\PppSetupLcpOptionType.cs" />
+    <Compile Include="Objects\Enums\ScriptActionType.cs" />
+    <Compile Include="Objects\Enums\SecurityPolicy.cs" />
+    <Compile Include="Objects\Enums\SecuritySuite.cs" />
+    <Compile Include="Objects\Enums\ServiceType.cs" />
+    <Compile Include="Objects\Enums\SingleActionScheduleType.cs" />
+    <Compile Include="Objects\Enums\SortMethod.cs" />
+    <Compile Include="Objects\GXApplicationContextName.cs" />
+    <Compile Include="Objects\GXAuthenticationMechanismName.cs" />
+    <Compile Include="Objects\GXDLMSActionItem.cs" />
+    <Compile Include="Objects\GXDLMSActionSchedule.cs" />
+    <Compile Include="Objects\GXDLMSActionSet.cs" />
+    <Compile Include="Objects\GXDLMSActivityCalendar.cs" />
+    <Compile Include="Objects\GXDLMSAssociationLogicalName.cs" />
+    <Compile Include="Objects\GXDLMSAssociationShortName.cs" />
+    <Compile Include="Objects\GXDLMSAutoAnswer.cs" />
+    <Compile Include="Objects\GXDLMSAutoConnect.cs" />
+    <Compile Include="Objects\GXDLMSCallback.cs" />
+    <Compile Include="Objects\GXDLMSCaptureObject.cs" />
+    <Compile Include="Objects\GXDLMSCertificateInfo.cs" />
+    <Compile Include="Objects\GXDLMSClock.cs" />
+    <Compile Include="Objects\GXDLMSData.cs" />
+    <Compile Include="Objects\GXDLMSDayProfile.cs" />
+    <Compile Include="Objects\GXDLMSDemandRegister.cs" />
+    <Compile Include="Objects\GXDLMSDisconnectControl.cs" />
+    <Compile Include="Objects\GXDLMSEmergencyProfile.cs" />
+    <Compile Include="Objects\GXDLMSExtendedRegister.cs" />
+    <Compile Include="Objects\GXDLMSGprsSetup.cs" />
+    <Compile Include="Objects\GXDLMSHdlcSetup.cs" />
+    <Compile Include="Objects\GXDLMSIECOpticalPortSetup.cs" />
+    <Compile Include="Objects\GXDLMSIecTwistedPairSetup.cs" />
+    <Compile Include="Objects\GXDLMSImageActivateInfo.cs" />
+    <Compile Include="Objects\GXDLMSImageTransfer.cs" />
+    <Compile Include="Objects\GXDLMSIp4Setup.cs" />
+    <Compile Include="Objects\GXDLMSIp4SetupIpOption.cs" />
+    <Compile Include="Objects\GXDLMSLimiter.cs" />
+    <Compile Include="Objects\GXDLMSMacAddressSetup.cs" />
+    <Compile Include="Objects\GXDLMSMBusClient.cs" />
+    <Compile Include="Objects\GXDLMSMBusMasterPortSetup.cs" />
+    <Compile Include="Objects\GXDLMSMBusSlavePortSetup.cs" />
+    <Compile Include="Objects\GXDLMSMessageHandler.cs" />
+    <Compile Include="Objects\GXDLMSModemConfiguration.cs" />
+    <Compile Include="Objects\GXDLMSModemInitialisation.cs" />
+    <Compile Include="Objects\GXDLMSMonitoredValue.cs" />
+    <Compile Include="Objects\GXDLMSObject.cs" />
+    <Compile Include="Objects\GXDLMSObjectCollection.cs" />
+    <Compile Include="Objects\GXDLMSObjectDefinition.cs" />
+    <Compile Include="Objects\GXDLMSPppSetup.cs" />
+    <Compile Include="Objects\GXDLMSPppSetupIPCPOption.cs" />
+    <Compile Include="Objects\GXDLMSPppSetupLcpOption.cs" />
+    <Compile Include="Objects\GXDLMSProfileGeneric.cs" />
+    <Compile Include="Objects\GXDLMSPushSetup.cs" />
+    <Compile Include="Objects\GXDLMSQosElement.cs" />
+    <Compile Include="Objects\GXDLMSRegister.cs" />
+    <Compile Include="Objects\GXDLMSRegisterActivation.cs" />
+    <Compile Include="Objects\GXDLMSRegisterMonitor.cs" />
+    <Compile Include="Objects\GXDLMSSapAssignment.cs" />
+    <Compile Include="Objects\GXDLMSSchedule.cs" />
+    <Compile Include="Objects\GXDLMSScript.cs" />
+    <Compile Include="Objects\GXDLMSScriptAction.cs" />
+    <Compile Include="Objects\GXDLMSScriptTable.cs" />
+    <Compile Include="Objects\GXDLMSSeasonProfile.cs" />
+    <Compile Include="Objects\GXDLMSSecuritySetup.cs" />
+    <Compile Include="Objects\GXDLMSSpecialDay.cs" />
+    <Compile Include="Objects\GXDLMSSpecialDaysTable.cs" />
+    <Compile Include="Objects\GXDLMSTcpUdpSetup.cs" />
+    <Compile Include="Objects\GXDLMSWeekProfile.cs" />
+    <Compile Include="Objects\GXProfileGenericUpdater.cs" />
+    <Compile Include="Objects\GXScheduleEntry.cs" />
+    <Compile Include="Objects\GXxDLMSContextType.cs" />
+    <Compile Include="Objects\IGXDLMSBase.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Secure\AesGcmParameter.cs" />
+    <Compile Include="Secure\CountType.cs" />
+    <Compile Include="Secure\GXCiphering.cs" />
+    <Compile Include="Secure\GXDLMSChippering.cs" />
+    <Compile Include="Secure\GXDLMSChipperingStream.cs" />
+    <Compile Include="Secure\GXDLMSSecureClient.cs" />
+    <Compile Include="Secure\GXDLMSSecureNotify.cs" />
+    <Compile Include="Secure\GXDLMSSecureServer.cs" />
+    <Compile Include="Secure\GXICipher.cs" />
+    <Compile Include="Secure\GXSecure.cs" />
+    <Compile Include="Shared\GXCommon.cs" />
+    <Compile Include="TranslatorSimpleTags.cs" />
+    <Compile Include="TranslatorStandardTags.cs" />
+    <Compile Include="ValueEventArgs.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
+</Project>

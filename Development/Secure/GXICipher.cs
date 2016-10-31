@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -41,7 +41,8 @@ namespace Gurux.DLMS.Secure
         /// <summary>
         /// Encrypt PDU.
         /// </summary>
-        /// <param name="command">Command.</param>
+        /// <param name="tag">Command.</param>
+        /// <param name="title">System title.</param>
         /// <param name="data">Data to encrypt.</param>
         /// <returns>Encrypted data.</returns>
         byte[] Encrypt(byte tag, byte[] title, byte[] data);
@@ -49,8 +50,9 @@ namespace Gurux.DLMS.Secure
         /// <summary>
         /// Decrypt data.
         /// </summary>
+        /// <param name="title">System title.</param>
         /// <param name="data">Decrypted data.</param>
-        Security Decrypt(byte[] title, GXByteBuffer data);
+        Gurux.DLMS.Enums.Security Decrypt(byte[] title, GXByteBuffer data);
 
         /// <summary>
         /// Reset encrypt settings.
@@ -58,15 +60,15 @@ namespace Gurux.DLMS.Secure
         void Reset();
 
         /// <summary>
-        /// Is ciphering used. 
+        /// Is ciphering used.
         /// </summary>
-        /// <returns></returns> 
+        /// <returns></returns>
         bool IsCiphered();
 
         /// <summary>
         /// Used security.
         /// </summary>
-        Security Security
+        Gurux.DLMS.Enums.Security Security
         {
             get;
             set;

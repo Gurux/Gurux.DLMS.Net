@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -43,35 +43,36 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Secure;
+using System.Security.Cryptography;
 
 namespace Gurux.DLMS.Objects
 {
     public class GXDLMSSecuritySetup : GXDLMSObject, IGXDLMSBase
     {
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         public GXDLMSSecuritySetup()
-            : this("0.0.43.0.0.255")
+        : this("0.0.43.0.0.255")
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSSecuritySetup(string ln)
-            : base(ObjectType.SecuritySetup, ln, 0)
+        : base(ObjectType.SecuritySetup, ln, 0)
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor.
-        /// </summary> 
+        /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public GXDLMSSecuritySetup(string ln, ushort sn)
-            : base(ObjectType.SecuritySetup, ln, sn)
+        : base(ObjectType.SecuritySetup, ln, sn)
         {
             Certificates = new List<GXDLMSCertificateInfo>();
         }
@@ -129,8 +130,9 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, SecurityPolicy, SecuritySuite, 
-            ClientSystemTitle, ServerSystemTitle, Certificates};
+            return new object[] { LogicalName, SecurityPolicy, SecuritySuite,
+                              ClientSystemTitle, ServerSystemTitle, Certificates
+                            };
         }
 
         /// <summary>
@@ -138,21 +140,21 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="security">Security level.</param>
         /// <returns>Integer value of security level.</returns>
-        private static int GetSecurityValue(Security security)
+        private static int GetSecurityValue(Gurux.DLMS.Enums.Security security)
         {
             int value = 0;
             switch (security)
             {
-                case Security.None:
+                case Gurux.DLMS.Enums.Security.None:
                     value = 0;
                     break;
-                case Security.Authentication:
+                case Gurux.DLMS.Enums.Security.Authentication:
                     value = 1;
                     break;
-                case Security.Encryption:
+                case Gurux.DLMS.Enums.Security.Encryption:
                     value = 2;
                     break;
-                case Security.AuthenticationEncryption:
+                case Gurux.DLMS.Enums.Security.AuthenticationEncryption:
                     value = 3;
                     break;
                 default:
@@ -162,18 +164,18 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Activates and strengthens the security policy. 
+        /// Activates and strengthens the security policy.
         /// </summary>
         /// <param name="client">DLMS client that is used to generate action.</param>
         /// <param name="security">New security level.</param>
         /// <returns>Generated action.</returns>
-        public byte[][] Activate(GXDLMSClient client, Security security)
+        public byte[][] Activate(GXDLMSClient client, Gurux.DLMS.Enums.Security security)
         {
             return client.Method(this, 1, GetSecurityValue(security), DataType.Enum);
         }
 
         /// <summary>
-        /// Updates one or more global keys. 
+        /// Updates one or more global keys.
         /// </summary>
         /// <param name="client">DLMS client that is used to generate action.</param>
         /// <param name="kek">Master key, also known as Key Encrypting Key.</param>
@@ -225,8 +227,8 @@ namespace Gurux.DLMS.Objects
             return client.Method(this, 3, bb.Array(), DataType.Array);
         }
 
-         /// <summary>
-        ///  Generates an asymmetric key pair as required by the security suite. 
+        /// <summary>
+        ///  Generates an asymmetric key pair as required by the security suite.
         /// </summary>
         /// <param name="client">DLMS client that is used to generate action.</param>
         /// <param name="type">New certificate type.</param>
@@ -235,8 +237,8 @@ namespace Gurux.DLMS.Objects
         {
             return client.Method(this, 4, type, DataType.Enum);
         }
-         
-          /// <summary>
+
+        /// <summary>
         ///  Ask Server sends the Certificate Signing Request (CSR) data.
         /// </summary>
         /// <param name="client">DLMS client that is used to generate action.</param>
@@ -245,7 +247,19 @@ namespace Gurux.DLMS.Objects
         public byte[][] GenerateCertificate(GXDLMSClient client, CertificateType type)
         {
             return client.Method(this, 5, type, DataType.Enum);
-        }       
+        }
+#if !__MOBILE__
+    /// <summary>
+    ///  Imports an X.509 v3 certificate of a public key.
+    /// </summary>
+    /// <param name="client">DLMS client that is used to generate action.</param>
+    /// <param name="key">Public key.</param>
+    /// <returns>Generated action.</returns>
+    public byte[][] Import(GXDLMSClient client, CngKey key)
+    {
+        return ImportCertificate(client, key.Export(CngKeyBlobFormat.EccPublicBlob));
+    }
+#endif
 
         /// <summary>
         ///  Imports an X.509 v3 certificate of a public key.
@@ -257,9 +271,9 @@ namespace Gurux.DLMS.Objects
         {
             return client.Method(this, 6, key, DataType.OctetString);
         }
-                
+
         /// <summary>
-        /// Exports an X.509 v3 certificate from the server using entity information. 
+        /// Exports an X.509 v3 certificate from the server using entity information.
         /// </summary>
         /// <param name="client">DLMS client that is used to generate action.</param>
         /// <param name="entity">Certificate entity.</param>
@@ -274,7 +288,7 @@ namespace Gurux.DLMS.Objects
             //Add enum
             bb.SetUInt8(DataType.Enum);
             bb.SetUInt8(0);
-            //Add certificate_identification_by_entity 
+            //Add certificate_identification_by_entity
             bb.SetUInt8(DataType.Structure);
             bb.SetUInt8(3);
             //Add certificate_entity
@@ -287,9 +301,9 @@ namespace Gurux.DLMS.Objects
             GXCommon.SetData(bb, DataType.OctetString, systemTitle);
             return client.Method(this, 7, bb.Array(), DataType.OctetString);
         }
-          
+
         /// <summary>
-        /// Exports an X.509 v3 certificate from the server using serial information. 
+        /// Exports an X.509 v3 certificate from the server using serial information.
         /// </summary>
         /// <param name="client">DLMS client that is used to generate action.</param>
         /// <param name="serialNumber">Serial number.</param>
@@ -303,9 +317,9 @@ namespace Gurux.DLMS.Objects
             //Add enum
             bb.SetUInt8(DataType.Enum);
             bb.SetUInt8(1);
-            //Add certificate_identification_by_entity 
+            //Add certificate_identification_by_entity
             bb.SetUInt8(DataType.Structure);
-            bb.SetUInt8(2);           
+            bb.SetUInt8(2);
             //serialNumber
             GXCommon.SetData(bb, DataType.OctetString, serialNumber);
             //issuer
@@ -329,7 +343,7 @@ namespace Gurux.DLMS.Objects
             //Add enum
             bb.SetUInt8(DataType.Enum);
             bb.SetUInt8(0);
-            //Add certificate_identification_by_entity 
+            //Add certificate_identification_by_entity
             bb.SetUInt8(DataType.Structure);
             bb.SetUInt8(3);
             //Add certificate_entity
@@ -358,7 +372,7 @@ namespace Gurux.DLMS.Objects
             //Add enum
             bb.SetUInt8(DataType.Enum);
             bb.SetUInt8(1);
-            //Add certificate_identification_by_entity 
+            //Add certificate_identification_by_entity
             bb.SetUInt8(DataType.Structure);
             bb.SetUInt8(2);
             //serialNumber
@@ -453,11 +467,13 @@ namespace Gurux.DLMS.Objects
         {
             if (this.Version == 0)
             {
-                return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Security Policy", 
-                "Security Suite"};
+                return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Security Policy",
+                                  "Security Suite"
+                                };
             }
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Security Policy", 
-                "Security Suite", "Client System Title", "Server System Title" , "Certificates"};
+            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Security Policy",
+                              "Security Suite", "Client System Title", "Server System Title" , "Certificates"
+                            };
         }
 
         int IGXDLMSBase.GetAttributeCount()
