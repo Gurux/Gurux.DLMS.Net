@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -83,7 +83,7 @@ namespace Gurux.DLMS.Client.Example
             writer.Write(text);
             Console.Write(text);
         }
-        
+
         static void TraceLine(TextWriter writer, string text)
         {
             writer.WriteLine(text);
@@ -91,9 +91,9 @@ namespace Gurux.DLMS.Client.Example
         }
 
         static void Main(string[] args)
-        {            
+        {
             IGXMedia media = null;
-            GXCommunicatation comm = null;            
+            GXCommunicatation comm = null;
             try
             {
                 TextWriter logFile = new StreamWriter(File.Open("LogFile.txt", FileMode.Create));
@@ -240,7 +240,7 @@ namespace Gurux.DLMS.Client.Example
                     {
                         using (Stream stream = File.Open(path, FileMode.Open))
                         {
-                            Console.WriteLine("Get available objects from the cache.");                            
+                            Console.WriteLine("Get available objects from the cache.");
                             objects = x.Deserialize(stream) as GXDLMSObjectCollection;
                             stream.Close();
                         }
@@ -254,9 +254,9 @@ namespace Gurux.DLMS.Client.Example
                         throw ex;
                     }
                 }
-                else                
+                else
                  */
-                {                   
+                {
                     Console.WriteLine("Get available objects from the device.");
                     objects = comm.GetAssociationView();
                     GXDLMSObjectCollection objs = objects.GetObjects(new ObjectType[] { ObjectType.Register, ObjectType.ExtendedRegister, ObjectType.DemandRegister });
@@ -322,9 +322,9 @@ namespace Gurux.DLMS.Client.Example
                                 First = false;
                                 sb.Append(col.Name);
                                 sb.Append(" ");
-                                sb.Append(col.Description);                                
+                                sb.Append(col.Description);
                             }
-                            TraceLine(logFile, sb.ToString());                            
+                            TraceLine(logFile, sb.ToString());
                         }
                         catch (Exception ex)
                         {
@@ -335,8 +335,8 @@ namespace Gurux.DLMS.Client.Example
                     try
                     {
                         using (Stream stream = File.Open(path, FileMode.Create))
-                        {                            
-                            TextWriter writer = new StreamWriter(stream);                            
+                        {
+                            TextWriter writer = new StreamWriter(stream);
                             x.Serialize(writer, objects);
                             writer.Close();
                             stream.Close();
@@ -433,7 +433,7 @@ namespace Gurux.DLMS.Client.Example
                         }
                     }
                 }
-                //Find profile generics and read them.                
+                //Find profile generics and read them.
                 foreach (GXDLMSObject it in objects.GetObjects(ObjectType.ProfileGeneric))
                 {
                     TraceLine(logFile, "-------- Reading " + it.GetType().Name + " " + it.Name + " " + it.Description);
@@ -456,7 +456,7 @@ namespace Gurux.DLMS.Client.Example
                             {
                                 if (cell is byte[])
                                 {
-                                    sb.Append(GXCommon.ToHex((byte[]) cell, true));
+                                    sb.Append(GXCommon.ToHex((byte[])cell, true));
                                 }
                                 else
                                 {
@@ -475,7 +475,7 @@ namespace Gurux.DLMS.Client.Example
                     }
                     try
                     {
-                        //Read last day from Profile Generic.                    
+                        //Read last day from Profile Generic.
                         object[] rows = comm.ReadRowsByRange(it as GXDLMSProfileGeneric, DateTime.Now.Date, DateTime.MaxValue);
                         StringBuilder sb = new StringBuilder();
                         foreach (object[] row in rows)
@@ -522,7 +522,7 @@ namespace Gurux.DLMS.Client.Example
                 if (comm != null)
                 {
                     comm.Close();
-                }                
+                }
                 if (System.Diagnostics.Debugger.IsAttached)
                 {
                     Console.WriteLine("Ended. Press any key to continue.");

@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -59,7 +59,7 @@ namespace Gurux.DLMS.Client.Example
         IGXMedia Media;
         bool InitializeIEC;
         GXManufacturer Manufacturer;
-        HDLCAddressType HDLCAddressing;        
+        HDLCAddressType HDLCAddressing;
 
         /// <summary>
         /// Constructor.
@@ -70,7 +70,7 @@ namespace Gurux.DLMS.Client.Example
             Media = media;
             InitializeIEC = initializeIEC;
             Client.Authentication = authentication;
-            Client.Password = ASCIIEncoding.ASCII.GetBytes(password);            
+            Client.Password = ASCIIEncoding.ASCII.GetBytes(password);
             //Delete trace file if exists.
             if (File.Exists("trace.txt"))
             {
@@ -123,10 +123,12 @@ namespace Gurux.DLMS.Client.Example
             {
                 Client.InterfaceType = InterfaceType.HDLC;
             }
+            //Mikko
+            Client.InterfaceType = InterfaceType.HDLC;
             Client.UseLogicalNameReferencing = Manufacturer.UseLogicalNameReferencing;
             //If network media is used check is manufacturer supporting IEC 62056-47
             GXServerAddress server = Manufacturer.GetServer(HDLCAddressing);
-           //Mikko Client.ClientAddress = Manufacturer.GetAuthentication(Client.Authentication).ClientAddress;
+            Client.ClientAddress = Manufacturer.GetAuthentication(Client.Authentication).ClientAddress;
             if (Client.InterfaceType == InterfaceType.WRAPPER)
             {
                 if (HDLCAddressing == HDLCAddressType.SerialNumber)
@@ -137,7 +139,7 @@ namespace Gurux.DLMS.Client.Example
                 {
                     Client.ServerAddress = server.PhysicalAddress;
                 }
-                Client.ServerAddress = Client.ClientAddress = 1; 
+                Client.ServerAddress = Client.ClientAddress = 1;
             }
             else
             {
@@ -273,10 +275,10 @@ namespace Gurux.DLMS.Client.Example
                 //Send ACK
                 //Send Protocol control character
                 byte controlCharacter = (byte)'2';// "2" HDLC protocol procedure (Mode E)
-                //Send Baudrate character
-                //Mode control character 
+                                                  //Send Baudrate character
+                                                  //Mode control character
                 byte ModeControlCharacter = (byte)'2';//"2" //(HDLC protocol procedure) (Binary mode)
-                //Set mode E.
+                                                      //Set mode E.
                 byte[] arr = new byte[] { 0x06, controlCharacter, (byte)baudrate, ModeControlCharacter, 13, 10 };
                 Console.WriteLine("Moving to mode E.", arr);
                 lock (Media.Synchronous)
@@ -305,7 +307,7 @@ namespace Gurux.DLMS.Client.Example
                         serial.StopBits = StopBits.One;
                         System.Threading.Thread.Sleep(400);
                         serial.Open();
-                        serial.ResetSynchronousBuffer();                        
+                        serial.ResetSynchronousBuffer();
                     }
                 }
             }
@@ -323,7 +325,7 @@ namespace Gurux.DLMS.Client.Example
             if (Media is GXSerial)
             {
                 Console.WriteLine("Initializing serial connection.");
-                InitSerial();                
+                InitSerial();
             }
             else if (Media is GXNet)
             {
@@ -333,7 +335,7 @@ namespace Gurux.DLMS.Client.Example
                 System.Threading.Thread.Sleep(500);
             }
             else
-            {                
+            {
                 throw new Exception("Unknown media type.");
             }
             GXReplyData reply = new GXReplyData();
@@ -355,7 +357,7 @@ namespace Gurux.DLMS.Client.Example
                 Console.WriteLine("Parsing UA reply succeeded.");
             }
             //Generate AARQ request.
-            //Split requests to multiple packets if needed. 
+            //Split requests to multiple packets if needed.
             //If password is used all data might not fit to one packet.
             foreach (byte[] it in Client.AARQRequest())
             {
@@ -409,7 +411,7 @@ namespace Gurux.DLMS.Client.Example
             {
                 it.SetDataType(attributeIndex, reply.DataType);
             }
-            return Client.UpdateValue(it, attributeIndex, reply.Value);            
+            return Client.UpdateValue(it, attributeIndex, reply.Value);
         }
 
         /// <summary>
@@ -438,7 +440,7 @@ namespace Gurux.DLMS.Client.Example
             {
                 throw new Exception("Invalid reply. Read items count do not match.");
             }
-            Client.UpdateValues(list, values);        
+            Client.UpdateValues(list, values);
         }
 
         /// <summary>
@@ -447,7 +449,7 @@ namespace Gurux.DLMS.Client.Example
         public void Write(GXDLMSObject it, int attributeIndex)
         {
             GXReplyData reply = new GXReplyData();
-            ReadDataBlock(Client.Write(it, attributeIndex), reply);                        
+            ReadDataBlock(Client.Write(it, attributeIndex), reply);
         }
 
         /// <summary>
@@ -456,8 +458,8 @@ namespace Gurux.DLMS.Client.Example
         public void Method(GXDLMSObject it, int attributeIndex, object value, DataType type)
         {
             GXReplyData reply = new GXReplyData();
-            ReadDataBlock(Client.Method(it, attributeIndex, value, type), reply);                        
-        }        
+            ReadDataBlock(Client.Method(it, attributeIndex, value, type), reply);
+        }
 
         /// <summary>
         /// Read Profile Generic Columns by entry.
@@ -466,7 +468,7 @@ namespace Gurux.DLMS.Client.Example
         {
             GXReplyData reply = new GXReplyData();
             ReadDataBlock(Client.ReadRowsByEntry(it, index, count), reply);
-            return (object[]) Client.UpdateValue(it, 2, reply.Value);
+            return (object[])Client.UpdateValue(it, 2, reply.Value);
         }
 
         /// <summary>
@@ -546,21 +548,21 @@ namespace Gurux.DLMS.Client.Example
                         {
                             System.Diagnostics.Debug.WriteLine("Data send failed. Try to resend " + pos.ToString() + "/3");
                             continue;
-                        }                        
+                        }
                         throw new Exception("Failed to receive reply from the device in given time.");
                     }
                 }
                 try
                 {
-                    //Loop until whole COSEM packet is received.                
+                    //Loop until whole COSEM packet is received.
                     while (!Client.GetData(p.Reply, reply))
-                    {                       
+                    {
                         //If Eop is not set read one byte at time.
                         if (p.Eop == null)
                         {
                             p.Count = 1;
                         }
-                        while(!Media.Receive(p))
+                        while (!Media.Receive(p))
                         {
                             //If echo.
                             if (p.Reply.Length == data.Length)
@@ -572,7 +574,7 @@ namespace Gurux.DLMS.Client.Example
                             {
                                 System.Diagnostics.Debug.WriteLine("Data send failed. Try to resend " + pos.ToString() + "/3");
                                 continue;
-                            }                             
+                            }
                             throw new Exception("Failed to receive reply from the device in given time.");
                         }
                     }
@@ -616,12 +618,12 @@ namespace Gurux.DLMS.Client.Example
 
             // Step 2: The client initiates the Image transfer process.
             reply.Clear();
-            ReadDataBlock(target.ImageTransferInitiate(Client, Identification, data.Length), reply);           
+            ReadDataBlock(target.ImageTransferInitiate(Client, Identification, data.Length), reply);
             // Step 3: The client transfers ImageBlocks.
             reply.Clear();
             int ImageBlockCount;
             ReadDataBlock(target.ImageBlockTransfer(Client, data, out ImageBlockCount), reply);
-            //Step 4: The client checks the completeness of the Image in 
+            //Step 4: The client checks the completeness of the Image in
             //each server individually and transfers any ImageBlocks not (yet) transferred;
             reply.Clear();
             Client.UpdateValue(target, 2, reply);
@@ -632,7 +634,7 @@ namespace Gurux.DLMS.Client.Example
             // Step 6: Before activation, the Image is checked;
 
             //Get list to imaages to activate.
-            reply.Clear(); 
+            reply.Clear();
             ReadDataBlock(Client.Read(target, 7), reply);
             Client.UpdateValue(target, 7, reply);
             bool bFound = false;
@@ -646,7 +648,7 @@ namespace Gurux.DLMS.Client.Example
             }
 
             //Read image transfer status.
-            reply.Clear(); 
+            reply.Clear();
             ReadDataBlock(Client.Read(target, 6), reply);
             Client.UpdateValue(target, 6, reply.Value);
             if (target.ImageTransferStatus != ImageTransferStatus.VerificationSuccessful)
@@ -687,7 +689,7 @@ namespace Gurux.DLMS.Client.Example
             while (reply.IsMoreData)
             {
                 data = Client.ReceiverReady(reply.MoreData);
-                ReadDLMSPacket(data, reply);                
+                ReadDLMSPacket(data, reply);
                 if (!Trace)
                 {
                     //If data block is read.

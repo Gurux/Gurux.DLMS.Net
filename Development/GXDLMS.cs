@@ -1227,6 +1227,7 @@ namespace Gurux.DLMS
             if (!CheckHdlcAddress(server, settings, reply, eopPos))
             {
                 //If echo,
+                reply.Position = 1 + eopPos;
                 return GetHdlcData(server, settings, reply, data);
             }
 

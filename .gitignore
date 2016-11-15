@@ -17,6 +17,7 @@ local.properties
 .loadpath
 Gurux.DLMS.Client.Example.Net/packages/
 Gurux.DLMS.Server.Example.Net/packages/
+Gurux.DLMS.Push.Listener.Example.Net/packages/
 
 # External tool builders
 .externalToolBuilders/
