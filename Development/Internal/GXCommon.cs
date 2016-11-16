@@ -1529,10 +1529,10 @@ namespace Gurux.DLMS.Internal
                     buff.SetUInt64(Convert.ToUInt64(value));
                     break;
                 case DataType.Float32:
-                    buff.Set(BitConverter.GetBytes((float)value));
+                    buff.SetFloat((float)value);
                     break;
                 case DataType.Float64:
-                    buff.Set(BitConverter.GetBytes((double)value));
+                    buff.SetDouble((double)value);
                     break;
                 case DataType.BitString:
                     SetBitString(buff, value);
