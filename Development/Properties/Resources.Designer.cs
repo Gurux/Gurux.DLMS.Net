@@ -22,7 +22,7 @@ namespace Gurux.DLMS.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class Resources {
+    internal class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace Gurux.DLMS.Properties {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Resources.ResourceManager ResourceManager {
+        internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Gurux.DLMS.Properties.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace Gurux.DLMS.Properties {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Globalization.CultureInfo Culture {
+        internal static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Access Error : Device reports scope of access violated..
         /// </summary>
-        public static string AccessViolatedTxt {
+        internal static string AccessViolatedTxt {
             get {
                 return ResourceManager.GetString("AccessViolatedTxt", resourceCulture);
             }
@@ -72,7 +72,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Access Error : Data Block Number Invalid..
         /// </summary>
-        public static string DataBlockNumberInvalidTxt {
+        internal static string DataBlockNumberInvalidTxt {
             get {
                 return ResourceManager.GetString("DataBlockNumberInvalidTxt", resourceCulture);
             }
@@ -81,7 +81,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Access Error : Data Block Unavailable..
         /// </summary>
-        public static string DataBlockUnavailableTxt {
+        internal static string DataBlockUnavailableTxt {
             get {
                 return ResourceManager.GetString("DataBlockUnavailableTxt", resourceCulture);
             }
@@ -90,7 +90,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Access Error : Device reports a hardware fault..
         /// </summary>
-        public static string HardwareFaultTxt {
+        internal static string HardwareFaultTxt {
             get {
                 return ResourceManager.GetString("HardwareFaultTxt", resourceCulture);
             }
@@ -99,7 +99,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Access Error : Device reports a inconsistent Class or object..
         /// </summary>
-        public static string InconsistentClassTxt {
+        internal static string InconsistentClassTxt {
             get {
                 return ResourceManager.GetString("InconsistentClassTxt", resourceCulture);
             }
@@ -108,7 +108,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Logical Name.
         /// </summary>
-        public static string LogicalNameTxt {
+        internal static string LogicalNameTxt {
             get {
                 return ResourceManager.GetString("LogicalNameTxt", resourceCulture);
             }
@@ -117,7 +117,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Access Error : Long Get Or Read Aborted..
         /// </summary>
-        public static string LongGetOrReadAbortedTxt {
+        internal static string LongGetOrReadAbortedTxt {
             get {
                 return ResourceManager.GetString("LongGetOrReadAbortedTxt", resourceCulture);
             }
@@ -126,7 +126,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Access Error : Long Set Or Write Aborted..
         /// </summary>
-        public static string LongSetOrWriteAbortedTxt {
+        internal static string LongSetOrWriteAbortedTxt {
             get {
                 return ResourceManager.GetString("LongSetOrWriteAbortedTxt", resourceCulture);
             }
@@ -135,7 +135,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Access Error : No Long Get Or Read In Progress..
         /// </summary>
-        public static string NoLongGetOrReadInProgressTxt {
+        internal static string NoLongGetOrReadInProgressTxt {
             get {
                 return ResourceManager.GetString("NoLongGetOrReadInProgressTxt", resourceCulture);
             }
@@ -144,7 +144,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Access Error : No Long Set Or Write In Progress..
         /// </summary>
-        public static string NoLongSetOrWriteInProgressTxt {
+        internal static string NoLongSetOrWriteInProgressTxt {
             get {
                 return ResourceManager.GetString("NoLongSetOrWriteInProgressTxt", resourceCulture);
             }
@@ -159,7 +159,7 @@ namespace Gurux.DLMS.Properties {
         ///0.0-64.0.1.4.255;1,3,4;6,17,18;Ch. $B;No. of available billing periods (2);;;
         ///0.0-64.0.1.5.0-99;1,3,4;9;C [rest of string was truncated]&quot;;.
         /// </summary>
-        public static string OBISCodes {
+        internal static string OBISCodes {
             get {
                 return ResourceManager.GetString("OBISCodes", resourceCulture);
             }
@@ -168,7 +168,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Access Error : Other Reason..
         /// </summary>
-        public static string OtherReasonTxt {
+        internal static string OtherReasonTxt {
             get {
                 return ResourceManager.GetString("OtherReasonTxt", resourceCulture);
             }
@@ -177,7 +177,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Access Error : Device reports Read-Write denied..
         /// </summary>
-        public static string ReadWriteDeniedTxt {
+        internal static string ReadWriteDeniedTxt {
             get {
                 return ResourceManager.GetString("ReadWriteDeniedTxt", resourceCulture);
             }
@@ -186,7 +186,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Access Error : Device reports a temporary failure..
         /// </summary>
-        public static string TemporaryFailureTxt {
+        internal static string TemporaryFailureTxt {
             get {
                 return ResourceManager.GetString("TemporaryFailureTxt", resourceCulture);
             }
@@ -195,7 +195,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Access Error : Device reports a unavailable object..
         /// </summary>
-        public static string UnavailableObjectTxt {
+        internal static string UnavailableObjectTxt {
             get {
                 return ResourceManager.GetString("UnavailableObjectTxt", resourceCulture);
             }
@@ -204,7 +204,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Access Error : Device reports a undefined object..
         /// </summary>
-        public static string UndefinedObjectTxt {
+        internal static string UndefinedObjectTxt {
             get {
                 return ResourceManager.GetString("UndefinedObjectTxt", resourceCulture);
             }
@@ -213,7 +213,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to A260*60s.
         /// </summary>
-        public static string UnitA260Txt {
+        internal static string UnitA260Txt {
             get {
                 return ResourceManager.GetString("UnitA260Txt", resourceCulture);
             }
@@ -222,7 +222,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Active energy W*60*60s.
         /// </summary>
-        public static string UnitActiveEnergyTxt {
+        internal static string UnitActiveEnergyTxt {
             get {
                 return ResourceManager.GetString("UnitActiveEnergyTxt", resourceCulture);
             }
@@ -231,7 +231,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Active power P watt W = J/s.
         /// </summary>
-        public static string UnitActivePowerTxt {
+        internal static string UnitActivePowerTxt {
             get {
                 return ResourceManager.GetString("UnitActivePowerTxt", resourceCulture);
             }
@@ -240,7 +240,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Active energy meter constant 1/Wh.
         /// </summary>
-        public static string UnitActiveTxt {
+        internal static string UnitActiveTxt {
             get {
                 return ResourceManager.GetString("UnitActiveTxt", resourceCulture);
             }
@@ -249,7 +249,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Apparent energy VA*60*60s.
         /// </summary>
-        public static string UnitApparentEnergyTxt {
+        internal static string UnitApparentEnergyTxt {
             get {
                 return ResourceManager.GetString("UnitApparentEnergyTxt", resourceCulture);
             }
@@ -258,7 +258,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Apparent power S.
         /// </summary>
-        public static string UnitApparentPowerTxt {
+        internal static string UnitApparentPowerTxt {
             get {
                 return ResourceManager.GetString("UnitApparentPowerTxt", resourceCulture);
             }
@@ -267,7 +267,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Apparent energy meter constant.
         /// </summary>
-        public static string UnitApparentTxt {
+        internal static string UnitApparentTxt {
             get {
                 return ResourceManager.GetString("UnitApparentTxt", resourceCulture);
             }
@@ -276,7 +276,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Capacity C farad C/V = As/V.
         /// </summary>
-        public static string UnitCapacityTxt {
+        internal static string UnitCapacityTxt {
             get {
                 return ResourceManager.GetString("UnitCapacityTxt", resourceCulture);
             }
@@ -285,7 +285,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Conductance siemens 1/ohm.
         /// </summary>
-        public static string UnitConductanceTxt {
+        internal static string UnitConductanceTxt {
             get {
                 return ResourceManager.GetString("UnitConductanceTxt", resourceCulture);
             }
@@ -294,7 +294,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Corrected volume flux m3/60*60s.
         /// </summary>
-        public static string UnitCorrectedVolumeFluxHourTxt {
+        internal static string UnitCorrectedVolumeFluxHourTxt {
             get {
                 return ResourceManager.GetString("UnitCorrectedVolumeFluxHourTxt", resourceCulture);
             }
@@ -303,7 +303,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Corrected volume m3.
         /// </summary>
-        public static string UnitCorrectedVolumeTxt {
+        internal static string UnitCorrectedVolumeTxt {
             get {
                 return ResourceManager.GetString("UnitCorrectedVolumeTxt", resourceCulture);
             }
@@ -312,7 +312,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Corrected volume flux m3/24*60*60s.
         /// </summary>
-        public static string UnitCorrecteVolumeFluxDayTxt {
+        internal static string UnitCorrecteVolumeFluxDayTxt {
             get {
                 return ResourceManager.GetString("UnitCorrecteVolumeFluxDayTxt", resourceCulture);
             }
@@ -321,7 +321,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Current I ampere A.
         /// </summary>
-        public static string UnitCurrentTxt {
+        internal static string UnitCurrentTxt {
             get {
                 return ResourceManager.GetString("UnitCurrentTxt", resourceCulture);
             }
@@ -330,7 +330,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Day.
         /// </summary>
-        public static string UnitDayTxt {
+        internal static string UnitDayTxt {
             get {
                 return ResourceManager.GetString("UnitDayTxt", resourceCulture);
             }
@@ -339,7 +339,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Electrical charge Q coulomb C = As.
         /// </summary>
-        public static string UnitElectricalChargeTxt {
+        internal static string UnitElectricalChargeTxt {
             get {
                 return ResourceManager.GetString("UnitElectricalChargeTxt", resourceCulture);
             }
@@ -348,7 +348,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Electrical field strength E V/m.
         /// </summary>
-        public static string UnitElectricalFieldStrengthTxt {
+        internal static string UnitElectricalFieldStrengthTxt {
             get {
                 return ResourceManager.GetString("UnitElectricalFieldStrengthTxt", resourceCulture);
             }
@@ -357,7 +357,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Energy joule J = Nm = Ws.
         /// </summary>
-        public static string UnitEnergyJouleTxt {
+        internal static string UnitEnergyJouleTxt {
             get {
                 return ResourceManager.GetString("UnitEnergyJouleTxt", resourceCulture);
             }
@@ -366,7 +366,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Energy newtonmeter J = Nm = Ws.
         /// </summary>
-        public static string UnitEnergyTxt {
+        internal static string UnitEnergyTxt {
             get {
                 return ResourceManager.GetString("UnitEnergyTxt", resourceCulture);
             }
@@ -375,7 +375,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Force F newton N.
         /// </summary>
-        public static string UnitForceTxt {
+        internal static string UnitForceTxt {
             get {
                 return ResourceManager.GetString("UnitForceTxt", resourceCulture);
             }
@@ -384,7 +384,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Frequency f.
         /// </summary>
-        public static string UnitFrequencyTxt {
+        internal static string UnitFrequencyTxt {
             get {
                 return ResourceManager.GetString("UnitFrequencyTxt", resourceCulture);
             }
@@ -393,7 +393,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Hour.
         /// </summary>
-        public static string UnitHourTxt {
+        internal static string UnitHourTxt {
             get {
                 return ResourceManager.GetString("UnitHourTxt", resourceCulture);
             }
@@ -402,7 +402,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Induction T tesla Wb/m2.
         /// </summary>
-        public static string UnitInductionTxt {
+        internal static string UnitInductionTxt {
             get {
                 return ResourceManager.GetString("UnitInductionTxt", resourceCulture);
             }
@@ -411,7 +411,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Inductivity L henry H = Wb/A.
         /// </summary>
-        public static string UnitInductivityTxt {
+        internal static string UnitInductivityTxt {
             get {
                 return ResourceManager.GetString("UnitInductivityTxt", resourceCulture);
             }
@@ -420,7 +420,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Length l meter m.
         /// </summary>
-        public static string UnitLengthTxt {
+        internal static string UnitLengthTxt {
             get {
                 return ResourceManager.GetString("UnitLengthTxt", resourceCulture);
             }
@@ -429,7 +429,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Local currency.
         /// </summary>
-        public static string UnitLocalCurrencyTxt {
+        internal static string UnitLocalCurrencyTxt {
             get {
                 return ResourceManager.GetString("UnitLocalCurrencyTxt", resourceCulture);
             }
@@ -438,7 +438,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Magnetic flux F weber Wb = Vs.
         /// </summary>
-        public static string UnitMagneticFluxTxt {
+        internal static string UnitMagneticFluxTxt {
             get {
                 return ResourceManager.GetString("UnitMagneticFluxTxt", resourceCulture);
             }
@@ -447,7 +447,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Magnetic field strength H A/m.
         /// </summary>
-        public static string UnitMagneticTxt {
+        internal static string UnitMagneticTxt {
             get {
                 return ResourceManager.GetString("UnitMagneticTxt", resourceCulture);
             }
@@ -456,7 +456,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Mass flux kg/s.
         /// </summary>
-        public static string UnitMassKgPerSecondTxt {
+        internal static string UnitMassKgPerSecondTxt {
             get {
                 return ResourceManager.GetString("UnitMassKgPerSecondTxt", resourceCulture);
             }
@@ -465,7 +465,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Mass m kilogram kg.
         /// </summary>
-        public static string UnitMassKgTxt {
+        internal static string UnitMassKgTxt {
             get {
                 return ResourceManager.GetString("UnitMassKgTxt", resourceCulture);
             }
@@ -474,7 +474,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Minute.
         /// </summary>
-        public static string UnitMinuteTxt {
+        internal static string UnitMinuteTxt {
             get {
                 return ResourceManager.GetString("UnitMinuteTxt", resourceCulture);
             }
@@ -483,7 +483,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Month.
         /// </summary>
-        public static string UnitMonthTxt {
+        internal static string UnitMonthTxt {
             get {
                 return ResourceManager.GetString("UnitMonthTxt", resourceCulture);
             }
@@ -492,7 +492,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to No Unit.
         /// </summary>
-        public static string UnitNoneTxt {
+        internal static string UnitNoneTxt {
             get {
                 return ResourceManager.GetString("UnitNoneTxt", resourceCulture);
             }
@@ -501,7 +501,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Other Unit.
         /// </summary>
-        public static string UnitOtherTxt {
+        internal static string UnitOtherTxt {
             get {
                 return ResourceManager.GetString("UnitOtherTxt", resourceCulture);
             }
@@ -510,7 +510,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Phase angle degree rad*180/p.
         /// </summary>
-        public static string UnitPhasAngleGegreeTxt {
+        internal static string UnitPhasAngleGegreeTxt {
             get {
                 return ResourceManager.GetString("UnitPhasAngleGegreeTxt", resourceCulture);
             }
@@ -519,7 +519,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Pressure p bar 10-5 N/m2.
         /// </summary>
-        public static string UnitPressureBarTxt {
+        internal static string UnitPressureBarTxt {
             get {
                 return ResourceManager.GetString("UnitPressureBarTxt", resourceCulture);
             }
@@ -528,7 +528,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Pressure p pascal N/m2.
         /// </summary>
-        public static string UnitPressurePascalTxt {
+        internal static string UnitPressurePascalTxt {
             get {
                 return ResourceManager.GetString("UnitPressurePascalTxt", resourceCulture);
             }
@@ -537,7 +537,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Reactive energy var*60*60s.
         /// </summary>
-        public static string UnitReactiveEnergyTxt {
+        internal static string UnitReactiveEnergyTxt {
             get {
                 return ResourceManager.GetString("UnitReactiveEnergyTxt", resourceCulture);
             }
@@ -546,7 +546,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Reactive power Q.
         /// </summary>
-        public static string UnitReactivePowerTxt {
+        internal static string UnitReactivePowerTxt {
             get {
                 return ResourceManager.GetString("UnitReactivePowerTxt", resourceCulture);
             }
@@ -555,7 +555,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Reactive energy meter constant.
         /// </summary>
-        public static string UnitReactiveTxt {
+        internal static string UnitReactiveTxt {
             get {
                 return ResourceManager.GetString("UnitReactiveTxt", resourceCulture);
             }
@@ -564,7 +564,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Resistance R ohm = V/A.
         /// </summary>
-        public static string UnitResistanceTxt {
+        internal static string UnitResistanceTxt {
             get {
                 return ResourceManager.GetString("UnitResistanceTxt", resourceCulture);
             }
@@ -573,7 +573,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Resistivity.
         /// </summary>
-        public static string UnitResistivityTxt {
+        internal static string UnitResistivityTxt {
             get {
                 return ResourceManager.GetString("UnitResistivityTxt", resourceCulture);
             }
@@ -582,7 +582,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Second.
         /// </summary>
-        public static string UnitSecondTxt {
+        internal static string UnitSecondTxt {
             get {
                 return ResourceManager.GetString("UnitSecondTxt", resourceCulture);
             }
@@ -591,7 +591,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Speed v m/s.
         /// </summary>
-        public static string UnitSpeedTxt {
+        internal static string UnitSpeedTxt {
             get {
                 return ResourceManager.GetString("UnitSpeedTxt", resourceCulture);
             }
@@ -600,7 +600,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Temperature T degree centigrade.
         /// </summary>
-        public static string UnitTemperatureTxt {
+        internal static string UnitTemperatureTxt {
             get {
                 return ResourceManager.GetString("UnitTemperatureTxt", resourceCulture);
             }
@@ -609,7 +609,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Thermal power J/60*60s.
         /// </summary>
-        public static string UnitThermalPowerTxt {
+        internal static string UnitThermalPowerTxt {
             get {
                 return ResourceManager.GetString("UnitThermalPowerTxt", resourceCulture);
             }
@@ -618,7 +618,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to V260*60s.
         /// </summary>
-        public static string UnitV260Txt {
+        internal static string UnitV260Txt {
             get {
                 return ResourceManager.GetString("UnitV260Txt", resourceCulture);
             }
@@ -627,7 +627,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Voltage.
         /// </summary>
-        public static string UnitVoltageTxt {
+        internal static string UnitVoltageTxt {
             get {
                 return ResourceManager.GetString("UnitVoltageTxt", resourceCulture);
             }
@@ -636,7 +636,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Volume V m3.
         /// </summary>
-        public static string UnitVolumeCubicMeterTxt {
+        internal static string UnitVolumeCubicMeterTxt {
             get {
                 return ResourceManager.GetString("UnitVolumeCubicMeterTxt", resourceCulture);
             }
@@ -645,7 +645,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Volume flux m3/24*60*60s.
         /// </summary>
-        public static string UnitVolumeFluxDayTxt {
+        internal static string UnitVolumeFluxDayTxt {
             get {
                 return ResourceManager.GetString("UnitVolumeFluxDayTxt", resourceCulture);
             }
@@ -654,7 +654,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Volume flux m3/60*60s.
         /// </summary>
-        public static string UnitVolumeFluxHourTxt {
+        internal static string UnitVolumeFluxHourTxt {
             get {
                 return ResourceManager.GetString("UnitVolumeFluxHourTxt", resourceCulture);
             }
@@ -663,7 +663,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Volume 10-3 m3.
         /// </summary>
-        public static string UnitVolumeLiterTxt {
+        internal static string UnitVolumeLiterTxt {
             get {
                 return ResourceManager.GetString("UnitVolumeLiterTxt", resourceCulture);
             }
@@ -672,7 +672,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Week.
         /// </summary>
-        public static string UnitWeekTxt {
+        internal static string UnitWeekTxt {
             get {
                 return ResourceManager.GetString("UnitWeekTxt", resourceCulture);
             }
@@ -681,7 +681,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Year.
         /// </summary>
-        public static string UnitYearTxt {
+        internal static string UnitYearTxt {
             get {
                 return ResourceManager.GetString("UnitYearTxt", resourceCulture);
             }
@@ -690,7 +690,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Unknown Error..
         /// </summary>
-        public static string UnknownErrorTxt {
+        internal static string UnknownErrorTxt {
             get {
                 return ResourceManager.GetString("UnknownErrorTxt", resourceCulture);
             }
@@ -699,7 +699,7 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Access Error : Device reports a unmatched type..
         /// </summary>
-        public static string UnmatchedTypeTxt {
+        internal static string UnmatchedTypeTxt {
             get {
                 return ResourceManager.GetString("UnmatchedTypeTxt", resourceCulture);
             }

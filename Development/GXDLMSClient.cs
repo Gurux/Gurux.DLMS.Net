@@ -1020,6 +1020,7 @@ namespace Gurux.DLMS
             ValueEventArgs e = new ValueEventArgs(Settings, target, attributeIndex, 0, columns);
             e.Value = value;
             (target as IGXDLMSBase).SetValue(Settings, e);
+            target.ClearDirty(e.Index);
             return target.GetValues()[attributeIndex - 1];
         }
 

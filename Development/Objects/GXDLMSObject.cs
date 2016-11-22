@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -47,7 +47,7 @@ using System.Reflection;
 using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.Objects
-{  
+{
     /// <summary>
     /// Notifiest that user has change value.
     /// </summary>
@@ -58,24 +58,26 @@ namespace Gurux.DLMS.Objects
     public delegate void ObjectChangeEventHandler(GXDLMSObject sender, bool Dirty, int attributeIndex, object value);
 
     /// <summary>
-    /// GXDLMSObject provides an interface to DLMS registers. 
+    /// GXDLMSObject provides an interface to DLMS registers.
     /// </summary>
     public class GXDLMSObject
-    {        
+    {
         /// <summary>
         /// Is attribute read.
         /// </summary>
         /// <param name="index">Attribute index to read.</param>
         /// <returns>Returns true if attribute is read.</returns>
         virtual public bool IsRead(int index)
-        {            
+        {
             if (!CanRead(index))
             {
                 return true;
             }
-            return GetLastReadTime(index) != DateTime.MinValue;
+            //If value is changed or value is not read yet.
+            return !(DirtyAttributes.ContainsKey(index) ||
+                     GetLastReadTime(index) == DateTime.MinValue);
         }
-        
+
         /// <summary>
         /// Is attribute of the object readable.
         /// </summary>
@@ -99,21 +101,21 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSObject()
-            : this(ObjectType.None, null, 0)
+        : this(ObjectType.None, null, 0)
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor,
-        /// </summary> 
-        protected GXDLMSObject(ObjectType objectType) 
-            : this(objectType, null, 0)
+        /// </summary>
+        protected GXDLMSObject(ObjectType objectType)
+        : this(objectType, null, 0)
         {
         }
 
-        /// <summary> 
+        /// <summary>
         /// Constructor,
-        /// </summary> 
+        /// </summary>
         protected GXDLMSObject(ObjectType objectType, string ln, ushort sn)
         {
             Attributes = new Gurux.DLMS.ManufacturerSettings.GXAttributeCollection();
@@ -126,7 +128,7 @@ namespace Gurux.DLMS.Objects
                 if (items.Length != 6)
                 {
                     throw new GXDLMSException("Invalid Logical Name.");
-                }                
+                }
             }
             this.LogicalName = ln;
         }
@@ -151,7 +153,7 @@ namespace Gurux.DLMS.Objects
                 stream.Seek(0, SeekOrigin.Begin);
                 return x.Deserialize(stream) as GXDLMSObject;
             }
-        }        
+        }
 
         /// <summary>
         /// Logical or Short Name of DLMS object.
@@ -174,9 +176,9 @@ namespace Gurux.DLMS.Objects
         internal static string ToLogicalName(byte[] buff)
         {
             if (buff.Length == 6)
-            {            
-                return (buff[0] & 0xFF) + "." + (buff[1] & 0xFF) + "." + (buff[2] & 0xFF) + "." + 
-                    (buff[3] & 0xFF) + "." + (buff[4] & 0xFF) + "." + (buff[5] & 0xFF);
+            {
+                return (buff[0] & 0xFF) + "." + (buff[1] & 0xFF) + "." + (buff[2] & 0xFF) + "." +
+                       (buff[3] & 0xFF) + "." + (buff[4] & 0xFF) + "." + (buff[5] & 0xFF);
             }
             return "";
         }
@@ -235,10 +237,10 @@ namespace Gurux.DLMS.Objects
                 return LogicalName;
             }
         }
-       
+
         /// <summary>
         /// Logical Name of DLMS object.
-        /// </summary>        
+        /// </summary>
         public virtual string LogicalName
         {
             get;
@@ -248,7 +250,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Description of DLMS object.
         /// </summary>
-        [DefaultValue(null)]        
+        [DefaultValue(null)]
         public string Description
         {
             get;
@@ -320,7 +322,7 @@ namespace Gurux.DLMS.Objects
         [EditorBrowsable(EditorBrowsableState.Never)]
         public int[] GetDirtyAttributeIndexes()
         {
-            return DirtyAttributes.Keys.ToArray();                        
+            return DirtyAttributes.Keys.ToArray();
         }
 
         /// <summary>
@@ -337,14 +339,14 @@ namespace Gurux.DLMS.Objects
                 OnChange(this, true, attributeIndex, value);
             }
         }
-        
+
         /// <summary>
         /// Returns time when attribute was last time read.
         /// </summary>-
         /// <param name="attributeIndex">Attribute index.</param>
         /// <returns>Is attribute read only.</returns>
         public DateTime GetLastReadTime(int attributeIndex)
-        {            
+        {
             if (!ReadTimes.ContainsKey(attributeIndex))
             {
                 return DateTime.MinValue;
@@ -415,7 +417,7 @@ namespace Gurux.DLMS.Objects
             }
             att.MethodAccess = access;
         }
-        
+
         /// <summary>
         /// Returns device data type of selected attribute index.
         /// </summary>
@@ -452,7 +454,7 @@ namespace Gurux.DLMS.Objects
         {
             GXDLMSAttributeSettings att = this.Attributes.Find(index);
             if (att == null)
-            {                
+            {
                 att = new GXDLMSAttributeSettings(index);
                 //LN is read only.
                 if (index == 1)
@@ -489,6 +491,6 @@ namespace Gurux.DLMS.Objects
         {
             GXDLMSAttributeSettings att = GetAttribute(index, null);
             return att.Static;
-        }        
+        }
     }
 }

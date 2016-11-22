@@ -501,7 +501,18 @@ namespace Gurux.DLMS.Objects
                     {
                         e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
                     }
-                    Time = (GXDateTime)e.Value;
+                    else if (e.Value is GXDateTime)
+                    {
+                        Time = (GXDateTime)e.Value;
+                    }
+                    else if (e.Value is String)
+                    {
+                        Time = DateTime.ParseExact((String)e.Value, CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + CultureInfo.CurrentUICulture.DateTimeFormat.LongTimePattern, CultureInfo.CurrentUICulture);
+                    }
+                    else
+                    {
+                        Time = Convert.ToDateTime(e.Value);
+                    }
                 }
             }
             else if (e.Index == 3)

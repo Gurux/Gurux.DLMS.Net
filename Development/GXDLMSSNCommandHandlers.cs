@@ -392,7 +392,7 @@ namespace Gurux.DLMS
                 return;
             }
 
-            GXSNInfo info = FindSNObject(server, sn);
+            GXSNInfo info = FindSNObject(server, sn & 0xFFFF);
             ValueEventArgs e = new ValueEventArgs(Settings, info.Item, info.Index, 0, null);
             e.action = info.IsAction;
             if (type == (byte)VariableAccessSpecification.ParameterisedAccess)
