@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -40,9 +40,10 @@ using System.IO;
 using System.Xml.Serialization;
 using System.Xml;
 using Gurux.DLMS.ManufacturerSettings;
+using System.Globalization;
 
 namespace Gurux.DLMS.ManufacturerSettings
-{    
+{
     [Serializable]
     public class GXManufacturerCollection : List<GXManufacturer>
     {
@@ -90,18 +91,18 @@ namespace Gurux.DLMS.ManufacturerSettings
             {
                 return false;
             }
-            string path = Path.Combine (ObisCodesPath, "files.xml");
+            string path = Path.Combine(ObisCodesPath, "files.xml");
             if (!System.IO.File.Exists(path))
             {
                 return true;
             }
 
-            System.Xml.XmlDocument xml = new System.Xml.XmlDocument();            
+            System.Xml.XmlDocument xml = new System.Xml.XmlDocument();
             try
             {
                 xml.Load(path);
                 System.Net.WebClient client = new System.Net.WebClient();
-                // Put the byte array into a stream and rewind it to the beginning 
+                // Put the byte array into a stream and rewind it to the beginning
                 MemoryStream ms = new MemoryStream(client.DownloadData("http://www.gurux.org/obis/files.xml"));
                 ms.Flush();
                 ms.Position = 0;
@@ -115,7 +116,7 @@ namespace Gurux.DLMS.ManufacturerSettings
                     {
                         if (string.Compare(node.InnerText, it.InnerText, true) == 0)
                         {
-                            if (DateTime.ParseExact(node.Attributes["Modified"].Value, "MM-dd-yyyy", null).Date == DateTime.ParseExact(it.Attributes["Modified"].Value, "MM-dd-yyyy", null).Date)
+                            if (DateTime.ParseExact(node.Attributes["Modified"].Value, "dd-MM-yyyy", null).Date == DateTime.ParseExact(it.Attributes["Modified"].Value, "dd-MM-yyyy", CultureInfo.CurrentUICulture).Date)
                             {
                                 updated = false;
                             }
@@ -172,10 +173,10 @@ namespace Gurux.DLMS.ManufacturerSettings
             byte[] files = client.DownloadData("http://www.gurux.org/obis/files.xml");
             System.IO.File.WriteAllBytes(Path.Combine(ObisCodesPath, "files.xml"), files);
             Gurux.DLMS.ManufacturerSettings.GXFileInfo.UpdateFileSecurity(Path.Combine(ObisCodesPath, "files.xml"));
-            // Put the byte array into a stream and rewind it to the beginning 
+            // Put the byte array into a stream and rewind it to the beginning
             MemoryStream ms = new MemoryStream(files);
             ms.Flush();
-            ms.Position = 0; 
+            ms.Position = 0;
             XmlDocument xml = new XmlDocument();
             xml.Load(ms);
             bool backup = false;
@@ -207,28 +208,28 @@ namespace Gurux.DLMS.ManufacturerSettings
         {
             get
             {
-				string path = string.Empty;
-				if (Environment.OSVersion.Platform == PlatformID.Unix)
-				{					
-					path = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-					path = Path.Combine (path, ".Gurux");
-				}
-				else
-				{
-	                //Vista: C:\ProgramData
-	                //XP: c:\Program Files\Common Files                
-	                //XP = 5.1 & Vista = 6.0
-	                if (Environment.OSVersion.Version.Major >= 6)
-	                {
-	                    path = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-	                }
-	                else
-	                {
-	                    path = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles);
-	                }
-					path = Path.Combine (path, "Gurux");
-				}                
-				path = Path.Combine (path, "OBIS");
+                string path = string.Empty;
+                if (Environment.OSVersion.Platform == PlatformID.Unix)
+                {
+                    path = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+                    path = Path.Combine(path, ".Gurux");
+                }
+                else
+                {
+                    //Vista: C:\ProgramData
+                    //XP: c:\Program Files\Common Files
+                    //XP = 5.1 & Vista = 6.0
+                    if (Environment.OSVersion.Version.Major >= 6)
+                    {
+                        path = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+                    }
+                    else
+                    {
+                        path = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles);
+                    }
+                    path = Path.Combine(path, "Gurux");
+                }
+                path = Path.Combine(path, "OBIS");
                 return path;
             }
         }
@@ -246,7 +247,7 @@ namespace Gurux.DLMS.ManufacturerSettings
                     using (TextReader reader = new StreamReader(it))
                     {
                         try
-                        {                                                        
+                        {
                             GXManufacturer man = (GXManufacturer)x.Deserialize(reader);
                             Manufacturers.Add(man);
                         }
