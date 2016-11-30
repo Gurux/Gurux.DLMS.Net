@@ -88,6 +88,43 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Convert byte array to hex string.
+        /// </summary>
+        /// <param name="bytes">Byte array to convert.</param>
+        /// <returns>Byte array as hex string.</returns>
+        [DebuggerStepThrough]
+        public static string ToHex(byte[] bytes)
+        {
+            return GXCommon.ToHex(bytes, true);
+        }
+
+        /// <summary>
+        /// Convert byte array to hex string.
+        /// </summary>
+        /// <param name="bytes">Byte array to convert.</param>
+        /// <param name="addSpace">Is space added between bytes.</param>
+        /// <returns>Byte array as hex string.</returns>
+        [DebuggerStepThrough]
+        public static string ToHex(byte[] bytes, bool addSpace)
+        {
+            return GXCommon.ToHex(bytes, addSpace);
+        }
+
+        /// <summary>
+        /// Convert byte array to hex string.
+        /// </summary>
+        /// <param name="bytes">Byte array to convert.</param>
+        /// <param name="addSpace">Is space added between bytes.</param>
+        /// <param name="index">Start index.</param>
+        /// <param name="count">Byte count.</param>
+        /// <returns>Byte array as hex string.</returns>
+        [DebuggerStepThrough]
+        public static string ToHex(byte[] bytes, bool addSpace, int index, int count)
+        {
+            return GXCommon.ToHex(bytes, addSpace, index, count);
+        }
+
+        /// <summary>
         /// Is only complete PDU parsed and shown.
         /// </summary>
         /// <seealso cref="MessageToXml"/>
@@ -160,6 +197,70 @@ namespace Gurux.DLMS
             {
                 Hex = true;
             }
+        }
+
+        /// <summary>
+        /// Identify used DLMS framing type.
+        /// </summary>
+        /// <param name="value">Input data.</param>
+        /// <returns>Interface type.</returns>
+        public static InterfaceType GetDlmsFraming(GXByteBuffer value)
+        {
+            for (int pos = value.Position; pos != value.Size; ++pos)
+            {
+                if (value.GetUInt8(pos) == 0x7e)
+                {
+                    return InterfaceType.HDLC;
+                }
+                if (value.GetUInt16(pos) == 1)
+                {
+                    return InterfaceType.WRAPPER;
+                }
+            }
+            throw new ArgumentException("Invalid DLMS framing.");
+        }
+
+        /// <summary>
+        /// Find next frame from the string.
+        /// </summary>
+        /// <remarks>
+        /// Position of data is set to the begin of new frame. If Pdu is null it is not updated.
+        /// </remarks>
+        /// <param name="data">Data where frame is search.</param>
+        /// <param name="pdu">Pdu of received frame is set here.</param>
+        /// <returns>Is new frame found.</returns>
+        public bool FindNextFrame(GXByteBuffer data, GXByteBuffer pdu, InterfaceType type)
+        {
+            GXDLMSSettings settings = new GXDLMSSettings(true);
+            GXReplyData reply = new GXReplyData();
+            reply.Xml = new GXDLMSTranslatorStructure(OutputType, Hex, ShowStringAsHex, null);
+            int pos;
+            while (data.Position != data.Size)
+            {
+                if (type == InterfaceType.HDLC && data.GetUInt8(data.Position) == 0x7e)
+                {
+                    pos = data.Position;
+                    settings.InterfaceType = Enums.InterfaceType.HDLC;
+                    GXDLMS.GetData(settings, data, reply);
+                    data.Position = pos;
+                    break;
+                }
+                else if (type == InterfaceType.WRAPPER && data.GetUInt16(data.Position) == 0x1)
+                {
+                    pos = data.Position;
+                    settings.InterfaceType = Enums.InterfaceType.WRAPPER;
+                    GXDLMS.GetData(settings, data, reply);
+                    data.Position = pos;
+                    break;
+                }
+                ++data.Position;
+            }
+            if (pdu != null)
+            {
+                pdu.Clear();
+                pdu.Set(reply.Data.Data, 0, reply.Data.Size);
+            }
+            return data.Position != data.Size;
         }
 
         /// <summary>
@@ -359,7 +460,7 @@ namespace Gurux.DLMS
                                 }
                                 multipleFrames = false;
                             }
-                            else
+                            if (!data.IsMoreData)
                             {
                                 if (!PduOnly)
                                 {
@@ -367,7 +468,10 @@ namespace Gurux.DLMS
                                 }
                                 if (pduFrames.Size != 0)
                                 {
-                                    pduFrames.Set(data.Data.Data);
+                                    if (!CompletePdu)
+                                    {
+                                        pduFrames.Set(data.Data.Data);
+                                    }
                                     xml.AppendLine(PduToXml(pduFrames));
                                     pduFrames.Clear();
                                 }
@@ -408,16 +512,62 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        if (!PduOnly)
+                        if (data.Data.Size == 0)
                         {
-                            xml.AppendLine("<PDU>");
+                            if ((data.FrameId & 1) != 0 && data.Command == Command.None)
+                            {
+                                if (!CompletePdu)
+                                {
+                                    xml.AppendLine("<Command Value=\"NextFrame\" />");
+                                }
+                                multipleFrames = true;
+                            }
+                            else
+                            {
+                                xml.AppendStartTag(data.Command);
+                                xml.AppendEndTag(data.Command);
+                            }
                         }
-                        xml.AppendLine(PduToXml(data.Data));
-                        //Remove \r\n.
-                        xml.sb.Length -= 2;
-                        if (!PduOnly)
+                        else
                         {
-                            xml.AppendLine("</PDU>");
+                            if (multipleFrames || (data.MoreData & Enums.RequestTypes.Frame) != 0)
+                            {
+                                if (CompletePdu)
+                                {
+                                    pduFrames.Set(data.Data.Data);
+                                }
+                                else
+                                {
+                                    xml.AppendLine("<NextFrame Value=\"" + GXCommon.ToHex(data.Data.Data, false, data.Data.Position, data.Data.Size - data.Data.Position) + "\" />");
+                                }
+                                multipleFrames = false;
+                            }
+                            if (!data.IsMoreData)
+                            {
+                                if (!PduOnly)
+                                {
+                                    xml.AppendLine("<PDU>");
+                                }
+                                if (pduFrames.Size != 0)
+                                {
+                                    if (!CompletePdu)
+                                    {
+                                        pduFrames.Set(data.Data.Data);
+                                    }
+                                    xml.AppendLine(PduToXml(pduFrames));
+                                    pduFrames.Clear();
+                                }
+                                else
+                                {
+                                    xml.AppendLine(PduToXml(data.Data));
+                                }
+                                //Remove \r\n.
+                                xml.sb.Length -= 2;
+                                if (!PduOnly)
+                                {
+                                    xml.AppendLine("</PDU>");
+                                }
+                            }
                         }
                     }
                     if (!PduOnly)
@@ -1149,7 +1299,6 @@ namespace Gurux.DLMS
                     s.data.SetUInt8(DataType.Structure);
                     preData = new GXByteBuffer(s.data);
                     s.data.Size = 0;
-                    //s.parameters.Add(DataType.Structure);
                     break;
                 case DataType.Time:
                     GXCommon.SetData(s.data, DataType.Time, GXDLMSClient.ChangeType(GXCommon.HexToBytes(GetValue(node, s)), DataType.DateTime));
@@ -1620,6 +1769,8 @@ namespace Gurux.DLMS
                         break;
                     case (int)TranslatorTags.AccessRequestBody:
                         break;
+                    case (int)TranslatorTags.PduDlms:
+                        break;
                     case (int)TranslatorTags.ListOfAccessRequestSpecification:
                         s.attributeDescriptor.SetUInt8((byte)node.ChildNodes.Count);
                         break;
@@ -1807,6 +1958,52 @@ namespace Gurux.DLMS
                     throw new ArgumentException("Invalid command.");
             }
             return bb.Array();
+        }
+
+        private void GetAllDataNodes(XmlNodeList nodes, GXDLMSXmlSettings s)
+        {
+            GXByteBuffer preData;
+            foreach (XmlNode it in nodes)
+            {
+                int tag;
+                if (s.OutputType == TranslatorOutputType.SimpleXml)
+                {
+                    tag = s.tags[it.Name.ToLower()];
+                }
+                else
+                {
+                    tag = s.tags[it.Name];
+                }
+                if (tag == (int)TranslatorTags.RawData)
+                {
+                    s.data.SetHexString(it.InnerText);
+                }
+                else
+                {
+                    preData = UpdateDataType(it, s, tag);
+                    if (preData != null)
+                    {
+                        GXCommon.SetObjectCount(it.ChildNodes.Count, preData);
+                        preData.Set(s.data);
+                        s.data.Size = 0;
+                        s.data.Set(preData);
+                        GetAllDataNodes(it.ChildNodes, s);
+                    }
+                }
+            }
+        }
+        /// <summary>
+        /// Convert XML data fo bytes.
+        /// </summary>
+        /// <param name="xml">XML data.</param>
+        /// <returns>Data in bytes.</returns>
+        public byte[] XmlToData(string xml)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(xml);
+            GXDLMSXmlSettings s = new GXDLMSXmlSettings(OutputType, Hex, ShowStringAsHex, tagsByName);
+            GetAllDataNodes(doc.ChildNodes, s);
+            return s.data.Array();
         }
     }
 }

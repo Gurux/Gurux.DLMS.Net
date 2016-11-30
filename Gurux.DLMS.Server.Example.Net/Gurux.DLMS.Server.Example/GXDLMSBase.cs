@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 using System;
@@ -53,7 +53,7 @@ namespace GuruxDLMSServerExample
     {
         bool trace = true;
         public GXDLMSBase(bool logicalNameReferencing, InterfaceType type)
-            : base(logicalNameReferencing, type)
+        : base(logicalNameReferencing, type)
         {
 
         }
@@ -71,7 +71,7 @@ namespace GuruxDLMSServerExample
         /// <param name="server"></param>
         public void Initialize(int port)
         {
-            Media = new GXNet(NetworkType.Tcp, port);            
+            Media = new GXNet(NetworkType.Tcp, port);
             Init();
         }
 
@@ -185,14 +185,27 @@ namespace GuruxDLMSServerExample
             set.ActionDown.ScriptSelector = 1;
             set.ActionUp.LogicalName = rm.LogicalName;
             set.ActionUp.ScriptSelector = 2;
-            rm.Actions = new GXDLMSActionSet[] { set };
+            rm.Actions = new GXDLMSActionSet[] {
+            set
+            };
             rm.MonitoredValue.Update(r, 2);
             Items.Add(rm);
+            ///////////////////////////////////////////////////////////////////////
+            //Add Activate test mode Script table object.
+            GXDLMSScriptTable st = new GXDLMSScriptTable("0.1.10.1.101.255");
+            GXDLMSScript s = new GXDLMSScript();
+            s.Id = 1;
+            GXDLMSScriptAction a = new GXDLMSScriptAction();
+            a.Target = null;
+
+            s.Actions.Add(a);
+            st.Scripts.Add(s);
+            Items.Add(st);
             ///////////////////////////////////////////////////////////////////////
             //Add action schedule object.
             GXDLMSActionSchedule actionS = new GXDLMSActionSchedule();
             actionS.LogicalName = "0.0.1.0.0.255";
-            actionS.ExecutedScriptLogicalName = "1.2.3.4.5.6";
+            actionS.Target = st;
             actionS.ExecutedScriptSelector = 1;
             actionS.Type = SingleActionScheduleType.SingleActionScheduleType1;
             actionS.ExecutionTime = new GXDateTime[] { new GXDateTime(DateTime.Now) };
@@ -268,7 +281,7 @@ namespace GuruxDLMSServerExample
         void OnError(object sender, Exception ex)
         {
             System.Diagnostics.Debug.WriteLine(ex.Message);
-        }        
+        }
 
         /// <summary>
         /// Generic read handle for all servers.
@@ -281,9 +294,9 @@ namespace GuruxDLMSServerExample
             {
                 //Framework will handle Association objects automatically.
                 if (e.Target is GXDLMSAssociationLogicalName ||
-                    e.Target is GXDLMSAssociationShortName ||
-                    //Framework will handle profile generic automatically.
-                    e.Target is GXDLMSProfileGeneric)
+                        e.Target is GXDLMSAssociationShortName ||
+                        //Framework will handle profile generic automatically.
+                        e.Target is GXDLMSProfileGeneric)
                 {
                     continue;
                 }
@@ -291,10 +304,10 @@ namespace GuruxDLMSServerExample
                 if (e.Target is GXDLMSClock)
                 {
                     //Implement specific clock handling here.
-                    //Otherwise initial values are used.                
+                    //Otherwise initial values are used.
                 }
                 else if (e.Target.GetUIDataType(e.Index) == DataType.DateTime ||
-                    e.Target.GetDataType(e.Index) == DataType.DateTime)
+                         e.Target.GetDataType(e.Index) == DataType.DateTime)
                 {
                     e.Value = DateTime.Now;
                     e.Handled = true;
@@ -308,7 +321,7 @@ namespace GuruxDLMSServerExample
                 }
                 else
                 {
-                    //If data is not assigned and value type is unknown return number.            
+                    //If data is not assigned and value type is unknown return number.
                     object[] values = e.Target.GetValues();
                     if (e.Index <= values.Length)
                     {
@@ -316,8 +329,8 @@ namespace GuruxDLMSServerExample
                         {
                             DataType tp = e.Target.GetDataType(e.Index);
                             if (tp == DataType.None || tp == DataType.Int8 || tp == DataType.Int16 ||
-                                tp == DataType.Int32 || tp == DataType.Int64 || tp == DataType.UInt8 || tp == DataType.UInt16 ||
-                                tp == DataType.UInt32 || tp == DataType.UInt64)
+                                    tp == DataType.Int32 || tp == DataType.Int64 || tp == DataType.UInt8 || tp == DataType.UInt16 ||
+                                    tp == DataType.UInt32 || tp == DataType.UInt64)
                             {
                                 e.Value = new Random().Next(0, 1000);
                                 e.Handled = true;
@@ -369,14 +382,14 @@ namespace GuruxDLMSServerExample
 
         protected override void Action(ValueEventArgs[] args)
         {
-            foreach(ValueEventArgs it in args)
+            foreach (ValueEventArgs it in args)
             {
                 if (it.Target is GXDLMSPushSetup && it.Index == 1)
                 {
                     SendPush(it.Target as GXDLMSPushSetup);
                     it.Handled = true;
                 }
-            }            
+            }
         }
 
         /// <summary>
@@ -388,7 +401,7 @@ namespace GuruxDLMSServerExample
         }
 
         /// <summary>
-        /// Our example server accept all authentications.        
+        /// Our example server accept all authentications.
         /// </summary>
         protected override SourceDiagnostic ValidateAuthentication(Authentication authentication, byte[] password)
         {

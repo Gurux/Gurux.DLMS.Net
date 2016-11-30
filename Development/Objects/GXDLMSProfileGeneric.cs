@@ -600,11 +600,11 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 4)
             {
-                return DataType.Int8;
+                return DataType.UInt32;
             }
             if (index == 5)
             {
-                return DataType.Int8;
+                return DataType.Enum;
             }
             if (index == 6)
             {
@@ -612,11 +612,11 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 7)
             {
-                return DataType.Int8;
+                return DataType.UInt32;
             }
             if (index == 8)
             {
-                return DataType.Int8;
+                return DataType.UInt32;
             }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
@@ -687,10 +687,6 @@ namespace Gurux.DLMS.Objects
             {
                 cols = CaptureObjects;
             }
-            if (cols == null || cols.Count == 0)
-            {
-                throw new Exception("Read capture objects first.");
-            }
             Buffer.Clear();
             if (e.Value != null && (e.Value as object[]).Length != 0)
             {
@@ -704,7 +700,14 @@ namespace Gurux.DLMS.Objects
                     }
                     for (int pos = 0; pos != row.Length; ++pos)
                     {
-                        index2 = cols[pos].Value.AttributeIndex;
+                        if (cols == null)
+                        {
+                            index2 = 0;
+                        }
+                        else
+                        {
+                            index2 = cols[pos].Value.AttributeIndex;
+                        }
                         DataType type;
                         //Actaris SL 7000 and ACE 6000 returns 0.
                         if (index2 != 0)

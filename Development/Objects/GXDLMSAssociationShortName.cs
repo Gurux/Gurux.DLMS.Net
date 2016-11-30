@@ -70,13 +70,21 @@ namespace Gurux.DLMS.Objects
         /// Secret used in LLS Authentication
         /// </summary>
         [XmlIgnore()]
-        public byte[] Secret;
+        public byte[] Secret
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Secret used in HLS Authentication
         /// </summary>
         [XmlIgnore()]
-        public byte[] HlsSecret;
+        public byte[] HlsSecret
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// List of available objects in short name referencing.
@@ -85,7 +93,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSObjectCollection ObjectList
         {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -312,7 +320,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 2)
             {
-                return GetObjects(settings, e);
+                return GetObjects(settings, e).Array();
             }
             else if (e.Index == 3)
             {

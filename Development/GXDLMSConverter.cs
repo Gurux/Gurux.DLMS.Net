@@ -105,6 +105,28 @@ namespace Gurux.DLMS
                 codes.Add(code);
             }
         }
+        public string[] GetDescription(string logicalName)
+        {
+            return GetDescription(logicalName, ObjectType.None);
+        }
+        public string[] GetDescription(string logicalName, ObjectType type)
+        {
+            lock (codes)
+            {
+                if (codes.Count == 0)
+                {
+                    ReadStandardObisInfo(codes);
+                }
+                List<string> list = new List<string>();
+
+                foreach (GXStandardObisCode it in codes.Find(logicalName, type))
+                {
+                    list.Add(it.Description);
+                }
+
+                return list.ToArray();
+            }
+        }
 
         private static void UpdateOBISCodeInfo(GXStandardObisCodeCollection codes, GXDLMSObject it)
         {
@@ -112,97 +134,90 @@ namespace Gurux.DLMS
             {
                 return;
             }
-            GXStandardObisCode code = codes.Find(it.LogicalName, it.ObjectType);
-            if (code != null)
+            GXStandardObisCode code = codes.Find(it.LogicalName, it.ObjectType)[0];
+            it.Description = code.Description;
+            //If string is used
+            if (code.DataType.Contains("10"))
             {
-                it.Description = code.Description;
-                //If string is used
-                if (code.DataType.Contains("10"))
+                code.UIDataType = "10";
+            }
+            //If date time is used.
+            else if (code.DataType.Contains("25") || code.DataType.Contains("26"))
+            {
+                code.UIDataType = code.DataType = "25";
+            }
+            //Time stamps of the billing periods objects (first scheme if there are two)
+            else if (code.DataType.Contains("9"))
+            {
+                if ((GXStandardObisCodeCollection.EqualsMask("0.0-64.96.7.10-14.255", it.LogicalName) ||
+                        //Time stamps of the billing periods objects (second scheme)
+                        GXStandardObisCodeCollection.EqualsMask("0.0-64.0.1.5.0-99,255", it.LogicalName) ||
+                        //Time of power failure
+                        GXStandardObisCodeCollection.EqualsMask("0.0-64.0.1.2.0-99,255", it.LogicalName) ||
+                        //Time stamps of the billing periods objects (first scheme if there are two)
+                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.1.2.0-99,255", it.LogicalName) ||
+                        //Time stamps of the billing periods objects (second scheme)
+                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.1.5.0-99,255", it.LogicalName) ||
+                        //Time expired since last end of billing period
+                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.0.255", it.LogicalName) ||
+                        //Time of last reset
+                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.6.255", it.LogicalName) ||
+                        //Date of last reset
+                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.7.255", it.LogicalName) ||
+                        //Time expired since last end of billing period (Second billing period scheme)
+                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.13.255", it.LogicalName) ||
+                        //Time of last reset (Second billing period scheme)
+                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.14.255", it.LogicalName) ||
+                        //Date of last reset (Second billing period scheme)
+                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.15.255", it.LogicalName)))
+                {
+                    code.UIDataType = "25";
+                }
+                //Local time
+                else if (GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.1.255", it.LogicalName))
+                {
+                    code.UIDataType = "27";
+                }
+                //Local date
+                else if (GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.2.255", it.LogicalName))
+                {
+                    code.UIDataType = "26";
+                }
+                //Active firmware identifier
+                else if (GXStandardObisCodeCollection.EqualsMask("1.0.0.2.0.255", it.LogicalName))
                 {
                     code.UIDataType = "10";
                 }
-                //If date time is used.
-                else if (code.DataType.Contains("25") || code.DataType.Contains("26"))
+            }
+            if (code.DataType != "*" && code.DataType != string.Empty && !code.DataType.Contains(","))
+            {
+                DataType type = (DataType)int.Parse(code.DataType);
+                switch (it.ObjectType)
                 {
-                    code.UIDataType = code.DataType = "25";
-                }
-                //Time stamps of the billing periods objects (first scheme if there are two)
-                else if (code.DataType.Contains("9"))
-                {
-                    if ((GXStandardObisCodeCollection.EqualsMask("0.0-64.96.7.10-14.255", it.LogicalName) ||
-                            //Time stamps of the billing periods objects (second scheme)
-                            GXStandardObisCodeCollection.EqualsMask("0.0-64.0.1.5.0-99,255", it.LogicalName) ||
-                            //Time of power failure
-                            GXStandardObisCodeCollection.EqualsMask("0.0-64.0.1.2.0-99,255", it.LogicalName) ||
-                            //Time stamps of the billing periods objects (first scheme if there are two)
-                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.1.2.0-99,255", it.LogicalName) ||
-                            //Time stamps of the billing periods objects (second scheme)
-                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.1.5.0-99,255", it.LogicalName) ||
-                            //Time expired since last end of billing period
-                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.0.255", it.LogicalName) ||
-                            //Time of last reset
-                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.6.255", it.LogicalName) ||
-                            //Date of last reset
-                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.7.255", it.LogicalName) ||
-                            //Time expired since last end of billing period (Second billing period scheme)
-                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.13.255", it.LogicalName) ||
-                            //Time of last reset (Second billing period scheme)
-                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.14.255", it.LogicalName) ||
-                            //Date of last reset (Second billing period scheme)
-                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.15.255", it.LogicalName)))
-                    {
-                        code.UIDataType = "25";
-                    }
-                    //Local time
-                    else if (GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.1.255", it.LogicalName))
-                    {
-                        code.UIDataType = "27";
-                    }
-                    //Local date
-                    else if (GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.2.255", it.LogicalName))
-                    {
-                        code.UIDataType = "26";
-                    }
-                    //Active firmware identifier
-                    else if (GXStandardObisCodeCollection.EqualsMask("1.0.0.2.0.255", it.LogicalName))
-                    {
-                        code.UIDataType = "10";
-                    }
-                }
-                if (code.DataType != "*" && code.DataType != string.Empty && !code.DataType.Contains(","))
-                {
-                    DataType type = (DataType)int.Parse(code.DataType);
-                    switch (it.ObjectType)
-                    {
-                        case ObjectType.Data:
-                        case ObjectType.Register:
-                        case ObjectType.RegisterActivation:
-                        case ObjectType.ExtendedRegister:
-                            it.SetDataType(2, type);
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                if (!string.IsNullOrEmpty(code.UIDataType))
-                {
-                    DataType uiType = (DataType)int.Parse(code.UIDataType);
-                    switch (it.ObjectType)
-                    {
-                        case ObjectType.Data:
-                        case ObjectType.Register:
-                        case ObjectType.RegisterActivation:
-                        case ObjectType.ExtendedRegister:
-                            it.SetUIDataType(2, uiType);
-                            break;
-                        default:
-                            break;
-                    }
+                    case ObjectType.Data:
+                    case ObjectType.Register:
+                    case ObjectType.RegisterActivation:
+                    case ObjectType.ExtendedRegister:
+                        it.SetDataType(2, type);
+                        break;
+                    default:
+                        break;
                 }
             }
-            else
+            if (!string.IsNullOrEmpty(code.UIDataType))
             {
-                System.Diagnostics.Debug.WriteLine("Unknown OBIS Code: " + it.LogicalName + " Type: " + it.ObjectType);
+                DataType uiType = (DataType)int.Parse(code.UIDataType);
+                switch (it.ObjectType)
+                {
+                    case ObjectType.Data:
+                    case ObjectType.Register:
+                    case ObjectType.RegisterActivation:
+                    case ObjectType.ExtendedRegister:
+                        it.SetUIDataType(2, uiType);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 

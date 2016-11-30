@@ -50,16 +50,16 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Gurux.Common, Version=8.0.8.4, Culture=neutral, PublicKeyToken=00bee6c3930228bf, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gurux.Common.8.0.8.4\lib\net35\Gurux.Common.dll</HintPath>
+    <Reference Include="Gurux.Common, Version=8.1.16.1124, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Gurux.Common.8.1.16.1124\lib\portable-win+net35\Gurux.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Gurux.Net, Version=8.0.0.2, Culture=neutral, PublicKeyToken=ca111c9ecfaf947d, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gurux.Net.8.0.0.2\lib\net35\Gurux.Net.dll</HintPath>
+    <Reference Include="Gurux.Net, Version=8.1.16.1124, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Gurux.Net.8.1.16.1124\lib\portable-win+net35\Gurux.Net.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Gurux.Serial, Version=7.0.25.1, Culture=neutral, PublicKeyToken=ab7382566107b371, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gurux.Serial.7.0.25.1\lib\net35\Gurux.Serial.dll</HintPath>
+    <Reference Include="Gurux.Serial, Version=8.1.16.1124, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Gurux.Serial.8.1.16.1124\lib\portable-win+net35\Gurux.Serial.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -102,20 +102,13 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Gurux.Common.XML" />
-    <Content Include="Gurux.Net.XML" />
-    <Content Include="Gurux.Serial.XML" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\Development\Gurux.DLMS.csproj">
       <Project>{efd71bff-ad54-45ed-b473-305813c2f83a}</Project>
       <Name>Gurux.DLMS</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

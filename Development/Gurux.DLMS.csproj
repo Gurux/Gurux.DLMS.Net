@@ -71,6 +71,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Simulator\GXDLMSSimulator.cs" />
     <Compile Include="Objects\Enums\CertificateIdentificationType.cs" />
     <Compile Include="TranslatorSimpleTags.cs" />
     <Compile Include="TranslatorStandardTags.cs" />

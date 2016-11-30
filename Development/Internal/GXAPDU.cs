@@ -285,6 +285,7 @@ namespace Gurux.DLMS.Internal
             }
             if (xml != null && xml.OutputType == TranslatorOutputType.StandardXml)
             {
+                len = (byte)(data.Size - data.Position);
                 xml.AppendLine(Command.InitiateRequest, null, GXCommon
                                .ToHex(data.Data, false, data.Position, len));
                 data.Position = data.Position + len;

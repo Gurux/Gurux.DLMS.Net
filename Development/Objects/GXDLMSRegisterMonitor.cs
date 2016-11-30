@@ -92,7 +92,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSMonitoredValue MonitoredValue
         {
             get;
-            internal set;
+            set;
         }
 
 

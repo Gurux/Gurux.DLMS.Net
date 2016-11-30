@@ -300,7 +300,16 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 3)
             {
-                IPReference = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
+                if (e.Value is byte[])
+                {
+                    IPReference = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
+
+                }
+                else
+                {
+                    IPReference = Convert.ToString(e.Value);
+
+                }
             }
             else if (e.Index == 4)
             {

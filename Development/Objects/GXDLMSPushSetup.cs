@@ -101,7 +101,7 @@ namespace Gurux.DLMS.Objects
         public List<KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> PushObjectList
         {
             get;
-            internal set;
+            set;
         }
 
 
@@ -115,7 +115,7 @@ namespace Gurux.DLMS.Objects
         public List<KeyValuePair<GXDateTime, GXDateTime>> CommunicationWindow
         {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -309,7 +309,7 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetData(buff, DataType.UInt8, Service);
                 if (Destination != null)
                 {
-                    GXCommon.SetData(buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(Destination));
+                    GXCommon.SetData(buff, DataType.OctetString, Destination);
                 }
                 else
                 {
@@ -387,7 +387,7 @@ namespace Gurux.DLMS.Objects
                 if (tmp != null)
                 {
                     Service = (ServiceType)Convert.ToInt32(tmp[0]);
-                    Destination = ASCIIEncoding.ASCII.GetString((byte[])tmp[1]);
+                    Destination = (string)GXDLMSClient.ChangeType((byte[])tmp[1], DataType.OctetString);
                     Message = (MessageType)Convert.ToInt32(tmp[2]);
                 }
             }

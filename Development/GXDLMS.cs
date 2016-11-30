@@ -1625,7 +1625,7 @@ namespace Gurux.DLMS
             {
                 reply.TotalCount = cnt;
             }
-            SingleReadResponse type;
+            SingleReadResponse type = SingleReadResponse.Data;
             List<object> values = null;
             if (cnt != 1)
             {
@@ -1637,9 +1637,16 @@ namespace Gurux.DLMS
             }
             for (int pos = 0; pos != cnt; ++pos)
             {
-                // Get status code.
-                reply.CommandType = reply.Data.GetUInt8();
-                type = (SingleReadResponse)reply.CommandType;
+                //Some meters are returning wrong count.
+                if (reply.Xml != null && reply.Data.Position == reply.Data.Size)
+                {
+                }
+                else
+                {
+                    // Get status code.
+                    reply.CommandType = reply.Data.GetUInt8();
+                    type = (SingleReadResponse)reply.CommandType;
+                }
                 switch (type)
                 {
                     case SingleReadResponse.Data:

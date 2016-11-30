@@ -175,10 +175,22 @@ namespace Gurux.DLMS.Objects
                         data.SetUInt8(5);
                         //service_id
                         GXCommon.SetData(data, DataType.Enum, a.Type);
-                        //class_id
-                        GXCommon.SetData(data, DataType.UInt16, a.ObjectType);
-                        //logical_name
-                        GXCommon.SetData(data, DataType.OctetString, a.LogicalName);
+                        if (a.Target == null)
+                        {
+#pragma warning disable CS0618
+                            //class_id
+                            GXCommon.SetData(data, DataType.UInt16, a.ObjectType);
+                            //logical_name
+                            GXCommon.SetData(data, DataType.OctetString, a.LogicalName);
+#pragma warning restore CS0618
+                        }
+                        else
+                        {
+                            //class_id
+                            GXCommon.SetData(data, DataType.UInt16, a.Target.ObjectType);
+                            //logical_name
+                            GXCommon.SetData(data, DataType.OctetString, a.Target.LogicalName);
+                        }
                         //index
                         GXCommon.SetData(data, DataType.Int8, a.Index);
                         //parameter
@@ -227,8 +239,17 @@ namespace Gurux.DLMS.Objects
                             {
                                 GXDLMSScriptAction it = new GXDLMSScriptAction();
                                 it.Type = (ScriptActionType)Convert.ToInt32(arr[0]);
-                                it.ObjectType = (ObjectType)Convert.ToInt32(arr[1]);
-                                it.LogicalName = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString).ToString();
+                                ObjectType ot = (ObjectType)Convert.ToInt32(arr[1]);
+                                String ln = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString).ToString();
+                                it.Target = settings.Objects.FindByLN(ot, ln);
+                                if (it.Target == null)
+                                {
+#pragma warning disable CS0618
+                                    it.ObjectType = (ObjectType)Convert.ToInt32(arr[1]);
+                                    it.LogicalName = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString).ToString();
+#pragma warning restore CS0618
+                                }
+
                                 it.Index = Convert.ToInt32(arr[3]);
                                 it.Parameter = arr[4];
                                 script.Actions.Add(it);
@@ -243,8 +264,17 @@ namespace Gurux.DLMS.Objects
                         Object[] arr = (Object[])((Object[])e.Value)[1];
                         GXDLMSScriptAction it = new GXDLMSScriptAction();
                         it.Type = (ScriptActionType)Convert.ToInt32(arr[0]);
-                        it.ObjectType = (ObjectType)Convert.ToInt32(arr[1]);
-                        it.LogicalName = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString).ToString();
+                        ObjectType ot = (ObjectType)Convert.ToInt32(arr[1]);
+                        String ln = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString).ToString();
+                        it.Target = settings.Objects.FindByLN(ot, ln);
+                        if (it.Target == null)
+                        {
+#pragma warning disable CS0618
+                            it.ObjectType = (ObjectType)Convert.ToInt32(arr[1]);
+                            it.LogicalName = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString).ToString();
+#pragma warning restore CS0618
+                        }
+
                         it.Index = Convert.ToInt32(arr[3]);
                         it.Parameter = arr[4];
                         script.Actions.Add(it);

@@ -307,18 +307,34 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 6)
             {
+                if (DeviceAddress == null)
+                {
+                    return null;
+                }
                 return ASCIIEncoding.ASCII.GetBytes(DeviceAddress);
             }
             if (e.Index == 7)
             {
+                if (Password1 == null)
+                {
+                    return null;
+                }
                 return ASCIIEncoding.ASCII.GetBytes(Password1);
             }
             if (e.Index == 8)
             {
+                if (Password2 == null)
+                {
+                    return null;
+                }
                 return ASCIIEncoding.ASCII.GetBytes(Password2);
             }
             if (e.Index == 9)
             {
+                if (Password5 == null)
+                {
+                    return null;
+                }
                 return ASCIIEncoding.ASCII.GetBytes(Password5);
             }
             e.Error = ErrorCode.ReadWriteDenied;

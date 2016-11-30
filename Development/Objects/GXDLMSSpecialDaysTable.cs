@@ -152,20 +152,27 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 2)
             {
-                int cnt = Entries.Length;
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Array);
-                //Add count
-                GXCommon.SetObjectCount(cnt, data);
-                if (cnt != 0)
+                if (Entries == null)
                 {
-                    foreach (GXDLMSSpecialDay it in Entries)
+                    data.SetUInt8(0);
+                }
+                else
+                {
+                    int cnt = Entries.Length;
+                    //Add count
+                    GXCommon.SetObjectCount(cnt, data);
+                    if (cnt != 0)
                     {
-                        data.SetUInt8((byte)DataType.Structure);
-                        data.SetUInt8((byte)3); //Count
-                        GXCommon.SetData(data, DataType.UInt16, it.Index);
-                        GXCommon.SetData(data, DataType.OctetString, it.Date);
-                        GXCommon.SetData(data, DataType.UInt8, it.DayId);
+                        foreach (GXDLMSSpecialDay it in Entries)
+                        {
+                            data.SetUInt8((byte)DataType.Structure);
+                            data.SetUInt8((byte)3); //Count
+                            GXCommon.SetData(data, DataType.UInt16, it.Index);
+                            GXCommon.SetData(data, DataType.OctetString, it.Date);
+                            GXCommon.SetData(data, DataType.UInt8, it.DayId);
+                        }
                     }
                 }
                 return data.Array();

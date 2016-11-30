@@ -477,7 +477,7 @@ namespace Gurux.DLMS
                 data = null;
             }
             Settings.ResetFrameSequence();
-            return GXDLMS.GetHdlcFrame(Settings, (byte)Command.Snrm, null);
+            return GXDLMS.GetHdlcFrame(Settings, (byte)Command.Snrm, data);
         }
 
         /// <summary>
@@ -1140,6 +1140,19 @@ namespace Gurux.DLMS
             {
                 return "";
             }
+            if (value.Size == 0 && type == DataType.DateTime)
+            {
+                return new GXDateTime(DateTime.MinValue);
+            }
+            if (value.Size == 0 && type == DataType.Date)
+            {
+                return new GXDate(DateTime.MinValue);
+            }
+            if (value.Size == 0 && type == DataType.Time)
+            {
+                return new GXTime(DateTime.MinValue);
+            }
+
             GXDataInfo info = new GXDataInfo();
             info.Type = type;
             Object ret = GXCommon.GetData(value, info);

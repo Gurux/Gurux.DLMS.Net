@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -67,7 +67,7 @@ namespace Gurux.DLMS
             return code;
         }
 
-        public GXStandardObisCode Find(string obisCode, ObjectType objectType)
+        public GXStandardObisCode[] Find(string obisCode, ObjectType objectType)
         {
             return Find(GetBytes(obisCode), (int)objectType);
         }
@@ -78,7 +78,7 @@ namespace Gurux.DLMS
         static bool EqualsInterface(GXStandardObisCode it, int ic)
         {
             //If all interfaces are allowed.
-            if (it.Interfaces == "*")
+            if (ic == 0 || it.Interfaces == "*")
             {
                 return true;
             }
@@ -92,12 +92,12 @@ namespace Gurux.DLMS
         {
             bool number = true;
             if (obisMask.IndexOf(',') != -1)
-            {                
+            {
                 string[] tmp = obisMask.Split(new char[] { ',' });
                 foreach (string it in tmp)
                 {
                     if (it.IndexOf('-') != -1)
-                    {                        
+                    {
                         if (EqualsMask(it, ic))
                         {
                             return true;
@@ -166,7 +166,7 @@ namespace Gurux.DLMS
                 return false;
             }
             return true;
-        }        
+        }
 
         /// <summary>
         /// Get description.
@@ -184,183 +184,183 @@ namespace Gurux.DLMS
             {
                 case 1:
                     return "Sum Li Active power+ (QI+QIV)";
-                case 2: 
+                case 2:
                     return "Sum Li Active power- (QII+QIII)";
-                case 3: 
+                case 3:
                     return "Sum Li Reactive power+ (QI+QII)";
                 case 4:
                     return "Sum Li Reactive power- (QIII+QIV)";
-                case 5: 
+                case 5:
                     return "Sum Li Reactive power QI";
-                case 6: 
+                case 6:
                     return "Sum Li Reactive power QII";
-                case 7: 
+                case 7:
                     return "Sum Li Reactive power QIII";
-                case 8: 
+                case 8:
                     return "Sum Li Reactive power QIV";
-                case 9: 
+                case 9:
                     return "Sum Li Apparent power+ (QI+QIV)";
-                case 10: 
+                case 10:
                     return "Sum Li Apparent power- (QII+QIII)";
-                case 11: 
+                case 11:
                     return "Current: any phase";
-                case 12: 
+                case 12:
                     return "Voltage: any phase";
-                case 13: 
+                case 13:
                     return "Sum Li Power factor";
-                case 14: 
+                case 14:
                     return "Supply frequency";
-                case 15: 
+                case 15:
                     return "Sum LI Active power (abs(QI+QIV)+abs(QII+QIII))";
-                case 16: 
+                case 16:
                     return "Sum LI Active power        (abs(QI+QIV)-abs(QII+QIII))";
-                case 17: 
+                case 17:
                     return "Sum Li Active power QI";
-                case 18: 
+                case 18:
                     return "Sum Li Active power QII";
-                case 19: 
+                case 19:
                     return "Sum Li Active power QIII";
-                case 20: 
+                case 20:
                     return "Sum Li Active power QIV";
-                case 21: 
+                case 21:
                     return "L1 Active power+ (QI+QIV)";
-                case 22: 
+                case 22:
                     return "L1 Active power- (QII+QIII)";
-                case 23: 
+                case 23:
                     return "L1 Reactive power+ (QI+QII)";
-                case 24: 
+                case 24:
                     return "L1 Reactive power- (QIII+QIV)";
-                case 25: 
+                case 25:
                     return "L1 Reactive power QI";
-                case 26: 
+                case 26:
                     return "L1 Reactive power QII";
-                case 27: 
+                case 27:
                     return "L1 Reactive power QIII";
-                case 28: 
+                case 28:
                     return "L1 Reactive power QIV";
-                case 29: 
+                case 29:
                     return "L1 Apparent power+ (QI+QIV)";
-                case 30: 
+                case 30:
                     return "L1 Apparent power- (QII+QIII)";
-                case 31: 
+                case 31:
                     return "L1 Current";
-                case 32: 
+                case 32:
                     return "L1 Voltage";
-                case 33: 
+                case 33:
                     return "L1 Power factor";
-                case 34: 
+                case 34:
                     return "L1 Supply frequency";
-                case 35: 
+                case 35:
                     return "L1 Active power (abs(QI+QIV)+abs(QII+QIII))";
-                case 36: 
+                case 36:
                     return "L1 Active power (abs(QI+QIV)-abs(QII+QIII))";
-                case 37: 
+                case 37:
                     return "L1 Active power QI";
-                case 38: 
+                case 38:
                     return "L1 Active power QII";
-                case 39: 
+                case 39:
                     return "L1 Active power QIII";
-                case 40: 
+                case 40:
                     return "L1 Active power QIV";
-                case 41: 
+                case 41:
                     return "L2 Active power+ (QI+QIV)";
-                case 42: 
+                case 42:
                     return "L2 Active power- (QII+QIII)";
-                case 43: 
+                case 43:
                     return "L2 Reactive power+ (QI+QII)";
-                case 44: 
+                case 44:
                     return "L2 Reactive power- (QIII+QIV)";
-                case 45: 
+                case 45:
                     return "L2 Reactive power QI";
-                case 46: 
+                case 46:
                     return "L2 Reactive power QII";
-                case 47: 
+                case 47:
                     return "L2 Reactive power QIII";
-                case 48: 
+                case 48:
                     return "L2 Reactive power QIV";
-                case 49: 
+                case 49:
                     return "L2 Apparent power+ (QI+QIV)";
-                case 50: 
+                case 50:
                     return "L2 Apparent power- (QII+QIII)";
-                case 51: 
+                case 51:
                     return "L2 Current";
-                case 52: 
+                case 52:
                     return "L2 Voltage";
-                case 53: 
+                case 53:
                     return "L2 Power factor";
-                case 54: 
+                case 54:
                     return "L2 Supply frequency";
-                case 55: 
+                case 55:
                     return "L2 Active power (abs(QI+QIV)+abs(QII+QIII))";
-                case 56: 
+                case 56:
                     return "L2 Active power (abs(QI+QIV)-abs(QI+QIII))";
-                case 57: 
+                case 57:
                     return "L2 Active power QI";
-                case 58: 
+                case 58:
                     return "L2 Active power QII";
-                case 59: 
+                case 59:
                     return "L2 Active power QIII";
-                case 60: 
+                case 60:
                     return "L2 Active power QIV";
-                case 61: 
+                case 61:
                     return "L3 Active power+ (QI+QIV)";
-                case 62: 
+                case 62:
                     return "L3 Active power- (QII+QIII)";
-                case 63: 
+                case 63:
                     return "L3 Reactive power+ (QI+QII)";
-                case 64: 
+                case 64:
                     return "L3 Reactive power- (QIII+QIV)";
-                case 65: 
+                case 65:
                     return "L3 Reactive power QI";
-                case 66: 
+                case 66:
                     return "L3 Reactive power QII";
-                case 67: 
+                case 67:
                     return "L3 Reactive power QIII";
-                case 68: 
+                case 68:
                     return "L3 Reactive power QIV";
-                case 69: 
+                case 69:
                     return "L3 Apparent power+ (QI+QIV)";
-                case 70: 
+                case 70:
                     return "L3 Apparent power- (QII+QIII)";
-                case 71: 
+                case 71:
                     return "L3 Current";
-                case 72: 
+                case 72:
                     return "L3 Voltage";
-                case 73: 
+                case 73:
                     return "L3 Power factor";
-                case 74: 
+                case 74:
                     return "L3 Supply frequency";
-                case 75: 
+                case 75:
                     return "L3 Active power (abs(QI+QIV)+abs(QII+QIII))";
-                case 76: 
+                case 76:
                     return "L3 Active power (abs(QI+QIV)-abs(QI+QIII))";
-                case 77: 
+                case 77:
                     return "L3 Active power QI";
-                case 78: 
+                case 78:
                     return "L3 Active power QII";
-                case 79: 
+                case 79:
                     return "L3 Active power QIII";
-                case 80: 
+                case 80:
                     return "L3 Active power QIV";
-                case 82: 
+                case 82:
                     return "Unitless quantities (pulses or pieces)";
-                case 84: 
+                case 84:
                     return "Sum Li Power factor-";
-                case 85: 
+                case 85:
                     return "L1 Power factor-";
-                case 86: 
+                case 86:
                     return "L2 Power factor-";
-                case 87: 
+                case 87:
                     return "L3 Power factor-";
-                case 88: 
+                case 88:
                     return "Sum Li A2h QI+QII+QIII+QIV";
-                case 89: 
+                case 89:
                     return "Sum Li V2h QI+QII+QIII+QIV";
-                case 90: 
+                case 90:
                     return "SLi current (algebraic sum of the – unsigned – value of the currents in all phases)";
-                case 91: 
+                case 91:
                     return "Lo Current (neutral)";
-                case 92: 
+                case 92:
                     return "Lo Voltage (neutral)";
             }
             return "";
@@ -369,19 +369,25 @@ namespace Gurux.DLMS
         /// <summary>
         /// Find Standard OBIS Code description.
         /// </summary>
-        public GXStandardObisCode Find(byte[] obisCode, int IC)
+        public GXStandardObisCode[] Find(byte[] obisCode, int IC)
         {
             GXStandardObisCode tmp;
+            List<GXStandardObisCode> list = new List<GXStandardObisCode>();
             foreach (GXStandardObisCode it in this)
             {
                 //Interface is tested first because it's faster.
                 if (EqualsInterface(it, IC) && EqualsObisCode(it.OBIS, obisCode))
                 {
                     tmp = new GXStandardObisCode(it.OBIS, it.Description, it.Interfaces, it.DataType);
+                    list.Add(tmp);
                     string[] tmp2 = it.Description.Split(new char[] { ';' });
                     if (tmp2.Length > 1)
                     {
-                        string desc = GetDescription(tmp2[1].Trim());
+                        string desc = "";
+                        if (string.Compare("$1", tmp2[1].Trim()) == 0)
+                        {
+                            desc = GetDescription("$" + obisCode[2]);
+                        }
                         if (desc != "")
                         {
                             tmp2[1] = desc;
@@ -437,20 +443,24 @@ namespace Gurux.DLMS
                         {
                             ch += byte.Parse(tmp.Description.Substring(plus + 1, end - plus - 1));
                         }
-                        tmp.Description = tmp.Description.Substring(0, begin) + ch.ToString();                        
+                        tmp.Description = tmp.Description.Substring(0, begin) + ch.ToString();
                     }
-                    tmp.Description = tmp.Description.Replace(';', ' ').Replace("  ", " ").Trim();                        
-                    return tmp;
+                    tmp.Description = tmp.Description.Replace(';', ' ').Replace("  ", " ").Trim();
                 }
             }
-            tmp = new GXStandardObisCode(null, "Manufacturer specific", IC.ToString(), "");
-            tmp.OBIS[0] = obisCode[0].ToString();
-            tmp.OBIS[1] = obisCode[1].ToString();
-            tmp.OBIS[2] = obisCode[2].ToString();
-            tmp.OBIS[3] = obisCode[3].ToString();
-            tmp.OBIS[4] = obisCode[4].ToString();
-            tmp.OBIS[5] = obisCode[5].ToString();
-            return tmp;
+            //If invalid OBIS code.
+            if (list.Count == 0)
+            {
+                tmp = new GXStandardObisCode(null, "Invalid", IC.ToString(), "");
+                list.Add(tmp);
+                tmp.OBIS[0] = obisCode[0].ToString();
+                tmp.OBIS[1] = obisCode[1].ToString();
+                tmp.OBIS[2] = obisCode[2].ToString();
+                tmp.OBIS[3] = obisCode[3].ToString();
+                tmp.OBIS[4] = obisCode[4].ToString();
+                tmp.OBIS[5] = obisCode[5].ToString();
+            }
+            return list.ToArray();
         }
     }
 }

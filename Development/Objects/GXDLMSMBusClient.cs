@@ -92,7 +92,7 @@ namespace Gurux.DLMS.Objects
         public List<KeyValuePair<string, string>> CaptureDefinition
         {
             get;
-            internal set;
+            set;
         }
 
         [XmlIgnore()]

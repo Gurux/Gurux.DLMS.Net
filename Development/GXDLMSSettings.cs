@@ -148,6 +148,31 @@ namespace Gurux.DLMS
         ///<summary>
         ///Constructor.
         ///</summary>
+        public GXDLMSSettings() : this(false)
+        {
+            UseCustomChallenge = false;
+            StartingBlockIndex = BlockIndex = 1;
+            DLMSVersion = 6;
+            InvokeID = 0x1;
+            Priority = Priority.High;
+            ServiceClass = ServiceClass.Confirmed;
+            MaxServerPDUSize = MaxPduSize = DefaultMaxReceivePduSize;
+            Objects = new GXDLMSObjectCollection();
+            Limits = new GXDLMSLimits();
+            LnSettings = new GXDLMSLNSettings(new byte[] { 0x00, 0xFE, 0x1F });
+            SnSettings = new GXDLMSSNSettings(new byte[] { 0x1C, 0x03, 0x20 });
+            ResetFrameSequence();
+        }
+        ///<summary>
+        ///Constructor.
+        ///</summary>
+        public GXDLMSSettings(GXDLMSObjectCollection objects) : this(false)
+        {
+            Objects = objects;
+        }
+        ///<summary>
+        ///Constructor.
+        ///</summary>
         internal GXDLMSSettings(bool server)
         {
             UseCustomChallenge = false;

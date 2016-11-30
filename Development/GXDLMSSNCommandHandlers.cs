@@ -595,17 +595,11 @@ namespace Gurux.DLMS
             }
         }
 
-        ///<summary>
-        /// Find Short Name object.
-        ///</summary>
-        ///<param name="sn">
-        ///Short name to find.
-        ///</param>
-        private static GXSNInfo FindSNObject(GXDLMSServer server, int sn)
+        internal static GXSNInfo FindSNObject(GXDLMSObjectCollection items, int sn)
         {
             GXSNInfo i = new GXSNInfo();
             int offset, count;
-            foreach (GXDLMSObject it in server.Items)
+            foreach (GXDLMSObject it in items)
             {
                 if (sn >= it.ShortName)
                 {
@@ -615,7 +609,6 @@ namespace Gurux.DLMS
                         i.IsAction = false;
                         i.Item = it;
                         i.Index = ((sn - i.Item.ShortName) / 8) + 1;
-                        Debug.WriteLine(string.Format("Reading {0:D}, attribute index {1:D}", i.Item.Name, i.Index));
                         break;
                     }
                     else
@@ -632,6 +625,18 @@ namespace Gurux.DLMS
                     }
                 }
             }
+            return i;
+        }
+
+        ///<summary>
+        /// Find Short Name object.
+        ///</summary>
+        ///<param name="sn">
+        ///Short name to find.
+        ///</param>
+        private static GXSNInfo FindSNObject(GXDLMSServer server, int sn)
+        {
+            GXSNInfo i = FindSNObject(server.Items, sn);
             if (i.Item == null)
             {
                 i.Item = server.NotifyFindObject(ObjectType.None, sn, null);

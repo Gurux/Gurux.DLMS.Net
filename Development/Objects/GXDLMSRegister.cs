@@ -44,263 +44,263 @@ using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.Objects
 {
-    public class GXDLMSRegister : GXDLMSObject, IGXDLMSBase
+public class GXDLMSRegister : GXDLMSObject, IGXDLMSBase
+{
+    protected int scaler;
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    public GXDLMSRegister()
+    : base(ObjectType.Register)
     {
-        protected int _scaler;
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public GXDLMSRegister()
-        : base(ObjectType.Register)
-        {
-        }
+    }
 
-        internal GXDLMSRegister(ObjectType type, string ln, ushort sn)
-        : base(type, ln, sn)
-        {
-        }
+    internal GXDLMSRegister(ObjectType type, string ln, ushort sn)
+    : base(type, ln, sn)
+    {
+    }
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="ln">Logical Name of the object.</param>
-        public GXDLMSRegister(string ln)
-        : this(ObjectType.Register, ln, 0)
-        {
-        }
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    /// <param name="ln">Logical Name of the object.</param>
+    public GXDLMSRegister(string ln)
+    : this(ObjectType.Register, ln, 0)
+    {
+    }
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="ln">Logical Name of the object.</param>
-        /// <param name="sn">Short Name of the object.</param>
-        public GXDLMSRegister(string ln, ushort sn)
-        : this(ObjectType.Register, ln, sn)
-        {
-        }
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    /// <param name="ln">Logical Name of the object.</param>
+    /// <param name="sn">Short Name of the object.</param>
+    public GXDLMSRegister(string ln, ushort sn)
+    : this(ObjectType.Register, ln, sn)
+    {
+    }
 
-        /// <summary>
-        /// Scaler of COSEM Register object.
-        /// </summary>
-        [DefaultValue(1.0)]
-        public double Scaler
+    /// <summary>
+    /// Scaler of COSEM Register object.
+    /// </summary>
+    [DefaultValue(1.0)]
+    public double Scaler
+    {
+        get
         {
-            get
+            return Math.Pow(10, scaler);
+        }
+        set
+        {
+            scaler = (int)Math.Log10(value);
+        }
+    }
+
+    /// <summary>
+    /// Unit of COSEM Register object.
+    /// </summary>
+    [DefaultValue(Unit.NoUnit)]
+    public Unit Unit
+    {
+        get;
+        set;
+    }
+
+    /// <summary>
+    /// Value of COSEM Register object.
+    /// </summary>
+    /// <remarks>
+    /// Register value is not serialized because XML serializer can't handle all cases.
+    /// </remarks>
+    [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    [System.Xml.Serialization.XmlIgnore()]
+    public object Value
+    {
+        get;
+        set;
+    }
+
+    /// <summary>
+    /// Reset value.
+    /// </summary>
+    /// <returns></returns>
+    public byte[][] Reset(GXDLMSClient client)
+    {
+        return client.Method(this, 1, (byte)0);
+    }
+
+    /// <inheritdoc cref="GXDLMSObject.GetValues"/>
+    public override object[] GetValues()
+    {
+        return new object[] { LogicalName, Value, "Scaler: " + Scaler + " Unit: " + Unit };
+    }
+
+    #region IGXDLMSBase Members
+
+
+    byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
+    {
+        // Resets the value to the default value.
+        // The default value is an instance specific constant.
+        if (e.Index == 1)
+        {
+            Value = null;
+        }
+        else
+        {
+            e.Error = ErrorCode.ReadWriteDenied;
+        }
+        return null;
+    }
+
+    public override bool IsRead(int index)
+    {
+        if (index == 3)
+        {
+            return this.Unit != Unit.None;
+        }
+        return base.IsRead(index);
+    }
+
+    int[] IGXDLMSBase.GetAttributeIndexToRead()
+    {
+        List<int> attributes = new List<int>();
+        //LN is static and read only once.
+        if (string.IsNullOrEmpty(LogicalName))
+        {
+            attributes.Add(1);
+        }
+        //ScalerUnit
+        if (!IsRead(3))
+        {
+            attributes.Add(3);
+        }
+        //Value
+        if (CanRead(2))
+        {
+            attributes.Add(2);
+        }
+        return attributes.ToArray();
+    }
+
+    /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+    string[] IGXDLMSBase.GetNames()
+    {
+        return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Scaler and Unit", "Value" };
+    }
+
+    int IGXDLMSBase.GetAttributeCount()
+    {
+        return 3;
+    }
+
+    int IGXDLMSBase.GetMethodCount()
+    {
+        return 1;
+    }
+
+    public override DataType GetDataType(int index)
+    {
+        if (index == 1)
+        {
+            return DataType.OctetString;
+        }
+        if (index == 2)
+        {
+            return base.GetDataType(index);
+        }
+        if (index == 3)
+        {
+            return DataType.Array;
+        }
+        if (index == 4 && this is GXDLMSExtendedRegister)
+        {
+            return base.GetDataType(index);
+        }
+        throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+    }
+
+    object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
+    {
+        if (e.Index == 1)
+        {
+            return this.LogicalName;
+        }
+        if (e.Index == 2)
+        {
+            return Value;
+        }
+        if (e.Index == 3)
+        {
+            GXByteBuffer data = new GXByteBuffer();
+            data.SetUInt8((byte)DataType.Structure);
+            data.SetUInt8(2);
+            GXCommon.SetData(data, DataType.Int8, scaler);
+            GXCommon.SetData(data, DataType.Enum, Unit);
+            return data.Array();
+        }
+        e.Error = ErrorCode.ReadWriteDenied;
+        return null;
+    }
+
+    void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
+    {
+        if (e.Index == 1)
+        {
+            if (e.Value is string)
             {
-                return Math.Pow(10, _scaler);
+                LogicalName = e.Value.ToString();
             }
-            set
+            else if (e.Value == null)
             {
-                _scaler = (int)Math.Log10(value);
-            }
-        }
-
-        /// <summary>
-        /// Unit of COSEM Register object.
-        /// </summary>
-        [DefaultValue(Unit.NoUnit)]
-        public Unit Unit
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Value of COSEM Register object.
-        /// </summary>
-        /// <remarks>
-        /// Register value is not serialized because XML serializer can't handle all cases.
-        /// </remarks>
-        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [System.Xml.Serialization.XmlIgnore()]
-        public object Value
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Reset value.
-        /// </summary>
-        /// <returns></returns>
-        public byte[][] Reset(GXDLMSClient client)
-        {
-            return client.Method(this, 1, (byte)0);
-        }
-
-        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
-        public override object[] GetValues()
-        {
-            return new object[] { LogicalName, Value, "Scaler: " + Scaler + " Unit: " + Unit };
-        }
-
-        #region IGXDLMSBase Members
-
-
-        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
-        {
-            // Resets the value to the default value.
-            // The default value is an instance specific constant.
-            if (e.Index == 1)
-            {
-                Value = null;
+                LogicalName = null;
             }
             else
             {
-                e.Error = ErrorCode.ReadWriteDenied;
+                LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
             }
-            return null;
         }
-
-        public override bool IsRead(int index)
+        else if (e.Index == 2)
         {
-            if (index == 3)
+            if (Scaler != 1)
             {
-                return this.Unit != Unit.None;
-            }
-            return base.IsRead(index);
-        }
-
-        int[] IGXDLMSBase.GetAttributeIndexToRead()
-        {
-            List<int> attributes = new List<int>();
-            //LN is static and read only once.
-            if (string.IsNullOrEmpty(LogicalName))
-            {
-                attributes.Add(1);
-            }
-            //ScalerUnit
-            if (!IsRead(3))
-            {
-                attributes.Add(3);
-            }
-            //Value
-            if (CanRead(2))
-            {
-                attributes.Add(2);
-            }
-            return attributes.ToArray();
-        }
-
-        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
-        string[] IGXDLMSBase.GetNames()
-        {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Scaler and Unit", "Value" };
-        }
-
-        int IGXDLMSBase.GetAttributeCount()
-        {
-            return 3;
-        }
-
-        int IGXDLMSBase.GetMethodCount()
-        {
-            return 1;
-        }
-
-        public override DataType GetDataType(int index)
-        {
-            if (index == 1)
-            {
-                return DataType.OctetString;
-            }
-            if (index == 2)
-            {
-                return base.GetDataType(index);
-            }
-            if (index == 3)
-            {
-                return DataType.Array;
-            }
-            if (index == 4 && this is GXDLMSExtendedRegister)
-            {
-                return base.GetDataType(index);
-            }
-            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
-        }
-
-        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
-        {
-            if (e.Index == 1)
-            {
-                return this.LogicalName;
-            }
-            if (e.Index == 2)
-            {
-                return Value;
-            }
-            if (e.Index == 3)
-            {
-                GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((byte)DataType.Structure);
-                data.SetUInt8(2);
-                GXCommon.SetData(data, DataType.Int8, _scaler);
-                GXCommon.SetData(data, DataType.Enum, Unit);
-                return data.Array();
-            }
-            e.Error = ErrorCode.ReadWriteDenied;
-            return null;
-        }
-
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
-        {
-            if (e.Index == 1)
-            {
-                if (e.Value is string)
+                try
                 {
-                    LogicalName = e.Value.ToString();
+                    Value = Convert.ToDouble(e.Value) * Scaler;
                 }
-                else if (e.Value == null)
+                catch (Exception)
                 {
-                    LogicalName = null;
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
-                }
-            }
-            else if (e.Index == 2)
-            {
-                if (Scaler != 1)
-                {
-                    try
-                    {
-                        Value = Convert.ToDouble(e.Value) * Scaler;
-                    }
-                    catch (Exception)
-                    {
-                        //Sometimes scaler is set for wrong Object type.
-                        Value = e.Value;
-                    }
-                }
-                else
-                {
+                    //Sometimes scaler is set for wrong Object type.
                     Value = e.Value;
                 }
             }
-            else if (e.Index == 3)
+            else
             {
-                if (e.Value == null)
-                {
-                    Scaler = 1;
-                    Unit = Unit.None;
-                }
-                else
-                {
-                    object[] arr = (object[])e.Value;
-                    if (arr.Length != 2)
-                    {
-                        throw new Exception("setValue failed. Invalid scaler unit value.");
-                    }
-                    _scaler = Convert.ToInt32(arr[0]);
-                    Unit = (Unit)(Convert.ToInt32(arr[1]) & 0xFF);
-                }
+                Value = e.Value;
+            }
+        }
+        else if (e.Index == 3)
+        {
+            if (e.Value == null)
+            {
+                Scaler = 1;
+                Unit = Unit.None;
             }
             else
             {
-                e.Error = ErrorCode.ReadWriteDenied;
+                object[] arr = (object[])e.Value;
+                if (arr.Length != 2)
+                {
+                    throw new Exception("setValue failed. Invalid scaler unit value.");
+                }
+                scaler = Convert.ToInt32(arr[0]);
+                Unit = (Unit)(Convert.ToInt32(arr[1]) & 0xFF);
             }
         }
-        #endregion
+        else
+        {
+            e.Error = ErrorCode.ReadWriteDenied;
+        }
     }
+    #endregion
+}
 }

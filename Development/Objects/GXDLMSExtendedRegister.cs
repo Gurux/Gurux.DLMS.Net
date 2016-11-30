@@ -205,7 +205,7 @@ namespace Gurux.DLMS.Objects
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8(2);
-                GXCommon.SetData(data, DataType.UInt8, _scaler);
+                GXCommon.SetData(data, DataType.Int8, scaler);
                 GXCommon.SetData(data, DataType.UInt8, Unit);
                 return data.Array();
             }
@@ -267,7 +267,7 @@ namespace Gurux.DLMS.Objects
                     {
                         throw new Exception("setValue failed. Invalid scaler unit value.");
                     }
-                    _scaler = Convert.ToInt32(arr[0]);
+                    scaler = Convert.ToInt32(arr[0]);
                     Unit = (Unit)Convert.ToInt32(arr[1]);
                 }
             }

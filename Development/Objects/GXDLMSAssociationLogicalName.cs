@@ -82,7 +82,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSObjectCollection ObjectList
         {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -111,14 +111,14 @@ namespace Gurux.DLMS.Objects
         public GXApplicationContextName ApplicationContextName
         {
             get;
-            private set;
+            set;
         }
 
         [XmlIgnore()]
         public GXxDLMSContextType XDLMSContextInfo
         {
             get;
-            internal set;
+            set;
         }
 
 
@@ -126,7 +126,7 @@ namespace Gurux.DLMS.Objects
         public GXAuthenticationMechanismName AuthenticationMechanismMame
         {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -476,7 +476,7 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 2)
             {
-                return GetObjects(settings, e);
+                return GetObjects(settings, e).Array();
             }
             if (e.Index == 3)
             {

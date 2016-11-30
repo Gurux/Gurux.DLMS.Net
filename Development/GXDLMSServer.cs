@@ -55,7 +55,7 @@ namespace Gurux.DLMS
     public abstract class GXDLMSServer
     {
         /// <summary>
-        /// DLMS Settings.
+        /// DLMS Settings. 
         /// </summary>
         internal GXDLMSSettings Settings;
 
@@ -282,7 +282,7 @@ namespace Gurux.DLMS
             {
                 return Settings.UseLogicalNameReferencing;
             }
-            private set
+            internal set
             {
                 Settings.UseLogicalNameReferencing = value;
             }
@@ -362,7 +362,7 @@ namespace Gurux.DLMS
             {
                 return Settings.InterfaceType;
             }
-            private set
+            internal set
             {
                 Settings.InterfaceType = value;
             }
@@ -411,12 +411,6 @@ namespace Gurux.DLMS
                 if (it is GXDLMSProfileGeneric)
                 {
                     GXDLMSProfileGeneric pg = it as GXDLMSProfileGeneric;
-                    /*
-                    if (pg.ProfileEntries < 1)
-                    {
-                        throw new Exception("Invalid Profile Entries. Profile entries tells amount of rows in the table.");
-                    }
-                     * */
                     foreach (var obj in pg.CaptureObjects)
                     {
                         if (obj.Value.AttributeIndex < 1)
@@ -424,6 +418,7 @@ namespace Gurux.DLMS
                             throw new Exception("Invalid attribute index. SelectedAttributeIndex is not set for " + obj.Key.Name);
                         }
                     }
+
                     if (pg.CapturePeriod != 0)
                     {
                         GXProfileGenericUpdater p = new GXProfileGenericUpdater(this, pg);

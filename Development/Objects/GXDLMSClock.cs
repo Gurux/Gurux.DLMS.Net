@@ -501,7 +501,7 @@ namespace Gurux.DLMS.Objects
                     {
                         e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
                     }
-                    else if (e.Value is GXDateTime)
+                    if (e.Value is GXDateTime)
                     {
                         Time = (GXDateTime)e.Value;
                     }

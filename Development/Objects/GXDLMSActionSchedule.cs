@@ -74,13 +74,27 @@ namespace Gurux.DLMS.Objects
         {
         }
 
+        /// <summary>
+        /// Script to execute.
+        /// </summary>
+        public GXDLMSScriptTable Target
+        {
+            get;
+            set;
+        }
+
+
         [XmlIgnore()]
+        [ObsoleteAttribute("Use Target.")]
         public string ExecutedScriptLogicalName
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// Zero based script index to execute.
+        /// </summary>
         [XmlIgnore()]
         public UInt16 ExecutedScriptSelector
         {
@@ -105,9 +119,17 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
+            if (Target != null)
+            {
+                return new object[] { LogicalName, Target.LogicalName + " " + ExecutedScriptSelector,
+                                  Type, ExecutionTime
+                                };
+            }
+#pragma warning disable CS0618
             return new object[] { LogicalName, ExecutedScriptLogicalName + " " + ExecutedScriptSelector,
                               Type, ExecutionTime
                             };
+#pragma warning restore CS0618
         }
 
         #region IGXDLMSBase Members
@@ -191,7 +213,16 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8(2);
                 //LN
-                GXCommon.SetData(data, DataType.OctetString, ExecutedScriptLogicalName);
+                if (Target != null)
+                {
+                    GXCommon.SetData(data, DataType.OctetString, Target.LogicalName);
+                }
+                else
+                {
+#pragma warning disable CS0618
+                    GXCommon.SetData(data, DataType.OctetString, ExecutedScriptLogicalName);
+#pragma warning restore CS0618
+                }
                 GXCommon.SetData(data, DataType.UInt16, ExecutedScriptSelector);
                 return data.Array();
             }
@@ -213,8 +244,9 @@ namespace Gurux.DLMS.Objects
                     foreach (GXDateTime it in ExecutionTime)
                     {
                         data.SetUInt8((byte)DataType.Structure);
-                        data.SetUInt8((byte)2); //Count
-                                                //Time
+                        //Count
+                        data.SetUInt8((byte)2);
+                        //Time
                         GXCommon.SetData(data, DataType.OctetString, new GXTime(it));
                         //Date
                         GXCommon.SetData(data, DataType.OctetString, new GXDate(it));
@@ -241,8 +273,23 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 2)
             {
-                ExecutedScriptLogicalName = GXDLMSClient.ChangeType((byte[])((object[])e.Value)[0], DataType.OctetString).ToString();
-                ExecutedScriptSelector = Convert.ToUInt16(((object[])e.Value)[1]);
+                if (e.Value != null)
+                {
+                    String ln = GXDLMSClient.ChangeType((byte[])((object[])e.Value)[0], DataType.OctetString).ToString();
+                    Target = (GXDLMSScriptTable)settings.Objects.FindByLN(ObjectType.ScriptTable, ln);
+                    if (Target == null)
+                    {
+#pragma warning disable CS0618
+                        ExecutedScriptLogicalName = ln;
+#pragma warning restore CS0618
+                    }
+                    ExecutedScriptSelector = Convert.ToUInt16(((object[])e.Value)[1]);
+                }
+                else
+                {
+                    Target = null;
+                    ExecutedScriptSelector = 0;
+                }
             }
             else if (e.Index == 3)
             {

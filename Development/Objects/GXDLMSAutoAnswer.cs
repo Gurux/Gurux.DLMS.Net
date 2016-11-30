@@ -77,7 +77,7 @@ namespace Gurux.DLMS.Objects
         }
 
         [XmlIgnore()]
-        public AutoConnectMode Mode
+        public AutoAnswerMode Mode
         {
             get;
             set;
@@ -288,7 +288,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 2)
             {
-                Mode = (AutoConnectMode)Convert.ToInt32(e.Value);
+                Mode = (AutoAnswerMode)Convert.ToInt32(e.Value);
             }
             else if (e.Index == 3)
             {

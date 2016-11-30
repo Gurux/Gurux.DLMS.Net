@@ -275,6 +275,10 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 2)
             {
+                if (CalendarNameActive == null)
+                {
+                    return null;
+                }
                 return GXDLMSClient.ChangeType(ASCIIEncoding.ASCII.GetBytes(CalendarNameActive), DataType.OctetString);
             }
             if (e.Index == 3)
@@ -368,6 +372,10 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 6)
             {
+                if (CalendarNamePassive == null)
+                {
+                    return null;
+                }
                 return GXDLMSClient.ChangeType(ASCIIEncoding.ASCII.GetBytes(CalendarNamePassive), DataType.OctetString);
             }
             //

@@ -363,9 +363,19 @@ namespace Gurux.DLMS.Objects
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8(3);
-                GXCommon.SetData(data, DataType.Int16, MonitoredValue.ObjectType);
-                GXCommon.SetData(data, DataType.OctetString, MonitoredValue.LogicalName);
-                GXCommon.SetData(data, DataType.UInt8, MonitoredAttributeIndex);
+                if (MonitoredValue == null)
+                {
+                    GXCommon.SetData(data, DataType.Int16, 0);
+                    GXCommon.SetData(data, DataType.OctetString, "0.0.0.0.0.0");
+                    GXCommon.SetData(data, DataType.UInt8, 0);
+                }
+                else
+                {
+                    GXCommon.SetData(data, DataType.Int16, MonitoredValue.ObjectType);
+                    GXCommon.SetData(data, DataType.OctetString, MonitoredValue.LogicalName);
+                    GXCommon.SetData(data, DataType.UInt8, MonitoredAttributeIndex);
+
+                }
                 return data.Array();
             }
             else if (e.Index == 3)
@@ -402,11 +412,19 @@ namespace Gurux.DLMS.Objects
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Array);
-                data.SetUInt8((byte)EmergencyProfileGroupIDs.Length);
-                foreach (object it in EmergencyProfileGroupIDs)
+                if (EmergencyProfileGroupIDs == null)
                 {
-                    GXCommon.SetData(data, DataType.UInt16, it);
+                    data.SetUInt8(0);
                 }
+                else
+                {
+                    data.SetUInt8((byte)EmergencyProfileGroupIDs.Length);
+                    foreach (object it in EmergencyProfileGroupIDs)
+                    {
+                        GXCommon.SetData(data, DataType.UInt16, it);
+                    }
+                }
+
                 return data.Array();
             }
             else if (e.Index == 10)

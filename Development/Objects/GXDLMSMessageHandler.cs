@@ -86,7 +86,7 @@ namespace Gurux.DLMS.Objects
         public List<KeyValuePair<GXDateTime, GXDateTime>> ListeningWindow
         {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace Gurux.DLMS.Objects
         public List<KeyValuePair<string, KeyValuePair<int, GXDLMSScriptAction>>> SendersAndActions
         {
             get;
-            internal set;
+            set;
         }
 
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>

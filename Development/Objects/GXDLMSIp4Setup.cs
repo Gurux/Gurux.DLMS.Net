@@ -293,7 +293,7 @@ namespace Gurux.DLMS.Objects
                 {
                     return 0;
                 }
-                return BitConverter.ToInt32(System.Net.IPAddress.Parse(IPAddress).GetAddressBytes(), 0);
+                return BitConverter.ToUInt32(System.Net.IPAddress.Parse(IPAddress).GetAddressBytes(), 0);
             }
             if (e.Index == 4)
             {
@@ -379,9 +379,20 @@ namespace Gurux.DLMS.Objects
                 List<uint> data = new List<uint>();
                 if (e.Value != null)
                 {
-                    foreach (object it in (Object[])e.Value)
+                    if (e.Value is Object[])
                     {
-                        data.Add(Convert.ToUInt16(it));
+                        foreach (object it in (Object[])e.Value)
+                        {
+                            data.Add(Convert.ToUInt16(it));
+                        }
+                    }
+                    else if (e.Value is UInt16[])
+                    {
+                        //Some meters are returning wrong data here.
+                        foreach (UInt16 it in (UInt16[])e.Value)
+                        {
+                            data.Add(it);
+                        }
                     }
                 }
                 MulticastIPAddress = data.ToArray();
