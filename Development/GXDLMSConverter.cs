@@ -53,7 +53,80 @@ namespace Gurux.DLMS
         /// </summary>
         private GXStandardObisCodeCollection codes = new GXStandardObisCodeCollection();
 
+        /// <summary>
+        /// Get OBIS code description.
+        /// </summary>
+        /// <param name="logicalName">Logical name (OBIS code).</param>
+        /// <returns>Array of descriptions that match given OBIS code.</returns>
+        public String[] GetDescription(String logicalName)
+        {
+            return GetDescription(logicalName, ObjectType.None);
+        }
 
+        /// <summary>
+        /// Get OBIS code description.
+        /// </summary>
+        /// <param name="logicalName">Logical name (OBIS code).</param>
+        /// <param name="description">Description filter.</param>
+        /// <returns>Array of descriptions that match given OBIS code.</returns>
+        public String[] GetDescription(String logicalName,
+                String description)
+        {
+            return GetDescription(logicalName, ObjectType.None, description);
+        }
+
+        /// <summary>
+        /// Get OBIS code description.
+        /// </summary>
+        /// <param name="logicalName">Logical name (OBIS code).</param>
+        /// <param name="type">Object type.</param>
+        /// <returns>Array of descriptions that match given OBIS code.</returns>
+        public String[] GetDescription(String logicalName,
+                ObjectType type)
+        {
+            return GetDescription(logicalName, type, null);
+        }
+
+        /// <summary>
+        /// Get OBIS code description.
+        /// </summary>
+        /// <param name="logicalName">Logical name (OBIS code).</param>
+        /// <param name="type">Object type.</param>
+        /// <param name="description">Description filter.</param>
+        /// <returns>Array of descriptions that match given OBIS code.</returns>
+        public String[] GetDescription(String logicalName,
+                ObjectType type, String description)
+        {
+            lock (codes)
+            {
+                if (codes.Count == 0)
+                {
+                    ReadStandardObisInfo(codes);
+                }
+            }
+            List<String> list = new List<String>();
+            bool all = string.IsNullOrEmpty(logicalName);
+            foreach (GXStandardObisCode it in codes.Find(logicalName, type))
+            {
+                if (!string.IsNullOrEmpty(description)
+                        && !it.Description.ToLower().Contains(description.ToLower()))
+                {
+                    continue;
+                }
+                if (all)
+                {
+                    list.Add("A=" + it.OBIS[0] + ", B=" + it.OBIS[1]
+                            + ", C=" + it.OBIS[2] + ", D=" + it.OBIS[3]
+                            + ", E=" + it.OBIS[4] + ", F=" + it.OBIS[5]
+                            + "\r\n" + it.Description);
+                }
+                else
+                {
+                    list.Add(it.Description);
+                }
+            }
+            return list.ToArray();
+        }
         /// <summary>
         /// Update standard OBIS codes description and type if defined.
         /// </summary>
@@ -103,28 +176,6 @@ namespace Gurux.DLMS
                 GXStandardObisCode code = new GXStandardObisCode(obis, items[3] + "; " + items[4] + "; " +
                         items[5] + "; " + items[6] + "; " + items[7], items[1], items[2]);
                 codes.Add(code);
-            }
-        }
-        public string[] GetDescription(string logicalName)
-        {
-            return GetDescription(logicalName, ObjectType.None);
-        }
-        public string[] GetDescription(string logicalName, ObjectType type)
-        {
-            lock (codes)
-            {
-                if (codes.Count == 0)
-                {
-                    ReadStandardObisInfo(codes);
-                }
-                List<string> list = new List<string>();
-
-                foreach (GXStandardObisCode it in codes.Find(logicalName, type))
-                {
-                    list.Add(it.Description);
-                }
-
-                return list.ToArray();
             }
         }
 

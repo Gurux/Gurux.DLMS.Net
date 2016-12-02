@@ -113,6 +113,16 @@ namespace Gurux.DLMS.Objects
         {
         }
 
+        public static bool ValidateLogicalName(String ln)
+        {
+            if (ln == null)
+            {
+                return false;
+            }
+            string[] items = ln.Split('.');
+            return items.Length == 6;
+        }
+
         /// <summary>
         /// Constructor,
         /// </summary>
@@ -124,8 +134,8 @@ namespace Gurux.DLMS.Objects
             this.ShortName = sn;
             if (ln != null)
             {
-                string[] items = ln.Split('.');
-                if (items.Length != 6)
+
+                if (!ValidateLogicalName(ln))
                 {
                     throw new GXDLMSException("Invalid Logical Name.");
                 }

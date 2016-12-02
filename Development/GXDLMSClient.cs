@@ -112,7 +112,7 @@ namespace Gurux.DLMS
         /// This list is used when Association view is read from the meter and description of the object is needed.
         /// If collection is not set description of object is empty.
         /// </remarks>
-        public Gurux.DLMS.ManufacturerSettings.GXObisCodeCollection CustomObisCodes
+        public GXObisCodeCollection CustomObisCodes
         {
             get;
             set;
@@ -724,7 +724,7 @@ namespace Gurux.DLMS
             }
             if (Settings.InterfaceType == InterfaceType.HDLC)
             {
-                return GXDLMS.GetHdlcFrame(Settings, (byte)Command.Disc, null);
+                return GXDLMS.GetHdlcFrame(Settings, (byte)Command.DisconnectRequest, null);
             }
             GXByteBuffer bb = new GXByteBuffer(2);
             bb.SetUInt8((byte)Command.DisconnectRequest);
@@ -934,6 +934,17 @@ namespace Gurux.DLMS
             else
             {
                 objects = ParseSNObjects(data, onlyKnownObjects);
+            }
+            foreach (GXObisCode it in CustomObisCodes)
+            {
+                if (it.Append)
+                {
+                    GXDLMSObject obj = GXDLMSClient.CreateObject(it.ObjectType);
+                    obj.Version = it.Version;
+                    obj.LogicalName = it.LogicalName;
+                    obj.Description = it.Description;
+                    objects.Add(obj);
+                }
             }
             GXDLMSConverter c = new GXDLMSConverter();
             c.UpdateOBISCodeInformation(objects);

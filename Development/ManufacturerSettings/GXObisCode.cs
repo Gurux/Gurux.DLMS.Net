@@ -40,16 +40,16 @@ using System.Xml.Serialization;
 using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.ManufacturerSettings
-{   
+{
     [Serializable]
     [TypeConverter(typeof(GXObisCodeConverter)), RefreshProperties(RefreshProperties.All)]
     public class GXObisCode
-    {        
+    {
         /// <summary>
         /// Constructor.
         /// </summary>
         public GXObisCode()
-        {            
+        {
             Attributes = new GXAttributeCollection();
             Attributes.Parent = this;
         }
@@ -65,16 +65,16 @@ namespace Gurux.DLMS.ManufacturerSettings
         public GXObisCode(string ln, ObjectType objectType, int index)
             : this(ln, objectType, null)
         {
-            AttributeIndex = index;            
+            AttributeIndex = index;
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>
         public GXObisCode(string ln, ObjectType objectType, string description) : this()
-        {            
+        {
             LogicalName = ln;
-            ObjectType = objectType;            
+            ObjectType = objectType;
             Description = description;
         }
 
@@ -96,7 +96,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         {
             get;
             set;
-        }        
+        }
 
         /// <summary>
         /// Description of the OBIS item.
@@ -107,7 +107,20 @@ namespace Gurux.DLMS.ManufacturerSettings
             get;
             set;
         }
-       
+
+        /// <summary>
+        /// All meters are not supporting Association view.
+        /// If OBIS code is wanted to added by default set append to true.
+        /// </summary>
+        [DefaultValue(false)]
+        public bool Append
+        {
+            get;
+            set;
+        }
+
+
+
         /// <summary>
         /// Interface type. Opsolite. Use ObjectType instead.
         /// </summary>
@@ -146,7 +159,7 @@ namespace Gurux.DLMS.ManufacturerSettings
             get;
             set;
         }
-       
+
         /// <summary>
         /// object attribute collection.
         /// </summary>
@@ -161,7 +174,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// </summary>
         /// <remarks>        
         /// </remarks>
-        [Browsable(false), DefaultValue(DataType.None)]                
+        [Browsable(false), DefaultValue(DataType.None)]
         public DataType Type
         {
             get

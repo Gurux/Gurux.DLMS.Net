@@ -108,11 +108,11 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list,
                                     TranslatorGeneralTags.RespondingAuthentication,
                                     "x:responding-authentication-value");
-            GXDLMSTranslator.AddTag(list, Command.DisconnectRequest,
+            GXDLMSTranslator.AddTag(list, Command.ReleaseRequest,
                                     "ReleaseRequest");
-            GXDLMSTranslator.AddTag(list, Command.DisconnectResponse,
+            GXDLMSTranslator.AddTag(list, Command.ReleaseResponse,
                                     "ReleaseResponse");
-            GXDLMSTranslator.AddTag(list, Command.Disc, "Disc");
+            GXDLMSTranslator.AddTag(list, Command.DisconnectRequest, "Disc");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.AssociationResult,
                                     "x:result");
             GXDLMSTranslator.AddTag(list,

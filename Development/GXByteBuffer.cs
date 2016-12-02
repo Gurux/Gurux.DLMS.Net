@@ -32,10 +32,6 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-//
-// --------------------------------------------------------------------------
-//  Gurux Ltd
-//
 namespace Gurux.DLMS
 {
     using System;

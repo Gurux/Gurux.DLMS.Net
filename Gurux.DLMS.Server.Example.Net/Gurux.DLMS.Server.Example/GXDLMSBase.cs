@@ -220,7 +220,7 @@ namespace GuruxDLMSServerExample
             ///////////////////////////////////////////////////////////////////////
             //Add Auto Answer object.
             GXDLMSAutoAnswer aa = new GXDLMSAutoAnswer();
-            aa.Mode = AutoConnectMode.EmailSending;
+            aa.Mode = AutoAnswerMode.Connected;
             aa.ListeningWindow.Add(new KeyValuePair<GXDateTime, GXDateTime>(new GXDateTime(-1, -1, -1, 6, -1, -1, -1), new GXDateTime(-1, -1, -1, 8, -1, -1, -1)));
             aa.Status = AutoAnswerStatus.Inactive;
             aa.NumberOfCalls = 0;

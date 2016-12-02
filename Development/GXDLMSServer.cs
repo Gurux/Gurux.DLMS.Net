@@ -699,8 +699,8 @@ namespace Gurux.DLMS
                 case Command.Aarq:
                     HandleAarqRequest(data, connectionInfo);
                     break;
+                case Command.ReleaseRequest:
                 case Command.DisconnectRequest:
-                case Command.Disc:
                     GenerateDisconnectRequest();
                     Settings.Connected = false;
                     Disconnected(connectionInfo);

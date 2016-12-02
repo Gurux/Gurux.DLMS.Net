@@ -137,17 +137,17 @@ namespace Gurux.DLMS
         /// <summary>
         /// Disconnect request for HDLC framing.
         /// </summary>
-        Disc = 0x53,
+        DisconnectRequest = 0x53,
 
         /// <summary>
-        /// Disconnect request for WRAPPER.
+        /// Release request.
         /// </summary>
-        DisconnectRequest = 0x62,
+        ReleaseRequest = 0x62,
 
         /// <summary>
-        /// Disconnect response for WRAPPER.
+        /// Release response.
         /// </summary>
-        DisconnectResponse = 0x63,
+        ReleaseResponse = 0x63,
 
         /// <summary>
         /// Confirmed Service Error.

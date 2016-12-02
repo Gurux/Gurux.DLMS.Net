@@ -37,6 +37,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Gurux.DLMS.Enums;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS
 {
@@ -52,9 +53,21 @@ namespace Gurux.DLMS
         /// <returns></returns>
         static byte[] GetBytes(string ln)
         {
+            if (String.IsNullOrEmpty(ln))
+            {
+                return null;
+            }
             string[] tmp = ln.Split(new char[] { '.' });
             if (tmp.Length != 6)
             {
+                // If value is give as hex.
+                byte[] tmp2 = GXCommon.HexToBytes(ln);
+                if (tmp2.Length == 6)
+                {
+                    return new byte[] { tmp2[0], tmp2[1],
+                        tmp2[2], tmp2[3], tmp2[4],
+                        tmp2[5] };
+                }
                 throw new ArgumentException("Invalid OBIS Code.");
             }
             byte[] code = new byte[6];
@@ -137,6 +150,10 @@ namespace Gurux.DLMS
         /// </summary>
         static bool EqualsObisCode(string[] obisMask, byte[] ic)
         {
+            if (ic == null)
+            {
+                return true;
+            }
             if (obisMask.Length != 6)
             {
                 throw new ArgumentException("Invalid OBIS mask.");
@@ -384,7 +401,7 @@ namespace Gurux.DLMS
                     if (tmp2.Length > 1)
                     {
                         string desc = "";
-                        if (string.Compare("$1", tmp2[1].Trim()) == 0)
+                        if (obisCode != null && string.Compare("$1", tmp2[1].Trim()) == 0)
                         {
                             desc = GetDescription("$" + obisCode[2]);
                         }
@@ -394,58 +411,61 @@ namespace Gurux.DLMS
                             tmp.Description = string.Join(";", tmp2);
                         }
                     }
-                    tmp.OBIS[0] = obisCode[0].ToString();
-                    tmp.OBIS[1] = obisCode[1].ToString();
-                    tmp.OBIS[2] = obisCode[2].ToString();
-                    tmp.OBIS[3] = obisCode[3].ToString();
-                    tmp.OBIS[4] = obisCode[4].ToString();
-                    tmp.OBIS[5] = obisCode[5].ToString();
-                    tmp.Description = tmp.Description.Replace("$A", obisCode[0].ToString());
-                    tmp.Description = tmp.Description.Replace("$B", obisCode[1].ToString());
-                    tmp.Description = tmp.Description.Replace("$C", obisCode[2].ToString());
-                    tmp.Description = tmp.Description.Replace("$D", obisCode[3].ToString());
-                    tmp.Description = tmp.Description.Replace("$E", obisCode[4].ToString());
-                    tmp.Description = tmp.Description.Replace("$F", obisCode[5].ToString());
-                    //Increase value
-                    int begin = tmp.Description.IndexOf("#$");
-                    if (begin != -1)
+                    if (obisCode != null)
                     {
-                        int start = tmp.Description.IndexOf('(');
-                        int end = tmp.Description.IndexOf(')');
-                        char channel = tmp.Description[start + 1];
-                        byte ch = 0;
-                        if (channel == 'A')
+                        tmp.OBIS[0] = obisCode[0].ToString();
+                        tmp.OBIS[1] = obisCode[1].ToString();
+                        tmp.OBIS[2] = obisCode[2].ToString();
+                        tmp.OBIS[3] = obisCode[3].ToString();
+                        tmp.OBIS[4] = obisCode[4].ToString();
+                        tmp.OBIS[5] = obisCode[5].ToString();
+                        tmp.Description = tmp.Description.Replace("$A", obisCode[0].ToString());
+                        tmp.Description = tmp.Description.Replace("$B", obisCode[1].ToString());
+                        tmp.Description = tmp.Description.Replace("$C", obisCode[2].ToString());
+                        tmp.Description = tmp.Description.Replace("$D", obisCode[3].ToString());
+                        tmp.Description = tmp.Description.Replace("$E", obisCode[4].ToString());
+                        tmp.Description = tmp.Description.Replace("$F", obisCode[5].ToString());
+                        //Increase value
+                        int begin = tmp.Description.IndexOf("#$");
+                        if (begin != -1)
                         {
-                            ch = obisCode[0];
+                            int start = tmp.Description.IndexOf('(');
+                            int end = tmp.Description.IndexOf(')');
+                            char channel = tmp.Description[start + 1];
+                            byte ch = 0;
+                            if (channel == 'A')
+                            {
+                                ch = obisCode[0];
+                            }
+                            else if (channel == 'B')
+                            {
+                                ch = obisCode[1];
+                            }
+                            else if (channel == 'C')
+                            {
+                                ch = obisCode[2];
+                            }
+                            else if (channel == 'D')
+                            {
+                                ch = obisCode[3];
+                            }
+                            else if (channel == 'E')
+                            {
+                                ch = obisCode[4];
+                            }
+                            else if (channel == 'F')
+                            {
+                                ch = obisCode[5];
+                            }
+                            int plus = tmp.Description.IndexOf('+');
+                            if (plus != -1)
+                            {
+                                ch += byte.Parse(tmp.Description.Substring(plus + 1, end - plus - 1));
+                            }
+                            tmp.Description = tmp.Description.Substring(0, begin) + ch.ToString();
                         }
-                        else if (channel == 'B')
-                        {
-                            ch = obisCode[1];
-                        }
-                        else if (channel == 'C')
-                        {
-                            ch = obisCode[2];
-                        }
-                        else if (channel == 'D')
-                        {
-                            ch = obisCode[3];
-                        }
-                        else if (channel == 'E')
-                        {
-                            ch = obisCode[4];
-                        }
-                        else if (channel == 'F')
-                        {
-                            ch = obisCode[5];
-                        }
-                        int plus = tmp.Description.IndexOf('+');
-                        if (plus != -1)
-                        {
-                            ch += byte.Parse(tmp.Description.Substring(plus + 1, end - plus - 1));
-                        }
-                        tmp.Description = tmp.Description.Substring(0, begin) + ch.ToString();
+                        tmp.Description = tmp.Description.Replace(';', ' ').Replace("  ", " ").Trim();
                     }
-                    tmp.Description = tmp.Description.Replace(';', ' ').Replace("  ", " ").Trim();
                 }
             }
             //If invalid OBIS code.

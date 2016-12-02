@@ -1644,6 +1644,16 @@ namespace Gurux.DLMS
                 else
                 {
                     // Get status code.
+                    if (reply.Data.Position == reply.ReadPosition)
+                    {
+                        reply.TotalCount = 0;
+                        reply.Data.Position = index;
+                        GetDataFromBlock(reply.Data, 0);
+                        reply.Value = null;
+                        //Ask that data is parsed after last block is received.
+                        reply.CommandType = (byte)SingleReadResponse.DataBlockResult;
+                        return false;
+                    }
                     reply.CommandType = reply.Data.GetUInt8();
                     type = (SingleReadResponse)reply.CommandType;
                 }
@@ -2306,7 +2316,7 @@ namespace Gurux.DLMS
                         // This is parsed later.
                         --data.Data.Position;
                         break;
-                    case Command.DisconnectResponse:
+                    case Command.ReleaseResponse:
                         break;
                     case Command.ConfirmedServiceError:
                         ConfirmedServiceError service = (ConfirmedServiceError)data.Data.GetUInt8();
@@ -2320,7 +2330,7 @@ namespace Gurux.DLMS
                     case Command.WriteRequest:
                     case Command.SetRequest:
                     case Command.MethodRequest:
-                    case Command.DisconnectRequest:
+                    case Command.ReleaseRequest:
                         // Server handles this.
                         if ((data.MoreData & RequestTypes.Frame) != 0)
                         {

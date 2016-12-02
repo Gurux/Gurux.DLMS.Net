@@ -34,7 +34,7 @@
 
 namespace Gurux.DLMS.Internal
 {
-    // <summary>
+    /// <summary>
     /// Enumerates Set response types.
     /// </summary>
     enum SetResponseType
@@ -51,6 +51,9 @@ namespace Gurux.DLMS.Internal
         /// Set response in last data block.
         /// </summary>
         LastDataBlock,
+        /// <summary>
+        /// Set response with list in last data block.
+        /// </summary>
         LastDataBlockWithList,
         /// <summary>
         /// Set with list response.

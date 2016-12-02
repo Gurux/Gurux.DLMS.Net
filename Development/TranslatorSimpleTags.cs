@@ -73,9 +73,9 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.CallingMechanismName, "MechanismName");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.CallingAuthentication, "CallingAuthentication");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.RespondingAuthentication, "RespondingAuthentication");
-            GXDLMSTranslator.AddTag(list, Command.DisconnectRequest, "ReleaseRequest");
-            GXDLMSTranslator.AddTag(list, Command.DisconnectResponse, "ReleaseResponse");
-            GXDLMSTranslator.AddTag(list, Command.Disc, "Disc");
+            GXDLMSTranslator.AddTag(list, Command.ReleaseRequest, "ReleaseRequest");
+            GXDLMSTranslator.AddTag(list, Command.ReleaseResponse, "ReleaseResponse");
+            GXDLMSTranslator.AddTag(list, Command.DisconnectRequest, "Disc");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.AssociationResult, "AssociationResult");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.ResultSourceDiagnostic, "ResultSourceDiagnostic");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.ACSEServiceUser, "ACSEServiceUser");

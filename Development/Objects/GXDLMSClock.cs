@@ -304,7 +304,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Shifts the time by n (-900 <= n <= 900) s.
+        /// Shifts the time by n (-900 &lt;= n &lt;= 900) s.
         /// </summary>
         /// <param name="time"></param>
         /// <returns></returns>

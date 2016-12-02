@@ -723,8 +723,8 @@ namespace Gurux.DLMS
                     value.Position = 0;
                     GXDLMS.GetPdu(settings, data);
                     break;
-                case (byte)Command.DisconnectRequest:
-                case (byte)Command.DisconnectResponse:
+                case (byte)Command.ReleaseRequest:
+                case (byte)Command.ReleaseResponse:
                     xml.AppendStartTag((Command)cmd);
                     //Len.
                     if (value.GetUInt8() != 0)
@@ -823,7 +823,7 @@ namespace Gurux.DLMS
                 case (byte)Command.ReadRequest:
                 case (byte)Command.WriteRequest:
                 case (byte)Command.MethodRequest:
-                case (byte)Command.DisconnectRequest:
+                case (byte)Command.ReleaseRequest:
                 case (int)Command.AccessRequest:
                     s.settings.IsServer = false;
                     break;
@@ -834,7 +834,7 @@ namespace Gurux.DLMS
                 case (byte)Command.ReadResponse:
                 case (byte)Command.WriteResponse:
                 case (byte)Command.MethodResponse:
-                case (byte)Command.DisconnectResponse:
+                case (byte)Command.ReleaseResponse:
                 case (int)Command.DataNotification:
                 case (int)Command.AccessResponse:
                     break;
@@ -1911,13 +1911,13 @@ namespace Gurux.DLMS
                 case Command.GloInitiateResponse:
                     GXAPDU.GenerateAARE(s.settings, bb, s.result, s.diagnostic, s.settings.Cipher, s.data);
                     break;
-                case Command.Disc:
-                    break;
                 case Command.DisconnectRequest:
+                    break;
+                case Command.ReleaseRequest:
                     bb.SetUInt8((byte)s.command);
                     bb.SetUInt8(0);
                     break;
-                case Command.DisconnectResponse:
+                case Command.ReleaseResponse:
                     bb.SetUInt8((byte)s.command);
                     //Len
                     bb.SetUInt8(3);
