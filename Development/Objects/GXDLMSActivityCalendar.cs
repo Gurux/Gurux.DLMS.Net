@@ -461,7 +461,7 @@ namespace Gurux.DLMS.Objects
                             data.SetUInt8((byte)DataType.Structure);
                             data.SetUInt8(3);
                             GXCommon.SetData(data, DataType.Time, action.StartTime);
-                            GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(action.ScriptLogicalName));
+                            GXCommon.SetData(data, DataType.OctetString, action.ScriptLogicalName);
                             GXCommon.SetData(data, DataType.UInt16, action.ScriptSelector);
                         }
                     }
@@ -652,7 +652,7 @@ namespace Gurux.DLMS.Objects
                             {
                                 ac.StartTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])it2[0], DataType.Time);
                             }
-                            ac.ScriptLogicalName = GXDLMSClient.ChangeType((byte[])it2[1], DataType.String).ToString();
+                            ac.ScriptLogicalName = GXDLMSClient.ChangeType((byte[])it2[1], DataType.OctetString).ToString();
                             ac.ScriptSelector = Convert.ToUInt16(it2[2]);
                             actions.Add(ac);
                         }

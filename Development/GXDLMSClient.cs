@@ -935,15 +935,18 @@ namespace Gurux.DLMS
             {
                 objects = ParseSNObjects(data, onlyKnownObjects);
             }
-            foreach (GXObisCode it in CustomObisCodes)
+            if (CustomObisCodes != null)
             {
-                if (it.Append)
+                foreach (GXObisCode it in CustomObisCodes)
                 {
-                    GXDLMSObject obj = GXDLMSClient.CreateObject(it.ObjectType);
-                    obj.Version = it.Version;
-                    obj.LogicalName = it.LogicalName;
-                    obj.Description = it.Description;
-                    objects.Add(obj);
+                    if (it.Append)
+                    {
+                        GXDLMSObject obj = GXDLMSClient.CreateObject(it.ObjectType);
+                        obj.Version = it.Version;
+                        obj.LogicalName = it.LogicalName;
+                        obj.Description = it.Description;
+                        objects.Add(obj);
+                    }
                 }
             }
             GXDLMSConverter c = new GXDLMSConverter();
