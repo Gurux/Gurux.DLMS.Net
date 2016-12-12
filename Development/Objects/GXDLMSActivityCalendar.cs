@@ -561,7 +561,7 @@ namespace Gurux.DLMS.Objects
                             {
                                 ac.StartTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])it2[0], DataType.Time);
                             }
-                            ac.ScriptLogicalName = GXDLMSClient.ChangeType((byte[])it2[1], DataType.String).ToString();
+                            ac.ScriptLogicalName = GXDLMSClient.ChangeType((byte[])it2[1], DataType.OctetString).ToString();
                             ac.ScriptSelector = Convert.ToUInt16(it2[2]);
                             actions.Add(ac);
                         }
