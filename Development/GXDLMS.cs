@@ -1805,6 +1805,14 @@ namespace Gurux.DLMS
                     if (ret != 0)
                     {
                         data.Error = data.Data.GetUInt8();
+                        //Handle Texas Instrument missing byte here.
+                        if (ret == 9 && data.Error == 16)
+                        {
+                            data.Data.Position -= 2;
+                            GetDataFromBlock(data.Data, 0);
+                            data.Error = 0;
+                            ret = 0;
+                        }
                     }
                     else
                     {
