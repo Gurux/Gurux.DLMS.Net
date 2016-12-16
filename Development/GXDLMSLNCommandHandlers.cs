@@ -666,7 +666,11 @@ namespace Gurux.DLMS
                             server.transaction = new GXDLMSLongTransaction(list, Command.GetRequest, data);
                         }
                         server.NotifyWrite(list);
-                        if (!e.Handled && !p.multipleBlocks)
+                        if (e.Error != 0)
+                        {
+                            p.status = (byte)e.Error;
+                        }
+                        else if (!e.Handled && !p.multipleBlocks)
                         {
                             (obj as IGXDLMSBase).SetValue(Settings, e);
                         }

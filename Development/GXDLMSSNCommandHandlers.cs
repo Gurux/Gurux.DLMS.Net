@@ -304,7 +304,11 @@ namespace Gurux.DLMS
                         ValueEventArgs e = new ValueEventArgs(Settings, target.Item, target.Index, 0, null);
                         e.Value = value;
                         server.NotifyWrite(new ValueEventArgs[] { e });
-                        if (!e.Handled)
+                        if (e.Error != 0)
+                        {
+                            results.SetUInt8((byte)pos, (byte)e.Error);
+                        }
+                        else if (!e.Handled)
                         {
                             (target.Item as IGXDLMSBase).SetValue(Settings, e);
                         }

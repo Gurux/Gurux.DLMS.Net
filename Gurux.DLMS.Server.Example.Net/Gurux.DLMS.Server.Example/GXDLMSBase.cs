@@ -348,6 +348,10 @@ namespace GuruxDLMSServerExample
 
         protected override void Write(ValueEventArgs[] args)
         {
+            foreach (ValueEventArgs it in args)
+            {
+                System.Diagnostics.Debug.WriteLine("Writing " + it.Target.LogicalName);
+            }
         }
 
         protected override void InvalidConnection(GXDLMSConnectionEventArgs e)
@@ -384,6 +388,7 @@ namespace GuruxDLMSServerExample
         {
             foreach (ValueEventArgs it in args)
             {
+                System.Diagnostics.Debug.WriteLine("Action " + it.Target.LogicalName);
                 if (it.Target is GXDLMSPushSetup && it.Index == 1)
                 {
                     SendPush(it.Target as GXDLMSPushSetup);
