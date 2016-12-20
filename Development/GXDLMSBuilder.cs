@@ -39,7 +39,7 @@ namespace Gurux.DLMS
     using System.Linq;
     using System.Text;
     using Gurux.DLMS.Internal;
-using Gurux.DLMS.Enums;
+    using Gurux.DLMS.Enums;
 
     /// <summary>
     /// This class is used to build custom DLMS content.
@@ -53,7 +53,7 @@ using Gurux.DLMS.Enums;
         {
         }
 
-            /// <summary>
+        /// <summary>
         /// Set item count.
         /// </summary>
         /// <param name="count"></param>
@@ -71,9 +71,9 @@ using Gurux.DLMS.Enums;
         public static int GetObjectCount(GXByteBuffer data)
         {
             return GXCommon.GetObjectCount(data);
-        }     
+        }
 
-         ///<summary>
+        ///<summary>
         ///Convert object to DLMS bytes.
         ///</summary>
         ///<param name="buff">
@@ -87,7 +87,7 @@ using Gurux.DLMS.Enums;
         ///</param>
         public static void SetData(GXByteBuffer buff, DataType type, object value)
         {
-            GXCommon.SetData(buff, type, value);
+            GXCommon.SetData(null, buff, type, value);
         }
     }
 }

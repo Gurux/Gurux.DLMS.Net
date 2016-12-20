@@ -464,14 +464,12 @@ namespace Gurux.DLMS.Internal
         ///<summary>
         ///Get data from DLMS frame.
         ///</summary>
-        ///<param name="data">
-        ///received data.
-        ///</param>
-        ///<param name="info"> Data info.
-        ///</param>
+        ///<param name="settings">DLMS settings.</param>
+        ///<param name="data">Received data.</param>
+        ///<param name="info"> Data info.</param>
         ///<returns>Parsed object.</returns>
         ///
-        public static object GetData(GXByteBuffer data, GXDataInfo info)
+        public static object GetData(GXDLMSSettings settings, GXByteBuffer data, GXDataInfo info)
         {
             object value = null;
             int startIndex = data.Position;
@@ -560,7 +558,7 @@ namespace Gurux.DLMS.Internal
                     value = GetDouble(data, info);
                     break;
                 case DataType.DateTime:
-                    value = GetDateTime(data, info);
+                    value = GetDateTime(settings, data, info);
                     break;
                 case DataType.Date:
                     value = GetDate(data, info);
@@ -614,7 +612,7 @@ namespace Gurux.DLMS.Internal
             {
                 GXDataInfo info2 = new GXDataInfo();
                 info2.xml = info.xml;
-                object tmp = GetData(buff, info2);
+                object tmp = GetData(null, buff, info2);
                 if (!info2.Complete)
                 {
                     buff.Position = (UInt16)startIndex;
@@ -723,16 +721,13 @@ namespace Gurux.DLMS.Internal
         ///<summary>
         ///Get date and time from DLMS data.
         ///</summary>
-        ///<param name="buff">
-        ///Received DLMS data.
-        ///</param>
-        ///<param name="info">
-        ///Data info.
-        ///</param>
+        ///<param name="settings">DLMS settings.</param>
+        ///<param name="buff">Received DLMS data.</param>
+        ///<param name="info">Data info.</param>
         ///<returns>
         ///Parsed date and time.
         ///</returns>
-        private static object GetDateTime(GXByteBuffer buff, GXDataInfo info)
+        private static object GetDateTime(GXDLMSSettings settings, GXByteBuffer buff, GXDataInfo info)
         {
             // If there is not enough data available.
             if (buff.Size - buff.Position < 12)
@@ -817,12 +812,17 @@ namespace Gurux.DLMS.Internal
             }
             int deviation = buff.GetInt16();
             dt.Status = (ClockStatus)buff.GetUInt8();
+            if (settings != null && settings.UtcTimeZone)
+            {
+                deviation = -deviation;
+            }
             dt.Deviation = deviation;
             //0x8000 == -32768
-            if (deviation != -32768 && year != 1)
+            //deviation = -1 if skipped.
+            if (deviation != -1 && deviation != -32768 && year != 1 && (dt.Skip & DateTimeSkips.Year) == 0)
             {
                 dt.Value = new DateTimeOffset(new DateTime(year, month, day, hours, minutes, seconds, milliseconds),
-                                              new TimeSpan(0, deviation, 0));
+                                              new TimeSpan(0, -deviation, 0));
             }
             else //Use current time if deviation is not defined.
             {
@@ -857,7 +857,7 @@ namespace Gurux.DLMS.Internal
             if (info.xml != null)
             {
                 GXByteBuffer tmp = new GXByteBuffer();
-                SetData(tmp, DataType.Float64, value);
+                SetData(null, tmp, DataType.Float64, value);
                 info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", GXCommon.ToHex(tmp.Data, false, 1, tmp.Size - 1));
             }
             return value;
@@ -887,7 +887,7 @@ namespace Gurux.DLMS.Internal
             if (info.xml != null)
             {
                 GXByteBuffer tmp = new GXByteBuffer();
-                SetData(tmp, DataType.Float32, value);
+                SetData(null, tmp, DataType.Float32, value);
                 info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", GXCommon.ToHex(tmp.Data, false, 1, tmp.Size - 1));
             }
             return value;
@@ -1463,16 +1463,11 @@ namespace Gurux.DLMS.Internal
         ///<summary>
         ///Convert object to DLMS bytes.
         ///</summary>
-        ///<param name="buff">
-        ///Byte buffer where data is write.
-        ///</param>
-        ///<param name="dataType">
-        ///Data type.
-        ///</param>
-        ///<param name="value">
-        /// Added Value.
-        ///</param>
-        public static void SetData(GXByteBuffer buff, DataType type, object value)
+        ///<param name="settings">DLMS settings.</param>
+        ///<param name="buff">Byte buffer where data is write.</param>
+        ///<param name="dataType">Data type.</param>
+        ///<param name="value">Added Value.</param>
+        public static void SetData(GXDLMSSettings settings, GXByteBuffer buff, DataType type, object value)
         {
             if ((type == DataType.Array || type == DataType.Structure) && value is byte[])
             {
@@ -1560,7 +1555,7 @@ namespace Gurux.DLMS.Internal
                     {
                         //Add size
                         buff.SetUInt8(12);
-                        SetDateTime(buff, value);
+                        SetDateTime(settings, buff, value);
                     }
                     else
                     {
@@ -1569,7 +1564,7 @@ namespace Gurux.DLMS.Internal
                     break;
                 case DataType.Array:
                 case DataType.Structure:
-                    SetArray(buff, value);
+                    SetArray(settings, buff, value);
                     break;
                 case DataType.Bcd:
                     SetBcd(buff, value);
@@ -1577,7 +1572,7 @@ namespace Gurux.DLMS.Internal
                 case DataType.CompactArray:
                     throw new Exception("Invalid data type.");
                 case DataType.DateTime:
-                    SetDateTime(buff, value);
+                    SetDateTime(settings, buff, value);
                     break;
                 case DataType.Date:
                     SetDate(buff, value);
@@ -1755,7 +1750,7 @@ namespace Gurux.DLMS.Internal
         ///<param name="value">
         ///Added value.
         ///</param>
-        private static void SetDateTime(GXByteBuffer buff, object value)
+        private static void SetDateTime(GXDLMSSettings settings, GXByteBuffer buff, object value)
         {
             GXDateTime dt;
             if (value is GXDateTime)
@@ -1874,7 +1869,14 @@ namespace Gurux.DLMS.Internal
             //Add deviation.
             if ((dt.Skip & DateTimeSkips.Devitation) == 0)
             {
-                buff.SetUInt16((UInt16)dt.Value.Offset.TotalMinutes);
+                if (settings != null && settings.UtcTimeZone)
+                {
+                    buff.SetInt16((Int16)(dt.Value.Offset.TotalMinutes));
+                }
+                else
+                {
+                    buff.SetInt16((Int16)(-dt.Value.Offset.TotalMinutes));
+                }
             }
             else //deviation not used.
             {
@@ -1915,7 +1917,7 @@ namespace Gurux.DLMS.Internal
         ///<param name="value">
         ///Added value.
         ///</param>
-        private static void SetArray(GXByteBuffer buff, object value)
+        private static void SetArray(GXDLMSSettings settings, GXByteBuffer buff, object value)
         {
             if (value != null)
             {
@@ -1923,7 +1925,7 @@ namespace Gurux.DLMS.Internal
                 SetObjectCount(arr.Length, buff);
                 foreach (object it in arr)
                 {
-                    SetData(buff, GetValueType(it), it);
+                    SetData(settings, buff, GetValueType(it), it);
                 }
             }
             else

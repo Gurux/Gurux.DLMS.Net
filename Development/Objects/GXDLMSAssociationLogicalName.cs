@@ -337,10 +337,10 @@ namespace Gurux.DLMS.Objects
                 {
                     data.SetUInt8((byte)DataType.Structure);
                     data.SetUInt8((byte)4); //Count
-                    GXCommon.SetData(data, DataType.UInt16, it.ObjectType); //ClassID
-                    GXCommon.SetData(data, DataType.UInt8, it.Version); //Version
-                    GXCommon.SetData(data, DataType.OctetString, it.LogicalName); //LN
-                    GetAccessRights(it, data); //Access rights.
+                    GXCommon.SetData(settings, data, DataType.UInt16, it.ObjectType); //ClassID
+                    GXCommon.SetData(settings, data, DataType.UInt8, it.Version); //Version
+                    GXCommon.SetData(settings, data, DataType.OctetString, it.LogicalName); //LN
+                    GetAccessRights(settings, it, data); //Access rights.
                     ++settings.Index;
                     //If PDU is full.
                     if (!e.SkipMaxPduSize && data.Size >= settings.MaxPduSize)
@@ -352,7 +352,7 @@ namespace Gurux.DLMS.Objects
             return data;
         }
 
-        private void GetAccessRights(GXDLMSObject item, GXByteBuffer data)
+        private void GetAccessRights(GXDLMSSettings settings, GXDLMSObject item, GXByteBuffer data)
         {
             data.SetUInt8((byte)DataType.Structure);
             data.SetUInt8((byte)2);
@@ -365,17 +365,17 @@ namespace Gurux.DLMS.Objects
                 GXDLMSAttributeSettings att = attributes.Find(pos + 1);
                 data.SetUInt8((byte)DataType.Structure); //attribute_access_item
                 data.SetUInt8((byte)3);
-                GXCommon.SetData(data, DataType.Int8, pos + 1);
+                GXCommon.SetData(settings, data, DataType.Int8, pos + 1);
                 //If attribute is not set return read only.
                 if (att == null)
                 {
-                    GXCommon.SetData(data, DataType.Enum, AccessMode.Read);
+                    GXCommon.SetData(settings, data, DataType.Enum, AccessMode.Read);
                 }
                 else
                 {
-                    GXCommon.SetData(data, DataType.Enum, att.Access);
+                    GXCommon.SetData(settings, data, DataType.Enum, att.Access);
                 }
-                GXCommon.SetData(data, DataType.None, null);
+                GXCommon.SetData(settings, data, DataType.None, null);
             }
             data.SetUInt8((byte)DataType.Array);
             attributes = item.MethodAttributes;
@@ -386,15 +386,15 @@ namespace Gurux.DLMS.Objects
                 GXDLMSAttributeSettings att = attributes.Find(pos + 1);
                 data.SetUInt8((byte)DataType.Structure); //attribute_access_item
                 data.SetUInt8((byte)2);
-                GXCommon.SetData(data, DataType.Int8, pos + 1);
+                GXCommon.SetData(settings, data, DataType.Int8, pos + 1);
                 //If method attribute is not set return no access.
                 if (att == null)
                 {
-                    GXCommon.SetData(data, DataType.Enum, MethodAccessMode.NoAccess);
+                    GXCommon.SetData(settings, data, DataType.Enum, MethodAccessMode.NoAccess);
                 }
                 else
                 {
-                    GXCommon.SetData(data, DataType.Enum, att.MethodAccess);
+                    GXCommon.SetData(settings, data, DataType.Enum, att.MethodAccess);
                 }
             }
         }
@@ -496,13 +496,13 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8((byte)DataType.Structure);
                 //Add count
                 data.SetUInt8(0x7);
-                GXCommon.SetData(data, DataType.UInt8, ApplicationContextName.JointIsoCtt);
-                GXCommon.SetData(data, DataType.UInt8, ApplicationContextName.Country);
-                GXCommon.SetData(data, DataType.UInt16, ApplicationContextName.CountryName);
-                GXCommon.SetData(data, DataType.UInt8, ApplicationContextName.IdentifiedOrganization);
-                GXCommon.SetData(data, DataType.UInt8, ApplicationContextName.DlmsUA);
-                GXCommon.SetData(data, DataType.UInt8, ApplicationContextName.ApplicationContext);
-                GXCommon.SetData(data, DataType.UInt8, ApplicationContextName.ContextId);
+                GXCommon.SetData(settings, data, DataType.UInt8, ApplicationContextName.JointIsoCtt);
+                GXCommon.SetData(settings, data, DataType.UInt8, ApplicationContextName.Country);
+                GXCommon.SetData(settings, data, DataType.UInt16, ApplicationContextName.CountryName);
+                GXCommon.SetData(settings, data, DataType.UInt8, ApplicationContextName.IdentifiedOrganization);
+                GXCommon.SetData(settings, data, DataType.UInt8, ApplicationContextName.DlmsUA);
+                GXCommon.SetData(settings, data, DataType.UInt8, ApplicationContextName.ApplicationContext);
+                GXCommon.SetData(settings, data, DataType.UInt8, ApplicationContextName.ContextId);
                 return data.Array();
             }
             if (e.Index == 5)
@@ -510,12 +510,12 @@ namespace Gurux.DLMS.Objects
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8(6);
-                GXCommon.SetData(data, DataType.BitString, XDLMSContextInfo.Conformance);
-                GXCommon.SetData(data, DataType.UInt16, XDLMSContextInfo.MaxReceivePduSize);
-                GXCommon.SetData(data, DataType.UInt16, XDLMSContextInfo.MaxSendPpuSize);
-                GXCommon.SetData(data, DataType.UInt8, XDLMSContextInfo.DlmsVersionNumber);
-                GXCommon.SetData(data, DataType.Int8, XDLMSContextInfo.QualityOfService);
-                GXCommon.SetData(data, DataType.OctetString, XDLMSContextInfo.CypheringInfo);
+                GXCommon.SetData(settings, data, DataType.BitString, XDLMSContextInfo.Conformance);
+                GXCommon.SetData(settings, data, DataType.UInt16, XDLMSContextInfo.MaxReceivePduSize);
+                GXCommon.SetData(settings, data, DataType.UInt16, XDLMSContextInfo.MaxSendPpuSize);
+                GXCommon.SetData(settings, data, DataType.UInt8, XDLMSContextInfo.DlmsVersionNumber);
+                GXCommon.SetData(settings, data, DataType.Int8, XDLMSContextInfo.QualityOfService);
+                GXCommon.SetData(settings, data, DataType.OctetString, XDLMSContextInfo.CypheringInfo);
                 return data.Array();
             }
             if (e.Index == 6)
@@ -524,13 +524,13 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8((byte)DataType.Structure);
                 //Add count
                 data.SetUInt8(0x7);
-                GXCommon.SetData(data, DataType.UInt8, AuthenticationMechanismMame.JointIsoCtt);
-                GXCommon.SetData(data, DataType.UInt8, AuthenticationMechanismMame.Country);
-                GXCommon.SetData(data, DataType.UInt16, AuthenticationMechanismMame.CountryName);
-                GXCommon.SetData(data, DataType.UInt8, AuthenticationMechanismMame.IdentifiedOrganization);
-                GXCommon.SetData(data, DataType.UInt8, AuthenticationMechanismMame.DlmsUA);
-                GXCommon.SetData(data, DataType.UInt8, AuthenticationMechanismMame.AuthenticationMechanismName);
-                GXCommon.SetData(data, DataType.UInt8, AuthenticationMechanismMame.MechanismId);
+                GXCommon.SetData(settings, data, DataType.UInt8, AuthenticationMechanismMame.JointIsoCtt);
+                GXCommon.SetData(settings, data, DataType.UInt8, AuthenticationMechanismMame.Country);
+                GXCommon.SetData(settings, data, DataType.UInt16, AuthenticationMechanismMame.CountryName);
+                GXCommon.SetData(settings, data, DataType.UInt8, AuthenticationMechanismMame.IdentifiedOrganization);
+                GXCommon.SetData(settings, data, DataType.UInt8, AuthenticationMechanismMame.DlmsUA);
+                GXCommon.SetData(settings, data, DataType.UInt8, AuthenticationMechanismMame.AuthenticationMechanismName);
+                GXCommon.SetData(settings, data, DataType.UInt8, AuthenticationMechanismMame.MechanismId);
                 return data.Array();
             }
             if (e.Index == 7)

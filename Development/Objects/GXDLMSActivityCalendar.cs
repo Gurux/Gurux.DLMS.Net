@@ -299,9 +299,9 @@ namespace Gurux.DLMS.Objects
                     {
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8(3);
-                        GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Name));
-                        GXCommon.SetData(data, DataType.OctetString, it.Start);
-                        GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.WeekName));
+                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Name));
+                        GXCommon.SetData(settings, data, DataType.OctetString, it.Start);
+                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.WeekName));
                     }
                 }
                 return data.Array();
@@ -324,14 +324,14 @@ namespace Gurux.DLMS.Objects
                     {
                         data.SetUInt8((byte)DataType.Array);
                         data.SetUInt8(8);
-                        GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Name));
-                        GXCommon.SetData(data, DataType.UInt8, it.Monday);
-                        GXCommon.SetData(data, DataType.UInt8, it.Tuesday);
-                        GXCommon.SetData(data, DataType.UInt8, it.Wednesday);
-                        GXCommon.SetData(data, DataType.UInt8, it.Thursday);
-                        GXCommon.SetData(data, DataType.UInt8, it.Friday);
-                        GXCommon.SetData(data, DataType.UInt8, it.Saturday);
-                        GXCommon.SetData(data, DataType.UInt8, it.Sunday);
+                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Name));
+                        GXCommon.SetData(settings, data, DataType.UInt8, it.Monday);
+                        GXCommon.SetData(settings, data, DataType.UInt8, it.Tuesday);
+                        GXCommon.SetData(settings, data, DataType.UInt8, it.Wednesday);
+                        GXCommon.SetData(settings, data, DataType.UInt8, it.Thursday);
+                        GXCommon.SetData(settings, data, DataType.UInt8, it.Friday);
+                        GXCommon.SetData(settings, data, DataType.UInt8, it.Saturday);
+                        GXCommon.SetData(settings, data, DataType.UInt8, it.Sunday);
                     }
                 }
                 return data.Array();
@@ -354,7 +354,7 @@ namespace Gurux.DLMS.Objects
                     {
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8(2);
-                        GXCommon.SetData(data, DataType.UInt8, it.DayId);
+                        GXCommon.SetData(settings, data, DataType.UInt8, it.DayId);
                         data.SetUInt8((byte)DataType.Array);
                         //Add count
                         GXCommon.SetObjectCount(it.DaySchedules.Length, data);
@@ -362,9 +362,9 @@ namespace Gurux.DLMS.Objects
                         {
                             data.SetUInt8((byte)DataType.Structure);
                             data.SetUInt8(3);
-                            GXCommon.SetData(data, DataType.Time, action.StartTime);
-                            GXCommon.SetData(data, DataType.OctetString, action.ScriptLogicalName);
-                            GXCommon.SetData(data, DataType.UInt16, action.ScriptSelector);
+                            GXCommon.SetData(settings, data, DataType.Time, action.StartTime);
+                            GXCommon.SetData(settings, data, DataType.OctetString, action.ScriptLogicalName);
+                            GXCommon.SetData(settings, data, DataType.UInt16, action.ScriptSelector);
                         }
                     }
                 }
@@ -397,9 +397,9 @@ namespace Gurux.DLMS.Objects
                     {
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8(3);
-                        GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Name));
-                        GXCommon.SetData(data, DataType.OctetString, it.Start);
-                        GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.WeekName));
+                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Name));
+                        GXCommon.SetData(settings, data, DataType.OctetString, it.Start);
+                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.WeekName));
                     }
                 }
                 return data.Array();
@@ -422,14 +422,14 @@ namespace Gurux.DLMS.Objects
                     {
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8(8);
-                        GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Name));
-                        GXCommon.SetData(data, DataType.UInt8, it.Monday);
-                        GXCommon.SetData(data, DataType.UInt8, it.Tuesday);
-                        GXCommon.SetData(data, DataType.UInt8, it.Wednesday);
-                        GXCommon.SetData(data, DataType.UInt8, it.Thursday);
-                        GXCommon.SetData(data, DataType.UInt8, it.Friday);
-                        GXCommon.SetData(data, DataType.UInt8, it.Saturday);
-                        GXCommon.SetData(data, DataType.UInt8, it.Sunday);
+                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Name));
+                        GXCommon.SetData(settings, data, DataType.UInt8, it.Monday);
+                        GXCommon.SetData(settings, data, DataType.UInt8, it.Tuesday);
+                        GXCommon.SetData(settings, data, DataType.UInt8, it.Wednesday);
+                        GXCommon.SetData(settings, data, DataType.UInt8, it.Thursday);
+                        GXCommon.SetData(settings, data, DataType.UInt8, it.Friday);
+                        GXCommon.SetData(settings, data, DataType.UInt8, it.Saturday);
+                        GXCommon.SetData(settings, data, DataType.UInt8, it.Sunday);
                     }
                 }
                 return data.Array();
@@ -452,7 +452,7 @@ namespace Gurux.DLMS.Objects
                     {
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8(2);
-                        GXCommon.SetData(data, DataType.UInt8, it.DayId);
+                        GXCommon.SetData(settings, data, DataType.UInt8, it.DayId);
                         data.SetUInt8((byte)DataType.Array);
                         //Add count
                         GXCommon.SetObjectCount(it.DaySchedules.Length, data);
@@ -460,9 +460,9 @@ namespace Gurux.DLMS.Objects
                         {
                             data.SetUInt8((byte)DataType.Structure);
                             data.SetUInt8(3);
-                            GXCommon.SetData(data, DataType.Time, action.StartTime);
-                            GXCommon.SetData(data, DataType.OctetString, action.ScriptLogicalName);
-                            GXCommon.SetData(data, DataType.UInt16, action.ScriptSelector);
+                            GXCommon.SetData(settings, data, DataType.Time, action.StartTime);
+                            GXCommon.SetData(settings, data, DataType.OctetString, action.ScriptLogicalName);
+                            GXCommon.SetData(settings, data, DataType.UInt16, action.ScriptSelector);
                         }
                     }
                 }

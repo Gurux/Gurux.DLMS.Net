@@ -1234,22 +1234,22 @@ namespace Gurux.DLMS
                     s.data.Size = 0;
                     break;
                 case DataType.Bcd:
-                    GXCommon.SetData(s.data, DataType.Bcd, s.ParseShort(GetValue(node, s)));
+                    GXCommon.SetData(s.settings, s.data, DataType.Bcd, s.ParseShort(GetValue(node, s)));
                     break;
                 case DataType.BitString:
-                    GXCommon.SetData(s.data, DataType.BitString, GetValue(node, s));
+                    GXCommon.SetData(s.settings, s.data, DataType.BitString, GetValue(node, s));
                     break;
                 case DataType.Boolean:
-                    GXCommon.SetData(s.data, DataType.Boolean, s.ParseShort(GetValue(node, s)));
+                    GXCommon.SetData(s.settings, s.data, DataType.Boolean, s.ParseShort(GetValue(node, s)));
                     break;
                 case DataType.Date:
-                    GXCommon.SetData(s.data, DataType.Date, GXDLMSClient.ChangeType(GXCommon.HexToBytes(GetValue(node, s)), DataType.DateTime));
+                    GXCommon.SetData(s.settings, s.data, DataType.Date, GXDLMSClient.ChangeType(GXCommon.HexToBytes(GetValue(node, s)), DataType.DateTime));
                     break;
                 case DataType.DateTime:
-                    GXCommon.SetData(s.data, DataType.DateTime, GXDLMSClient.ChangeType(GXCommon.HexToBytes(GetValue(node, s)), DataType.DateTime));
+                    GXCommon.SetData(s.settings, s.data, DataType.DateTime, GXDLMSClient.ChangeType(GXCommon.HexToBytes(GetValue(node, s)), DataType.DateTime));
                     break;
                 case DataType.Enum:
-                    GXCommon.SetData(s.data, DataType.Enum, s.ParseShort(GetValue(node, s)));
+                    GXCommon.SetData(s.settings, s.data, DataType.Enum, s.ParseShort(GetValue(node, s)));
                     break;
                 case DataType.Float32:
                     GetFloat32(node, s);
@@ -1258,19 +1258,19 @@ namespace Gurux.DLMS
                     GetFloat64(node, s);
                     break;
                 case DataType.Int16:
-                    GXCommon.SetData(s.data, DataType.Int16, s.ParseShort(GetValue(node, s)));
+                    GXCommon.SetData(s.settings, s.data, DataType.Int16, s.ParseShort(GetValue(node, s)));
                     break;
                 case DataType.Int32:
-                    GXCommon.SetData(s.data, DataType.Int32, s.ParseInt(GetValue(node, s)));
+                    GXCommon.SetData(s.settings, s.data, DataType.Int32, s.ParseInt(GetValue(node, s)));
                     break;
                 case DataType.Int64:
-                    GXCommon.SetData(s.data, DataType.Int64, s.ParseLong(GetValue(node, s)));
+                    GXCommon.SetData(s.settings, s.data, DataType.Int64, s.ParseLong(GetValue(node, s)));
                     break;
                 case DataType.Int8:
-                    GXCommon.SetData(s.data, DataType.Int8, s.ParseShort(GetValue(node, s)));
+                    GXCommon.SetData(s.settings, s.data, DataType.Int8, s.ParseShort(GetValue(node, s)));
                     break;
                 case DataType.None:
-                    GXCommon.SetData(s.data, DataType.None, null);
+                    GXCommon.SetData(s.settings, s.data, DataType.None, null);
                     break;
                 case DataType.OctetString:
                     GetOctetString(node, s);
@@ -1278,21 +1278,21 @@ namespace Gurux.DLMS
                 case DataType.String:
                     if (s.showStringAsHex)
                     {
-                        GXCommon.SetData(s.data, DataType.String, GXCommon.HexToBytes(GetValue(node, s)));
+                        GXCommon.SetData(s.settings, s.data, DataType.String, GXCommon.HexToBytes(GetValue(node, s)));
                     }
                     else
                     {
-                        GXCommon.SetData(s.data, DataType.String, GetValue(node, s));
+                        GXCommon.SetData(s.settings, s.data, DataType.String, GetValue(node, s));
                     }
                     break;
                 case DataType.StringUTF8:
                     if (s.showStringAsHex)
                     {
-                        GXCommon.SetData(s.data, DataType.StringUTF8, GXCommon.HexToBytes(GetValue(node, s)));
+                        GXCommon.SetData(s.settings, s.data, DataType.StringUTF8, GXCommon.HexToBytes(GetValue(node, s)));
                     }
                     else
                     {
-                        GXCommon.SetData(s.data, DataType.StringUTF8, GetValue(node, s));
+                        GXCommon.SetData(s.settings, s.data, DataType.StringUTF8, GetValue(node, s));
                     }
                     break;
                 case DataType.Structure:
@@ -1301,19 +1301,19 @@ namespace Gurux.DLMS
                     s.data.Size = 0;
                     break;
                 case DataType.Time:
-                    GXCommon.SetData(s.data, DataType.Time, GXDLMSClient.ChangeType(GXCommon.HexToBytes(GetValue(node, s)), DataType.DateTime));
+                    GXCommon.SetData(s.settings, s.data, DataType.Time, GXDLMSClient.ChangeType(GXCommon.HexToBytes(GetValue(node, s)), DataType.DateTime));
                     break;
                 case DataType.UInt16:
-                    GXCommon.SetData(s.data, DataType.UInt16, s.ParseInt(GetValue(node, s)));
+                    GXCommon.SetData(s.settings, s.data, DataType.UInt16, s.ParseInt(GetValue(node, s)));
                     break;
                 case DataType.UInt32:
-                    GXCommon.SetData(s.data, DataType.UInt32, s.ParseLong(GetValue(node, s)));
+                    GXCommon.SetData(s.settings, s.data, DataType.UInt32, s.ParseLong(GetValue(node, s)));
                     break;
                 case DataType.UInt64:
-                    GXCommon.SetData(s.data, DataType.UInt64, s.ParseULong(GetValue(node, s)));
+                    GXCommon.SetData(s.settings, s.data, DataType.UInt64, s.ParseULong(GetValue(node, s)));
                     break;
                 case DataType.UInt8:
-                    GXCommon.SetData(s.data, DataType.UInt8, s.ParseShort(GetValue(node, s)));
+                    GXCommon.SetData(s.settings, s.data, DataType.UInt8, s.ParseShort(GetValue(node, s)));
                     break;
                 default:
                     throw new ArgumentException("Invalid node: " + node.Name);
@@ -1817,21 +1817,21 @@ namespace Gurux.DLMS
         {
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetHexString(GetValue(node, s));
-            GXCommon.SetData(s.data, DataType.OctetString, bb.Array());
+            GXCommon.SetData(s.settings, s.data, DataType.OctetString, bb.Array());
         }
 
         private static void GetFloat32(XmlNode node, GXDLMSXmlSettings s)
         {
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetHexString(GetValue(node, s));
-            GXCommon.SetData(s.data, DataType.Float32, bb.GetFloat());
+            GXCommon.SetData(s.settings, s.data, DataType.Float32, bb.GetFloat());
         }
 
         private static void GetFloat64(XmlNode node, GXDLMSXmlSettings s)
         {
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetHexString(GetValue(node, s));
-            GXCommon.SetData(s.data, DataType.Float64, bb.GetDouble());
+            GXCommon.SetData(s.settings, s.data, DataType.Float64, bb.GetDouble());
         }
 
         /// <summary>

@@ -309,7 +309,7 @@ namespace Gurux.DLMS
             }
         }
 
-        internal static void AppendData(GXDLMSObject obj, int index, GXByteBuffer bb, Object value)
+        internal static void AppendData(GXDLMSSettings settings, GXDLMSObject obj, int index, GXByteBuffer bb, Object value)
         {
             DataType tp = obj.GetDataType(index);
             if (tp == DataType.Array)
@@ -332,7 +332,7 @@ namespace Gurux.DLMS
                     tp = GXCommon.GetValueType(value);
                 }
             }
-            GXCommon.SetData(bb, tp, value);
+            GXCommon.SetData(settings, bb, tp, value);
         }
 
         /// <summary>
@@ -492,7 +492,7 @@ namespace Gurux.DLMS
                     {
                         // Data is send in octet string. Remove data type.
                         int pos = reply.Size;
-                        GXCommon.SetData(reply, DataType.OctetString, p.time);
+                        GXCommon.SetData(p.settings, reply, DataType.OctetString, p.time);
                         reply.Move(pos + 1, pos, reply.Size - pos - 1);
                     }
                 }
@@ -1670,7 +1670,7 @@ namespace Gurux.DLMS
                             reply.Xml.AppendStartTag(Command.ReadResponse, SingleReadResponse.Data);
                             GXDataInfo di = new GXDataInfo();
                             di.xml = reply.Xml;
-                            GXCommon.GetData(reply.Data, di);
+                            GXCommon.GetData(settings, reply.Data, di);
                             reply.Xml.AppendEndTag(Command.ReadResponse, SingleReadResponse.Data);
                             if (reply.Xml.OutputType == TranslatorOutputType.StandardXml)
                             {
@@ -1767,7 +1767,7 @@ namespace Gurux.DLMS
             return cnt == 1;
         }
 
-        private static void HandleActionResponseNormal(GXReplyData data)
+        private static void HandleActionResponseNormal(GXDLMSSettings settings, GXReplyData data)
         {
             //Get Action-Result
             byte ret = data.Data.GetUInt8();
@@ -1852,7 +1852,7 @@ namespace Gurux.DLMS
                                                     SingleReadResponse.Data);
                             GXDataInfo di = new GXDataInfo();
                             di.xml = data.Xml;
-                            GXCommon.GetData(data.Data, di);
+                            GXCommon.GetData(settings, data.Data, di);
                             data.Xml.AppendEndTag(Command.ReadResponse,
                                                   SingleReadResponse.Data);
                         }
@@ -1890,7 +1890,7 @@ namespace Gurux.DLMS
             //Action-Response-Normal
             if (type == ActionResponseType.Normal)
             {
-                HandleActionResponseNormal(data);
+                HandleActionResponseNormal(settings, data);
             }
             //Action-Response-With-Pblock
             else if (type == ActionResponseType.WithFirstBlock)
@@ -2048,7 +2048,7 @@ namespace Gurux.DLMS
                         reply.Xml.AppendStartTag(TranslatorTags.Data);
                         GXDataInfo di = new GXDataInfo();
                         di.xml = reply.Xml;
-                        GXCommon.GetData(reply.Data, di);
+                        GXCommon.GetData(settings, reply.Data, di);
                         reply.Xml.AppendEndTag(TranslatorTags.Data);
                     }
                 }
@@ -2174,7 +2174,7 @@ namespace Gurux.DLMS
                             di.xml = reply.Xml;
                             //Data.
                             reply.Xml.AppendStartTag(Command.ReadResponse, SingleReadResponse.Data);
-                            GXCommon.GetData(reply.Data, di);
+                            GXCommon.GetData(settings, reply.Data, di);
                             reply.Xml.AppendEndTag(Command.ReadResponse, SingleReadResponse.Data);
                         }
                         else
@@ -2511,7 +2511,7 @@ namespace Gurux.DLMS
                     }
                     GXDataInfo di = new GXDataInfo();
                     di.xml = reply.Xml;
-                    GXCommon.GetData(reply.Data, di);
+                    GXCommon.GetData(settings, reply.Data, di);
                     if (reply.Xml.OutputType == TranslatorOutputType.StandardXml)
                     {
                         reply.Xml.AppendEndTag(Command.WriteRequest,
@@ -2584,7 +2584,7 @@ namespace Gurux.DLMS
                 reply.Xml.AppendStartTag(TranslatorTags.DataValue);
                 GXDataInfo di = new GXDataInfo();
                 di.xml = reply.Xml;
-                GXCommon.GetData(reply.Data, di);
+                GXCommon.GetData(settings, reply.Data, di);
                 reply.Xml.AppendEndTag(TranslatorTags.DataValue);
                 reply.Xml.AppendEndTag(TranslatorTags.NotificationBody);
                 reply.Xml.AppendEndTag(Command.DataNotification);
@@ -2615,7 +2615,7 @@ namespace Gurux.DLMS
             data.Position = reply.ReadPosition;
             try
             {
-                Object value = GXCommon.GetData(data, info);
+                Object value = GXCommon.GetData(settings, data, info);
                 if (value != null)
                 {
                     lock (reply)

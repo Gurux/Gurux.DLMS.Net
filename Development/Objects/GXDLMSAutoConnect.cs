@@ -263,8 +263,8 @@ namespace Gurux.DLMS.Objects
                     {
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8((byte)2); //Count
-                        GXCommon.SetData(data, DataType.OctetString, it.Key); //start_time
-                        GXCommon.SetData(data, DataType.OctetString, it.Value); //end_time
+                        GXCommon.SetData(settings, data, DataType.OctetString, it.Key); //start_time
+                        GXCommon.SetData(settings, data, DataType.OctetString, it.Value); //end_time
                     }
                 }
                 return data.Array();
@@ -285,7 +285,7 @@ namespace Gurux.DLMS.Objects
                     GXCommon.SetObjectCount(cnt, data);
                     foreach (string it in Destinations)
                     {
-                        GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it)); //destination
+                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it)); //destination
                     }
                 }
                 return data.Array();

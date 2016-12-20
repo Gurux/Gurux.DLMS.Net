@@ -189,9 +189,9 @@ namespace Gurux.DLMS.Objects
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((int)DataType.Structure);
                 data.SetUInt8(3);
-                GXCommon.SetData(data, DataType.UInt16, MonitoredValue.ObjectType); //ClassID
-                GXCommon.SetData(data, DataType.OctetString, MonitoredValue.LogicalName); //Logical name.
-                GXCommon.SetData(data, DataType.Int8, MonitoredValue.AttributeIndex); //Attribute Index
+                GXCommon.SetData(settings, data, DataType.UInt16, MonitoredValue.ObjectType); //ClassID
+                GXCommon.SetData(settings, data, DataType.OctetString, MonitoredValue.LogicalName); //Logical name.
+                GXCommon.SetData(settings, data, DataType.Int8, MonitoredValue.AttributeIndex); //Attribute Index
                 return data.Array();
             }
             if (e.Index == 4)
@@ -211,12 +211,12 @@ namespace Gurux.DLMS.Objects
                         data.SetUInt8(2);
                         data.SetUInt8((int)DataType.Structure);
                         data.SetUInt8(2);
-                        GXCommon.SetData(data, DataType.OctetString, it.ActionUp.LogicalName); //Logical name.
-                        GXCommon.SetData(data, DataType.UInt16, it.ActionUp.ScriptSelector); //ScriptSelector
+                        GXCommon.SetData(settings, data, DataType.OctetString, it.ActionUp.LogicalName); //Logical name.
+                        GXCommon.SetData(settings, data, DataType.UInt16, it.ActionUp.ScriptSelector); //ScriptSelector
                         data.SetUInt8((int)DataType.Structure);
                         data.SetUInt8(2);
-                        GXCommon.SetData(data, DataType.OctetString, it.ActionDown.LogicalName); //Logical name.
-                        GXCommon.SetData(data, DataType.UInt16, it.ActionDown.ScriptSelector); //ScriptSelector
+                        GXCommon.SetData(settings, data, DataType.OctetString, it.ActionDown.LogicalName); //Logical name.
+                        GXCommon.SetData(settings, data, DataType.UInt16, it.ActionDown.ScriptSelector); //ScriptSelector
                     }
                 }
                 return data.Array();

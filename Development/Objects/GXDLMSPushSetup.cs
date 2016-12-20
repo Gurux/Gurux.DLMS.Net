@@ -295,10 +295,10 @@ namespace Gurux.DLMS.Objects
                 {
                     buff.SetUInt8(DataType.Structure);
                     buff.SetUInt8(4);
-                    GXCommon.SetData(buff, DataType.UInt16, it.Key.ObjectType);
-                    GXCommon.SetData(buff, DataType.OctetString, it.Key.LogicalName);
-                    GXCommon.SetData(buff, DataType.Int8, it.Value.AttributeIndex);
-                    GXCommon.SetData(buff, DataType.UInt16, it.Value.DataIndex);
+                    GXCommon.SetData(settings, buff, DataType.UInt16, it.Key.ObjectType);
+                    GXCommon.SetData(settings, buff, DataType.OctetString, it.Key.LogicalName);
+                    GXCommon.SetData(settings, buff, DataType.Int8, it.Value.AttributeIndex);
+                    GXCommon.SetData(settings, buff, DataType.UInt16, it.Value.DataIndex);
                 }
                 return buff.Array();
             }
@@ -306,16 +306,16 @@ namespace Gurux.DLMS.Objects
             {
                 buff.SetUInt8(DataType.Structure);
                 buff.SetUInt8(3);
-                GXCommon.SetData(buff, DataType.UInt8, Service);
+                GXCommon.SetData(settings, buff, DataType.UInt8, Service);
                 if (Destination != null)
                 {
-                    GXCommon.SetData(buff, DataType.OctetString, Destination);
+                    GXCommon.SetData(settings, buff, DataType.OctetString, Destination);
                 }
                 else
                 {
-                    GXCommon.SetData(buff, DataType.OctetString, null);
+                    GXCommon.SetData(settings, buff, DataType.OctetString, null);
                 }
-                GXCommon.SetData(buff, DataType.UInt8, Message);
+                GXCommon.SetData(settings, buff, DataType.UInt8, Message);
                 return buff.Array();
             }
             if (e.Index == 4)
@@ -326,8 +326,8 @@ namespace Gurux.DLMS.Objects
                 {
                     buff.SetUInt8(DataType.Structure);
                     buff.SetUInt8(2);
-                    GXCommon.SetData(buff, DataType.OctetString, it.Key);
-                    GXCommon.SetData(buff, DataType.OctetString, it.Value);
+                    GXCommon.SetData(settings, buff, DataType.OctetString, it.Key);
+                    GXCommon.SetData(settings, buff, DataType.OctetString, it.Value);
                 }
                 return buff.Array();
             }

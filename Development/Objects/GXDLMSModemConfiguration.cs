@@ -212,9 +212,9 @@ namespace Gurux.DLMS.Objects
                     {
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8((byte)3); //Count
-                        GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Request));
-                        GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Response));
-                        GXCommon.SetData(data, DataType.UInt16, it.Delay);
+                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Request));
+                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Response));
+                        GXCommon.SetData(settings, data, DataType.UInt16, it.Delay);
                     }
                 }
                 return data.Array();
@@ -234,7 +234,7 @@ namespace Gurux.DLMS.Objects
                 {
                     foreach (string it in ModemProfile)
                     {
-                        GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it));
+                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it));
                     }
                 }
                 return data;

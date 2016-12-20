@@ -231,8 +231,8 @@ namespace Gurux.DLMS
             {
                 dt = GXCommon.GetValueType(value);
             }
-            GXCommon.SetData(buff, dt, value);
-        } 
+            GXCommon.SetData(settings, buff, dt, value);
+        }
 
         /// <summary>
         /// Add value of COSEM object to byte buffer.
@@ -249,7 +249,7 @@ namespace Gurux.DLMS
         public void AddData(GXDLMSObject obj, int index, GXByteBuffer buff)
         {
             AddData(Settings, obj, index, buff);
-        } 
+        }
 
         /// <summary>
         /// Generates data notification message(s).
@@ -275,7 +275,7 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentException("Data is not fit to one PDU. Use general block transfer.");
             }
-            return reply;           
+            return reply;
         }
 
         /// <summary>
@@ -336,11 +336,11 @@ namespace Gurux.DLMS
             return reply;
         }
 
-       /// <summary>
+        /// <summary>
         /// Generates push setup message.
-       /// </summary>
+        /// </summary>
         /// <param name="date"> Date time. Set To Min or Max if not added.</param>
-       /// <param name="push">Target Push object.</param>
+        /// <param name="push">Target Push object.</param>
         /// <returns>Generated data notification message(s).</returns>
         public byte[][] GeneratePushSetupMessages(DateTime date, GXDLMSPushSetup push)
         {
@@ -363,7 +363,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="data">Received data.</param>
         /// <returns>Array of objects and called indexes.</returns>
-        public List<KeyValuePair<GXDLMSObject, int>> 
+        public List<KeyValuePair<GXDLMSObject, int>>
             ParsePush(Object[] data)
         {
             int index;
@@ -415,6 +415,6 @@ namespace Gurux.DLMS
                 }
             }
             return items;
-        }       
+        }
     }
 }

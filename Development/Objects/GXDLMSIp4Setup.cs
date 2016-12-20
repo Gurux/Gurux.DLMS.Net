@@ -315,9 +315,9 @@ namespace Gurux.DLMS.Objects
                     {
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8(3);
-                        GXCommon.SetData(data, DataType.UInt8, it.Type);
-                        GXCommon.SetData(data, DataType.UInt8, it.Length);
-                        GXCommon.SetData(data, DataType.OctetString, it.Data);
+                        GXCommon.SetData(settings, data, DataType.UInt8, it.Type);
+                        GXCommon.SetData(settings, data, DataType.UInt8, it.Length);
+                        GXCommon.SetData(settings, data, DataType.OctetString, it.Data);
                     }
                 }
                 return data.Array();

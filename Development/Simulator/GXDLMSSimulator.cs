@@ -287,7 +287,7 @@ namespace Gurux.DLMS.Simulator
                                             {
                                                 ValueEventArgs ve = targets[pos];
                                                 GXDataInfo info = new GXDataInfo();
-                                                ve.Value = GXCommon.GetData(val, info);
+                                                ve.Value = GXCommon.GetData(server.Settings, val, info);
                                                 if (ve.Value is byte[])
                                                 {
                                                     DataType tp = ve.Target.GetUIDataType(ve.Index);

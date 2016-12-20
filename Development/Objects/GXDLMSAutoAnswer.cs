@@ -245,8 +245,8 @@ namespace Gurux.DLMS.Objects
                     {
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8((byte)2); //Count
-                        GXCommon.SetData(data, DataType.OctetString, it.Key); //start_time
-                        GXCommon.SetData(data, DataType.OctetString, it.Value); //end_time
+                        GXCommon.SetData(settings, data, DataType.OctetString, it.Key); //start_time
+                        GXCommon.SetData(settings, data, DataType.OctetString, it.Value); //end_time
                     }
                 }
                 return data.Array();
@@ -265,8 +265,8 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8((byte)DataType.Structure);
                 //Add count
                 GXCommon.SetObjectCount(2, data);
-                GXCommon.SetData(data, DataType.UInt8, NumberOfRingsInListeningWindow);
-                GXCommon.SetData(data, DataType.UInt8, NumberOfRingsOutListeningWindow);
+                GXCommon.SetData(settings, data, DataType.UInt8, NumberOfRingsInListeningWindow);
+                GXCommon.SetData(settings, data, DataType.UInt8, NumberOfRingsOutListeningWindow);
                 return data.Array();
             }
             e.Error = ErrorCode.ReadWriteDenied;

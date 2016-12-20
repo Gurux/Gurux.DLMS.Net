@@ -219,20 +219,20 @@ namespace Gurux.DLMS.Objects
             return 8;
         }
 
-        private void GetAccessRights(GXDLMSObject item, GXByteBuffer data)
+        private void GetAccessRights(GXDLMSSettings settings, GXDLMSObject item, GXByteBuffer data)
         {
             data.SetUInt8((byte)DataType.Structure);
             data.SetUInt8((byte)3);
-            GXCommon.SetData(data, DataType.UInt16, item.ShortName);
+            GXCommon.SetData(settings, data, DataType.UInt16, item.ShortName);
             data.SetUInt8((byte)DataType.Array);
             data.SetUInt8((byte)item.Attributes.Count);
             foreach (GXDLMSAttributeSettings att in item.Attributes)
             {
                 data.SetUInt8((byte)DataType.Structure); //attribute_access_item
                 data.SetUInt8((byte)3);
-                GXCommon.SetData(data, DataType.Int8, att.Index);
-                GXCommon.SetData(data, DataType.Enum, att.Access);
-                GXCommon.SetData(data, DataType.None, null);
+                GXCommon.SetData(settings, data, DataType.Int8, att.Index);
+                GXCommon.SetData(settings, data, DataType.Enum, att.Access);
+                GXCommon.SetData(settings, data, DataType.None, null);
             }
             data.SetUInt8((byte)DataType.Array);
             data.SetUInt8((byte)item.MethodAttributes.Count);
@@ -240,8 +240,8 @@ namespace Gurux.DLMS.Objects
             {
                 data.SetUInt8((byte)DataType.Structure); //attribute_access_item
                 data.SetUInt8((byte)2);
-                GXCommon.SetData(data, DataType.Int8, it.Index);
-                GXCommon.SetData(data, DataType.Enum, it.MethodAccess);
+                GXCommon.SetData(settings, data, DataType.Int8, it.Index);
+                GXCommon.SetData(settings, data, DataType.Enum, it.MethodAccess);
             }
         }
 
@@ -290,13 +290,13 @@ namespace Gurux.DLMS.Objects
                     //Count
                     data.SetUInt8((byte)4);
                     //base address.
-                    GXCommon.SetData(data, DataType.Int16, it.ShortName);
+                    GXCommon.SetData(settings, data, DataType.Int16, it.ShortName);
                     //ClassID
-                    GXCommon.SetData(data, DataType.UInt16, it.ObjectType);
+                    GXCommon.SetData(settings, data, DataType.UInt16, it.ObjectType);
                     //Version
-                    GXCommon.SetData(data, DataType.UInt8, 0);
+                    GXCommon.SetData(settings, data, DataType.UInt8, 0);
                     //LN
-                    GXCommon.SetData(data, DataType.OctetString, it.LogicalName);
+                    GXCommon.SetData(settings, data, DataType.OctetString, it.LogicalName);
                     ++settings.Index;
                     //If PDU is full.
                     if (!e.SkipMaxPduSize && data.Size >= settings.MaxPduSize)
@@ -336,18 +336,18 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetObjectCount(cnt, data);
                 foreach (GXDLMSObject it in ObjectList)
                 {
-                    GetAccessRights(it, data);
+                    GetAccessRights(settings, it, data);
                 }
                 if (!lnExists)
                 {
-                    GetAccessRights(this, data);
+                    GetAccessRights(settings, this, data);
                 }
                 return data.Array();
             }
             else if (e.Index == 4)
             {
                 GXByteBuffer data = new GXByteBuffer();
-                GXCommon.SetData(data, DataType.OctetString, SecuritySetupReference);
+                GXCommon.SetData(settings, data, DataType.OctetString, SecuritySetupReference);
                 return data.Array();
             }
             e.Error = ErrorCode.ReadWriteDenied;

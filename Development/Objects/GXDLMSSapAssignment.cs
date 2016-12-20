@@ -159,8 +159,8 @@ namespace Gurux.DLMS.Objects
                     {
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8((byte)2); //Count
-                        GXCommon.SetData(data, DataType.UInt16, it.Key);
-                        GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Value));
+                        GXCommon.SetData(settings, data, DataType.UInt16, it.Key);
+                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Value));
                     }
                 }
                 return data.Array();

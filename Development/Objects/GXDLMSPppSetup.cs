@@ -250,9 +250,9 @@ namespace Gurux.DLMS.Objects
                     {
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8((byte)3);
-                        GXCommon.SetData(data, DataType.UInt8, it.Type);
-                        GXCommon.SetData(data, DataType.UInt8, it.Length);
-                        GXCommon.SetData(data, GXCommon.GetValueType(it.Data), it.Data);
+                        GXCommon.SetData(settings, data, DataType.UInt8, it.Type);
+                        GXCommon.SetData(settings, data, DataType.UInt8, it.Length);
+                        GXCommon.SetData(settings, data, GXCommon.GetValueType(it.Data), it.Data);
                     }
                 }
                 return data.Array();
@@ -272,9 +272,9 @@ namespace Gurux.DLMS.Objects
                     {
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8((byte)3);
-                        GXCommon.SetData(data, DataType.UInt8, it.Type);
-                        GXCommon.SetData(data, DataType.UInt8, it.Length);
-                        GXCommon.SetData(data, GXCommon.GetValueType(it.Data), it.Data);
+                        GXCommon.SetData(settings, data, DataType.UInt8, it.Type);
+                        GXCommon.SetData(settings, data, DataType.UInt8, it.Length);
+                        GXCommon.SetData(settings, data, GXCommon.GetValueType(it.Data), it.Data);
                     }
                 }
                 return data.Array();
@@ -284,8 +284,8 @@ namespace Gurux.DLMS.Objects
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8(2);
-                GXCommon.SetData(data, DataType.OctetString, UserName);
-                GXCommon.SetData(data, DataType.OctetString, Password);
+                GXCommon.SetData(settings, data, DataType.OctetString, UserName);
+                GXCommon.SetData(settings, data, DataType.OctetString, Password);
                 return data.Array();
             }
             e.Error = ErrorCode.ReadWriteDenied;

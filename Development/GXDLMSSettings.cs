@@ -145,6 +145,16 @@ namespace Gurux.DLMS
             set;
         }
 
+        /// <summary>
+        /// Standard says that Time zone is from normal time to UTC in minutes.
+        /// If meter is configured to use UTC time (UTC to normal time) set this to true.
+        /// </summary>
+        internal bool UtcTimeZone
+        {
+            get;
+            set;
+        }
+
         ///<summary>
         ///Constructor.
         ///</summary>

@@ -365,15 +365,15 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8(3);
                 if (MonitoredValue == null)
                 {
-                    GXCommon.SetData(data, DataType.Int16, 0);
-                    GXCommon.SetData(data, DataType.OctetString, "0.0.0.0.0.0");
-                    GXCommon.SetData(data, DataType.UInt8, 0);
+                    GXCommon.SetData(settings, data, DataType.Int16, 0);
+                    GXCommon.SetData(settings, data, DataType.OctetString, "0.0.0.0.0.0");
+                    GXCommon.SetData(settings, data, DataType.UInt8, 0);
                 }
                 else
                 {
-                    GXCommon.SetData(data, DataType.Int16, MonitoredValue.ObjectType);
-                    GXCommon.SetData(data, DataType.OctetString, MonitoredValue.LogicalName);
-                    GXCommon.SetData(data, DataType.UInt8, MonitoredAttributeIndex);
+                    GXCommon.SetData(settings, data, DataType.Int16, MonitoredValue.ObjectType);
+                    GXCommon.SetData(settings, data, DataType.OctetString, MonitoredValue.LogicalName);
+                    GXCommon.SetData(settings, data, DataType.UInt8, MonitoredAttributeIndex);
 
                 }
                 return data.Array();
@@ -403,9 +403,9 @@ namespace Gurux.DLMS.Objects
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8(3);
-                GXCommon.SetData(data, DataType.UInt16, EmergencyProfile.ID);
-                GXCommon.SetData(data, DataType.OctetString, EmergencyProfile.ActivationTime);
-                GXCommon.SetData(data, DataType.UInt32, EmergencyProfile.Duration);
+                GXCommon.SetData(settings, data, DataType.UInt16, EmergencyProfile.ID);
+                GXCommon.SetData(settings, data, DataType.OctetString, EmergencyProfile.ActivationTime);
+                GXCommon.SetData(settings, data, DataType.UInt32, EmergencyProfile.Duration);
                 return data.Array();
             }
             else if (e.Index == 9)
@@ -421,7 +421,7 @@ namespace Gurux.DLMS.Objects
                     data.SetUInt8((byte)EmergencyProfileGroupIDs.Length);
                     foreach (object it in EmergencyProfileGroupIDs)
                     {
-                        GXCommon.SetData(data, DataType.UInt16, it);
+                        GXCommon.SetData(settings, data, DataType.UInt16, it);
                     }
                 }
 
@@ -438,12 +438,12 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8(2);
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8(2);
-                GXCommon.SetData(data, DataType.OctetString, ActionOverThreshold.LogicalName);
-                GXCommon.SetData(data, DataType.UInt16, ActionOverThreshold.ScriptSelector);
+                GXCommon.SetData(settings, data, DataType.OctetString, ActionOverThreshold.LogicalName);
+                GXCommon.SetData(settings, data, DataType.UInt16, ActionOverThreshold.ScriptSelector);
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8(2);
-                GXCommon.SetData(data, DataType.OctetString, ActionUnderThreshold.LogicalName);
-                GXCommon.SetData(data, DataType.UInt16, ActionUnderThreshold.ScriptSelector);
+                GXCommon.SetData(settings, data, DataType.OctetString, ActionUnderThreshold.LogicalName);
+                GXCommon.SetData(settings, data, DataType.UInt16, ActionUnderThreshold.ScriptSelector);
                 return data.Array();
             }
             e.Error = ErrorCode.ReadWriteDenied;

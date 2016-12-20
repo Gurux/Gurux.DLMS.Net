@@ -215,15 +215,15 @@ namespace Gurux.DLMS.Objects
                 //LN
                 if (Target != null)
                 {
-                    GXCommon.SetData(data, DataType.OctetString, Target.LogicalName);
+                    GXCommon.SetData(settings, data, DataType.OctetString, Target.LogicalName);
                 }
                 else
                 {
 #pragma warning disable CS0618
-                    GXCommon.SetData(data, DataType.OctetString, ExecutedScriptLogicalName);
+                    GXCommon.SetData(settings, data, DataType.OctetString, ExecutedScriptLogicalName);
 #pragma warning restore CS0618
                 }
-                GXCommon.SetData(data, DataType.UInt16, ExecutedScriptSelector);
+                GXCommon.SetData(settings, data, DataType.UInt16, ExecutedScriptSelector);
                 return data.Array();
             }
             if (e.Index == 3)
@@ -247,9 +247,9 @@ namespace Gurux.DLMS.Objects
                         //Count
                         data.SetUInt8((byte)2);
                         //Time
-                        GXCommon.SetData(data, DataType.OctetString, new GXTime(it));
+                        GXCommon.SetData(settings, data, DataType.OctetString, new GXTime(it));
                         //Date
-                        GXCommon.SetData(data, DataType.OctetString, new GXDate(it));
+                        GXCommon.SetData(settings, data, DataType.OctetString, new GXDate(it));
                     }
                 }
                 return data.Array();

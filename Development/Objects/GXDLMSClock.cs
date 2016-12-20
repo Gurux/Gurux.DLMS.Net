@@ -297,9 +297,9 @@ namespace Gurux.DLMS.Objects
             GXByteBuffer buff = new GXByteBuffer();
             buff.Add((byte)DataType.Structure);
             buff.Add((byte)3);
-            GXCommon.SetData(buff, DataType.OctetString, presetTime);
-            GXCommon.SetData(buff, DataType.OctetString, validityIntervalStart);
-            GXCommon.SetData(buff, DataType.OctetString, validityIntervalEnd);
+            GXCommon.SetData(client.Settings, buff, DataType.OctetString, presetTime);
+            GXCommon.SetData(client.Settings, buff, DataType.OctetString, validityIntervalStart);
+            GXCommon.SetData(client.Settings, buff, DataType.OctetString, validityIntervalEnd);
             return client.Method(this, 5, buff.Array(), DataType.Array);
         }
 

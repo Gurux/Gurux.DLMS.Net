@@ -214,35 +214,35 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8((byte)5);
                 if (DefaultQualityOfService != null)
                 {
-                    GXCommon.SetData(data, DataType.UInt8, DefaultQualityOfService.Precedence);
-                    GXCommon.SetData(data, DataType.UInt8, DefaultQualityOfService.Delay);
-                    GXCommon.SetData(data, DataType.UInt8, DefaultQualityOfService.Reliability);
-                    GXCommon.SetData(data, DataType.UInt8, DefaultQualityOfService.PeakThroughput);
-                    GXCommon.SetData(data, DataType.UInt8, DefaultQualityOfService.MeanThroughput);
+                    GXCommon.SetData(settings, data, DataType.UInt8, DefaultQualityOfService.Precedence);
+                    GXCommon.SetData(settings, data, DataType.UInt8, DefaultQualityOfService.Delay);
+                    GXCommon.SetData(settings, data, DataType.UInt8, DefaultQualityOfService.Reliability);
+                    GXCommon.SetData(settings, data, DataType.UInt8, DefaultQualityOfService.PeakThroughput);
+                    GXCommon.SetData(settings, data, DataType.UInt8, DefaultQualityOfService.MeanThroughput);
                 }
                 else
                 {
-                    GXCommon.SetData(data, DataType.UInt8, 0);
-                    GXCommon.SetData(data, DataType.UInt8, 0);
-                    GXCommon.SetData(data, DataType.UInt8, 0);
-                    GXCommon.SetData(data, DataType.UInt8, 0);
-                    GXCommon.SetData(data, DataType.UInt8, 0);
+                    GXCommon.SetData(settings, data, DataType.UInt8, 0);
+                    GXCommon.SetData(settings, data, DataType.UInt8, 0);
+                    GXCommon.SetData(settings, data, DataType.UInt8, 0);
+                    GXCommon.SetData(settings, data, DataType.UInt8, 0);
+                    GXCommon.SetData(settings, data, DataType.UInt8, 0);
                 }
                 if (RequestedQualityOfService != null)
                 {
-                    GXCommon.SetData(data, DataType.UInt8, RequestedQualityOfService.Precedence);
-                    GXCommon.SetData(data, DataType.UInt8, RequestedQualityOfService.Delay);
-                    GXCommon.SetData(data, DataType.UInt8, RequestedQualityOfService.Reliability);
-                    GXCommon.SetData(data, DataType.UInt8, RequestedQualityOfService.PeakThroughput);
-                    GXCommon.SetData(data, DataType.UInt8, RequestedQualityOfService.MeanThroughput);
+                    GXCommon.SetData(settings, data, DataType.UInt8, RequestedQualityOfService.Precedence);
+                    GXCommon.SetData(settings, data, DataType.UInt8, RequestedQualityOfService.Delay);
+                    GXCommon.SetData(settings, data, DataType.UInt8, RequestedQualityOfService.Reliability);
+                    GXCommon.SetData(settings, data, DataType.UInt8, RequestedQualityOfService.PeakThroughput);
+                    GXCommon.SetData(settings, data, DataType.UInt8, RequestedQualityOfService.MeanThroughput);
                 }
                 else
                 {
-                    GXCommon.SetData(data, DataType.UInt8, 0);
-                    GXCommon.SetData(data, DataType.UInt8, 0);
-                    GXCommon.SetData(data, DataType.UInt8, 0);
-                    GXCommon.SetData(data, DataType.UInt8, 0);
-                    GXCommon.SetData(data, DataType.UInt8, 0);
+                    GXCommon.SetData(settings, data, DataType.UInt8, 0);
+                    GXCommon.SetData(settings, data, DataType.UInt8, 0);
+                    GXCommon.SetData(settings, data, DataType.UInt8, 0);
+                    GXCommon.SetData(settings, data, DataType.UInt8, 0);
+                    GXCommon.SetData(settings, data, DataType.UInt8, 0);
                 }
                 return data.Array();
             }

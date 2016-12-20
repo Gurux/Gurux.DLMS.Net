@@ -168,8 +168,8 @@ namespace Gurux.DLMS.Objects
             GXByteBuffer data = new GXByteBuffer();
             data.SetUInt8((byte)DataType.Structure);
             data.SetUInt8((byte)2);
-            GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(imageIdentifier));
-            GXCommon.SetData(data, DataType.UInt32, imageSize);
+            GXCommon.SetData(client.Settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(imageIdentifier));
+            GXCommon.SetData(client.Settings, data, DataType.UInt32, imageSize);
             return client.Method(this, 1, data.Array(), DataType.Array);
         }
 
@@ -186,7 +186,7 @@ namespace Gurux.DLMS.Objects
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8((byte)2);
-                GXCommon.SetData(data, DataType.UInt32, pos);
+                GXCommon.SetData(client.Settings, data, DataType.UInt32, pos);
                 byte[] tmp;
                 int bytes = (int)(imageBlockValue.Length - ((pos + 1) * ImageBlockSize));
                 //If last packet
@@ -201,7 +201,7 @@ namespace Gurux.DLMS.Objects
                     tmp = new byte[ImageBlockSize];
                     Array.Copy(imageBlockValue, (pos * ImageBlockSize), tmp, 0, ImageBlockSize);
                 }
-                GXCommon.SetData(data, DataType.OctetString, tmp);
+                GXCommon.SetData(client.Settings, data, DataType.OctetString, tmp);
                 packets.AddRange(client.Method(this, 2, data.Array(), DataType.Array));
             }
             return packets.ToArray();
@@ -433,15 +433,15 @@ namespace Gurux.DLMS.Objects
                     {
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8(3);
-                        GXCommon.SetData(data, DataType.UInt32, it.Size);
-                        GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(Convert.ToString(it.Identification)));
+                        GXCommon.SetData(settings, data, DataType.UInt32, it.Size);
+                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(Convert.ToString(it.Identification)));
                         if (it.Signature == null || it.Signature.Length == 0)
                         {
-                            GXCommon.SetData(data, DataType.OctetString, null);
+                            GXCommon.SetData(settings, data, DataType.OctetString, null);
                         }
                         else
                         {
-                            GXCommon.SetData(data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Signature));
+                            GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Signature));
                         }
                     }
                 }

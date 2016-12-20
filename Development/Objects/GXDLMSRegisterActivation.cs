@@ -208,8 +208,8 @@ namespace Gurux.DLMS.Objects
                     {
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8(2);
-                        GXCommon.SetData(data, DataType.UInt16, it.ClassId);
-                        GXCommon.SetData(data, DataType.OctetString, it.LogicalName);
+                        GXCommon.SetData(settings, data, DataType.UInt16, it.ClassId);
+                        GXCommon.SetData(settings, data, DataType.OctetString, it.LogicalName);
                     }
                 }
                 return data.Array();
@@ -229,12 +229,12 @@ namespace Gurux.DLMS.Objects
                     {
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8(2);
-                        GXCommon.SetData(data, DataType.OctetString, it.Key);
+                        GXCommon.SetData(settings, data, DataType.OctetString, it.Key);
                         data.SetUInt8((byte)DataType.Array);
                         data.SetUInt8((byte)it.Value.Length);
                         foreach (byte b in it.Value)
                         {
-                            GXCommon.SetData(data, DataType.UInt8, b);
+                            GXCommon.SetData(settings, data, DataType.UInt8, b);
                         }
                     }
                 }

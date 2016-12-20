@@ -134,6 +134,22 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Standard says that Time zone is from normal time to UTC in minutes.
+        /// If meter is configured to use UTC time (UTC to normal time) set this to true.
+        /// </summary>
+        internal bool UtcTimeZone
+        {
+            get
+            {
+                return Settings.UtcTimeZone;
+            }
+            set
+            {
+                Settings.UtcTimeZone = value;
+            }
+        }
+
+        /// <summary>
         /// Server address.
         /// </summary>
         public int ServerAddress
@@ -683,7 +699,7 @@ namespace Gurux.DLMS
         {
             GXDataInfo info = new GXDataInfo();
             bool equals = false;
-            byte[] value = (byte[])GXCommon.GetData(reply, info);
+            byte[] value = (byte[])GXCommon.GetData(Settings, reply, info);
             if (value != null)
             {
                 byte[] secret;
@@ -785,7 +801,7 @@ namespace Gurux.DLMS
                 {
                     break;
                 }
-                object[] objects = (object[])GXCommon.GetData(buff, info);
+                object[] objects = (object[])GXCommon.GetData(Settings, buff, info);
                 info.Clear();
                 if (objects.Length != 4)
                 {
@@ -977,7 +993,7 @@ namespace Gurux.DLMS
             while (buff.Position != buff.Size && cnt != objectCnt)
             {
                 info.Clear();
-                object[] objects = (object[])GXCommon.GetData(buff, info);
+                object[] objects = (object[])GXCommon.GetData(Settings, buff, info);
                 if (objects.Length != 4)
                 {
                     throw new GXDLMSException("Invalid structure format.");
@@ -1078,7 +1094,7 @@ namespace Gurux.DLMS
             for (pos = 0; pos != cnt; ++pos)
             {
                 info.Clear();
-                Object value = GXCommon.GetData(data, info);
+                Object value = GXCommon.GetData(Settings, data, info);
                 values.Add(value);
             }
             //Get status codes.
@@ -1169,7 +1185,7 @@ namespace Gurux.DLMS
 
             GXDataInfo info = new GXDataInfo();
             info.Type = type;
-            Object ret = GXCommon.GetData(value, info);
+            Object ret = GXCommon.GetData(null, value, info);
             if (!info.Complete)
             {
                 throw new OutOfMemoryException();
@@ -1272,7 +1288,7 @@ namespace Gurux.DLMS
             }
             else if (type != DataType.None)
             {
-                GXCommon.SetData(data, type, value);
+                GXCommon.SetData(Settings, data, type, value);
             }
             if (UseLogicalNameReferencing)
             {
@@ -1380,7 +1396,7 @@ namespace Gurux.DLMS
             GXByteBuffer attributeDescriptor = new GXByteBuffer();
             GXByteBuffer data = new GXByteBuffer();
             byte[][] reply;
-            GXCommon.SetData(data, type, value);
+            GXCommon.SetData(Settings, data, type, value);
             if (UseLogicalNameReferencing)
             {
                 // Add CI.
@@ -1638,9 +1654,9 @@ namespace Gurux.DLMS
             // Add item count
             buff.SetUInt8(0x04);
             // Add start index
-            GXCommon.SetData(buff, DataType.UInt32, index);
+            GXCommon.SetData(Settings, buff, DataType.UInt32, index);
             // Add Count
-            GXCommon.SetData(buff, DataType.UInt32, count);
+            GXCommon.SetData(Settings, buff, DataType.UInt32, count);
             int columnIndex = 1;
             int columnCount = 0;
             int pos = 0;
@@ -1681,8 +1697,8 @@ namespace Gurux.DLMS
                 }
             }
             // Select columns to read.
-            GXCommon.SetData(buff, DataType.UInt16, columnIndex);
-            GXCommon.SetData(buff, DataType.UInt16, columnCount);
+            GXCommon.SetData(Settings, buff, DataType.UInt16, columnIndex);
+            GXCommon.SetData(Settings, buff, DataType.UInt16, columnCount);
             return Read(pg.Name, ObjectType.ProfileGeneric, 2, buff);
         }
 
@@ -1738,18 +1754,18 @@ namespace Gurux.DLMS
             // Add item count
             buff.SetUInt8(0x04);
             // CI
-            GXCommon.SetData(buff, DataType.UInt16,
+            GXCommon.SetData(Settings, buff, DataType.UInt16,
                              sort.ObjectType);
             // LN
-            GXCommon.SetData(buff, DataType.OctetString, sort.LogicalName);
+            GXCommon.SetData(Settings, buff, DataType.OctetString, sort.LogicalName);
             // Add attribute index.
-            GXCommon.SetData(buff, DataType.Int8, 2);
+            GXCommon.SetData(Settings, buff, DataType.Int8, 2);
             // Add version.
-            GXCommon.SetData(buff, DataType.UInt16, sort.Version);
+            GXCommon.SetData(Settings, buff, DataType.UInt16, sort.Version);
             // Add start time.
-            GXCommon.SetData(buff, DataType.OctetString, start);
+            GXCommon.SetData(Settings, buff, DataType.OctetString, start);
             // Add end time.
-            GXCommon.SetData(buff, DataType.OctetString, end);
+            GXCommon.SetData(Settings, buff, DataType.OctetString, end);
 
             // Add array of read columns.
             buff.SetUInt8(DataType.Array);
@@ -1767,13 +1783,13 @@ namespace Gurux.DLMS
                     // Add items count.
                     buff.SetUInt8(4);
                     // CI
-                    GXCommon.SetData(buff, DataType.UInt16, it.Key.ObjectType);
+                    GXCommon.SetData(Settings, buff, DataType.UInt16, it.Key.ObjectType);
                     // LN
-                    GXCommon.SetData(buff, DataType.OctetString, it.Key.LogicalName);
+                    GXCommon.SetData(Settings, buff, DataType.OctetString, it.Key.LogicalName);
                     // Add attribute index.
-                    GXCommon.SetData(buff, DataType.Int8, it.Value.AttributeIndex);
+                    GXCommon.SetData(Settings, buff, DataType.Int8, it.Value.AttributeIndex);
                     // Add data index.
-                    GXCommon.SetData(buff, DataType.Int16, it.Value.DataIndex);
+                    GXCommon.SetData(Settings, buff, DataType.Int16, it.Value.DataIndex);
                 }
             }
             return Read(pg.Name, ObjectType.ProfileGeneric, 2, buff);
@@ -1836,7 +1852,7 @@ namespace Gurux.DLMS
         public static object GetValue(GXByteBuffer data, DataType type)
         {
             GXDataInfo info = new GXDataInfo();
-            object value = GXCommon.GetData(data, info);
+            object value = GXCommon.GetData(null, data, info);
             if (value is byte[] && type != DataType.None)
             {
                 value = GXDLMSClient.ChangeType((byte[])value, type);
@@ -2006,7 +2022,7 @@ namespace Gurux.DLMS
                     {
                         type = Gurux.DLMS.Internal.GXCommon.GetValueType(value);
                     }
-                    GXCommon.SetData(bb, type, value);
+                    GXCommon.SetData(Settings, bb, type, value);
                 }
             }
 

@@ -333,8 +333,8 @@ namespace Gurux.DLMS.Objects
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8(2);
-                GXCommon.SetData(data, DataType.Int8, _scaler);
-                GXCommon.SetData(data, DataType.Enum, Unit);
+                GXCommon.SetData(settings, data, DataType.Int8, _scaler);
+                GXCommon.SetData(settings, data, DataType.Enum, Unit);
                 return data.Array();
             }
             if (e.Index == 5)

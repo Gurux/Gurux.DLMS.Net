@@ -347,7 +347,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="table"></param>
         /// <param name="columns">Columns to get. NULL if not used.</param>
         /// <returns></returns>
-        byte[] GetData(List<object[]> table, List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
+        byte[] GetData(GXDLMSSettings settings, List<object[]> table, List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
         {
             int pos;
             GXByteBuffer data = new GXByteBuffer();
@@ -370,7 +370,7 @@ namespace Gurux.DLMS.Objects
                     if (columns == null || columns.Contains(CaptureObjects[pos]))
                     {
                         DataType tp = Gurux.DLMS.Internal.GXCommon.GetValueType(value);
-                        GXCommon.SetData(data, tp, value);
+                        GXCommon.SetData(settings, data, tp, value);
                     }
                     ++pos;
                 }
@@ -469,13 +469,13 @@ namespace Gurux.DLMS.Objects
             return columns;
         }
 
-        byte[] GetProfileGenericData(int selector, object parameters)
+        byte[] GetProfileGenericData(GXDLMSSettings settings, int selector, object parameters)
         {
             List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns = null;
             //If all data is read.
             if (selector == 0 || parameters == null)
             {
-                return GetData(Buffer, columns);
+                return GetData(settings, Buffer, columns);
             }
             object[] arr = (object[])parameters;
             List<object[]> table = new List<object[]>();
@@ -485,10 +485,10 @@ namespace Gurux.DLMS.Objects
                 {
                     GXDataInfo info = new GXDataInfo();
                     info.Type = DataType.DateTime;
-                    DateTime start = ((GXDateTime)GXCommon.GetData(new GXByteBuffer((byte[])arr[1]), info)).Value.LocalDateTime;
+                    DateTime start = ((GXDateTime)GXCommon.GetData(settings, new GXByteBuffer((byte[])arr[1]), info)).Value.LocalDateTime;
                     info.Clear();
                     info.Type = DataType.DateTime;
-                    DateTime end = ((GXDateTime)GXCommon.GetData(new GXByteBuffer((byte[])arr[2]), info)).Value.LocalDateTime;
+                    DateTime end = ((GXDateTime)GXCommon.GetData(settings, new GXByteBuffer((byte[])arr[2]), info)).Value.LocalDateTime;
                     if (arr.Length > 3)
                     {
                         columns = GetColumns((Object[])((Object[])arr)[3]);
@@ -558,7 +558,7 @@ namespace Gurux.DLMS.Objects
                     throw new Exception("Invalid selector.");
                 }
             }
-            return GetData(table, columns);
+            return GetData(settings, table, columns);
         }
 
         /// <summary>
@@ -566,7 +566,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="items"></param>
         /// <returns></returns>
-        byte[] GetColumns()
+        byte[] GetColumns(GXDLMSSettings settings)
         {
             GXByteBuffer data = new GXByteBuffer();
             data.SetUInt8((byte)DataType.Array);
@@ -576,10 +576,10 @@ namespace Gurux.DLMS.Objects
             {
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8(4);//Count
-                GXCommon.SetData(data, DataType.UInt16, it.Key.ObjectType);//ClassID
-                GXCommon.SetData(data, DataType.OctetString, it.Key.LogicalName);//LN
-                GXCommon.SetData(data, DataType.Int8, it.Value.AttributeIndex); //Selected Attribute Index
-                GXCommon.SetData(data, DataType.UInt16, it.Value.DataIndex); //Selected Data Index
+                GXCommon.SetData(settings, data, DataType.UInt16, it.Key.ObjectType);//ClassID
+                GXCommon.SetData(settings, data, DataType.OctetString, it.Key.LogicalName);//LN
+                GXCommon.SetData(settings, data, DataType.Int8, it.Value.AttributeIndex); //Selected Attribute Index
+                GXCommon.SetData(settings, data, DataType.UInt16, it.Value.DataIndex); //Selected Data Index
             }
             return data.Array();
         }
@@ -629,11 +629,11 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 2)
             {
-                return GetProfileGenericData(e.Selector, e.Parameters);
+                return GetProfileGenericData(settings, e.Selector, e.Parameters);
             }
             if (e.Index == 3)
             {
-                return GetColumns();
+                return GetColumns(settings);
             }
             if (e.Index == 4)
             {
@@ -650,17 +650,17 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8((byte)4); //Count
                 if (SortObject == null)
                 {
-                    GXCommon.SetData(data, DataType.UInt16, 0); //ClassID
-                    GXCommon.SetData(data, DataType.OctetString, new byte[6]); //LN
-                    GXCommon.SetData(data, DataType.Int8, 0); //Selected Attribute Index
-                    GXCommon.SetData(data, DataType.UInt16, 0); //Selected Data Index
+                    GXCommon.SetData(settings, data, DataType.UInt16, 0); //ClassID
+                    GXCommon.SetData(settings, data, DataType.OctetString, new byte[6]); //LN
+                    GXCommon.SetData(settings, data, DataType.Int8, 0); //Selected Attribute Index
+                    GXCommon.SetData(settings, data, DataType.UInt16, 0); //Selected Data Index
                 }
                 else
                 {
-                    GXCommon.SetData(data, DataType.UInt16, SortObject.ObjectType); //ClassID
-                    GXCommon.SetData(data, DataType.OctetString, SortObject.LogicalName); //LN
-                    GXCommon.SetData(data, DataType.Int8, SortAttributeIndex); //Selected Attribute Index
-                    GXCommon.SetData(data, DataType.UInt16, SortDataIndex); //Selected Data Index
+                    GXCommon.SetData(settings, data, DataType.UInt16, SortObject.ObjectType); //ClassID
+                    GXCommon.SetData(settings, data, DataType.OctetString, SortObject.LogicalName); //LN
+                    GXCommon.SetData(settings, data, DataType.Int8, SortAttributeIndex); //Selected Attribute Index
+                    GXCommon.SetData(settings, data, DataType.UInt16, SortDataIndex); //Selected Data Index
                 }
                 return data.Array();
             }
@@ -687,7 +687,7 @@ namespace Gurux.DLMS.Objects
             {
                 cols = CaptureObjects;
             }
-            Buffer.Clear();
+            //Mikko Buffer.Clear();
             if (e.Value != null && (e.Value as object[]).Length != 0)
             {
                 int index2 = 0;

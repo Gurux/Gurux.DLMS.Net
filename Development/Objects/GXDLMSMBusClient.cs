@@ -391,8 +391,8 @@ namespace Gurux.DLMS.Objects
                 {
                     buff.Add((byte)DataType.Structure);
                     buff.Add(2);
-                    GXCommon.SetData(buff, DataType.UInt8, it.Key);
-                    GXCommon.SetData(buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Value));
+                    GXCommon.SetData(settings, buff, DataType.UInt8, it.Key);
+                    GXCommon.SetData(settings, buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Value));
                 }
                 return buff.Array();
             }

@@ -165,7 +165,7 @@ namespace Gurux.DLMS.Objects
                 {
                     data.SetUInt8((byte)DataType.Structure);
                     data.SetUInt8(2); //Count
-                    GXCommon.SetData(data, DataType.UInt16, it.Id); //Script_identifier:
+                    GXCommon.SetData(settings, data, DataType.UInt16, it.Id); //Script_identifier:
                     data.SetUInt8((byte)DataType.Array);
                     data.SetUInt8((byte)it.Actions.Count); //Count
                     foreach (GXDLMSScriptAction a in it.Actions)
@@ -174,32 +174,32 @@ namespace Gurux.DLMS.Objects
                         //Count
                         data.SetUInt8(5);
                         //service_id
-                        GXCommon.SetData(data, DataType.Enum, a.Type);
+                        GXCommon.SetData(settings, data, DataType.Enum, a.Type);
                         if (a.Target == null)
                         {
 #pragma warning disable CS0618
                             //class_id
-                            GXCommon.SetData(data, DataType.UInt16, a.ObjectType);
+                            GXCommon.SetData(settings, data, DataType.UInt16, a.ObjectType);
                             //logical_name
-                            GXCommon.SetData(data, DataType.OctetString, a.LogicalName);
+                            GXCommon.SetData(settings, data, DataType.OctetString, a.LogicalName);
 #pragma warning restore CS0618
                         }
                         else
                         {
                             //class_id
-                            GXCommon.SetData(data, DataType.UInt16, a.Target.ObjectType);
+                            GXCommon.SetData(settings, data, DataType.UInt16, a.Target.ObjectType);
                             //logical_name
-                            GXCommon.SetData(data, DataType.OctetString, a.Target.LogicalName);
+                            GXCommon.SetData(settings, data, DataType.OctetString, a.Target.LogicalName);
                         }
                         //index
-                        GXCommon.SetData(data, DataType.Int8, a.Index);
+                        GXCommon.SetData(settings, data, DataType.Int8, a.Index);
                         //parameter
                         DataType tp = a.ParameterDataType;
                         if (tp == DataType.None)
                         {
                             tp = GXCommon.GetValueType(a.Parameter);
                         }
-                        GXCommon.SetData(data, tp, a.Parameter);
+                        GXCommon.SetData(settings, data, tp, a.Parameter);
                     }
                 }
                 return data.Array();

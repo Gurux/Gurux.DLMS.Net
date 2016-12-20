@@ -195,9 +195,9 @@ namespace Gurux.DLMS.Objects
             {
                 bb.SetUInt8(DataType.Structure);
                 bb.SetUInt8(2);
-                GXCommon.SetData(bb, DataType.Enum, it.Key);
+                GXCommon.SetData(client.Settings, bb, DataType.Enum, it.Key);
                 tmp = GXDLMSSecureClient.Encrypt(kek, it.Value);
-                GXCommon.SetData(bb, DataType.OctetString, tmp);
+                GXCommon.SetData(client.Settings, bb, DataType.OctetString, tmp);
             }
             return client.Method(this, 2, bb.Array(), DataType.Array);
         }
@@ -221,8 +221,8 @@ namespace Gurux.DLMS.Objects
             {
                 bb.SetUInt8(DataType.Structure);
                 bb.SetUInt8(2);
-                GXCommon.SetData(bb, DataType.Enum, it.Key);
-                GXCommon.SetData(bb, DataType.OctetString, it.Value);
+                GXCommon.SetData(client.Settings, bb, DataType.Enum, it.Key);
+                GXCommon.SetData(client.Settings, bb, DataType.OctetString, it.Value);
             }
             return client.Method(this, 3, bb.Array(), DataType.Array);
         }
@@ -249,16 +249,16 @@ namespace Gurux.DLMS.Objects
             return client.Method(this, 5, type, DataType.Enum);
         }
 #if !__MOBILE__
-    /// <summary>
-    ///  Imports an X.509 v3 certificate of a public key.
-    /// </summary>
-    /// <param name="client">DLMS client that is used to generate action.</param>
-    /// <param name="key">Public key.</param>
-    /// <returns>Generated action.</returns>
-    public byte[][] Import(GXDLMSClient client, CngKey key)
-    {
-        return ImportCertificate(client, key.Export(CngKeyBlobFormat.EccPublicBlob));
-    }
+        /// <summary>
+        ///  Imports an X.509 v3 certificate of a public key.
+        /// </summary>
+        /// <param name="client">DLMS client that is used to generate action.</param>
+        /// <param name="key">Public key.</param>
+        /// <returns>Generated action.</returns>
+        public byte[][] Import(GXDLMSClient client, CngKey key)
+        {
+            return ImportCertificate(client, key.Export(CngKeyBlobFormat.EccPublicBlob));
+        }
 #endif
 
         /// <summary>
@@ -298,7 +298,7 @@ namespace Gurux.DLMS.Objects
             bb.SetUInt8(DataType.Enum);
             bb.SetUInt8(type);
             //system_title
-            GXCommon.SetData(bb, DataType.OctetString, systemTitle);
+            GXCommon.SetData(client.Settings, bb, DataType.OctetString, systemTitle);
             return client.Method(this, 7, bb.Array(), DataType.OctetString);
         }
 
@@ -321,9 +321,9 @@ namespace Gurux.DLMS.Objects
             bb.SetUInt8(DataType.Structure);
             bb.SetUInt8(2);
             //serialNumber
-            GXCommon.SetData(bb, DataType.OctetString, serialNumber);
+            GXCommon.SetData(client.Settings, bb, DataType.OctetString, serialNumber);
             //issuer
-            GXCommon.SetData(bb, DataType.OctetString, issuer);
+            GXCommon.SetData(client.Settings, bb, DataType.OctetString, issuer);
             return client.Method(this, 7, bb.Array(), DataType.OctetString);
         }
 
@@ -353,7 +353,7 @@ namespace Gurux.DLMS.Objects
             bb.SetUInt8(DataType.Enum);
             bb.SetUInt8(type);
             //system_title
-            GXCommon.SetData(bb, DataType.OctetString, systemTitle);
+            GXCommon.SetData(client.Settings, bb, DataType.OctetString, systemTitle);
             return client.Method(this, 8, bb.Array(), DataType.OctetString);
         }
 
@@ -376,9 +376,9 @@ namespace Gurux.DLMS.Objects
             bb.SetUInt8(DataType.Structure);
             bb.SetUInt8(2);
             //serialNumber
-            GXCommon.SetData(bb, DataType.OctetString, serialNumber);
+            GXCommon.SetData(client.Settings, bb, DataType.OctetString, serialNumber);
             //issuer
-            GXCommon.SetData(bb, DataType.OctetString, issuer);
+            GXCommon.SetData(client.Settings, bb, DataType.OctetString, issuer);
             return client.Method(this, 8, bb.Array(), DataType.OctetString);
         }
 

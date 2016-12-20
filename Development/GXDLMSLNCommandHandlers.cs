@@ -49,10 +49,10 @@ namespace Gurux.DLMS
     /// </summary>
     internal sealed class GXDLMSLNCommandHandler
     {
-        public static void HandleGetRequest(GXDLMSSettings Settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
+        public static void HandleGetRequest(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
         {
             //Return error if connection is not established.
-            if (xml == null && !Settings.Connected)
+            if (xml == null && !settings.Connected)
             {
                 replyData.Set(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));
@@ -72,26 +72,26 @@ namespace Gurux.DLMS
             // GetRequest normal
             if (type == GetCommandType.Normal)
             {
-                GetRequestNormal(Settings, server, data, replyData, xml);
+                GetRequestNormal(settings, server, data, replyData, xml);
             }
             else if (type == GetCommandType.NextDataBlock)
             {
                 // Get request for next data block
-                GetRequestNextDataBlock(Settings, server, data, replyData, xml);
+                GetRequestNextDataBlock(settings, server, data, replyData, xml);
             }
             else if (type == GetCommandType.WithList)
             {
                 // Get request with a list.
-                GetRequestWithList(Settings, server, data, replyData, xml);
+                GetRequestWithList(settings, server, data, replyData, xml);
             }
             else
             {
                 Debug.WriteLine("HandleGetRequest failed. Invalid command type.");
-                Settings.ResetBlockIndex();
+                settings.ResetBlockIndex();
                 GXByteBuffer bb = new GXByteBuffer();
                 // Access Error : Device reports a hardware fault.
                 bb.SetUInt8((byte)ErrorCode.HardwareFault);
-                GXDLMS.GetLNPdu(new GXDLMSLNParameters(Settings, Command.GetResponse, (byte)type, null, bb, (byte)ErrorCode.Ok), replyData);
+                GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, Command.GetResponse, (byte)type, null, bb, (byte)ErrorCode.Ok), replyData);
             }
             if (xml != null)
             {
@@ -106,10 +106,10 @@ namespace Gurux.DLMS
         ///<returns>
         ///Reply to the client.
         ///</returns>
-        public static void HandleSetRequest(GXDLMSSettings Settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
+        public static void HandleSetRequest(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
         {
             //Return error if connection is not established.
-            if (xml == null && !Settings.Connected)
+            if (xml == null && !settings.Connected)
             {
                 replyData.Set(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));
@@ -120,7 +120,7 @@ namespace Gurux.DLMS
             // Get invoke ID and priority.
             byte invoke = data.GetUInt8();
             // SetRequest normal or Set Request With First Data Block
-            GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, Command.SetResponse, (byte)type, null, null, 0);
+            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, Command.SetResponse, (byte)type, null, null, 0);
             if (xml != null)
             {
                 xml.AppendStartTag(Command.SetRequest);
@@ -132,14 +132,14 @@ namespace Gurux.DLMS
             {
                 case SetRequestType.Normal:
                 case SetRequestType.FirstDataBlock:
-                    HandleSetRequestNormal(Settings, server, data, (byte)type, p, replyData, xml);
+                    HandleSetRequestNormal(settings, server, data, (byte)type, p, replyData, xml);
                     break;
                 case SetRequestType.WithDataBlock:
-                    HanleSetRequestWithDataBlock(Settings, server, data, p, replyData, xml);
+                    HanleSetRequestWithDataBlock(settings, server, data, p, replyData, xml);
                     break;
                 default:
                     System.Diagnostics.Debug.WriteLine("HandleSetRequest failed. Unknown command.");
-                    Settings.ResetBlockIndex();
+                    settings.ResetBlockIndex();
                     p.status = (byte)ErrorCode.HardwareFault;
                     break;
             }
@@ -161,7 +161,7 @@ namespace Gurux.DLMS
         ///<returns>
         ///Reply.
         ///</returns>
-        public static void HandleMethodRequest(GXDLMSSettings Settings, GXDLMSServer server, GXByteBuffer data, GXDLMSConnectionEventArgs connectionInfo, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
+        public static void HandleMethodRequest(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXDLMSConnectionEventArgs connectionInfo, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
         {
             ErrorCode error = ErrorCode.Ok;
             GXByteBuffer bb = new GXByteBuffer();
@@ -192,7 +192,7 @@ namespace Gurux.DLMS
                         xml.AppendStartTag(TranslatorTags.MethodInvocationParameters);
                         GXDataInfo di = new GXDataInfo();
                         di.xml = xml;
-                        GXCommon.GetData(data, di);
+                        GXCommon.GetData(settings, data, di);
                         xml.AppendEndTag(TranslatorTags.MethodInvocationParameters);
                     }
                     xml.AppendEndTag(Command.MethodRequest, ActionRequestType.Normal);
@@ -203,11 +203,11 @@ namespace Gurux.DLMS
             if (selection != 0)
             {
                 GXDataInfo info = new GXDataInfo();
-                parameters = GXCommon.GetData(data, info);
+                parameters = GXCommon.GetData(settings, data, info);
             }
 
-            GXDLMSObject obj = Settings.Objects.FindByLN(ci, GXDLMSObject.ToLogicalName(ln));
-            if (!Settings.Connected && (ci != ObjectType.AssociationLogicalName || id != 1))
+            GXDLMSObject obj = settings.Objects.FindByLN(ci, GXDLMSObject.ToLogicalName(ln));
+            if (!settings.Connected && (ci != ObjectType.AssociationLogicalName || id != 1))
             {
                 replyData.Set(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));
@@ -231,7 +231,7 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    ValueEventArgs e = new ValueEventArgs(Settings, obj, id, 0, parameters);
+                    ValueEventArgs e = new ValueEventArgs(settings, obj, id, 0, parameters);
                     server.NotifyAction(new ValueEventArgs[] { e });
                     byte[] actionReply;
                     if (e.Handled)
@@ -240,7 +240,7 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        actionReply = (obj as IGXDLMSBase).Invoke(Settings, e);
+                        actionReply = (obj as IGXDLMSBase).Invoke(settings, e);
                     }
                     //Set default action reply if not given.
                     if (actionReply != null && e.Error == 0)
@@ -249,7 +249,7 @@ namespace Gurux.DLMS
                         bb.SetUInt8(1);
                         //Add parameters error code.
                         bb.SetUInt8(0);
-                        GXCommon.SetData(bb, GXCommon.GetValueType(actionReply), actionReply);
+                        GXCommon.SetData(settings, bb, GXCommon.GetValueType(actionReply), actionReply);
                     }
                     else
                     {
@@ -260,10 +260,10 @@ namespace Gurux.DLMS
                 }
             }
 
-            GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, Command.MethodResponse, 1, null, bb, (byte)error);
+            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, Command.MethodResponse, 1, null, bb, (byte)error);
             GXDLMS.GetLNPdu(p, replyData);
             //If High level authentication fails.
-            if (!Settings.Connected && obj is GXDLMSAssociationLogicalName && id == 1)
+            if (!settings.Connected && obj is GXDLMSAssociationLogicalName && id == 1)
             {
                 server.NotifyInvalidConnection(connectionInfo);
             }
@@ -291,15 +291,15 @@ namespace Gurux.DLMS
         /// Handle get request normal command.
         /// </summary>
         /// <param name="data">Received data.</param>
-        private static void GetRequestNormal(GXDLMSSettings Settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
+        private static void GetRequestNormal(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
         {
             ValueEventArgs e = null;
             GXByteBuffer bb = new GXByteBuffer();
             // Get type.
             ErrorCode status = ErrorCode.Ok;
 
-            Settings.Count = Settings.Index = 0;
-            Settings.ResetBlockIndex();
+            settings.Count = settings.Index = 0;
+            settings.ResetBlockIndex();
             // CI
             ObjectType ci = (ObjectType)data.GetUInt16();
             byte[] ln = new byte[6];
@@ -325,7 +325,7 @@ namespace Gurux.DLMS
                     xml.AppendStartTag(TranslatorTags.AccessSelection);
                     xml.AppendLine(TranslatorTags.AccessSelector, "Value", xml.IntegerToHex(selector, 2));
                     xml.AppendStartTag(TranslatorTags.AccessParameters);
-                    GXCommon.GetData(data, info);
+                    GXCommon.GetData(settings, data, info);
                     xml.AppendEndTag(TranslatorTags.AccessParameters);
                     xml.AppendEndTag(TranslatorTags.AccessSelection);
                 }
@@ -333,10 +333,10 @@ namespace Gurux.DLMS
             }
             if (selection != 0)
             {
-                parameters = GXCommon.GetData(data, info);
+                parameters = GXCommon.GetData(settings, data, info);
             }
 
-            GXDLMSObject obj = Settings.Objects.FindByLN(ci, GXDLMSObject.ToLogicalName(ln));
+            GXDLMSObject obj = settings.Objects.FindByLN(ci, GXDLMSObject.ToLogicalName(ln));
             if (obj == null)
             {
                 obj = server.NotifyFindObject(ci, 0, GXDLMSObject.ToLogicalName(ln));
@@ -355,7 +355,7 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    e = new ValueEventArgs(Settings, obj, attributeIndex, selector, parameters);
+                    e = new ValueEventArgs(settings, obj, attributeIndex, selector, parameters);
                     server.NotifyRead(new ValueEventArgs[] { e });
                     object value;
                     if (e.Handled)
@@ -364,14 +364,14 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        value = (obj as IGXDLMSBase).GetValue(Settings, e);
+                        value = (obj as IGXDLMSBase).GetValue(settings, e);
                     }
-                    GXDLMS.AppendData(obj, attributeIndex, bb, value);
+                    GXDLMS.AppendData(settings, obj, attributeIndex, bb, value);
                     status = e.Error;
                 }
             }
-            GXDLMS.GetLNPdu(new GXDLMSLNParameters(Settings, Command.GetResponse, 1, null, bb, (byte)status), replyData);
-            if (Settings.Count != Settings.Index || bb.Size != bb.Position)
+            GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, Command.GetResponse, 1, null, bb, (byte)status), replyData);
+            if (settings.Count != settings.Index || bb.Size != bb.Position)
             {
                 server.transaction = new GXDLMSLongTransaction(new ValueEventArgs[] { e }, Command.GetRequest, bb);
             }
@@ -381,7 +381,7 @@ namespace Gurux.DLMS
         /// Handle get request next data block command.
         /// </summary>
         /// <param name="data">Received data.</param>
-        private static void GetRequestNextDataBlock(GXDLMSSettings Settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
+        private static void GetRequestNextDataBlock(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
         {
             GXByteBuffer bb = new GXByteBuffer();
             UInt32 index;
@@ -392,15 +392,15 @@ namespace Gurux.DLMS
                 xml.AppendLine(TranslatorTags.BlockNumber, null, xml.IntegerToHex(index, 8));
                 return;
             }
-            if (index != Settings.BlockIndex)
+            if (index != settings.BlockIndex)
             {
-                Debug.WriteLine("handleGetRequest failed. Invalid block number. " + Settings.BlockIndex + "/" + index);
-                GXDLMS.GetLNPdu(new GXDLMSLNParameters(Settings, Command.GetResponse, 2, null, bb, (byte)ErrorCode.DataBlockNumberInvalid), replyData);
+                Debug.WriteLine("handleGetRequest failed. Invalid block number. " + settings.BlockIndex + "/" + index);
+                GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, Command.GetResponse, 2, null, bb, (byte)ErrorCode.DataBlockNumberInvalid), replyData);
             }
             else
             {
-                Settings.IncreaseBlockIndex();
-                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, Command.GetResponse, 2, null, bb, (byte)ErrorCode.Ok);
+                settings.IncreaseBlockIndex();
+                GXDLMSLNParameters p = new GXDLMSLNParameters(settings, Command.GetResponse, 2, null, bb, (byte)ErrorCode.Ok);
                 //If transaction is not in progress.
                 if (server.transaction == null)
                 {
@@ -409,12 +409,12 @@ namespace Gurux.DLMS
                 else
                 {
                     bb.Set(server.transaction.data);
-                    bool moreData = Settings.Index != Settings.Count;
+                    bool moreData = settings.Index != settings.Count;
                     if (moreData)
                     {
                         //If there is multiple blocks on the buffer.
                         //This might happen when Max PDU size is very small.
-                        if (bb.Size < Settings.MaxPduSize)
+                        if (bb.Size < settings.MaxPduSize)
                         {
                             foreach (ValueEventArgs arg in server.transaction.targets)
                             {
@@ -426,12 +426,12 @@ namespace Gurux.DLMS
                                 }
                                 else
                                 {
-                                    value = (arg.Target as IGXDLMSBase).GetValue(Settings, arg);
+                                    value = (arg.Target as IGXDLMSBase).GetValue(settings, arg);
                                 }
                                 //Add data.
-                                GXDLMS.AppendData(arg.Target, arg.Index, bb, value);
+                                GXDLMS.AppendData(settings, arg.Target, arg.Index, bb, value);
                             }
-                            moreData = Settings.Index != Settings.Count;
+                            moreData = settings.Index != settings.Count;
                         }
                     }
                     p.multipleBlocks = true;
@@ -452,7 +452,7 @@ namespace Gurux.DLMS
         /// Handle get request with list command.
         /// </summary>
         /// <param name="data">Received data.</param>
-        private static void GetRequestWithList(GXDLMSSettings Settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
+        private static void GetRequestWithList(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
         {
             ValueEventArgs e;
             GXByteBuffer bb = new GXByteBuffer();
@@ -480,7 +480,7 @@ namespace Gurux.DLMS
                     {
                         selector = data.GetUInt8();
                         GXDataInfo info = new GXDataInfo();
-                        parameters = GXCommon.GetData(data, info);
+                        parameters = GXCommon.GetData(settings, data, info);
                     }
                     if (xml != null)
                     {
@@ -494,7 +494,7 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        GXDLMSObject obj = Settings.Objects.FindByLN(ci, GXDLMSObject.ToLogicalName(ln));
+                        GXDLMSObject obj = settings.Objects.FindByLN(ci, GXDLMSObject.ToLogicalName(ln));
                         if (obj == null)
                         {
                             obj = server.NotifyFindObject(ci, 0, GXDLMSObject.ToLogicalName(ln));
@@ -502,7 +502,7 @@ namespace Gurux.DLMS
                         if (obj == null)
                         {
                             // "Access Error : Device reports a undefined object."
-                            e = new ValueEventArgs(Settings, obj, attributeIndex, 0, 0);
+                            e = new ValueEventArgs(settings, obj, attributeIndex, 0, 0);
                             e.Error = ErrorCode.UndefinedObject;
                             list.Add(e);
                         }
@@ -511,13 +511,13 @@ namespace Gurux.DLMS
                             if (obj.GetAccess(attributeIndex) == AccessMode.NoAccess)
                             {
                                 //Read Write denied.
-                                ValueEventArgs arg = new ValueEventArgs(Settings, obj, attributeIndex, 0, null);
+                                ValueEventArgs arg = new ValueEventArgs(settings, obj, attributeIndex, 0, null);
                                 arg.Error = ErrorCode.ReadWriteDenied;
                                 list.Add(arg);
                             }
                             else
                             {
-                                ValueEventArgs arg = new ValueEventArgs(Settings, obj, attributeIndex, selector, parameters);
+                                ValueEventArgs arg = new ValueEventArgs(settings, obj, attributeIndex, selector, parameters);
                                 list.Add(arg);
                             }
                         }
@@ -550,27 +550,27 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        value = (it.Target as IGXDLMSBase).GetValue(Settings, it);
+                        value = (it.Target as IGXDLMSBase).GetValue(settings, it);
                     }
                     bb.SetUInt8(it.Error);
-                    GXDLMS.AppendData(it.Target, it.Index, bb, value);
+                    GXDLMS.AppendData(settings, it.Target, it.Index, bb, value);
                 }
                 catch (Exception)
                 {
                     bb.SetUInt8((byte)ErrorCode.HardwareFault);
                 }
-                if (Settings.Index != Settings.Count)
+                if (settings.Index != settings.Count)
                 {
                     server.transaction = new GXDLMSLongTransaction(list.ToArray(), Command.GetRequest, null);
                 }
                 ++pos;
             }
-            GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, Command.GetResponse, 3, null, bb, 0xFF);
+            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, Command.GetResponse, 3, null, bb, 0xFF);
             GXDLMS.GetLNPdu(p, replyData);
         }
 
 
-        private static void HandleSetRequestNormal(GXDLMSSettings Settings, GXDLMSServer server, GXByteBuffer data, byte type, GXDLMSLNParameters p, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
+        private static void HandleSetRequestNormal(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, byte type, GXDLMSLNParameters p, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
         {
             object value = null;
             GXDataInfo reply = new GXDataInfo();
@@ -588,7 +588,7 @@ namespace Gurux.DLMS
                 xml.AppendStartTag(TranslatorTags.Value);
                 GXDataInfo di = new GXDataInfo();
                 di.xml = xml;
-                value = GXCommon.GetData(data, di);
+                value = GXCommon.GetData(settings, data, di);
                 if (!di.Complete)
                 {
                     value = GXCommon.ToHex(data.Data, false, data.Position, data.Size - data.Position);
@@ -604,13 +604,13 @@ namespace Gurux.DLMS
             {
                 p.multipleBlocks = data.GetUInt8() == 0;
                 UInt32 blockNumber = data.GetUInt32();
-                if (blockNumber != Settings.BlockIndex)
+                if (blockNumber != settings.BlockIndex)
                 {
-                    Debug.WriteLine("HandleSetRequest failed. Invalid block number. " + Settings.BlockIndex + "/" + blockNumber);
+                    Debug.WriteLine("HandleSetRequest failed. Invalid block number. " + settings.BlockIndex + "/" + blockNumber);
                     p.status = (byte)ErrorCode.DataBlockNumberInvalid;
                     return;
                 }
-                Settings.IncreaseBlockIndex();
+                settings.IncreaseBlockIndex();
                 int size = GXCommon.GetObjectCount(data);
                 int realSize = data.Size - data.Position;
                 if (size != realSize)
@@ -622,11 +622,11 @@ namespace Gurux.DLMS
             }
             if (!p.multipleBlocks)
             {
-                Settings.ResetBlockIndex();
-                value = GXCommon.GetData(data, reply);
+                settings.ResetBlockIndex();
+                value = GXCommon.GetData(settings, data, reply);
             }
 
-            GXDLMSObject obj = Settings.Objects.FindByLN(ci, GXDLMSObject.ToLogicalName(ln));
+            GXDLMSObject obj = settings.Objects.FindByLN(ci, GXDLMSObject.ToLogicalName(ln));
             if (obj == null)
             {
                 obj = server.NotifyFindObject(ci, 0, GXDLMSObject.ToLogicalName(ln));
@@ -658,7 +658,7 @@ namespace Gurux.DLMS
                                 value = GXDLMSClient.ChangeType((byte[])value, dt);
                             }
                         }
-                        ValueEventArgs e = new ValueEventArgs(Settings, obj, index, 0, null);
+                        ValueEventArgs e = new ValueEventArgs(settings, obj, index, 0, null);
                         e.Value = value;
                         ValueEventArgs[] list = new ValueEventArgs[] { e };
                         if (p.multipleBlocks)
@@ -672,7 +672,7 @@ namespace Gurux.DLMS
                         }
                         else if (!e.Handled && !p.multipleBlocks)
                         {
-                            (obj as IGXDLMSBase).SetValue(Settings, e);
+                            (obj as IGXDLMSBase).SetValue(settings, e);
                         }
                     }
                     catch (Exception)
@@ -683,14 +683,14 @@ namespace Gurux.DLMS
             }
         }
 
-        private static void HanleSetRequestWithDataBlock(GXDLMSSettings Settings, GXDLMSServer server, GXByteBuffer data, GXDLMSLNParameters p, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
+        private static void HanleSetRequestWithDataBlock(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXDLMSLNParameters p, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
         {
             GXDataInfo reply = new GXDataInfo();
             p.multipleBlocks = data.GetUInt8() == 0;
             UInt32 blockNumber = data.GetUInt32();
-            if (blockNumber != Settings.BlockIndex)
+            if (blockNumber != settings.BlockIndex)
             {
-                Debug.WriteLine("HanleSetRequestWithDataBlock failed. Invalid block number. " + Settings.BlockIndex + "/" + blockNumber);
+                Debug.WriteLine("HanleSetRequestWithDataBlock failed. Invalid block number. " + settings.BlockIndex + "/" + blockNumber);
                 p.status = (byte)ErrorCode.DataBlockNumberInvalid;
             }
             else
@@ -708,7 +708,7 @@ namespace Gurux.DLMS
                 {
                     try
                     {
-                        object value = GXCommon.GetData(server.transaction.data, reply);
+                        object value = GXCommon.GetData(settings, server.transaction.data, reply);
                         if (value is byte[])
                         {
                             DataType dt = (server.transaction.targets[0].Target as IGXDLMSBase).GetDataType(server.transaction.targets[0].Index);
@@ -721,7 +721,7 @@ namespace Gurux.DLMS
                         server.NotifyWrite(server.transaction.targets);
                         if (!server.transaction.targets[0].Handled && !p.multipleBlocks)
                         {
-                            (server.transaction.targets[0].Target as IGXDLMSBase).SetValue(Settings, server.transaction.targets[0]);
+                            (server.transaction.targets[0].Target as IGXDLMSBase).SetValue(settings, server.transaction.targets[0]);
                         }
                     }
                     catch (Exception)
@@ -732,7 +732,7 @@ namespace Gurux.DLMS
                     {
                         server.transaction = null;
                     }
-                    Settings.ResetBlockIndex();
+                    settings.ResetBlockIndex();
                 }
             }
             p.multipleBlocks = true;
@@ -747,11 +747,11 @@ namespace Gurux.DLMS
         ///<returns>
         /// Reply.
         ///</returns>
-        public static void HandleAccessRequest(GXDLMSSettings Settings, GXDLMSServer server, GXByteBuffer data,
+        public static void HandleAccessRequest(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data,
                                                GXByteBuffer reply, GXDLMSTranslatorStructure xml)
         {
             //Return error if connection is not established.
-            if (xml == null && !Settings.Connected)
+            if (xml == null && !settings.Connected)
             {
                 reply.Set(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                           ServiceError.Service, (byte)Service.Unsupported));
@@ -779,7 +779,7 @@ namespace Gurux.DLMS
                     }
                     GXDataInfo info = new GXDataInfo();
                     info.Type = dt;
-                    GXCommon.GetData(new GXByteBuffer(tmp), info);
+                    GXCommon.GetData(settings, new GXByteBuffer(tmp), info);
 
                 }
             }
@@ -836,7 +836,7 @@ namespace Gurux.DLMS
                 {
                     xml.AppendStartTag(Command.WriteRequest, SingleReadResponse.Data);
                 }
-                object value = GXCommon.GetData(data, di);
+                object value = GXCommon.GetData(settings, data, di);
                 if (!di.Complete)
                 {
                     value = GXCommon.ToHex(data.Data, false, data.Position, data.Size - data.Position);

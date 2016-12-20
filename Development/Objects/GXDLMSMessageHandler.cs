@@ -211,8 +211,8 @@ namespace Gurux.DLMS.Objects
                 {
                     buff.Add((byte)DataType.Structure);
                     buff.Add(2);
-                    GXCommon.SetData(buff, DataType.OctetString, it.Key);
-                    GXCommon.SetData(buff, DataType.OctetString, it.Value);
+                    GXCommon.SetData(settings, buff, DataType.OctetString, it.Key);
+                    GXCommon.SetData(settings, buff, DataType.OctetString, it.Value);
                 }
                 return buff.Array();
             }
@@ -223,7 +223,7 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetObjectCount(AllowedSenders.Length, buff);
                 foreach (string it in AllowedSenders)
                 {
-                    GXCommon.SetData(buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it));
+                    GXCommon.SetData(settings, buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it));
                 }
                 return buff.Array();
             }
@@ -236,7 +236,7 @@ namespace Gurux.DLMS.Objects
                 {
                     buff.Add((byte)DataType.Structure);
                     buff.Add(2);
-                    GXCommon.SetData(buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Key));
+                    GXCommon.SetData(settings, buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Key));
                     //TODO: GXCommon.SetData(buff, DataType.OctetString, (it.Value.));
                 }
                 return buff.Array();
