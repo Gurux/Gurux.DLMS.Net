@@ -179,6 +179,25 @@ namespace Gurux.DLMS.ManufacturerSettings
         }
 
         /// <summary>
+        /// Web address where is more information.
+        /// </summary>
+        public string WebAddress
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Additional info.
+        /// </summary>
+        public string Info
+        {
+            get;
+            set;
+        }
+
+
+        /// <summary>
         /// Used extension class.
         /// </summary>
         public string Extension
