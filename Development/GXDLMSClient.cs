@@ -617,6 +617,8 @@ namespace Gurux.DLMS
         public void ParseAAREResponse(GXByteBuffer reply)
         {
             IsAuthenticationRequired = GXAPDU.ParsePDU(Settings, Settings.Cipher, reply, null) == SourceDiagnostic.AuthenticationRequired;
+            //Some meters need disconnect even authentication is required.
+            Settings.Connected = true;
             if (IsAuthenticationRequired)
             {
                 System.Diagnostics.Debug.WriteLine("Authentication is required.");
@@ -626,7 +628,6 @@ namespace Gurux.DLMS
             {
                 throw new GXDLMSException("Invalid DLMS version number.");
             }
-            Settings.Connected = true;
         }
 
         /// <summary>
