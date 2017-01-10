@@ -2267,6 +2267,45 @@ namespace Gurux.DLMS
             }
         }
 
+        internal static void HandleConfirmedServiceError(GXReplyData data)
+        {
+            if (data.Xml != null)
+            {
+                data.Xml.AppendStartTag(Command.ConfirmedServiceError);
+                if (data.Xml.OutputType == TranslatorOutputType.StandardXml)
+                {
+                    data.Data.GetUInt8();
+                    data.Xml.AppendStartTag(TranslatorTags.InitiateError);
+                    ServiceError type = (ServiceError)data.Data.GetUInt8();
+
+                    String tag = TranslatorStandardTags.serviceErrorToString(type);
+                    String value = TranslatorStandardTags.GetServiceErrorValue(type,
+                            (byte)data.Data.GetUInt8());
+                    data.Xml.AppendLine("x:" + tag, null, value);
+                    data.Xml.AppendEndTag(TranslatorTags.InitiateError);
+                }
+                else
+                {
+                    data.Xml.AppendLine(TranslatorTags.Service, "Value", data
+                            .Xml.IntegerToHex(data.Data.GetUInt8(), 2));
+                    ServiceError type = (ServiceError)data.Data.GetUInt8();
+                    data.Xml.AppendStartTag(TranslatorTags.ServiceError);
+                    data.Xml.AppendLine(
+                            TranslatorSimpleTags.ServiceErrorToString(type),
+                            "Value", TranslatorSimpleTags.GetServiceErrorValue(type,
+                                    data.Data.GetUInt8()));
+                    data.Xml.AppendEndTag(TranslatorTags.ServiceError);
+                }
+                data.Xml.AppendEndTag(Command.ConfirmedServiceError);
+            }
+            else
+            {
+                ConfirmedServiceError service = (ConfirmedServiceError)data.Data.GetUInt8();
+                ServiceError type = (ServiceError)data.Data.GetUInt8();
+                throw new GXDLMSException(service, type, data.Data.GetUInt8());
+            }
+        }
+
         /// <summary>
         /// Get PDU from the packet.
         /// </summary>
@@ -2327,9 +2366,8 @@ namespace Gurux.DLMS
                     case Command.ReleaseResponse:
                         break;
                     case Command.ConfirmedServiceError:
-                        ConfirmedServiceError service = (ConfirmedServiceError)data.Data.GetUInt8();
-                        ServiceError type = (ServiceError)data.Data.GetUInt8();
-                        throw new GXDLMSException(service, type, data.Data.GetUInt8());
+                        HandleConfirmedServiceError(data);
+                        break;
                     case Command.ExceptionResponse:
                         throw new GXDLMSException((ExceptionStateError)data.Data.GetUInt8(),
                                                   (ExceptionServiceError)data.Data.GetUInt8());

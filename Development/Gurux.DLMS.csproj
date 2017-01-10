@@ -71,6 +71,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Objects\Enums\MBusEncryptionKeyStatus.cs" />
+    <Compile Include="Objects\GXDLMSIEC14908Diagnostic.cs" />
+    <Compile Include="Objects\GXDLMSIEC14908PhysicalStatus.cs" />
+    <Compile Include="Objects\GXDLMSIEC14908PhysicalSetup.cs" />
+    <Compile Include="Objects\GXDLMSIEC14908Identification.cs" />
+    <Compile Include="Objects\GXDLMSSFSKMacCounters.cs" />
+    <Compile Include="Objects\GXDLMSSFSKMacSynchronizationTimeouts.cs" />
+    <Compile Include="Objects\GXDLMSSFSKActiveInitiator.cs" />
+    <Compile Include="Objects\GXDLMSSFSKPhyMacSetUp.cs" />
     <Compile Include="Simulator\GXDLMSSimulator.cs" />
     <Compile Include="Objects\Enums\CertificateIdentificationType.cs" />
     <Compile Include="TranslatorSimpleTags.cs" />

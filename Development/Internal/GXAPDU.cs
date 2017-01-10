@@ -891,8 +891,11 @@ namespace Gurux.DLMS.Internal
                     default:
                         //Unknown tags.
                         System.Diagnostics.Debug.WriteLine("Unknown tag: " + tag + ".");
-                        len = buff.GetUInt8();
-                        buff.Position += (UInt16)len;
+                        if (buff.Position < buff.Size)
+                        {
+                            len = buff.GetUInt8();
+                            buff.Position += (UInt16)len;
+                        }
                         break;
                 }
             }

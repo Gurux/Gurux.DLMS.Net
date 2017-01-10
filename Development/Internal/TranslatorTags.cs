@@ -88,6 +88,9 @@ namespace Gurux.DLMS
         ListOfAccessResponseSpecification,
         AccessResponseSpecification,
         AccessResponseListOfData,
-        SingleResponse
+        SingleResponse,
+        Service,
+        ServiceError,
+        InitiateError
     }
 }

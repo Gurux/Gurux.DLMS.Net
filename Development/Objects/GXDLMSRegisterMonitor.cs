@@ -153,6 +153,7 @@ namespace Gurux.DLMS.Objects
             return 0;
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
         public override DataType GetDataType(int index)
         {
             if (index == 1)

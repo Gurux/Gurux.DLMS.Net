@@ -750,6 +750,11 @@ namespace Gurux.DLMS
                     int cnt = GXCommon.GetObjectCount(value);
                     xml.AppendLine(cmd, "Value", GXCommon.ToHex(value.Data, false, value.Position, value.Size - value.Position));
                     break;
+                case (byte)Command.ConfirmedServiceError:
+                    data.Xml = xml;
+                    data.Data = value;
+                    GXDLMS.HandleConfirmedServiceError(data);
+                    break;
                 default:
                     xml.AppendLine("<Data=\"" + GXCommon.ToHex(value.Data, false, value.Position, value.Size - value.Position) + "\" />");
                     break;
@@ -825,6 +830,8 @@ namespace Gurux.DLMS
                 case (byte)Command.MethodRequest:
                 case (byte)Command.ReleaseRequest:
                 case (int)Command.AccessRequest:
+                case (int)Command.InitiateRequest:
+                case (int)Command.ConfirmedServiceError:
                     s.settings.IsServer = false;
                     break;
                 case (byte)Command.Ua:
@@ -837,6 +844,7 @@ namespace Gurux.DLMS
                 case (byte)Command.ReleaseResponse:
                 case (int)Command.DataNotification:
                 case (int)Command.AccessResponse:
+                case (int)Command.InitiateResponse:
                     break;
                 default:
                     throw new ArgumentException("Invalid Command: " + node.Name);
@@ -1423,16 +1431,21 @@ namespace Gurux.DLMS
         private static void ReadNode(
             XmlNode node, GXDLMSXmlSettings s)
         {
-            int tag;
+            int tag = 0;
+            String str;
             if (s.OutputType == TranslatorOutputType.SimpleXml)
             {
-                tag = s.tags[node.Name.ToLower()];
+                str = node.Name.ToLower();
             }
             else
             {
-                tag = s.tags[node.Name];
+                str = node.Name;
             }
-            string str;
+            if (s.command != Command.ConfirmedServiceError
+                    || s.tags.ContainsKey(str))
+            {
+                tag = s.tags[str];
+            }
             ErrorCode err;
             UInt32 value;
             byte[] tmp;
@@ -1462,6 +1475,41 @@ namespace Gurux.DLMS
                 else
                 {
                     preData = UpdateDataType(node, s, tag);
+                }
+            }
+            else if (s.command == Command.ConfirmedServiceError)
+            {
+                if (s.OutputType == TranslatorOutputType.StandardXml)
+                {
+                    if (tag == (int)TranslatorTags.InitiateError)
+                    {
+                        s.attributeDescriptor.SetUInt8(1);
+                    }
+                    else
+                    {
+                        ServiceError se = TranslatorStandardTags.GetServiceError(str.Substring(2));
+                        s.attributeDescriptor.SetUInt8(se);
+                        s.attributeDescriptor.SetUInt8(TranslatorStandardTags.GetError(se, GetValue(node, s)));
+                    }
+                }
+                else
+                {
+                    if (tag == (int)TranslatorTags.ServiceError)
+                    {
+                    }
+                    else
+                    {
+                        if (s.attributeDescriptor.Size == 0)
+                        {
+                            s.attributeDescriptor.SetUInt8((byte)s.ParseShort(GetValue(node, s)));
+                        }
+                        else
+                        {
+                            ServiceError se = TranslatorSimpleTags.GetServiceError(str);
+                            s.attributeDescriptor.SetUInt8(se);
+                            s.attributeDescriptor.SetUInt8(TranslatorSimpleTags.GetError(se, GetValue(node, s)));
+                        }
+                    }
                 }
             }
             else

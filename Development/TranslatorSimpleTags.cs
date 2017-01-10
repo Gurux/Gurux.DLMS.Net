@@ -159,18 +159,18 @@ namespace Gurux.DLMS
         /// <param name="list"></param>
         internal static void GetGloTags(TranslatorOutputType type, SortedList<int, string> list)
         {
-            GXDLMSTranslator.AddTag(list, Command.GloInitiateRequest, "glo_InitiateRequest");
-            GXDLMSTranslator.AddTag(list, Command.GloInitiateResponse, "glo_InitiateResponse");
-            GXDLMSTranslator.AddTag(list, Command.GloGetRequest, "glo_GetRequest");
-            GXDLMSTranslator.AddTag(list, Command.GloGetResponse, "glo_GetResponse");
-            GXDLMSTranslator.AddTag(list, Command.GloSetRequest, "glo_SetRequest");
-            GXDLMSTranslator.AddTag(list, Command.GloSetResponse, "glo_SetResponse");
-            GXDLMSTranslator.AddTag(list, Command.GloMethodRequest, "glo_ActionRequest");
-            GXDLMSTranslator.AddTag(list, Command.GloMethodResponse, "glo_ActionResponse");
-            GXDLMSTranslator.AddTag(list, Command.GloReadRequest, "glo_ReadRequest");
-            GXDLMSTranslator.AddTag(list, Command.GloReadResponse, "glo_ReadResponse");
-            GXDLMSTranslator.AddTag(list, Command.GloWriteRequest, "glo_WriteRequest");
-            GXDLMSTranslator.AddTag(list, Command.GloWriteResponse, "glo_WriteResponse");
+            GXDLMSTranslator.AddTag(list, Command.GloInitiateRequest, "gloInitiateRequest");
+            GXDLMSTranslator.AddTag(list, Command.GloInitiateResponse, "gloInitiateResponse");
+            GXDLMSTranslator.AddTag(list, Command.GloGetRequest, "gloGetRequest");
+            GXDLMSTranslator.AddTag(list, Command.GloGetResponse, "gloGetResponse");
+            GXDLMSTranslator.AddTag(list, Command.GloSetRequest, "gloSetRequest");
+            GXDLMSTranslator.AddTag(list, Command.GloSetResponse, "gloSetResponse");
+            GXDLMSTranslator.AddTag(list, Command.GloMethodRequest, "gloActionRequest");
+            GXDLMSTranslator.AddTag(list, Command.GloMethodResponse, "gloActionResponse");
+            GXDLMSTranslator.AddTag(list, Command.GloReadRequest, "gloReadRequest");
+            GXDLMSTranslator.AddTag(list, Command.GloReadResponse, "gloReadResponse");
+            GXDLMSTranslator.AddTag(list, Command.GloWriteRequest, "gloWriteRequest");
+            GXDLMSTranslator.AddTag(list, Command.GloWriteResponse, "gloWriteResponse");
         }
 
         /// <summary>
@@ -390,6 +390,395 @@ namespace Gurux.DLMS
                 throw new ArgumentOutOfRangeException("Error code: " + value);
             }
             return v;
+        }
+
+        private static Dictionary<ServiceError, String> GetServiceErrors()
+        {
+            Dictionary<ServiceError, String> list = new Dictionary<ServiceError, String>();
+            list.Add(ServiceError.ApplicationReference, "ApplicationReference");
+            list.Add(ServiceError.HardwareResource, "HardwareResource");
+            list.Add(ServiceError.VdeStateError, "VdeStateError");
+            list.Add(ServiceError.Service, "Service");
+            list.Add(ServiceError.Definition, "Definition");
+            list.Add(ServiceError.Access, "Access");
+            list.Add(ServiceError.Initiate, "Initiate");
+            list.Add(ServiceError.LoadDataSet, "LoadDataSet");
+            list.Add(ServiceError.Task, "Task");
+            return list;
+        }
+
+        static Dictionary<ApplicationReference, String> GetApplicationReference()
+        {
+            Dictionary<ApplicationReference, String> list =
+                    new Dictionary<ApplicationReference, String>();
+            list.Add(ApplicationReference.ApplicationContextUnsupported,
+                    "ApplicationContextUnsupported");
+            list.Add(ApplicationReference.ApplicationReferenceInvalid,
+                    "ApplicationReferenceInvalid");
+            list.Add(ApplicationReference.ApplicationUnreachable,
+                    "ApplicationUnreachable");
+            list.Add(ApplicationReference.DecipheringError, "DecipheringError");
+            list.Add(ApplicationReference.Other, "Other");
+            list.Add(ApplicationReference.ProviderCommunicationError,
+                    "ProviderCommunicationError");
+            list.Add(ApplicationReference.TimeElapsed, "TimeElapsed");
+            return list;
+        }
+
+        static Dictionary<HardwareResource, String> GetHardwareResource()
+        {
+            Dictionary<HardwareResource, String> list =
+                    new Dictionary<HardwareResource, String>();
+            list.Add(HardwareResource.MassStorageUnavailable,
+                    "MassStorageUnavailable");
+            list.Add(HardwareResource.MemoryUnavailable, "MemoryUnavailable");
+            list.Add(HardwareResource.Other, "Other");
+            list.Add(HardwareResource.OtherResourceUnavailable,
+                    "OtherResourceUnavailable");
+            list.Add(HardwareResource.ProcessorResourceUnavailable,
+                    "ProcessorResourceUnavailable");
+            return list;
+        }
+
+        static Dictionary<VdeStateError, String> GetVdeStateError()
+        {
+            Dictionary<VdeStateError, String> list = new Dictionary<VdeStateError, String>();
+            list.Add(VdeStateError.LoadingDataSet, "LoadingDataSet");
+            list.Add(VdeStateError.NoDlmsContext, "NoDlmsContext");
+            list.Add(VdeStateError.Other, "Other");
+            list.Add(VdeStateError.StatusInoperable, "StatusInoperable");
+            list.Add(VdeStateError.StatusNochange, "StatusNochange");
+            return list;
+        }
+
+        static Dictionary<Service, String> GetService()
+        {
+            Dictionary<Service, String> list = new Dictionary<Service, String>();
+            list.Add(Service.Other, "Other");
+            list.Add(Service.PduSize, "PduSize");
+            list.Add(Service.Unsupported, "ServiceUnsupported");
+            return list;
+        }
+
+        static Dictionary<Definition, String> GetDefinition()
+        {
+            Dictionary<Definition, String> list = new Dictionary<Definition, String>();
+            list.Add(Definition.ObjectAttributeInconsistent,
+                    "ObjectAttributeInconsistent");
+            list.Add(Definition.ObjectClassInconsistent,
+                    "ObjectClassInconsistent");
+            list.Add(Definition.ObjectUndefined, "ObjectUndefined");
+            list.Add(Definition.Other, "Other");
+            return list;
+        }
+
+        static Dictionary<Access, String> GetAccess()
+        {
+            Dictionary<Access, String> list = new Dictionary<Access, String>();
+            list.Add(Access.HardwareFault, "HardwareFault");
+            list.Add(Access.ObjectAccessInvalid, "ObjectAccessInvalid");
+            list.Add(Access.ObjectUnavailable, "ObjectUnavailable");
+            list.Add(Access.Other, "Other");
+            list.Add(Access.ScopeOfAccessViolated, "ScopeOfAccessViolated");
+            return list;
+        }
+
+        static Dictionary<Initiate, String> GetInitiate()
+        {
+            Dictionary<Initiate, String> list = new Dictionary<Initiate, String>();
+            list.Add(Initiate.DlmsVersionTooLow, "DlmsVersionTooLow");
+            list.Add(Initiate.IncompatibleConformance, "IncompatibleConformance");
+            list.Add(Initiate.Other, "Other");
+            list.Add(Initiate.PduSizeTooShort, "PduSizeTooShort");
+            list.Add(Initiate.RefusedByTheVDEHandler, "RefusedByTheVDEHandler");
+            return list;
+        }
+
+        static Dictionary<LoadDataSet, String> GetLoadDataSet()
+        {
+            Dictionary<LoadDataSet, String> list = new Dictionary<LoadDataSet, String>();
+            list.Add(LoadDataSet.DatasetNotReady, "DataSetNotReady");
+            list.Add(LoadDataSet.DatasetSizeTooLarge, "DatasetSizeTooLarge");
+            list.Add(LoadDataSet.InterpretationFailure, "InterpretationFailure");
+            list.Add(LoadDataSet.NotAwaitedSegment, "NotAwaitedSegment");
+            list.Add(LoadDataSet.NotLoadable, "NotLoadable");
+            list.Add(LoadDataSet.Other, "Other");
+            list.Add(LoadDataSet.PrimitiveOutOfSequence,
+                    "PrimitiveOutOfSequence");
+            list.Add(LoadDataSet.StorageFailure, "StorageFailure");
+            return list;
+        }
+
+        static Dictionary<Task, String> GetTask()
+        {
+            Dictionary<Task, String> list = new Dictionary<Task, String>();
+            list.Add(Task.NoRemoteControl, "NoRemoteControl");
+            list.Add(Task.Other, "Other");
+            list.Add(Task.TiRunning, "tiRunning");
+            list.Add(Task.TiStopped, "tiStopped");
+            list.Add(Task.TiUnusable, "tiUnusable");
+            return list;
+        }
+
+        internal static String GetServiceErrorValue(ServiceError error,
+                byte value)
+        {
+            switch (error)
+            {
+                case ServiceError.ApplicationReference:
+                    return GetApplicationReference()[(ApplicationReference)value];
+                case ServiceError.HardwareResource:
+                    return GetHardwareResource()[(HardwareResource)value];
+                case ServiceError.VdeStateError:
+                    return GetVdeStateError()[(VdeStateError)value];
+                case ServiceError.Service:
+                    return GetService()[(Service)value];
+                case ServiceError.Definition:
+                    return GetDefinition()[(Definition)value];
+                case ServiceError.Access:
+                    return GetAccess()[(Access)value];
+                case ServiceError.Initiate:
+                    return GetInitiate()[(Initiate)value];
+                case ServiceError.LoadDataSet:
+                    return GetLoadDataSet()[(LoadDataSet)value];
+                case ServiceError.Task:
+                    return GetTask()[(Task)value];
+                case ServiceError.OtherError:
+                    return value.ToString();
+                default:
+                    break;
+            }
+            return "";
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="error">Service error enumeration value.</param>
+        /// <returns>Service error simple XML tag.</returns>
+        internal static String ServiceErrorToString(ServiceError error)
+        {
+            return GetServiceErrors()[error];
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value">Service error simple XML tag.</param>
+        /// <returns>Service error enumeration value.</returns>
+        internal static ServiceError GetServiceError(String value)
+        {
+            foreach (var it in GetServiceErrors())
+            {
+                if (string.Compare(value, it.Value, true) == 0)
+                {
+                    return it.Key;
+                }
+            }
+            throw new ArgumentException();
+        }
+
+        private static int GetApplicationReference(String value)
+        {
+            int ret = -1;
+            foreach (var it in GetApplicationReference())
+            {
+                if (string.Compare(value, it.Value, true) == 0)
+                {
+                    ret = (int)it.Key;
+                    break;
+                }
+            }
+            if (ret == -1)
+            {
+                throw new ArgumentException();
+            }
+            return ret;
+        }
+
+        private static int GetHardwareResource(String value)
+        {
+            int ret = -1;
+            foreach (var it in GetHardwareResource())
+            {
+                if (string.Compare(value, it.Value, true) == 0)
+                {
+                    ret = (int)it.Key;
+                    break;
+                }
+            }
+            if (ret == -1)
+            {
+                throw new ArgumentException();
+            }
+            return ret;
+        }
+
+        private static int GetVdeStateError(String value)
+        {
+            int ret = -1;
+            foreach (var it in GetVdeStateError())
+            {
+                if (string.Compare(value, it.Value, true) == 0)
+                {
+                    ret = (int)it.Key;
+                    break;
+                }
+            }
+            if (ret == -1)
+            {
+                throw new ArgumentException();
+            }
+            return ret;
+        }
+
+        private static int GetService(String value)
+        {
+            int ret = -1;
+            foreach (var it in GetService())
+            {
+                if (string.Compare(value, it.Value, true) == 0)
+                {
+                    ret = (int)it.Key;
+                    break;
+                }
+            }
+            if (ret == -1)
+            {
+                throw new ArgumentException();
+            }
+            return ret;
+        }
+
+        private static int GetDefinition(String value)
+        {
+            int ret = -1;
+            foreach (var it in GetDefinition())
+            {
+                if (string.Compare(value, it.Value, true) == 0)
+                {
+                    ret = (int)it.Key;
+                    break;
+                }
+            }
+            if (ret == -1)
+            {
+                throw new ArgumentException();
+            }
+            return ret;
+        }
+
+        private static int GetAccess(String value)
+        {
+            int ret = -1;
+            foreach (var it in GetAccess())
+            {
+                if (string.Compare(value, it.Value, true) == 0)
+                {
+                    ret = (int)it.Key;
+                    break;
+                }
+            }
+            if (ret == -1)
+            {
+                throw new ArgumentException();
+            }
+            return ret;
+        }
+
+        private static int GetInitiate(String value)
+        {
+            int ret = -1;
+            foreach (var it in GetInitiate())
+            {
+                if (string.Compare(value, it.Value, true) == 0)
+                {
+                    ret = (int)it.Key;
+                    break;
+                }
+            }
+            if (ret == -1)
+            {
+                throw new ArgumentException();
+            }
+            return ret;
+        }
+
+        private static int GetLoadDataSet(String value)
+        {
+            int ret = -1;
+            foreach (var it in GetLoadDataSet())
+            {
+                if (string.Compare(value, it.Value, true) == 0)
+                {
+                    ret = (int)it.Key;
+                    break;
+                }
+            }
+            if (ret == -1)
+            {
+                throw new ArgumentException();
+            }
+            return ret;
+        }
+
+        private static int GetTask(String value)
+        {
+            int ret = -1;
+            foreach (var it in GetTask())
+            {
+                if (string.Compare(value, it.Value, true) == 0)
+                {
+                    ret = (int)it.Key;
+                    break;
+                }
+            }
+            if (ret == -1)
+            {
+                throw new ArgumentException();
+            }
+            return ret;
+        }
+
+        internal static byte GetError(ServiceError serviceError, String value)
+        {
+            int ret = 0;
+            switch (serviceError)
+            {
+                case ServiceError.ApplicationReference:
+                    ret = GetApplicationReference(value);
+                    break;
+                case ServiceError.HardwareResource:
+                    ret = GetHardwareResource(value);
+                    break;
+                case ServiceError.VdeStateError:
+                    ret = GetVdeStateError(value);
+                    break;
+                case ServiceError.Service:
+                    ret = GetService(value);
+                    break;
+                case ServiceError.Definition:
+                    ret = GetDefinition(value);
+                    break;
+                case ServiceError.Access:
+                    ret = GetAccess(value);
+                    break;
+                case ServiceError.Initiate:
+                    ret = GetInitiate(value);
+                    break;
+                case ServiceError.LoadDataSet:
+                    ret = GetLoadDataSet(value);
+                    break;
+                case ServiceError.Task:
+                    ret = GetTask(value);
+                    break;
+                case ServiceError.OtherError:
+                    ret = int.Parse(value);
+                    break;
+                default:
+                    break;
+            }
+            return (byte)ret;
         }
     }
 }

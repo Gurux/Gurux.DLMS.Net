@@ -127,10 +127,6 @@ namespace Gurux.DLMS.Objects
 
         #region IGXDLMSBase Members
 
-        /// <summary>
-        /// Data interface do not have any methods.
-        /// </summary>
-        /// <param name="index"></param>
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             e.Error = ErrorCode.ReadWriteDenied;
@@ -184,6 +180,7 @@ namespace Gurux.DLMS.Objects
             return 0;
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
         public override DataType GetDataType(int index)
         {
             if (index == 1)

@@ -158,10 +158,6 @@ namespace Gurux.DLMS.Objects
 
         #region IGXDLMSBase Members
 
-        /// <summary>
-        /// Push interface do not have any methods.
-        /// </summary>
-        /// <param name="index"></param>
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
@@ -247,6 +243,7 @@ namespace Gurux.DLMS.Objects
             return 1;
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
         public override DataType GetDataType(int index)
         {
             if (index == 1)
