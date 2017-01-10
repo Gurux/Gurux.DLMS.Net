@@ -166,6 +166,7 @@
     <Compile Include="Objects\Enums\ImageTransferStatus.cs" />
     <Compile Include="Objects\Enums\Ip4SetupIpOptionType.cs" />
     <Compile Include="Objects\Enums\LocalPortResponseTime.cs" />
+    <Compile Include="Objects\Enums\MBusEncryptionKeyStatus.cs" />
     <Compile Include="Objects\Enums\MessageType.cs" />
     <Compile Include="Objects\Enums\OpticalProtocolMode.cs" />
     <Compile Include="Objects\Enums\PppAuthenticationType.cs" />
@@ -202,6 +203,10 @@
     <Compile Include="Objects\GXDLMSExtendedRegister.cs" />
     <Compile Include="Objects\GXDLMSGprsSetup.cs" />
     <Compile Include="Objects\GXDLMSHdlcSetup.cs" />
+    <Compile Include="Objects\GXDLMSIEC14908Diagnostic.cs" />
+    <Compile Include="Objects\GXDLMSIEC14908Identification.cs" />
+    <Compile Include="Objects\GXDLMSIEC14908PhysicalSetup.cs" />
+    <Compile Include="Objects\GXDLMSIEC14908PhysicalStatus.cs" />
     <Compile Include="Objects\GXDLMSIECOpticalPortSetup.cs" />
     <Compile Include="Objects\GXDLMSIecTwistedPairSetup.cs" />
     <Compile Include="Objects\GXDLMSImageActivateInfo.cs" />
@@ -236,6 +241,10 @@
     <Compile Include="Objects\GXDLMSScriptTable.cs" />
     <Compile Include="Objects\GXDLMSSeasonProfile.cs" />
     <Compile Include="Objects\GXDLMSSecuritySetup.cs" />
+    <Compile Include="Objects\GXDLMSSFSKActiveInitiator.cs" />
+    <Compile Include="Objects\GXDLMSSFSKMacCounters.cs" />
+    <Compile Include="Objects\GXDLMSSFSKMacSynchronizationTimeouts.cs" />
+    <Compile Include="Objects\GXDLMSSFSKPhyMacSetUp.cs" />
     <Compile Include="Objects\GXDLMSSpecialDay.cs" />
     <Compile Include="Objects\GXDLMSSpecialDaysTable.cs" />
     <Compile Include="Objects\GXDLMSTcpUdpSetup.cs" />
