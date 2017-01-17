@@ -78,6 +78,24 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
+        ///  Server system title.
+        /// </summary>
+        /// <remarks>
+        /// Server system title is optional and server usually gives it when connection is established.
+        /// </remarks>
+        public byte[] ServerSystemTitle
+        {
+            get
+            {
+                return Settings.SourceSystemTitle;
+            }
+            set
+            {
+                Settings.SourceSystemTitle = value;
+            }
+        }
+
+        /// <summary>
         /// Encrypt data using Key Encrypting Key.
         /// </summary>
         /// <param name="kek">Key Encrypting Key, also known as Master key.</param>

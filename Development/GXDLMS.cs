@@ -2280,20 +2280,20 @@ namespace Gurux.DLMS
 
                     String tag = TranslatorStandardTags.serviceErrorToString(type);
                     String value = TranslatorStandardTags.GetServiceErrorValue(type,
-                            (byte)data.Data.GetUInt8());
+                                   (byte)data.Data.GetUInt8());
                     data.Xml.AppendLine("x:" + tag, null, value);
                     data.Xml.AppendEndTag(TranslatorTags.InitiateError);
                 }
                 else
                 {
                     data.Xml.AppendLine(TranslatorTags.Service, "Value", data
-                            .Xml.IntegerToHex(data.Data.GetUInt8(), 2));
+                                        .Xml.IntegerToHex(data.Data.GetUInt8(), 2));
                     ServiceError type = (ServiceError)data.Data.GetUInt8();
                     data.Xml.AppendStartTag(TranslatorTags.ServiceError);
                     data.Xml.AppendLine(
-                            TranslatorSimpleTags.ServiceErrorToString(type),
-                            "Value", TranslatorSimpleTags.GetServiceErrorValue(type,
-                                    data.Data.GetUInt8()));
+                        TranslatorSimpleTags.ServiceErrorToString(type),
+                        "Value", TranslatorSimpleTags.GetServiceErrorValue(type,
+                                data.Data.GetUInt8()));
                     data.Xml.AppendEndTag(TranslatorTags.ServiceError);
                 }
                 data.Xml.AppendEndTag(Command.ConfirmedServiceError);
@@ -2303,6 +2303,50 @@ namespace Gurux.DLMS
                 ConfirmedServiceError service = (ConfirmedServiceError)data.Data.GetUInt8();
                 ServiceError type = (ServiceError)data.Data.GetUInt8();
                 throw new GXDLMSException(service, type, data.Data.GetUInt8());
+            }
+        }
+
+        private static void HandledGloRequest(GXDLMSSettings settings,
+                                              GXReplyData data)
+        {
+            if (settings.Cipher == null)
+            {
+                throw new Exception(
+                    "Secure connection is not supported.");
+            }
+            //If all frames are read.
+            if ((data.MoreData & RequestTypes.Frame) == 0)
+            {
+                --data.Data.Position;
+                settings.Cipher.Decrypt(settings.SourceSystemTitle, data.Data);
+                // Get command.
+                data.Command = (Command)data.Data.GetUInt8();
+            }
+            else
+            {
+                --data.Data.Position;
+            }
+        }
+
+        private static void HandledGloResponse(GXDLMSSettings settings,
+                                               GXReplyData data, int index)
+        {
+            if (settings.Cipher == null)
+            {
+                throw new Exception(
+                    "Secure connection is not supported.");
+            }
+            //If all frames are read.
+            if ((data.MoreData & RequestTypes.Frame) == 0)
+            {
+                --data.Data.Position;
+                GXByteBuffer bb = new GXByteBuffer(data.Data);
+                data.Data.Position = data.Data.Size = index;
+                settings.Cipher.Decrypt(settings.SourceSystemTitle, bb);
+                data.Data.Set(bb);
+                data.Command = Command.None;
+                GetPdu(settings, data);
+                data.CipherIndex = data.Data.Size;
             }
         }
 
@@ -2388,25 +2432,7 @@ namespace Gurux.DLMS
                     case Command.GloGetRequest:
                     case Command.GloSetRequest:
                     case Command.GloMethodRequest:
-                        if (settings.Cipher == null)
-                        {
-                            throw new Exception(
-                                "Secure connection is not supported.");
-                        }
-                        //If all frames are read.
-                        if ((data.MoreData & RequestTypes.Frame) == 0)
-                        {
-                            --data.Data.Position;
-                            settings.Cipher.Decrypt(settings.SourceSystemTitle, data.Data);
-                            // Get command.
-                            ch = data.Data.GetUInt8();
-                            cmd = (Command)ch;
-                            data.Command = cmd;
-                        }
-                        else
-                        {
-                            --data.Data.Position;
-                        }
+                        HandledGloRequest(settings, data);
                         // Server handles this.
                         break;
                     case Command.GloReadResponse:
@@ -2414,24 +2440,20 @@ namespace Gurux.DLMS
                     case Command.GloGetResponse:
                     case Command.GloSetResponse:
                     case Command.GloMethodResponse:
-                        if (settings.Cipher == null)
+                    case Command.GloEventNotificationRequest:
+                        HandledGloResponse(settings, data, index);
+                        break;
+                    case Command.GloGeneralCiphering:
+                        if (settings.IsServer)
                         {
-                            throw new Exception(
-                                "Secure connection is not supported.");
+                            HandledGloRequest(settings, data);
                         }
-                        //If all frames are read.
-                        if ((data.MoreData & RequestTypes.Frame) == 0)
+                        else
                         {
-                            --data.Data.Position;
-                            GXByteBuffer bb = new GXByteBuffer(data.Data);
-                            data.Data.Position = data.Data.Size = index;
-                            settings.Cipher.Decrypt(settings.SourceSystemTitle, bb);
-                            data.Data.Set(bb);
-                            data.Command = Command.None;
-                            GetPdu(settings, data);
-                            data.CipherIndex = data.Data.Size;
+                            HandledGloResponse(settings, data, index);
                         }
                         break;
+
                     case Command.DataNotification:
                         HandleDataNotification(settings, data);
                         //Client handles this.

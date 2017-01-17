@@ -159,18 +159,18 @@ namespace Gurux.DLMS
         /// <param name="list"></param>
         internal static void GetGloTags(TranslatorOutputType type, SortedList<int, string> list)
         {
-            GXDLMSTranslator.AddTag(list, Command.GloInitiateRequest, "gloInitiateRequest");
-            GXDLMSTranslator.AddTag(list, Command.GloInitiateResponse, "gloInitiateResponse");
-            GXDLMSTranslator.AddTag(list, Command.GloGetRequest, "gloGetRequest");
-            GXDLMSTranslator.AddTag(list, Command.GloGetResponse, "gloGetResponse");
-            GXDLMSTranslator.AddTag(list, Command.GloSetRequest, "gloSetRequest");
-            GXDLMSTranslator.AddTag(list, Command.GloSetResponse, "gloSetResponse");
-            GXDLMSTranslator.AddTag(list, Command.GloMethodRequest, "gloActionRequest");
-            GXDLMSTranslator.AddTag(list, Command.GloMethodResponse, "gloActionResponse");
-            GXDLMSTranslator.AddTag(list, Command.GloReadRequest, "gloReadRequest");
-            GXDLMSTranslator.AddTag(list, Command.GloReadResponse, "gloReadResponse");
-            GXDLMSTranslator.AddTag(list, Command.GloWriteRequest, "gloWriteRequest");
-            GXDLMSTranslator.AddTag(list, Command.GloWriteResponse, "gloWriteResponse");
+            GXDLMSTranslator.AddTag(list, Command.GloInitiateRequest, "glo_InitiateRequest");
+            GXDLMSTranslator.AddTag(list, Command.GloInitiateResponse, "glo_InitiateResponse");
+            GXDLMSTranslator.AddTag(list, Command.GloGetRequest, "glo_GetRequest");
+            GXDLMSTranslator.AddTag(list, Command.GloGetResponse, "glo_GetResponse");
+            GXDLMSTranslator.AddTag(list, Command.GloSetRequest, "glo_SetRequest");
+            GXDLMSTranslator.AddTag(list, Command.GloSetResponse, "glo_SetResponse");
+            GXDLMSTranslator.AddTag(list, Command.GloMethodRequest, "glo_ActionRequest");
+            GXDLMSTranslator.AddTag(list, Command.GloMethodResponse, "glo_ActionResponse");
+            GXDLMSTranslator.AddTag(list, Command.GloReadRequest, "glo_ReadRequest");
+            GXDLMSTranslator.AddTag(list, Command.GloReadResponse, "glo_ReadResponse");
+            GXDLMSTranslator.AddTag(list, Command.GloWriteRequest, "glo_WriteRequest");
+            GXDLMSTranslator.AddTag(list, Command.GloWriteResponse, "glo_WriteResponse");
         }
 
         /// <summary>

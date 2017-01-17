@@ -819,6 +819,7 @@ namespace Gurux.DLMS
         private static void GetCommand(XmlNode node, GXDLMSXmlSettings s, int tag)
         {
             s.command = (Command)tag;
+            byte[] tmp;
             switch (tag)
             {
                 case (byte)Command.Snrm:
@@ -834,6 +835,17 @@ namespace Gurux.DLMS
                 case (int)Command.ConfirmedServiceError:
                     s.settings.IsServer = false;
                     break;
+                case (byte)Command.GloInitiateRequest:
+                case (byte)Command.GloGetRequest:
+                case (byte)Command.GloSetRequest:
+                case (byte)Command.GloMethodRequest:
+                case (byte)Command.GloReadRequest:
+                case (byte)Command.GloWriteRequest:
+                    s.settings.IsServer = false;
+                    tmp = GXCommon.HexToBytes(GetValue(node, s));
+                    s.settings.Cipher.Security = (Security)tmp[0];
+                    s.data.Set(tmp);
+                    break;
                 case (byte)Command.Ua:
                 case (byte)Command.Aare:
                 case (byte)Command.GetResponse:
@@ -845,6 +857,16 @@ namespace Gurux.DLMS
                 case (int)Command.DataNotification:
                 case (int)Command.AccessResponse:
                 case (int)Command.InitiateResponse:
+                    break;
+                case (byte)Command.GloInitiateResponse:
+                case (byte)Command.GloGetResponse:
+                case (byte)Command.GloSetResponse:
+                case (byte)Command.GloMethodResponse:
+                case (byte)Command.GloReadResponse:
+                case (byte)Command.GloWriteResponse:
+                    tmp = GXCommon.HexToBytes(GetValue(node, s));
+                    s.settings.Cipher.Security = (Security)tmp[0];
+                    s.data.Set(tmp);
                     break;
                 default:
                     throw new ArgumentException("Invalid Command: " + node.Name);
@@ -1012,22 +1034,12 @@ namespace Gurux.DLMS
                     }
                     break;
                 case (byte)Command.GloInitiateRequest:
-                case (byte)Command.GloGetRequest:
-                case (byte)Command.GloSetRequest:
-                case (byte)Command.GloMethodRequest:
-                case (byte)Command.GloReadRequest:
-                case (byte)Command.GloWriteRequest:
                     s.settings.IsServer = false;
                     tmp = GXCommon.HexToBytes(GetValue(node, s));
                     s.settings.Cipher.Security = (Security)tmp[0];
                     s.data.Set(tmp);
                     break;
                 case (byte)Command.GloInitiateResponse:
-                case (byte)Command.GloGetResponse:
-                case (byte)Command.GloSetResponse:
-                case (byte)Command.GloMethodResponse:
-                case (byte)Command.GloReadResponse:
-                case (byte)Command.GloWriteResponse:
                     tmp = GXCommon.HexToBytes(GetValue(node, s));
                     s.settings.Cipher.Security = (Security)tmp[0];
                     s.data.Set(tmp);

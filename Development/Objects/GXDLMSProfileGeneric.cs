@@ -344,6 +344,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Returns Association View.
         /// </summary>
+        /// <param name="settings">DLMS settings.</param>
         /// <param name="table"></param>
         /// <param name="columns">Columns to get. NULL if not used.</param>
         /// <returns></returns>
@@ -688,7 +689,6 @@ namespace Gurux.DLMS.Objects
             {
                 cols = CaptureObjects;
             }
-            //Mikko Buffer.Clear();
             if (e.Value != null && (e.Value as object[]).Length != 0)
             {
                 int index2 = 0;
@@ -758,6 +758,22 @@ namespace Gurux.DLMS.Objects
                                 }
                             }
                         }
+                        else if (cols[pos].Key is GXDLMSDemandRegister && (index2 == 2 || index2 == 3))
+                        {
+                            double scaler = (cols[pos].Key as GXDLMSDemandRegister).Scaler;
+                            if (scaler != 1)
+                            {
+                                try
+                                {
+                                    row[pos] = Convert.ToDouble(row[pos]) * scaler;
+                                }
+                                catch
+                                {
+                                    //Skip error
+                                }
+                            }
+                        }
+
                     }
                     Buffer.Add(row);
                 }

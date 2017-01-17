@@ -306,7 +306,7 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetData(settings, buff, DataType.UInt8, Service);
                 if (Destination != null)
                 {
-                    GXCommon.SetData(settings, buff, DataType.OctetString, Destination);
+                    GXCommon.SetData(settings, buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(Destination));
                 }
                 else
                 {
