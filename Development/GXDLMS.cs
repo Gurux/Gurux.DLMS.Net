@@ -1637,25 +1637,29 @@ namespace Gurux.DLMS
             }
             for (int pos = 0; pos != cnt; ++pos)
             {
-                //Some meters are returning wrong count.
-                if (reply.Xml != null && reply.Data.Position == reply.Data.Size)
+                // Get status code.
+                reply.CommandType = reply.Data.GetUInt8();
+                type = (SingleReadResponse)reply.CommandType;
+                bool standardXml = reply.Xml != null && reply.Xml.OutputType == TranslatorOutputType.StandardXml;
+
+                reply.Error = 0;
+                if (reply.Xml != null)
                 {
-                }
-                else
-                {
-                    // Get status code.
-                    if (reply.Data.Position == reply.ReadPosition)
+                    if (standardXml)
                     {
-                        reply.TotalCount = 0;
-                        reply.Data.Position = index;
-                        GetDataFromBlock(reply.Data, 0);
-                        reply.Value = null;
-                        //Ask that data is parsed after last block is received.
-                        reply.CommandType = (byte)SingleReadResponse.DataBlockResult;
-                        return false;
+                        reply.Xml.AppendStartTag(TranslatorTags.Choice);
                     }
-                    reply.CommandType = reply.Data.GetUInt8();
-                    type = (SingleReadResponse)reply.CommandType;
+                    reply.Xml.AppendStartTag(Command.ReadResponse,
+                            SingleReadResponse.Data);
+                    GXDataInfo di = new GXDataInfo();
+                    di.xml = reply.Xml;
+                    GXCommon.GetData(settings, reply.Data, di);
+                    reply.Xml.AppendEndTag(Command.ReadResponse,
+                            SingleReadResponse.Data);
+                    if (standardXml)
+                    {
+                        reply.Xml.AppendEndTag(TranslatorTags.Choice);
+                    }
                 }
                 switch (type)
                 {
@@ -1663,7 +1667,7 @@ namespace Gurux.DLMS
                         reply.Error = 0;
                         if (reply.Xml != null)
                         {
-                            if (reply.Xml.OutputType == TranslatorOutputType.StandardXml)
+                            if (standardXml)
                             {
                                 reply.Xml.AppendStartTag(TranslatorTags.Choice);
                             }
@@ -1672,7 +1676,7 @@ namespace Gurux.DLMS
                             di.xml = reply.Xml;
                             GXCommon.GetData(settings, reply.Data, di);
                             reply.Xml.AppendEndTag(Command.ReadResponse, SingleReadResponse.Data);
-                            if (reply.Xml.OutputType == TranslatorOutputType.StandardXml)
+                            if (standardXml)
                             {
                                 reply.Xml.AppendEndTag(TranslatorTags.Choice);
                             }
@@ -1710,7 +1714,7 @@ namespace Gurux.DLMS
                         reply.Error = reply.Data.GetUInt8();
                         if (reply.Xml != null)
                         {
-                            if (reply.Xml.OutputType == TranslatorOutputType.StandardXml)
+                            if (standardXml)
                             {
                                 reply.Xml.AppendStartTag(TranslatorTags.Choice);
                             }
@@ -1721,11 +1725,10 @@ namespace Gurux.DLMS
                                 GXDLMSTranslator.ErrorCodeToString(
                                     reply.Xml.OutputType,
                                     (ErrorCode)reply.Error));
-                            if (reply.Xml.OutputType == TranslatorOutputType.StandardXml)
+                            if (standardXml)
                             {
                                 reply.Xml.AppendEndTag(TranslatorTags.Choice);
                             }
-                            //reply.Xml.AppendLine("<" + SingleReadResponse.DataAccessError.ToString() + " Value=\"" + ((ErrorCode)reply.Error).ToString() + "\" />");
                         }
                         break;
                     case SingleReadResponse.DataBlockResult:
@@ -1771,6 +1774,10 @@ namespace Gurux.DLMS
         {
             //Get Action-Result
             byte ret = data.Data.GetUInt8();
+            if (ret != 0)
+            {
+                data.Error = ret;
+            }
             if (data.Xml != null)
             {
                 if (data.Xml
@@ -1784,10 +1791,6 @@ namespace Gurux.DLMS
                                         data.Xml.OutputType,
                                         (ErrorCode)data.Error));
             }
-            if (ret != 0)
-            {
-                data.Error = ret;
-            }
             // Response normal. Get data if exists. Some meters do not return here anything.
             if (data.Data.Position < data.Data.Size)
             {
@@ -1798,7 +1801,7 @@ namespace Gurux.DLMS
                 {
                     GetDataFromBlock(data.Data, 0);
                 }
-                else if (ret == 1) //Data-Access-Result
+                else
                 {
                     //Get Data-Access-Result
                     ret = data.Data.GetUInt8();
@@ -1819,10 +1822,6 @@ namespace Gurux.DLMS
                         GetDataFromBlock(data.Data, 0);
                     }
                 }
-                else
-                {
-                    throw new GXDLMSException("parseApplicationAssociationResponse failed. Invalid tag.");
-                }
                 if (data.Xml != null)
                 {
 
@@ -1833,29 +1832,27 @@ namespace Gurux.DLMS
                             TranslatorTags.DataAccessError, null,
                             GXDLMSTranslator.ErrorCodeToString(
                                 data.Xml.OutputType, (ErrorCode)
-                                data.Error));
+                                ret));
 
                     }
                     else
                     {
-                        if (data.Error != 0)
+                        data.Xml.AppendStartTag(Command.ReadResponse,
+                                                SingleReadResponse.Data);
+                        if (data.Data.Position == data.Data.Size)
                         {
-                            data.Xml.AppendLine(TranslatorTags.Result,
-                                                null,
-                                                GXDLMSTranslator.ErrorCodeToString(
-                                                    data.Xml.OutputType,
-                                                    (ErrorCode)data.Error));
+                            int tag = GXDLMS.DATA_TYPE_OFFSET | (int)DataType.None;
+                            data.Xml.AppendStartTag(tag, null, null);
+                            data.Xml.AppendEndTag(tag);
                         }
                         else
                         {
-                            data.Xml.AppendStartTag(Command.ReadResponse,
-                                                    SingleReadResponse.Data);
                             GXDataInfo di = new GXDataInfo();
                             di.xml = data.Xml;
                             GXCommon.GetData(settings, data.Data, di);
-                            data.Xml.AppendEndTag(Command.ReadResponse,
-                                                  SingleReadResponse.Data);
                         }
+                        data.Xml.AppendEndTag(Command.ReadResponse,
+                                              SingleReadResponse.Data);
                     }
                     data.Xml.AppendEndTag(TranslatorTags.ReturnParameters);
 
@@ -1885,7 +1882,7 @@ namespace Gurux.DLMS
                 data.Xml.AppendStartTag(Command.MethodResponse, type);
                 //InvokeIdAndPriority
                 data.Xml.AppendLine(TranslatorTags.InvokeId, "Value",
-                                    data.Xml.IntegerToHex(invoke, 2));
+                                        data.Xml.IntegerToHex(invoke, 2));
             }
             //Action-Response-Normal
             if (type == ActionResponseType.Normal)

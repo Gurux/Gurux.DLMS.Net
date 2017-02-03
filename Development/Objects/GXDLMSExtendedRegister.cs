@@ -282,7 +282,15 @@ namespace Gurux.DLMS.Objects
                 {
                     e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
                 }
-                CaptureTime = ((GXDateTime)e.Value).Value.LocalDateTime;
+                //Actaris meters might return null.
+                if (e.Value == null)
+                {
+                    CaptureTime = new GXDateTime();
+                }
+                else
+                {
+                    CaptureTime = ((GXDateTime)e.Value).Value.LocalDateTime;
+                }
             }
             else
             {

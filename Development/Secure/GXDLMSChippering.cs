@@ -176,8 +176,11 @@ namespace Gurux.DLMS.Secure
             {
                 case Command.GloGeneralCiphering:
                     len = GXCommon.GetObjectCount(data);
-                    p.SystemTitle = new byte[len];
-                    data.Get(p.SystemTitle);
+                    if (len != 0)
+                    {
+                        p.SystemTitle = new byte[len];
+                        data.Get(p.SystemTitle);
+                    }
                     break;
                 case Command.GloInitiateRequest:
                 case Command.GloInitiateResponse:

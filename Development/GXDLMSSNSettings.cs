@@ -37,6 +37,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS
 {
@@ -78,6 +79,27 @@ namespace Gurux.DLMS
                 throw new ArgumentException("Invalid conformance block.");
             }
             ConformanceBlock = conformanceBlock;
+        }
+
+        /// <summary>
+        /// Conformance block.
+        /// </summary>
+        public Conformance Conformance
+        {
+            get
+            {
+                GXByteBuffer bb = new GXByteBuffer(4);
+                bb.SetUInt8(0);
+                bb.Set(ConformanceBlock);
+                return (Conformance)bb.GetUInt32();
+            }
+            set
+            {
+                GXByteBuffer bb = new GXByteBuffer(4);
+                bb.SetUInt32((UInt32)value);
+                bb.Position = 1;
+                bb.Get(ConformanceBlock);
+            }
         }
 
         /// <summary>
@@ -211,8 +233,11 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Is Logical Name referencing also supported.
+        /// Is it possible to read or write several COSEM objects with one query.
         /// </summary>
+        /// <remarks>
+        /// If true, ReadList and Write list methods can be used.
+        /// </remarks>
         public bool MultipleReferences
         {
             get

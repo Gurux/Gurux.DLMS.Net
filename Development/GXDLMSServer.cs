@@ -369,8 +369,39 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Functionality what client is ask from the meter meter updates this value and tells what it can offer.
+        /// </summary>
+        /// <remarks>
+        /// When connection is made client tells what kind of services it want's to use.
+        /// Meter returns functionality what it can offer.
+        /// </remarks>
+        public Conformance Conformance
+        {
+            get
+            {
+                if (UseLogicalNameReferencing)
+                {
+                    return Settings.LnSettings.Conformance;
+                }
+                return Settings.SnSettings.Conformance;
+            }
+            set
+            {
+                if (UseLogicalNameReferencing)
+                {
+                    Settings.LnSettings.Conformance = value;
+                }
+                else
+                {
+                    Settings.SnSettings.Conformance = value;
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets Logical Name Settings, read from the device.
         /// </summary>
+        [Obsolete("Use Conformance enum instead.")]
         public GXDLMSLNSettings LNSettings
         {
             get
@@ -382,6 +413,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Gets Short Name Settings, read from the device.
         /// </summary>
+        [Obsolete("Use Conformance enum instead.")]
         public GXDLMSSNSettings SNSettings
         {
             get

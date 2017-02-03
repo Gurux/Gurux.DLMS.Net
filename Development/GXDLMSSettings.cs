@@ -125,6 +125,27 @@ namespace Gurux.DLMS
         internal byte[] ConformanceBlock = new byte[3];
 
         /// <summary>
+        /// Conformance block.
+        /// </summary>
+        internal Conformance Conformance
+        {
+            get
+            {
+                GXByteBuffer bb = new GXByteBuffer(4);
+                bb.SetUInt8(0);
+                bb.Set(ConformanceBlock);
+                return (Conformance)bb.GetUInt32();
+            }
+            set
+            {
+                GXByteBuffer bb = new GXByteBuffer(4);
+                bb.SetUInt32((UInt32)value);
+                bb.Position = 1;
+                bb.Get(ConformanceBlock);
+            }
+        }
+
+        /// <summary>
         /// Is authentication Required.
         /// </summary>
         internal bool IsAuthenticationRequired

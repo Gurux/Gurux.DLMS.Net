@@ -281,8 +281,39 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Functionality what client is ask from the meter meter updates this value and tells what it can offer.
+        /// </summary>
+        /// <remarks>
+        /// When connection is made client tells what kind of services it want's to use.
+        /// Meter returns functionality what it can offer.
+        /// </remarks>
+        public Conformance Conformance
+        {
+            get
+            {
+                if (this.UseLogicalNameReferencing)
+                {
+                    return Settings.LnSettings.Conformance;
+                }
+                return Settings.SnSettings.Conformance;
+            }
+            set
+            {
+                if (this.UseLogicalNameReferencing)
+                {
+                    Settings.LnSettings.Conformance = value;
+                }
+                else
+                {
+                    Settings.SnSettings.Conformance = value;
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets Logical Name settings, read from the device.
         /// </summary>
+        [Obsolete("Use Conformance enum instead.")]
         public GXDLMSLNSettings LNSettings
         {
             get
@@ -294,6 +325,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Gets Short Name settings, read from the device.
         /// </summary>
+        [Obsolete("Use Conformance enum instead.")]
         public GXDLMSSNSettings SNSettings
         {
             get
@@ -1646,6 +1678,10 @@ namespace Gurux.DLMS
         public byte[][] ReadRowsByEntry(GXDLMSProfileGeneric pg, int index, int count,
                                         List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
         {
+            if ((Conformance & (Conformance.ParameterizedAccess | Conformance.SelectiveAccess)) == 0)
+            {
+                return Read(pg, 2);
+            }
             Settings.ResetBlockIndex();
             GXByteBuffer buff = new GXByteBuffer(19);
             // Add AccessSelector value
@@ -1732,17 +1768,14 @@ namespace Gurux.DLMS
         public byte[][] ReadRowsByRange(GXDLMSProfileGeneric pg, DateTime start, DateTime end,
                                         List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
         {
-            Settings.ResetBlockIndex();
-            GXDLMSObject sort = pg.SortObject;
-            if (sort == null && pg.CaptureObjects.Count != 0)
-            {
-                sort = pg.CaptureObjects[0].Key;
-            }
-            //If sort object is not found or it is not clock object read all.
-            if (sort == null || sort.ObjectType != ObjectType.Clock)
+            if ((Conformance & (Conformance.ParameterizedAccess | Conformance.SelectiveAccess)) == 0)
             {
                 return Read(pg, 2);
             }
+            Settings.ResetBlockIndex();
+            string ln = "0.0.1.0.0.255";
+            ObjectType type = ObjectType.Clock;
+            int index = 2;
             GXByteBuffer buff = new GXByteBuffer(51);
             // Add AccessSelector value.
             buff.SetUInt8(0x01);
@@ -1756,13 +1789,13 @@ namespace Gurux.DLMS
             buff.SetUInt8(0x04);
             // CI
             GXCommon.SetData(Settings, buff, DataType.UInt16,
-                             sort.ObjectType);
+                             type);
             // LN
-            GXCommon.SetData(Settings, buff, DataType.OctetString, sort.LogicalName);
+            GXCommon.SetData(Settings, buff, DataType.OctetString, ln);
             // Add attribute index.
-            GXCommon.SetData(Settings, buff, DataType.Int8, 2);
+            GXCommon.SetData(Settings, buff, DataType.Int8, index);
             // Add version.
-            GXCommon.SetData(Settings, buff, DataType.UInt16, sort.Version);
+            GXCommon.SetData(Settings, buff, DataType.UInt16, 0);
             // Add start time.
             GXCommon.SetData(Settings, buff, DataType.OctetString, start);
             // Add end time.

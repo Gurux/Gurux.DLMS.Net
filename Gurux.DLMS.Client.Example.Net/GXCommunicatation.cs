@@ -123,8 +123,6 @@ namespace Gurux.DLMS.Client.Example
             {
                 Client.InterfaceType = InterfaceType.HDLC;
             }
-            //Mikko
-            Client.InterfaceType = InterfaceType.HDLC;
             Client.UseLogicalNameReferencing = Manufacturer.UseLogicalNameReferencing;
             //If network media is used check is manufacturer supporting IEC 62056-47
             GXServerAddress server = Manufacturer.GetServer(HDLCAddressing);

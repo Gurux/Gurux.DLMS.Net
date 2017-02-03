@@ -261,9 +261,9 @@ namespace Gurux.DLMS.Client.Example
                     objects = comm.GetAssociationView();
                     GXDLMSObjectCollection objs = objects.GetObjects(new ObjectType[] { ObjectType.Register, ObjectType.ExtendedRegister, ObjectType.DemandRegister });
                     Console.WriteLine("Read scalers and units from the device.");
-                    List<KeyValuePair<GXDLMSObject, int>> list = new List<KeyValuePair<GXDLMSObject, int>>();
-                    try
+                    if ((dlms.Conformance & Conformance.MultipleReferences) != 0)
                     {
+                        List<KeyValuePair<GXDLMSObject, int>> list = new List<KeyValuePair<GXDLMSObject, int>>();
                         foreach (GXDLMSObject it in objs)
                         {
                             if (it is GXDLMSRegister)
@@ -277,9 +277,8 @@ namespace Gurux.DLMS.Client.Example
                         }
                         comm.ReadList(list);
                     }
-                    catch
+                    else
                     {
-                        //If this fails meter is not supporting reading read by list method.
                         //Read values one by one.
                         foreach (GXDLMSObject it in objs)
                         {
