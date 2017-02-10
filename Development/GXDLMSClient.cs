@@ -765,6 +765,8 @@ namespace Gurux.DLMS
         /// <returns>Disconnected request, as byte array.</returns>
         public byte[] DisconnectRequest()
         {
+            //Reset to max PDU size when connection is closed.
+            Settings.MaxPduSize = 0xFFFF;
             // If connection is not established, there is no need to send
             // DisconnectRequest.
             if (!Settings.Connected)

@@ -366,7 +366,14 @@ namespace Gurux.DLMS
                     {
                         value = (obj as IGXDLMSBase).GetValue(settings, e);
                     }
-                    GXDLMS.AppendData(settings, obj, attributeIndex, bb, value);
+                    if (e.ByteArray)
+                    {
+                        bb.Set((byte[])value);
+                    }
+                    else
+                    {
+                        GXDLMS.AppendData(settings, obj, attributeIndex, bb, value);
+                    }
                     status = e.Error;
                 }
             }
@@ -429,7 +436,14 @@ namespace Gurux.DLMS
                                     value = (arg.Target as IGXDLMSBase).GetValue(settings, arg);
                                 }
                                 //Add data.
-                                GXDLMS.AppendData(settings, arg.Target, arg.Index, bb, value);
+                                if (arg.ByteArray)
+                                {
+                                    bb.Set((byte[])value);
+                                }
+                                else
+                                {
+                                    GXDLMS.AppendData(settings, arg.Target, arg.Index, bb, value);
+                                }
                             }
                             moreData = settings.Index != settings.Count;
                         }
@@ -553,7 +567,14 @@ namespace Gurux.DLMS
                         value = (it.Target as IGXDLMSBase).GetValue(settings, it);
                     }
                     bb.SetUInt8(it.Error);
-                    GXDLMS.AppendData(settings, it.Target, it.Index, bb, value);
+                    if (it.ByteArray)
+                    {
+                        bb.Set((byte[])value);
+                    }
+                    else
+                    {
+                        GXDLMS.AppendData(settings, it.Target, it.Index, bb, value);
+                    }
                 }
                 catch (Exception)
                 {

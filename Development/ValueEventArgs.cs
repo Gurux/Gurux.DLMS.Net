@@ -130,6 +130,15 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Is reply handled as byte array or octect string.
+        /// </summary>
+        public bool ByteArray
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         public ValueEventArgs(GXDLMSSettings settings, GXDLMSObject target, int index, int selector, object parameters)
