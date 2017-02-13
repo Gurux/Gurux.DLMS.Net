@@ -593,6 +593,7 @@ namespace Gurux.DLMS
         /// <seealso cref="ParseAAREResponse"/>
         public byte[][] AARQRequest()
         {
+            Settings.NegotiatedConformance = (Conformance)0;
             Settings.ResetBlockIndex();
             Settings.Connected = false;
             GXByteBuffer buff = new GXByteBuffer(20);
@@ -1661,6 +1662,9 @@ namespace Gurux.DLMS
         /// <summary>
         /// Read rows by entry.
         /// </summary>
+        /// <remarks>
+        /// Check Conformance because all meters do not support this.
+        /// </remarks>
         /// <param name="pg">Profile generic object to read.</param>
         /// <param name="index">One based start index.</param>
         /// <param name="count">Rows count to read.</param>
@@ -1673,6 +1677,9 @@ namespace Gurux.DLMS
         /// <summary>
         /// Read rows by entry.
         /// </summary>
+        /// <remarks>
+        /// Check Conformance because all meters do not support this.
+        /// </remarks>
         /// <param name="pg">Profile generic object to read.</param>
         /// <param name="index">One based start index.</param>
         /// <param name="count">Rows count to read.</param>
@@ -1680,10 +1687,7 @@ namespace Gurux.DLMS
         public byte[][] ReadRowsByEntry(GXDLMSProfileGeneric pg, int index, int count,
                                         List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
         {
-            if ((Conformance & (Conformance.ParameterizedAccess | Conformance.SelectiveAccess)) == 0)
-            {
-                return Read(pg, 2);
-            }
+            pg.Reset();
             Settings.ResetBlockIndex();
             GXByteBuffer buff = new GXByteBuffer(19);
             // Add AccessSelector value
@@ -1746,11 +1750,13 @@ namespace Gurux.DLMS
         /// </summary>
         /// <remarks>
         /// Use this method to read Profile Generic table between dates.
+        /// Check Conformance because all meters do not support this.
+        /// Some meters return error if there are no data betweens start and end time.
         /// </remarks>
         /// <param name="pg">Profile generic object to read.</param>
         /// <param name="start">Start time.</param>
         /// <param name="end">End time.</param>
-        /// <returns></returns>
+        /// <returns>Read message as byte array.</returns>
         public byte[][] ReadRowsByRange(GXDLMSProfileGeneric pg, DateTime start, DateTime end)
         {
             return ReadRowsByRange(pg, start, end, null);
@@ -1761,19 +1767,18 @@ namespace Gurux.DLMS
         /// </summary>
         /// <remarks>
         /// Use this method to read Profile Generic table between dates.
+        /// Check Conformance because all meters do not support this.
+        /// Some meters return error if there are no data betweens start and end time.
         /// </remarks>
         /// <param name="pg">Profile generic object to read.</param>
         /// <param name="start">Start time.</param>
         /// <param name="end">End time.</param>
         /// <param name="columns">Columns to read.</param>
-        /// <returns></returns>
+        /// <returns>Read message as byte array.</returns>
         public byte[][] ReadRowsByRange(GXDLMSProfileGeneric pg, DateTime start, DateTime end,
                                         List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
         {
-            if ((Conformance & (Conformance.ParameterizedAccess | Conformance.SelectiveAccess)) == 0)
-            {
-                return Read(pg, 2);
-            }
+            pg.Reset();
             Settings.ResetBlockIndex();
             string ln = "0.0.1.0.0.255";
             ObjectType type = ObjectType.Clock;

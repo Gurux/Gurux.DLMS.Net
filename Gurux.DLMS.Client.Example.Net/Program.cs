@@ -444,61 +444,69 @@ namespace Gurux.DLMS.Client.Example
                     {
                         continue;
                     }
-                    try
+                    //All meters are not supporting parameterized read.
+                    if ((dlms.Conformance & (Conformance.ParameterizedAccess | Conformance.SelectiveAccess)) != 0)
                     {
-                        //Read first row from Profile Generic.
-                        object[] rows = comm.ReadRowsByEntry(it as GXDLMSProfileGeneric, 1, 1);
-                        StringBuilder sb = new StringBuilder();
-                        foreach (object[] row in rows)
+                        try
                         {
-                            foreach (object cell in row)
+                            //Read first row from Profile Generic.
+                            object[] rows = comm.ReadRowsByEntry(it as GXDLMSProfileGeneric, 1, 1);
+                            StringBuilder sb = new StringBuilder();
+                            foreach (object[] row in rows)
                             {
-                                if (cell is byte[])
+                                foreach (object cell in row)
                                 {
-                                    sb.Append(GXCommon.ToHex((byte[])cell, true));
+                                    if (cell is byte[])
+                                    {
+                                        sb.Append(GXCommon.ToHex((byte[])cell, true));
+                                    }
+                                    else
+                                    {
+                                        sb.Append(Convert.ToString(cell));
+                                    }
+                                    sb.Append(" | ");
                                 }
-                                else
-                                {
-                                    sb.Append(Convert.ToString(cell));
-                                }
-                                sb.Append(" | ");
+                                sb.Append("\r\n");
                             }
-                            sb.Append("\r\n");
+                            Trace(logFile, sb.ToString());
                         }
-                        Trace(logFile, sb.ToString());
-                    }
-                    catch (Exception ex)
-                    {
-                        TraceLine(logFile, "Error! Failed to read first row: " + ex.Message);
-                        //Continue reading.
-                    }
-                    try
-                    {
-                        //Read last day from Profile Generic.
-                        object[] rows = comm.ReadRowsByRange(it as GXDLMSProfileGeneric, DateTime.Now.Date, DateTime.MaxValue);
-                        StringBuilder sb = new StringBuilder();
-                        foreach (object[] row in rows)
+                        catch (Exception ex)
                         {
-                            foreach (object cell in row)
-                            {
-                                if (cell is byte[])
-                                {
-                                    sb.Append(GXCommon.ToHex((byte[])cell, true));
-                                }
-                                else
-                                {
-                                    sb.Append(Convert.ToString(cell));
-                                }
-                                sb.Append(" | ");
-                            }
-                            sb.Append("\r\n");
+                            TraceLine(logFile, "Error! Failed to read first row: " + ex.Message);
+                            //Continue reading.
                         }
-                        Trace(logFile, sb.ToString());
                     }
-                    catch (Exception ex)
+                    //All meters are not supporting parameterized read.
+                    if ((dlms.Conformance & (Conformance.ParameterizedAccess | Conformance.SelectiveAccess)) != 0)
                     {
-                        TraceLine(logFile, "Error! Failed to read last day: " + ex.Message);
-                        //Continue reading.
+                        try
+                        {
+                            //Read last day from Profile Generic.
+                            object[] rows = comm.ReadRowsByRange(it as GXDLMSProfileGeneric, DateTime.Now.Date, DateTime.MaxValue);
+                            StringBuilder sb = new StringBuilder();
+                            foreach (object[] row in rows)
+                            {
+                                foreach (object cell in row)
+                                {
+                                    if (cell is byte[])
+                                    {
+                                        sb.Append(GXCommon.ToHex((byte[])cell, true));
+                                    }
+                                    else
+                                    {
+                                        sb.Append(Convert.ToString(cell));
+                                    }
+                                    sb.Append(" | ");
+                                }
+                                sb.Append("\r\n");
+                            }
+                            Trace(logFile, sb.ToString());
+                        }
+                        catch (Exception ex)
+                        {
+                            TraceLine(logFile, "Error! Failed to read last day: " + ex.Message);
+                            //Continue reading.
+                        }
                     }
                 }
                 logFile.Flush();

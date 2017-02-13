@@ -276,6 +276,7 @@ namespace Gurux.DLMS.Internal
         /// </summary>
         public static void ParseUserInformation(GXDLMSSettings settings, GXICipher cipher, GXByteBuffer data, GXDLMSTranslatorStructure xml)
         {
+            byte[] tmp;
             byte len = data.GetUInt8();
             GXByteBuffer tmp2 = new GXByteBuffer();
             tmp2.SetUInt8(0);
@@ -305,7 +306,7 @@ namespace Gurux.DLMS.Internal
                 if (xml != null)
                 {
                     int cnt = GXCommon.GetObjectCount(data);
-                    byte[] tmp = new byte[cnt];
+                    tmp = new byte[cnt];
                     data.Get(tmp);
                     //<glo_InitiateResponse>
                     xml.AppendLine(Command.GloInitiateResponse, "Value", GXCommon.ToHex(tmp, false));
@@ -320,7 +321,7 @@ namespace Gurux.DLMS.Internal
                 if (xml != null)
                 {
                     int cnt = GXCommon.GetObjectCount(data);
-                    byte[] tmp = new byte[cnt];
+                    tmp = new byte[cnt];
                     data.Get(tmp);
                     //<glo_InitiateRequest>
                     xml.AppendLine(Command.GloInitiateRequest, "Value", GXCommon.ToHex(tmp, false));
@@ -426,38 +427,46 @@ namespace Gurux.DLMS.Internal
             len = data.GetUInt8();
             //The number of unused bits in the bit string.
             tag = data.GetUInt8();
-            if (!response)
+            tmp = new byte[3];
+            GXByteBuffer bb = new GXByteBuffer(4);
+            data.Get(tmp);
+            bb.SetUInt8(0);
+            bb.Set(tmp);
+            UInt32 v = bb.GetUInt32();
+            if (settings.IsServer)
             {
-                //ProposedConformance
-                if (xml != null)
-                {
-                    xml.AppendStartTag(TranslatorGeneralTags.ProposedConformance);
-                }
-                data.Get(settings.ConformanceBlock);
-                tmp2.Set(settings.ConformanceBlock);
-            }
-            else
-            {
-                //NegotiatedConformance
-                if (xml != null)
-                {
-                    xml.AppendStartTag(TranslatorGeneralTags.NegotiatedConformance);
-                }
                 if (settings.UseLogicalNameReferencing)
                 {
-                    data.Get(settings.LnSettings.ConformanceBlock);
-                    tmp2.Set(settings.LnSettings.ConformanceBlock);
+                    settings.NegotiatedConformance = (Conformance)v & settings.LnSettings.Conformance;
                 }
                 else
                 {
-                    data.Get(settings.SnSettings.ConformanceBlock);
-                    tmp2.Set(settings.SnSettings.ConformanceBlock);
+                    settings.NegotiatedConformance = (Conformance)v & settings.SnSettings.Conformance;
+                }
+                if (xml != null)
+                {
+                    xml.AppendStartTag(TranslatorGeneralTags.ProposedConformance);
+                    GetConformance(v, xml);
                 }
             }
-            if (xml != null)
+            else
             {
-                GetConformance(tmp2.GetUInt32(), xml);
+                if (xml != null)
+                {
+                    xml.AppendStartTag(TranslatorGeneralTags.NegotiatedConformance);
+                    GetConformance(v, xml);
+                }
+                settings.NegotiatedConformance = (Conformance)v;
+                if (settings.UseLogicalNameReferencing)
+                {
+                    settings.LnSettings.Conformance = settings.NegotiatedConformance;
+                }
+                else
+                {
+                    settings.SnSettings.Conformance = settings.NegotiatedConformance;
+                }
             }
+
             if (!response)
             {
                 //Proposed max PDU size.
@@ -984,15 +993,9 @@ namespace Gurux.DLMS.Internal
             data.SetUInt8(0x1F);
             data.SetUInt8(0x04);// length of the conformance block
             data.SetUInt8(0x00);// encoding the number of unused bits in the bit string
-            if (settings.UseLogicalNameReferencing)
-            {
-                data.Set(settings.LnSettings.ConformanceBlock);
-            }
-            else
-            {
-                data.Set(settings.SnSettings.ConformanceBlock);
-
-            }
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetUInt32((UInt32)settings.NegotiatedConformance);
+            data.Set(bb.Data, 1, 3);
             data.SetUInt16(settings.MaxPduSize);
             //VAA Name VAA name (0x0007 for LN referencing and 0xFA00 for SN)
             if (settings.UseLogicalNameReferencing)

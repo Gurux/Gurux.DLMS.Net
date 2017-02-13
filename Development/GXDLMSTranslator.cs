@@ -1058,13 +1058,11 @@ namespace Gurux.DLMS
                         {
                             if (s.settings.UseLogicalNameReferencing)
                             {
-                                s.settings.LnSettings.ConformanceBlock =
-                                    s.settings.ConformanceBlock;
+                                s.settings.LnSettings.Conformance = s.settings.NegotiatedConformance;
                             }
                             else
                             {
-                                s.settings.SnSettings.ConformanceBlock =
-                                    s.settings.ConformanceBlock;
+                                s.settings.SnSettings.Conformance = s.settings.NegotiatedConformance;
                             }
                         }
                     }
