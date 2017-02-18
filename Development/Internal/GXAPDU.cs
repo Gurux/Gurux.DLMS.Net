@@ -264,7 +264,7 @@ namespace Gurux.DLMS.Internal
         {
             foreach (var it in Enum.GetValues(typeof(Conformance)))
             {
-                if (((int)it & value) != 0)
+                if (((UInt32)it & value) != 0)
                 {
                     xml.AppendLine(TranslatorGeneralTags.ConformanceBit, "Name", it.ToString());
                 }
@@ -282,7 +282,11 @@ namespace Gurux.DLMS.Internal
             tmp2.SetUInt8(0);
             if (data.Size - data.Position < len)
             {
-                throw new Exception("Not enough data.");
+                if (xml == null)
+                {
+                    throw new Exception("Not enough data.");
+                }
+                xml.AppendComment("Error: Invalid data size.");
             }
             if (xml != null && xml.OutputType == TranslatorOutputType.StandardXml)
             {
@@ -299,6 +303,14 @@ namespace Gurux.DLMS.Internal
                 throw new Exception("Invalid tag.");
             }
             len = data.GetUInt8();
+            if (data.Size - data.Position < len)
+            {
+                if (xml == null)
+                {
+                    throw new Exception("Not enough data.");
+                }
+                xml.AppendComment("Error: Invalid data size.");
+            }
             //Tag for xDLMS-Initate.response
             tag = data.GetUInt8();
             if (tag == (byte)Command.GloInitiateResponse)
@@ -731,7 +743,11 @@ namespace Gurux.DLMS.Internal
             int size = buff.Size - buff.Position;
             if (len > size)
             {
-                throw new Exception("Not enough data.");
+                if (xml == null)
+                {
+                    throw new Exception("Not enough data.");
+                }
+                xml.AppendComment("Error: Invalid data size.");
             }
             //Opening tags
             if (xml != null)

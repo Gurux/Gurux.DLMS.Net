@@ -199,11 +199,6 @@ namespace Gurux.DLMS
         GloSetResponse = 0xCD,
 
         /// <summary>
-        /// Glo general ciphering.
-        /// </summary>
-        GloGeneralCiphering = 0xDB,
-
-        /// <summary>
         /// Glo event notification request.
         /// </summary>
         GloEventNotificationRequest = 0xCA,
@@ -246,6 +241,21 @@ namespace Gurux.DLMS
         /// <summary>
         /// Glo write response.
         /// </summary>
-        GloWriteResponse = 45
+        GloWriteResponse = 45,
+
+        /// <summary>
+        /// General GLO ciphering.
+        /// </summary>
+        GeneralGloCiphering = 0xDB,
+
+        /// <summary>
+        /// General DED ciphering.
+        /// </summary>
+        GeneralDedCiphering = 0xDC,
+
+        /// <summary>
+        /// General ciphering.
+        /// </summary>
+        GeneralCiphering = 0xDD
     }
 }

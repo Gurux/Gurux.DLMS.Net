@@ -213,9 +213,13 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorTags.WriteDataBlockAccess, "WriteDataBlockAccess");
             GXDLMSTranslator.AddTag(list, TranslatorTags.Data, "Data");
             GXDLMSTranslator.AddTag(list, TranslatorTags.InvokeId, "InvokeIdAndPriority");
-            GXDLMSTranslator.AddTag(list, TranslatorTags.DateTime, "SendTime");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.LongInvokeId, "LongInvokeIdAndPriority");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.DateTime, "DateTime");
             GXDLMSTranslator.AddTag(list, TranslatorTags.Reason, "Reason");
-            GXDLMSTranslator.AddTag(list, TranslatorTags.ListOfResult, "ListOfResult");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.NotificationBody, "NotificationBody");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.DataValue, "DataValue");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.CipheredService, "CipheredService");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.SystemTitle, "SystemTitle");
         }
 
         public static void GetDataTypeTags(SortedList<int, string> list)

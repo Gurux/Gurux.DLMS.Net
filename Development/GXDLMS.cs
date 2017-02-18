@@ -1274,12 +1274,18 @@ namespace Gurux.DLMS
 
             if ((frame & (byte)HdlcFrameType.Uframe) == (byte)HdlcFrameType.Uframe)
             {
+                if (frame == 0x97)
+                {
+                    reply.Position = packetStartID + frameLen - 1;
+                    data.Error = (int)ErrorCode.Rejected;
+                }
                 //Get Eop if there is no data.
-                if (reply.Position == packetStartID + frameLen + 1)
+                else if (reply.Position == packetStartID + frameLen + 1)
                 {
                     // Get EOP.
                     reply.GetUInt8();
                 }
+
                 data.Command = (Command)frame;
             }
             //If S-frame
@@ -1641,26 +1647,6 @@ namespace Gurux.DLMS
                 reply.CommandType = reply.Data.GetUInt8();
                 type = (SingleReadResponse)reply.CommandType;
                 bool standardXml = reply.Xml != null && reply.Xml.OutputType == TranslatorOutputType.StandardXml;
-
-                reply.Error = 0;
-                if (reply.Xml != null)
-                {
-                    if (standardXml)
-                    {
-                        reply.Xml.AppendStartTag(TranslatorTags.Choice);
-                    }
-                    reply.Xml.AppendStartTag(Command.ReadResponse,
-                            SingleReadResponse.Data);
-                    GXDataInfo di = new GXDataInfo();
-                    di.xml = reply.Xml;
-                    GXCommon.GetData(settings, reply.Data, di);
-                    reply.Xml.AppendEndTag(Command.ReadResponse,
-                            SingleReadResponse.Data);
-                    if (standardXml)
-                    {
-                        reply.Xml.AppendEndTag(TranslatorTags.Choice);
-                    }
-                }
                 switch (type)
                 {
                     case SingleReadResponse.Data:
@@ -2440,7 +2426,7 @@ namespace Gurux.DLMS
                     case Command.GloEventNotificationRequest:
                         HandledGloResponse(settings, data, index);
                         break;
-                    case Command.GloGeneralCiphering:
+                    case Command.GeneralGloCiphering:
                         if (settings.IsServer)
                         {
                             HandledGloRequest(settings, data);
@@ -2454,6 +2440,9 @@ namespace Gurux.DLMS
                     case Command.DataNotification:
                         HandleDataNotification(settings, data);
                         //Client handles this.
+                        break;
+                    case Command.GeneralCiphering:
+                        HandleGeneralCiphering(settings, data);
                         break;
                     default:
                         throw new ArgumentException("Invalid Command.");
@@ -2551,6 +2540,10 @@ namespace Gurux.DLMS
             {
                 reply.Xml.AppendStartTag(Command.AccessResponse);
                 reply.Xml.AppendLine(TranslatorTags.LongInvokeId, "Value", reply.Xml.IntegerToHex(invokeId, 8));
+                if (reply.Time != null)
+                {
+                    reply.Xml.AppendComment(Convert.ToString(reply.Time));
+                }
                 reply.Xml.AppendLine(TranslatorTags.DateTime, "Value", GXCommon.ToHex(tmp, false));
                 //access-request-specification OPTIONAL
                 reply.Data.GetUInt8();
@@ -2624,10 +2617,6 @@ namespace Gurux.DLMS
             {
                 tmp = new byte[len];
                 reply.Data.Get(tmp);
-                if (reply.Xml != null)
-                {
-                    reply.Xml.AppendLine(TranslatorTags.DateTime, "Value", GXCommon.ToHex(tmp, false));
-                }
                 reply.Time = (GXDateTime)GXDLMSClient.ChangeType(tmp, DataType.DateTime);
             }
             if (reply.Xml != null)
@@ -2635,6 +2624,10 @@ namespace Gurux.DLMS
                 reply.Xml.AppendStartTag(Command.DataNotification);
                 reply.Xml.AppendLine(TranslatorTags.LongInvokeId, null,
                                      reply.Xml.IntegerToHex(invokeId, 8));
+                if (reply.Time != null)
+                {
+                    reply.Xml.AppendComment(Convert.ToString(reply.Time));
+                }
                 reply.Xml.AppendLine(TranslatorTags.DateTime, null,
                                      GXCommon.ToHex(tmp, false));
                 reply.Xml.AppendStartTag(TranslatorTags.NotificationBody);
@@ -2650,6 +2643,21 @@ namespace Gurux.DLMS
             {
                 GetDataFromBlock(reply.Data, start);
                 GetValueFromData(settings, reply);
+            }
+        }
+
+        private static void HandleGeneralCiphering(GXDLMSSettings settings, GXReplyData data)
+        {
+            if (settings.Cipher == null)
+            {
+                throw new Exception(
+                   "Secure connection is not supported.");
+            }
+            // If all frames are read.
+            if ((data.MoreData & RequestTypes.Frame) == 0)
+            {
+                data.Data.Position = data.Data.Position - 1;
+                settings.Cipher.Decrypt(null, data.Data);
             }
         }
 

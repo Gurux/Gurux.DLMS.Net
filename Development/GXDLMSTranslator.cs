@@ -65,6 +65,15 @@ namespace Gurux.DLMS
         private GXByteBuffer pduFrames = new GXByteBuffer();
 
         /// <summary>
+        /// Are comments added.
+        /// </summary>
+        public bool Comments
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Is only PDU shown when data is parsed with MessageToXml
         /// </summary>
         /// <seealso cref="MessageToXml"/>
@@ -191,6 +200,7 @@ namespace Gurux.DLMS
         /// <param name="type">Translator output type.</param>
         public GXDLMSTranslator(TranslatorOutputType type)
         {
+            Comments = true;
             OutputType = type;
             GetTags(type, tags, tagsByName);
             if (type == TranslatorOutputType.SimpleXml)
@@ -233,7 +243,7 @@ namespace Gurux.DLMS
         {
             GXDLMSSettings settings = new GXDLMSSettings(true);
             GXReplyData reply = new GXReplyData();
-            reply.Xml = new GXDLMSTranslatorStructure(OutputType, Hex, ShowStringAsHex, null);
+            reply.Xml = new GXDLMSTranslatorStructure(OutputType, Hex, ShowStringAsHex, Comments, null);
             int pos;
             while (data.Position != data.Size)
             {
@@ -241,7 +251,10 @@ namespace Gurux.DLMS
                 {
                     pos = data.Position;
                     settings.InterfaceType = Enums.InterfaceType.HDLC;
-                    GXDLMS.GetData(settings, data, reply);
+                    if (!GXDLMS.GetData(settings, data, reply))
+                    {
+                        ++pos;
+                    }
                     data.Position = pos;
                     break;
                 }
@@ -249,7 +262,10 @@ namespace Gurux.DLMS
                 {
                     pos = data.Position;
                     settings.InterfaceType = Enums.InterfaceType.WRAPPER;
-                    GXDLMS.GetData(settings, data, reply);
+                    if (!GXDLMS.GetData(settings, data, reply))
+                    {
+                        ++pos;
+                    }
                     data.Position = pos;
                     break;
                 }
@@ -276,7 +292,7 @@ namespace Gurux.DLMS
         {
             GXDLMSSettings settings = new GXDLMSSettings(true);
             GXReplyData reply = new GXReplyData();
-            reply.Xml = new GXDLMSTranslatorStructure(OutputType, Hex, ShowStringAsHex, null);
+            reply.Xml = new GXDLMSTranslatorStructure(OutputType, Hex, ShowStringAsHex, Comments, null);
             int pos;
             while (data.Position != data.Size)
             {
@@ -284,7 +300,10 @@ namespace Gurux.DLMS
                 {
                     pos = data.Position;
                     settings.InterfaceType = Enums.InterfaceType.HDLC;
-                    GXDLMS.GetData(settings, data, reply);
+                    if (!GXDLMS.GetData(settings, data, reply))
+                    {
+                        ++pos;
+                    }
                     data.Position = pos;
                     break;
                 }
@@ -292,7 +311,10 @@ namespace Gurux.DLMS
                 {
                     pos = data.Position;
                     settings.InterfaceType = Enums.InterfaceType.WRAPPER;
-                    GXDLMS.GetData(settings, data, reply);
+                    if (!GXDLMS.GetData(settings, data, reply))
+                    {
+                        ++pos;
+                    }
                     data.Position = pos;
                     break;
                 }
@@ -362,7 +384,7 @@ namespace Gurux.DLMS
         public byte[] GetPdu(GXByteBuffer value)
         {
             GXReplyData data = new GXReplyData();
-            data.Xml = new GXDLMSTranslatorStructure(OutputType, Hex, ShowStringAsHex, tags);
+            data.Xml = new GXDLMSTranslatorStructure(OutputType, Hex, ShowStringAsHex, Comments, tags);
             GXDLMSSettings settings = new GXDLMSSettings(true);
             if (value.GetUInt8(0) == 0x7e)
             {
@@ -414,7 +436,7 @@ namespace Gurux.DLMS
             try
             {
                 GXReplyData data = new GXReplyData();
-                GXDLMSTranslatorStructure xml = new GXDLMSTranslatorStructure(OutputType, Hex, ShowStringAsHex, tags);
+                GXDLMSTranslatorStructure xml = new GXDLMSTranslatorStructure(OutputType, Hex, ShowStringAsHex, Comments, tags);
                 data.Xml = xml;
                 //If HDLC framing.
                 int offset = value.Position;
@@ -514,7 +536,7 @@ namespace Gurux.DLMS
                     {
                         if (data.Data.Size == 0)
                         {
-                            if ((data.FrameId & 1) != 0 && data.Command == Command.None)
+                            if (data.Command == Command.None)
                             {
                                 if (!CompletePdu)
                                 {
@@ -668,7 +690,7 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentNullException("value");
             }
-            GXDLMSTranslatorStructure xml = new GXDLMSTranslatorStructure(OutputType, Hex, ShowStringAsHex, tags);
+            GXDLMSTranslatorStructure xml = new GXDLMSTranslatorStructure(OutputType, Hex, ShowStringAsHex, Comments, tags);
             GXDLMSSettings settings = new GXDLMSSettings(true);
             GXReplyData data = new GXReplyData();
             byte cmd = value.GetUInt8();
@@ -723,6 +745,13 @@ namespace Gurux.DLMS
                     value.Position = 0;
                     GXDLMS.GetPdu(settings, data);
                     break;
+                case (byte)Command.GeneralCiphering:
+                    settings.Cipher = new GXCiphering(ASCIIEncoding.ASCII.GetBytes("ABCDEFGH"));
+                    data.Xml = xml;
+                    data.Data = value;
+                    value.Position = 0;
+                    GXDLMS.GetPdu(settings, data);
+                    break;
                 case (byte)Command.ReleaseRequest:
                 case (byte)Command.ReleaseResponse:
                     xml.AppendStartTag((Command)cmd);
@@ -749,6 +778,20 @@ namespace Gurux.DLMS
                 case (byte)Command.GloMethodResponse:
                     int cnt = GXCommon.GetObjectCount(value);
                     xml.AppendLine(cmd, "Value", GXCommon.ToHex(value.Data, false, value.Position, value.Size - value.Position));
+                    break;
+                case (byte)Command.GeneralGloCiphering:
+                    int len = GXCommon.GetObjectCount(value);
+                    byte[] tmp = new byte[len];
+                    value.Get(tmp);
+                    xml.AppendStartTag(Command.GeneralGloCiphering);
+                    xml.AppendLine(TranslatorTags.SystemTitle, null,
+                            GXCommon.ToHex(tmp, false, 0, len));
+                    len = GXCommon.GetObjectCount(value);
+                    tmp = new byte[len];
+                    value.Get(tmp);
+                    xml.AppendLine(TranslatorTags.CipheredService, null,
+                            GXCommon.ToHex(tmp, false, 0, len));
+                    xml.AppendEndTag(Command.GeneralGloCiphering);
                     break;
                 case (byte)Command.ConfirmedServiceError:
                     data.Xml = xml;
@@ -864,119 +907,16 @@ namespace Gurux.DLMS
                 case (byte)Command.GloMethodResponse:
                 case (byte)Command.GloReadResponse:
                 case (byte)Command.GloWriteResponse:
+                case (byte)Command.GloEventNotificationRequest:
                     tmp = GXCommon.HexToBytes(GetValue(node, s));
                     s.settings.Cipher.Security = (Security)tmp[0];
                     s.data.Set(tmp);
                     break;
+                case (byte)Command.GeneralGloCiphering:
+                    break;
                 default:
                     throw new ArgumentException("Invalid Command: " + node.Name);
             }
-        }
-
-        private static Conformance ValueOfConformance(string value)
-        {
-            Conformance ret;
-            if (string.Compare("access", value, true) == 0)
-            {
-                ret = Conformance.Access;
-            }
-            else if (string.Compare("action", value, true) == 0)
-            {
-                ret = Conformance.Action;
-            }
-            else if (string.Compare("attribute0-supported-with-get", value, true) == 0)
-            {
-                ret = Conformance.Attribute0SupportedWithGet;
-            }
-            else if (string.Compare("attribute0-supported-with-set", value, true) == 0)
-            {
-                ret = Conformance.Attribute0SupportedWithSet;
-            }
-            else if (string.Compare("block-transfer-with-action", value, true) == 0)
-            {
-                ret = Conformance.BlockTransferWithAction;
-            }
-            else if (string.Compare("block-transfer-with-get-or-read", value, true) == 0)
-            {
-                ret = Conformance.BlockTransferWithGetOrRead;
-            }
-            else if (string.Compare("block-transfer-with-set-or-write", value, true) == 0)
-            {
-                ret = Conformance.BlockTransferWithSetOrWrite;
-            }
-            else if (string.Compare("data-notification", value, true) == 0)
-            {
-                ret = Conformance.DataNotification;
-            }
-            else if (string.Compare("event-notification", value, true) == 0)
-            {
-                ret = Conformance.EventNotification;
-            }
-            else if (string.Compare("general-block-transfer", value, true) == 0)
-            {
-                ret = Conformance.GeneralBlockTransfer;
-            }
-            else if (string.Compare("general-protection", value, true) == 0)
-            {
-                ret = Conformance.GeneralProtection;
-            }
-            else if (string.Compare("get", value, true) == 0)
-            {
-                ret = Conformance.Get;
-            }
-            else if (string.Compare("information-report", value, true) == 0)
-            {
-                ret = Conformance.InformationReport;
-            }
-            else if (string.Compare("multiple-references", value, true) == 0)
-            {
-                ret = Conformance.MultipleReferences;
-            }
-            else if (string.Compare("parameterized-access", value, true) == 0)
-            {
-                ret = Conformance.ParameterizedAccess;
-            }
-            else if (string.Compare("priority-mgmt-supported", value, true) == 0)
-            {
-                ret = Conformance.PriorityMgmtSupported;
-            }
-            else if (string.Compare("read", value, true) == 0)
-            {
-                ret = Conformance.Read;
-            }
-            else if (string.Compare("reserved-seven", value, true) == 0)
-            {
-                ret = Conformance.ReservedSeven;
-            }
-            else if (string.Compare("reserved-six", value, true) == 0)
-            {
-                ret = Conformance.ReservedSix;
-            }
-            else if (string.Compare("reserved-zero", value, true) == 0)
-            {
-                ret = Conformance.ReservedZero;
-            }
-            else if (string.Compare("selective-access", value, true) == 0)
-            {
-                ret = Conformance.SelectiveAccess;
-            }
-            else if (string.Compare("set", value, true) == 0)
-            {
-                ret = Conformance.Set;
-            }
-            else if (string.Compare("unconfirmed-write", value, true) == 0)
-            {
-                ret = Conformance.UnconfirmedWrite;
-            }
-            else if (string.Compare("write", value, true) == 0)
-            {
-                ret = Conformance.Write;
-            }
-            else
-            {
-                throw new ArgumentOutOfRangeException(value);
-            }
-            return ret;
         }
 
         /// <summary>
@@ -1143,7 +1083,7 @@ namespace Gurux.DLMS
                         {
                             if (it.Trim() != string.Empty)
                             {
-                                value = (int)ValueOfConformance(it.Trim());
+                                value = (int)TranslatorStandardTags.ValueOfConformance(it.Trim());
                                 if (value < 0x100)
                                 {
                                     conformanceBlock[2] |= (byte)value;
@@ -1234,6 +1174,10 @@ namespace Gurux.DLMS
                 case (int)TranslatorTags.Result:
                     s.result = (AssociationResult)
                                int.Parse(GetValue(node, s));
+                    break;
+                case (int)Command.ConfirmedServiceError:
+                    s.settings.IsServer = false;
+                    s.command = (Command)tag;
                     break;
                 default:
                     throw new ArgumentException("Invalid AARQ node: " + node.Name);
@@ -1851,6 +1795,14 @@ namespace Gurux.DLMS
                         break;
                     case (int)TranslatorTags.SingleResponse:
                         break;
+                    case (int)TranslatorTags.SystemTitle:
+                        tmp = GXCommon.HexToBytes(GetValue(node, s));
+                        s.settings.SourceSystemTitle = tmp;
+                        break;
+                    case (int)TranslatorTags.CipheredService:
+                        tmp = GXCommon.HexToBytes(GetValue(node, s));
+                        s.data.Set(tmp);
+                        break;
                     default:
                         throw new ArgumentException("Invalid node: " + node.Name);
                 }
@@ -2007,7 +1959,13 @@ namespace Gurux.DLMS
                     ln.time = s.time;
                     GXDLMS.GetLNPdu(ln, bb);
                     break;
-                case Command.GloGeneralCiphering:
+                case Command.GeneralGloCiphering:
+                    bb.SetUInt8(s.command);
+                    GXCommon.SetObjectCount(
+                            s.settings.SourceSystemTitle.Length, bb);
+                    bb.Set(s.settings.SourceSystemTitle);
+                    GXCommon.SetObjectCount(s.data.Size, bb);
+                    bb.Set(s.data);
                     break;
                 case Command.GloEventNotificationRequest:
                     break;

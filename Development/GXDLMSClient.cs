@@ -1773,9 +1773,45 @@ namespace Gurux.DLMS
         /// <param name="pg">Profile generic object to read.</param>
         /// <param name="start">Start time.</param>
         /// <param name="end">End time.</param>
+        /// <returns>Read message as byte array.</returns>
+        public byte[][] ReadRowsByRange(GXDLMSProfileGeneric pg, GXDateTime start, GXDateTime end)
+        {
+            return ReadRowsByRange(pg, start, end, null);
+        }
+
+        /// <summary>
+        /// Read rows by range.
+        /// </summary>
+        /// <remarks>
+        /// Use this method to read Profile Generic table between dates.
+        /// Check Conformance because all meters do not support this.
+        /// Some meters return error if there are no data betweens start and end time.
+        /// </remarks>
+        /// <param name="pg">Profile generic object to read.</param>
+        /// <param name="start">Start time.</param>
+        /// <param name="end">End time.</param>
         /// <param name="columns">Columns to read.</param>
         /// <returns>Read message as byte array.</returns>
         public byte[][] ReadRowsByRange(GXDLMSProfileGeneric pg, DateTime start, DateTime end,
+                                        List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
+        {
+            return ReadRowsByRange(pg, new GXDateTime(start), new GXDateTime(end), columns);
+        }
+
+        /// <summary>
+        /// Read rows by range.
+        /// </summary>
+        /// <remarks>
+        /// Use this method to read Profile Generic table between dates.
+        /// Check Conformance because all meters do not support this.
+        /// Some meters return error if there are no data betweens start and end time.
+        /// </remarks>
+        /// <param name="pg">Profile generic object to read.</param>
+        /// <param name="start">Start time.</param>
+        /// <param name="end">End time.</param>
+        /// <param name="columns">Columns to read.</param>
+        /// <returns>Read message as byte array.</returns>
+        public byte[][] ReadRowsByRange(GXDLMSProfileGeneric pg, GXDateTime start, GXDateTime end,
                                         List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
         {
             pg.Reset();

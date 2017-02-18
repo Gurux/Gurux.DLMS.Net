@@ -174,7 +174,7 @@ namespace Gurux.DLMS.Secure
             Command cmd = (Command)data.GetUInt8();
             switch (cmd)
             {
-                case Command.GloGeneralCiphering:
+                case Command.GeneralGloCiphering:
                     len = GXCommon.GetObjectCount(data);
                     if (len != 0)
                     {

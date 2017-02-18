@@ -76,7 +76,6 @@ namespace Gurux.DLMS
         DateTime,
         Reason,
         VariableAccessSpecification,
-        ListOfResult,
         Choice,
         NotificationBody,
         DataValue,
@@ -91,6 +90,8 @@ namespace Gurux.DLMS
         SingleResponse,
         Service,
         ServiceError,
-        InitiateError
+        InitiateError,
+        CipheredService,
+        SystemTitle
     }
 }

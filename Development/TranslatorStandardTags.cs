@@ -358,10 +358,11 @@ namespace Gurux.DLMS
                                     TranslatorTags.VariableAccessSpecification,
                                     "x:Variable-Access-Specification");
             GXDLMSTranslator.AddTag(list, TranslatorTags.Choice, "x:CHOICE");
-            GXDLMSTranslator.AddTag(list, TranslatorTags.NotificationBody,
-                                    "x:notification-body");
-            GXDLMSTranslator.AddTag(list, TranslatorTags.DataValue,
-                                    "x:data-value");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.NotificationBody, "x:notification-body");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.DataValue, "x:data-value");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.InitiateError, "x:initiateError");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.CipheredService, "x:ciphered-content");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.SystemTitle, "x:system-title");
         }
 
         public static void GetDataTypeTags(SortedList<int, string> list)
@@ -933,6 +934,112 @@ namespace Gurux.DLMS
                     break;
             }
             return (byte)ret;
+        }
+
+        internal static Conformance ValueOfConformance(string value)
+        {
+            Conformance ret;
+            if (string.Compare("access", value, true) == 0)
+            {
+                ret = Conformance.Access;
+            }
+            else if (string.Compare("action", value, true) == 0)
+            {
+                ret = Conformance.Action;
+            }
+            else if (string.Compare("attribute0-supported-with-get", value, true) == 0)
+            {
+                ret = Conformance.Attribute0SupportedWithGet;
+            }
+            else if (string.Compare("attribute0-supported-with-set", value, true) == 0)
+            {
+                ret = Conformance.Attribute0SupportedWithSet;
+            }
+            else if (string.Compare("block-transfer-with-action", value, true) == 0)
+            {
+                ret = Conformance.BlockTransferWithAction;
+            }
+            else if (string.Compare("block-transfer-with-get-or-read", value, true) == 0)
+            {
+                ret = Conformance.BlockTransferWithGetOrRead;
+            }
+            else if (string.Compare("block-transfer-with-set-or-write", value, true) == 0)
+            {
+                ret = Conformance.BlockTransferWithSetOrWrite;
+            }
+            else if (string.Compare("data-notification", value, true) == 0)
+            {
+                ret = Conformance.DataNotification;
+            }
+            else if (string.Compare("event-notification", value, true) == 0)
+            {
+                ret = Conformance.EventNotification;
+            }
+            else if (string.Compare("general-block-transfer", value, true) == 0)
+            {
+                ret = Conformance.GeneralBlockTransfer;
+            }
+            else if (string.Compare("general-protection", value, true) == 0)
+            {
+                ret = Conformance.GeneralProtection;
+            }
+            else if (string.Compare("get", value, true) == 0)
+            {
+                ret = Conformance.Get;
+            }
+            else if (string.Compare("information-report", value, true) == 0)
+            {
+                ret = Conformance.InformationReport;
+            }
+            else if (string.Compare("multiple-references", value, true) == 0)
+            {
+                ret = Conformance.MultipleReferences;
+            }
+            else if (string.Compare("parameterized-access", value, true) == 0)
+            {
+                ret = Conformance.ParameterizedAccess;
+            }
+            else if (string.Compare("priority-mgmt-supported", value, true) == 0)
+            {
+                ret = Conformance.PriorityMgmtSupported;
+            }
+            else if (string.Compare("read", value, true) == 0)
+            {
+                ret = Conformance.Read;
+            }
+            else if (string.Compare("reserved-seven", value, true) == 0)
+            {
+                ret = Conformance.ReservedSeven;
+            }
+            else if (string.Compare("reserved-six", value, true) == 0)
+            {
+                ret = Conformance.ReservedSix;
+            }
+            else if (string.Compare("reserved-zero", value, true) == 0)
+            {
+                ret = Conformance.ReservedZero;
+            }
+            else if (string.Compare("selective-access", value, true) == 0)
+            {
+                ret = Conformance.SelectiveAccess;
+            }
+            else if (string.Compare("set", value, true) == 0)
+            {
+                ret = Conformance.Set;
+            }
+            else if (string.Compare("unconfirmed-write", value, true) == 0)
+            {
+                ret = Conformance.UnconfirmedWrite;
+            }
+            else if (string.Compare("write", value, true) == 0)
+            {
+                ret = Conformance.Write;
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException(value);
+            }
+            return ret;
         }
     }
 }

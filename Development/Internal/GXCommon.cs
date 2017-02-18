@@ -38,6 +38,7 @@ using System.Linq;
 using System.Text;
 using Gurux.DLMS.Enums;
 using System.Diagnostics;
+using Gurux.DLMS.Objects;
 
 namespace Gurux.DLMS.Internal
 {
@@ -651,29 +652,47 @@ namespace Gurux.DLMS.Internal
         ///</returns>
         private static object GetTime(GXByteBuffer buff, GXDataInfo info)
         {
-            object value;
+            object value = null;
             if (buff.Size - buff.Position < 4)
             {
                 // If there is not enough data available.
                 info.Complete = false;
                 return null;
             }
+            string str = null;
             if (info.xml != null)
             {
-                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", GXCommon.ToHex(buff.Data, false, buff.Position, 4));
+                str = GXCommon.ToHex(buff.Data, false, buff.Position, 4);
             }
-
-            // Get time.
-            int hour = buff.GetUInt8();
-            int minute = buff.GetUInt8();
-            int second = buff.GetUInt8();
-            int ms = buff.GetUInt8();
-            if (ms != 0xFF)
+            try
             {
-                ms *= 10;
+                // Get time.
+                int hour = buff.GetUInt8();
+                int minute = buff.GetUInt8();
+                int second = buff.GetUInt8();
+                int ms = buff.GetUInt8();
+                if (ms != 0xFF)
+                {
+                    ms *= 10;
+                }
+                GXTime dt = new GXTime(hour, minute, second, ms);
+                value = dt;
             }
-            GXTime dt = new GXTime(hour, minute, second, ms);
-            value = dt;
+            catch (Exception ex)
+            {
+                if (info.xml == null)
+                {
+                    throw ex;
+                }
+            }
+            if (info.xml != null)
+            {
+                if (value != null)
+                {
+                    info.xml.AppendComment(Convert.ToString(value));
+                }
+                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", str);
+            }
             return value;
         }
 
@@ -691,30 +710,49 @@ namespace Gurux.DLMS.Internal
         ///</returns>
         private static object GetDate(GXByteBuffer buff, GXDataInfo info)
         {
-            object value;
+            object value = null;
             if (buff.Size - buff.Position < 5)
             {
                 // If there is not enough data available.
                 info.Complete = false;
                 return null;
             }
+            string str = null;
             if (info.xml != null)
             {
-                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", GXCommon.ToHex(buff.Data, false, buff.Position, 5));
+                str = GXCommon.ToHex(buff.Data, false, buff.Position, 5);
             }
-            // Get year.
-            int year = buff.GetUInt16();
-            // Get month
-            int month = buff.GetUInt8();
-            // Get day
-            int day = buff.GetUInt8();
-            GXDate dt = new GXDate(year, month, day);
-            // Skip week day
-            if (buff.GetUInt8() == 0xFF)
+            try
             {
-                dt.Skip |= DateTimeSkips.DayOfWeek;
+                // Get year.
+                int year = buff.GetUInt16();
+                // Get month
+                int month = buff.GetUInt8();
+                // Get day
+                int day = buff.GetUInt8();
+                GXDate dt = new GXDate(year, month, day);
+                // Skip week day
+                if (buff.GetUInt8() == 0xFF)
+                {
+                    dt.Skip |= DateTimeSkips.DayOfWeek;
+                }
+                value = dt;
             }
-            value = dt;
+            catch (Exception ex)
+            {
+                if (info.xml == null)
+                {
+                    throw ex;
+                }
+            }
+            if (info.xml != null)
+            {
+                if (value != null)
+                {
+                    info.xml.AppendComment(Convert.ToString(value));
+                }
+                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", str);
+            }
             return value;
         }
 
@@ -746,89 +784,109 @@ namespace Gurux.DLMS.Internal
                 info.Complete = false;
                 return null;
             }
+            string str = null;
             if (info.xml != null)
             {
-                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", GXCommon.ToHex(buff.Data, false, buff.Position, 12));
+                str = GXCommon.ToHex(buff.Data, false, buff.Position, 12);
             }
 
             GXDateTime dt = new GXDateTime();
-            //Get year.
-            int year = buff.GetUInt16();
-            if (year == 0xFFFF || year == 0)
+            try
             {
-                year = DateTime.Now.Year;
-                dt.Skip |= DateTimeSkips.Year;
+                //Get year.
+                int year = buff.GetUInt16();
+                if (year == 0xFFFF || year == 0)
+                {
+                    year = DateTime.Now.Year;
+                    dt.Skip |= DateTimeSkips.Year;
+                }
+                //Get month
+                int month = buff.GetUInt8();
+                if (month == 0 || month == 0xFF || month == 0xFE || month == 0xFD)
+                {
+                    month = 1;
+                    dt.Skip |= DateTimeSkips.Month;
+                }
+                int day = buff.GetUInt8();
+                if (day < 1 || day == 0xFF)
+                {
+                    day = 1;
+                    dt.Skip |= DateTimeSkips.Day;
+                }
+                else if (day == 0xFD || day == 0xFE)
+                {
+                    day = DateTime.DaysInMonth(year, month) + (sbyte)day + 2;
+                }
+                //Skip week day
+                if (buff.GetUInt8() == 0xFF)
+                {
+                    dt.Skip |= DateTimeSkips.DayOfWeek;
+                }
+                //Get time.
+                int hours = buff.GetUInt8();
+                if (hours == 0xFF)
+                {
+                    hours = 0;
+                    dt.Skip |= DateTimeSkips.Hour;
+                }
+                int minutes = buff.GetUInt8();
+                if (minutes == 0xFF)
+                {
+                    minutes = 0;
+                    dt.Skip |= DateTimeSkips.Minute;
+                }
+                int seconds = buff.GetUInt8();
+                if (seconds == 0xFF)
+                {
+                    seconds = 0;
+                    dt.Skip |= DateTimeSkips.Second;
+                }
+                int milliseconds = buff.GetUInt8();
+                if (milliseconds != 0xFF)
+                {
+                    milliseconds *= 10;
+                }
+                else
+                {
+                    milliseconds = 0;
+                    dt.Skip |= DateTimeSkips.Ms;
+                }
+                int deviation = buff.GetInt16();
+                dt.Status = (ClockStatus)buff.GetUInt8();
+                if (settings != null && settings.UtcTimeZone)
+                {
+                    deviation = -deviation;
+                }
+                dt.Deviation = deviation;
+                //0x8000 == -32768
+                //deviation = -1 if skipped.
+                if (deviation != -1 && deviation != -32768 && year != 1 && (dt.Skip & DateTimeSkips.Year) == 0)
+                {
+                    dt.Value = new DateTimeOffset(new DateTime(year, month, day, hours, minutes, seconds, milliseconds),
+                                                  new TimeSpan(0, -deviation, 0));
+                }
+                else //Use current time if deviation is not defined.
+                {
+                    dt.Skip |= DateTimeSkips.Devitation;
+                    DateTime tmp = new DateTime(year, month, day, hours, minutes, seconds, milliseconds, DateTimeKind.Local);
+                    dt.Value = new DateTimeOffset(tmp, TimeZoneInfo.Local.GetUtcOffset(tmp));
+                }
             }
-            //Get month
-            int month = buff.GetUInt8();
-            if (month == 0 || month == 0xFF || month == 0xFE || month == 0xFD)
+            catch (Exception ex)
             {
-                month = 1;
-                dt.Skip |= DateTimeSkips.Month;
+                if (info.xml == null)
+                {
+                    throw ex;
+                }
+                dt = null;
             }
-            int day = buff.GetUInt8();
-            if (day < 1 || day == 0xFF)
+            if (info.xml != null)
             {
-                day = 1;
-                dt.Skip |= DateTimeSkips.Day;
-            }
-            else if (day == 0xFD || day == 0xFE)
-            {
-                day = DateTime.DaysInMonth(year, month) + (sbyte)day + 2;
-            }
-            //Skip week day
-            if (buff.GetUInt8() == 0xFF)
-            {
-                dt.Skip |= DateTimeSkips.DayOfWeek;
-            }
-            //Get time.
-            int hours = buff.GetUInt8();
-            if (hours == 0xFF)
-            {
-                hours = 0;
-                dt.Skip |= DateTimeSkips.Hour;
-            }
-            int minutes = buff.GetUInt8();
-            if (minutes == 0xFF)
-            {
-                minutes = 0;
-                dt.Skip |= DateTimeSkips.Minute;
-            }
-            int seconds = buff.GetUInt8();
-            if (seconds == 0xFF)
-            {
-                seconds = 0;
-                dt.Skip |= DateTimeSkips.Second;
-            }
-            int milliseconds = buff.GetUInt8();
-            if (milliseconds != 0xFF)
-            {
-                milliseconds *= 10;
-            }
-            else
-            {
-                milliseconds = 0;
-                dt.Skip |= DateTimeSkips.Ms;
-            }
-            int deviation = buff.GetInt16();
-            dt.Status = (ClockStatus)buff.GetUInt8();
-            if (settings != null && settings.UtcTimeZone)
-            {
-                deviation = -deviation;
-            }
-            dt.Deviation = deviation;
-            //0x8000 == -32768
-            //deviation = -1 if skipped.
-            if (deviation != -1 && deviation != -32768 && year != 1 && (dt.Skip & DateTimeSkips.Year) == 0)
-            {
-                dt.Value = new DateTimeOffset(new DateTime(year, month, day, hours, minutes, seconds, milliseconds),
-                                              new TimeSpan(0, -deviation, 0));
-            }
-            else //Use current time if deviation is not defined.
-            {
-                dt.Skip |= DateTimeSkips.Devitation;
-                DateTime tmp = new DateTime(year, month, day, hours, minutes, seconds, milliseconds, DateTimeKind.Local);
-                dt.Value = new DateTimeOffset(tmp, TimeZoneInfo.Local.GetUtcOffset(tmp));
+                if (dt != null)
+                {
+                    info.xml.AppendComment(Convert.ToString(dt));
+                }
+                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", str);
             }
             return dt;
         }
@@ -1197,6 +1255,30 @@ namespace Gurux.DLMS.Internal
             value = tmp;
             if (info.xml != null)
             {
+                if (info.xml.Comments)
+                {
+                    // This might be logical name.
+                    if (tmp.Length == 6 && tmp[5] == 0xFF)
+                    {
+                        info.xml.AppendComment(GXDLMSObject.ToLogicalName(tmp));
+                    }
+                    else if (tmp.Length != 0)
+                    {
+                        bool isString = true;
+                        foreach (char it in tmp)
+                        {
+                            if (!char.IsLetterOrDigit(it))
+                            {
+                                isString = false;
+                                break;
+                            }
+                        }
+                        if (isString)
+                        {
+                            info.xml.AppendComment(ASCIIEncoding.ASCII.GetString(tmp));
+                        }
+                    }
+                }
                 info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", GXCommon.ToHex(tmp, false));
             }
             return value;

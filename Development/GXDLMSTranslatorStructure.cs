@@ -91,15 +91,26 @@ namespace Gurux.DLMS
             get;
             set;
         }
+
+        /// <summary>
+        /// Are comments added.
+        /// </summary>
+        public bool Comments
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="list">List of tags.</param>
-        public GXDLMSTranslatorStructure(TranslatorOutputType type, bool numericsAshex, bool hex, SortedList<int, string> list)
+        public GXDLMSTranslatorStructure(TranslatorOutputType type, bool numericsAshex, bool hex, bool comments, SortedList<int, string> list)
         {
             OutputType = type;
             showNumericsAsHex = numericsAshex;
             ShowStringAsHex = hex;
+            Comments = comments;
             tags = list;
         }
 
@@ -194,6 +205,23 @@ namespace Gurux.DLMS
             }
             sb.Append('\r');
             sb.Append('\n');
+        }
+
+        /// <summary>
+        /// Append comment.
+        /// </summary>
+        /// <param name="comment">Comment to add.</param>
+        public void AppendComment(string comment)
+        {
+            if (Comments)
+            {
+                sb.Append(' ', 2 * offset);
+                sb.Append("<!--");
+                sb.Append(comment);
+                sb.Append("-->");
+                sb.Append('\r');
+                sb.Append('\n');
+            }
         }
 
         public void Append(String value)
