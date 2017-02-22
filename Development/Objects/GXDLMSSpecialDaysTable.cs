@@ -91,6 +91,35 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// Inserts a new entry in the table
+        /// </summary>
+        /// <remarks>
+        /// </remarks>
+        /// <returns>
+        ///  If a special day with the same index or with the same date as an already defined day is inserted, 
+        ///  the old entry will be overwritten.
+        /// </returns>
+        public byte[][] Insert(GXDLMSClient client, GXDLMSSpecialDay entry)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetUInt8(DataType.Structure);
+            bb.SetUInt8(3);
+            GXCommon.SetData(null, bb, DataType.UInt16, entry.Index);
+            GXCommon.SetData(null, bb, DataType.OctetString, entry.Date);
+            GXCommon.SetData(null, bb, DataType.UInt8, entry.DayId);
+            return client.Method(this, 1, bb.Array());
+        }
+
+        /// <summary>
+        /// Deletes an entry in the table.
+        /// </summary>
+        /// <returns></returns>
+        public byte[][] Delete(GXDLMSClient client, GXDLMSSpecialDay entry)
+        {
+            return client.Method(this, 2, (UInt16)entry.Index);
+        }
+
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {

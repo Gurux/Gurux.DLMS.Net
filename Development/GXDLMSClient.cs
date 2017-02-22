@@ -1113,6 +1113,7 @@ namespace Gurux.DLMS
         /// <param name="list">Collection of access items.</param>
         /// <param name="data">Received data from the meter.</param>
         /// <returns>Collection of received data and status codes.</returns>
+        /// <seealso cref="AccessRequest"/>
         public List<KeyValuePair<object, ErrorCode>> ParseAccessResponse(
             List<GXDLMSAccessItem> list,
             GXByteBuffer data)
@@ -2061,6 +2062,7 @@ namespace Gurux.DLMS
         /// <param name="objectType">Read Interface.</param>
         /// <param name="attributeOrdinal">Read attribute index.</param>
         /// <returns>Read request as byte array.</returns>
+        /// <seealso cref="ParseAccessResponse"/>
         public byte[][] AccessRequest(DateTime time, List<GXDLMSAccessItem> list)
         {
             GXByteBuffer bb = new GXByteBuffer();

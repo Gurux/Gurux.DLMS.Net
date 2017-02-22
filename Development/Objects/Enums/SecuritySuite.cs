@@ -40,6 +40,23 @@ namespace Gurux.DLMS.Objects.Enums
         /// <summary>
         /// AES-GCM-128 for authenticated encryption and AES-128 for key wrapping.
         /// </summary>
-        AesGcm128
+        /// <remarks>
+        /// A.K.A Security Suite 0.
+        /// </remarks>
+        AesGcm128,
+        /// <summary>
+        /// ECDH-ECDSAAES-GCM-128SHA-256.
+        /// </summary>
+        /// <remarks>
+        /// A.K.A Security Suite 1.
+        /// </remarks>
+        EcdhEcdsaAesGcm128Sha256,
+        /// <summary>
+        /// ECDH-ECDSAAES-GCM-256SHA-384.
+        /// </summary>
+        /// <remarks>
+        /// A.K.A Security Suite 2.
+        /// </remarks>
+        EcdhEcdsaAesGcm256Sha384
     }
 }
