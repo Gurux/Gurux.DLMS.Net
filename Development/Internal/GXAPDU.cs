@@ -183,14 +183,10 @@ namespace Gurux.DLMS.Internal
             data.SetUInt8(0x04);
             // encoding the number of unused bits in the bit string
             data.SetUInt8(0x00);
-            if (settings.UseLogicalNameReferencing)
-            {
-                data.Set(settings.LnSettings.ConformanceBlock);
-            }
-            else
-            {
-                data.Set(settings.SnSettings.ConformanceBlock);
-            }
+
+            GXByteBuffer bb = new GXByteBuffer(4);
+            bb.SetUInt32((UInt32)settings.ProposedConformance);
+            data.Set(bb.SubArray(1, 3));
             data.SetUInt16(settings.MaxPduSize);
         }
 
@@ -271,12 +267,386 @@ namespace Gurux.DLMS.Internal
             }
         }
 
+        private static void Parse(bool initiateRequest, GXDLMSSettings settings, GXICipher cipher, GXByteBuffer data, GXDLMSTranslatorStructure xml, int tag)
+        {
+            int len;
+            bool response = tag == (byte)Command.InitiateResponse;
+            if (response)
+            {
+                if (xml != null)
+                {
+                    //<InitiateResponse>
+                    xml.AppendStartTag(Command.InitiateResponse);
+                }
+                //Optional usage field of the negotiated quality of service component
+                tag = data.GetUInt8();
+                len = 0;
+                if (tag != 0)//Skip if used.
+                {
+                    len = data.GetUInt8();
+                    data.Position += len;
+                    if (len == 0 && xml != null)
+                    {
+                        //NegotiatedQualityOfService
+                        xml.AppendLine(TranslatorGeneralTags.NegotiatedQualityOfService, "Value", "00");
+                    }
+                }
+            }
+            else if (tag == (byte)Command.InitiateRequest)
+            {
+                if (xml != null)
+                {
+                    //<InitiateRequest>
+                    xml.AppendStartTag(Command.InitiateRequest);
+                }
+                //Optional usage field of the negotiated quality of service component
+                tag = data.GetUInt8();
+                if (tag != 0)
+                {
+                    len = data.GetUInt8();
+                    if (initiateRequest)
+                    {
+                        settings.DedicatedKey = new byte[len];
+                        data.Get(settings.DedicatedKey);
+                        if (xml != null)
+                        {
+                            xml.AppendLine(TranslatorGeneralTags.DedicatedKey,
+                                    null, GXCommon.ToHex(settings.DedicatedKey, false));
+                        }
+                    }
+                    else
+                    {
+                        // CtoS.
+                        settings.CtoSChallenge = new byte[len];
+                        data.Get(settings.CtoSChallenge);
+                    }
+                }
+                //Optional usage field of the negotiated quality of service component
+                tag = data.GetUInt8();
+                if (tag != 0)
+                {
+                    len = data.GetUInt8();
+                    if (xml != null && (initiateRequest || xml.OutputType == TranslatorOutputType.SimpleXml))
+                    {
+                        xml.AppendLine(TranslatorGeneralTags.ProposedQualityOfService, null, len.ToString());
+                    }
+                }
+                else
+                {
+                    if (xml != null && xml.OutputType == TranslatorOutputType.StandardXml)
+                    {
+                        xml.AppendLine(TranslatorGeneralTags.ResponseAllowed, null, "true");
+                    }
+                }
+                //Optional usage field of the proposed quality of service component
+                tag = data.GetUInt8();
+                if (tag != 0)//Skip if used.
+                {
+                    len = data.GetUInt8();
+                    data.Position += len;
+                }
+            }
+            else if (tag == (byte)Command.ConfirmedServiceError)
+            {
+                if (xml != null)
+                {
+                    xml.AppendStartTag(Command.ConfirmedServiceError);
+                    if (xml.OutputType == TranslatorOutputType.StandardXml)
+                    {
+                        data.GetUInt8();
+                        xml.AppendStartTag(TranslatorTags.InitiateError);
+                        ServiceError type = (ServiceError)data.GetUInt8();
+                        String str =
+                                TranslatorStandardTags.ServiceErrorToString(type);
+                        String value = TranslatorStandardTags
+                                .GetServiceErrorValue(type, (byte)data.GetUInt8());
+                        xml.AppendLine("x:" + str, null, value);
+                        xml.AppendEndTag(TranslatorTags.InitiateError);
+                    }
+                    else
+                    {
+                        xml.AppendLine(TranslatorTags.Service, "Value",
+                                xml.IntegerToHex(data.GetUInt8(), 2));
+                        ServiceError type = (ServiceError)data.GetUInt8();
+                        xml.AppendStartTag(TranslatorTags.ServiceError);
+                        xml.AppendLine(
+                                TranslatorSimpleTags.ServiceErrorToString(type),
+                                "Value", TranslatorSimpleTags.GetServiceErrorValue(
+                                        type, (byte)data.GetUInt8()));
+                        xml.AppendEndTag(TranslatorTags.ServiceError);
+                    }
+                    xml.AppendEndTag(Command.ConfirmedServiceError);
+                    return;
+                }
+                throw new GXDLMSException(
+                        (ConfirmedServiceError)data.GetUInt8(),
+                        (ServiceError)data.GetUInt8(), data.GetUInt8());
+            }
+            else
+            {
+                if (xml != null)
+                {
+                    xml.AppendComment("Error: Failed to descypt data.");
+                    data.Position = data.Size;
+                    return;
+                }
+                throw new Exception("Invalid tag.");
+            }
+            //Get DLMS version number.
+            if (!response)
+            {
+                if (data.GetUInt8() != 6)
+                {
+                    throw new Exception("Invalid DLMS version number.");
+                }
+                //ProposedDlmsVersionNumber
+                if (xml != null && (initiateRequest || xml.OutputType == TranslatorOutputType.SimpleXml))
+                {
+                    xml.AppendLine(TranslatorGeneralTags.ProposedDlmsVersionNumber, "Value", xml.IntegerToHex(settings.DLMSVersion, 2));
+                }
+            }
+            else
+            {
+                if (data.GetUInt8() != 6)
+                {
+                    throw new Exception("Invalid DLMS version number.");
+                }
+                if (xml != null && (initiateRequest || xml.OutputType == TranslatorOutputType.SimpleXml))
+                {
+                    xml.AppendLine(TranslatorGeneralTags.NegotiatedDlmsVersionNumber, "Value", xml.IntegerToHex(settings.DLMSVersion, 2));
+                }
+            }
+
+            //Tag for conformance block
+            tag = data.GetUInt8();
+            if (tag != 0x5F)
+            {
+                throw new Exception("Invalid tag.");
+            }
+            //Old Way...
+            if (data.GetUInt8(data.Position) == 0x1F)
+            {
+                data.GetUInt8();
+            }
+            len = data.GetUInt8();
+            //The number of unused bits in the bit string.
+            tag = data.GetUInt8();
+            byte[] tmp = new byte[3];
+            GXByteBuffer bb = new GXByteBuffer(4);
+            data.Get(tmp);
+            bb.SetUInt8(0);
+            bb.Set(tmp);
+            UInt32 v = bb.GetUInt32();
+            if (settings.IsServer)
+            {
+                settings.ProposedConformance = (Conformance)v;
+                if (xml != null)
+                {
+                    xml.AppendStartTag(TranslatorGeneralTags.ProposedConformance);
+                    GetConformance(v, xml);
+                }
+            }
+            else
+            {
+                if (xml != null)
+                {
+                    xml.AppendStartTag(TranslatorGeneralTags.NegotiatedConformance);
+                    GetConformance(v, xml);
+                }
+                settings.NegotiatedConformance = (Conformance)v;
+            }
+
+            if (!response)
+            {
+                //Proposed max PDU size.
+                settings.MaxPduSize = data.GetUInt16();
+                if (xml != null)
+                {
+                    // ProposedConformance closing
+                    if (xml.OutputType == TranslatorOutputType.SimpleXml)
+                    {
+                        xml.AppendEndTag(TranslatorGeneralTags.ProposedConformance);
+                    }
+                    else if (initiateRequest)
+                    {
+                        xml.Append((int)TranslatorGeneralTags.ProposedConformance, false);
+                    }
+                    // ProposedMaxPduSize
+                    xml.AppendLine(TranslatorGeneralTags.ProposedMaxPduSize,
+                            "Value", xml.IntegerToHex(settings.MaxPduSize, 4));
+                }
+                //If client asks too high PDU.
+                if (settings.MaxPduSize > settings.MaxServerPDUSize)
+                {
+                    settings.MaxPduSize = settings.MaxServerPDUSize;
+                }
+            }
+            else
+            {
+                //Max PDU size.
+                settings.MaxPduSize = data.GetUInt16();
+                if (xml != null)
+                {
+                    // NegotiatedConformance closing
+                    if (xml.OutputType == TranslatorOutputType.SimpleXml)
+                    {
+                        xml.AppendEndTag(TranslatorGeneralTags.NegotiatedConformance);
+                    }
+                    else if (initiateRequest)
+                    {
+                        xml.Append((int)TranslatorGeneralTags.NegotiatedConformance, false);
+                    }
+                    // NegotiatedMaxPduSize
+                    xml.AppendLine(TranslatorGeneralTags.NegotiatedMaxPduSize, "Value", xml.IntegerToHex(settings.MaxPduSize, 4));
+                }
+            }
+            if (response)
+            {
+                //VAA Name
+                tag = data.GetUInt16();
+                if (xml != null)
+                {
+                    if (initiateRequest || xml.OutputType == TranslatorOutputType.SimpleXml)
+                    {
+                        xml.AppendLine(TranslatorGeneralTags.VaaName, "Value", xml.IntegerToHex(tag, 4));
+                    }
+                }
+                if (tag == 0x0007)
+                {
+                    if (initiateRequest)
+                    {
+                        settings.UseLogicalNameReferencing = true;
+                    }
+                    else
+                    {
+                        // If LN
+                        if (!settings.UseLogicalNameReferencing)
+                        {
+                            throw new ArgumentException("Invalid VAA.");
+                        }
+                    }
+                }
+                else if (tag == 0xFA00)
+                {
+                    // If SN
+                    if (initiateRequest)
+                    {
+                        settings.UseLogicalNameReferencing = false;
+                    }
+                    else
+                    {
+                        if (settings.UseLogicalNameReferencing)
+                        {
+                            throw new ArgumentException("Invalid VAA.");
+                        }
+                    }
+                }
+                else
+                {
+                    // Unknown VAA.
+                    throw new ArgumentException("Invalid VAA.");
+                }
+                if (xml != null)
+                {
+                    //<InitiateResponse>
+                    xml.AppendEndTag(Command.InitiateResponse);
+                }
+            }
+            else if (xml != null)
+            {
+                //</InitiateRequest>
+                xml.AppendEndTag(Command.InitiateRequest);
+            }
+        }
+
+        internal static void ParseInitiate(bool initiateRequest,
+            GXDLMSSettings settings, GXICipher cipher,
+            GXByteBuffer data, GXDLMSTranslatorStructure xml)
+        {
+            //Tag for xDLMS-Initate.response
+            int tag = data.GetUInt8();
+            int originalPos = 0;
+            byte[] tmp;
+            AesGcmParameter p;
+            byte[] encrypted;
+            if (tag == (byte)Command.GloInitiateResponse)
+            {
+                if (xml != null)
+                {
+                    originalPos = data.Position;
+                    int cnt = GXCommon.GetObjectCount(data);
+                    encrypted = new byte[cnt];
+                    data.Get(encrypted);
+                    if (cipher != null && xml.Comments)
+                    {
+                        data.Position = originalPos - 1;
+                        p = new AesGcmParameter(settings.SourceSystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                        tmp = GXDLMSChippering.DecryptAesGcm(p, data);
+                        data.Clear();
+                        data.Set(tmp);
+                        cipher.Security = p.Security;
+                        tag = data.GetUInt8();
+                        xml.StartComment("Decrypted data:");
+                        xml.AppendLine("Security: " + p.Security);
+                        xml.AppendLine("Invocation Counter: " + p.FrameCounter);
+                        Parse(initiateRequest, settings, cipher, data, xml, tag);
+                        xml.EndComment();
+                    }
+                    //<glo_InitiateResponse>
+                    xml.AppendLine(Command.GloInitiateResponse, "Value", GXCommon.ToHex(encrypted, false));
+                    return;
+                }
+                --data.Position;
+                p = new AesGcmParameter(settings.SourceSystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                tmp = GXDLMSChippering.DecryptAesGcm(p, data);
+                data.Clear();
+                data.Set(tmp);
+                cipher.Security = p.Security;
+                tag = data.GetUInt8();
+            }
+            else if (tag == (byte)Command.GloInitiateRequest)
+            {
+                if (xml != null)
+                {
+                    originalPos = data.Position;
+                    int cnt = GXCommon.GetObjectCount(data);
+                    encrypted = new byte[cnt];
+                    data.Get(encrypted);
+                    if (cipher != null && xml.Comments)
+                    {
+                        data.Position = originalPos - 1;
+                        p = new AesGcmParameter(settings.SourceSystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                        tmp = GXDLMSChippering.DecryptAesGcm(p, data);
+                        data.Clear();
+                        data.Set(tmp);
+                        cipher.Security = p.Security;
+                        tag = data.GetUInt8();
+                        xml.StartComment("Decrypted data:");
+                        xml.AppendLine("Security: " + p.Security);
+                        xml.AppendLine("Invocation Counter: " + p.FrameCounter);
+                        Parse(initiateRequest, settings, cipher, data, xml, tag);
+                        xml.EndComment();
+                    }
+                    //<glo_InitiateRequest>
+                    xml.AppendLine(Command.GloInitiateRequest, "Value", GXCommon.ToHex(encrypted, false));
+                    return;
+                }
+                --data.Position;
+                p = new AesGcmParameter(settings.SourceSystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                tmp = GXDLMSChippering.DecryptAesGcm(p, data);
+                data.Clear();
+                data.Set(tmp);
+                cipher.Security = p.Security;
+                tag = data.GetUInt8();
+            }
+            Parse(initiateRequest, settings, cipher, data, xml, tag);
+        }
+
         /// <summary>
         /// Parse User Information from PDU.
         /// </summary>
         public static void ParseUserInformation(GXDLMSSettings settings, GXICipher cipher, GXByteBuffer data, GXDLMSTranslatorStructure xml)
         {
-            byte[] tmp;
             byte len = data.GetUInt8();
             GXByteBuffer tmp2 = new GXByteBuffer();
             tmp2.SetUInt8(0);
@@ -311,243 +681,7 @@ namespace Gurux.DLMS.Internal
                 }
                 xml.AppendComment("Error: Invalid data size.");
             }
-            //Tag for xDLMS-Initate.response
-            tag = data.GetUInt8();
-            if (tag == (byte)Command.GloInitiateResponse)
-            {
-                if (xml != null)
-                {
-                    int cnt = GXCommon.GetObjectCount(data);
-                    tmp = new byte[cnt];
-                    data.Get(tmp);
-                    //<glo_InitiateResponse>
-                    xml.AppendLine(Command.GloInitiateResponse, "Value", GXCommon.ToHex(tmp, false));
-                    return;
-                }
-                --data.Position;
-                cipher.Security = cipher.Decrypt(settings.SourceSystemTitle, data);
-                tag = data.GetUInt8();
-            }
-            else if (tag == (byte)Command.GloInitiateRequest)
-            {
-                if (xml != null)
-                {
-                    int cnt = GXCommon.GetObjectCount(data);
-                    tmp = new byte[cnt];
-                    data.Get(tmp);
-                    //<glo_InitiateRequest>
-                    xml.AppendLine(Command.GloInitiateRequest, "Value", GXCommon.ToHex(tmp, false));
-                    return;
-                }
-                --data.Position;
-                cipher.Security = cipher.Decrypt(settings.SourceSystemTitle, data);
-                tag = data.GetUInt8();
-            }
-            bool response = tag == (byte)Command.InitiateResponse;
-            if (response)
-            {
-                if (xml != null)
-                {
-                    //<InitiateResponse>
-                    xml.AppendStartTag(Command.InitiateResponse);
-                }
-                //Optional usage field of the negotiated quality of service component
-                tag = data.GetUInt8();
-                len = 0;
-                if (tag != 0)//Skip if used.
-                {
-                    len = data.GetUInt8();
-                    data.Position += len;
-                    if (len == 0 && xml != null)
-                    {
-                        //NegotiatedQualityOfService
-                        xml.AppendLine(TranslatorGeneralTags.NegotiatedQualityOfService, "Value", "00");
-                    }
-                }
-            }
-            else if (tag == (byte)Command.InitiateRequest)
-            {
-                if (xml != null)
-                {
-                    //<InitiateRequest>
-                    xml.AppendStartTag(Command.InitiateRequest);
-                }
-                //Optional usage field of the negotiated quality of service component
-                tag = data.GetUInt8();
-                //CtoS.
-                if (tag != 0)
-                {
-                    len = data.GetUInt8();
-                    settings.CtoSChallenge = new byte[len];
-                    data.Get(settings.CtoSChallenge);
-                }
-                //Optional usage field of the negotiated quality of service component
-                tag = data.GetUInt8();
-                if (tag != 0)//Skip if used.
-                {
-                    len = data.GetUInt8();
-                    data.Position += len;
-                }
-                //Optional usage field of the proposed quality of service component
-                tag = data.GetUInt8();
-                if (tag != 0)//Skip if used.
-                {
-                    len = data.GetUInt8();
-                    data.Position += len;
-                }
-            }
-            else
-            {
-                throw new Exception("Invalid tag.");
-            }
-            //Get DLMS version number.
-            if (!response)
-            {
-                if (data.GetUInt8() != 6)
-                {
-                    throw new Exception("Invalid DLMS version number.");
-                }
-                //ProposedDlmsVersionNumber
-                if (xml != null)
-                {
-                    xml.AppendLine(TranslatorGeneralTags.ProposedDlmsVersionNumber, "Value", xml.IntegerToHex(settings.DLMSVersion, 2));
-                }
-            }
-            else
-            {
-                if (data.GetUInt8() != 6)
-                {
-                    throw new Exception("Invalid DLMS version number.");
-                }
-                if (xml != null)
-                {
-                    xml.AppendLine(TranslatorGeneralTags.NegotiatedDlmsVersionNumber, "Value", xml.IntegerToHex(settings.DLMSVersion, 2));
-                }
-            }
-
-            //Tag for conformance block
-            tag = data.GetUInt8();
-            if (tag != 0x5F)
-            {
-                throw new Exception("Invalid tag.");
-            }
-            //Old Way...
-            if (data.GetUInt8(data.Position) == 0x1F)
-            {
-                data.GetUInt8();
-            }
-            len = data.GetUInt8();
-            //The number of unused bits in the bit string.
-            tag = data.GetUInt8();
-            tmp = new byte[3];
-            GXByteBuffer bb = new GXByteBuffer(4);
-            data.Get(tmp);
-            bb.SetUInt8(0);
-            bb.Set(tmp);
-            UInt32 v = bb.GetUInt32();
-            if (settings.IsServer)
-            {
-                if (settings.UseLogicalNameReferencing)
-                {
-                    settings.NegotiatedConformance = (Conformance)v & settings.LnSettings.Conformance;
-                }
-                else
-                {
-                    settings.NegotiatedConformance = (Conformance)v & settings.SnSettings.Conformance;
-                }
-                if (xml != null)
-                {
-                    xml.AppendStartTag(TranslatorGeneralTags.ProposedConformance);
-                    GetConformance(v, xml);
-                }
-            }
-            else
-            {
-                if (xml != null)
-                {
-                    xml.AppendStartTag(TranslatorGeneralTags.NegotiatedConformance);
-                    GetConformance(v, xml);
-                }
-                settings.NegotiatedConformance = (Conformance)v;
-                if (settings.UseLogicalNameReferencing)
-                {
-                    settings.LnSettings.Conformance = settings.NegotiatedConformance;
-                }
-                else
-                {
-                    settings.SnSettings.Conformance = settings.NegotiatedConformance;
-                }
-            }
-
-            if (!response)
-            {
-                //Proposed max PDU size.
-                settings.MaxPduSize = data.GetUInt16();
-                if (xml != null)
-                {
-                    //ProposedConformance closing
-                    xml.AppendEndTag(TranslatorGeneralTags.ProposedConformance);
-                    //ProposedMaxPduSize
-                    xml.AppendLine(TranslatorGeneralTags.ProposedMaxPduSize, "Value", xml.IntegerToHex(settings.MaxPduSize, 4));
-                }
-                //If client asks too high PDU.
-                if (settings.MaxPduSize > settings.MaxServerPDUSize)
-                {
-                    settings.MaxPduSize = settings.MaxServerPDUSize;
-                }
-            }
-            else
-            {
-                //Max PDU size.
-                settings.MaxPduSize = data.GetUInt16();
-                if (xml != null)
-                {
-                    //NegotiatedConformance closing
-                    xml.AppendEndTag(TranslatorGeneralTags.NegotiatedConformance);
-                    //NegotiatedMaxPduSize
-                    xml.AppendLine(TranslatorGeneralTags.NegotiatedMaxPduSize, "Value", xml.IntegerToHex(settings.MaxPduSize, 4));
-                }
-            }
-            if (response)
-            {
-                //VAA Name
-                tag = data.GetUInt16();
-                if (xml != null)
-                {
-                    xml.AppendLine(TranslatorGeneralTags.VaaName, "Value", xml.IntegerToHex(tag, 4));
-                }
-                if (tag == 0x0007)
-                {
-                    // If LN
-                    if (!settings.UseLogicalNameReferencing)
-                    {
-                        throw new ArgumentException("Invalid VAA.");
-                    }
-                }
-                else if (tag == 0xFA00)
-                {
-                    // If SN
-                    if (settings.UseLogicalNameReferencing)
-                    {
-                        throw new ArgumentException("Invalid VAA.");
-                    }
-                }
-                else
-                {
-                    // Unknown VAA.
-                    throw new ArgumentException("Invalid VAA.");
-                }
-                if (xml != null)
-                {
-                    //<InitiateResponse>
-                    xml.AppendEndTag(Command.InitiateResponse);
-                }
-            }
-            else if (xml != null)
-            {
-                //</InitiateRequest>
-                xml.AppendEndTag(Command.InitiateRequest);
-            }
+            ParseInitiate(false, settings, cipher, data, xml);
         }
 
         /// <summary>

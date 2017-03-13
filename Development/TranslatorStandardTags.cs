@@ -711,7 +711,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="error">Service error enumeration value.</param>
         /// <returns>Service error standard XML tag.</returns>
-        internal static String serviceErrorToString(ServiceError error)
+        internal static String ServiceErrorToString(ServiceError error)
         {
             return GetServiceErrors()[error];
         }

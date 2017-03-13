@@ -379,46 +379,11 @@ namespace Gurux.DLMS
         {
             get
             {
-                if (UseLogicalNameReferencing)
-                {
-                    return Settings.LnSettings.Conformance;
-                }
-                return Settings.SnSettings.Conformance;
+                return Settings.ProposedConformance;
             }
             set
             {
-                if (UseLogicalNameReferencing)
-                {
-                    Settings.LnSettings.Conformance = value;
-                }
-                else
-                {
-                    Settings.SnSettings.Conformance = value;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets Logical Name Settings, read from the device.
-        /// </summary>
-        [Obsolete("Use Conformance enum instead.")]
-        public GXDLMSLNSettings LNSettings
-        {
-            get
-            {
-                return Settings.LnSettings;
-            }
-        }
-
-        /// <summary>
-        /// Gets Short Name Settings, read from the device.
-        /// </summary>
-        [Obsolete("Use Conformance enum instead.")]
-        public GXDLMSSNSettings SNSettings
-        {
-            get
-            {
-                return Settings.SnSettings;
+                Settings.ProposedConformance = value;
             }
         }
 

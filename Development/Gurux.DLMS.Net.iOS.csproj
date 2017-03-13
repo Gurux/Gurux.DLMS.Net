@@ -92,14 +92,12 @@
     <Compile Include="GXDLMSLimits.cs" />
     <Compile Include="GXDLMSLNCommandHandlers.cs" />
     <Compile Include="GXDLMSLNParameters.cs" />
-    <Compile Include="GXDLMSLNSettings.cs" />
     <Compile Include="GXDLMSLongTransaction.cs" />
     <Compile Include="GXDLMSNotify.cs" />
     <Compile Include="GXDLMSServer.cs" />
     <Compile Include="GXDLMSSettings.cs" />
     <Compile Include="GXDLMSSNCommandHandlers.cs" />
     <Compile Include="GXDLMSSNParameters.cs" />
-    <Compile Include="GXDLMSSNSettings.cs" />
     <Compile Include="GXDLMSTranslator.cs" />
     <Compile Include="GXDLMSTranslatorStructure.cs" />
     <Compile Include="GXDLMSXmlSettings.cs" />

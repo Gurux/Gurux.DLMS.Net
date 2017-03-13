@@ -195,12 +195,56 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Used security.
+        /// </summary>
+        public Gurux.DLMS.Enums.Security Security
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// System title.
+        /// </summary>
+        public byte[] SystemTitle
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Block cipher key.
+        /// </summary>
+        public byte[] BlockCipherKey
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Authentication key.
+        /// </summary>
+        public byte[] AuthenticationKey
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Frame counter. AKA Invocation Counter.
+        /// </summary>
+        public UInt32 FrameCounter
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="type">Translator output type.</param>
         public GXDLMSTranslator(TranslatorOutputType type)
         {
-            Comments = true;
             OutputType = type;
             GetTags(type, tags, tagsByName);
             if (type == TranslatorOutputType.SimpleXml)
@@ -243,7 +287,7 @@ namespace Gurux.DLMS
         {
             GXDLMSSettings settings = new GXDLMSSettings(true);
             GXReplyData reply = new GXReplyData();
-            reply.Xml = new GXDLMSTranslatorStructure(OutputType, Hex, ShowStringAsHex, Comments, null);
+            reply.Xml = new GXDLMSTranslatorStructure(OutputType, Hex, ShowStringAsHex, Comments, tags);
             int pos;
             while (data.Position != data.Size)
             {
@@ -420,6 +464,17 @@ namespace Gurux.DLMS
             return MessageToXml(new GXByteBuffer(value));
         }
 
+        private GXCiphering GetCiphering()
+        {
+            GXCiphering c = new Secure.GXCiphering(this.SystemTitle);
+            c.Security = this.Security;
+            c.SystemTitle = this.SystemTitle;
+            c.BlockCipherKey = this.BlockCipherKey;
+            c.AuthenticationKey = this.AuthenticationKey;
+            c.FrameCounter = this.FrameCounter;
+            return c;
+        }
+
         /// <summary>
         /// Convert message to xml.
         /// </summary>
@@ -440,9 +495,10 @@ namespace Gurux.DLMS
                 data.Xml = xml;
                 //If HDLC framing.
                 int offset = value.Position;
+                GXDLMSSettings settings = new GXDLMSSettings(true);
+                settings.Cipher = GetCiphering();
                 if (value.GetUInt8(value.Position) == 0x7e)
                 {
-                    GXDLMSSettings settings = new GXDLMSSettings(true);
                     settings.InterfaceType = Enums.InterfaceType.HDLC;
                     if (GXDLMS.GetData(settings, value, data))
                     {
@@ -519,7 +575,6 @@ namespace Gurux.DLMS
                 //If wrapper.
                 if (value.GetUInt16(value.Position) == 1)
                 {
-                    GXDLMSSettings settings = new GXDLMSSettings(true);
                     settings.InterfaceType = Enums.InterfaceType.WRAPPER;
                     GXDLMS.GetData(settings, value, data);
                     if (!PduOnly)
@@ -686,20 +741,39 @@ namespace Gurux.DLMS
 
         private string PduToXml(GXByteBuffer value, bool omitDeclaration, bool omitNameSpace)
         {
+            GXDLMSTranslatorStructure xml = new GXDLMSTranslatorStructure(OutputType, Hex, ShowStringAsHex, Comments, tags);
+            return PduToXml(xml, value, omitDeclaration, omitNameSpace);
+        }
+
+        private string PduToXml(GXDLMSTranslatorStructure xml, GXByteBuffer value, bool omitDeclaration, bool omitNameSpace)
+        {
             if (value == null || value.Size == 0)
             {
                 throw new ArgumentNullException("value");
             }
-            GXDLMSTranslatorStructure xml = new GXDLMSTranslatorStructure(OutputType, Hex, ShowStringAsHex, Comments, tags);
             GXDLMSSettings settings = new GXDLMSSettings(true);
+            settings.Cipher = GetCiphering();
             GXReplyData data = new GXReplyData();
             byte cmd = value.GetUInt8();
+            byte[] tmp;
             switch (cmd)
             {
                 case (byte)Command.Aarq:
                     value.Position = 0;
-                    settings = new GXDLMSSettings(true);
                     GXAPDU.ParsePDU(settings, settings.Cipher, value, xml);
+                    break;
+                case (byte)Command.InitiateRequest:
+                    value.Position = 0;
+                    settings = new GXDLMSSettings(true);
+                    GXAPDU.ParseInitiate(true, settings, settings.Cipher, value,
+                            xml);
+                    break;
+                case (byte)Command.InitiateResponse:
+                    value.Position = 0;
+                    settings = new GXDLMSSettings(false);
+                    settings.Cipher = GetCiphering();
+                    GXAPDU.ParseInitiate(true, settings, settings.Cipher, value,
+                            xml);
                     break;
                 case 0x81://Ua
                     value.Position = 0;
@@ -708,6 +782,7 @@ namespace Gurux.DLMS
                 case (byte)Command.Aare:
                     value.Position = 0;
                     settings = new GXDLMSSettings(false);
+                    settings.Cipher = GetCiphering();
                     GXAPDU.ParsePDU(settings, settings.Cipher, value, xml);
                     break;
                 case (byte)Command.GetRequest:
@@ -776,12 +851,24 @@ namespace Gurux.DLMS
                 case (byte)Command.GloSetResponse:
                 case (byte)Command.GloMethodRequest:
                 case (byte)Command.GloMethodResponse:
+                    if (settings.Cipher != null && Comments)
+                    {
+                        int originalPosition = value.Position;
+                        --value.Position;
+                        AesGcmParameter p = new AesGcmParameter(settings.Cipher.SystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                        GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
+                        xml.StartComment("Decrypt data:");
+                        PduToXml(xml, data2, omitDeclaration, omitNameSpace);
+                        xml.EndComment();
+                        value.Position = originalPosition;
+                    }
+
                     int cnt = GXCommon.GetObjectCount(value);
                     xml.AppendLine(cmd, "Value", GXCommon.ToHex(value.Data, false, value.Position, value.Size - value.Position));
                     break;
                 case (byte)Command.GeneralGloCiphering:
                     int len = GXCommon.GetObjectCount(value);
-                    byte[] tmp = new byte[len];
+                    tmp = new byte[len];
                     value.Get(tmp);
                     xml.AppendStartTag(Command.GeneralGloCiphering);
                     xml.AppendLine(TranslatorTags.SystemTitle, null,
@@ -928,7 +1015,7 @@ namespace Gurux.DLMS
         private static void HandleAarqAare(XmlNode node, GXDLMSXmlSettings s, int tag)
         {
             byte[] tmp;
-            byte[] conformanceBlock;
+            Conformance c;
             int value;
             switch (tag)
             {
@@ -994,17 +1081,6 @@ namespace Gurux.DLMS
                         bb.Set(tmp);
                         GXAPDU.ParseUserInformation(s.settings,
                                                     s.settings.Cipher, bb, null);
-                        if (s.command == Command.Aarq)
-                        {
-                            if (s.settings.UseLogicalNameReferencing)
-                            {
-                                s.settings.LnSettings.Conformance = s.settings.NegotiatedConformance;
-                            }
-                            else
-                            {
-                                s.settings.SnSettings.Conformance = s.settings.NegotiatedConformance;
-                            }
-                        }
                     }
                     break;
                 case 0xBE00:
@@ -1059,42 +1135,29 @@ namespace Gurux.DLMS
                 case 0xBE03:
                 case 0xBE05:
                     //ProposedConformance or NegotiatedConformance
-                    if (s.settings.UseLogicalNameReferencing)
+                    if (s.settings.IsServer)
                     {
-                        s.settings.LnSettings.Clear();
+                        s.settings.NegotiatedConformance = Conformance.None;
                     }
                     else
                     {
-                        s.settings.SnSettings.Clear();
+                        s.settings.ProposedConformance = Conformance.None;
                     }
                     if (s.OutputType == TranslatorOutputType.StandardXml)
                     {
                         String nodes = node.InnerText;
-
-                        if (s.settings.UseLogicalNameReferencing)
-                        {
-                            conformanceBlock = s.settings.LnSettings.ConformanceBlock;
-                        }
-                        else
-                        {
-                            conformanceBlock = s.settings.SnSettings.ConformanceBlock;
-                        }
                         foreach (String it in nodes.Split(' '))
                         {
                             if (it.Trim() != string.Empty)
                             {
-                                value = (int)TranslatorStandardTags.ValueOfConformance(it.Trim());
-                                if (value < 0x100)
+                                c = TranslatorStandardTags.ValueOfConformance(it.Trim());
+                                if (s.settings.IsServer)
                                 {
-                                    conformanceBlock[2] |= (byte)value;
-                                }
-                                else if (value < 0x10000)
-                                {
-                                    conformanceBlock[1] |= (byte)(value >> 8);
+                                    s.settings.NegotiatedConformance |= c;
                                 }
                                 else
                                 {
-                                    conformanceBlock[0] |= (byte)(value >> 16);
+                                    s.settings.ProposedConformance |= c;
                                 }
                             }
                         }
@@ -1102,26 +1165,14 @@ namespace Gurux.DLMS
                     break;
                 case 0xBE08:
                     //ConformanceBit.
-                    value = (int)Enum.Parse(typeof(Conformance), node.Attributes["Name"].InnerText);
-                    if (s.settings.UseLogicalNameReferencing)
+                    c = (Conformance)Enum.Parse(typeof(Conformance), node.Attributes["Name"].InnerText);
+                    if (s.settings.IsServer)
                     {
-                        conformanceBlock = s.settings.LnSettings.ConformanceBlock;
+                        s.settings.NegotiatedConformance |= c;
                     }
                     else
                     {
-                        conformanceBlock = s.settings.SnSettings.ConformanceBlock;
-                    }
-                    if (value < 0x100)
-                    {
-                        conformanceBlock[2] |= (byte)value;
-                    }
-                    else if (value < 0x10000)
-                    {
-                        conformanceBlock[1] |= (byte)(value >> 8);
-                    }
-                    else
-                    {
-                        conformanceBlock[0] |= (byte)(value >> 16);
+                        s.settings.ProposedConformance |= c;
                     }
                     break;
                 case 0xA2:

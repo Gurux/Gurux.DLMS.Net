@@ -37,8 +37,11 @@ namespace Gurux.DLMS.Secure
 {
     enum CountType
     {
+        /// <summary>
+        /// Cout packet.
+        /// </summary>
+        Packet = -1,
         Tag = 0x1,
-        Data = 0x2,
-        Packet = 0x3
+        Data = 0x2
     }
 }

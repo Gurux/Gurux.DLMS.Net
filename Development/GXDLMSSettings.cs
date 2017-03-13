@@ -43,12 +43,16 @@ namespace Gurux.DLMS
     using Gurux.DLMS.Enums;
     using Gurux.DLMS.Secure;
     using Gurux.DLMS.Internal;
+    using Objects.Enums;
 
     /// <summary>
     /// This class includes DLMS communication settings.
     /// </summary>
     public class GXDLMSSettings
     {
+        private bool useLogicalNameReferencing;
+
+
         ///<summary>
         /// Server frame sequence starting number.
         ///</summary>
@@ -120,9 +124,9 @@ namespace Gurux.DLMS
         private UInt16 maxReceivePDUSize;
 
         /// <summary>
-        /// Proposed conformance block.
+        /// When connection is made client tells what kind of services it want's to use.
         /// </summary>
-        //TODO: Add this when SN and LN settings are removed. internal Conformance ProposedConformance = (Conformance)0;
+        internal Conformance ProposedConformance = (Conformance)0;
 
         /// <summary>
         /// Server tells what functionality is available and client will know it.
@@ -145,6 +149,15 @@ namespace Gurux.DLMS
         /// GXDLMSAssociationShortName and GXDLMSAssociationLogicalName use this is GMAC authentication is used.
         /// </remarks>
         internal GXICipher Cipher
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Used security suite.
+        /// </summary>
+        internal SecuritySuite SecuritySuite
         {
             get;
             set;
@@ -188,20 +201,7 @@ namespace Gurux.DLMS
             IsServer = server;
             Objects = new GXDLMSObjectCollection();
             Limits = new GXDLMSLimits();
-            LnSettings = new GXDLMSLNSettings();
-            SnSettings = new GXDLMSSNSettings();
-            LnSettings.Conformance = Conformance.BlockTransferWithAction |
-                        Conformance.BlockTransferWithSetOrWrite |
-                        Conformance.BlockTransferWithGetOrRead |
-                        Conformance.Set | Conformance.SelectiveAccess |
-                        Conformance.Action | Conformance.MultipleReferences |
-                        Conformance.Get | Conformance.GeneralProtection;
-
-            SnSettings.Conformance = Conformance.InformationReport |
-                        Conformance.Read | Conformance.UnconfirmedWrite |
-                        Conformance.Write | Conformance.ParameterizedAccess |
-                        Conformance.MultipleReferences |
-                        Conformance.GeneralProtection;
+            ProposedConformance = GXDLMSClient.GetInitialConformance(false);
             ResetFrameSequence();
         }
 
@@ -380,24 +380,6 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
-        /// Gets Logical Name settings.
-        ///</summary>
-        public GXDLMSLNSettings LnSettings
-        {
-            get;
-            private set;
-        }
-
-        ///<summary>
-        /// Short name settings.
-        ///</summary>
-        public GXDLMSSNSettings SnSettings
-        {
-            get;
-            private set;
-        }
-
-        ///<summary>
         ///Current block index.
         //////</summary>
         public UInt32 BlockIndex
@@ -529,8 +511,18 @@ namespace Gurux.DLMS
         /// </summary>
         public bool UseLogicalNameReferencing
         {
-            get;
-            set;
+            get
+            {
+                return useLogicalNameReferencing;
+            }
+            set
+            {
+                if (useLogicalNameReferencing != value)
+                {
+                    useLogicalNameReferencing = value;
+                    ProposedConformance = GXDLMSClient.GetInitialConformance(value);
+                }
+            }
         }
 
         /// <summary>

@@ -338,7 +338,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Get used glo message.
         /// </summary>
-        /// <param name="command">Executed command.</param>
+        /// <param name="cmd">Executed command.</param>
         /// <returns>Integer value of glo message.</returns>
         private static byte GetGloMessage(Command cmd)
         {
@@ -450,7 +450,7 @@ namespace Gurux.DLMS
             }
             else
             {
-                if (p.settings.LnSettings.GeneralBlockTransfer)
+                if ((p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) != 0)
                 {
                     reply.SetUInt8((byte)Command.GeneralBlockTransfer);
                     MultipleBlocks(p, reply, ciphering);
@@ -537,7 +537,7 @@ namespace Gurux.DLMS
 
                 //Add attribute descriptor.
                 reply.Set(p.attributeDescriptor);
-                if (p.command != Command.DataNotification && !p.settings.LnSettings.GeneralBlockTransfer)
+                if (p.command != Command.DataNotification && (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0)
                 {
                     //If multiple blocks.
                     if (p.multipleBlocks)
@@ -701,10 +701,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Get all Short Name messages. Client uses this to generate messages.
         /// </summary>
-        /// <param name="settings">DLMS settings.</param>
-        /// <param name="command">DLMS command.</param>
-        /// <param name="count">Attribute descriptor.</param>
-        /// <param name="data">Data.</param>
+        /// <param name="p">DLMS SN Parameters.</param>
         /// <returns>Generated messages.</returns>
         internal static byte[][] GetSnMessages(GXDLMSSNParameters p)
         {
@@ -2261,7 +2258,7 @@ namespace Gurux.DLMS
                     data.Xml.AppendStartTag(TranslatorTags.InitiateError);
                     ServiceError type = (ServiceError)data.Data.GetUInt8();
 
-                    String tag = TranslatorStandardTags.serviceErrorToString(type);
+                    String tag = TranslatorStandardTags.ServiceErrorToString(type);
                     String value = TranslatorStandardTags.GetServiceErrorValue(type,
                                    (byte)data.Data.GetUInt8());
                     data.Xml.AppendLine("x:" + tag, null, value);
@@ -2292,44 +2289,58 @@ namespace Gurux.DLMS
         private static void HandledGloRequest(GXDLMSSettings settings,
                                               GXReplyData data)
         {
-            if (settings.Cipher == null)
-            {
-                throw new Exception(
-                    "Secure connection is not supported.");
-            }
-            //If all frames are read.
-            if ((data.MoreData & RequestTypes.Frame) == 0)
+            if (data.Xml != null)
             {
                 --data.Data.Position;
-                settings.Cipher.Decrypt(settings.SourceSystemTitle, data.Data);
-                // Get command.
-                data.Command = (Command)data.Data.GetUInt8();
             }
             else
             {
-                --data.Data.Position;
+                if (settings.Cipher == null)
+                {
+                    throw new Exception(
+                        "Secure connection is not supported.");
+                }
+                //If all frames are read.
+                if ((data.MoreData & RequestTypes.Frame) == 0)
+                {
+                    --data.Data.Position;
+                    settings.Cipher.Decrypt(settings.SourceSystemTitle, data.Data);
+                    // Get command.
+                    data.Command = (Command)data.Data.GetUInt8();
+                }
+                else
+                {
+                    --data.Data.Position;
+                }
             }
         }
 
         private static void HandledGloResponse(GXDLMSSettings settings,
                                                GXReplyData data, int index)
         {
-            if (settings.Cipher == null)
-            {
-                throw new Exception(
-                    "Secure connection is not supported.");
-            }
-            //If all frames are read.
-            if ((data.MoreData & RequestTypes.Frame) == 0)
+            if (data.Xml != null)
             {
                 --data.Data.Position;
-                GXByteBuffer bb = new GXByteBuffer(data.Data);
-                data.Data.Position = data.Data.Size = index;
-                settings.Cipher.Decrypt(settings.SourceSystemTitle, bb);
-                data.Data.Set(bb);
-                data.Command = Command.None;
-                GetPdu(settings, data);
-                data.CipherIndex = data.Data.Size;
+            }
+            else
+            {
+                if (settings.Cipher == null)
+                {
+                    throw new Exception(
+                        "Secure connection is not supported.");
+                }
+                //If all frames are read.
+                if ((data.MoreData & RequestTypes.Frame) == 0)
+                {
+                    --data.Data.Position;
+                    GXByteBuffer bb = new GXByteBuffer(data.Data);
+                    data.Data.Position = data.Data.Size = index;
+                    settings.Cipher.Decrypt(settings.SourceSystemTitle, bb);
+                    data.Data.Set(bb);
+                    data.Command = Command.None;
+                    GetPdu(settings, data);
+                    data.CipherIndex = data.Data.Size;
+                }
             }
         }
 
@@ -2769,9 +2780,9 @@ namespace Gurux.DLMS
 
             GetDataFromFrame(reply, data);
             // If keepalive or get next frame request.
-            if (data.Xml != null || (frame & 0x1) != 0)
+            if ((frame & 0x1) != 0)
             {
-                if (settings.InterfaceType == InterfaceType.HDLC && data.Data.Size != 0)
+                if (settings.InterfaceType == InterfaceType.HDLC && (data.Error == (int)ErrorCode.Rejected || data.Data.Size != 0))
                 {
                     reply.Position += 3;
                     System.Diagnostics.Debug.Assert(reply.GetUInt8(reply.Position - 1) == 0x7e);

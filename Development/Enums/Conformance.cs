@@ -141,6 +141,10 @@ namespace Gurux.DLMS.Enums
         /// <summary>
         /// Action conformance bit.
         /// </summary>
-        Action = 0x1
+        Action = 0x1,
+        /// <summary>
+        /// Conformance is not used.
+        /// </summary>
+        None = 0
     }
 }

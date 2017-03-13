@@ -261,7 +261,7 @@ namespace Gurux.DLMS.Client.Example
                     objects = comm.GetAssociationView();
                     GXDLMSObjectCollection objs = objects.GetObjects(new ObjectType[] { ObjectType.Register, ObjectType.ExtendedRegister, ObjectType.DemandRegister });
                     Console.WriteLine("Read scalers and units from the device.");
-                    if ((dlms.Conformance & Conformance.MultipleReferences) != 0)
+                    if ((dlms.NegotiatedConformance & Conformance.MultipleReferences) != 0)
                     {
                         List<KeyValuePair<GXDLMSObject, int>> list = new List<KeyValuePair<GXDLMSObject, int>>();
                         foreach (GXDLMSObject it in objs)
@@ -445,7 +445,7 @@ namespace Gurux.DLMS.Client.Example
                         continue;
                     }
                     //All meters are not supporting parameterized read.
-                    if ((dlms.Conformance & (Conformance.ParameterizedAccess | Conformance.SelectiveAccess)) != 0)
+                    if ((dlms.NegotiatedConformance & (Conformance.ParameterizedAccess | Conformance.SelectiveAccess)) != 0)
                     {
                         try
                         {
@@ -477,7 +477,7 @@ namespace Gurux.DLMS.Client.Example
                         }
                     }
                     //All meters are not supporting parameterized read.
-                    if ((dlms.Conformance & (Conformance.ParameterizedAccess | Conformance.SelectiveAccess)) != 0)
+                    if ((dlms.NegotiatedConformance & (Conformance.ParameterizedAccess | Conformance.SelectiveAccess)) != 0)
                     {
                         try
                         {

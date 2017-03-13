@@ -222,37 +222,6 @@ namespace Gurux.DLMS.Internal
         }
 
         /// <summary>
-        /// Reserved for internal use.
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="BitMask"></param>
-        /// <param name="val"></param>
-        internal static void SetBits(ref byte value, byte BitMask, bool val)
-        {
-            value &= (byte)~BitMask;
-            //Set bit.
-            if (val)
-            {
-                value |= BitMask;
-            }
-            else //Clear bit.
-            {
-                value &= (byte)~BitMask;
-            }
-        }
-
-        /// <summary>
-        /// Is bit set.
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="BitMask"></param>
-        /// <returns></returns>
-        internal static bool GetBits(byte value, int BitMask)
-        {
-            return (value & BitMask) != 0;
-        }
-
-        /// <summary>
         /// Get HDLC address from byte array.
         /// </summary>
         /// <param name="GXByteBuffer">Byte array.</param>

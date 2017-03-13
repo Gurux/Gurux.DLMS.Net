@@ -281,59 +281,34 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Functionality what client is ask from the meter meter updates this value and tells what it can offer.
-        /// </summary>
-        /// <remarks>
         /// When connection is made client tells what kind of services it want's to use.
-        /// Meter returns functionality what it can offer.
-        /// </remarks>
-        public Conformance Conformance
+        /// </summary>
+        public Conformance ProposedConformance
         {
             get
             {
-                if (this.UseLogicalNameReferencing)
-                {
-                    return Settings.LnSettings.Conformance;
-                }
-                return Settings.SnSettings.Conformance;
+                return Settings.ProposedConformance;
             }
             set
             {
-                if (this.UseLogicalNameReferencing)
-                {
-                    Settings.LnSettings.Conformance = value;
-                }
-                else
-                {
-                    Settings.SnSettings.Conformance = value;
-                }
+                Settings.ProposedConformance = value;
             }
         }
 
         /// <summary>
-        /// Gets Logical Name settings, read from the device.
+        /// Functionality what server can offer.
         /// </summary>
-        [Obsolete("Use Conformance enum instead.")]
-        public GXDLMSLNSettings LNSettings
+        public Conformance NegotiatedConformance
         {
             get
             {
-                return Settings.LnSettings;
+                return Settings.NegotiatedConformance;
             }
-        }
-
-        /// <summary>
-        /// Gets Short Name settings, read from the device.
-        /// </summary>
-        [Obsolete("Use Conformance enum instead.")]
-        public GXDLMSSNSettings SNSettings
-        {
-            get
+            set
             {
-                return Settings.SnSettings;
+                Settings.NegotiatedConformance = value;
             }
         }
-
 
         /// <summary>
         /// Retrieves the authentication used in communicating with the device.
@@ -2108,6 +2083,29 @@ namespace Gurux.DLMS
             GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, Command.AccessRequest, 0xFF, null, bb, 0xff);
             p.time = new GXDateTime(time);
             return GXDLMS.GetLnMessages(p);
+        }
+
+        /// <summary>
+        /// Get initial Conformance
+        /// </summary>
+        /// <param name="useLogicalNameReferencing">Is logical name referencing used.</param>
+        /// <returns>Initial Conformance.</returns>
+        public static Conformance GetInitialConformance(bool useLogicalNameReferencing)
+        {
+            if (useLogicalNameReferencing)
+            {
+                return Conformance.BlockTransferWithAction |
+                           Conformance.BlockTransferWithSetOrWrite |
+                           Conformance.BlockTransferWithGetOrRead |
+                           Conformance.Set | Conformance.SelectiveAccess |
+                           Conformance.Action | Conformance.MultipleReferences |
+                           Conformance.Get | Conformance.GeneralProtection;
+            }
+            return Conformance.InformationReport |
+                        Conformance.Read | Conformance.UnconfirmedWrite |
+                        Conformance.Write | Conformance.ParameterizedAccess |
+                        Conformance.MultipleReferences |
+                        Conformance.GeneralProtection;
         }
     }
 }

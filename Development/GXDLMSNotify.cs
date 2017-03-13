@@ -71,32 +71,6 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Is General block transfer supported.
-        /// </summary>
-        public bool GeneralBlockTransfer
-        {
-            get
-            {
-                if (Settings.UseLogicalNameReferencing)
-                {
-                    return Settings.LnSettings.GeneralBlockTransfer;
-                }
-                return Settings.SnSettings.GeneralBlockTransfer;
-            }
-            set
-            {
-                if (Settings.UseLogicalNameReferencing)
-                {
-                    Settings.LnSettings.GeneralBlockTransfer = value;
-                }
-                else
-                {
-                    Settings.SnSettings.GeneralBlockTransfer = value;
-                }
-            }
-        }
-
-        /// <summary>
         /// Used priority in General Block Transfer.
         /// </summary>
         public Priority Priority
@@ -271,7 +245,7 @@ namespace Gurux.DLMS
                 GXDLMSSNParameters p = new GXDLMSSNParameters(Settings, Command.DataNotification, 1, 0, new GXByteBuffer(data), null);
                 reply = GXDLMS.GetSnMessages(p);
             }
-            if (!GeneralBlockTransfer && reply.Length != 1)
+            if ((Settings.ProposedConformance & Conformance.GeneralBlockTransfer) == 0 && reply.Length != 1)
             {
                 throw new ArgumentException("Data is not fit to one PDU. Use general block transfer.");
             }

@@ -208,6 +208,37 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Start comment section.
+        /// </summary>
+        /// <param name="comment">Comment to add.</param>
+        public void StartComment(string comment)
+        {
+            if (Comments)
+            {
+                sb.Append(' ', 2 * offset);
+                sb.Append("<!--");
+                sb.Append(comment);
+                sb.Append('\r');
+                sb.Append('\n');
+                ++offset;
+            }
+        }
+        /// <summary>
+        /// End comment section.
+        /// </summary>
+        public void EndComment()
+        {
+            if (Comments)
+            {
+                --offset;
+                sb.Append(' ', 2 * offset);
+                sb.Append("-->");
+                sb.Append('\r');
+                sb.Append('\n');
+            }
+        }
+
+        /// <summary>
         /// Append comment.
         /// </summary>
         /// <param name="comment">Comment to add.</param>

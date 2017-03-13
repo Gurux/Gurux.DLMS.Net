@@ -36,6 +36,8 @@
 using System.Text;
 using Gurux.DLMS.Enums;
 using System;
+using Gurux.DLMS.Objects.Enums;
+
 namespace Gurux.DLMS.Secure
 {
     public class GXDLMSSecureClient : GXDLMSClient
@@ -75,6 +77,21 @@ namespace Gurux.DLMS.Secure
         {
             get;
             private set;
+        }
+
+        /// <summary>
+        /// Used security suite.
+        /// </summary>
+        internal SecuritySuite SecuritySuite
+        {
+            get
+            {
+                return Settings.SecuritySuite;
+            }
+            set
+            {
+                Settings.SecuritySuite = value;
+            }
         }
 
         /// <summary>

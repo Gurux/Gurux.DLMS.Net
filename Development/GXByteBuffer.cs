@@ -407,16 +407,16 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="index">Zero based byte index where value is set.</param>
         /// <param name="value"> The value to be added.</param>
-        public void SetUInt32(int index, UInt32 item)
+        public void SetUInt32(int index, UInt32 value)
         {
             if (index + 4 >= Capacity)
             {
                 Capacity = (index + ArrayCapacity);
             }
-            Data[index] = (byte)((item >> 24) & 0xFF);
-            Data[index + 1] = (byte)((item >> 16) & 0xFF);
-            Data[index + 2] = (byte)((item >> 8) & 0xFF);
-            Data[index + 3] = (byte)(item & 0xFF);
+            Data[index] = (byte)((value >> 24) & 0xFF);
+            Data[index + 1] = (byte)((value >> 16) & 0xFF);
+            Data[index + 2] = (byte)((value >> 8) & 0xFF);
+            Data[index + 3] = (byte)(value & 0xFF);
         }
 
         /// <summary>
@@ -424,16 +424,16 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="index">Zero based byte index where value is set.</param>
         /// <param name="value"> The value to be added.</param>
-        public void SetInt32(int index, Int32 item)
+        public void SetInt32(int index, Int32 value)
         {
             if (index + 4 >= Capacity)
             {
                 Capacity = (index + ArrayCapacity);
             }
-            Data[index] = (byte)((item >> 24) & 0xFF);
-            Data[index + 1] = (byte)((item >> 16) & 0xFF);
-            Data[index + 2] = (byte)((item >> 8) & 0xFF);
-            Data[index + 3] = (byte)(item & 0xFF);
+            Data[index] = (byte)((value >> 24) & 0xFF);
+            Data[index + 1] = (byte)((value >> 16) & 0xFF);
+            Data[index + 2] = (byte)((value >> 8) & 0xFF);
+            Data[index + 3] = (byte)(value & 0xFF);
         }
 
         /// <summary>
@@ -482,7 +482,7 @@ namespace Gurux.DLMS
         /// Push the given UInt64 into this buffer at the given position.
         /// </summary>
         /// <param name="index">Zero based byte index where value is set.</param>
-        /// <param name="value"> The value to be added.</param>
+        /// <param name="item"> The value to be added.</param>
         public void SetUInt64(int index, UInt64 item)
         {
             if (index + 8 >= Capacity)
@@ -503,7 +503,7 @@ namespace Gurux.DLMS
         /// Push the given UInt64 into this buffer at the given position.
         /// </summary>
         /// <param name="index">Zero based byte index where value is set.</param>
-        /// <param name="value"> The value to be added.</param>
+        /// <param name="item"> The value to be added.</param>
         public void SetInt64(int index, Int64 item)
         {
             if (index + 8 >= Capacity)

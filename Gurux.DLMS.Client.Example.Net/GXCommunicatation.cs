@@ -284,29 +284,23 @@ namespace Gurux.DLMS.Client.Example
                     WriteTrace("<- " + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(arr, true));
                     Media.Send(arr, null);
                     p.Reply = null;
-                    if (!Media.Receive(p))
+
+                    p.WaitTime = 2000;
+                    //Note! All meters do not echo this.
+                    Media.Receive(p);
+                    if (p.Reply != null)
                     {
-                        //Try to move away from mode E.
-                        GXReplyData reply = new GXReplyData();
-                        ReadDLMSPacket(Client.DisconnectRequest(), reply);
-                        data = "Failed to receive reply from the device in given time.";
-                        Console.WriteLine(data);
-                        throw new Exception(data);
+                        WriteTrace("-> " + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(ASCIIEncoding.ASCII.GetBytes(p.Reply), true));
+                        Console.WriteLine("Received: " + p.Reply);
                     }
-                    WriteTrace("-> " + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(ASCIIEncoding.ASCII.GetBytes(p.Reply), true));
-                    Console.WriteLine("Received: " + p.Reply);
-                    if (serial != null)
-                    {
-                        System.Threading.Thread.Sleep(400);
-                        serial.Close();
-                        serial.BaudRate = BaudRate;
-                        serial.DataBits = 8;
-                        serial.Parity = Parity.None;
-                        serial.StopBits = StopBits.One;
-                        System.Threading.Thread.Sleep(400);
-                        serial.Open();
-                        serial.ResetSynchronousBuffer();
-                    }
+                    Media.Close();
+                    serial.BaudRate = BaudRate;
+                    serial.DataBits = 8;
+                    serial.Parity = Parity.None;
+                    serial.StopBits = StopBits.One;
+                    Media.Open();
+                    //Some meters need this sleep. Do not remove.
+                    Thread.Sleep(1000);
                 }
             }
         }
@@ -373,7 +367,7 @@ namespace Gurux.DLMS.Client.Example
             //Parse reply.
             Client.ParseAAREResponse(reply.Data);
             reply.Clear();
-            //Get challenge Is HSL authentication is used.
+            //Get challenge Is HLS authentication is used.
             if (Client.IsAuthenticationRequired)
             {
                 foreach (byte[] it in Client.GetApplicationAssociationRequest())
