@@ -231,9 +231,9 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Frame counter. AKA Invocation Counter.
+        /// Invocation Counter.
         /// </summary>
-        public UInt32 FrameCounter
+        public UInt32 InvocationCounter
         {
             get;
             set;
@@ -471,7 +471,7 @@ namespace Gurux.DLMS
             c.SystemTitle = this.SystemTitle;
             c.BlockCipherKey = this.BlockCipherKey;
             c.AuthenticationKey = this.AuthenticationKey;
-            c.FrameCounter = this.FrameCounter;
+            c.InvocationCounter = this.InvocationCounter;
             return c;
         }
 
@@ -488,11 +488,11 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentNullException("value");
             }
+            GXReplyData data = new GXReplyData();
+            GXDLMSTranslatorStructure xml = new GXDLMSTranslatorStructure(OutputType, Hex, ShowStringAsHex, Comments, tags);
+            data.Xml = xml;
             try
             {
-                GXReplyData data = new GXReplyData();
-                GXDLMSTranslatorStructure xml = new GXDLMSTranslatorStructure(OutputType, Hex, ShowStringAsHex, Comments, tags);
-                data.Xml = xml;
                 //If HDLC framing.
                 int offset = value.Position;
                 GXDLMSSettings settings = new GXDLMSSettings(true);
@@ -656,7 +656,7 @@ namespace Gurux.DLMS
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.Write(ex.ToString());
+                return xml.sb.ToString();
             }
             throw new ArgumentNullException("Invalid DLMS framing.");
         }

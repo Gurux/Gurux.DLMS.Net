@@ -151,6 +151,16 @@ namespace Gurux.DLMS
             list.Add((int)(Command.AccessResponse) << 8 | (byte)AccessServiceCommandType.Get, "AccessResponseGet");
             list.Add((int)(Command.AccessResponse) << 8 | (byte)AccessServiceCommandType.Set, "AccessResponseSet");
             list.Add((int)(Command.AccessResponse) << 8 | (byte)AccessServiceCommandType.Action, "AccessResponseAction");
+            list.Add((int)TranslatorTags.AccessRequestBody, "AccessRequestBody");
+            list.Add((int)TranslatorTags.ListOfAccessRequestSpecification, "AccessRequestSpecification");
+            list.Add((int)TranslatorTags.AccessRequestSpecification, "_AccessRequestSpecification");
+            list.Add((int)TranslatorTags.AccessRequestListOfData, "AccessRequestListOfData");
+            list.Add((int)TranslatorTags.AccessResponseBody, "AccessResponseBody");
+            list.Add((int)TranslatorTags.ListOfAccessResponseSpecification, "AccessResponseSpecification");
+            list.Add((int)TranslatorTags.AccessResponseSpecification, "_AccessResponseSpecification");
+            list.Add((int)TranslatorTags.AccessResponseListOfData, "AccessResponseListOfData");
+            list.Add((int)TranslatorTags.Service, "Service");
+            list.Add((int)TranslatorTags.ServiceError, "ServiceError");
         }
 
         /// <summary>
@@ -172,6 +182,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, Command.GloReadResponse, "glo_ReadResponse");
             GXDLMSTranslator.AddTag(list, Command.GloWriteRequest, "glo_WriteRequest");
             GXDLMSTranslator.AddTag(list, Command.GloWriteResponse, "glo_WriteResponse");
+            GXDLMSTranslator.AddTag(list, Command.GeneralGloCiphering, "GeneralGloCiphering");
         }
 
         /// <summary>

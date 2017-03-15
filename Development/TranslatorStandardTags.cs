@@ -263,6 +263,9 @@ namespace Gurux.DLMS
                      "x:Access-Response-Specification");
             list.Add((int)TranslatorTags.AccessResponseListOfData,
                      "x:access-response-list-of-data");
+
+            list.Add((int)TranslatorTags.Service, "x:service");
+            list.Add((int)TranslatorTags.ServiceError, "x:service-error");
         }
 
         /// <summary>
@@ -272,18 +275,19 @@ namespace Gurux.DLMS
         /// <param name="list"></param>
         internal static void GetGloTags(TranslatorOutputType type, SortedList<int, string> list)
         {
-            GXDLMSTranslator.AddTag(list, Command.GloInitiateRequest, "glo-initiate-request");
-            GXDLMSTranslator.AddTag(list, Command.GloInitiateResponse, "glo-initiate-response");
-            GXDLMSTranslator.AddTag(list, Command.GloGetRequest, "glo-get-request");
-            GXDLMSTranslator.AddTag(list, Command.GloGetResponse, "glo-get-response");
-            GXDLMSTranslator.AddTag(list, Command.GloSetRequest, "glo-set-request");
-            GXDLMSTranslator.AddTag(list, Command.GloSetResponse, "glo-set-response");
-            GXDLMSTranslator.AddTag(list, Command.GloMethodRequest, "glo-action-request");
-            GXDLMSTranslator.AddTag(list, Command.GloMethodResponse, "glo-action-response");
-            GXDLMSTranslator.AddTag(list, Command.GloReadRequest, "glo-read-request");
-            GXDLMSTranslator.AddTag(list, Command.GloReadResponse, "glo-read-response");
-            GXDLMSTranslator.AddTag(list, Command.GloWriteRequest, "glo-write-request");
-            GXDLMSTranslator.AddTag(list, Command.GloWriteResponse, "glo-write-response");
+            GXDLMSTranslator.AddTag(list, Command.GloInitiateRequest, "x:glo-initiate-request");
+            GXDLMSTranslator.AddTag(list, Command.GloInitiateResponse, "x:glo-initiate-response");
+            GXDLMSTranslator.AddTag(list, Command.GloGetRequest, "x:glo-get-request");
+            GXDLMSTranslator.AddTag(list, Command.GloGetResponse, "x:glo-get-response");
+            GXDLMSTranslator.AddTag(list, Command.GloSetRequest, "x:glo-set-request");
+            GXDLMSTranslator.AddTag(list, Command.GloSetResponse, "x:glo-set-response");
+            GXDLMSTranslator.AddTag(list, Command.GloMethodRequest, "x:glo-action-request");
+            GXDLMSTranslator.AddTag(list, Command.GloMethodResponse, "x:glo-action-response");
+            GXDLMSTranslator.AddTag(list, Command.GloReadRequest, "x:glo-read-request");
+            GXDLMSTranslator.AddTag(list, Command.GloReadResponse, "x:glo-read-response");
+            GXDLMSTranslator.AddTag(list, Command.GloWriteRequest, "x:glo-write-request");
+            GXDLMSTranslator.AddTag(list, Command.GloWriteResponse, "x:glo-write-response");
+            GXDLMSTranslator.AddTag(list, Command.GeneralGloCiphering, "x:general-glo-ciphering");
         }
 
         /// <summary>

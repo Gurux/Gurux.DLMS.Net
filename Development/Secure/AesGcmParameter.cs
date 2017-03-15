@@ -55,7 +55,7 @@ namespace Gurux.DLMS.Secure
             set;
         }
 
-        public UInt32 FrameCounter
+        public UInt32 InvocationCounter
         {
             get;
             set;
@@ -92,21 +92,21 @@ namespace Gurux.DLMS.Secure
         /// </summary>
         /// <param name="tag">Command.</param>
         /// <param name="security"></param>
-        /// <param name="frameCounter"></param>
+        /// <param name="invocationCounter">Invocation counter.</param>
         /// <param name="systemTitle"></param>
         /// <param name="blockCipherKey"></param>
         /// <param name="authenticationKey"></param>
         public AesGcmParameter(
             byte tag,
             Gurux.DLMS.Enums.Security security,
-            UInt32 frameCounter,
+            UInt32 invocationCounter,
             byte[] systemTitle,
             byte[] blockCipherKey,
             byte[] authenticationKey)
         {
             Tag = tag;
             Security = security;
-            FrameCounter = frameCounter;
+            InvocationCounter = invocationCounter;
             SystemTitle = systemTitle;
             BlockCipherKey = blockCipherKey;
             AuthenticationKey = authenticationKey;
@@ -135,8 +135,8 @@ namespace Gurux.DLMS.Secure
             StringBuilder sb = new StringBuilder();
             sb.Append("Security: ");
             sb.Append(Security);
-            sb.Append(" FrameCounter: ");
-            sb.Append(FrameCounter);
+            sb.Append(" Invocation Counter: ");
+            sb.Append(InvocationCounter);
             sb.Append(" SystemTitle: ");
             sb.Append(GXCommon.ToHex(SystemTitle, true));
             sb.Append(" AuthenticationKey: ");

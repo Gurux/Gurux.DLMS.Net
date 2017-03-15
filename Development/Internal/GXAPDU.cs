@@ -439,7 +439,7 @@ namespace Gurux.DLMS.Internal
             UInt32 v = bb.GetUInt32();
             if (settings.IsServer)
             {
-                settings.ProposedConformance = (Conformance)v;
+                settings.NegotiatedConformance = (Conformance)v & settings.ProposedConformance;
                 if (xml != null)
                 {
                     xml.AppendStartTag(TranslatorGeneralTags.ProposedConformance);
@@ -588,7 +588,7 @@ namespace Gurux.DLMS.Internal
                         tag = data.GetUInt8();
                         xml.StartComment("Decrypted data:");
                         xml.AppendLine("Security: " + p.Security);
-                        xml.AppendLine("Invocation Counter: " + p.FrameCounter);
+                        xml.AppendLine("Invocation Counter: " + p.InvocationCounter);
                         Parse(initiateRequest, settings, cipher, data, xml, tag);
                         xml.EndComment();
                     }
@@ -623,7 +623,7 @@ namespace Gurux.DLMS.Internal
                         tag = data.GetUInt8();
                         xml.StartComment("Decrypted data:");
                         xml.AppendLine("Security: " + p.Security);
-                        xml.AppendLine("Invocation Counter: " + p.FrameCounter);
+                        xml.AppendLine("Invocation Counter: " + p.InvocationCounter);
                         Parse(initiateRequest, settings, cipher, data, xml, tag);
                         xml.EndComment();
                     }

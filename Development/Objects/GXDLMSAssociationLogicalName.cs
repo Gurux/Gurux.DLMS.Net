@@ -198,7 +198,7 @@ namespace Gurux.DLMS.Objects
                     if (settings.Authentication == Authentication.HighGMAC)
                     {
                         secret = settings.Cipher.SystemTitle;
-                        ic = settings.Cipher.FrameCounter;
+                        ic = settings.Cipher.InvocationCounter;
                     }
                     else
                     {

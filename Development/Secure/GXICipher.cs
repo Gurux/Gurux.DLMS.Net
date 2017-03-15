@@ -103,7 +103,7 @@ namespace Gurux.DLMS.Secure
         /// <summary>
         /// Frame counter. Invocation counter.
         /// </summary>
-        UInt32 FrameCounter
+        UInt32 InvocationCounter
         {
             get;
         }

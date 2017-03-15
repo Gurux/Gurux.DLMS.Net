@@ -397,7 +397,7 @@ namespace Gurux.DLMS.Secure
         /// <summary>
         /// Encrypt data block.
         /// </summary>
-        /// <param name="KW"></param>
+        /// <param name="key"></param>
         void EncryptBlock(uint[,] key)
         {
             int r;

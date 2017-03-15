@@ -293,14 +293,17 @@ namespace Gurux.DLMS.Client.Example
                         WriteTrace("-> " + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(ASCIIEncoding.ASCII.GetBytes(p.Reply), true));
                         Console.WriteLine("Received: " + p.Reply);
                     }
-                    Media.Close();
-                    serial.BaudRate = BaudRate;
-                    serial.DataBits = 8;
-                    serial.Parity = Parity.None;
-                    serial.StopBits = StopBits.One;
-                    Media.Open();
-                    //Some meters need this sleep. Do not remove.
-                    Thread.Sleep(1000);
+                    if (serial != null)
+                    {
+                        Media.Close();
+                        serial.BaudRate = BaudRate;
+                        serial.DataBits = 8;
+                        serial.Parity = Parity.None;
+                        serial.StopBits = StopBits.One;
+                        Media.Open();
+                        //Some meters need this sleep. Do not remove.
+                        Thread.Sleep(1000);
+                    }
                 }
             }
         }

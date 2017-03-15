@@ -65,10 +65,7 @@ namespace Gurux.DLMS.Secure
         /// <remarks>
         /// Default values are from the Green Book.
         /// </remarks>
-        /// <param name="frameCounter">Default frame counter value. Set to Zero.</param>
         /// <param name="title">System title.</param>
-        /// <param name="blockCipherKey"></param>
-        /// <param name="authenticationKey"></param>
         public GXCiphering(byte[] title)
         {
             Security = Gurux.DLMS.Enums.Security.None;
@@ -83,14 +80,14 @@ namespace Gurux.DLMS.Secure
         /// <remarks>
         /// Default values are from the Green Book.
         /// </remarks>
-        /// <param name="frameCounter">Default frame counter value. Set to Zero.</param>
+        /// <param name="invocationCounter">Default invocation counter value. Set to Zero.</param>
         /// <param name="title">System title.</param>
         /// <param name="blockCipherKey"></param>
         /// <param name="authenticationKey"></param>
-        public GXCiphering(UInt32 frameCounter, byte[] title, byte[] blockCipherKey, byte[] authenticationKey)
+        public GXCiphering(UInt32 invocationCounter, byte[] title, byte[] blockCipherKey, byte[] authenticationKey)
         {
             Security = Gurux.DLMS.Enums.Security.None;
-            FrameCounter = frameCounter;
+            InvocationCounter = invocationCounter;
             SystemTitle = title;
             BlockCipherKey = blockCipherKey;
             AuthenticationKey = authenticationKey;
@@ -108,7 +105,7 @@ namespace Gurux.DLMS.Secure
         /// <summary>
         /// Frame counter.
         /// </summary>
-        public UInt32 FrameCounter
+        public UInt32 InvocationCounter
         {
             get;
             set;
@@ -178,10 +175,10 @@ namespace Gurux.DLMS.Secure
         {
             if (Security != Gurux.DLMS.Enums.Security.None)
             {
-                AesGcmParameter p = new AesGcmParameter(tag, Security, FrameCounter,
+                AesGcmParameter p = new AesGcmParameter(tag, Security, InvocationCounter,
                                                         title, BlockCipherKey, AuthenticationKey);
                 byte[] tmp = GXDLMSChippering.EncryptAesGcm(p, data);
-                ++FrameCounter;
+                ++InvocationCounter;
                 return tmp;
             }
             return data;
@@ -199,7 +196,7 @@ namespace Gurux.DLMS.Secure
         public void Reset()
         {
             Security = Gurux.DLMS.Enums.Security.None;
-            FrameCounter = 0;
+            InvocationCounter = 0;
         }
 
         bool GXICipher.IsCiphered()
