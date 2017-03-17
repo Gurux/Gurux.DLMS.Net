@@ -52,6 +52,7 @@ namespace Gurux.DLMS
         internal static void GetGeneralTags(TranslatorOutputType type, SortedList<int, string> list)
         {
             GXDLMSTranslator.AddTag(list, Command.Snrm, "Snrm");
+            GXDLMSTranslator.AddTag(list, Command.UnacceptableFrame, "UnacceptableFrame");
             GXDLMSTranslator.AddTag(list, Command.Ua, "Ua");
             GXDLMSTranslator.AddTag(list, Command.Aarq, "x:aarq");
             GXDLMSTranslator.AddTag(list, Command.Aare, "x:aare");

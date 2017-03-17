@@ -44,7 +44,7 @@ namespace Gurux.DLMS.Secure
     using Gurux.DLMS.Enums;
 
     public abstract class GXDLMSSecureServer : GXDLMSServer
-    {       
+    {
         ///<summary>
         /// Constructor.
         ///</summary>
@@ -54,10 +54,46 @@ namespace Gurux.DLMS.Secure
         ///<param name="type">
         /// Interface type. 
         ///</param>
+        [Obsolete("Use other constructor.")]
         public GXDLMSSecureServer(bool logicalNameReferencing, InterfaceType type) :
             base(logicalNameReferencing, type)
         {
             Ciphering = new GXCiphering(ASCIIEncoding.ASCII.GetBytes("ABCDEFGH"));
+            Settings.Cipher = Ciphering;
+        }
+
+        ///<summary>
+        /// Constructor.
+        ///</summary>
+        ///<param name="logicalNameReferencing">
+        /// Is logical name referencing used. 
+        ///</param>
+        ///<param name="type">
+        /// Interface type. 
+        ///</param>
+        ///<param name="flagID">
+        /// Three letters FLAG ID. 
+        ///</param>
+        ///<param name="serialNumber">
+        /// Meter serial number. Size of serial number is 5 bytes.
+        ///</param>
+        public GXDLMSSecureServer(bool logicalNameReferencing, InterfaceType type, string flagID, UInt64 serialNumber) :
+            base(logicalNameReferencing, type)
+        {
+            if (flagID == null || flagID.Length != 3)
+            {
+                throw new ArgumentOutOfRangeException("Invalid FLAG ID.");
+            }
+            if (flagID == null || flagID.Length != 3)
+            {
+                throw new ArgumentOutOfRangeException("Invalid FLAG ID.");
+            }
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.Add(flagID);
+            GXByteBuffer serial = new GXByteBuffer();
+            serial.SetUInt64(serialNumber);
+            bb.Set(serial.Data, 3, 5);
+            Ciphering = new GXCiphering(bb.Array());
             Settings.Cipher = Ciphering;
         }
 
@@ -100,6 +136,6 @@ namespace Gurux.DLMS.Secure
                 Settings.StoCChallenge = value;
             }
         }
-        
+
     }
 }

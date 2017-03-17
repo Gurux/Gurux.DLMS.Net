@@ -61,6 +61,8 @@ namespace Gurux.DLMS
             int cnt = 0xFF;
             byte type = 0;
             List<ValueEventArgs> list = new List<ValueEventArgs>();
+            List<ValueEventArgs> reads = new List<ValueEventArgs>();
+            List<ValueEventArgs> actions = new List<ValueEventArgs>();
             //If get next frame.
             if (xml == null && data.Size == 0)
             {
@@ -78,8 +80,6 @@ namespace Gurux.DLMS
             else
             {
                 cnt = GXCommon.GetObjectCount(data);
-                List<ValueEventArgs> reads = new List<ValueEventArgs>();
-                List<ValueEventArgs> actions = new List<ValueEventArgs>();
                 if (xml != null)
                 {
                     xml.AppendStartTag(Command.ReadRequest, "Qty", xml.IntegerToHex(cnt, 2));
@@ -138,11 +138,22 @@ namespace Gurux.DLMS
             }
 
             byte requestType = (byte)GetReadData(settings, list.ToArray(), bb);
+
+            if (reads.Count != 0)
+            {
+                server.NotifyPostRead(reads.ToArray());
+            }
+
+            if (actions.Count != 0)
+            {
+                server.NotifyPostAction(actions.ToArray());
+            }
+
             GXDLMSSNParameters p = new GXDLMSSNParameters(settings, Command.ReadResponse, list.Count, requestType, null, bb);
             GXDLMS.GetSNPdu(p, replyData);
             if (server.transaction == null && (bb.Size != bb.Position || settings.Count != settings.Index))
             {
-                List<ValueEventArgs> reads = new List<ValueEventArgs>();
+                reads = new List<ValueEventArgs>();
                 foreach (var it in list)
                 {
                     reads.Add(it);
@@ -155,7 +166,6 @@ namespace Gurux.DLMS
                 return;
             }
         }
-
 
         ///<summary>
         /// Handle write request.
@@ -311,6 +321,7 @@ namespace Gurux.DLMS
                         else if (!e.Handled)
                         {
                             (target.Item as IGXDLMSBase).SetValue(settings, e);
+                            server.NotifyPostWrite(new ValueEventArgs[] { e });
                         }
                     }
                 }
@@ -484,6 +495,15 @@ namespace Gurux.DLMS
                     server.NotifyAction(actions.ToArray());
                 }
                 GetReadData(settings, server.transaction.targets, server.transaction.data);
+                if (reads.Count != 0)
+                {
+                    server.NotifyPostRead(reads.ToArray());
+                }
+
+                if (actions.Count != 0)
+                {
+                    server.NotifyPostAction(actions.ToArray());
+                }
             }
             settings.IncreaseBlockIndex();
             GXDLMSSNParameters p = new GXDLMSSNParameters(settings, Command.ReadResponse, 1,

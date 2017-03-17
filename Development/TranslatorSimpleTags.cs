@@ -52,6 +52,7 @@ namespace Gurux.DLMS
         internal static void GetGeneralTags(TranslatorOutputType type, SortedList<int, string> list)
         {
             GXDLMSTranslator.AddTag(list, Command.Snrm, "Snrm");
+            GXDLMSTranslator.AddTag(list, Command.UnacceptableFrame, "UnacceptableFrame");
             GXDLMSTranslator.AddTag(list, Command.Ua, "Ua");
             GXDLMSTranslator.AddTag(list, Command.Aarq, "AssociationRequest");
             GXDLMSTranslator.AddTag(list, Command.Aare, "AssociationResponse");
@@ -81,7 +82,6 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.ACSEServiceUser, "ACSEServiceUser");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.CallingAPTitle, "CallingAPTitle");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.RespondingAPTitle, "RespondingAPTitle");
-            GXDLMSTranslator.AddTag(list, Command.Rejected, "Rejected");
         }
 
         /// <summary>
@@ -238,7 +238,7 @@ namespace Gurux.DLMS
         {
             list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.None, "None");
             list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array, "Array");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Bcd, "BCD");
+            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Bcd, "Bcd");
             list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.BitString,
                      "BitString");
             list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Boolean,

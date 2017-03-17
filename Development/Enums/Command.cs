@@ -110,9 +110,9 @@ namespace Gurux.DLMS
         MethodResponse = 0xC7,
 
         /// <summary>
-        /// Command rejected.
+        /// Unacceptable Frame.
         /// </summary>
-        Rejected = 0x97,
+        UnacceptableFrame = 0x97,
 
         /// <summary>
         /// SNRM request.

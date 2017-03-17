@@ -241,6 +241,7 @@ namespace Gurux.DLMS
                     else
                     {
                         actionReply = (obj as IGXDLMSBase).Invoke(settings, e);
+                        server.NotifyPostAction(new ValueEventArgs[] { e });
                     }
                     //Set default action reply if not given.
                     if (actionReply != null && e.Error == 0)
@@ -374,6 +375,7 @@ namespace Gurux.DLMS
                     {
                         GXDLMS.AppendData(settings, obj, attributeIndex, bb, value);
                     }
+                    server.NotifyPostRead(new ValueEventArgs[] { e });
                     status = e.Error;
                 }
             }
@@ -586,6 +588,7 @@ namespace Gurux.DLMS
                 }
                 ++pos;
             }
+            server.NotifyPostRead(list.ToArray());
             GXDLMSLNParameters p = new GXDLMSLNParameters(settings, Command.GetResponse, 3, null, bb, 0xFF);
             GXDLMS.GetLNPdu(p, replyData);
         }
@@ -694,6 +697,7 @@ namespace Gurux.DLMS
                         else if (!e.Handled && !p.multipleBlocks)
                         {
                             (obj as IGXDLMSBase).SetValue(settings, e);
+                            server.NotifyPostWrite(list);
                         }
                     }
                     catch (Exception)
@@ -743,6 +747,7 @@ namespace Gurux.DLMS
                         if (!server.transaction.targets[0].Handled && !p.multipleBlocks)
                         {
                             (server.transaction.targets[0].Target as IGXDLMSBase).SetValue(settings, server.transaction.targets[0]);
+                            server.NotifyPostWrite(server.transaction.targets);
                         }
                     }
                     catch (Exception)

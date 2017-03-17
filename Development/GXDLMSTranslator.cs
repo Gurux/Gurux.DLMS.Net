@@ -452,6 +452,16 @@ namespace Gurux.DLMS
             return data.Data.Array();
         }
 
+
+        /// <summary>
+        ///  Clear MessageToXml internal settings.
+        /// </summary>
+        public void Clear()
+        {
+            multipleFrames = false;
+            pduFrames.Clear();
+        }
+
         /// <summary>
         /// Convert message to xml.
         /// </summary>
@@ -466,13 +476,17 @@ namespace Gurux.DLMS
 
         private GXCiphering GetCiphering()
         {
-            GXCiphering c = new Secure.GXCiphering(this.SystemTitle);
-            c.Security = this.Security;
-            c.SystemTitle = this.SystemTitle;
-            c.BlockCipherKey = this.BlockCipherKey;
-            c.AuthenticationKey = this.AuthenticationKey;
-            c.InvocationCounter = this.InvocationCounter;
-            return c;
+            if (this.Security != Security.None)
+            {
+                GXCiphering c = new Secure.GXCiphering(this.SystemTitle);
+                c.Security = this.Security;
+                c.SystemTitle = this.SystemTitle;
+                c.BlockCipherKey = this.BlockCipherKey;
+                c.AuthenticationKey = this.AuthenticationKey;
+                c.InvocationCounter = this.InvocationCounter;
+                return c;
+            }
+            return null;
         }
 
         /// <summary>
@@ -555,6 +569,7 @@ namespace Gurux.DLMS
                                 }
                                 else
                                 {
+                                    data.Data.Position = 0;
                                     xml.AppendLine(PduToXml(data.Data));
                                 }
                                 //Remove \r\n.
@@ -1956,7 +1971,7 @@ namespace Gurux.DLMS
                     GXCommon.SetObjectCount(s.data.Size, bb);
                     bb.Set(s.data);
                     break;
-                case Command.Rejected:
+                case Command.UnacceptableFrame:
                     break;
                 case Command.Snrm:
                     s.settings.IsServer = false;

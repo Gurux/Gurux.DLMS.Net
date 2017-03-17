@@ -1224,22 +1224,52 @@ namespace Gurux.DLMS.Internal
             value = tmp;
             if (info.xml != null)
             {
-                if (info.xml.Comments)
+                if (info.xml.Comments && tmp.Length != 0)
                 {
                     // This might be logical name.
                     if (tmp.Length == 6 && tmp[5] == 0xFF)
                     {
                         info.xml.AppendComment(GXDLMSObject.ToLogicalName(tmp));
                     }
-                    else if (tmp.Length != 0)
+                    else
                     {
                         bool isString = true;
-                        foreach (char it in tmp)
+                        //Try to move octect string to DateTie, Date or time.
+                        if (tmp.Length == 12 || tmp.Length == 5 || tmp.Length == 4)
                         {
-                            if (!char.IsLetterOrDigit(it))
+                            try
                             {
+                                DataType type;
+                                if (tmp.Length == 12)
+                                {
+                                    type = DataType.DateTime;
+                                }
+                                else if (tmp.Length == 5)
+                                {
+                                    type = DataType.Date;
+                                }
+                                else //if (tmp.Length == 4)
+                                {
+                                    type = DataType.Time;
+                                }
+                                object dt = GXDLMSClient.ChangeType(tmp, type);
+                                info.xml.AppendComment(dt.ToString());
                                 isString = false;
-                                break;
+                            }
+                            catch (Exception)
+                            {
+                                isString = true;
+                            }
+                        }
+                        if (isString)
+                        {
+                            foreach (char it in tmp)
+                            {
+                                if (!char.IsLetterOrDigit(it))
+                                {
+                                    isString = false;
+                                    break;
+                                }
                             }
                         }
                         if (isString)

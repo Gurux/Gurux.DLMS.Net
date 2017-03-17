@@ -114,19 +114,28 @@ namespace Gurux.DLMS
         /// Get selected value.
         /// </summary>
         /// <param name="e">Handle get request.</param>
+        [Obsolete("Use Get instead")]
         public abstract void Update(UpdateType type, ValueEventArgs e);
 
         /// <summary>
         /// Read selected item.
         /// </summary>
         /// <param name="args">Handled read requests.</param>
+        [Obsolete("Use PreRead instead")]
         protected abstract void Read(ValueEventArgs[] args);
 
         /// <summary>
         /// Write selected item.
         /// </summary>
         /// <param name="args">Handled write requests.</param>
+        [Obsolete("Use PreWrite instead")]
         protected abstract void Write(ValueEventArgs[] args);
+        /// <summary>
+        /// Action is occurred.
+        /// </summary>
+        /// <param name="args">Handled action requests.</param>
+        [Obsolete("Use PreAction instead")]
+        protected abstract void Action(ValueEventArgs[] args);
 
         /// <summary>
         /// Accepted connection is made for the server.
@@ -150,11 +159,46 @@ namespace Gurux.DLMS
         /// <param name="connectionInfo">Connection information.</param>
         protected abstract void Disconnected(GXDLMSConnectionEventArgs connectionInfo);
 
+
+        /// <summary>
+        /// Get selected value.
+        /// </summary>
+        /// <param name="e">Handle get request.</param>
+        public abstract void Get(UpdateType type, ValueEventArgs e);
+
+        /// <summary>
+        /// Read selected item.
+        /// </summary>
+        /// <param name="args">Handled read requests.</param>
+        protected abstract void PreRead(ValueEventArgs[] args);
+
+        /// <summary>
+        /// Write selected item.
+        /// </summary>
+        /// <param name="args">Handled write requests.</param>
+        protected abstract void PreWrite(ValueEventArgs[] args);
         /// <summary>
         /// Action is occurred.
         /// </summary>
         /// <param name="args">Handled action requests.</param>
-        protected abstract void Action(ValueEventArgs[] args);
+        protected abstract void PreAction(ValueEventArgs[] args);
+
+        /// <summary>
+        /// Read selected item.
+        /// </summary>
+        /// <param name="args">Handled read requests.</param>
+        protected abstract void PostRead(ValueEventArgs[] args);
+
+        /// <summary>
+        /// Write selected item.
+        /// </summary>
+        /// <param name="args">Handled write requests.</param>
+        protected abstract void PostWrite(ValueEventArgs[] args);
+        /// <summary>
+        /// Action is occurred.
+        /// </summary>
+        /// <param name="args">Handled action requests.</param>
+        protected abstract void PostAction(ValueEventArgs[] args);
 
         /// <summary>
         /// Constructor.
@@ -191,7 +235,17 @@ namespace Gurux.DLMS
         /// <param name="args">Handled read requests.</param>
         internal void NotifyRead(ValueEventArgs[] args)
         {
+            PreRead(args);
             Read(args);
+        }
+
+        /// <summary>
+        /// Read selected item.
+        /// </summary>
+        /// <param name="args">Handled read requests.</param>
+        internal void NotifyPostRead(ValueEventArgs[] args)
+        {
+            PostRead(args);
         }
 
         /// <summary>
@@ -200,15 +254,36 @@ namespace Gurux.DLMS
         /// <param name="args">Handled action requests.</param>
         internal void NotifyAction(ValueEventArgs[] args)
         {
+            PreAction(args);
             Action(args);
         }
+
+        /// <summary>
+        /// Action is occurred.
+        /// </summary>
+        /// <param name="args">Handled action requests.</param>
+        internal void NotifyPostAction(ValueEventArgs[] args)
+        {
+            PostAction(args);
+        }
+
         /// <summary>
         /// Write selected item.
         /// </summary>
         /// <param name="args">Handled write requests.</param>
         internal void NotifyWrite(ValueEventArgs[] args)
         {
+            PreWrite(args);
             Write(args);
+        }
+
+        /// <summary>
+        /// Write selected item.
+        /// </summary>
+        /// <param name="args">Handled write requests.</param>
+        internal void NotifyPostWrite(ValueEventArgs[] args)
+        {
+            PostWrite(args);
         }
 
         /// <summary>

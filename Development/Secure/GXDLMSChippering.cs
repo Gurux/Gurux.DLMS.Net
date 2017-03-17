@@ -240,7 +240,17 @@ namespace Gurux.DLMS.Secure
             byte[] iv = GetNonse(p.InvocationCounter, p.SystemTitle);
             GXDLMSChipperingStream gcm = new GXDLMSChipperingStream(p.Security, true, p.BlockCipherKey, aad, iv, tag);
             gcm.Write(ciphertext);
-            return gcm.FlushFinalBlock();
+            ciphertext = gcm.FlushFinalBlock();
+            if (p.Security == Gurux.DLMS.Enums.Security.AuthenticationEncryption)
+            {
+                // Check tag.
+                EncryptAesGcm(p, ciphertext);
+                if (!GXDLMSChipperingStream.TagsEquals(tag, p.CountTag))
+                {
+                    //    throw new GXDLMSException("Decrypt failed. Invalid tag.");
+                }
+            }
+            return ciphertext;
         }
     }
 }

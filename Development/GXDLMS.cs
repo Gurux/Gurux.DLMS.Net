@@ -1271,18 +1271,16 @@ namespace Gurux.DLMS
 
             if ((frame & (byte)HdlcFrameType.Uframe) == (byte)HdlcFrameType.Uframe)
             {
-                if (frame == 0x97)
-                {
-                    reply.Position = packetStartID + frameLen - 1;
-                    data.Error = (int)ErrorCode.Rejected;
-                }
                 //Get Eop if there is no data.
-                else if (reply.Position == packetStartID + frameLen + 1)
+                if (reply.Position == packetStartID + frameLen + 1)
                 {
                     // Get EOP.
                     reply.GetUInt8();
                 }
-
+                if (frame == 0x97)
+                {
+                    data.Error = (int)ErrorCode.UnacceptableFrame;
+                }
                 data.Command = (Command)frame;
             }
             //If S-frame

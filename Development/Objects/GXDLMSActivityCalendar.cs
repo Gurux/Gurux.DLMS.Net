@@ -268,6 +268,99 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
+        static Object GetSeasonProfile(GXDLMSSettings settings, GXDLMSSeasonProfile[] target)
+        {
+            GXByteBuffer data = new GXByteBuffer();
+            data.SetUInt8((byte)DataType.Array);
+            if (target == null)
+            {
+                //Add count
+                GXCommon.SetObjectCount(0, data);
+            }
+            else
+            {
+                int cnt = target.Length;
+                //Add count
+                GXCommon.SetObjectCount(cnt, data);
+                foreach (GXDLMSSeasonProfile it in target)
+                {
+                    data.SetUInt8((byte)DataType.Structure);
+                    data.SetUInt8(3);
+                    GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Name));
+                    GXCommon.SetData(settings, data, DataType.OctetString, it.Start);
+                    GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.WeekName));
+                }
+            }
+            return data.Array();
+        }
+
+        static byte[] GetWeekProfileTable(GXDLMSSettings settings, GXDLMSWeekProfile[] target)
+        {
+            GXByteBuffer data = new GXByteBuffer();
+            data.SetUInt8((byte)DataType.Array);
+            if (target == null)
+            {
+                //Add count
+                GXCommon.SetObjectCount(0, data);
+            }
+            else
+            {
+                int cnt = target.Length;
+                //Add count
+                GXCommon.SetObjectCount(cnt, data);
+                foreach (GXDLMSWeekProfile it in target)
+                {
+                    data.SetUInt8((byte)DataType.Array);
+                    data.SetUInt8(8);
+                    GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Name));
+                    GXCommon.SetData(settings, data, DataType.UInt8, it.Monday);
+                    GXCommon.SetData(settings, data, DataType.UInt8, it.Tuesday);
+                    GXCommon.SetData(settings, data, DataType.UInt8, it.Wednesday);
+                    GXCommon.SetData(settings, data, DataType.UInt8, it.Thursday);
+                    GXCommon.SetData(settings, data, DataType.UInt8, it.Friday);
+                    GXCommon.SetData(settings, data, DataType.UInt8, it.Saturday);
+                    GXCommon.SetData(settings, data, DataType.UInt8, it.Sunday);
+                }
+            }
+            return data.Array();
+        }
+
+        static Object GetDayProfileTable(GXDLMSSettings settings, GXDLMSDayProfile[] target)
+        {
+            GXByteBuffer data = new GXByteBuffer();
+            data.SetUInt8((byte)DataType.Array);
+            if (target == null)
+            {
+                //Add count
+                GXCommon.SetObjectCount(0, data);
+            }
+            else
+            {
+                int cnt = target.Length;
+                //Add count
+                GXCommon.SetObjectCount(cnt, data);
+                foreach (GXDLMSDayProfile it in target)
+                {
+                    data.SetUInt8((byte)DataType.Structure);
+                    data.SetUInt8(2);
+                    GXCommon.SetData(settings, data, DataType.UInt8, it.DayId);
+                    data.SetUInt8((byte)DataType.Array);
+                    //Add count
+                    GXCommon.SetObjectCount(it.DaySchedules.Length, data);
+                    foreach (GXDLMSDayProfileAction action in it.DaySchedules)
+                    {
+                        data.SetUInt8((byte)DataType.Structure);
+                        data.SetUInt8(3);
+                        GXCommon.SetData(settings, data, DataType.OctetString, action.StartTime);
+                        GXCommon.SetData(settings, data, DataType.OctetString, action.ScriptLogicalName);
+                        GXCommon.SetData(settings, data, DataType.UInt16, action.ScriptSelector);
+                    }
+                }
+            }
+            return data.Array();
+
+        }
+
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
@@ -284,92 +377,18 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 3)
             {
-                GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((byte)DataType.Array);
-                if (SeasonProfileActive == null)
-                {
-                    //Add count
-                    GXCommon.SetObjectCount(0, data);
-                }
-                else
-                {
-                    int cnt = SeasonProfileActive.Length;
-                    //Add count
-                    GXCommon.SetObjectCount(cnt, data);
-                    foreach (GXDLMSSeasonProfile it in SeasonProfileActive)
-                    {
-                        data.SetUInt8((byte)DataType.Structure);
-                        data.SetUInt8(3);
-                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Name));
-                        GXCommon.SetData(settings, data, DataType.OctetString, it.Start);
-                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.WeekName));
-                    }
-                }
-                return data.Array();
+                e.ByteArray = true;
+                return GetSeasonProfile(settings, SeasonProfileActive);
             }
             if (e.Index == 4)
             {
-                GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((byte)DataType.Array);
-                if (WeekProfileTableActive == null)
-                {
-                    //Add count
-                    GXCommon.SetObjectCount(0, data);
-                }
-                else
-                {
-                    int cnt = WeekProfileTableActive.Length;
-                    //Add count
-                    GXCommon.SetObjectCount(cnt, data);
-                    foreach (GXDLMSWeekProfile it in WeekProfileTableActive)
-                    {
-                        data.SetUInt8((byte)DataType.Array);
-                        data.SetUInt8(8);
-                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Name));
-                        GXCommon.SetData(settings, data, DataType.UInt8, it.Monday);
-                        GXCommon.SetData(settings, data, DataType.UInt8, it.Tuesday);
-                        GXCommon.SetData(settings, data, DataType.UInt8, it.Wednesday);
-                        GXCommon.SetData(settings, data, DataType.UInt8, it.Thursday);
-                        GXCommon.SetData(settings, data, DataType.UInt8, it.Friday);
-                        GXCommon.SetData(settings, data, DataType.UInt8, it.Saturday);
-                        GXCommon.SetData(settings, data, DataType.UInt8, it.Sunday);
-                    }
-                }
-                return data.Array();
+                e.ByteArray = true;
+                return GetWeekProfileTable(settings, WeekProfileTableActive);
             }
             if (e.Index == 5)
             {
-                GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((byte)DataType.Array);
-                if (DayProfileTableActive == null)
-                {
-                    //Add count
-                    GXCommon.SetObjectCount(0, data);
-                }
-                else
-                {
-                    int cnt = DayProfileTableActive.Length;
-                    //Add count
-                    GXCommon.SetObjectCount(cnt, data);
-                    foreach (GXDLMSDayProfile it in DayProfileTableActive)
-                    {
-                        data.SetUInt8((byte)DataType.Structure);
-                        data.SetUInt8(2);
-                        GXCommon.SetData(settings, data, DataType.UInt8, it.DayId);
-                        data.SetUInt8((byte)DataType.Array);
-                        //Add count
-                        GXCommon.SetObjectCount(it.DaySchedules.Length, data);
-                        foreach (GXDLMSDayProfileAction action in it.DaySchedules)
-                        {
-                            data.SetUInt8((byte)DataType.Structure);
-                            data.SetUInt8(3);
-                            GXCommon.SetData(settings, data, DataType.OctetString, action.StartTime);
-                            GXCommon.SetData(settings, data, DataType.OctetString, action.ScriptLogicalName);
-                            GXCommon.SetData(settings, data, DataType.UInt16, action.ScriptSelector);
-                        }
-                    }
-                }
-                return data.Array();
+                e.ByteArray = true;
+                return GetDayProfileTable(settings, DayProfileTableActive);
             }
             if (e.Index == 6)
             {
@@ -382,98 +401,107 @@ namespace Gurux.DLMS.Objects
             //
             if (e.Index == 7)
             {
-                GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((byte)DataType.Array);
-                if (SeasonProfilePassive == null)
-                {
-                    //Add count
-                    GXCommon.SetObjectCount(0, data);
-                }
-                else
-                {
-                    int cnt = SeasonProfilePassive.Length;
-                    //Add count
-                    GXCommon.SetObjectCount(cnt, data);
-                    foreach (GXDLMSSeasonProfile it in SeasonProfilePassive)
-                    {
-                        data.SetUInt8((byte)DataType.Structure);
-                        data.SetUInt8(3);
-                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Name));
-                        GXCommon.SetData(settings, data, DataType.OctetString, it.Start);
-                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.WeekName));
-                    }
-                }
-                return data.Array();
+                e.ByteArray = true;
+                return GetSeasonProfile(settings, SeasonProfilePassive);
             }
             if (e.Index == 8)
             {
-                GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((byte)DataType.Array);
-                if (WeekProfileTablePassive == null)
-                {
-                    //Add count
-                    GXCommon.SetObjectCount(0, data);
-                }
-                else
-                {
-                    int cnt = WeekProfileTablePassive.Length;
-                    //Add count
-                    GXCommon.SetObjectCount(cnt, data);
-                    foreach (GXDLMSWeekProfile it in WeekProfileTablePassive)
-                    {
-                        data.SetUInt8((byte)DataType.Structure);
-                        data.SetUInt8(8);
-                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Name));
-                        GXCommon.SetData(settings, data, DataType.UInt8, it.Monday);
-                        GXCommon.SetData(settings, data, DataType.UInt8, it.Tuesday);
-                        GXCommon.SetData(settings, data, DataType.UInt8, it.Wednesday);
-                        GXCommon.SetData(settings, data, DataType.UInt8, it.Thursday);
-                        GXCommon.SetData(settings, data, DataType.UInt8, it.Friday);
-                        GXCommon.SetData(settings, data, DataType.UInt8, it.Saturday);
-                        GXCommon.SetData(settings, data, DataType.UInt8, it.Sunday);
-                    }
-                }
-                return data.Array();
+                e.ByteArray = true;
+                return GetWeekProfileTable(settings, WeekProfileTablePassive);
             }
             if (e.Index == 9)
             {
-                GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((byte)DataType.Array);
-                if (DayProfileTablePassive == null)
-                {
-                    //Add count
-                    GXCommon.SetObjectCount(0, data);
-                }
-                else
-                {
-                    int cnt = DayProfileTablePassive.Length;
-                    //Add count
-                    GXCommon.SetObjectCount(cnt, data);
-                    foreach (GXDLMSDayProfile it in DayProfileTablePassive)
-                    {
-                        data.SetUInt8((byte)DataType.Structure);
-                        data.SetUInt8(2);
-                        GXCommon.SetData(settings, data, DataType.UInt8, it.DayId);
-                        data.SetUInt8((byte)DataType.Array);
-                        //Add count
-                        GXCommon.SetObjectCount(it.DaySchedules.Length, data);
-                        foreach (GXDLMSDayProfileAction action in it.DaySchedules)
-                        {
-                            data.SetUInt8((byte)DataType.Structure);
-                            data.SetUInt8(3);
-                            GXCommon.SetData(settings, data, DataType.OctetString, action.StartTime);
-                            GXCommon.SetData(settings, data, DataType.OctetString, action.ScriptLogicalName);
-                            GXCommon.SetData(settings, data, DataType.UInt16, action.ScriptSelector);
-                        }
-                    }
-                }
-                return data.Array();
+                e.ByteArray = true;
+                return GetDayProfileTable(settings, DayProfileTablePassive);
             }
             if (e.Index == 10)
             {
                 return Time;
             }
             e.Error = ErrorCode.ReadWriteDenied;
+            return null;
+        }
+
+        static GXDLMSSeasonProfile[] SetSeasonProfile(Object value)
+        {
+            if (value != null)
+            {
+                List<GXDLMSSeasonProfile> items = new List<GXDLMSSeasonProfile>();
+                foreach (object[] item in (object[])value)
+                {
+                    GXDLMSSeasonProfile it = new GXDLMSSeasonProfile();
+                    it.Name = GXDLMSClient.ChangeType((byte[])item[0], DataType.String).ToString();
+                    it.Start = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime);
+                    byte[] weekName = (byte[])item[2];
+                    //If week name is ignored.
+                    if (weekName != null && weekName.Length == 1 && weekName[0] == 0xFF)
+                    {
+                        it.WeekName = "";
+                    }
+                    else
+                    {
+                        it.WeekName = GXDLMSClient.ChangeType(weekName, DataType.String).ToString();
+                    }
+                    items.Add(it);
+                }
+                return items.ToArray();
+            }
+            return null;
+        }
+
+        static GXDLMSWeekProfile[] SetWeekProfileTable(Object value)
+        {
+            if (value != null)
+            {
+                List<GXDLMSWeekProfile> items = new List<GXDLMSWeekProfile>();
+                foreach (object[] item in (object[])value)
+                {
+                    GXDLMSWeekProfile it = new GXDLMSWeekProfile();
+                    it.Name = GXDLMSClient.ChangeType((byte[])item[0], DataType.String).ToString();
+                    it.Monday = Convert.ToInt32(item[1]);
+                    it.Tuesday = Convert.ToInt32(item[2]);
+                    it.Wednesday = Convert.ToInt32(item[3]);
+                    it.Thursday = Convert.ToInt32(item[4]);
+                    it.Friday = Convert.ToInt32(item[5]);
+                    it.Saturday = Convert.ToInt32(item[6]);
+                    it.Sunday = Convert.ToInt32(item[7]);
+                    items.Add(it);
+                }
+                return items.ToArray();
+            }
+            return null;
+        }
+
+        static GXDLMSDayProfile[] SetDayProfileTable(Object value)
+        {
+            if (value != null)
+            {
+                List<GXDLMSDayProfile> items = new List<GXDLMSDayProfile>();
+                foreach (object[] item in (object[])value)
+                {
+                    GXDLMSDayProfile it = new GXDLMSDayProfile();
+                    it.DayId = Convert.ToInt32(item[0]);
+                    List<GXDLMSDayProfileAction> actions = new List<GXDLMSDayProfileAction>();
+                    foreach (object[] it2 in (object[])item[1])
+                    {
+                        GXDLMSDayProfileAction ac = new GXDLMSDayProfileAction();
+                        if (it2[0] is GXDateTime)
+                        {
+                            ac.StartTime = (GXDateTime)it2[0];
+                        }
+                        else
+                        {
+                            ac.StartTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])it2[0], DataType.Time);
+                        }
+                        ac.ScriptLogicalName = GXDLMSClient.ChangeType((byte[])it2[1], DataType.OctetString).ToString();
+                        ac.ScriptSelector = Convert.ToUInt16(it2[2]);
+                        actions.Add(ac);
+                    }
+                    it.DaySchedules = actions.ToArray();
+                    items.Add(it);
+                }
+                return items.ToArray();
+            }
             return null;
         }
 
@@ -503,74 +531,15 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 3)
             {
-                SeasonProfileActive = null;
-                if (e.Value != null)
-                {
-                    List<GXDLMSSeasonProfile> items = new List<GXDLMSSeasonProfile>();
-                    foreach (object[] item in (object[])e.Value)
-                    {
-                        GXDLMSSeasonProfile it = new GXDLMSSeasonProfile();
-                        it.Name = GXDLMSClient.ChangeType((byte[])item[0], DataType.String).ToString();
-                        it.Start = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime);
-                        it.WeekName = GXDLMSClient.ChangeType((byte[])item[2], DataType.String).ToString();
-                        items.Add(it);
-                    }
-                    SeasonProfileActive = items.ToArray();
-                }
+                SeasonProfileActive = SetSeasonProfile(e.Value);
             }
             else if (e.Index == 4)
             {
-                WeekProfileTableActive = null;
-                if (e.Value != null)
-                {
-                    List<GXDLMSWeekProfile> items = new List<GXDLMSWeekProfile>();
-                    foreach (object[] item in (object[])e.Value)
-                    {
-                        GXDLMSWeekProfile it = new GXDLMSWeekProfile();
-                        it.Name = GXDLMSClient.ChangeType((byte[])item[0], DataType.String).ToString();
-                        it.Monday = Convert.ToInt32(item[1]);
-                        it.Tuesday = Convert.ToInt32(item[2]);
-                        it.Wednesday = Convert.ToInt32(item[3]);
-                        it.Thursday = Convert.ToInt32(item[4]);
-                        it.Friday = Convert.ToInt32(item[5]);
-                        it.Saturday = Convert.ToInt32(item[6]);
-                        it.Sunday = Convert.ToInt32(item[7]);
-                        items.Add(it);
-                    }
-                    WeekProfileTableActive = items.ToArray();
-                }
+                WeekProfileTableActive = SetWeekProfileTable(e.Value);
             }
             else if (e.Index == 5)
             {
-                DayProfileTableActive = null;
-                if (e.Value != null)
-                {
-                    List<GXDLMSDayProfile> items = new List<GXDLMSDayProfile>();
-                    foreach (object[] item in (object[])e.Value)
-                    {
-                        GXDLMSDayProfile it = new GXDLMSDayProfile();
-                        it.DayId = Convert.ToInt32(item[0]);
-                        List<GXDLMSDayProfileAction> actions = new List<GXDLMSDayProfileAction>();
-                        foreach (object[] it2 in (object[])item[1])
-                        {
-                            GXDLMSDayProfileAction ac = new GXDLMSDayProfileAction();
-                            if (it2[0] is GXDateTime)
-                            {
-                                ac.StartTime = (GXDateTime)it2[0];
-                            }
-                            else
-                            {
-                                ac.StartTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])it2[0], DataType.Time);
-                            }
-                            ac.ScriptLogicalName = GXDLMSClient.ChangeType((byte[])it2[1], DataType.OctetString).ToString();
-                            ac.ScriptSelector = Convert.ToUInt16(it2[2]);
-                            actions.Add(ac);
-                        }
-                        it.DaySchedules = actions.ToArray();
-                        items.Add(it);
-                    }
-                    DayProfileTableActive = items.ToArray();
-                }
+                DayProfileTableActive = SetDayProfileTable(e.Value);
             }
             else if (e.Index == 6)
             {
@@ -585,83 +554,15 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 7)
             {
-                SeasonProfilePassive = null;
-                if (e.Value != null)
-                {
-                    List<GXDLMSSeasonProfile> items = new List<GXDLMSSeasonProfile>();
-                    foreach (object[] item in (object[])e.Value)
-                    {
-                        GXDLMSSeasonProfile it = new GXDLMSSeasonProfile();
-                        it.Name = GXDLMSClient.ChangeType((byte[])item[0], DataType.String).ToString();
-                        it.Start = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime);
-                        byte[] weekName = (byte[])item[2];
-                        //If week name is ignored.
-                        if (weekName != null && weekName.Length == 1 && weekName[0] == 0xFF)
-                        {
-                            it.WeekName = "";
-                        }
-                        else
-                        {
-                            it.WeekName = GXDLMSClient.ChangeType((byte[])item[2], DataType.String).ToString();
-                        }
-                        items.Add(it);
-                    }
-                    SeasonProfilePassive = items.ToArray();
-                }
+                SeasonProfilePassive = SetSeasonProfile(e.Value);
             }
             else if (e.Index == 8)
             {
-                WeekProfileTablePassive = null;
-                if (e.Value != null)
-                {
-                    List<GXDLMSWeekProfile> items = new List<GXDLMSWeekProfile>();
-                    foreach (object[] item in (object[])e.Value)
-                    {
-                        GXDLMSWeekProfile it = new GXDLMSWeekProfile();
-                        it.Name = GXDLMSClient.ChangeType((byte[])item[0], DataType.String).ToString();
-                        it.Monday = Convert.ToInt32(item[1]);
-                        it.Tuesday = Convert.ToInt32(item[2]);
-                        it.Wednesday = Convert.ToInt32(item[3]);
-                        it.Thursday = Convert.ToInt32(item[4]);
-                        it.Friday = Convert.ToInt32(item[5]);
-                        it.Saturday = Convert.ToInt32(item[6]);
-                        it.Sunday = Convert.ToInt32(item[7]);
-                        items.Add(it);
-                    }
-                    WeekProfileTablePassive = items.ToArray();
-                }
+                WeekProfileTablePassive = SetWeekProfileTable(e.Value);
             }
             else if (e.Index == 9)
             {
-                DayProfileTablePassive = null;
-                if (e.Value != null)
-                {
-                    List<GXDLMSDayProfile> items = new List<GXDLMSDayProfile>();
-                    foreach (object[] item in (object[])e.Value)
-                    {
-                        GXDLMSDayProfile it = new GXDLMSDayProfile();
-                        it.DayId = Convert.ToInt32(item[0]);
-                        List<GXDLMSDayProfileAction> actions = new List<GXDLMSDayProfileAction>();
-                        foreach (object[] it2 in (object[])item[1])
-                        {
-                            GXDLMSDayProfileAction ac = new GXDLMSDayProfileAction();
-                            if (it2[0] is GXDateTime)
-                            {
-                                ac.StartTime = (GXDateTime)it2[0];
-                            }
-                            else
-                            {
-                                ac.StartTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])it2[0], DataType.Time);
-                            }
-                            ac.ScriptLogicalName = GXDLMSClient.ChangeType((byte[])it2[1], DataType.OctetString).ToString();
-                            ac.ScriptSelector = Convert.ToUInt16(it2[2]);
-                            actions.Add(ac);
-                        }
-                        it.DaySchedules = actions.ToArray();
-                        items.Add(it);
-                    }
-                    DayProfileTablePassive = items.ToArray();
-                }
+                DayProfileTablePassive = SetDayProfileTable(e.Value);
             }
             else if (e.Index == 10)
             {
