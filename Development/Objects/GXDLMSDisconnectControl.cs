@@ -103,6 +103,30 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// Forces the disconnect control object into 'disconnected' state 
+        /// if remote disconnection is enabled(control mode > 0).
+        /// </summary>
+        /// <param name="client"></param>
+        /// <returns></returns>
+        public byte[][] RemoteDisconnect(GXDLMSClient client)
+        {
+            return client.Method(this, 1, (byte)0);
+        }
+
+        /// <summary>
+        /// Forces the disconnect control object into the 'ready_for_reconnection'
+        /// state if a direct remote reconnection is disabled(control_mode = 1, 3, 5, 6). 
+        /// Forces the disconnect control object into the 'connected' state if 
+        /// a direct remote reconnection is enabled(control_mode = 2, 4).
+        /// </summary>
+        /// <param name="client"></param>
+        /// <returns></returns>
+        public byte[][] RemoteReconnect(GXDLMSClient client)
+        {
+            return client.Method(this, 2, (byte)0);
+        }
+
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
