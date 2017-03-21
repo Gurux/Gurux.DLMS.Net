@@ -111,33 +111,6 @@ namespace Gurux.DLMS
             Authentication authentication, byte[] password);
 
         /// <summary>
-        /// Get selected value.
-        /// </summary>
-        /// <param name="e">Handle get request.</param>
-        [Obsolete("Use Get instead")]
-        public abstract void Update(UpdateType type, ValueEventArgs e);
-
-        /// <summary>
-        /// Read selected item.
-        /// </summary>
-        /// <param name="args">Handled read requests.</param>
-        [Obsolete("Use PreRead instead")]
-        protected abstract void Read(ValueEventArgs[] args);
-
-        /// <summary>
-        /// Write selected item.
-        /// </summary>
-        /// <param name="args">Handled write requests.</param>
-        [Obsolete("Use PreWrite instead")]
-        protected abstract void Write(ValueEventArgs[] args);
-        /// <summary>
-        /// Action is occurred.
-        /// </summary>
-        /// <param name="args">Handled action requests.</param>
-        [Obsolete("Use PreAction instead")]
-        protected abstract void Action(ValueEventArgs[] args);
-
-        /// <summary>
         /// Accepted connection is made for the server.
         /// </summary>
         /// <remarks>
@@ -164,7 +137,13 @@ namespace Gurux.DLMS
         /// Get selected value.
         /// </summary>
         /// <param name="e">Handle get request.</param>
-        public abstract void Get(UpdateType type, ValueEventArgs e);
+        public abstract void PreGet(UpdateType type, ValueEventArgs[] args);
+
+        /// <summary>
+        /// Get selected value.
+        /// </summary>
+        /// <param name="e">Handle get request.</param>
+        public abstract void PostGet(UpdateType type, ValueEventArgs[] args);
 
         /// <summary>
         /// Read selected item.
@@ -236,7 +215,6 @@ namespace Gurux.DLMS
         internal void NotifyRead(ValueEventArgs[] args)
         {
             PreRead(args);
-            Read(args);
         }
 
         /// <summary>
@@ -255,7 +233,6 @@ namespace Gurux.DLMS
         internal void NotifyAction(ValueEventArgs[] args)
         {
             PreAction(args);
-            Action(args);
         }
 
         /// <summary>
@@ -274,7 +251,6 @@ namespace Gurux.DLMS
         internal void NotifyWrite(ValueEventArgs[] args)
         {
             PreWrite(args);
-            Write(args);
         }
 
         /// <summary>

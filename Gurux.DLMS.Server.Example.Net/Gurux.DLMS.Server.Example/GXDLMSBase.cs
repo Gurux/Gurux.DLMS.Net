@@ -698,26 +698,11 @@ namespace GuruxDLMSServerExample
             }
         }
 
-        public override void Get(UpdateType type, ValueEventArgs e)
+        public override void PreGet(UpdateType type, ValueEventArgs[] args)
         {
         }
 
-
-        [Obsolete]
-        public override void Update(UpdateType type, ValueEventArgs e)
-        {
-        }
-        [Obsolete]
-        protected override void Read(ValueEventArgs[] args)
-        {
-        }
-        [Obsolete]
-        protected override void Write(ValueEventArgs[] args)
-        {
-        }
-
-        [Obsolete]
-        protected override void Action(ValueEventArgs[] args)
+        public override void PostGet(UpdateType type, ValueEventArgs[] args)
         {
         }
 

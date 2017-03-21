@@ -249,17 +249,22 @@ namespace Gurux.DLMS.Objects
         {
             object[] values = new object[CaptureObjects.Count];
             int pos = -1;
+            List<ValueEventArgs> args = new List<ValueEventArgs>();
             foreach (var obj in CaptureObjects)
             {
                 ValueEventArgs e = new ValueEventArgs(server.Settings, obj.Key, obj.Value.AttributeIndex, 0, null);
-                server.Get(UpdateType.ProfileGeneric, e);
+                args.Add(e);
+            }
+            server.PreGet(UpdateType.ProfileGeneric, args.ToArray());
+            foreach (ValueEventArgs e in args)
+            {
                 if (e.Handled)
                 {
                     values[++pos] = e.Value;
                 }
                 else
                 {
-                    values[++pos] = obj.Key.GetValues()[obj.Value.AttributeIndex - 1];
+                    values[++pos] = e.Target.GetValues()[e.Index - 1];
                 }
             }
             lock (Buffer)
@@ -272,6 +277,7 @@ namespace Gurux.DLMS.Objects
                 Buffer.Add(values);
                 EntriesInUse = Buffer.Count;
             }
+            server.PostGet(UpdateType.ProfileGeneric, args.ToArray());
         }
 
         #region IGXDLMSBase Members
