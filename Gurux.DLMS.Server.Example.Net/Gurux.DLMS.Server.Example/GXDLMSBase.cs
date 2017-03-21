@@ -43,6 +43,8 @@ using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Secure;
 using System.Net;
 using System.Net.Sockets;
+using System.IO;
+using System.Globalization;
 
 namespace GuruxDLMSServerExample
 {
@@ -51,11 +53,12 @@ namespace GuruxDLMSServerExample
     /// </summary>
     class GXDLMSBase : GXDLMSSecureServer
     {
+        string dataFile = "data.csv";
         bool trace = true;
         public GXDLMSBase(bool logicalNameReferencing, InterfaceType type)
         : base(logicalNameReferencing, type, "GRX", 12345678)
         {
-
+            MaxReceivePDUSize = 1024;
         }
 
         Gurux.Common.IGXMedia Media = null;
@@ -118,7 +121,7 @@ namespace GuruxDLMSServerExample
             //Set capture period to 60 second.
             pg.CapturePeriod = 60;
             //Maximum row count.
-            pg.ProfileEntries = 100;
+            pg.ProfileEntries = 100000;
             pg.SortMethod = SortMethod.FiFo;
             pg.SortObject = clock;
             //Add columns.
@@ -128,7 +131,31 @@ namespace GuruxDLMSServerExample
             pg.CaptureObjects.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(r, new GXDLMSCaptureObject(2, 0)));
             Items.Add(pg);
             //Add initial rows.
-            pg.Buffer.Add(new object[] { DateTime.Now, (int)10 });
+            //Generate Profile Generic data file
+            using (var fs = File.OpenWrite(dataFile))
+            {
+                //Create 10 000 rows for profile generic file.
+                //In example profile generic we have two columns. 
+                //Date time and integer value.
+                int rowCount = 10000;
+                DateTime dt = DateTime.Now;
+                //Reset minutes and seconds to Zero.
+                dt = dt.AddSeconds(-dt.Second);
+                dt = dt.AddMinutes(-dt.Minute);
+                dt = dt.AddHours(-(rowCount - 1));
+                StringBuilder sb = new StringBuilder();
+                for (int pos = 0; pos != rowCount; ++pos)
+                {
+                    sb.Append(dt.ToString(CultureInfo.InvariantCulture));
+                    sb.Append(';');
+                    sb.AppendLine(Convert.ToString(pos + 1));
+                    dt = dt.AddHours(1);
+                }
+                using (var writer = new StreamWriter(fs))
+                {
+                    writer.Write(sb.ToString());
+                }
+            }
             ///////////////////////////////////////////////////////////////////////
             //Add Auto connect object.
             GXDLMSAutoConnect ac = new GXDLMSAutoConnect();
@@ -284,7 +311,6 @@ namespace GuruxDLMSServerExample
             Items.Add(new GXDLMSIEC14908Identification());
             Items.Add(new GXDLMSIEC14908PhysicalSetup());
             Items.Add(new GXDLMSIEC14908PhysicalStatus());
-
             ///////////////////////////////////////////////////////////////////////
             //Server must initialize after all objects are added.
             Initialize();
@@ -293,6 +319,108 @@ namespace GuruxDLMSServerExample
         void OnError(object sender, Exception ex)
         {
             System.Diagnostics.Debug.WriteLine(ex.Message);
+        }
+
+        /// <summary>
+        /// Return data using start and end indexes.
+        /// </summary>
+        /// <param name="p">ProfileGeneric</param>
+        /// <param name="index"></param>
+        /// <param name="count"></param>
+        /// <returns>Add data Rows</returns>
+        void GetProfileGenericDataByEntry(GXDLMSProfileGeneric p, UInt32 index, UInt32 count)
+        {
+            //Clear old data. It's already serialized.
+            p.Buffer.Clear();
+            using (var fs = File.OpenRead(dataFile))
+            {
+                using (var reader = new StreamReader(fs))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        string line = reader.ReadLine();
+                        if (line.Length != 0)
+                        {
+                            //Skip row
+                            if (index > 0)
+                            {
+                                --index;
+                            }
+                            else
+                            {
+                                string[] values = line.Split(';');
+                                p.Buffer.Add(new object[] { DateTime.Parse(values[0], CultureInfo.InvariantCulture), int.Parse(values[1]) });
+                            }
+                            if (p.Buffer.Count == count)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Find start index and row count using start and end date time.
+        /// </summary>
+        /// <param name="start">Start time.</param>
+        /// <param name="end">End time</param>
+        /// <param name="index">Start index.</param>
+        /// <param name="count">Item count.</param>
+        void GetProfileGenericDataByRange(ValueEventArgs e)
+        {
+            GXDateTime start = (GXDateTime)GXDLMSClient.ChangeType((byte[])((object[])e.Parameters)[1], DataType.DateTime);
+            GXDateTime end = (GXDateTime)GXDLMSClient.ChangeType((byte[])((object[])e.Parameters)[2], DataType.DateTime);
+            using (var fs = File.OpenRead(dataFile))
+            {
+                using (var reader = new StreamReader(fs))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        string line = reader.ReadLine();
+                        if (line.Length != 0)
+                        {
+                            string[] values = line.Split(';');
+                            DateTime tm = DateTime.Parse(values[0], CultureInfo.InvariantCulture);
+                            if (tm > end)
+                            {
+                                //If all data is read.
+                                break;
+                            }
+                            if (tm < start)
+                            {
+                                //If we have not find first item.
+                                ++e.RowBeginIndex;
+                            }
+                            ++e.RowEndIndex;
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get row count.
+        /// </summary>
+        /// <returns></returns>
+        UInt16 GetProfileGenericDataCount()
+        {
+            UInt16 rows = 0;
+            using (var fs = File.OpenRead(dataFile))
+            {
+                using (var reader = new StreamReader(fs))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        if (reader.ReadLine().Length != 0)
+                        {
+                            ++rows;
+                        }
+                    }
+                }
+            }
+            return rows;
         }
 
         /// <summary>
@@ -306,12 +434,65 @@ namespace GuruxDLMSServerExample
             {
                 //Framework will handle Association objects automatically.
                 if (e.Target is GXDLMSAssociationLogicalName ||
-                        e.Target is GXDLMSAssociationShortName ||
-                        //Framework will handle profile generic automatically.
-                        e.Target is GXDLMSProfileGeneric)
+                        e.Target is GXDLMSAssociationShortName)
                 {
                     continue;
                 }
+                //Framework will handle profile generic automatically.
+                if (e.Target is GXDLMSProfileGeneric)
+                {
+                    //If buffer is read and we want to save memory.
+                    if (e.Index == 6)
+                    {
+                        //If client wants to know EntriesInUse.
+                        GXDLMSProfileGeneric p = (GXDLMSProfileGeneric)e.Target;
+                        p.EntriesInUse = GetProfileGenericDataCount();
+                    }
+                    if (e.Index == 2)
+                    {
+                        //Client reads buffer.
+                        GXDLMSProfileGeneric p = (GXDLMSProfileGeneric)e.Target;
+                        //If reading first time.
+                        if (e.RowEndIndex == 0)
+                        {
+                            if (e.Selector == 0)
+                            {
+                                e.RowEndIndex = GetProfileGenericDataCount();
+                            }
+                            else if (e.Selector == 1)
+                            {
+                                //Read by entry.
+                                GetProfileGenericDataByRange(e);
+                            }
+                            else if (e.Selector == 2)
+                            {
+                                //Read by range.
+                                e.RowBeginIndex = (UInt32)((object[])e.Parameters)[0];
+                                e.RowEndIndex = e.RowBeginIndex + (UInt32)((object[])e.Parameters)[1];
+                                //If client wants to read more data what we have.
+                                UInt16 cnt = GetProfileGenericDataCount();
+                                if (e.RowEndIndex - e.RowBeginIndex > cnt - e.RowBeginIndex)
+                                {
+                                    e.RowEndIndex = cnt - e.RowBeginIndex;
+                                    if (e.RowEndIndex < 0)
+                                    {
+                                        e.RowEndIndex = 0;
+                                    }
+                                }
+                            }
+                        }
+                        UInt32 count = e.RowEndIndex - e.RowBeginIndex;
+                        //Read only rows that can fit to one PDU.
+                        if (e.RowEndIndex - e.RowBeginIndex > e.RowToPdu)
+                        {
+                            count = e.RowToPdu;
+                        }
+                        GetProfileGenericDataByEntry(p, e.RowBeginIndex, count);
+                        e.RowBeginIndex += count;
+                    }
+                    continue;
+                }
+
                 Console.WriteLine(string.Format("Client Read value from {0} attribute: {1}.", e.Target.Name, e.Index));
                 if (e.Target is GXDLMSClock)
                 {

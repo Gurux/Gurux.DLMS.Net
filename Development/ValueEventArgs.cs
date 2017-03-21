@@ -138,6 +138,34 @@ namespace Gurux.DLMS
             set;
         }
 
+
+        /// <summary>
+        /// Row to PDU is used with Profile Generic to tell how many rows are fit to one PDU.
+        /// </summary>
+        public UInt16 RowToPdu
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Rows begin index.
+        /// </summary>
+        public UInt32 RowBeginIndex
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Rows end index.
+        /// </summary>
+        public UInt32 RowEndIndex
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// Constructor.
         /// </summary>

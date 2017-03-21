@@ -585,7 +585,7 @@ namespace Gurux.DLMS.Internal
                 object tmp = GetData(null, buff, info2);
                 if (!info2.Complete)
                 {
-                    buff.Position = (UInt16)startIndex;
+                    buff.Position = startIndex;
                     info.Complete = false;
                     break;
                 }
@@ -1460,6 +1460,74 @@ namespace Gurux.DLMS.Internal
             return value != 0;
         }
 
+        /// <summary>
+        /// Get data type in bytes.
+        /// </summary>
+        /// <param name="type">Data type.</param>
+        /// <returns>Size of data type in bytes.</returns>
+        public static int GetDataTypeSize(DataType type)
+        {
+            int size = -1;
+            switch (type)
+            {
+                case DataType.Bcd:
+                    size = 1;
+                    break;
+                case DataType.Boolean:
+                    size = 1;
+                    break;
+                case DataType.Date:
+                    size = 5;
+                    break;
+                case DataType.DateTime:
+                    size = 12;
+                    break;
+                case DataType.Enum:
+                    size = 1;
+                    break;
+                case DataType.Float32:
+                    size = 4;
+                    break;
+                case DataType.Float64:
+                    size = 8;
+                    break;
+                case DataType.Int16:
+                    size = 2;
+                    break;
+                case DataType.Int32:
+                    size = 4;
+                    break;
+                case DataType.Int64:
+                    size = 8;
+                    break;
+                case DataType.Int8:
+                    size = 1;
+                    break;
+                case DataType.None:
+                    size = 0;
+                    break;
+                case DataType.Time:
+                    size = 4;
+                    break;
+                case DataType.UInt16:
+                    size = 2;
+                    break;
+                case DataType.UInt32:
+                    size = 4;
+                    break;
+                case DataType.UInt64:
+                    size = 8;
+                    break;
+                case DataType.UInt8:
+                    size = 1;
+                    break;
+                default:
+                    break;
+            }
+            return size;
+        }
+
+
         public static DataType GetValueType(object value)
         {
             if (value == null)
@@ -1595,7 +1663,6 @@ namespace Gurux.DLMS.Internal
                     buff.SetUInt32((UInt32)Convert.ToInt32(value));
                     break;
                 case DataType.UInt32:
-
                     buff.SetUInt32(Convert.ToUInt32(value));
                     break;
                 case DataType.Int64:

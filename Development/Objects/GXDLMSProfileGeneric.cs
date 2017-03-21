@@ -252,7 +252,7 @@ namespace Gurux.DLMS.Objects
             foreach (var obj in CaptureObjects)
             {
                 ValueEventArgs e = new ValueEventArgs(server.Settings, obj.Key, obj.Value.AttributeIndex, 0, null);
-                server.Update(UpdateType.ProfileGeneric, e);
+                server.Get(UpdateType.ProfileGeneric, e);
                 if (e.Handled)
                 {
                     values[++pos] = e.Value;
@@ -342,18 +342,30 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Returns Association View.
+        /// Returns buffer data.
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
+        /// <param name="e"></param>
         /// <param name="table"></param>
         /// <param name="columns">Columns to get. NULL if not used.</param>
         /// <returns></returns>
-        byte[] GetData(GXDLMSSettings settings, List<object[]> table, List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
+        byte[] GetData(GXDLMSSettings settings, ValueEventArgs e, List<object[]> table, List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
         {
             int pos;
             GXByteBuffer data = new GXByteBuffer();
-            data.SetUInt8((byte)DataType.Array);
-            GXCommon.SetObjectCount(table.Count, data);
+            if (settings.Index == 0)
+            {
+                data.SetUInt8((byte)DataType.Array);
+                if (e.RowEndIndex != 0)
+                {
+                    GXCommon.SetObjectCount((int)e.RowEndIndex, data);
+                }
+                else
+                {
+                    GXCommon.SetObjectCount(table.Count, data);
+
+                }
+            }
             foreach (object[] items in table)
             {
                 data.SetUInt8((byte)DataType.Structure);
@@ -375,6 +387,7 @@ namespace Gurux.DLMS.Objects
                     }
                     ++pos;
                 }
+                ++settings.Index;
             }
             return data.Array();
         }
@@ -470,19 +483,19 @@ namespace Gurux.DLMS.Objects
             return columns;
         }
 
-        byte[] GetProfileGenericData(GXDLMSSettings settings, int selector, object parameters)
+        byte[] GetProfileGenericData(GXDLMSSettings settings, ValueEventArgs e)
         {
             List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns = null;
             //If all data is read.
-            if (selector == 0 || parameters == null)
+            if (e.Selector == 0 || e.Parameters == null || e.RowEndIndex != 0)
             {
-                return GetData(settings, Buffer, columns);
+                return GetData(settings, e, Buffer, columns);
             }
-            object[] arr = (object[])parameters;
+            object[] arr = (object[])e.Parameters;
             List<object[]> table = new List<object[]>();
             lock (Buffer)
             {
-                if (selector == 1) //Read by range
+                if (e.Selector == 1) //Read by range
                 {
                     GXDataInfo info = new GXDataInfo();
                     info.Type = DataType.DateTime;
@@ -503,7 +516,7 @@ namespace Gurux.DLMS.Objects
                         }
                     }
                 }
-                else if (selector == 2)//Read by entry.
+                else if (e.Selector == 2)//Read by entry.
                 {
                     int start = Convert.ToInt32(arr[0]);
                     if (start == 0)
@@ -559,7 +572,7 @@ namespace Gurux.DLMS.Objects
                     throw new Exception("Invalid selector.");
                 }
             }
-            return GetData(settings, table, columns);
+            return GetData(settings, e, table, columns);
         }
 
         /// <summary>
@@ -631,7 +644,7 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 2)
             {
-                return GetProfileGenericData(settings, e.Selector, e.Parameters);
+                return GetProfileGenericData(settings, e);
             }
             if (e.Index == 3)
             {

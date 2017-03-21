@@ -357,14 +357,53 @@ namespace Gurux.DLMS
                 else
                 {
                     e = new ValueEventArgs(settings, obj, attributeIndex, selector, parameters);
-                    server.NotifyRead(new ValueEventArgs[] { e });
+                    if (e.Target is GXDLMSProfileGeneric && attributeIndex == 2)
+                    {
+                        GXDLMSProfileGeneric pg = (GXDLMSProfileGeneric)e.Target;
+                        //Count how many rows we can fit to one PDU.
+                        DataType dt;
+                        int rowsize = 0;
+                        foreach (var it in pg.CaptureObjects)
+                        {
+                            dt = it.Key.GetDataType(it.Value.AttributeIndex);
+                            if (dt == DataType.OctetString)
+                            {
+                                if (it.Key.GetUIDataType(it.Value.AttributeIndex) == DataType.DateTime)
+                                {
+                                    rowsize += GXCommon.GetDataTypeSize(DataType.DateTime);
+                                }
+                                else if (it.Key.GetUIDataType(it.Value.AttributeIndex) == DataType.Date)
+                                {
+                                    rowsize += GXCommon.GetDataTypeSize(DataType.Date);
+                                }
+                                else if (it.Key.GetUIDataType(it.Value.AttributeIndex) == DataType.Time)
+                                {
+                                    rowsize += GXCommon.GetDataTypeSize(DataType.Time);
+                                }
+                            }
+                            else if (dt == DataType.None)
+                            {
+                                rowsize += 2;
+                            }
+                            else
+                            {
+                                rowsize += GXCommon.GetDataTypeSize(dt);
+                            }
+                            if (rowsize != 0)
+                            {
+                                e.RowToPdu = (UInt16)(settings.MaxPduSize / rowsize);
+                            }
+                        }
+                    }
                     object value;
+                    server.NotifyRead(new ValueEventArgs[] { e });
                     if (e.Handled)
                     {
                         value = e.Value;
                     }
                     else
                     {
+                        settings.Count = e.RowEndIndex;
                         value = (obj as IGXDLMSBase).GetValue(settings, e);
                     }
                     if (e.ByteArray)
@@ -382,7 +421,8 @@ namespace Gurux.DLMS
             GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, Command.GetResponse, 1, null, bb, (byte)status), replyData);
             if (settings.Count != settings.Index || bb.Size != bb.Position)
             {
-                server.transaction = new GXDLMSLongTransaction(new ValueEventArgs[] { e }, Command.GetRequest, bb);
+                server.transaction = new GXDLMSLongTransaction(new ValueEventArgs[] { e
+    }, Command.GetRequest, bb);
             }
         }
 
@@ -428,9 +468,9 @@ namespace Gurux.DLMS
                             foreach (ValueEventArgs arg in server.transaction.targets)
                             {
                                 object value;
+                                server.NotifyRead(new ValueEventArgs[] { arg });
                                 if (arg.Handled)
                                 {
-                                    server.NotifyRead(new ValueEventArgs[] { arg });
                                     value = arg.Value;
                                 }
                                 else

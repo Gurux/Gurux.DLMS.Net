@@ -111,12 +111,12 @@ namespace Gurux.DLMS
         /// <summary>
         /// Long data count.
         /// </summary>
-        internal UInt16 Count;
+        internal UInt32 Count;
 
         /// <summary>
         /// Long data index.
         /// </summary>
-        internal UInt16 Index;
+        internal UInt32 Index;
 
         /// <summary>
         /// Maximum PDU size.
