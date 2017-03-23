@@ -664,6 +664,7 @@ namespace Gurux.DLMS
         public byte[][] GetApplicationAssociationRequest()
         {
             if (Settings.Authentication != Authentication.HighECDSA &&
+                Settings.Authentication != Authentication.HighGMAC &&
                     (Settings.Password == null || Settings.Password.Length == 0))
             {
                 throw new ArgumentException("Password is invalid.");
