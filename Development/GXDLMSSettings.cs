@@ -216,10 +216,7 @@ namespace Gurux.DLMS
             }
             set
             {
-                if (!UseCustomChallenge || ctoSChallenge == null)
-                {
-                    ctoSChallenge = value;
-                }
+                ctoSChallenge = value;
             }
         }
 
@@ -234,10 +231,7 @@ namespace Gurux.DLMS
             }
             set
             {
-                if (!UseCustomChallenge || stoCChallenge == null)
-                {
-                    stoCChallenge = value;
-                }
+                stoCChallenge = value;
             }
         }
 

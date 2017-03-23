@@ -854,7 +854,10 @@ namespace Gurux.DLMS
                 else if (Settings.Authentication > Authentication.Low)
                 {
                     // If High authentication is used.
-                    Settings.StoCChallenge = GXSecure.GenerateChallenge(Settings.Authentication);
+                    if (!Settings.UseCustomChallenge)
+                    {
+                        Settings.StoCChallenge = GXSecure.GenerateChallenge(Settings.Authentication);
+                    }
                     result = AssociationResult.Accepted;
                     diagnostic = SourceDiagnostic.AuthenticationRequired;
                 }
