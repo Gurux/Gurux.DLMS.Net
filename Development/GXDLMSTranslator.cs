@@ -882,6 +882,17 @@ namespace Gurux.DLMS
                     xml.AppendLine(cmd, "Value", GXCommon.ToHex(value.Data, false, value.Position, value.Size - value.Position));
                     break;
                 case (byte)Command.GeneralGloCiphering:
+                    if (settings.Cipher != null && Comments)
+                    {
+                        int originalPosition = value.Position;
+                        --value.Position;
+                        AesGcmParameter p = new AesGcmParameter(settings.Cipher.SystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                        GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
+                        xml.StartComment("Decrypt data:");
+                        PduToXml(xml, data2, omitDeclaration, omitNameSpace);
+                        xml.EndComment();
+                        value.Position = originalPosition;
+                    }
                     int len = GXCommon.GetObjectCount(value);
                     tmp = new byte[len];
                     value.Get(tmp);
