@@ -236,7 +236,7 @@ namespace Gurux.DLMS.Secure
                 data.Get(ciphertext);
                 data.Get(tag);
             }
-            byte[] aad = GetAuthenticatedData(p.Security, p.AuthenticationKey, data.Array());
+            byte[] aad = GetAuthenticatedData(p.Security, p.AuthenticationKey, ciphertext);
             byte[] iv = GetNonse(p.InvocationCounter, p.SystemTitle);
             GXDLMSChipperingStream gcm = new GXDLMSChipperingStream(p.Security, true, p.BlockCipherKey, aad, iv, tag);
             gcm.Write(ciphertext);
