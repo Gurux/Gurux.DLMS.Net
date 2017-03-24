@@ -629,7 +629,7 @@ namespace GuruxDLMSServerExample
                             }
                             else
                             {
-                                sb.AppendLine(Convert.ToString(col));
+                                sb.Append(Convert.ToString(col));
                             }
                         }
                         sb.AppendLine("");
@@ -814,7 +814,7 @@ namespace GuruxDLMSServerExample
                     GXDLMSProfileGeneric pg = (GXDLMSProfileGeneric)it.Target;
                     pg.Buffer.Clear();
                     int cnt = GetProfileGenericDataCount() + 1;
-                    //Update last avarage value.
+                    //Update last average value.
                     pg.Buffer.Add(new object[] { DateTime.Now, cnt });
                     it.Handled = true;
                 }

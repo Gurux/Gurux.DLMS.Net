@@ -76,7 +76,6 @@
     <Compile Include="Enums\Task.cs" />
     <Compile Include="Enums\TranslatorOutputType.cs" />
     <Compile Include="Enums\Unit.cs" />
-    <Compile Include="Enums\UpdateType.cs" />
     <Compile Include="Enums\VdeStateError.cs" />
     <Compile Include="GXByteBuffer.cs" />
     <Compile Include="GXDataInfo.cs" />
