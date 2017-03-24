@@ -89,8 +89,6 @@ namespace GuruxDLMSServerExample
             //Add Logical Device Name. 123456 is meter serial number.
             GXDLMSData ldn = new GXDLMSData("0.0.42.0.0.255");
             ldn.Value = "Gurux123456";
-            //Set access right. Client can't change Device name.
-            ldn.SetAccess(2, AccessMode.Read);
             //Value is get as Octet String.
             ldn.SetDataType(2, DataType.OctetString);
             ldn.SetUIDataType(2, DataType.String);
@@ -104,7 +102,6 @@ namespace GuruxDLMSServerExample
             //Add Last average.
             GXDLMSRegister r = new GXDLMSRegister("1.1.21.25.0.255");
             //Set access right. Client can't change average value.
-            r.SetAccess(2, AccessMode.Read);
             Items.Add(r);
             //Add default clock. Clock's Logical Name is 0.0.1.0.0.255.
             GXDLMSClock clock = new GXDLMSClock();
@@ -132,7 +129,7 @@ namespace GuruxDLMSServerExample
             Items.Add(pg);
             //Add initial rows.
             //Generate Profile Generic data file
-            using (var fs = File.OpenWrite(dataFile))
+            using (var writer = File.CreateText(dataFile))
             {
                 //Create 10 000 rows for profile generic file.
                 //In example profile generic we have two columns. 
@@ -151,10 +148,8 @@ namespace GuruxDLMSServerExample
                     sb.AppendLine(Convert.ToString(pos + 1));
                     dt = dt.AddHours(1);
                 }
-                using (var writer = new StreamWriter(fs))
-                {
-                    writer.Write(sb.ToString());
-                }
+                sb.Length -= 2;
+                writer.Write(sb.ToString());
             }
             ///////////////////////////////////////////////////////////////////////
             //Add Auto connect object.
@@ -603,8 +598,56 @@ namespace GuruxDLMSServerExample
             }
         }
 
+        private void HandleProfileGenericActions(ValueEventArgs it)
+        {
+            GXDLMSProfileGeneric pg = (GXDLMSProfileGeneric)it.Target;
+            if (it.Index == 1)
+            {
+                //Profile generic clear is called. Clear data.
+                using (var fs = File.CreateText(dataFile))
+                {
+                }
+            }
+            else if (it.Index == 2)
+            {
+                //Profile generic Capture is called.
+                using (var writer = File.AppendText(dataFile))
+                {
+                    StringBuilder sb = new StringBuilder();
+                    for (int pos = pg.Buffer.Count - 1; pos != pg.Buffer.Count; ++pos)
+                    {
+                        for (int c = 0; c != pg.CaptureObjects.Count; ++c)
+                        {
+                            if (c != 0)
+                            {
+                                sb.Append(';');
+                            }
+                            object col = pg.Buffer[pos][c];
+                            if (col is DateTime)
+                            {
+                                sb.Append(((DateTime)col).ToString(CultureInfo.InvariantCulture));
+                            }
+                            else
+                            {
+                                sb.AppendLine(Convert.ToString(col));
+                            }
+                        }
+                        sb.AppendLine("");
+                    }
+                    writer.Write(sb.ToString());
+                }
+            }
+        }
+
         protected override void PostAction(ValueEventArgs[] args)
         {
+            foreach (ValueEventArgs it in args)
+            {
+                if (it.Target is GXDLMSProfileGeneric)
+                {
+                    HandleProfileGenericActions(it);
+                }
+            }
         }
 
         /// <summary>
@@ -615,14 +658,74 @@ namespace GuruxDLMSServerExample
             return true;
         }
 
+        protected override AccessMode GetAttributeAccess(ValueEventArgs arg)
+        {
+            //Only read is allowed
+            if (arg.Settings.Authentication == Authentication.None)
+            {
+                return AccessMode.Read;
+            }
+            //Only clock write is allowed.
+            if (arg.Settings.Authentication == Authentication.Low)
+            {
+                if (arg.Target is GXDLMSClock)
+                {
+                    return AccessMode.ReadWrite;
+                }
+                return AccessMode.Read;
+            }
+            //All write are allowed.
+            return AccessMode.ReadWrite;
+        }
+
+        /// <summary>
+        /// Get method access mode.
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <returns>Method access mode</returns>
+        protected override MethodAccessMode GetMethodAccess(ValueEventArgs arg)
+        {
+            //Methods are not allowed.
+            if (arg.Settings.Authentication == Authentication.None)
+            {
+                return MethodAccessMode.NoAccess;
+            }
+            //Only clock methods are allowed.
+            if (arg.Settings.Authentication == Authentication.Low)
+            {
+                if (arg.Target is GXDLMSClock)
+                {
+                    return MethodAccessMode.Access;
+                }
+                return MethodAccessMode.NoAccess;
+            }
+            return MethodAccessMode.Access;
+        }
+
+
         /// <summary>
         /// Our example server accept all authentications.
         /// </summary>
         protected override SourceDiagnostic ValidateAuthentication(Authentication authentication, byte[] password)
         {
             //If low authentication fails.
-            if (authentication == Authentication.Low && !Gurux.Common.GXCommon.EqualBytes(ASCIIEncoding.ASCII.GetBytes("Gurux"), password))
+            if (authentication == Authentication.Low)
             {
+                byte[] expected;
+                if (UseLogicalNameReferencing)
+                {
+                    GXDLMSAssociationLogicalName ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
+                    expected = ln.Secret;
+                }
+                else
+                {
+                    GXDLMSAssociationShortName sn = (GXDLMSAssociationShortName)Items.FindByLN(ObjectType.AssociationShortName, "0.0.40.0.0.255");
+                    expected = sn.Secret;
+                }
+                if (Gurux.Common.GXCommon.EqualBytes(expected, password))
+                {
+                    return SourceDiagnostic.None;
+                }
                 return SourceDiagnostic.AuthenticationFailure;
             }
             //Other authentication levels are check later.
@@ -698,11 +801,27 @@ namespace GuruxDLMSServerExample
             }
         }
 
-        public override void PreGet(UpdateType type, ValueEventArgs[] args)
+        /// <summary>
+        /// Generate random value for profile generic.
+        /// </summary>
+        /// <param name="args"></param>
+        public override void PreGet(ValueEventArgs[] args)
         {
+            foreach (ValueEventArgs it in args)
+            {
+                if (it.Target is GXDLMSProfileGeneric)
+                {
+                    GXDLMSProfileGeneric pg = (GXDLMSProfileGeneric)it.Target;
+                    pg.Buffer.Clear();
+                    int cnt = GetProfileGenericDataCount() + 1;
+                    //Update last avarage value.
+                    pg.Buffer.Add(new object[] { DateTime.Now, cnt });
+                    it.Handled = true;
+                }
+            }
         }
 
-        public override void PostGet(UpdateType type, ValueEventArgs[] args)
+        public override void PostGet(ValueEventArgs[] args)
         {
         }
 

@@ -44,7 +44,7 @@ namespace Gurux.DLMS
     public class ValueEventArgs
     {
         /// <summary>
-        /// Target DLMS object.
+        /// Target COSEM object.
         /// </summary>
         public GXDLMSObject Target
         {
@@ -53,12 +53,21 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// DLMS server.
+        /// </summary>
+        internal GXDLMSServer Server
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Attribute index of queried object.
         /// </summary>
         public int Index
         {
             get;
-            private set;
+            set;
         }
 
         /// <summary>
@@ -112,7 +121,7 @@ namespace Gurux.DLMS
         internal bool action;
 
         /// <summary>
-        /// Occurred error.
+        /// DLMS settings.
         /// </summary>
         public GXDLMSSettings Settings
         {
@@ -169,7 +178,21 @@ namespace Gurux.DLMS
         /// <summary>
         /// Constructor.
         /// </summary>
-        public ValueEventArgs(GXDLMSSettings settings, GXDLMSObject target, int index, int selector, object parameters)
+        internal ValueEventArgs(GXDLMSServer server, GXDLMSObject target, int index, int selector, object parameters)
+        {
+            Server = server;
+            Settings = server.Settings;
+            Target = target;
+            Index = index;
+            Selector = selector;
+            Parameters = parameters;
+        }
+
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        internal ValueEventArgs(GXDLMSSettings settings, GXDLMSObject target, int index, int selector, object parameters)
         {
             Settings = settings;
             Target = target;

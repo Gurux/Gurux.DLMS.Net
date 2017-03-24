@@ -228,6 +228,25 @@ namespace Gurux.DLMS.Objects
             return list.ToArray();
         }
 
+        /// <summary>
+        /// Clears the buffer.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] Reset(GXDLMSClient client)
+        {
+            return client.Method(this, 1, (byte)0);
+        }
+
+        /// <summary>
+        /// Copies the values of the objects to capture into the buffer by reading each capture object. 
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] Capture(GXDLMSClient client)
+        {
+            return client.Method(this, 2, (byte)0);
+        }
 
         /// <summary>
         /// Clears the buffer.
@@ -247,44 +266,53 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         public void Capture(GXDLMSServer server)
         {
-            object[] values = new object[CaptureObjects.Count];
-            int pos = -1;
-            List<ValueEventArgs> args = new List<ValueEventArgs>();
-            foreach (var obj in CaptureObjects)
+            lock (this)
             {
-                ValueEventArgs e = new ValueEventArgs(server.Settings, obj.Key, obj.Value.AttributeIndex, 0, null);
-                args.Add(e);
-            }
-            server.PreGet(UpdateType.ProfileGeneric, args.ToArray());
-            foreach (ValueEventArgs e in args)
-            {
-                if (e.Handled)
+                object[] values = new object[CaptureObjects.Count];
+                int pos = 0;
+                ValueEventArgs[] args = new ValueEventArgs[] { new ValueEventArgs(server, this, 2, 0, null) };
+                server.PreGet(args);
+                if (!args[0].Handled)
                 {
-                    values[++pos] = e.Value;
+                    foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in CaptureObjects)
+                    {
+                        values[pos] = it.Key.GetValues()[it.Value.AttributeIndex];
+                        ++pos;
+                    }
+                    lock (Buffer)
+                    {
+                        //Remove first items if buffer is full.
+                        if (ProfileEntries == Buffer.Count)
+                        {
+                            --EntriesInUse;
+                            Buffer.RemoveAt(0);
+                        }
+                        Buffer.Add(values);
+                        ++EntriesInUse;
+                    }
                 }
-                else
-                {
-                    values[++pos] = e.Target.GetValues()[e.Index - 1];
-                }
+                server.PostGet(args);
             }
-            lock (Buffer)
-            {
-                //Remove first items if buffer is full.
-                if (ProfileEntries == Buffer.Count)
-                {
-                    Buffer.RemoveAt(0);
-                }
-                Buffer.Add(values);
-                EntriesInUse = Buffer.Count;
-            }
-            server.PostGet(UpdateType.ProfileGeneric, args.ToArray());
         }
 
         #region IGXDLMSBase Members
 
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
-            e.Error = ErrorCode.ReadWriteDenied;
+            if (e.Index == 1)
+            {
+                //Reset.
+                Reset();
+            }
+            else if (e.Index == 2)
+            {
+                //Capture.
+                Capture(e.Server);
+            }
+            else
+            {
+                e.Error = ErrorCode.ReadWriteDenied;
+            }
             return null;
         }
 

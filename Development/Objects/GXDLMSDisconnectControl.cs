@@ -107,8 +107,8 @@ namespace Gurux.DLMS.Objects
         /// Forces the disconnect control object into 'disconnected' state 
         /// if remote disconnection is enabled(control mode > 0).
         /// </summary>
-        /// <param name="client"></param>
-        /// <returns></returns>
+        /// <param name="client">DLMS client.</param>
+        /// <returns>Action bytes.</returns>
         public byte[][] RemoteDisconnect(GXDLMSClient client)
         {
             return client.Method(this, 1, (byte)0);
@@ -120,8 +120,8 @@ namespace Gurux.DLMS.Objects
         /// Forces the disconnect control object into the 'connected' state if 
         /// a direct remote reconnection is enabled(control_mode = 2, 4).
         /// </summary>
-        /// <param name="client"></param>
-        /// <returns></returns>
+        /// <param name="client">DLMS client.</param>
+        /// <returns>Action bytes.</returns>
         public byte[][] RemoteReconnect(GXDLMSClient client)
         {
             return client.Method(this, 2, (byte)0);

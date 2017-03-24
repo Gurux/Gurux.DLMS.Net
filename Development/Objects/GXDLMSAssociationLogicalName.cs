@@ -340,7 +340,7 @@ namespace Gurux.DLMS.Objects
                     GXCommon.SetData(settings, data, DataType.UInt16, it.ObjectType); //ClassID
                     GXCommon.SetData(settings, data, DataType.UInt8, it.Version); //Version
                     GXCommon.SetData(settings, data, DataType.OctetString, it.LogicalName); //LN
-                    GetAccessRights(settings, it, data); //Access rights.
+                    GetAccessRights(settings, it, e.Server, data); //Access rights.
                     ++settings.Index;
                     //If PDU is full.
                     if (!e.SkipMaxPduSize && data.Size >= settings.MaxPduSize)
@@ -352,50 +352,37 @@ namespace Gurux.DLMS.Objects
             return data;
         }
 
-        private void GetAccessRights(GXDLMSSettings settings, GXDLMSObject item, GXByteBuffer data)
+        private void GetAccessRights(GXDLMSSettings settings, GXDLMSObject item, GXDLMSServer server, GXByteBuffer data)
         {
             data.SetUInt8((byte)DataType.Structure);
             data.SetUInt8((byte)2);
             data.SetUInt8((byte)DataType.Array);
-            GXAttributeCollection attributes = item.Attributes;
             int cnt = (item as IGXDLMSBase).GetAttributeCount();
             data.SetUInt8((byte)cnt);
+            ValueEventArgs e = new DLMS.ValueEventArgs(server, item, 0, 0, null);
             for (int pos = 0; pos != cnt; ++pos)
             {
-                GXDLMSAttributeSettings att = attributes.Find(pos + 1);
-                data.SetUInt8((byte)DataType.Structure); //attribute_access_item
+                e.Index = pos + 1;
+                AccessMode m = server.NotifyGetAttributeAccess(e);
+                //attribute_access_item
+                data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8((byte)3);
-                GXCommon.SetData(settings, data, DataType.Int8, pos + 1);
-                //If attribute is not set return read only.
-                if (att == null)
-                {
-                    GXCommon.SetData(settings, data, DataType.Enum, AccessMode.Read);
-                }
-                else
-                {
-                    GXCommon.SetData(settings, data, DataType.Enum, att.Access);
-                }
+                GXCommon.SetData(settings, data, DataType.Int8, e.Index);
+                GXCommon.SetData(settings, data, DataType.Enum, m);
                 GXCommon.SetData(settings, data, DataType.None, null);
             }
             data.SetUInt8((byte)DataType.Array);
-            attributes = item.MethodAttributes;
             cnt = (item as IGXDLMSBase).GetMethodCount();
             data.SetUInt8((byte)cnt);
             for (int pos = 0; pos != cnt; ++pos)
             {
-                GXDLMSAttributeSettings att = attributes.Find(pos + 1);
-                data.SetUInt8((byte)DataType.Structure); //attribute_access_item
+                e.Index = pos + 1;
+                MethodAccessMode m = server.NotifyGetMethodAccess(e);
+                //attribute_access_item
+                data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8((byte)2);
                 GXCommon.SetData(settings, data, DataType.Int8, pos + 1);
-                //If method attribute is not set return no access.
-                if (att == null)
-                {
-                    GXCommon.SetData(settings, data, DataType.Enum, MethodAccessMode.NoAccess);
-                }
-                else
-                {
-                    GXCommon.SetData(settings, data, DataType.Enum, att.MethodAccess);
-                }
+                GXCommon.SetData(settings, data, DataType.Enum, m);
             }
         }
 

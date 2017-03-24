@@ -303,7 +303,8 @@ namespace Gurux.DLMS
                             value = GXDLMSClient.ChangeType((byte[])value, dt);
                         }
                     }
-                    AccessMode am = target.Item.GetAccess(target.Index);
+                    ValueEventArgs e = new ValueEventArgs(server, target.Item, target.Index, 0, null);
+                    AccessMode am = server.NotifyGetAttributeAccess(e);
                     // If write is denied.
                     if (am != AccessMode.Write && am != AccessMode.ReadWrite)
                     {
@@ -311,7 +312,6 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        ValueEventArgs e = new ValueEventArgs(settings, target.Item, target.Index, 0, null);
                         e.Value = value;
                         server.NotifyWrite(new ValueEventArgs[] { e });
                         if (e.Error != 0)
@@ -408,7 +408,7 @@ namespace Gurux.DLMS
             }
 
             GXSNInfo info = FindSNObject(server, sn & 0xFFFF);
-            ValueEventArgs e = new ValueEventArgs(settings, info.Item, info.Index, 0, null);
+            ValueEventArgs e = new ValueEventArgs(server, info.Item, info.Index, 0, null);
             e.action = info.IsAction;
             if (type == (byte)VariableAccessSpecification.ParameterisedAccess)
             {
@@ -425,11 +425,11 @@ namespace Gurux.DLMS
             }
 
             list.Add(e);
-            if (!e.action && info.Item.GetAccess(info.Index) == AccessMode.NoAccess)
+            if (!e.action && server.NotifyGetAttributeAccess(e) == AccessMode.NoAccess)
             {
                 e.Error = ErrorCode.ReadWriteDenied;
             }
-            else if (e.action && info.Item.GetMethodAccess(info.Index) == MethodAccessMode.NoAccess)
+            else if (e.action && server.NotifyGetMethodAccess(e) == MethodAccessMode.NoAccess)
             {
                 e.Error = ErrorCode.ReadWriteDenied;
             }

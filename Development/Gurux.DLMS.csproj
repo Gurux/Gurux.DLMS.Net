@@ -115,7 +115,6 @@
     <Compile Include="Enums\ServiceError.cs" />
     <Compile Include="GXDLMSConnectionEventArgs.cs" />
     <Compile Include="GXDLMSLongTransaction.cs" />
-    <Compile Include="Enums\UpdateType.cs" />
     <Compile Include="GXDLMSBuilder.cs" />
     <Compile Include="GXDLMSConverter.cs" />
     <Compile Include="Internal\ActionRequestType.cs" />

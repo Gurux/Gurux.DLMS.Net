@@ -100,6 +100,19 @@ namespace Gurux.DLMS
         /// <returns>True, if data is sent to this server.</returns>
         protected abstract bool IsTarget(int serverAddress, int clientAddress);
 
+        /// <summary>
+        /// Get attribute access mode.
+        /// </summary>
+        /// <param name="arg">Value event argument.</param>
+        /// <returns>Access mode.</returns>
+        protected abstract AccessMode GetAttributeAccess(ValueEventArgs arg);
+
+        /// <summary>
+        /// Get method access mode.
+        /// </summary>
+        /// <param name="arg">Value event argument.</param>
+        /// <returns>Method access mode.</returns>
+        protected abstract MethodAccessMode GetMethodAccess(ValueEventArgs arg);
 
         /// <summary>
         /// Check whether the authentication and password are correct.
@@ -134,16 +147,17 @@ namespace Gurux.DLMS
 
 
         /// <summary>
-        /// Get selected value.
+        /// Pre get selected value.
         /// </summary>
-        /// <param name="e">Handle get request.</param>
-        public abstract void PreGet(UpdateType type, ValueEventArgs[] args);
+        /// <param name="sender">Sender.</param>
+        public abstract void PreGet(ValueEventArgs[] args);
 
         /// <summary>
-        /// Get selected value.
+        /// Post get selected value.
         /// </summary>
-        /// <param name="e">Handle get request.</param>
-        public abstract void PostGet(UpdateType type, ValueEventArgs[] args);
+        /// <param name="sender">Sender.</param>
+        /// <param name="args">Event arguments.</param>
+        public abstract void PostGet(ValueEventArgs[] args);
 
         /// <summary>
         /// Read selected item.
@@ -206,6 +220,30 @@ namespace Gurux.DLMS
         internal void NotifyInvalidConnection(GXDLMSConnectionEventArgs connectionInfo)
         {
             InvalidConnection(connectionInfo);
+        }
+
+        /// <summary>
+        /// Get attribute access mode.
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <returns>Access mode.</returns>
+        internal AccessMode NotifyGetAttributeAccess(ValueEventArgs arg)
+        {
+            if (arg.Index == 1)
+            {
+                return AccessMode.Read;
+            }
+            return GetAttributeAccess(arg);
+        }
+
+        /// <summary>
+        /// Get method access mode.
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <returns>Method access mode</returns>
+        internal MethodAccessMode NotifyGetMethodAccess(ValueEventArgs arg)
+        {
+            return GetMethodAccess(arg);
         }
 
         /// <summary>

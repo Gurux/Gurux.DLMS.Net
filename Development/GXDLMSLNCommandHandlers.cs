@@ -225,13 +225,13 @@ namespace Gurux.DLMS
             }
             else
             {
-                if (obj.GetMethodAccess(id) == MethodAccessMode.NoAccess)
+                ValueEventArgs e = new ValueEventArgs(server, obj, id, 0, parameters);
+                if (server.NotifyGetMethodAccess(e) == MethodAccessMode.NoAccess)
                 {
                     error = ErrorCode.ReadWriteDenied;
                 }
                 else
                 {
-                    ValueEventArgs e = new ValueEventArgs(settings, obj, id, 0, parameters);
                     server.NotifyAction(new ValueEventArgs[] { e });
                     byte[] actionReply;
                     if (e.Handled)
@@ -349,14 +349,14 @@ namespace Gurux.DLMS
             }
             else
             {
-                if (obj.GetAccess(attributeIndex) == AccessMode.NoAccess)
+                e = new ValueEventArgs(server, obj, attributeIndex, selector, parameters);
+                if (server.NotifyGetAttributeAccess(e) == AccessMode.NoAccess)
                 {
                     //Read Write denied.
                     status = ErrorCode.ReadWriteDenied;
                 }
                 else
                 {
-                    e = new ValueEventArgs(settings, obj, attributeIndex, selector, parameters);
                     if (e.Target is GXDLMSProfileGeneric && attributeIndex == 2)
                     {
                         GXDLMSProfileGeneric pg = (GXDLMSProfileGeneric)e.Target;
@@ -558,22 +558,21 @@ namespace Gurux.DLMS
                         if (obj == null)
                         {
                             // "Access Error : Device reports a undefined object."
-                            e = new ValueEventArgs(settings, obj, attributeIndex, 0, 0);
+                            e = new ValueEventArgs(server, obj, attributeIndex, 0, 0);
                             e.Error = ErrorCode.UndefinedObject;
                             list.Add(e);
                         }
                         else
                         {
-                            if (obj.GetAccess(attributeIndex) == AccessMode.NoAccess)
+                            ValueEventArgs arg = new ValueEventArgs(server, obj, attributeIndex, selector, parameters);
+                            if (server.NotifyGetAttributeAccess(arg) == AccessMode.NoAccess)
                             {
                                 //Read Write denied.
-                                ValueEventArgs arg = new ValueEventArgs(settings, obj, attributeIndex, 0, null);
                                 arg.Error = ErrorCode.ReadWriteDenied;
                                 list.Add(arg);
                             }
                             else
                             {
-                                ValueEventArgs arg = new ValueEventArgs(settings, obj, attributeIndex, selector, parameters);
                                 list.Add(arg);
                             }
                         }
@@ -703,7 +702,8 @@ namespace Gurux.DLMS
             }
             else
             {
-                AccessMode am = obj.GetAccess(index);
+                ValueEventArgs e = new ValueEventArgs(server, obj, index, 0, null);
+                AccessMode am = server.NotifyGetAttributeAccess(e);
                 // If write is denied.
                 if (am != AccessMode.Write && am != AccessMode.ReadWrite)
                 {
@@ -722,7 +722,6 @@ namespace Gurux.DLMS
                                 value = GXDLMSClient.ChangeType((byte[])value, dt);
                             }
                         }
-                        ValueEventArgs e = new ValueEventArgs(settings, obj, index, 0, null);
                         e.Value = value;
                         ValueEventArgs[] list = new ValueEventArgs[] { e };
                         if (p.multipleBlocks)
