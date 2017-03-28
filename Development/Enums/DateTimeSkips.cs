@@ -84,6 +84,10 @@ namespace Gurux.DLMS.Enums
         /// <summary>
         /// Devitation is skipped on write.
         /// </summary>
-        Devitation = 0x100
+        Devitation = 0x100,
+        /// <summary>
+        /// Status is skipped on write.
+        /// </summary>
+        Status = 0x200
     }
 }

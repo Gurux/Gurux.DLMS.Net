@@ -2031,13 +2031,20 @@ namespace Gurux.DLMS.Internal
                 buff.SetUInt16(0x8000);
             }
             //Add clock_status
-            if (dt.Value.LocalDateTime.IsDaylightSavingTime())
+            if ((dt.Skip & DateTimeSkips.Status) == 0)
             {
-                buff.SetUInt8((byte)(dt.Status | ClockStatus.DaylightSavingActive));
+                if (dt.Value.LocalDateTime.IsDaylightSavingTime())
+                {
+                    buff.SetUInt8((byte)(dt.Status | ClockStatus.DaylightSavingActive));
+                }
+                else
+                {
+                    buff.SetUInt8((byte)dt.Status);
+                }
             }
-            else
+            else //Status is not used.
             {
-                buff.SetUInt8((byte)dt.Status);
+                buff.SetUInt8((byte)0xFF);
             }
         }
 

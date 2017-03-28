@@ -73,6 +73,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSProfileGeneric(string ln, ushort sn)
         : base(ObjectType.ProfileGeneric, ln, sn)
         {
+            Version = 1;
             From = DateTime.Now.Date;
             To = DateTime.Now.AddDays(1);
             AccessSelector = AccessRange.Last;
@@ -392,7 +393,7 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8((byte)DataType.Array);
                 if (e.RowEndIndex != 0)
                 {
-                    GXCommon.SetObjectCount((int)e.RowEndIndex, data);
+                    GXCommon.SetObjectCount((int)(e.RowEndIndex - e.RowBeginIndex), data);
                 }
                 else
                 {
@@ -422,6 +423,10 @@ namespace Gurux.DLMS.Objects
                     ++pos;
                 }
                 ++settings.Index;
+            }
+            if (e.RowEndIndex != 0)
+            {
+                e.RowBeginIndex += (UInt32)table.Count;
             }
             return data.Array();
         }

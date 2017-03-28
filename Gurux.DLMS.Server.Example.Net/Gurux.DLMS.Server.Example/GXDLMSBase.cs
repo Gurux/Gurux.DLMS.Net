@@ -483,7 +483,6 @@ namespace GuruxDLMSServerExample
                             count = e.RowToPdu;
                         }
                         GetProfileGenericDataByEntry(p, e.RowBeginIndex, count);
-                        e.RowBeginIndex += count;
                     }
                     continue;
                 }
