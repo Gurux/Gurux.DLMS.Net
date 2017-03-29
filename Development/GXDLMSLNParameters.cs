@@ -101,8 +101,8 @@ namespace Gurux.DLMS
             data = forData;
             time = null;
             status = forStatus;
-            multipleBlocks = forSettings.Count != 0;
-            lastBlock = forSettings.Count == forSettings.Index;            
+            multipleBlocks = forSettings.Count != forSettings.Index;
+            lastBlock = forSettings.Count == forSettings.Index;
         }
     }
 }

@@ -422,12 +422,12 @@ namespace Gurux.DLMS
             if (p.multipleBlocks)
             {
                 //Add command type and invoke and priority.
-                p.lastBlock = !(2 + reply.Size + len > p.settings.MaxPduSize);
+                p.lastBlock = !(8 + reply.Size + len > p.settings.MaxPduSize);
             }
             if (p.lastBlock)
             {
                 //Add command type and invoke and priority.
-                p.lastBlock = !(2 + reply.Size + len > p.settings.MaxPduSize);
+                p.lastBlock = !(8 + reply.Size + len > p.settings.MaxPduSize);
             }
         }
 

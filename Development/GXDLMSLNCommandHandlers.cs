@@ -403,7 +403,7 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        settings.Count = e.RowEndIndex;
+                        settings.Count = e.RowEndIndex - e.RowBeginIndex;
                         value = (obj as IGXDLMSBase).GetValue(settings, e);
                     }
                     if (e.ByteArray)
