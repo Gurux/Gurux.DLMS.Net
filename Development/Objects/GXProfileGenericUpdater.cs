@@ -45,19 +45,34 @@ namespace Gurux.DLMS.Objects
     {
         GXDLMSProfileGeneric Target;
         GXDLMSServer Server;
+
+        public AutoResetEvent Closing
+        {
+            get;
+            private set;
+        }
+
         public GXProfileGenericUpdater(GXDLMSServer server, GXDLMSProfileGeneric pg)
         {
+            Closing = new AutoResetEvent(false);
             Server = server;
             Target = pg;
         }
 
         public void UpdateProfileGenericData()
         {
-            while (true)
+            do
             {
-                Thread.Sleep(Target.CapturePeriod * 1000);
-                Target.Capture(Server);
+                try
+                {
+                    Target.Capture(Server);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(ex.Message);
+                }
             }
+            while (!Closing.WaitOne(Target.CapturePeriod * 1000));
         }
     }
 }

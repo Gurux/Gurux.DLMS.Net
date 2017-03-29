@@ -70,12 +70,18 @@ namespace GuruxDLMSServerExample
                 GXDLMSServerLN_47 LN_47Server = new GXDLMSServerLN_47();
                 LN_47Server.Initialize(4063);
                 Console.WriteLine("Logical Name DLMS Server with IEC 62056-47 in port 4063.");
-                while (Console.ReadKey().Key != ConsoleKey.Enter);
+                while (Console.ReadKey().Key != ConsoleKey.Enter) ;
+                //Close servers.
+                SNServer.Close();
+                LNServer.Close();
+                SN_47Server.Close();
+                LN_47Server.Close();
+                Console.WriteLine("Servers closed.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
-        }        
+        }
     }
 }

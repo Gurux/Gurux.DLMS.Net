@@ -210,15 +210,6 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Deviation.
-        /// </summary>
-        public int Deviation
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// Is data time serialized as octet string. Default value is false.
         /// </summary>
         ///<remarks>
@@ -229,7 +220,7 @@ namespace Gurux.DLMS
         {
             get;
             set;
-        }  
+        }
 
         public override string ToString()
         {

@@ -822,11 +822,14 @@ namespace Gurux.DLMS.Internal
                 }
                 int deviation = buff.GetInt16();
                 dt.Status = (ClockStatus)buff.GetUInt8();
+                if ((dt.Status & ClockStatus.DaylightSavingActive) != 0)
+                {
+                    deviation -= (int)TimeZone.CurrentTimeZone.GetDaylightChanges(year).Delta.TotalMinutes;
+                }
                 if (settings != null && settings.UtcTimeZone)
                 {
                     deviation = -deviation;
                 }
-                dt.Deviation = deviation;
                 //0x8000 == -32768
                 //deviation = -1 if skipped.
                 if (deviation != -1 && deviation != -32768 && year != 1 && (dt.Skip & DateTimeSkips.Year) == 0)
@@ -2017,13 +2020,18 @@ namespace Gurux.DLMS.Internal
             //Add deviation.
             if ((dt.Skip & DateTimeSkips.Devitation) == 0)
             {
+                Int16 devitation = (Int16)dt.Value.Offset.TotalMinutes;
+                if (dt.Value.LocalDateTime.IsDaylightSavingTime())
+                {
+                    devitation -= 60;
+                }
                 if (settings != null && settings.UtcTimeZone)
                 {
-                    buff.SetInt16((Int16)(dt.Value.Offset.TotalMinutes));
+                    buff.SetInt16(devitation);
                 }
                 else
                 {
-                    buff.SetInt16((Int16)(-dt.Value.Offset.TotalMinutes));
+                    buff.SetInt16((Int16)(-devitation));
                 }
             }
             else //deviation not used.
@@ -2033,7 +2041,7 @@ namespace Gurux.DLMS.Internal
             //Add clock_status
             if ((dt.Skip & DateTimeSkips.Status) == 0)
             {
-                if (dt.Value.LocalDateTime.IsDaylightSavingTime())
+                if ((dt.Skip & DateTimeSkips.Devitation) == 0 && dt.Value.LocalDateTime.IsDaylightSavingTime())
                 {
                     buff.SetUInt8((byte)(dt.Status | ClockStatus.DaylightSavingActive));
                 }

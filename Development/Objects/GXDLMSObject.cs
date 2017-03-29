@@ -502,5 +502,21 @@ namespace Gurux.DLMS.Objects
             GXDLMSAttributeSettings att = GetAttribute(index, null);
             return att.Static;
         }
+
+        /// <summary>
+        /// Server calls this when it's started.
+        /// </summary>
+        internal virtual void Start(GXDLMSServer server)
+        {
+
+        }
+
+        /// <summary>
+        /// Server calls this when it's closed.
+        /// </summary>
+        internal virtual void Stop(GXDLMSServer server)
+        {
+
+        }
     }
 }

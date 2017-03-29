@@ -53,7 +53,7 @@ namespace GuruxDLMSServerExample
     /// </summary>
     class GXDLMSBase : GXDLMSSecureServer
     {
-        string dataFile = "data.csv";
+        static string dataFile = "data.csv";
         bool trace = true;
         public GXDLMSBase(bool logicalNameReferencing, InterfaceType type)
         : base(logicalNameReferencing, type, "GRX", 12345678)
@@ -129,27 +129,30 @@ namespace GuruxDLMSServerExample
             Items.Add(pg);
             //Add initial rows.
             //Generate Profile Generic data file
-            using (var writer = File.CreateText(dataFile))
+            lock (dataFile)
             {
-                //Create 10 000 rows for profile generic file.
-                //In example profile generic we have two columns. 
-                //Date time and integer value.
-                int rowCount = 10000;
-                DateTime dt = DateTime.Now;
-                //Reset minutes and seconds to Zero.
-                dt = dt.AddSeconds(-dt.Second);
-                dt = dt.AddMinutes(-dt.Minute);
-                dt = dt.AddHours(-(rowCount - 1));
-                StringBuilder sb = new StringBuilder();
-                for (int pos = 0; pos != rowCount; ++pos)
+                using (var writer = File.CreateText(dataFile))
                 {
-                    sb.Append(dt.ToString(CultureInfo.InvariantCulture));
-                    sb.Append(';');
-                    sb.AppendLine(Convert.ToString(pos + 1));
-                    dt = dt.AddHours(1);
+                    //Create 10 000 rows for profile generic file.
+                    //In example profile generic we have two columns. 
+                    //Date time and integer value.
+                    int rowCount = 10000;
+                    DateTime dt = DateTime.Now;
+                    //Reset minutes and seconds to Zero.
+                    dt = dt.AddSeconds(-dt.Second);
+                    dt = dt.AddMinutes(-dt.Minute);
+                    dt = dt.AddHours(-(rowCount - 1));
+                    StringBuilder sb = new StringBuilder();
+                    for (int pos = 0; pos != rowCount; ++pos)
+                    {
+                        sb.Append(dt.ToString(CultureInfo.InvariantCulture));
+                        sb.Append(';');
+                        sb.AppendLine(Convert.ToString(pos + 1));
+                        dt = dt.AddHours(1);
+                    }
+                    sb.Length -= 2;
+                    writer.Write(sb.ToString());
                 }
-                sb.Length -= 2;
-                writer.Write(sb.ToString());
             }
             ///////////////////////////////////////////////////////////////////////
             //Add Auto connect object.
@@ -311,6 +314,12 @@ namespace GuruxDLMSServerExample
             Initialize();
         }
 
+        public override void Close()
+        {
+            base.Close();
+            Media.Close();
+        }
+
         void OnError(object sender, Exception ex)
         {
             System.Diagnostics.Debug.WriteLine(ex.Message);
@@ -327,28 +336,31 @@ namespace GuruxDLMSServerExample
         {
             //Clear old data. It's already serialized.
             p.Buffer.Clear();
-            using (var fs = File.OpenRead(dataFile))
+            lock (dataFile)
             {
-                using (var reader = new StreamReader(fs))
+                using (var fs = File.OpenRead(dataFile))
                 {
-                    while (!reader.EndOfStream)
+                    using (var reader = new StreamReader(fs))
                     {
-                        string line = reader.ReadLine();
-                        if (line.Length != 0)
+                        while (!reader.EndOfStream)
                         {
-                            //Skip row
-                            if (index > 0)
+                            string line = reader.ReadLine();
+                            if (line.Length != 0)
                             {
-                                --index;
-                            }
-                            else
-                            {
-                                string[] values = line.Split(';');
-                                p.Buffer.Add(new object[] { DateTime.Parse(values[0], CultureInfo.InvariantCulture), int.Parse(values[1]) });
-                            }
-                            if (p.Buffer.Count == count)
-                            {
-                                break;
+                                //Skip row
+                                if (index > 0)
+                                {
+                                    --index;
+                                }
+                                else
+                                {
+                                    string[] values = line.Split(';');
+                                    p.Buffer.Add(new object[] { DateTime.Parse(values[0], CultureInfo.InvariantCulture), int.Parse(values[1]) });
+                                }
+                                if (p.Buffer.Count == count)
+                                {
+                                    break;
+                                }
                             }
                         }
                     }
@@ -367,28 +379,31 @@ namespace GuruxDLMSServerExample
         {
             GXDateTime start = (GXDateTime)GXDLMSClient.ChangeType((byte[])((object[])e.Parameters)[1], DataType.DateTime);
             GXDateTime end = (GXDateTime)GXDLMSClient.ChangeType((byte[])((object[])e.Parameters)[2], DataType.DateTime);
-            using (var fs = File.OpenRead(dataFile))
+            lock (dataFile)
             {
-                using (var reader = new StreamReader(fs))
+                using (var fs = File.OpenRead(dataFile))
                 {
-                    while (!reader.EndOfStream)
+                    using (var reader = new StreamReader(fs))
                     {
-                        string line = reader.ReadLine();
-                        if (line.Length != 0)
+                        while (!reader.EndOfStream)
                         {
-                            string[] values = line.Split(';');
-                            DateTime tm = DateTime.Parse(values[0], CultureInfo.InvariantCulture);
-                            if (tm > end)
+                            string line = reader.ReadLine();
+                            if (line.Length != 0)
                             {
-                                //If all data is read.
-                                break;
+                                string[] values = line.Split(';');
+                                DateTime tm = DateTime.Parse(values[0], CultureInfo.InvariantCulture);
+                                if (tm > end)
+                                {
+                                    //If all data is read.
+                                    break;
+                                }
+                                if (tm < start)
+                                {
+                                    //If we have not find first item.
+                                    ++e.RowBeginIndex;
+                                }
+                                ++e.RowEndIndex;
                             }
-                            if (tm < start)
-                            {
-                                //If we have not find first item.
-                                ++e.RowBeginIndex;
-                            }
-                            ++e.RowEndIndex;
                         }
                     }
                 }
@@ -402,20 +417,66 @@ namespace GuruxDLMSServerExample
         UInt16 GetProfileGenericDataCount()
         {
             UInt16 rows = 0;
-            using (var fs = File.OpenRead(dataFile))
+            lock (dataFile)
             {
-                using (var reader = new StreamReader(fs))
+                using (var fs = File.OpenRead(dataFile))
                 {
-                    while (!reader.EndOfStream)
+                    using (var reader = new StreamReader(fs))
                     {
-                        if (reader.ReadLine().Length != 0)
+                        while (!reader.EndOfStream)
                         {
-                            ++rows;
+                            if (reader.ReadLine().Length != 0)
+                            {
+                                ++rows;
+                            }
                         }
                     }
                 }
             }
             return rows;
+        }
+
+        void HandleClock(ValueEventArgs e)
+        {
+            GXDLMSClock c = e.Target as GXDLMSClock;
+            if (e.Index == 2)
+            {
+                c.Time = DateTime.Now;
+            }
+            else if (e.Index == 3)
+            {
+                c.TimeZone = -(int)TimeZoneInfo.Local.BaseUtcOffset.TotalMinutes;
+            }
+            else if (e.Index == 4)
+            {
+                c.Status = ClockStatus.Ok;
+                if (DateTime.Now.IsDaylightSavingTime())
+                {
+                    c.Status |= ClockStatus.DaylightSavingActive;
+                }
+            }
+            else if (e.Index == 5)
+            {
+                c.Begin = TimeZone.CurrentTimeZone.GetDaylightChanges(DateTime.Now.Year).Start;
+                c.Begin.Skip |= DateTimeSkips.Year;
+            }
+            else if (e.Index == 6)
+            {
+                c.End = TimeZone.CurrentTimeZone.GetDaylightChanges(DateTime.Now.Year).End;
+                c.End.Skip |= DateTimeSkips.Year;
+            }
+            else if (e.Index == 7)
+            {
+                c.Deviation = (int)TimeZone.CurrentTimeZone.GetDaylightChanges(DateTime.Now.Year).Delta.TotalMinutes;
+            }
+            else if (e.Index == 8)
+            {
+                c.Enabled = TimeZoneInfo.Local.SupportsDaylightSavingTime;
+            }
+            else if (e.Index == 9)
+            {
+                c.ClockBase = ClockBase.Crystal;
+            }
         }
 
         /// <summary>
@@ -490,8 +551,7 @@ namespace GuruxDLMSServerExample
                 Console.WriteLine(string.Format("Client Read value from {0} attribute: {1}.", e.Target.Name, e.Index));
                 if (e.Target is GXDLMSClock)
                 {
-                    //Implement specific clock handling here.
-                    //Otherwise initial values are used.
+                    HandleClock(e);
                 }
                 else if (e.Target.GetUIDataType(e.Index) == DataType.DateTime ||
                          e.Target.GetDataType(e.Index) == DataType.DateTime)

@@ -477,6 +477,17 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        ///  Close server.
+        /// </summary>
+        public virtual void Close()
+        {
+            foreach (GXDLMSObject it in Items)
+            {
+                it.Stop(this);
+            }
+        }
+
+        /// <summary>
         ///  Initialize server.
         /// </summary>
         /// <remarks>
@@ -494,6 +505,7 @@ namespace Gurux.DLMS
                 {
                     throw new Exception("Invalid Logical Name.");
                 }
+                it.Start(this);
                 if (it is GXDLMSProfileGeneric)
                 {
                     GXDLMSProfileGeneric pg = it as GXDLMSProfileGeneric;
@@ -503,14 +515,6 @@ namespace Gurux.DLMS
                         {
                             throw new Exception("Invalid attribute index. SelectedAttributeIndex is not set for " + obj.Key.Name);
                         }
-                    }
-
-                    if (pg.CapturePeriod != 0)
-                    {
-                        GXProfileGenericUpdater p = new GXProfileGenericUpdater(this, pg);
-                        Thread thread = new Thread(new ThreadStart(p.UpdateProfileGenericData));
-                        thread.IsBackground = true;
-                        thread.Start();
                     }
                 }
                 else if (it is GXDLMSAssociationShortName && !this.UseLogicalNameReferencing)

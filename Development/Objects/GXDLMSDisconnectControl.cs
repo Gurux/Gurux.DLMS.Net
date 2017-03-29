@@ -111,7 +111,7 @@ namespace Gurux.DLMS.Objects
         /// <returns>Action bytes.</returns>
         public byte[][] RemoteDisconnect(GXDLMSClient client)
         {
-            return client.Method(this, 1, (byte)0);
+            return client.Method(this, 1, (sbyte)0);
         }
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace Gurux.DLMS.Objects
         /// <returns>Action bytes.</returns>
         public byte[][] RemoteReconnect(GXDLMSClient client)
         {
-            return client.Method(this, 2, (byte)0);
+            return client.Method(this, 2, (sbyte)0);
         }
 
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>

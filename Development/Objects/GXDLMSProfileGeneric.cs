@@ -43,11 +43,17 @@ using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
+using System.Threading;
 
 namespace Gurux.DLMS.Objects
 {
     public class GXDLMSProfileGeneric : GXDLMSObject, IGXDLMSBase
     {
+        private GXDLMSServer server = null;
+        private GXProfileGenericUpdater updater = null;
+        private Thread thread = null;
+        private int capturePeriod;
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -138,8 +144,18 @@ namespace Gurux.DLMS.Objects
         [XmlIgnore()]
         public int CapturePeriod
         {
-            get;
-            set;
+            get
+            {
+                return capturePeriod;
+            }
+            set
+            {
+                capturePeriod = value;
+                if (server != null)
+                {
+                    Start(server);
+                }
+            }
         }
 
         /// <summary>
@@ -236,7 +252,7 @@ namespace Gurux.DLMS.Objects
         /// <returns>Action bytes.</returns>
         public byte[][] Reset(GXDLMSClient client)
         {
-            return client.Method(this, 1, (byte)0);
+            return client.Method(this, 1, (sbyte)0);
         }
 
         /// <summary>
@@ -246,7 +262,7 @@ namespace Gurux.DLMS.Objects
         /// <returns>Action bytes.</returns>
         public byte[][] Capture(GXDLMSClient client)
         {
-            return client.Method(this, 2, (byte)0);
+            return client.Method(this, 2, (sbyte)0);
         }
 
         /// <summary>
@@ -295,6 +311,33 @@ namespace Gurux.DLMS.Objects
                 server.PostGet(args);
             }
         }
+
+        internal override void Start(GXDLMSServer svr)
+        {
+            server = svr;
+            if (CapturePeriod != 0)
+            {
+                updater = new GXProfileGenericUpdater(server, this);
+                thread = new Thread(new ThreadStart(updater.UpdateProfileGenericData));
+                thread.IsBackground = true;
+                thread.Start();
+            }
+        }
+
+        internal override void Stop(GXDLMSServer server)
+        {
+            if (updater != null)
+            {
+                updater.Closing.Set();
+                if (thread != null)
+                {
+                    thread.Join(10000);
+                    thread = null;
+                }
+                updater = null;
+            }
+        }
+
 
         #region IGXDLMSBase Members
 
@@ -384,9 +427,15 @@ namespace Gurux.DLMS.Objects
         /// <param name="table"></param>
         /// <param name="columns">Columns to get. NULL if not used.</param>
         /// <returns></returns>
-        byte[] GetData(GXDLMSSettings settings, ValueEventArgs e, List<object[]> table, List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
+        byte[] GetData(GXDLMSSettings settings, ValueEventArgs e, List<object[]> table,
+            List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
         {
-            int pos;
+            int pos = 0;
+            List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> cols = columns;
+            if (columns == null)
+            {
+
+            }
             GXByteBuffer data = new GXByteBuffer();
             if (settings.Index == 0)
             {
@@ -401,6 +450,13 @@ namespace Gurux.DLMS.Objects
 
                 }
             }
+            DataType[] types = new DataType[CaptureObjects.Count];
+            foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in CaptureObjects)
+            {
+                types[pos] = it.Key.GetDataType(it.Value.AttributeIndex);
+                ++pos;
+            }
+
             foreach (object[] items in table)
             {
                 data.SetUInt8((byte)DataType.Structure);
@@ -413,11 +469,17 @@ namespace Gurux.DLMS.Objects
                     GXCommon.SetObjectCount(columns.Count, data);
                 }
                 pos = 0;
+                DataType tp;
                 foreach (object value in items)
                 {
                     if (columns == null || columns.Contains(CaptureObjects[pos]))
                     {
-                        DataType tp = Gurux.DLMS.Internal.GXCommon.GetValueType(value);
+                        tp = types[pos];
+                        if (tp == DataType.None)
+                        {
+                            tp = Gurux.DLMS.Internal.GXCommon.GetValueType(value);
+                            types[pos] = tp;
+                        }
                         GXCommon.SetData(settings, data, tp, value);
                     }
                     ++pos;
@@ -852,8 +914,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 3)
             {
-                Buffer.Clear();
-                EntriesInUse = 0;
+                Reset();
                 CaptureObjects.Clear();
                 GXDLMSObjectCollection objects = new GXDLMSObjectCollection();
                 if (e.Value != null)
@@ -885,14 +946,33 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 4)
             {
+                //Any write access to one of the attributes will automatically call a reset 
+                //and this call will propagate to all other profiles capturing this profile. 
+                if (settings.IsServer)
+                {
+                    Reset();
+                }
                 CapturePeriod = Convert.ToInt32(e.Value);
             }
             else if (e.Index == 5)
             {
+                //Any write access to one of the attributes will automatically call a reset 
+                //and this call will propagate to all other profiles capturing this profile. 
+                if (settings.IsServer)
+                {
+                    Reset();
+                }
                 SortMethod = (SortMethod)Convert.ToInt32(e.Value);
             }
             else if (e.Index == 6)
             {
+                //Any write access to one of the attributes will automatically call a reset 
+                //and this call will propagate to all other profiles capturing this profile. 
+                if (settings.IsServer)
+                {
+                    Reset();
+                }
+
                 if (e.Value != null)
                 {
                     object[] tmp = e.Value as object[];
@@ -930,6 +1010,12 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 8)
             {
+                //Any write access to one of the attributes will automatically call a reset 
+                //and this call will propagate to all other profiles capturing this profile. 
+                if (settings.IsServer)
+                {
+                    Reset();
+                }
                 ProfileEntries = Convert.ToInt32(e.Value);
             }
             else
