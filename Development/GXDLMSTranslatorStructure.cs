@@ -50,6 +50,14 @@ namespace Gurux.DLMS
             get;
             private set;
         }
+
+        public bool OmitNameSpace
+        {
+            get;
+            private set;
+        }
+
+
         /// <summary>
         /// Amount of spaces.
         /// </summary>
@@ -78,7 +86,7 @@ namespace Gurux.DLMS
 
         public String GetDataType(DataType type)
         {
-            return tags[GXDLMS.DATA_TYPE_OFFSET + (int)type];
+            return GetTag(GXDLMS.DATA_TYPE_OFFSET + (int)type);
         }
 
         /**
@@ -105,9 +113,10 @@ namespace Gurux.DLMS
         /// Constructor.
         /// </summary>
         /// <param name="list">List of tags.</param>
-        public GXDLMSTranslatorStructure(TranslatorOutputType type, bool numericsAshex, bool hex, bool comments, SortedList<int, string> list)
+        public GXDLMSTranslatorStructure(TranslatorOutputType type, bool omitNameSpace, bool numericsAshex, bool hex, bool comments, SortedList<int, string> list)
         {
             OutputType = type;
+            OmitNameSpace = omitNameSpace;
             showNumericsAsHex = numericsAshex;
             ShowStringAsHex = hex;
             Comments = comments;
@@ -124,6 +133,14 @@ namespace Gurux.DLMS
             sb.Append(' ', 2 * offset);
             sb.AppendLine(str);
         }
+        private String GetTag(int tag)
+        {
+            if (OutputType == TranslatorOutputType.SimpleXml || OmitNameSpace)
+            {
+                return tags[tag];
+            }
+            return "x:" + tags[tag];
+        }
 
         public void AppendLine(Enum tag, string name, object value)
         {
@@ -132,7 +149,7 @@ namespace Gurux.DLMS
 
         public void AppendLine(int tag, string name, object value)
         {
-            AppendLine(tags[tag], name, value);
+            AppendLine(GetTag(tag), name, value);
         }
 
         public void AppendLine(string tag, string name, object value)
@@ -270,7 +287,7 @@ namespace Gurux.DLMS
             {
                 sb.Append("</");
             }
-            sb.Append(tags[tag]);
+            sb.Append(GetTag(tag));
             sb.Append('>');
         }
 
@@ -283,7 +300,7 @@ namespace Gurux.DLMS
         {
             sb.Append(' ', 2 * offset);
             sb.Append('<');
-            sb.Append(tags[tag]);
+            sb.Append(GetTag(tag));
             if (OutputType == TranslatorOutputType.SimpleXml && name != null)
             {
                 sb.Append(' ');
@@ -303,7 +320,7 @@ namespace Gurux.DLMS
         {
             sb.Append(' ', 2 * offset);
             sb.Append("<");
-            sb.Append(tags[Convert.ToInt32(cmd)]);
+            sb.Append(GetTag(Convert.ToInt32(cmd)));
             sb.AppendLine(">");
             ++offset;
         }
@@ -312,7 +329,7 @@ namespace Gurux.DLMS
         {
             sb.Append(' ', 2 * offset);
             sb.Append("<");
-            sb.Append(tags[(int)cmd << 8 | Convert.ToByte(type)]);
+            sb.Append(GetTag((int)cmd << 8 | Convert.ToByte(type)));
             sb.AppendLine(">");
             ++offset;
         }
@@ -332,7 +349,7 @@ namespace Gurux.DLMS
             --Offset;
             sb.Append(' ', 2 * offset);
             sb.Append("</");
-            sb.Append(tags[tag]);
+            sb.Append(GetTag(tag));
             sb.AppendLine(">");
         }
 

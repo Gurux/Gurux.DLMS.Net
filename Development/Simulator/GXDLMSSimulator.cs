@@ -71,12 +71,12 @@ namespace Gurux.DLMS.Simulator
                 ObjectType ot;
                 string classId, instanceId;
                 int attributeId;
-                if (node.ChildNodes[1].Name == "x:cosem-attribute-descriptor")
+                if (node.Name == "cosem-attribute-descriptor")
                 {
-                    classId = node.ChildNodes[1].ChildNodes[0].ChildNodes[0].InnerText;
-                    instanceId = node.ChildNodes[1].ChildNodes[1].ChildNodes[0].InnerText;
+                    classId = node.ChildNodes[0].ChildNodes[0].InnerText;
+                    instanceId = node.ChildNodes[1].ChildNodes[0].InnerText;
                     instanceId = GXDLMSObject.ToLogicalName(GXCommon.HexToBytes(instanceId));
-                    attributeId = int.Parse(node.ChildNodes[1].ChildNodes[2].ChildNodes[0].InnerText);
+                    attributeId = int.Parse(node.ChildNodes[2].ChildNodes[0].InnerText);
                     ot = (ObjectType)int.Parse(classId);
                     GXDLMSObject t = objects.FindByLN(ot, instanceId);
                     if (t == null)
@@ -87,7 +87,7 @@ namespace Gurux.DLMS.Simulator
                     targets.Add(ve);
                     System.Diagnostics.Debug.WriteLine(ot + " " + instanceId);
                 }
-                else if ("AttributeDescriptorList".Equals(node.ChildNodes[1].Name))
+                else if ("AttributeDescriptorList".Equals(node.Name))
                 {
                     foreach (XmlNode it in node.ChildNodes[1].ChildNodes)
                     {
@@ -120,6 +120,7 @@ namespace Gurux.DLMS.Simulator
                     {
                         return false;
                     }
+                    return true;
                 }
             }
             return true;
@@ -134,19 +135,19 @@ namespace Gurux.DLMS.Simulator
             List<string> list = new List<string>();
             foreach (XmlNode node in nodes)
             {
-                if ("x:get-response-with-data-block".Equals(node.Name))
+                if ("get-response-with-data-block".Equals(node.Name))
                 {
                     list.Add(node.ChildNodes[1].ChildNodes[2].InnerXml);
                 }
-                else if ("x:get-response-with-list".Equals(node.Name))
+                else if ("get-response-with-list".Equals(node.Name))
                 {
                     return GetLNValues(node.ChildNodes[1].ChildNodes);
                 }
-                else if ("x:data".Equals(node.Name))
+                else if ("data".Equals(node.Name))
                 {
                     list.Add(node.InnerXml);
                 }
-                else if ("x:get-response-normal".Equals(node.Name))
+                else if ("get-response-normal".Equals(node.Name))
                 {
                     list.Add(node.ChildNodes[1].ChildNodes[0].InnerXml);
                 }
@@ -207,6 +208,7 @@ namespace Gurux.DLMS.Simulator
             GXDLMSTranslator translator = new GXDLMSTranslator(TranslatorOutputType.StandardXml);
             translator.CompletePdu = true;
             translator.PduOnly = true;
+            translator.OmitXmlNameSpace = translator.OmitXmlDeclaration = true;
             XmlDocument doc = new XmlDocument();
             List<ValueEventArgs> targets = new List<ValueEventArgs>();
             GXDLMSSettings settings = new GXDLMSSettings(true);
@@ -223,12 +225,13 @@ namespace Gurux.DLMS.Simulator
                     doc.LoadXml(xml);
                     foreach (XmlNode node in doc.ChildNodes[doc.ChildNodes.Count - 1].ChildNodes)
                     {
-                        if (node.Name == "x:get-request")
+                        string name = doc.ChildNodes[doc.ChildNodes.Count - 1].Name;
+                        if (name == "get-request")
                         {
                             server.UseLogicalNameReferencing = true;
                             GetLN(settings.Objects, targets, node.ChildNodes);
                         }
-                        else if (node.Name == "x:readRequest")
+                        else if (name == "read-request")
                         {
                             List<short> items = GetSN(node.ChildNodes);
 
@@ -239,19 +242,19 @@ namespace Gurux.DLMS.Simulator
                                 targets.Add(new ValueEventArgs(i.Item, i.Index, 0, null));
                             }
                         }
-                        else if (node.Name == "x:readResponse" ||
-                                 node.Name == "x:get-response")
+                        else if (name == "read-response" ||
+                                 name == "get-response")
                         {
                             if (targets != null)
                             {
                                 List<string> items;
                                 if (server.UseLogicalNameReferencing)
                                 {
-                                    items = GetLNValues(node.ChildNodes);
+                                    items = GetLNValues(doc.ChildNodes[doc.ChildNodes.Count - 1].ChildNodes);
                                 }
                                 else
                                 {
-                                    items = GetSNValues(node.ChildNodes);
+                                    items = GetSNValues(doc.ChildNodes[doc.ChildNodes.Count - 1].ChildNodes);
                                 }
 
                                 int pos = 0;
@@ -269,7 +272,7 @@ namespace Gurux.DLMS.Simulator
                                     {
                                         if (server.UseLogicalNameReferencing)
                                         {
-                                            lastBlock = IsLastBlock(node.ChildNodes);
+                                            lastBlock = IsLastBlock(doc.ChildNodes[doc.ChildNodes.Count - 1].ChildNodes);
                                         }
                                         val.Set(translator.XmlToData(it));
                                         if (lastBlock)

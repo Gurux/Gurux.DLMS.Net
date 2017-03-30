@@ -305,7 +305,9 @@ namespace Gurux.DLMS.Objects
                     foreach (object[] it in (object[])e.Value)
                     {
                         GXDateTime tm = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[0], DataType.Time);
+                        tm.Skip &= ~(DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek);
                         GXDateTime date = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[1], DataType.Date);
+                        date.Skip &= ~(DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms);
                         tm.Value.AddYears(date.Value.Year - 1);
                         tm.Value.AddMonths(date.Value.Month - 1);
                         tm.Value.AddDays(date.Value.Day - 1);

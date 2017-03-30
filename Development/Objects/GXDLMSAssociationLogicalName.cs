@@ -359,11 +359,27 @@ namespace Gurux.DLMS.Objects
             data.SetUInt8((byte)DataType.Array);
             int cnt = (item as IGXDLMSBase).GetAttributeCount();
             data.SetUInt8((byte)cnt);
-            ValueEventArgs e = new DLMS.ValueEventArgs(server, item, 0, 0, null);
+            ValueEventArgs e;
+            if (server != null)
+            {
+                e = new DLMS.ValueEventArgs(server, item, 0, 0, null);
+            }
+            else
+            {
+                e = new DLMS.ValueEventArgs(settings, item, 0, 0, null);
+            }
             for (int pos = 0; pos != cnt; ++pos)
             {
                 e.Index = pos + 1;
-                AccessMode m = server.NotifyGetAttributeAccess(e);
+                AccessMode m;
+                if (server != null)
+                {
+                    m = server.NotifyGetAttributeAccess(e);
+                }
+                else
+                {
+                    m = AccessMode.ReadWrite;
+                }
                 //attribute_access_item
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8((byte)3);
@@ -377,7 +393,15 @@ namespace Gurux.DLMS.Objects
             for (int pos = 0; pos != cnt; ++pos)
             {
                 e.Index = pos + 1;
-                MethodAccessMode m = server.NotifyGetMethodAccess(e);
+                MethodAccessMode m;
+                if (server != null)
+                {
+                    m = server.NotifyGetMethodAccess(e);
+                }
+                else
+                {
+                    m = MethodAccessMode.Access;
+                }
                 //attribute_access_item
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8((byte)2);

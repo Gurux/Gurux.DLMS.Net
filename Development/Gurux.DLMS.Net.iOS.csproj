@@ -146,6 +146,7 @@
     <Compile Include="ManufacturerSettings\GXObisValueItemCollection.cs" />
     <Compile Include="ManufacturerSettings\GXServerAddress.cs" />
     <Compile Include="Objects\Enums\AccessRange.cs" />
+    <Compile Include="Objects\Enums\AddressConfigMode.cs" />
     <Compile Include="Objects\Enums\AddressState.cs" />
     <Compile Include="Objects\Enums\AssociationStatus.cs" />
     <Compile Include="Objects\Enums\AutoAnswerMode.cs" />
@@ -210,6 +211,7 @@
     <Compile Include="Objects\GXDLMSImageTransfer.cs" />
     <Compile Include="Objects\GXDLMSIp4Setup.cs" />
     <Compile Include="Objects\GXDLMSIp4SetupIpOption.cs" />
+    <Compile Include="Objects\GXDLMSIp6Setup.cs" />
     <Compile Include="Objects\GXDLMSLimiter.cs" />
     <Compile Include="Objects\GXDLMSMacAddressSetup.cs" />
     <Compile Include="Objects\GXDLMSMBusClient.cs" />
@@ -246,6 +248,7 @@
     <Compile Include="Objects\GXDLMSSpecialDaysTable.cs" />
     <Compile Include="Objects\GXDLMSTcpUdpSetup.cs" />
     <Compile Include="Objects\GXDLMSWeekProfile.cs" />
+    <Compile Include="Objects\GXNeighborDiscoverySetup.cs" />
     <Compile Include="Objects\GXProfileGenericUpdater.cs" />
     <Compile Include="Objects\GXScheduleEntry.cs" />
     <Compile Include="Objects\GXxDLMSContextType.cs" />

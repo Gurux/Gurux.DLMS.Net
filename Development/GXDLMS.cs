@@ -2778,7 +2778,7 @@ namespace Gurux.DLMS
 
             GetDataFromFrame(reply, data);
             // If keepalive or get next frame request.
-            if ((frame & 0x1) != 0)
+            if (data.Xml != null || (frame & 0x1) != 0)
             {
                 if (settings.InterfaceType == InterfaceType.HDLC && (data.Error == (int)ErrorCode.Rejected || data.Data.Size != 0))
                 {

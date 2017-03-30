@@ -60,6 +60,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, Command.InitiateResponse, "InitiateResponse");
             GXDLMSTranslator.AddTag(list, Command.InitiateRequest, "InitiateRequest");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.NegotiatedQualityOfService, "NegotiatedQualityOfService");
+            GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.ProposedQualityOfService, "ProposedQualityOfService");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.ProposedDlmsVersionNumber, "ProposedDlmsVersionNumber");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.ProposedMaxPduSize, "ProposedMaxPduSize");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.ProposedConformance, "ProposedConformance");

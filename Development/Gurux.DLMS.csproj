@@ -71,11 +71,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Objects\Enums\AddressConfigMode.cs" />
     <Compile Include="Objects\Enums\MBusEncryptionKeyStatus.cs" />
+    <Compile Include="Objects\GXNeighborDiscoverySetup.cs" />
     <Compile Include="Objects\GXDLMSIEC14908Diagnostic.cs" />
     <Compile Include="Objects\GXDLMSIEC14908PhysicalStatus.cs" />
     <Compile Include="Objects\GXDLMSIEC14908PhysicalSetup.cs" />
     <Compile Include="Objects\GXDLMSIEC14908Identification.cs" />
+    <Compile Include="Objects\GXDLMSIp6Setup.cs" />
     <Compile Include="Objects\GXDLMSSFSKMacCounters.cs" />
     <Compile Include="Objects\GXDLMSSFSKMacSynchronizationTimeouts.cs" />
     <Compile Include="Objects\GXDLMSSFSKActiveInitiator.cs" />

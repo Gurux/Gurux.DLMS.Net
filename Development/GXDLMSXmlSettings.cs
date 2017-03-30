@@ -73,7 +73,7 @@ namespace Gurux.DLMS
                                  bool numericsAsHex, bool hex, SortedList<string, int> list)
         {
             OutputType = type;
-            showNumericsAsHex = numericsAsHex;
+            showNumericsAsHex = type == TranslatorOutputType.SimpleXml && numericsAsHex;
             showStringAsHex = hex;
             settings.InterfaceType = InterfaceType.PDU;
             settings.Cipher = new GXCiphering(ASCIIEncoding.ASCII.GetBytes("ABCDEFGH"));

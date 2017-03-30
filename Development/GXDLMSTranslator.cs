@@ -287,7 +287,7 @@ namespace Gurux.DLMS
         {
             GXDLMSSettings settings = new GXDLMSSettings(true);
             GXReplyData reply = new GXReplyData();
-            reply.Xml = new GXDLMSTranslatorStructure(OutputType, Hex, ShowStringAsHex, Comments, tags);
+            reply.Xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
             int pos;
             while (data.Position != data.Size)
             {
@@ -336,7 +336,7 @@ namespace Gurux.DLMS
         {
             GXDLMSSettings settings = new GXDLMSSettings(true);
             GXReplyData reply = new GXReplyData();
-            reply.Xml = new GXDLMSTranslatorStructure(OutputType, Hex, ShowStringAsHex, Comments, null);
+            reply.Xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, null);
             int pos;
             while (data.Position != data.Size)
             {
@@ -428,7 +428,7 @@ namespace Gurux.DLMS
         public byte[] GetPdu(GXByteBuffer value)
         {
             GXReplyData data = new GXReplyData();
-            data.Xml = new GXDLMSTranslatorStructure(OutputType, Hex, ShowStringAsHex, Comments, tags);
+            data.Xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
             GXDLMSSettings settings = new GXDLMSSettings(true);
             if (value.GetUInt8(0) == 0x7e)
             {
@@ -503,7 +503,7 @@ namespace Gurux.DLMS
                 throw new ArgumentNullException("value");
             }
             GXReplyData data = new GXReplyData();
-            GXDLMSTranslatorStructure xml = new GXDLMSTranslatorStructure(OutputType, Hex, ShowStringAsHex, Comments, tags);
+            GXDLMSTranslatorStructure xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
             data.Xml = xml;
             try
             {
@@ -550,9 +550,12 @@ namespace Gurux.DLMS
                                 {
                                     xml.AppendLine("<NextFrame Value=\"" + GXCommon.ToHex(data.Data.Data, false, data.Data.Position, data.Data.Size - data.Data.Position) + "\" />");
                                 }
-                                multipleFrames = false;
+                                if (data.MoreData != RequestTypes.DataBlock)
+                                {
+                                    multipleFrames = false;
+                                }
                             }
-                            if (!data.IsMoreData)
+                            else
                             {
                                 if (!PduOnly)
                                 {
@@ -560,19 +563,15 @@ namespace Gurux.DLMS
                                 }
                                 if (pduFrames.Size != 0)
                                 {
-                                    if (!CompletePdu)
-                                    {
-                                        pduFrames.Set(data.Data.Data);
-                                    }
-                                    xml.AppendLine(PduToXml(pduFrames));
+                                    pduFrames.Set(data.Data.Data);
+                                    xml.AppendLine(PduToXml(pduFrames, true, true));
                                     pduFrames.Clear();
                                 }
                                 else
                                 {
-                                    data.Data.Position = 0;
-                                    xml.AppendLine(PduToXml(data.Data));
+                                    xml.AppendLine(PduToXml(data.Data, true, true));
                                 }
-                                //Remove \r\n.
+                                // Remove \r\n.
                                 xml.sb.Length -= 2;
                                 if (!PduOnly)
                                 {
@@ -756,7 +755,7 @@ namespace Gurux.DLMS
 
         private string PduToXml(GXByteBuffer value, bool omitDeclaration, bool omitNameSpace)
         {
-            GXDLMSTranslatorStructure xml = new GXDLMSTranslatorStructure(OutputType, Hex, ShowStringAsHex, Comments, tags);
+            GXDLMSTranslatorStructure xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
             return PduToXml(xml, value, omitDeclaration, omitNameSpace);
         }
 
@@ -1470,7 +1469,14 @@ namespace Gurux.DLMS
             }
             else
             {
-                str = node.Name;
+                if (node.Name.StartsWith("x:"))
+                {
+                    str = node.Name.Substring(2);
+                }
+                else
+                {
+                    str = node.Name;
+                }
             }
             if (s.command != Command.ConfirmedServiceError
                     || s.tags.ContainsKey(str))
