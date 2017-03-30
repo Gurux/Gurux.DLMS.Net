@@ -336,30 +336,33 @@ namespace GuruxDLMSServerExample
         {
             //Clear old data. It's already serialized.
             p.Buffer.Clear();
-            lock (dataFile)
+            if (count != 0)
             {
-                using (var fs = File.OpenRead(dataFile))
+                lock (dataFile)
                 {
-                    using (var reader = new StreamReader(fs))
+                    using (var fs = File.OpenRead(dataFile))
                     {
-                        while (!reader.EndOfStream)
+                        using (var reader = new StreamReader(fs))
                         {
-                            string line = reader.ReadLine();
-                            if (line.Length != 0)
+                            while (!reader.EndOfStream)
                             {
-                                //Skip row
-                                if (index > 0)
+                                string line = reader.ReadLine();
+                                if (line.Length != 0)
                                 {
-                                    --index;
-                                }
-                                else
-                                {
-                                    string[] values = line.Split(';');
-                                    p.Buffer.Add(new object[] { DateTime.Parse(values[0], CultureInfo.InvariantCulture), int.Parse(values[1]) });
-                                }
-                                if (p.Buffer.Count == count)
-                                {
-                                    break;
+                                    //Skip row
+                                    if (index > 0)
+                                    {
+                                        --index;
+                                    }
+                                    else
+                                    {
+                                        string[] values = line.Split(';');
+                                        p.Buffer.Add(new object[] { DateTime.Parse(values[0], CultureInfo.InvariantCulture), int.Parse(values[1]) });
+                                    }
+                                    if (p.Buffer.Count == count)
+                                    {
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -539,7 +542,7 @@ namespace GuruxDLMSServerExample
                         }
                         UInt32 count = e.RowEndIndex - e.RowBeginIndex;
                         //Read only rows that can fit to one PDU.
-                        if (e.RowEndIndex - e.RowBeginIndex > e.RowToPdu)
+                        if (e.RowToPdu != 0 && e.RowEndIndex - e.RowBeginIndex > e.RowToPdu)
                         {
                             count = e.RowToPdu;
                         }

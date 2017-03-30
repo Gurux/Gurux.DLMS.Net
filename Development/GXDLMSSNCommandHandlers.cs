@@ -423,7 +423,10 @@ namespace Gurux.DLMS
                               ServiceError.Service, (byte)Service.Unsupported));
                 return;
             }
-
+            if (e.Target is GXDLMSProfileGeneric && info.Index == 2)
+            {
+                e.RowToPdu = GXDLMS.RowsToPdu(settings, (GXDLMSProfileGeneric)e.Target);
+            }
             list.Add(e);
             if (!e.action && server.NotifyGetAttributeAccess(e) == AccessMode.NoAccess)
             {

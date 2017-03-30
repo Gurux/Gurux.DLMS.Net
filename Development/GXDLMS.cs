@@ -2947,5 +2947,44 @@ namespace Gurux.DLMS
                     break;
             }
         }
+
+        internal static UInt16 RowsToPdu(GXDLMSSettings settings, GXDLMSProfileGeneric pg)
+        {
+            //Count how many rows we can fit to one PDU.
+            DataType dt;
+            int rowsize = 0;
+            foreach (var it in pg.CaptureObjects)
+            {
+                dt = it.Key.GetDataType(it.Value.AttributeIndex);
+                if (dt == DataType.OctetString)
+                {
+                    if (it.Key.GetUIDataType(it.Value.AttributeIndex) == DataType.DateTime)
+                    {
+                        rowsize += GXCommon.GetDataTypeSize(DataType.DateTime);
+                    }
+                    else if (it.Key.GetUIDataType(it.Value.AttributeIndex) == DataType.Date)
+                    {
+                        rowsize += GXCommon.GetDataTypeSize(DataType.Date);
+                    }
+                    else if (it.Key.GetUIDataType(it.Value.AttributeIndex) == DataType.Time)
+                    {
+                        rowsize += GXCommon.GetDataTypeSize(DataType.Time);
+                    }
+                }
+                else if (dt == DataType.None)
+                {
+                    rowsize += 2;
+                }
+                else
+                {
+                    rowsize += GXCommon.GetDataTypeSize(dt);
+                }
+            }
+            if (rowsize != 0)
+            {
+                return (UInt16)(settings.MaxPduSize / rowsize);
+            }
+            return 0;
+        }
     }
 }
