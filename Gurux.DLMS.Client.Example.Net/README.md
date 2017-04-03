@@ -2,7 +2,7 @@ See An [Gurux](http://www.gurux.org/ "Gurux") for an overview.
 
 Join the Gurux Community or follow [@Gurux](https://twitter.com/guruxorg "@Gurux") for project updates.
 
-Gurux.DLMS library for Java is a high-performance Java component that helps you to read DLMS/COSEM compatible electricity, gas or water meters. We have try to make component so easy to use that you do not need understand protocol at all.
+Gurux.DLMS library is a high-performance .NET component that helps you to read you DLMS/COSEM compatible electricity, gas or water meters. We have try to make component so easy to use that you do not need understand protocol at all.
 
 For more info check out [Gurux.DLMS](http://www.gurux.fi/index.php?q=Gurux.DLMS "Gurux.DLMS").
 
@@ -13,7 +13,7 @@ DLMS/COSEM [meter/simulator/proxy](http://www.gurux.org/index.php?q=OwnDLMSMeter
 
 If you have problems you can ask your questions in Gurux [Forum](http://www.gurux.org/forum).
 
-You do not nesessary need to use Gurux media component like Gurux.Net. 
+You do not nesessary need to use Gurux.Serial or Gurux.Net. 
 You can use any connection library you want to.
 Gurux.DLMS classes only parse the data.
 

@@ -273,7 +273,12 @@ namespace Gurux.DLMS
         private static void AppendAttributeDescriptor(GXDLMSTranslatorStructure xml, int ci, byte[] ln, byte attributeIndex)
         {
             xml.AppendStartTag(TranslatorTags.AttributeDescriptor);
+            if (xml.Comments)
+            {
+                xml.AppendComment(((ObjectType)ci).ToString());
+            }
             xml.AppendLine(TranslatorTags.ClassId, "Value", xml.IntegerToHex((int)ci, 4));
+            xml.AppendComment(GXDLMSObject.ToLogicalName(ln));
             xml.AppendLine(TranslatorTags.InstanceId, "Value", GXCommon.ToHex(ln, false));
             xml.AppendLine(TranslatorTags.AttributeId, "Value", xml.IntegerToHex(attributeIndex, 2));
             xml.AppendEndTag(TranslatorTags.AttributeDescriptor);
@@ -282,7 +287,12 @@ namespace Gurux.DLMS
         private static void AppendMethodDescriptor(GXDLMSTranslatorStructure xml, int ci, byte[] ln, byte attributeIndex)
         {
             xml.AppendStartTag(TranslatorTags.MethodDescriptor);
+            if (xml.Comments)
+            {
+                xml.AppendComment(((ObjectType)ci).ToString());
+            }
             xml.AppendLine(TranslatorTags.ClassId, "Value", xml.IntegerToHex((int)ci, 4));
+            xml.AppendComment(GXDLMSObject.ToLogicalName(ln));
             xml.AppendLine(TranslatorTags.InstanceId, "Value", GXCommon.ToHex(ln, false));
             xml.AppendLine(TranslatorTags.MethodId, "Value", xml.IntegerToHex(attributeIndex, 2));
             xml.AppendEndTag(TranslatorTags.MethodDescriptor);
@@ -507,7 +517,9 @@ namespace Gurux.DLMS
                     {
                         xml.AppendStartTag(TranslatorTags.AttributeDescriptorWithSelection);
                         xml.AppendStartTag(TranslatorTags.AttributeDescriptor);
+                        xml.AppendComment(ci.ToString());
                         xml.AppendLine(TranslatorTags.ClassId, "Value", xml.IntegerToHex((int)ci, 4));
+                        xml.AppendComment(GXDLMSObject.ToLogicalName(ln));
                         xml.AppendLine(TranslatorTags.InstanceId, "Value", GXCommon.ToHex(ln, false));
                         xml.AppendLine(TranslatorTags.AttributeId, "Value", xml.IntegerToHex(attributeIndex, 2));
                         xml.AppendEndTag(TranslatorTags.AttributeDescriptor);
