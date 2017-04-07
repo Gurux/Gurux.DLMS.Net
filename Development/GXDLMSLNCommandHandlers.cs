@@ -72,17 +72,17 @@ namespace Gurux.DLMS
             // GetRequest normal
             if (type == GetCommandType.Normal)
             {
-                GetRequestNormal(settings, server, data, replyData, xml);
+                GetRequestNormal(settings, invokeID, server, data, replyData, xml);
             }
             else if (type == GetCommandType.NextDataBlock)
             {
                 // Get request for next data block
-                GetRequestNextDataBlock(settings, server, data, replyData, xml);
+                GetRequestNextDataBlock(settings, invokeID, server, data, replyData, xml);
             }
             else if (type == GetCommandType.WithList)
             {
                 // Get request with a list.
-                GetRequestWithList(settings, server, data, replyData, xml);
+                GetRequestWithList(settings, invokeID, server, data, replyData, xml);
             }
             else
             {
@@ -91,7 +91,7 @@ namespace Gurux.DLMS
                 GXByteBuffer bb = new GXByteBuffer();
                 // Access Error : Device reports a hardware fault.
                 bb.SetUInt8((byte)ErrorCode.HardwareFault);
-                GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, Command.GetResponse, (byte)type, null, bb, (byte)ErrorCode.Ok), replyData);
+                GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, invokeID, Command.GetResponse, (byte)type, null, bb, (byte)ErrorCode.Ok), replyData);
             }
             if (xml != null)
             {
@@ -120,7 +120,7 @@ namespace Gurux.DLMS
             // Get invoke ID and priority.
             byte invoke = data.GetUInt8();
             // SetRequest normal or Set Request With First Data Block
-            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, Command.SetResponse, (byte)type, null, null, 0);
+            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invoke, Command.SetResponse, (byte)type, null, null, 0);
             if (xml != null)
             {
                 xml.AppendStartTag(Command.SetRequest);
@@ -220,6 +220,7 @@ namespace Gurux.DLMS
             else
             {
                 ValueEventArgs e = new ValueEventArgs(server, obj, id, 0, parameters);
+                e.InvokeId = invokeId;
                 if (server.NotifyGetMethodAccess(e) == MethodAccessMode.NoAccess)
                 {
                     error = ErrorCode.ReadWriteDenied;
@@ -253,9 +254,10 @@ namespace Gurux.DLMS
                         bb.SetUInt8(0);
                     }
                 }
+                invokeId = (byte)e.InvokeId;
             }
 
-            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, Command.MethodResponse, 1, null, bb, (byte)error);
+            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeId, Command.MethodResponse, 1, null, bb, (byte)error);
             GXDLMS.GetLNPdu(p, replyData);
             //If High level authentication fails.
             if (!settings.Connected && obj is GXDLMSAssociationLogicalName && id == 1)
@@ -296,7 +298,7 @@ namespace Gurux.DLMS
         /// Handle get request normal command.
         /// </summary>
         /// <param name="data">Received data.</param>
-        private static void GetRequestNormal(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
+        private static void GetRequestNormal(GXDLMSSettings settings, byte invokeID, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
         {
             ValueEventArgs e = null;
             GXByteBuffer bb = new GXByteBuffer();
@@ -354,6 +356,7 @@ namespace Gurux.DLMS
             else
             {
                 e = new ValueEventArgs(server, obj, attributeIndex, selector, parameters);
+                e.InvokeId = invokeID;
                 if (server.NotifyGetAttributeAccess(e) == AccessMode.NoAccess)
                 {
                     //Read Write denied.
@@ -388,7 +391,7 @@ namespace Gurux.DLMS
                     status = e.Error;
                 }
             }
-            GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, Command.GetResponse, 1, null, bb, (byte)status), replyData);
+            GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, e.InvokeId, Command.GetResponse, 1, null, bb, (byte)status), replyData);
             if (settings.Count != settings.Index || bb.Size != bb.Position)
             {
                 server.transaction = new GXDLMSLongTransaction(new ValueEventArgs[] { e }, Command.GetRequest, bb);
@@ -399,7 +402,7 @@ namespace Gurux.DLMS
         /// Handle get request next data block command.
         /// </summary>
         /// <param name="data">Received data.</param>
-        private static void GetRequestNextDataBlock(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
+        private static void GetRequestNextDataBlock(GXDLMSSettings settings, byte invokeID, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
         {
             GXByteBuffer bb = new GXByteBuffer();
             UInt32 index;
@@ -413,12 +416,12 @@ namespace Gurux.DLMS
             if (index != settings.BlockIndex)
             {
                 Debug.WriteLine("handleGetRequest failed. Invalid block number. " + settings.BlockIndex + "/" + index);
-                GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, Command.GetResponse, 2, null, bb, (byte)ErrorCode.DataBlockNumberInvalid), replyData);
+                GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, 0, Command.GetResponse, 2, null, bb, (byte)ErrorCode.DataBlockNumberInvalid), replyData);
             }
             else
             {
                 settings.IncreaseBlockIndex();
-                GXDLMSLNParameters p = new GXDLMSLNParameters(settings, Command.GetResponse, 2, null, bb, (byte)ErrorCode.Ok);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeID, Command.GetResponse, 2, null, bb, (byte)ErrorCode.Ok);
                 //If transaction is not in progress.
                 if (server.transaction == null)
                 {
@@ -477,7 +480,7 @@ namespace Gurux.DLMS
         /// Handle get request with list command.
         /// </summary>
         /// <param name="data">Received data.</param>
-        private static void GetRequestWithList(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
+        private static void GetRequestWithList(GXDLMSSettings settings, byte invokeID, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
         {
             ValueEventArgs e;
             GXByteBuffer bb = new GXByteBuffer();
@@ -536,6 +539,7 @@ namespace Gurux.DLMS
                         else
                         {
                             ValueEventArgs arg = new ValueEventArgs(server, obj, attributeIndex, selector, parameters);
+                            arg.InvokeId = invokeID;
                             if (server.NotifyGetAttributeAccess(arg) == AccessMode.NoAccess)
                             {
                                 //Read Write denied.
@@ -587,6 +591,7 @@ namespace Gurux.DLMS
                     {
                         GXDLMS.AppendData(settings, it.Target, it.Index, bb, value);
                     }
+                    invokeID = (byte)it.InvokeId;
                 }
                 catch (Exception)
                 {
@@ -599,7 +604,7 @@ namespace Gurux.DLMS
                 ++pos;
             }
             server.NotifyPostRead(list.ToArray());
-            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, Command.GetResponse, 3, null, bb, 0xFF);
+            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeID, Command.GetResponse, 3, null, bb, 0xFF);
             GXDLMS.GetLNPdu(p, replyData);
         }
 
@@ -674,6 +679,7 @@ namespace Gurux.DLMS
             else
             {
                 ValueEventArgs e = new ValueEventArgs(server, obj, index, 0, null);
+                e.InvokeId = p.InvokeId;
                 AccessMode am = server.NotifyGetAttributeAccess(e);
                 // If write is denied.
                 if (am != AccessMode.Write && am != AccessMode.ReadWrite)
@@ -709,6 +715,7 @@ namespace Gurux.DLMS
                             (obj as IGXDLMSBase).SetValue(settings, e);
                             server.NotifyPostWrite(list);
                         }
+                        p.InvokeId = e.InvokeId;
                     }
                     catch (Exception)
                     {

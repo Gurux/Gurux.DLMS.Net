@@ -156,7 +156,16 @@ namespace Gurux.DLMS
         {
             get;
             internal set;
-        }        
+        }
+
+        ///<summary> 
+        /// Received invoke ID. 
+        ///</summary>         
+        public UInt32 InvokeId
+        {
+            get;
+            internal set;
+        }
 
         ///<summary>
         /// Received error. 
@@ -253,7 +262,7 @@ namespace Gurux.DLMS
                 return GXDLMS.GetDescription((ErrorCode)Error);
             }
         }
-         
+
         /// <summary>
         /// Get count of read elements. If this method is used peek must be set true.
         /// </summary>
@@ -270,7 +279,7 @@ namespace Gurux.DLMS
                 return 0;
             }
         }
-        
+
         /// <summary>
         /// Is value try to peek. 
         /// </summary>

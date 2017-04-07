@@ -1970,7 +1970,7 @@ namespace Gurux.DLMS
                 case Command.SetResponse:
                 case Command.MethodRequest:
                 case Command.MethodResponse:
-                    ln = new GXDLMSLNParameters(s.settings, s.command, s.requestType,
+                    ln = new GXDLMSLNParameters(s.settings, 0, s.command, s.requestType,
                                                 s.attributeDescriptor, s.data, 0xff);
                     GXDLMS.GetLNPdu(ln, bb);
                     break;
@@ -2027,17 +2027,17 @@ namespace Gurux.DLMS
                 case Command.GeneralBlockTransfer:
                     break;
                 case Command.AccessRequest:
-                    ln = new GXDLMSLNParameters(s.settings, s.command, s.requestType,
+                    ln = new GXDLMSLNParameters(s.settings, 0, s.command, s.requestType,
                                                 s.attributeDescriptor, s.data, 0xff);
                     GXDLMS.GetLNPdu(ln, bb);
                     break;
                 case Command.AccessResponse:
-                    ln = new GXDLMSLNParameters(s.settings, s.command, s.requestType,
+                    ln = new GXDLMSLNParameters(s.settings, 0, s.command, s.requestType,
                                                 s.attributeDescriptor, s.data, 0xff);
                     GXDLMS.GetLNPdu(ln, bb);
                     break;
                 case Command.DataNotification:
-                    ln = new GXDLMSLNParameters(s.settings, s.command, s.requestType,
+                    ln = new GXDLMSLNParameters(s.settings, 0, s.command, s.requestType,
                                                 s.attributeDescriptor, s.data, 0xff);
                     ln.time = s.time;
                     GXDLMS.GetLNPdu(ln, bb);

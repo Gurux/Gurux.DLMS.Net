@@ -175,6 +175,15 @@ namespace Gurux.DLMS
             set;
         }
 
+        ///<summary> 
+        /// Received invoke ID. 
+        ///</summary>         
+        public UInt32 InvokeId
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// Constructor.
         /// </summary>

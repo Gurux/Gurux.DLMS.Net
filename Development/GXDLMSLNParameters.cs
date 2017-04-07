@@ -82,6 +82,11 @@ namespace Gurux.DLMS
         /// </summary>
         public uint blockIndex;
 
+        ///<summary> 
+        /// Received invoke ID. 
+        ///</summary>         
+        public UInt32 InvokeId;
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -90,10 +95,11 @@ namespace Gurux.DLMS
         /// <param name="forCommandType">Command type.</param>
         /// <param name="forAttributeDescriptor">Attribute descriptor,</param>
         /// <param name="forData">Data,</param>
-        public GXDLMSLNParameters(GXDLMSSettings forSettings, Command forCommand, byte forCommandType,
+        public GXDLMSLNParameters(GXDLMSSettings forSettings, UInt32 invokeId, Command forCommand, byte forCommandType,
            GXByteBuffer forAttributeDescriptor, GXByteBuffer forData, byte forStatus)
         {
             settings = forSettings;
+            InvokeId = invokeId;
             blockIndex = settings.BlockIndex;
             command = forCommand;
             requestType = forCommandType;

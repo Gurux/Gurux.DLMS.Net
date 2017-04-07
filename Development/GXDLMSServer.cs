@@ -869,7 +869,7 @@ namespace Gurux.DLMS
             }
             if (Settings.UseLogicalNameReferencing)
             {
-                GXDLMS.GetLNPdu(new GXDLMSLNParameters(Settings, cmd, 1, null, null, (byte)error), replyData);
+                GXDLMS.GetLNPdu(new GXDLMSLNParameters(Settings, 0, cmd, 1, null, null, (byte)error), replyData);
             }
             else
             {

@@ -211,7 +211,7 @@ namespace Gurux.DLMS
             byte[][] reply;
             if (settings.UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(settings, cmd, (byte)GetCommandType.NextDataBlock, bb, null, 0xff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, cmd, (byte)GetCommandType.NextDataBlock, bb, null, 0xff);
                 reply = GXDLMS.GetLnMessages(p);
             }
             else
@@ -481,7 +481,14 @@ namespace Gurux.DLMS
                         p.command == Command.AccessResponse)
                 {
                     // Add Long-Invoke-Id-And-Priority
-                    reply.SetUInt32(GetLongInvokeIDPriority(p.settings));
+                    if (p.InvokeId != 0)
+                    {
+                        reply.SetUInt32(p.InvokeId);
+                    }
+                    else
+                    {
+                        reply.SetUInt32(GetLongInvokeIDPriority(p.settings));
+                    }
                     // Add date time.
                     if (p.time == null || p.time.Value.DateTime == DateTime.MinValue || p.time.Value.DateTime == DateTime.MaxValue ||
                             p.time.Value.LocalDateTime == DateTime.MinValue || p.time.Value.LocalDateTime == DateTime.MaxValue)
@@ -532,7 +539,14 @@ namespace Gurux.DLMS
                     }
                     reply.SetUInt8(p.requestType);
                     // Add Invoke Id And Priority.
-                    reply.SetUInt8(GetInvokeIDPriority(p.settings));
+                    if (p.InvokeId != 0)
+                    {
+                        reply.SetUInt8((byte)p.InvokeId);
+                    }
+                    else
+                    {
+                        reply.SetUInt8(GetInvokeIDPriority(p.settings));
+                    }
                 }
 
                 //Add attribute descriptor.
