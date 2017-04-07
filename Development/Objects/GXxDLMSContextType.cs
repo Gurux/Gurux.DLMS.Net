@@ -32,6 +32,7 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using Gurux.DLMS.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,25 +42,89 @@ namespace Gurux.DLMS.Objects
 {
     public class GXxDLMSContextType
     {
-        public string Conformance
+        Conformance conformance;
+        UInt16 maxReceivePduSize;
+        UInt16 maxSendPpuSize;
+        byte dlmsVersionNumber;
+        internal GXDLMSSettings settings = null;
+        /// <summary>
+        /// Conformance
+        /// </summary>
+        public Conformance Conformance
         {
-            get;
-            set;
+            get
+            {
+                if (settings != null)
+                {
+                    return settings.ProposedConformance;
+                }
+                return conformance;
+            }
+            set
+            {
+                if (settings != null)
+                {
+                    settings.ProposedConformance = value;
+                }
+                conformance = value;
+            }
         }
         public UInt16 MaxReceivePduSize
         {
-            get;
-            set;
+            get
+            {
+                if (settings != null)
+                {
+                    return settings.MaxServerPDUSize;
+                }
+                return maxReceivePduSize;
+            }
+            set
+            {
+                if (settings != null)
+                {
+                    settings.MaxServerPDUSize = value;
+                }
+                maxReceivePduSize = value;
+            }
         }
         public UInt16 MaxSendPpuSize
         {
-            get;
-            set;
+            get
+            {
+                if (settings != null)
+                {
+                    return settings.MaxServerPDUSize;
+                }
+                return maxSendPpuSize;
+            }
+            set
+            {
+                if (settings != null)
+                {
+                    settings.MaxServerPDUSize = value;
+                }
+                maxSendPpuSize = value;
+            }
         }
         public Byte DlmsVersionNumber
         {
-            get;
-            set;
+            get
+            {
+                if (settings != null)
+                {
+                    return settings.DLMSVersion;
+                }
+                return dlmsVersionNumber;
+            }
+            set
+            {
+                if (settings != null)
+                {
+                    settings.DLMSVersion = value;
+                }
+                dlmsVersionNumber = value;
+            }
         }
         public sbyte QualityOfService
         {
@@ -72,10 +137,11 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+
         public override string ToString()
         {
-            return Conformance + " " + MaxReceivePduSize.ToString()  + " " + MaxSendPpuSize.ToString()
-                 + " " + DlmsVersionNumber.ToString()  + " " + QualityOfService.ToString() + " " +
+            return Conformance + " " + MaxReceivePduSize.ToString() + " " + MaxSendPpuSize.ToString()
+                 + " " + DlmsVersionNumber.ToString() + " " + QualityOfService.ToString() + " " +
                  Gurux.DLMS.Internal.GXCommon.ToHex(CypheringInfo, true);
         }
     };

@@ -378,7 +378,7 @@ namespace Gurux.DLMS.Internal
                     xml.AppendEndTag(Command.ConfirmedServiceError);
                     return;
                 }
-                throw new GXDLMSException(
+                throw new GXDLMSConfirmedServiceError(
                         (ConfirmedServiceError)data.GetUInt8(),
                         (ServiceError)data.GetUInt8(), data.GetUInt8());
             }
@@ -397,6 +397,13 @@ namespace Gurux.DLMS.Internal
             {
                 if (data.GetUInt8() != 6)
                 {
+                    if (settings.IsServer)
+                    {
+                        throw new GXDLMSConfirmedServiceError(
+                            ConfirmedServiceError.InitiateError,
+                            ServiceError.Initiate,
+                            (int)Initiate.DlmsVersionTooLow);
+                    }
                     throw new Exception("Invalid DLMS version number.");
                 }
                 //ProposedDlmsVersionNumber
@@ -459,7 +466,15 @@ namespace Gurux.DLMS.Internal
             if (!response)
             {
                 //Proposed max PDU size.
-                settings.MaxPduSize = data.GetUInt16();
+                UInt16 pdu = data.GetUInt16();
+                //If PDU is too low.
+                if (xml == null && pdu < 64)
+                {
+                    throw new GXDLMSConfirmedServiceError(
+                            ConfirmedServiceError.InitiateError,
+                            ServiceError.Service, (int)Service.PduSize);
+                }
+                settings.MaxPduSize = pdu;
                 if (xml != null)
                 {
                     // ProposedConformance closing

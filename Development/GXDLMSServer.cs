@@ -311,6 +311,35 @@ namespace Gurux.DLMS
             this.InterfaceType = type;
         }
 
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="ln">Logical name settings.</param>
+        /// <param name="type">Interface type.</param>
+        public GXDLMSServer(GXDLMSAssociationLogicalName ln, InterfaceType type)
+        {
+            Settings = new GXDLMSSettings(true);
+            Settings.UseLogicalNameReferencing = true;
+            Reset();
+            Settings.Objects.Add(ln);
+            this.InterfaceType = type;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="sn">Short name settings.</param>
+        /// <param name="type">Interface type.</param>
+        public GXDLMSServer(GXDLMSAssociationShortName sn, InterfaceType type)
+        {
+            Settings = new GXDLMSSettings(true);
+            Settings.UseLogicalNameReferencing = false;
+            Reset();
+            Settings.Objects.Add(sn);
+            this.InterfaceType = type;
+        }
+
         /// <summary>
         /// List of objects that meter supports.
         /// </summary>

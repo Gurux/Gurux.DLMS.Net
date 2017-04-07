@@ -2280,7 +2280,7 @@ namespace Gurux.DLMS
             {
                 ConfirmedServiceError service = (ConfirmedServiceError)data.Data.GetUInt8();
                 ServiceError type = (ServiceError)data.Data.GetUInt8();
-                throw new GXDLMSException(service, type, data.Data.GetUInt8());
+                throw new GXDLMSConfirmedServiceError(service, type, data.Data.GetUInt8());
             }
         }
 

@@ -53,7 +53,7 @@ namespace GuruxDLMSServerExample
     class GXDLMSServerSN_47 : GXDLMSBase
     {
         public GXDLMSServerSN_47()
-            : base(false, InterfaceType.WRAPPER)
+            : base(new GXDLMSAssociationShortName(), InterfaceType.WRAPPER)
         {
         }
     }

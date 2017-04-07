@@ -52,8 +52,8 @@ namespace GuruxDLMSServerExample
     class GXDLMSServerLN : GXDLMSBase
     {
         public GXDLMSServerLN()
-            : base(true, InterfaceType.HDLC)
-        {            
+            : base(new GXDLMSAssociationLogicalName(), InterfaceType.HDLC)
+        {
         }
     }
 }

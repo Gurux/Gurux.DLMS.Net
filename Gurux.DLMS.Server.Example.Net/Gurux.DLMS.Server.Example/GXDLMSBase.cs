@@ -55,10 +55,34 @@ namespace GuruxDLMSServerExample
     {
         static string dataFile = "data.csv";
         bool trace = true;
-        public GXDLMSBase(bool logicalNameReferencing, InterfaceType type)
-        : base(logicalNameReferencing, type, "GRX", 12345678)
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="ln">Logical name settings.</param>
+        /// <param name="type">Interface type.</param>
+        public GXDLMSBase(GXDLMSAssociationLogicalName ln, InterfaceType type)
+        : base(ln, type, "GRX", 12345678)
         {
             MaxReceivePDUSize = 1024;
+            //Default secreds.
+            ln.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
+            ln.HlsSecret = ln.Secret;
+        }
+
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="sn">Short name settings.</param>
+        /// <param name="type">Interface type.</param>
+        public GXDLMSBase(GXDLMSAssociationShortName sn, InterfaceType type)
+        : base(sn, type, "GRX", 12345678)
+        {
+            MaxReceivePDUSize = 1024;
+            //Default secreds.
+            sn.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
+            sn.HlsSecret = sn.Secret;
         }
 
         Gurux.Common.IGXMedia Media = null;

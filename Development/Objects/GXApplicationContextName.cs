@@ -41,11 +41,6 @@ namespace Gurux.DLMS.Objects
 {
     public class GXApplicationContextName
     {
-        public string LogicalName
-        {
-            get;
-            set;
-        }
         public byte JointIsoCtt
         {
             get;
@@ -84,7 +79,7 @@ namespace Gurux.DLMS.Objects
 
         public override string ToString()
         {
-            return LogicalName + " " + JointIsoCtt.ToString() + " " +
+            return JointIsoCtt.ToString() + " " +
                    Country.ToString() + " " + CountryName.ToString() + " " +
                    IdentifiedOrganization.ToString() + " " + DlmsUA.ToString() + " " +
                    ApplicationContext.ToString() + " " + ContextId.ToString();

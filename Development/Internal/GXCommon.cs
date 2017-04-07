@@ -2199,7 +2199,7 @@ namespace Gurux.DLMS.Internal
         ///<param name="value">
         ///Added value.
         ///</param>
-        private static void SetBitString(GXByteBuffer buff, object value)
+        internal static void SetBitString(GXByteBuffer buff, object value)
         {
             if (value is string)
             {
@@ -2242,7 +2242,7 @@ namespace Gurux.DLMS.Internal
             else if (value is sbyte[])
             {
                 byte[] arr = (byte[])value;
-                SetObjectCount(arr.Length, buff);
+                SetObjectCount(8 * arr.Length, buff);
                 buff.Set(arr);
             }
             else if (value == null)

@@ -42,6 +42,7 @@ namespace Gurux.DLMS.Secure
     using System.Security.Cryptography;
     using Gurux.DLMS.Internal;
     using Gurux.DLMS.Enums;
+    using Objects;
 
     public abstract class GXDLMSSecureServer : GXDLMSServer
     {
@@ -65,9 +66,7 @@ namespace Gurux.DLMS.Secure
         ///<summary>
         /// Constructor.
         ///</summary>
-        ///<param name="logicalNameReferencing">
-        /// Is logical name referencing used. 
-        ///</param>
+        ///<param name="ln">Logical name settings. </param>
         ///<param name="type">
         /// Interface type. 
         ///</param>
@@ -77,8 +76,42 @@ namespace Gurux.DLMS.Secure
         ///<param name="serialNumber">
         /// Meter serial number. Size of serial number is 5 bytes.
         ///</param>
-        public GXDLMSSecureServer(bool logicalNameReferencing, InterfaceType type, string flagID, UInt64 serialNumber) :
-            base(logicalNameReferencing, type)
+        public GXDLMSSecureServer(GXDLMSAssociationLogicalName ln, InterfaceType type, string flagID, UInt64 serialNumber) :
+            base(ln, type)
+        {
+            if (flagID == null || flagID.Length != 3)
+            {
+                throw new ArgumentOutOfRangeException("Invalid FLAG ID.");
+            }
+            if (flagID == null || flagID.Length != 3)
+            {
+                throw new ArgumentOutOfRangeException("Invalid FLAG ID.");
+            }
+            ln.XDLMSContextInfo.settings = Settings;
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.Add(flagID);
+            GXByteBuffer serial = new GXByteBuffer();
+            serial.SetUInt64(serialNumber);
+            bb.Set(serial.Data, 3, 5);
+            Ciphering = new GXCiphering(bb.Array());
+            Settings.Cipher = Ciphering;
+        }
+
+        ///<summary>
+        /// Constructor.
+        ///</summary>
+        ///<param name="sn">Short name settings. </param>
+        ///<param name="type">
+        /// Interface type. 
+        ///</param>
+        ///<param name="flagID">
+        /// Three letters FLAG ID. 
+        ///</param>
+        ///<param name="serialNumber">
+        /// Meter serial number. Size of serial number is 5 bytes.
+        ///</param>
+        public GXDLMSSecureServer(GXDLMSAssociationShortName sn, InterfaceType type, string flagID, UInt64 serialNumber) :
+            base(sn, type)
         {
             if (flagID == null || flagID.Length != 3)
             {
@@ -96,6 +129,7 @@ namespace Gurux.DLMS.Secure
             Ciphering = new GXCiphering(bb.Array());
             Settings.Cipher = Ciphering;
         }
+
 
         /// <summary>
         /// Ciphering settings.

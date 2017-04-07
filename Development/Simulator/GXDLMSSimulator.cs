@@ -91,10 +91,10 @@ namespace Gurux.DLMS.Simulator
                 {
                     foreach (XmlNode it in node.ChildNodes[1].ChildNodes)
                     {
-                        classId = it.ChildNodes[0].ChildNodes[0].InnerText;
-                        instanceId = it.ChildNodes[0].ChildNodes[1].InnerText;
+                        classId = it.ChildNodes[0].InnerText;
+                        instanceId = it.ChildNodes[1].InnerText;
                         instanceId = GXDLMSObject.ToLogicalName(GXCommon.HexToBytes(instanceId));
-                        attributeId = int.Parse(it.ChildNodes[0].ChildNodes[2].InnerText);
+                        attributeId = int.Parse(it.ChildNodes[2].InnerText);
                         ot = (ObjectType)int.Parse(classId);
                         ValueEventArgs ve = new ValueEventArgs(objects.FindByLN(ot, instanceId), attributeId, 0, null);
                         targets.Add(ve);
