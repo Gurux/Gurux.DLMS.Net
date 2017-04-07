@@ -84,8 +84,8 @@ namespace Gurux.DLMS
         /// Constructor
         /// </summary>
         /// <param name="useLogicalNameReferencing">Is Logical or short name referencing used.</param>
-        /// <param name="clientAddress">Client address. Default is 0x10</param>
-        /// <param name="ServerAddress">Server ID. Default is 1.</param>
+        /// <param name="clientAddress">Client address. Default is 16 (0x10)</param>
+        /// <param name="serverAddress">Server ID. Default is 1.</param>
         /// <param name="authentication">Authentication type. Default is None</param>
         /// <param name="password">Password if authentication is used.</param>
         /// <param name="interfaceType">Interface type. Default is general.</param>
@@ -620,8 +620,6 @@ namespace Gurux.DLMS
         /// <seealso cref="UseLogicalNameReferencing"/>
         /// <seealso cref="DLMSVersion"/>
         /// <seealso cref="MaxReceivePDUSize"/>
-        /// <seealso cref="LNSettings"/>
-        /// <seealso cref="SNSettings"/>
         public void ParseAAREResponse(GXByteBuffer reply)
         {
             IsAuthenticationRequired = GXAPDU.ParsePDU(Settings, Settings.Cipher, reply, null) == SourceDiagnostic.AuthenticationRequired;
@@ -780,8 +778,6 @@ namespace Gurux.DLMS
         /// <param name="BaseName"></param>
         /// <param name="LN"></param>
         /// <param name="AccessRights"></param>
-        /// <param name="AttributeIndex"></param>
-        /// <param name="dataIndex"></param>
         /// <returns></returns>
         internal static GXDLMSObject CreateDLMSObject(int ClassID, object Version, int BaseName, object LN, object AccessRights)
         {
@@ -848,8 +844,6 @@ namespace Gurux.DLMS
         /// <param name="baseName"></param>
         /// <param name="logicalName"></param>
         /// <param name="accessRights"></param>
-        /// <param name="attributeIndex"></param>
-        /// <param name="dataIndex"></param>
         internal static void UpdateObjectData(
             GXDLMSObject obj,
             ObjectType objectType,
@@ -1531,9 +1525,8 @@ namespace Gurux.DLMS
         /// <summary>
         /// Read list of COSEM objects.
         /// </summary>
-        /// <param name="item">DLMS object to read.</param>
-        /// <param name="attributeOrdinal">Read attribute index.</param>
-        /// <returns>Read request as byte array.</returns>
+        /// <param name="list">List of COSEM object and attribute index to read.</param>
+        /// <returns>Read List request as byte array.</returns>
         public byte[][] ReadList(List<KeyValuePair<GXDLMSObject, int>> list)
         {
             if (list == null || list.Count == 0)
@@ -2034,10 +2027,8 @@ namespace Gurux.DLMS
         /// Generates a access service message.
         /// </summary>
         /// <param name="time">Send time. Set to DateTime.MinValue is not used.</param>
-        /// <param name="name">Short or Logical Name.</param>
-        /// <param name="objectType">Read Interface.</param>
-        /// <param name="attributeOrdinal">Read attribute index.</param>
-        /// <returns>Read request as byte array.</returns>
+        /// <param name="list"></param>
+        /// <returns>Access request as byte array.</returns>
         /// <seealso cref="ParseAccessResponse"/>
         public byte[][] AccessRequest(DateTime time, List<GXDLMSAccessItem> list)
         {

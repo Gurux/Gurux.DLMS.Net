@@ -155,12 +155,6 @@ namespace Gurux.DLMS
         ///<summary>
         /// Handle action request.
         ///</summary>
-        ///<param name="Reply">
-        /// Received data from the client.
-        ///</param>
-        ///<returns>
-        ///Reply.
-        ///</returns>
         public static void HandleMethodRequest(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXDLMSConnectionEventArgs connectionInfo, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
         {
             ErrorCode error = ErrorCode.Ok;
@@ -783,12 +777,6 @@ namespace Gurux.DLMS
         ///<summary>
         /// Handle Access request.
         ///</summary>
-        ///<param name="Reply">
-        /// Received data from the client.
-        /// </param>
-        ///<returns>
-        /// Reply.
-        ///</returns>
         public static void HandleAccessRequest(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data,
                                                GXByteBuffer reply, GXDLMSTranslatorStructure xml)
         {

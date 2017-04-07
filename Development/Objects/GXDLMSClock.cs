@@ -264,8 +264,8 @@ namespace Gurux.DLMS.Objects
 
         /// <summary>
         /// Sets the meter's time to the nearest minute.
-        /// If second_counter < 30 s, so second_counter is set to 0.
-        /// If second_counter � 30 s, so second_counter is set to 0, and
+        /// If second_counter lower 30 s, so second_counter is set to 0.
+        /// If second_counter higher 30 s, so second_counter is set to 0, and
         /// minute_counter and all depending clock values are incremented if necessary.
         /// </summary>
         /// <returns></returns>

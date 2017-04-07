@@ -149,7 +149,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Pre get selected value.
         /// </summary>
-        /// <param name="sender">Sender.</param>
+        /// <param name="args">Event arguments.</param>
         public abstract void PreGet(ValueEventArgs[] args);
 
         /// <summary>
@@ -628,7 +628,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Reset settings when connection is made or close.
         /// </summary>
-        /// <param name="all"></param>
+        /// <param name="connected"></param>
         public void Reset(bool connected)
         {
             transaction = null;

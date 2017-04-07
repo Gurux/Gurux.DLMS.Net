@@ -85,6 +85,7 @@
     <Compile Include="GXDLMSAccessItem.cs" />
     <Compile Include="GXDLMSBuilder.cs" />
     <Compile Include="GXDLMSClient.cs" />
+    <Compile Include="GXDLMSConfirmedServiceError.cs" />
     <Compile Include="GXDLMSConnectionEventArgs.cs" />
     <Compile Include="GXDLMSConverter.cs" />
     <Compile Include="GXDLMSException.cs" />

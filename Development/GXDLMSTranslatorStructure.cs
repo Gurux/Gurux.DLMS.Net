@@ -373,7 +373,6 @@ namespace Gurux.DLMS
         /// Convert integer to string.
         /// </summary>
         /// <param name="value">Conveted value.</param>
-        /// <param name="desimals">Desimal count.</param>
         /// <returns>Integer value as a string.</returns>
         public string IntegerToHex(UInt64 value)
         {

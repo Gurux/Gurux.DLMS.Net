@@ -224,7 +224,7 @@ namespace Gurux.DLMS.Internal
         /// <summary>
         /// Get HDLC address from byte array.
         /// </summary>
-        /// <param name="GXByteBuffer">Byte array.</param>
+        /// <param name="buff">Byte array.</param>
         /// <returns>HDLC address.</returns>
         public static int GetHDLCAddress(GXByteBuffer buff)
         {

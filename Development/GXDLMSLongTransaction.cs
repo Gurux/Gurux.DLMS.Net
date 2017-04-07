@@ -59,7 +59,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="forTarget"></param>
         /// <param name="forCommand"></param>
-        /// <param name="forType"></param>
+        /// <param name="forData"></param>
         public GXDLMSLongTransaction(ValueEventArgs[] forTargets, Command forCommand, GXByteBuffer forData)
         {
             targets = forTargets;

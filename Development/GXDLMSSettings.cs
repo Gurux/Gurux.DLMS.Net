@@ -375,7 +375,7 @@ namespace Gurux.DLMS
 
         ///<summary>
         ///Current block index.
-        //////</summary>
+        ///</summary>
         public UInt32 BlockIndex
         {
             get;

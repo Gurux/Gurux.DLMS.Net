@@ -800,7 +800,6 @@ namespace Gurux.DLMS
         /// Set new value to byte array.
         /// </summary>
         /// <param name="value">Byte array to add.</param>
-        /// <param name="index">Byte index.</param>
         /// <param name="count">Byte count.</param>
         public void Set(GXByteBuffer value, int count)
         {

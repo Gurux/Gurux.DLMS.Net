@@ -263,18 +263,14 @@ namespace GXDLMS.ManufacturerSettings
         }
 
         /// <summary>
-        ///
         ///The possible values are:
-
         ///TRUE - the current process is elevated.
         ///	This value indicates that either UAC is enabled, and the process was elevated by
         ///	the administrator, or that UAC is disabled and the process was started by a user
         ///	who is a member of the Administrators group.
-
         ///FALSE - the current process is not elevated (limited).
         ///	This value indicates that either UAC is enabled, and the process was started normally,
         ///	without the elevation, or that UAC is disabled and the process was started by a standard user.
-
         /// </summary>
         /// <returns>Bool indicating whether the current process is elevated</returns>
         private static bool IsElevated() //= NULL )

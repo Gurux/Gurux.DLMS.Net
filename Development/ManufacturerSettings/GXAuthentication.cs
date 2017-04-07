@@ -48,7 +48,7 @@ namespace Gurux.DLMS.ManufacturerSettings
     public class GXAuthentication
     {
         public GXAuthentication()
-        {            
+        {
         }
 
         public override string ToString()
@@ -59,7 +59,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="auth">Authentication type</param>
+        /// <param name="type">Authentication type</param>
         /// <param name="clientAddress">Client address.</param>
         public GXAuthentication(Authentication type, int clientAddress) :
             this(type, "", clientAddress)
@@ -84,7 +84,7 @@ namespace Gurux.DLMS.ManufacturerSettings
                 Password = pw;
             }
             ClientAddress = clientAddress;
-        }       
+        }
 
         /// <summary>
         /// Is authentication selected.
@@ -144,6 +144,6 @@ namespace Gurux.DLMS.ManufacturerSettings
         {
             get;
             set;
-        }       
+        }
     }
 }

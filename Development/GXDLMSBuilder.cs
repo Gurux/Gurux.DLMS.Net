@@ -57,7 +57,7 @@ namespace Gurux.DLMS
         /// Set item count.
         /// </summary>
         /// <param name="count"></param>
-        /// <param name="buff"></param>
+        /// <param name="data"></param>
         internal static void SetObjectCount(int count, GXByteBuffer data)
         {
             GXCommon.SetObjectCount(count, data);
@@ -79,7 +79,7 @@ namespace Gurux.DLMS
         ///<param name="buff">
         ///Byte buffer where data is write.
         ///</param>
-        ///<param name="dataType">
+        ///<param name="type">
         ///Data type.
         ///</param>
         ///<param name="value">

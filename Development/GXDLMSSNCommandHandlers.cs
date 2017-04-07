@@ -170,12 +170,6 @@ namespace Gurux.DLMS
         ///<summary>
         /// Handle write request.
         ///</summary>
-        ///<param name="Reply">
-        /// Received data from the client.
-        /// </param>
-        ///<returns>
-        /// Reply.
-        ///</returns>
         public static void HandleWriteRequest(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data,
                                               GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
         {
