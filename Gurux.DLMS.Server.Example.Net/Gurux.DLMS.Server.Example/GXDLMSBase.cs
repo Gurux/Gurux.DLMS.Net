@@ -333,6 +333,11 @@ namespace GuruxDLMSServerExample
             Items.Add(new GXDLMSIEC14908Identification());
             Items.Add(new GXDLMSIEC14908PhysicalSetup());
             Items.Add(new GXDLMSIEC14908PhysicalStatus());
+
+            ///Add G3-PLC objects.
+            Items.Add(new GXDLMSG3Plc6LoWPan());
+            Items.Add(new GXDLMSG3PlcMacLayerCounters());
+            Items.Add(new GXDLMSG3PlcMacSetup());
             ///////////////////////////////////////////////////////////////////////
             //Server must initialize after all objects are added.
             Initialize();

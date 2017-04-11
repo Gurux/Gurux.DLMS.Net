@@ -160,6 +160,8 @@
     <Compile Include="Objects\Enums\ClockBase.cs" />
     <Compile Include="Objects\Enums\ControlMode.cs" />
     <Compile Include="Objects\Enums\ControlState.cs" />
+    <Compile Include="Objects\Enums\DeviceType.cs" />
+    <Compile Include="Objects\Enums\GainResolution.cs" />
     <Compile Include="Objects\Enums\GlobalKeyType.cs" />
     <Compile Include="Objects\Enums\IecTwistedPairSetupMode.cs" />
     <Compile Include="Objects\Enums\ImageTransferStatus.cs" />
@@ -167,6 +169,7 @@
     <Compile Include="Objects\Enums\LocalPortResponseTime.cs" />
     <Compile Include="Objects\Enums\MBusEncryptionKeyStatus.cs" />
     <Compile Include="Objects\Enums\MessageType.cs" />
+    <Compile Include="Objects\Enums\Modulation.cs" />
     <Compile Include="Objects\Enums\OpticalProtocolMode.cs" />
     <Compile Include="Objects\Enums\PppAuthenticationType.cs" />
     <Compile Include="Objects\Enums\PppSetupAuthenticationProtocol.cs" />
@@ -190,16 +193,21 @@
     <Compile Include="Objects\GXDLMSAssociationShortName.cs" />
     <Compile Include="Objects\GXDLMSAutoAnswer.cs" />
     <Compile Include="Objects\GXDLMSAutoConnect.cs" />
+    <Compile Include="Objects\GXDLMSBroadcastLogTable.cs" />
     <Compile Include="Objects\GXDLMSCallback.cs" />
     <Compile Include="Objects\GXDLMSCaptureObject.cs" />
     <Compile Include="Objects\GXDLMSCertificateInfo.cs" />
     <Compile Include="Objects\GXDLMSClock.cs" />
+    <Compile Include="Objects\GXDLMSContextInformationTable.cs" />
     <Compile Include="Objects\GXDLMSData.cs" />
     <Compile Include="Objects\GXDLMSDayProfile.cs" />
     <Compile Include="Objects\GXDLMSDemandRegister.cs" />
     <Compile Include="Objects\GXDLMSDisconnectControl.cs" />
     <Compile Include="Objects\GXDLMSEmergencyProfile.cs" />
     <Compile Include="Objects\GXDLMSExtendedRegister.cs" />
+    <Compile Include="Objects\GXDLMSG3Plc6LoWPan.cs" />
+    <Compile Include="Objects\GXDLMSG3PlcMacLayerCounters.cs" />
+    <Compile Include="Objects\GXDLMSG3PlcMacSetup.cs" />
     <Compile Include="Objects\GXDLMSGprsSetup.cs" />
     <Compile Include="Objects\GXDLMSHdlcSetup.cs" />
     <Compile Include="Objects\GXDLMSIEC14908Diagnostic.cs" />
@@ -222,6 +230,7 @@
     <Compile Include="Objects\GXDLMSModemConfiguration.cs" />
     <Compile Include="Objects\GXDLMSModemInitialisation.cs" />
     <Compile Include="Objects\GXDLMSMonitoredValue.cs" />
+    <Compile Include="Objects\GXDLMSNeighbourTable.cs" />
     <Compile Include="Objects\GXDLMSObject.cs" />
     <Compile Include="Objects\GXDLMSObjectCollection.cs" />
     <Compile Include="Objects\GXDLMSObjectDefinition.cs" />
@@ -234,6 +243,8 @@
     <Compile Include="Objects\GXDLMSRegister.cs" />
     <Compile Include="Objects\GXDLMSRegisterActivation.cs" />
     <Compile Include="Objects\GXDLMSRegisterMonitor.cs" />
+    <Compile Include="Objects\GXDLMSRoutingConfiguration.cs" />
+    <Compile Include="Objects\GXDLMSRoutingTable.cs" />
     <Compile Include="Objects\GXDLMSSapAssignment.cs" />
     <Compile Include="Objects\GXDLMSSchedule.cs" />
     <Compile Include="Objects\GXDLMSScript.cs" />

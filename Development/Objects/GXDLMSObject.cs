@@ -134,7 +134,6 @@ namespace Gurux.DLMS.Objects
             this.ShortName = sn;
             if (ln != null)
             {
-
                 if (!ValidateLogicalName(ln))
                 {
                     throw new GXDLMSException("Invalid Logical Name.");

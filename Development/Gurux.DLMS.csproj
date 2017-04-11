@@ -72,8 +72,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GXDLMSConfirmedServiceError.cs" />
+    <Compile Include="Objects\Enums\DeviceType.cs" />
+    <Compile Include="Objects\Enums\GainResolution.cs" />
+    <Compile Include="Objects\Enums\Modulation.cs" />
     <Compile Include="Objects\Enums\AddressConfigMode.cs" />
     <Compile Include="Objects\Enums\MBusEncryptionKeyStatus.cs" />
+    <Compile Include="Objects\GXDLMSBroadcastLogTable.cs" />
+    <Compile Include="Objects\GXDLMSContextInformationTable.cs" />
+    <Compile Include="Objects\GXDLMSG3PlcMacLayerCounters.cs" />
+    <Compile Include="Objects\GXDLMSRoutingTable.cs" />
+    <Compile Include="Objects\GXDLMSRoutingConfiguration.cs" />
+    <Compile Include="Objects\GXDLMSNeighbourTable.cs" />
+    <Compile Include="Objects\GXDLMSG3Plc6LoWPan.cs" />
+    <Compile Include="Objects\GXDLMSG3PlcMacSetup.cs" />
     <Compile Include="Objects\GXNeighborDiscoverySetup.cs" />
     <Compile Include="Objects\GXDLMSIEC14908Diagnostic.cs" />
     <Compile Include="Objects\GXDLMSIEC14908PhysicalStatus.cs" />
