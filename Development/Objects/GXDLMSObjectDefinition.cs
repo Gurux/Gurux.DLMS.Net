@@ -45,14 +45,39 @@ namespace Gurux.DLMS.Objects
     /// </summary>
     public class GXDLMSObjectDefinition
     {
+        private ObjectType objectType;
+
         /// <summary>
         /// Class ID tells object type.
         /// </summary>
+        [ObsoleteAttribute("Use ObjectType.")]
         public ObjectType ClassId
         {
-            get;
-            set;
+            get
+            {
+                return objectType;
+            }
+            set
+            {
+                objectType = value;
+            }
         }
+
+        /// <summary>
+        /// ObjectType.
+        /// </summary>
+        public ObjectType ObjectType
+        {
+            get
+            {
+                return objectType;
+            }
+            set
+            {
+                objectType = value;
+            }
+        }
+
 
         /// <summary>
         /// Logical name of the object.
@@ -66,7 +91,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="object.ToString"/>
         public override string ToString()
         {
-            return ClassId.ToString() + " " + LogicalName;
+            return ObjectType.ToString() + " " + LogicalName;
         }
     }
 }

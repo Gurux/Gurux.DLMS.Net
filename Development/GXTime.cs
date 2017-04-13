@@ -82,5 +82,69 @@ namespace Gurux.DLMS
             : base(-1, -1, -1, hour, minute, second, millisecond)
         {
         }
+
+        public GXTime(string time)
+            : base()
+        {
+            Skip = DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek;
+            if (time != null)
+            {
+                int hour = 0, min = 0, sec = 0;
+                System.Globalization.CultureInfo culture = System.Globalization.CultureInfo.CurrentUICulture;
+                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { culture.DateTimeFormat.TimeSeparator }, StringSplitOptions.RemoveEmptyEntries));
+                string[] values = time.Split(new string[] { culture.DateTimeFormat.TimeSeparator }, StringSplitOptions.None);
+                if (shortTimePattern.Count != values.Length)
+                {
+                    throw new ArgumentOutOfRangeException("Invalid Time");
+                }
+                for (int pos = 0; pos != shortTimePattern.Count; ++pos)
+                {
+                    bool skip = false;
+                    if (values[pos] == "*")
+                    {
+                        skip = true;
+                    }
+                    if (string.Compare(shortTimePattern[pos], "h", true) == 0)
+                    {
+                        if (skip)
+                        {
+                            Skip |= DateTimeSkips.Hour;
+                        }
+                        else
+                        {
+                            hour = int.Parse(values[pos]);
+                        }
+                    }
+                    else if (string.Compare(shortTimePattern[pos], "mm", true) == 0)
+                    {
+                        if (skip)
+                        {
+                            Skip |= DateTimeSkips.Minute;
+                        }
+                        else
+                        {
+                            min = int.Parse(values[pos]);
+                        }
+                    }
+                    else if (string.Compare(shortTimePattern[pos], "ss", true) == 0)
+                    {
+                        if (skip)
+                        {
+                            Skip |= DateTimeSkips.Second;
+                        }
+                        else
+                        {
+                            sec = int.Parse(values[pos]);
+                        }
+                    }
+                    else
+                    {
+                        throw new ArgumentOutOfRangeException("Invalid Time pattern.");
+                    }
+                }
+                DateTime dt = new DateTime(2000, 1, 1, hour, min, sec);
+                this.Value = new DateTimeOffset(dt, TimeZoneInfo.Local.GetUtcOffset(dt));
+            }
+        }
     }
 }

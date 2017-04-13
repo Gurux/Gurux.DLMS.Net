@@ -253,7 +253,6 @@ namespace GuruxDLMSServerExample
             ///////////////////////////////////////////////////////////////////////
             //Add action schedule object.
             GXDLMSActionSchedule actionS = new GXDLMSActionSchedule();
-            actionS.LogicalName = "0.0.1.0.0.255";
             actionS.Target = st;
             actionS.ExecutedScriptSelector = 1;
             actionS.Type = SingleActionScheduleType.SingleActionScheduleType1;
@@ -322,6 +321,8 @@ namespace GuruxDLMSServerExample
             push.PushObjectList.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(ldn, new GXDLMSCaptureObject(2, 0)));
             //Add .0.0.25.1.0.255 Ch. 0 IPv4 setup IP address.
             push.PushObjectList.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(ip4, new GXDLMSCaptureObject(3, 0)));
+
+            Items.Add(new GXDLMSSpecialDaysTable());
 
             //Add  S-FSK objects
             Items.Add(new GXDLMSSFSKPhyMacSetUp());

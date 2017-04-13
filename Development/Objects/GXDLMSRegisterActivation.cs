@@ -50,9 +50,8 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSRegisterActivation()
-        : base(ObjectType.RegisterActivation)
+        : this(null, 0)
         {
-            MaskList = new List<KeyValuePair<byte[], byte[]>>();
         }
 
         /// <summary>
@@ -60,9 +59,8 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSRegisterActivation(string ln)
-        : base(ObjectType.RegisterActivation, ln, 0)
+        : this(ln, 0)
         {
-            MaskList = new List<KeyValuePair<byte[], byte[]>>();
         }
 
         /// <summary>
@@ -77,7 +75,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        ///
+        ///Assignment list.
         /// </summary>
         [XmlIgnore()]
         public GXDLMSObjectDefinition[] RegisterAssignment
@@ -87,7 +85,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        ///
+        /// Mask list.
         /// </summary>
         [XmlIgnore()]
         public List<KeyValuePair<byte[], byte[]>> MaskList
@@ -97,7 +95,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        ///
+        /// Active mask.
         /// </summary>
         [XmlIgnore()]
         public byte[] ActiveMask
@@ -205,7 +203,7 @@ namespace Gurux.DLMS.Objects
                     {
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8(2);
-                        GXCommon.SetData(settings, data, DataType.UInt16, it.ClassId);
+                        GXCommon.SetData(settings, data, DataType.UInt16, it.ObjectType);
                         GXCommon.SetData(settings, data, DataType.OctetString, it.LogicalName);
                     }
                 }
@@ -266,7 +264,7 @@ namespace Gurux.DLMS.Objects
                     foreach (Object[] it in (Object[])e.Value)
                     {
                         GXDLMSObjectDefinition item = new GXDLMSObjectDefinition();
-                        item.ClassId = (ObjectType)Convert.ToInt32(it[0]);
+                        item.ObjectType = (ObjectType)Convert.ToInt32(it[0]);
                         item.LogicalName = GXDLMSObject.ToLogicalName((byte[])it[1]);
                         items.Add(item);
                     }

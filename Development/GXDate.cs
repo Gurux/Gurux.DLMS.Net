@@ -74,6 +74,69 @@ namespace Gurux.DLMS
             Skip = value.Skip | DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms;
         }
 
+        public GXDate(string date)
+            : base()
+        {
+            Skip = DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms;
+            if (date != null)
+            {
+                int year = 2000, month = 1, day = 1;
+                System.Globalization.CultureInfo culture = System.Globalization.CultureInfo.CurrentUICulture;
+                List<string> shortDatePattern = new List<string>(culture.DateTimeFormat.ShortDatePattern.Split(new string[] { culture.DateTimeFormat.DateSeparator }, StringSplitOptions.RemoveEmptyEntries));
+                string[] values = date.Split(new string[] { culture.DateTimeFormat.DateSeparator }, StringSplitOptions.None);
+                if (shortDatePattern.Count != values.Length)
+                {
+                    throw new ArgumentOutOfRangeException("Invalid Date");
+                }
+                for (int pos = 0; pos != shortDatePattern.Count; ++pos)
+                {
+                    bool skip = false;
+                    if (values[pos] == "*")
+                    {
+                        skip = true;
+                    }
+                    if (shortDatePattern[pos] == "yyyy")
+                    {
+                        if (skip)
+                        {
+                            Skip |= DateTimeSkips.Year;
+                        }
+                        else
+                        {
+                            year = int.Parse(values[pos]);
+                        }
+                    }
+                    else if (string.Compare(shortDatePattern[pos], "m", true) == 0)
+                    {
+                        if (skip)
+                        {
+                            Skip |= DateTimeSkips.Month;
+                        }
+                        else
+                        {
+                            month = int.Parse(values[pos]);
+                        }
+                    }
+                    else if (string.Compare(shortDatePattern[pos], "d", true) == 0)
+                    {
+                        if (skip)
+                        {
+                            Skip |= DateTimeSkips.Day;
+                        }
+                        else
+                        {
+                            day = int.Parse(values[pos]);
+                        }
+                    }
+                    else
+                    {
+                        throw new ArgumentOutOfRangeException("Invalid Date pattern.");
+                    }
+                }
+                DateTime dt = new DateTime(year, month, day);
+                this.Value = new DateTimeOffset(dt, TimeZoneInfo.Local.GetUtcOffset(dt));
+            }
+        }
 
         /// <summary>
         /// Constructor.

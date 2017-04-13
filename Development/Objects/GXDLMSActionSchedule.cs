@@ -51,7 +51,7 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSActionSchedule()
-        : base(ObjectType.ActionSchedule)
+        : this("0.0.15.0.0.255", 0)
         {
         }
 
@@ -60,7 +60,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSActionSchedule(string ln)
-        : base(ObjectType.ActionSchedule, ln, 0)
+        : this(ln, 0)
         {
         }
 
@@ -304,15 +304,16 @@ namespace Gurux.DLMS.Objects
                     List<GXDateTime> items = new List<GXDateTime>();
                     foreach (object[] it in (object[])e.Value)
                     {
-                        GXDateTime tm = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[0], DataType.Time);
-                        tm.Skip &= ~(DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek);
+                        GXDateTime time = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[0], DataType.Time);
+                        time.Skip &= ~(DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek);
                         GXDateTime date = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[1], DataType.Date);
                         date.Skip &= ~(DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms);
-                        tm.Value.AddYears(date.Value.Year - 1);
-                        tm.Value.AddMonths(date.Value.Month - 1);
-                        tm.Value.AddDays(date.Value.Day - 1);
-                        tm.Skip |= date.Skip;
-                        items.Add(tm);
+                        GXDateTime tmp = new DLMS.GXDateTime(date);
+                        tmp.Value = tmp.Value.AddHours(time.Value.Hour);
+                        tmp.Value = tmp.Value.AddMinutes(time.Value.Minute);
+                        tmp.Value = tmp.Value.AddSeconds(time.Value.Second);
+                        tmp.Skip = date.Skip | time.Skip;
+                        items.Add(tmp);
                     }
                     ExecutionTime = items.ToArray();
                 }

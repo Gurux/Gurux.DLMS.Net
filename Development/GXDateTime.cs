@@ -34,10 +34,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Gurux.DLMS.Enums;
-using System.ComponentModel;
 
 namespace Gurux.DLMS
 {
@@ -77,6 +74,122 @@ namespace Gurux.DLMS
                 {
                     Value = new DateTimeOffset(value, TimeZoneInfo.Local.GetUtcOffset(value));
                 }
+            }
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="value">Date time value as a string.</param>
+        public GXDateTime(string value)
+            : base()
+        {
+            if (value != null)
+            {
+                int year = 2000, month = 1, day = 1, hour = 0, min = 0, sec = 0;
+                System.Globalization.CultureInfo culture = System.Globalization.CultureInfo.CurrentUICulture;
+                List<string> shortDatePattern = new List<string>(culture.DateTimeFormat.ShortDatePattern.Split(new string[] { culture.DateTimeFormat.DateSeparator }, StringSplitOptions.RemoveEmptyEntries));
+                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { culture.DateTimeFormat.TimeSeparator }, StringSplitOptions.RemoveEmptyEntries));
+                string[] values = value.Trim().Split(new string[] { culture.DateTimeFormat.DateSeparator, culture.DateTimeFormat.TimeSeparator, " " }, StringSplitOptions.None);
+                if (shortDatePattern.Count != values.Length && shortDatePattern.Count + shortTimePattern.Count != values.Length)
+                {
+                    throw new ArgumentOutOfRangeException("Invalid DateTime");
+                }
+                for (int pos = 0; pos != shortDatePattern.Count; ++pos)
+                {
+                    bool skip = false;
+                    if (values[pos] == "*")
+                    {
+                        skip = true;
+                    }
+                    if (shortDatePattern[pos] == "yyyy")
+                    {
+                        if (skip)
+                        {
+                            Skip |= DateTimeSkips.Year;
+                        }
+                        else
+                        {
+                            year = int.Parse(values[pos]);
+                        }
+                    }
+                    else if (string.Compare(shortDatePattern[pos], "M", true) == 0)
+                    {
+                        if (skip)
+                        {
+                            Skip |= DateTimeSkips.Month;
+                        }
+                        else
+                        {
+                            month = int.Parse(values[pos]);
+                        }
+                    }
+                    else if (string.Compare(shortDatePattern[pos], "d", true) == 0)
+                    {
+                        if (skip)
+                        {
+                            Skip |= DateTimeSkips.Day;
+                        }
+                        else
+                        {
+                            day = int.Parse(values[pos]);
+                        }
+                    }
+                    else
+                    {
+                        throw new ArgumentOutOfRangeException("Invalid Date time pattern.");
+                    }
+                }
+                if (values.Length > 3)
+                {
+                    for (int pos = 0; pos != shortTimePattern.Count; ++pos)
+                    {
+                        bool skip = false;
+                        if (values[3 + pos] == "*")
+                        {
+                            skip = true;
+                        }
+                        if (string.Compare(shortTimePattern[pos], "h", true) == 0)
+                        {
+                            if (skip)
+                            {
+                                Skip |= DateTimeSkips.Hour;
+                            }
+                            else
+                            {
+                                hour = int.Parse(values[3 + pos]);
+                            }
+                        }
+                        else if (string.Compare(shortTimePattern[pos], "mm", true) == 0)
+                        {
+                            if (skip)
+                            {
+                                Skip |= DateTimeSkips.Minute;
+                            }
+                            else
+                            {
+                                min = int.Parse(values[3 + pos]);
+                            }
+                        }
+                        else if (string.Compare(shortTimePattern[pos], "ss", true) == 0)
+                        {
+                            if (skip)
+                            {
+                                Skip |= DateTimeSkips.Second;
+                            }
+                            else
+                            {
+                                sec = int.Parse(values[3 + pos]);
+                            }
+                        }
+                        else
+                        {
+                            throw new ArgumentOutOfRangeException("Invalid Date time pattern.");
+                        }
+                    }
+                }
+                DateTime dt = new DateTime(year, month, day, hour, min, sec);
+                this.Value = new DateTimeOffset(dt, TimeZoneInfo.Local.GetUtcOffset(dt));
             }
         }
 
@@ -220,6 +333,89 @@ namespace Gurux.DLMS
         {
             get;
             set;
+        }
+
+        public string ToFormatString()
+        {
+            int pos;
+            if (Skip != DateTimeSkips.None)
+            {
+                System.Globalization.CultureInfo culture = System.Globalization.CultureInfo.CurrentUICulture;
+                List<string> shortDatePattern = new List<string>(culture.DateTimeFormat.ShortDatePattern.Split(new string[] { culture.DateTimeFormat.DateSeparator }, StringSplitOptions.RemoveEmptyEntries));
+                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { culture.DateTimeFormat.TimeSeparator }, StringSplitOptions.RemoveEmptyEntries));
+                if (this is GXTime)
+                {
+                    shortDatePattern.Clear();
+                }
+                else
+                {
+                    if ((Skip & DateTimeSkips.Year) != 0)
+                    {
+                        pos = shortDatePattern.IndexOf("yyyy");
+                        shortDatePattern[pos] = "*";
+                    }
+                    if ((Skip & DateTimeSkips.Month) != 0)
+                    {
+                        pos = shortDatePattern.IndexOf("M");
+                        shortDatePattern[pos] = "*";
+                    }
+                    if ((Skip & DateTimeSkips.Day) != 0)
+                    {
+                        pos = shortDatePattern.IndexOf("d");
+                        shortDatePattern[pos] = "*";
+                    }
+                }
+                if (this is GXDate)
+                {
+                    shortTimePattern.Clear();
+                }
+                else
+                {
+                    if ((Skip & DateTimeSkips.Hour) != 0)
+                    {
+                        pos = shortTimePattern.IndexOf("h");
+                        if (pos == -1)
+                        {
+                            pos = shortTimePattern.IndexOf("H");
+                        }
+                        shortTimePattern[pos] = "*";
+                    }
+                    if ((Skip & DateTimeSkips.Minute) != 0)
+                    {
+                        pos = shortTimePattern.IndexOf("mm");
+                        shortTimePattern[pos] = "*";
+                    }
+                    if ((Skip & DateTimeSkips.Second) != 0 ||
+                        (shortTimePattern.Count == 1 && Value.Second == 0))
+                    {
+                        pos = shortTimePattern.IndexOf("ss");
+                        shortTimePattern[pos] = "*";
+                    }
+                }
+                string format = null;
+                if (shortDatePattern.Count != 0)
+                {
+                    format = string.Join(culture.DateTimeFormat.DateSeparator, shortDatePattern.ToArray());
+                }
+                if (shortTimePattern.Count != 0)
+                {
+                    if (format != null)
+                    {
+                        format += " ";
+                    }
+                    format += string.Join(culture.DateTimeFormat.TimeSeparator, shortTimePattern.ToArray());
+                }
+                if (format == "H")
+                {
+                    return Value.Hour.ToString();
+                }
+                if (format == null)
+                {
+                    return "";
+                }
+                return Value.LocalDateTime.ToString(format);
+            }
+            return Value.LocalDateTime.ToString();
         }
 
         public override string ToString()
