@@ -179,6 +179,7 @@
     <Compile Include="Objects\Enums\PppSetupLcpOptionType.cs" />
     <Compile Include="Objects\Enums\ScriptActionType.cs" />
     <Compile Include="Objects\Enums\SecurityPolicy.cs" />
+    <Compile Include="Objects\Enums\SecurityPolicy0.cs" />
     <Compile Include="Objects\Enums\SecuritySuite.cs" />
     <Compile Include="Objects\Enums\ServiceType.cs" />
     <Compile Include="Objects\Enums\SingleActionScheduleType.cs" />

@@ -41,6 +41,14 @@ namespace Gurux.DLMS.Enums
     public enum ErrorCode
     {
         /// <summary>
+        /// Disconnect Mode.
+        /// </summary>
+        DisconnectMode = -4,
+        /// <summary>
+        /// Receive Not Ready.
+        /// </summary>
+        ReceiveNotReady = -3,
+        /// <summary>
         /// Connection is rejected.
         /// </summary>
         Rejected = -2,

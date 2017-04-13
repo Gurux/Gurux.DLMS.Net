@@ -110,17 +110,22 @@ namespace Gurux.DLMS
         MethodResponse = 0xC7,
 
         /// <summary>
-        /// Unacceptable Frame.
+        /// HDLC Disconnect Mode.
+        /// </summary>
+        DisconnectMode = 0x1f,
+
+        /// <summary>
+        /// HDLC Unacceptable Frame.
         /// </summary>
         UnacceptableFrame = 0x97,
 
         /// <summary>
-        /// SNRM request.
+        /// HDLC SNRM request.
         /// </summary>
         Snrm = 0x93,
 
         /// <summary>
-        /// UA request.
+        /// HDLC UA request.
         /// </summary>
         Ua = 0x73,
 

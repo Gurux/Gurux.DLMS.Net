@@ -935,5 +935,25 @@ namespace Gurux.DLMS
         {
             return Gurux.DLMS.Internal.GXCommon.ToHex(Data, true, 0, Size);
         }
+
+        /// <summary>
+        /// Get remaining data as a string.
+        /// </summary>
+        /// <returns>Remaining data as string</returns>
+        public byte[] Remaining()
+        {
+            return SubArray(position, size - position);
+        }
+
+
+        /// <summary>
+        /// Get remaining data as hex string.
+        /// </summary>
+        /// <returns>Remaining data as hex string</returns>
+        public string RemainingHexString()
+        {
+            return Gurux.DLMS.Internal.GXCommon.ToHex(Data, true, position, size - position);
+        }
+
     }
 }

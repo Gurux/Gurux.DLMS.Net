@@ -146,6 +146,9 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// Is summer time enabled.
+        /// </summary>
         [XmlIgnore()]
         public bool Enabled
         {

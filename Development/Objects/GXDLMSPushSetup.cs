@@ -384,7 +384,7 @@ namespace Gurux.DLMS.Objects
                 if (tmp != null)
                 {
                     Service = (ServiceType)Convert.ToInt32(tmp[0]);
-                    Destination = (string)GXDLMSClient.ChangeType((byte[])tmp[1], DataType.OctetString);
+                    Destination = (string)GXDLMSClient.ChangeType((byte[])tmp[1], DataType.String);
                     Message = (MessageType)Convert.ToInt32(tmp[2]);
                 }
             }

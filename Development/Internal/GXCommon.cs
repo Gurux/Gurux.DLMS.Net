@@ -1268,7 +1268,7 @@ namespace Gurux.DLMS.Internal
                         {
                             foreach (char it in tmp)
                             {
-                                if (!char.IsLetterOrDigit(it))
+                                if (it == 0xFF || !char.IsLetterOrDigit(it))
                                 {
                                     isString = false;
                                     break;

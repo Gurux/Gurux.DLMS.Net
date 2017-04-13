@@ -1295,6 +1295,10 @@ namespace Gurux.DLMS
                 {
                     data.Error = (int)ErrorCode.UnacceptableFrame;
                 }
+                else if (frame == 0x1F)
+                {
+                    data.Error = (int)ErrorCode.DisconnectMode;
+                }
                 data.Command = (Command)frame;
             }
             //If S-frame
@@ -1308,7 +1312,7 @@ namespace Gurux.DLMS
                 }
                 else if (tmp == (byte)HdlcControlFrame.ReceiveNotReady)
                 {
-                    data.Error = (int)ErrorCode.Rejected;
+                    data.Error = (int)ErrorCode.ReceiveNotReady;
                 }
                 else if (tmp == (byte)HdlcControlFrame.ReceiveReady)
                 {

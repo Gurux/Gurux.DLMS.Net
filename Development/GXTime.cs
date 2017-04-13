@@ -53,7 +53,7 @@ namespace Gurux.DLMS
         public GXTime()
             : base()
         {
-            Skip |= DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek;
+            Skip = DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek;
         }
 
         /// <summary>
@@ -62,8 +62,18 @@ namespace Gurux.DLMS
         public GXTime(DateTime value)
             : base(value)
         {
-            Skip |= DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek;
+            Skip = DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek;
         }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public GXTime(GXDateTime value)
+            : base(value)
+        {
+            Skip = value.Skip | DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek;
+        }
+
 
         /// <summary>
         /// Constructor.

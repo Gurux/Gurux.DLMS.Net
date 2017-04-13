@@ -338,6 +338,9 @@ namespace GuruxDLMSServerExample
             Items.Add(new GXDLMSG3Plc6LoWPan());
             Items.Add(new GXDLMSG3PlcMacLayerCounters());
             Items.Add(new GXDLMSG3PlcMacSetup());
+            //Add security setup object
+            Items.Add(new GXDLMSSecuritySetup());
+
             ///////////////////////////////////////////////////////////////////////
             //Server must initialize after all objects are added.
             Initialize();

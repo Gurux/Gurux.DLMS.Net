@@ -289,29 +289,30 @@ namespace Gurux.DLMS
             GXReplyData reply = new GXReplyData();
             reply.Xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
             int pos;
+            bool found;
             while (data.Position != data.Size)
             {
                 if (type == InterfaceType.HDLC && data.GetUInt8(data.Position) == 0x7e)
                 {
                     pos = data.Position;
                     settings.InterfaceType = Enums.InterfaceType.HDLC;
-                    if (!GXDLMS.GetData(settings, data, reply))
-                    {
-                        ++pos;
-                    }
+                    found = GXDLMS.GetData(settings, data, reply);
                     data.Position = pos;
-                    break;
+                    if (found)
+                    {
+                        break;
+                    }
                 }
                 else if (type == InterfaceType.WRAPPER && data.GetUInt16(data.Position) == 0x1)
                 {
                     pos = data.Position;
                     settings.InterfaceType = Enums.InterfaceType.WRAPPER;
-                    if (!GXDLMS.GetData(settings, data, reply))
-                    {
-                        ++pos;
-                    }
+                    found = GXDLMS.GetData(settings, data, reply);
                     data.Position = pos;
-                    break;
+                    if (found)
+                    {
+                        break;
+                    }
                 }
                 ++data.Position;
             }
@@ -338,29 +339,30 @@ namespace Gurux.DLMS
             GXReplyData reply = new GXReplyData();
             reply.Xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, null);
             int pos;
+            bool found;
             while (data.Position != data.Size)
             {
                 if (data.GetUInt8(data.Position) == 0x7e)
                 {
                     pos = data.Position;
                     settings.InterfaceType = Enums.InterfaceType.HDLC;
-                    if (!GXDLMS.GetData(settings, data, reply))
-                    {
-                        ++pos;
-                    }
+                    found = GXDLMS.GetData(settings, data, reply);
                     data.Position = pos;
-                    break;
+                    if (found)
+                    {
+                        break;
+                    }
                 }
                 else if (data.Position + 2 < data.Size && data.GetUInt16(data.Position) == 0x1)
                 {
                     pos = data.Position;
                     settings.InterfaceType = Enums.InterfaceType.WRAPPER;
-                    if (!GXDLMS.GetData(settings, data, reply))
-                    {
-                        ++pos;
-                    }
+                    found = GXDLMS.GetData(settings, data, reply);
                     data.Position = pos;
-                    break;
+                    if (found)
+                    {
+                        break;
+                    }
                 }
                 ++data.Position;
             }

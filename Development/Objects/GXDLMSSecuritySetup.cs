@@ -36,6 +36,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Gurux.DLMS;
+using Gurux.DLMS;
 using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
@@ -47,6 +48,9 @@ using System.Security.Cryptography;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Security Setup.
+    /// </summary>
     public class GXDLMSSecuritySetup : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>
@@ -62,7 +66,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSSecuritySetup(string ln)
-        : base(ObjectType.SecuritySetup, ln, 0)
+        : this(ln, 0)
         {
         }
 
@@ -75,6 +79,7 @@ namespace Gurux.DLMS.Objects
         : base(ObjectType.SecuritySetup, ln, sn)
         {
             Certificates = new List<GXDLMSCertificateInfo>();
+            Version = 1;
         }
 
         /// <summary>
@@ -82,6 +87,16 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         [XmlIgnore()]
         public SecurityPolicy SecurityPolicy
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Security policy.
+        /// </summary>
+        [XmlIgnore()]
+        public SecurityPolicy0 SecurityPolicy0
         {
             get;
             set;
@@ -130,9 +145,13 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
+            if (Version == 0)
+            {
+                return new object[] { LogicalName, SecurityPolicy0, SecuritySuite,
+                              ClientSystemTitle, ServerSystemTitle, Certificates};
+            }
             return new object[] { LogicalName, SecurityPolicy, SecuritySuite,
-                              ClientSystemTitle, ServerSystemTitle, Certificates
-                            };
+                              ClientSystemTitle, ServerSystemTitle, Certificates};
         }
 
         /// <summary>
@@ -478,7 +497,7 @@ namespace Gurux.DLMS.Objects
 
         int IGXDLMSBase.GetAttributeCount()
         {
-            if (this.Version == 0)
+            if (Version == 0)
             {
                 return 5;
             }
@@ -487,7 +506,7 @@ namespace Gurux.DLMS.Objects
 
         int IGXDLMSBase.GetMethodCount()
         {
-            if (this.Version == 0)
+            if (Version == 0)
             {
                 return 2;
             }
@@ -521,7 +540,7 @@ namespace Gurux.DLMS.Objects
             {
                 if (index == 6)
                 {
-                    return DataType.OctetString;
+                    return DataType.Array;
                 }
                 else
                 {
@@ -573,16 +592,16 @@ namespace Gurux.DLMS.Objects
             {
                 return SecuritySuite;
             }
+            if (e.Index == 4)
+            {
+                return ClientSystemTitle;
+            }
+            if (e.Index == 5)
+            {
+                return ServerSystemTitle;
+            }
             if (this.Version > 0)
             {
-                if (e.Index == 4)
-                {
-                    return ClientSystemTitle;
-                }
-                if (e.Index == 5)
-                {
-                    return ServerSystemTitle;
-                }
                 if (e.Index == 6)
                 {
                     return GetSertificates();
@@ -595,18 +614,20 @@ namespace Gurux.DLMS.Objects
         private void UpdateSertificates(object[] list)
         {
             Certificates.Clear();
-            foreach (object[] it in list)
+            if (list != null)
             {
-                GXDLMSCertificateInfo info = new GXDLMSCertificateInfo();
-                info.Entity = (CertificateEntity)Convert.ToInt32(it[0]);
-                info.Type = (CertificateType)Convert.ToInt32(it[1]);
-                info.SerialNumber = ASCIIEncoding.ASCII.GetString((byte[])it[2]);
-                info.Issuer = ASCIIEncoding.ASCII.GetString((byte[])it[3]);
-                info.Subject = ASCIIEncoding.ASCII.GetString((byte[])it[4]);
-                info.SubjectAltName = ASCIIEncoding.ASCII.GetString((byte[])it[5]);
-                Certificates.Add(info);
+                foreach (object[] it in list)
+                {
+                    GXDLMSCertificateInfo info = new GXDLMSCertificateInfo();
+                    info.Entity = (CertificateEntity)Convert.ToInt32(it[0]);
+                    info.Type = (CertificateType)Convert.ToInt32(it[1]);
+                    info.SerialNumber = ASCIIEncoding.ASCII.GetString((byte[])it[2]);
+                    info.Issuer = ASCIIEncoding.ASCII.GetString((byte[])it[3]);
+                    info.Subject = ASCIIEncoding.ASCII.GetString((byte[])it[4]);
+                    info.SubjectAltName = ASCIIEncoding.ASCII.GetString((byte[])it[5]);
+                    Certificates.Add(info);
+                }
             }
-
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)

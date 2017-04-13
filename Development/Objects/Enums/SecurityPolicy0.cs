@@ -32,55 +32,25 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Gurux.DLMS.Enums;
-using System.ComponentModel;
-
-namespace Gurux.DLMS
+namespace Gurux.DLMS.Objects.Enums
 {
     /// <summary>
-    /// This class is used because in COSEM object model some fields from date time can be ignored.
-    /// Default behavior of DateTime do not allow this.
+    /// Security policy Enforces authentication and/or encryption algorithm provided with security suite version 0.
     /// </summary>
-    public class GXDate : GXDateTime
+    public enum SecurityPolicy0 : byte
     {
+        Nothing,
         /// <summary>
-        /// Constructor.
+        /// All messages to be authenticated.
         /// </summary>
-        public GXDate()
-            : base()
-        {
-            Skip = DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms;
-        }
-
+        Authenticated,
         /// <summary>
-        /// Constructor.
+        /// All messages to be encrypted.
         /// </summary>
-        public GXDate(DateTime value)
-            : base(value)
-        {
-            Skip = DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms;
-        }
-
+        Encrypted,
         /// <summary>
-        /// Constructor.
+        /// All messages to be authenticated and encrypted.
         /// </summary>
-        public GXDate(GXDateTime value)
-            : base(value)
-        {
-            Skip = value.Skip | DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms;
-        }
-
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public GXDate(int year, int month, int day)
-            : base(year, month, day, -1, -1, -1, -1)
-        {
-        }
+        AuthenticatedEncrypted
     }
 }

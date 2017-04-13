@@ -53,6 +53,7 @@ namespace Gurux.DLMS
         {
             GXDLMSTranslator.AddTag(list, Command.Snrm, "Snrm");
             GXDLMSTranslator.AddTag(list, Command.UnacceptableFrame, "UnacceptableFrame");
+            GXDLMSTranslator.AddTag(list, Command.DisconnectMode, "DisconnectMode");
             GXDLMSTranslator.AddTag(list, Command.Ua, "Ua");
             GXDLMSTranslator.AddTag(list, Command.Aarq, "aarq");
             GXDLMSTranslator.AddTag(list, Command.Aare, "aare");

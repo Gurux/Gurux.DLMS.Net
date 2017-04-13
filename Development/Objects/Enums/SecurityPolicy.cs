@@ -35,7 +35,7 @@
 namespace Gurux.DLMS.Objects.Enums
 {
     /// <summary>
-    /// Security policy Enforces authentication and/or encryption algorithm provided with security_suite.
+    /// Security policy Enforces authentication and/or encryption algorithm provided with security suite version 1.
     /// </summary>
     public enum SecurityPolicy : byte
     {
