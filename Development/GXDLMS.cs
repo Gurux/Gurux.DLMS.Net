@@ -695,7 +695,14 @@ namespace Gurux.DLMS
                         messages.Add(GXDLMS.GetHdlcFrame(p.settings, frame, reply));
                         if (reply.Position != reply.Size)
                         {
-                            frame = p.settings.NextSend(false);
+                            if (p.settings.IsServer)
+                            {
+                                frame = 0;
+                            }
+                            else
+                            {
+                                frame = p.settings.NextSend(false);
+                            }
                         }
                     }
                     else if (p.settings.InterfaceType == Enums.InterfaceType.PDU)
@@ -750,13 +757,16 @@ namespace Gurux.DLMS
                     else if (p.settings.InterfaceType == Enums.InterfaceType.HDLC)
                     {
                         messages.Add(GXDLMS.GetHdlcFrame(p.settings, frame, reply));
-                        if (reply.Position != reply.Size && !p.settings.IsServer)
+                        if (reply.Position != reply.Size)
                         {
-                            frame = p.settings.NextSend(false);
-                        }
-                        else
-                        {
-                            frame = 0;
+                            if (p.settings.IsServer)
+                            {
+                                frame = 0;
+                            }
+                            else
+                            {
+                                frame = p.settings.NextSend(false);
+                            }
                         }
                     }
                     else if (p.settings.InterfaceType == Enums.InterfaceType.PDU)
