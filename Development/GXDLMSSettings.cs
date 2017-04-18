@@ -349,9 +349,16 @@ namespace Gurux.DLMS
         ///<summary>
         /// Generates I-frame.
         ///</summary>
-        internal byte NextSend()
+        internal byte NextSend(bool first)
         {
-            SenderFrame = IncreaseReceiverSequence(IncreaseSendSequence(SenderFrame));
+            if (first)
+            {
+                SenderFrame = IncreaseReceiverSequence(IncreaseSendSequence(SenderFrame));
+            }
+            else
+            {
+                SenderFrame = IncreaseSendSequence(SenderFrame);
+            }
             return SenderFrame;
         }
 

@@ -693,7 +693,10 @@ namespace Gurux.DLMS
                     else if (p.settings.InterfaceType == Enums.InterfaceType.HDLC)
                     {
                         messages.Add(GXDLMS.GetHdlcFrame(p.settings, frame, reply));
-                        frame = 0;
+                        if (reply.Position != reply.Size)
+                        {
+                            frame = p.settings.NextSend(false);
+                        }
                     }
                     else if (p.settings.InterfaceType == Enums.InterfaceType.PDU)
                     {
@@ -728,7 +731,7 @@ namespace Gurux.DLMS
             }
             else if (p.command == Command.None)
             {
-                frame = p.settings.NextSend();
+                frame = p.settings.NextSend(true);
             }
             do
             {
@@ -747,12 +750,18 @@ namespace Gurux.DLMS
                     else if (p.settings.InterfaceType == Enums.InterfaceType.HDLC)
                     {
                         messages.Add(GXDLMS.GetHdlcFrame(p.settings, frame, reply));
-                        frame = 0;
+                        if (reply.Position != reply.Size && !p.settings.IsServer)
+                        {
+                            frame = p.settings.NextSend(false);
+                        }
+                        else
+                        {
+                            frame = 0;
+                        }
                     }
                     else if (p.settings.InterfaceType == Enums.InterfaceType.PDU)
                     {
                         messages.Add(reply.Array());
-                        frame = 0;
                         break;
                     }
                     else
@@ -1099,15 +1108,15 @@ namespace Gurux.DLMS
             }
             else if (data.Size - data.Position <= frameSize)
             {
-                // Is last packet.
-                bb.SetUInt8(0xA0);
                 len = data.Size - data.Position;
+                // Is last packet.
+                bb.SetUInt8((byte)(0xA0 | (len >> 8) & 0x7));
             }
             else
             {
-                // More data to left.
-                bb.SetUInt8(0xA8);
                 len = frameSize;
+                // More data to left.
+                bb.SetUInt8((byte)(0xA8 | (len >> 8) & 0x7));
             }
             //Frame len.
             if (len == 0)
@@ -1122,11 +1131,10 @@ namespace Gurux.DLMS
             bb.Set(primaryAddress);
             // Add secondary address.
             bb.Set(secondaryAddress);
-
             //Add frame ID.
             if (frame == 0)
             {
-                frame = settings.NextSend();
+                frame = settings.NextSend(true);
             }
             bb.SetUInt8(frame);
             // Add header CRC.
@@ -1283,7 +1291,7 @@ namespace Gurux.DLMS
                 data.PacketLength = reply.Position + 1;
             }
 
-            if ((frame & (byte)HdlcFrameType.Uframe) == (byte)HdlcFrameType.Uframe)
+            if (frame != 0x13 && (frame & (byte)HdlcFrameType.Uframe) == (byte)HdlcFrameType.Uframe)
             {
                 //Get Eop if there is no data.
                 if (reply.Position == packetStartID + frameLen + 1)
@@ -1302,7 +1310,7 @@ namespace Gurux.DLMS
                 data.Command = (Command)frame;
             }
             //If S-frame
-            else if ((frame & (byte)HdlcFrameType.Sframe) == (byte)HdlcFrameType.Sframe)
+            else if (frame != 0x13 && (frame & (byte)HdlcFrameType.Sframe) == (byte)HdlcFrameType.Sframe)
             {
                 //If frame is rejected.
                 int tmp = (frame >> 2) & 0x3;

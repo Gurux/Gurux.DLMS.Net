@@ -476,6 +476,123 @@ namespace Gurux.DLMS
             return Value.LocalDateTime.ToString();
         }
 
+        /// <summary>
+        /// Get difference between given time and run time in ms.
+        /// </summary>
+        /// <param name="start">Start date time.</param>
+        /// <param name="to">Compared time.</param>
+        /// <returns>Difference in milliseconds.</returns>
+        public static long GetDifference(DateTime start, GXDateTime to)
+        {
+            long diff = 0;
+            //Compare ms.
+            if ((to.Skip & DateTimeSkips.Ms) == 0)
+            {
+                if (start.Millisecond < to.Value.Millisecond)
+                {
+                    diff = to.Value.Millisecond;
+                }
+                else
+                {
+                    diff = -to.Value.Millisecond;
+                }
+            }
+            //Compare seconds.
+            if ((to.Skip & DateTimeSkips.Second) == 0)
+            {
+                if (start.Second < to.Value.Second)
+                {
+                    diff += (to.Value.Second - start.Second) * 1000L;
+                }
+                else
+                {
+                    diff -= (start.Second - to.Value.Second) * 1000L;
+                }
+            }
+            else if (diff < 0)
+            {
+                diff = 60000 + diff;
+            }
+            //Compare minutes.
+            if ((to.Skip & DateTimeSkips.Minute) == 0)
+            {
+                if (start.Minute < to.Value.Minute)
+                {
+                    diff += (to.Value.Minute - start.Minute) * 60000L;
+                }
+                else
+                {
+                    diff -= (start.Minute - to.Value.Minute) * 60000L;
+                }
+            }
+            else if (diff < 0)
+            {
+                diff = 60 * 60000 + diff;
+            }
+            //Compare hours.
+            if ((to.Skip & DateTimeSkips.Hour) == 0)
+            {
+                if (start.Hour < to.Value.Hour)
+                {
+                    diff += (to.Value.Hour - start.Hour) * 60 * 60000L;
+                }
+                else
+                {
+                    diff -= (start.Hour - to.Value.Hour) * 60 * 60000L;
+                }
+            }
+            else if (diff < 0)
+            {
+                diff = 60 * 60000 + diff;
+            }
+            //Compare days.
+            if ((to.Skip & DateTimeSkips.Day) == 0)
+            {
+                if (start.Day < to.Value.Day)
+                {
+                    diff += (to.Value.Day - start.Day) * 24 * 60 * 60000;
+                }
+                else if (start.Day != to.Value.Day)
+                {
+                    if ((to.Skip & DateTimeSkips.Month) == 0)
+                    {
+                        diff += (to.Value.Day - start.Day) * 24 * 60 * 60000L;
+                    }
+                    else
+                    {
+                        diff = ((DateTime.DaysInMonth(start.Year, start.Month) - start.Day + to.Value.Day) * 24 * 60 * 60000L) + diff;
+                    }
+                }
+            }
+            else if (diff < 0)
+            {
+                diff = 24 * 60 * 60000 + diff;
+            }
+            //Compare months.
+            if ((to.Skip & DateTimeSkips.Month) == 0)
+            {
+                if (start.Month < to.Value.Month)
+                {
+                    for (int m = start.Month; m != to.Value.Month; ++m)
+                    {
+                        diff += DateTime.DaysInMonth(start.Year, m) * 24 * 60 * 60000L;
+                    }
+                }
+                else
+                {
+                    for (int m = to.Value.Month; m != start.Month; ++m)
+                    {
+                        diff += -DateTime.DaysInMonth(start.Year, m) * 24 * 60 * 60000L;
+                    }
+                }
+            }
+            else if (diff < 0)
+            {
+                diff = DateTime.DaysInMonth(start.Year, start.Month) * 24 * 60 * 60000L + diff;
+            }
+            return diff;
+        }
+
         #region IConvertible Members
 
         TypeCode IConvertible.GetTypeCode()

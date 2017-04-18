@@ -1275,7 +1275,7 @@ namespace Gurux.DLMS
         /// <param name="name">Method object short name or Logical Name.</param>
         /// <param name="objectType">Object type.</param>
         /// <param name="index">Method index.</param>
-        /// <param name="data">Additional data.</param>
+        /// <param name="value">Additional data.</param>
         /// <param name="type">Additional data type.</param>
         /// <returns></returns>
         public byte[][] Method(object name, ObjectType objectType, int index, Object value, DataType type)
