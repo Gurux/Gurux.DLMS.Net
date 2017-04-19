@@ -247,7 +247,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 }
             }
             else if (e.Index == 2)
@@ -260,14 +260,14 @@ namespace Gurux.DLMS.Objects
                     Object[] tmp = (Object[])it;
                     item.Index = Convert.ToByte(tmp[0]);
                     item.Enable = (bool)tmp[1];
-                    item.LogicalName = GXDLMSClient.ChangeType((byte[])tmp[2], DataType.OctetString).ToString();
+                    item.LogicalName = GXDLMSClient.ChangeType((byte[])tmp[2], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                     item.ScriptSelector = Convert.ToByte(tmp[3]);
-                    item.SwitchTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[4], DataType.DateTime);
+                    item.SwitchTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[4], DataType.DateTime, settings.UseUtc2NormalTime);
                     item.ValidityWindow = Convert.ToByte(tmp[5]);
                     item.ExecWeekdays = (string)tmp[6];
                     item.ExecSpecDays = (string)tmp[7];
-                    item.BeginDate = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[8], DataType.DateTime);
-                    item.EndDate = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[9], DataType.DateTime);
+                    item.BeginDate = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[8], DataType.DateTime, settings.UseUtc2NormalTime);
+                    item.EndDate = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[9], DataType.DateTime, settings.UseUtc2NormalTime);
                     Entries.Add(item);
                 }
             }

@@ -221,7 +221,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 }
             }
             else if (e.Index == 2)
@@ -234,7 +234,7 @@ namespace Gurux.DLMS.Objects
                     {
                         GXDLMSSpecialDay it = new GXDLMSSpecialDay();
                         it.Index = Convert.ToUInt16(item[0]);
-                        it.Date = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.Date);
+                        it.Date = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.Date, settings.UseUtc2NormalTime);
                         it.DayId = Convert.ToByte(item[2]);
                         items.Add(it);
                     }

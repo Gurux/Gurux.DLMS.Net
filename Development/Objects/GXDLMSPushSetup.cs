@@ -354,7 +354,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 }
             }
             else if (e.Index == 2)
@@ -366,7 +366,7 @@ namespace Gurux.DLMS.Objects
                     {
                         Object[] tmp = it as Object[];
                         ObjectType type = (ObjectType)Convert.ToUInt16(tmp[0]);
-                        String ln = GXDLMSClient.ChangeType((byte[])tmp[1], DataType.OctetString).ToString();
+                        String ln = GXDLMSClient.ChangeType((byte[])tmp[1], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                         GXDLMSObject obj = settings.Objects.FindByLN(type, ln);
                         if (obj == null)
                         {
@@ -384,7 +384,7 @@ namespace Gurux.DLMS.Objects
                 if (tmp != null)
                 {
                     Service = (ServiceType)Convert.ToInt32(tmp[0]);
-                    Destination = (string)GXDLMSClient.ChangeType((byte[])tmp[1], DataType.String);
+                    Destination = (string)GXDLMSClient.ChangeType((byte[])tmp[1], DataType.String, settings.UseUtc2NormalTime);
                     Message = (MessageType)Convert.ToInt32(tmp[2]);
                 }
             }
@@ -396,8 +396,8 @@ namespace Gurux.DLMS.Objects
                     foreach (object it in e.Value as Object[])
                     {
                         Object[] tmp = it as Object[];
-                        GXDateTime start = GXDLMSClient.ChangeType((byte[])tmp[0], DataType.DateTime) as GXDateTime;
-                        GXDateTime end = GXDLMSClient.ChangeType((byte[])tmp[1], DataType.DateTime) as GXDateTime;
+                        GXDateTime start = GXDLMSClient.ChangeType((byte[])tmp[0], DataType.DateTime, settings.UseUtc2NormalTime) as GXDateTime;
+                        GXDateTime end = GXDLMSClient.ChangeType((byte[])tmp[1], DataType.DateTime, settings.UseUtc2NormalTime) as GXDateTime;
                         CommunicationWindow.Add(new KeyValuePair<GXDateTime, GXDateTime>(start, end));
                     }
                 }

@@ -43,144 +43,144 @@ using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.Objects
 {
-/// <summary>
-/// The instance of the IEC 14908 Physical setup interface class allows the configuration of the physical link of the OSGP device.
-/// </summary>
-public class GXDLMSIEC14908PhysicalSetup : GXDLMSObject, IGXDLMSBase
-{
     /// <summary>
-    /// Constructor.
+    /// The instance of the IEC 14908 Physical setup interface class allows the configuration of the physical link of the OSGP device.
     /// </summary>
-    public GXDLMSIEC14908PhysicalSetup()
-    : this("0.0.34.1.0.255")
+    public class GXDLMSIEC14908PhysicalSetup : GXDLMSObject, IGXDLMSBase
     {
-    }
-
-    /// <summary>
-    /// Constructor.
-    /// </summary>
-    /// <param name="ln">Logical Name of the object.</param>
-    public GXDLMSIEC14908PhysicalSetup(string ln)
-    : base(ObjectType.IEC14908PhysicalSetup, ln, 0)
-    {
-    }
-
-    /// <summary>
-    /// Constructor.
-    /// </summary>
-    /// <param name="ln">Logical Name of the object.</param>
-    /// <param name="sn">Short Name of the object.</param>
-    public GXDLMSIEC14908PhysicalSetup(string ln, ushort sn)
-    : base(ObjectType.IEC14908PhysicalSetup, ln, sn)
-    {
-    }
-
-    /// <summary>
-    /// PLC inactivity timeout in minutes.
-    /// </summary>
-    [XmlIgnore()]
-    public byte PlcInactivityTimeout
-    {
-        get;
-        set;
-    }
-
-    /// <inheritdoc cref="GXDLMSObject.GetValues"/>
-    public override object[] GetValues()
-    {
-        return new object[] { LogicalName, PlcInactivityTimeout };
-    }
-
-    #region IGXDLMSBase Members
-
-    byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
-    {
-        e.Error = ErrorCode.ReadWriteDenied;
-        return null;
-    }
-
-    int[] IGXDLMSBase.GetAttributeIndexToRead()
-    {
-        List<int> attributes = new List<int>();
-        //LN is static and read only once.
-        if (string.IsNullOrEmpty(LogicalName))
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public GXDLMSIEC14908PhysicalSetup()
+        : this("0.0.34.1.0.255")
         {
-            attributes.Add(1);
         }
-        //PlcInactivityTimeout
-        if (CanRead(2))
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="ln">Logical Name of the object.</param>
+        public GXDLMSIEC14908PhysicalSetup(string ln)
+        : base(ObjectType.IEC14908PhysicalSetup, ln, 0)
         {
-            attributes.Add(2);
         }
-        return attributes.ToArray();
-    }
 
-    /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
-    string[] IGXDLMSBase.GetNames()
-    {
-        return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "PlcInactivityTimeout" };
-    }
-
-    int IGXDLMSBase.GetAttributeCount()
-    {
-        return 2;
-    }
-
-    int IGXDLMSBase.GetMethodCount()
-    {
-        return 0;
-    }
-
-    /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
-    public override DataType GetDataType(int index)
-    {
-        if (index == 1)
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="ln">Logical Name of the object.</param>
+        /// <param name="sn">Short Name of the object.</param>
+        public GXDLMSIEC14908PhysicalSetup(string ln, ushort sn)
+        : base(ObjectType.IEC14908PhysicalSetup, ln, sn)
         {
-            return DataType.OctetString;
         }
-        if (index == 2)
-        {
-            return DataType.UInt8;
-        }
-        throw new ArgumentException("GetDataType failed. Invalid attribute index.");
-    }
 
-    object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
-    {
-        if (e.Index == 1)
+        /// <summary>
+        /// PLC inactivity timeout in minutes.
+        /// </summary>
+        [XmlIgnore()]
+        public byte PlcInactivityTimeout
         {
-            return this.LogicalName;
+            get;
+            set;
         }
-        if (e.Index == 2)
-        {
-            return PlcInactivityTimeout;
-        }
-        e.Error = ErrorCode.ReadWriteDenied;
-        return null;
-    }
 
-    void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
-    {
-        if (e.Index == 1)
+        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
+        public override object[] GetValues()
         {
-            if (e.Value is string)
+            return new object[] { LogicalName, PlcInactivityTimeout };
+        }
+
+        #region IGXDLMSBase Members
+
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
+        {
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
+        }
+
+        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        {
+            List<int> attributes = new List<int>();
+            //LN is static and read only once.
+            if (string.IsNullOrEmpty(LogicalName))
             {
-                LogicalName = e.Value.ToString();
+                attributes.Add(1);
+            }
+            //PlcInactivityTimeout
+            if (CanRead(2))
+            {
+                attributes.Add(2);
+            }
+            return attributes.ToArray();
+        }
+
+        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        string[] IGXDLMSBase.GetNames()
+        {
+            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "PlcInactivityTimeout" };
+        }
+
+        int IGXDLMSBase.GetAttributeCount()
+        {
+            return 2;
+        }
+
+        int IGXDLMSBase.GetMethodCount()
+        {
+            return 0;
+        }
+
+        /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
+        public override DataType GetDataType(int index)
+        {
+            if (index == 1)
+            {
+                return DataType.OctetString;
+            }
+            if (index == 2)
+            {
+                return DataType.UInt8;
+            }
+            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+        }
+
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
+        {
+            if (e.Index == 1)
+            {
+                return this.LogicalName;
+            }
+            if (e.Index == 2)
+            {
+                return PlcInactivityTimeout;
+            }
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
+        }
+
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
+        {
+            if (e.Index == 1)
+            {
+                if (e.Value is string)
+                {
+                    LogicalName = e.Value.ToString();
+                }
+                else
+                {
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
+                }
+            }
+            else if (e.Index == 2)
+            {
+                PlcInactivityTimeout = (byte)e.Value;
             }
             else
             {
-                LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
+                e.Error = ErrorCode.ReadWriteDenied;
             }
         }
-        else if (e.Index == 2)
-        {
-            PlcInactivityTimeout = (byte)e.Value;
-        }
-        else
-        {
-            e.Error = ErrorCode.ReadWriteDenied;
-        }
+        #endregion
     }
-    #endregion
-}
 }

@@ -141,11 +141,11 @@ namespace Gurux.DLMS
         {
             get
             {
-                return Settings.UtcTimeZone;
+                return Settings.UseUtc2NormalTime;
             }
             set
             {
-                Settings.UtcTimeZone = value;
+                Settings.UseUtc2NormalTime = value;
             }
         }
 
@@ -1050,7 +1050,7 @@ namespace Gurux.DLMS
                         type = DataType.Date;
                         target.SetUIDataType(attributeIndex, type);
                     }
-                    value = ChangeType((byte[])value, type);
+                    value = ChangeType((byte[])value, type, UtcTimeZone);
                 }
             }
             ValueEventArgs e = new ValueEventArgs(Settings, target, attributeIndex, 0, columns);
@@ -1149,7 +1149,20 @@ namespace Gurux.DLMS
         /// <returns>Value changed by type.</returns>
         public static object ChangeType(byte[] value, DataType type)
         {
-            return ChangeType(new GXByteBuffer(value), type);
+            return ChangeType(new GXByteBuffer(value), type, false);
+        }
+
+        /// <summary>
+        /// Changes byte array received from the meter to given type.
+        /// </summary>
+        /// <param name="value">Byte array received from the meter.</param>
+        /// <param name="type">Wanted type.</param>
+        /// <param name="useUtc">Standard says that Time zone is from normal time to UTC in minutes.
+        /// If meter is configured to use UTC time (UTC to normal time) set this to true.</param>
+        /// <returns>Value changed by type.</returns>
+        public static object ChangeType(byte[] value, DataType type, bool useUtc)
+        {
+            return ChangeType(new GXByteBuffer(value), type, useUtc);
         }
 
         /// <summary>
@@ -1159,6 +1172,19 @@ namespace Gurux.DLMS
         /// <param name="type">Wanted type.</param>
         /// <returns>Value changed by type.</returns>
         public static object ChangeType(GXByteBuffer value, DataType type)
+        {
+            return ChangeType(value, type, false);
+        }
+
+        /// <summary>
+        /// Changes byte array received from the meter to given type.
+        /// </summary>
+        /// <param name="value">Byte array received from the meter.</param>
+        /// <param name="type">Wanted type.</param>
+        /// <param name="useUtc">Standard says that Time zone is from normal time to UTC in minutes.
+        /// If meter is configured to use UTC time (UTC to normal time) set this to true.</param>
+        /// <returns>Value changed by type.</returns>
+        public static object ChangeType(GXByteBuffer value, DataType type, bool useUtc)
         {
             if ((value == null || value.Size == 0) && (type == DataType.String || type == DataType.OctetString))
             {
@@ -1192,7 +1218,9 @@ namespace Gurux.DLMS
 
             GXDataInfo info = new GXDataInfo();
             info.Type = type;
-            Object ret = GXCommon.GetData(null, value, info);
+            GXDLMSSettings settings = new GXDLMSSettings();
+            settings.UseUtc2NormalTime = useUtc;
+            Object ret = GXCommon.GetData(settings, value, info);
             if (!info.Complete)
             {
                 throw new OutOfMemoryException();
@@ -1889,7 +1917,20 @@ namespace Gurux.DLMS
         /// <returns>Parsed value.</returns>
         public static object GetValue(GXByteBuffer data)
         {
-            return GetValue(data, DataType.None);
+            return GetValue(data, DataType.None, false);
+        }
+
+
+        /// <summary>
+        /// Get value from DLMS byte stream.
+        /// </summary>
+        /// <param name="data">Received data.</param>
+        /// <param name="useUtc">Standard says that Time zone is from normal time to UTC in minutes.
+        /// If meter is configured to use UTC time (UTC to normal time) set this to true.</param>
+        /// <returns>Parsed value.</returns>
+        public static object GetValue(GXByteBuffer data, bool useUtc)
+        {
+            return GetValue(data, DataType.None, useUtc);
         }
 
         /// <summary>
@@ -1900,11 +1941,24 @@ namespace Gurux.DLMS
         /// <returns>Parsed value.</returns>
         public static object GetValue(GXByteBuffer data, DataType type)
         {
+            return GetValue(data, type, false);
+        }
+
+        /// <summary>
+        /// Get value from DLMS byte stream.
+        /// </summary>
+        /// <param name="data">Received data.</param>
+        /// <param name="type">Conversion type is used if returned data is byte array.</param>
+        /// <param name="useUtc">Standard says that Time zone is from normal time to UTC in minutes.
+        /// If meter is configured to use UTC time (UTC to normal time) set this to true.</param>
+        /// <returns>Parsed value.</returns>
+        public static object GetValue(GXByteBuffer data, DataType type, bool useUtc)
+        {
             GXDataInfo info = new GXDataInfo();
             object value = GXCommon.GetData(null, data, info);
             if (value is byte[] && type != DataType.None)
             {
-                value = GXDLMSClient.ChangeType((byte[])value, type);
+                value = GXDLMSClient.ChangeType((byte[])value, type, useUtc);
             }
             return value;
         }
@@ -2064,7 +2118,7 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    object value = (it.Target as IGXDLMSBase).GetValue(null, new ValueEventArgs(it.Target, it.Index, 0, null));
+                    object value = (it.Target as IGXDLMSBase).GetValue(Settings, new ValueEventArgs(it.Target, it.Index, 0, null));
                     DataType type = it.Target.GetDataType(it.Index);
                     if (type == DataType.None)
                     {

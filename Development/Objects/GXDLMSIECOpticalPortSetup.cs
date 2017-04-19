@@ -352,7 +352,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 }
             }
             else if (e.Index == 2)
@@ -375,7 +375,7 @@ namespace Gurux.DLMS.Objects
             {
                 if (e.Value is byte[])
                 {
-                    DeviceAddress = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String).ToString();
+                    DeviceAddress = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String, settings.UseUtc2NormalTime).ToString();
                 }
                 else
                 {
@@ -386,7 +386,7 @@ namespace Gurux.DLMS.Objects
             {
                 if (e.Value is byte[])
                 {
-                    Password1 = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String).ToString();
+                    Password1 = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String, settings.UseUtc2NormalTime).ToString();
                 }
                 else
                 {
@@ -397,7 +397,7 @@ namespace Gurux.DLMS.Objects
             {
                 if (e.Value is byte[])
                 {
-                    Password2 = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String).ToString();
+                    Password2 = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String, settings.UseUtc2NormalTime).ToString();
                 }
                 else
                 {
@@ -408,7 +408,7 @@ namespace Gurux.DLMS.Objects
             {
                 if (e.Value is byte[])
                 {
-                    Password5 = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String).ToString();
+                    Password5 = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String, settings.UseUtc2NormalTime).ToString();
                 }
                 else
                 {

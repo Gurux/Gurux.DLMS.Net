@@ -227,9 +227,9 @@ namespace Gurux.DLMS.Objects
             // avalidity_interval within which the new time can be activated.
             else if (e.Index == 5)
             {
-                GXDateTime presetTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])((Object[])e.Parameters)[0], DataType.DateTime);
-                GXDateTime validityIntervalStart = (GXDateTime)GXDLMSClient.ChangeType((byte[])((Object[])e.Parameters)[1], DataType.DateTime);
-                GXDateTime validityIntervalEnd = (GXDateTime)GXDLMSClient.ChangeType((byte[])((Object[])e.Parameters)[2], DataType.DateTime);
+                GXDateTime presetTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])((Object[])e.Parameters)[0], DataType.DateTime, settings.UseUtc2NormalTime);
+                GXDateTime validityIntervalStart = (GXDateTime)GXDLMSClient.ChangeType((byte[])((Object[])e.Parameters)[1], DataType.DateTime, settings.UseUtc2NormalTime);
+                GXDateTime validityIntervalEnd = (GXDateTime)GXDLMSClient.ChangeType((byte[])((Object[])e.Parameters)[2], DataType.DateTime, settings.UseUtc2NormalTime);
                 this.Time.Value = presetTime.Value;
             }
             // Shifts the time.
@@ -490,7 +490,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else if (e.Value != null)
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 }
             }
             else if (e.Index == 2)
@@ -503,7 +503,7 @@ namespace Gurux.DLMS.Objects
                 {
                     if (e.Value is byte[])
                     {
-                        e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
+                        e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
                     }
                     if (e.Value is GXDateTime)
                     {
@@ -545,7 +545,7 @@ namespace Gurux.DLMS.Objects
                 {
                     if (e.Value is byte[])
                     {
-                        e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
+                        e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
                     }
                     Begin = (GXDateTime)e.Value;
                 }
@@ -560,7 +560,7 @@ namespace Gurux.DLMS.Objects
                 {
                     if (e.Value is byte[])
                     {
-                        e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
+                        e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
                     }
                     End = (GXDateTime)e.Value;
                 }

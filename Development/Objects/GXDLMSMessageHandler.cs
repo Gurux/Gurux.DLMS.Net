@@ -252,7 +252,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 }
             }
             else if (e.Index == 2)
@@ -263,8 +263,8 @@ namespace Gurux.DLMS.Objects
                     foreach (object it in e.Value as Object[])
                     {
                         Object[] tmp = it as Object[];
-                        GXDateTime start = GXDLMSClient.ChangeType((byte[])tmp[0], DataType.DateTime) as GXDateTime;
-                        GXDateTime end = GXDLMSClient.ChangeType((byte[])tmp[1], DataType.DateTime) as GXDateTime;
+                        GXDateTime start = GXDLMSClient.ChangeType((byte[])tmp[0], DataType.DateTime, settings.UseUtc2NormalTime) as GXDateTime;
+                        GXDateTime end = GXDLMSClient.ChangeType((byte[])tmp[1], DataType.DateTime, settings.UseUtc2NormalTime) as GXDateTime;
                         ListeningWindow.Add(new KeyValuePair<GXDateTime, GXDateTime>(start, end));
                     }
                 }

@@ -381,7 +381,7 @@ namespace Gurux.DLMS
                     index = items[pos].Value;
                     if (value is byte[] && (dt = obj.GetUIDataType(index)) != DataType.None)
                     {
-                        value = GXDLMSClient.ChangeType(value as byte[], dt);
+                        value = GXDLMSClient.ChangeType(value as byte[], dt, Settings.UseUtc2NormalTime);
                     }
                     ValueEventArgs e = new ValueEventArgs(Settings, obj, index, 0, null);
                     e.Value = value;

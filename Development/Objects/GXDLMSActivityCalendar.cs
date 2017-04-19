@@ -373,7 +373,7 @@ namespace Gurux.DLMS.Objects
                 {
                     return null;
                 }
-                return GXDLMSClient.ChangeType(ASCIIEncoding.ASCII.GetBytes(CalendarNameActive), DataType.OctetString);
+                return GXDLMSClient.ChangeType(ASCIIEncoding.ASCII.GetBytes(CalendarNameActive), DataType.OctetString, settings.UseUtc2NormalTime);
             }
             if (e.Index == 3)
             {
@@ -396,7 +396,7 @@ namespace Gurux.DLMS.Objects
                 {
                     return null;
                 }
-                return GXDLMSClient.ChangeType(ASCIIEncoding.ASCII.GetBytes(CalendarNamePassive), DataType.OctetString);
+                return GXDLMSClient.ChangeType(ASCIIEncoding.ASCII.GetBytes(CalendarNamePassive), DataType.OctetString, settings.UseUtc2NormalTime);
             }
             //
             if (e.Index == 7)
@@ -422,7 +422,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        static GXDLMSSeasonProfile[] SetSeasonProfile(Object value)
+        static GXDLMSSeasonProfile[] SetSeasonProfile(GXDLMSSettings settings, Object value)
         {
             if (value != null)
             {
@@ -430,8 +430,8 @@ namespace Gurux.DLMS.Objects
                 foreach (object[] item in (object[])value)
                 {
                     GXDLMSSeasonProfile it = new GXDLMSSeasonProfile();
-                    it.Name = GXDLMSClient.ChangeType((byte[])item[0], DataType.String).ToString();
-                    it.Start = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime);
+                    it.Name = GXDLMSClient.ChangeType((byte[])item[0], DataType.String, false).ToString();
+                    it.Start = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime, settings.UseUtc2NormalTime);
                     byte[] weekName = (byte[])item[2];
                     //If week name is ignored.
                     if (weekName != null && weekName.Length == 1 && weekName[0] == 0xFF)
@@ -440,7 +440,7 @@ namespace Gurux.DLMS.Objects
                     }
                     else
                     {
-                        it.WeekName = GXDLMSClient.ChangeType(weekName, DataType.String).ToString();
+                        it.WeekName = GXDLMSClient.ChangeType(weekName, DataType.String, settings.UseUtc2NormalTime).ToString();
                     }
                     items.Add(it);
                 }
@@ -449,7 +449,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        static GXDLMSWeekProfile[] SetWeekProfileTable(Object value)
+        static GXDLMSWeekProfile[] SetWeekProfileTable(GXDLMSSettings settings, Object value)
         {
             if (value != null)
             {
@@ -457,7 +457,7 @@ namespace Gurux.DLMS.Objects
                 foreach (object[] item in (object[])value)
                 {
                     GXDLMSWeekProfile it = new GXDLMSWeekProfile();
-                    it.Name = GXDLMSClient.ChangeType((byte[])item[0], DataType.String).ToString();
+                    it.Name = GXDLMSClient.ChangeType((byte[])item[0], DataType.String, settings.UseUtc2NormalTime).ToString();
                     it.Monday = Convert.ToInt32(item[1]);
                     it.Tuesday = Convert.ToInt32(item[2]);
                     it.Wednesday = Convert.ToInt32(item[3]);
@@ -472,7 +472,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        static GXDLMSDayProfile[] SetDayProfileTable(Object value)
+        static GXDLMSDayProfile[] SetDayProfileTable(GXDLMSSettings settings, Object value)
         {
             if (value != null)
             {
@@ -495,9 +495,9 @@ namespace Gurux.DLMS.Objects
                         }
                         else
                         {
-                            ac.StartTime = (GXTime)GXDLMSClient.ChangeType((byte[])it2[0], DataType.Time);
+                            ac.StartTime = (GXTime)GXDLMSClient.ChangeType((byte[])it2[0], DataType.Time, settings.UseUtc2NormalTime);
                         }
-                        ac.ScriptLogicalName = GXDLMSClient.ChangeType((byte[])it2[1], DataType.OctetString).ToString();
+                        ac.ScriptLogicalName = GXDLMSClient.ChangeType((byte[])it2[1], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                         ac.ScriptSelector = Convert.ToUInt16(it2[2]);
                         actions.Add(ac);
                     }
@@ -519,14 +519,14 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 }
             }
             else if (e.Index == 2)
             {
                 if (e.Value is byte[])
                 {
-                    CalendarNameActive = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String).ToString();
+                    CalendarNameActive = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String, settings.UseUtc2NormalTime).ToString();
                 }
                 else
                 {
@@ -535,21 +535,21 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 3)
             {
-                SeasonProfileActive = SetSeasonProfile(e.Value);
+                SeasonProfileActive = SetSeasonProfile(settings, e.Value);
             }
             else if (e.Index == 4)
             {
-                WeekProfileTableActive = SetWeekProfileTable(e.Value);
+                WeekProfileTableActive = SetWeekProfileTable(settings, e.Value);
             }
             else if (e.Index == 5)
             {
-                DayProfileTableActive = SetDayProfileTable(e.Value);
+                DayProfileTableActive = SetDayProfileTable(settings, e.Value);
             }
             else if (e.Index == 6)
             {
                 if (e.Value is byte[])
                 {
-                    CalendarNamePassive = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String).ToString();
+                    CalendarNamePassive = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String, settings.UseUtc2NormalTime).ToString();
                 }
                 else
                 {
@@ -558,21 +558,21 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 7)
             {
-                SeasonProfilePassive = SetSeasonProfile(e.Value);
+                SeasonProfilePassive = SetSeasonProfile(settings, e.Value);
             }
             else if (e.Index == 8)
             {
-                WeekProfileTablePassive = SetWeekProfileTable(e.Value);
+                WeekProfileTablePassive = SetWeekProfileTable(settings, e.Value);
             }
             else if (e.Index == 9)
             {
-                DayProfileTablePassive = SetDayProfileTable(e.Value);
+                DayProfileTablePassive = SetDayProfileTable(settings, e.Value);
             }
             else if (e.Index == 10)
             {
                 if (e.Value is byte[])
                 {
-                    Time = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
+                    Time = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
                 }
                 else
                 {

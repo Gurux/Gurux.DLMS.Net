@@ -305,7 +305,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 }
             }
             else if (e.Index == 2)
@@ -327,8 +327,8 @@ namespace Gurux.DLMS.Objects
                 {
                     foreach (Object[] item in (Object[])e.Value)
                     {
-                        GXDateTime start = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[0], DataType.DateTime);
-                        GXDateTime end = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime);
+                        GXDateTime start = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[0], DataType.DateTime, settings.UseUtc2NormalTime);
+                        GXDateTime end = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime, settings.UseUtc2NormalTime);
                         CallingWindow.Add(new KeyValuePair<GXDateTime, GXDateTime>(start, end));
                     }
                 }
@@ -341,7 +341,7 @@ namespace Gurux.DLMS.Objects
                     List<string> items = new List<string>();
                     foreach (byte[] item in (object[])e.Value)
                     {
-                        string it = GXDLMSClient.ChangeType(item, DataType.String).ToString();
+                        string it = GXDLMSClient.ChangeType(item, DataType.String, false).ToString();
                         items.Add(it);
                     }
                     Destinations = items.ToArray();

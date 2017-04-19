@@ -296,7 +296,7 @@ namespace Gurux.DLMS.Simulator
                                                     DataType tp = ve.Target.GetUIDataType(ve.Index);
                                                     if (tp != DataType.None)
                                                     {
-                                                        ve.Value = GXDLMSClient.ChangeType((byte[])ve.Value, tp);
+                                                        ve.Value = GXDLMSClient.ChangeType((byte[])ve.Value, tp, false);
                                                     }
                                                 }
                                                 ((IGXDLMSBase)ve.Target).SetValue(settings, ve);

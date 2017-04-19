@@ -372,7 +372,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 }
             }
             else if (e.Index == 2)
@@ -445,7 +445,7 @@ namespace Gurux.DLMS.Objects
                 {
                     if (e.Value is byte[])
                     {
-                        e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
+                        e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
                     }
                     CaptureTime = (GXDateTime)e.Value;
                 }
@@ -460,7 +460,7 @@ namespace Gurux.DLMS.Objects
                 {
                     if (e.Value is byte[])
                     {
-                        e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
+                        e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
                     }
                     StartTimeCurrent = (GXDateTime)e.Value;
                 }

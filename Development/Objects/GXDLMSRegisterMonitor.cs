@@ -236,7 +236,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 }
             }
             else if (e.Index == 2)
@@ -250,7 +250,7 @@ namespace Gurux.DLMS.Objects
                     MonitoredValue = new GXDLMSMonitoredValue();
                 }
                 MonitoredValue.ObjectType = (ObjectType)Convert.ToInt32(((object[])e.Value)[0]);
-                MonitoredValue.LogicalName = GXDLMSClient.ChangeType((byte[])((object[])e.Value)[1], DataType.OctetString).ToString();
+                MonitoredValue.LogicalName = GXDLMSClient.ChangeType((byte[])((object[])e.Value)[1], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 MonitoredValue.AttributeIndex = Convert.ToInt32(((object[])e.Value)[2]);
             }
             else if (e.Index == 4)
@@ -262,9 +262,9 @@ namespace Gurux.DLMS.Objects
                     foreach (Object[] action_set in (Object[])e.Value)
                     {
                         GXDLMSActionSet set = new GXDLMSActionSet();
-                        set.ActionUp.LogicalName = GXDLMSClient.ChangeType((byte[])((Object[])action_set[0])[0], DataType.OctetString).ToString();
+                        set.ActionUp.LogicalName = GXDLMSClient.ChangeType((byte[])((Object[])action_set[0])[0], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                         set.ActionUp.ScriptSelector = Convert.ToUInt16(((Object[])action_set[0])[1]);
-                        set.ActionDown.LogicalName = GXDLMSClient.ChangeType((byte[])((Object[])action_set[1])[0], DataType.OctetString).ToString();
+                        set.ActionDown.LogicalName = GXDLMSClient.ChangeType((byte[])((Object[])action_set[1])[0], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                         set.ActionDown.ScriptSelector = Convert.ToUInt16(((Object[])action_set[1])[1]);
                         items.Add(set);
                     }

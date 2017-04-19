@@ -45,597 +45,600 @@ using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
-/// <summary>
-/// MIB variable initiator electrical phase.
-/// </summary>
-public enum InitiatorElectricalPhase
-{
     /// <summary>
-    /// Not defined.
+    /// MIB variable initiator electrical phase.
     /// </summary>
-    NotDefined = 0,
-    /// <summary>
-    /// Phase 1.
-    /// </summary>
-    Phase1,
-    /// <summary>
-    /// Phase 2.
-    /// </summary>
-    Phase2,
-    /// <summary>
-    /// Phase 3.
-    /// </summary>
-    Phase3
-}
-
-public enum DeltaElectricalPhase
-{
-    /// <summary>
-    /// Not defined.
-    /// </summary>
-    NotDefined = 0,
-    /// <summary>
-    /// The server system is connected to the same phase as the client system.
-    /// </summary>
-    Same,
-    Degrees60,
-    Degrees120,
-    Degrees180,
-    DegreesMinus120,
-    DegreesMinus60
-}
-
-/// <summary>
-/// Repeater enumerator values.
-/// </summary>
-public enum Repeater
-{
-    /// <summary>
-    /// Newer repeater.
-    /// </summary>
-    Never = 0,
-    /// <summary>
-    /// Always repeater.
-    /// </summary>
-    Always,
-    /// <summary>
-    /// Dynamic repeater.
-    /// </summary>
-    Dynamic
-}
-
-/// <summary>
-/// The class stores the data necessary to set up and manage the physical and the MAC layer of the PLC S-FSK lower layer profile.
-/// </summary>
-public class GXDLMSSFSKPhyMacSetUp : GXDLMSObject, IGXDLMSBase
-{
-    /// <summary>
-    /// Constructor.
-    /// </summary>
-    public GXDLMSSFSKPhyMacSetUp()
-    : this("0.0.26.0.0.255")
+    public enum InitiatorElectricalPhase
     {
+        /// <summary>
+        /// Not defined.
+        /// </summary>
+        NotDefined = 0,
+        /// <summary>
+        /// Phase 1.
+        /// </summary>
+        Phase1,
+        /// <summary>
+        /// Phase 2.
+        /// </summary>
+        Phase2,
+        /// <summary>
+        /// Phase 3.
+        /// </summary>
+        Phase3
+    }
+
+    public enum DeltaElectricalPhase
+    {
+        /// <summary>
+        /// Not defined.
+        /// </summary>
+        NotDefined = 0,
+        /// <summary>
+        /// The server system is connected to the same phase as the client system.
+        /// </summary>
+        Same,
+        Degrees60,
+        Degrees120,
+        Degrees180,
+        DegreesMinus120,
+        DegreesMinus60
     }
 
     /// <summary>
-    /// Constructor.
+    /// Repeater enumerator values.
     /// </summary>
-    /// <param name="ln">Logical Name of the object.</param>
-    public GXDLMSSFSKPhyMacSetUp(string ln)
-    : base(ObjectType.SFSKPhyMacSetUp, ln, 0)
+    public enum Repeater
     {
+        /// <summary>
+        /// Newer repeater.
+        /// </summary>
+        Never = 0,
+        /// <summary>
+        /// Always repeater.
+        /// </summary>
+        Always,
+        /// <summary>
+        /// Dynamic repeater.
+        /// </summary>
+        Dynamic
     }
 
     /// <summary>
-    /// Constructor.
+    /// The class stores the data necessary to set up and manage the physical and the MAC layer of the PLC S-FSK lower layer profile.
     /// </summary>
-    /// <param name="ln">Logical Name of the object.</param>
-    /// <param name="sn">Short Name of the object.</param>
-    public GXDLMSSFSKPhyMacSetUp(string ln, ushort sn)
-    : base(ObjectType.SFSKPhyMacSetUp, ln, sn)
+    public class GXDLMSSFSKPhyMacSetUp : GXDLMSObject, IGXDLMSBase
     {
-    }
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public GXDLMSSFSKPhyMacSetUp()
+        : this("0.0.26.0.0.255")
+        {
+        }
 
-    /// <summary>
-    /// Initiator electrical phase.
-    /// </summary>
-    [XmlIgnore()]
-    public InitiatorElectricalPhase InitiatorElectricalPhase
-    {
-        get;
-        set;
-    }
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="ln">Logical Name of the object.</param>
+        public GXDLMSSFSKPhyMacSetUp(string ln)
+        : base(ObjectType.SFSKPhyMacSetUp, ln, 0)
+        {
+        }
 
-    /// <summary>
-    /// Delta electrical phase.
-    /// </summary>
-    [XmlIgnore()]
-    public DeltaElectricalPhase DeltaElectricalPhase
-    {
-        get;
-        set;
-    }
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="ln">Logical Name of the object.</param>
+        /// <param name="sn">Short Name of the object.</param>
+        public GXDLMSSFSKPhyMacSetUp(string ln, ushort sn)
+        : base(ObjectType.SFSKPhyMacSetUp, ln, sn)
+        {
+        }
 
-    /// <summary>
-    /// Corresponds to the maximum allowed gain bound to be used by the server system in the receiving mode. The default unit is dB.
-    /// </summary>
-    [XmlIgnore()]
-    public byte MaxReceivingGain
-    {
-        get;
-        set;
-    }
+        /// <summary>
+        /// Initiator electrical phase.
+        /// </summary>
+        [XmlIgnore()]
+        public InitiatorElectricalPhase InitiatorElectricalPhase
+        {
+            get;
+            set;
+        }
 
-    /// <summary>
-    /// Corresponds to the maximum attenuation bound to be used by the server system in the transmitting mode.The default unit is dB.
-    /// </summary>
-    [XmlIgnore()]
-    public byte MaxTransmittingGain
-    {
-        get;
-        set;
-    }
+        /// <summary>
+        /// Delta electrical phase.
+        /// </summary>
+        [XmlIgnore()]
+        public DeltaElectricalPhase DeltaElectricalPhase
+        {
+            get;
+            set;
+        }
 
-    /// <summary>
-    /// Intelligent search initiator process. If the value of the initiator signal is above the value of this attribute, a fast synchronization process is possible.
-    /// </summary>
-    [XmlIgnore()]
-    public byte SearchInitiatorThreshold
-    {
-        get;
-        set;
-    }
+        /// <summary>
+        /// Corresponds to the maximum allowed gain bound to be used by the server system in the receiving mode. The default unit is dB.
+        /// </summary>
+        [XmlIgnore()]
+        public byte MaxReceivingGain
+        {
+            get;
+            set;
+        }
 
-    /// <summary>
-    /// Mark frequency required for S-FSK modulation.
-    /// </summary>
-    [XmlIgnore()]
-    public UInt32 MarkFrequency
-    {
-        get;
-        set;
-    }
+        /// <summary>
+        /// Corresponds to the maximum attenuation bound to be used by the server system in the transmitting mode.The default unit is dB.
+        /// </summary>
+        [XmlIgnore()]
+        public byte MaxTransmittingGain
+        {
+            get;
+            set;
+        }
 
-    /// <summary>
-    /// Space frequency required for S-FSK modulation.
-    /// </summary>
-    [XmlIgnore()]
-    public UInt32 SpaceFrequency
-    {
-        get;
-        set;
-    }
+        /// <summary>
+        /// Intelligent search initiator process. If the value of the initiator signal is above the value of this attribute, a fast synchronization process is possible.
+        /// </summary>
+        [XmlIgnore()]
+        public byte SearchInitiatorThreshold
+        {
+            get;
+            set;
+        }
 
-    /// <summary>
-    /// Space frequency required for S-FSK modulation.
-    /// </summary>
-    [XmlIgnore()]
-    public UInt16 MacAddress
-    {
-        get;
-        set;
-    }
+        /// <summary>
+        /// Mark frequency required for S-FSK modulation.
+        /// </summary>
+        [XmlIgnore()]
+        public UInt32 MarkFrequency
+        {
+            get;
+            set;
+        }
 
-    [XmlIgnore()]
-    public UInt16[] MacGroupAddresses
-    {
-        get;
-        set;
-    }
+        /// <summary>
+        /// Space frequency required for S-FSK modulation.
+        /// </summary>
+        [XmlIgnore()]
+        public UInt32 SpaceFrequency
+        {
+            get;
+            set;
+        }
 
-    /// <summary>
-    /// Specifies are all frames repeated.
-    /// </summary>
-    [XmlIgnore()]
-    public Repeater Repeater
-    {
-        get;
-        set;
-    }
+        /// <summary>
+        /// Space frequency required for S-FSK modulation.
+        /// </summary>
+        [XmlIgnore()]
+        public UInt16 MacAddress
+        {
+            get;
+            set;
+        }
 
-    /// <summary>
-    /// Repeater status.
-    /// </summary>
-    [XmlIgnore()]
-    public bool RepeaterStatus
-    {
-        get;
-        set;
-    }
+        [XmlIgnore()]
+        public UInt16[] MacGroupAddresses
+        {
+            get;
+            set;
+        }
 
-    /// <summary>
-    ///
-    /// </summary>
-    [XmlIgnore()]
-    public byte MinDeltaCredit
-    {
-        get;
-        set;
-    }
+        /// <summary>
+        /// Specifies are all frames repeated.
+        /// </summary>
+        [XmlIgnore()]
+        public Repeater Repeater
+        {
+            get;
+            set;
+        }
 
-    /// <summary>
-    ///
-    /// </summary>
-    [XmlIgnore()]
-    public UInt16 InitiatorMacAddress
-    {
-        get;
-        set;
-    }
+        /// <summary>
+        /// Repeater status.
+        /// </summary>
+        [XmlIgnore()]
+        public bool RepeaterStatus
+        {
+            get;
+            set;
+        }
 
-    /// <summary>
-    /// Synchronization locked/unlocked state.
-    /// </summary>
-    [XmlIgnore()]
-    public bool SynchronizationLocked
-    {
-        get;
-        set;
-    }
+        /// <summary>
+        ///
+        /// </summary>
+        [XmlIgnore()]
+        public byte MinDeltaCredit
+        {
+            get;
+            set;
+        }
 
-    /// <summary>
-    /// Transmission speed supported by the physical device.
-    /// </summary>
-    [XmlIgnore()]
-    public BaudRate TransmissionSpeed
-    {
-        get;
-        set;
-    }
+        /// <summary>
+        ///
+        /// </summary>
+        [XmlIgnore()]
+        public UInt16 InitiatorMacAddress
+        {
+            get;
+            set;
+        }
 
-    /// <inheritdoc cref="GXDLMSObject.GetValues"/>
-    public override object[] GetValues()
-    {
-        return new object[] { LogicalName, InitiatorElectricalPhase, DeltaElectricalPhase, MaxReceivingGain,
+        /// <summary>
+        /// Synchronization locked/unlocked state.
+        /// </summary>
+        [XmlIgnore()]
+        public bool SynchronizationLocked
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Transmission speed supported by the physical device.
+        /// </summary>
+        [XmlIgnore()]
+        public BaudRate TransmissionSpeed
+        {
+            get;
+            set;
+        }
+
+        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
+        public override object[] GetValues()
+        {
+            return new object[] { LogicalName, InitiatorElectricalPhase, DeltaElectricalPhase, MaxReceivingGain,
                               MaxTransmittingGain, SearchInitiatorThreshold, new Object[] { MarkFrequency, SpaceFrequency },
                               MacAddress, MacGroupAddresses, Repeater, RepeaterStatus, MinDeltaCredit, InitiatorMacAddress,
                               SynchronizationLocked, TransmissionSpeed
                             };
-    }
-
-    #region IGXDLMSBase Members
-
-    byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
-    {
-        e.Error = ErrorCode.ReadWriteDenied;
-        return null;
-    }
-
-    int[] IGXDLMSBase.GetAttributeIndexToRead()
-    {
-        List<int> attributes = new List<int>();
-        //LN is static and read only once.
-        if (string.IsNullOrEmpty(LogicalName))
-        {
-            attributes.Add(1);
         }
-        //InitiatorElectricalPhase
-        if (CanRead(2))
-        {
-            attributes.Add(2);
-        }
-        //DeltaElectricalPhase
-        attributes.Add(3);
 
-        //MaxReceivingGain,
-        if (CanRead(4))
-        {
-            attributes.Add(4);
-        }
-        //MaxTransmittingGain
-        if (CanRead(5))
-        {
-            attributes.Add(5);
-        }
-        //SearchInitiatorThreshold
-        if (CanRead(6))
-        {
-            attributes.Add(6);
-        }
-        //MarkFrequency, SpaceFrequency
-        if (CanRead(7))
-        {
-            attributes.Add(7);
-        }
-        //MacAddress
-        attributes.Add(8);
+        #region IGXDLMSBase Members
 
-        //MacGroupAddresses
-        if (CanRead(9))
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
-            attributes.Add(9);
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
         }
-        //Repeater
-        if (CanRead(10))
+
+        int[] IGXDLMSBase.GetAttributeIndexToRead()
         {
-            attributes.Add(10);
+            List<int> attributes = new List<int>();
+            //LN is static and read only once.
+            if (string.IsNullOrEmpty(LogicalName))
+            {
+                attributes.Add(1);
+            }
+            //InitiatorElectricalPhase
+            if (CanRead(2))
+            {
+                attributes.Add(2);
+            }
+            //DeltaElectricalPhase
+            attributes.Add(3);
+
+            //MaxReceivingGain,
+            if (CanRead(4))
+            {
+                attributes.Add(4);
+            }
+            //MaxTransmittingGain
+            if (CanRead(5))
+            {
+                attributes.Add(5);
+            }
+            //SearchInitiatorThreshold
+            if (CanRead(6))
+            {
+                attributes.Add(6);
+            }
+            //MarkFrequency, SpaceFrequency
+            if (CanRead(7))
+            {
+                attributes.Add(7);
+            }
+            //MacAddress
+            attributes.Add(8);
+
+            //MacGroupAddresses
+            if (CanRead(9))
+            {
+                attributes.Add(9);
+            }
+            //Repeater
+            if (CanRead(10))
+            {
+                attributes.Add(10);
+            }
+            //RepeaterStatus
+            attributes.Add(11);
+
+            //MinDeltaCredit
+            attributes.Add(12);
+
+            //InitiatorMacAddress,
+            attributes.Add(13);
+
+            //SynchronizationLocked
+            attributes.Add(14);
+
+            //TransmissionSpeed
+            if (CanRead(15))
+            {
+                attributes.Add(15);
+            }
+            return attributes.ToArray();
         }
-        //RepeaterStatus
-        attributes.Add(11);
 
-        //MinDeltaCredit
-        attributes.Add(12);
-
-        //InitiatorMacAddress,
-        attributes.Add(13);
-
-        //SynchronizationLocked
-        attributes.Add(14);
-
-        //TransmissionSpeed
-        if (CanRead(15))
+        string[] IGXDLMSBase.GetNames()
         {
-            attributes.Add(15);
-        }
-        return attributes.ToArray();
-    }
-
-    string[] IGXDLMSBase.GetNames()
-    {
-        return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "InitiatorElectricalPhase", "DeltaElectricalPhase", "MaxReceivingGain",
+            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "InitiatorElectricalPhase", "DeltaElectricalPhase", "MaxReceivingGain",
                               "MaxTransmittingGain", "SearchInitiatorThreshold", "Frequency",
                               "MacAddress", "MacGroupAddresses", "Repeater", "RepeaterStatus", "MinDeltaCredit", "InitiatorMacAddress",
                               "SynchronizationLocked", "TransmissionSpeed"
                             };
-    }
+        }
 
-    int IGXDLMSBase.GetAttributeCount()
-    {
-        return 15;
-    }
+        int IGXDLMSBase.GetAttributeCount()
+        {
+            return 15;
+        }
 
-    int IGXDLMSBase.GetMethodCount()
-    {
-        return 0;
-    }
+        int IGXDLMSBase.GetMethodCount()
+        {
+            return 0;
+        }
 
-    /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
-    public override DataType GetDataType(int index)
-    {
-        //LogicalName
-        if (index == 1)
+        /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
+        public override DataType GetDataType(int index)
         {
-            return DataType.OctetString;
-        }
-        //InitiatorElectricalPhase
-        if (index == 2)
-        {
-            return DataType.Enum;
-        }
-        //DeltaElectricalPhase
-        if (index == 3)
-        {
-            return DataType.Enum;
-        }
-        //MaxReceivingGain
-        if (index == 4)
-        {
-            return DataType.UInt8;
-        }
-        //MaxTransmittingGain
-        if (index == 5)
-        {
-            return DataType.UInt8;
-        }
-        //SearchInitiatorThreshold
-        if (index == 6)
-        {
-            return DataType.UInt8;
-        }
-        //Frequency
-        if (index == 7)
-        {
-            return DataType.Structure;
-        }
-        //MacAddress
-        if (index == 8)
-        {
-            return DataType.UInt16;
-        }
-        //MacGroupAddresses
-        if (index == 9)
-        {
-            return DataType.Array;
-        }
-        //Repeater
-        if (index == 10)
-        {
-            return DataType.Enum;
-        }
-        //RepeaterStatus
-        if (index == 11)
-        {
-            return DataType.Boolean;
-        }
-        //MinDeltaCredit
-        if (index == 12)
-        {
-            return DataType.UInt8;
-        }
-        //InitiatorMacAddress
-        if (index == 13)
-        {
-            return DataType.UInt16;
-        }
-        //SynchronizationLocked
-        if (index == 14)
-        {
-            return DataType.Boolean;
-        }
-        //TransmissionSpeed
-        if (index == 15)
-        {
-            return DataType.Enum;
-        }
-        throw new ArgumentException("GetDataType failed. Invalid attribute index.");
-    }
-
-    object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
-    {
-        if (e.Index == 1)
-        {
-            return this.LogicalName;
-        }
-        else if (e.Index == 2)
-        {
-            return InitiatorElectricalPhase;
-        }
-        else if (e.Index == 3)
-        {
-            return DeltaElectricalPhase;
-        }
-        else if (e.Index == 4)
-        {
-            return MaxReceivingGain;
-        }
-        else if (e.Index == 5)
-        {
-            return MaxTransmittingGain;
-        }
-        else if (e.Index == 6)
-        {
-            return SearchInitiatorThreshold;
-        }
-        else if (e.Index == 7)
-        {
-            GXByteBuffer bb = new GXByteBuffer();
-            bb.SetUInt8(DataType.Structure);
-            bb.SetUInt8(2);
-            GXCommon.SetData(settings, bb, DataType.UInt32, MarkFrequency);
-            GXCommon.SetData(settings, bb, DataType.UInt32, SpaceFrequency);
-            return bb.Array();
-        }
-        else if (e.Index == 8)
-        {
-            return MacAddress;
-        }
-        else if (e.Index == 9)
-        {
-            GXByteBuffer bb = new GXByteBuffer();
-            bb.SetUInt8(DataType.Array);
-            if (MacGroupAddresses == null)
+            //LogicalName
+            if (index == 1)
             {
-                bb.SetUInt8(0);
+                return DataType.OctetString;
             }
-            else
+            //InitiatorElectricalPhase
+            if (index == 2)
             {
-                GXCommon.SetObjectCount(MacGroupAddresses.Length, bb);
-                foreach (UInt16 it in MacGroupAddresses)
+                return DataType.Enum;
+            }
+            //DeltaElectricalPhase
+            if (index == 3)
+            {
+                return DataType.Enum;
+            }
+            //MaxReceivingGain
+            if (index == 4)
+            {
+                return DataType.UInt8;
+            }
+            //MaxTransmittingGain
+            if (index == 5)
+            {
+                return DataType.UInt8;
+            }
+            //SearchInitiatorThreshold
+            if (index == 6)
+            {
+                return DataType.UInt8;
+            }
+            //Frequency
+            if (index == 7)
+            {
+                return DataType.Structure;
+            }
+            //MacAddress
+            if (index == 8)
+            {
+                return DataType.UInt16;
+            }
+            //MacGroupAddresses
+            if (index == 9)
+            {
+                return DataType.Array;
+            }
+            //Repeater
+            if (index == 10)
+            {
+                return DataType.Enum;
+            }
+            //RepeaterStatus
+            if (index == 11)
+            {
+                return DataType.Boolean;
+            }
+            //MinDeltaCredit
+            if (index == 12)
+            {
+                return DataType.UInt8;
+            }
+            //InitiatorMacAddress
+            if (index == 13)
+            {
+                return DataType.UInt16;
+            }
+            //SynchronizationLocked
+            if (index == 14)
+            {
+                return DataType.Boolean;
+            }
+            //TransmissionSpeed
+            if (index == 15)
+            {
+                return DataType.Enum;
+            }
+            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+        }
+
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
+        {
+            if (e.Index == 1)
+            {
+                return this.LogicalName;
+            }
+            else if (e.Index == 2)
+            {
+                return InitiatorElectricalPhase;
+            }
+            else if (e.Index == 3)
+            {
+                return DeltaElectricalPhase;
+            }
+            else if (e.Index == 4)
+            {
+                return MaxReceivingGain;
+            }
+            else if (e.Index == 5)
+            {
+                return MaxTransmittingGain;
+            }
+            else if (e.Index == 6)
+            {
+                return SearchInitiatorThreshold;
+            }
+            else if (e.Index == 7)
+            {
+                GXByteBuffer bb = new GXByteBuffer();
+                bb.SetUInt8(DataType.Structure);
+                bb.SetUInt8(2);
+                GXCommon.SetData(settings, bb, DataType.UInt32, MarkFrequency);
+                GXCommon.SetData(settings, bb, DataType.UInt32, SpaceFrequency);
+                return bb.Array();
+            }
+            else if (e.Index == 8)
+            {
+                return MacAddress;
+            }
+            else if (e.Index == 9)
+            {
+                GXByteBuffer bb = new GXByteBuffer();
+                bb.SetUInt8(DataType.Array);
+                if (MacGroupAddresses == null)
                 {
-                    GXCommon.SetData(settings, bb, DataType.UInt16, it);
+                    bb.SetUInt8(0);
+                }
+                else
+                {
+                    GXCommon.SetObjectCount(MacGroupAddresses.Length, bb);
+                    foreach (UInt16 it in MacGroupAddresses)
+                    {
+                        GXCommon.SetData(settings, bb, DataType.UInt16, it);
+                    }
+                }
+                return bb.Array();
+            }
+            else if (e.Index == 10)
+            {
+                return Repeater;
+            }
+            else if (e.Index == 11)
+            {
+                return RepeaterStatus;
+            }
+            else if (e.Index == 12)
+            {
+                return MinDeltaCredit;
+            }
+            else if (e.Index == 13)
+            {
+                return InitiatorMacAddress;
+            }
+            else if (e.Index == 14)
+            {
+                return SynchronizationLocked;
+            }
+            else if (e.Index == 15)
+            {
+                return TransmissionSpeed;
+            }
+            e.Error = ErrorCode.ReadWriteDenied;
+            return null;
+        }
+
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
+        {
+            if (e.Index == 1)
+            {
+                if (e.Value is string)
+                {
+                    LogicalName = e.Value.ToString();
+                }
+                else
+                {
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 }
             }
-            return bb.Array();
-        }
-        else if (e.Index == 10)
-        {
-            return Repeater;
-        }
-        else if (e.Index == 11)
-        {
-            return RepeaterStatus;
-        }
-        else if (e.Index == 12)
-        {
-            return MinDeltaCredit;
-        }
-        else if (e.Index == 13)
-        {
-            return InitiatorMacAddress;
-        }
-        else if (e.Index == 14)
-        {
-            return SynchronizationLocked;
-        }
-        else if (e.Index == 15)
-        {
-            return TransmissionSpeed;
-        }
-        e.Error = ErrorCode.ReadWriteDenied;
-        return null;
-    }
-
-    void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
-    {
-        if (e.Index == 1)
-        {
-            if (e.Value is string)
+            else if (e.Index == 2)
             {
-                LogicalName = e.Value.ToString();
+                InitiatorElectricalPhase = (InitiatorElectricalPhase)Convert.ToInt32(e.Value);
+            }
+            else if (e.Index == 3)
+            {
+                DeltaElectricalPhase = (DeltaElectricalPhase)Convert.ToInt32(e.Value);
+            }
+            else if (e.Index == 4)
+            {
+                MaxReceivingGain = (byte)e.Value;
+            }
+            else if (e.Index == 5)
+            {
+                MaxTransmittingGain = (byte)e.Value;
+            }
+            else if (e.Index == 6)
+            {
+                SearchInitiatorThreshold = (byte)e.Value;
+            }
+            else if (e.Index == 7)
+            {
+                object[] tmp = (object[])e.Value;
+                MarkFrequency = (UInt32)tmp[0];
+                SpaceFrequency = (UInt32)tmp[1];
+            }
+            else if (e.Index == 8)
+            {
+                MacAddress = (UInt16)e.Value;
+            }
+            else if (e.Index == 9)
+            {
+                List<ushort> list = new List<ushort>();
+                if (e.Value != null)
+                {
+                    foreach (object it in (object[])e.Value)
+                    {
+                        list.Add((ushort)it);
+                    }
+                }
+                MacGroupAddresses = list.ToArray();
+            }
+            else if (e.Index == 10)
+            {
+                Repeater = (Repeater)Convert.ToInt32(e.Value);
+            }
+            else if (e.Index == 11)
+            {
+                RepeaterStatus = (bool)e.Value;
+            }
+            else if (e.Index == 12)
+            {
+                MinDeltaCredit = (byte)e.Value;
+            }
+            else if (e.Index == 13)
+            {
+                InitiatorMacAddress = (UInt16)e.Value;
+            }
+            else if (e.Index == 14)
+            {
+                SynchronizationLocked = (bool)e.Value;
+            }
+            else if (e.Index == 15)
+            {
+                TransmissionSpeed = (BaudRate)Convert.ToInt32(e.Value);
             }
             else
             {
-                LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
+                e.Error = ErrorCode.ReadWriteDenied;
             }
         }
-        else if (e.Index == 2)
-        {
-            InitiatorElectricalPhase = (InitiatorElectricalPhase)e.Value;
-        }
-        else if (e.Index == 3)
-        {
-            DeltaElectricalPhase = (DeltaElectricalPhase)e.Value;
-        }
-        else if (e.Index == 4)
-        {
-            MaxReceivingGain = (byte)e.Value;
-        }
-        else if (e.Index == 5)
-        {
-            MaxTransmittingGain = (byte)e.Value;
-        }
-        else if (e.Index == 6)
-        {
-            SearchInitiatorThreshold = (byte)e.Value;
-        }
-        else if (e.Index == 7)
-        {
-            object[] tmp = (object[])e.Value;
-            MarkFrequency = (UInt32)tmp[0];
-            SpaceFrequency = (UInt32)tmp[1];
-        }
-        else if (e.Index == 8)
-        {
-            MacAddress = (UInt16)e.Value;
-        }
-        else if (e.Index == 9)
-        {
-            List<ushort> list = new List<ushort>();
-            foreach (object it in (object[])e.Value)
-            {
-                list.Add((ushort)it);
-            }
-            MacGroupAddresses = list.ToArray();
-        }
-        else if (e.Index == 10)
-        {
-            Repeater = (Repeater)e.Value;
-        }
-        else if (e.Index == 11)
-        {
-            RepeaterStatus = (bool)e.Value;
-        }
-        else if (e.Index == 12)
-        {
-            MinDeltaCredit = (byte)e.Value;
-        }
-        else if (e.Index == 13)
-        {
-            InitiatorMacAddress = (UInt16)e.Value;
-        }
-        else if (e.Index == 14)
-        {
-            SynchronizationLocked = (bool)e.Value;
-        }
-        else if (e.Index == 15)
-        {
-            TransmissionSpeed = (BaudRate)e.Value;
-        }
-        else
-        {
-            e.Error = ErrorCode.ReadWriteDenied;
-        }
+        #endregion
     }
-    #endregion
-}
 }

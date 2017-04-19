@@ -696,7 +696,7 @@ namespace Gurux.DLMS
                             DataType dt = (obj as IGXDLMSBase).GetDataType(index);
                             if (dt != DataType.None && dt != DataType.OctetString)
                             {
-                                value = GXDLMSClient.ChangeType((byte[])value, dt);
+                                value = GXDLMSClient.ChangeType((byte[])value, dt, settings.UseUtc2NormalTime);
                             }
                         }
                         e.Value = value;
@@ -756,7 +756,7 @@ namespace Gurux.DLMS
                             DataType dt = (server.transaction.targets[0].Target as IGXDLMSBase).GetDataType(server.transaction.targets[0].Index);
                             if (dt != DataType.None && dt != DataType.OctetString)
                             {
-                                value = GXDLMSClient.ChangeType((byte[])value, dt);
+                                value = GXDLMSClient.ChangeType((byte[])value, dt, settings.UseUtc2NormalTime);
                             }
                         }
                         server.transaction.targets[0].Value = value;

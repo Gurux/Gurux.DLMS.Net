@@ -2579,7 +2579,7 @@ namespace Gurux.DLMS
             {
                 tmp = new byte[len];
                 reply.Data.Get(tmp);
-                reply.Time = (GXDateTime)GXDLMSClient.ChangeType(tmp, DataType.DateTime);
+                reply.Time = (GXDateTime)GXDLMSClient.ChangeType(tmp, DataType.DateTime, settings.UseUtc2NormalTime);
             }
             if (reply.Xml != null)
             {
@@ -2662,7 +2662,7 @@ namespace Gurux.DLMS
             {
                 tmp = new byte[len];
                 reply.Data.Get(tmp);
-                reply.Time = (GXDateTime)GXDLMSClient.ChangeType(tmp, DataType.DateTime);
+                reply.Time = (GXDateTime)GXDLMSClient.ChangeType(tmp, DataType.DateTime, settings.UseUtc2NormalTime);
             }
             if (reply.Xml != null)
             {

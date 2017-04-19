@@ -792,7 +792,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        private void SetBuffer(ValueEventArgs e)
+        private void SetBuffer(GXDLMSSettings settings, ValueEventArgs e)
         {
             List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> cols = null;
             if (e.Parameters is List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>)
@@ -837,7 +837,7 @@ namespace Gurux.DLMS.Objects
                         {
                             if (type != DataType.None && row[pos] is byte[])
                             {
-                                row[pos] = GXDLMSClient.ChangeType(row[pos] as byte[], type);
+                                row[pos] = GXDLMSClient.ChangeType(row[pos] as byte[], type, settings.UseUtc2NormalTime);
                                 if (row[pos] is GXDateTime)
                                 {
                                     GXDateTime dt = (GXDateTime)row[pos];
@@ -905,12 +905,12 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 }
             }
             else if (e.Index == 2)
             {
-                SetBuffer(e);
+                SetBuffer(settings, e);
             }
             else if (e.Index == 3)
             {

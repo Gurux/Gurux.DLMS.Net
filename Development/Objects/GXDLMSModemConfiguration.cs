@@ -254,7 +254,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 }
             }
             else if (e.Index == 2)
@@ -270,8 +270,8 @@ namespace Gurux.DLMS.Objects
                     foreach (object[] it in (Object[])e.Value)
                     {
                         GXDLMSModemInitialisation item = new GXDLMSModemInitialisation();
-                        item.Request = GXDLMSClient.ChangeType((byte[])it[0], DataType.String).ToString();
-                        item.Response = GXDLMSClient.ChangeType((byte[])it[1], DataType.String).ToString();
+                        item.Request = GXDLMSClient.ChangeType((byte[])it[0], DataType.String, settings.UseUtc2NormalTime).ToString();
+                        item.Response = GXDLMSClient.ChangeType((byte[])it[1], DataType.String, settings.UseUtc2NormalTime).ToString();
                         if (it.Length > 2)
                         {
                             item.Delay = Convert.ToUInt16(it[2]);
@@ -289,7 +289,7 @@ namespace Gurux.DLMS.Objects
                     List<string> items = new List<string>();
                     foreach (object it in (Object[])e.Value)
                     {
-                        items.Add(GXDLMSClient.ChangeType((byte[])it, DataType.String).ToString());
+                        items.Add(GXDLMSClient.ChangeType((byte[])it, DataType.String, settings.UseUtc2NormalTime).ToString());
                     }
                     ModemProfile = items.ToArray();
                 }

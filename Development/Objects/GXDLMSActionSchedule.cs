@@ -269,14 +269,14 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 }
             }
             else if (e.Index == 2)
             {
                 if (e.Value != null)
                 {
-                    String ln = GXDLMSClient.ChangeType((byte[])((object[])e.Value)[0], DataType.OctetString).ToString();
+                    String ln = GXDLMSClient.ChangeType((byte[])((object[])e.Value)[0], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                     Target = (GXDLMSScriptTable)settings.Objects.FindByLN(ObjectType.ScriptTable, ln);
                     if (Target == null)
                     {
@@ -304,9 +304,9 @@ namespace Gurux.DLMS.Objects
                     List<GXDateTime> items = new List<GXDateTime>();
                     foreach (object[] it in (object[])e.Value)
                     {
-                        GXDateTime time = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[0], DataType.Time);
+                        GXDateTime time = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[0], DataType.Time, settings.UseUtc2NormalTime);
                         time.Skip &= ~(DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek);
-                        GXDateTime date = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[1], DataType.Date);
+                        GXDateTime date = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[1], DataType.Date, settings.UseUtc2NormalTime);
                         date.Skip &= ~(DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms);
                         GXDateTime tmp = new DLMS.GXDateTime(date);
                         tmp.Value = tmp.Value.AddHours(time.Value.Hour);

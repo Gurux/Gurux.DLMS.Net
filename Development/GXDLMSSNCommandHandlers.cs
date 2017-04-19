@@ -294,7 +294,7 @@ namespace Gurux.DLMS
                         DataType dt = target.Item.GetDataType(target.Index);
                         if (dt != DataType.None && dt != DataType.OctetString)
                         {
-                            value = GXDLMSClient.ChangeType((byte[])value, dt);
+                            value = GXDLMSClient.ChangeType((byte[])value, dt, settings.UseUtc2NormalTime);
                         }
                     }
                     ValueEventArgs e = new ValueEventArgs(server, target.Item, target.Index, 0, null);

@@ -493,7 +493,7 @@ namespace Gurux.DLMS.Internal
                     value = GetUtfString(data, info, knownType);
                     break;
                 case DataType.OctetString:
-                    value = GetOctetString(data, info, knownType);
+                    value = GetOctetString(settings, data, info, knownType);
                     break;
                 case DataType.Bcd:
                     value = GetBcd(data, info, knownType);
@@ -826,7 +826,7 @@ namespace Gurux.DLMS.Internal
                 {
                     deviation -= (int)TimeZone.CurrentTimeZone.GetDaylightChanges(year).Delta.TotalMinutes;
                 }
-                if (settings != null && settings.UtcTimeZone)
+                if (settings != null && settings.UseUtc2NormalTime)
                 {
                     deviation = -deviation;
                 }
@@ -1204,7 +1204,7 @@ namespace Gurux.DLMS.Internal
         ///<returns>
         ///Parsed octet string value.
         ///</returns>
-        private static object GetOctetString(GXByteBuffer buff, GXDataInfo info, bool knownType)
+        private static object GetOctetString(GXDLMSSettings settings, GXByteBuffer buff, GXDataInfo info, bool knownType)
         {
             object value;
             int len;
@@ -1255,7 +1255,7 @@ namespace Gurux.DLMS.Internal
                                 {
                                     type = DataType.Time;
                                 }
-                                object dt = GXDLMSClient.ChangeType(tmp, type);
+                                object dt = GXDLMSClient.ChangeType(tmp, type, settings.UseUtc2NormalTime);
                                 info.xml.AppendComment(dt.ToString());
                                 isString = false;
                             }
@@ -2025,7 +2025,7 @@ namespace Gurux.DLMS.Internal
                 {
                     devitation -= 60;
                 }
-                if (settings != null && settings.UtcTimeZone)
+                if (settings != null && settings.UseUtc2NormalTime)
                 {
                     buff.SetInt16(devitation);
                 }

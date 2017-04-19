@@ -457,13 +457,13 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 }
             }
             else if (e.Index == 2)
             {
                 ObjectType ot = (ObjectType)Convert.ToInt16(((object[])e.Value)[0]);
-                string ln = GXDLMSClient.ChangeType((byte[])((object[])e.Value)[1], DataType.OctetString).ToString();
+                string ln = GXDLMSClient.ChangeType((byte[])((object[])e.Value)[1], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 int attIndex = Convert.ToInt32(((object[])e.Value)[2]);
                 MonitoredValue = settings.Objects.FindByLN(ot, ln);
                 MonitoredAttributeIndex = attIndex;
@@ -492,7 +492,7 @@ namespace Gurux.DLMS.Objects
             {
                 object[] tmp = (object[])e.Value;
                 EmergencyProfile.ID = (UInt16)tmp[0];
-                EmergencyProfile.ActivationTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[1], DataType.DateTime);
+                EmergencyProfile.ActivationTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[1], DataType.DateTime, settings.UseUtc2NormalTime);
                 EmergencyProfile.Duration = (UInt32)tmp[2];
             }
             else if (e.Index == 9)
@@ -516,9 +516,9 @@ namespace Gurux.DLMS.Objects
                 object[] tmp = (object[])e.Value;
                 object[] tmp1 = (object[])tmp[0];
                 object[] tmp2 = (object[])tmp[1];
-                ActionOverThreshold.LogicalName = GXDLMSClient.ChangeType((byte[])tmp1[0], DataType.OctetString).ToString();
+                ActionOverThreshold.LogicalName = GXDLMSClient.ChangeType((byte[])tmp1[0], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 ActionOverThreshold.ScriptSelector = Convert.ToUInt16(tmp1[1]);
-                ActionUnderThreshold.LogicalName = GXDLMSClient.ChangeType((byte[])tmp2[0], DataType.OctetString).ToString();
+                ActionUnderThreshold.LogicalName = GXDLMSClient.ChangeType((byte[])tmp2[0], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 ActionUnderThreshold.ScriptSelector = Convert.ToUInt16(tmp2[1]);
             }
             else

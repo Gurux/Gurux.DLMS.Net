@@ -219,7 +219,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 }
             }
             else if (e.Index == 2)
@@ -241,13 +241,13 @@ namespace Gurux.DLMS.Objects
                                 GXDLMSScriptAction it = new GXDLMSScriptAction();
                                 it.Type = (ScriptActionType)Convert.ToInt32(arr[0]);
                                 ObjectType ot = (ObjectType)Convert.ToInt32(arr[1]);
-                                String ln = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString).ToString();
+                                String ln = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                                 it.Target = settings.Objects.FindByLN(ot, ln);
                                 if (it.Target == null)
                                 {
 #pragma warning disable CS0618
                                     it.ObjectType = (ObjectType)Convert.ToInt32(arr[1]);
-                                    it.LogicalName = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString).ToString();
+                                    it.LogicalName = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
 #pragma warning restore CS0618
                                 }
 
@@ -266,13 +266,13 @@ namespace Gurux.DLMS.Objects
                         GXDLMSScriptAction it = new GXDLMSScriptAction();
                         it.Type = (ScriptActionType)Convert.ToInt32(arr[0]);
                         ObjectType ot = (ObjectType)Convert.ToInt32(arr[1]);
-                        String ln = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString).ToString();
+                        String ln = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                         it.Target = settings.Objects.FindByLN(ot, ln);
                         if (it.Target == null)
                         {
 #pragma warning disable CS0618
                             it.ObjectType = (ObjectType)Convert.ToInt32(arr[1]);
-                            it.LogicalName = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString).ToString();
+                            it.LogicalName = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
 #pragma warning restore CS0618
                         }
 

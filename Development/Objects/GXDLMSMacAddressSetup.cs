@@ -161,12 +161,12 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 }
             }
             else if (e.Index == 2)
             {
-                MacAddress = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
+                MacAddress = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 MacAddress = MacAddress.Replace('.', ':');
             }
             else

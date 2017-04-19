@@ -1283,10 +1283,10 @@ namespace Gurux.DLMS
                     GXCommon.SetData(s.settings, s.data, DataType.Boolean, s.ParseShort(GetValue(node, s)));
                     break;
                 case DataType.Date:
-                    GXCommon.SetData(s.settings, s.data, DataType.Date, GXDLMSClient.ChangeType(GXCommon.HexToBytes(GetValue(node, s)), DataType.DateTime));
+                    GXCommon.SetData(s.settings, s.data, DataType.Date, GXDLMSClient.ChangeType(GXCommon.HexToBytes(GetValue(node, s)), DataType.DateTime, s.settings.UseUtc2NormalTime));
                     break;
                 case DataType.DateTime:
-                    GXCommon.SetData(s.settings, s.data, DataType.DateTime, GXDLMSClient.ChangeType(GXCommon.HexToBytes(GetValue(node, s)), DataType.DateTime));
+                    GXCommon.SetData(s.settings, s.data, DataType.DateTime, GXDLMSClient.ChangeType(GXCommon.HexToBytes(GetValue(node, s)), DataType.DateTime, s.settings.UseUtc2NormalTime));
                     break;
                 case DataType.Enum:
                     GXCommon.SetData(s.settings, s.data, DataType.Enum, s.ParseShort(GetValue(node, s)));
@@ -1341,7 +1341,7 @@ namespace Gurux.DLMS
                     s.data.Size = 0;
                     break;
                 case DataType.Time:
-                    GXCommon.SetData(s.settings, s.data, DataType.Time, GXDLMSClient.ChangeType(GXCommon.HexToBytes(GetValue(node, s)), DataType.DateTime));
+                    GXCommon.SetData(s.settings, s.data, DataType.Time, GXDLMSClient.ChangeType(GXCommon.HexToBytes(GetValue(node, s)), DataType.DateTime, s.settings.UseUtc2NormalTime));
                     break;
                 case DataType.UInt16:
                     GXCommon.SetData(s.settings, s.data, DataType.UInt16, s.ParseInt(GetValue(node, s)));
@@ -1454,7 +1454,7 @@ namespace Gurux.DLMS
                     {
                         dt = DataType.Time;
                     }
-                    s.time = (GXDateTime)GXDLMSClient.ChangeType(tmp, dt);
+                    s.time = (GXDateTime)GXDLMSClient.ChangeType(tmp, dt, s.settings.UseUtc2NormalTime);
                 }
             }
             return preData;

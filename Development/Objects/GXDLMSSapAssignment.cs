@@ -180,7 +180,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString).ToString();
+                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
                 }
             }
             else if (e.Index == 2)
@@ -193,7 +193,7 @@ namespace Gurux.DLMS.Objects
                         string str;
                         if (item[1] is byte[])
                         {
-                            str = GXDLMSClient.ChangeType((byte[])item[1], DataType.String).ToString();
+                            str = GXDLMSClient.ChangeType((byte[])item[1], DataType.String, settings.UseUtc2NormalTime).ToString();
                         }
                         else
                         {
