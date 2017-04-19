@@ -102,7 +102,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXDLMSDayProfileAction(GXDateTime startTime, string scriptLogicalName, UInt16 scriptSelector)
+        public GXDLMSDayProfileAction(GXTime startTime, string scriptLogicalName, UInt16 scriptSelector)
         {
             StartTime = startTime;
             ScriptLogicalName = scriptLogicalName;
@@ -112,7 +112,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Defines the time when the script is to be executed.
         /// </summary>
-        public GXDateTime StartTime
+        public GXTime StartTime
         {
             get;
             set;

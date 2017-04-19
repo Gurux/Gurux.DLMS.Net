@@ -485,13 +485,17 @@ namespace Gurux.DLMS.Objects
                     foreach (object[] it2 in (object[])item[1])
                     {
                         GXDLMSDayProfileAction ac = new GXDLMSDayProfileAction();
-                        if (it2[0] is GXDateTime)
+                        if (it2[0] is GXTime)
                         {
-                            ac.StartTime = (GXDateTime)it2[0];
+                            ac.StartTime = (GXTime)it2[0];
+                        }
+                        else if (it2[0] is GXDateTime)
+                        {
+                            ac.StartTime = new GXTime((GXDateTime)it2[0]);
                         }
                         else
                         {
-                            ac.StartTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])it2[0], DataType.Time);
+                            ac.StartTime = (GXTime)GXDLMSClient.ChangeType((byte[])it2[0], DataType.Time);
                         }
                         ac.ScriptLogicalName = GXDLMSClient.ChangeType((byte[])it2[1], DataType.OctetString).ToString();
                         ac.ScriptSelector = Convert.ToUInt16(it2[2]);
