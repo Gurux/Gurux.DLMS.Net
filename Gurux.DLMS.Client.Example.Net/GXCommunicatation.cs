@@ -354,22 +354,21 @@ namespace Gurux.DLMS.Client.Example
             //Generate AARQ request.
             //Split requests to multiple packets if needed.
             //If password is used all data might not fit to one packet.
-            foreach (byte[] it in Client.AARQRequest())
-            {
-                if (Trace)
-                {
-                    Console.WriteLine("Send AARQ request", GXCommon.ToHex(it, true));
-                }
-                reply.Clear();
-                ReadDLMSPacket(it, reply);
-            }
-            if (Trace)
-            {
-                Console.WriteLine("Parsing AARE reply" + reply.ToString());
-            }
-            //Parse reply.
-            Client.ParseAAREResponse(reply.Data);
             reply.Clear();
+            ReadDataBlock(Client.AARQRequest(), reply);
+            try
+            {
+                //Parse reply.
+                Client.ParseAAREResponse(reply.Data);
+                reply.Clear();
+            }
+            catch (Exception Ex)
+            {
+                reply.Clear();
+                ReadDLMSPacket(Client.DisconnectRequest(), reply);
+                throw Ex;
+            }
+
             //Get challenge Is HLS authentication is used.
             if (Client.IsAuthenticationRequired)
             {
