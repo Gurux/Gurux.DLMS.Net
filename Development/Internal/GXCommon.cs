@@ -472,7 +472,7 @@ namespace Gurux.DLMS.Internal
             {
                 case DataType.Array:
                 case DataType.Structure:
-                    value = GetArray(data, info, startIndex);
+                    value = GetArray(settings, data, info, startIndex);
                     break;
                 case DataType.Boolean:
                     value = GetBoolean(data, info);
@@ -556,7 +556,7 @@ namespace Gurux.DLMS.Internal
         ///</param>
         ///<returns>Object array.
         ///</returns>
-        private static object GetArray(GXByteBuffer buff, GXDataInfo info, int index)
+        private static object GetArray(GXDLMSSettings settings, GXByteBuffer buff, GXDataInfo info, int index)
         {
             object value;
             if (info.Count == 0)
@@ -582,7 +582,7 @@ namespace Gurux.DLMS.Internal
             {
                 GXDataInfo info2 = new GXDataInfo();
                 info2.xml = info.xml;
-                object tmp = GetData(null, buff, info2);
+                object tmp = GetData(settings, buff, info2);
                 if (!info2.Complete)
                 {
                     buff.Position = startIndex;
@@ -824,7 +824,11 @@ namespace Gurux.DLMS.Internal
                 dt.Status = (ClockStatus)buff.GetUInt8();
                 if ((dt.Status & ClockStatus.DaylightSavingActive) != 0)
                 {
+#if !WINDOWS_UWP
                     deviation -= (int)TimeZone.CurrentTimeZone.GetDaylightChanges(year).Delta.TotalMinutes;
+#else
+                    deviation -= 60;
+#endif
                 }
                 if (settings != null && settings.UseUtc2NormalTime)
                 {
@@ -2254,5 +2258,32 @@ namespace Gurux.DLMS.Internal
                 throw new Exception("BitString must give as string.");
             }
         }
+
+        /// <summary>
+        /// Get Logical name test from properties.
+        /// </summary>
+        /// <returns></returns>
+        public static string GetLogicalNameString()
+        {
+#if !WINDOWS_UWP
+            return Gurux.DLMS.Properties.Resources.LogicalNameTxt;
+#else
+            var loader = new Windows.ApplicationModel.Resources.ResourceLoader();
+            return loader.GetString("LogicalNameTxt");
+#endif
+        }
+
+#if WINDOWS_UWP
+        public static string GetDateSeparator()
+        {
+            //TODO: Mikko
+            return null;
+        }
+        public static string GetTimeSeparator()
+        {
+            //TODO: Mikko
+            return null;
+        }
+#endif
     }
 }
