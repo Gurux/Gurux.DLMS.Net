@@ -184,7 +184,7 @@ namespace Gurux.DLMS.Enums
         Ip4Setup = 42,
 
         /// <summary>
-        ///
+        ///GSM diagnostic settings.
         /// </summary>
         [XmlEnum("47")]
         GSMDiagnostic = 47,

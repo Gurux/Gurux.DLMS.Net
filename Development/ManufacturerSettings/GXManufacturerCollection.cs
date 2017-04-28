@@ -44,7 +44,9 @@ using System.Globalization;
 
 namespace Gurux.DLMS.ManufacturerSettings
 {
+#if !WINDOWS_UWP
     [Serializable]
+#endif
     public class GXManufacturerCollection : List<GXManufacturer>
     {
         public GXManufacturer FindByIdentification(string id)
@@ -58,6 +60,7 @@ namespace Gurux.DLMS.ManufacturerSettings
             }
             return null;
         }
+#if !WINDOWS_UWP
 
         /// <summary>
         /// Is this first run.
@@ -203,12 +206,16 @@ namespace Gurux.DLMS.ManufacturerSettings
             }
             return null;
         }
+#endif
 
         public static string ObisCodesPath
         {
             get
             {
                 string path = string.Empty;
+#if WINDOWS_UWP
+                path = "OBIS";
+#else
                 if (Environment.OSVersion.Platform == PlatformID.Unix)
                 {
                     path = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
@@ -230,6 +237,7 @@ namespace Gurux.DLMS.ManufacturerSettings
                     path = Path.Combine(path, "Gurux");
                 }
                 path = Path.Combine(path, "OBIS");
+#endif
                 return path;
             }
         }
@@ -244,18 +252,20 @@ namespace Gurux.DLMS.ManufacturerSettings
                 XmlSerializer x = new XmlSerializer(typeof(GXManufacturer), extraTypes);
                 foreach (string it in Directory.GetFiles(path, "*.obx"))
                 {
-                    using (TextReader reader = new StreamReader(it))
+                    using (Stream stream = File.Open(it, FileMode.Open))
                     {
-                        try
+                        using (TextReader reader = new StreamReader(stream))
                         {
-                            GXManufacturer man = (GXManufacturer)x.Deserialize(reader);
-                            Manufacturers.Add(man);
+                            try
+                            {
+                                GXManufacturer man = (GXManufacturer)x.Deserialize(reader);
+                                Manufacturers.Add(man);
+                            }
+                            catch (Exception Ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine(Ex.Message);
+                            }
                         }
-                        catch (Exception Ex)
-                        {
-                            System.Diagnostics.Debug.WriteLine(Ex.Message);
-                        }
-                        reader.Close();
                     }
                 }
             }
@@ -277,14 +287,14 @@ namespace Gurux.DLMS.ManufacturerSettings
                     string path = Path.Combine(ObisCodesPath, it.Identification) + ".obx";
                     if (!it.Removed)
                     {
-                        Stream stream = File.Open(path, FileMode.Create);
-                        GXFileInfo.UpdateFileSecurity(path);
-                        using (TextWriter writer = new StreamWriter(stream))
+                        using (Stream stream = File.Open(path, FileMode.Create))
                         {
-                            x.Serialize(writer, it);
-                            writer.Close();
+                            GXFileInfo.UpdateFileSecurity(path);
+                            using (TextWriter writer = new StreamWriter(stream))
+                            {
+                                x.Serialize(writer, it);
+                            }
                         }
-                        stream.Close();
                     }
                     else
                     {

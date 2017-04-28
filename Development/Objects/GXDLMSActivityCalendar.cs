@@ -41,6 +41,7 @@ using Gurux.DLMS;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -50,7 +51,7 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSActivityCalendar()
-        : base(ObjectType.ActivityCalendar, "0.0.13.0.0.255", 0)
+        : this("0.0.13.0.0.255", 0)
         {
         }
 
@@ -59,7 +60,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSActivityCalendar(string ln)
-        : base(ObjectType.ActivityCalendar, ln, 0)
+        : this(ln, 0)
         {
         }
 
@@ -205,7 +206,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Active Calendar Name ", "Active Season Profile", "Active Week Profile Table",
+            return new string[] {Internal.GXCommon.GetLogicalNameString(), "Active Calendar Name ", "Active Season Profile", "Active Week Profile Table",
                              "Active Day Profile Table", "Passive Calendar Name", "Passive Season Profile", "Passive Week Profile Table", "Passive Day Profile Table", "Time"
                             };
 
@@ -286,9 +287,9 @@ namespace Gurux.DLMS.Objects
                 {
                     data.SetUInt8((byte)DataType.Structure);
                     data.SetUInt8(3);
-                    GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Name));
+                    GXCommon.SetData(settings, data, DataType.OctetString, it.Name);
                     GXCommon.SetData(settings, data, DataType.OctetString, it.Start);
-                    GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.WeekName));
+                    GXCommon.SetData(settings, data, DataType.OctetString, it.WeekName);
                 }
             }
             return data.Array();
@@ -312,7 +313,7 @@ namespace Gurux.DLMS.Objects
                 {
                     data.SetUInt8((byte)DataType.Array);
                     data.SetUInt8(8);
-                    GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Name));
+                    GXCommon.SetData(settings, data, DataType.OctetString, it.Name);
                     GXCommon.SetData(settings, data, DataType.UInt8, it.Monday);
                     GXCommon.SetData(settings, data, DataType.UInt8, it.Tuesday);
                     GXCommon.SetData(settings, data, DataType.UInt8, it.Wednesday);
@@ -352,7 +353,7 @@ namespace Gurux.DLMS.Objects
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8(3);
                         GXCommon.SetData(settings, data, DataType.OctetString, action.StartTime);
-                        GXCommon.SetData(settings, data, DataType.OctetString, action.ScriptLogicalName);
+                        GXCommon.SetData(settings, data, DataType.OctetString, GXCommon.LogicalNameToBytes(action.ScriptLogicalName));
                         GXCommon.SetData(settings, data, DataType.UInt16, action.ScriptSelector);
                     }
                 }
@@ -365,7 +366,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -373,7 +374,7 @@ namespace Gurux.DLMS.Objects
                 {
                     return null;
                 }
-                return GXDLMSClient.ChangeType(ASCIIEncoding.ASCII.GetBytes(CalendarNameActive), DataType.OctetString, settings.UseUtc2NormalTime);
+                return GXDLMSClient.ChangeType(ASCIIEncoding.ASCII.GetBytes(CalendarNameActive), DataType.OctetString, false);
             }
             if (e.Index == 3)
             {
@@ -430,18 +431,9 @@ namespace Gurux.DLMS.Objects
                 foreach (object[] item in (object[])value)
                 {
                     GXDLMSSeasonProfile it = new GXDLMSSeasonProfile();
-                    it.Name = GXDLMSClient.ChangeType((byte[])item[0], DataType.String, false).ToString();
+                    it.Name = (byte[])item[0];
                     it.Start = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime, settings.UseUtc2NormalTime);
-                    byte[] weekName = (byte[])item[2];
-                    //If week name is ignored.
-                    if (weekName != null && weekName.Length == 1 && weekName[0] == 0xFF)
-                    {
-                        it.WeekName = "";
-                    }
-                    else
-                    {
-                        it.WeekName = GXDLMSClient.ChangeType(weekName, DataType.String, settings.UseUtc2NormalTime).ToString();
-                    }
+                    it.WeekName = (byte[])item[2];
                     items.Add(it);
                 }
                 return items.ToArray();
@@ -457,7 +449,7 @@ namespace Gurux.DLMS.Objects
                 foreach (object[] item in (object[])value)
                 {
                     GXDLMSWeekProfile it = new GXDLMSWeekProfile();
-                    it.Name = GXDLMSClient.ChangeType((byte[])item[0], DataType.String, settings.UseUtc2NormalTime).ToString();
+                    it.Name = (byte[])item[0];
                     it.Monday = Convert.ToInt32(item[1]);
                     it.Tuesday = Convert.ToInt32(item[2]);
                     it.Wednesday = Convert.ToInt32(item[3]);
@@ -497,7 +489,7 @@ namespace Gurux.DLMS.Objects
                         {
                             ac.StartTime = (GXTime)GXDLMSClient.ChangeType((byte[])it2[0], DataType.Time, settings.UseUtc2NormalTime);
                         }
-                        ac.ScriptLogicalName = GXDLMSClient.ChangeType((byte[])it2[1], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
+                        ac.ScriptLogicalName = GXCommon.ToLogicalName(it2[1]);
                         ac.ScriptSelector = Convert.ToUInt16(it2[2]);
                         actions.Add(ac);
                     }
@@ -513,14 +505,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -591,6 +576,170 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
+        private static GXDLMSSeasonProfile[] LoadSeasonProfile(GXXmlReader reader, string name)
+        {
+            List<GXDLMSSeasonProfile> list = new List<GXDLMSSeasonProfile>();
+            if (reader.IsStartElement(name, true))
+            {
+                while (reader.IsStartElement("Item", true))
+                {
+                    GXDLMSSeasonProfile it = new GXDLMSSeasonProfile();
+                    it.Name = GXDLMSTranslator.HexToBytes(reader.ReadElementContentAsString("Name"));
+                    it.Start = new GXDateTime(reader.ReadElementContentAsString("Start"));
+                    it.WeekName = GXDLMSTranslator.HexToBytes(reader.ReadElementContentAsString("WeekName"));
+                    list.Add(it);
+                }
+                reader.ReadEndElement(name);
+            }
+            return list.ToArray();
+        }
+
+        private static GXDLMSWeekProfile[] LoadWeekProfileTable(GXXmlReader reader, string name)
+        {
+            List<GXDLMSWeekProfile> list = new List<GXDLMSWeekProfile>();
+            if (reader.IsStartElement(name, true))
+            {
+                while (reader.IsStartElement("Item", true))
+                {
+                    GXDLMSWeekProfile it = new GXDLMSWeekProfile();
+                    it.Name = GXDLMSTranslator.HexToBytes(reader.ReadElementContentAsString("Name"));
+                    it.Monday = reader.ReadElementContentAsInt("Monday");
+                    it.Tuesday = reader.ReadElementContentAsInt("Tuesday");
+                    it.Wednesday = reader.ReadElementContentAsInt("Wednesday");
+                    it.Thursday = reader.ReadElementContentAsInt("Thursday");
+                    it.Friday = reader.ReadElementContentAsInt("Friday");
+                    it.Saturday = reader.ReadElementContentAsInt("Saturday");
+                    it.Sunday = reader.ReadElementContentAsInt("Sunday");
+                    list.Add(it);
+                }
+                reader.ReadEndElement(name);
+            }
+            return list.ToArray();
+        }
+
+        private static GXDLMSDayProfile[] LoadDayProfileTable(GXXmlReader reader, string name)
+        {
+            List<GXDLMSDayProfile> list = new List<GXDLMSDayProfile>();
+            if (reader.IsStartElement(name, true))
+            {
+                while (reader.IsStartElement("Item", true))
+                {
+                    GXDLMSDayProfile it = new GXDLMSDayProfile();
+                    it.DayId = reader.ReadElementContentAsInt("DayId");
+                    list.Add(it);
+                    List<GXDLMSDayProfileAction> actions = new List<GXDLMSDayProfileAction>();
+                    if (reader.IsStartElement("Actions", true))
+                    {
+                        while (reader.IsStartElement("Action", true))
+                        {
+                            GXDLMSDayProfileAction d = new DLMS.GXDLMSDayProfileAction();
+                            actions.Add(d);
+                            d.StartTime = new GXTime(reader.ReadElementContentAsString("Start"));
+                            d.ScriptLogicalName = reader.ReadElementContentAsString("LN");
+                            d.ScriptSelector = (UInt16)reader.ReadElementContentAsInt("Selector");
+                        }
+                        reader.ReadEndElement("Actions");
+                    }
+                    it.DaySchedules = actions.ToArray();
+                }
+                reader.ReadEndElement(name);
+            }
+            return list.ToArray();
+        }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            CalendarNameActive = reader.ReadElementContentAsString("CalendarNameActive");
+            SeasonProfileActive = LoadSeasonProfile(reader, "SeasonProfileActive");
+            WeekProfileTableActive = LoadWeekProfileTable(reader, "WeekProfileTableActive");
+            DayProfileTableActive = LoadDayProfileTable(reader, "DayProfileTableActive");
+            CalendarNamePassive = reader.ReadElementContentAsString("CalendarNamePassive");
+            SeasonProfilePassive = LoadSeasonProfile(reader, "SeasonProfilePassive");
+            WeekProfileTablePassive = LoadWeekProfileTable(reader, "WeekProfileTablePassive");
+            DayProfileTablePassive = LoadDayProfileTable(reader, "DayProfileTablePassive");
+            Time = new GXDateTime(reader.ReadElementContentAsString("Time"));
+        }
+
+        private void SaveSeasonProfile(GXXmlWriter writer, GXDLMSSeasonProfile[] list, string name)
+        {
+            if (list != null)
+            {
+                writer.WriteStartElement(name);
+                foreach (GXDLMSSeasonProfile it in list)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Name", GXDLMSTranslator.ToHex(it.Name));
+                    writer.WriteElementString("Start", it.Start.ToFormatString());
+                    writer.WriteElementString("WeekName", GXDLMSTranslator.ToHex(it.WeekName));
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+        }
+
+        private void SaveWeekProfileTable(GXXmlWriter writer, GXDLMSWeekProfile[] list, string name)
+        {
+            if (list != null)
+            {
+                writer.WriteStartElement(name);
+                foreach (GXDLMSWeekProfile it in list)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Name", GXDLMSTranslator.ToHex(it.Name));
+                    writer.WriteElementString("Monday", it.Monday);
+                    writer.WriteElementString("Tuesday", it.Tuesday);
+                    writer.WriteElementString("Wednesday", it.Wednesday);
+                    writer.WriteElementString("Thursday", it.Thursday);
+                    writer.WriteElementString("Friday", it.Friday);
+                    writer.WriteElementString("Saturday", it.Saturday);
+                    writer.WriteElementString("Sunday", it.Sunday);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+        }
+
+        private void SaveDayProfileTable(GXXmlWriter writer, GXDLMSDayProfile[] list, string name)
+        {
+            if (list != null)
+            {
+                writer.WriteStartElement(name);
+                foreach (GXDLMSDayProfile it in list)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("DayId", it.DayId.ToString());
+                    writer.WriteStartElement("Actions");
+                    foreach (GXDLMSDayProfileAction d in it.DaySchedules)
+                    {
+                        writer.WriteStartElement("Action");
+                        writer.WriteElementString("Start", d.StartTime.ToFormatString());
+                        writer.WriteElementString("LN", d.ScriptLogicalName);
+                        writer.WriteElementString("Selector", d.ScriptSelector);
+                        writer.WriteEndElement();
+                    }
+                    writer.WriteEndElement();
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            writer.WriteElementString("CalendarNameActive", CalendarNameActive);
+            SaveSeasonProfile(writer, SeasonProfileActive, "SeasonProfileActive");
+            SaveWeekProfileTable(writer, WeekProfileTableActive, "WeekProfileTableActive");
+            SaveDayProfileTable(writer, DayProfileTableActive, "DayProfileTableActive");
+            writer.WriteElementString("CalendarNamePassive", CalendarNamePassive);
+            SaveSeasonProfile(writer, SeasonProfilePassive, "SeasonProfilePassive");
+            SaveWeekProfileTable(writer, WeekProfileTablePassive, "WeekProfileTablePassive");
+            SaveDayProfileTable(writer, DayProfileTablePassive, "DayProfileTablePassive");
+            writer.WriteElementString("Time", Time.ToFormatString());
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
+        }
         #endregion
     }
 }

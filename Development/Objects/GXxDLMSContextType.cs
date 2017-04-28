@@ -88,7 +88,7 @@ namespace Gurux.DLMS.Objects
                 maxReceivePduSize = value;
             }
         }
-        public UInt16 MaxSendPpuSize
+        public UInt16 MaxSendPduSize
         {
             get
             {
@@ -140,7 +140,7 @@ namespace Gurux.DLMS.Objects
 
         public override string ToString()
         {
-            return Conformance + " " + MaxReceivePduSize.ToString() + " " + MaxSendPpuSize.ToString()
+            return Conformance + " " + MaxReceivePduSize.ToString() + " " + MaxSendPduSize.ToString()
                  + " " + DlmsVersionNumber.ToString() + " " + QualityOfService.ToString() + " " +
                  Gurux.DLMS.Internal.GXCommon.ToHex(CypheringInfo, true);
         }

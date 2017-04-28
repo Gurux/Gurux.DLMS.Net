@@ -42,7 +42,9 @@ using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.ManufacturerSettings
 {
+#if !WINDOWS_UWP
     [Serializable]
+#endif
     public class GXDLMSAttribute : GXDLMSAttributeSettings
     {
         /// <summary>
@@ -51,23 +53,23 @@ namespace Gurux.DLMS.ManufacturerSettings
         public GXDLMSAttribute(int index)
             : this(index, DataType.None, 0)
         {
-            
+
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>
         public GXDLMSAttribute() :
-            this(0, DataType.None, DataType.None, 0)
+                this(0, DataType.None, DataType.None, 0)
         {
 
-        }        
+        }
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXDLMSAttribute(int index, DataType uiType)  :
-            this(index, DataType.None, uiType, 0)
+        public GXDLMSAttribute(int index, DataType uiType) :
+                this(index, DataType.None, uiType, 0)
         {
         }
 
@@ -75,7 +77,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// Constructor.
         /// </summary>
         public GXDLMSAttribute(int index, DataType type, DataType uiType) :
-            this(index, type, uiType, 0)
+                this(index, type, uiType, 0)
         {
         }
 
@@ -83,16 +85,18 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// Constructor.
         /// </summary>
         public GXDLMSAttribute(int index, DataType type, DataType uiType, int order) :
-            base()
+                base()
         {
             Index = index;
             Type = type;
             UIType = uiType;
             Order = order;
-        }        
+        }
     }
 
+#if !WINDOWS_UWP
     [Serializable]
+#endif
     public class GXDLMSAttributeSettings : Attribute
     {
         /// <summary>
@@ -126,10 +130,11 @@ namespace Gurux.DLMS.ManufacturerSettings
             target.Order = Order;
             target.MinimumVersion = MinimumVersion;
         }
-        
+
         /// <summary>
         /// Hide TypeId.
         /// </summary>
+#if !WINDOWS_UWP
         [Browsable(false)]
         public override object TypeId
         {
@@ -138,9 +143,10 @@ namespace Gurux.DLMS.ManufacturerSettings
                 return base.TypeId;
             }
         }
+#endif
 
         public override string ToString()
-        {            
+        {
             return Name + Index.ToString();
         }
 
@@ -163,7 +169,9 @@ namespace Gurux.DLMS.ManufacturerSettings
             set;
         }
 
+#if !WINDOWS_UWP
         [Browsable(false)]
+#endif
         [XmlIgnore]
         public GXAttributeCollection Parent
         {
@@ -198,7 +206,9 @@ namespace Gurux.DLMS.ManufacturerSettings
             set;
         }
 
+#if !WINDOWS_UWP
         [Browsable(false)]
+#endif
         [DefaultValue(MethodAccessMode.NoAccess)]
         public MethodAccessMode MethodAccess
         {
@@ -206,8 +216,10 @@ namespace Gurux.DLMS.ManufacturerSettings
             set;
         }
 
-        [DefaultValue(false)]
+#if !WINDOWS_UWP
         [Browsable(false)]
+#endif
+        [DefaultValue(false)]
         public bool Static
         {
             get;
@@ -217,7 +229,9 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <summary>
         /// Attribute values.
         /// </summary>
+#if !WINDOWS_UWP
         [Browsable(false)]
+#endif
         [XmlIgnore]
         public GXObisValueItemCollection Values
         {
@@ -239,7 +253,9 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// Minimum version vhere this attribute is implemented.
         /// </summary>
         [DefaultValue(0)]
+#if !WINDOWS_UWP
         [Browsable(false)]
+#endif
         public int MinimumVersion
         {
             get;

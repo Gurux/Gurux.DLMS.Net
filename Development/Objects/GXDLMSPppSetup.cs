@@ -42,6 +42,7 @@ using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -185,7 +186,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "PHY Reference",
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "PHY Reference",
                               "LCP Options", "IPCP Options", "PPP Authentication"
                             };
         }
@@ -230,11 +231,11 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
-                return PHYReference;
+                return GXCommon.LogicalNameToBytes(PHYReference);
             }
             if (e.Index == 3)
             {
@@ -297,25 +298,11 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
-                if (e.Value is string)
-                {
-                    PHYReference = e.Value.ToString();
-                }
-                else
-                {
-                    PHYReference = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                PHYReference = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 3)
             {
@@ -359,6 +346,79 @@ namespace Gurux.DLMS.Objects
                 e.Error = ErrorCode.ReadWriteDenied;
             }
         }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            PHYReference = reader.ReadElementContentAsString("PHYReference");
+            List<GXDLMSPppSetupLcpOption> options = new List<GXDLMSPppSetupLcpOption>();
+            if (reader.IsStartElement("LCPOptions", true))
+            {
+                while (reader.IsStartElement("Item", true))
+                {
+                    GXDLMSPppSetupLcpOption it = new GXDLMSPppSetupLcpOption();
+                    it.Type = (PppSetupLcpOptionType)reader.ReadElementContentAsInt("Type");
+                    it.Length = (byte)reader.ReadElementContentAsInt("Length");
+                    it.Data = reader.ReadElementContentAsObject("Data", null);
+                }
+                reader.ReadEndElement("LCPOptions");
+            }
+            LCPOptions = options.ToArray();
+
+            List<GXDLMSPppSetupIPCPOption> list = new List<GXDLMSPppSetupIPCPOption>();
+            if (reader.IsStartElement("LCPOptions", true))
+            {
+                while (reader.IsStartElement("Item", true))
+                {
+                    GXDLMSPppSetupIPCPOption it = new GXDLMSPppSetupIPCPOption();
+                    it.Type = (PppSetupIPCPOptionType)reader.ReadElementContentAsInt("Type");
+                    it.Length = (byte)reader.ReadElementContentAsInt("Length");
+                    it.Data = reader.ReadElementContentAsObject("Data", null);
+                }
+                reader.ReadEndElement("LCPOptions");
+            }
+            IPCPOptions = list.ToArray();
+
+            UserName = GXDLMSTranslator.HexToBytes(reader.ReadElementContentAsString("UserName"));
+            Password = GXDLMSTranslator.HexToBytes(reader.ReadElementContentAsString("Password"));
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            writer.WriteElementString("PHYReference", PHYReference);
+            if (LCPOptions != null)
+            {
+                writer.WriteStartElement("LCPOptions");
+                foreach (GXDLMSPppSetupLcpOption it in LCPOptions)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Type", (int)it.Type);
+                    writer.WriteElementString("Length", it.Length);
+                    writer.WriteElementObject("Data", it.Data);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+            if (IPCPOptions != null)
+            {
+                writer.WriteStartElement("LCPOptions");
+                foreach (GXDLMSPppSetupIPCPOption it in IPCPOptions)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Type", ((int)it.Type).ToString());
+                    writer.WriteElementString("Length", it.Length.ToString());
+                    writer.WriteElementObject("Data", it.Data);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+            writer.WriteElementString("UserName", GXDLMSTranslator.ToHex(UserName));
+            writer.WriteElementString("Password", GXDLMSTranslator.ToHex(Password));
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
+        }
+
         #endregion
     }
 }

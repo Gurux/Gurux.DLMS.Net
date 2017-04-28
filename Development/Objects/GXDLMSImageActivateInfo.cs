@@ -38,14 +38,14 @@ namespace Gurux.DLMS.Objects
     public class GXDLMSImageActivateInfo
     {
         /// <summary>
-        /// Image_size is the size of the Image(s) to be activated. Expressed in octets;
+        /// Image size is the size of the Image(s) to be activated. Expressed in octets;
         /// </summary>
         public ulong Size
         {
             get;
             set;
         }
-        
+
         /// <summary>
         /// mage identification is the identification of the Image(s) 
         /// to be activated, and may contain information like
@@ -56,7 +56,7 @@ namespace Gurux.DLMS.Objects
             get;
             set;
         }
-        
+
         /// <summary>
         /// Image signature is the signature of the Image(s) to be activated.
         /// </summary>

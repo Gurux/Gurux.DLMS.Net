@@ -43,6 +43,7 @@ using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Enums;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -52,9 +53,8 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSClock()
-        : base(ObjectType.Clock, "0.0.1.0.0.255", 0)
+        : this("0.0.1.0.0.255", 0)
         {
-            Time = new GXDateTime(DateTime.MinValue);
         }
 
         public override DataType GetUIDataType(int index)
@@ -71,9 +71,8 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSClock(string ln)
-        : base(ObjectType.Clock, ln, 0)
+        : this(ln, 0)
         {
-            Time = new GXDateTime(DateTime.MinValue);
         }
 
         /// <summary>
@@ -108,7 +107,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// TimeZone of COSEM Clock object.
         /// </summary>
-        [XmlIgnore()]
+      //  [XmlIgnore()]
         public int TimeZone
         {
             get;
@@ -374,7 +373,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt,
+            return new string[] { Internal.GXCommon.GetLogicalNameString(),
                               "Time",
                               "Time Zone",
                               "Status",
@@ -438,14 +437,48 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
+        /// <summary>
+        /// Return current time.
+        /// </summary>
+        /// <returns>Current time</returns>
+        public GXDateTime Now()
+        {
+            DateTime now = DateTime.Now;
+            GXDateTime tm = new GXDateTime(now);
+            //If clock's time zone is different what user want's to use.
+            int offset = TimeZone + (int)tm.Value.Offset.TotalMinutes;
+            if (now.IsDaylightSavingTime())
+            {
+                offset -= 60;
+            }
+            if (offset != 0)
+            {
+                TimeSpan zone = TimeZoneInfo.Local.GetUtcOffset(now).Add(new TimeSpan(0, TimeZone, 0));
+                now.AddMinutes(offset);
+                now = new DateTime(now.Ticks, DateTimeKind.Unspecified);
+                tm.Value = new DateTimeOffset(now, zone);
+            }
+            //If clock's daylight saving is active but user do not want to use it.
+            if (!Enabled && now.IsDaylightSavingTime())
+            {
+                tm.Status &= ~ClockStatus.DaylightSavingActive;
+                tm.Value = tm.Value.AddMinutes(-Deviation);
+            }
+            return tm;
+        }
+
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
+                if (settings.IsServer)
+                {
+                    return Now();
+                }
                 return Time;
             }
             if (e.Index == 3)
@@ -484,14 +517,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else if (e.Value != null)
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -572,6 +598,17 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 8)
             {
                 Enabled = Convert.ToBoolean(e.Value);
+                if (settings.IsServer)
+                {
+                    if (Enabled)
+                    {
+                        Status |= ClockStatus.DaylightSavingActive;
+                    }
+                    else
+                    {
+                        Status &= ~ClockStatus.DaylightSavingActive;
+                    }
+                }
             }
             else if (e.Index == 9)
             {
@@ -581,6 +618,68 @@ namespace Gurux.DLMS.Objects
             {
                 e.Error = ErrorCode.ReadWriteDenied;
             }
+        }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            if (string.Compare("Time", reader.Name, true) == 0)
+            {
+                Time = new GXDateTime(reader.ReadElementContentAsString("Time"));
+            }
+            TimeZone = reader.ReadElementContentAsInt("TimeZone");
+            Status = (ClockStatus)reader.ReadElementContentAsInt("Status");
+            string str = reader.ReadElementContentAsString("Begin");
+            if (str != null)
+            {
+                Begin = new GXDateTime(str);
+            }
+            str = reader.ReadElementContentAsString("End");
+            if (str != null)
+            {
+                End = new GXDateTime(str);
+            }
+            Deviation = reader.ReadElementContentAsInt("Deviation");
+            Enabled = reader.ReadElementContentAsInt("Enabled") != 0;
+            ClockBase = (ClockBase)reader.ReadElementContentAsInt("ClockBase");
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            if (Time != null && Time != DateTime.MinValue)
+            {
+                writer.WriteElementString("Time", Time.ToFormatString());
+            }
+            if (TimeZone != 0)
+            {
+                writer.WriteElementString("TimeZone", TimeZone.ToString());
+            }
+            if (Status != ClockStatus.Ok)
+            {
+                writer.WriteElementString("Status", ((int)Status).ToString());
+            }
+            if (Begin != null && Begin != DateTime.MinValue)
+            {
+                writer.WriteElementString("Begin", Begin.ToFormatString());
+            }
+            if (End != null && End != DateTime.MinValue)
+            {
+                writer.WriteElementString("End", End.ToFormatString());
+            }
+            if (Deviation != 0)
+            {
+                writer.WriteElementString("Deviation", Deviation.ToString());
+            }
+            if (Enabled)
+            {
+                writer.WriteElementString("Enabled", "1");
+            }
+            if (ClockBase != ClockBase.None)
+            {
+                writer.WriteElementString("ClockBase", ((int)ClockBase).ToString());
+            }
+        }
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
         }
         #endregion
     }

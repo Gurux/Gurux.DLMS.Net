@@ -42,6 +42,7 @@ using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Internal;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -437,7 +438,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "MaxHops", "WeakLqiValue",
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "MaxHops", "WeakLqiValue",
                 "SecurityLevel", "PrefixTable", "RoutingConfiguration", "BroadcastLogTableEntryTtl",
                 "RoutingTable", "ContextInformationTable", "BlacklistTable", "BroadcastLogTable",
                 "GroupTable", "MaxJoinWaitTime", " PathDiscoveryTime", "ActiveKeyIndex",
@@ -559,7 +560,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -781,14 +782,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -951,6 +945,305 @@ namespace Gurux.DLMS.Objects
             {
                 e.Error = ErrorCode.ReadWriteDenied;
             }
+        }
+
+        private void LoadPrefixTable(GXXmlReader reader)
+        {
+            List<object> list = new List<object>();
+            if (reader.IsStartElement("PrefixTable", true))
+            {
+                while (reader.IsStartElement("Value", false))
+                {
+                    list.Add(reader.ReadElementContentAsObject("Value", null));
+                }
+                reader.ReadEndElement("PrefixTable");
+            }
+            PrefixTable = list.ToArray();
+        }
+
+        private void LoadRoutingConfiguration(GXXmlReader reader)
+        {
+            RoutingConfiguration.Clear();
+            if (reader.IsStartElement("RoutingConfiguration", true))
+            {
+                while (reader.IsStartElement("Item", false))
+                {
+                    GXDLMSRoutingConfiguration it = new GXDLMSRoutingConfiguration();
+                    RoutingConfiguration.Add(it);
+                    it.NetTraversalTime = (byte)reader.ReadElementContentAsInt("NetTraversalTime");
+                    it.RoutingTableEntryTtl = (UInt16)reader.ReadElementContentAsInt("RoutingTableEntryTtl");
+                    it.Kr = (byte)reader.ReadElementContentAsInt("Kr");
+                    it.Km = (byte)reader.ReadElementContentAsInt("Km");
+                    it.Kc = (byte)reader.ReadElementContentAsInt("Kc");
+                    it.Kq = (byte)reader.ReadElementContentAsInt("Kq");
+                    it.Kh = (byte)reader.ReadElementContentAsInt("Kh");
+                    it.Krt = (byte)reader.ReadElementContentAsInt("Krt");
+                    it.RreqRetries = (byte)reader.ReadElementContentAsInt("RreqRetries");
+                    it.RreqRerrWait = (byte)reader.ReadElementContentAsInt("RreqRerrWait");
+                    it.BlacklistTableEntryTtl = (UInt16)reader.ReadElementContentAsInt("BlacklistTableEntryTtl");
+                    it.UnicastRreqGenEnable = reader.ReadElementContentAsInt("UnicastRreqGenEnable") != 0;
+                    it.RlcEnabled = reader.ReadElementContentAsInt("RlcEnabled") != 0;
+                    it.AddRevLinkCost = (byte)reader.ReadElementContentAsInt("AddRevLinkCost");
+                }
+                reader.ReadEndElement("RoutingConfiguration");
+            }
+        }
+
+        private void LoadRoutingTable(GXXmlReader reader)
+        {
+            RoutingTable.Clear();
+            if (reader.IsStartElement("RoutingTable", true))
+            {
+                while (reader.IsStartElement("Item", false))
+                {
+                    GXDLMSRoutingTable it = new GXDLMSRoutingTable();
+                    RoutingTable.Add(it);
+                    it.DestinationAddress = (UInt16)reader.ReadElementContentAsInt("DestinationAddress");
+                    it.NextHopAddress = (UInt16)reader.ReadElementContentAsInt("NextHopAddress");
+                    it.RouteCost = (UInt16)reader.ReadElementContentAsInt("RouteCost");
+                    it.HopCount = (byte)reader.ReadElementContentAsInt("HopCount");
+                    it.WeakLinkCount = (byte)reader.ReadElementContentAsInt("WeakLinkCount");
+                    it.ValidTime = (UInt16)reader.ReadElementContentAsInt("ValidTime");
+                }
+                reader.ReadEndElement("RoutingTable");
+            }
+        }
+
+        private void LoadContextInformationTable(GXXmlReader reader)
+        {
+            ContextInformationTable.Clear();
+            if (reader.IsStartElement("ContextInformationTable", true))
+            {
+                while (reader.IsStartElement("Item", false))
+                {
+                    GXDLMSContextInformationTable it = new GXDLMSContextInformationTable();
+                    ContextInformationTable.Add(it);
+                    it.CID = reader.ReadElementContentAsString("CID");
+                    it.Context = GXDLMSTranslator.HexToBytes(reader.ReadElementContentAsString("Context"));
+                    it.Compression = reader.ReadElementContentAsInt("Compression") != 0;
+                    it.ValidLifetime = (UInt16)reader.ReadElementContentAsInt("ValidLifetime");
+                }
+                reader.ReadEndElement("ContextInformationTable");
+            }
+        }
+
+        private void LoadBlacklistTable(GXXmlReader reader)
+        {
+            BlacklistTable.Clear();
+            if (reader.IsStartElement("BlacklistTable", true))
+            {
+                while (reader.IsStartElement("Item", false))
+                {
+                    UInt16 k = (UInt16)reader.ReadElementContentAsInt("Key");
+                    UInt16 v = (UInt16)reader.ReadElementContentAsInt("Value");
+                    BlacklistTable.Add(new GXKeyValuePair<UInt16, UInt16>(k, v));
+                }
+                reader.ReadEndElement("BlacklistTable");
+            }
+        }
+
+        private void LoadBroadcastLogTable(GXXmlReader reader)
+        {
+            BroadcastLogTable.Clear();
+            if (reader.IsStartElement("BroadcastLogTable", true))
+            {
+                while (reader.IsStartElement("Item", false))
+                {
+                    GXDLMSBroadcastLogTable it = new GXDLMSBroadcastLogTable();
+                    BroadcastLogTable.Add(it);
+                    it.SourceAddress = (UInt16)reader.ReadElementContentAsInt("SourceAddress");
+                    it.SequenceNumber = (byte)reader.ReadElementContentAsInt("SequenceNumber");
+                    it.ValidTime = (UInt16)reader.ReadElementContentAsInt("ValidTime");
+                }
+                reader.ReadEndElement("BroadcastLogTable");
+            }
+        }
+
+        private void LoadGroupTable(GXXmlReader reader)
+        {
+            List<UInt16> list = new List<UInt16>();
+            if (reader.IsStartElement("GroupTable", true))
+            {
+                while (reader.IsStartElement("Value", false))
+                {
+                    list.Add((UInt16)reader.ReadElementContentAsInt("Value"));
+                }
+                reader.ReadEndElement("GroupTable");
+            }
+            GroupTable = list.ToArray();
+        }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            MaxHops = (byte)reader.ReadElementContentAsInt("MaxHops");
+            WeakLqiValue = (byte)reader.ReadElementContentAsInt("WeakLqiValue");
+            SecurityLevel = (byte)reader.ReadElementContentAsInt("SecurityLevel");
+            LoadPrefixTable(reader);
+            LoadRoutingConfiguration(reader);
+            BroadcastLogTableEntryTtl = (UInt16)reader.ReadElementContentAsInt("BroadcastLogTableEntryTtl");
+            LoadRoutingTable(reader);
+            LoadContextInformationTable(reader);
+            LoadBlacklistTable(reader);
+            LoadBroadcastLogTable(reader);
+            LoadGroupTable(reader);
+            MaxJoinWaitTime = (UInt16)reader.ReadElementContentAsInt("MaxJoinWaitTime");
+            PathDiscoveryTime = (byte)reader.ReadElementContentAsInt("PathDiscoveryTime");
+            ActiveKeyIndex = (byte)reader.ReadElementContentAsInt("ActiveKeyIndex");
+            MetricType = (byte)reader.ReadElementContentAsInt("MetricType");
+            CoordShortAddress = (UInt16)reader.ReadElementContentAsInt("CoordShortAddress");
+            DisableDefaultRouting = reader.ReadElementContentAsInt("DisableDefaultRouting") != 0;
+            DeviceType = (DeviceType)reader.ReadElementContentAsInt("DeviceType");
+        }
+
+        private void SavePrefixTable(GXXmlWriter writer)
+        {
+            if (PrefixTable != null)
+            {
+                writer.WriteStartElement("PrefixTable");
+                foreach (object it in PrefixTable)
+                {
+                    writer.WriteElementObject("Value", it);
+                }
+                writer.WriteEndElement();
+            }
+        }
+
+        private void SaveRoutingConfiguration(GXXmlWriter writer)
+        {
+            if (RoutingConfiguration != null)
+            {
+                writer.WriteStartElement("RoutingConfiguration");
+                foreach (GXDLMSRoutingConfiguration it in RoutingConfiguration)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("NetTraversalTime", it.NetTraversalTime);
+                    writer.WriteElementString("RoutingTableEntryTtl", it.RoutingTableEntryTtl);
+                    writer.WriteElementString("Kr", it.Kr);
+                    writer.WriteElementString("Km", it.Km);
+                    writer.WriteElementString("Kc", it.Kc);
+                    writer.WriteElementString("Kq", it.Kq);
+                    writer.WriteElementString("Kh", it.Kh);
+                    writer.WriteElementString("Krt", it.Krt);
+                    writer.WriteElementString("RreqRetries", it.RreqRetries);
+                    writer.WriteElementString("RreqRerrWait", it.RreqRerrWait);
+                    writer.WriteElementString("BlacklistTableEntryTtl", it.BlacklistTableEntryTtl);
+                    writer.WriteElementString("UnicastRreqGenEnable", it.UnicastRreqGenEnable);
+                    writer.WriteElementString("RlcEnabled", it.RlcEnabled);
+                    writer.WriteElementString("AddRevLinkCost", it.AddRevLinkCost);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+        }
+
+        private void SaveRoutingTable(GXXmlWriter writer)
+        {
+            if (RoutingTable != null)
+            {
+                writer.WriteStartElement("RoutingTable");
+                foreach (GXDLMSRoutingTable it in RoutingTable)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("DestinationAddress", it.DestinationAddress);
+                    writer.WriteElementString("NextHopAddress", it.NextHopAddress);
+                    writer.WriteElementString("RouteCost", it.RouteCost);
+                    writer.WriteElementString("HopCount", it.HopCount);
+                    writer.WriteElementString("WeakLinkCount", it.WeakLinkCount);
+                    writer.WriteElementString("ValidTime", it.ValidTime);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+        }
+
+        private void SaveContextInformationTable(GXXmlWriter writer)
+        {
+            if (ContextInformationTable != null)
+            {
+                writer.WriteStartElement("ContextInformationTable");
+                foreach (GXDLMSContextInformationTable it in ContextInformationTable)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("CID", it.CID);
+                    writer.WriteElementString("Context", GXDLMSTranslator.ToHex(it.Context));
+                    writer.WriteElementString("Compression", it.Compression);
+                    writer.WriteElementString("ValidLifetime", it.ValidLifetime);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+        }
+
+        private void SaveBlacklistTable(GXXmlWriter writer)
+        {
+            if (BlacklistTable != null)
+            {
+                writer.WriteStartElement("BlacklistTable");
+                foreach (GXKeyValuePair<UInt16, UInt16> it in BlacklistTable)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementObject("Key", it.Key);
+                    writer.WriteElementObject("Value", it.Value);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+        }
+
+        private void SaveBroadcastLogTable(GXXmlWriter writer)
+        {
+            if (BroadcastLogTable != null)
+            {
+                writer.WriteStartElement("BroadcastLogTable");
+                foreach (GXDLMSBroadcastLogTable it in BroadcastLogTable)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementObject("SourceAddress", it.SourceAddress);
+                    writer.WriteElementObject("SequenceNumber", it.SequenceNumber);
+                    writer.WriteElementObject("ValidTime", it.ValidTime);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+        }
+
+        private void SaveGroupTable(GXXmlWriter writer)
+        {
+            if (GroupTable != null)
+            {
+                writer.WriteStartElement("GroupTable");
+                foreach (UInt16 it in GroupTable)
+                {
+                    writer.WriteElementObject("Value", it);
+                }
+                writer.WriteEndElement();
+            }
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            writer.WriteElementString("MaxHops", MaxHops);
+            writer.WriteElementString("WeakLqiValue", WeakLqiValue);
+            writer.WriteElementString("SecurityLevel", SecurityLevel);
+            SavePrefixTable(writer);
+            SaveRoutingConfiguration(writer);
+            writer.WriteElementString("BroadcastLogTableEntryTtl", BroadcastLogTableEntryTtl);
+            SaveRoutingTable(writer);
+            SaveContextInformationTable(writer);
+            SaveBlacklistTable(writer);
+            SaveBroadcastLogTable(writer);
+            SaveGroupTable(writer);
+            writer.WriteElementString("MaxJoinWaitTime", MaxJoinWaitTime);
+            writer.WriteElementString("PathDiscoveryTime", PathDiscoveryTime);
+            writer.WriteElementString("ActiveKeyIndex", ActiveKeyIndex);
+            writer.WriteElementString("MetricType", MetricType);
+            writer.WriteElementString("CoordShortAddress", CoordShortAddress);
+            writer.WriteElementString("DisableDefaultRouting", DisableDefaultRouting);
+            writer.WriteElementString("DeviceType", (int)DeviceType);
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
         }
         #endregion
     }

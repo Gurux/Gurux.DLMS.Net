@@ -54,6 +54,21 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         public GXDLMSSeasonProfile(string name, GXDateTime start, string weekName)
         {
+            if (name != null)
+            {
+                Name = ASCIIEncoding.ASCII.GetBytes(name);
+            }
+            Start = start;
+            if (weekName != null)
+            {
+                WeekName = ASCIIEncoding.ASCII.GetBytes(weekName);
+            }
+        }
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public GXDLMSSeasonProfile(byte[] name, GXDateTime start, byte[] weekName)
+        {
             Name = name;
             Start = start;
             WeekName = weekName;
@@ -62,7 +77,10 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Name of season profile.
         /// </summary>
-        public string Name
+        /// <remarks>
+        /// Some manufacturers are using non ASCII names.
+        /// </remarks>
+        public byte[] Name
         {
             get;
             set;
@@ -80,7 +98,10 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Week name of season profile.
         /// </summary>
-        public string WeekName
+        /// <remarks>
+        /// Some manufacturers are using non ASCII names.
+        /// </remarks>
+        public byte[] WeekName
         {
             get;
             set;
@@ -88,7 +109,7 @@ namespace Gurux.DLMS.Objects
 
         public override string ToString()
         {
-            return Name + " " + Start.ToString();
+            return GXDLMSTranslator.ToHex(Name) + " " + Start.ToFormatString() + " " + GXDLMSTranslator.ToHex(WeekName);
         }
 
     }

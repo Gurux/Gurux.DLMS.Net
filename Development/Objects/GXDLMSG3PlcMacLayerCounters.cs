@@ -40,6 +40,8 @@ using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Enums;
+using System.Xml;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
@@ -271,7 +273,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "TxDataPacketCount", "RxDataPacketCount", "TxCmdPacketCount",
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "TxDataPacketCount", "RxDataPacketCount", "TxCmdPacketCount",
            "RxCmdPacketCount", " CSMAFailCount", "CSMANoAckCount", "BadCrcCount", "TxDataBroadcastCount", " RxDataBroadcastCount" };
         }
 
@@ -335,7 +337,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -381,14 +383,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, false).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -430,6 +425,36 @@ namespace Gurux.DLMS.Objects
             {
                 e.Error = ErrorCode.ReadWriteDenied;
             }
+        }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            TxDataPacketCount = (UInt16)reader.ReadElementContentAsInt("TxDataPacketCount");
+            RxDataPacketCount = (UInt16)reader.ReadElementContentAsInt("RxDataPacketCount");
+            TxCmdPacketCount = (UInt16)reader.ReadElementContentAsInt("TxCmdPacketCount");
+            RxCmdPacketCount = (UInt16)reader.ReadElementContentAsInt("RxCmdPacketCount");
+            CSMAFailCount = (UInt16)reader.ReadElementContentAsInt("CSMAFailCount");
+            CSMANoAckCount = (UInt16)reader.ReadElementContentAsInt("CSMANoAckCount");
+            BadCrcCount = (UInt16)reader.ReadElementContentAsInt("BadCrcCount");
+            TxDataBroadcastCount = (UInt16)reader.ReadElementContentAsInt("TxDataBroadcastCount");
+            RxDataBroadcastCount = (UInt16)reader.ReadElementContentAsInt("RxDataBroadcastCount");
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            writer.WriteElementString("TxDataPacketCount", TxDataPacketCount);
+            writer.WriteElementString("RxDataPacketCount", RxDataPacketCount);
+            writer.WriteElementString("TxCmdPacketCount", TxCmdPacketCount);
+            writer.WriteElementString("RxCmdPacketCount", RxCmdPacketCount);
+            writer.WriteElementString("CSMAFailCount", CSMAFailCount);
+            writer.WriteElementString("CSMANoAckCount", CSMANoAckCount);
+            writer.WriteElementString("BadCrcCount", BadCrcCount);
+            writer.WriteElementString("TxDataBroadcastCount", TxDataBroadcastCount);
+            writer.WriteElementString("RxDataBroadcastCount", RxDataBroadcastCount);
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
         }
         #endregion
     }

@@ -41,6 +41,7 @@ using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Internal;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -77,7 +78,7 @@ namespace Gurux.DLMS.Objects
         /// System title of active initiator.
         /// </summary>
         [XmlIgnore()]
-        public string SystemTitle
+        public byte[] SystemTitle
         {
             get;
             set;
@@ -132,7 +133,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Active Initiator" };
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Active Initiator" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -163,7 +164,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -183,19 +184,12 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
                 object[] tmp = (object[])e.Value;
-                SystemTitle = ASCIIEncoding.ASCII.GetString((byte[])tmp[0]);
+                SystemTitle = (byte[])tmp[0];
                 MacAddress = (UInt16)tmp[1];
                 LSapSelector = (byte)tmp[2];
             }
@@ -204,6 +198,25 @@ namespace Gurux.DLMS.Objects
                 e.Error = ErrorCode.ReadWriteDenied;
             }
         }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            SystemTitle = GXDLMSTranslator.HexToBytes(reader.ReadElementContentAsString("SystemTitle"));
+            MacAddress = (UInt16)reader.ReadElementContentAsInt("MacAddress");
+            LSapSelector = (byte)reader.ReadElementContentAsInt("LSapSelector");
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            writer.WriteElementString("SystemTitle", GXDLMSTranslator.ToHex(SystemTitle));
+            writer.WriteElementString("MacAddress", MacAddress);
+            writer.WriteElementString("LSapSelector", LSapSelector);
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
+        }
+
         #endregion
     }
 }

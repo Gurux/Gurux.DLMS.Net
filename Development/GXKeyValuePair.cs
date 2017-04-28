@@ -36,7 +36,9 @@ namespace Gurux.DLMS
 {
     using System;
 
+#if !WINDOWS_UWP
     [Serializable]
+#endif
     public struct GXKeyValuePair<K, V>
     {
         private K _key;

@@ -41,6 +41,8 @@ using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Enums;
+using System.Xml;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
@@ -170,7 +172,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt,
+            return new string[] {Internal.GXCommon.GetLogicalNameString(),
                              "Output State",
                              "Control State",
                              "Control Mode"
@@ -213,7 +215,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -235,14 +237,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, false).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -260,6 +255,32 @@ namespace Gurux.DLMS.Objects
             {
                 e.Error = ErrorCode.ReadWriteDenied;
             }
+        }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            OutputState = reader.ReadElementContentAsInt("OutputState") != 0;
+            ControlState = (ControlState)reader.ReadElementContentAsInt("ControlState");
+            ControlMode = (ControlMode)reader.ReadElementContentAsInt("ControlMode");
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            if (OutputState)
+            {
+                writer.WriteElementString("OutputState", "1");
+            }
+            if (ControlState != 0)
+            {
+                writer.WriteElementString("ControlState", ((int)ControlState).ToString());
+            }
+            if (ControlMode != 0)
+            {
+                writer.WriteElementString("ControlMode", ((int)ControlMode).ToString());
+            }
+        }
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
         }
         #endregion
     }

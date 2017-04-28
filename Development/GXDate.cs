@@ -80,10 +80,17 @@ namespace Gurux.DLMS
             Skip = DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms;
             if (date != null)
             {
-                int year = 2000, month = 1, day = 1;
                 System.Globalization.CultureInfo culture = System.Globalization.CultureInfo.CurrentUICulture;
-                List<string> shortDatePattern = new List<string>(culture.DateTimeFormat.ShortDatePattern.Split(new string[] { culture.DateTimeFormat.DateSeparator }, StringSplitOptions.RemoveEmptyEntries));
-                string[] values = date.Split(new string[] { culture.DateTimeFormat.DateSeparator }, StringSplitOptions.None);
+#if !WINDOWS_UWP
+                string dateSeparator = culture.DateTimeFormat.DateSeparator, timeSeparator = culture.DateTimeFormat.TimeSeparator;
+                List<string> shortDatePattern = new List<string>(culture.DateTimeFormat.ShortDatePattern.Split(new string[] { dateSeparator }, StringSplitOptions.RemoveEmptyEntries));
+#else
+                //In UWP Standard Date and Time Format Strings are used.
+                string dateSeparator = Internal.GXCommon.GetDateSeparator(), timeSeparator = Internal.GXCommon.GetTimeSeparator();
+                List<string> shortDatePattern = new List<string>("yyyy-MM-dd".Split(new string[] { dateSeparator }, StringSplitOptions.RemoveEmptyEntries));
+#endif
+                int year = 2000, month = 1, day = 1;
+                string[] values = date.Split(new string[] { dateSeparator }, StringSplitOptions.None);
                 if (shortDatePattern.Count != values.Length)
                 {
                     throw new ArgumentOutOfRangeException("Invalid Date");

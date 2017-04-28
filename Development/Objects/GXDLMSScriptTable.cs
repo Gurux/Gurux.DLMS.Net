@@ -42,6 +42,7 @@ using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -122,7 +123,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Scripts" };
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Scripts" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -153,7 +154,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -213,14 +214,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -241,18 +235,22 @@ namespace Gurux.DLMS.Objects
                                 GXDLMSScriptAction it = new GXDLMSScriptAction();
                                 it.Type = (ScriptActionType)Convert.ToInt32(arr[0]);
                                 ObjectType ot = (ObjectType)Convert.ToInt32(arr[1]);
-                                String ln = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
+                                String ln = GXCommon.ToLogicalName(arr[2]);
                                 it.Target = settings.Objects.FindByLN(ot, ln);
                                 if (it.Target == null)
                                 {
 #pragma warning disable CS0618
-                                    it.ObjectType = (ObjectType)Convert.ToInt32(arr[1]);
-                                    it.LogicalName = GXDLMSClient.ChangeType((byte[])arr[2], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
+                                    it.ObjectType = ot;
+                                    it.LogicalName = ln;
 #pragma warning restore CS0618
                                 }
 
                                 it.Index = Convert.ToInt32(arr[3]);
                                 it.Parameter = arr[4];
+                                if (it.Parameter != null)
+                                {
+                                    it.ParameterDataType = GXDLMSConverter.GetDLMSDataType(it.Parameter.GetType());
+                                }
                                 script.Actions.Add(it);
                             }
                         }
@@ -287,6 +285,78 @@ namespace Gurux.DLMS.Objects
                 e.Error = ErrorCode.ReadWriteDenied;
             }
         }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            Scripts.Clear();
+            if (reader.IsStartElement("Scripts", true))
+            {
+                while (reader.IsStartElement("Script", true))
+                {
+                    GXDLMSScript it = new GXDLMSScript();
+                    Scripts.Add(it);
+                    it.Id = reader.ReadElementContentAsInt("ID");
+                    if (reader.IsStartElement("Actions", true))
+                    {
+                        while (reader.IsStartElement("Action", true))
+                        {
+                            GXDLMSScriptAction a = new Objects.GXDLMSScriptAction();
+                            a.Type = (ScriptActionType)reader.ReadElementContentAsInt("Type");
+                            ObjectType ot = (ObjectType)reader.ReadElementContentAsInt("ObjectType");
+                            string ln = reader.ReadElementContentAsString("LN");
+                            a.Index = reader.ReadElementContentAsInt("Index");
+                            a.ParameterDataType = (DataType)reader.ReadElementContentAsInt("ParameterDataType");
+                            a.Parameter = reader.ReadElementContentAsObject("Parameter", null);
+                        }
+                        reader.ReadEndElement("Actions");
+                    }
+                }
+                reader.ReadEndElement("Scripts");
+            }
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            if (Scripts != null)
+            {
+                writer.WriteStartElement("Scripts");
+                foreach (GXDLMSScript it in Scripts)
+                {
+                    writer.WriteStartElement("Script");
+                    writer.WriteElementString("ID", it.Id.ToString());
+                    writer.WriteStartElement("Actions");
+                    foreach (GXDLMSScriptAction a in it.Actions)
+                    {
+                        writer.WriteStartElement("Action");
+                        writer.WriteElementString("Type", ((int)a.Type).ToString());
+                        if (a.Target == null)
+                        {
+                            writer.WriteElementString("ObjectType", (int)ObjectType.None);
+                            writer.WriteElementString("LN", "0.0.0.0.0.0");
+                            writer.WriteElementString("Index", "0");
+                            writer.WriteElementString("ParameterDataType", (int)DataType.None);
+                            writer.WriteElementObject("Parameter", "");
+                        }
+                        else
+                        {
+                            writer.WriteElementString("ObjectType", (int)a.Target.ObjectType);
+                            writer.WriteElementString("LN", a.Target.LogicalName);
+                            writer.WriteElementString("Index", a.Index);
+                            writer.WriteElementObject("Parameter", a.Parameter);
+                        }
+                        writer.WriteEndElement();
+                    }
+                    writer.WriteEndElement();//Actions
+                    writer.WriteEndElement();//Script
+                }
+                writer.WriteEndElement();//Scripts
+            }
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
+        }
+
         #endregion
     }
 }

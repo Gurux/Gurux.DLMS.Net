@@ -41,8 +41,10 @@ using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.ManufacturerSettings
 {
+#if !WINDOWS_UWP
     [Serializable]
     [TypeConverter(typeof(GXObisCodeConverter)), RefreshProperties(RefreshProperties.All)]
+#endif
     public class GXObisCode
     {
         /// <summary>
@@ -82,7 +84,9 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// Attribute index.
         /// </summary>
         [XmlIgnore()]
+#if !WINDOWS_UWP
         [Browsable(false)]
+#endif
         public int AttributeIndex
         {
             get;
@@ -124,7 +128,9 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <summary>
         /// Interface type. Opsolite. Use ObjectType instead.
         /// </summary>
+#if !WINDOWS_UWP
         [Browsable(false)]
+#endif
         [DefaultValue(null)]
         public string Interface
         {
@@ -142,7 +148,9 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <summary>
         /// object type.
         /// </summary>
+#if !WINDOWS_UWP
         [Browsable(false)]
+#endif
         public ObjectType ObjectType
         {
             get;
@@ -152,7 +160,9 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <summary>
         /// Interface type.
         /// </summary>
+#if !WINDOWS_UWP
         [Browsable(false)]
+#endif
         [DefaultValue(0)]
         public int Version
         {
@@ -174,7 +184,10 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// </summary>
         /// <remarks>        
         /// </remarks>
-        [Browsable(false), DefaultValue(DataType.None)]
+#if !WINDOWS_UWP
+        [Browsable(false)]
+#endif
+        [DefaultValue(DataType.None)]
         public DataType Type
         {
             get
@@ -199,7 +212,10 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// </summary>
         /// <remarks>        
         /// </remarks>
-        [Browsable(false), DefaultValue(DataType.None)]
+#if !WINDOWS_UWP
+        [Browsable(false)]
+#endif
+        [DefaultValue(DataType.None)]
         public DataType UIType
         {
             get

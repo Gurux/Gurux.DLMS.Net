@@ -41,8 +41,10 @@ using System.Xml.Serialization;
 using System.Xml;
 
 namespace Gurux.DLMS.ManufacturerSettings
-{  
+{
+#if !WINDOWS_UWP
     [Serializable]
+#endif
     public class GXObisValueItemCollection : List<GXObisValueItem>, IList<GXObisValueItem>
     {
         #region IList<GXObisValueItem> Members

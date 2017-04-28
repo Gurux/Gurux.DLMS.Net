@@ -41,6 +41,7 @@ using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -50,10 +51,8 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSGprsSetup()
-        : base(ObjectType.GprsSetup)
+        : this("0.0.25.4.0.255", 0)
         {
-            DefaultQualityOfService = new GXDLMSQosElement();
-            RequestedQualityOfService = new GXDLMSQosElement();
         }
 
         /// <summary>
@@ -61,10 +60,8 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSGprsSetup(string ln)
-        : base(ObjectType.GprsSetup, ln, 0)
+        : this(ln, 0)
         {
-            DefaultQualityOfService = new GXDLMSQosElement();
-            RequestedQualityOfService = new GXDLMSQosElement();
         }
 
         /// <summary>
@@ -87,7 +84,7 @@ namespace Gurux.DLMS.Objects
         }
 
         [XmlIgnore()]
-        public long PINCode
+        public UInt16 PINCode
         {
             get;
             set;
@@ -153,7 +150,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt,
+            return new string[] {Internal.GXCommon.GetLogicalNameString(),
                              "APN", "PIN Code",
                              "Default Quality Of Service and Requested Quality Of Service"
                             };
@@ -195,7 +192,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -255,14 +252,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -277,7 +267,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 3)
             {
-                PINCode = Convert.ToInt16(e.Value);
+                PINCode = Convert.ToUInt16(e.Value);
             }
             else if (e.Index == 4)
             {
@@ -302,6 +292,60 @@ namespace Gurux.DLMS.Objects
             {
                 e.Error = ErrorCode.ReadWriteDenied;
             }
+        }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            APN = reader.ReadElementContentAsString("APN");
+            PINCode = (UInt16)reader.ReadElementContentAsInt("PINCode");
+            if (reader.IsStartElement("DefaultQualityOfService", true))
+            {
+                DefaultQualityOfService.Precedence = (byte)reader.ReadElementContentAsInt("Precedence");
+                DefaultQualityOfService.Delay = (byte)reader.ReadElementContentAsInt("Delay");
+                DefaultQualityOfService.Reliability = (byte)reader.ReadElementContentAsInt("Reliability");
+                DefaultQualityOfService.PeakThroughput = (byte)reader.ReadElementContentAsInt("PeakThroughput");
+                DefaultQualityOfService.MeanThroughput = (byte)reader.ReadElementContentAsInt("MeanThroughput");
+                reader.ReadEndElement("DefaultQualityOfService");
+            }
+            if (reader.IsStartElement("RequestedQualityOfService", true))
+            {
+                RequestedQualityOfService.Precedence = (byte)reader.ReadElementContentAsInt("Precedence");
+                RequestedQualityOfService.Delay = (byte)reader.ReadElementContentAsInt("Delay");
+                RequestedQualityOfService.Reliability = (byte)reader.ReadElementContentAsInt("Reliability");
+                RequestedQualityOfService.PeakThroughput = (byte)reader.ReadElementContentAsInt("PeakThroughput");
+                RequestedQualityOfService.MeanThroughput = (byte)reader.ReadElementContentAsInt("MeanThroughput");
+                reader.ReadEndElement("DefaultQualityOfService");
+            }
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            writer.WriteElementString("APN", APN);
+            writer.WriteElementString("PINCode", PINCode);
+            if (DefaultQualityOfService != null)
+            {
+                writer.WriteStartElement("DefaultQualityOfService");
+                writer.WriteElementString("Precedence", DefaultQualityOfService.Precedence);
+                writer.WriteElementString("Delay", DefaultQualityOfService.Delay);
+                writer.WriteElementString("Reliability", DefaultQualityOfService.Reliability);
+                writer.WriteElementString("PeakThroughput", DefaultQualityOfService.PeakThroughput);
+                writer.WriteElementString("MeanThroughput", DefaultQualityOfService.MeanThroughput);
+                writer.WriteEndElement();
+            }
+            if (RequestedQualityOfService != null)
+            {
+                writer.WriteStartElement("RequestedQualityOfService");
+                writer.WriteElementString("Precedence", RequestedQualityOfService.Precedence);
+                writer.WriteElementString("Delay", RequestedQualityOfService.Delay);
+                writer.WriteElementString("Reliability", RequestedQualityOfService.Reliability);
+                writer.WriteElementString("PeakThroughput", RequestedQualityOfService.PeakThroughput);
+                writer.WriteElementString("MeanThroughput", RequestedQualityOfService.MeanThroughput);
+                writer.WriteEndElement();
+            }
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
         }
         #endregion
     }

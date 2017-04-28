@@ -39,7 +39,9 @@ using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.ManufacturerSettings
 {
+#if !WINDOWS_UWP
     [Serializable]
+#endif
     public class GXObisCodeCollection : List<GXObisCode>
     {
         public GXObisCode FindByLN(ObjectType type, string ln, GXObisCode skipItem)

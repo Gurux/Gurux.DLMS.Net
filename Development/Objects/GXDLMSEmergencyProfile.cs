@@ -33,6 +33,8 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Text;
+
 namespace Gurux.DLMS.Objects
 {
     public class GXDLMSEmergencyProfile
@@ -55,8 +57,16 @@ namespace Gurux.DLMS.Objects
 
         public override string ToString()
         {
-            return ID.ToString() + " " + Convert.ToString(ActivationTime) + " " + Duration.ToString();
+            StringBuilder sb = new StringBuilder();
+            sb.Append(ID);
+            sb.Append(" ");
+            if (ActivationTime != null)
+            {
+                sb.Append(ActivationTime.ToFormatString());
+            }
+            sb.Append(" ");
+            sb.Append(Duration);
+            return sb.ToString();
         }
     }
-
 }

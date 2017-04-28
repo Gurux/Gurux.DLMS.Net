@@ -51,7 +51,26 @@ namespace Gurux.DLMS
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXDLMSWeekProfile(string name, int monday, int tuesday, 
+        public GXDLMSWeekProfile(string name, int monday, int tuesday,
+            int wednesday, int thursday, int friday, int saturday, int sunday)
+        {
+            if (name != null)
+            {
+                Name = ASCIIEncoding.ASCII.GetBytes(name);
+            }
+            Monday = monday;
+            Tuesday = tuesday;
+            Wednesday = wednesday;
+            Thursday = thursday;
+            Friday = friday;
+            Saturday = saturday;
+            Sunday = sunday;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public GXDLMSWeekProfile(byte[] name, int monday, int tuesday,
             int wednesday, int thursday, int friday, int saturday, int sunday)
         {
             Name = name;
@@ -64,7 +83,7 @@ namespace Gurux.DLMS
             Sunday = sunday;
         }
 
-        public string Name
+        public byte[] Name
         {
             get;
             set;
@@ -113,7 +132,7 @@ namespace Gurux.DLMS
 
         public override string ToString()
         {
-            return Name;
+            return GXDLMSTranslator.ToHex(Name);
         }
 
     }

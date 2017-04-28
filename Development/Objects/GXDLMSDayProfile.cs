@@ -138,7 +138,7 @@ namespace Gurux.DLMS
 
         public override string ToString()
         {
-            return StartTime.ToString() + " " + ScriptLogicalName;
+            return StartTime.ToString() + " " + ScriptLogicalName + " " + ScriptSelector;
         }
     }
 }

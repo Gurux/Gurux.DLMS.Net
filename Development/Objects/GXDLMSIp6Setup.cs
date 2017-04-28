@@ -43,6 +43,7 @@ using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 using System.Net;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -216,7 +217,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt,
+            return new string[] {Internal.GXCommon.GetLogicalNameString(),
                              "Data LinkLayer Reference",
         "Address Config Mode", "Unicast IP Address", "Multicast IP Address",
         "Gateway IP Address", "Primary DNS Address", "Secondary DNS Address",
@@ -283,7 +284,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -393,14 +394,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -500,6 +494,98 @@ namespace Gurux.DLMS.Objects
             {
                 e.Error = ErrorCode.ReadWriteDenied;
             }
+        }
+
+        private IPAddress[] LoadIPAddress(GXXmlReader reader, string name)
+        {
+            List<IPAddress> list = new List<IPAddress>();
+            if (reader.IsStartElement(name, true))
+            {
+                while (reader.IsStartElement("Value", false))
+                {
+                    list.Add(IPAddress.Parse(reader.ReadElementContentAsString("Value")));
+                }
+                reader.ReadEndElement(name);
+            }
+            return list.ToArray();
+        }
+
+        private GXNeighborDiscoverySetup[] LoadNeighborDiscoverySetup(GXXmlReader reader, string name)
+        {
+            List<GXNeighborDiscoverySetup> list = new List<GXNeighborDiscoverySetup>();
+            if (reader.IsStartElement(name, true))
+            {
+                while (reader.IsStartElement("Item", false))
+                {
+                    GXNeighborDiscoverySetup it = new GXNeighborDiscoverySetup();
+                    list.Add(it);
+                    it.MaxRetry = (byte)reader.ReadElementContentAsInt("MaxRetry");
+                    it.RetryWaitTime = (UInt16)reader.ReadElementContentAsInt("RetryWaitTime");
+                    it.SendPeriod = (UInt32)reader.ReadElementContentAsInt("SendPeriod");
+                }
+                reader.ReadEndElement(name);
+            }
+            return list.ToArray();
+        }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            DataLinkLayerReference = reader.ReadElementContentAsString("DataLinkLayerReference");
+            AddressConfigMode = (AddressConfigMode)reader.ReadElementContentAsInt("AddressConfigMode");
+            UnicastIPAddress = LoadIPAddress(reader, "UnicastIPAddress");
+            MulticastIPAddress = LoadIPAddress(reader, "MulticastIPAddress");
+            GatewayIPAddress = LoadIPAddress(reader, "GatewayIPAddress");
+            PrimaryDNSAddress = IPAddress.Parse(reader.ReadElementContentAsString("PrimaryDNSAddress"));
+            SecondaryDNSAddress = IPAddress.Parse(reader.ReadElementContentAsString("SecondaryDNSAddress"));
+            TrafficClass = (byte)reader.ReadElementContentAsInt("TrafficClass");
+            NeighborDiscoverySetup = LoadNeighborDiscoverySetup(reader, "NeighborDiscoverySetup");
+        }
+
+        private void SaveIPAddress(GXXmlWriter writer, IPAddress[] list, string name)
+        {
+            if (list != null)
+            {
+                writer.WriteStartElement(name);
+                foreach (IPAddress it in list)
+                {
+                    writer.WriteElementString("Value", it.ToString());
+                }
+                writer.WriteEndElement();
+            }
+        }
+
+        private void SaveNeighborDiscoverySetup(GXXmlWriter writer, GXNeighborDiscoverySetup[] list, string name)
+        {
+            if (list != null)
+            {
+                writer.WriteStartElement(name);
+                foreach (GXNeighborDiscoverySetup it in list)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("MaxRetry", it.MaxRetry);
+                    writer.WriteElementString("RetryWaitTime", it.RetryWaitTime);
+                    writer.WriteElementString("SendPeriod", it.SendPeriod);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            writer.WriteElementString("DataLinkLayerReference", DataLinkLayerReference);
+            writer.WriteElementString("AddressConfigMode", (int)AddressConfigMode);
+            SaveIPAddress(writer, UnicastIPAddress, "UnicastIPAddress");
+            SaveIPAddress(writer, MulticastIPAddress, "MulticastIPAddress");
+            SaveIPAddress(writer, GatewayIPAddress, "GatewayIPAddress");
+            writer.WriteElementString("PrimaryDNSAddress", PrimaryDNSAddress.ToString());
+            writer.WriteElementString("SecondaryDNSAddress", SecondaryDNSAddress.ToString());
+            writer.WriteElementString("TrafficClass", TrafficClass);
+            SaveNeighborDiscoverySetup(writer, NeighborDiscoverySetup, "NeighborDiscoverySetup");
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
         }
         #endregion
     }

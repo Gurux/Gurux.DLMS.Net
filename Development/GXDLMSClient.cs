@@ -40,8 +40,10 @@ using System.ComponentModel;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Objects;
 using Gurux.DLMS.ManufacturerSettings;
+#if !WINDOWS_UWP
 using System.Reflection;
 using System.Security.Cryptography;
+#endif
 using Gurux.DLMS.Secure;
 using Gurux.DLMS.Enums;
 
@@ -55,7 +57,11 @@ namespace Gurux.DLMS
         /// <summary>
         /// DLMS settings.
         /// </summary>
-        internal GXDLMSSettings Settings;
+        public GXDLMSSettings Settings
+        {
+            get;
+            private set;
+        }
 
         private static Dictionary<ObjectType, Type> AvailableObjectTypes = new Dictionary<ObjectType, Type>();
         /// <summary>
@@ -77,6 +83,7 @@ namespace Gurux.DLMS
         public GXDLMSClient()
         {
             Settings = new GXDLMSSettings(false);
+            Settings.Objects.Parent = this;
         }
 
 
@@ -94,6 +101,7 @@ namespace Gurux.DLMS
                             string password, InterfaceType interfaceType)
         {
             Settings = new GXDLMSSettings(false);
+            Settings.Objects.Parent = this;
             Settings.UseLogicalNameReferencing = useLogicalNameReferencing;
             Settings.InterfaceType = interfaceType;
             Settings.Authentication = authentication;
@@ -771,6 +779,18 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Returns object types.
+        /// </summary>
+        /// <returns></returns>
+        /// <remarks>
+        /// This can be used with serialization.
+        /// </remarks>
+        public static ObjectType[] GetObjectTypes2()
+        {
+            return GXDLMS.GetObjectTypes2(AvailableObjectTypes);
+        }
+
+        /// <summary>
         /// Reserved for internal use.
         /// </summary>
         /// <param name="ClassID"></param>
@@ -916,7 +936,7 @@ namespace Gurux.DLMS
             }
             if (logicalName is byte[])
             {
-                obj.LogicalName = GXDLMSObject.ToLogicalName((byte[])logicalName);
+                obj.LogicalName = GXCommon.ToLogicalName((byte[])logicalName);
             }
             else
             {
@@ -974,6 +994,7 @@ namespace Gurux.DLMS
             GXDLMSConverter c = new GXDLMSConverter();
             c.UpdateOBISCodeInformation(objects);
             Settings.Objects = objects;
+            Settings.Objects.Parent = this;
             return objects;
         }
 
@@ -1013,7 +1034,7 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine(string.Format("Unknown object : {0} {1}", ot, GXDLMSObject.ToLogicalName((byte[])objects[2])));
+                    System.Diagnostics.Debug.WriteLine(string.Format("Unknown object : {0} {1}", ot, GXCommon.ToLogicalName((byte[])objects[2])));
                 }
             }
             return items;
@@ -1218,7 +1239,7 @@ namespace Gurux.DLMS
 
             GXDataInfo info = new GXDataInfo();
             info.Type = type;
-            GXDLMSSettings settings = new GXDLMSSettings();
+            GXDLMSSettings settings = new GXDLMSSettings(false);
             settings.UseUtc2NormalTime = useUtc;
             Object ret = GXCommon.GetData(settings, value, info);
             if (!info.Complete)
@@ -1332,15 +1353,7 @@ namespace Gurux.DLMS
                 // CI
                 attributeDescriptor.SetUInt16((UInt16)objectType);
                 // Add LN
-                String[] items = ((String)name).Split('.');
-                if (items.Length != 6)
-                {
-                    throw new ArgumentException("Invalid Logical Name.");
-                }
-                foreach (String it2 in items)
-                {
-                    attributeDescriptor.SetUInt8(byte.Parse(it2));
-                }
+                attributeDescriptor.Set(GXCommon.LogicalNameToBytes((string)name));
                 // Attribute ID.
                 attributeDescriptor.SetUInt8((byte)index);
                 // Method Invocation Parameters is not used.
@@ -1439,15 +1452,7 @@ namespace Gurux.DLMS
                 // Add CI.
                 attributeDescriptor.SetUInt16((UInt16)objectType);
                 // Add LN.
-                String[] items = ((String)name).Split('.');
-                if (items.Length != 6)
-                {
-                    throw new ArgumentException("Invalid Logical Name.");
-                }
-                foreach (String it2 in items)
-                {
-                    attributeDescriptor.SetUInt8(byte.Parse(it2));
-                }
+                attributeDescriptor.Set(GXCommon.LogicalNameToBytes((string)name));
                 // Attribute ID.
                 attributeDescriptor.SetUInt8((byte)index);
                 // Access selection is not used.
@@ -1496,15 +1501,7 @@ namespace Gurux.DLMS
                 // CI
                 attributeDescriptor.SetUInt16((UInt16)objectType);
                 // Add LN
-                String[] items = ((String)name).Split('.');
-                if (items.Length != 6)
-                {
-                    throw new ArgumentException("Invalid Logical Name.");
-                }
-                foreach (String it2 in items)
-                {
-                    attributeDescriptor.SetUInt8(byte.Parse(it2));
-                }
+                attributeDescriptor.Set(GXCommon.LogicalNameToBytes((string)name));
                 // Attribute ID.
                 attributeDescriptor.SetUInt8((byte)attributeOrdinal);
                 if (data == null || data.Size == 0)
@@ -1834,7 +1831,7 @@ namespace Gurux.DLMS
             GXCommon.SetData(Settings, buff, DataType.UInt16,
                              type);
             // LN
-            GXCommon.SetData(Settings, buff, DataType.OctetString, ln);
+            GXCommon.SetData(Settings, buff, DataType.OctetString, GXCommon.LogicalNameToBytes(ln));
             // Add attribute index.
             GXCommon.SetData(Settings, buff, DataType.Int8, index);
             // Add version.
@@ -1862,7 +1859,7 @@ namespace Gurux.DLMS
                     // CI
                     GXCommon.SetData(Settings, buff, DataType.UInt16, it.Key.ObjectType);
                     // LN
-                    GXCommon.SetData(Settings, buff, DataType.OctetString, it.Key.LogicalName);
+                    GXCommon.SetData(Settings, buff, DataType.OctetString, GXCommon.LogicalNameToBytes(it.Key.LogicalName));
                     // Add attribute index.
                     GXCommon.SetData(Settings, buff, DataType.Int8, it.Value.AttributeIndex);
                     // Add data index.

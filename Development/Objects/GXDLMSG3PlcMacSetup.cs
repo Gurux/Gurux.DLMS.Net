@@ -42,6 +42,7 @@ using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Objects.Enums;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -502,7 +503,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "MacShortAddress", "MacRcCoord", "MacPANId", "MackeyTable ", "MacFrameCounter",
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "MacShortAddress", "MacRcCoord", "MacPANId", "MackeyTable ", "MacFrameCounter",
                 "MacToneMask", "MacTmrTtl", "MacMaxFrameRetries", "MacneighbourTableEntryTtl", "MacNeighbourTable", "MachighPriorityWindowSize",
                 "MacCscmFairnessLimit", "MacBeaconRandomizationWindowLength", "MacA", "MacK", "MacMinCwAttempts", "MacCenelecLegacyMode",
                 "MacFCCLegacyMode", "MacMaxBe", "MacMaxCsmaBackoffs", "MacMinBe" };
@@ -636,7 +637,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -773,14 +774,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -893,12 +887,149 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 22)
             {
-                MinBe = Convert.ToByte(e.Value); ;
+                MinBe = Convert.ToByte(e.Value);
             }
             else
             {
                 e.Error = ErrorCode.ReadWriteDenied;
             }
+        }
+
+        private void LoadKeyTable(GXXmlReader reader)
+        {
+            KeyTable.Clear();
+            if (reader.IsStartElement("KeyTable", true))
+            {
+                while (reader.IsStartElement("Item", true))
+                {
+                    byte k = (byte)reader.ReadElementContentAsInt("Key");
+                    byte[] d = GXDLMSTranslator.HexToBytes(reader.ReadElementContentAsString("Data"));
+                    KeyTable.Add(new GXKeyValuePair<byte, byte[]>(k, d));
+                }
+                reader.ReadEndElement("KeyTable");
+            }
+        }
+
+        private void LoadNeighbourTable(GXXmlReader reader)
+        {
+            List<GXDLMSNeighbourTable> list = new List<Objects.GXDLMSNeighbourTable>();
+            if (reader.IsStartElement("NeighbourTable", true))
+            {
+                while (reader.IsStartElement("Item", true))
+                {
+                    GXDLMSNeighbourTable it = new GXDLMSNeighbourTable();
+                    it.ShortAddress = (UInt16)reader.ReadElementContentAsInt("ShortAddress");
+                    it.Enabled = reader.ReadElementContentAsInt("Enabled") != 0;
+                    it.ToneMap = reader.ReadElementContentAsString("ToneMap");
+                    it.Modulation = (Modulation)reader.ReadElementContentAsInt("Modulation");
+                    it.TxGain = (sbyte)reader.ReadElementContentAsInt("TxGain");
+                    it.TxRes = (GainResolution)reader.ReadElementContentAsInt("TxRes");
+                    it.TxCoeff = reader.ReadElementContentAsString("TxCoeff");
+                    it.Lqi = (byte)reader.ReadElementContentAsInt("Lqi");
+                    it.PhaseDifferential = (sbyte)reader.ReadElementContentAsInt("PhaseDifferential");
+                    it.TMRValidTime = (byte)reader.ReadElementContentAsInt("TMRValidTime");
+                    it.NeighbourValidTime = (byte)reader.ReadElementContentAsInt("NeighbourValidTime");
+                    list.Add(it);
+                }
+                reader.ReadEndElement("NeighbourTable");
+            }
+            NeighbourTable = list.ToArray();
+        }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            ShortAddress = (UInt16)reader.ReadElementContentAsInt("ShortAddress");
+            RcCoord = (UInt16)reader.ReadElementContentAsInt("RcCoord");
+            PANId = (UInt16)reader.ReadElementContentAsInt("PANId");
+            LoadKeyTable(reader);
+            FrameCounter = (UInt16)reader.ReadElementContentAsInt("FrameCounter");
+            ToneMask = reader.ReadElementContentAsString("ToneMask");
+            TmrTtl = (byte)reader.ReadElementContentAsInt("TmrTtl");
+            MaxFrameRetries = (byte)reader.ReadElementContentAsInt("MaxFrameRetries");
+            NeighbourTableEntryTtl = (byte)reader.ReadElementContentAsInt("NeighbourTableEntryTtl");
+            LoadNeighbourTable(reader);
+            HighPriorityWindowSize = (byte)reader.ReadElementContentAsInt("HighPriorityWindowSize");
+            CscmFairnessLimit = (byte)reader.ReadElementContentAsInt("CscmFairnessLimit");
+            BeaconRandomizationWindowLength = (byte)reader.ReadElementContentAsInt("BeaconRandomizationWindowLength");
+            A = (byte)reader.ReadElementContentAsInt("A");
+            K = (byte)reader.ReadElementContentAsInt("K");
+            MinCwAttempts = (byte)reader.ReadElementContentAsInt("MinCwAttempts");
+            CenelecLegacyMode = (byte)reader.ReadElementContentAsInt("CenelecLegacyMode");
+            FccLegacyMode = (byte)reader.ReadElementContentAsInt("FccLegacyMode");
+            MaxBe = (byte)reader.ReadElementContentAsInt("MaxBe");
+            MaxCsmaBackoffs = (byte)reader.ReadElementContentAsInt("MaxCsmaBackoffs");
+            MinBe = (byte)reader.ReadElementContentAsInt("MinBe");
+        }
+
+
+        void SaveKeyTable(GXXmlWriter writer)
+        {
+            if (KeyTable != null)
+            {
+                writer.WriteStartElement("KeyTable");
+                foreach (GXKeyValuePair<byte, byte[]> it in KeyTable)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Key", it.Key);
+                    writer.WriteElementString("Data", GXDLMSTranslator.ToHex(it.Value));
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();//KeyTable
+            }
+        }
+
+        void SaveNeighbourTable(GXXmlWriter writer)
+        {
+            if (NeighbourTable != null)
+            {
+                writer.WriteStartElement("NeighbourTable");
+                foreach (GXDLMSNeighbourTable it in NeighbourTable)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("ShortAddress", it.ShortAddress);
+                    writer.WriteElementString("Enabled", it.Enabled);
+                    writer.WriteElementString("ToneMap", it.ToneMap);
+                    writer.WriteElementString("Modulation", (int)it.Modulation);
+                    writer.WriteElementString("TxGain", it.TxGain);
+                    writer.WriteElementString("TxRes", (int)it.TxRes);
+                    writer.WriteElementString("TxCoeff", it.TxCoeff);
+                    writer.WriteElementString("Lqi", it.Lqi);
+                    writer.WriteElementString("PhaseDifferential", it.PhaseDifferential);
+                    writer.WriteElementString("TMRValidTime", it.TMRValidTime);
+                    writer.WriteElementString("NeighbourValidTime", it.NeighbourValidTime);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();//NeighbourTable
+            }
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            writer.WriteElementString("ShortAddress", ShortAddress);
+            writer.WriteElementString("RcCoord", RcCoord);
+            writer.WriteElementString("PANId", PANId);
+            SaveKeyTable(writer);
+            writer.WriteElementString("FrameCounter", FrameCounter);
+            writer.WriteElementString("ToneMask", ToneMask);
+            writer.WriteElementString("TmrTtl", TmrTtl);
+            writer.WriteElementString("MaxFrameRetries", MaxFrameRetries);
+            writer.WriteElementString("NeighbourTableEntryTtl", NeighbourTableEntryTtl);
+            SaveNeighbourTable(writer);
+            writer.WriteElementString("HighPriorityWindowSize", HighPriorityWindowSize);
+            writer.WriteElementString("CscmFairnessLimit", CscmFairnessLimit);
+            writer.WriteElementString("BeaconRandomizationWindowLength", BeaconRandomizationWindowLength);
+            writer.WriteElementString("A", A);
+            writer.WriteElementString("K", K);
+            writer.WriteElementString("MinCwAttempts", MinCwAttempts);
+            writer.WriteElementString("CenelecLegacyMode", CenelecLegacyMode);
+            writer.WriteElementString("FccLegacyMode", FccLegacyMode);
+            writer.WriteElementString("MaxBe", MaxBe);
+            writer.WriteElementString("MaxCsmaBackoffs", MaxCsmaBackoffs);
+            writer.WriteElementString("MinBe", MinBe);
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
         }
         #endregion
     }

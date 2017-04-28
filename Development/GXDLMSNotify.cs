@@ -195,7 +195,6 @@ namespace Gurux.DLMS
         /// DLMS spesification do not specify the structure of Data-Notification body.
         /// So each manufacture can sent different data.
         /// </remarks>
-        /// <seealso cref="GetDataNotificationMessages"/>
         internal static void AddData(GXDLMSSettings settings, GXDLMSObject obj, int index, GXByteBuffer buff)
         {
             DataType dt;
@@ -356,7 +355,7 @@ namespace Gurux.DLMS
                     if (classID > 0)
                     {
                         GXDLMSObject comp;
-                        comp = this.Objects.FindByLN((ObjectType)classID, GXDLMSObject.ToLogicalName(tmp[1] as byte[]));
+                        comp = this.Objects.FindByLN((ObjectType)classID, GXCommon.ToLogicalName(tmp[1] as byte[]));
                         if (comp == null)
                         {
                             comp = GXDLMSClient.CreateDLMSObject(classID, 0, 0, tmp[1], null);
@@ -370,7 +369,7 @@ namespace Gurux.DLMS
                         else
                         {
                             System.Diagnostics.Debug.WriteLine(string.Format("Unknown object : {0} {1}",
-                                classID, GXDLMSObject.ToLogicalName((byte[])tmp[1])));
+                                classID, GXCommon.ToLogicalName((byte[])tmp[1])));
                         }
                     }
                 }

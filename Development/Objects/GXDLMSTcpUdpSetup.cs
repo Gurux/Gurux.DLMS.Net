@@ -40,6 +40,8 @@ using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Enums;
+using System.Xml;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
@@ -207,7 +209,7 @@ namespace Gurux.DLMS.Objects
         string[] IGXDLMSBase.GetNames()
         {
 
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Port", "IP Reference",
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Port", "IP Reference",
                               "Maximum Segment Size", "Maximum Simultaneous Connections", "Inactivity Timeout"
                             };
         }
@@ -256,7 +258,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -264,7 +266,7 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 3)
             {
-                return IPReference;
+                return GXCommon.LogicalNameToBytes(IPReference);
             }
             if (e.Index == 4)
             {
@@ -286,14 +288,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -301,15 +296,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 3)
             {
-                if (e.Value is byte[])
-                {
-                    IPReference = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
-                else
-                {
-                    IPReference = Convert.ToString(e.Value);
-
-                }
+                IPReference = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 4)
             {
@@ -328,6 +315,30 @@ namespace Gurux.DLMS.Objects
                 e.Error = ErrorCode.ReadWriteDenied;
             }
         }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            Port = reader.ReadElementContentAsInt("Port");
+            IPReference = reader.ReadElementContentAsString("IPReference");
+            MaximumSegmentSize = reader.ReadElementContentAsInt("MaximumSegmentSize");
+            MaximumSimultaneousConnections = reader.ReadElementContentAsInt("MaximumSimultaneousConnections");
+            InactivityTimeout = reader.ReadElementContentAsInt("InactivityTimeout");
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            writer.WriteElementString("Port", Port);
+            writer.WriteElementString("IPReference", IPReference);
+            writer.WriteElementString("MaximumSegmentSize", MaximumSegmentSize);
+            writer.WriteElementString("MaximumSimultaneousConnections", MaximumSimultaneousConnections);
+            writer.WriteElementString("InactivityTimeout", InactivityTimeout);
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
+        }
+
+
         #endregion
     }
 }

@@ -42,7 +42,9 @@ using Gurux.DLMS.Internal;
 using Gurux.DLMS.ManufacturerSettings;
 using System.Reflection;
 using System.Threading;
+#if !WINDOWS_UWP
 using System.Security.Cryptography;
+#endif
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Secure;
 using System.Diagnostics;
@@ -524,8 +526,23 @@ namespace Gurux.DLMS
         /// </remarks>
         public void Initialize()
         {
-            bool association = false;
+            Initialize(false);
+        }
+
+        /// <summary>
+        ///  Initialize server.
+        /// </summary>
+        /// <remarks>
+        /// This must call after server objects are set.
+        /// <param name="manually">If true, server handle objects and all data are updated manually.</param>
+        public void Initialize(bool manually)
+        {
             Initialized = true;
+            if (manually)
+            {
+                return;
+            }
+            bool association = false;
             for (int pos = 0; pos != Items.Count; ++pos)
             {
                 GXDLMSObject it = Items[pos];
@@ -566,7 +583,6 @@ namespace Gurux.DLMS
                 {
                     hdlcSetup = it as GXDLMSHdlcSetup;
                 }
-
                 else if (!(it is IGXDLMSBase))//Remove unsupported items.
                 {
                     Debug.WriteLine(it.ObjectType.ToString() + " not supported.");
@@ -574,7 +590,6 @@ namespace Gurux.DLMS
                     --pos;
                 }
             }
-
             if (!association)
             {
                 if (UseLogicalNameReferencing)
@@ -755,7 +770,9 @@ namespace Gurux.DLMS
                 Debug.WriteLine(ex.ToString());
                 if (info.Command != Command.None)
                 {
-                    return ReportError(info.Command, ErrorCode.HardwareFault);
+                    byte[] reply = ReportError(info.Command, ErrorCode.HardwareFault);
+                    info.Clear();
+                    return reply;
                 }
                 else
                 {

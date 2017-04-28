@@ -37,6 +37,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Gurux.DLMS.Enums;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -103,5 +104,23 @@ namespace Gurux.DLMS.Objects
         /// <param name="settings">DLMS settings.</param>
         /// <param name="e">Invoke parameters.</param>
         byte[] Invoke(GXDLMSSettings settings, ValueEventArgs e);
+
+        /// <summary>
+        /// Load object content from XML.
+        /// </summary>
+        /// <param name="reader">XML reader.</param>
+        void Load(GXXmlReader reader);
+
+        /// <summary>
+        /// Save object content to XML.
+        /// </summary>
+        /// <param name="writer">XML writer.</param>
+        void Save(GXXmlWriter writer);
+
+        /// <summary>
+        /// Handle actions after Load.
+        /// </summary>
+        /// <param name="reader">XML reader.</param>
+        void PostLoad(GXXmlReader reader);
     }
 }

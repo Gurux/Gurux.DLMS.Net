@@ -40,6 +40,8 @@ using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Enums;
+using System.Xml;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
@@ -181,7 +183,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "NodeId", "SubnetId", "DomainId", "SelfIdentification", "ProgramId", "UniqueNodeId" };
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "NodeId", "SubnetId", "DomainId", "SelfIdentification", "ProgramId", "UniqueNodeId" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -232,7 +234,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -246,11 +248,11 @@ namespace Gurux.DLMS.Objects
             {
                 return DomainId;
             }
-            if (e.Index == 5)
+            if (e.Index == 6)
             {
                 return ProgramId;
             }
-            if (e.Index == 6)
+            if (e.Index == 7)
             {
                 return UniqueNodeId;
             }
@@ -262,14 +264,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -290,7 +285,7 @@ namespace Gurux.DLMS.Objects
                     DomainId = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, false).ToString();
                 }
             }
-            else if (e.Index == 5)
+            else if (e.Index == 6)
             {
                 if (e.Value is string)
                 {
@@ -301,7 +296,7 @@ namespace Gurux.DLMS.Objects
                     ProgramId = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, false).ToString();
                 }
             }
-            else if (e.Index == 6)
+            else if (e.Index == 7)
             {
                 if (e.Value is string)
                 {
@@ -316,6 +311,29 @@ namespace Gurux.DLMS.Objects
             {
                 e.Error = ErrorCode.ReadWriteDenied;
             }
+        }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            NodeId = (byte)reader.ReadElementContentAsInt("NodeId");
+            SubnetId = (byte)reader.ReadElementContentAsInt("SubnetId");
+            DomainId = reader.ReadElementContentAsString("DomainId");
+            ProgramId = reader.ReadElementContentAsString("ProgramId");
+            UniqueNodeId = reader.ReadElementContentAsString("UniqueNodeId");
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            writer.WriteElementString("NodeId", NodeId);
+            writer.WriteElementString("SubnetId", SubnetId);
+            writer.WriteElementString("DomainId", DomainId);
+            writer.WriteElementString("ProgramId", ProgramId);
+            writer.WriteElementString("UniqueNodeId", UniqueNodeId);
+        }
+
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
         }
         #endregion
     }

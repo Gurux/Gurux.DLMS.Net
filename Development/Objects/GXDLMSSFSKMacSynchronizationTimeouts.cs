@@ -40,6 +40,8 @@ using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Enums;
+using System.Xml;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
@@ -160,7 +162,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "SearchInitiatorTimeout", "SynchronizationConfirmationTimeout", "TimeOutNotAddressed", "TimeOutFrameNotOK" };
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "SearchInitiatorTimeout", "SynchronizationConfirmationTimeout", "TimeOutNotAddressed", "TimeOutFrameNotOK" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -203,7 +205,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -229,14 +231,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -259,6 +254,27 @@ namespace Gurux.DLMS.Objects
                 e.Error = ErrorCode.ReadWriteDenied;
             }
         }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            SearchInitiatorTimeout = (UInt16)reader.ReadElementContentAsInt("SearchInitiatorTimeout");
+            SynchronizationConfirmationTimeout = (UInt16)reader.ReadElementContentAsInt("SynchronizationConfirmationTimeout");
+            TimeOutNotAddressed = (UInt16)reader.ReadElementContentAsInt("TimeOutNotAddressed");
+            TimeOutFrameNotOK = (UInt16)reader.ReadElementContentAsInt("TimeOutFrameNotOK");
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            writer.WriteElementString("SearchInitiatorTimeout", SearchInitiatorTimeout);
+            writer.WriteElementString("SynchronizationConfirmationTimeout", SynchronizationConfirmationTimeout);
+            writer.WriteElementString("TimeOutNotAddressed", TimeOutNotAddressed);
+            writer.WriteElementString("TimeOutFrameNotOK", TimeOutFrameNotOK);
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
+        }
+
         #endregion
     }
 }

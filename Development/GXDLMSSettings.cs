@@ -176,19 +176,6 @@ namespace Gurux.DLMS
         ///<summary>
         ///Constructor.
         ///</summary>
-        public GXDLMSSettings() : this(false)
-        {
-        }
-        ///<summary>
-        ///Constructor.
-        ///</summary>
-        public GXDLMSSettings(GXDLMSObjectCollection objects) : this(false)
-        {
-            Objects = objects;
-        }
-        ///<summary>
-        ///Constructor.
-        ///</summary>
         internal GXDLMSSettings(bool server)
         {
             UseCustomChallenge = false;

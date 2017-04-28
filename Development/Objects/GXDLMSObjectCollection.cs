@@ -40,15 +40,17 @@ using System.ComponentModel;
 
 using System.Collections;
 using Gurux.DLMS.Enums;
-
+using System.Xml;
+using System.IO;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
     /// <summary>
     /// Collection of DLMS objects.
     /// </summary>
-    public class GXDLMSObjectCollection : IList<GXDLMSObject>, 
-                            ICollection<GXDLMSObject>, IEnumerable<GXDLMSObject>                            
+    public class GXDLMSObjectCollection : IList<GXDLMSObject>,
+                            ICollection<GXDLMSObject>, IEnumerable<GXDLMSObject>
     {
         private List<GXDLMSObject> Objects;
 
@@ -72,14 +74,14 @@ namespace Gurux.DLMS.Objects
         {
             //Nothing to do
         }
-        
+
         /// <summary>
         /// Constructor.
         /// </summary>        
         public GXDLMSObjectCollection(int capacity)
         {
             this.Items = new List<GXDLMSObject>(capacity);
-        }        
+        }
 
         #region IList Methods
         /// <summary>
@@ -99,8 +101,8 @@ namespace Gurux.DLMS.Objects
         /// <param name="index">The zero-based index at which item should be inserted.</param>
         /// <param name="item">The object to insert into the System.Collections.Generic.IList.</param>
         public void Insert(int index, GXDLMSObject item)
-        {            
-            this.Items.Insert(index, item);         
+        {
+            this.Items.Insert(index, item);
         }
 
         /// <summary>
@@ -108,8 +110,8 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="index">The zero-based index of the item to remove.</param>
         public void RemoveAt(int index)
-        {            
-            this.Items.RemoveAt(index);         
+        {
+            this.Items.RemoveAt(index);
         }
         #endregion
 
@@ -133,7 +135,7 @@ namespace Gurux.DLMS.Objects
         {
             get;
             set;
-        }      
+        }
 
         public GXDLMSObjectCollection GetObjects(ObjectType type)
         {
@@ -208,7 +210,7 @@ namespace Gurux.DLMS.Objects
             sb.Append(']');
             return sb.ToString();
         }
-           
+
         #region IList<GXDLMSObject> Members
 
         /// <summary>
@@ -226,7 +228,7 @@ namespace Gurux.DLMS.Objects
         #region ICollection<GXDLMSObject> Members
 
         public void Add(GXDLMSObject item)
-        {            
+        {
             Objects.Add(item);
             if (item.Parent == null)
             {
@@ -251,7 +253,7 @@ namespace Gurux.DLMS.Objects
 
         public int Count
         {
-            get 
+            get
             {
                 return Objects.Count;
             }
@@ -259,7 +261,7 @@ namespace Gurux.DLMS.Objects
 
         public bool IsReadOnly
         {
-            get 
+            get
             {
                 return false;
             }
@@ -305,5 +307,43 @@ namespace Gurux.DLMS.Objects
 
         #endregion
 
+        /// <summary>
+        /// Save COSEM objects to the file.
+        /// </summary>
+        /// <param name="filename">File path.</param>
+        /// <param name="values">Are attribute values also serialized.</param>
+        public void Save(string filename, bool values)
+        {
+            using (GXXmlWriter writer = new GXXmlWriter(filename))
+            {
+                writer.WriteStartDocument();
+                writer.WriteStartElement("Objects");
+                foreach (GXDLMSObject it in this)
+                {
+                    writer.WriteStartElement("Object");
+                    writer.WriteAttributeString("Type", it.ObjectType.ToString());
+                    // Add SN
+                    if (it.ShortName != 0)
+                    {
+                        writer.WriteElementString("SN", it.ShortName.ToString());
+                    }
+                    // Add LN
+                    writer.WriteElementString("LN", it.LogicalName);
+                    // Add description if given.
+                    if (!string.IsNullOrEmpty(it.Description))
+                    {
+                        writer.WriteElementString("Description", it.Description);
+                    }
+                    if (values)
+                    {
+                        (it as IGXDLMSBase).Save(writer);
+                    }
+                    // Close object.
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+                writer.WriteEndDocument();
+            }
+        }
     }
 }

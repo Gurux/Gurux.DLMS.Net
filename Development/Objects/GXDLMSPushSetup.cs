@@ -42,6 +42,7 @@ using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -228,7 +229,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Push Object List",
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Push Object List",
                               "Send Destination And Method", "Communication Window", "Randomisation Start Interval", "Number Of Retries", "Repetition Delay"
                             };
         }
@@ -281,7 +282,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             GXByteBuffer buff = new GXByteBuffer();
             if (e.Index == 2)
@@ -348,14 +349,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -366,7 +360,7 @@ namespace Gurux.DLMS.Objects
                     {
                         Object[] tmp = it as Object[];
                         ObjectType type = (ObjectType)Convert.ToUInt16(tmp[0]);
-                        String ln = GXDLMSClient.ChangeType((byte[])tmp[1], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
+                        String ln = GXCommon.ToLogicalName(tmp[1]);
                         GXDLMSObject obj = settings.Objects.FindByLN(type, ln);
                         if (obj == null)
                         {
@@ -384,7 +378,15 @@ namespace Gurux.DLMS.Objects
                 if (tmp != null)
                 {
                     Service = (ServiceType)Convert.ToInt32(tmp[0]);
-                    Destination = (string)GXDLMSClient.ChangeType((byte[])tmp[1], DataType.String, settings.UseUtc2NormalTime);
+                    //LN can be used with HDLC 
+                    if (((byte[])tmp[1]).Length == 6 && ((byte[])tmp[1])[5] == 0xFF)
+                    {
+                        Destination = GXCommon.ToLogicalName((byte[])tmp[1]);
+                    }
+                    else
+                    {
+                        Destination = (string)GXDLMSClient.ChangeType((byte[])tmp[1], DataType.String, settings.UseUtc2NormalTime);
+                    }
                     Message = (MessageType)Convert.ToInt32(tmp[2]);
                 }
             }
@@ -419,6 +421,85 @@ namespace Gurux.DLMS.Objects
                 e.Error = ErrorCode.ReadWriteDenied;
             }
         }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            PushObjectList.Clear();
+            if (reader.IsStartElement("ObjectList", true))
+            {
+                while (reader.IsStartElement("Item", true))
+                {
+                    ObjectType ot = (ObjectType)reader.ReadElementContentAsInt("ObjectType");
+                    string ln = reader.ReadElementContentAsString("LN");
+                    int ai = reader.ReadElementContentAsInt("AI");
+                    int di = reader.ReadElementContentAsInt("DI");
+                    reader.ReadEndElement("ObjectList");
+                    GXDLMSCaptureObject co = new GXDLMSCaptureObject(ai, di);
+                    GXDLMSObject obj = reader.Objects.FindByLN(ot, ln);
+                    PushObjectList.Add(new KeyValuePair<Objects.GXDLMSObject, Objects.GXDLMSCaptureObject>(obj, co));
+                }
+                reader.ReadEndElement("ObjectList");
+            }
+
+            Service = (ServiceType)reader.ReadElementContentAsInt("Service");
+            Destination = reader.ReadElementContentAsString("Destination");
+            Message = (MessageType)reader.ReadElementContentAsInt("Message");
+            CommunicationWindow.Clear();
+            if (reader.IsStartElement("CommunicationWindow", true))
+            {
+                while (reader.IsStartElement("Item", true))
+                {
+                    GXDateTime start = new GXDateTime(reader.ReadElementContentAsString("Start"));
+                    GXDateTime end = new GXDateTime(reader.ReadElementContentAsString("End"));
+                    CommunicationWindow.Add(new KeyValuePair<DLMS.GXDateTime, DLMS.GXDateTime>(start, end));
+                }
+                reader.ReadEndElement("CommunicationWindow");
+            }
+            RandomisationStartInterval = (ushort)reader.ReadElementContentAsInt("RandomisationStartInterval");
+            NumberOfRetries = (byte)reader.ReadElementContentAsInt("NumberOfRetries");
+            RepetitionDelay = (ushort)reader.ReadElementContentAsInt("RepetitionDelay");
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            if (PushObjectList != null)
+            {
+                writer.WriteStartElement("ObjectList");
+                foreach (KeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in PushObjectList)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("ObjectType", (int)it.Key.ObjectType);
+                    writer.WriteElementString("LN", it.Key.LogicalName);
+                    writer.WriteElementString("AI", it.Value.AttributeIndex);
+                    writer.WriteElementString("DI", it.Value.DataIndex);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+            writer.WriteElementString("Service", (int)Service);
+            writer.WriteElementString("Destination", Destination);
+            writer.WriteElementString("Message", (int)Message);
+            if (CommunicationWindow != null)
+            {
+                writer.WriteStartElement("CommunicationWindow");
+                foreach (KeyValuePair<GXDateTime, GXDateTime> it in CommunicationWindow)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Start", it.Key.ToFormatString());
+                    writer.WriteElementString("End", it.Value.ToFormatString());
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+            writer.WriteElementString("RandomisationStartInterval", RandomisationStartInterval);
+            writer.WriteElementString("NumberOfRetries", NumberOfRetries);
+            writer.WriteElementString("RepetitionDelay", RepetitionDelay);
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
+        }
+
         #endregion
     }
 }

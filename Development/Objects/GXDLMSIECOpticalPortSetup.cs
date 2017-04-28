@@ -42,6 +42,8 @@ using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Enums;
+using System.Xml;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
@@ -220,7 +222,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt,
+            return new string[] {Internal.GXCommon.GetLogicalNameString(),
                              "Default Mode",
                              "Default Baud rate",
                              "Proposed Baud rate",
@@ -288,7 +290,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -346,14 +348,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -427,6 +422,33 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            DefaultMode = (OpticalProtocolMode)reader.ReadElementContentAsInt("DefaultMode");
+            DefaultBaudrate = (BaudRate)reader.ReadElementContentAsInt("DefaultBaudrate");
+            ProposedBaudrate = (BaudRate)reader.ReadElementContentAsInt("ProposedBaudrate");
+            ResponseTime = (LocalPortResponseTime)reader.ReadElementContentAsInt("ResponseTime");
+            DeviceAddress = reader.ReadElementContentAsString("DeviceAddress");
+            Password1 = reader.ReadElementContentAsString("Password1");
+            Password2 = reader.ReadElementContentAsString("Password2");
+            Password5 = reader.ReadElementContentAsString("Password5");
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            writer.WriteElementString("DefaultMode", (int)DefaultMode);
+            writer.WriteElementString("DefaultBaudrate", (int)DefaultBaudrate);
+            writer.WriteElementString("ProposedBaudrate", (int)ProposedBaudrate);
+            writer.WriteElementString("ResponseTime", (int)ResponseTime);
+            writer.WriteElementString("DeviceAddress", DeviceAddress);
+            writer.WriteElementString("Password1", Password1);
+            writer.WriteElementString("Password2", Password2);
+            writer.WriteElementString("Password5", Password5);
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
+        }
         #endregion
     }
 }

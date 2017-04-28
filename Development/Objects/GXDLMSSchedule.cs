@@ -39,6 +39,8 @@ using Gurux.DLMS;
 using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.Enums;
+using System.Xml;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
@@ -117,7 +119,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Entries" };
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Entries" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -148,14 +150,14 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Array);
                 data.SetUInt8((byte)Entries.Count);
-                /*
+                /*TODO:
                 foreach (GXScheduleEntry it in Entries)
                 {
                     data.SetUInt8((byte)DataType.Structure);
@@ -241,14 +243,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -260,7 +255,7 @@ namespace Gurux.DLMS.Objects
                     Object[] tmp = (Object[])it;
                     item.Index = Convert.ToByte(tmp[0]);
                     item.Enable = (bool)tmp[1];
-                    item.LogicalName = GXDLMSClient.ChangeType((byte[])tmp[2], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
+                    item.LogicalName = GXCommon.ToLogicalName(tmp[2]);
                     item.ScriptSelector = Convert.ToByte(tmp[3]);
                     item.SwitchTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[4], DataType.DateTime, settings.UseUtc2NormalTime);
                     item.ValidityWindow = Convert.ToByte(tmp[5]);
@@ -276,6 +271,59 @@ namespace Gurux.DLMS.Objects
                 e.Error = ErrorCode.ReadWriteDenied;
             }
         }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            Entries.Clear();
+            if (reader.IsStartElement("Entries", true))
+            {
+                while (reader.IsStartElement("Item", true))
+                {
+                    GXScheduleEntry it = new GXScheduleEntry();
+                    it.Index = (byte)reader.ReadElementContentAsInt("Index");
+                    it.Enable = reader.ReadElementContentAsInt("Enable") != 0;
+                    it.LogicalName = reader.ReadElementContentAsString("LogicalName");
+                    it.ScriptSelector = (byte)reader.ReadElementContentAsInt("ScriptSelector");
+                    it.SwitchTime = (GXDateTime)reader.ReadElementContentAsObject("SwitchTime", new GXDateTime());
+                    it.ValidityWindow = (byte)reader.ReadElementContentAsInt("ValidityWindow");
+                    it.ExecWeekdays = reader.ReadElementContentAsString("ExecWeekdays");
+                    it.ExecSpecDays = reader.ReadElementContentAsString("ExecSpecDays");
+                    it.BeginDate = (GXDateTime)reader.ReadElementContentAsObject("BeginDate", new GXDateTime());
+                    it.EndDate = (GXDateTime)reader.ReadElementContentAsObject("EndDate", new GXDateTime());
+                    Entries.Add(it);
+                }
+                reader.ReadEndElement("Entries");
+            }
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            if (Entries != null)
+            {
+                writer.WriteStartElement("Entries");
+                foreach (GXScheduleEntry it in Entries)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Index", it.Index);
+                    writer.WriteElementString("Enable", it.Enable);
+                    writer.WriteElementString("LogicalName", it.LogicalName);
+                    writer.WriteElementString("ScriptSelector", it.ScriptSelector);
+                    writer.WriteElementObject("SwitchTime", it.SwitchTime);
+                    writer.WriteElementString("ValidityWindow", it.ValidityWindow);
+                    writer.WriteElementString("ExecWeekdays", it.ExecWeekdays);
+                    writer.WriteElementString("ExecSpecDays", it.ExecSpecDays);
+                    writer.WriteElementObject("BeginDate", it.BeginDate);
+                    writer.WriteElementObject("EndDate", it.EndDate);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();//Entries
+            }
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
+        }
+
         #endregion
     }
 }

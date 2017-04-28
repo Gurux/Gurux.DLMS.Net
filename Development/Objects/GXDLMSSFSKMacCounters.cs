@@ -41,6 +41,7 @@ using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Internal;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -203,7 +204,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "SynchronizationRegister", "Desynchronization listing", "BroadcastFramesCounter",
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "SynchronizationRegister", "Desynchronization listing", "BroadcastFramesCounter",
                               "RepetitionsCounter", "TransmissionsCounter", "CrcOkFramesCounter", "CrcNOkFramesCounter"
                             };
         }
@@ -267,7 +268,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -299,6 +300,7 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetData(settings, bb, DataType.UInt32, TimeOutFrameNotOkDesynchronization);
                 GXCommon.SetData(settings, bb, DataType.UInt32, WriteRequestDesynchronization);
                 GXCommon.SetData(settings, bb, DataType.UInt32, WrongInitiatorDesynchronization);
+                return bb.Array();
             }
             if (e.Index == 4)
             {
@@ -344,14 +346,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -407,6 +402,83 @@ namespace Gurux.DLMS.Objects
                 e.Error = ErrorCode.ReadWriteDenied;
             }
         }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            SynchronizationRegister.Clear();
+            if (reader.IsStartElement("SynchronizationRegisters", true))
+            {
+                while (reader.IsStartElement("Item", true))
+                {
+                    UInt16 k = (UInt16)reader.ReadElementContentAsInt("Key");
+                    UInt32 v = (UInt32)reader.ReadElementContentAsInt("Value");
+                    SynchronizationRegister.Add(new KeyValuePair<UInt16, UInt32>(k, v));
+                }
+                reader.ReadEndElement("SynchronizationRegisters");
+            }
+            PhysicalLayerDesynchronization = (UInt16)reader.ReadElementContentAsInt("PhysicalLayerDesynchronization");
+            TimeOutNotAddressedDesynchronization = (UInt16)reader.ReadElementContentAsInt("TimeOutNotAddressedDesynchronization");
+            TimeOutFrameNotOkDesynchronization = (UInt16)reader.ReadElementContentAsInt("TimeOutFrameNotOkDesynchronization");
+            WriteRequestDesynchronization = (UInt16)reader.ReadElementContentAsInt("WriteRequestDesynchronization");
+            WrongInitiatorDesynchronization = (UInt16)reader.ReadElementContentAsInt("WrongInitiatorDesynchronization");
+            BroadcastFramesCounter.Clear();
+            if (reader.IsStartElement("BroadcastFramesCounters", true))
+            {
+                while (reader.IsStartElement("Item", true))
+                {
+                    UInt16 k = (UInt16)reader.ReadElementContentAsInt("Key");
+                    UInt32 v = (UInt32)reader.ReadElementContentAsInt("Value");
+                    BroadcastFramesCounter.Add(new KeyValuePair<UInt16, UInt32>(k, v));
+                }
+                reader.ReadEndElement("BroadcastFramesCounters");
+            }
+            RepetitionsCounter = (UInt16)reader.ReadElementContentAsInt("RepetitionsCounter");
+            TransmissionsCounter = (UInt16)reader.ReadElementContentAsInt("TransmissionsCounter");
+            CrcOkFramesCounter = (UInt16)reader.ReadElementContentAsInt("CrcOkFramesCounter");
+            CrcNOkFramesCounter = (UInt16)reader.ReadElementContentAsInt("CrcNOkFramesCounter");
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            if (SynchronizationRegister != null)
+            {
+                writer.WriteStartElement("SynchronizationRegisters");
+                foreach (KeyValuePair<UInt16, UInt32> it in SynchronizationRegister)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Key", it.Key);
+                    writer.WriteElementString("Value", it.Value);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+            writer.WriteElementString("PhysicalLayerDesynchronization", PhysicalLayerDesynchronization);
+            writer.WriteElementString("TimeOutNotAddressedDesynchronization", TimeOutNotAddressedDesynchronization);
+            writer.WriteElementString("TimeOutFrameNotOkDesynchronization", TimeOutFrameNotOkDesynchronization);
+            writer.WriteElementString("WriteRequestDesynchronization", WriteRequestDesynchronization);
+            writer.WriteElementString("WrongInitiatorDesynchronization", WrongInitiatorDesynchronization);
+            if (BroadcastFramesCounter != null)
+            {
+                writer.WriteStartElement("BroadcastFramesCounters");
+                foreach (KeyValuePair<UInt16, UInt32> it in BroadcastFramesCounter)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Key", it.Key);
+                    writer.WriteElementString("Value", it.Value);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+            writer.WriteElementString("RepetitionsCounter", RepetitionsCounter);
+            writer.WriteElementString("TransmissionsCounter", TransmissionsCounter);
+            writer.WriteElementString("CrcOkFramesCounter", CrcOkFramesCounter);
+            writer.WriteElementString("CrcNOkFramesCounter", CrcNOkFramesCounter);
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
+        }
+
         #endregion
     }
 }

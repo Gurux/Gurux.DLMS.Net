@@ -40,7 +40,9 @@ using System.ComponentModel;
 using Gurux.DLMS.ManufacturerSettings;
 using System.Xml;
 using System.Xml.Serialization;
+#if !WINDOWS_UWP
 using System.Runtime.Serialization.Formatters.Binary;
+#endif
 using System.IO;
 using System.Runtime.Serialization;
 using System.Reflection;
@@ -142,7 +144,9 @@ namespace Gurux.DLMS.Objects
             this.LogicalName = ln;
         }
 
+#if !WINDOWS_UWP
         [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#endif
         [System.Xml.Serialization.XmlIgnore()]
         public Gurux.DLMS.Objects.GXDLMSObjectCollection Parent
         {
@@ -178,26 +182,13 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Reserved for internal use.
-        /// </summary>
-        /// <param name="buff"></param>
-        /// <returns></returns>
-        internal static string ToLogicalName(byte[] buff)
-        {
-            if (buff.Length == 6)
-            {
-                return (buff[0] & 0xFF) + "." + (buff[1] & 0xFF) + "." + (buff[2] & 0xFF) + "." +
-                       (buff[3] & 0xFF) + "." + (buff[4] & 0xFF) + "." + (buff[5] & 0xFF);
-            }
-            return "";
-        }
-
-        /// <summary>
         /// Interface type of the DLMS object.
         /// </summary>
+#if !WINDOWS_UWP
         [ReadOnly(true)]
-        [System.Xml.Serialization.XmlIgnore()]
         [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#endif
+        [System.Xml.Serialization.XmlIgnore()]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public ObjectType ObjectType
         {
@@ -208,7 +199,9 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// DLMS version number.
         /// </summary>
+#if !WINDOWS_UWP
         [ReadOnly(true)]
+#endif
         [DefaultValue(0)]
         public int Version
         {
@@ -223,7 +216,9 @@ namespace Gurux.DLMS.Objects
         /// When using SN referencing, retrieves the base name of the DLMS object.
         /// When using LN referencing, the value is 0.
         /// </remarks>
+#if !WINDOWS_UWP
         [ReadOnly(true)]
+#endif
         [DefaultValue(0)]
         public ushort ShortName
         {
@@ -269,7 +264,9 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// object attribute collection.
         /// </summary>
+#if !WINDOWS_UWP
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
+#endif
         [EditorBrowsable(EditorBrowsableState.Never)]
         [XmlArray("Attributes")]
         [XmlArrayItem("Item")]
@@ -282,7 +279,9 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// object attribute collection.
         /// </summary>
+#if !WINDOWS_UWP
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
+#endif
         [EditorBrowsable(EditorBrowsableState.Never)]
         [XmlArray("Methods")]
         [XmlArrayItem("Item")]
@@ -516,6 +515,22 @@ namespace Gurux.DLMS.Objects
         internal virtual void Stop(GXDLMSServer server)
         {
 
+        }
+
+        /// <summary>
+        /// Copy content.
+        /// </summary>
+        /// <param name="target">Target object.</param>
+        public void CopyTo(GXDLMSObject target)
+        {
+            foreach (PropertyInfo it in GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                if (it.CanRead && it.CanWrite)
+                {
+                    object value = it.GetValue(this, null);
+                    it.SetValue(target, value, null);
+                }
+            }
         }
     }
 }

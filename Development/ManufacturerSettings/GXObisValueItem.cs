@@ -38,7 +38,9 @@ using System.Text;
 
 namespace Gurux.DLMS.ManufacturerSettings
 {
+#if !WINDOWS_UWP
     [Serializable]
+#endif
     public class GXObisValueItem
     {
         /// <summary>
@@ -74,6 +76,6 @@ namespace Gurux.DLMS.ManufacturerSettings
         {
             get;
             set;
-        }             
+        }
     }
 }

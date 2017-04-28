@@ -106,6 +106,15 @@ namespace Gurux.DLMS.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid Logical name..
+        /// </summary>
+        internal static string InvalidLogicalName {
+            get {
+                return ResourceManager.GetString("InvalidLogicalName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Logical Name.
         /// </summary>
         internal static string LogicalNameTxt {
@@ -153,11 +162,11 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to 0.0-64.0.1.0.0-99,255;1,3,4;6,17,18;Ch. $B;Billing period counter (1);;;#$F
         ///0.0-64.0.1.1.255;1,3,4;6,17,18;Ch. $B;No. of available billing periods (1);;;
-        ///0.0-64.0.1.2.0-99;1,3,4;9;Ch. $B;Time stamp of the billing period (1);;;#$F
-        ///0.0-64.0.1.2.255;1,3,4;9;Ch. $B;Time stamp of the most recent billing period (1) closed;;;
+        ///0.0-64.0.1.2.0-99;1,3,4;9,25;Ch. $B;Time stamp of the billing period (1);;;#$F
+        ///0.0-64.0.1.2.255;1,3,4;9,25;Ch. $B;Time stamp of the most recent billing period (1) closed;;;
         ///0.0-64.0.1.3.0-99,255;1,3,4;6,17,18;Ch. $B;Billing period counter (2), VZ;;;#$F
         ///0.0-64.0.1.4.255;1,3,4;6,17,18;Ch. $B;No. of available billing periods (2);;;
-        ///0.0-64.0.1.5.0-99;1,3,4;9;C [rest of string was truncated]&quot;;.
+        ///0.0-64.0.1.5.0-99;1,3 [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string OBISCodes {
             get {

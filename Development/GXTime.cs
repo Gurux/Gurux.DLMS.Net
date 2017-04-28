@@ -89,10 +89,15 @@ namespace Gurux.DLMS
             Skip = DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek;
             if (time != null)
             {
-                int hour = 0, min = 0, sec = 0;
                 System.Globalization.CultureInfo culture = System.Globalization.CultureInfo.CurrentUICulture;
-                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { culture.DateTimeFormat.TimeSeparator }, StringSplitOptions.RemoveEmptyEntries));
-                string[] values = time.Split(new string[] { culture.DateTimeFormat.TimeSeparator }, StringSplitOptions.None);
+#if !WINDOWS_UWP
+                string dateSeparator = culture.DateTimeFormat.DateSeparator, timeSeparator = culture.DateTimeFormat.TimeSeparator;
+#else
+                string dateSeparator = Internal.GXCommon.GetDateSeparator(), timeSeparator = Internal.GXCommon.GetTimeSeparator();
+#endif
+                int hour = 0, min = 0, sec = 0;
+                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { timeSeparator }, StringSplitOptions.RemoveEmptyEntries));
+                string[] values = time.Split(new string[] { timeSeparator }, StringSplitOptions.None);
                 if (shortTimePattern.Count != values.Length)
                 {
                     throw new ArgumentOutOfRangeException("Invalid Time");

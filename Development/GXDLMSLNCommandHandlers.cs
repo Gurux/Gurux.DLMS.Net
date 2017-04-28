@@ -200,7 +200,7 @@ namespace Gurux.DLMS
                 parameters = GXCommon.GetData(settings, data, info);
             }
 
-            GXDLMSObject obj = settings.Objects.FindByLN(ci, GXDLMSObject.ToLogicalName(ln));
+            GXDLMSObject obj = settings.Objects.FindByLN(ci, GXCommon.ToLogicalName(ln));
             if (!settings.Connected && (ci != ObjectType.AssociationLogicalName || id != 1))
             {
                 replyData.Set(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
@@ -210,7 +210,7 @@ namespace Gurux.DLMS
 
             if (obj == null)
             {
-                obj = server.NotifyFindObject(ci, 0, GXDLMSObject.ToLogicalName(ln));
+                obj = server.NotifyFindObject(ci, 0, GXCommon.ToLogicalName(ln));
             }
             if (obj == null)
             {
@@ -274,7 +274,7 @@ namespace Gurux.DLMS
                 xml.AppendComment(((ObjectType)ci).ToString());
             }
             xml.AppendLine(TranslatorTags.ClassId, "Value", xml.IntegerToHex((int)ci, 4));
-            xml.AppendComment(GXDLMSObject.ToLogicalName(ln));
+            xml.AppendComment(GXCommon.ToLogicalName(ln));
             xml.AppendLine(TranslatorTags.InstanceId, "Value", GXCommon.ToHex(ln, false));
             xml.AppendLine(TranslatorTags.AttributeId, "Value", xml.IntegerToHex(attributeIndex, 2));
             xml.AppendEndTag(TranslatorTags.AttributeDescriptor);
@@ -288,7 +288,7 @@ namespace Gurux.DLMS
                 xml.AppendComment(((ObjectType)ci).ToString());
             }
             xml.AppendLine(TranslatorTags.ClassId, "Value", xml.IntegerToHex((int)ci, 4));
-            xml.AppendComment(GXDLMSObject.ToLogicalName(ln));
+            xml.AppendComment(GXCommon.ToLogicalName(ln));
             xml.AppendLine(TranslatorTags.InstanceId, "Value", GXCommon.ToHex(ln, false));
             xml.AppendLine(TranslatorTags.MethodId, "Value", xml.IntegerToHex(attributeIndex, 2));
             xml.AppendEndTag(TranslatorTags.MethodDescriptor);
@@ -343,11 +343,12 @@ namespace Gurux.DLMS
                 parameters = GXCommon.GetData(settings, data, info);
             }
 
-            GXDLMSObject obj = settings.Objects.FindByLN(ci, GXDLMSObject.ToLogicalName(ln));
+            GXDLMSObject obj = settings.Objects.FindByLN(ci, GXCommon.ToLogicalName(ln));
             if (obj == null)
             {
-                obj = server.NotifyFindObject(ci, 0, GXDLMSObject.ToLogicalName(ln));
+                obj = server.NotifyFindObject(ci, 0, GXCommon.ToLogicalName(ln));
             }
+            e = new ValueEventArgs(server, obj, attributeIndex, selector, parameters);
             if (obj == null)
             {
                 // "Access Error : Device reports a undefined object."
@@ -355,7 +356,6 @@ namespace Gurux.DLMS
             }
             else
             {
-                e = new ValueEventArgs(server, obj, attributeIndex, selector, parameters);
                 e.InvokeId = invokeID;
                 if (server.NotifyGetAttributeAccess(e) == AccessMode.NoAccess)
                 {
@@ -516,7 +516,7 @@ namespace Gurux.DLMS
                         xml.AppendStartTag(TranslatorTags.AttributeDescriptor);
                         xml.AppendComment(ci.ToString());
                         xml.AppendLine(TranslatorTags.ClassId, "Value", xml.IntegerToHex((int)ci, 4));
-                        xml.AppendComment(GXDLMSObject.ToLogicalName(ln));
+                        xml.AppendComment(GXCommon.ToLogicalName(ln));
                         xml.AppendLine(TranslatorTags.InstanceId, "Value", GXCommon.ToHex(ln, false));
                         xml.AppendLine(TranslatorTags.AttributeId, "Value", xml.IntegerToHex(attributeIndex, 2));
                         xml.AppendEndTag(TranslatorTags.AttributeDescriptor);
@@ -524,10 +524,10 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        GXDLMSObject obj = settings.Objects.FindByLN(ci, GXDLMSObject.ToLogicalName(ln));
+                        GXDLMSObject obj = settings.Objects.FindByLN(ci, GXCommon.ToLogicalName(ln));
                         if (obj == null)
                         {
-                            obj = server.NotifyFindObject(ci, 0, GXDLMSObject.ToLogicalName(ln));
+                            obj = server.NotifyFindObject(ci, 0, GXCommon.ToLogicalName(ln));
                         }
                         if (obj == null)
                         {
@@ -665,10 +665,10 @@ namespace Gurux.DLMS
                 value = GXCommon.GetData(settings, data, reply);
             }
 
-            GXDLMSObject obj = settings.Objects.FindByLN(ci, GXDLMSObject.ToLogicalName(ln));
+            GXDLMSObject obj = settings.Objects.FindByLN(ci, GXCommon.ToLogicalName(ln));
             if (obj == null)
             {
-                obj = server.NotifyFindObject(ci, 0, GXDLMSObject.ToLogicalName(ln));
+                obj = server.NotifyFindObject(ci, 0, GXCommon.ToLogicalName(ln));
             }
             // If target is unknown.
             if (obj == null)

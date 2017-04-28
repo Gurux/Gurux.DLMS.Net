@@ -203,5 +203,22 @@ namespace Gurux.DLMS.Secure
         {
             return Security != Gurux.DLMS.Enums.Security.None;
         }
+
+        /// <summary>
+        /// Generate GMAC password from given challenge.
+        /// </summary>
+        /// <param name="challenge"></param>
+        /// <returns></returns>
+        public byte[] GenerateGmacPassword(byte[] challenge)
+        {
+            AesGcmParameter p = new AesGcmParameter(0x10, Security.Authentication, InvocationCounter,
+                                                       systemTitle, BlockCipherKey, AuthenticationKey);
+            GXByteBuffer bb = new GXByteBuffer();
+            GXDLMSChippering.EncryptAesGcm(p, challenge);
+            bb.SetUInt8(0x10);
+            bb.SetUInt32(InvocationCounter);
+            bb.Set(p.CountTag);
+            return bb.Array();
+        }
     }
 }

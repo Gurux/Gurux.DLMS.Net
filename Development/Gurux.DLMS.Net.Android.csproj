@@ -163,6 +163,9 @@
     <Compile Include="Objects\Enums\DeviceType.cs" />
     <Compile Include="Objects\Enums\GainResolution.cs" />
     <Compile Include="Objects\Enums\GlobalKeyType.cs" />
+    <Compile Include="Objects\Enums\GsmCircuitSwitchStatus.cs" />
+    <Compile Include="Objects\Enums\GsmPacketSwitchStatus.cs" />
+    <Compile Include="Objects\Enums\GsmStatus.cs" />
     <Compile Include="Objects\Enums\IecTwistedPairSetupMode.cs" />
     <Compile Include="Objects\Enums\ImageTransferStatus.cs" />
     <Compile Include="Objects\Enums\Ip4SetupIpOptionType.cs" />
@@ -210,6 +213,8 @@
     <Compile Include="Objects\GXDLMSG3PlcMacLayerCounters.cs" />
     <Compile Include="Objects\GXDLMSG3PlcMacSetup.cs" />
     <Compile Include="Objects\GXDLMSGprsSetup.cs" />
+    <Compile Include="Objects\GXDLMSGSMCellInfo.cs" />
+    <Compile Include="Objects\GXDLMSGSMDiagnostic.cs" />
     <Compile Include="Objects\GXDLMSHdlcSetup.cs" />
     <Compile Include="Objects\GXDLMSIEC14908Diagnostic.cs" />
     <Compile Include="Objects\GXDLMSIEC14908Identification.cs" />
@@ -265,6 +270,8 @@
     <Compile Include="Objects\GXProfileGenericUpdater.cs" />
     <Compile Include="Objects\GXScheduleEntry.cs" />
     <Compile Include="Objects\GXxDLMSContextType.cs" />
+    <Compile Include="Objects\GXXmlReader.cs" />
+    <Compile Include="Objects\GXXmlWriter.cs" />
     <Compile Include="Objects\IGXDLMSBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">

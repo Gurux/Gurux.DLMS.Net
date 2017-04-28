@@ -40,7 +40,9 @@ namespace Gurux.DLMS
     using System.Collections;
     using System.Collections.Generic;
     using System.Xml;
+#if !WINDOWS_UWP
     using System.Xml.XPath;
+#endif
     using Gurux.DLMS.Enums;
     using Gurux.DLMS.Secure;
     using Gurux.DLMS.Objects;
@@ -422,11 +424,22 @@ namespace Gurux.DLMS
             }
         }
 
+
+        /// <summary>
+        /// Get PDU from data.
+        /// </summary>
+        /// <param name="value">Data.</param>
+        /// <returns>PDU from the data.</returns>
         public byte[] GetPdu(byte[] value)
         {
             return GetPdu(new GXByteBuffer(value));
         }
 
+        /// <summary>
+        /// Get PDU from data.
+        /// </summary>
+        /// <param name="value">Data.</param>
+        /// <returns>PDU from the data.</returns>
         public byte[] GetPdu(GXByteBuffer value)
         {
             GXReplyData data = new GXReplyData();
@@ -547,6 +560,11 @@ namespace Gurux.DLMS
                                 if (CompletePdu)
                                 {
                                     pduFrames.Set(data.Data.Data);
+                                    if (data.MoreData == RequestTypes.None)
+                                    {
+                                        xml.AppendLine(PduToXml(pduFrames, true, true));
+                                        pduFrames.Clear();
+                                    }
                                 }
                                 else
                                 {
@@ -623,43 +641,16 @@ namespace Gurux.DLMS
                         }
                         else
                         {
-                            if (multipleFrames || (data.MoreData & Enums.RequestTypes.Frame) != 0)
+                            if (!PduOnly)
                             {
-                                if (CompletePdu)
-                                {
-                                    pduFrames.Set(data.Data.Data);
-                                }
-                                else
-                                {
-                                    xml.AppendLine("<NextFrame Value=\"" + GXCommon.ToHex(data.Data.Data, false, data.Data.Position, data.Data.Size - data.Data.Position) + "\" />");
-                                }
-                                multipleFrames = false;
+                                xml.AppendLine("<PDU>");
                             }
-                            if (!data.IsMoreData)
+                            xml.AppendLine(PduToXml(data.Data));
+                            //Remove \r\n.
+                            xml.sb.Length -= 2;
+                            if (!PduOnly)
                             {
-                                if (!PduOnly)
-                                {
-                                    xml.AppendLine("<PDU>");
-                                }
-                                if (pduFrames.Size != 0)
-                                {
-                                    if (!CompletePdu)
-                                    {
-                                        pduFrames.Set(data.Data.Data);
-                                    }
-                                    xml.AppendLine(PduToXml(pduFrames));
-                                    pduFrames.Clear();
-                                }
-                                else
-                                {
-                                    xml.AppendLine(PduToXml(data.Data));
-                                }
-                                //Remove \r\n.
-                                xml.sb.Length -= 2;
-                                if (!PduOnly)
-                                {
-                                    xml.AppendLine("</PDU>");
-                                }
+                                xml.AppendLine("</PDU>");
                             }
                         }
                     }
@@ -672,6 +663,7 @@ namespace Gurux.DLMS
             }
             catch (Exception ex)
             {
+                xml.sb.AppendLine(ex.Message);
                 return xml.sb.ToString();
             }
             throw new ArgumentNullException("Invalid DLMS framing.");

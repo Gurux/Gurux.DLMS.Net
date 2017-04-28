@@ -39,6 +39,7 @@ using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Secure;
 using Gurux.DLMS.Enums;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -60,6 +61,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSAssociationShortName(string ln, ushort sn)
         : base(ObjectType.AssociationShortName, ln, sn)
         {
+            Version = 4;
             ObjectList = new GXDLMSObjectCollection();
         }
 
@@ -207,7 +209,12 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt,
+            if (Version < 2)
+            {
+                return new string[] {Internal.GXCommon.GetLogicalNameString(),
+                             "Object List"};
+            }
+            return new string[] {Internal.GXCommon.GetLogicalNameString(),
                              "Object List",
                              "Access Rights List",
                              "Security Setup Reference"
@@ -228,29 +235,62 @@ namespace Gurux.DLMS.Objects
             return 8;
         }
 
-        private void GetAccessRights(GXDLMSSettings settings, GXDLMSObject item, GXByteBuffer data)
+        private void GetAccessRights(GXDLMSSettings settings, GXDLMSObject item, GXDLMSServer server, GXByteBuffer data)
         {
             data.SetUInt8((byte)DataType.Structure);
             data.SetUInt8((byte)3);
             GXCommon.SetData(settings, data, DataType.UInt16, item.ShortName);
+
+            int cnt = (item as IGXDLMSBase).GetAttributeCount();
             data.SetUInt8((byte)DataType.Array);
-            data.SetUInt8((byte)item.Attributes.Count);
-            foreach (GXDLMSAttributeSettings att in item.Attributes)
+            data.SetUInt8((byte)cnt);
+            ValueEventArgs e;
+            if (server != null)
             {
-                data.SetUInt8((byte)DataType.Structure); //attribute_access_item
-                data.SetUInt8((byte)3);
-                GXCommon.SetData(settings, data, DataType.Int8, att.Index);
-                GXCommon.SetData(settings, data, DataType.Enum, att.Access);
-                GXCommon.SetData(settings, data, DataType.None, null);
+                e = new DLMS.ValueEventArgs(server, item, 0, 0, null);
             }
-            data.SetUInt8((byte)DataType.Array);
-            data.SetUInt8((byte)item.MethodAttributes.Count);
-            foreach (GXDLMSAttributeSettings it in item.MethodAttributes)
+            else
             {
-                data.SetUInt8((byte)DataType.Structure); //attribute_access_item
+                e = new DLMS.ValueEventArgs(settings, item, 0, 0, null);
+            }
+            for (int pos = 0; pos != cnt; ++pos)
+            {
+                e.Index = pos + 1;
+                AccessMode m;
+                if (server != null)
+                {
+                    m = server.NotifyGetAttributeAccess(e);
+                }
+                else
+                {
+                    m = AccessMode.ReadWrite;
+                }
+                //attribute_access_item
+                data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8((byte)2);
-                GXCommon.SetData(settings, data, DataType.Int8, it.Index);
-                GXCommon.SetData(settings, data, DataType.Enum, it.MethodAccess);
+                GXCommon.SetData(settings, data, DataType.Int8, e.Index);
+                GXCommon.SetData(settings, data, DataType.Enum, m);
+            }
+            cnt = (item as IGXDLMSBase).GetMethodCount();
+            data.SetUInt8((byte)DataType.Array);
+            data.SetUInt8((byte)cnt);
+            for (int pos = 0; pos != cnt; ++pos)
+            {
+                e.Index = pos + 1;
+                MethodAccessMode m;
+                if (server != null)
+                {
+                    m = server.NotifyGetMethodAccess(e);
+                }
+                else
+                {
+                    m = MethodAccessMode.Access;
+                }
+                //attribute_access_item
+                data.SetUInt8((byte)DataType.Structure);
+                data.SetUInt8((byte)2);
+                GXCommon.SetData(settings, data, DataType.Int8, e.Index);
+                GXCommon.SetData(settings, data, DataType.Enum, m);
             }
         }
 
@@ -304,9 +344,8 @@ namespace Gurux.DLMS.Objects
                     //ClassID
                     GXCommon.SetData(settings, data, DataType.UInt16, it.ObjectType);
                     //Version
-                    GXCommon.SetData(settings, data, DataType.UInt8, 0);
-                    //LN
-                    GXCommon.SetData(settings, data, DataType.OctetString, it.LogicalName);
+                    GXCommon.SetData(settings, data, DataType.UInt8, it.Version);
+                    GXCommon.SetData(settings, data, DataType.OctetString, GXCommon.LogicalNameToBytes(it.LogicalName));
                     ++settings.Index;
                     //If PDU is full.
                     if (!e.SkipMaxPduSize && data.Size >= settings.MaxPduSize)
@@ -326,7 +365,7 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             else if (e.Index == 2)
             {
@@ -346,19 +385,17 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetObjectCount(cnt, data);
                 foreach (GXDLMSObject it in ObjectList)
                 {
-                    GetAccessRights(settings, it, data);
+                    GetAccessRights(settings, it, e.Server, data);
                 }
                 if (!lnExists)
                 {
-                    GetAccessRights(settings, this, data);
+                    GetAccessRights(settings, this, e.Server, data);
                 }
                 return data.Array();
             }
             else if (e.Index == 4)
             {
-                GXByteBuffer data = new GXByteBuffer();
-                GXCommon.SetData(settings, data, DataType.OctetString, SecuritySetupReference);
-                return data.Array();
+                return GXCommon.LogicalNameToBytes(SecuritySetupReference);
             }
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
@@ -392,14 +429,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -411,7 +441,7 @@ namespace Gurux.DLMS.Objects
                         ushort sn = (ushort)(Convert.ToInt32(item[0]) & 0xFFFF);
                         ObjectType type = (ObjectType)Convert.ToInt32(item[1]);
                         int version = Convert.ToInt32(item[2]);
-                        String ln = GXDLMSObject.ToLogicalName((byte[])item[3]);
+                        String ln = GXCommon.ToLogicalName((byte[])item[3]);
                         GXDLMSObject obj = null;
                         if (settings.Objects != null)
                         {
@@ -454,19 +484,24 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 4)
             {
-                if (e.Value is string)
-                {
-                    SecuritySetupReference = e.Value.ToString();
-                }
-                else
-                {
-                    SecuritySetupReference = GXDLMSClient.ChangeType(e.Value as byte[], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                SecuritySetupReference = GXCommon.ToLogicalName(e.Value);
             }
             else
             {
                 e.Error = ErrorCode.ReadWriteDenied;
             }
+        }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
         }
         #endregion
     }

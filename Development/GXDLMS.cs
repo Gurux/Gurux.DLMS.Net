@@ -40,7 +40,9 @@ using System.ComponentModel;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Objects;
 using Gurux.DLMS.Internal;
+#if !WINDOWS_UWP
 using System.Security.Cryptography;
+#endif
 using System.IO;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Secure;
@@ -97,6 +99,66 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Get all COSEM objects.
+        /// </summary>
+        /// <param name="availableObjectTypes">List of available COSEM objects.</param>
+        private static void GetCosemObjects(Dictionary<ObjectType, Type> availableObjectTypes)
+        {
+            if (availableObjectTypes.Count == 0)
+            {
+                availableObjectTypes.Add(ObjectType.G3PlcMacLayerCounters, typeof(GXDLMSG3PlcMacLayerCounters));
+                availableObjectTypes.Add(ObjectType.G3Plc6LoWPan, typeof(GXDLMSG3Plc6LoWPan));
+                availableObjectTypes.Add(ObjectType.G3PlcMacSetup, typeof(GXDLMSG3PlcMacSetup));
+                availableObjectTypes.Add(ObjectType.IEC14908Diagnostic, typeof(GXDLMSIEC14908Diagnostic));
+                availableObjectTypes.Add(ObjectType.IEC14908PhysicalStatus, typeof(GXDLMSIEC14908PhysicalStatus));
+                availableObjectTypes.Add(ObjectType.IEC14908PhysicalSetup, typeof(GXDLMSIEC14908PhysicalSetup));
+                availableObjectTypes.Add(ObjectType.IEC14908Identification, typeof(GXDLMSIEC14908Identification));
+                availableObjectTypes.Add(ObjectType.Ip6Setup, typeof(GXDLMSIp6Setup));
+                availableObjectTypes.Add(ObjectType.SFSKMacCounters, typeof(GXDLMSSFSKMacCounters));
+                availableObjectTypes.Add(ObjectType.SFSKMacSynchronizationTimeouts, typeof(GXDLMSSFSKMacSynchronizationTimeouts));
+                availableObjectTypes.Add(ObjectType.SFSKActiveInitiator, typeof(GXDLMSSFSKActiveInitiator));
+                availableObjectTypes.Add(ObjectType.SFSKPhyMacSetUp, typeof(GXDLMSSFSKPhyMacSetUp));
+                availableObjectTypes.Add(ObjectType.IecTwistedPairSetup, typeof(GXDLMSIecTwistedPairSetup));
+                availableObjectTypes.Add(ObjectType.DisconnectControl, typeof(GXDLMSDisconnectControl));
+                availableObjectTypes.Add(ObjectType.ImageTransfer, typeof(GXDLMSImageTransfer));
+                availableObjectTypes.Add(ObjectType.Limiter, typeof(GXDLMSLimiter));
+                availableObjectTypes.Add(ObjectType.MBusClient, typeof(GXDLMSMBusClient));
+                availableObjectTypes.Add(ObjectType.MBusMasterPortSetup, typeof(GXDLMSMBusMasterPortSetup));
+                availableObjectTypes.Add(ObjectType.MBusSlavePortSetup, typeof(GXDLMSMBusSlavePortSetup));
+                availableObjectTypes.Add(ObjectType.MessageHandler, typeof(GXDLMSMessageHandler));
+                availableObjectTypes.Add(ObjectType.None, typeof(GXDLMSObject));
+                availableObjectTypes.Add(ObjectType.MacAddressSetup, typeof(GXDLMSMacAddressSetup));
+                availableObjectTypes.Add(ObjectType.AssociationLogicalName, typeof(GXDLMSAssociationLogicalName));
+                availableObjectTypes.Add(ObjectType.AssociationShortName, typeof(GXDLMSAssociationShortName));
+                availableObjectTypes.Add(ObjectType.AutoAnswer, typeof(GXDLMSAutoAnswer));
+                availableObjectTypes.Add(ObjectType.DemandRegister, typeof(GXDLMSDemandRegister));
+                availableObjectTypes.Add(ObjectType.ActionSchedule, typeof(GXDLMSActionSchedule));
+                availableObjectTypes.Add(ObjectType.ActivityCalendar, typeof(GXDLMSActivityCalendar));
+                availableObjectTypes.Add(ObjectType.AutoConnect, typeof(GXDLMSAutoConnect));
+                availableObjectTypes.Add(ObjectType.Clock, typeof(GXDLMSClock));
+                availableObjectTypes.Add(ObjectType.Data, typeof(GXDLMSData));
+                availableObjectTypes.Add(ObjectType.ExtendedRegister, typeof(GXDLMSExtendedRegister));
+                availableObjectTypes.Add(ObjectType.GprsSetup, typeof(GXDLMSGprsSetup));
+                availableObjectTypes.Add(ObjectType.IecHdlcSetup, typeof(GXDLMSHdlcSetup));
+                availableObjectTypes.Add(ObjectType.IecLocalPortSetup, typeof(GXDLMSIECOpticalPortSetup));
+                availableObjectTypes.Add(ObjectType.Ip4Setup, typeof(GXDLMSIp4Setup));
+                availableObjectTypes.Add(ObjectType.ModemConfiguration, typeof(GXDLMSModemConfiguration));
+                availableObjectTypes.Add(ObjectType.PppSetup, typeof(GXDLMSPppSetup));
+                availableObjectTypes.Add(ObjectType.ProfileGeneric, typeof(GXDLMSProfileGeneric));
+                availableObjectTypes.Add(ObjectType.PushSetup, typeof(GXDLMSPushSetup));
+                availableObjectTypes.Add(ObjectType.Register, typeof(GXDLMSRegister));
+                availableObjectTypes.Add(ObjectType.RegisterActivation, typeof(GXDLMSRegisterActivation));
+                availableObjectTypes.Add(ObjectType.RegisterMonitor, typeof(GXDLMSRegisterMonitor));
+                availableObjectTypes.Add(ObjectType.SapAssignment, typeof(GXDLMSSapAssignment));
+                availableObjectTypes.Add(ObjectType.Schedule, typeof(GXDLMSSchedule));
+                availableObjectTypes.Add(ObjectType.ScriptTable, typeof(GXDLMSScriptTable));
+                availableObjectTypes.Add(ObjectType.SecuritySetup, typeof(GXDLMSSecuritySetup));
+                availableObjectTypes.Add(ObjectType.SpecialDaysTable, typeof(GXDLMSSpecialDaysTable));
+                availableObjectTypes.Add(ObjectType.TcpUdpSetup, typeof(GXDLMSTcpUdpSetup));
+            }
+        }
+
+        /// <summary>
         /// Returns object types.
         /// </summary>
         /// <returns></returns>
@@ -107,20 +169,27 @@ namespace Gurux.DLMS
         {
             lock (availableObjectTypes)
             {
-                if (availableObjectTypes.Count == 0)
-                {
-                    foreach (Type type in typeof(GXDLMS).Assembly.GetTypes())
-                    {
-                        if (!type.IsAbstract && typeof(GXDLMSObject).IsAssignableFrom(type))
-                        {
-                            GXDLMSObject obj = Activator.CreateInstance(type) as GXDLMSObject;
-                            availableObjectTypes[obj.ObjectType] = type;
-                        }
-                    }
-                }
+                GetCosemObjects(availableObjectTypes);
                 return availableObjectTypes.Values.ToArray();
             }
         }
+
+        /// <summary>
+        /// Returns object types.
+        /// </summary>
+        /// <returns></returns>
+        /// <remarks>
+        /// This can be used with serialization.
+        /// </remarks>
+        public static ObjectType[] GetObjectTypes2(Dictionary<ObjectType, Type> availableObjectTypes)
+        {
+            lock (availableObjectTypes)
+            {
+                GetCosemObjects(availableObjectTypes);
+                return availableObjectTypes.Keys.ToArray();
+            }
+        }
+
 
         /// <summary>
         /// Get available COSEM objects.
@@ -229,6 +298,7 @@ namespace Gurux.DLMS
         /// <returns>Error as plain text.</returns>
         internal static string GetDescription(ErrorCode error)
         {
+#if !WINDOWS_UWP
             string str = null;
             switch (error)
             {
@@ -288,6 +358,9 @@ namespace Gurux.DLMS
                     break;
             }
             return str;
+#else
+            return error.ToString();
+#endif
         }
 
         /// <summary>
@@ -1656,7 +1729,15 @@ namespace Gurux.DLMS
         /// <param name="reply">Received data from the client.</param>
         static bool HandleReadResponse(GXDLMSSettings settings, GXReplyData reply, int index)
         {
-            int cnt = GXCommon.GetObjectCount(reply.Data);
+            int pos = 0, cnt;
+            if (reply.Count == 0)
+            {
+                cnt = GXCommon.GetObjectCount(reply.Data);
+            }
+            else
+            {
+                cnt = reply.TotalCount;
+            }
             //Set total count if not set yet.
             if (reply.TotalCount == 0)
             {
@@ -1667,13 +1748,22 @@ namespace Gurux.DLMS
             if (cnt != 1)
             {
                 values = new List<object>();
+                reply.Value = null;
             }
             if (reply.Xml != null)
             {
                 reply.Xml.AppendStartTag(Command.ReadResponse, "Qty", reply.Xml.IntegerToHex(cnt, 2));
             }
-            for (int pos = 0; pos != cnt; ++pos)
+            for (; pos != cnt; ++pos)
             {
+                if (reply.Data.Available == 0)
+                {
+                    if (cnt != 1)
+                    {
+                        reply.Value = values.ToArray();
+                    }
+                    return false;
+                }
                 // Get status code.
                 reply.CommandType = reply.Data.GetUInt8();
                 type = (SingleReadResponse)reply.CommandType;
@@ -2533,6 +2623,14 @@ namespace Gurux.DLMS
                     if (data.Command == Command.ReadResponse && !data.IsMoreData && data.CommandType == (byte)SingleReadResponse.DataBlockResult)
                     {
                         data.Data.Position = 0;
+                        if (!HandleReadResponse(settings, data, -1))
+                        {
+                            return;
+                        }
+                    }
+                    else if (data.Command == Command.ReadResponse && !data.IsMoreData && data.CommandType == (byte)SingleReadResponse.Data &&
+                        data.Value != null)
+                    {
                         if (!HandleReadResponse(settings, data, -1))
                         {
                             return;

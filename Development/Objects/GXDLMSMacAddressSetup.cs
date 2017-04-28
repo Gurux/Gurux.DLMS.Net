@@ -40,6 +40,8 @@ using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Enums;
+using System.Xml;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
@@ -110,7 +112,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "MAC Address" };
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "MAC Address" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -141,11 +143,11 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
-                return MacAddress.Replace(':', '.');
+                return GXCommon.HexToBytes(MacAddress);
             }
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
@@ -155,19 +157,12 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
-                MacAddress = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                MacAddress = MacAddress.Replace('.', ':');
+                MacAddress = GXCommon.ToHex((byte[])e.Value, true);
+                MacAddress = MacAddress.Replace(' ', ':');
             }
             else
             {
@@ -181,6 +176,19 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            MacAddress = reader.ReadElementContentAsString("MacAddress");
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            writer.WriteElementString("MacAddress", MacAddress);
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
+        }
         #endregion
     }
 }

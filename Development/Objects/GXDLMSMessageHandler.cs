@@ -41,6 +41,7 @@ using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -100,8 +101,8 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Contains the logical name of a �Script table� object and the script selector of the
-        /// script to be executed if an empty message is received from a match-ing sender.
+        /// Contains the logical name of a Script table object and the script selector of the
+        /// script to be executed if an empty message is received from a matching sender.
         /// </summary>
         [XmlIgnore()]
         public List<KeyValuePair<string, KeyValuePair<int, GXDLMSScriptAction>>> SendersAndActions
@@ -153,7 +154,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Listening Window",
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Listening Window",
                               "Allowed Senders", "Senders And Actions"
                             };
         }
@@ -197,7 +198,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -246,14 +247,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -294,7 +288,7 @@ namespace Gurux.DLMS.Objects
                     foreach (object it in e.Value as Object[])
                     {
                         Object[] tmp = it as Object[];
-                        string id = ASCIIEncoding.ASCII.GetString((byte[])tmp[0]);
+                        string id = GXCommon.ToLogicalName(tmp[0]);
                         Object[] tmp2 = tmp[1] as Object[];
                         /*TODO:
                         KeyValuePair<int, GXDLMSScriptAction> executed_script = new KeyValuePair<int, GXDLMSScriptAction>(Convert.ToInt32(tmp2[1], tmp2[2]));
@@ -308,6 +302,20 @@ namespace Gurux.DLMS.Objects
                 e.Error = ErrorCode.ReadWriteDenied;
             }
         }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+        }
+
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
+        }
+
         #endregion
     }
 }

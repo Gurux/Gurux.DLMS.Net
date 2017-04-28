@@ -41,6 +41,7 @@ using System.Xml.Serialization;
 
 namespace Gurux.DLMS.ManufacturerSettings
 {
+#if !WINDOWS_UWP
     internal class GXCollectionPropertyDescriptor : PropertyDescriptor
     {
         /// <summary>
@@ -285,15 +286,20 @@ namespace Gurux.DLMS.ManufacturerSettings
             return pds;
         }
     }
+#endif //WINDOWS_UWP
 
+#if !WINDOWS_UWP
     [Serializable]
     [TypeConverter(typeof(AllowedGXAttributesConverter))]
+#endif
     public class GXAttributeCollection : List<GXDLMSAttributeSettings>, IList<GXDLMSAttributeSettings>
     {
         /// <summary>
         /// Parent object.
         /// </summary>
+#if !WINDOWS_UWP
         [Browsable(false)]
+#endif
         [XmlIgnore]
         public object Parent
         {

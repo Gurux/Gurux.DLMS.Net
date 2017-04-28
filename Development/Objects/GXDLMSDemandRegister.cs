@@ -41,12 +41,13 @@ using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
     public class GXDLMSDemandRegister : GXDLMSObject, IGXDLMSBase
     {
-        protected int _scaler;
+        protected int scaler;
 
         /// <summary>
         /// Constructor.
@@ -103,18 +104,18 @@ namespace Gurux.DLMS.Objects
         {
             get
             {
-                return Math.Pow(10, _scaler);
+                return Math.Pow(10, scaler);
             }
             set
             {
-                _scaler = (int)Math.Log10(value);
+                scaler = (int)Math.Log10(value);
             }
         }
 
         /// <summary>
         /// Unit of COSEM Register object.
         /// </summary>
-        [DefaultValue(Unit.NoUnit)]
+        [DefaultValue(Unit.None)]
         public Unit Unit
         {
             get;
@@ -251,7 +252,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt,
+            return new string[] {Internal.GXCommon.GetLogicalNameString(),
                              "Current Average Value",
                              "Last Average Value",
                              "Scaler and Unit",
@@ -319,7 +320,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -334,7 +335,7 @@ namespace Gurux.DLMS.Objects
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8(2);
-                GXCommon.SetData(settings, data, DataType.Int8, _scaler);
+                GXCommon.SetData(settings, data, DataType.Int8, scaler);
                 GXCommon.SetData(settings, data, DataType.Enum, Unit);
                 return data.Array();
             }
@@ -366,14 +367,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -427,7 +421,7 @@ namespace Gurux.DLMS.Objects
                     {
                         throw new Exception("setValue failed. Invalid scaler unit value.");
                     }
-                    _scaler = Convert.ToInt32(arr[0]);
+                    scaler = Convert.ToInt32(arr[0]);
                     Unit = (Unit)Convert.ToInt32(arr[1]);
                 }
             }
@@ -485,6 +479,50 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            CurrentAverageValue = reader.ReadElementContentAsObject("CurrentAverageValue", null);
+            LastAverageValue = reader.ReadElementContentAsObject("LastAverageValue", null);
+            Scaler = reader.ReadElementContentAsDouble("Scaler", 1);
+            Unit = (Unit)reader.ReadElementContentAsInt("Unit");
+            Status = reader.ReadElementContentAsObject("Status", null);
+            string str = reader.ReadElementContentAsString("CaptureTime");
+            if (str == null)
+            {
+                CaptureTime = null;
+            }
+            else
+            {
+                CaptureTime = new GXDateTime(str);
+            }
+            str = reader.ReadElementContentAsString("StartTimeCurrent");
+            if (str == null)
+            {
+                StartTimeCurrent = null;
+            }
+            else
+            {
+                StartTimeCurrent = new GXDateTime(str);
+            }
+            Period = (UInt32)reader.ReadElementContentAsInt("Period");
+            NumberOfPeriods = (UInt16)reader.ReadElementContentAsInt("NumberOfPeriods");
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            writer.WriteElementObject("CurrentAverageValue", CurrentAverageValue);
+            writer.WriteElementObject("LastAverageValue", LastAverageValue);
+            writer.WriteElementString("Scaler", Scaler, 1);
+            writer.WriteElementString("Unit", (int)Unit);
+            writer.WriteElementObject("Status", Status);
+            writer.WriteElementString("CaptureTime", CaptureTime);
+            writer.WriteElementString("StartTimeCurrent", StartTimeCurrent);
+            writer.WriteElementString("Period", Period);
+            writer.WriteElementString("NumberOfPeriods", NumberOfPeriods);
+        }
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
+        }
         #endregion
     }
 }

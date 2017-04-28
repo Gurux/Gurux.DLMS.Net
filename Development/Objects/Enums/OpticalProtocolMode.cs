@@ -59,5 +59,5 @@ namespace Gurux.DLMS.Objects.Enums
         /// All other attributes are not applicable.
         /// </summary>
         Unknown = 2
-    }    
+    }
 }

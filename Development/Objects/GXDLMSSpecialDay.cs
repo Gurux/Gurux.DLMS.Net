@@ -47,7 +47,7 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
-        public GXDateTime Date
+        public GXDate Date
         {
             get;
             set;

@@ -90,7 +90,7 @@ namespace Gurux.DLMS.Enums
         /// Unit is temperature T degree centigrade
         /// </summary>
         [XmlEnum("9")]
-        Temperature, 
+        Temperature,
         /// <summary>
         /// Local currency is used as unit.
         /// </summary>
@@ -175,12 +175,12 @@ namespace Gurux.DLMS.Enums
         /// Unit is Thermal power J/60*60s.
         /// </summary>
         [XmlEnum("26")]
-        ThermalPower, 
+        ThermalPower,
         /// <summary>
         /// Unit is Active power P watt W = J/s.
         /// </summary>
         [XmlEnum("27")]
-        ActivePower, 
+        ActivePower,
         /// <summary>
         /// Unit is Apparent power S.
         /// </summary>
@@ -195,7 +195,7 @@ namespace Gurux.DLMS.Enums
         /// Unit is Active energy W*60*60s.
         /// </summary>
         [XmlEnum("30")]
-        ActiveEnergy, 
+        ActiveEnergy,
         /// <summary>
         /// Unit is Apparent energy VA*60*60s.
         /// </summary>
@@ -235,7 +235,7 @@ namespace Gurux.DLMS.Enums
         /// Unit is Resistance R ohm = V/A.
         /// </summary>
         [XmlEnum("38")]
-        Resistance, 
+        Resistance,
         /// <summary>
         /// Unit is Resistivity.
         /// </summary>
@@ -245,7 +245,7 @@ namespace Gurux.DLMS.Enums
         /// Unit is Magnetic flux F weber Wb = Vs.
         /// </summary>
         [XmlEnum("40")]
-        MagneticFlux, 
+        MagneticFlux,
         /// <summary>
         /// Unit is Induction T tesla Wb/m2.
         /// </summary>
@@ -300,7 +300,7 @@ namespace Gurux.DLMS.Enums
         /// Unit is Conductance siemens 1/ohm.
         /// </summary>
         [XmlEnum("51")]
-        Conductance, 
+        Conductance,
         /// <summary>
         /// Temperature in Kelvin.
         /// </summary>
@@ -332,39 +332,39 @@ namespace Gurux.DLMS.Enums
         /// <summary>
         /// Wh/m3 energy per volume 3,6*103 J/m3.
         /// </summary>
-        [XmlEnum("60")]        
+        [XmlEnum("60")]
         EnergyPerVolume = 60,
         /// <summary>
         /// J/m3 calorific value, wobbe.
         /// </summary>
-        [XmlEnum("61")]        
+        [XmlEnum("61")]
         Wobbe = 61,
         /// <summary>
         /// Mol % molar fraction of gas composition mole percent (Basic gas composition unit)
         /// </summary>
-        [XmlEnum("62")]        
+        [XmlEnum("62")]
         MolePercent = 62,
         /// <summary>
         /// g/m3 mass density, quantity of material.
         /// </summary>
-        [XmlEnum("63")]        
+        [XmlEnum("63")]
         MassDensity = 63,
         /// <summary>
         /// Pa s dynamic viscosity pascal second (Characteristic of gas stream).
         /// </summary>
-        [XmlEnum("64")]        
+        [XmlEnum("64")]
         PascalSecond = 64,
         /// <summary>
         /// J/kg Specific energy 
         /// NOTE The amount of energy per unit of mass of a 
         /// substance Joule / kilogram m2 . kg . s -2 / kg = m2 . s �2
         /// </summary>
-        [XmlEnum("65")]        
+        [XmlEnum("65")]
         JouleKilogram = 65,
         /// <summary>
         /// dBm Signal strength (e.g. of GSM radio systems)
         /// </summary>
-        [XmlEnum("70")]        
+        [XmlEnum("70")]
         SignalStrength = 70,
         /// <summary>
         /// Other Unit is used.
@@ -375,6 +375,6 @@ namespace Gurux.DLMS.Enums
         /// No Unit is used.
         /// </summary>
         [XmlEnum("255")]
-        NoUnit = 255// 
+        NoUnit = 255
     }
 }

@@ -39,6 +39,7 @@ using System.Text;
 using Gurux.DLMS.Enums;
 using System.Diagnostics;
 using Gurux.DLMS.Objects;
+using System.Xml;
 
 namespace Gurux.DLMS.Internal
 {
@@ -255,22 +256,6 @@ namespace Gurux.DLMS.Internal
                 return (int)tmp;
             }
             throw new ArgumentException("Wrong size.");
-        }
-
-        internal byte[] GetLogicalName(string logicalName)
-        {
-            byte[] ln = new byte[6];
-            string[] items = logicalName.Split('.');
-            if (items.Length != 6)
-            {
-                throw new Exception("Invalid Logical name.");
-            }
-            int pos = -1;
-            foreach (string it in items)
-            {
-                ln[++pos] = byte.Parse(it);
-            }
-            return ln;
         }
 
         /// <summary>
@@ -822,7 +807,7 @@ namespace Gurux.DLMS.Internal
                 }
                 int deviation = buff.GetInt16();
                 dt.Status = (ClockStatus)buff.GetUInt8();
-                if ((dt.Status & ClockStatus.DaylightSavingActive) != 0)
+                if (deviation != -32768 && (dt.Status & ClockStatus.DaylightSavingActive) != 0)
                 {
 #if !WINDOWS_UWP
                     deviation -= (int)TimeZone.CurrentTimeZone.GetDaylightChanges(year).Delta.TotalMinutes;
@@ -1196,6 +1181,62 @@ namespace Gurux.DLMS.Internal
             return value;
         }
 
+        /// <summary>
+        /// Reserved for internal use.
+        /// </summary>
+        /// <param name="buff"></param>
+        /// <returns>Logical name as a string.</returns>
+        internal static string ToLogicalName(object value)
+        {
+            if (value is byte[])
+            {
+                byte[] buff = (byte[])value;
+                if (buff.Length == 0)
+                {
+                    buff = new byte[6];
+                }
+                if (buff.Length == 6)
+                {
+                    return (buff[0] & 0xFF) + "." + (buff[1] & 0xFF) + "." + (buff[2] & 0xFF) + "." +
+                           (buff[3] & 0xFF) + "." + (buff[4] & 0xFF) + "." + (buff[5] & 0xFF);
+                }
+#if !WINDOWS_UWP
+                throw new ArgumentException(Properties.Resources.InvalidLogicalName);
+#else
+                var loader = new Windows.ApplicationModel.Resources.ResourceLoader();
+                throw new ArgumentException(loader.GetString("InvalidLogicalName"));
+#endif
+            }
+            return Convert.ToString(value);
+        }
+
+        internal static byte[] LogicalNameToBytes(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return new byte[6];
+            }
+            string[] items = value.Split('.');
+            // If data is string.
+            if (items.Length != 6)
+            {
+#if !WINDOWS_UWP
+                throw new ArgumentException(Properties.Resources.InvalidLogicalName);
+#else
+                var loader = new Windows.ApplicationModel.Resources.ResourceLoader();
+                throw new ArgumentException(loader.GetString("InvalidLogicalName"));
+#endif
+            }
+            byte[] buff = new byte[6];
+            byte pos = 0;
+            foreach (string it in items)
+            {
+                buff[pos] = Convert.ToByte(it);
+                ++pos;
+            }
+            return buff;
+        }
+
         ///<summary>
         ///Get octect string value from DLMS data.
         ///</summary>
@@ -1236,7 +1277,7 @@ namespace Gurux.DLMS.Internal
                     // This might be logical name.
                     if (tmp.Length == 6 && tmp[5] == 0xFF)
                     {
-                        info.xml.AppendComment(GXDLMSObject.ToLogicalName(tmp));
+                        info.xml.AppendComment(GXCommon.ToLogicalName(tmp));
                     }
                     else
                     {
@@ -1545,10 +1586,17 @@ namespace Gurux.DLMS.Internal
             {
                 return DataType.OctetString;
             }
+#if !WINDOWS_UWP
             if (value.GetType().IsEnum)
             {
                 return DataType.Enum;
             }
+#else
+            if (value is Enum)
+            {
+                return DataType.Enum;
+            }
+#endif
             if (value is byte)
             {
                 return DataType.UInt8;
@@ -2038,21 +2086,14 @@ namespace Gurux.DLMS.Internal
                     buff.SetInt16((Int16)(-devitation));
                 }
             }
-            else //deviation not used.
+            else //deviation not used  .
             {
                 buff.SetUInt16(0x8000);
             }
             //Add clock_status
             if ((dt.Skip & DateTimeSkips.Status) == 0)
             {
-                if ((dt.Skip & DateTimeSkips.Devitation) == 0 && dt.Value.LocalDateTime.IsDaylightSavingTime())
-                {
-                    buff.SetUInt8((byte)(dt.Status | ClockStatus.DaylightSavingActive));
-                }
-                else
-                {
-                    buff.SetUInt8((byte)dt.Status);
-                }
+                buff.SetUInt8((byte)dt.Status);
             }
             else //Status is not used.
             {
@@ -2276,14 +2317,148 @@ namespace Gurux.DLMS.Internal
 #if WINDOWS_UWP
         public static string GetDateSeparator()
         {
-            //TODO: Mikko
-            return null;
+            return "-";
         }
         public static string GetTimeSeparator()
         {
-            //TODO: Mikko
-            return null;
+            return ":";
         }
 #endif
+
+        /// <summary>
+        /// Convert DLMS data type to .Net data type.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        static public Type GetDataType(DataType type)
+        {
+            switch (type)
+            {
+                case DataType.None:
+                    return null;
+                case DataType.Array:
+                case DataType.CompactArray:
+                case DataType.Structure:
+                    return typeof(object[]);
+                case DataType.Bcd:
+                    return typeof(string);
+                case DataType.BitString:
+                    return typeof(string);
+                case DataType.Boolean:
+                    return typeof(bool);
+                case DataType.Date:
+                    return typeof(DateTime);
+                case DataType.DateTime:
+                    return typeof(DateTime);
+                case DataType.Float32:
+                    return typeof(float);
+                case DataType.Float64:
+                    return typeof(double);
+                case DataType.Int16:
+                    return typeof(Int16);
+                case DataType.Int32:
+                    return typeof(Int32);
+                case DataType.Int64:
+                    return typeof(Int64);
+                case DataType.Int8:
+                    return typeof(sbyte);
+                case DataType.OctetString:
+                    return typeof(byte[]);
+                case DataType.String:
+                    return typeof(string);
+                case DataType.Time:
+                    return typeof(DateTime);
+                case DataType.UInt16:
+                    return typeof(UInt16);
+                case DataType.UInt32:
+                    return typeof(UInt32);
+                case DataType.UInt64:
+                    return typeof(UInt64);
+                case DataType.UInt8:
+                    return typeof(byte);
+                default:
+                case DataType.Enum:
+                    break;
+            }
+            throw new Exception("Invalid DLMS data type.");
+        }
+
+        static public DataType GetDLMSDataType(Type type)
+        {
+            //If expected type is not given return property type.
+            if (type == null)
+            {
+                return DataType.None;
+            }
+            if (type == typeof(Int32))
+            {
+                return DataType.Int32;
+            }
+            if (type == typeof(UInt32))
+            {
+                return DataType.UInt32;
+            }
+            if (type == typeof(String))
+            {
+                return DataType.String;
+            }
+            if (type == typeof(byte))
+            {
+                return DataType.UInt8;
+            }
+            if (type == typeof(sbyte))
+            {
+                return DataType.Int8;
+            }
+            if (type == typeof(Int16))
+            {
+                return DataType.Int16;
+            }
+            if (type == typeof(UInt16))
+            {
+                return DataType.UInt16;
+            }
+            if (type == typeof(Int64))
+            {
+                return DataType.Int64;
+            }
+            if (type == typeof(UInt64))
+            {
+                return DataType.UInt64;
+            }
+            if (type == typeof(float))
+            {
+                return DataType.Float32;
+            }
+            if (type == typeof(double))
+            {
+                return DataType.Float64;
+            }
+            if (type == typeof(DateTime))
+            {
+                return DataType.DateTime;
+            }
+            if (type == typeof(GXDate))
+            {
+                return DataType.Date;
+            }
+            if (type == typeof(GXTime))
+            {
+                return DataType.Time;
+            }
+            if (type == typeof(Boolean) || type == typeof(bool))
+            {
+                return DataType.Boolean;
+            }
+            if (type == typeof(byte[]))
+            {
+                return DataType.OctetString;
+            }
+            if (type == typeof(object[]))
+            {
+                return DataType.Array;
+            }
+            throw new Exception("Failed to convert data type to DLMS data type. Unknown data type.");
+        }
     }
 }

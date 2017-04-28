@@ -42,6 +42,7 @@ using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -278,12 +279,12 @@ namespace Gurux.DLMS.Objects
         {
             if (Version == 0)
             {
-                return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, "MBus Port Reference",
+                return new string[] {Internal.GXCommon.GetLogicalNameString(), "MBus Port Reference",
                                  "Capture Definition", "Capture Period", "Primary Address", "Identification Number",
                                  "Manufacturer ID", "Version", "Device Type", "Access Number", "Status", "Alarm"
                                 };
             }
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, "MBus Port Reference",
+            return new string[] {Internal.GXCommon.GetLogicalNameString(), "MBus Port Reference",
                              "Capture Definition", "Capture Period", "Primary Address", "Identification Number",
                              "Manufacturer ID", "Version", "Device Type", "Access Number", "Status", "Alarm",
                              "Configuration", "Encryption Key Status"
@@ -374,11 +375,11 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
-                return MBusPortReference;
+                return GXCommon.LogicalNameToBytes(MBusPortReference);
             }
             if (e.Index == 3)
             {
@@ -449,25 +450,11 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, false).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
-                if (e.Value is string)
-                {
-                    MBusPortReference = e.Value.ToString();
-                }
-                else
-                {
-                    MBusPortReference = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, false).ToString();
-                }
+                MBusPortReference = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 3)
             {
@@ -536,6 +523,57 @@ namespace Gurux.DLMS.Objects
             {
                 e.Error = ErrorCode.ReadWriteDenied;
             }
+        }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            MBusPortReference = reader.ReadElementContentAsString("MBusPortReference");
+            CaptureDefinition.Clear();
+            if (reader.IsStartElement("CaptureDefinition", true))
+            {
+                while (reader.IsStartElement("Item", true))
+                {
+                    string d = reader.ReadElementContentAsString("Data");
+                    string v = reader.ReadElementContentAsString("Value");
+                    CaptureDefinition.Add(new KeyValuePair<string, string>(d, v));
+                }
+                reader.ReadEndElement("CaptureDefinition");
+            }
+            CapturePeriod = (UInt16)reader.ReadElementContentAsInt("CapturePeriod");
+            PrimaryAddress = reader.ReadElementContentAsInt("PrimaryAddress");
+            IdentificationNumber = (UInt16)reader.ReadElementContentAsInt("IdentificationNumber");
+            ManufacturerID = (UInt16)reader.ReadElementContentAsInt("ManufacturerID");
+            DataHeaderVersion = reader.ReadElementContentAsInt("DataHeaderVersion");
+            DeviceType = reader.ReadElementContentAsInt("DeviceType");
+            AccessNumber = reader.ReadElementContentAsInt("AccessNumber");
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            writer.WriteElementString("MBusPortReference", MBusPortReference);
+            if (CaptureDefinition != null)
+            {
+                writer.WriteStartElement("CaptureDefinition");
+                foreach (KeyValuePair<string, string> it in CaptureDefinition)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Data", it.Key);
+                    writer.WriteElementString("Value", it.Value);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+            writer.WriteElementString("CapturePeriod", CapturePeriod);
+            writer.WriteElementString("PrimaryAddress", PrimaryAddress);
+            writer.WriteElementString("IdentificationNumber", IdentificationNumber);
+            writer.WriteElementString("ManufacturerID", ManufacturerID);
+            writer.WriteElementString("DataHeaderVersion", DataHeaderVersion);
+            writer.WriteElementString("DeviceType", DeviceType);
+            writer.WriteElementString("AccessNumber", AccessNumber);
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
         }
         #endregion
     }

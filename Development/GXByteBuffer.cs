@@ -200,6 +200,17 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Amount of not reed bytes in the buffer.
+        /// </summary>
+        public int Available
+        {
+            get
+            {
+                return size - position;
+            }
+        }
+
+        /// <summary>
         /// Returs data as byte array.
         /// </summary>
         /// <returns>Byte buffer as a byte array.</returns>
@@ -678,14 +689,52 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Check is byte buffer ASCII string.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static bool IsAsciiString(byte[] value)
+        {
+            if (value != null)
+            {
+                foreach (char it in value)
+                {
+                    if (it == 0)
+                    {
+                        return true;
+                    }
+                    if ((it < 32 || it > 127) && it != '\r' && it != '\n' && it != 0)
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Get String value from byte array.
         /// </summary>
         /// <param name="count">Byte count.</param>
         public string GetString(int count)
         {
-            string str = ASCIIEncoding.ASCII.GetString(Data, Position, count);
-            Position = (Position + count);
-            return str;
+            if (count == 0)
+            {
+                return string.Empty;
+            }
+            byte[] tmp = new byte[count];
+            Get(tmp);
+            if (IsAsciiString(tmp))
+            {
+                string str = ASCIIEncoding.ASCII.GetString(tmp);
+                int pos = str.IndexOf('\0');
+                if (pos != -1)
+                {
+                    str = str.Substring(0, pos);
+                }
+                return str;
+            }
+            return Gurux.DLMS.Internal.GXCommon.ToHex(tmp, true);
         }
 
         /// <summary>

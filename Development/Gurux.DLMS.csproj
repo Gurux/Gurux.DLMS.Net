@@ -72,6 +72,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GXDLMSConfirmedServiceError.cs" />
+    <Compile Include="Objects\Enums\GsmPacketSwitchStatus.cs" />
+    <Compile Include="Objects\Enums\GsmCircuitSwitchStatus.cs" />
+    <Compile Include="Objects\Enums\GsmStatus.cs" />
     <Compile Include="Objects\Enums\DeviceType.cs" />
     <Compile Include="Objects\Enums\GainResolution.cs" />
     <Compile Include="Objects\Enums\Modulation.cs" />
@@ -79,6 +82,10 @@
     <Compile Include="Objects\Enums\MBusEncryptionKeyStatus.cs" />
     <Compile Include="Objects\Enums\SecurityPolicy0.cs" />
     <Compile Include="Objects\GXDLMSBroadcastLogTable.cs" />
+    <Compile Include="Objects\GXDLMSGSMCellInfo.cs" />
+    <Compile Include="Objects\GXDLMSGSMDiagnostic.cs" />
+    <Compile Include="Objects\GXXmlWriter.cs" />
+    <Compile Include="Objects\GXXmlReader.cs" />
     <Compile Include="Objects\GXDLMSContextInformationTable.cs" />
     <Compile Include="Objects\GXDLMSG3PlcMacLayerCounters.cs" />
     <Compile Include="Objects\GXDLMSRoutingTable.cs" />

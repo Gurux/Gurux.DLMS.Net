@@ -41,6 +41,7 @@ using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -98,7 +99,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Unit of COSEM Register object.
         /// </summary>
-        [DefaultValue(Unit.NoUnit)]
+        [DefaultValue(Unit.None)]
         public Unit Unit
         {
             get;
@@ -111,7 +112,9 @@ namespace Gurux.DLMS.Objects
         /// <remarks>
         /// Register value is not serialized because XML serializer can't handle all cases.
         /// </remarks>
+#if !WINDOWS_UWP
         [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#endif
         [System.Xml.Serialization.XmlIgnore()]
         public object Value
         {
@@ -185,7 +188,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Scaler and Unit", "Value" };
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Scaler and Unit", "Value" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -224,7 +227,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -247,18 +250,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else if (e.Value == null)
-                {
-                    LogicalName = null;
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -302,6 +294,25 @@ namespace Gurux.DLMS.Objects
                 e.Error = ErrorCode.ReadWriteDenied;
             }
         }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            Unit = (Unit)reader.ReadElementContentAsInt("Unit", 0);
+            Scaler = reader.ReadElementContentAsDouble("Scaler", 1);
+            Value = reader.ReadElementContentAsObject("Value", null);
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            writer.WriteElementString("Unit", (int)Unit);
+            writer.WriteElementString("Scaler", Scaler, 1);
+            writer.WriteElementObject("Value", Value);
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
+        }
+
         #endregion
     }
 }

@@ -39,7 +39,9 @@ namespace Gurux.DLMS.Secure
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+#if !WINDOWS_UWP
     using System.Security.Cryptography;
+#endif
     using Gurux.DLMS.Internal;
     using Gurux.DLMS.Enums;
     using Objects;

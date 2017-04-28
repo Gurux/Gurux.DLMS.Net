@@ -72,7 +72,9 @@ namespace Gurux.DLMS.ManufacturerSettings
         Custom
     }
 
+#if !WINDOWS_UWP
     [Serializable]
+#endif
     public class GXServerAddress
     {
         /// <summary>
@@ -88,7 +90,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         public GXServerAddress(HDLCAddressType address, int value, bool enabled)
         {
             HDLCAddress = address;
-            PhysicalAddress = value;            
+            PhysicalAddress = value;
         }
 
         /// <summary>
@@ -99,13 +101,13 @@ namespace Gurux.DLMS.ManufacturerSettings
         {
             get;
             set;
-        }        
+        }
 
         public HDLCAddressType HDLCAddress
         {
             get;
             set;
-        }      
+        }
 
         public string Formula
         {
@@ -113,19 +115,21 @@ namespace Gurux.DLMS.ManufacturerSettings
             set;
         }
 
+#if !WINDOWS_UWP
         [Browsable(false)]
+#endif
         [DefaultValue(null)]
         public int PhysicalAddress
         {
             get;
             set;
         }
-        
+
         [DefaultValue(0)]
         public int LogicalAddress
         {
             get;
             set;
-        }       
+        }
     }
 }

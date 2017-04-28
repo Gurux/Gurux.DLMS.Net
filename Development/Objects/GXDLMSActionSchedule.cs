@@ -42,6 +42,7 @@ using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -164,7 +165,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Executed Script Logical Name",
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Executed Script Logical Name",
                               "Type", "Execution Time"
                             };
         }
@@ -206,7 +207,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -216,12 +217,12 @@ namespace Gurux.DLMS.Objects
                 //LN
                 if (Target != null)
                 {
-                    GXCommon.SetData(settings, data, DataType.OctetString, Target.LogicalName);
+                    GXCommon.SetData(settings, data, DataType.OctetString, GXCommon.LogicalNameToBytes(Target.LogicalName));
                 }
                 else
                 {
 #pragma warning disable CS0618
-                    GXCommon.SetData(settings, data, DataType.OctetString, ExecutedScriptLogicalName);
+                    GXCommon.SetData(settings, data, DataType.OctetString, GXCommon.LogicalNameToBytes(ExecutedScriptLogicalName));
 #pragma warning restore CS0618
                 }
                 GXCommon.SetData(settings, data, DataType.UInt16, ExecutedScriptSelector);
@@ -263,26 +264,17 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
                 if (e.Value != null)
                 {
-                    String ln = GXDLMSClient.ChangeType((byte[])((object[])e.Value)[0], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
+                    String ln = GXCommon.ToLogicalName(((object[])e.Value)[0]);
                     Target = (GXDLMSScriptTable)settings.Objects.FindByLN(ObjectType.ScriptTable, ln);
                     if (Target == null)
                     {
-#pragma warning disable CS0618
-                        ExecutedScriptLogicalName = ln;
-#pragma warning restore CS0618
+                        Target = new GXDLMSScriptTable(ln);
                     }
                     ExecutedScriptSelector = Convert.ToUInt16(((object[])e.Value)[1]);
                 }
@@ -330,6 +322,67 @@ namespace Gurux.DLMS.Objects
         {
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
+        }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            ObjectType ot = (ObjectType)reader.ReadElementContentAsInt("ObjectType");
+            string ln = reader.ReadElementContentAsString("LN");
+            if (ot != ObjectType.None && !string.IsNullOrEmpty(ln))
+            {
+                Target = (GXDLMSScriptTable)reader.Objects.FindByLN(ot, ln);
+                //if object is not load yet.
+                if (Target == null)
+                {
+                    Target = new GXDLMSScriptTable(ln);
+                }
+            }
+            ExecutedScriptSelector = (UInt16)reader.ReadElementContentAsInt("ExecutedScriptSelector");
+            Type = (SingleActionScheduleType)reader.ReadElementContentAsInt("Type");
+            List<GXDateTime> list = new List<GXDateTime>();
+            if (reader.IsStartElement("ExecutionTime", true))
+            {
+                while (reader.IsStartElement("Time", false))
+                {
+                    GXDateTime it = new GXDateTime(reader.ReadElementContentAsString("Time"));
+                    list.Add(it);
+                }
+                reader.ReadEndElement("ExecutionTime");
+            }
+            ExecutionTime = list.ToArray();
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            if (Target != null)
+            {
+                writer.WriteElementString("ObjectType", (int)Target.ObjectType);
+                writer.WriteElementString("LN", Target.LogicalName);
+            }
+            writer.WriteElementString("ExecutedScriptSelector", ExecutedScriptSelector);
+            writer.WriteElementString("Type", (int)Type);
+            if (ExecutionTime != null)
+            {
+                writer.WriteStartElement("ExecutionTime");
+                foreach (GXDateTime it in ExecutionTime)
+                {
+                    writer.WriteElementString("Time", it.ToFormatString());
+                }
+                writer.WriteEndElement();
+            }
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
+            //Upload target after load.
+            if (Target != null)
+            {
+                GXDLMSScriptTable target = (GXDLMSScriptTable)reader.Objects.FindByLN(ObjectType.ScriptTable, Target.LogicalName);
+                if (target != Target)
+                {
+                    Target = target;
+                }
+            }
         }
     }
 }

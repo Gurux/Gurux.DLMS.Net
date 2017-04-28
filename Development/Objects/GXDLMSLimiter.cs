@@ -41,6 +41,7 @@ using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -50,11 +51,8 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSLimiter()
-        : base(ObjectType.Limiter)
+        : this("0.0.17.0.0.255", 0)
         {
-            EmergencyProfile = new GXDLMSEmergencyProfile();
-            ActionOverThreshold = new GXDLMSActionItem();
-            ActionUnderThreshold = new GXDLMSActionItem();
         }
 
         /// <summary>
@@ -62,11 +60,8 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSLimiter(string ln)
-        : base(ObjectType.Limiter, ln, 0)
+        : this(ln, 0)
         {
-            EmergencyProfile = new GXDLMSEmergencyProfile();
-            ActionOverThreshold = new GXDLMSActionItem();
-            ActionUnderThreshold = new GXDLMSActionItem();
         }
 
         /// <summary>
@@ -282,7 +277,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Monitored Value",
+            return new string[] {Internal.GXCommon.GetLogicalNameString(), "Monitored Value",
                              "Active Threshold", "Normal Threshold", "Emergency Threshold", "Threshold Duration Min Over",
                              "Threshold Duration Min Under", "Emergency Profile", "Emergency Profile Group",
                              "Emergency Profile Active", "Actions"
@@ -353,7 +348,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             else if (e.Index == 2)
             {
@@ -363,13 +358,13 @@ namespace Gurux.DLMS.Objects
                 if (MonitoredValue == null)
                 {
                     GXCommon.SetData(settings, data, DataType.Int16, 0);
-                    GXCommon.SetData(settings, data, DataType.OctetString, "0.0.0.0.0.0");
+                    GXCommon.SetData(settings, data, DataType.OctetString, GXCommon.LogicalNameToBytes(null));
                     GXCommon.SetData(settings, data, DataType.UInt8, 0);
                 }
                 else
                 {
                     GXCommon.SetData(settings, data, DataType.Int16, MonitoredValue.ObjectType);
-                    GXCommon.SetData(settings, data, DataType.OctetString, MonitoredValue.LogicalName);
+                    GXCommon.SetData(settings, data, DataType.OctetString, GXCommon.LogicalNameToBytes(MonitoredValue.LogicalName));
                     GXCommon.SetData(settings, data, DataType.UInt8, MonitoredAttributeIndex);
 
                 }
@@ -435,11 +430,11 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8(2);
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8(2);
-                GXCommon.SetData(settings, data, DataType.OctetString, ActionOverThreshold.LogicalName);
+                GXCommon.SetData(settings, data, DataType.OctetString, GXCommon.LogicalNameToBytes(ActionOverThreshold.LogicalName));
                 GXCommon.SetData(settings, data, DataType.UInt16, ActionOverThreshold.ScriptSelector);
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8(2);
-                GXCommon.SetData(settings, data, DataType.OctetString, ActionUnderThreshold.LogicalName);
+                GXCommon.SetData(settings, data, DataType.OctetString, GXCommon.LogicalNameToBytes(ActionUnderThreshold.LogicalName));
                 GXCommon.SetData(settings, data, DataType.UInt16, ActionUnderThreshold.ScriptSelector);
                 return data.Array();
             }
@@ -451,19 +446,12 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
                 ObjectType ot = (ObjectType)Convert.ToInt16(((object[])e.Value)[0]);
-                string ln = GXDLMSClient.ChangeType((byte[])((object[])e.Value)[1], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
+                string ln = GXCommon.ToLogicalName(((object[])e.Value)[1]);
                 int attIndex = Convert.ToInt32(((object[])e.Value)[2]);
                 MonitoredValue = settings.Objects.FindByLN(ot, ln);
                 MonitoredAttributeIndex = attIndex;
@@ -516,14 +504,133 @@ namespace Gurux.DLMS.Objects
                 object[] tmp = (object[])e.Value;
                 object[] tmp1 = (object[])tmp[0];
                 object[] tmp2 = (object[])tmp[1];
-                ActionOverThreshold.LogicalName = GXDLMSClient.ChangeType((byte[])tmp1[0], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
+                ActionOverThreshold.LogicalName = GXCommon.ToLogicalName(tmp1[0]);
                 ActionOverThreshold.ScriptSelector = Convert.ToUInt16(tmp1[1]);
-                ActionUnderThreshold.LogicalName = GXDLMSClient.ChangeType((byte[])tmp2[0], DataType.OctetString, settings.UseUtc2NormalTime).ToString();
+                ActionUnderThreshold.LogicalName = GXCommon.ToLogicalName((byte[])tmp2[0]);
                 ActionUnderThreshold.ScriptSelector = Convert.ToUInt16(tmp2[1]);
             }
             else
             {
                 e.Error = ErrorCode.ReadWriteDenied;
+            }
+        }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            if (reader.IsStartElement("MonitoredValue", true))
+            {
+                ObjectType ot = (ObjectType)reader.ReadElementContentAsInt("ObjectType");
+                string ln = reader.ReadElementContentAsString("LN");
+                if (ot != ObjectType.None && ln != null)
+                {
+                    MonitoredValue = reader.Objects.FindByLN(ot, ln);
+                    //If item is not serialized yet.
+                    if (MonitoredValue == null)
+                    {
+                        MonitoredValue = GXDLMSClient.CreateObject(ot);
+                        MonitoredValue.LogicalName = ln;
+                    }
+                }
+                reader.ReadEndElement("MonitoredValue");
+            }
+            ThresholdActive = reader.ReadElementContentAsObject("ThresholdActive", null);
+            ThresholdNormal = reader.ReadElementContentAsObject("ThresholdNormal", null);
+            ThresholdEmergency = reader.ReadElementContentAsObject("ThresholdEmergency", null);
+            MinOverThresholdDuration = (UInt16)reader.ReadElementContentAsInt("MinOverThresholdDuration");
+            MinUnderThresholdDuration = (UInt16)reader.ReadElementContentAsInt("MinUnderThresholdDuration");
+            if (reader.IsStartElement("EmergencyProfile", true))
+            {
+                EmergencyProfile.ID = (UInt16)reader.ReadElementContentAsInt("ID");
+                EmergencyProfile.ActivationTime = (GXDateTime)reader.ReadElementContentAsObject("Time", new GXDateTime());
+                EmergencyProfile.Duration = (UInt16)reader.ReadElementContentAsInt("Duration");
+                reader.ReadEndElement("EmergencyProfile");
+            }
+            List<UInt16> list = new List<ushort>();
+            if (reader.IsStartElement("EmergencyProfileGroupIDs", true))
+            {
+                while (reader.IsStartElement("Value", false))
+                {
+                    list.Add((UInt16)reader.ReadElementContentAsInt("Value"));
+                }
+                reader.ReadEndElement("EmergencyProfileGroupIDs");
+            }
+            EmergencyProfileGroupIDs = list.ToArray();
+            EmergencyProfileActive = reader.ReadElementContentAsInt("Active") != 0;
+
+            if (reader.IsStartElement("ActionOverThreshold", true))
+            {
+                ActionOverThreshold.LogicalName = reader.ReadElementContentAsString("LN");
+                ActionOverThreshold.ScriptSelector = (UInt16)reader.ReadElementContentAsInt("ScriptSelector");
+                reader.ReadEndElement("ActionOverThreshold");
+            }
+            if (reader.IsStartElement("ActionUnderThreshold", true))
+            {
+                ActionUnderThreshold.LogicalName = reader.ReadElementContentAsString("LN");
+                ActionUnderThreshold.ScriptSelector = (UInt16)reader.ReadElementContentAsInt("ScriptSelector");
+                reader.ReadEndElement("ActionUnderThreshold");
+            }
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            if (MonitoredValue != null)
+            {
+                writer.WriteStartElement("MonitoredValue");
+                writer.WriteElementString("ObjectType", (int)MonitoredValue.ObjectType);
+                writer.WriteElementString("LN", MonitoredValue.LogicalName);
+                writer.WriteEndElement();
+            }
+            writer.WriteElementObject("ThresholdActive", ThresholdActive);
+            writer.WriteElementObject("ThresholdNormal", ThresholdNormal);
+            writer.WriteElementObject("ThresholdEmergency", ThresholdEmergency);
+            writer.WriteElementString("MinOverThresholdDuration", MinOverThresholdDuration);
+            writer.WriteElementString("MinUnderThresholdDuration", MinUnderThresholdDuration);
+            if (EmergencyProfile != null)
+            {
+                writer.WriteStartElement("EmergencyProfile");
+                writer.WriteElementString("ID", EmergencyProfile.ID);
+                writer.WriteElementObject("Time", EmergencyProfile.ActivationTime);
+                writer.WriteElementString("Duration", EmergencyProfile.Duration);
+                writer.WriteEndElement();
+            }
+            if (EmergencyProfileGroupIDs != null)
+            {
+                writer.WriteStartElement("EmergencyProfileGroupIDs");
+                foreach (UInt16 it in EmergencyProfileGroupIDs)
+                {
+                    writer.WriteElementString("Value", it.ToString());
+                }
+                writer.WriteEndElement();
+            }
+            writer.WriteElementString("Active", EmergencyProfileActive);
+
+            if (ActionOverThreshold != null)
+            {
+                writer.WriteStartElement("ActionOverThreshold");
+                writer.WriteElementString("LN", ActionOverThreshold.LogicalName);
+                writer.WriteElementString("ScriptSelector", ActionOverThreshold.ScriptSelector);
+                writer.WriteEndElement();
+            }
+
+            if (ActionUnderThreshold != null)
+            {
+                writer.WriteStartElement("ActionUnderThreshold");
+                writer.WriteElementString("LN", ActionUnderThreshold.LogicalName);
+                writer.WriteElementString("ScriptSelector", ActionUnderThreshold.ScriptSelector);
+                writer.WriteEndElement();
+            }
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
+            //Upload Monitored Value after load.
+            if (MonitoredValue != null)
+            {
+                GXDLMSObject target = reader.Objects.FindByLN(MonitoredValue.ObjectType, MonitoredValue.LogicalName);
+                if (target != MonitoredValue)
+                {
+                    MonitoredValue = target;
+                }
             }
         }
         #endregion

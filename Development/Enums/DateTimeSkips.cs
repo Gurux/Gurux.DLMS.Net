@@ -36,6 +36,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Enums
 {
@@ -48,46 +49,57 @@ namespace Gurux.DLMS.Enums
         /// <summary>
         /// Nothing is skipped from date time.
         /// </summary>
+        [XmlEnum("0")]
         None = 0x0,
         /// <summary>
         /// Year part of date time is skipped.
         /// </summary>
+        [XmlEnum("1")]
         Year = 0x1,
         /// <summary>
         /// Month part of date time is skipped.
         /// </summary>
+        [XmlEnum("2")]
         Month = 0x2,
         /// <summary>
         /// Day part is skipped.
         /// </summary>
+        [XmlEnum("4")]
         Day = 0x4,
         /// <summary>
         /// Day of week part of date time is skipped.
         /// </summary>
+        [XmlEnum("8")]
         DayOfWeek = 0x8,
         /// <summary>
         /// Hours part of date time is skipped.
         /// </summary>
+        [XmlEnum("16")]
         Hour = 0x10,
         /// <summary>
         /// Minute part of date time is skipped.
         /// </summary>
+        [XmlEnum("32")]
         Minute = 0x20,
         /// <summary>
         /// Seconds part of date time is skipped.
         /// </summary>
+        [XmlEnum("64")]
         Second = 0x40,
         /// <summary>
         /// Hundreds of seconds part of date time is skipped.
         /// </summary>
+        [XmlEnum("128")]
         Ms = 0x80,
         /// <summary>
         /// Devitation is skipped on write.
         /// </summary>
+        [XmlEnum("256")]
         Devitation = 0x100,
         /// <summary>
         /// Status is skipped on write.
         /// </summary>
+        [XmlEnum("512")]
         Status = 0x200
     }
 }

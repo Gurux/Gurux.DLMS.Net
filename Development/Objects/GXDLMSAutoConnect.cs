@@ -42,6 +42,7 @@ using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Enums;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -183,7 +184,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt,
+            return new string[] {Internal.GXCommon.GetLogicalNameString(),
                              "Mode",
                              "Repetitions",
                              "Repetition Delay",
@@ -237,7 +238,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -299,14 +300,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -357,6 +351,51 @@ namespace Gurux.DLMS.Objects
         {
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
+        }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            Mode = (AutoConnectMode)reader.ReadElementContentAsInt("Mode");
+            Repetitions = reader.ReadElementContentAsInt("Repetitions");
+            RepetitionDelay = reader.ReadElementContentAsInt("RepetitionDelay");
+            CallingWindow.Clear();
+            if (reader.IsStartElement("CallingWindow", true))
+            {
+                while (reader.IsStartElement("Item", true))
+                {
+                    GXDateTime start = new GXDateTime(reader.ReadElementContentAsString("Start"));
+                    GXDateTime end = new GXDateTime(reader.ReadElementContentAsString("End"));
+                    CallingWindow.Add(new KeyValuePair<DLMS.GXDateTime, DLMS.GXDateTime>(start, end));
+                }
+                reader.ReadEndElement("CallingWindow");
+            }
+            Destinations = reader.ReadElementContentAsString("Destinations", "").Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            writer.WriteElementString("Mode", (int)Mode);
+            writer.WriteElementString("Repetitions", Repetitions);
+            writer.WriteElementString("RepetitionDelay", RepetitionDelay);
+            if (CallingWindow != null)
+            {
+                writer.WriteStartElement("CallingWindow");
+                foreach (KeyValuePair<GXDateTime, GXDateTime> it in CallingWindow)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Start", it.Key.ToFormatString());
+                    writer.WriteElementString("End", it.Value.ToFormatString());
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+            if (Destinations != null)
+            {
+                writer.WriteElementString("Destinations", string.Join(";", Destinations));
+            }
+        }
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
         }
         #endregion
     }

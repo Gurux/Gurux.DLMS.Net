@@ -384,6 +384,17 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Get OBIS value
+        /// </summary>
+        /// <param name="formula">OBIS formula.</param>
+        /// <param name="value">OBIS value.</param>
+        /// <returns></returns>
+        int GetObisValue(string formula, int value)
+        {
+            return value + int.Parse(formula.Substring(1));
+        }
+
+        /// <summary>
         /// Find Standard OBIS Code description.
         /// </summary>
         public GXStandardObisCode[] Find(byte[] obisCode, int IC)
@@ -426,43 +437,38 @@ namespace Gurux.DLMS
                         tmp.Description = tmp.Description.Replace("$E", obisCode[4].ToString());
                         tmp.Description = tmp.Description.Replace("$F", obisCode[5].ToString());
                         //Increase value
-                        int begin = tmp.Description.IndexOf("#$");
+                        int begin = tmp.Description.IndexOf("#$(");
                         if (begin != -1)
                         {
-                            int start = tmp.Description.IndexOf('(');
-                            int end = tmp.Description.IndexOf(')');
-                            char channel = tmp.Description[start + 1];
-                            byte ch = 0;
-                            if (channel == 'A')
+                            string[] arr = tmp.Description.Substring(begin + 2).Split(new char[] { '(', ')', '$' }, StringSplitOptions.RemoveEmptyEntries);
+                            tmp.Description = tmp.Description.Substring(0, begin);
+                            foreach (string v in arr)
                             {
-                                ch = obisCode[0];
+                                switch (v[0])
+                                {
+                                    case 'A':
+                                        tmp.Description += "#" + GetObisValue(v, obisCode[0]);
+                                        break;
+                                    case 'B':
+                                        tmp.Description += "#" + GetObisValue(v, obisCode[1]);
+                                        break;
+                                    case 'C':
+                                        tmp.Description += "#" + GetObisValue(v, obisCode[2]);
+                                        break;
+                                    case 'D':
+                                        tmp.Description += "#" + GetObisValue(v, obisCode[3]);
+                                        break;
+                                    case 'E':
+                                        tmp.Description += "#" + GetObisValue(v, obisCode[4]);
+                                        break;
+                                    case 'F':
+                                        tmp.Description += "#" + GetObisValue(v, obisCode[5]);
+                                        break;
+                                    default:
+                                        tmp.Description += v;
+                                        break;
+                                }
                             }
-                            else if (channel == 'B')
-                            {
-                                ch = obisCode[1];
-                            }
-                            else if (channel == 'C')
-                            {
-                                ch = obisCode[2];
-                            }
-                            else if (channel == 'D')
-                            {
-                                ch = obisCode[3];
-                            }
-                            else if (channel == 'E')
-                            {
-                                ch = obisCode[4];
-                            }
-                            else if (channel == 'F')
-                            {
-                                ch = obisCode[5];
-                            }
-                            int plus = tmp.Description.IndexOf('+');
-                            if (plus != -1)
-                            {
-                                ch += byte.Parse(tmp.Description.Substring(plus + 1, end - plus - 1));
-                            }
-                            tmp.Description = tmp.Description.Substring(0, begin) + ch.ToString();
                         }
                         tmp.Description = tmp.Description.Replace(';', ' ').Replace("  ", " ").Trim();
                     }

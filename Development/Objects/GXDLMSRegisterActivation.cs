@@ -41,6 +41,7 @@ using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -147,7 +148,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Register Assignment", "Mask List", "Active Mask" };
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Register Assignment", "Mask List", "Active Mask" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -186,7 +187,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -247,14 +248,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -265,7 +259,7 @@ namespace Gurux.DLMS.Objects
                     {
                         GXDLMSObjectDefinition item = new GXDLMSObjectDefinition();
                         item.ObjectType = (ObjectType)Convert.ToInt32(it[0]);
-                        item.LogicalName = GXDLMSObject.ToLogicalName((byte[])it[1]);
+                        item.LogicalName = GXCommon.ToLogicalName((byte[])it[1]);
                         items.Add(item);
                     }
                 }
@@ -303,6 +297,73 @@ namespace Gurux.DLMS.Objects
                 e.Error = ErrorCode.ReadWriteDenied;
             }
         }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            List<GXDLMSObjectDefinition> list = new List<GXDLMSObjectDefinition>();
+            if (reader.IsStartElement("RegisterAssignment", true))
+            {
+                while (reader.IsStartElement("Item", true))
+                {
+                    GXDLMSObjectDefinition it = new GXDLMSObjectDefinition();
+                    it.ObjectType = (ObjectType)reader.ReadElementContentAsInt("ObjectType");
+                    it.LogicalName = reader.ReadElementContentAsString("LN");
+                    list.Add(it);
+                }
+                reader.ReadEndElement("RegisterAssignment");
+            }
+            RegisterAssignment = list.ToArray();
+            MaskList.Clear();
+            if (reader.IsStartElement("MaskList", true))
+            {
+                while (reader.IsStartElement("Item", true))
+                {
+                    byte[] mask = GXDLMSTranslator.HexToBytes(reader.ReadElementContentAsString("Mask"));
+                    byte[] i = GXDLMSTranslator.HexToBytes(reader.ReadElementContentAsString("Index"));
+                    MaskList.Add(new KeyValuePair<byte[], byte[]>(mask, i));
+                }
+                reader.ReadEndElement("MaskList");
+            }
+            ActiveMask = GXDLMSTranslator.HexToBytes(reader.ReadElementContentAsString("ActiveMask"));
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            if (RegisterAssignment != null)
+            {
+                writer.WriteStartElement("RegisterAssignment");
+                foreach (GXDLMSObjectDefinition it in RegisterAssignment)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("ObjectType", (int)it.ObjectType);
+                    writer.WriteElementString("LN", it.LogicalName);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+
+            if (MaskList != null)
+            {
+                writer.WriteStartElement("MaskList");
+                foreach (KeyValuePair<byte[], byte[]> it in MaskList)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Mask", GXDLMSTranslator.ToHex(it.Key));
+                    writer.WriteElementString("Index", GXDLMSTranslator.ToHex(it.Value).Replace(" ", ";"));
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+            if (ActiveMask != null)
+            {
+                writer.WriteElementString("ActiveMask", GXDLMSTranslator.ToHex(ActiveMask));
+            }
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
+        }
+
         #endregion
     }
 }

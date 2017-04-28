@@ -194,11 +194,11 @@ namespace GuruxDLMSServerExample
             activity.CalendarNameActive = "Active";
             activity.SeasonProfileActive = new GXDLMSSeasonProfile[] { new GXDLMSSeasonProfile("Summer time", new GXDateTime(-1, 3, 31, -1, -1, -1, -1), "") };
             activity.WeekProfileTableActive = new GXDLMSWeekProfile[] { new GXDLMSWeekProfile("Monday", 1, 1, 1, 1, 1, 1, 1) };
-            activity.DayProfileTableActive = new GXDLMSDayProfile[] { new GXDLMSDayProfile(1, new GXDLMSDayProfileAction[] { new GXDLMSDayProfileAction(new GXTime(DateTime.Now), "test", 1) }) };
+            activity.DayProfileTableActive = new GXDLMSDayProfile[] { new GXDLMSDayProfile(1, new GXDLMSDayProfileAction[] { new GXDLMSDayProfileAction(new GXTime(DateTime.Now), "0.1.10.1.101.255", 1) }) };
             activity.CalendarNamePassive = "Passive";
             activity.SeasonProfilePassive = new GXDLMSSeasonProfile[] { new GXDLMSSeasonProfile("Winter time", new GXDateTime(-1, 10, 30, -1, -1, -1, -1), "") };
             activity.WeekProfileTablePassive = new GXDLMSWeekProfile[] { new GXDLMSWeekProfile("Tuesday", 1, 1, 1, 1, 1, 1, 1) };
-            activity.DayProfileTablePassive = new GXDLMSDayProfile[] { new GXDLMSDayProfile(1, new GXDLMSDayProfileAction[] { new GXDLMSDayProfileAction(new GXTime(DateTime.Now), "0.0.1.0.0.255", 1) }) };
+            activity.DayProfileTablePassive = new GXDLMSDayProfile[] { new GXDLMSDayProfile(1, new GXDLMSDayProfileAction[] { new GXDLMSDayProfileAction(new GXTime(DateTime.Now), "0.1.10.1.101.255", 1) }) };
             activity.Time = new GXDateTime(DateTime.Now);
             Items.Add(activity);
             ///////////////////////////////////////////////////////////////////////
@@ -755,6 +755,11 @@ namespace GuruxDLMSServerExample
 
         protected override AccessMode GetAttributeAccess(ValueEventArgs arg)
         {
+            //Only read is allowed for register.
+            if (arg.Target is GXDLMSRegister)
+            {
+                return AccessMode.Read;
+            }
             //Only read is allowed
             if (arg.Settings.Authentication == Authentication.None)
             {

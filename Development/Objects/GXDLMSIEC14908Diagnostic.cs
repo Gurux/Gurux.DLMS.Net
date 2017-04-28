@@ -40,6 +40,8 @@ using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Enums;
+using System.Xml;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
@@ -224,7 +226,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "PlcSignalQualityStatus", "TransceiverState", "ReceivedMessageStatus",
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "PlcSignalQualityStatus", "TransceiverState", "ReceivedMessageStatus",
                               "NoReceiveBuffer", "TransmitNoData", "UnexpectedPlcCommandCount", "BacklogOverflows","LateAck", "FrequencyInvalid", "PlcTestRate"
                             };
         }
@@ -293,7 +295,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -343,14 +345,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -397,6 +392,39 @@ namespace Gurux.DLMS.Objects
                 e.Error = ErrorCode.ReadWriteDenied;
             }
         }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            PlcSignalQualityStatus = (byte)reader.ReadElementContentAsInt("PlcSignalQualityStatus");
+            TransceiverState = (byte)reader.ReadElementContentAsInt("TransceiverState");
+            ReceivedMessageStatus = (byte)reader.ReadElementContentAsInt("ReceivedMessageStatus");
+            NoReceiveBuffer = (UInt16)reader.ReadElementContentAsInt("NoReceiveBuffer");
+            TransmitNoData = (UInt16)reader.ReadElementContentAsInt("TransmitNoData");
+            UnexpectedPlcCommandCount = (UInt16)reader.ReadElementContentAsInt("UnexpectedPlcCommandCount");
+            BacklogOverflows = (UInt16)reader.ReadElementContentAsInt("BacklogOverflows");
+            LateAck = (UInt16)reader.ReadElementContentAsInt("LateAck");
+            FrequencyInvalid = (UInt16)reader.ReadElementContentAsInt("FrequencyInvalid");
+            PlcTestRate = (UInt16)reader.ReadElementContentAsInt("PlcTestRate");
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            writer.WriteElementString("PlcSignalQualityStatus", PlcSignalQualityStatus);
+            writer.WriteElementString("TransceiverState", TransceiverState);
+            writer.WriteElementString("ReceivedMessageStatus", ReceivedMessageStatus);
+            writer.WriteElementString("NoReceiveBuffer", NoReceiveBuffer);
+            writer.WriteElementString("TransmitNoData", TransmitNoData);
+            writer.WriteElementString("UnexpectedPlcCommandCount", UnexpectedPlcCommandCount);
+            writer.WriteElementString("BacklogOverflows", BacklogOverflows);
+            writer.WriteElementString("LateAck", LateAck);
+            writer.WriteElementString("FrequencyInvalid", FrequencyInvalid);
+            writer.WriteElementString("PlcTestRate", PlcTestRate);
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
+        }
+
         #endregion
     }
 }

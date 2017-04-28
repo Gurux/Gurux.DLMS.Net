@@ -43,6 +43,7 @@ using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Enums;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -59,11 +60,8 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSModemConfiguration()
-        : base(ObjectType.ModemConfiguration, "0.0.2.0.0.255", 0)
+        : this("0.0.2.0.0.255", 0)
         {
-            InitialisationStrings = new GXDLMSModemInitialisation[0];
-            CommunicationSpeed = BaudRate.Baudrate300;
-            ModemProfile = DefaultProfiles();
         }
 
         /// <summary>
@@ -71,11 +69,8 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSModemConfiguration(string ln)
-        : base(ObjectType.ModemConfiguration, ln, 0)
+        : this(ln, 0)
         {
-            InitialisationStrings = new GXDLMSModemInitialisation[0];
-            CommunicationSpeed = BaudRate.Baudrate300;
-            ModemProfile = DefaultProfiles();
         }
 
         /// <summary>
@@ -149,7 +144,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Gurux.DLMS.Properties.Resources.LogicalNameTxt, "Communication Speed",
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Communication Speed",
                               "Initialisation Strings", "Modem Profile"
                             };
         }
@@ -190,7 +185,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -248,14 +243,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -289,7 +277,7 @@ namespace Gurux.DLMS.Objects
                     List<string> items = new List<string>();
                     foreach (object it in (Object[])e.Value)
                     {
-                        items.Add(GXDLMSClient.ChangeType((byte[])it, DataType.String, settings.UseUtc2NormalTime).ToString());
+                        items.Add(GXDLMSClient.ChangeType((byte[])it, DataType.String, settings.UseUtc2NormalTime).ToString().Trim());
                     }
                     ModemProfile = items.ToArray();
                 }
@@ -304,6 +292,52 @@ namespace Gurux.DLMS.Objects
         {
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
+        }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            CommunicationSpeed = (BaudRate)reader.ReadElementContentAsInt("CommunicationSpeed");
+            if (reader.IsStartElement("InitialisationStrings", true))
+            {
+                while (reader.IsStartElement("Initialisation", true))
+                {
+                    GXDLMSModemInitialisation it = new GXDLMSModemInitialisation();
+                    it.Request = reader.ReadElementContentAsString("Request");
+                    it.Response = reader.ReadElementContentAsString("Response");
+                    it.Delay = (UInt16)reader.ReadElementContentAsInt("Delay");
+                }
+                reader.ReadEndElement("InitialisationStrings");
+            }
+            ModemProfile = reader.ReadElementContentAsString("ModemProfile", "").Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            if (CommunicationSpeed != BaudRate.Baudrate300)
+            {
+                writer.WriteElementString("CommunicationSpeed", ((int)CommunicationSpeed).ToString());
+            }
+            if (InitialisationStrings != null)
+            {
+                writer.WriteStartElement("InitialisationStrings");
+                foreach (GXDLMSModemInitialisation it in InitialisationStrings)
+                {
+                    writer.WriteStartElement("Initialisation");
+                    writer.WriteElementString("Request", it.Request);
+                    writer.WriteElementString("Response", it.Response);
+                    writer.WriteElementString("Delay", it.Delay);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+            if (ModemProfile != null)
+            {
+                writer.WriteElementString("ModemProfile", string.Join(";", ModemProfile));
+            }
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
         }
 
         #endregion

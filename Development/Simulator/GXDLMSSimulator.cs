@@ -37,7 +37,9 @@ using Gurux.DLMS.Internal;
 using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
+#if !WINDOWS_UWP
 using System.Xml.XPath;
+#endif
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Secure;
 using Gurux.DLMS.Objects;
@@ -75,7 +77,7 @@ namespace Gurux.DLMS.Simulator
                 {
                     classId = node.ChildNodes[0].ChildNodes[0].InnerText;
                     instanceId = node.ChildNodes[1].ChildNodes[0].InnerText;
-                    instanceId = GXDLMSObject.ToLogicalName(GXCommon.HexToBytes(instanceId));
+                    instanceId = GXCommon.ToLogicalName(GXCommon.HexToBytes(instanceId));
                     attributeId = int.Parse(node.ChildNodes[2].ChildNodes[0].InnerText);
                     ot = (ObjectType)int.Parse(classId);
                     GXDLMSObject t = objects.FindByLN(ot, instanceId);
@@ -89,12 +91,12 @@ namespace Gurux.DLMS.Simulator
                 }
                 else if ("AttributeDescriptorList".Equals(node.Name))
                 {
-                    foreach (XmlNode it in node.ChildNodes[1].ChildNodes)
+                    foreach (XmlNode it in node.ChildNodes)
                     {
-                        classId = it.ChildNodes[0].InnerText;
-                        instanceId = it.ChildNodes[1].InnerText;
-                        instanceId = GXDLMSObject.ToLogicalName(GXCommon.HexToBytes(instanceId));
-                        attributeId = int.Parse(it.ChildNodes[2].InnerText);
+                        classId = it.ChildNodes[0].ChildNodes[0].InnerText;
+                        instanceId = it.ChildNodes[0].ChildNodes[1].InnerText;
+                        instanceId = GXCommon.ToLogicalName(GXCommon.HexToBytes(instanceId));
+                        attributeId = int.Parse(it.ChildNodes[0].ChildNodes[2].InnerText);
                         ot = (ObjectType)int.Parse(classId);
                         ValueEventArgs ve = new ValueEventArgs(objects.FindByLN(ot, instanceId), attributeId, 0, null);
                         targets.Add(ve);
@@ -170,7 +172,7 @@ namespace Gurux.DLMS.Simulator
             foreach (XmlNode node in nodes)
             {
                 //Normal read.
-                if (node.ChildNodes[0].ChildNodes.Count == 1)
+                if (node.ChildNodes.Count == 1)
                 {
                     list.Add(short.Parse(node.ChildNodes[0].InnerText));
                 }
@@ -226,12 +228,16 @@ namespace Gurux.DLMS.Simulator
                     foreach (XmlNode node in doc.ChildNodes[doc.ChildNodes.Count - 1].ChildNodes)
                     {
                         string name = doc.ChildNodes[doc.ChildNodes.Count - 1].Name;
-                        if (name == "get-request")
+                        if (name == "Ua" || name == "aarq" || name == "aare")
+                        {
+                            break;
+                        }
+                        else if (name == "get-request")
                         {
                             server.UseLogicalNameReferencing = true;
                             GetLN(settings.Objects, targets, node.ChildNodes);
                         }
-                        else if (name == "read-request")
+                        else if (name == "readRequest")
                         {
                             List<short> items = GetSN(node.ChildNodes);
 
@@ -242,7 +248,7 @@ namespace Gurux.DLMS.Simulator
                                 targets.Add(new ValueEventArgs(i.Item, i.Index, 0, null));
                             }
                         }
-                        else if (name == "read-response" ||
+                        else if (name == "readResponse" ||
                                  name == "get-response")
                         {
                             if (targets != null)
@@ -315,6 +321,7 @@ namespace Gurux.DLMS.Simulator
                                 if (lastBlock)
                                 {
                                     targets.Clear();
+                                    break;
                                 }
                             }
 

@@ -34,15 +34,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects;
 
 namespace Gurux.DLMS
 {
-
-
     /// <summary>
     /// DLMS Converter is used to get string value for enumeration types.
     /// </summary>
@@ -127,6 +123,44 @@ namespace Gurux.DLMS
             }
             return list.ToArray();
         }
+
+        private string GetCode(string value)
+        {
+            int index = value.IndexOfAny(new char[] { '.', '-', ',' });
+            if (index != -1)
+            {
+                return value.Substring(0, index);
+            }
+            return value;
+        }
+
+        /// <summary>
+        /// Get example OBIS codes using object type as a filter.
+        /// </summary>
+        /// <param name="type">Object type.</param>
+        /// <returns>Array of OBIS codes and descriptions that match given type.</returns>
+        public KeyValuePair<string, string>[] GetObisCodesByType(ObjectType type)
+        {
+            lock (codes)
+            {
+                if (codes.Count == 0)
+                {
+                    ReadStandardObisInfo(codes);
+                }
+            }
+            List<KeyValuePair<string, string>> list = new List<KeyValuePair<string, string>>();
+            foreach (GXStandardObisCode it in codes.Find(null, type))
+            {
+                if (it.Interfaces != "*")
+                {
+                    string obis = GetCode(it.OBIS[0]) + "." + GetCode(it.OBIS[1]) + "." +
+                        GetCode(it.OBIS[2]) + "." + GetCode(it.OBIS[3]) + "." + GetCode(it.OBIS[4]) + "." + GetCode(it.OBIS[5]);
+                    list.Add(new KeyValuePair<string, string>(obis, codes.Find(obis, type)[0].Description));
+                }
+            }
+            return list.ToArray();
+        }
+
         /// <summary>
         /// Update standard OBIS codes description and type if defined.
         /// </summary>
@@ -168,6 +202,7 @@ namespace Gurux.DLMS
         /// <param name="codes">Collection of standard OBIS codes.</param>
         private static void ReadStandardObisInfo(GXStandardObisCodeCollection codes)
         {
+#if !WINDOWS_UWP
             string[] rows = Gurux.DLMS.Properties.Resources.OBISCodes.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string it in rows)
             {
@@ -177,6 +212,9 @@ namespace Gurux.DLMS
                         items[5] + "; " + items[6] + "; " + items[7], items[1], items[2]);
                 codes.Add(code);
             }
+#else
+            //TODO:
+#endif
         }
 
         private static void UpdateOBISCodeInfo(GXStandardObisCodeCollection codes, GXDLMSObject it)
@@ -280,6 +318,7 @@ namespace Gurux.DLMS
         /// <returns></returns>
         public static string GetUnit(Unit value)
         {
+#if !WINDOWS_UWP
             switch (value)
             {
                 case Unit.Year:
@@ -390,6 +429,145 @@ namespace Gurux.DLMS
                     return Gurux.DLMS.Properties.Resources.UnitNoneTxt;
             }
             return "";
+#else
+            return value.ToString();
+#endif
+        }
+
+        /// <summary>
+        /// Convert DLMS data type to .Net data type.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        static public Type GetDataType(DataType type)
+        {
+            switch (type)
+            {
+                case DataType.None:
+                    return null;
+                case DataType.Array:
+                case DataType.CompactArray:
+                case DataType.Structure:
+                    return typeof(object[]);
+                case DataType.Bcd:
+                    return typeof(string);
+                case DataType.BitString:
+                    return typeof(string);
+                case DataType.Boolean:
+                    return typeof(bool);
+                case DataType.Date:
+                    return typeof(DateTime);
+                case DataType.DateTime:
+                    return typeof(DateTime);
+                case DataType.Float32:
+                    return typeof(float);
+                case DataType.Float64:
+                    return typeof(double);
+                case DataType.Int16:
+                    return typeof(Int16);
+                case DataType.Int32:
+                    return typeof(Int32);
+                case DataType.Int64:
+                    return typeof(Int64);
+                case DataType.Int8:
+                    return typeof(sbyte);
+                case DataType.OctetString:
+                    return typeof(byte[]);
+                case DataType.String:
+                    return typeof(string);
+                case DataType.Time:
+                    return typeof(DateTime);
+                case DataType.UInt16:
+                    return typeof(UInt16);
+                case DataType.UInt32:
+                    return typeof(UInt32);
+                case DataType.UInt64:
+                    return typeof(UInt64);
+                case DataType.UInt8:
+                    return typeof(byte);
+                default:
+                case DataType.Enum:
+                    break;
+            }
+            throw new Exception("Invalid DLMS data type.");
+        }
+
+        static public DataType GetDLMSDataType(Type type)
+        {
+            //If expected type is not given return property type.
+            if (type == null)
+            {
+                return DataType.None;
+            }
+            if (type == typeof(Int32))
+            {
+                return DataType.Int32;
+            }
+            if (type == typeof(UInt32))
+            {
+                return DataType.UInt32;
+            }
+            if (type == typeof(String))
+            {
+                return DataType.String;
+            }
+            if (type == typeof(byte))
+            {
+                return DataType.UInt8;
+            }
+            if (type == typeof(sbyte))
+            {
+                return DataType.Int8;
+            }
+            if (type == typeof(Int16))
+            {
+                return DataType.Int16;
+            }
+            if (type == typeof(UInt16))
+            {
+                return DataType.UInt16;
+            }
+            if (type == typeof(Int64))
+            {
+                return DataType.Int64;
+            }
+            if (type == typeof(UInt64))
+            {
+                return DataType.UInt64;
+            }
+            if (type == typeof(float))
+            {
+                return DataType.Float32;
+            }
+            if (type == typeof(double))
+            {
+                return DataType.Float64;
+            }
+            if (type == typeof(DateTime) || type == typeof(GXDateTime))
+            {
+                return DataType.DateTime;
+            }
+            if (type == typeof(GXDate))
+            {
+                return DataType.Date;
+            }
+            if (type == typeof(GXTime))
+            {
+                return DataType.Time;
+            }
+            if (type == typeof(Boolean) || type == typeof(bool))
+            {
+                return DataType.Boolean;
+            }
+            if (type == typeof(byte[]))
+            {
+                return DataType.OctetString;
+            }
+            if (type == typeof(object[]))
+            {
+                return DataType.Array;
+            }
+            throw new Exception("Failed to convert data type to DLMS data type. Unknown data type.");
         }
     }
 }

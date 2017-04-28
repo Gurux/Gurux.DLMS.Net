@@ -151,7 +151,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt,
+            return new string[] {Internal.GXCommon.GetLogicalNameString(),
                              "Value",
                              "Scaler and Unit",
                              "Status",
@@ -195,7 +195,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -226,14 +226,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -296,6 +289,28 @@ namespace Gurux.DLMS.Objects
             {
                 e.Error = ErrorCode.ReadWriteDenied;
             }
+        }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            Unit = (Unit)reader.ReadElementContentAsInt("Unit", 0);
+            Scaler = reader.ReadElementContentAsDouble("Scaler", 1);
+            Value = reader.ReadElementContentAsObject("Value", null);
+            Status = reader.ReadElementContentAsObject("Status", null);
+            CaptureTime = (GXDateTime)reader.ReadElementContentAsObject("CaptureTime", null);
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            writer.WriteElementString("Unit", (int)Unit);
+            writer.WriteElementString("Scaler", Scaler, 1);
+            writer.WriteElementObject("Value", Value);
+            writer.WriteElementObject("Status", Status);
+            writer.WriteElementObject("CaptureTime", CaptureTime);
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
         }
     }
 }

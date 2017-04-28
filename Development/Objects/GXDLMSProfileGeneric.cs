@@ -44,6 +44,7 @@ using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 using System.Threading;
+using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -51,7 +52,11 @@ namespace Gurux.DLMS.Objects
     {
         private GXDLMSServer server = null;
         private GXProfileGenericUpdater updater = null;
+#if WINDOWS_UWP
+        private System.Threading.Tasks.Task thread = null;
+#else
         private Thread thread = null;
+#endif
         private int capturePeriod;
 
         /// <summary>
@@ -79,6 +84,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSProfileGeneric(string ln, ushort sn)
         : base(ObjectType.ProfileGeneric, ln, sn)
         {
+            SortMethod = SortMethod.LiFo;
             Version = 1;
             From = DateTime.Now.Date;
             To = DateTime.Now.AddDays(1);
@@ -90,7 +96,9 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Client uses this to save how values are access.
         /// </summary>
+#if !WINDOWS_UWP
         [Browsable(false)]
+#endif
         [System.Xml.Serialization.XmlIgnore()]
         public AccessRange AccessSelector
         {
@@ -102,7 +110,9 @@ namespace Gurux.DLMS.Objects
         /// Client uses this to save from which date values are retrieved.
         /// </summary>
         [XmlIgnore()]
+#if !WINDOWS_UWP
         [Browsable(false)]
+#endif
         public object From
         {
             get;
@@ -113,7 +123,9 @@ namespace Gurux.DLMS.Objects
         /// Client uses this to save to which date values are retrieved.
         /// </summary>
         [XmlIgnore()]
+#if !WINDOWS_UWP
         [Browsable(false)]
+#endif
         public object To
         {
             get;
@@ -124,7 +136,9 @@ namespace Gurux.DLMS.Objects
         /// Data of profile generic.
         /// </summary>
         [XmlIgnore()]
+#if !WINDOWS_UWP
         [Browsable(false)]
+#endif
         public List<object[]> Buffer
         {
             get;
@@ -299,7 +313,7 @@ namespace Gurux.DLMS.Objects
                     lock (Buffer)
                     {
                         //Remove first items if buffer is full.
-                        if (ProfileEntries == Buffer.Count)
+                        if (ProfileEntries != 0 && ProfileEntries == Buffer.Count)
                         {
                             --EntriesInUse;
                             Buffer.RemoveAt(0);
@@ -318,9 +332,13 @@ namespace Gurux.DLMS.Objects
             if (CapturePeriod != 0)
             {
                 updater = new GXProfileGenericUpdater(server, this);
+#if !WINDOWS_UWP
                 thread = new Thread(new ThreadStart(updater.UpdateProfileGenericData));
                 thread.IsBackground = true;
                 thread.Start();
+#else
+                thread = System.Threading.Tasks.Task.Factory.StartNew(updater.UpdateProfileGenericData);
+#endif
             }
         }
 
@@ -331,7 +349,11 @@ namespace Gurux.DLMS.Objects
                 updater.Closing.Set();
                 if (thread != null)
                 {
+#if !WINDOWS_UWP
                     thread.Join(10000);
+#else
+                    thread.Wait(10000);
+#endif
                     thread = null;
                 }
                 updater = null;
@@ -404,7 +426,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Gurux.DLMS.Properties.Resources.LogicalNameTxt, "CaptureObjects",
+            return new string[] {Internal.GXCommon.GetLogicalNameString(), "CaptureObjects",
                              "Capture Period", "Buffer", "Sort Method", "Sort Object", "Entries In Use", "Profile Entries"
                             };
         }
@@ -490,6 +512,10 @@ namespace Gurux.DLMS.Objects
             {
                 e.RowBeginIndex += (UInt32)table.Count;
             }
+            else
+            {
+                settings.Index = 0;
+            }
             return data.Array();
         }
 
@@ -564,7 +590,7 @@ namespace Gurux.DLMS.Objects
                 {
                     Object[] tmp = (Object[])it;
                     ObjectType ot = (ObjectType)Convert.ToInt32(tmp[0]);
-                    String ln = GXDLMSObject.ToLogicalName((byte[])tmp[1]);
+                    String ln = GXCommon.ToLogicalName((byte[])tmp[1]);
                     short attributeIndex = Convert.ToInt16(tmp[2]);
                     short dataIndex = Convert.ToInt16(tmp[3]);
                     // Find columns and update only them.
@@ -741,7 +767,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                return this.LogicalName;
+                return GXCommon.LogicalNameToBytes(LogicalName);
             }
             if (e.Index == 2)
             {
@@ -899,14 +925,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (e.Value is string)
-                {
-                    LogicalName = e.Value.ToString();
-                }
-                else
-                {
-                    LogicalName = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
-                }
+                LogicalName = GXCommon.ToLogicalName(e.Value);
             }
             else if (e.Index == 2)
             {
@@ -915,6 +934,14 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 3)
             {
                 Reset();
+                //Clear file
+                if (e.Server != null)
+                {
+                    ValueEventArgs[] list = new ValueEventArgs[] { new ValueEventArgs(this, 1, 0, null) };
+                    e.Server.NotifyAction(list);
+                    e.Server.NotifyPostAction(list);
+                }
+
                 CaptureObjects.Clear();
                 GXDLMSObjectCollection objects = new GXDLMSObjectCollection();
                 if (e.Value != null)
@@ -927,7 +954,7 @@ namespace Gurux.DLMS.Objects
                             throw new GXDLMSException("Invalid structure format.");
                         }
                         ObjectType type = (ObjectType)Convert.ToInt16(tmp[0]);
-                        string ln = GXDLMSObject.ToLogicalName((byte[])tmp[1]);
+                        string ln = GXCommon.ToLogicalName((byte[])tmp[1]);
                         int attributeIndex = Convert.ToInt16(tmp[2]);
                         int dataIndex = Convert.ToInt16(tmp[3]);
                         GXDLMSObject obj = null;
@@ -981,7 +1008,7 @@ namespace Gurux.DLMS.Objects
                         throw new GXDLMSException("Invalid structure format.");
                     }
                     ObjectType type = (ObjectType)Convert.ToInt16(tmp[0]);
-                    string ln = GXDLMSObject.ToLogicalName((byte[])tmp[1]);
+                    string ln = GXCommon.ToLogicalName((byte[])tmp[1]);
                     SortAttributeIndex = Convert.ToInt16(tmp[2]);
                     SortDataIndex = Convert.ToInt16(tmp[3]);
                     SortObject = null;
@@ -1023,6 +1050,104 @@ namespace Gurux.DLMS.Objects
                 e.Error = ErrorCode.ReadWriteDenied;
             }
         }
+
+        void IGXDLMSBase.Load(GXXmlReader reader)
+        {
+            Buffer.Clear();
+            if (reader.IsStartElement("Buffer", true))
+            {
+                while (reader.IsStartElement("Row", true))
+                {
+                    List<object> row = new List<object>();
+                    while (reader.IsStartElement("Cell", false))
+                    {
+                        row.Add(reader.ReadElementContentAsObject("Cell", null));
+                    }
+                    Buffer.Add(row.ToArray());
+                }
+                reader.ReadEndElement("Buffer");
+            }
+            CaptureObjects.Clear();
+            if (reader.IsStartElement("CaptureObjects", true))
+            {
+                while (reader.IsStartElement("Item", true))
+                {
+                    ObjectType ot = (ObjectType)reader.ReadElementContentAsInt("ObjectType");
+                    string ln = reader.ReadElementContentAsString("LN");
+                    int ai = reader.ReadElementContentAsInt("Attribute");
+                    int di = reader.ReadElementContentAsInt("Data");
+                    GXDLMSCaptureObject co = new GXDLMSCaptureObject(ai, di);
+                    GXDLMSObject obj = reader.Objects.FindByLN(ot, ln);
+                    if (obj == null)
+                    {
+                        obj = GXDLMSClient.CreateObject(ot);
+                        obj.LogicalName = ln;
+                    }
+                    CaptureObjects.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, co));
+                }
+                reader.ReadEndElement("CaptureObjects");
+            }
+            CapturePeriod = reader.ReadElementContentAsInt("CapturePeriod");
+            SortMethod = (SortMethod)reader.ReadElementContentAsInt("SortMethod");
+            if (reader.IsStartElement("SortObject", true))
+            {
+                CapturePeriod = reader.ReadElementContentAsInt("CapturePeriod");
+                ObjectType ot = (ObjectType)reader.ReadElementContentAsInt("ObjectType");
+                string ln = reader.ReadElementContentAsString("LN");
+                SortObject = reader.Objects.FindByLN(ot, ln);
+                reader.ReadEndElement("SortObject");
+            }
+            EntriesInUse = reader.ReadElementContentAsInt("EntriesInUse");
+            ProfileEntries = reader.ReadElementContentAsInt("ProfileEntries");
+        }
+
+        void IGXDLMSBase.Save(GXXmlWriter writer)
+        {
+            if (Buffer != null)
+            {
+                writer.WriteStartElement("Buffer");
+                foreach (object[] row in Buffer)
+                {
+                    writer.WriteStartElement("Row");
+                    foreach (object it in row)
+                    {
+                        writer.WriteElementObject("Cell", it);
+                    }
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+            if (CaptureObjects != null)
+            {
+                writer.WriteStartElement("CaptureObjects");
+                foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in CaptureObjects)
+                {
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("ObjectType", (int)it.Key.ObjectType);
+                    writer.WriteElementString("LN", it.Key.LogicalName);
+                    writer.WriteElementString("Attribute", it.Value.AttributeIndex);
+                    writer.WriteElementString("Data", it.Value.DataIndex);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+            writer.WriteElementString("CapturePeriod", CapturePeriod);
+            writer.WriteElementString("SortMethod", (int)SortMethod);
+            if (SortObject != null)
+            {
+                writer.WriteStartElement("SortObject");
+                writer.WriteElementString("ObjectType", (int)SortObject.ObjectType);
+                writer.WriteElementString("LN", SortObject.LogicalName);
+                writer.WriteEndElement();//SortObject
+            }
+            writer.WriteElementString("EntriesInUse", EntriesInUse);
+            writer.WriteElementString("ProfileEntries", ProfileEntries);
+        }
+
+        void IGXDLMSBase.PostLoad(GXXmlReader reader)
+        {
+        }
+
         #endregion
     }
 }

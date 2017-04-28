@@ -72,7 +72,9 @@ namespace Gurux.DLMS.ManufacturerSettings
         Disconnect
     }
 
+#if !WINDOWS_UWP
     [Serializable]
+#endif
     public class GXManufacturer
     {
         /// <summary>
@@ -140,8 +142,10 @@ namespace Gurux.DLMS.ManufacturerSettings
             set;
         }
 
+#if !WINDOWS_UWP
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
         [Browsable(false)]
+#endif
         public GXObisCodeCollection ObisCodes
         {
             get;
@@ -206,7 +210,9 @@ namespace Gurux.DLMS.ManufacturerSettings
             set;
         }
 
+#if !WINDOWS_UWP
         [Browsable(false)]
+#endif
         [System.Xml.Serialization.XmlIgnore()]
         public bool Removed
         {
@@ -236,7 +242,9 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <summary>
         /// Used GMAC Security type.
         /// </summary>
+#if !WINDOWS_UWP
         [Browsable(false)]
+#endif
         [DefaultValue(Gurux.DLMS.Enums.Security.None)]
         public Gurux.DLMS.Enums.Security Security
         {
@@ -247,7 +255,9 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <summary>
         /// GMAC System Title.
         /// </summary>
+#if !WINDOWS_UWP
         [Browsable(false)]
+#endif
         [DefaultValue(null)]
         public byte[] SystemTitle
         {
@@ -258,7 +268,9 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <summary>
         /// GMAC block cipher key.
         /// </summary>
+#if !WINDOWS_UWP
         [Browsable(false)]
+#endif
         [DefaultValue(null)]
         public byte[] BlockCipherKey
         {
@@ -269,7 +281,9 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <summary>
         /// GMAC authentication key.
         /// </summary>
+#if !WINDOWS_UWP
         [Browsable(false)]
+#endif
         [DefaultValue(null)]
         public byte[] AuthenticationKey
         {
