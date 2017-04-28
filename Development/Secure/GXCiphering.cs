@@ -211,7 +211,7 @@ namespace Gurux.DLMS.Secure
         /// <returns></returns>
         public byte[] GenerateGmacPassword(byte[] challenge)
         {
-            AesGcmParameter p = new AesGcmParameter(0x10, Security.Authentication, InvocationCounter,
+            AesGcmParameter p = new AesGcmParameter(0x10, Gurux.DLMS.Enums.Security.Authentication, InvocationCounter,
                                                        systemTitle, BlockCipherKey, AuthenticationKey);
             GXByteBuffer bb = new GXByteBuffer();
             GXDLMSChippering.EncryptAesGcm(p, challenge);
