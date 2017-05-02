@@ -545,7 +545,7 @@ namespace Gurux.DLMS
                         val = data.GetUInt32();
                         break;
                     default:
-                        throw new GXDLMSException("Invalid Exception.");
+                        throw new GXDLMSException("Invalid length.");
                 }
                 // RX / TX are delivered from the partner's point of view =>
                 // reversed to ours
@@ -564,7 +564,7 @@ namespace Gurux.DLMS
                         Limits.WindowSizeTX = val;
                         break;
                     default:
-                        throw new GXDLMSException("Invalid UA response.");
+                        throw new GXDLMSException("Invalid HDLC id.");
                 }
             }
         }
