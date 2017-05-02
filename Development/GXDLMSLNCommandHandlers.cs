@@ -391,7 +391,7 @@ namespace Gurux.DLMS
                     status = e.Error;
                 }
             }
-            GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, e.InvokeId, Command.GetResponse, 1, null, bb, (byte)status), replyData);
+            GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, invokeID, Command.GetResponse, 1, null, bb, (byte)status), replyData);
             if (settings.Count != settings.Index || bb.Size != bb.Position)
             {
                 server.transaction = new GXDLMSLongTransaction(new ValueEventArgs[] { e }, Command.GetRequest, bb);
