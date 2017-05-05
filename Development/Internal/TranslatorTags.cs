@@ -92,6 +92,7 @@ namespace Gurux.DLMS
         ServiceError,
         InitiateError,
         CipheredService,
-        SystemTitle
+        SystemTitle,
+        DataBlock
     }
 }

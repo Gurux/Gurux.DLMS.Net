@@ -233,9 +233,7 @@
     <Compile Include="Objects\Enums\Ip4SetupIpOptionType.cs" />
     <Compile Include="Objects\GXDLMSLimiter.cs" />
     <Compile Include="Objects\GXDLMSMBusClient.cs" />
-    <Compile Include="Objects\GXDLMSMBusMasterPortSetup.cs" />
     <Compile Include="Objects\GXDLMSMBusSlavePortSetup.cs" />
-    <Compile Include="Objects\GXDLMSMessageHandler.cs" />
     <Compile Include="Objects\GXDLMSModemInitialisation.cs" />
     <Compile Include="Objects\GXDLMSMonitoredValue.cs" />
     <Compile Include="Objects\GXDLMSObject.cs" />

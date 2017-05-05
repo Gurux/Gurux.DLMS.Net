@@ -1716,7 +1716,9 @@ namespace Gurux.DLMS
                         break;
                     case (int)TranslatorTags.BlockNumber:
                         //BlockNumber
-                        if (s.command == Command.GetRequest || s.command == Command.GetResponse)
+                        if (s.command == Command.GetRequest || s.command == Command.GetResponse ||
+                            s.command == Command.SetRequest || s.command == Command.SetResponse ||
+                            s.command == Command.MethodRequest || s.command == Command.MethodResponse)
                         {
                             s.data.SetUInt32((UInt32)s.ParseLong(GetValue(node, s)));
                         }
@@ -1756,7 +1758,6 @@ namespace Gurux.DLMS
                             {
                                 s.attributeDescriptor.SetUInt8((byte)ValueOfErrorCode(s.OutputType, str));
                             }
-
                         }
                         else if (s.command == Command.AccessResponse)
                         {
@@ -1879,6 +1880,8 @@ namespace Gurux.DLMS
                     case (int)TranslatorTags.CipheredService:
                         tmp = GXCommon.HexToBytes(GetValue(node, s));
                         s.data.Set(tmp);
+                        break;
+                    case (int)TranslatorTags.DataBlock:
                         break;
                     default:
                         throw new ArgumentException("Invalid node: " + node.Name);

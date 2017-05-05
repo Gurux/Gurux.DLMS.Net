@@ -606,26 +606,46 @@ namespace Gurux.DLMS
                 }
             }
             //Arrange items by Short Name.
+            UpdateShortNames(false);
+        }
+
+        /// <summary>
+        /// Update short names.
+        /// </summary>
+        protected void UpdateShortNames()
+        {
+            UpdateShortNames(true);
+        }
+
+        /// <summary>
+        /// Update short names.
+        /// </summary>
+        private void UpdateShortNames(bool force)
+        {
+            //Arrange items by Short Name.
             int sn = 0xA0;
             int offset, count;
             if (!this.UseLogicalNameReferencing)
             {
                 foreach (GXDLMSObject it in Items)
                 {
-                    //Generate Short Name if not given.
-                    if (it.ShortName == 0)
+                    if (!(it is GXDLMSAssociationShortName))
                     {
-                        it.ShortName = (ushort)sn;
-                        //Add method index addresses.
-                        GXDLMS.GetActionInfo(it.ObjectType, out offset, out count);
-                        if (count != 0)
+                        //Generate Short Name if not given.
+                        if (force || it.ShortName == 0)
                         {
-                            sn += offset + (8 * count);
-                        }
-                        else //If there are no methods.
-                        {
-                            //Add attribute index addresses.
-                            sn += 8 * (it as IGXDLMSBase).GetAttributeCount();
+                            it.ShortName = (ushort)sn;
+                            //Add method index addresses.
+                            GXDLMS.GetActionInfo(it.ObjectType, out offset, out count);
+                            if (count != 0)
+                            {
+                                sn += offset + (8 * count);
+                            }
+                            else //If there are no methods.
+                            {
+                                //Add attribute index addresses.
+                                sn += 8 * (it as IGXDLMSBase).GetAttributeCount();
+                            }
                         }
                     }
                 }
@@ -730,6 +750,7 @@ namespace Gurux.DLMS
                 //If client want next frame.
                 if ((info.MoreData & RequestTypes.Frame) == RequestTypes.Frame)
                 {
+                    dataReceived = DateTime.Now;
                     return GXDLMS.GetHdlcFrame(Settings, Settings.ReceiverReady(), replyData);
                 }
                 //Update command if transaction and next frame is asked.
@@ -743,11 +764,7 @@ namespace Gurux.DLMS
                 //Check inactivity time out.
                 if (hdlcSetup != null)
                 {
-                    if (info.Command == Command.Snrm)
-                    {
-                        dataReceived = DateTime.Now;
-                    }
-                    else
+                    if (info.Command != Command.Snrm)
                     {
                         int elapsed = (int)(DateTime.Now - dataReceived).TotalSeconds;
                         //If inactivity time out is elapsed.
@@ -757,10 +774,9 @@ namespace Gurux.DLMS
                             dataReceived = DateTime.MinValue;
                             return null;
                         }
-                        dataReceived = DateTime.Now;
                     }
                 }
-
+                dataReceived = DateTime.Now;
                 byte[] reply = HandleCommand(info.Command, info.Data, connectionInfo);
                 info.Clear();
                 return reply;

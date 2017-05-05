@@ -59,7 +59,7 @@ namespace Gurux.DLMS.Objects
 
         public override DataType GetUIDataType(int index)
         {
-            if (index == 2)
+            if (index == 2 || index == 5 || index == 6)
             {
                 return DataType.DateTime;
             }
@@ -445,18 +445,21 @@ namespace Gurux.DLMS.Objects
         {
             DateTime now = DateTime.Now;
             GXDateTime tm = new GXDateTime(now);
-            //If clock's time zone is different what user want's to use.
-            int offset = TimeZone + (int)tm.Value.Offset.TotalMinutes;
-            if (now.IsDaylightSavingTime())
+            if (TimeZone == -1)
             {
-                offset -= 60;
+                tm.Skip |= DateTimeSkips.Devitation;
             }
-            if (offset != 0)
+            else
             {
-                TimeSpan zone = TimeZoneInfo.Local.GetUtcOffset(now).Add(new TimeSpan(0, TimeZone, 0));
-                now.AddMinutes(offset);
-                now = new DateTime(now.Ticks, DateTimeKind.Unspecified);
-                tm.Value = new DateTimeOffset(now, zone);
+                //If clock's time zone is different what user want's to use.
+                int offset = TimeZone + (int)tm.Value.Offset.TotalMinutes;
+                if (offset != 0)
+                {
+                    TimeSpan zone = new TimeSpan(0, -TimeZone, 0);
+                    now = now.AddMinutes(-offset);
+                    now = new DateTime(now.Ticks, DateTimeKind.Unspecified);
+                    tm.Value = new DateTimeOffset(now, zone);
+                }
             }
             //If clock's daylight saving is active but user do not want to use it.
             if (!Enabled && now.IsDaylightSavingTime())

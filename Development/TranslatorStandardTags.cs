@@ -369,6 +369,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorTags.InitiateError, "initiateError");
             GXDLMSTranslator.AddTag(list, TranslatorTags.CipheredService, "ciphered-content");
             GXDLMSTranslator.AddTag(list, TranslatorTags.SystemTitle, "system-title");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.DataBlock, "DataBlock");
         }
 
         public static void GetDataTypeTags(SortedList<int, string> list)

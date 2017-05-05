@@ -353,10 +353,18 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 7)
             {
+                if (PrimaryDNSAddress == null)
+                {
+                    return null;
+                }
                 return PrimaryDNSAddress.GetAddressBytes();
             }
             if (e.Index == 8)
             {
+                if (SecondaryDNSAddress == null)
+                {
+                    return null;
+                }
                 return SecondaryDNSAddress.GetAddressBytes();
             }
             if (e.Index == 9)
@@ -449,7 +457,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 7)
             {
-                if (e.Value == null)
+                if (e.Value == null || ((byte[])e.Value).Length == 0)
                 {
                     PrimaryDNSAddress = null;
                 }
@@ -460,7 +468,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 8)
             {
-                if (e.Value == null)
+                if (e.Value == null || ((byte[])e.Value).Length == 0)
                 {
                     SecondaryDNSAddress = null;
                 }
@@ -535,8 +543,24 @@ namespace Gurux.DLMS.Objects
             UnicastIPAddress = LoadIPAddress(reader, "UnicastIPAddress");
             MulticastIPAddress = LoadIPAddress(reader, "MulticastIPAddress");
             GatewayIPAddress = LoadIPAddress(reader, "GatewayIPAddress");
-            PrimaryDNSAddress = IPAddress.Parse(reader.ReadElementContentAsString("PrimaryDNSAddress"));
-            SecondaryDNSAddress = IPAddress.Parse(reader.ReadElementContentAsString("SecondaryDNSAddress"));
+            string str = reader.ReadElementContentAsString("PrimaryDNSAddress");
+            if (!string.IsNullOrEmpty(str))
+            {
+                PrimaryDNSAddress = IPAddress.Parse(str);
+            }
+            else
+            {
+                PrimaryDNSAddress = null;
+            }
+            str = reader.ReadElementContentAsString("SecondaryDNSAddress");
+            if (!string.IsNullOrEmpty(str))
+            {
+                SecondaryDNSAddress = IPAddress.Parse(str);
+            }
+            else
+            {
+                SecondaryDNSAddress = null;
+            }
             TrafficClass = (byte)reader.ReadElementContentAsInt("TrafficClass");
             NeighborDiscoverySetup = LoadNeighborDiscoverySetup(reader, "NeighborDiscoverySetup");
         }
@@ -578,8 +602,14 @@ namespace Gurux.DLMS.Objects
             SaveIPAddress(writer, UnicastIPAddress, "UnicastIPAddress");
             SaveIPAddress(writer, MulticastIPAddress, "MulticastIPAddress");
             SaveIPAddress(writer, GatewayIPAddress, "GatewayIPAddress");
-            writer.WriteElementString("PrimaryDNSAddress", PrimaryDNSAddress.ToString());
-            writer.WriteElementString("SecondaryDNSAddress", SecondaryDNSAddress.ToString());
+            if (PrimaryDNSAddress != null)
+            {
+                writer.WriteElementString("PrimaryDNSAddress", PrimaryDNSAddress.ToString());
+            }
+            if (SecondaryDNSAddress != null)
+            {
+                writer.WriteElementString("SecondaryDNSAddress", SecondaryDNSAddress.ToString());
+            }
             writer.WriteElementString("TrafficClass", TrafficClass);
             SaveNeighborDiscoverySetup(writer, NeighborDiscoverySetup, "NeighborDiscoverySetup");
         }

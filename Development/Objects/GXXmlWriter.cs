@@ -47,15 +47,25 @@ namespace Gurux.DLMS.Objects
     public class GXXmlWriter : IDisposable
     {
         XmlWriter writer = null;
-
+        FileStream stream = null;
         public void Dispose()
         {
             if (writer != null)
             {
 #if !WINDOWS_UWP
                 writer.Close();
+#else
+                writer.Dispose();
 #endif
                 writer = null;
+            }
+            if (stream != null)
+            {
+#if !WINDOWS_UWP
+                stream.Close();
+#endif
+                stream.Dispose();
+                stream = null;
             }
         }
 
@@ -71,7 +81,15 @@ namespace Gurux.DLMS.Objects
                 IndentChars = "  ",
                 NewLineOnAttributes = true
             };
-            writer = XmlWriter.Create(File.OpenRead(filename), settings);
+            if (File.Exists(filename))
+            {
+                stream = File.Open(filename, FileMode.Truncate);
+            }
+            else
+            {
+                stream = File.Open(filename, FileMode.CreateNew);
+            }
+            writer = XmlWriter.Create(stream, settings);
         }
 
         public void WriteStartDocument()

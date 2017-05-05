@@ -277,30 +277,9 @@ namespace Gurux.DLMS.Enums
         [XmlEnum("72")]
         MBusClient = 72,
 
-        /// <summary>
-        /// How the device manages incoming messages such as SMS, MMS, e-mail, etc.
-        /// as well as the execution of dedicated actions based on the identification of the sender.
-        /// The message service used is implicitly defined by the modem used.
-        /// </summary>
-        [XmlEnum("60")]
-        MessageHandler = 60,
 
         [XmlEnum("65")]
         ParameterMonitor = 65,
-
-        /// <summary>
-        /// Defines the operational parameters for
-        /// communication using the mode Q interfaces.
-        /// </summary>
-        [XmlEnum("73")]
-        WirelessModeQchannel = 73,
-
-        /// <summary>
-        /// Defines the operational parameters for communication using the
-        /// EN 13757-2 interfaces if the device acts as an M-bus master.
-        /// </summary>
-        [XmlEnum("74")]
-        MBusMasterPortSetup = 74,
 
         ///<summary>
         ///RegisterTable stores identical attributes of objects, in a selected
@@ -365,12 +344,6 @@ namespace Gurux.DLMS.Enums
         ///</summary>
         [XmlEnum("9")]
         ScriptTable = 9,
-
-        ///<summary>
-        ///To determine the SMTP protocol settings, use the SmtpSetup object.
-        ///</summary>
-        [XmlEnum("2")]
-        SmtpSetup = 2,
 
         ///<summary>
         ///With SpecialDaysTable you can determine dates to override a preset behaviour,

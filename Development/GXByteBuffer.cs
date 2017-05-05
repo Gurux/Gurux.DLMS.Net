@@ -986,9 +986,9 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Get remaining data as a string.
+        /// Get remaining data.
         /// </summary>
-        /// <returns>Remaining data as string</returns>
+        /// <returns>Remaining data as byte array.</returns>
         public byte[] Remaining()
         {
             return SubArray(position, size - position);
@@ -998,11 +998,34 @@ namespace Gurux.DLMS
         /// <summary>
         /// Get remaining data as hex string.
         /// </summary>
+        /// <param name="addSpace">Add space between bytes.</param>
         /// <returns>Remaining data as hex string</returns>
-        public string RemainingHexString()
+        public string RemainingHexString(bool addSpace)
         {
-            return Gurux.DLMS.Internal.GXCommon.ToHex(Data, true, position, size - position);
+            return Gurux.DLMS.Internal.GXCommon.ToHex(Data, addSpace, position, size - position);
         }
 
+        /// <summary>
+        /// Get data as hex string.
+        /// </summary>
+        /// <param name="addSpace">Add space between bytes.</param>
+        /// <param name="index">Byte index.</param>
+        /// <returns>Data as hex string.</returns>
+        public string ToHex(bool addSpace, int index)
+        {
+            return Gurux.DLMS.Internal.GXCommon.ToHex(Data, addSpace, index, Size - index);
+        }
+
+        /// <summary>
+        /// Get data as hex string.
+        /// </summary>
+        /// <param name="addSpace">Add space between bytes.</param>
+        /// <param name="index">Byte index.</param>
+        /// <param name="count">Byte count.</param>
+        /// <returns>Data as hex string.</returns>
+        public string ToHex(bool addSpace, int index, int count)
+        {
+            return Gurux.DLMS.Internal.GXCommon.ToHex(Data, addSpace, index, count);
+        }
     }
 }

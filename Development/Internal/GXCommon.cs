@@ -1184,7 +1184,7 @@ namespace Gurux.DLMS.Internal
         /// <summary>
         /// Reserved for internal use.
         /// </summary>
-        /// <param name="buff"></param>
+        /// <param name="value"></param>
         /// <returns>Logical name as a string.</returns>
         internal static string ToLogicalName(object value)
         {
@@ -2153,26 +2153,11 @@ namespace Gurux.DLMS.Internal
         ///</param>
         private static void SetOctetString(GXByteBuffer buff, object value)
         {
-            // Example Logical name is octet string, so do not change to
-            // string...
             if (value is string)
             {
-                string[] items = ((string)value).Split('.');
-                // If data is string.
-                if (items.Length == 1)
-                {
-                    byte[] tmp = ASCIIEncoding.ASCII.GetBytes((string)value);
-                    SetObjectCount(tmp.Length, buff);
-                    buff.Set(tmp);
-                }
-                else
-                {
-                    SetObjectCount(items.Length, buff);
-                    foreach (string it in items)
-                    {
-                        buff.SetUInt8(Convert.ToByte(it));
-                    }
-                }
+                byte[] tmp = GXCommon.HexToBytes((string)value);
+                SetObjectCount(tmp.Length, buff);
+                buff.Set(tmp);
             }
             else if (value is sbyte[])
             {

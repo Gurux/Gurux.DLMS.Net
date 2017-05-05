@@ -76,6 +76,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSG3Plc6LoWPan(string ln, ushort sn)
         : base(ObjectType.G3Plc6LoWPan, ln, sn)
         {
+            BlacklistTable = new List<GXKeyValuePair<UInt16, UInt16>>();
             ContextInformationTable = new List<Objects.GXDLMSContextInformationTable>();
             RoutingConfiguration = new List<GXDLMSRoutingConfiguration>();
             RoutingTable = new List<GXDLMSRoutingTable>();

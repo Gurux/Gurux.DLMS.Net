@@ -657,7 +657,11 @@ namespace Gurux.DLMS.Objects
             SeasonProfilePassive = LoadSeasonProfile(reader, "SeasonProfilePassive");
             WeekProfileTablePassive = LoadWeekProfileTable(reader, "WeekProfileTablePassive");
             DayProfileTablePassive = LoadDayProfileTable(reader, "DayProfileTablePassive");
-            Time = new GXDateTime(reader.ReadElementContentAsString("Time"));
+            string str = reader.ReadElementContentAsString("Time");
+            if (!string.IsNullOrEmpty(str))
+            {
+                Time = new GXDateTime(str);
+            }
         }
 
         private void SaveSeasonProfile(GXXmlWriter writer, GXDLMSSeasonProfile[] list, string name)
@@ -734,7 +738,10 @@ namespace Gurux.DLMS.Objects
             SaveSeasonProfile(writer, SeasonProfilePassive, "SeasonProfilePassive");
             SaveWeekProfileTable(writer, WeekProfileTablePassive, "WeekProfileTablePassive");
             SaveDayProfileTable(writer, DayProfileTablePassive, "DayProfileTablePassive");
-            writer.WriteElementString("Time", Time.ToFormatString());
+            if (Time != null)
+            {
+                writer.WriteElementString("Time", Time.ToFormatString());
+            }
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

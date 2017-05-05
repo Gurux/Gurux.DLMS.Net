@@ -471,6 +471,7 @@ namespace Gurux.DLMS
                     else
                     {
                         server.transaction = null;
+                        settings.ResetBlockIndex();
                     }
                 }
             }
@@ -728,21 +729,33 @@ namespace Gurux.DLMS
         private static void HanleSetRequestWithDataBlock(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXDLMSLNParameters p, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
         {
             GXDataInfo reply = new GXDataInfo();
-            p.multipleBlocks = data.GetUInt8() == 0;
+            reply.xml = xml;
+            byte lastBlock = data.GetUInt8();
+            p.multipleBlocks = lastBlock == 0;
             UInt32 blockNumber = data.GetUInt32();
-            if (blockNumber != settings.BlockIndex)
+            if (xml == null && blockNumber != settings.BlockIndex)
             {
                 Debug.WriteLine("HanleSetRequestWithDataBlock failed. Invalid block number. " + settings.BlockIndex + "/" + blockNumber);
                 p.status = (byte)ErrorCode.DataBlockNumberInvalid;
             }
             else
             {
+                settings.IncreaseBlockIndex();
                 int size = GXCommon.GetObjectCount(data);
                 int realSize = data.Size - data.Position;
                 if (size != realSize)
                 {
                     Debug.WriteLine("HanleSetRequestWithDataBlock failed. Invalid block size.");
                     p.status = (byte)ErrorCode.DataBlockUnavailable;
+                }
+                if (xml != null)
+                {
+                    xml.AppendStartTag(TranslatorTags.DataBlock);
+                    xml.AppendLine(TranslatorTags.LastBlock, "Value", xml.IntegerToHex(lastBlock, 2));
+                    xml.AppendLine(TranslatorTags.BlockNumber, "Value", xml.IntegerToHex(blockNumber, 8));
+                    xml.AppendLine(TranslatorTags.RawData, "Value", data.RemainingHexString(false));
+                    xml.AppendEndTag(TranslatorTags.DataBlock);
+                    return;
                 }
                 server.transaction.data.Set(data);
                 //If all data is received.

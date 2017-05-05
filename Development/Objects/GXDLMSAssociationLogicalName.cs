@@ -335,10 +335,13 @@ namespace Gurux.DLMS.Objects
                     GXCommon.SetData(settings, data, DataType.OctetString, GXCommon.LogicalNameToBytes(it.LogicalName));
                     GetAccessRights(settings, it, e.Server, data); //Access rights.
                     ++settings.Index;
-                    //If PDU is full.
-                    if (!e.SkipMaxPduSize && data.Size >= settings.MaxPduSize)
+                    if (settings.IsServer)
                     {
-                        break;
+                        //If PDU is full.
+                        if (!e.SkipMaxPduSize && data.Size >= settings.MaxPduSize)
+                        {
+                            break;
+                        }
                     }
                 }
             }
@@ -852,6 +855,15 @@ namespace Gurux.DLMS.Objects
             {
                 Secret = GXDLMSTranslator.HexToBytes(str);
             }
+            str = reader.ReadElementContentAsString("HlsSecret");
+            if (str == null)
+            {
+                HlsSecret = null;
+            }
+            else
+            {
+                HlsSecret = GXDLMSTranslator.HexToBytes(str);
+            }
             AssociationStatus = (AssociationStatus)reader.ReadElementContentAsInt("AssociationStatus");
             SecuritySetupReference = reader.ReadElementContentAsString("SecuritySetupReference");
         }
@@ -896,6 +908,8 @@ namespace Gurux.DLMS.Objects
                 writer.WriteEndElement();
             }
             writer.WriteElementString("Secret", GXDLMSTranslator.ToHex(Secret));
+            writer.WriteElementString("HlsSecret", GXDLMSTranslator.ToHex(HlsSecret));
+
             writer.WriteElementString("AssociationStatus", (int)AssociationStatus);
             writer.WriteElementString("SecuritySetupReference", SecuritySetupReference);
         }

@@ -436,7 +436,14 @@ namespace Gurux.DLMS.Objects
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8(3);
                         GXCommon.SetData(settings, data, DataType.UInt32, it.Size);
-                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(Convert.ToString(it.Identification)));
+                        if (it.Identification == null)
+                        {
+                            GXCommon.SetData(settings, data, DataType.OctetString, null);
+                        }
+                        else
+                        {
+                            GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Identification));
+                        }
                         if (it.Signature == null || it.Signature.Length == 0)
                         {
                             GXCommon.SetData(settings, data, DataType.OctetString, null);

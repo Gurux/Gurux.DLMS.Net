@@ -123,10 +123,7 @@ namespace Gurux.DLMS
                 availableObjectTypes.Add(ObjectType.ImageTransfer, typeof(GXDLMSImageTransfer));
                 availableObjectTypes.Add(ObjectType.Limiter, typeof(GXDLMSLimiter));
                 availableObjectTypes.Add(ObjectType.MBusClient, typeof(GXDLMSMBusClient));
-                availableObjectTypes.Add(ObjectType.MBusMasterPortSetup, typeof(GXDLMSMBusMasterPortSetup));
                 availableObjectTypes.Add(ObjectType.MBusSlavePortSetup, typeof(GXDLMSMBusSlavePortSetup));
-                availableObjectTypes.Add(ObjectType.MessageHandler, typeof(GXDLMSMessageHandler));
-                availableObjectTypes.Add(ObjectType.None, typeof(GXDLMSObject));
                 availableObjectTypes.Add(ObjectType.MacAddressSetup, typeof(GXDLMSMacAddressSetup));
                 availableObjectTypes.Add(ObjectType.AssociationLogicalName, typeof(GXDLMSAssociationLogicalName));
                 availableObjectTypes.Add(ObjectType.AssociationShortName, typeof(GXDLMSAssociationShortName));
@@ -668,7 +665,7 @@ namespace Gurux.DLMS
 
                         if (totalLength > p.settings.MaxPduSize)
                         {
-                            len = p.settings.MaxPduSize - reply.Size - p.data.Position;
+                            len = p.settings.MaxPduSize - reply.Size;
                             if (ciphering)
                             {
                                 len -= CipheringHeaderSize;
@@ -768,7 +765,7 @@ namespace Gurux.DLMS
                         messages.Add(GXDLMS.GetHdlcFrame(p.settings, frame, reply));
                         if (reply.Position != reply.Size)
                         {
-                            if (p.settings.IsServer)
+                            if (p.settings.IsServer || p.command == Command.SetRequest || p.command == Command.WriteRequest)
                             {
                                 frame = 0;
                             }
@@ -2048,7 +2045,8 @@ namespace Gurux.DLMS
                                             (ErrorCode)data.Error));
                 }
             }
-            else if (type == SetResponseType.DataBlock)
+            else if (type == SetResponseType.DataBlock ||
+                type == SetResponseType.LastDataBlock)
             {
                 data.Data.GetUInt32();
             }
@@ -2916,7 +2914,10 @@ namespace Gurux.DLMS
             {
                 if (settings.InterfaceType == InterfaceType.HDLC && (data.Error == (int)ErrorCode.Rejected || data.Data.Size != 0))
                 {
-                    reply.Position += 3;
+                    if (reply.Position != reply.Size)
+                    {
+                        reply.Position += 3;
+                    }
                     System.Diagnostics.Debug.Assert(reply.GetUInt8(reply.Position - 1) == 0x7e);
                 }
                 return true;
@@ -3012,7 +3013,6 @@ namespace Gurux.DLMS
                 case ObjectType.ZigBeeSasJoin:
                 case ObjectType.ZigBeeSasApsFragmentation:
                 case ObjectType.Schedule:
-                case ObjectType.SmtpSetup:
                 case ObjectType.StatusMapping:
                 case ObjectType.TcpUdpSetup:
                 case ObjectType.UtilityTables:

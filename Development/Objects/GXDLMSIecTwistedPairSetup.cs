@@ -272,27 +272,33 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 2)
             {
-                Mode = (IecTwistedPairSetupMode)e.Value;
+                Mode = (IecTwistedPairSetupMode)Convert.ToByte(e.Value);
             }
             else if (e.Index == 3)
             {
-                Speed = (BaudRate)e.Value;
+                Speed = (BaudRate)Convert.ToByte(e.Value);
             }
             else if (e.Index == 4)
             {
                 GXByteBuffer list = new GXByteBuffer();
-                foreach (object it in (object[])e.Value)
+                if (e.Value != null)
                 {
-                    list.Add((byte)it);
+                    foreach (object it in (object[])e.Value)
+                    {
+                        list.Add((byte)it);
+                    }
                 }
                 PrimaryAddresses = list.Array();
             }
             else if (e.Index == 5)
             {
                 List<sbyte> list = new List<sbyte>();
-                foreach (object it in (object[])e.Value)
+                if (e.Value != null)
                 {
-                    list.Add((sbyte)it);
+                    foreach (object it in (object[])e.Value)
+                    {
+                        list.Add((sbyte)it);
+                    }
                 }
                 Tabis = list.ToArray();
             }

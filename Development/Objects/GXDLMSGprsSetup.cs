@@ -226,6 +226,8 @@ namespace Gurux.DLMS.Objects
                     GXCommon.SetData(settings, data, DataType.UInt8, 0);
                     GXCommon.SetData(settings, data, DataType.UInt8, 0);
                 }
+                data.SetUInt8((byte)DataType.Structure);
+                data.SetUInt8((byte)5);
                 if (RequestedQualityOfService != null)
                 {
                     GXCommon.SetData(settings, data, DataType.UInt8, RequestedQualityOfService.Precedence);

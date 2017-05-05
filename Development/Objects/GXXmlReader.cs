@@ -72,67 +72,10 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         /// <param name="filename"></param>
-        GXXmlReader(string filename)
+        internal GXXmlReader(string filename)
         {
             reader = XmlReader.Create(filename);
             Objects = new GXDLMSObjectCollection();
-        }
-
-
-        /// <summary>
-        ///  Load COSEM objects from the file.
-        /// </summary>
-        /// <param name="filename"> File path.</param>
-        /// <returns>Collection of serialized COSEM objects.</returns>
-        public static GXDLMSObjectCollection Load(string filename)
-        {
-            GXDLMSObject obj = null;
-            String target;
-            ObjectType type;
-            using (GXXmlReader reader = new GXXmlReader(filename))
-            {
-                while (!reader.EOF)
-                {
-                    if (reader.IsStartElement())
-                    {
-                        target = reader.Name;
-                        if (string.Compare("Objects", target, true) == 0)
-                        {
-                            //Skip.
-                            reader.Read();
-                        }
-                        else if (string.Compare("Object", target, true) == 0)
-                        {
-                            type = (ObjectType)Enum.Parse(typeof(ObjectType), reader.GetAttribute(0));
-                            reader.Read();
-                            obj = GXDLMSClient.CreateObject(type);
-                            reader.Objects.Add(obj);
-                        }
-                        else if (string.Compare("SN", target, true) == 0)
-                        {
-                            obj.ShortName = (UInt16)reader.ReadElementContentAsInt("SN");
-                        }
-                        else if (string.Compare("LN", target, true) == 0)
-                        {
-                            obj.LogicalName = reader.ReadElementContentAsString("LN");
-                        }
-                        else if (string.Compare("Description", target, true) == 0)
-                        {
-                            obj.Description = reader.ReadElementContentAsString("Description");
-                        }
-                        else
-                        {
-                            (obj as IGXDLMSBase).Load(reader);
-                            obj = null;
-                        }
-                    }
-                    else
-                    {
-                        reader.Read();
-                    }
-                }
-                return reader.Objects;
-            }
         }
 
         public string Name
