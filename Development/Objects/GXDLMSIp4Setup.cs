@@ -299,7 +299,22 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 4)
             {
-                return this.MulticastIPAddress;
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte)DataType.Array);
+                if (MulticastIPAddress == null)
+                {
+                    //Object count is zero.
+                    data.SetUInt8(0);
+                }
+                else
+                {
+                    GXCommon.SetObjectCount(MulticastIPAddress.Length, data);
+                    foreach (UInt16 it in MulticastIPAddress)
+                    {
+                        GXCommon.SetData(settings, data, DataType.UInt16, it);
+                    }
+                }
+                return data.Array();
             }
             if (e.Index == 5)
             {

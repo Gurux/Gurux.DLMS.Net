@@ -477,41 +477,7 @@ namespace GuruxDLMSServerExample
             GXDLMSClock c = e.Target as GXDLMSClock;
             if (e.Index == 2)
             {
-                c.Time = DateTime.Now;
-            }
-            else if (e.Index == 3)
-            {
-                c.TimeZone = -(int)TimeZoneInfo.Local.BaseUtcOffset.TotalMinutes;
-            }
-            else if (e.Index == 4)
-            {
-                c.Status = ClockStatus.Ok;
-                if (DateTime.Now.IsDaylightSavingTime())
-                {
-                    c.Status |= ClockStatus.DaylightSavingActive;
-                }
-            }
-            else if (e.Index == 5)
-            {
-                c.Begin = TimeZone.CurrentTimeZone.GetDaylightChanges(DateTime.Now.Year).Start;
-                c.Begin.Skip |= DateTimeSkips.Year;
-            }
-            else if (e.Index == 6)
-            {
-                c.End = TimeZone.CurrentTimeZone.GetDaylightChanges(DateTime.Now.Year).End;
-                c.End.Skip |= DateTimeSkips.Year;
-            }
-            else if (e.Index == 7)
-            {
-                c.Deviation = (int)TimeZone.CurrentTimeZone.GetDaylightChanges(DateTime.Now.Year).Delta.TotalMinutes;
-            }
-            else if (e.Index == 8)
-            {
-                c.Enabled = TimeZoneInfo.Local.SupportsDaylightSavingTime;
-            }
-            else if (e.Index == 9)
-            {
-                c.ClockBase = ClockBase.Crystal;
+                c.Time = c.Now();
             }
         }
 
@@ -740,7 +706,10 @@ namespace GuruxDLMSServerExample
             {
                 if (it.Target is GXDLMSProfileGeneric)
                 {
-                    HandleProfileGenericActions(it);
+                    lock (dataFile)
+                    {
+                        HandleProfileGenericActions(it);
+                    }
                 }
             }
         }

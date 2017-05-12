@@ -87,7 +87,6 @@ namespace Gurux.DLMS.Simulator
                     }
                     ValueEventArgs ve = new ValueEventArgs(t, attributeId, 0, null);
                     targets.Add(ve);
-                    System.Diagnostics.Debug.WriteLine(ot + " " + instanceId);
                 }
                 else if ("AttributeDescriptorList".Equals(node.Name))
                 {
@@ -100,7 +99,6 @@ namespace Gurux.DLMS.Simulator
                         ot = (ObjectType)int.Parse(classId);
                         ValueEventArgs ve = new ValueEventArgs(objects.FindByLN(ot, instanceId), attributeId, 0, null);
                         targets.Add(ve);
-                        System.Diagnostics.Debug.WriteLine(ot + " " + instanceId);
                     }
                 }
             }
@@ -303,6 +301,7 @@ namespace Gurux.DLMS.Simulator
                                                     if (tp != DataType.None)
                                                     {
                                                         ve.Value = GXDLMSClient.ChangeType((byte[])ve.Value, tp, false);
+                                                        ve.Target.SetDataType(ve.Index, DataType.OctetString);
                                                     }
                                                 }
                                                 ((IGXDLMSBase)ve.Target).SetValue(settings, ve);

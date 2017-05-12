@@ -47,7 +47,7 @@ namespace Gurux.DLMS.Objects
     public class GXXmlWriter : IDisposable
     {
         XmlWriter writer = null;
-        FileStream stream = null;
+        Stream stream = null;
         public void Dispose()
         {
             if (writer != null)
@@ -73,7 +73,7 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         /// <param name="filename"></param>
-        internal GXXmlWriter(string filename)
+        public GXXmlWriter(string filename)
         {
             XmlWriterSettings settings = new XmlWriterSettings()
             {
@@ -90,6 +90,21 @@ namespace Gurux.DLMS.Objects
                 stream = File.Open(filename, FileMode.CreateNew);
             }
             writer = XmlWriter.Create(stream, settings);
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="s">Stream.</param>
+        public GXXmlWriter(Stream s)
+        {
+            XmlWriterSettings settings = new XmlWriterSettings()
+            {
+                Indent = true,
+                IndentChars = "  ",
+                NewLineOnAttributes = true
+            };
+            writer = XmlWriter.Create(s);
         }
 
         public void WriteStartDocument()
@@ -191,6 +206,30 @@ namespace Gurux.DLMS.Objects
             WriteElementObject(name, value, true);
         }
 
+        public void WriteElementObject(string name, object value, DataType type, DataType uiType)
+        {
+            if (type != DataType.None && value is string)
+            {
+                if (type == DataType.OctetString)
+                {
+                    if (uiType == DataType.String)
+                    {
+                        value = ASCIIEncoding.ASCII.GetBytes((string)value);
+                    }
+                    else if (uiType == DataType.OctetString)
+                    {
+                        value = GXDLMSTranslator.HexToBytes((string)value);
+                    }
+                }
+                else if (!(value is GXDateTime))
+                {
+                    Type newType = GXDLMSConverter.GetDataType(type);
+                    value = Convert.ChangeType(value, newType);
+                }
+            }
+            WriteElementObject(name, value, true);
+        }
+
         /// <summary>
         /// Write object value to file.
         /// </summary>
@@ -246,6 +285,11 @@ namespace Gurux.DLMS.Objects
         public void WriteEndDocument()
         {
             writer.WriteEndDocument();
+        }
+
+        public void Flush()
+        {
+            writer.Flush();
         }
     }
 }

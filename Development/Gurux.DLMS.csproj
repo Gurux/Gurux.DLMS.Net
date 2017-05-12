@@ -84,6 +84,7 @@
     <Compile Include="Objects\GXDLMSBroadcastLogTable.cs" />
     <Compile Include="Objects\GXDLMSGSMCellInfo.cs" />
     <Compile Include="Objects\GXDLMSGSMDiagnostic.cs" />
+    <Compile Include="Objects\GXDLMSMBusMasterPortSetup.cs" />
     <Compile Include="Objects\GXXmlWriter.cs" />
     <Compile Include="Objects\GXXmlReader.cs" />
     <Compile Include="Objects\GXDLMSContextInformationTable.cs" />

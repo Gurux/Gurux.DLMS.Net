@@ -123,6 +123,7 @@ namespace Gurux.DLMS
                 availableObjectTypes.Add(ObjectType.ImageTransfer, typeof(GXDLMSImageTransfer));
                 availableObjectTypes.Add(ObjectType.Limiter, typeof(GXDLMSLimiter));
                 availableObjectTypes.Add(ObjectType.MBusClient, typeof(GXDLMSMBusClient));
+                availableObjectTypes.Add(ObjectType.MBusMasterPortSetup, typeof(GXDLMSMBusMasterPortSetup));
                 availableObjectTypes.Add(ObjectType.MBusSlavePortSetup, typeof(GXDLMSMBusSlavePortSetup));
                 availableObjectTypes.Add(ObjectType.MacAddressSetup, typeof(GXDLMSMacAddressSetup));
                 availableObjectTypes.Add(ObjectType.AssociationLogicalName, typeof(GXDLMSAssociationLogicalName));
@@ -400,6 +401,18 @@ namespace Gurux.DLMS
                 if (tp == DataType.None)
                 {
                     tp = GXCommon.GetValueType(value);
+                }
+                else if (tp == DataType.OctetString && value is string)
+                {
+                    DataType ui = obj.GetUIDataType(index);
+                    if (ui == DataType.String)
+                    {
+                        value = ASCIIEncoding.ASCII.GetBytes((string)value);
+                    }
+                    else if (ui == DataType.OctetString)
+                    {
+                        value = GXDLMSTranslator.HexToBytes((string)value);
+                    }
                 }
             }
             GXCommon.SetData(settings, bb, tp, value);

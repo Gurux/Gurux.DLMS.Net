@@ -48,26 +48,26 @@ namespace Gurux.DLMS.Objects.Enums
         /// <summary>
         /// Size of execution_time = 1. Wildcard in date allowed.
         /// </summary>
-        SingleActionScheduleType1,
+        SingleActionScheduleType1 = 1,
         /// <summary>
         /// Size of execution_time = n. 
         /// All time values are the same, wildcards in date not allowed.
         /// </summary>
-        SingleActionScheduleType2,
+        SingleActionScheduleType2 = 2,
         /// <summary>
         /// Size of execution_time = n. 
         /// All time values are the same, wildcards in date are allowed,
         /// </summary>
-        SingleActionScheduleType3,
+        SingleActionScheduleType3 = 3,
         /// <summary>
         /// Size of execution_time = n.
         /// Time values may be different, wildcards in date not allowed,
         /// </summary>
-        SingleActionScheduleType4,
+        SingleActionScheduleType4 = 4,
         /// <summary>
         /// Size of execution_time = n.
         /// Time values may be different, wildcards in date are allowed
         /// </summary>
-        SingleActionScheduleType5                       
+        SingleActionScheduleType5 = 5
     }
 }

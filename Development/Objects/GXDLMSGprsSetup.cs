@@ -196,7 +196,11 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 2)
             {
-                return APN;
+                if (APN != null)
+                {
+                    return ASCIIEncoding.ASCII.GetBytes(APN);
+                }
+                return null;
             }
             if (e.Index == 3)
             {
@@ -264,7 +268,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    APN = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String, settings.UseUtc2NormalTime).ToString();
+                    APN = ASCIIEncoding.ASCII.GetString((byte[])e.Value);
                 }
             }
             else if (e.Index == 3)

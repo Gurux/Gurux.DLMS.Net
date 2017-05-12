@@ -281,6 +281,20 @@ namespace Gurux.DLMS.Enums
         [XmlEnum("65")]
         ParameterMonitor = 65,
 
+        /// <summary>
+        /// Defines the operational parameters for
+        /// communication using the mode Q interfaces.
+        /// </summary>
+        [XmlEnum("73")]
+        WirelessModeQchannel = 73,
+
+        /// <summary>
+        /// Defines the operational parameters for communication using the
+        /// EN 13757-2 interfaces if the device acts as an M-bus master.
+        /// </summary>
+        [XmlEnum("74")]
+        MBusMasterPortSetup = 74,
+
         ///<summary>
         ///RegisterTable stores identical attributes of objects, in a selected
         ///collection of objects. All the objects in the collection need to be of
@@ -344,6 +358,12 @@ namespace Gurux.DLMS.Enums
         ///</summary>
         [XmlEnum("9")]
         ScriptTable = 9,
+
+        ///<summary>
+        ///To determine the SMTP protocol settings, use the SmtpSetup object.
+        ///</summary>
+        [XmlEnum("2")]
+        SmtpSetup = 2,
 
         ///<summary>
         ///With SpecialDaysTable you can determine dates to override a preset behaviour,

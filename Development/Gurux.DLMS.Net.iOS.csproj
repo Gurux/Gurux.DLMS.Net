@@ -230,6 +230,7 @@
     <Compile Include="Objects\GXDLMSLimiter.cs" />
     <Compile Include="Objects\GXDLMSMacAddressSetup.cs" />
     <Compile Include="Objects\GXDLMSMBusClient.cs" />
+    <Compile Include="Objects\GXDLMSMBusMasterPortSetup.cs" />
     <Compile Include="Objects\GXDLMSMBusSlavePortSetup.cs" />
     <Compile Include="Objects\GXDLMSModemConfiguration.cs" />
     <Compile Include="Objects\GXDLMSModemInitialisation.cs" />

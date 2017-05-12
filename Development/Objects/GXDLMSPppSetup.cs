@@ -247,7 +247,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    data.SetUInt8((byte)IPCPOptions.Length);
+                    data.SetUInt8((byte)LCPOptions.Length);
                     foreach (GXDLMSPppSetupLcpOption it in LCPOptions)
                     {
                         data.SetUInt8((byte)DataType.Structure);
@@ -365,7 +365,7 @@ namespace Gurux.DLMS.Objects
             LCPOptions = options.ToArray();
 
             List<GXDLMSPppSetupIPCPOption> list = new List<GXDLMSPppSetupIPCPOption>();
-            if (reader.IsStartElement("LCPOptions", true))
+            if (reader.IsStartElement("IPCPOptions", true))
             {
                 while (reader.IsStartElement("Item", true))
                 {
@@ -374,7 +374,7 @@ namespace Gurux.DLMS.Objects
                     it.Length = (byte)reader.ReadElementContentAsInt("Length");
                     it.Data = reader.ReadElementContentAsObject("Data", null);
                 }
-                reader.ReadEndElement("LCPOptions");
+                reader.ReadEndElement("IPCPOptions");
             }
             IPCPOptions = list.ToArray();
 
@@ -400,7 +400,7 @@ namespace Gurux.DLMS.Objects
             }
             if (IPCPOptions != null)
             {
-                writer.WriteStartElement("LCPOptions");
+                writer.WriteStartElement("IPCPOptions");
                 foreach (GXDLMSPppSetupIPCPOption it in IPCPOptions)
                 {
                     writer.WriteStartElement("Item");

@@ -374,7 +374,7 @@ namespace Gurux.DLMS.Objects
                 {
                     return null;
                 }
-                return GXDLMSClient.ChangeType(ASCIIEncoding.ASCII.GetBytes(CalendarNameActive), DataType.OctetString, false);
+                return ASCIIEncoding.ASCII.GetBytes(CalendarNameActive);
             }
             if (e.Index == 3)
             {
@@ -397,7 +397,7 @@ namespace Gurux.DLMS.Objects
                 {
                     return null;
                 }
-                return GXDLMSClient.ChangeType(ASCIIEncoding.ASCII.GetBytes(CalendarNamePassive), DataType.OctetString, settings.UseUtc2NormalTime);
+                return ASCIIEncoding.ASCII.GetBytes(CalendarNamePassive);
             }
             //
             if (e.Index == 7)
@@ -509,9 +509,10 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 2)
             {
+
                 if (e.Value is byte[])
                 {
-                    CalendarNameActive = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String, settings.UseUtc2NormalTime).ToString();
+                    CalendarNameActive = ASCIIEncoding.ASCII.GetString((byte[])e.Value);
                 }
                 else
                 {
@@ -534,7 +535,7 @@ namespace Gurux.DLMS.Objects
             {
                 if (e.Value is byte[])
                 {
-                    CalendarNamePassive = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String, settings.UseUtc2NormalTime).ToString();
+                    CalendarNamePassive = ASCIIEncoding.ASCII.GetString((byte[])e.Value);
                 }
                 else
                 {

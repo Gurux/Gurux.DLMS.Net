@@ -384,12 +384,12 @@ namespace Gurux.DLMS.Objects
             if (e.Index == 3)
             {
                 GXByteBuffer buff = new GXByteBuffer();
-                buff.Add((byte)DataType.Array);
+                buff.SetUInt8((byte)DataType.Array);
                 GXCommon.SetObjectCount(CaptureDefinition.Count, buff);
                 foreach (KeyValuePair<string, string> it in CaptureDefinition)
                 {
-                    buff.Add((byte)DataType.Structure);
-                    buff.Add(2);
+                    buff.SetUInt8((byte)DataType.Structure);
+                    buff.SetUInt8(2);
                     GXCommon.SetData(settings, buff, DataType.UInt8, it.Key);
                     GXCommon.SetData(settings, buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Value));
                 }

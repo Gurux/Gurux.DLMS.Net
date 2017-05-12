@@ -213,11 +213,11 @@ namespace Gurux.DLMS.Objects
                         data.SetUInt8(2);
                         data.SetUInt8((int)DataType.Structure);
                         data.SetUInt8(2);
-                        GXCommon.SetData(settings, data, DataType.OctetString, it.ActionUp.LogicalName); //Logical name.
+                        GXCommon.SetData(settings, data, DataType.OctetString, GXCommon.LogicalNameToBytes(it.ActionUp.LogicalName)); //Logical name.
                         GXCommon.SetData(settings, data, DataType.UInt16, it.ActionUp.ScriptSelector); //ScriptSelector
                         data.SetUInt8((int)DataType.Structure);
                         data.SetUInt8(2);
-                        GXCommon.SetData(settings, data, DataType.OctetString, it.ActionDown.LogicalName); //Logical name.
+                        GXCommon.SetData(settings, data, DataType.OctetString, GXCommon.LogicalNameToBytes(it.ActionDown.LogicalName)); //Logical name.
                         GXCommon.SetData(settings, data, DataType.UInt16, it.ActionDown.ScriptSelector); //ScriptSelector
                     }
                 }

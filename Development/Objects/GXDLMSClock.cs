@@ -107,7 +107,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// TimeZone of COSEM Clock object.
         /// </summary>
-      //  [XmlIgnore()]
+        [XmlIgnore()]
         public int TimeZone
         {
             get;
@@ -445,9 +445,10 @@ namespace Gurux.DLMS.Objects
         {
             DateTime now = DateTime.Now;
             GXDateTime tm = new GXDateTime(now);
-            if (TimeZone == -1)
+            //-32768 == 0x8000
+            if (TimeZone == -1 || TimeZone == -32768)
             {
-                tm.Skip |= DateTimeSkips.Devitation;
+                tm.Skip |= DateTimeSkips.Deviation;
             }
             else
             {
@@ -478,10 +479,6 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 2)
             {
-                if (settings.IsServer)
-                {
-                    return Now();
-                }
                 return Time;
             }
             if (e.Index == 3)
@@ -654,11 +651,11 @@ namespace Gurux.DLMS.Objects
             }
             if (TimeZone != 0)
             {
-                writer.WriteElementString("TimeZone", TimeZone.ToString());
+                writer.WriteElementString("TimeZone", TimeZone);
             }
             if (Status != ClockStatus.Ok)
             {
-                writer.WriteElementString("Status", ((int)Status).ToString());
+                writer.WriteElementString("Status", ((int)Status));
             }
             if (Begin != null && Begin != DateTime.MinValue)
             {

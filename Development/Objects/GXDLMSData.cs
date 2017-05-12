@@ -181,7 +181,14 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementObject("Value", Value);
+            if (Value is string)
+            {
+                writer.WriteElementObject("Value", Value, GetDataType(2), GetUIDataType(2));
+            }
+            else
+            {
+                writer.WriteElementObject("Value", Value);
+            }
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

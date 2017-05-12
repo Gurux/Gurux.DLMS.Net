@@ -828,7 +828,7 @@ namespace Gurux.DLMS.Internal
                 }
                 else //Use current time if deviation is not defined.
                 {
-                    dt.Skip |= DateTimeSkips.Devitation;
+                    dt.Skip |= DateTimeSkips.Deviation;
                     DateTime tmp = new DateTime(year, month, day, hours, minutes, seconds, milliseconds, DateTimeKind.Local);
                     dt.Value = new DateTimeOffset(tmp, TimeZoneInfo.Local.GetUtcOffset(tmp));
                 }
@@ -1708,7 +1708,15 @@ namespace Gurux.DLMS.Internal
                     }
                     else
                     {
-                        buff.SetUInt16((UInt16)(Convert.ToInt16(value) & 0xFFFF));
+                        int v = Convert.ToInt32(value);
+                        if (v == 0x8000)
+                        {
+                            buff.SetUInt16(0x8000);
+                        }
+                        else
+                        {
+                            buff.SetInt16((short)v);
+                        }
                     }
                     break;
                 case DataType.UInt16:
@@ -2070,20 +2078,24 @@ namespace Gurux.DLMS.Internal
                 buff.SetUInt8((byte)0xFF); //Hundredths of second is not used.
             }
             //Add deviation.
-            if ((dt.Skip & DateTimeSkips.Devitation) == 0)
+            if ((dt.Skip & DateTimeSkips.Deviation) == 0)
             {
-                Int16 devitation = (Int16)dt.Value.Offset.TotalMinutes;
+                Int16 deviation = (Int16)dt.Value.Offset.TotalMinutes;
                 if (dt.Value.LocalDateTime.IsDaylightSavingTime())
                 {
-                    devitation -= 60;
+#if !WINDOWS_UWP
+                    deviation -= (short)TimeZone.CurrentTimeZone.GetDaylightChanges(tm.Year).Delta.TotalMinutes;
+#else
+                    deviation -= 60;
+#endif
                 }
                 if (settings != null && settings.UseUtc2NormalTime)
                 {
-                    buff.SetInt16(devitation);
+                    buff.SetInt16(deviation);
                 }
                 else
                 {
-                    buff.SetInt16((Int16)(-devitation));
+                    buff.SetInt16((Int16)(-deviation));
                 }
             }
             else //deviation not used  .

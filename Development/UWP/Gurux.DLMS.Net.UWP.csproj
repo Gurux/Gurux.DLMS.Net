@@ -352,6 +352,7 @@
       <ExcludeFromStyleCop>False</ExcludeFromStyleCop>
     </Compile>
     <Compile Include="..\Properties\AssemblyInfo.cs" />
+    <Compile Include="..\GXDLMSMBusMasterPortSetup.cs" />
     <EmbeddedResource Include="..\Properties\Gurux.DLMS.Net.UWP.rd.xml" />
   </ItemGroup>
   <ItemGroup />

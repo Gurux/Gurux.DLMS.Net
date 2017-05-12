@@ -92,10 +92,10 @@ namespace Gurux.DLMS.Enums
         [XmlEnum("128")]
         Ms = 0x80,
         /// <summary>
-        /// Devitation is skipped on write.
+        /// Deviation is skipped on write.
         /// </summary>
         [XmlEnum("256")]
-        Devitation = 0x100,
+        Deviation = 0x100,
         /// <summary>
         /// Status is skipped on write.
         /// </summary>

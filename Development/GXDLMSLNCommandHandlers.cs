@@ -695,7 +695,7 @@ namespace Gurux.DLMS
                         if (value is byte[])
                         {
                             DataType dt = (obj as IGXDLMSBase).GetDataType(index);
-                            if (dt != DataType.None && dt != DataType.OctetString)
+                            if (dt != DataType.None && dt != DataType.OctetString && dt != DataType.Structure)
                             {
                                 value = GXDLMSClient.ChangeType((byte[])value, dt, settings.UseUtc2NormalTime);
                             }
@@ -715,10 +715,14 @@ namespace Gurux.DLMS
                         {
                             (obj as IGXDLMSBase).SetValue(settings, e);
                             server.NotifyPostWrite(list);
+                            if (e.Error != 0)
+                            {
+                                p.status = (byte)e.Error;
+                            }
                         }
                         p.InvokeId = e.InvokeId;
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
                         p.status = (byte)ErrorCode.HardwareFault;
                     }

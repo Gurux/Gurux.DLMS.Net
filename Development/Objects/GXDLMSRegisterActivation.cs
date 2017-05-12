@@ -205,7 +205,7 @@ namespace Gurux.DLMS.Objects
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8(2);
                         GXCommon.SetData(settings, data, DataType.UInt16, it.ObjectType);
-                        GXCommon.SetData(settings, data, DataType.OctetString, it.LogicalName);
+                        GXCommon.SetData(settings, data, DataType.OctetString, GXCommon.LogicalNameToBytes(it.LogicalName));
                     }
                 }
                 return data.Array();

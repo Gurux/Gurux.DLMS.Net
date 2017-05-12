@@ -233,7 +233,7 @@ namespace Gurux.DLMS.Objects
                         GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it));
                     }
                 }
-                return data;
+                return data.Array();
             }
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
@@ -258,8 +258,8 @@ namespace Gurux.DLMS.Objects
                     foreach (object[] it in (Object[])e.Value)
                     {
                         GXDLMSModemInitialisation item = new GXDLMSModemInitialisation();
-                        item.Request = GXDLMSClient.ChangeType((byte[])it[0], DataType.String, settings.UseUtc2NormalTime).ToString();
-                        item.Response = GXDLMSClient.ChangeType((byte[])it[1], DataType.String, settings.UseUtc2NormalTime).ToString();
+                        item.Request = ASCIIEncoding.ASCII.GetString((byte[])it[0]);
+                        item.Response = ASCIIEncoding.ASCII.GetString((byte[])it[1]);
                         if (it.Length > 2)
                         {
                             item.Delay = Convert.ToUInt16(it[2]);
@@ -277,7 +277,7 @@ namespace Gurux.DLMS.Objects
                     List<string> items = new List<string>();
                     foreach (object it in (Object[])e.Value)
                     {
-                        items.Add(GXDLMSClient.ChangeType((byte[])it, DataType.String, settings.UseUtc2NormalTime).ToString().Trim());
+                        items.Add(GXDLMSClient.ChangeType((byte[])it, DataType.String, false).ToString().Trim());
                     }
                     ModemProfile = items.ToArray();
                 }
