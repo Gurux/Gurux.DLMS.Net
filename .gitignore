@@ -170,3 +170,4 @@ pip-log.txt
 .DS_Store
 *.nupkg
 *.XML
+*.db

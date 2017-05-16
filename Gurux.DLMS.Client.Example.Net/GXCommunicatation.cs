@@ -34,10 +34,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Gurux.Common;
-using Gurux.DLMS;
 using Gurux.Net;
 using Gurux.Serial;
 using System.IO.Ports;
@@ -501,7 +499,7 @@ namespace Gurux.DLMS.Client.Example
         /// Read DLMS Data from the device.
         /// </summary>
         /// <param name="data">Data to send.</param>
-        /// <returns>Received data.</returns>
+        /// <param name="reply">Received data.</param>
         public void ReadDLMSPacket(byte[] data, GXReplyData reply)
         {
             if (data == null)

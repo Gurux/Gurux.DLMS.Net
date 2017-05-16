@@ -509,7 +509,6 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 2)
             {
-
                 if (e.Value is byte[])
                 {
                     CalendarNameActive = ASCIIEncoding.ASCII.GetString((byte[])e.Value);

@@ -294,7 +294,7 @@ namespace Gurux.DLMS.Objects
                     buff.SetUInt8(DataType.Structure);
                     buff.SetUInt8(4);
                     GXCommon.SetData(settings, buff, DataType.UInt16, it.Key.ObjectType);
-                    GXCommon.SetData(settings, buff, DataType.OctetString, it.Key.LogicalName);
+                    GXCommon.SetData(settings, buff, DataType.OctetString, GXCommon.LogicalNameToBytes(it.Key.LogicalName));
                     GXCommon.SetData(settings, buff, DataType.Int8, it.Value.AttributeIndex);
                     GXCommon.SetData(settings, buff, DataType.UInt16, it.Value.DataIndex);
                 }
