@@ -8,7 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Gurux.DLMS.Server.Example2.Net")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
+[assembly: AssemblyCompany("Gurux Ltd")]
 [assembly: AssemblyProduct("Gurux.DLMS.Server.Example2.Net")]
+[assembly: AssemblyCopyright("Copyright (c) 1998-2017 Gurux Ltd. All rights reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
