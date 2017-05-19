@@ -36,6 +36,7 @@ using Gurux.DLMS.Enums;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Xml;
 
 namespace Gurux.DLMS.Objects
@@ -66,6 +67,16 @@ namespace Gurux.DLMS.Objects
 #endif
                 reader = null;
             }
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="stream">Stream.</param>
+        internal GXXmlReader(Stream stream)
+        {
+            reader = XmlReader.Create(stream);
+            Objects = new GXDLMSObjectCollection();
         }
 
         /// <summary>

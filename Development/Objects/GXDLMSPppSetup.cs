@@ -404,8 +404,8 @@ namespace Gurux.DLMS.Objects
                 foreach (GXDLMSPppSetupIPCPOption it in IPCPOptions)
                 {
                     writer.WriteStartElement("Item");
-                    writer.WriteElementString("Type", ((int)it.Type).ToString());
-                    writer.WriteElementString("Length", it.Length.ToString());
+                    writer.WriteElementString("Type", ((int)it.Type));
+                    writer.WriteElementString("Length", it.Length);
                     writer.WriteElementObject("Data", it.Data);
                     writer.WriteEndElement();
                 }

@@ -649,14 +649,8 @@ namespace Gurux.DLMS.Objects
             {
                 writer.WriteElementString("Time", Time.ToFormatString());
             }
-            if (TimeZone != 0)
-            {
-                writer.WriteElementString("TimeZone", TimeZone);
-            }
-            if (Status != ClockStatus.Ok)
-            {
-                writer.WriteElementString("Status", ((int)Status));
-            }
+            writer.WriteElementString("TimeZone", TimeZone);
+            writer.WriteElementString("Status", ((int)Status));
             if (Begin != null && Begin != DateTime.MinValue)
             {
                 writer.WriteElementString("Begin", Begin.ToFormatString());
@@ -665,18 +659,9 @@ namespace Gurux.DLMS.Objects
             {
                 writer.WriteElementString("End", End.ToFormatString());
             }
-            if (Deviation != 0)
-            {
-                writer.WriteElementString("Deviation", Deviation.ToString());
-            }
-            if (Enabled)
-            {
-                writer.WriteElementString("Enabled", "1");
-            }
-            if (ClockBase != ClockBase.None)
-            {
-                writer.WriteElementString("ClockBase", ((int)ClockBase).ToString());
-            }
+            writer.WriteElementString("Deviation", Deviation);
+            writer.WriteElementString("Enabled", Enabled);
+            writer.WriteElementString("ClockBase", ((int)ClockBase));
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

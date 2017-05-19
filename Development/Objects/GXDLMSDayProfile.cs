@@ -33,11 +33,8 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace Gurux.DLMS
+namespace Gurux.DLMS.Objects
 {
     /// <summary>
     /// Activity Calendar's Day profile is defined on the standard.

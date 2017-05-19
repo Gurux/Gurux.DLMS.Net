@@ -305,6 +305,12 @@ namespace Gurux.DLMS.Objects
                             ObjectType ot = (ObjectType)reader.ReadElementContentAsInt("ObjectType");
                             string ln = reader.ReadElementContentAsString("LN");
                             a.Index = reader.ReadElementContentAsInt("Index");
+                            a.Target = reader.Objects.FindByLN(ot, ln);
+                            if (a.Target == null)
+                            {
+                                a.Target = GXDLMSClient.CreateObject(ot);
+                                a.Target.LogicalName = ln;
+                            }
                             a.ParameterDataType = (DataType)reader.ReadElementContentAsInt("ParameterDataType");
                             a.Parameter = reader.ReadElementContentAsObject("Parameter", null);
                         }

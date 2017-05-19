@@ -632,7 +632,7 @@ namespace Gurux.DLMS.Objects
                     {
                         while (reader.IsStartElement("Action", true))
                         {
-                            GXDLMSDayProfileAction d = new DLMS.GXDLMSDayProfileAction();
+                            GXDLMSDayProfileAction d = new GXDLMSDayProfileAction();
                             actions.Add(d);
                             d.StartTime = new GXTime(reader.ReadElementContentAsString("Start"));
                             d.ScriptLogicalName = reader.ReadElementContentAsString("LN");

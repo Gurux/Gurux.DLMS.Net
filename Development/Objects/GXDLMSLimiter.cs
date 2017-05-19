@@ -598,7 +598,7 @@ namespace Gurux.DLMS.Objects
                 writer.WriteStartElement("EmergencyProfileGroupIDs");
                 foreach (UInt16 it in EmergencyProfileGroupIDs)
                 {
-                    writer.WriteElementString("Value", it.ToString());
+                    writer.WriteElementString("Value", it);
                 }
                 writer.WriteEndElement();
             }

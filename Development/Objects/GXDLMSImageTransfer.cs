@@ -538,9 +538,9 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("ImageBlockSize", ImageBlockSize.ToString());
+            writer.WriteElementString("ImageBlockSize", ImageBlockSize);
             writer.WriteElementString("ImageTransferredBlocksStatus", ImageTransferredBlocksStatus);
-            writer.WriteElementString("ImageFirstNotTransferredBlockNumber", ImageFirstNotTransferredBlockNumber.ToString());
+            writer.WriteElementString("ImageFirstNotTransferredBlockNumber", ImageFirstNotTransferredBlockNumber);
             writer.WriteElementString("ImageTransferEnabled", ImageTransferEnabled);
             writer.WriteElementString("ImageTransferStatus", (int)ImageTransferStatus);
             if (ImageActivateInfo != null)
@@ -549,7 +549,7 @@ namespace Gurux.DLMS.Objects
                 foreach (GXDLMSImageActivateInfo it in ImageActivateInfo)
                 {
                     writer.WriteStartElement("Item");
-                    writer.WriteElementString("Size", it.Size.ToString());
+                    writer.WriteElementString("Size", it.Size);
                     writer.WriteElementString("Identification", it.Identification);
                     writer.WriteElementString("Signature", it.Signature);
                     writer.WriteEndElement();

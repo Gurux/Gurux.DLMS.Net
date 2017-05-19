@@ -506,10 +506,7 @@ namespace Gurux.DLMS.Objects
             }
             writer.WriteElementString("SubnetMask", SubnetMask);
             writer.WriteElementString("GatewayIPAddress", GatewayIPAddress);
-            if (UseDHCP)
-            {
-                writer.WriteElementString("UseDHCP", 1);
-            }
+            writer.WriteElementString("UseDHCP", UseDHCP);
             writer.WriteElementString("PrimaryDNSAddress", PrimaryDNSAddress);
             writer.WriteElementString("SecondaryDNSAddress", SecondaryDNSAddress);
         }

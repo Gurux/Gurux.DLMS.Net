@@ -303,7 +303,7 @@ namespace Gurux.DLMS.Objects
             {
                 while (reader.IsStartElement("Item", true))
                 {
-                    GXDLMSActionSet it = new Objects.GXDLMSActionSet();
+                    GXDLMSActionSet it = new GXDLMSActionSet();
                     list.Add(it);
                     if (reader.IsStartElement("Up", true))
                     {

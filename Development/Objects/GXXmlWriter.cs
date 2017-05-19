@@ -48,6 +48,7 @@ namespace Gurux.DLMS.Objects
     {
         XmlWriter writer = null;
         Stream stream = null;
+
         public void Dispose()
         {
             if (writer != null)

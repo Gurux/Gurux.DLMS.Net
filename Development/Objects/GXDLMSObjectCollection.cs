@@ -307,7 +307,6 @@ namespace Gurux.DLMS.Objects
 
         #endregion
 
-
         /// <summary>
         ///  Load COSEM objects from the file.
         /// </summary>
@@ -315,10 +314,23 @@ namespace Gurux.DLMS.Objects
         /// <returns>Collection of serialized COSEM objects.</returns>
         public static GXDLMSObjectCollection Load(string filename)
         {
+            using (Stream stream = File.OpenRead(filename))
+            {
+                return Load(stream);
+            }
+        }
+
+        /// <summary>
+        ///  Load COSEM objects from the file.
+        /// </summary>
+        /// <param name="stream">Stream.</param>
+        /// <returns>Collection of serialized COSEM objects.</returns>
+        public static GXDLMSObjectCollection Load(Stream stream)
+        {
             GXDLMSObject obj = null;
             String target;
             ObjectType type;
-            using (GXXmlReader reader = new GXXmlReader(filename))
+            using (GXXmlReader reader = new GXXmlReader(stream))
             {
                 while (!reader.EOF)
                 {
@@ -332,7 +344,16 @@ namespace Gurux.DLMS.Objects
                         }
                         else if (string.Compare("Object", target, true) == 0)
                         {
-                            type = (ObjectType)Enum.Parse(typeof(ObjectType), reader.GetAttribute(0));
+                            int r = 0;
+                            string str = reader.GetAttribute(0);
+                            if (int.TryParse(str, out r))
+                            {
+                                type = (ObjectType)r;
+                            }
+                            else
+                            {
+                                type = (ObjectType)Enum.Parse(typeof(ObjectType), str);
+                            }
                             reader.Read();
                             obj = GXDLMSClient.CreateObject(type);
                             reader.Objects.Add(obj);
@@ -367,9 +388,9 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Save COSEM objects to the file.
         /// </summary>
-        /// <param name="filename">File path.</param>
-        /// <param name="values">Are attribute values also serialized.</param>
-        public void Save(string filename, bool values)
+        /// <param name="filename">File name.</param>
+        /// <param name="settings">XML write settings.</param>
+        public void Save(string filename, GXXmlWriterSettings settings)
         {
             using (GXXmlWriter writer = new GXXmlWriter(filename))
             {
@@ -378,11 +399,11 @@ namespace Gurux.DLMS.Objects
                 foreach (GXDLMSObject it in this)
                 {
                     writer.WriteStartElement("Object");
-                    writer.WriteAttributeString("Type", it.ObjectType.ToString());
+                    writer.WriteAttributeString("Type", ((int)it.ObjectType).ToString());
                     // Add SN
                     if (it.ShortName != 0)
                     {
-                        writer.WriteElementString("SN", it.ShortName.ToString());
+                        writer.WriteElementString("SN", it.ShortName);
                     }
                     // Add LN
                     writer.WriteElementString("LN", it.LogicalName);
@@ -391,7 +412,7 @@ namespace Gurux.DLMS.Objects
                     {
                         writer.WriteElementString("Description", it.Description);
                     }
-                    if (values)
+                    if (settings.Values)
                     {
                         (it as IGXDLMSBase).Save(writer);
                     }

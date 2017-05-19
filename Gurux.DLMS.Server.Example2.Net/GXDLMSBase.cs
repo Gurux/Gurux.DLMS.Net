@@ -122,7 +122,8 @@ namespace Gurux.DLMS.Server.Example2.Net
         {
             lock (settingsLock)
             {
-                Items.Save(path, true);
+                GXXmlWriterSettings settings = new Objects.GXXmlWriterSettings(); ;
+                Items.Save(path, settings);
             }
         }
 
