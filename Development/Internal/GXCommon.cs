@@ -396,23 +396,24 @@ namespace Gurux.DLMS.Internal
         /// <param name="count">Bit count to add.</param>
         static void ToBitString(StringBuilder sb, byte value, int count)
         {
-            if (count > 8)
+            if (count > 0)
             {
-                count = 8;
-            }
-            char[] data = new char[count];
-            for (int pos = 0; pos != count; ++pos)
-            {
-                if ((value & (1 << pos)) != 0)
+                if (count > 8)
                 {
-                    data[count - pos - 1] = '1';
+                    count = 8;
                 }
-                else
+                for (int pos = 7; pos != 8 - count - 1; --pos)
                 {
-                    data[count - pos - 1] = '0';
+                    if ((value & (1 << pos)) != 0)
+                    {
+                        sb.Append('1');
+                    }
+                    else
+                    {
+                        sb.Append('0');
+                    }
                 }
             }
-            sb.Append(data);
         }
 
 
