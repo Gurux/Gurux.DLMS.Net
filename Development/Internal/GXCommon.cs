@@ -2246,40 +2246,32 @@ namespace Gurux.DLMS.Internal
         {
             if (value is string)
             {
-                GXByteBuffer tmp = new GXByteBuffer();
                 byte val = 0;
-                int index = 0;
-                string str = ((string)value);
+                String str = (String)value;
                 SetObjectCount(str.Length, buff);
-                foreach (char it in str.Reverse())
+                int index = 7;
+                for (int pos = 0; pos != str.Length; ++pos)
                 {
+                    char it = str[pos];
                     if (it == '1')
                     {
                         val |= (byte)(1 << index);
-                        ++index;
                     }
-                    else if (it == '0')
+                    else if (it != '0')
                     {
-                        ++index;
+                        throw new ArgumentException("Not a bit string.");
                     }
-                    else
+                    --index;
+                    if (index == -1)
                     {
-                        throw new Exception("Not a bit string.");
-                    }
-                    if (index == 8)
-                    {
-                        index = 0;
-                        tmp.SetUInt8(val);
+                        index = 7;
+                        buff.SetUInt8(val);
                         val = 0;
                     }
                 }
-                if (index != 0)
+                if (index != 7)
                 {
-                    tmp.SetUInt8(val);
-                }
-                for (int pos = tmp.Size - 1; pos != -1; --pos)
-                {
-                    buff.SetUInt8(tmp.GetUInt8(pos));
+                    buff.SetUInt8(val);
                 }
             }
             else if (value is sbyte[])

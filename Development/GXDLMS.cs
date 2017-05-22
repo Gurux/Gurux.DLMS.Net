@@ -778,7 +778,7 @@ namespace Gurux.DLMS
                         messages.Add(GXDLMS.GetHdlcFrame(p.settings, frame, reply));
                         if (reply.Position != reply.Size)
                         {
-                            if (p.settings.IsServer || p.command == Command.SetRequest || p.command == Command.WriteRequest)
+                            if (p.settings.IsServer || p.command == Command.SetRequest)
                             {
                                 frame = 0;
                             }

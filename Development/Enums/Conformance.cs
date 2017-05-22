@@ -41,7 +41,7 @@ using System.Xml.Serialization;
 namespace Gurux.DLMS.Enums
 {
     /// <summary>
-    /// Enumerates all comformace bits.
+    /// Enumerates all comformance bits.
     /// </summary>
     [Flags]
     public enum Conformance : uint
