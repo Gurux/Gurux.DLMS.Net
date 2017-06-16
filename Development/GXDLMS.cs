@@ -1740,7 +1740,8 @@ namespace Gurux.DLMS
         static bool HandleReadResponse(GXDLMSSettings settings, GXReplyData reply, int index)
         {
             int pos = 0, cnt;
-            if (reply.Count == 0)
+            bool first;
+            if (reply.Count == 0 && reply.TotalCount == 0)
             {
                 cnt = GXCommon.GetObjectCount(reply.Data);
             }
@@ -1751,13 +1752,22 @@ namespace Gurux.DLMS
             //Set total count if not set yet.
             if (reply.TotalCount == 0)
             {
+                first = true;
                 reply.TotalCount = cnt;
+            }
+            else
+            {
+                first = false;
             }
             SingleReadResponse type = SingleReadResponse.Data;
             List<object> values = null;
             if (cnt != 1)
             {
                 values = new List<object>();
+                if (reply.Value is object[])
+                {
+                    values.AddRange((object[])reply.Value);
+                }
                 reply.Value = null;
             }
             if (reply.Xml != null)
@@ -1768,14 +1778,19 @@ namespace Gurux.DLMS
             {
                 if (reply.Data.Available == 0)
                 {
+                    reply.TotalCount = cnt;
                     if (cnt != 1)
                     {
+                        GetDataFromBlock(reply.Data, 0);
                         reply.Value = values.ToArray();
                     }
                     return false;
                 }
-                // Get status code.
-                reply.CommandType = reply.Data.GetUInt8();
+                // Get status code. Status code is begin of each read object. 
+                if (first || cnt != 1)
+                {
+                    reply.CommandType = reply.Data.GetUInt8();
+                }
                 type = (SingleReadResponse)reply.CommandType;
                 bool standardXml = reply.Xml != null && reply.Xml.OutputType == TranslatorOutputType.StandardXml;
                 switch (type)
@@ -1897,11 +1912,9 @@ namespace Gurux.DLMS
             }
             if (data.Xml != null)
             {
-                if (data.Xml
-                        .OutputType == TranslatorOutputType.StandardXml)
+                if (data.Xml.OutputType == TranslatorOutputType.StandardXml)
                 {
-                    data.Xml
-                    .AppendStartTag(TranslatorTags.SingleResponse);
+                    data.Xml.AppendStartTag(TranslatorTags.SingleResponse);
                 }
                 data.Xml.AppendLine(TranslatorTags.Result, null,
                                     GXDLMSTranslator.ErrorCodeToString(
@@ -1918,7 +1931,7 @@ namespace Gurux.DLMS
                 {
                     GetDataFromBlock(data.Data, 0);
                 }
-                else
+                else if (ret == 1)
                 {
                     //Get Data-Access-Result
                     ret = data.Data.GetUInt8();
@@ -1939,18 +1952,19 @@ namespace Gurux.DLMS
                         GetDataFromBlock(data.Data, 0);
                     }
                 }
+                else
+                {
+                    throw new GXDLMSException("HandleActionResponseNormal failed. Invalid tag.");
+                }
                 if (data.Xml != null)
                 {
-
                     data.Xml.AppendStartTag(TranslatorTags.ReturnParameters);
                     if (ret != 0)
                     {
                         data.Xml.AppendLine(
                             TranslatorTags.DataAccessError, null,
                             GXDLMSTranslator.ErrorCodeToString(
-                                data.Xml.OutputType, (ErrorCode)
-                                ret));
-
+                                data.Xml.OutputType, (ErrorCode)data.Error));
                     }
                     else
                     {
@@ -2631,18 +2645,10 @@ namespace Gurux.DLMS
                 else
                 {
                     //If we are receiving last read block in frames.
-                    if (data.Command == Command.ReadResponse && !data.IsMoreData && data.CommandType == (byte)SingleReadResponse.DataBlockResult)
+                    if (data.Command == Command.ReadResponse && !data.IsMoreData)
                     {
                         data.Data.Position = 0;
-                        if (!HandleReadResponse(settings, data, -1))
-                        {
-                            return;
-                        }
-                    }
-                    else if (data.Command == Command.ReadResponse && !data.IsMoreData && data.CommandType == (byte)SingleReadResponse.Data &&
-                        data.Value != null)
-                    {
-                        if (!HandleReadResponse(settings, data, -1))
+                        if (!HandleReadResponse(settings, data, 0))
                         {
                             return;
                         }

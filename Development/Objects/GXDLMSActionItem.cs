@@ -41,12 +41,18 @@ namespace Gurux.DLMS.Objects
 {
     public class GXDLMSActionItem
     {
+        /// <summary>
+        /// Script logical name.
+        /// </summary>
         public string LogicalName
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// Script selector.
+        /// </summary>
         public UInt16 ScriptSelector
         {
             get;
@@ -57,5 +63,5 @@ namespace Gurux.DLMS.Objects
         {
             return LogicalName + " " + ScriptSelector.ToString();
         }
-    }    
+    }
 }

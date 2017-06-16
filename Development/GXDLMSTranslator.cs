@@ -763,6 +763,7 @@ namespace Gurux.DLMS
             settings.Cipher = GetCiphering();
             GXReplyData data = new GXReplyData();
             byte cmd = value.GetUInt8();
+            int len;
             byte[] tmp;
             switch (cmd)
             {
@@ -846,6 +847,10 @@ namespace Gurux.DLMS
                         //Len.
                         value.GetUInt8();
                         xml.AppendLine(TranslatorTags.Reason, "Value", ((ReleaseRequestReason)value.GetUInt8()).ToString());
+                        if (value.Available != 0)
+                        {
+                            GXAPDU.ParsePDU2(settings, settings.Cipher, value, xml);
+                        }
                     }
                     xml.AppendEndTag((Command)cmd);
                     break;
@@ -886,7 +891,7 @@ namespace Gurux.DLMS
                         xml.EndComment();
                         value.Position = originalPosition;
                     }
-                    int len = GXCommon.GetObjectCount(value);
+                    len = GXCommon.GetObjectCount(value);
                     tmp = new byte[len];
                     value.Get(tmp);
                     xml.AppendStartTag(Command.GeneralGloCiphering);
@@ -1092,14 +1097,26 @@ namespace Gurux.DLMS
                     break;
                 case (byte)Command.InitiateRequest:
                 case (byte)Command.InitiateResponse:
+                    break;
+                case (byte)TranslatorGeneralTags.UserInformation:
                     if (s.OutputType == TranslatorOutputType.StandardXml)
                     {
                         GXByteBuffer bb = new GXByteBuffer();
                         tmp = GXCommon.HexToBytes(GetValue(node, s));
                         GXCommon.SetObjectCount(tmp.Length, bb);
                         bb.Set(tmp);
+                        if (s.settings.IsServer)
+                        {
+                            s.settings.ProposedConformance = (Conformance)0xFFFFFF;
+                        }
                         GXAPDU.ParseUserInformation(s.settings,
                                                     s.settings.Cipher, bb, null);
+
+                        // Update proposed conformance or XML to PDU will fail.
+                        if (!s.settings.IsServer)
+                        {
+                            s.settings.ProposedConformance = s.settings.NegotiatedConformance;
+                        }
                     }
                     break;
                 case 0xBE00:
@@ -1493,7 +1510,9 @@ namespace Gurux.DLMS
                 }
             }
             else if (s.command == Command.Aarq ||
-                     s.command == Command.Aare)
+                     s.command == Command.Aare ||
+                     s.command == Command.InitiateRequest ||
+                     s.command == Command.InitiateResponse)
             {
                 HandleAarqAare(node, s, tag);
             }

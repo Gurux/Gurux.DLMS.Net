@@ -244,8 +244,12 @@ namespace Gurux.DLMS.ManufacturerSettings
 
         public static void ReadManufacturerSettings(GXManufacturerCollection Manufacturers)
         {
+            ReadManufacturerSettings(Manufacturers, ObisCodesPath);
+        }
+
+        public static void ReadManufacturerSettings(GXManufacturerCollection Manufacturers, String path)
+        {
             Manufacturers.Clear();
-            string path = ObisCodesPath;
             if (Directory.Exists(path))
             {
                 Type[] extraTypes = new Type[] { typeof(GXManufacturerCollection), typeof(GXManufacturer), typeof(GXObisCodeCollection), typeof(GXObisCode), typeof(GXObisValueItem), typeof(GXObisValueItemCollection), typeof(GXDLMSAttribute), typeof(GXAttributeCollection) };
@@ -273,18 +277,31 @@ namespace Gurux.DLMS.ManufacturerSettings
 
         public void WriteManufacturerSettings()
         {
+            WriteManufacturerSettings(ObisCodesPath);
+        }
+
+        public void WriteManufacturerSettings(string directory)
+        {
             //Do not save empty list.
             if (this.Count != 0)
             {
-                if (!Directory.Exists(ObisCodesPath))
+                if (!Directory.Exists(directory))
                 {
-                    Directory.CreateDirectory(ObisCodesPath);
+                    Directory.CreateDirectory(directory);
                 }
                 Type[] extraTypes = new Type[] { typeof(GXManufacturerCollection), typeof(GXManufacturer), typeof(GXObisCodeCollection), typeof(GXObisCode), typeof(GXObisValueItem), typeof(GXObisValueItemCollection), typeof(GXDLMSAttribute), typeof(GXAttributeCollection) };
                 XmlSerializer x = new XmlSerializer(typeof(GXManufacturer), extraTypes);
                 foreach (GXManufacturer it in this)
                 {
-                    string path = Path.Combine(ObisCodesPath, it.Identification) + ".obx";
+                    string path = Path.Combine(directory, it.Identification) + ".obx";
+                    if (it.Identification == "AUX")
+                    {
+                        path = Path.Combine(directory, "_" + it.Identification) + ".obx";
+                    }
+                    else if (it.Identification == "CON")
+                    {
+                        path = Path.Combine(directory, "_" + it.Identification) + ".obx";
+                    }
                     if (!it.Removed)
                     {
                         using (Stream stream = File.Open(path, FileMode.Create))

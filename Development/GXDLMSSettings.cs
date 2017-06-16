@@ -124,6 +124,12 @@ namespace Gurux.DLMS
         private UInt16 maxReceivePDUSize;
 
         /// <summary>
+        /// Can user access meter data anonymously (Without AARQ/AARE messages). 
+        /// In DLMS standard this is known as Pre-established application associations.
+        /// </summary>
+        internal bool AllowAnonymousAccess = false;
+
+        /// <summary>
         /// When connection is made client tells what kind of services it want's to use.
         /// </summary>
         internal Conformance ProposedConformance = (Conformance)0;

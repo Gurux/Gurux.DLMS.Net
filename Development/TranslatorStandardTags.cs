@@ -235,7 +235,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, Command.AccessRequest,
                                     "access-request");
             list.Add((int)Command.AccessRequest << 8 | (int)AccessServiceCommandType.Get,
-                     "access-request-Get");
+                     "access-request-get");
             list.Add((int)Command.AccessRequest << 8 | (int)AccessServiceCommandType.Set,
                      "access-request-set");
             list.Add((int)
@@ -244,7 +244,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, Command.AccessResponse,
                                     "access-response");
             list.Add((int)Command.AccessResponse << 8 | (int)AccessServiceCommandType.Get,
-                     "access-response-Get");
+                     "access-response-get");
             list.Add((int)Command.AccessResponse << 8 | (int)AccessServiceCommandType.Set,
                      "access-response-set");
             list.Add((int)Command.AccessResponse << 8 | (int)AccessServiceCommandType.Action,

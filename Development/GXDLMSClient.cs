@@ -756,8 +756,15 @@ namespace Gurux.DLMS
                 return GXDLMS.GetHdlcFrame(Settings, (byte)Command.DisconnectRequest, null);
             }
             GXByteBuffer bb = new GXByteBuffer(2);
-            bb.SetUInt8((byte)Command.ReleaseRequest);
-            bb.SetUInt8(0x0);
+            if (Settings.Cipher != null && Settings.Cipher.Security != Security.None)
+            {
+
+            }
+            else
+            {
+                bb.SetUInt8((byte)Command.ReleaseRequest);
+                bb.SetUInt8(0x0);
+            }
             return GXDLMS.GetWrapperFrame(Settings, bb);
         }
 

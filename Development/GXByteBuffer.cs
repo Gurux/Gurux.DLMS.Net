@@ -200,7 +200,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Amount of not reed bytes in the buffer.
+        /// Amount of non read bytes in the buffer.
         /// </summary>
         public int Available
         {

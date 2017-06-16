@@ -63,7 +63,6 @@ namespace Gurux.DLMS.Internal
                 data.SetUInt8(2);
                 data.SetUInt8(BerType.BitString | BerType.OctetString);
                 data.SetUInt8(0x80);
-
                 data.SetUInt8((byte)BerType.Context | (byte)PduType.MechanismName);
                 //Len
                 data.SetUInt8(7);
@@ -629,18 +628,25 @@ namespace Gurux.DLMS.Internal
                     data.Get(encrypted);
                     if (cipher != null && xml.Comments)
                     {
-                        data.Position = originalPos - 1;
-                        p = new AesGcmParameter(settings.SourceSystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
-                        tmp = GXDLMSChippering.DecryptAesGcm(p, data);
-                        data.Clear();
-                        data.Set(tmp);
-                        cipher.Security = p.Security;
-                        tag = data.GetUInt8();
-                        xml.StartComment("Decrypted data:");
-                        xml.AppendLine("Security: " + p.Security);
-                        xml.AppendLine("Invocation Counter: " + p.InvocationCounter);
-                        Parse(initiateRequest, settings, cipher, data, xml, tag);
-                        xml.EndComment();
+                        try
+                        {
+                            data.Position = originalPos - 1;
+                            p = new AesGcmParameter(settings.SourceSystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                            tmp = GXDLMSChippering.DecryptAesGcm(p, data);
+                            data.Clear();
+                            data.Set(tmp);
+                            cipher.Security = p.Security;
+                            tag = data.GetUInt8();
+                            xml.StartComment("Decrypted data:");
+                            xml.AppendLine("Security: " + p.Security);
+                            xml.AppendLine("Invocation Counter: " + p.InvocationCounter);
+                            Parse(initiateRequest, settings, cipher, data, xml, tag);
+                            xml.EndComment();
+                        }
+                        catch (Exception)
+                        {
+                            //It's OK if this fails.
+                        }
                     }
                     //<glo_InitiateRequest>
                     xml.AppendLine(Command.GloInitiateRequest, "Value", GXCommon.ToHex(encrypted, false));
@@ -673,14 +679,6 @@ namespace Gurux.DLMS.Internal
                 }
                 xml.AppendComment("Error: Invalid data size.");
             }
-            if (xml != null && xml.OutputType == TranslatorOutputType.StandardXml)
-            {
-                len = (byte)(data.Size - data.Position);
-                xml.AppendLine(Command.InitiateRequest, null, GXCommon
-                               .ToHex(data.Data, false, data.Position, len));
-                data.Position = data.Position + len;
-                return;
-            }
             //Excoding the choice for user information
             int tag = data.GetUInt8();
             if (tag != 0x4)
@@ -695,6 +693,13 @@ namespace Gurux.DLMS.Internal
                     throw new Exception("Not enough data.");
                 }
                 xml.AppendComment("Error: Invalid data size.");
+            }
+            if (xml != null && xml.OutputType == TranslatorOutputType.StandardXml)
+            {
+                xml.AppendLine(Command.InitiateRequest, null, GXCommon
+                               .ToHex(data.Data, false, data.Position, len));
+                data.Position = data.Position + len;
+                return;
             }
             ParseInitiate(false, settings, cipher, data, xml);
         }
@@ -873,7 +878,7 @@ namespace Gurux.DLMS.Internal
                 GXByteBuffer buff, GXDLMSTranslatorStructure xml)
         {
             // Get AARE tag and length
-            int tag = buff.GetUInt8();
+            byte tag = buff.GetUInt8();
             if (settings.IsServer)
             {
                 if (tag != ((byte)BerType.Application | (byte)BerType.Constructed | (byte)PduType.ProtocolVersion))
@@ -910,6 +915,27 @@ namespace Gurux.DLMS.Internal
                     xml.AppendStartTag(Command.Aare);
                 }
             }
+            SourceDiagnostic ret = ParsePDU2(settings, cipher, buff, xml);
+            //Closing tags
+            if (xml != null)
+            {
+                if (settings.IsServer)
+                {
+                    xml.AppendEndTag(Command.Aarq);
+                }
+                else
+                {
+                    xml.AppendEndTag(Command.Aare);
+                }
+            }
+            return ret;
+        }
+
+        static internal SourceDiagnostic ParsePDU2(GXDLMSSettings settings, GXICipher cipher,
+                GXByteBuffer buff, GXDLMSTranslatorStructure xml)
+        {
+            int len;
+            byte tag;
             AssociationResult resultComponent = AssociationResult.Accepted;
             SourceDiagnostic resultDiagnosticValue = SourceDiagnostic.None;
             while (buff.Position < buff.Size)
@@ -1071,18 +1097,6 @@ namespace Gurux.DLMS.Internal
                             buff.Position += (UInt16)len;
                         }
                         break;
-                }
-            }
-            //Closing tags
-            if (xml != null)
-            {
-                if (settings.IsServer)
-                {
-                    xml.AppendEndTag(Command.Aarq);
-                }
-                else
-                {
-                    xml.AppendEndTag(Command.Aare);
                 }
             }
             return resultDiagnosticValue;

@@ -50,16 +50,16 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Gurux.Common, Version=8.1.16.1124, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gurux.Common.8.1.16.1124\lib\portable-win+net35\Gurux.Common.dll</HintPath>
+    <Reference Include="Gurux.Common, Version=8.1.1702.602, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Gurux.Common.8.1.1702.0602\lib\portable-win+net35\Gurux.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Gurux.Net, Version=8.1.16.1124, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gurux.Net.8.1.16.1124\lib\portable-win+net35\Gurux.Net.dll</HintPath>
+    <Reference Include="Gurux.Net, Version=8.1.1703.3101, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Gurux.Net.8.1.1703.3101\lib\portable-win+net35\Gurux.Net.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Gurux.Serial, Version=8.1.16.1124, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gurux.Serial.8.1.16.1124\lib\portable-win+net35\Gurux.Serial.dll</HintPath>
+    <Reference Include="Gurux.Serial, Version=8.1.1702.1001, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Gurux.Serial.8.1.1702.1001\lib\portable-win+net35\Gurux.Serial.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -98,13 +98,13 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\Development\Gurux.DLMS.csproj">
       <Project>{efd71bff-ad54-45ed-b473-305813c2f83a}</Project>
       <Name>Gurux.DLMS</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

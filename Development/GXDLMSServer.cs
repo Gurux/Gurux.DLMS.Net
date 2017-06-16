@@ -157,7 +157,6 @@ namespace Gurux.DLMS
         /// <summary>
         /// Post get selected value.
         /// </summary>
-        /// <param name="sender">Sender.</param>
         /// <param name="args">Event arguments.</param>
         public abstract void PostGet(ValueEventArgs[] args);
 
@@ -382,6 +381,26 @@ namespace Gurux.DLMS
             set
             {
                 Settings.MaxServerPDUSize = value;
+            }
+        }
+
+        /// <summary>
+        /// Can client read or write values as Anonymous.
+        /// </summary>
+        /// <remarks>
+        /// This can be used when meter allows client to read some values without AARQ/AARE messages.
+        /// In DLMS standard this is known as Pre-established application associations.
+        /// </remarks>
+        [DefaultValue(false)]
+        public bool AllowAnonymousAccess
+        {
+            get
+            {
+                return Settings.AllowAnonymousAccess;
+            }
+            set
+            {
+                Settings.AllowAnonymousAccess = value;
             }
         }
 
@@ -1016,7 +1035,7 @@ namespace Gurux.DLMS
         private void GenerateDisconnectRequest()
         {
             //Return error if connection is not established.
-            if (!Settings.Connected && !Settings.IsAuthenticationRequired)
+            if (!Settings.Connected && !Settings.IsAuthenticationRequired && !Settings.AllowAnonymousAccess)
             {
                 replyData.Add(GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));

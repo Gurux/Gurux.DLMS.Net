@@ -192,6 +192,16 @@ namespace Gurux.DLMS.ManufacturerSettings
         }
 
         /// <summary>
+        /// Address info.
+        /// </summary>
+        public string Address
+        {
+            get;
+            set;
+        }
+
+
+        /// <summary>
         /// Additional info.
         /// </summary>
         public string Info
