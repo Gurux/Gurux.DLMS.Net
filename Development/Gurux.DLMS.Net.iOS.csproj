@@ -124,6 +124,7 @@
     <Compile Include="Internal\HDLCInfo.cs" />
     <Compile Include="Internal\PduType.cs" />
     <Compile Include="Internal\ReleaseRequestReason.cs" />
+    <Compile Include="Internal\ReleaseResponseReason.cs" />
     <Compile Include="Internal\SerialnumberCounter.cs" />
     <Compile Include="Internal\SetRequestType.cs" />
     <Compile Include="Internal\SetResponseType.cs" />

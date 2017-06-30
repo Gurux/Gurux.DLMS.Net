@@ -44,7 +44,7 @@ namespace Gurux.DLMS
     {
         public AssociationResult result = AssociationResult.Accepted;
         public SourceDiagnostic diagnostic = SourceDiagnostic.None;
-        public ReleaseRequestReason reason = ReleaseRequestReason.Normal;
+        public byte reason = 0;
         public Command command;
         public int count = 0;
         public byte requestType = 0xFF;

@@ -84,6 +84,14 @@ namespace Gurux.DLMS.Client.Example
                 {
                     Console.WriteLine("Disconnecting from the meter.");
                     GXReplyData reply = new GXReplyData();
+                    try
+                    {
+                        ReadDLMSPacket(Client.ReleaseRequest()[0], reply);
+                    }
+                    catch
+                    {
+                        //All meters don't support release.
+                    }
                     ReadDLMSPacket(Client.DisconnectRequest(), reply);
                     Media.Close();
                 }

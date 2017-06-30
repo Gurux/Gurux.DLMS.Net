@@ -72,6 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GXDLMSConfirmedServiceError.cs" />
+    <Compile Include="Internal\ReleaseResponseReason.cs" />
     <Compile Include="Objects\Enums\GsmPacketSwitchStatus.cs" />
     <Compile Include="Objects\Enums\GsmCircuitSwitchStatus.cs" />
     <Compile Include="Objects\Enums\GsmStatus.cs" />

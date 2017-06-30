@@ -738,6 +738,43 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Generates a release request.
+        /// </summary>
+        /// <returns>Release request, as byte array.</returns>
+        public byte[][] ReleaseRequest()
+        {
+            // If connection is not established, there is no need to send
+            // DisconnectRequest.
+            if (!Settings.Connected)
+            {
+                return null;
+            }
+            GXByteBuffer buff = new GXByteBuffer();
+            //Length.
+            buff.SetUInt8(0);
+            buff.SetUInt8(0x80);
+            buff.SetUInt8(01);
+            buff.SetUInt8(00);
+            GXAPDU.GenerateUserInformation(Settings, Settings.Cipher, null, buff);
+            buff.SetUInt8(0, (byte)(buff.Size - 1));
+            byte[][] reply;
+            if (UseLogicalNameReferencing)
+            {
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.ReleaseRequest, 0, buff, null, 0xff);
+                reply = GXDLMS.GetLnMessages(p);
+            }
+            else
+            {
+                reply = GXDLMS.GetSnMessages(new GXDLMSSNParameters(Settings, Command.ReleaseRequest, 0xFF, 0xFF, null, buff));
+            }
+            if (Settings.InterfaceType == InterfaceType.WRAPPER)
+            {
+                Settings.Connected = false;
+            }
+            return reply;
+        }
+
+        /// <summary>
         /// Generates a disconnect request.
         /// </summary>
         /// <returns>Disconnected request, as byte array.</returns>
@@ -756,15 +793,8 @@ namespace Gurux.DLMS
                 return GXDLMS.GetHdlcFrame(Settings, (byte)Command.DisconnectRequest, null);
             }
             GXByteBuffer bb = new GXByteBuffer(2);
-            if (Settings.Cipher != null && Settings.Cipher.Security != Enums.Security.None)
-            {
-
-            }
-            else
-            {
-                bb.SetUInt8((byte)Command.ReleaseRequest);
-                bb.SetUInt8(0x0);
-            }
+            bb.SetUInt8((byte)Command.ReleaseRequest);
+            bb.SetUInt8(0x0);
             return GXDLMS.GetWrapperFrame(Settings, bb);
         }
 

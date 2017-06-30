@@ -799,5 +799,89 @@ namespace Gurux.DLMS
             }
             return (byte)ret;
         }
+
+        public static string ReleaseResponseReasonToString(ReleaseResponseReason value)
+        {
+            String str;
+            switch (value)
+            {
+                case ReleaseResponseReason.Normal:
+                    str = "Normal";
+                    break;
+                case ReleaseResponseReason.NotFinished:
+                    str = "NotFinished";
+                    break;
+                case ReleaseResponseReason.UserDefined:
+                    str = "UserDefined";
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(value.ToString());
+            }
+            return str;
+        }
+
+        public static ReleaseResponseReason ValueOfReleaseResponseReason(string value)
+        {
+            ReleaseResponseReason ret;
+            if (string.Compare(value, "Normal", true) == 0)
+            {
+                ret = ReleaseResponseReason.Normal;
+            }
+            else if (string.Compare(value, "NotFinished", true) == 0)
+            {
+                ret = ReleaseResponseReason.NotFinished;
+            }
+            else if (string.Compare(value, "UserDefined", true) == 0)
+            {
+                ret = ReleaseResponseReason.UserDefined;
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException(value);
+            }
+            return ret;
+        }
+
+        public static String ReleaseRequestReasonToString(ReleaseRequestReason value)
+        {
+            String str;
+            switch (value)
+            {
+                case ReleaseRequestReason.Normal:
+                    str = "Normal";
+                    break;
+                case ReleaseRequestReason.Urgent:
+                    str = "Urgent";
+                    break;
+                case ReleaseRequestReason.UserDefined:
+                    str = "UserDefined";
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(value.ToString());
+            }
+            return str;
+        }
+
+        public static ReleaseRequestReason ValueOfReleaseRequestReason(string value)
+        {
+            ReleaseRequestReason ret;
+            if (string.Compare(value, "Normal", true) == 0)
+            {
+                ret = ReleaseRequestReason.Normal;
+            }
+            else if (string.Compare(value, "Urgent", true) == 0)
+            {
+                ret = ReleaseRequestReason.Urgent;
+            }
+            else if (string.Compare(value, "UserDefined", true) == 0)
+            {
+                ret = ReleaseRequestReason.UserDefined;
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException(value);
+            }
+            return ret;
+        }
     }
 }

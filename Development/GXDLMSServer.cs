@@ -871,6 +871,8 @@ namespace Gurux.DLMS
                     HandleAarqRequest(data, connectionInfo);
                     break;
                 case Command.ReleaseRequest:
+                    HandleReleaseRequest(data, connectionInfo);
+                    break;
                 case Command.DisconnectRequest:
                     GenerateDisconnectRequest();
                     Settings.Connected = false;
@@ -999,6 +1001,32 @@ namespace Gurux.DLMS
             GXAPDU.GenerateAARE(Settings, replyData, result, diagnostic, Settings.Cipher, null);
         }
 
+        /// <summary>
+        /// Handles release reuest.
+        /// </summary>
+        /// <param name="data">Received data.</param>
+        /// <param name="connectionInfo">Connection info.</param>
+        private void HandleReleaseRequest(GXByteBuffer data, GXDLMSConnectionEventArgs connectionInfo)
+        {
+            //Return error if connection is not established.
+            if (!Settings.Connected && !Settings.IsAuthenticationRequired && !Settings.AllowAnonymousAccess)
+            {
+                replyData.Add(GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
+                              ServiceError.Service, (byte)Service.Unsupported));
+                return;
+            }
+            if (Settings.InterfaceType == InterfaceType.HDLC)
+            {
+                replyData.Set(0, GXCommon.LLCReplyBytes);
+            }
+            replyData.SetUInt8(0x63);
+            //LEN.
+            replyData.SetUInt8(0x03);
+            replyData.SetUInt8(0x80);
+            replyData.SetUInt8(0x01);
+            replyData.SetUInt8(0x00);
+        }
+
         ///<summary>
         ///Parse SNRM Request. If server do not accept client empty byte array is returned.
         /// </summary>
@@ -1042,36 +1070,28 @@ namespace Gurux.DLMS
                 return;
             }
 
-            if (this.InterfaceType == InterfaceType.WRAPPER)
-            {
-                replyData.SetUInt8(0x63);
-                replyData.SetUInt8(0x0);
-            }
-            else
-            {
-                replyData.SetUInt8(0x81); // FromatID
-                replyData.SetUInt8(0x80); // GroupID
-                replyData.SetUInt8(0); // Length
+            replyData.SetUInt8(0x81); // FromatID
+            replyData.SetUInt8(0x80); // GroupID
+            replyData.SetUInt8(0); // Length
 
-                replyData.SetUInt8(HDLCInfo.MaxInfoTX);
-                replyData.SetUInt8(GXCommon.GetSize(Limits.MaxInfoTX));
-                replyData.Add(Limits.MaxInfoTX);
+            replyData.SetUInt8(HDLCInfo.MaxInfoTX);
+            replyData.SetUInt8(GXCommon.GetSize(Limits.MaxInfoTX));
+            replyData.Add(Limits.MaxInfoTX);
 
-                replyData.SetUInt8(HDLCInfo.MaxInfoRX);
-                replyData.SetUInt8(GXCommon.GetSize(Limits.MaxInfoRX));
-                replyData.Add(Limits.MaxInfoRX);
+            replyData.SetUInt8(HDLCInfo.MaxInfoRX);
+            replyData.SetUInt8(GXCommon.GetSize(Limits.MaxInfoRX));
+            replyData.Add(Limits.MaxInfoRX);
 
-                replyData.SetUInt8(HDLCInfo.WindowSizeTX);
-                replyData.SetUInt8(GXCommon.GetSize(Limits.WindowSizeTX));
-                replyData.Add(Limits.WindowSizeTX);
+            replyData.SetUInt8(HDLCInfo.WindowSizeTX);
+            replyData.SetUInt8(GXCommon.GetSize(Limits.WindowSizeTX));
+            replyData.Add(Limits.WindowSizeTX);
 
-                replyData.SetUInt8(HDLCInfo.WindowSizeRX);
-                replyData.SetUInt8(GXCommon.GetSize(Limits.WindowSizeRX));
-                replyData.Add(Limits.WindowSizeRX);
+            replyData.SetUInt8(HDLCInfo.WindowSizeRX);
+            replyData.SetUInt8(GXCommon.GetSize(Limits.WindowSizeRX));
+            replyData.Add(Limits.WindowSizeRX);
 
-                int len = replyData.Position - 3;
-                replyData.SetUInt8(2, (byte)len); // Length.
-            }
+            int len = replyData.Position - 3;
+            replyData.SetUInt8(2, (byte)len); // Length.
         }
     }
 }

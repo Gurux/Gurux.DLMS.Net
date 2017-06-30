@@ -586,7 +586,7 @@ namespace Gurux.DLMS
                         reply.Move(pos + 1, pos, reply.Size - pos - 1);
                     }
                 }
-                else
+                else if (p.command != Command.ReleaseRequest)
                 {
                     //Get request size can be bigger than PDU size.
                     if (p.command != Command.GetRequest &&

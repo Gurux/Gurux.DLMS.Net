@@ -141,6 +141,7 @@
     <Compile Include="..\Objects\GXDLMSSFSKPhyMacSetUp.cs" />
     <Compile Include="..\Objects\GXXmlReader.cs" />
     <Compile Include="..\Objects\GXXmlWriter.cs" />
+    <Compile Include="..\Objects\GXXmlWriterSettings.cs" />
     <Compile Include="..\Simulator\GXDLMSSimulator.cs" />
     <Compile Include="..\Objects\Enums\CertificateIdentificationType.cs" />
     <Compile Include="..\TranslatorSimpleTags.cs" />
@@ -152,6 +153,7 @@
     <Compile Include="..\GXDLMSXmlSettings.cs" />
     <Compile Include="..\Enums\AccessServiceCommandType.cs" />
     <Compile Include="..\Internal\ReleaseRequestReason.cs" />
+    <Compile Include="..\Internal\ReleaseResponseReason.cs" />
     <Compile Include="..\Internal\SetRequestType.cs" />
     <Compile Include="..\Internal\TranslatorGeneralTags.cs" />
     <Compile Include="..\Internal\ActionResponseType.cs" />
@@ -352,7 +354,7 @@
       <ExcludeFromStyleCop>False</ExcludeFromStyleCop>
     </Compile>
     <Compile Include="..\Properties\AssemblyInfo.cs" />
-    <Compile Include="..\GXDLMSMBusMasterPortSetup.cs" />
+    <Compile Include="..\Objects\GXDLMSMBusMasterPortSetup.cs" />
     <EmbeddedResource Include="..\Properties\Gurux.DLMS.Net.UWP.rd.xml" />
   </ItemGroup>
   <ItemGroup />

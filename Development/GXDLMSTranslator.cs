@@ -763,6 +763,7 @@ namespace Gurux.DLMS
             settings.Cipher = GetCiphering();
             GXReplyData data = new GXReplyData();
             byte cmd = value.GetUInt8();
+            string str;
             int len;
             byte[] tmp;
             switch (cmd)
@@ -837,16 +838,50 @@ namespace Gurux.DLMS
                     GXDLMS.GetPdu(settings, data);
                     break;
                 case (byte)Command.ReleaseRequest:
+                    xml.AppendStartTag((Command)cmd);
+                    value.GetUInt8();
+                    // Len.
+                    if (value.Available != 0)
+                    {
+                        // BerType
+                        value.GetUInt8();
+                        // Len.
+                        value.GetUInt8();
+                        if (xml.OutputType == TranslatorOutputType.SimpleXml)
+                        {
+                            str = TranslatorSimpleTags.ReleaseRequestReasonToString((ReleaseRequestReason)value.GetUInt8());
+                        }
+                        else
+                        {
+                            str = TranslatorStandardTags.ReleaseRequestReasonToString((ReleaseRequestReason)value.GetUInt8());
+                        }
+                        xml.AppendLine(TranslatorTags.Reason, "Value", str);
+                        if (value.Available != 0)
+                        {
+                            GXAPDU.ParsePDU2(settings, settings.Cipher, value,
+                                    xml);
+                        }
+                    }
+                    xml.AppendEndTag(cmd);
+                    break;
                 case (byte)Command.ReleaseResponse:
                     xml.AppendStartTag((Command)cmd);
-                    //Len.
                     if (value.GetUInt8() != 0)
                     {
                         //BerType
                         value.GetUInt8();
                         //Len.
                         value.GetUInt8();
-                        xml.AppendLine(TranslatorTags.Reason, "Value", ((ReleaseRequestReason)value.GetUInt8()).ToString());
+                        if (xml.OutputType == TranslatorOutputType.SimpleXml)
+                        {
+                            str = TranslatorSimpleTags.ReleaseResponseReasonToString((ReleaseResponseReason)value.GetUInt8());
+                        }
+                        else
+                        {
+                            str = TranslatorStandardTags.ReleaseResponseReasonToString((ReleaseResponseReason)value.GetUInt8());
+                        }
+
+                        xml.AppendLine(TranslatorTags.Reason, "Value", str);
                         if (value.Available != 0)
                         {
                             GXAPDU.ParsePDU2(settings, settings.Cipher, value, xml);
@@ -1788,7 +1823,28 @@ namespace Gurux.DLMS
                         }
                         break;
                     case (int)TranslatorTags.Reason:
-                        s.reason = (ReleaseRequestReason)Enum.Parse(typeof(ReleaseRequestReason), GetValue(node, s));
+                        if (s.command == Command.ReleaseRequest)
+                        {
+                            if (s.OutputType == TranslatorOutputType.SimpleXml)
+                            {
+                                s.reason = (byte)TranslatorSimpleTags.ValueOfReleaseRequestReason(GetValue(node, s));
+                            }
+                            else
+                            {
+                                s.reason = (byte)TranslatorStandardTags.ValueOfReleaseRequestReason(GetValue(node, s));
+                            }
+                        }
+                        else
+                        {
+                            if (s.OutputType == TranslatorOutputType.SimpleXml)
+                            {
+                                s.reason = (byte)TranslatorSimpleTags.ValueOfReleaseResponseReason(GetValue(node, s));
+                            }
+                            else
+                            {
+                                s.reason = (byte)TranslatorStandardTags.ValueOfReleaseResponseReason(GetValue(node, s));
+                            }
+                        }
                         break;
                     case (int)TranslatorTags.ReturnParameters:
                         s.attributeDescriptor.SetUInt8(1);
@@ -1897,10 +1953,60 @@ namespace Gurux.DLMS
                         s.settings.SourceSystemTitle = tmp;
                         break;
                     case (int)TranslatorTags.CipheredService:
+                    case (int)Command.GloInitiateRequest:
                         tmp = GXCommon.HexToBytes(GetValue(node, s));
+                        if (s.command == Command.GeneralCiphering)
+                        {
+                            GXCommon.SetObjectCount(tmp.Length, s.data);
+                        }
+                        else if (s.command == Command.ReleaseRequest)
+                        {
+                            s.data.SetUInt8(0xBE);
+                            GXCommon.SetObjectCount(4 + tmp.Length, s.data);
+                            s.data.SetUInt8(4);
+                            GXCommon.SetObjectCount(2 + tmp.Length, s.data);
+                            s.data.SetUInt8(0x21);
+                            GXCommon.SetObjectCount(tmp.Length, s.data);
+                        }
                         s.data.Set(tmp);
                         break;
                     case (int)TranslatorTags.DataBlock:
+                        break;
+                    case (int)TranslatorGeneralTags.UserInformation:
+                        tmp = GXCommon.HexToBytes(GetValue(node, s));
+                        s.data.SetUInt8(0xBE);
+                        s.data.SetUInt8((byte)(2 + tmp.Length));
+                        s.data.SetUInt8(0x4);
+                        s.data.SetUInt8((byte)tmp.Length);
+                        s.data.Set(tmp);
+                        break;
+                    case (int)TranslatorTags.TransactionId:
+                        tmp = GXCommon.HexToBytes(GetValue(node, s));
+                        GXCommon.SetObjectCount(tmp.Length, s.data);
+                        s.data.Set(tmp);
+                        break;
+                    case (int)TranslatorTags.OriginatorSystemTitle:
+                    case (int)TranslatorTags.RecipientSystemTitle:
+                    case (int)TranslatorTags.OtherInformation:
+                    case (int)TranslatorTags.KeyCipheredData:
+                        tmp = GXCommon.HexToBytes(GetValue(node, s));
+                        GXCommon.SetObjectCount(tmp.Length, s.data);
+                        s.data.Set(tmp);
+                        break;
+                    case (int)TranslatorTags.CipheredContent:
+                        tmp = GXCommon.HexToBytes(GetValue(node, s));
+                        GXCommon.SetObjectCount(tmp.Length, s.data);
+                        s.data.Set(tmp);
+                        break;
+                    case (int)TranslatorTags.KeyInfo:
+                        s.data.SetUInt8(1);
+                        break;
+                    case (int)TranslatorTags.AgreedKey:
+                        s.data.SetUInt8(2);
+                        break;
+                    case (int)TranslatorTags.KeyParameters:
+                        s.data.SetUInt8(1);
+                        s.data.SetUInt8(Byte.Parse(GetValue(node, s)));
                         break;
                     default:
                         throw new ArgumentException("Invalid node: " + node.Name);
@@ -2024,7 +2130,21 @@ namespace Gurux.DLMS
                     break;
                 case Command.ReleaseRequest:
                     bb.SetUInt8((byte)s.command);
-                    bb.SetUInt8(0);
+                    // Len
+                    bb.SetUInt8((byte)(3 + s.data.Size));
+                    // BerType
+                    bb.SetUInt8(BerType.Context);
+                    // Len.
+                    bb.SetUInt8(1);
+                    bb.SetUInt8(s.reason);
+                    if (s.data.Size == 0)
+                    {
+                        bb.SetUInt8(0);
+                    }
+                    else
+                    {
+                        bb.Set(s.data);
+                    }
                     break;
                 case Command.ReleaseResponse:
                     bb.SetUInt8((byte)s.command);

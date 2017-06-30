@@ -93,6 +93,15 @@ namespace Gurux.DLMS
         InitiateError,
         CipheredService,
         SystemTitle,
-        DataBlock
+        DataBlock,
+        TransactionId,
+        OriginatorSystemTitle,
+        RecipientSystemTitle,
+        OtherInformation,
+        KeyInfo,
+        AgreedKey,
+        KeyParameters,
+        KeyCipheredData,
+        CipheredContent
     }
 }
