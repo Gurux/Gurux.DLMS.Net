@@ -593,18 +593,27 @@ namespace Gurux.DLMS.Internal
                     data.Get(encrypted);
                     if (cipher != null && xml.Comments)
                     {
-                        data.Position = originalPos - 1;
-                        p = new AesGcmParameter(settings.SourceSystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
-                        tmp = GXDLMSChippering.DecryptAesGcm(p, data);
-                        data.Clear();
-                        data.Set(tmp);
-                        cipher.Security = p.Security;
-                        tag = data.GetUInt8();
-                        xml.StartComment("Decrypted data:");
-                        xml.AppendLine("Security: " + p.Security);
-                        xml.AppendLine("Invocation Counter: " + p.InvocationCounter);
-                        Parse(initiateRequest, settings, cipher, data, xml, tag);
-                        xml.EndComment();
+                        int pos = xml.GetXmlLength();
+                        try
+                        {
+                            data.Position = originalPos - 1;
+                            p = new AesGcmParameter(settings.SourceSystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                            tmp = GXDLMSChippering.DecryptAesGcm(p, data);
+                            data.Clear();
+                            data.Set(tmp);
+                            cipher.Security = p.Security;
+                            tag = data.GetUInt8();
+                            xml.StartComment("Decrypted data:");
+                            xml.AppendLine("Security: " + p.Security);
+                            xml.AppendLine("Invocation Counter: " + p.InvocationCounter);
+                            Parse(initiateRequest, settings, cipher, data, xml, tag);
+                            xml.EndComment();
+                        }
+                        catch (Exception)
+                        {
+                            // It's OK if this fails.
+                            xml.SetXmlLength(pos);
+                        }
                     }
                     //<glo_InitiateResponse>
                     xml.AppendLine(Command.GloInitiateResponse, "Value", GXCommon.ToHex(encrypted, false));
@@ -628,6 +637,7 @@ namespace Gurux.DLMS.Internal
                     data.Get(encrypted);
                     if (cipher != null && xml.Comments)
                     {
+                        int pos = xml.GetXmlLength();
                         try
                         {
                             data.Position = originalPos - 1;
@@ -646,6 +656,7 @@ namespace Gurux.DLMS.Internal
                         catch (Exception)
                         {
                             //It's OK if this fails.
+                            xml.SetXmlLength(pos);
                         }
                     }
                     //<glo_InitiateRequest>

@@ -354,6 +354,32 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Remove \r\n.
+        /// </summary>
+        public void Trim()
+        {
+            sb.Length = sb.Length - 2;
+        }
+
+        /// <summary>
+        /// Get XML Length.
+        /// </summary>
+        /// <returns>XML Length.</returns>
+        public int GetXmlLength()
+        {
+            return sb.Length;
+        }
+
+        /// <summary>
+        /// Set XML Length.
+        /// </summary>
+        /// <param name="value">XML Length.</param>
+        public void SetXmlLength(int value)
+        {
+            sb.Length = value;
+        }
+
+        /// <summary>
         /// Convert integer to string.
         /// </summary>
         /// <param name="value">Conveted value.</param>

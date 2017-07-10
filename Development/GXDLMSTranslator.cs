@@ -902,12 +902,21 @@ namespace Gurux.DLMS
                     if (settings.Cipher != null && Comments)
                     {
                         int originalPosition = value.Position;
-                        --value.Position;
-                        AesGcmParameter p = new AesGcmParameter(settings.Cipher.SystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
-                        GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
-                        xml.StartComment("Decrypt data:");
-                        PduToXml(xml, data2, omitDeclaration, omitNameSpace);
-                        xml.EndComment();
+                        int len2 = xml.GetXmlLength();
+                        try
+                        {
+                            --value.Position;
+                            AesGcmParameter p = new AesGcmParameter(settings.Cipher.SystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                            GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
+                            xml.StartComment("Decrypt data:");
+                            PduToXml(xml, data2, omitDeclaration, omitNameSpace);
+                            xml.EndComment();
+                        }
+                        catch (Exception)
+                        {
+                            // It's OK if this fails. Ciphering settings are not correct.
+                            xml.SetXmlLength(len2);
+                        }
                         value.Position = originalPosition;
                     }
 
