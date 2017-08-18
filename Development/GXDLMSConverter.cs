@@ -36,6 +36,7 @@ using System;
 using System.Collections.Generic;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS
 {
@@ -492,82 +493,9 @@ namespace Gurux.DLMS
             throw new Exception("Invalid DLMS data type.");
         }
 
-        static public DataType GetDLMSDataType(Type type)
+        static public DataType GetDLMSDataType(object value)
         {
-            //If expected type is not given return property type.
-            if (type == null)
-            {
-                return DataType.None;
-            }
-            if (type == typeof(Int32))
-            {
-                return DataType.Int32;
-            }
-            if (type == typeof(UInt32))
-            {
-                return DataType.UInt32;
-            }
-            if (type == typeof(String))
-            {
-                return DataType.String;
-            }
-            if (type == typeof(byte))
-            {
-                return DataType.UInt8;
-            }
-            if (type == typeof(sbyte))
-            {
-                return DataType.Int8;
-            }
-            if (type == typeof(Int16))
-            {
-                return DataType.Int16;
-            }
-            if (type == typeof(UInt16))
-            {
-                return DataType.UInt16;
-            }
-            if (type == typeof(Int64))
-            {
-                return DataType.Int64;
-            }
-            if (type == typeof(UInt64))
-            {
-                return DataType.UInt64;
-            }
-            if (type == typeof(float))
-            {
-                return DataType.Float32;
-            }
-            if (type == typeof(double))
-            {
-                return DataType.Float64;
-            }
-            if (type == typeof(DateTime) || type == typeof(GXDateTime))
-            {
-                return DataType.DateTime;
-            }
-            if (type == typeof(GXDate))
-            {
-                return DataType.Date;
-            }
-            if (type == typeof(GXTime))
-            {
-                return DataType.Time;
-            }
-            if (type == typeof(Boolean) || type == typeof(bool))
-            {
-                return DataType.Boolean;
-            }
-            if (type == typeof(byte[]))
-            {
-                return DataType.OctetString;
-            }
-            if (type == typeof(object[]))
-            {
-                return DataType.Array;
-            }
-            throw new Exception("Failed to convert data type to DLMS data type. Unknown data type.");
+            return GXCommon.GetValueType(value);
         }
     }
 }

@@ -292,31 +292,38 @@ namespace Gurux.DLMS
             reply.Xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
             int pos;
             bool found;
-            while (data.Position != data.Size)
+            try
             {
-                if (type == InterfaceType.HDLC && data.GetUInt8(data.Position) == 0x7e)
+                while (data.Position != data.Size)
                 {
-                    pos = data.Position;
-                    settings.InterfaceType = Enums.InterfaceType.HDLC;
-                    found = GXDLMS.GetData(settings, data, reply);
-                    data.Position = pos;
-                    if (found)
+                    if (type == InterfaceType.HDLC && data.GetUInt8(data.Position) == 0x7e)
                     {
-                        break;
+                        pos = data.Position;
+                        settings.InterfaceType = Enums.InterfaceType.HDLC;
+                        found = GXDLMS.GetData(settings, data, reply);
+                        data.Position = pos;
+                        if (found)
+                        {
+                            break;
+                        }
                     }
-                }
-                else if (type == InterfaceType.WRAPPER && data.GetUInt16(data.Position) == 0x1)
-                {
-                    pos = data.Position;
-                    settings.InterfaceType = Enums.InterfaceType.WRAPPER;
-                    found = GXDLMS.GetData(settings, data, reply);
-                    data.Position = pos;
-                    if (found)
+                    else if (type == InterfaceType.WRAPPER && data.GetUInt16(data.Position) == 0x1)
                     {
-                        break;
+                        pos = data.Position;
+                        settings.InterfaceType = Enums.InterfaceType.WRAPPER;
+                        found = GXDLMS.GetData(settings, data, reply);
+                        data.Position = pos;
+                        if (found)
+                        {
+                            break;
+                        }
                     }
+                    ++data.Position;
                 }
-                ++data.Position;
+            }
+            catch (Exception)
+            {
+                throw new Exception("Invalid DLMS frame.");
             }
             if (pdu != null)
             {
@@ -819,6 +826,16 @@ namespace Gurux.DLMS
                     value.Position = 0;
                     GXDLMS.GetPdu(settings, data);
                     break;
+                case (byte)Command.InformationReport:
+                    data.Xml = xml;
+                    data.Data = value;
+                    GXDLMSSNCommandHandler.HandleInformationReport(settings, data, null);
+                    break;
+                case (byte)Command.EventNotification:
+                    data.Xml = xml;
+                    data.Data = value;
+                    GXDLMSLNCommandHandler.HandleEventNotification(settings, data, null);
+                    break;
                 case (byte)Command.ReadResponse:
                 case (byte)Command.WriteResponse:
                 case (byte)Command.GetResponse:
@@ -1055,6 +1072,8 @@ namespace Gurux.DLMS
                 case (int)Command.DataNotification:
                 case (int)Command.AccessResponse:
                 case (int)Command.InitiateResponse:
+                case (int)Command.InformationReport:
+                case (int)Command.EventNotification:
                     break;
                 case (byte)Command.GloInitiateResponse:
                 case (byte)Command.GloGetResponse:
@@ -1339,7 +1358,17 @@ namespace Gurux.DLMS
                     GXCommon.SetData(s.settings, s.data, DataType.Date, GXDLMSClient.ChangeType(GXCommon.HexToBytes(GetValue(node, s)), DataType.DateTime, s.settings.UseUtc2NormalTime));
                     break;
                 case DataType.DateTime:
-                    GXCommon.SetData(s.settings, s.data, DataType.DateTime, GXDLMSClient.ChangeType(GXCommon.HexToBytes(GetValue(node, s)), DataType.DateTime, s.settings.UseUtc2NormalTime));
+                    DataType dt = DataType.DateTime;
+                    byte[] tmp = GXCommon.HexToBytes(GetValue(node, s));
+                    if (tmp.Length == 5)
+                    {
+                        dt = DataType.Date;
+                    }
+                    else if (tmp.Length == 4)
+                    {
+                        dt = DataType.Time;
+                    }
+                    GXCommon.SetData(s.settings, s.data, dt, GXDLMSClient.ChangeType(GXCommon.HexToBytes(GetValue(node, s)), dt, s.settings.UseUtc2NormalTime));
                     break;
                 case DataType.Enum:
                     GXCommon.SetData(s.settings, s.data, DataType.Enum, s.ParseShort(GetValue(node, s)));
@@ -1562,9 +1591,15 @@ namespace Gurux.DLMS
             }
             else if (tag >= GXDLMS.DATA_TYPE_OFFSET)
             {
-                if (tag == (int)DataType.DateTime + GXDLMS.DATA_TYPE_OFFSET)
+                if (tag == (int)DataType.DateTime + GXDLMS.DATA_TYPE_OFFSET ||
+                   (s.command == Command.EventNotification && s.attributeDescriptor.Size == 0))
                 {
                     preData = UpdateDateTime(node, s, preData);
+                    if (preData == null
+                           && s.command == Command.GeneralCiphering)
+                    {
+                        s.data.SetUInt8(0);
+                    }
                 }
                 else
                 {
@@ -1703,6 +1738,20 @@ namespace Gurux.DLMS
                     case (int)TranslatorTags.DateTime:
                         preData = UpdateDateTime(node, s, preData);
                         break;
+                    case (int)TranslatorTags.CurrentTime:
+                        if (s.OutputType == TranslatorOutputType.SimpleXml)
+                        {
+                            UpdateDateTime(node, s, preData);
+                        }
+                        else
+                        {
+                            str = GetValue(node, s);
+                            s.time = new GXDateTime(GXCommon.GetGeneralizedTime(str));
+                        }
+                        break;
+                    case (int)TranslatorTags.Time:
+                        preData = UpdateDateTime(node, s, preData);
+                        break;
                     case (int)TranslatorTags.InvokeId:
                         value = (uint)s.ParseShort(GetValue(node, s));
                         if ((value & 0x80) != 0)
@@ -1761,7 +1810,8 @@ namespace Gurux.DLMS
                     case (int)TranslatorTags.AttributeId:
                         s.attributeDescriptor.SetUInt8((byte)s.ParseShort(GetValue(node, s)));
                         //Add AccessSelection.
-                        if (s.command != Command.AccessRequest)
+                        if (s.command != Command.AccessRequest &&
+                            s.command != Command.EventNotification)
                         {
                             s.attributeDescriptor.SetUInt8(0);
                         }
@@ -1899,7 +1949,7 @@ namespace Gurux.DLMS
                                 }
                                 ++s.count;
                             }
-                            else
+                            else if (s.command != Command.InformationReport)
                             {
                                 s.attributeDescriptor.SetUInt8((byte)s.count);
                             }
@@ -2016,6 +2066,8 @@ namespace Gurux.DLMS
                     case (int)TranslatorTags.KeyParameters:
                         s.data.SetUInt8(1);
                         s.data.SetUInt8(Byte.Parse(GetValue(node, s)));
+                        break;
+                    case (int)TranslatorTags.AttributeValue:
                         break;
                     default:
                         throw new ArgumentException("Invalid node: " + node.Name);
@@ -2182,6 +2234,18 @@ namespace Gurux.DLMS
                     GXDLMS.GetLNPdu(ln, bb);
                     break;
                 case Command.DataNotification:
+                    ln = new GXDLMSLNParameters(s.settings, 0, s.command, s.requestType,
+                                                s.attributeDescriptor, s.data, 0xff);
+                    ln.time = s.time;
+                    GXDLMS.GetLNPdu(ln, bb);
+                    break;
+                case Command.InformationReport:
+                    sn = new GXDLMSSNParameters(s.settings, s.command, s.count,
+                                               s.requestType, s.attributeDescriptor, s.data);
+                    sn.time = s.time;
+                    GXDLMS.GetSNPdu(sn, bb);
+                    break;
+                case Command.EventNotification:
                     ln = new GXDLMSLNParameters(s.settings, 0, s.command, s.requestType,
                                                 s.attributeDescriptor, s.data, 0xff);
                     ln.time = s.time;

@@ -184,6 +184,9 @@ namespace Gurux.DLMS
         ///</summary>
         internal GXDLMSSettings(bool server)
         {
+            ClientAddress = 16;
+            ServerAddress = 1;
+            useLogicalNameReferencing = true;
             UseCustomChallenge = false;
             StartingBlockIndex = BlockIndex = 1;
             DLMSVersion = 6;

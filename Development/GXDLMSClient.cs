@@ -1163,13 +1163,12 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentOutOfRangeException("List size and values size do not match.");
             }
-            pos = 0;
             foreach (object it in values)
             {
                 //Get access type.
                 data.GetUInt8();
                 //Get status.
-                reply.Add(new KeyValuePair<object, ErrorCode>(values[pos], (ErrorCode)data.GetUInt8()));// ;
+                reply.Add(new KeyValuePair<object, ErrorCode>(it, (ErrorCode)data.GetUInt8()));
             }
             pos = 0;
             foreach (GXDLMSAccessItem it in list)
@@ -1923,7 +1922,7 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
-        /// Removes the HDLC frame from the packet, and returns COSEM data only.
+        /// Removes the frame from the packet, and returns DLMS PDU.
         ///</summary>
         ///<param name="reply">
         /// The received data from the device.
@@ -2183,6 +2182,34 @@ namespace Gurux.DLMS
                         Conformance.Write | Conformance.ParameterizedAccess |
                         Conformance.MultipleReferences |
                         Conformance.GeneralProtection;
+        }
+
+        /// <summary>
+        /// Parse received Information reports and Event notifications.
+        /// </summary>
+        /// <param name="reply">Reply.</param>
+        /// <returns>Data notification data.</returns>
+        public object
+            ParseReport(GXReplyData reply, List<KeyValuePair<GXDLMSObject, int>> list)
+        {
+            if (reply.Command == Command.EventNotification)
+            {
+                GXDLMSLNCommandHandler.HandleEventNotification(Settings, reply, list);
+                return null;
+            }
+            else if (reply.Command == Command.InformationReport)
+            {
+                GXDLMSSNCommandHandler.HandleInformationReport(Settings, reply, list);
+                return null;
+            }
+            else if (reply.Command == Command.DataNotification)
+            {
+                return reply.Value;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid command. " + reply.Command);
+            }
         }
     }
 }

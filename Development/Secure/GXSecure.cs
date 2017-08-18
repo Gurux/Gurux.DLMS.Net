@@ -135,6 +135,16 @@ namespace Gurux.DLMS.Secure
                 }
 #endif
             }
+            else if (settings.Authentication == Authentication.HighSHA256)
+            {
+#if !WINDOWS_UWP
+                using (SHA256 sha = new SHA256CryptoServiceProvider())
+                {
+                    tmp = sha.ComputeHash(tmp);
+                    return tmp;
+                }
+#endif
+            }
             else if (settings.Authentication == Authentication.HighGMAC)
             {
                 //SC is always Security.Authentication.
@@ -143,7 +153,7 @@ namespace Gurux.DLMS.Secure
                 p.Type = CountType.Tag;
                 challenge.Clear();
                 challenge.SetUInt8((byte)Security.Authentication);
-                challenge.SetUInt32(p.InvocationCounter);
+                challenge.SetUInt32((UInt32)p.InvocationCounter);
                 challenge.Set(GXDLMSChippering.EncryptAesGcm(p, tmp));
                 tmp = challenge.Array();
                 return tmp;

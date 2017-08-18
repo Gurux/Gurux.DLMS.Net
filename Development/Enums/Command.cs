@@ -261,6 +261,16 @@ namespace Gurux.DLMS
         /// <summary>
         /// General ciphering.
         /// </summary>
-        GeneralCiphering = 0xDD
+        GeneralCiphering = 0xDD,
+
+        /// <summary>
+        /// Information Report request.
+        /// </summary>
+        InformationReport = 0x18,
+
+        /// <summary>
+        /// Event Notification request.
+        /// </summary>
+        EventNotification = 0xC2
     }
 }

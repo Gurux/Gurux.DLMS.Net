@@ -581,8 +581,8 @@ namespace Gurux.DLMS.Internal
             int tag = data.GetUInt8();
             int originalPos = 0;
             byte[] tmp;
-            AesGcmParameter p;
             byte[] encrypted;
+            AesGcmParameter p;
             if (tag == (byte)Command.GloInitiateResponse)
             {
                 if (xml != null)
@@ -680,8 +680,6 @@ namespace Gurux.DLMS.Internal
         public static void ParseUserInformation(GXDLMSSettings settings, GXICipher cipher, GXByteBuffer data, GXDLMSTranslatorStructure xml)
         {
             byte len = data.GetUInt8();
-            GXByteBuffer tmp2 = new GXByteBuffer();
-            tmp2.SetUInt8(0);
             if (data.Size - data.Position < len)
             {
                 if (xml == null)
@@ -852,7 +850,7 @@ namespace Gurux.DLMS.Internal
                 throw new Exception("Invalid tag.");
             }
             int tmp = buff.GetUInt8();
-            if (tmp < 0 || tmp > 7)
+            if (tmp > 7)
             {
                 throw new Exception("Invalid tag.");
             }

@@ -243,6 +243,17 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Is notify message.
+        /// </summary>
+        public bool IsNotify
+        {
+            get
+            {
+                return Command == Command.EventNotification || Command == Command.DataNotification || Command == Command.InformationReport;
+            }
+        }
+
+        /// <summary>
         /// Is more data available. Return None if more data is not available or Frame or Block type.
         /// </summary>         
         public RequestTypes MoreData

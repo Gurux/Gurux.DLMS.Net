@@ -1301,9 +1301,12 @@ namespace Gurux.DLMS.Internal
                                 {
                                     type = DataType.Time;
                                 }
-                                object dt = GXDLMSClient.ChangeType(tmp, type, settings.UseUtc2NormalTime);
-                                info.xml.AppendComment(dt.ToString());
-                                isString = false;
+                                GXDateTime dt = (GXDateTime)GXDLMSClient.ChangeType(tmp, type, settings.UseUtc2NormalTime);
+                                if (dt.Value != DateTime.MaxValue)
+                                {
+                                    info.xml.AppendComment(dt.ToString());
+                                    isString = false;
+                                }
                             }
                             catch (Exception)
                             {
@@ -2449,6 +2452,52 @@ namespace Gurux.DLMS.Internal
                 return DataType.Array;
             }
             throw new Exception("Failed to convert data type to DLMS data type. Unknown data type.");
+        }
+
+        public static DateTimeOffset GetGeneralizedTime(string dateString)
+        {
+            int year, month, day, hour, minute, second = 0;
+            year = int.Parse(dateString.Substring(0, 4));
+            month = int.Parse(dateString.Substring(4, 2));
+            day = int.Parse(dateString.Substring(6, 2));
+            hour = int.Parse(dateString.Substring(8, 2));
+            minute = int.Parse(dateString.Substring(10, 2));
+            // If UTC time.
+            if (dateString.EndsWith("Z"))
+            {
+                if (dateString.Length > 13)
+                {
+                    second = int.Parse(dateString.Substring(12, 2));
+                }
+                return new DateTimeOffset(year, month, day, hour, minute, second, TimeSpan.Zero).ToLocalTime();
+            }
+            if (dateString.Length > 17)
+            {
+                second = int.Parse(dateString.Substring(12, 2));
+            }
+            int deviation = 60 * int.Parse(dateString.Substring(dateString.Length - 4, 2));
+            deviation += int.Parse(dateString.Substring(dateString.Length - 2, 2));
+            DateTime dt = new DateTime(year, month, day, hour, minute, second);
+            if (dt.IsDaylightSavingTime())
+            {
+                deviation += 60;
+            }
+            return new DateTimeOffset(dt, TimeSpan.FromMinutes(deviation));
+        }
+
+        public static String GeneralizedTime(DateTimeOffset date)
+        {
+            date = date.ToUniversalTime();
+            StringBuilder sb = new StringBuilder();
+            sb.Append(date.Year.ToString("D4"));
+            sb.Append(date.Month.ToString("D2"));
+            sb.Append(date.Day.ToString("D2"));
+            sb.Append(date.Hour.ToString("D2"));
+            sb.Append(date.Minute.ToString("D2"));
+            sb.Append(date.Second.ToString("D2"));
+            //UTC time.
+            sb.Append("Z");
+            return sb.ToString();
         }
     }
 }

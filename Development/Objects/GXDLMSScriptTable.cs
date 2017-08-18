@@ -249,7 +249,7 @@ namespace Gurux.DLMS.Objects
                                 it.Parameter = arr[4];
                                 if (it.Parameter != null)
                                 {
-                                    it.ParameterDataType = GXDLMSConverter.GetDLMSDataType(it.Parameter.GetType());
+                                    it.ParameterDataType = GXDLMSConverter.GetDLMSDataType(it.Parameter);
                                 }
                                 script.Actions.Add(it);
                             }

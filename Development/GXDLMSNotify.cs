@@ -58,7 +58,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="useLogicalNameReferencing">Is Logical or short name referencing used.</param>
         /// <param name="clientAddress">Client address. Default is 0x10</param>
-        /// <param name="ServerAddress">Server ID. Default is 1.</param>
+        /// <param name="serverAddress">Server ID. Default is 1.</param>
         /// <param name="interfaceType">Interface type. Default is general.</param>
         public GXDLMSNotify(bool useLogicalNameReferencing,
             int clientAddress, int serverAddress, InterfaceType interfaceType)
@@ -102,7 +102,6 @@ namespace Gurux.DLMS
         /// PDU size tells maximum size of PDU packet.
         /// Value can be from 0 to 0xFFFF. By default the value is 0xFFFF.
         /// </remarks>
-        /// <seealso cref="DLMSVersion"/>
         /// <seealso cref="UseLogicalNameReferencing"/>
         [DefaultValue(0xFFFF)]
         public ushort MaxReceivePDUSize
@@ -126,7 +125,6 @@ namespace Gurux.DLMS
         /// The referencing is defined by the device manufacturer.
         /// If the referencing is wrong, the SNMR message will fail.
         /// </remarks>
-        /// <seealso cref="DLMSVersion"/>
         /// <seealso cref="MaxReceivePDUSize"/>
         [DefaultValue(false)]
         public bool UseLogicalNameReferencing
@@ -218,7 +216,7 @@ namespace Gurux.DLMS
         /// DLMS spesification do not specify the structure of Data-Notification body.
         /// So each manufacture can sent different data.
         /// </remarks>
-        /// <seealso cref="GetDataNotificationMessages"/>
+        /// <seealso cref="GenerateDataNotificationMessages"/>
         public void AddData(GXDLMSObject obj, int index, GXByteBuffer buff)
         {
             AddData(Settings, obj, index, buff);
@@ -388,6 +386,59 @@ namespace Gurux.DLMS
                 }
             }
             return items;
+        }
+
+        /// <summary>
+        /// Sends Event Notification or Information Report Request.
+        /// </summary>
+        /// <param name="time">Send time.</param>
+        /// <param name="list">List of COSEM object and attribute index to report.</param>
+        /// <returns>Report request as byte array.</returns>
+        public byte[][] GenerateReport(DateTime time, List<KeyValuePair<GXDLMSObject, int>> list)
+        {
+            if (list == null || list.Count == 0)
+            {
+                throw new ArgumentNullException("list");
+            }
+            if (UseLogicalNameReferencing && list.Count != 1)
+            {
+                throw new ArgumentException("Only one object can send with Event Notification request.");
+            }
+
+            GXByteBuffer buff = new GXByteBuffer();
+            byte[][] reply;
+            if (UseLogicalNameReferencing)
+            {
+                foreach (KeyValuePair<GXDLMSObject, int> it in list)
+                {
+                    buff.SetUInt16((ushort)it.Key.ObjectType);
+                    buff.Set(GXCommon.LogicalNameToBytes(it.Key.LogicalName));
+                    buff.SetUInt8((byte)it.Value);
+                    AddData(it.Key, it.Value, buff);
+                }
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.EventNotification, 0, null, buff, 0xff);
+                p.time = time;
+                reply = GXDLMS.GetLnMessages(p);
+            }
+            else
+            {
+                GXDLMSSNParameters p = new GXDLMSSNParameters(Settings, Command.InformationReport, list.Count, 0xFF, null, buff);
+                foreach (KeyValuePair<GXDLMSObject, int> it in list)
+                {
+                    // Add variable type.
+                    buff.SetUInt8(VariableAccessSpecification.VariableName);
+                    int sn = it.Key.ShortName;
+                    sn += (it.Value - 1) * 8;
+                    buff.SetUInt16((UInt16)sn);
+                }
+                GXCommon.SetObjectCount(list.Count, buff);
+                foreach (KeyValuePair<GXDLMSObject, int> it in list)
+                {
+                    AddData(it.Key, it.Value, buff);
+                }
+                reply = GXDLMS.GetSnMessages(p);
+            }
+            return reply;
         }
     }
 }

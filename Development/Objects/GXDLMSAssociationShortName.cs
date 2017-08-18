@@ -66,20 +66,10 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Secret used in LLS Authentication
+        /// Secret used in Authentication
         /// </summary>
         [XmlIgnore()]
         public byte[] Secret
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Secret used in HLS Authentication
-        /// </summary>
-        [XmlIgnore()]
-        public byte[] HlsSecret
         {
             get;
             set;
@@ -139,7 +129,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    secret = HlsSecret;
+                    secret = Secret;
                 }
                 byte[] serverChallenge = GXSecure.Secure(settings, settings.Cipher, ic, settings.StoCChallenge, secret);
                 byte[] clientChallenge = (byte[])e.Parameters;
@@ -152,7 +142,7 @@ namespace Gurux.DLMS.Objects
                     }
                     else
                     {
-                        secret = HlsSecret;
+                        secret = Secret;
                     }
                     settings.Connected = true;
                     return GXSecure.Secure(settings, settings.Cipher, ic, settings.CtoSChallenge, secret);
@@ -506,22 +496,12 @@ namespace Gurux.DLMS.Objects
             {
                 Secret = GXDLMSTranslator.HexToBytes(str);
             }
-            str = reader.ReadElementContentAsString("HlsSecret");
-            if (str == null)
-            {
-                HlsSecret = null;
-            }
-            else
-            {
-                HlsSecret = GXDLMSTranslator.HexToBytes(str);
-            }
             SecuritySetupReference = reader.ReadElementContentAsString("SecuritySetupReference");
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
             writer.WriteElementString("Secret", GXDLMSTranslator.ToHex(Secret));
-            writer.WriteElementString("HlsSecret", GXDLMSTranslator.ToHex(HlsSecret));
             writer.WriteElementString("SecuritySetupReference", SecuritySetupReference);
         }
 

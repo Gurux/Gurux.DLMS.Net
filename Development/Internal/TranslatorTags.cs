@@ -102,6 +102,9 @@ namespace Gurux.DLMS
         AgreedKey,
         KeyParameters,
         KeyCipheredData,
-        CipheredContent
+        CipheredContent,
+        AttributeValue,
+        CurrentTime,
+        Time
     }
 }

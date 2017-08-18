@@ -55,21 +55,32 @@ namespace GuruxDLMSServerExample
                 GXDLMSServerSN SNServer = new GXDLMSServerSN();
                 SNServer.Initialize(4060);
                 Console.WriteLine("Short Name DLMS Server in port 4060.");
+                Console.WriteLine("Example connection settings:");
+                Console.WriteLine("Gurux.DLMS.Client.Example.Net /r=SN /h=localhost /p=4060");
+                Console.WriteLine("----------------------------------------------------------");
                 ///////////////////////////////////////////////////////////////////////
                 //Create Gurux DLMS server component for Short Name and start listen events.
                 GXDLMSServerLN LNServer = new GXDLMSServerLN();
                 LNServer.Initialize(4061);
                 Console.WriteLine("Logical Name DLMS Server in port 4061.");
+                Console.WriteLine("Example connection settings:");
+                Console.WriteLine("Gurux.DLMS.Client.Example.Net /h=localhost /p=4061");
+                Console.WriteLine("----------------------------------------------------------");
                 ///////////////////////////////////////////////////////////////////////
                 //Create Gurux DLMS server component for Short Name and start listen events.
                 GXDLMSServerSN_47 SN_47Server = new GXDLMSServerSN_47();
                 SN_47Server.Initialize(4062);
                 Console.WriteLine("Short Name DLMS Server with IEC 62056-47 in port 4062.");
+                Console.WriteLine("Example connection settings:");
+                Console.WriteLine("Gurux.DLMS.Client.Example.Net /r=SN /h=localhost /p=4062 /WRAPPER");
+                Console.WriteLine("----------------------------------------------------------");
                 ///////////////////////////////////////////////////////////////////////
                 //Create Gurux DLMS server component for Short Name and start listen events.
                 GXDLMSServerLN_47 LN_47Server = new GXDLMSServerLN_47();
                 LN_47Server.Initialize(4063);
                 Console.WriteLine("Logical Name DLMS Server with IEC 62056-47 in port 4063.");
+                Console.WriteLine("Example connection settings:");
+                Console.WriteLine("Gurux.DLMS.Client.Example.Net /h=localhost /p=4063 /WRAPPER");
                 while (Console.ReadKey().Key != ConsoleKey.Enter) ;
                 //Close servers.
                 SNServer.Close();

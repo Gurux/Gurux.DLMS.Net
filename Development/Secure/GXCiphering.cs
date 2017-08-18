@@ -184,13 +184,13 @@ namespace Gurux.DLMS.Secure
             return data;
         }
 
-        Gurux.DLMS.Enums.Security GXICipher.Decrypt(byte[] title, GXByteBuffer data)
+        AesGcmParameter GXICipher.Decrypt(byte[] title, GXByteBuffer data)
         {
             AesGcmParameter p = new AesGcmParameter(title, BlockCipherKey, AuthenticationKey);
             byte[] tmp = GXDLMSChippering.DecryptAesGcm(p, data);
             data.Clear();
             data.Set(tmp);
-            return p.Security;
+            return p;
         }
 
         public void Reset()

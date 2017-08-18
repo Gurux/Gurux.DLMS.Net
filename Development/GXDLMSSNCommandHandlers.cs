@@ -731,5 +731,100 @@ namespace Gurux.DLMS
             }
             return type;
         }
+
+        /// <summary>
+        /// Handle Information Report.
+        /// </summary>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="reply"></param>
+        /// <returns></returns>
+        public static void HandleInformationReport(GXDLMSSettings settings, GXReplyData reply, List<KeyValuePair<GXDLMSObject, int>> list)
+        {
+            reply.Time = DateTime.MinValue;
+            int len = reply.Data.GetUInt8();
+            byte[] tmp = null;
+            // If date time is given.
+            if (len != 0)
+            {
+                tmp = new byte[len];
+                reply.Data.Get(tmp);
+                reply.Time = (GXDateTime)GXDLMSClient.ChangeType(tmp, DataType.DateTime, settings.UseUtc2NormalTime);
+            }
+            byte type;
+            int count = GXCommon.GetObjectCount(reply.Data);
+            if (reply.Xml != null)
+            {
+                reply.Xml.AppendStartTag(Command.InformationReport);
+                if (reply.Time != DateTime.MinValue)
+                {
+                    reply.Xml.AppendComment(Convert.ToString(reply.Time));
+                    if (reply.Xml.OutputType == TranslatorOutputType.SimpleXml)
+                    {
+                        reply.Xml.AppendLine(TranslatorTags.CurrentTime, null, GXCommon.ToHex(tmp, false));
+                    }
+                    else
+                    {
+                        reply.Xml.AppendLine(TranslatorTags.CurrentTime, null,
+                                GXCommon.GeneralizedTime(reply.Time));
+                    }
+                }
+                reply.Xml.AppendStartTag(TranslatorTags.ListOfVariableAccessSpecification, "Qty", reply.Xml.IntegerToHex(count, 2));
+            }
+            for (int pos = 0; pos != count; ++pos)
+            {
+                type = reply.Data.GetUInt8();
+                if (type == (byte)VariableAccessSpecification.VariableName)
+                {
+                    int sn = reply.Data.GetUInt16();
+                    if (reply.Xml != null)
+                    {
+                        reply.Xml.AppendLine(
+                            (int)Command.WriteRequest << 8
+                            | (int)VariableAccessSpecification.VariableName,
+                            "Value", reply.Xml.IntegerToHex(sn, 4));
+                    }
+                    else
+                    {
+                        GXSNInfo info = FindSNObject(settings.Objects, sn);
+                        if (info.Item != null)
+                        {
+                            list.Add(new KeyValuePair<GXDLMSObject, int>(info.Item, info.Index));
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine(string.Format("Unknown object : {0}.", sn));
+                        }
+                    }
+                }
+            }
+            if (reply.Xml != null)
+            {
+                reply.Xml.AppendEndTag(TranslatorTags.ListOfVariableAccessSpecification);
+                reply.Xml.AppendStartTag(TranslatorTags.ListOfData, "Qty", reply.Xml.IntegerToHex(count, 2));
+            }
+            //Get values.
+            count = GXCommon.GetObjectCount(reply.Data);
+            GXDataInfo di = new GXDataInfo();
+            di.xml = reply.Xml;
+            for (int pos = 0; pos != count; ++pos)
+            {
+                di.Clear();
+                if (reply.Xml != null)
+                {
+                    GXCommon.GetData(settings, reply.Data, di);
+                }
+                else
+                {
+                    ValueEventArgs v = new ValueEventArgs(list[pos].Key, list[pos].Value, 0, null);
+                    v.Value = GXCommon.GetData(settings, reply.Data, di);
+                    (list[pos].Key as IGXDLMSBase).SetValue(settings, v);
+                }
+            }
+            if (reply.Xml != null)
+            {
+                reply.Xml.AppendEndTag(TranslatorTags.ListOfData);
+                reply.Xml.AppendEndTag(Command.InformationReport);
+            }
+        }
     }
 }

@@ -56,19 +56,15 @@ namespace Gurux.DLMS.Client.Example
         int WaitTime = 5000;
         IGXMedia Media;
         bool InitializeIEC;
-        GXManufacturer Manufacturer;
-        HDLCAddressType HDLCAddressing;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXCommunicatation(GXDLMSSecureClient dlms, IGXMedia media, bool initializeIEC, Authentication authentication, string password)
+        public GXCommunicatation(GXDLMSSecureClient dlms, IGXMedia media, bool initializeIEC)
         {
             Client = dlms;
             Media = media;
             InitializeIEC = initializeIEC;
-            Client.Authentication = authentication;
-            Client.Password = ASCIIEncoding.ASCII.GetBytes(password);
             //Delete trace file if exists.
             if (File.Exists("trace.txt"))
             {
@@ -113,49 +109,6 @@ namespace Gurux.DLMS.Client.Example
         ~GXCommunicatation()
         {
             Close();
-        }
-
-        public void UpdateManufactureSettings(string id)
-        {
-            if (Manufacturer != null && string.Compare(Manufacturer.Identification, id, true) != 0)
-            {
-                throw new Exception(string.Format("Manufacturer type does not match. Manufacturer is {0} and it should be {1}.", id, Manufacturer.Identification));
-            }
-            if (this.Media is GXNet && Manufacturer.UseIEC47)
-            {
-                Client.InterfaceType = InterfaceType.WRAPPER;
-            }
-            else
-            {
-                Client.InterfaceType = InterfaceType.HDLC;
-            }
-            Client.UseLogicalNameReferencing = Manufacturer.UseLogicalNameReferencing;
-            //If network media is used check is manufacturer supporting IEC 62056-47
-            GXServerAddress server = Manufacturer.GetServer(HDLCAddressing);
-            Client.ClientAddress = Manufacturer.GetAuthentication(Client.Authentication).ClientAddress;
-            if (Client.InterfaceType == InterfaceType.WRAPPER)
-            {
-                if (HDLCAddressing == HDLCAddressType.SerialNumber)
-                {
-                    Client.ServerAddress = GXDLMSClient.GetServerAddress(server.PhysicalAddress, server.Formula);
-                }
-                else
-                {
-                    Client.ServerAddress = server.PhysicalAddress;
-                }
-                Client.ServerAddress = Client.ClientAddress = 1;
-            }
-            else
-            {
-                if (HDLCAddressing == HDLCAddressType.SerialNumber)
-                {
-                    Client.ServerAddress = GXDLMSClient.GetServerAddress(server.PhysicalAddress, server.Formula);
-                }
-                else
-                {
-                    Client.ServerAddress = GXDLMSClient.GetServerAddress(server.LogicalAddress, server.PhysicalAddress);
-                }
-            }
         }
 
         void InitSerial()
@@ -246,7 +199,6 @@ namespace Gurux.DLMS.Client.Example
                     throw new Exception("Invalid responce.");
                 }
                 string manufactureID = p.Reply.Substring(1, 3);
-                UpdateManufactureSettings(manufactureID);
                 char baudrate = p.Reply[4];
                 int BaudRate = 0;
                 switch (baudrate)
@@ -319,10 +271,8 @@ namespace Gurux.DLMS.Client.Example
             Media.Open();
         }
 
-        public void InitializeConnection(GXManufacturer man)
+        public void InitializeConnection()
         {
-            Manufacturer = man;
-            UpdateManufactureSettings(man.Identification);
             if (Media is GXSerial)
             {
                 Console.WriteLine("Initializing serial connection.");
@@ -504,6 +454,40 @@ namespace Gurux.DLMS.Client.Example
         }
 
         /// <summary>
+        /// Handle received notify messages.
+        /// </summary>
+        /// <param name="reply">Received data.</param>
+        private void HandleNotifyMessages(GXReplyData reply)
+        {
+            List<KeyValuePair<GXDLMSObject, int>> items = new List<KeyValuePair<GXDLMSObject, int>>();
+            Object value = Client.ParseReport(reply, items);
+            // If Event notification or Information report.
+            if (value == null)
+            {
+                foreach (KeyValuePair<GXDLMSObject, int> it in items)
+                {
+                    Console.WriteLine(it.Key.ToString() + " Value:" + it.Key.GetValues()[it.Value - 1]);
+                }
+            }
+            else // Show data notification.
+            {
+                if (value is object[])
+                {
+                    foreach (object it in (object[])value)
+                    {
+                        Console.WriteLine("Value:" + Convert.ToString(it));
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Value:" + Convert.ToString(value));
+                }
+
+            }
+            reply.Clear();
+        }
+
+        /// <summary>
         /// Read DLMS Data from the device.
         /// </summary>
         /// <param name="data">Data to send.</param>
@@ -555,8 +539,13 @@ namespace Gurux.DLMS.Client.Example
                 try
                 {
                     //Loop until whole COSEM packet is received.
-                    while (!Client.GetData(p.Reply, reply))
+                    while (!Client.GetData(p.Reply, reply) || reply.IsNotify)
                     {
+                        if (reply.IsNotify)
+                        {
+                            HandleNotifyMessages(reply);
+                            continue;
+                        }
                         //If Eop is not set read one byte at time.
                         if (p.Eop == null)
                         {

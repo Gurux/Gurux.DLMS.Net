@@ -65,9 +65,8 @@ namespace GuruxDLMSServerExample
         : base(ln, type, "GRX", 12345678)
         {
             MaxReceivePDUSize = 1024;
-            //Default secreds.
+            //Default secret.
             ln.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
-            ln.HlsSecret = ln.Secret;
         }
 
 
@@ -80,9 +79,8 @@ namespace GuruxDLMSServerExample
         : base(sn, type, "GRX", 12345678)
         {
             MaxReceivePDUSize = 1024;
-            //Default secreds.
+            //Default secret.
             sn.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
-            sn.HlsSecret = sn.Secret;
         }
 
         Gurux.Common.IGXMedia Media = null;

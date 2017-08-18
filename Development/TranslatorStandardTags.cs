@@ -128,6 +128,9 @@ namespace Gurux.DLMS
                                     "RespondingAPTitle");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.CharString,
                                     "charstring");
+
+            GXDLMSTranslator.AddTag(list, Command.InformationReport, "InformationReport");
+            GXDLMSTranslator.AddTag(list, Command.EventNotification, "event-notification-request");
         }
 
         /// <summary>
@@ -359,6 +362,8 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorTags.LongInvokeId,
                                     "long-invoke-id-and-priority");
             GXDLMSTranslator.AddTag(list, TranslatorTags.DateTime, "date-time");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.CurrentTime, "current-time");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.Time, "time");
             GXDLMSTranslator.AddTag(list, TranslatorTags.Reason, "Reason");
             GXDLMSTranslator.AddTag(list,
                                     TranslatorTags.VariableAccessSpecification,
@@ -370,6 +375,16 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorTags.CipheredService, "ciphered-content");
             GXDLMSTranslator.AddTag(list, TranslatorTags.SystemTitle, "system-title");
             GXDLMSTranslator.AddTag(list, TranslatorTags.DataBlock, "DataBlock");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.TransactionId, "TransactionId");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.OriginatorSystemTitle, "OriginatorSystemTitle");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.RecipientSystemTitle, "RecipientSystemTitle");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.OtherInformation, "OtherInformation");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.KeyInfo, "KeyInfo");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.CipheredContent, "CipheredContent");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.AgreedKey, "AgreedKey");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.KeyParameters, "KeyParameters");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.KeyCipheredData, "KeyCipheredData");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.AttributeValue, "attribute-value");
         }
 
         public static void GetDataTypeTags(SortedList<int, string> list)

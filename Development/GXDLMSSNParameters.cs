@@ -64,17 +64,17 @@ namespace Gurux.DLMS
         /// <summary>
         /// Send date and time. This is used in Data notification messages.
         /// </summary>
-        public DateTime time;
+        public GXDateTime time;
         /// <summary>
         /// Item Count.
         /// </summary>
         public int count;
-        
+
         /// <summary>
         /// Are there more data to send or more data to receive.
         /// </summary>
         public bool multipleBlocks;
-        
+
         /// <summary>
         /// Block index.
         /// </summary>
@@ -89,7 +89,7 @@ namespace Gurux.DLMS
         /// <param name="forAttributeDescriptor"></param>
         /// <param name="forData">Attribute descriptor</param>
         /// <returns>Generated messages.</returns>
-        internal GXDLMSSNParameters(GXDLMSSettings forSettings, Command forCommand,  int forCount, 
+        internal GXDLMSSNParameters(GXDLMSSettings forSettings, Command forCommand, int forCount,
             byte forCommandType,
            GXByteBuffer forAttributeDescriptor, GXByteBuffer forData)
         {

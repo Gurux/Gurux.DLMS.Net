@@ -559,18 +559,22 @@ namespace Gurux.DLMS
                 // Add command.
                 reply.SetUInt8((byte)p.command);
 
-                if (p.command == Command.DataNotification ||
-                        p.command == Command.AccessRequest ||
-                        p.command == Command.AccessResponse)
+                if (p.command == Command.EventNotification ||
+                    p.command == Command.DataNotification ||
+                    p.command == Command.AccessRequest ||
+                    p.command == Command.AccessResponse)
                 {
                     // Add Long-Invoke-Id-And-Priority
-                    if (p.InvokeId != 0)
+                    if (p.command != Command.EventNotification)
                     {
-                        reply.SetUInt32(p.InvokeId);
-                    }
-                    else
-                    {
-                        reply.SetUInt32(GetLongInvokeIDPriority(p.settings));
+                        if (p.InvokeId != 0)
+                        {
+                            reply.SetUInt32(p.InvokeId);
+                        }
+                        else
+                        {
+                            reply.SetUInt32(GetLongInvokeIDPriority(p.settings));
+                        }
                     }
                     // Add date time.
                     if (p.time == null || p.time.Value.DateTime == DateTime.MinValue || p.time.Value.DateTime == DateTime.MaxValue ||
@@ -634,7 +638,7 @@ namespace Gurux.DLMS
 
                 //Add attribute descriptor.
                 reply.Set(p.attributeDescriptor);
-                if (p.command != Command.DataNotification && (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0)
+                if (p.command != Command.EventNotification && p.command != Command.DataNotification && (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0)
                 {
                     //If multiple blocks.
                     if (p.multipleBlocks)
@@ -755,6 +759,10 @@ namespace Gurux.DLMS
             {
                 frame = 0x10;
             }
+            else if (p.command == Command.EventNotification)
+            {
+                frame = 0x13;
+            }
             do
             {
                 GetLNPdu(p, reply);
@@ -818,6 +826,10 @@ namespace Gurux.DLMS
             if (p.command == Command.Aarq)
             {
                 frame = 0x10;
+            }
+            else if (p.command == Command.InformationReport)
+            {
+                frame = 0x13;
             }
             else if (p.command == Command.None)
             {
@@ -969,7 +981,26 @@ namespace Gurux.DLMS
                 cnt = p.data.Size - p.data.Position;
             }
             // Add command.
-            if (p.command != Command.Aarq && p.command != Command.Aare)
+            if (p.command == Command.InformationReport)
+            {
+                reply.SetUInt8((byte)p.command);
+                // Add date time.
+                if (p.time == null || p.time.Value.DateTime == DateTime.MinValue || p.time.Value.DateTime == DateTime.MaxValue ||
+                    p.time.Value.LocalDateTime == DateTime.MinValue || p.time.Value.LocalDateTime == DateTime.MaxValue)
+                {
+                    reply.SetUInt8(DataType.None);
+                }
+                else
+                {
+                    // Data is send in octet string. Remove data type.
+                    int pos = reply.Size;
+                    GXCommon.SetData(p.settings, reply, DataType.OctetString, p.time);
+                    reply.Move(pos + 1, pos, reply.Size - pos - 1);
+                }
+                GXCommon.SetObjectCount(p.count, reply);
+                reply.Set(p.attributeDescriptor);
+            }
+            else if (p.command != Command.Aarq && p.command != Command.Aare)
             {
                 reply.SetUInt8((byte)p.command);
                 if (p.count != 0xFF)
@@ -2601,6 +2632,12 @@ namespace Gurux.DLMS
                         HandleDataNotification(settings, data);
                         //Client handles this.
                         break;
+                    case Command.EventNotification:
+                        //Client handles this.
+                        break;
+                    case Command.InformationReport:
+                        //Client handles this.
+                        break;
                     case Command.GeneralCiphering:
                         HandleGeneralCiphering(settings, data);
                         break;
@@ -2764,7 +2801,7 @@ namespace Gurux.DLMS
             }
         }
 
-        private static void HandleDataNotification(GXDLMSSettings settings, GXReplyData reply)
+        static void HandleDataNotification(GXDLMSSettings settings, GXReplyData reply)
         {
             int start = reply.Data.Position - 1;
             //Get invoke id.
@@ -2816,8 +2853,55 @@ namespace Gurux.DLMS
             // If all frames are read.
             if ((data.MoreData & RequestTypes.Frame) == 0)
             {
-                data.Data.Position = data.Data.Position - 1;
-                settings.Cipher.Decrypt(null, data.Data);
+                int origPos = data.Xml.GetXmlLength();
+                --data.Data.Position;
+                AesGcmParameter p = null;
+                try
+                {
+                    p = settings.Cipher.Decrypt(null, data.Data);
+                    data.Command = Command.None;
+                    if (p.Security != Security.None)
+                    {
+                        GetPdu(settings, data);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (data.Xml == null)
+                    {
+                        throw ex;
+                    }
+                    data.Xml.SetXmlLength(origPos);
+                }
+                if (data.Xml != null && p != null)
+                {
+                    data.Xml.AppendStartTag(Command.GeneralCiphering);
+                    data.Xml.AppendLine(TranslatorTags.TransactionId, null,
+                            data.Xml.IntegerToHex(p.InvocationCounter, 16, true));
+                    data.Xml.AppendLine(TranslatorTags.OriginatorSystemTitle,
+                            null, GXCommon.ToHex(p.SystemTitle, false));
+                    data.Xml.AppendLine(TranslatorTags.RecipientSystemTitle,
+                            null,
+                            GXCommon.ToHex(p.RecipientSystemTitle, false));
+                    data.Xml.AppendLine(TranslatorTags.DateTime, null,
+                            GXCommon.ToHex(p.DateTime, false));
+                    data.Xml.AppendLine(TranslatorTags.OtherInformation, null,
+                            GXCommon.ToHex(p.OtherInformation, false));
+
+                    data.Xml.AppendStartTag(TranslatorTags.KeyInfo);
+                    data.Xml.AppendStartTag(TranslatorTags.AgreedKey);
+                    data.Xml.AppendLine(TranslatorTags.KeyParameters, null,
+                            data.Xml.IntegerToHex(p.KeyParameters, 2,
+                                    true));
+                    data.Xml.AppendLine(TranslatorTags.KeyCipheredData, null,
+                            GXCommon.ToHex(p.KeyCipheredData, false));
+                    data.Xml.AppendEndTag(TranslatorTags.AgreedKey);
+                    data.Xml.AppendEndTag(TranslatorTags.KeyInfo);
+
+                    data.Xml.AppendLine(TranslatorTags.CipheredContent, null,
+                            GXCommon.ToHex(p.CipheredContent, false));
+                    data.Xml.AppendEndTag(Command.GeneralCiphering);
+                }
             }
         }
 
@@ -2929,7 +3013,7 @@ namespace Gurux.DLMS
 
             GetDataFromFrame(reply, data);
             // If keepalive or get next frame request.
-            if (data.Xml != null || (frame & 0x1) != 0)
+            if (data.Xml != null || ((frame != 0x13) && (frame & 0x1) != 0))
             {
                 if (settings.InterfaceType == InterfaceType.HDLC && (data.Error == (int)ErrorCode.Rejected || data.Data.Size != 0))
                 {
@@ -3097,6 +3181,14 @@ namespace Gurux.DLMS
                 case ObjectType.SpecialDaysTable:
                     value = 0x10;
                     count = 2;
+                    break;
+                case ObjectType.DisconnectControl:
+                    value = 0x20;
+                    count = 2;
+                    break;
+                case ObjectType.PushSetup:
+                    value = 0x38;
+                    count = 1;
                     break;
             }
         }

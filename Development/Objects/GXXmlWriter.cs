@@ -247,7 +247,7 @@ namespace Gurux.DLMS.Objects
                 }
 
                 writer.WriteStartElement(name);
-                DataType dt = GXDLMSConverter.GetDLMSDataType(value.GetType());
+                DataType dt = GXDLMSConverter.GetDLMSDataType(value);
                 writer.WriteAttributeString("Type", ((int)dt).ToString());
                 if (dt == DataType.Array)
                 {

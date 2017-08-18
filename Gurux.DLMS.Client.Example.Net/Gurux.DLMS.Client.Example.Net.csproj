@@ -8,8 +8,8 @@
     <ProjectGuid>{A6D49A2D-3991-44F5-AE6B-4C16F5C55D19}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Gurux.DLMS.Client.Example.Net_2010</RootNamespace>
-    <AssemblyName>Gurux.DLMS.Client.Example.Net_2010</AssemblyName>
+    <RootNamespace>Gurux.DLMS.Client.Example.Net</RootNamespace>
+    <AssemblyName>Gurux.DLMS.Client.Example.Net</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>

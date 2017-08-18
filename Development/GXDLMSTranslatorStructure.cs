@@ -387,6 +387,34 @@ namespace Gurux.DLMS
         /// <returns>Integer value as a string.</returns>
         public string IntegerToHex(long value, int desimals)
         {
+            return IntegerToHex(value, desimals, false);
+        }
+        /// <summary>
+        /// Convert integer to string.
+        /// </summary>
+        /// <param name="value">Conveted value.</param>
+        /// <param name="desimals">Desimal count.</param>
+        /// <param name="forceHex">Force value as hex.</param>
+        /// <returns>Integer value as a string.</returns>
+        public string IntegerToHex(long value, int desimals, bool forceHex)
+        {
+            if (showNumericsAsHex
+                    && OutputType == TranslatorOutputType.SimpleXml)
+            {
+                return value.ToString("X" + desimals.ToString());
+            }
+            return value.ToString();
+        }
+
+        /// <summary>
+        /// Convert integer to string.
+        /// </summary>
+        /// <param name="value">Conveted value.</param>
+        /// <param name="desimals">Desimal count.</param>
+        /// <param name="forceHex">Force value as hex.</param>
+        /// <returns>Integer value as a string.</returns>
+        public string IntegerToHex(UInt64 value, int desimals, bool forceHex)
+        {
             if (showNumericsAsHex
                     && OutputType == TranslatorOutputType.SimpleXml)
             {

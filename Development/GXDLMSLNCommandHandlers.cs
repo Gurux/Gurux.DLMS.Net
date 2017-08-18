@@ -912,5 +912,62 @@ namespace Gurux.DLMS
                 xml.AppendEndTag(Command.AccessRequest);
             }
         }
+
+        ///<summary>
+        /// Handle Event Notification.
+        ///</summary>
+        internal static void HandleEventNotification(GXDLMSSettings settings, GXReplyData reply, List<KeyValuePair<GXDLMSObject, int>> list)
+        {
+            reply.Time = DateTime.MinValue;
+            int len = reply.Data.GetUInt8();
+            byte[] tmp = null;
+            // If date time is given.
+            if (len != 0)
+            {
+                tmp = new byte[len];
+                reply.Data.Get(tmp);
+                reply.Time = (GXDateTime)GXDLMSClient.ChangeType(tmp, DataType.DateTime, settings.UseUtc2NormalTime);
+            }
+            if (reply.Xml != null)
+            {
+                reply.Xml.AppendStartTag(Command.EventNotification);
+                if (reply.Time != DateTime.MinValue)
+                {
+                    reply.Xml.AppendComment(Convert.ToString(reply.Time));
+                    reply.Xml.AppendLine(TranslatorTags.Time, null,
+                                         GXCommon.ToHex(tmp, false));
+                }
+            }
+            int ci = reply.Data.GetUInt16();
+            byte[] ln = new byte[6];
+            reply.Data.Get(ln);
+            byte index = reply.Data.GetUInt8();
+            if (reply.Xml != null)
+            {
+                AppendAttributeDescriptor(reply.Xml, ci, ln, index);
+                reply.Xml.AppendStartTag(TranslatorTags.AttributeValue);
+            }
+            GXDataInfo di = new GXDataInfo();
+            di.xml = reply.Xml;
+            object value = GXCommon.GetData(settings, reply.Data, di);
+
+            if (reply.Xml != null)
+            {
+                reply.Xml.AppendEndTag(TranslatorTags.AttributeValue);
+                reply.Xml.AppendEndTag(Command.EventNotification);
+            }
+            else
+            {
+                GXDLMSObject obj = settings.Objects.FindByLN((ObjectType)ci, GXCommon.ToLogicalName(ln));
+                if (obj != null)
+                {
+                    ValueEventArgs v = new ValueEventArgs(obj, index, 0, null);
+                    v.Value = value;
+                    (obj as IGXDLMSBase).SetValue(settings, v);
+                    list.Add(new KeyValuePair<GXDLMSObject, int>(obj, index));
+                }
+            }
+        }
+
     }
 }

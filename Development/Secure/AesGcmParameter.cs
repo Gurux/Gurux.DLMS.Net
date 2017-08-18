@@ -39,6 +39,7 @@ using System.Text;
 using Gurux.DLMS.Secure;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Secure
 {
@@ -55,7 +56,7 @@ namespace Gurux.DLMS.Secure
             set;
         }
 
-        public UInt32 InvocationCounter
+        public UInt64 InvocationCounter
         {
             get;
             set;
@@ -87,6 +88,76 @@ namespace Gurux.DLMS.Secure
             set;
         }
 
+        /**
+    * Recipient system title.
+    */
+        public byte[] RecipientSystemTitle
+        {
+            get;
+            set;
+        }
+        /**
+         * Date time.
+         */
+        public byte[] DateTime
+        {
+            get;
+            set;
+        }
+        /**
+         * Other information.
+         */
+        public byte[] OtherInformation
+        {
+            get;
+            set;
+        }
+
+        /**
+         * Key parameters.
+         */
+        public int KeyParameters
+        {
+            get;
+            set;
+        }
+
+        /**
+         * Key ciphered data.
+         */
+        public byte[] KeyCipheredData
+        {
+            get;
+            set;
+        }
+
+        /**
+         * Ciphered content.
+         */
+        public byte[] CipheredContent
+        {
+            get;
+            set;
+        }
+
+        /**
+         * Shared secret is generated when connection is made.
+         */
+        public byte[] SharedSecret
+        {
+            get;
+            set;
+        }
+
+        /**
+         * Used security suite.
+         */
+        public SecuritySuite SecuritySuite
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -111,6 +182,7 @@ namespace Gurux.DLMS.Secure
             BlockCipherKey = blockCipherKey;
             AuthenticationKey = authenticationKey;
             Type = CountType.Packet;
+            SecuritySuite = SecuritySuite.AesGcm128;
         }
 
         /// <summary>
@@ -128,6 +200,7 @@ namespace Gurux.DLMS.Secure
             BlockCipherKey = blockCipherKey;
             AuthenticationKey = authenticationKey;
             Type = CountType.Packet;
+            SecuritySuite = SecuritySuite.AesGcm128;
         }
 
         public override string ToString()

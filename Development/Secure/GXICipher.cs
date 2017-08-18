@@ -52,7 +52,7 @@ namespace Gurux.DLMS.Secure
         /// </summary>
         /// <param name="title">System title.</param>
         /// <param name="data">Decrypted data.</param>
-        Gurux.DLMS.Enums.Security Decrypt(byte[] title, GXByteBuffer data);
+        AesGcmParameter Decrypt(byte[] title, GXByteBuffer data);
 
         /// <summary>
         /// Reset encrypt settings.

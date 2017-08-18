@@ -55,27 +55,27 @@ namespace Gurux.DLMS.Client.Example
         static void ShowHelp()
         {
             Console.WriteLine("GuruxDlmsSample reads data from the DLMS/COSEM device.");
-            Console.WriteLine("Note! Before first use update initial settings with /u.");
-            Console.WriteLine("");
-            Console.WriteLine("GuruxDlmsSample /m=lgz /h=[Meter IP Address] /p=[Meter Port No] [/s=] [/u]");
-            Console.WriteLine(" /u\t Update meter settings from Gurux web portal.");
-            Console.WriteLine(" /m=\t manufacturer identifier.");
-            Console.WriteLine(" /sp=\t serial port.");
+            Console.WriteLine("GuruxDlmsSample /h=[Meter IP Address] /p=[Meter Port No] [/s=] /c=16 /s=1 /r=SN");
             Console.WriteLine(" /h=\t host name or IP address.");
             Console.WriteLine(" /p=\t port number or name (Example: 1000).");
-            Console.WriteLine(" /s=\t start protocol (IEC or DLMS).");
+            Console.WriteLine(" /sp=\t serial port.");
+            Console.WriteLine(" /IEC use IEC as start protocol.");
             Console.WriteLine(" /a=\t Authentication (None, Low, High).");
             Console.WriteLine(" /pw=\t Password for authentication.");
-            Console.WriteLine(" /client=\t Client address.");
-            Console.WriteLine(" /server=\t Server address.");
-            Console.WriteLine(" /r=[sn, LN]\t Short name or Logican Name referencing is used.");
-            Console.WriteLine(" /wrapper\t wrapper is used.");
+            Console.WriteLine(" /c=\t Client address. (Default: 16)");
+            Console.WriteLine(" /s=\t Server address. (Default: 1)");
+            Console.WriteLine(" /sn=\t Server address as serial number.");
+            Console.WriteLine(" /r=[SN, LN]\t Short name or Logican Name (default) referencing is used.");
+            Console.WriteLine(" /WRAPPER profile is used. HDLC is default.");
+            Console.WriteLine(" /\t Trace messages.");
+            Console.WriteLine(" /g=\"0.0.1.0.0.255:1; 0.0.1.0.0.255:2\" Get selected object(s) with given attribute index.");
             Console.WriteLine("Example:");
             Console.WriteLine("Read LG device using TCP/IP connection.");
-            Console.WriteLine("GuruxDlmsSample /m=lgz /h=[Meter IP Address] /p=[Meter Port No]");
+            Console.WriteLine("GuruxDlmsSample /r=SN /c=16 /s=1 /h=[Meter IP Address] /p=[Meter Port No]");
             Console.WriteLine("Read LG device using serial port connection.");
-            Console.WriteLine("GuruxDlmsSample /m=lgz /sp=COM1 /s=DLMS");
-            Console.WriteLine("GuruxDlmsSample /sp=COM1 /s=DLMS /client=16 /server=1 /sn /wrapper");
+            Console.WriteLine("GuruxDlmsSample /r=SN /c=16 /s=1 /sp=COM1 /IEC");
+            Console.WriteLine("Read Indian device using serial port connection.");
+            Console.WriteLine("GuruxDlmsSample /sp=COM1 /c=16 /s=1 /a=Low /pw=[password]");
         }
 
         static void Trace(TextWriter writer, string text)
@@ -90,99 +90,123 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine(text);
         }
 
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             IGXMedia media = null;
             GXCommunicatation comm = null;
+            //Objects to read.
+            List<KeyValuePair<string, int>> readObjects = new List<KeyValuePair<string, int>>();
             try
             {
+                bool iec = false, trace = false;
+                string str;
                 TextWriter logFile = new StreamWriter(File.Open("LogFile.txt", FileMode.Create));
                 ////////////////////////////////////////
                 //Handle command line parameters.
-                String sn, client = "", server = "", id = "", host = "", port = "", pw = "";
-                bool trace = false, iec = true;
-                bool hdlc = true, ln = true;
-                Authentication auth = Authentication.None;
+                GXDLMSSecureClient dlms = new GXDLMSSecureClient();
                 foreach (string it in args)
                 {
                     String item = it.Trim().ToLower();
-                    if (string.Compare(item, "/u", true) == 0)//Update
+                    if (item.StartsWith("/sn="))//Serial number.
                     {
-                        //Get latest manufacturer settings from Gurux web server.
-                        GXManufacturerCollection.UpdateManufactureSettings();
-                    }
-                    else if (item.StartsWith("/sn="))//Serial number.
-                    {
-                        sn = item.Replace("/sn=", "");
+                        dlms.ServerAddress = GXDLMSClient.GetServerAddress(int.Parse(item.Replace("/sn=", "")));
                     }
                     else if (string.Compare(item, "/wrapper", true) == 0)//Wrapper is used.
                     {
-                        hdlc = false;
+                        dlms.InterfaceType = InterfaceType.WRAPPER;
                     }
                     else if (item.StartsWith("/r="))//referencing
                     {
-                        id = item.Replace("/r=", "");
+                        str = item.Replace("/r=", "");
+                        if (string.Compare(str, "sn", true) == 0)
+                        {
+                            dlms.UseLogicalNameReferencing = false;
+                        }
+                        else if (string.Compare(str, "ln", true) == 0)
+                        {
+                            dlms.UseLogicalNameReferencing = true;
+                        }
+                        else
+                        {
+                            throw new ArgumentOutOfRangeException("Invalid reference. Set LN or SN.");
+                        }
                     }
-                    else if (item.StartsWith("/m="))//Manufacturer
+                    else if (item.StartsWith("/c="))//Client address
                     {
-                        id = item.Replace("/m=", "");
+                        dlms.ClientAddress = int.Parse(item.Replace("/c=", ""));
                     }
-                    else if (item.StartsWith("/client="))//Client address
+                    else if (item.StartsWith("/s="))//Server address
                     {
-                        client = item.Replace("/client=", "");
-                    }
-                    else if (item.StartsWith("/server="))//Server address
-                    {
-                        server = item.Replace("/server=", "");
+                        dlms.ServerAddress = int.Parse(item.Replace("/c=", ""));
                     }
                     else if (item.StartsWith("/h=")) //Host
                     {
-                        host = item.Replace("/h=", "");
+                        if (media == null)
+                        {
+                            media = new Gurux.Net.GXNet();
+                        }
+                        Gurux.Net.GXNet net = media as GXNet;
+                        net.HostName = item.Replace("/h=", "");
                     }
                     else if (item.StartsWith("/p="))// TCP/IP Port
                     {
-                        media = new Gurux.Net.GXNet();
-                        port = item.Replace("/p=", "");
+                        if (media == null)
+                        {
+                            media = new Gurux.Net.GXNet();
+                        }
+                        Gurux.Net.GXNet net = media as GXNet;
+                        net.Port = int.Parse(item.Replace("/p=", ""));
                     }
                     else if (item.StartsWith("/sp="))//Serial Port
                     {
-                        port = item.Replace("/sp=", "");
                         media = new GXSerial();
+                        GXSerial serial = media as GXSerial;
+                        serial.PortName = item.Replace("/sp=", "");
                     }
                     else if (item.StartsWith("/t"))//Are messages traced.
                     {
                         trace = true;
                     }
-                    else if (item.StartsWith("/s="))//Start
+                    else if (item.StartsWith("/iec"))//IEC is start protocol.
                     {
-                        String tmp = item.Replace("/s=", "");
-                        iec = string.Compare(tmp, "dlms", true) != 0;
+                        iec = true;
                     }
                     else if (item.StartsWith("/a="))//Authentication
                     {
-                        auth = (Authentication)Enum.Parse(typeof(Authentication), it.Trim().Replace("/a=", ""));
+                        dlms.Authentication = (Authentication)Enum.Parse(typeof(Authentication), it.Trim().Replace("/a=", ""));
                     }
                     else if (item.StartsWith("/pw="))//Password
                     {
-                        pw = it.Trim().Replace("/pw=", "");
+                        dlms.Password = ASCIIEncoding.ASCII.GetBytes(it.Trim().Replace("/pw=", ""));
+                    }
+                    else if (item.StartsWith("/g="))//Get objects
+                    {
+                        foreach (string o in item.Replace("/g=", "").Split(new char[] { ';', ',' }))
+                        {
+                            string[] tmp = o.Split(new char[] { ':' });
+                            if (tmp.Length != 2)
+                            {
+                                throw new ArgumentOutOfRangeException("Invalid Logical name or attribute index.");
+                            }
+                            readObjects.Add(new KeyValuePair<string, int>(tmp[0].Trim(), int.Parse(tmp[1].Trim())));
+                        }
                     }
                     else
                     {
                         ShowHelp();
-                        return;
+                        return 1;
                     }
                 }
-                if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(port) || (media is GXNet && string.IsNullOrEmpty(host)))
+                if (media == null)
                 {
                     ShowHelp();
-                    return;
+                    return 1;
                 }
                 ////////////////////////////////////////
                 //Initialize connection settings.
                 if (media is GXSerial)
                 {
                     GXSerial serial = media as GXSerial;
-                    serial.PortName = port;
                     if (iec)
                     {
                         serial.BaudRate = 300;
@@ -200,10 +224,6 @@ namespace Gurux.DLMS.Client.Example
                 }
                 else if (media is GXNet)
                 {
-                    Gurux.Net.GXNet net = media as GXNet;
-                    net.Port = Convert.ToInt32(port);
-                    net.HostName = host;
-                    net.Protocol = Gurux.Net.NetworkType.Tcp;
                 }
                 else
                 {
@@ -211,21 +231,11 @@ namespace Gurux.DLMS.Client.Example
                 }
                 ////////////////////////////////////////
                 //Update manufacturer depended settings.
-                GXManufacturerCollection Manufacturers = new GXManufacturerCollection();
-                GXManufacturerCollection.ReadManufacturerSettings(Manufacturers);
-                GXManufacturer man = Manufacturers.FindByIdentification(id);
-                if (man == null)
-                {
-                    throw new Exception("Unknown manufacturer: " + id);
-                }
-                GXDLMSSecureClient dlms = new GXDLMSSecureClient();
-                //Update Obis code list so we can get right descriptions to the objects.
-                dlms.CustomObisCodes = man.ObisCodes;
-                comm = new GXCommunicatation(dlms, media, iec, auth, pw);
+                comm = new GXCommunicatation(dlms, media, iec);
                 comm.Trace = trace;
-                comm.InitializeConnection(man);
+                comm.InitializeConnection();
                 GXDLMSObjectCollection objects = null;
-                string path = host.Replace('.', '_') + "_" + port.ToString() + ".xml";
+                string path = media.ToString() + ".xml";
 
                 List<Type> extraTypes = new List<Type>(Gurux.DLMS.GXDLMSClient.GetObjectTypes());
                 extraTypes.Add(typeof(GXDLMSAttributeSettings));
@@ -259,6 +269,16 @@ namespace Gurux.DLMS.Client.Example
                 {
                     Console.WriteLine("Get available objects from the device.");
                     objects = comm.GetAssociationView();
+                    if (readObjects.Count != 0)
+                    {
+                        Console.WriteLine("");
+                        foreach (KeyValuePair<string, int> it in readObjects)
+                        {
+                            object val = comm.Read(objects.FindByLN(ObjectType.None, it.Key), it.Value);
+                            ShowValue(logFile, it.Value, val);
+                        }
+                        return 0;
+                    }
                     GXDLMSObjectCollection objs = objects.GetObjects(new ObjectType[] { ObjectType.Register, ObjectType.ExtendedRegister, ObjectType.DemandRegister });
                     Console.WriteLine("Read scalers and units from the device.");
                     if ((dlms.NegotiatedConformance & Conformance.MultipleReferences) != 0)
@@ -376,55 +396,7 @@ namespace Gurux.DLMS.Client.Example
                         try
                         {
                             object val = comm.Read(it, pos);
-                            //If data is array.
-                            if (val is byte[])
-                            {
-                                val = GXCommon.ToHex((byte[])val, true);
-                            }
-                            else if (val is Array)
-                            {
-                                string str = "";
-                                for (int pos2 = 0; pos2 != (val as Array).Length; ++pos2)
-                                {
-                                    if (str != "")
-                                    {
-                                        str += ", ";
-                                    }
-                                    if ((val as Array).GetValue(pos2) is byte[])
-                                    {
-                                        str += GXCommon.ToHex((byte[])(val as Array).GetValue(pos2), true);
-                                    }
-                                    else
-                                    {
-                                        str += (val as Array).GetValue(pos2).ToString();
-                                    }
-                                }
-                                val = str;
-                            }
-                            else if (val is System.Collections.IList)
-                            {
-                                string str = "[";
-                                bool empty = true;
-                                foreach (object it2 in val as System.Collections.IList)
-                                {
-                                    if (!empty)
-                                    {
-                                        str += ", ";
-                                    }
-                                    empty = false;
-                                    if (it2 is byte[])
-                                    {
-                                        str += GXCommon.ToHex((byte[])it2, true);
-                                    }
-                                    else
-                                    {
-                                        str += it2.ToString();
-                                    }
-                                }
-                                str += "]";
-                                val = str;
-                            }
-                            TraceLine(logFile, "Index: " + pos + " Value: " + val);
+                            ShowValue(logFile, pos, val);
                         }
                         catch (Exception ex)
                         {
@@ -519,10 +491,11 @@ namespace Gurux.DLMS.Client.Example
                     comm.Close();
                 }
                 Console.WriteLine(ex.Message);
-                if (!System.Diagnostics.Debugger.IsAttached)
+                if (System.Diagnostics.Debugger.IsAttached)
                 {
                     Console.ReadKey();
                 }
+                return 1;
             }
             finally
             {
@@ -536,6 +509,61 @@ namespace Gurux.DLMS.Client.Example
                     Console.ReadKey();
                 }
             }
+            return 0;
+        }
+
+        static void ShowValue(TextWriter logFile, int pos, object val)
+        {
+            string str;
+            //If data is array.
+            if (val is byte[])
+            {
+                val = GXCommon.ToHex((byte[])val, true);
+            }
+            else if (val is Array)
+            {
+                str = "";
+                for (int pos2 = 0; pos2 != (val as Array).Length; ++pos2)
+                {
+                    if (str != "")
+                    {
+                        str += ", ";
+                    }
+                    if ((val as Array).GetValue(pos2) is byte[])
+                    {
+                        str += GXCommon.ToHex((byte[])(val as Array).GetValue(pos2), true);
+                    }
+                    else
+                    {
+                        str += (val as Array).GetValue(pos2).ToString();
+                    }
+                }
+                val = str;
+            }
+            else if (val is System.Collections.IList)
+            {
+                str = "[";
+                bool empty = true;
+                foreach (object it2 in val as System.Collections.IList)
+                {
+                    if (!empty)
+                    {
+                        str += ", ";
+                    }
+                    empty = false;
+                    if (it2 is byte[])
+                    {
+                        str += GXCommon.ToHex((byte[])it2, true);
+                    }
+                    else
+                    {
+                        str += it2.ToString();
+                    }
+                }
+                str += "]";
+                val = str;
+            }
+            TraceLine(logFile, "Index: " + pos + " Value: " + val);
         }
     }
 }
