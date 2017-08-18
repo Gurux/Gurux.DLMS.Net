@@ -268,7 +268,7 @@ namespace Gurux.DLMS.Secure
             len = GXCommon.GetObjectCount(data);
             p.CipheredContent = data.Remaining();
             byte sc = (byte)data.GetUInt8();
-            Security security = (Security)(sc & 0x30);
+            Enums.Security security = (Enums.Security)(sc & 0x30);
             SecuritySuite ss = (SecuritySuite)(sc & 0x3);
             p.Security = security;
             UInt32 invocationCounter = data.GetUInt32();
@@ -283,7 +283,7 @@ namespace Gurux.DLMS.Secure
             byte[] tag = new byte[12];
             byte[] encryptedData;
             int length;
-            if (security == Security.Authentication)
+            if (security == Enums.Security.Authentication)
             {
                 length = data.Size - data.Position - 12;
                 encryptedData = new byte[length];
@@ -302,13 +302,13 @@ namespace Gurux.DLMS.Secure
                 return encryptedData;
             }
             byte[] ciphertext = null;
-            if (security == Security.Encryption)
+            if (security == Enums.Security.Encryption)
             {
                 length = data.Size - data.Position;
                 ciphertext = new byte[length];
                 data.Get(ciphertext);
             }
-            else if (security == Security.AuthenticationEncryption)
+            else if (security == Enums.Security.AuthenticationEncryption)
             {
                 length = data.Size - data.Position - 12;
                 ciphertext = new byte[length];

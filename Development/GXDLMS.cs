@@ -2860,7 +2860,7 @@ namespace Gurux.DLMS
                 {
                     p = settings.Cipher.Decrypt(null, data.Data);
                     data.Command = Command.None;
-                    if (p.Security != Security.None)
+                    if (p.Security != Enums.Security.None)
                     {
                         GetPdu(settings, data);
                     }

@@ -137,7 +137,8 @@ namespace Gurux.DLMS.Secure
             }
             else if (settings.Authentication == Authentication.HighSHA256)
             {
-#if !WINDOWS_UWP
+                //Windows UWP, IOS ad Android don't support this.
+#if !WINDOWS_UWP && !__IOS__ && !__ANDROID__
                 using (SHA256 sha = new SHA256CryptoServiceProvider())
                 {
                     tmp = sha.ComputeHash(tmp);
