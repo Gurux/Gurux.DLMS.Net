@@ -1051,7 +1051,6 @@ namespace Gurux.DLMS.Internal
                     //0x8A
                     case (byte)BerType.Context | (byte)PduType.CallingApInvocationId:
                         //0x88
-
                         //Get sender ACSE-requirements field component.
                         if (buff.GetUInt8() != 2)
                         {
@@ -1091,6 +1090,7 @@ namespace Gurux.DLMS.Internal
                         break;
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.UserInformation:
                         //0xBE
+                        //Check result component. Some meters are returning invalid user-information if connection failed.
                         if (xml == null && resultComponent != AssociationResult.Accepted && resultDiagnosticValue != SourceDiagnostic.None)
                         {
                             throw new GXDLMSException(resultComponent, resultDiagnosticValue);
@@ -1106,6 +1106,12 @@ namespace Gurux.DLMS.Internal
                             buff.Position += (UInt16)len;
                         }
                         break;
+                }
+                //All meters don't send user-information if connection is failed.
+                //For this reason result component is check again.
+                if (xml == null && resultComponent != AssociationResult.Accepted && resultDiagnosticValue != SourceDiagnostic.None)
+                {
+                    throw new GXDLMSException(resultComponent, resultDiagnosticValue);
                 }
             }
             return resultDiagnosticValue;
