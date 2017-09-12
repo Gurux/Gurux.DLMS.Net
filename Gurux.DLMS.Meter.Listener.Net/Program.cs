@@ -33,8 +33,10 @@
 //---------------------------------------------------------------------------
 
 using Gurux.Common;
+using Gurux.DLMS.Reader;
 using Gurux.Net;
 using System;
+using System.Diagnostics;
 using System.Threading;
 
 namespace Gurux.DLMS.Meter.Listener.Net
@@ -106,10 +108,22 @@ namespace Gurux.DLMS.Meter.Listener.Net
         /// </summary>
         private static void ReadMeter(GXNet media)
         {
-            GXDLMSReader reader = new Net.GXDLMSReader(media);
-            reader.ReadAll();
-            //Create own thread for each meter if you are handling multiple meters simultaneously.
-            //new Thread(new ThreadStart(reader.ReadAll));
+            GXDLMSClient client = new GXDLMSClient(true, 0x10, 1, Enums.Authentication.None, null, Enums.InterfaceType.HDLC);
+            GXDLMSReader reader = null;
+            try
+            {
+                reader = new GXDLMSReader(client, media, TraceLevel.Verbose);
+                reader.ReadAll(false);
+                //Create own thread for each meter if you are handling multiple meters simultaneously.
+                //new Thread(new ThreadStart(reader.ReadAll));
+            }
+            finally
+            {
+                if (reader != null)
+                {
+                    reader.Close();
+                }
+            }
         }
     }
 }

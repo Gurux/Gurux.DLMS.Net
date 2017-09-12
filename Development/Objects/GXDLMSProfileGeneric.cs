@@ -802,7 +802,7 @@ namespace Gurux.DLMS.Objects
                 else
                 {
                     GXCommon.SetData(settings, data, DataType.UInt16, SortObject.ObjectType); //ClassID
-                    GXCommon.SetData(settings, data, DataType.OctetString, SortObject.LogicalName); //LN
+                    GXCommon.SetData(settings, data, DataType.OctetString, GXCommon.LogicalNameToBytes(SortObject.LogicalName)); //LN
                     GXCommon.SetData(settings, data, DataType.Int8, SortAttributeIndex); //Selected Attribute Index
                     GXCommon.SetData(settings, data, DataType.UInt16, SortDataIndex); //Selected Data Index
                 }

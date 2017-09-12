@@ -722,7 +722,7 @@ namespace Gurux.DLMS
                         }
                         p.InvokeId = e.InvokeId;
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         p.status = (byte)ErrorCode.HardwareFault;
                     }

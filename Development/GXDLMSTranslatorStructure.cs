@@ -110,6 +110,15 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Are spaces ignored.
+        /// </summary>
+        public bool IgnoreSpaces
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="list">List of tags.</param>
@@ -123,16 +132,48 @@ namespace Gurux.DLMS
             tags = list;
         }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="xml">Geerated XML.</param>
+        public GXDLMSTranslatorStructure(string xml)
+        {
+            sb.Append(xml);
+        }
+
         public override string ToString()
         {
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Append spaces.
+        /// </summary>
+        void AppendSpaces()
+        {
+            if (IgnoreSpaces)
+            {
+                sb.Append(' ');
+            }
+            else
+            {
+                sb.Append(' ', 2 * offset);
+            }
+        }
+
         public void AppendLine(string str)
         {
-            sb.Append(' ', 2 * offset);
-            sb.AppendLine(str);
+            if (IgnoreSpaces)
+            {
+                sb.Append(str);
+            }
+            else
+            {
+                AppendSpaces();
+                sb.AppendLine(str);
+            }
         }
+
         private String GetTag(int tag)
         {
             if (OutputType == TranslatorOutputType.SimpleXml || OmitNameSpace)
@@ -154,7 +195,7 @@ namespace Gurux.DLMS
 
         public void AppendLine(string tag, string name, object value)
         {
-            sb.Append(' ', 2 * offset);
+            AppendSpaces();
             sb.Append('<');
             sb.Append(tag);
             if (OutputType == TranslatorOutputType.SimpleXml)
@@ -232,7 +273,7 @@ namespace Gurux.DLMS
         {
             if (Comments)
             {
-                sb.Append(' ', 2 * offset);
+                AppendSpaces();
                 sb.Append("<!--");
                 sb.Append(comment);
                 sb.Append('\r');
@@ -248,7 +289,7 @@ namespace Gurux.DLMS
             if (Comments)
             {
                 --offset;
-                sb.Append(' ', 2 * offset);
+                AppendSpaces();
                 sb.Append("-->");
                 sb.Append('\r');
                 sb.Append('\n');
@@ -263,7 +304,7 @@ namespace Gurux.DLMS
         {
             if (Comments)
             {
-                sb.Append(' ', 2 * offset);
+                AppendSpaces();
                 sb.Append("<!--");
                 sb.Append(comment);
                 sb.Append("-->");
@@ -298,7 +339,7 @@ namespace Gurux.DLMS
 
         public void AppendStartTag(int tag, string name, string value)
         {
-            sb.Append(' ', 2 * offset);
+            AppendSpaces();
             sb.Append('<');
             sb.Append(GetTag(tag));
             if (OutputType == TranslatorOutputType.SimpleXml && name != null)
@@ -307,30 +348,34 @@ namespace Gurux.DLMS
                 sb.Append(name);
                 sb.Append("=\"");
                 sb.Append(value);
-                sb.AppendLine("\" >");
+                if (IgnoreSpaces)
+                {
+
+                }
+                AppendLine("\" >");
             }
             else
             {
-                sb.AppendLine(">");
+                AppendLine(">");
             }
             ++offset;
         }
 
         public void AppendStartTag(Enum cmd)
         {
-            sb.Append(' ', 2 * offset);
+            AppendSpaces();
             sb.Append("<");
             sb.Append(GetTag(Convert.ToInt32(cmd)));
-            sb.AppendLine(">");
+            AppendLine(">");
             ++offset;
         }
 
         public void AppendStartTag(Command cmd, Enum type)
         {
-            sb.Append(' ', 2 * offset);
+            AppendSpaces();
             sb.Append("<");
             sb.Append(GetTag((int)cmd << 8 | Convert.ToByte(type)));
-            sb.AppendLine(">");
+            AppendLine(">");
             ++offset;
         }
 
@@ -347,10 +392,11 @@ namespace Gurux.DLMS
         public void AppendEndTag(int tag)
         {
             --Offset;
-            sb.Append(' ', 2 * offset);
+            AppendSpaces();
             sb.Append("</");
             sb.Append(GetTag(tag));
-            sb.AppendLine(">");
+            sb.Append(">");
+            AppendLine("");
         }
 
         /// <summary>

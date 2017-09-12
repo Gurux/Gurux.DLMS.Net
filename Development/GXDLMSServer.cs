@@ -307,6 +307,8 @@ namespace Gurux.DLMS
         public GXDLMSServer(bool logicalNameReferencing, InterfaceType type)
         {
             Settings = new GXDLMSSettings(true);
+            Settings.ServerAddress = 1;
+            Settings.ClientAddress = 16;
             Settings.UseLogicalNameReferencing = logicalNameReferencing;
             Reset();
             this.InterfaceType = type;
@@ -321,6 +323,8 @@ namespace Gurux.DLMS
         public GXDLMSServer(GXDLMSAssociationLogicalName ln, InterfaceType type)
         {
             Settings = new GXDLMSSettings(true);
+            Settings.ServerAddress = 1;
+            Settings.ClientAddress = 16;
             Settings.UseLogicalNameReferencing = true;
             Reset();
             Settings.Objects.Add(ln);
@@ -335,6 +339,9 @@ namespace Gurux.DLMS
         public GXDLMSServer(GXDLMSAssociationShortName sn, InterfaceType type)
         {
             Settings = new GXDLMSSettings(true);
+            Settings.ServerAddress = 1;
+            Settings.ClientAddress = 16;
+
             Settings.UseLogicalNameReferencing = false;
             Reset();
             Settings.Objects.Add(sn);
@@ -800,6 +807,22 @@ namespace Gurux.DLMS
                 info.Clear();
                 return reply;
             }
+            catch (GXDLMSConfirmedServiceError e)
+            {
+                Debug.WriteLine(e.ToString());
+                replyData.Set(GenerateConfirmedServiceError(e.ConfirmedServiceError, e.ServiceError, e.ServiceErrorValue));
+                info.Clear();
+                byte[] reply;
+                if (this.InterfaceType == Enums.InterfaceType.WRAPPER)
+                {
+                    reply = GXDLMS.GetWrapperFrame(Settings, replyData);
+                }
+                else
+                {
+                    reply = GXDLMS.GetHdlcFrame(Settings, 0, replyData);
+                }
+                return reply;
+            }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.ToString());
@@ -950,6 +973,7 @@ namespace Gurux.DLMS
         ///</returns>
         private void HandleAarqRequest(GXByteBuffer data, GXDLMSConnectionEventArgs connectionInfo)
         {
+            GXByteBuffer error = null;
             AssociationResult result = AssociationResult.Accepted;
             Settings.CtoSChallenge = null;
             if (!Settings.UseCustomChallenge)
@@ -961,44 +985,58 @@ namespace Gurux.DLMS
             {
                 Reset(true);
             }
-            SourceDiagnostic diagnostic = GXAPDU.ParsePDU(Settings, Settings.Cipher, data, null);
-            if (diagnostic != SourceDiagnostic.None)
+            SourceDiagnostic diagnostic = SourceDiagnostic.NoReasonGiven;
+            try
             {
-                result = AssociationResult.PermanentRejected;
-                diagnostic = SourceDiagnostic.ApplicationContextNameNotSupported;
-                InvalidConnection(connectionInfo);
-            }
-            else
-            {
-                diagnostic = ValidateAuthentication(Settings.Authentication, Settings.Password);
+                diagnostic = GXAPDU.ParsePDU(Settings, Settings.Cipher, data, null);
                 if (diagnostic != SourceDiagnostic.None)
                 {
                     result = AssociationResult.PermanentRejected;
+                    diagnostic = SourceDiagnostic.ApplicationContextNameNotSupported;
                     InvalidConnection(connectionInfo);
-                }
-                else if (Settings.Authentication > Authentication.Low)
-                {
-                    // If High authentication is used.
-                    if (!Settings.UseCustomChallenge)
-                    {
-                        Settings.StoCChallenge = GXSecure.GenerateChallenge(Settings.Authentication);
-                    }
-                    result = AssociationResult.Accepted;
-                    diagnostic = SourceDiagnostic.AuthenticationRequired;
                 }
                 else
                 {
-                    Connected(connectionInfo);
-                    Settings.Connected = true;
+                    diagnostic = ValidateAuthentication(Settings.Authentication, Settings.Password);
+                    if (diagnostic != SourceDiagnostic.None)
+                    {
+                        result = AssociationResult.PermanentRejected;
+                        InvalidConnection(connectionInfo);
+                    }
+                    else if (Settings.Authentication > Authentication.Low)
+                    {
+                        // If High authentication is used.
+                        if (!Settings.UseCustomChallenge)
+                        {
+                            Settings.StoCChallenge = GXSecure.GenerateChallenge(Settings.Authentication);
+                        }
+                        result = AssociationResult.Accepted;
+                        diagnostic = SourceDiagnostic.AuthenticationRequired;
+                    }
+                    else
+                    {
+                        Connected(connectionInfo);
+                        Settings.Connected = true;
+                    }
                 }
+                Settings.IsAuthenticationRequired = diagnostic == SourceDiagnostic.AuthenticationRequired;
             }
-            Settings.IsAuthenticationRequired = diagnostic == SourceDiagnostic.AuthenticationRequired;
+            catch (GXDLMSConfirmedServiceError e)
+            {
+                result = AssociationResult.PermanentRejected;
+                diagnostic = SourceDiagnostic.NoReasonGiven;
+                error = new GXByteBuffer();
+                error.SetUInt8(0xE);
+                error.SetUInt8(e.ConfirmedServiceError);
+                error.SetUInt8(e.ServiceError);
+                error.SetUInt8(e.ServiceErrorValue);
+            }
             if (Settings.InterfaceType == Enums.InterfaceType.HDLC)
             {
                 replyData.Set(GXCommon.LLCReplyBytes);
             }
             // Generate AARE packet.
-            GXAPDU.GenerateAARE(Settings, replyData, result, diagnostic, Settings.Cipher, null);
+            GXAPDU.GenerateAARE(Settings, replyData, result, diagnostic, Settings.Cipher, error, null);
         }
 
         /// <summary>

@@ -45,10 +45,19 @@ namespace Gurux.DLMS.Secure
         ///<summary>
         /// Constructor.
         ///</summary>
-        public GXDLMSSecureClient() : base()
+        public GXDLMSSecureClient() : this(false)
         {
             Ciphering = new GXCiphering(ASCIIEncoding.ASCII.GetBytes("ABCDEFGH"));
             Settings.Cipher = Ciphering;
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="useLogicalNameReferencing">Is Logical or short name referencing used.</param>
+        public GXDLMSSecureClient(bool useLogicalNameReferencing) : this(useLogicalNameReferencing, 16, 1, Authentication.None, null, InterfaceType.HDLC)
+        {
+
         }
 
         /// <summary>

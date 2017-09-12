@@ -49,6 +49,8 @@ namespace Gurux.DLMS
     /// </summary>
     public class GXDLMSClient
     {
+        protected GXDLMSTranslator translator;
+
         /// <summary>
         /// DLMS settings.
         /// </summary>
@@ -75,12 +77,22 @@ namespace Gurux.DLMS
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXDLMSClient()
+        public GXDLMSClient() : this(false)
         {
-            Settings = new GXDLMSSettings(false);
-            Settings.Objects.Parent = this;
         }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="useLogicalNameReferencing">Is Logical or short name referencing used.</param>
+        /// <param name="clientAddress">Client address. Default is 16 (0x10)</param>
+        /// <param name="serverAddress">Server ID. Default is 1.</param>
+        /// <param name="authentication">Authentication type. Default is None</param>
+        /// <param name="password">Password if authentication is used.</param>
+        /// <param name="interfaceType">Interface type. Default is general.</param>
+        public GXDLMSClient(bool useLogicalNameReferencing) : this(useLogicalNameReferencing, 16, 1, Authentication.None, null, InterfaceType.HDLC)
+        {
+        }
 
         /// <summary>
         /// Constructor
@@ -687,16 +699,12 @@ namespace Gurux.DLMS
             }
             byte[] challenge = GXSecure.Secure(Settings, Settings.Cipher, ic,
                                                Settings.StoCChallenge, pw);
-            GXByteBuffer bb = new GXByteBuffer();
-            bb.SetUInt8((byte)DataType.OctetString);
-            GXCommon.SetObjectCount(challenge.Length, bb);
-            bb.Set(challenge);
             if (UseLogicalNameReferencing)
             {
                 return Method("0.0.40.0.0.255", ObjectType.AssociationLogicalName,
-                              1, bb.Array(), DataType.OctetString);
+                              1, challenge, DataType.OctetString);
             }
-            return Method(0xFA00, ObjectType.AssociationShortName, 8, bb.Array(),
+            return Method(0xFA00, ObjectType.AssociationShortName, 8, challenge,
                           DataType.OctetString);
         }
 
@@ -1371,14 +1379,7 @@ namespace Gurux.DLMS
             }
             GXByteBuffer attributeDescriptor = new GXByteBuffer();
             GXByteBuffer data = new GXByteBuffer();
-            if ((value is byte[]))
-            {
-                data.Set((byte[])value);
-            }
-            else if (type != DataType.None)
-            {
-                GXCommon.SetData(Settings, data, type, value);
-            }
+            GXCommon.SetData(Settings, data, type, value);
             if (UseLogicalNameReferencing)
             {
                 // CI
@@ -1935,7 +1936,39 @@ namespace Gurux.DLMS
         ///</returns>
         public bool GetData(byte[] reply, GXReplyData data)
         {
-            return GXDLMS.GetData(Settings, new GXByteBuffer(reply), data);
+            if (data.Xml != null)
+            {
+                data.Xml.SetXmlLength(0);
+            }
+            data.Xml = null;
+            bool ret = GXDLMS.GetData(Settings, new GXByteBuffer(reply), data);
+            if (ret && translator != null && data.Command != Command.None && (data.MoreData & RequestTypes.Frame) == 0)
+            {
+                if (data.Xml == null)
+                {
+                    data.Xml = new GXDLMSTranslatorStructure(translator.OutputType, translator.OmitXmlNameSpace, translator.Hex, translator.ShowStringAsHex, translator.Comments, translator.tags);
+                }
+                int pos = data.Data.Position;
+                try
+                {
+                    data.Data.Position = 0;
+                    if (data.Command == Command.Snrm || data.Command == Command.Ua)
+                    {
+                        data.Xml.AppendStartTag(data.Command);
+                        translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace);
+                        data.Xml.AppendEndTag(data.Command);
+                    }
+                    else
+                    {
+                        translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace);
+                    }
+                }
+                finally
+                {
+                    data.Data.Position = pos;
+                }
+            }
+            return ret;
         }
 
         /// <summary>
@@ -2175,13 +2208,12 @@ namespace Gurux.DLMS
                            Conformance.BlockTransferWithGetOrRead |
                            Conformance.Set | Conformance.SelectiveAccess |
                            Conformance.Action | Conformance.MultipleReferences |
-                           Conformance.Get | Conformance.GeneralProtection;
+                           Conformance.Get;
             }
             return Conformance.InformationReport |
                         Conformance.Read | Conformance.UnconfirmedWrite |
                         Conformance.Write | Conformance.ParameterizedAccess |
-                        Conformance.MultipleReferences |
-                        Conformance.GeneralProtection;
+                        Conformance.MultipleReferences;
         }
 
         /// <summary>

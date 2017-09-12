@@ -36,43 +36,47 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Objects;
 using Gurux.Net;
+using Gurux.Serial;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Xml.Serialization;
 
-namespace Gurux.DLMS.Meter.Listener.Net
+namespace Gurux.DLMS.Reader
 {
-    class GXDLMSReader
+    public class GXDLMSReader
     {
-        string path;
         int WaitTime = 5000;
-        GXNet Media;
-        bool Trace = true;
+        IGXMedia Media;
+        TraceLevel Trace;
         GXDLMSClient Client;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="media"></param>
-        public GXDLMSReader(GXNet media)
+        /// <param name="client">DLMS Client.</param>
+        /// <param name="media">Media.</param>
+        /// <param name="trace">Trace level.</param>
+        public GXDLMSReader(GXDLMSClient client, IGXMedia media, TraceLevel trace)
         {
+            Trace = trace;
             Media = media;
-            Client = new GXDLMSClient(true, 0x10, 1, Enums.Authentication.None, null, Enums.InterfaceType.HDLC);
-            path = "readout.xml";
+            Client = client;
         }
 
         /// <summary>
         /// Read all data from the meter.
         /// </summary>
-        public void ReadAll()
+        /// <param name="useCache">Read objects from file if exists.</param>
+        public void ReadAll(bool useCache)
         {
             try
             {
                 InitializeConnection();
-                GetAssociationView();
+                GetAssociationView(useCache);
                 GetScalersAndUnits();
                 GetProfileGenericColumns();
                 GetReadOut();
@@ -93,32 +97,35 @@ namespace Gurux.DLMS.Meter.Listener.Net
             data = Client.SNRMRequest();
             if (data != null)
             {
-                if (Trace)
+                if (Trace > TraceLevel.Info)
                 {
                     Console.WriteLine("Send SNRM request." + GXCommon.ToHex(data, true));
                 }
                 ReadDataBlock(data, reply);
-                if (Trace)
+                if (Trace == TraceLevel.Verbose)
                 {
                     Console.WriteLine("Parsing UA reply." + reply.ToString());
                 }
                 //Has server accepted client.
                 Client.ParseUAResponse(reply.Data);
-                Console.WriteLine("Parsing UA reply succeeded.");
+                if (Trace > TraceLevel.Info)
+                {
+                    Console.WriteLine("Parsing UA reply succeeded.");
+                }
             }
             //Generate AARQ request.
             //Split requests to multiple packets if needed.
             //If password is used all data might not fit to one packet.
             foreach (byte[] it in Client.AARQRequest())
             {
-                if (Trace)
+                if (Trace > TraceLevel.Info)
                 {
                     Console.WriteLine("Send AARQ request", GXCommon.ToHex(it, true));
                 }
                 reply.Clear();
                 ReadDataBlock(it, reply);
             }
-            if (Trace)
+            if (Trace > TraceLevel.Info)
             {
                 Console.WriteLine("Parsing AARE reply" + reply.ToString());
             }
@@ -126,7 +133,8 @@ namespace Gurux.DLMS.Meter.Listener.Net
             Client.ParseAAREResponse(reply.Data);
             reply.Clear();
             //Get challenge Is HLS authentication is used.
-            if (Client.IsAuthenticationRequired)
+            //There is a issue on Hexing meters. Meter don't return IsAuthenticationRequired.
+            if (Client.Authentication > Authentication.Low)
             {
                 foreach (byte[] it in Client.GetApplicationAssociationRequest())
                 {
@@ -135,14 +143,48 @@ namespace Gurux.DLMS.Meter.Listener.Net
                 }
                 Client.ParseApplicationAssociationResponse(reply.Data);
             }
-            Console.WriteLine("Parsing AARE reply succeeded.");
+            if (Trace > TraceLevel.Info)
+            {
+                Console.WriteLine("Parsing AARE reply succeeded.");
+            }
         }
 
         /// <summary>
         /// Read association view.
         /// </summary>
-        public void GetAssociationView()
+        public void GetAssociationView(bool useCache)
         {
+            if (useCache)
+            {
+                string path = GetCacheName();
+                List<Type> extraTypes = new List<Type>(Gurux.DLMS.GXDLMSClient.GetObjectTypes());
+                extraTypes.Add(typeof(GXDLMSAttributeSettings));
+                extraTypes.Add(typeof(GXDLMSAttribute));
+                XmlSerializer x = new XmlSerializer(typeof(GXDLMSObjectCollection), extraTypes.ToArray());
+                //You can save association view, but make sure that it is not change.
+                //Save Association view to the cache so it is not needed to retrieve every time.
+                if (File.Exists(path))
+                {
+                    try
+                    {
+                        using (Stream stream = File.Open(path, FileMode.Open))
+                        {
+                            Console.WriteLine("Get available objects from the cache.");
+                            Client.Objects.AddRange(x.Deserialize(stream) as GXDLMSObjectCollection);
+                            stream.Close();
+                        }
+                        return;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (File.Exists(path))
+                        {
+                            File.Delete(path);
+                        }
+                        throw ex;
+                    }
+                }
+            }
             GXReplyData reply = new GXReplyData();
             ReadDataBlock(Client.GetObjectsRequest(), reply);
             Client.ParseObjects(reply.Data, true);
@@ -154,7 +196,11 @@ namespace Gurux.DLMS.Meter.Listener.Net
         public void GetScalersAndUnits()
         {
             GXDLMSObjectCollection objs = Client.Objects.GetObjects(new ObjectType[] { ObjectType.Register, ObjectType.ExtendedRegister, ObjectType.DemandRegister });
-            Console.WriteLine("Read scalers and units from the device.");
+            //If trace is info.
+            if (Trace > TraceLevel.Warning)
+            {
+                Console.WriteLine("Read scalers and units from the device.");
+            }
             if ((Client.NegotiatedConformance & Conformance.MultipleReferences) != 0)
             {
                 List<KeyValuePair<GXDLMSObject, int>> list = new List<KeyValuePair<GXDLMSObject, int>>();
@@ -169,7 +215,10 @@ namespace Gurux.DLMS.Meter.Listener.Net
                         list.Add(new KeyValuePair<GXDLMSObject, int>(it, 4));
                     }
                 }
-                ReadList(list);
+                if (list.Count != 0)
+                {
+                    ReadList(list);
+                }
             }
             else
             {
@@ -196,6 +245,10 @@ namespace Gurux.DLMS.Meter.Listener.Net
                 }
             }
         }
+        public string GetCacheName()
+        {
+            return Media.ToString().Replace(":", "") + ".xml";
+        }
 
         /// <summary>
         /// Read profile generic columns.
@@ -207,21 +260,30 @@ namespace Gurux.DLMS.Meter.Listener.Net
             {
                 try
                 {
-                    Console.WriteLine(it.Name);
-                    Read(it, 3);
-                    GXDLMSObject[] cols = (it as GXDLMSProfileGeneric).GetCaptureObject();
-                    StringBuilder sb = new StringBuilder();
-                    bool First = true;
-                    foreach (GXDLMSObject col in cols)
+                    //If info.
+                    if (Trace > TraceLevel.Warning)
                     {
-                        if (!First)
+                        Console.WriteLine(it.LogicalName);
+                    }
+                    Read(it, 3);
+                    //If info.
+                    if (Trace > TraceLevel.Warning)
+                    {
+                        GXDLMSObject[] cols = (it as GXDLMSProfileGeneric).GetCaptureObject();
+                        StringBuilder sb = new StringBuilder();
+                        bool First = true;
+                        foreach (GXDLMSObject col in cols)
                         {
-                            sb.Append(" | ");
+                            if (!First)
+                            {
+                                sb.Append(" | ");
+                            }
+                            First = false;
+                            sb.Append(col.Name);
+                            sb.Append(" ");
+                            sb.Append(col.Description);
                         }
-                        First = false;
-                        sb.Append(col.Name);
-                        sb.Append(" ");
-                        sb.Append(col.Description);
+                        Console.WriteLine(sb.ToString());
                     }
                 }
                 catch (Exception ex)
@@ -229,6 +291,7 @@ namespace Gurux.DLMS.Meter.Listener.Net
                     //Continue reading.
                 }
             }
+            string path = GetCacheName();
             try
             {
                 List<Type> extraTypes = new List<Type>(Gurux.DLMS.GXDLMSClient.GetObjectTypes());
@@ -253,6 +316,63 @@ namespace Gurux.DLMS.Meter.Listener.Net
             }
         }
 
+        public void ShowValue(object val, int pos)
+        {
+            //If trace is info.
+            if (Trace > TraceLevel.Warning)
+            {
+                //If data is array.
+                if (val is byte[])
+                {
+                    val = GXCommon.ToHex((byte[])val, true);
+                }
+                else if (val is Array)
+                {
+                    string str = "";
+                    for (int pos2 = 0; pos2 != (val as Array).Length; ++pos2)
+                    {
+                        if (str != "")
+                        {
+                            str += ", ";
+                        }
+                        if ((val as Array).GetValue(pos2) is byte[])
+                        {
+                            str += GXCommon.ToHex((byte[])(val as Array).GetValue(pos2), true);
+                        }
+                        else
+                        {
+                            str += (val as Array).GetValue(pos2).ToString();
+                        }
+                    }
+                    val = str;
+                }
+                else if (val is System.Collections.IList)
+                {
+                    string str = "[";
+                    bool empty = true;
+                    foreach (object it2 in val as System.Collections.IList)
+                    {
+                        if (!empty)
+                        {
+                            str += ", ";
+                        }
+                        empty = false;
+                        if (it2 is byte[])
+                        {
+                            str += GXCommon.ToHex((byte[])it2, true);
+                        }
+                        else
+                        {
+                            str += it2.ToString();
+                        }
+                    }
+                    str += "]";
+                    val = str;
+                }
+                Console.WriteLine("Index: " + pos + " Value: " + val);
+            }
+        }
+
         /// <summary>
         /// Read all objects from the meter.
         /// </summary>
@@ -273,78 +393,44 @@ namespace Gurux.DLMS.Meter.Listener.Net
                 {
                     //If interface is not implemented.
                     //Example manufacturer spesific interface.
-                    Console.WriteLine("Unknown Interface: " + it.ObjectType.ToString());
+                    if (Trace > TraceLevel.Error)
+                    {
+                        Console.WriteLine("Unknown Interface: " + it.ObjectType.ToString());
+                    }
                     continue;
                 }
-                Console.WriteLine("-------- Reading " + it.GetType().Name + " " + it.Name + " " + it.Description);
+                if (Trace > TraceLevel.Warning)
+                {
+                    Console.WriteLine("-------- Reading " + it.GetType().Name + " " + it.Name + " " + it.Description);
+                }
                 foreach (int pos in (it as IGXDLMSBase).GetAttributeIndexToRead())
                 {
                     try
                     {
                         object val = Read(it, pos);
-                        //If data is array.
-                        if (val is byte[])
-                        {
-                            val = GXCommon.ToHex((byte[])val, true);
-                        }
-                        else if (val is Array)
-                        {
-                            string str = "";
-                            for (int pos2 = 0; pos2 != (val as Array).Length; ++pos2)
-                            {
-                                if (str != "")
-                                {
-                                    str += ", ";
-                                }
-                                if ((val as Array).GetValue(pos2) is byte[])
-                                {
-                                    str += GXCommon.ToHex((byte[])(val as Array).GetValue(pos2), true);
-                                }
-                                else
-                                {
-                                    str += (val as Array).GetValue(pos2).ToString();
-                                }
-                            }
-                            val = str;
-                        }
-                        else if (val is System.Collections.IList)
-                        {
-                            string str = "[";
-                            bool empty = true;
-                            foreach (object it2 in val as System.Collections.IList)
-                            {
-                                if (!empty)
-                                {
-                                    str += ", ";
-                                }
-                                empty = false;
-                                if (it2 is byte[])
-                                {
-                                    str += GXCommon.ToHex((byte[])it2, true);
-                                }
-                                else
-                                {
-                                    str += it2.ToString();
-                                }
-                            }
-                            str += "]";
-                            val = str;
-                        }
-                        Console.WriteLine("Index: " + pos + " Value: " + val);
+                        ShowValue(val, pos);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine("Error! Index: " + pos + " " + ex.Message);
+                        Console.WriteLine("Error! " + it.GetType().Name + " " + it.Name + "Index: " + pos + " " + ex.Message);
                     }
                 }
             }
             //Find profile generics and read them.
             foreach (GXDLMSObject it in Client.Objects.GetObjects(ObjectType.ProfileGeneric))
             {
-                Console.WriteLine("-------- Reading " + it.GetType().Name + " " + it.Name + " " + it.Description);
+                //If trace is info.
+                if (Trace > TraceLevel.Warning)
+                {
+                    Console.WriteLine("-------- Reading " + it.GetType().Name + " " + it.Name + " " + it.Description);
+                }
                 long entriesInUse = Convert.ToInt64(Read(it, 7));
                 long entries = Convert.ToInt64(Read(it, 8));
-                Console.WriteLine("Entries: " + entriesInUse + "/" + entries);
+                //If trace is info.
+                if (Trace > TraceLevel.Warning)
+                {
+                    Console.WriteLine("Entries: " + entriesInUse + "/" + entries);
+                }
                 //If there are no columns or rows.
                 if (entriesInUse == 0 || (it as GXDLMSProfileGeneric).CaptureObjects.Count == 0)
                 {
@@ -357,22 +443,26 @@ namespace Gurux.DLMS.Meter.Listener.Net
                     {
                         //Read first row from Profile Generic.
                         object[] rows = ReadRowsByEntry(it as GXDLMSProfileGeneric, 1, 1);
-                        StringBuilder sb = new StringBuilder();
-                        foreach (object[] row in rows)
+                        //If trace is info.
+                        if (Trace > TraceLevel.Warning)
                         {
-                            foreach (object cell in row)
+                            StringBuilder sb = new StringBuilder();
+                            foreach (object[] row in rows)
                             {
-                                if (cell is byte[])
+                                foreach (object cell in row)
                                 {
-                                    sb.Append(GXCommon.ToHex((byte[])cell, true));
+                                    if (cell is byte[])
+                                    {
+                                        sb.Append(GXCommon.ToHex((byte[])cell, true));
+                                    }
+                                    else
+                                    {
+                                        sb.Append(Convert.ToString(cell));
+                                    }
+                                    sb.Append(" | ");
                                 }
-                                else
-                                {
-                                    sb.Append(Convert.ToString(cell));
-                                }
-                                sb.Append(" | ");
+                                sb.Append("\r\n");
                             }
-                            sb.Append("\r\n");
                         }
                     }
                     catch (Exception ex)
@@ -388,22 +478,26 @@ namespace Gurux.DLMS.Meter.Listener.Net
                     {
                         //Read last day from Profile Generic.
                         object[] rows = ReadRowsByRange(it as GXDLMSProfileGeneric, DateTime.Now.Date, DateTime.MaxValue);
-                        StringBuilder sb = new StringBuilder();
-                        foreach (object[] row in rows)
+                        //If trace is info.
+                        if (Trace > TraceLevel.Warning)
                         {
-                            foreach (object cell in row)
+                            StringBuilder sb = new StringBuilder();
+                            foreach (object[] row in rows)
                             {
-                                if (cell is byte[])
+                                foreach (object cell in row)
                                 {
-                                    sb.Append(GXCommon.ToHex((byte[])cell, true));
+                                    if (cell is byte[])
+                                    {
+                                        sb.Append(GXCommon.ToHex((byte[])cell, true));
+                                    }
+                                    else
+                                    {
+                                        sb.Append(Convert.ToString(cell));
+                                    }
+                                    sb.Append(" | ");
                                 }
-                                else
-                                {
-                                    sb.Append(Convert.ToString(cell));
-                                }
-                                sb.Append(" | ");
+                                sb.Append("\r\n");
                             }
-                            sb.Append("\r\n");
                         }
                     }
                     catch (Exception ex)
@@ -520,6 +614,10 @@ namespace Gurux.DLMS.Meter.Listener.Net
         /// <returns>Return false if frame is rejected.</returns>
         public bool ReadDataBlock(byte[][] data, GXReplyData reply)
         {
+            if (data == null)
+            {
+                return true;
+            }
             foreach (byte[] it in data)
             {
                 reply.Clear();
@@ -542,7 +640,7 @@ namespace Gurux.DLMS.Meter.Listener.Net
             {
                 data = Client.ReceiverReady(reply.MoreData);
                 ReadDLMSPacket(data, reply);
-                if (!Trace)
+                if (Trace > TraceLevel.Info)
                 {
                     //If data block is read.
                     if ((reply.MoreData & RequestTypes.Frame) == 0)
@@ -664,8 +762,20 @@ namespace Gurux.DLMS.Meter.Listener.Net
             {
                 try
                 {
-                    Console.WriteLine("Disconnecting from the meter.");
+                    if (Trace > TraceLevel.Info)
+                    {
+                        Console.WriteLine("Disconnecting from the meter.");
+                    }
                     GXReplyData reply = new GXReplyData();
+                    try
+                    {
+                        ReadDataBlock(Client.ReleaseRequest(), reply);
+                    }
+                    catch (Exception)
+                    {
+                        //All meters don't support release.
+                    }
+                    reply.Clear();
                     ReadDLMSPacket(Client.DisconnectRequest(), reply);
                     Media.Close();
                 }
@@ -684,7 +794,7 @@ namespace Gurux.DLMS.Meter.Listener.Net
         /// <param name="line"></param>
         void WriteTrace(string line)
         {
-            if (Trace)
+            if (Trace > TraceLevel.Info)
             {
                 Console.WriteLine(line);
             }

@@ -879,14 +879,10 @@ namespace Gurux.DLMS
             return messages.ToArray();
         }
 
-        static int AppendMultipleSNBlocks(GXDLMSSNParameters p, GXByteBuffer header, GXByteBuffer reply)
+        static int AppendMultipleSNBlocks(GXDLMSSNParameters p, GXByteBuffer reply)
         {
             bool ciphering = p.settings.Cipher != null && p.settings.Cipher.Security != Gurux.DLMS.Enums.Security.None;
             int hSize = reply.Size + 3;
-            if (header != null)
-            {
-                hSize += header.Size;
-            }
             //Add LLC bytes.
             if (p.command == Command.WriteRequest ||
                     p.command == Command.ReadRequest)
@@ -926,15 +922,7 @@ namespace Gurux.DLMS
             {
                 ++p.blockIndex;
             }
-            if (header != null)
-            {
-                GXCommon.SetObjectCount(maxSize + header.Size, reply);
-                reply.Set(header);
-            }
-            else
-            {
-                GXCommon.SetObjectCount(maxSize, reply);
-            }
+            GXCommon.SetObjectCount(maxSize, reply);
             return maxSize;
         }
 
@@ -1020,13 +1008,6 @@ namespace Gurux.DLMS
                     if (p.multipleBlocks)
                     {
                         //Remove command.
-                        GXByteBuffer tmp = new GXByteBuffer();
-                        int offset = 1;
-                        if (!ciphering && p.settings.InterfaceType == InterfaceType.HDLC)
-                        {
-                            offset = 4;
-                        }
-                        tmp.Set(reply.Data, offset, reply.Size - offset);
                         reply.Size = 0;
                         if (!ciphering && p.settings.InterfaceType == InterfaceType.HDLC)
                         {
@@ -1062,12 +1043,12 @@ namespace Gurux.DLMS
                         {
                             reply.SetUInt8(p.requestType);
                         }
-                        cnt = GXDLMS.AppendMultipleSNBlocks(p, tmp, reply);
+                        cnt = GXDLMS.AppendMultipleSNBlocks(p, reply);
                     }
                 }
                 else
                 {
-                    cnt = GXDLMS.AppendMultipleSNBlocks(p, null, reply);
+                    cnt = GXDLMS.AppendMultipleSNBlocks(p, reply);
                 }
             }
             // Add data.
@@ -1713,26 +1694,6 @@ namespace Gurux.DLMS
             // Get Block number.
             UInt32 number = reply.Data.GetUInt16();
             int blockLength = GXCommon.GetObjectCount(reply.Data);
-            // Check block length when all data is received.
-            if ((reply.MoreData & RequestTypes.Frame) == 0)
-            {
-                if (blockLength != reply.Data.Size - reply.Data.Position)
-                {
-                    throw new OutOfMemoryException();
-                }
-                reply.Command = Command.None;
-                if (reply.Xml != null)
-                {
-                    reply.Data.Trim();
-                    reply.Xml.AppendStartTag(Command.ReadResponse, SingleReadResponse.DataBlockResult);
-                    reply.Xml.AppendLine(TranslatorTags.LastBlock, "Value", reply.Xml.IntegerToHex(lastBlock, 2));
-                    reply.Xml.AppendLine(TranslatorTags.BlockNumber, "Value", reply.Xml.IntegerToHex(number, 4));
-                    reply.Xml.AppendLine(TranslatorTags.RawData, "Value", GXCommon.ToHex(reply.Data.Data, false, 0, reply.Data.Size));
-                    reply.Xml.AppendEndTag(Command.ReadResponse, SingleReadResponse.DataBlockResult);
-                    return false;
-                }
-            }
-            GetDataFromBlock(reply.Data, index);
             // Is not Last block.
             if (lastBlock == 0)
             {
@@ -1742,6 +1703,7 @@ namespace Gurux.DLMS
             {
                 reply.MoreData = (RequestTypes)(reply.MoreData & ~RequestTypes.DataBlock);
             }
+
             //If meter's block index is zero based.
             if (number != 1 && settings.BlockIndex == 1)
             {
@@ -1754,11 +1716,33 @@ namespace Gurux.DLMS
                     "Invalid Block number. It is " + number
                     + " and it should be " + expectedIndex + ".");
             }
+            // If whole block is not read.
+            if ((reply.MoreData & RequestTypes.Frame) != 0)
+            {
+                GetDataFromBlock(reply.Data, index);
+                return false;
+            }
+            // Check block length when all data is received.
+            if (blockLength != reply.Data.Size - reply.Data.Position)
+            {
+                throw new GXDLMSException("Invalid block length.");
+            }
+            reply.Command = Command.None;
+            if (reply.Xml != null)
+            {
+                reply.Data.Trim();
+                reply.Xml.AppendStartTag(Command.ReadResponse, SingleReadResponse.DataBlockResult);
+                reply.Xml.AppendLine(TranslatorTags.LastBlock, "Value", reply.Xml.IntegerToHex(lastBlock, 2));
+                reply.Xml.AppendLine(TranslatorTags.BlockNumber, "Value", reply.Xml.IntegerToHex(number, 4));
+                reply.Xml.AppendLine(TranslatorTags.RawData, "Value", GXCommon.ToHex(reply.Data.Data, false, 0, reply.Data.Size));
+                reply.Xml.AppendEndTag(Command.ReadResponse, SingleReadResponse.DataBlockResult);
+                return false;
+            }
+            GetDataFromBlock(reply.Data, index);
+            reply.TotalCount = 0;
             // If last packet and data is not try to peek.
             if (reply.MoreData == RequestTypes.None)
             {
-                reply.Data.Position = 0;
-                HandleReadResponse(settings, reply, index);
                 settings.ResetBlockIndex();
             }
             return true;
@@ -1770,28 +1754,16 @@ namespace Gurux.DLMS
         /// <param name="reply">Received data from the client.</param>
         static bool HandleReadResponse(GXDLMSSettings settings, GXReplyData reply, int index)
         {
-            int pos = 0, cnt;
-            bool first;
-            if (reply.Count == 0 && reply.TotalCount == 0)
+            int pos, cnt = reply.TotalCount;
+            // If we are reading value first time or block is handed.
+            bool first = reply.TotalCount == 0 || reply.CommandType == (byte)SingleReadResponse.DataBlockResult;
+            if (first)
             {
                 cnt = GXCommon.GetObjectCount(reply.Data);
-            }
-            else
-            {
-                cnt = reply.TotalCount;
-            }
-            //Set total count if not set yet.
-            if (reply.TotalCount == 0)
-            {
-                first = true;
                 reply.TotalCount = cnt;
             }
-            else
-            {
-                first = false;
-            }
-            SingleReadResponse type = SingleReadResponse.Data;
-            List<object> values = null;
+            SingleReadResponse type;
+            List<Object> values = null;
             if (cnt != 1)
             {
                 values = new List<object>();
@@ -1805,7 +1777,7 @@ namespace Gurux.DLMS
             {
                 reply.Xml.AppendStartTag(Command.ReadResponse, "Qty", reply.Xml.IntegerToHex(cnt, 2));
             }
-            for (; pos != cnt; ++pos)
+            for (pos = 0; pos != cnt; ++pos)
             {
                 if (reply.Data.Available == 0)
                 {
@@ -1817,12 +1789,16 @@ namespace Gurux.DLMS
                     }
                     return false;
                 }
-                // Get status code. Status code is begin of each read object. 
-                if (first || cnt != 1)
+                // Get status code. Status code is begin of each PDU. 
+                if (first)
                 {
-                    reply.CommandType = reply.Data.GetUInt8();
+                    type = (SingleReadResponse)reply.Data.GetUInt8();
+                    reply.CommandType = (byte)type;
                 }
-                type = (SingleReadResponse)reply.CommandType;
+                else
+                {
+                    type = (SingleReadResponse)reply.CommandType;
+                }
                 bool standardXml = reply.Xml != null && reply.Xml.OutputType == TranslatorOutputType.StandardXml;
                 switch (type)
                 {
@@ -2681,15 +2657,6 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    //If we are receiving last read block in frames.
-                    if (data.Command == Command.ReadResponse && !data.IsMoreData)
-                    {
-                        data.Data.Position = 0;
-                        if (!HandleReadResponse(settings, data, 0))
-                        {
-                            return;
-                        }
-                    }
                     // Client do not need a command any more.
                     data.Command = Command.None;
                     //Ciphered messages are handled after whole PDU is received.
@@ -2708,9 +2675,16 @@ namespace Gurux.DLMS
                     }
                 }
             }
+            // Get data only blocks if SN is used. This is faster.
+            if (cmd == Command.ReadResponse
+                    && data.CommandType == (byte)SingleReadResponse.DataBlockResult
+                    && (data.MoreData & RequestTypes.Frame) != 0)
+            {
+                return;
+            }
             // Get data if all data is read or we want to peek data.
             if (data.Xml == null && data.Data.Position != data.Data.Size &&
-                    (cmd == Command.ReadResponse || cmd == Command.GetResponse)
+                    (cmd == Command.ReadResponse || cmd == Command.GetResponse || cmd == Command.MethodResponse)
                     && (data.MoreData == RequestTypes.None || data.Peek))
             {
                 GetValueFromData(settings, data);

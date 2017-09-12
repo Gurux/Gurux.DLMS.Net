@@ -561,7 +561,7 @@ namespace Gurux.DLMS.Internal
                 return null;
             }
             int startIndex = index;
-            List<object> arr = new List<object>(info.Count - info.Index);
+            List<object> arr = new List<object>();
             // Position where last row was found. Cache uses this info.
             int pos = info.Index;
             for (; pos != info.Count; ++pos)

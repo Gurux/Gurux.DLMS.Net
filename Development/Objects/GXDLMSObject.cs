@@ -298,7 +298,14 @@ namespace Gurux.DLMS.Objects
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void ClearDirty(int attributeIndex)
         {
-            DirtyAttributes.Remove(attributeIndex);
+            if (attributeIndex == 0)
+            {
+                DirtyAttributes.Clear();
+            }
+            else
+            {
+                DirtyAttributes.Remove(attributeIndex);
+            }
             if (OnChange != null)
             {
                 OnChange(this, false, attributeIndex, null);
@@ -371,6 +378,15 @@ namespace Gurux.DLMS.Objects
         public void SetLastReadTime(int attributeIndex, DateTime tm)
         {
             ReadTimes[attributeIndex] = tm;
+        }
+
+        /// <summary>
+        /// CLear read times.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void ClearReadTime()
+        {
+            ReadTimes.Clear();
         }
 
         /// <summary>

@@ -71,6 +71,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GXDLMSXmlClient.cs" />
     <Compile Include="GXDLMSConfirmedServiceError.cs" />
     <Compile Include="Internal\ReleaseResponseReason.cs" />
     <Compile Include="Objects\Enums\GsmPacketSwitchStatus.cs" />

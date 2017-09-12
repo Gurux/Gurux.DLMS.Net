@@ -105,6 +105,10 @@ namespace Gurux.DLMS
         CipheredContent,
         AttributeValue,
         CurrentTime,
-        Time
+        Time,
+        MaxInfoRX,
+        MaxInfoTX,
+        WindowSizeRX,
+        WindowSizeTX
     }
 }

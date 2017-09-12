@@ -153,6 +153,31 @@ namespace Gurux.DLMS.Objects
                             };
         }
 
+
+
+        /// <summary>
+        /// Updates secret.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] UpdateSecret(GXDLMSClient client)
+        {
+            if (AuthenticationMechanismName.MechanismId == Authentication.None)
+            {
+                throw new ArgumentException("Invalid authentication level in MechanismId.");
+            }
+            if (AuthenticationMechanismName.MechanismId == Authentication.HighGMAC)
+            {
+                throw new ArgumentException("HighGMAC secret is updated using Security setup.");
+            }
+            if (AuthenticationMechanismName.MechanismId == Authentication.Low)
+            {
+                return client.Write(this, 7);
+            }
+            //Action is used to update High authectication pw.
+            return client.Method(this, 2, Secret, DataType.OctetString);
+        }
+
         #region IGXDLMSBase Members
 
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)

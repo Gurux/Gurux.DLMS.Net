@@ -229,6 +229,10 @@ namespace Gurux.DLMS
             DataType = DataType.None;
             CipherIndex = 0;
             Time = DateTime.MinValue;
+            if (Xml != null)
+            {
+                Xml.SetXmlLength(0);
+            }
         }
 
         /// <summary>
@@ -304,6 +308,10 @@ namespace Gurux.DLMS
         /// <returns></returns>
         public override string ToString()
         {
+            if (Xml != null)
+            {
+                return Xml.ToString();
+            }
             if (Data == null)
             {
                 return "";

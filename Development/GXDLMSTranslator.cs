@@ -54,8 +54,8 @@ namespace Gurux.DLMS
     ///</summary>
     public class GXDLMSTranslator
     {
-        private SortedList<int, string> tags = new SortedList<int, string>();
-        private SortedList<string, int> tagsByName = new SortedList<string, int>();
+        internal SortedList<int, string> tags = new SortedList<int, string>();
+        internal SortedList<string, int> tagsByName = new SortedList<string, int>();
 
         /// <summary>
         /// Sending data in multiple frames.
@@ -596,7 +596,17 @@ namespace Gurux.DLMS
                                 }
                                 else
                                 {
-                                    xml.AppendLine(PduToXml(data.Data, true, true));
+                                    if (data.Command == Command.Snrm || data.Command == Command.Ua)
+                                    {
+                                        xml.AppendStartTag(data.Command);
+                                        PduToXml(xml, data.Data, true, true);
+                                        xml.AppendEndTag(data.Command);
+                                        xml.sb.Length += 2;
+                                    }
+                                    else
+                                    {
+                                        xml.AppendLine(PduToXml(data.Data, true, true));
+                                    }
                                 }
                                 // Remove \r\n.
                                 xml.sb.Length -= 2;
@@ -698,7 +708,6 @@ namespace Gurux.DLMS
 
         private void GetUa(GXByteBuffer data, GXDLMSTranslatorStructure xml)
         {
-            xml.AppendStartTag(Command.Ua);
             data.GetUInt8(); // Skip FromatID
             data.GetUInt8(); // Skip Group ID.
             data.GetUInt8(); // Skip Group len
@@ -741,7 +750,6 @@ namespace Gurux.DLMS
                         throw new GXDLMSException("Invalid UA response.");
                 }
             }
-            xml.AppendEndTag(Command.Ua);
         }
 
         /// <summary>
@@ -760,7 +768,7 @@ namespace Gurux.DLMS
             return PduToXml(xml, value, omitDeclaration, omitNameSpace);
         }
 
-        private string PduToXml(GXDLMSTranslatorStructure xml, GXByteBuffer value, bool omitDeclaration, bool omitNameSpace)
+        internal string PduToXml(GXDLMSTranslatorStructure xml, GXByteBuffer value, bool omitDeclaration, bool omitNameSpace)
         {
             if (value == null || value.Size == 0)
             {
@@ -1074,6 +1082,7 @@ namespace Gurux.DLMS
                 case (int)Command.InitiateResponse:
                 case (int)Command.InformationReport:
                 case (int)Command.EventNotification:
+                case (int)Command.DisconnectRequest:
                     break;
                 case (byte)Command.GloInitiateResponse:
                 case (byte)Command.GloGetResponse:
@@ -1099,7 +1108,7 @@ namespace Gurux.DLMS
         /// <param name="node">XML node.</param>
         /// <param name="s">XML Settings.</param>
         /// <param name="tag">XML tag.</param>
-        private static void HandleAarqAare(XmlNode node, GXDLMSXmlSettings s, int tag)
+        private static bool HandleAarqAare(XmlNode node, GXDLMSXmlSettings s, int tag)
         {
             byte[] tmp;
             Conformance c;
@@ -1188,6 +1197,7 @@ namespace Gurux.DLMS
                 case 0xBE06:
                 case 0xBE01:
                     //NegotiatedDlmsVersionNumber or ProposedDlmsVersionNumber is skipped.
+                    s.settings.DLMSVersion = byte.Parse(GetValue(node, s));
                     break;
                 case 0xBE04:
                     //VaaName is not needed.
@@ -1281,7 +1291,7 @@ namespace Gurux.DLMS
                 case 0xBE02:
                 case 0xBE07:
                     //NegotiatedMaxPduSize or ProposedMaxPduSize.
-                    s.settings.MaxPduSize = (UInt16)s.ParseInt(GetValue(node, s));
+                    s.settings.maxReceivePDUSize = (UInt16)s.ParseLong(GetValue(node, s));
                     break;
                 case 0xA3:
                     //ResultSourceDiagnostic
@@ -1326,13 +1336,60 @@ namespace Gurux.DLMS
                                int.Parse(GetValue(node, s));
                     break;
                 case (int)Command.ConfirmedServiceError:
-                    s.settings.IsServer = false;
-                    s.command = (Command)tag;
+                    if (s.command == Command.None)
+                    {
+                        s.settings.IsServer = false;
+                        s.command = (Command)tag;
+                    }
+                    break;
+                case (int)TranslatorTags.Reason:
+                    if (s.command == Command.ReleaseRequest)
+                    {
+                        if (s.OutputType == TranslatorOutputType.SimpleXml)
+                        {
+                            s.reason = (byte)TranslatorSimpleTags.ValueOfReleaseRequestReason(GetValue(node, s));
+                        }
+                        else
+                        {
+                            s.reason = (byte)TranslatorStandardTags.ValueOfReleaseRequestReason(GetValue(node, s));
+                        }
+                    }
+                    else
+                    {
+                        if (s.OutputType == TranslatorOutputType.SimpleXml)
+                        {
+                            s.reason = (byte)TranslatorSimpleTags.ValueOfReleaseResponseReason(GetValue(node, s));
+                        }
+                        else
+                        {
+                            s.reason = (byte)TranslatorStandardTags.ValueOfReleaseResponseReason(GetValue(node, s));
+                        }
+                    }
+                    break;
+
+                case (int)TranslatorTags.Service:
+                    s.attributeDescriptor.SetUInt8(0xE);
+                    s.attributeDescriptor.SetUInt8((byte)s.ParseInt(GetValue(node, s)));
+                    break;
+                case (int)TranslatorTags.ServiceError:
+                    if (s.command == Command.Aare)
+                    {
+                        s.attributeDescriptor.SetUInt8(6);
+                        foreach (XmlNode childNode in node.ChildNodes)
+                        {
+                            if (childNode.NodeType == XmlNodeType.Element)
+                            {
+                                s.attributeDescriptor.SetUInt8((byte)TranslatorSimpleTags.GetInitiate(GetValue(childNode, s)));
+                            }
+                        }
+                        return false;
+                    }
                     break;
                 default:
                     throw new ArgumentException("Invalid AARQ node: " + node.Name);
 
             }
+            return true;
         }
 
         private static GXByteBuffer UpdateDataType(XmlNode node, GXDLMSXmlSettings s, int tag)
@@ -1585,9 +1642,14 @@ namespace Gurux.DLMS
             else if (s.command == Command.Aarq ||
                      s.command == Command.Aare ||
                      s.command == Command.InitiateRequest ||
-                     s.command == Command.InitiateResponse)
+                     s.command == Command.InitiateResponse ||
+                     s.command == Command.ReleaseRequest ||
+                     s.command == Command.ReleaseResponse)
             {
-                HandleAarqAare(node, s, tag);
+                if (!HandleAarqAare(node, s, tag))
+                {
+                    return;
+                }
             }
             else if (tag >= GXDLMS.DATA_TYPE_OFFSET)
             {
@@ -1881,30 +1943,6 @@ namespace Gurux.DLMS
                             }
                         }
                         break;
-                    case (int)TranslatorTags.Reason:
-                        if (s.command == Command.ReleaseRequest)
-                        {
-                            if (s.OutputType == TranslatorOutputType.SimpleXml)
-                            {
-                                s.reason = (byte)TranslatorSimpleTags.ValueOfReleaseRequestReason(GetValue(node, s));
-                            }
-                            else
-                            {
-                                s.reason = (byte)TranslatorStandardTags.ValueOfReleaseRequestReason(GetValue(node, s));
-                            }
-                        }
-                        else
-                        {
-                            if (s.OutputType == TranslatorOutputType.SimpleXml)
-                            {
-                                s.reason = (byte)TranslatorSimpleTags.ValueOfReleaseResponseReason(GetValue(node, s));
-                            }
-                            else
-                            {
-                                s.reason = (byte)TranslatorStandardTags.ValueOfReleaseResponseReason(GetValue(node, s));
-                            }
-                        }
-                        break;
                     case (int)TranslatorTags.ReturnParameters:
                         s.attributeDescriptor.SetUInt8(1);
                         break;
@@ -2069,6 +2107,32 @@ namespace Gurux.DLMS
                         break;
                     case (int)TranslatorTags.AttributeValue:
                         break;
+                    case (int)TranslatorTags.MaxInfoTX:
+                        s.limits.MaxInfoRX = Byte.Parse(GetValue(node, s));
+                        s.data.SetUInt8((byte)HDLCInfo.MaxInfoRX);
+                        s.data.SetUInt8(GXCommon.GetSize(s.limits.MaxInfoRX));
+                        s.data.Add(s.limits.MaxInfoRX);
+                        break;
+                    case (int)TranslatorTags.MaxInfoRX:
+                        s.limits.MaxInfoTX = Byte.Parse(GetValue(node, s));
+                        s.data.SetUInt8((byte)HDLCInfo.MaxInfoTX);
+                        s.data.SetUInt8(GXCommon.GetSize(s.limits.MaxInfoTX));
+                        s.data.Add(s.limits.MaxInfoTX);
+                        break;
+                    case (int)TranslatorTags.WindowSizeTX:
+                        s.limits.WindowSizeRX = Byte.Parse(GetValue(node, s));
+                        s.data.SetUInt8((byte)HDLCInfo.WindowSizeRX);
+                        s.data.SetUInt8(GXCommon.GetSize(s.limits.WindowSizeRX));
+                        s.data.Add(s.limits.WindowSizeRX);
+                        break;
+                    case (int)TranslatorTags.WindowSizeRX:
+                        s.limits.WindowSizeTX = Byte.Parse(GetValue(node, s));
+                        s.data.SetUInt8((byte)HDLCInfo.WindowSizeTX);
+                        s.data.SetUInt8(GXCommon.GetSize(s.limits.WindowSizeTX));
+                        s.data.Add(s.limits.WindowSizeTX);
+                        break;
+                    case (byte)Command.InitiateRequest:
+                        break;
                     default:
                         throw new ArgumentException("Invalid node: " + node.Name);
                 }
@@ -2127,9 +2191,22 @@ namespace Gurux.DLMS
         /// <returns>Converted bytes.</returns>
         public byte[] XmlToPdu(string xml)
         {
+            return XmlToPdu(xml, null);
+        }
+
+        /// <summary>
+        /// Convert xml to byte array.
+        /// </summary>
+        /// <param name="xml">Converted xml.</param>
+        /// <returns>Converted bytes.</returns>
+        internal byte[] XmlToPdu(string xml, GXDLMSXmlSettings s)
+        {
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xml);
-            GXDLMSXmlSettings s = new GXDLMSXmlSettings(OutputType, Hex, ShowStringAsHex, tagsByName);
+            if (s == null)
+            {
+                s = new GXDLMSXmlSettings(OutputType, Hex, ShowStringAsHex, tagsByName);
+            }
             ReadAllNodes(doc, s);
             GXByteBuffer bb = new GXByteBuffer();
             GXDLMSLNParameters ln;
@@ -2175,9 +2252,10 @@ namespace Gurux.DLMS
                     break;
                 case Command.Snrm:
                     s.settings.IsServer = false;
-                    bb.Set(GXDLMS.GetHdlcFrame(s.settings, (byte)Command.Snrm, null));
+                    bb.Set(GXDLMS.GetHdlcFrame(s.settings, (byte)Command.Snrm, s.data));
                     break;
                 case Command.Ua:
+                    bb.Set(GXDLMS.GetHdlcFrame(s.settings, (byte)Command.Ua, s.data));
                     break;
                 case Command.Aarq:
                 case Command.GloInitiateRequest:
@@ -2185,12 +2263,16 @@ namespace Gurux.DLMS
                     break;
                 case Command.Aare:
                 case Command.GloInitiateResponse:
-                    GXAPDU.GenerateAARE(s.settings, bb, s.result, s.diagnostic, s.settings.Cipher, s.data);
+                    GXAPDU.GenerateAARE(s.settings, bb, s.result, s.diagnostic, s.settings.Cipher, s.attributeDescriptor, s.data);
                     break;
                 case Command.DisconnectRequest:
                     break;
                 case Command.ReleaseRequest:
                     bb.SetUInt8((byte)s.command);
+                    if (s.data.Size == 0)
+                    {
+                        GXAPDU.GenerateUserInformation(s.settings, s.settings.Cipher, null, s.data);
+                    }
                     // Len
                     bb.SetUInt8((byte)(3 + s.data.Size));
                     // BerType
@@ -2218,6 +2300,8 @@ namespace Gurux.DLMS
                     bb.SetUInt8(s.reason);
                     break;
                 case Command.ConfirmedServiceError:
+                    bb.SetUInt8(s.command);
+                    bb.Set(s.attributeDescriptor);
                     break;
                 case Command.ExceptionResponse:
                     break;
@@ -2300,8 +2384,9 @@ namespace Gurux.DLMS
                 }
             }
         }
+
         /// <summary>
-        /// Convert XML data fo bytes.
+        /// Convert XML data to PDU bytes.
         /// </summary>
         /// <param name="xml">XML data.</param>
         /// <returns>Data in bytes.</returns>
@@ -2312,6 +2397,42 @@ namespace Gurux.DLMS
             GXDLMSXmlSettings s = new GXDLMSXmlSettings(OutputType, Hex, ShowStringAsHex, tagsByName);
             GetAllDataNodes(doc.ChildNodes, s);
             return s.data.Array();
+        }
+
+        /// <summary>
+        /// Convert data bytes to XML.
+        /// </summary>
+        /// <param name="data">Data as hex string.</param>
+        /// <returns></returns>
+        public string DataToXml(string data)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetHexString(data);
+            return DataToXml(bb);
+        }
+
+        /// <summary>
+        /// Convert data bytes to XML.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public string DataToXml(byte[] data)
+        {
+            return DataToXml(new GXByteBuffer(data));
+        }
+
+        /// <summary>
+        /// Convert data bytes to XML.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public string DataToXml(GXByteBuffer data)
+        {
+            GXDataInfo di = new GXDataInfo();
+            GXDLMSSettings settings = new GXDLMSSettings(false);
+            di.xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
+            GXCommon.GetData(settings, data, di);
+            return di.xml.ToString();
         }
     }
 }

@@ -78,12 +78,14 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.RespondingAuthentication, "RespondingAuthentication");
             GXDLMSTranslator.AddTag(list, Command.ReleaseRequest, "ReleaseRequest");
             GXDLMSTranslator.AddTag(list, Command.ReleaseResponse, "ReleaseResponse");
-            GXDLMSTranslator.AddTag(list, Command.DisconnectRequest, "Disc");
+            GXDLMSTranslator.AddTag(list, Command.DisconnectRequest, "DisconnectRequest");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.AssociationResult, "AssociationResult");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.ResultSourceDiagnostic, "ResultSourceDiagnostic");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.ACSEServiceUser, "ACSEServiceUser");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.CallingAPTitle, "CallingAPTitle");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.RespondingAPTitle, "RespondingAPTitle");
+            GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.DedicatedKey, "DedicatedKey");
+            GXDLMSTranslator.AddTag(list, Command.ConfirmedServiceError, "ConfirmedServiceError");
             GXDLMSTranslator.AddTag(list, Command.InformationReport, "InformationReportRequest");
             GXDLMSTranslator.AddTag(list, Command.EventNotification, "EventNotificationRequest");
         }
@@ -249,6 +251,10 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorTags.KeyParameters, "KeyParameters");
             GXDLMSTranslator.AddTag(list, TranslatorTags.KeyCipheredData, "KeyCipheredData");
             GXDLMSTranslator.AddTag(list, TranslatorTags.AttributeValue, "AttributeValue");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.MaxInfoRX, "MaxInfoRX");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.MaxInfoTX, "MaxInfoTX");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.WindowSizeRX, "WindowSizeRX");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.WindowSizeTX, "WindowSizeTX");
         }
 
         public static void GetDataTypeTags(SortedList<int, string> list)
@@ -719,7 +725,7 @@ namespace Gurux.DLMS
             return ret;
         }
 
-        private static int GetInitiate(String value)
+        public static int GetInitiate(String value)
         {
             int ret = -1;
             foreach (var it in GetInitiate())

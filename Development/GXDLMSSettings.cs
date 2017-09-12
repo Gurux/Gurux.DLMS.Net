@@ -121,7 +121,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Maximum PDU size.
         /// </summary>
-        private UInt16 maxReceivePDUSize;
+        internal UInt16 maxReceivePDUSize;
 
         /// <summary>
         /// Can user access meter data anonymously (Without AARQ/AARE messages). 
@@ -184,9 +184,6 @@ namespace Gurux.DLMS
         ///</summary>
         internal GXDLMSSettings(bool server)
         {
-            ClientAddress = 16;
-            ServerAddress = 1;
-            useLogicalNameReferencing = true;
             UseCustomChallenge = false;
             StartingBlockIndex = BlockIndex = 1;
             DLMSVersion = 6;

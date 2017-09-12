@@ -61,7 +61,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSAssociationShortName(string ln, ushort sn)
         : base(ObjectType.AssociationShortName, ln, sn)
         {
-            Version = 4;
+            Version = 2;
             ObjectList = new GXDLMSObjectCollection();
         }
 
@@ -86,16 +86,6 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// List of access rights.
-        /// </summary>
-        [XmlIgnore()]
-        public object AccessRightsList
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// Security setup reference.
         /// </summary>
         [XmlIgnore()]
@@ -108,7 +98,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, ObjectList, AccessRightsList, SecuritySetupReference };
+            return new object[] { LogicalName, ObjectList, null, SecuritySetupReference };
         }
 
         #region IGXDLMSBase Members

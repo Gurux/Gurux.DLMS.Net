@@ -42,7 +42,7 @@ namespace Gurux.DLMS
     /// <summary>
     /// DLMS command enumeration.
     /// </summary>
-    enum Command
+    public enum Command
     {
         /// <summary>
         /// No command to execute.

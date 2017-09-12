@@ -45,6 +45,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.IO;
 using System.Globalization;
+using System.Diagnostics;
 
 namespace GuruxDLMSServerExample
 {
@@ -53,8 +54,12 @@ namespace GuruxDLMSServerExample
     /// </summary>
     class GXDLMSBase : GXDLMSSecureServer
     {
-        static string dataFile = "data.csv";
-        bool trace = true;
+        static readonly object FileLock = new object();
+        static string GetdataFile()
+        {
+            return Path.Combine(Path.GetDirectoryName(typeof(GXDLMSBase).Assembly.Location), "data.csv");
+        }
+        TraceLevel Trace = TraceLevel.Error;
 
         /// <summary>
         /// Constructor.
@@ -85,18 +90,21 @@ namespace GuruxDLMSServerExample
 
         Gurux.Common.IGXMedia Media = null;
 
-        public void Initialize(string port)
+        public void Initialize(string port, TraceLevel trace)
         {
             Media = new Gurux.Serial.GXSerial(port);
+            Trace = trace;
             Init();
         }
         /// <summary>
         /// Generic initialize for all servers.
         /// </summary>
-        /// <param name="server"></param>
-        public void Initialize(int port)
+        /// <param name="port"></param>
+        /// <param name="trace"></param>
+        public void Initialize(int port, TraceLevel trace)
         {
             Media = new GXNet(NetworkType.Tcp, port);
+            Trace = trace;
             Init();
         }
 
@@ -115,12 +123,10 @@ namespace GuruxDLMSServerExample
             ldn.SetDataType(2, DataType.OctetString);
             ldn.SetUIDataType(2, DataType.String);
             Items.Add(ldn);
-
             //Add firmware version.
             GXDLMSData fw = new GXDLMSData("1.0.0.2.0.255");
             fw.Value = "Gurux FW 0.0.1";
             Items.Add(fw);
-
             //Add Last average.
             GXDLMSRegister r = new GXDLMSRegister("1.1.21.25.0.255");
             //Set access right. Client can't change average value.
@@ -135,7 +141,7 @@ namespace GuruxDLMSServerExample
             GXDLMSTcpUdpSetup tcp = new GXDLMSTcpUdpSetup();
             Items.Add(tcp);
             ///////////////////////////////////////////////////////////////////////
-            //Add Load profile.
+            //Add Load profile.           
             GXDLMSProfileGeneric pg = new GXDLMSProfileGeneric("1.0.99.1.0.255");
             //Set capture period to 60 second.
             pg.CapturePeriod = 60;
@@ -151,9 +157,9 @@ namespace GuruxDLMSServerExample
             Items.Add(pg);
             //Add initial rows.
             //Generate Profile Generic data file
-            lock (dataFile)
+            lock (FileLock)
             {
-                using (var writer = File.CreateText(dataFile))
+                using (var writer = File.CreateText(GetdataFile()))
                 {
                     //Create 10 000 rows for profile generic file.
                     //In example profile generic we have two columns. 
@@ -262,7 +268,6 @@ namespace GuruxDLMSServerExample
             sap.SapAssignmentList.Add(new KeyValuePair<UInt16, string>(1, "Gurux"));
             sap.SapAssignmentList.Add(new KeyValuePair<UInt16, string>(16, "Gurux-2"));
             Items.Add(sap);
-
             ///////////////////////////////////////////////////////////////////////
             //Add Auto Answer object.
             GXDLMSAutoAnswer aa = new GXDLMSAutoAnswer();
@@ -321,18 +326,11 @@ namespace GuruxDLMSServerExample
             push.PushObjectList.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(ip4, new GXDLMSCaptureObject(3, 0)));
 
             Items.Add(new GXDLMSSpecialDaysTable());
-
             //Add  S-FSK objects
             Items.Add(new GXDLMSSFSKPhyMacSetUp());
             Items.Add(new GXDLMSSFSKActiveInitiator());
             Items.Add(new GXDLMSSFSKMacCounters());
             Items.Add(new GXDLMSSFSKMacSynchronizationTimeouts());
-            //Add IEC14908 (OSGB) objects.
-            Items.Add(new GXDLMSIEC14908Diagnostic());
-            Items.Add(new GXDLMSIEC14908Identification());
-            Items.Add(new GXDLMSIEC14908PhysicalSetup());
-            Items.Add(new GXDLMSIEC14908PhysicalStatus());
-
             ///Add G3-PLC objects.
             Items.Add(new GXDLMSG3Plc6LoWPan());
             Items.Add(new GXDLMSG3PlcMacLayerCounters());
@@ -369,9 +367,9 @@ namespace GuruxDLMSServerExample
             p.Buffer.Clear();
             if (count != 0)
             {
-                lock (dataFile)
+                lock (FileLock)
                 {
-                    using (var fs = File.OpenRead(dataFile))
+                    using (var fs = File.OpenRead(GetdataFile()))
                     {
                         using (var reader = new StreamReader(fs))
                         {
@@ -413,9 +411,9 @@ namespace GuruxDLMSServerExample
         {
             GXDateTime start = (GXDateTime)GXDLMSClient.ChangeType((byte[])((object[])e.Parameters)[1], DataType.DateTime);
             GXDateTime end = (GXDateTime)GXDLMSClient.ChangeType((byte[])((object[])e.Parameters)[2], DataType.DateTime);
-            lock (dataFile)
+            lock (FileLock)
             {
-                using (var fs = File.OpenRead(dataFile))
+                using (var fs = File.OpenRead(GetdataFile()))
                 {
                     using (var reader = new StreamReader(fs))
                     {
@@ -448,12 +446,12 @@ namespace GuruxDLMSServerExample
         /// Get row count.
         /// </summary>
         /// <returns></returns>
-        UInt16 GetProfileGenericDataCount()
+        UInt16 GetProfileGenericDataCount(GXDLMSProfileGeneric pg)
         {
             UInt16 rows = 0;
-            lock (dataFile)
+            lock (FileLock)
             {
-                using (var fs = File.OpenRead(dataFile))
+                using (var fs = File.OpenRead(GetdataFile()))
                 {
                     using (var reader = new StreamReader(fs))
                     {
@@ -502,7 +500,7 @@ namespace GuruxDLMSServerExample
                     {
                         //If client wants to know EntriesInUse.
                         GXDLMSProfileGeneric p = (GXDLMSProfileGeneric)e.Target;
-                        p.EntriesInUse = GetProfileGenericDataCount();
+                        p.EntriesInUse = GetProfileGenericDataCount(p);
                     }
                     if (e.Index == 2)
                     {
@@ -513,7 +511,7 @@ namespace GuruxDLMSServerExample
                         {
                             if (e.Selector == 0)
                             {
-                                e.RowEndIndex = GetProfileGenericDataCount();
+                                e.RowEndIndex = GetProfileGenericDataCount(p);
                             }
                             else if (e.Selector == 1)
                             {
@@ -526,7 +524,7 @@ namespace GuruxDLMSServerExample
                                 e.RowBeginIndex = (UInt32)((object[])e.Parameters)[0];
                                 e.RowEndIndex = e.RowBeginIndex + (UInt32)((object[])e.Parameters)[1];
                                 //If client wants to read more data what we have.
-                                UInt16 cnt = GetProfileGenericDataCount();
+                                UInt16 cnt = GetProfileGenericDataCount(p);
                                 if (e.RowEndIndex - e.RowBeginIndex > cnt - e.RowBeginIndex)
                                 {
                                     e.RowEndIndex = cnt - e.RowBeginIndex;
@@ -547,8 +545,10 @@ namespace GuruxDLMSServerExample
                     }
                     continue;
                 }
-
-                Console.WriteLine(string.Format("Client Read value from {0} attribute: {1}.", e.Target.Name, e.Index));
+                if (Trace > TraceLevel.Warning)
+                {
+                    Console.WriteLine(string.Format("Client Read value from {0} attribute: {1}.", e.Target.Name, e.Index));
+                }
                 if (e.Target is GXDLMSClock)
                 {
                     HandleClock(e);
@@ -657,44 +657,64 @@ namespace GuruxDLMSServerExample
             }
         }
 
+        private void Capture(GXDLMSProfileGeneric pg)
+        {
+            lock (FileLock)
+            {
+                using (var writer = File.AppendText(GetdataFile()))
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendLine("");
+                    foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in pg.CaptureObjects)
+                    {
+                        if (sb.Length != 1)
+                        {
+                            sb.Append(';');
+                        }
+                        // TODO: Read value here example from the meter if it's not
+                        // updated automatically.
+                        object value = it.Key.GetValues()[it.Value.AttributeIndex - 1];
+                        if (value == null)
+                        {
+                            // Generate random value here.
+                            value = GetProfileGenericDataCount(pg) + 1;
+                        }
+
+                        if (value is DateTime)
+                        {
+                            sb.Append(((DateTime)value).ToString(CultureInfo.InvariantCulture));
+                        }
+                        else if (value is GXDateTime)
+                        {
+                            sb.Append(((GXDateTime)value).Value.ToString(CultureInfo.InvariantCulture));
+                        }
+                        else
+                        {
+                            sb.Append(Convert.ToString(value));
+                        }
+                    }
+                    writer.Write(sb.ToString());
+                }
+            }
+        }
+
         private void HandleProfileGenericActions(ValueEventArgs it)
         {
             GXDLMSProfileGeneric pg = (GXDLMSProfileGeneric)it.Target;
             if (it.Index == 1)
             {
                 //Profile generic clear is called. Clear data.
-                using (var fs = File.CreateText(dataFile))
+                lock (FileLock)
                 {
+                    using (var fs = File.CreateText(GetdataFile()))
+                    {
+                    }
                 }
             }
             else if (it.Index == 2)
             {
                 //Profile generic Capture is called.
-                using (var writer = File.AppendText(dataFile))
-                {
-                    StringBuilder sb = new StringBuilder();
-                    for (int pos = pg.Buffer.Count - 1; pos != pg.Buffer.Count; ++pos)
-                    {
-                        for (int c = 0; c != pg.CaptureObjects.Count; ++c)
-                        {
-                            if (c != 0)
-                            {
-                                sb.Append(';');
-                            }
-                            object col = pg.Buffer[pos][c];
-                            if (col is DateTime)
-                            {
-                                sb.Append(((DateTime)col).ToString(CultureInfo.InvariantCulture));
-                            }
-                            else
-                            {
-                                sb.Append(Convert.ToString(col));
-                            }
-                        }
-                        sb.AppendLine("");
-                    }
-                    writer.Write(sb.ToString());
-                }
+                Capture(pg);
             }
         }
 
@@ -704,7 +724,7 @@ namespace GuruxDLMSServerExample
             {
                 if (it.Target is GXDLMSProfileGeneric)
                 {
-                    lock (dataFile)
+                    lock (it)
                     {
                         HandleProfileGenericActions(it);
                     }
@@ -819,9 +839,10 @@ namespace GuruxDLMSServerExample
         /// <param name="e"></param>
         void OnClientDisconnected(object sender, Gurux.Common.ConnectionEventArgs e)
         {
-            //Reset server settings when connection closed.
-            this.Reset();
-            Console.WriteLine("Client Disconnected.");
+            if (Trace > TraceLevel.Warning)
+            {
+                Console.WriteLine("Client Disconnected.");
+            }
         }
 
         /// <summary>
@@ -831,7 +852,12 @@ namespace GuruxDLMSServerExample
         /// <param name="e"></param>
         void OnClientConnected(object sender, Gurux.Common.ConnectionEventArgs e)
         {
-            Console.WriteLine("Client Connected.");
+            //Reset server settings when connection is established.
+            this.Reset();
+            if (Trace > TraceLevel.Warning)
+            {
+                Console.WriteLine("Client Connected.");
+            }
         }
 
         /// <summary>
@@ -845,7 +871,7 @@ namespace GuruxDLMSServerExample
             {
                 lock (this)
                 {
-                    if (trace)
+                    if (Trace > TraceLevel.Info)
                     {
                         Console.WriteLine("<- " + Gurux.Common.GXCommon.ToHex((byte[])e.Data, true));
                     }
@@ -854,7 +880,7 @@ namespace GuruxDLMSServerExample
                     //This is done if client try to make connection with wrong device ID.
                     if (reply != null)
                     {
-                        if (trace)
+                        if (Trace > TraceLevel.Info)
                         {
                             Console.WriteLine("-> " + Gurux.Common.GXCommon.ToHex(reply, true));
                         }
@@ -864,7 +890,10 @@ namespace GuruxDLMSServerExample
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                if (Trace > TraceLevel.Off)
+                {
+                    Console.WriteLine(ex.Message);
+                }
             }
         }
 
@@ -879,11 +908,7 @@ namespace GuruxDLMSServerExample
                 if (it.Target is GXDLMSProfileGeneric)
                 {
                     GXDLMSProfileGeneric pg = (GXDLMSProfileGeneric)it.Target;
-                    pg.Buffer.Clear();
-                    int cnt = GetProfileGenericDataCount() + 1;
-                    //Update last average value.
-                    pg.Buffer.Add(new object[] { DateTime.Now, cnt });
-                    it.Handled = true;
+                    Capture(pg);
                 }
             }
         }
@@ -894,12 +919,18 @@ namespace GuruxDLMSServerExample
 
         protected override void Connected(GXDLMSConnectionEventArgs e)
         {
-            Console.WriteLine("Connected.");
+            if (Trace > TraceLevel.Warning)
+            {
+                Console.WriteLine("Connected.");
+            }
         }
 
         protected override void Disconnected(GXDLMSConnectionEventArgs e)
         {
-            Console.WriteLine("Disconnected");
+            if (Trace > TraceLevel.Warning)
+            {
+                Console.WriteLine("Disconnected");
+            }
         }
     }
 }

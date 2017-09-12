@@ -451,6 +451,11 @@ namespace Gurux.DLMS.Internal
                     xml.AppendStartTag(TranslatorGeneralTags.ProposedConformance);
                     GetConformance(v, xml);
                 }
+                else if (settings.NegotiatedConformance == Conformance.None)
+                {
+                    throw new GXDLMSConfirmedServiceError(ConfirmedServiceError.InitiateError,
+                            ServiceError.Initiate, (int)Initiate.IncompatibleConformance);
+                }
             }
             else
             {
@@ -471,7 +476,7 @@ namespace Gurux.DLMS.Internal
                 {
                     throw new GXDLMSConfirmedServiceError(
                             ConfirmedServiceError.InitiateError,
-                            ServiceError.Service, (int)Service.PduSize);
+                            ServiceError.Initiate, (int)Initiate.PduSizeTooShort);
                 }
                 settings.MaxPduSize = pdu;
                 if (xml != null)
@@ -977,6 +982,10 @@ namespace Gurux.DLMS.Internal
                         resultComponent = (AssociationResult)buff.GetUInt8();
                         if (xml != null)
                         {
+                            if (resultComponent != AssociationResult.Accepted)
+                            {
+                                xml.AppendComment(resultComponent.ToString());
+                            }
                             xml.AppendLine(TranslatorGeneralTags.AssociationResult, "Value", xml.IntegerToHex((int)resultComponent, 2));
                             xml.AppendStartTag(TranslatorGeneralTags.ResultSourceDiagnostic);
                         }
@@ -998,6 +1007,10 @@ namespace Gurux.DLMS.Internal
                         resultDiagnosticValue = (SourceDiagnostic)buff.GetUInt8();
                         if (xml != null)
                         {
+                            if (resultDiagnosticValue != SourceDiagnostic.None)
+                            {
+                                xml.AppendComment(resultDiagnosticValue.ToString());
+                            }
                             xml.AppendLine(TranslatorGeneralTags.ACSEServiceUser, "Value", xml.IntegerToHex((int)resultDiagnosticValue, 2));
                             xml.AppendEndTag(TranslatorGeneralTags.ResultSourceDiagnostic);
                         }
@@ -1212,7 +1225,7 @@ namespace Gurux.DLMS.Internal
         ///</summary>
         internal static void GenerateAARE(GXDLMSSettings settings, GXByteBuffer data,
                                           AssociationResult result, SourceDiagnostic diagnostic, GXICipher cipher,
-                                          GXByteBuffer encryptedData)
+                                          GXByteBuffer errorData, GXByteBuffer encryptedData)
         {
             int offset = data.Size;
             // Set AARE tag and length
@@ -1284,7 +1297,14 @@ namespace Gurux.DLMS.Internal
             }
             else
             {
-                tmp = GetUserInformation(settings, cipher);
+                if (errorData != null && errorData.Size != 0)
+                {
+                    tmp = errorData.Array();
+                }
+                else
+                {
+                    tmp = GetUserInformation(settings, cipher);
+                }
             }
             data.SetUInt8((byte)(2 + tmp.Length));
             //Coding the choice for user-information (Octet STRING, universal)

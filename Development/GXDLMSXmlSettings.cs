@@ -44,6 +44,7 @@ namespace Gurux.DLMS
     {
         public AssociationResult result = AssociationResult.Accepted;
         public SourceDiagnostic diagnostic = SourceDiagnostic.None;
+        public int serviceError = -1;
         public byte reason = 0;
         public Command command;
         public int count = 0;
@@ -53,6 +54,7 @@ namespace Gurux.DLMS
         public GXDLMSSettings settings = new GXDLMSSettings(true);
         public SortedList<string, int> tags = new SortedList<string, int>();
         public GXDateTime time = DateTime.MinValue;
+        public GXDLMSLimits limits = new GXDLMSLimits();
         /// <summary>
         /// Are numeric values shows as hex.
         /// </summary>

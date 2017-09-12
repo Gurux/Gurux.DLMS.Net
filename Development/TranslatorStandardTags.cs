@@ -129,6 +129,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.CharString,
                                     "charstring");
 
+            GXDLMSTranslator.AddTag(list, Command.ConfirmedServiceError, "confirmedServiceError");
             GXDLMSTranslator.AddTag(list, Command.InformationReport, "InformationReport");
             GXDLMSTranslator.AddTag(list, Command.EventNotification, "event-notification-request");
         }
