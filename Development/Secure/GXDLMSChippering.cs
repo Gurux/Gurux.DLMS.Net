@@ -68,7 +68,7 @@ namespace Gurux.DLMS.Secure
             {
                 data.SetUInt8((byte)param.Security);
             }
-            byte[] tmp = BitConverter.GetBytes(param.InvocationCounter).Reverse().ToArray();
+            byte[] tmp = BitConverter.GetBytes((UInt32)param.InvocationCounter).Reverse().ToArray();
             byte[] aad = GetAuthenticatedData(param, plainText);
             GXDLMSChipperingStream gcm = new GXDLMSChipperingStream(param.Security, true, param.BlockCipherKey,
                     aad, GetNonse((UInt32)param.InvocationCounter, param.SystemTitle), null);
