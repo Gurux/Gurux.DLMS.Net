@@ -1273,7 +1273,7 @@ namespace Gurux.DLMS.Internal
                 data.SetUInt8((byte)settings.StoCChallenge.Length);
                 data.Set(settings.StoCChallenge);
             }
-            if (result == AssociationResult.Accepted || cipher == null || cipher.Security == Security.None)
+            if (result == AssociationResult.Accepted || cipher == null || cipher.Security == Gurux.DLMS.Enums.Security.None)
             {
                 byte[] tmp;
                 //Add User Information
