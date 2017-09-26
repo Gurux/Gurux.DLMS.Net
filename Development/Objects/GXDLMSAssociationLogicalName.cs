@@ -174,7 +174,7 @@ namespace Gurux.DLMS.Objects
             {
                 return client.Write(this, 7);
             }
-            //Action is used to update High authectication pw.
+            //Action is used to update High authentication password.
             return client.Method(this, 2, Secret, DataType.OctetString);
         }
 

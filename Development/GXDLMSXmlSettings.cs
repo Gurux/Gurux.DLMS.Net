@@ -54,7 +54,6 @@ namespace Gurux.DLMS
         public GXDLMSSettings settings = new GXDLMSSettings(true);
         public SortedList<string, int> tags = new SortedList<string, int>();
         public GXDateTime time = DateTime.MinValue;
-        public GXDLMSLimits limits = new GXDLMSLimits();
         /// <summary>
         /// Are numeric values shows as hex.
         /// </summary>

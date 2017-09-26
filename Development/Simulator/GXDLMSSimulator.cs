@@ -222,7 +222,7 @@ namespace Gurux.DLMS.Simulator
                 String xml = translator.MessageToXml(bb);
                 if (xml != "")
                 {
-                    doc.LoadXml(xml);
+                    doc.LoadXml(xml.Replace("&", "&amp;"));
                     foreach (XmlNode node in doc.ChildNodes[doc.ChildNodes.Count - 1].ChildNodes)
                     {
                         string name = doc.ChildNodes[doc.ChildNodes.Count - 1].Name;
@@ -264,7 +264,8 @@ namespace Gurux.DLMS.Simulator
                                 int pos = 0;
                                 foreach (string it in items)
                                 {
-                                    if ("read-write-denied".Equals(it) ||
+                                    if ("other-reason".Equals(it) ||
+                                        "read-write-denied".Equals(it) ||
                                             "scope-of-access-violated".Equals(it) ||
                                             "object-unavailable".Equals(it))
                                     {

@@ -457,6 +457,15 @@ namespace Gurux.DLMS
                 case Command.MethodResponse:
                     cmd = Command.GloMethodResponse;
                     break;
+                case Command.DataNotification:
+                    cmd = Command.GeneralGloCiphering;
+                    break;
+                case Command.ReleaseRequest:
+                    cmd = Command.ReleaseRequest;
+                    break;
+                case Command.ReleaseResponse:
+                    cmd = Command.ReleaseResponse;
+                    break;
                 default:
                     throw new GXDLMSException("Invalid GLO command.");
             }
@@ -786,7 +795,8 @@ namespace Gurux.DLMS
                         messages.Add(GXDLMS.GetHdlcFrame(p.settings, frame, reply));
                         if (reply.Position != reply.Size)
                         {
-                            if (p.settings.IsServer || p.command == Command.SetRequest)
+                            if (p.settings.IsServer || p.command == Command.SetRequest ||
+                                 p.command == Command.MethodRequest)
                             {
                                 frame = 0;
                             }
@@ -1206,6 +1216,9 @@ namespace Gurux.DLMS
             // Add BOP
             bb.SetUInt8(GXCommon.HDLCFrameStartEnd);
             frameSize = Convert.ToInt32(settings.Limits.MaxInfoTX);
+            //Remove BOP, type, len, primaryAddress, secondaryAddress, frame, header CRC, data CRC and EOP from data length.
+            frameSize -= 11;
+
             // If no data
             if (data == null || data.Size == 0)
             {
@@ -1977,7 +1990,7 @@ namespace Gurux.DLMS
                     {
                         data.Xml.AppendStartTag(Command.ReadResponse,
                                                 SingleReadResponse.Data);
-                        if (data.Data.Position == data.Data.Size)
+                        if (data.Data.Size > 0 && data.Data.Position == data.Data.Size)
                         {
                             int tag = GXDLMS.DATA_TYPE_OFFSET | (int)DataType.None;
                             data.Xml.AppendStartTag(tag, null, null);
@@ -3026,17 +3039,16 @@ namespace Gurux.DLMS
         /// <param name="info">Reply data.</param>
         private static void GetDataFromFrame(GXByteBuffer reply, GXReplyData info)
         {
-            GXByteBuffer data = info.Data;
-            int offset = data.Size;
+            int offset = info.Data.Size;
             int cnt = info.PacketLength - reply.Position;
             if (cnt != 0)
             {
-                data.Capacity = (offset + cnt);
-                data.Set(reply.Data, reply.Position, cnt);
+                info.Data.Capacity = (offset + cnt);
+                info.Data.Set(reply.Data, reply.Position, cnt);
                 reply.Position = (reply.Position + cnt);
             }
             // Set position to begin of new data.
-            data.Position = offset;
+            info.Data.Position = offset;
         }
 
         /// <summary>
@@ -3204,6 +3216,63 @@ namespace Gurux.DLMS
                 return (UInt16)(settings.MaxPduSize / rowsize);
             }
             return 0;
+        }
+
+        /// <summary>
+        /// Parses SNRM or UA Response from byte array and update settings.
+        /// </summary>
+        /// <remarks>
+        /// </remarks>
+        /// <param name="data">Received data</param>
+        internal static void ParseSnrmUaResponse(GXByteBuffer data, GXDLMSLimits limits)
+        {
+            //If default settings are used.
+            if (data.Size == 0)
+            {
+                return;
+            }
+            data.GetUInt8(); // Skip FromatID
+            data.GetUInt8(); // Skip Group ID.
+            data.GetUInt8(); // Skip Group len
+            Object val;
+            while (data.Position < data.Size)
+            {
+                HDLCInfo id = (HDLCInfo)data.GetUInt8();
+                short len = data.GetUInt8();
+                switch (len)
+                {
+                    case 1:
+                        val = data.GetUInt8();
+                        break;
+                    case 2:
+                        val = data.GetUInt16();
+                        break;
+                    case 4:
+                        val = data.GetUInt32();
+                        break;
+                    default:
+                        throw new GXDLMSException("Invalid Exception.");
+                }
+                // RX / TX are delivered from the partner's point of view =>
+                // reversed to ours
+                switch (id)
+                {
+                    case HDLCInfo.MaxInfoTX:
+                        limits.MaxInfoRX = Convert.ToUInt16(val);
+                        break;
+                    case HDLCInfo.MaxInfoRX:
+                        limits.MaxInfoTX = Convert.ToUInt16(val);
+                        break;
+                    case HDLCInfo.WindowSizeTX:
+                        limits.WindowSizeRX = Convert.ToByte(val);
+                        break;
+                    case HDLCInfo.WindowSizeRX:
+                        limits.WindowSizeTX = Convert.ToByte(val);
+                        break;
+                    default:
+                        throw new GXDLMSException("Invalid UA response.");
+                }
+            }
         }
     }
 }

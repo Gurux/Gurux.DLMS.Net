@@ -385,7 +385,7 @@ namespace Gurux.DLMS.Internal
             {
                 if (xml != null)
                 {
-                    xml.AppendComment("Error: Failed to descypt data.");
+                    xml.AppendComment("Error: Failed to decrypt data.");
                     data.Position = data.Size;
                     return;
                 }
@@ -394,17 +394,7 @@ namespace Gurux.DLMS.Internal
             //Get DLMS version number.
             if (!response)
             {
-                if (data.GetUInt8() != 6)
-                {
-                    if (settings.IsServer)
-                    {
-                        throw new GXDLMSConfirmedServiceError(
-                            ConfirmedServiceError.InitiateError,
-                            ServiceError.Initiate,
-                            (int)Initiate.DlmsVersionTooLow);
-                    }
-                    throw new Exception("Invalid DLMS version number.");
-                }
+                settings.DLMSVersion = data.GetUInt8();
                 //ProposedDlmsVersionNumber
                 if (xml != null && (initiateRequest || xml.OutputType == TranslatorOutputType.SimpleXml))
                 {
@@ -451,11 +441,6 @@ namespace Gurux.DLMS.Internal
                     xml.AppendStartTag(TranslatorGeneralTags.ProposedConformance);
                     GetConformance(v, xml);
                 }
-                else if (settings.NegotiatedConformance == Conformance.None)
-                {
-                    throw new GXDLMSConfirmedServiceError(ConfirmedServiceError.InitiateError,
-                            ServiceError.Initiate, (int)Initiate.IncompatibleConformance);
-                }
             }
             else
             {
@@ -470,15 +455,7 @@ namespace Gurux.DLMS.Internal
             if (!response)
             {
                 //Proposed max PDU size.
-                UInt16 pdu = data.GetUInt16();
-                //If PDU is too low.
-                if (xml == null && pdu < 64)
-                {
-                    throw new GXDLMSConfirmedServiceError(
-                            ConfirmedServiceError.InitiateError,
-                            ServiceError.Initiate, (int)Initiate.PduSizeTooShort);
-                }
-                settings.MaxPduSize = pdu;
+                settings.MaxPduSize = data.GetUInt16();
                 if (xml != null)
                 {
                     // ProposedConformance closing
@@ -603,6 +580,7 @@ namespace Gurux.DLMS.Internal
                         {
                             data.Position = originalPos - 1;
                             p = new AesGcmParameter(settings.SourceSystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                            p.Xml = xml;
                             tmp = GXDLMSChippering.DecryptAesGcm(p, data);
                             data.Clear();
                             data.Set(tmp);
@@ -647,6 +625,7 @@ namespace Gurux.DLMS.Internal
                         {
                             data.Position = originalPos - 1;
                             p = new AesGcmParameter(settings.SourceSystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                            p.Xml = xml;
                             tmp = GXDLMSChippering.DecryptAesGcm(p, data);
                             data.Clear();
                             data.Set(tmp);
@@ -1108,7 +1087,19 @@ namespace Gurux.DLMS.Internal
                         {
                             throw new GXDLMSException(resultComponent, resultDiagnosticValue);
                         }
-                        ParseUserInformation(settings, cipher, buff, xml);
+                        try
+                        {
+                            ParseUserInformation(settings, cipher, buff, xml);
+                        }
+                        catch (Exception)
+                        {
+                            if (xml == null)
+                            {
+                                throw new GXDLMSException(
+                                        AssociationResult.PermanentRejected,
+                                        SourceDiagnostic.NoReasonGiven);
+                            }
+                        }
                         break;
                     default:
                         //Unknown tags.
@@ -1190,9 +1181,9 @@ namespace Gurux.DLMS.Internal
         private static byte[] GetUserInformation(GXDLMSSettings settings, GXICipher cipher)
         {
             GXByteBuffer data = new GXByteBuffer();
-            data.SetUInt8(Command.InitiateResponse); // Tag for xDLMS-Initiate response
-                                                     // NegotiatedQualityOfService (not used)
-            data.SetUInt8(0x1);
+            // Tag for xDLMS-Initiate response
+            data.SetUInt8(Command.InitiateResponse);
+            // NegotiatedQualityOfService (not used)
             data.SetUInt8(0x00);
             // DLMS Version Number
             data.SetUInt8(06);
@@ -1259,8 +1250,7 @@ namespace Gurux.DLMS.Internal
                 data.SetUInt8((byte)cipher.SystemTitle.Length);
                 data.Set(cipher.SystemTitle);
             }
-
-            if (result != AssociationResult.PermanentRejected && diagnostic == SourceDiagnostic.AuthenticationRequired)
+            if (settings.Authentication > Authentication.Low)
             {
                 //Add server ACSE-requirenents field component.
                 data.SetUInt8(0x88);
@@ -1283,35 +1273,38 @@ namespace Gurux.DLMS.Internal
                 data.SetUInt8((byte)settings.StoCChallenge.Length);
                 data.Set(settings.StoCChallenge);
             }
-            byte[] tmp;
-            //Add User Information
-            //Tag 0xBE
-            data.SetUInt8((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.UserInformation);
-            if (encryptedData != null && encryptedData.Size != 0)
+            if (result == AssociationResult.Accepted || cipher == null || cipher.Security == Security.None)
             {
-                GXByteBuffer tmp2 = new GXByteBuffer((UInt16)(2 + encryptedData.Size));
-                tmp2.SetUInt8((byte)Command.GloInitiateResponse);
-                GXCommon.SetObjectCount(encryptedData.Size, tmp2);
-                tmp2.Set(encryptedData);
-                tmp = tmp2.Array();
-            }
-            else
-            {
-                if (errorData != null && errorData.Size != 0)
+                byte[] tmp;
+                //Add User Information
+                //Tag 0xBE
+                data.SetUInt8((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.UserInformation);
+                if (encryptedData != null && encryptedData.Size != 0)
                 {
-                    tmp = errorData.Array();
+                    GXByteBuffer tmp2 = new GXByteBuffer((UInt16)(2 + encryptedData.Size));
+                    tmp2.SetUInt8((byte)Command.GloInitiateResponse);
+                    GXCommon.SetObjectCount(encryptedData.Size, tmp2);
+                    tmp2.Set(encryptedData);
+                    tmp = tmp2.Array();
                 }
                 else
                 {
-                    tmp = GetUserInformation(settings, cipher);
+                    if (errorData != null && errorData.Size != 0)
+                    {
+                        tmp = errorData.Array();
+                    }
+                    else
+                    {
+                        tmp = GetUserInformation(settings, cipher);
+                    }
                 }
+                data.SetUInt8((byte)(2 + tmp.Length));
+                //Coding the choice for user-information (Octet STRING, universal)
+                data.SetUInt8(BerType.OctetString);
+                //Length
+                data.SetUInt8((byte)tmp.Length);
+                data.Set(tmp);
             }
-            data.SetUInt8((byte)(2 + tmp.Length));
-            //Coding the choice for user-information (Octet STRING, universal)
-            data.SetUInt8(BerType.OctetString);
-            //Length
-            data.SetUInt8((byte)tmp.Length);
-            data.Set(tmp);
             data.SetUInt8((UInt16)(offset + 1), (byte)(data.Size - offset - 2));
         }
     }

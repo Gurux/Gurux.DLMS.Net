@@ -100,6 +100,7 @@
     <Compile Include="GXDLMSSNParameters.cs" />
     <Compile Include="GXDLMSTranslator.cs" />
     <Compile Include="GXDLMSTranslatorStructure.cs" />
+    <Compile Include="GXDLMSXmlClient.cs" />
     <Compile Include="GXDLMSXmlSettings.cs" />
     <Compile Include="GXFCS16.cs" />
     <Compile Include="GXKeyValuePair.cs" />

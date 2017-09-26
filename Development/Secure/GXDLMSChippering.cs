@@ -297,7 +297,14 @@ namespace Gurux.DLMS.Secure
                     {
                         p.InvocationCounter = transactionId;
                     }
-                    throw new GXDLMSException("Decrypt failed. Invalid tag.");
+                    if (p.Xml == null)
+                    {
+                        throw new GXDLMSException("Decrypt failed. Invalid tag.");
+                    }
+                    else
+                    {
+                        p.Xml.AppendComment("Decrypt failed. Invalid tag.");
+                    }
                 }
                 return encryptedData;
             }
@@ -325,60 +332,6 @@ namespace Gurux.DLMS.Secure
                 p.InvocationCounter = transactionId;
             }
             return gcm.FlushFinalBlock();
-            /*
-            len = Gurux.DLMS.Internal.GXCommon.GetObjectCount(data);
-            p.Security = (Gurux.DLMS.Enums.Security)data.GetUInt8();
-            p.InvocationCounter = data.GetUInt32();
-            System.Diagnostics.Debug.WriteLine("Decrypt settings: " + p.ToString());
-            System.Diagnostics.Debug.WriteLine("Encrypted: " + GXCommon.ToHex(data.Array(), true));
-
-            byte[] tag = new byte[12];
-            byte[] encryptedData;
-            int length;
-            if (p.Security == Gurux.DLMS.Enums.Security.Authentication)
-            {
-                length = data.Size - data.Position - 12;
-                encryptedData = new byte[length];
-                data.Get(encryptedData);
-                data.Get(tag);
-                // Check tag.
-                EncryptAesGcm(p, encryptedData);
-                if (!GXDLMSChipperingStream.TagsEquals(tag, p.CountTag))
-                {
-                    throw new GXDLMSException("Decrypt failed. Invalid tag.");
-                }
-                return encryptedData;
-            }
-            byte[] ciphertext = null;
-            if (p.Security == Gurux.DLMS.Enums.Security.Encryption)
-            {
-                length = data.Size - data.Position;
-                ciphertext = new byte[length];
-                data.Get(ciphertext);
-            }
-            else if (p.Security == Gurux.DLMS.Enums.Security.AuthenticationEncryption)
-            {
-                length = data.Size - data.Position - 12;
-                ciphertext = new byte[length];
-                data.Get(ciphertext);
-                data.Get(tag);
-            }
-            byte[] aad = GetAuthenticatedData(p.Security, p.AuthenticationKey, ciphertext);
-            byte[] iv = GetNonse(p.InvocationCounter, p.SystemTitle);
-            GXDLMSChipperingStream gcm = new GXDLMSChipperingStream(p.Security, true, p.BlockCipherKey, aad, iv, tag);
-            gcm.Write(ciphertext);
-            ciphertext = gcm.FlushFinalBlock();
-            if (p.Security == Gurux.DLMS.Enums.Security.AuthenticationEncryption)
-            {
-                // Check tag.
-                EncryptAesGcm(p, ciphertext);
-                if (!GXDLMSChipperingStream.TagsEquals(tag, p.CountTag))
-                {
-                    //    throw new GXDLMSException("Decrypt failed. Invalid tag.");
-                }
-            }
-            return ciphertext;
-            */
         }
     }
 }

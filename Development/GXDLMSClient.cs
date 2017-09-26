@@ -481,29 +481,29 @@ namespace Gurux.DLMS
             data.SetUInt8(0); // Length.
 
             // If custom HDLC parameters are used.
-            if (!GXDLMSLimitsDefault.DefaultMaxInfoTX.Equals(Limits.MaxInfoTX))
+            if (GXDLMSLimitsDefault.DefaultMaxInfoTX != Limits.MaxInfoTX)
             {
                 data.SetUInt8((byte)HDLCInfo.MaxInfoTX);
-                data.SetUInt8(GXCommon.GetSize(Limits.MaxInfoTX));
-                data.Add(Limits.MaxInfoTX);
+                data.SetUInt8(1);
+                data.SetUInt8((byte)Limits.MaxInfoTX);
             }
-            if (!GXDLMSLimitsDefault.DefaultMaxInfoRX.Equals(Limits.MaxInfoRX))
+            if (GXDLMSLimitsDefault.DefaultMaxInfoRX != Limits.MaxInfoRX)
             {
                 data.SetUInt8((byte)HDLCInfo.MaxInfoRX);
-                data.SetUInt8(GXCommon.GetSize(Limits.MaxInfoRX));
-                data.Add(Limits.MaxInfoRX);
+                data.SetUInt8(1);
+                data.SetUInt8((byte)Limits.MaxInfoRX);
             }
-            if (!GXDLMSLimitsDefault.DefaultWindowSizeTX.Equals(Limits.WindowSizeTX))
+            if (GXDLMSLimitsDefault.DefaultWindowSizeTX != Limits.WindowSizeTX)
             {
                 data.SetUInt8((byte)HDLCInfo.WindowSizeTX);
-                data.SetUInt8(GXCommon.GetSize(Limits.WindowSizeTX));
-                data.Add(Limits.WindowSizeTX);
+                data.SetUInt8(4);
+                data.SetUInt32(Limits.WindowSizeTX);
             }
-            if (!GXDLMSLimitsDefault.DefaultWindowSizeRX.Equals(Limits.WindowSizeRX))
+            if (GXDLMSLimitsDefault.DefaultWindowSizeRX != Limits.WindowSizeRX)
             {
                 data.SetUInt8((byte)HDLCInfo.WindowSizeRX);
-                data.SetUInt8(GXCommon.GetSize(Limits.WindowSizeRX));
-                data.Add(Limits.WindowSizeRX);
+                data.SetUInt8(4);
+                data.SetUInt32(Limits.WindowSizeRX);
             }
             // If default HDLC parameters are not used.
             if (data.Size != 3)
@@ -527,53 +527,7 @@ namespace Gurux.DLMS
         /// <seealso cref="ParseUAResponse"/>
         public void ParseUAResponse(GXByteBuffer data)
         {
-            //If default settings are used.
-            if (data.Size == 0)
-            {
-                return;
-            }
-            data.GetUInt8(); // Skip FromatID
-            data.GetUInt8(); // Skip Group ID.
-            data.GetUInt8(); // Skip Group len
-            Object val;
-            while (data.Position < data.Size)
-            {
-                HDLCInfo id = (HDLCInfo)data.GetUInt8();
-                short len = data.GetUInt8();
-                switch (len)
-                {
-                    case 1:
-                        val = data.GetUInt8();
-                        break;
-                    case 2:
-                        val = data.GetUInt16();
-                        break;
-                    case 4:
-                        val = data.GetUInt32();
-                        break;
-                    default:
-                        throw new GXDLMSException("Invalid Exception.");
-                }
-                // RX / TX are delivered from the partner's point of view =>
-                // reversed to ours
-                switch (id)
-                {
-                    case HDLCInfo.MaxInfoTX:
-                        Limits.MaxInfoRX = val;
-                        break;
-                    case HDLCInfo.MaxInfoRX:
-                        Limits.MaxInfoTX = val;
-                        break;
-                    case HDLCInfo.WindowSizeTX:
-                        Limits.WindowSizeRX = val;
-                        break;
-                    case HDLCInfo.WindowSizeRX:
-                        Limits.WindowSizeTX = val;
-                        break;
-                    default:
-                        throw new GXDLMSException("Invalid UA response.");
-                }
-            }
+            GXDLMS.ParseSnrmUaResponse(data, Limits);
         }
 
         /// <summary>
@@ -1951,6 +1905,19 @@ namespace Gurux.DLMS
                 int pos = data.Data.Position;
                 try
                 {
+                    GXByteBuffer data2 = new GXByteBuffer(data.Data.SubArray(0, data.Data.Size));
+                    if (data.Command == Command.GetResponse ||
+                        data.Command == Command.SetResponse ||
+                        data.Command == Command.AccessResponse ||
+                        data.Command == Command.MethodResponse ||
+                        data.Command == Command.ReadResponse ||
+                        data.Command == Command.WriteResponse)
+                    {
+                        object value = data.Value;
+                        data.Clear();
+                        GXDLMS.GetData(Settings, new GXByteBuffer(reply), data);
+                        data.Value = value;
+                    }
                     data.Data.Position = 0;
                     if (data.Command == Command.Snrm || data.Command == Command.Ua)
                     {
@@ -1962,6 +1929,7 @@ namespace Gurux.DLMS
                     {
                         translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace);
                     }
+                    data.Data = data2;
                 }
                 finally
                 {

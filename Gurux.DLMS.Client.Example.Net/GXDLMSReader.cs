@@ -35,6 +35,7 @@ using Gurux.Common;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Objects;
+using Gurux.DLMS.Objects.Enums;
 using Gurux.Net;
 using Gurux.Serial;
 using System;
@@ -145,6 +146,70 @@ namespace Gurux.DLMS.Reader
             {
                 Console.WriteLine("Parsing AARE reply succeeded.");
             }
+        }
+        /// <summary>
+        /// This method is used to update meter firmware.
+        /// </summary>
+        /// <param name="target"></param>
+        public void ImageUpdate(GXDLMSImageTransfer target, string identification, byte[] data)
+        {
+            //Check that image transfer ia enabled.
+            GXReplyData reply = new GXReplyData();
+            ReadDataBlock(Client.Read(target, 5), reply);
+            Client.UpdateValue(target, 5, reply.Value);
+            if (!target.ImageTransferEnabled)
+            {
+                throw new Exception("Image transfer is not enabled");
+            }
+
+            //Step 1: Read image block size.
+            ReadDataBlock(Client.Read(target, 2), reply);
+            Client.UpdateValue(target, 2, reply.Value);
+
+            // Step 2: Initiate the Image transfer process.
+            ReadDataBlock(target.ImageTransferInitiate(Client, identification, data.Length), reply);
+
+            // Step 3: Transfers ImageBlocks.
+            int imageBlockCount;
+            ReadDataBlock(target.ImageBlockTransfer(Client, data, out imageBlockCount), reply);
+
+            //Step 4: Check the completeness of the Image.
+            ReadDataBlock(Client.Read(target, 3), reply);
+            Client.UpdateValue(target, 3, reply.Value);
+
+            // Step 5: The Image is verified;
+            ReadDataBlock(target.ImageVerify(Client), reply);
+            // Step 6: Before activation, the Image is checked;
+
+            //Get list to images to activate.
+            ReadDataBlock(Client.Read(target, 7), reply);
+            Client.UpdateValue(target, 7, reply.Value);
+            bool bFound = false;
+            foreach (GXDLMSImageActivateInfo it in target.ImageActivateInfo)
+            {
+                if (it.Identification == identification)
+                {
+                    bFound = true;
+                    break;
+                }
+            }
+
+            //Read image transfer status.
+            ReadDataBlock(Client.Read(target, 6), reply);
+            Client.UpdateValue(target, 6, reply.Value);
+            if (target.ImageTransferStatus != ImageTransferStatus.VerificationSuccessful)
+            {
+                throw new Exception("Image transfer status is " + target.ImageTransferStatus.ToString());
+            }
+
+            if (!bFound)
+            {
+                throw new Exception("Image not found.");
+            }
+
+            //Step 7: Activate image.
+            ReadDataBlock(target.ImageActivate(Client), reply);
+
         }
 
         /// <summary>
@@ -420,6 +485,7 @@ namespace Gurux.DLMS.Reader
                                 }
                                 sb.Append("\r\n");
                             }
+                            Console.WriteLine(sb.ToString());
                         }
                     }
                     catch (Exception ex)
@@ -455,6 +521,7 @@ namespace Gurux.DLMS.Reader
                                 }
                                 sb.Append("\r\n");
                             }
+                            Console.WriteLine(sb.ToString());
                         }
                     }
                     catch (Exception ex)

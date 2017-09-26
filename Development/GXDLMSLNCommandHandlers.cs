@@ -349,6 +349,7 @@ namespace Gurux.DLMS
                 obj = server.NotifyFindObject(ci, 0, GXCommon.ToLogicalName(ln));
             }
             e = new ValueEventArgs(server, obj, attributeIndex, selector, parameters);
+            e.InvokeId = invokeID;
             if (obj == null)
             {
                 // "Access Error : Device reports a undefined object."
@@ -356,7 +357,6 @@ namespace Gurux.DLMS
             }
             else
             {
-                e.InvokeId = invokeID;
                 if (server.NotifyGetAttributeAccess(e) == AccessMode.NoAccess)
                 {
                     //Read Write denied.

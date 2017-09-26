@@ -770,10 +770,6 @@ namespace Gurux.DLMS
 
         internal string PduToXml(GXDLMSTranslatorStructure xml, GXByteBuffer value, bool omitDeclaration, bool omitNameSpace)
         {
-            if (value == null || value.Size == 0)
-            {
-                throw new ArgumentNullException("value");
-            }
             GXDLMSSettings settings = new GXDLMSSettings(true);
             settings.Cipher = GetCiphering();
             GXReplyData data = new GXReplyData();
@@ -2108,28 +2104,48 @@ namespace Gurux.DLMS
                     case (int)TranslatorTags.AttributeValue:
                         break;
                     case (int)TranslatorTags.MaxInfoTX:
-                        s.limits.MaxInfoRX = Byte.Parse(GetValue(node, s));
+                        value = Byte.Parse(GetValue(node, s));
+                        if ((s.command == Command.Snrm && !s.settings.IsServer) ||
+                            (s.command == Command.Ua && s.settings.IsServer))
+                        {
+                            s.settings.Limits.MaxInfoRX = (UInt16)value;
+                        }
                         s.data.SetUInt8((byte)HDLCInfo.MaxInfoRX);
-                        s.data.SetUInt8(GXCommon.GetSize(s.limits.MaxInfoRX));
-                        s.data.Add(s.limits.MaxInfoRX);
+                        s.data.SetUInt8(1);
+                        s.data.SetUInt8((byte)value);
                         break;
                     case (int)TranslatorTags.MaxInfoRX:
-                        s.limits.MaxInfoTX = Byte.Parse(GetValue(node, s));
+                        value = Byte.Parse(GetValue(node, s));
+                        if ((s.command == Command.Snrm && !s.settings.IsServer) ||
+                            (s.command == Command.Ua && s.settings.IsServer))
+                        {
+                            s.settings.Limits.MaxInfoTX = (UInt16)value;
+                        }
                         s.data.SetUInt8((byte)HDLCInfo.MaxInfoTX);
-                        s.data.SetUInt8(GXCommon.GetSize(s.limits.MaxInfoTX));
-                        s.data.Add(s.limits.MaxInfoTX);
+                        s.data.SetUInt8(1);
+                        s.data.SetUInt8((byte)value);
                         break;
                     case (int)TranslatorTags.WindowSizeTX:
-                        s.limits.WindowSizeRX = Byte.Parse(GetValue(node, s));
+                        value = Byte.Parse(GetValue(node, s));
+                        if ((s.command == Command.Snrm && !s.settings.IsServer) ||
+                           (s.command == Command.Ua && s.settings.IsServer))
+                        {
+                            s.settings.Limits.WindowSizeRX = (byte)value;
+                        }
                         s.data.SetUInt8((byte)HDLCInfo.WindowSizeRX);
-                        s.data.SetUInt8(GXCommon.GetSize(s.limits.WindowSizeRX));
-                        s.data.Add(s.limits.WindowSizeRX);
+                        s.data.SetUInt8(4);
+                        s.data.SetUInt32(value);
                         break;
                     case (int)TranslatorTags.WindowSizeRX:
-                        s.limits.WindowSizeTX = Byte.Parse(GetValue(node, s));
+                        value = Byte.Parse(GetValue(node, s));
+                        if ((s.command == Command.Snrm && !s.settings.IsServer) ||
+                           (s.command == Command.Ua && s.settings.IsServer))
+                        {
+                            s.settings.Limits.WindowSizeTX = (byte)value;
+                        }
                         s.data.SetUInt8((byte)HDLCInfo.WindowSizeTX);
-                        s.data.SetUInt8(GXCommon.GetSize(s.limits.WindowSizeTX));
-                        s.data.Add(s.limits.WindowSizeTX);
+                        s.data.SetUInt8(4);
+                        s.data.SetUInt32(value);
                         break;
                     case (byte)Command.InitiateRequest:
                         break;
@@ -2252,9 +2268,29 @@ namespace Gurux.DLMS
                     break;
                 case Command.Snrm:
                     s.settings.IsServer = false;
+                    if (s.data.Size != 0)
+                    {
+                        bb.SetUInt8(0x81);
+                        bb.SetUInt8(0x80);
+                        bb.SetUInt8((byte)s.data.Size);
+                        bb.Set(s.data);
+                        s.data.Clear();
+                        s.data.Set(bb);
+                        bb.Clear();
+                    }
                     bb.Set(GXDLMS.GetHdlcFrame(s.settings, (byte)Command.Snrm, s.data));
                     break;
                 case Command.Ua:
+                    if (s.data.Size != 0)
+                    {
+                        bb.SetUInt8(0x81);
+                        bb.SetUInt8(0x80);
+                        bb.SetUInt8((byte)s.data.Size);
+                        bb.Set(s.data);
+                        s.data.Clear();
+                        s.data.Set(bb);
+                        bb.Clear();
+                    }
                     bb.Set(GXDLMS.GetHdlcFrame(s.settings, (byte)Command.Ua, s.data));
                     break;
                 case Command.Aarq:

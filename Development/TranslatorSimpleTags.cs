@@ -110,15 +110,6 @@ namespace Gurux.DLMS
             list.Add((int)Command.ReadResponse, "ReadResponse");
             list.Add((int)(Command.ReadResponse) << 8 | (byte)SingleReadResponse.DataBlockResult, "DataBlockResult");
             list.Add((int)(Command.ReadResponse) << 8 | (byte)SingleReadResponse.Data, "Data");
-            GXDLMSTranslator.AddTag(list, Command.GetResponse, "GetResponse");
-            list.Add((int)(Command.GetResponse) << 8 | (byte)GetCommandType.Normal, "Normal");
-            list.Add((int)(Command.GetResponse) << 8 | (byte)GetCommandType.NextDataBlock, "GetResponsewithDataBlock");
-            list.Add((int)(Command.GetResponse) << 8 | (byte)GetCommandType.WithList, "GetResponseWithList");
-            GXDLMSTranslator.AddTag(list, Command.SetResponse, "SetResponse");
-            list.Add((int)(Command.SetResponse) << 8 | (byte)SetResponseType.Normal, "SetResponseNormal");
-            list.Add((int)(Command.SetResponse) << 8 | (byte)SetResponseType.DataBlock, "SetResponseDataBlock");
-            list.Add((int)(Command.SetResponse) << 8 | (byte)SetResponseType.LastDataBlock, "SetResponseWithLastDataBlock");
-            list.Add((int)(Command.SetResponse) << 8 | (byte)SetResponseType.WithList, "SetResponseWithList");
             list.Add((int)Command.ReadResponse << 8
                      | (int)SingleReadResponse.DataAccessError,
                      "DataAccessError");
@@ -149,6 +140,15 @@ namespace Gurux.DLMS
             list.Add((int)(Command.MethodResponse) << 8 | (byte)ActionRequestType.WithFirstBlock, "ActionResponseWithFirstBlock");
             list.Add((int)(Command.MethodResponse) << 8 | (byte)ActionRequestType.WithList, "ActionResponseWithList");
             list.Add((int)Command.DataNotification, "DataNotification");
+            list.Add((int)Command.GetResponse, "GetResponse");
+            list.Add((int)Command.GetResponse << 8 | (byte)GetCommandType.Normal, "GetResponseNormal");
+            list.Add((int)Command.GetResponse << 8 | (byte)GetCommandType.NextDataBlock, "GetResponsewithDataBlock");
+            list.Add((int)Command.GetResponse << 8 | (byte)GetCommandType.WithList, "GetResponseWithList");
+            list.Add((int)Command.SetResponse, "SetResponse");
+            list.Add((int)Command.SetResponse << 8 | (byte)SetResponseType.Normal, "SetResponseNormal");
+            list.Add((int)Command.SetResponse << 8 | (byte)SetResponseType.DataBlock, "SetResponseDataBlock");
+            list.Add((int)Command.SetResponse << 8 | (byte)SetResponseType.LastDataBlock, "SetResponseWithLastDataBlock");
+            list.Add((int)Command.SetResponse << 8 | (byte)SetResponseType.WithList, "SetResponseWithList");
             GXDLMSTranslator.AddTag(list, Command.AccessRequest, "AccessRequest");
             list.Add((int)(Command.AccessRequest) << 8 | (byte)AccessServiceCommandType.Get, "AccessRequestGet");
             list.Add((int)(Command.AccessRequest) << 8 | (byte)AccessServiceCommandType.Set, "AccessRequestSet");
@@ -331,7 +331,7 @@ namespace Gurux.DLMS
                     str = "NoLongSetOrWriteInProgress";
                     break;
                 case ErrorCode.Ok:
-                    str = "Ok";
+                    str = "Success";
                     break;
                 case ErrorCode.OtherReason:
                     str = "OtherReason";
@@ -396,7 +396,8 @@ namespace Gurux.DLMS
             {
                 v = ErrorCode.NoLongSetOrWriteInProgress;
             }
-            else if (string.Compare("Ok", value, true) == 0)
+            else if (string.Compare("Ok", value, true) == 0 ||
+                string.Compare("Success", value, true) == 0)
             {
                 v = ErrorCode.Ok;
             }

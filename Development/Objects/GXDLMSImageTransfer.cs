@@ -48,22 +48,21 @@ namespace Gurux.DLMS.Objects
 {
     public class GXDLMSImageTransfer : GXDLMSObject, IGXDLMSBase
     {
-        UInt32 ImageSize;
-        Dictionary<uint, byte[]> ImageData = new Dictionary<uint, byte[]>();
+        /// <summary>
+        /// Image size.
+        /// </summary>
+        public UInt32 ImageSize
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// Constructor.
         /// </summary>
         public GXDLMSImageTransfer()
-        : base(ObjectType.ImageTransfer, "0.0.44.0.0.255", 0)
+        : this("0.0.44.0.0.255", 0)
         {
-            ImageBlockSize = 200;
-            ImageFirstNotTransferredBlockNumber = 0;
-            ImageTransferEnabled = true;
-            GXDLMSImageActivateInfo info = new GXDLMSImageActivateInfo();
-            info.Size = 0;
-            info.Signature = "";
-            info.Identification = "";
-            ImageActivateInfo = new GXDLMSImageActivateInfo[] { info };
         }
 
         /// <summary>
@@ -71,16 +70,8 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSImageTransfer(string ln)
-        : base(ObjectType.ImageTransfer, ln, 0)
+        : this(ln, 0)
         {
-            ImageBlockSize = 200;
-            ImageFirstNotTransferredBlockNumber = 0;
-            ImageTransferEnabled = true;
-            GXDLMSImageActivateInfo info = new GXDLMSImageActivateInfo();
-            info.Size = 0;
-            info.Signature = "";
-            info.Identification = "";
-            ImageActivateInfo = new GXDLMSImageActivateInfo[] { info };
         }
 
         /// <summary>
@@ -94,11 +85,7 @@ namespace Gurux.DLMS.Objects
             ImageBlockSize = 200;
             ImageFirstNotTransferredBlockNumber = 0;
             ImageTransferEnabled = true;
-            GXDLMSImageActivateInfo info = new GXDLMSImageActivateInfo();
-            info.Size = 0;
-            info.Signature = "";
-            info.Identification = "";
-            ImageActivateInfo = new GXDLMSImageActivateInfo[] { info };
+            ImageActivateInfo = null;
         }
 
         /// <summary>
@@ -230,29 +217,50 @@ namespace Gurux.DLMS.Objects
 
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
-            ImageTransferStatus = ImageTransferStatus.NotInitiated;
             //Image transfer initiate
             if (e.Index == 1)
             {
+                ImageTransferStatus = ImageTransferStatus.NotInitiated;
                 ImageFirstNotTransferredBlockNumber = 0;
                 ImageTransferredBlocksStatus = "";
                 object[] value = (object[])e.Parameters;
-                string ImageIdentifier = ASCIIEncoding.ASCII.GetString((byte[])value[0]);
+                string imageIdentifier = ASCIIEncoding.ASCII.GetString((byte[])value[0]);
                 ImageSize = (UInt32)value[1];
                 ImageTransferStatus = ImageTransferStatus.TransferInitiated;
-                List<GXDLMSImageActivateInfo> list = new List<GXDLMSImageActivateInfo>(ImageActivateInfo);
-                GXDLMSImageActivateInfo item = new GXDLMSImageActivateInfo();
+                List<GXDLMSImageActivateInfo> list;
+                if (ImageActivateInfo == null)
+                {
+                    list = new List<GXDLMSImageActivateInfo>();
+                }
+                else
+                {
+                    list = new List<GXDLMSImageActivateInfo>(ImageActivateInfo);
+                }
+                GXDLMSImageActivateInfo item = null;
+                foreach (GXDLMSImageActivateInfo it in list)
+                {
+                    if (it.Identification == imageIdentifier)
+                    {
+                        item = it;
+                        break;
+                    }
+                }
+                if (item == null)
+                {
+                    item = new Objects.GXDLMSImageActivateInfo();
+                    list.Add(item);
+                }
                 item.Size = ImageSize;
-                item.Identification = ImageIdentifier;
-                list.Add(item);
+                item.Identification = imageIdentifier;
                 ImageActivateInfo = list.ToArray();
-                StringBuilder sb = new StringBuilder((int)ImageSize);
-                for (uint pos = 0; pos < ImageSize; ++pos)
+                int cnt = (int)Math.Ceiling((double)ImageSize / ImageBlockSize);
+                StringBuilder sb = new StringBuilder(cnt);
+                for (uint pos = 0; pos < cnt; ++pos)
                 {
                     sb.Append('0');
                 }
                 ImageTransferredBlocksStatus = sb.ToString();
-                return new byte[] { 0 };
+                return null;
             }
             //Image block transfer
             else if (e.Index == 2)
@@ -263,34 +271,20 @@ namespace Gurux.DLMS.Objects
                 tmp[(int)imageIndex] = '1';
                 ImageTransferredBlocksStatus = new string(tmp);
                 ImageFirstNotTransferredBlockNumber = imageIndex + 1;
-                ImageData[imageIndex] = (byte[])value[1];
                 ImageTransferStatus = ImageTransferStatus.TransferInitiated;
-                return new byte[] { 0 };
+                return null;
             }
             //Image verify
             else if (e.Index == 3)
             {
-                ImageTransferStatus = ImageTransferStatus.VerificationInitiated;
-                //Check that size match.
-                int size = 0;
-                foreach (KeyValuePair<uint, byte[]> it in ImageData)
-                {
-                    size += it.Value.Length;
-                }
-                if (size != ImageSize)
-                {
-                    //Return HW error.
-                    ImageTransferStatus = ImageTransferStatus.VerificationFailed;
-                    throw new Exception("Invalid image size.");
-                }
                 ImageTransferStatus = ImageTransferStatus.VerificationSuccessful;
-                return new byte[] { 0 };
+                return null;
             }
             //Image activate.
             else if (e.Index == 4)
             {
                 ImageTransferStatus = ImageTransferStatus.ActivationSuccessful;
-                return new byte[] { 0 };
+                return null;
             }
             else
             {

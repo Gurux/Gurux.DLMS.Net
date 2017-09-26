@@ -51,11 +51,8 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSTcpUdpSetup()
-        : base(ObjectType.TcpUdpSetup, "0.0.25.0.0.255", 0)
+        : this("0.0.25.0.0.255")
         {
-            Port = 4059;
-            InactivityTimeout = 180;
-            MaximumSegmentSize = 576;
         }
 
         /// <summary>
@@ -63,11 +60,8 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSTcpUdpSetup(string ln)
-        : base(ObjectType.TcpUdpSetup, ln, 0)
+        : this(ln, 0)
         {
-            Port = 4059;
-            InactivityTimeout = 180;
-            MaximumSegmentSize = 576;
         }
 
         /// <summary>

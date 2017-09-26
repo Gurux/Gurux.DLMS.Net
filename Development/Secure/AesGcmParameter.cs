@@ -158,6 +158,15 @@ namespace Gurux.DLMS.Secure
             set;
         }
 
+        //<summary>
+        /// xml settings. This is used only on xml parser.
+        ///</summary>
+        internal GXDLMSTranslatorStructure Xml
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// Constructor.
         /// </summary>

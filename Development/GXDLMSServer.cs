@@ -76,11 +76,6 @@ namespace Gurux.DLMS
         bool Initialized = false;
 
         /// <summary>
-        /// HDLC settings.
-        /// </summary>
-        GXDLMSHdlcSetup hdlcSetup = null;
-
-        /// <summary>
         /// When data was received last time.
         /// </summary>
         DateTime dataReceived = DateTime.MinValue;
@@ -146,7 +141,6 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="connectionInfo">Connection information.</param>
         protected abstract void Disconnected(GXDLMSConnectionEventArgs connectionInfo);
-
 
         /// <summary>
         /// Pre get selected value.
@@ -311,7 +305,7 @@ namespace Gurux.DLMS
             Settings.ClientAddress = 16;
             Settings.UseLogicalNameReferencing = logicalNameReferencing;
             Reset();
-            this.InterfaceType = type;
+            InterfaceType = type;
         }
 
 
@@ -320,15 +314,9 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="ln">Logical name settings.</param>
         /// <param name="type">Interface type.</param>
-        public GXDLMSServer(GXDLMSAssociationLogicalName ln, InterfaceType type)
+        public GXDLMSServer(GXDLMSAssociationLogicalName ln, InterfaceType type) : this(true, type)
         {
-            Settings = new GXDLMSSettings(true);
-            Settings.ServerAddress = 1;
-            Settings.ClientAddress = 16;
-            Settings.UseLogicalNameReferencing = true;
-            Reset();
             Settings.Objects.Add(ln);
-            this.InterfaceType = type;
         }
 
         /// <summary>
@@ -336,16 +324,57 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="sn">Short name settings.</param>
         /// <param name="type">Interface type.</param>
-        public GXDLMSServer(GXDLMSAssociationShortName sn, InterfaceType type)
+        public GXDLMSServer(GXDLMSAssociationShortName sn, InterfaceType type) : this(false, type)
         {
-            Settings = new GXDLMSSettings(true);
-            Settings.ServerAddress = 1;
-            Settings.ClientAddress = 16;
-
-            Settings.UseLogicalNameReferencing = false;
-            Reset();
             Settings.Objects.Add(sn);
-            this.InterfaceType = type;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="ln">Logical name settings.</param>
+        /// <param name="hdlc">HDLC settings.</param>
+        public GXDLMSServer(GXDLMSAssociationLogicalName ln, GXDLMSHdlcSetup hdlc) : this(true, InterfaceType.HDLC)
+        {
+            Settings.Objects.Add(ln);
+            Settings.Objects.Add(hdlc);
+            Hdlc = hdlc;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="sn">Short name settings.</param>
+        /// <param name="hdlc">HDLC settings.</param>
+        public GXDLMSServer(GXDLMSAssociationShortName sn, GXDLMSHdlcSetup hdlc) : this(false, InterfaceType.HDLC)
+        {
+            Settings.Objects.Add(sn);
+            Settings.Objects.Add(hdlc);
+            Hdlc = hdlc;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="ln">Logical name settings.</param>
+        /// <param name="wrapper">WRAPPER settings.</param>
+        public GXDLMSServer(GXDLMSAssociationLogicalName ln, GXDLMSTcpUdpSetup wrapper) : this(true, InterfaceType.WRAPPER)
+        {
+            Settings.Objects.Add(ln);
+            Settings.Objects.Add(wrapper);
+            Wrapper = wrapper;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="sn">Short name settings.</param>
+        /// <param name="wrapper">WRAPPER settings.</param>
+        public GXDLMSServer(GXDLMSAssociationShortName sn, GXDLMSTcpUdpSetup wrapper) : this(false, InterfaceType.WRAPPER)
+        {
+            Settings.Objects.Add(sn);
+            Settings.Objects.Add(wrapper);
+            Wrapper = wrapper;
         }
 
         /// <summary>
@@ -360,8 +389,26 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// HDLC settings.
+        /// </summary>
+        public GXDLMSHdlcSetup Hdlc
+        {
+            get;
+            internal set;
+        }
+        /// <summary>
+        /// Wrapper settings.
+        /// </summary>
+        public GXDLMSTcpUdpSetup Wrapper
+        {
+            get;
+            internal set;
+        }
+
+        /// <summary>
         /// Information from the connection size that server can handle.
         /// </summary>
+        [Obsolete("Use Hdlc to set limits.")]
         public GXDLMSLimits Limits
         {
             get
@@ -607,7 +654,7 @@ namespace Gurux.DLMS
                 }
                 else if (it is GXDLMSHdlcSetup)
                 {
-                    hdlcSetup = it as GXDLMSHdlcSetup;
+                    Hdlc = it as GXDLMSHdlcSetup;
                 }
                 else if (!(it is IGXDLMSBase))//Remove unsupported items.
                 {
@@ -655,7 +702,8 @@ namespace Gurux.DLMS
             {
                 foreach (GXDLMSObject it in Items)
                 {
-                    if (!(it is GXDLMSAssociationShortName))
+                    if (!(it is GXDLMSAssociationShortName ||
+                        it is GXDLMSAssociationLogicalName))
                     {
                         //Generate Short Name if not given.
                         if (force || it.ShortName == 0)
@@ -672,6 +720,10 @@ namespace Gurux.DLMS
                                 //Add attribute index addresses.
                                 sn += 8 * (it as IGXDLMSBase).GetAttributeCount();
                             }
+                        }
+                        else
+                        {
+                            sn = it.ShortName;
                         }
                     }
                 }
@@ -718,6 +770,7 @@ namespace Gurux.DLMS
                     Settings.Cipher.Security = Gurux.DLMS.Enums.Security.None;
                 }
             }
+            dataReceived = DateTime.MinValue;
         }
 
         ///<summary>
@@ -788,23 +841,35 @@ namespace Gurux.DLMS
                     }
                 }
                 //Check inactivity time out.
-                if (hdlcSetup != null)
+                if (Hdlc != null && Hdlc.InactivityTimeout != 0)
                 {
                     if (info.Command != Command.Snrm)
                     {
                         int elapsed = (int)(DateTime.Now - dataReceived).TotalSeconds;
                         //If inactivity time out is elapsed.
-                        if (elapsed >= hdlcSetup.InactivityTimeout)
+                        if (elapsed >= Hdlc.InactivityTimeout)
                         {
                             Reset();
-                            dataReceived = DateTime.MinValue;
                             return null;
                         }
                     }
                 }
-                dataReceived = DateTime.Now;
+                else if (Wrapper != null && Wrapper.InactivityTimeout != 0)
+                {
+                    if (info.Command != Command.Aarq)
+                    {
+                        int elapsed = (int)(DateTime.Now - dataReceived).TotalSeconds;
+                        //If inactivity time out is elapsed.
+                        if (elapsed >= Wrapper.InactivityTimeout)
+                        {
+                            Reset();
+                            return null;
+                        }
+                    }
+                }
                 byte[] reply = HandleCommand(info.Command, info.Data, connectionInfo);
                 info.Clear();
+                dataReceived = DateTime.Now;
                 return reply;
             }
             catch (GXDLMSConfirmedServiceError e)
@@ -887,7 +952,7 @@ namespace Gurux.DLMS
                     GXDLMSLNCommandHandler.HandleMethodRequest(Settings, this, data, connectionInfo, replyData, null);
                     break;
                 case Command.Snrm:
-                    HandleSnrmRequest();
+                    HandleSnrmRequest(data);
                     frame = (byte)Command.Ua;
                     break;
                 case Command.Aarq:
@@ -989,7 +1054,39 @@ namespace Gurux.DLMS
             try
             {
                 diagnostic = GXAPDU.ParsePDU(Settings, Settings.Cipher, data, null);
-                if (diagnostic != SourceDiagnostic.None)
+                if (Settings.NegotiatedConformance == Conformance.None)
+                {
+                    result = AssociationResult.PermanentRejected;
+                    diagnostic = SourceDiagnostic.NoReasonGiven;
+                    error = new GXByteBuffer();
+                    error.SetUInt8(0xE);
+                    error.SetUInt8(ConfirmedServiceError.InitiateError);
+                    error.SetUInt8(ServiceError.Initiate);
+                    error.SetUInt8(Initiate.IncompatibleConformance);
+                }
+                //If PDU is too low.
+                else if (Settings.MaxPduSize < 64)
+                {
+                    result = AssociationResult.PermanentRejected;
+                    diagnostic = SourceDiagnostic.NoReasonGiven;
+                    error = new GXByteBuffer();
+                    error.SetUInt8(0xE);
+                    error.SetUInt8(ConfirmedServiceError.InitiateError);
+                    error.SetUInt8(ServiceError.Initiate);
+                    error.SetUInt8(Initiate.PduSizeTooShort);
+                }
+                else if (Settings.DLMSVersion != 6)
+                {
+                    Settings.DLMSVersion = 6;
+                    result = AssociationResult.PermanentRejected;
+                    diagnostic = SourceDiagnostic.NoReasonGiven;
+                    error = new GXByteBuffer();
+                    error.SetUInt8(0xE);
+                    error.SetUInt8(ConfirmedServiceError.InitiateError);
+                    error.SetUInt8(ServiceError.Initiate);
+                    error.SetUInt8(Initiate.DlmsVersionTooLow);
+                }
+                else if (diagnostic != SourceDiagnostic.None)
                 {
                     result = AssociationResult.PermanentRejected;
                     diagnostic = SourceDiagnostic.ApplicationContextNameNotSupported;
@@ -1006,10 +1103,6 @@ namespace Gurux.DLMS
                     else if (Settings.Authentication > Authentication.Low)
                     {
                         // If High authentication is used.
-                        if (!Settings.UseCustomChallenge)
-                        {
-                            Settings.StoCChallenge = GXSecure.GenerateChallenge(Settings.Authentication);
-                        }
                         result = AssociationResult.Accepted;
                         diagnostic = SourceDiagnostic.AuthenticationRequired;
                     }
@@ -1019,18 +1112,18 @@ namespace Gurux.DLMS
                         Settings.Connected = true;
                     }
                 }
-                Settings.IsAuthenticationRequired = diagnostic == SourceDiagnostic.AuthenticationRequired;
             }
-            catch (GXDLMSConfirmedServiceError e)
+            catch (GXDLMSException e)
             {
-                result = AssociationResult.PermanentRejected;
-                diagnostic = SourceDiagnostic.NoReasonGiven;
-                error = new GXByteBuffer();
-                error.SetUInt8(0xE);
-                error.SetUInt8(e.ConfirmedServiceError);
-                error.SetUInt8(e.ServiceError);
-                error.SetUInt8(e.ServiceErrorValue);
+                result = e.Result;
+                diagnostic = e.Diagnostic;
             }
+            if (Settings.Authentication > Authentication.Low && !Settings.UseCustomChallenge)
+            {
+                // If High authentication is used.
+                Settings.StoCChallenge = GXSecure.GenerateChallenge(Settings.Authentication);
+            }
+            Settings.IsAuthenticationRequired = diagnostic == SourceDiagnostic.AuthenticationRequired;
             if (Settings.InterfaceType == Enums.InterfaceType.HDLC)
             {
                 replyData.Set(GXCommon.LLCReplyBytes);
@@ -1071,24 +1164,48 @@ namespace Gurux.DLMS
         ///<returns>
         ///Returns returned UA packet.
         ///</returns>
-        private void HandleSnrmRequest()
+        private void HandleSnrmRequest(GXByteBuffer data)
         {
+            GXDLMS.ParseSnrmUaResponse(data, Settings.Limits);
             Reset(true);
+            if (Hdlc != null)
+            {
+                //If client wants send larger HDLC frames what meter accepts.
+                if (Settings.Limits.MaxInfoTX > Hdlc.MaximumInfoLengthReceive)
+                {
+                    Settings.Limits.MaxInfoTX = (UInt16)Hdlc.MaximumInfoLengthReceive;
+                }
+                //If client wants receive larger HDLC frames what meter accepts.
+                if (Settings.Limits.MaxInfoRX > Hdlc.MaximumInfoLengthTransmit)
+                {
+                    Settings.Limits.MaxInfoRX = (UInt16)Hdlc.MaximumInfoLengthTransmit;
+                }
+                //If client asks higher window size what meter accepts.
+                if (Settings.Limits.WindowSizeTX > Hdlc.WindowSizeReceive)
+                {
+                    Settings.Limits.WindowSizeTX = (byte)Hdlc.WindowSizeReceive;
+                }
+                //If client asks higher window size what meter accepts.
+                if (Settings.Limits.WindowSizeRX > Hdlc.WindowSizeTransmit)
+                {
+                    Settings.Limits.WindowSizeRX = (byte)Hdlc.WindowSizeTransmit;
+                }
+            }
             replyData.SetUInt8(0x81); // FromatID
             replyData.SetUInt8(0x80); // GroupID
             replyData.SetUInt8(0); // Length
             replyData.SetUInt8(HDLCInfo.MaxInfoTX);
-            replyData.SetUInt8(GXCommon.GetSize(Limits.MaxInfoTX));
-            replyData.Add(Limits.MaxInfoTX);
+            replyData.SetUInt8(1);
+            replyData.SetUInt8((byte)Settings.Limits.MaxInfoTX);
             replyData.SetUInt8(HDLCInfo.MaxInfoRX);
-            replyData.SetUInt8(GXCommon.GetSize(Limits.MaxInfoRX));
-            replyData.Add(Limits.MaxInfoRX);
+            replyData.SetUInt8(1);
+            replyData.SetUInt8((byte)Settings.Limits.MaxInfoRX);
             replyData.SetUInt8(HDLCInfo.WindowSizeTX);
-            replyData.SetUInt8(GXCommon.GetSize(Limits.WindowSizeTX));
-            replyData.Add(Limits.WindowSizeTX);
+            replyData.SetUInt8(4);
+            replyData.SetUInt32(Settings.Limits.WindowSizeTX);
             replyData.SetUInt8(HDLCInfo.WindowSizeRX);
-            replyData.SetUInt8(GXCommon.GetSize(Limits.WindowSizeRX));
-            replyData.Add(Limits.WindowSizeRX);
+            replyData.SetUInt8(4);
+            replyData.SetUInt32(Settings.Limits.WindowSizeRX);
             replyData.SetUInt8(2, (byte)(replyData.Size - 3));
         }
 
@@ -1113,20 +1230,20 @@ namespace Gurux.DLMS
             replyData.SetUInt8(0); // Length
 
             replyData.SetUInt8(HDLCInfo.MaxInfoTX);
-            replyData.SetUInt8(GXCommon.GetSize(Limits.MaxInfoTX));
-            replyData.Add(Limits.MaxInfoTX);
+            replyData.SetUInt8(1);
+            replyData.SetUInt8((byte)Settings.Limits.MaxInfoTX);
 
             replyData.SetUInt8(HDLCInfo.MaxInfoRX);
-            replyData.SetUInt8(GXCommon.GetSize(Limits.MaxInfoRX));
-            replyData.Add(Limits.MaxInfoRX);
+            replyData.SetUInt8(1);
+            replyData.SetUInt8((byte)Settings.Limits.MaxInfoRX);
 
             replyData.SetUInt8(HDLCInfo.WindowSizeTX);
-            replyData.SetUInt8(GXCommon.GetSize(Limits.WindowSizeTX));
-            replyData.Add(Limits.WindowSizeTX);
+            replyData.SetUInt8(4);
+            replyData.SetUInt32(Settings.Limits.WindowSizeTX);
 
             replyData.SetUInt8(HDLCInfo.WindowSizeRX);
-            replyData.SetUInt8(GXCommon.GetSize(Limits.WindowSizeRX));
-            replyData.Add(Limits.WindowSizeRX);
+            replyData.SetUInt8(4);
+            replyData.SetUInt32(Settings.Limits.WindowSizeRX);
 
             int len = replyData.Position - 3;
             replyData.SetUInt8(2, (byte)len); // Length.

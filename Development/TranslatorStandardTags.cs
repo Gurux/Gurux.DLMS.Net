@@ -219,16 +219,12 @@ namespace Gurux.DLMS
                      "action-response-with-list");
             list.Add((int)TranslatorTags.SingleResponse, "single-response");
             list.Add((int)Command.DataNotification, "data-notification");
-            GXDLMSTranslator.AddTag(list, Command.GetResponse, "get-response");
-            list.Add((int)Command.GetResponse << 8 | (int)GetCommandType.Normal,
-                     "get-response-normal");
-            list.Add((int)Command.GetResponse << 8 | (int)GetCommandType.NextDataBlock,
-                     "get-response-with-data-block");
-            list.Add((int)Command.GetResponse << 8 | (int)GetCommandType.WithList,
-                     "get-response-with-list");
+            list.Add((int)Command.GetResponse, "get-response");
+            list.Add((int)Command.GetResponse << 8 | (int)GetCommandType.Normal, "get-response-normal");
+            list.Add((int)Command.GetResponse << 8 | (int)GetCommandType.NextDataBlock, "get-response-with-data-block");
+            list.Add((int)Command.GetResponse << 8 | (int)GetCommandType.WithList, "get-response-with-list");
             GXDLMSTranslator.AddTag(list, Command.SetResponse, "set-response");
-            list.Add((int)Command.SetResponse << 8 | (int)SetResponseType.Normal,
-                     "set-response-normal");
+            list.Add((int)Command.SetResponse << 8 | (int)SetResponseType.Normal, "set-response-normal");
             list.Add((int)Command.SetResponse << 8 | (int)SetResponseType.DataBlock,
                      "set-response-data-block");
             list.Add((int)Command.SetResponse << 8 | (int)SetResponseType.LastDataBlock,

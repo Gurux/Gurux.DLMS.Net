@@ -76,7 +76,6 @@ namespace Gurux.DLMS.Client.Example
                 {
                     return ret;
                 }
-
                 ////////////////////////////////////////
                 //Initialize connection settings.
                 if (settings.media is GXSerial)
@@ -149,7 +148,7 @@ namespace Gurux.DLMS.Client.Example
 
         static int GetParameters(string[] args, Settings settings)
         {
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:it:a:p:wP:g:");
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:it:a:wP:g:S:C:");
             GXNet net = null;
             foreach (GXCmdParameter it in parameters)
             {
@@ -266,6 +265,16 @@ namespace Gurux.DLMS.Client.Example
                             throw new ArgumentException("Invalid Authentication option: '" + it.Value + "'. (None, Low, High, HighMd5, HighSha1, HighGMac, HighSha256)");
                         }
                         break;
+                    case 'C':
+                        try
+                        {
+                            settings.client.Ciphering.Security = (Security)Enum.Parse(typeof(Security), it.Value);
+                        }
+                        catch (Exception)
+                        {
+                            throw new ArgumentException("Invalid Ciphering option. (None, Authentication, Encrypted, AuthenticationEncryption)");
+                        }
+                        break;
                     case 'o':
                         break;
                     case 'c':
@@ -295,6 +304,8 @@ namespace Gurux.DLMS.Client.Example
                                 throw new ArgumentException("Missing mandatory trace option.");
                             case 'g':
                                 throw new ArgumentException("Missing mandatory OBIS code option.");
+                            case 'C':
+                                throw new ArgumentException("Missing mandatory Ciphering option.");
                             default:
                                 ShowHelp();
                                 return 1;
@@ -329,6 +340,7 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine(" -w WRAPPER profile is used. HDLC is default.");
             Console.WriteLine(" -t [Error, Warning, Info, Verbose] Trace messages.");
             Console.WriteLine(" -g \"0.0.1.0.0.255:1; 0.0.1.0.0.255:2\" Get selected object(s) with given attribute index.");
+            Console.WriteLine(" -C \t Security Level. (None, Authentication, Encrypted, AuthenticationEncryption)");
             Console.WriteLine("Example:");
             Console.WriteLine("Read LG device using TCP/IP connection.");
             Console.WriteLine("GuruxDlmsSample -r SN -c 16 -s 1 -h [Meter IP Address] -p [Meter Port No]");

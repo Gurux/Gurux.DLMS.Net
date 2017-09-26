@@ -52,7 +52,7 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSHdlcSetup()
-        : this(null)
+        : this("0.0.22.0.0.255")
         {
         }
 
@@ -88,7 +88,7 @@ namespace Gurux.DLMS.Objects
 
         [XmlIgnore()]
         [DefaultValue(1)]
-        public int WindowSizeTransmit
+        public byte WindowSizeTransmit
         {
             get;
             set;
@@ -96,7 +96,7 @@ namespace Gurux.DLMS.Objects
 
         [XmlIgnore()]
         [DefaultValue(1)]
-        public int WindowSizeReceive
+        public byte WindowSizeReceive
         {
             get;
             set;
@@ -104,7 +104,7 @@ namespace Gurux.DLMS.Objects
 
         [XmlIgnore()]
         [DefaultValue(128)]
-        public int MaximumInfoLengthTransmit
+        public UInt16 MaximumInfoLengthTransmit
         {
             get;
             set;
@@ -112,7 +112,7 @@ namespace Gurux.DLMS.Objects
 
         [XmlIgnore()]
         [DefaultValue(128)]
-        public int MaximumInfoLengthReceive
+        public UInt16 MaximumInfoLengthReceive
         {
             get;
             set;
@@ -326,19 +326,19 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 3)
             {
-                WindowSizeTransmit = Convert.ToInt32(e.Value);
+                WindowSizeTransmit = Convert.ToByte(e.Value);
             }
             else if (e.Index == 4)
             {
-                WindowSizeReceive = Convert.ToInt32(e.Value);
+                WindowSizeReceive = Convert.ToByte(e.Value);
             }
             else if (e.Index == 5)
             {
-                MaximumInfoLengthTransmit = Convert.ToInt32(e.Value);
+                MaximumInfoLengthTransmit = Convert.ToUInt16(e.Value);
             }
             else if (e.Index == 6)
             {
-                MaximumInfoLengthReceive = Convert.ToInt32(e.Value);
+                MaximumInfoLengthReceive = Convert.ToUInt16(e.Value);
             }
             else if (e.Index == 7)
             {
@@ -367,10 +367,10 @@ namespace Gurux.DLMS.Objects
         void IGXDLMSBase.Load(GXXmlReader reader)
         {
             CommunicationSpeed = (BaudRate)reader.ReadElementContentAsInt("Speed");
-            WindowSizeTransmit = reader.ReadElementContentAsInt("WindowSizeTx");
-            WindowSizeReceive = reader.ReadElementContentAsInt("WindowSizeRx");
-            MaximumInfoLengthTransmit = reader.ReadElementContentAsInt("MaximumInfoLengthTx");
-            MaximumInfoLengthReceive = reader.ReadElementContentAsInt("MaximumInfoLengthRx");
+            WindowSizeTransmit = (byte)reader.ReadElementContentAsInt("WindowSizeTx");
+            WindowSizeReceive = (byte)reader.ReadElementContentAsInt("WindowSizeRx");
+            MaximumInfoLengthTransmit = (UInt16)reader.ReadElementContentAsInt("MaximumInfoLengthTx");
+            MaximumInfoLengthReceive = (UInt16)reader.ReadElementContentAsInt("MaximumInfoLengthRx");
             InterCharachterTimeout = reader.ReadElementContentAsInt("InterCharachterTimeout");
             InactivityTimeout = reader.ReadElementContentAsInt("InactivityTimeout");
             DeviceAddress = reader.ReadElementContentAsInt("DeviceAddress");

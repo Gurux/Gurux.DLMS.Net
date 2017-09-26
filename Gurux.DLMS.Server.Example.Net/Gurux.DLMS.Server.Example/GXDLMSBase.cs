@@ -54,6 +54,8 @@ namespace GuruxDLMSServerExample
     /// </summary>
     class GXDLMSBase : GXDLMSSecureServer
     {
+        //Image to update.
+        string ImageUpdate = null;
         static readonly object FileLock = new object();
         static string GetdataFile()
         {
@@ -65,10 +67,11 @@ namespace GuruxDLMSServerExample
         /// Constructor.
         /// </summary>
         /// <param name="ln">Logical name settings.</param>
-        /// <param name="type">Interface type.</param>
-        public GXDLMSBase(GXDLMSAssociationLogicalName ln, InterfaceType type)
-        : base(ln, type, "GRX", 12345678)
+        /// <param name="hdlc">HDLC settings.</param>
+        public GXDLMSBase(GXDLMSAssociationLogicalName ln, GXDLMSHdlcSetup hdlc)
+        : base(ln, hdlc)
         {
+            Items.Add(Hdlc);
             MaxReceivePDUSize = 1024;
             //Default secret.
             ln.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
@@ -79,10 +82,40 @@ namespace GuruxDLMSServerExample
         /// Constructor.
         /// </summary>
         /// <param name="sn">Short name settings.</param>
-        /// <param name="type">Interface type.</param>
-        public GXDLMSBase(GXDLMSAssociationShortName sn, InterfaceType type)
-        : base(sn, type, "GRX", 12345678)
+        /// <param name="hdlc">HDLC settings.</param>
+        public GXDLMSBase(GXDLMSAssociationShortName sn, GXDLMSHdlcSetup hdlc)
+        : base(sn, hdlc, "GRX", 12345678)
         {
+            Items.Add(Hdlc);
+            MaxReceivePDUSize = 1024;
+            //Default secret.
+            sn.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="ln">Logical name settings.</param>
+        /// <param name="wrapper">Wrapper settings.</param>
+        public GXDLMSBase(GXDLMSAssociationLogicalName ln, GXDLMSTcpUdpSetup wrapper)
+        : base(ln, wrapper, "GRX", 12345678)
+        {
+            Items.Add(wrapper);
+            MaxReceivePDUSize = 1024;
+            //Default secret.
+            ln.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
+        }
+
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="sn">Short name settings.</param>
+        /// <param name="wrapper">Wrapper settings.</param>
+        public GXDLMSBase(GXDLMSAssociationShortName sn, GXDLMSTcpUdpSetup wrapper)
+        : base(sn, wrapper, "GRX", 12345678)
+        {
+            Items.Add(wrapper);
             MaxReceivePDUSize = 1024;
             //Default secret.
             sn.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
@@ -159,25 +192,25 @@ namespace GuruxDLMSServerExample
             //Generate Profile Generic data file
             lock (FileLock)
             {
+                //Create 10 000 rows for profile generic file.
+                //In example profile generic we have two columns. 
+                //Date time and integer value.
+                int rowCount = 10000;
+                DateTime dt = DateTime.Now;
+                //Reset minutes and seconds to Zero.
+                dt = dt.AddSeconds(-dt.Second);
+                dt = dt.AddMinutes(-dt.Minute);
+                dt = dt.AddHours(-(rowCount - 1));
+                StringBuilder sb = new StringBuilder();
+                for (int pos = 0; pos != rowCount; ++pos)
+                {
+                    sb.Append(dt.ToString(CultureInfo.InvariantCulture));
+                    sb.Append(';');
+                    sb.AppendLine(Convert.ToString(pos + 1));
+                    dt = dt.AddHours(1);
+                }
                 using (var writer = File.CreateText(GetdataFile()))
                 {
-                    //Create 10 000 rows for profile generic file.
-                    //In example profile generic we have two columns. 
-                    //Date time and integer value.
-                    int rowCount = 10000;
-                    DateTime dt = DateTime.Now;
-                    //Reset minutes and seconds to Zero.
-                    dt = dt.AddSeconds(-dt.Second);
-                    dt = dt.AddMinutes(-dt.Minute);
-                    dt = dt.AddHours(-(rowCount - 1));
-                    StringBuilder sb = new StringBuilder();
-                    for (int pos = 0; pos != rowCount; ++pos)
-                    {
-                        sb.Append(dt.ToString(CultureInfo.InvariantCulture));
-                        sb.Append(';');
-                        sb.AppendLine(Convert.ToString(pos + 1));
-                        dt = dt.AddHours(1);
-                    }
                     sb.Length -= 2;
                     writer.Write(sb.ToString());
                 }
@@ -337,7 +370,6 @@ namespace GuruxDLMSServerExample
             Items.Add(new GXDLMSG3PlcMacSetup());
             //Add security setup object
             Items.Add(new GXDLMSSecuritySetup());
-
             ///////////////////////////////////////////////////////////////////////
             //Server must initialize after all objects are added.
             Initialize();
@@ -496,7 +528,7 @@ namespace GuruxDLMSServerExample
                 if (e.Target is GXDLMSProfileGeneric)
                 {
                     //If buffer is read and we want to save memory.
-                    if (e.Index == 6)
+                    if (e.Index == 7)
                     {
                         //If client wants to know EntriesInUse.
                         GXDLMSProfileGeneric p = (GXDLMSProfileGeneric)e.Target;
@@ -654,6 +686,51 @@ namespace GuruxDLMSServerExample
                     SendPush(it.Target as GXDLMSPushSetup);
                     it.Handled = true;
                 }
+                if (it.Target is GXDLMSImageTransfer)
+                {
+                    GXDLMSImageTransfer i = it.Target as GXDLMSImageTransfer;
+                    //Image name and size to transfer 
+                    if (it.Index == 1)
+                    {
+                        ImageUpdate = ASCIIEncoding.ASCII.GetString((byte[])(it.Parameters as object[])[0]);
+                        string file = Path.Combine(Path.GetDirectoryName(typeof(GXDLMSBase).Assembly.Location), ImageUpdate + ".exe");
+                        System.Diagnostics.Debug.WriteLine("Updating image" + ImageUpdate + " Size:" + (it.Parameters as object[])[1]);
+                        using (var writer = File.Create(file))
+                        {
+                        }
+                    }
+                    //Transfers one block of the Image to the server
+                    else if (it.Index == 2)
+                    {
+                        string file = Path.Combine(Path.GetDirectoryName(typeof(GXDLMSBase).Assembly.Location), ImageUpdate + ".exe");
+                        object[] p = (object[])it.Parameters;
+                        using (BinaryWriter writer = new BinaryWriter(new FileStream(file, FileMode.Append)))
+                        {
+                            writer.Write((byte[])p[1]);
+                        }
+                    }
+                    //Verifies the integrity of the Image before activation.
+                    else if (it.Index == 3)
+                    {
+                        string file = Path.Combine(Path.GetDirectoryName(typeof(GXDLMSBase).Assembly.Location), ImageUpdate + ".exe");
+                        i.ImageTransferStatus = ImageTransferStatus.VerificationInitiated;
+                        //Check that size match.
+                        uint size = (uint)new FileInfo(file).Length;
+                        if (size != i.ImageSize)
+                        {
+                            i.ImageTransferStatus = ImageTransferStatus.VerificationFailed;
+                        }
+                        else
+                        {
+                            i.ImageTransferStatus = ImageTransferStatus.VerificationSuccessful;
+                        }
+                    }
+                    //Activates the Image.
+                    else if (it.Index == 4)
+                    {
+
+                    }
+                }
             }
         }
 
@@ -661,38 +738,38 @@ namespace GuruxDLMSServerExample
         {
             lock (FileLock)
             {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("");
+                foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in pg.CaptureObjects)
+                {
+                    if (sb.Length != 1)
+                    {
+                        sb.Append(';');
+                    }
+                    // TODO: Read value here example from the meter if it's not
+                    // updated automatically.
+                    object value = it.Key.GetValues()[it.Value.AttributeIndex - 1];
+                    if (value == null)
+                    {
+                        // Generate random value here.
+                        value = GetProfileGenericDataCount(pg) + 1;
+                    }
+
+                    if (value is DateTime)
+                    {
+                        sb.Append(((DateTime)value).ToString(CultureInfo.InvariantCulture));
+                    }
+                    else if (value is GXDateTime)
+                    {
+                        sb.Append(((GXDateTime)value).Value.ToString(CultureInfo.InvariantCulture));
+                    }
+                    else
+                    {
+                        sb.Append(Convert.ToString(value));
+                    }
+                }
                 using (var writer = File.AppendText(GetdataFile()))
                 {
-                    StringBuilder sb = new StringBuilder();
-                    sb.AppendLine("");
-                    foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in pg.CaptureObjects)
-                    {
-                        if (sb.Length != 1)
-                        {
-                            sb.Append(';');
-                        }
-                        // TODO: Read value here example from the meter if it's not
-                        // updated automatically.
-                        object value = it.Key.GetValues()[it.Value.AttributeIndex - 1];
-                        if (value == null)
-                        {
-                            // Generate random value here.
-                            value = GetProfileGenericDataCount(pg) + 1;
-                        }
-
-                        if (value is DateTime)
-                        {
-                            sb.Append(((DateTime)value).ToString(CultureInfo.InvariantCulture));
-                        }
-                        else if (value is GXDateTime)
-                        {
-                            sb.Append(((GXDateTime)value).Value.ToString(CultureInfo.InvariantCulture));
-                        }
-                        else
-                        {
-                            sb.Append(Convert.ToString(value));
-                        }
-                    }
                     writer.Write(sb.ToString());
                 }
             }
@@ -853,6 +930,7 @@ namespace GuruxDLMSServerExample
         void OnClientConnected(object sender, Gurux.Common.ConnectionEventArgs e)
         {
             //Reset server settings when connection is established.
+            //This is mandatory if Wrapper is used.
             this.Reset();
             if (Trace > TraceLevel.Warning)
             {

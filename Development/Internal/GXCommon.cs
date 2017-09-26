@@ -63,27 +63,6 @@ namespace Gurux.DLMS.Internal
         /// </summary>
         internal static readonly byte[] LLCReplyBytes = { 0xE6, 0xE7, 0x00 };
 
-        public static byte GetSize(Object value)
-        {
-            if (value is byte)
-            {
-                return 1;
-            }
-            if (value is UInt16)
-            {
-                return 2;
-            }
-            if (value is UInt32)
-            {
-                return 4;
-            }
-            if (value is UInt64)
-            {
-                return 8;
-            }
-            throw new ArgumentException("Invalid object type.");
-        }
-
         /// <summary>
         /// Convert char hex value to byte value.
         /// </summary>
@@ -1317,7 +1296,7 @@ namespace Gurux.DLMS.Internal
                         {
                             foreach (char it in tmp)
                             {
-                                if (it == 0xFF || !char.IsLetterOrDigit(it))
+                                if (it < 32 || it > 126)
                                 {
                                     isString = false;
                                     break;

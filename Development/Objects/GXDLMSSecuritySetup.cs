@@ -319,7 +319,7 @@ namespace Gurux.DLMS.Objects
             bb.SetUInt8(type);
             //system_title
             GXCommon.SetData(client.Settings, bb, DataType.OctetString, systemTitle);
-            return client.Method(this, 7, bb.Array(), DataType.OctetString);
+            return client.Method(this, 7, bb.Array(), DataType.Structure);
         }
 
         /// <summary>
@@ -344,7 +344,7 @@ namespace Gurux.DLMS.Objects
             GXCommon.SetData(client.Settings, bb, DataType.OctetString, serialNumber);
             //issuer
             GXCommon.SetData(client.Settings, bb, DataType.OctetString, issuer);
-            return client.Method(this, 7, bb.Array(), DataType.OctetString);
+            return client.Method(this, 7, bb.Array(), DataType.Structure);
         }
 
         /// <summary>
@@ -374,7 +374,7 @@ namespace Gurux.DLMS.Objects
             bb.SetUInt8(type);
             //system_title
             GXCommon.SetData(client.Settings, bb, DataType.OctetString, systemTitle);
-            return client.Method(this, 8, bb.Array(), DataType.OctetString);
+            return client.Method(this, 8, bb.Array(), DataType.Structure);
         }
 
         /// <summary>
@@ -399,7 +399,7 @@ namespace Gurux.DLMS.Objects
             GXCommon.SetData(client.Settings, bb, DataType.OctetString, serialNumber);
             //issuer
             GXCommon.SetData(client.Settings, bb, DataType.OctetString, issuer);
-            return client.Method(this, 8, bb.Array(), DataType.OctetString);
+            return client.Method(this, 8, bb.Array(), DataType.Structure);
         }
 
         #region IGXDLMSBase Members

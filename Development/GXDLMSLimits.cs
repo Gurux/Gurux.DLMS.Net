@@ -59,9 +59,9 @@ namespace Gurux.DLMS
         /// The maximum information field length in transmit.
         /// </summary>
         /// <remarks>
-        /// DefaultValue is 128.
+        /// DefaultValue is 128. Minimum value is 32 and max value is 128.
         /// </remarks>
-        public object MaxInfoTX
+        public UInt16 MaxInfoTX
         {
             get;
             set;
@@ -71,9 +71,9 @@ namespace Gurux.DLMS
         /// The maximum information field length in receive.
         /// </summary>
         /// <remarks>
-        /// DefaultValue is 62.
+        /// DefaultValue is 128. Minimum value is 32 and max value is 128.
         /// </remarks>
-        public object MaxInfoRX
+        public UInt16 MaxInfoRX
         {
             get;
             set;
@@ -85,7 +85,7 @@ namespace Gurux.DLMS
         /// <remarks>
         /// DefaultValue is 1.
         /// </remarks>
-        public object WindowSizeTX
+        public byte WindowSizeTX
         {
             get;
             set;
@@ -97,7 +97,7 @@ namespace Gurux.DLMS
         /// <remarks>
         /// DefaultValue is 1.
         /// </remarks>
-        public object WindowSizeRX
+        public byte WindowSizeRX
         {
             get;
             set;
