@@ -71,7 +71,6 @@ namespace GuruxDLMSServerExample
         public GXDLMSBase(GXDLMSAssociationLogicalName ln, GXDLMSHdlcSetup hdlc)
         : base(ln, hdlc)
         {
-            Items.Add(Hdlc);
             MaxReceivePDUSize = 1024;
             //Default secret.
             ln.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
@@ -86,7 +85,6 @@ namespace GuruxDLMSServerExample
         public GXDLMSBase(GXDLMSAssociationShortName sn, GXDLMSHdlcSetup hdlc)
         : base(sn, hdlc, "GRX", 12345678)
         {
-            Items.Add(Hdlc);
             MaxReceivePDUSize = 1024;
             //Default secret.
             sn.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
@@ -100,7 +98,6 @@ namespace GuruxDLMSServerExample
         public GXDLMSBase(GXDLMSAssociationLogicalName ln, GXDLMSTcpUdpSetup wrapper)
         : base(ln, wrapper, "GRX", 12345678)
         {
-            Items.Add(wrapper);
             MaxReceivePDUSize = 1024;
             //Default secret.
             ln.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
@@ -115,7 +112,6 @@ namespace GuruxDLMSServerExample
         public GXDLMSBase(GXDLMSAssociationShortName sn, GXDLMSTcpUdpSetup wrapper)
         : base(sn, wrapper, "GRX", 12345678)
         {
-            Items.Add(wrapper);
             MaxReceivePDUSize = 1024;
             //Default secret.
             sn.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
@@ -742,7 +738,7 @@ namespace GuruxDLMSServerExample
                 sb.AppendLine("");
                 foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in pg.CaptureObjects)
                 {
-                    if (sb.Length != 1)
+                    if (sb.Length != 2)
                     {
                         sb.Append(';');
                     }

@@ -652,10 +652,6 @@ namespace Gurux.DLMS
                     }
                     association = true;
                 }
-                else if (it is GXDLMSHdlcSetup)
-                {
-                    Hdlc = it as GXDLMSHdlcSetup;
-                }
                 else if (!(it is IGXDLMSBase))//Remove unsupported items.
                 {
                     Debug.WriteLine(it.ObjectType.ToString() + " not supported.");
