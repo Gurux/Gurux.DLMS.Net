@@ -352,11 +352,11 @@ namespace Gurux.DLMS
                 {
 
                 }
-                AppendLine("\" >");
+                sb.AppendLine("\" >");
             }
             else
             {
-                AppendLine(">");
+                sb.AppendLine(">");
             }
             ++offset;
         }

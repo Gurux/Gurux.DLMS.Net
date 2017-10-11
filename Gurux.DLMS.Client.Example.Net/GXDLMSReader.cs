@@ -35,7 +35,6 @@ using Gurux.Common;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Objects;
-using Gurux.DLMS.Objects.Enums;
 using Gurux.Net;
 using Gurux.Serial;
 using System;
@@ -50,7 +49,14 @@ namespace Gurux.DLMS.Reader
 {
     public class GXDLMSReader
     {
-        int WaitTime = 5000;
+        /// <summary>
+        /// Wait time.
+        /// </summary>
+        public int WaitTime = 5000;
+        /// <summary>
+        /// Retry count.
+        /// </summary>
+        public int RetryCount = 3;
         IGXMedia Media;
         TraceLevel Trace;
         GXDLMSClient Client;
@@ -84,6 +90,75 @@ namespace Gurux.DLMS.Reader
             finally
             {
                 Close();
+            }
+        }
+
+        /// <summary>
+        /// Send SNRM Request to the meter.
+        /// </summary>
+        public void SNRMRequest()
+        {
+            GXReplyData reply = new GXReplyData();
+            byte[] data;
+            data = Client.SNRMRequest();
+            if (data != null)
+            {
+                if (Trace > TraceLevel.Info)
+                {
+                    Console.WriteLine("Send SNRM request." + GXCommon.ToHex(data, true));
+                }
+                ReadDataBlock(data, reply);
+                if (Trace == TraceLevel.Verbose)
+                {
+                    Console.WriteLine("Parsing UA reply." + reply.ToString());
+                }
+                //Has server accepted client.
+                Client.ParseUAResponse(reply.Data);
+                if (Trace > TraceLevel.Info)
+                {
+                    Console.WriteLine("Parsing UA reply succeeded.");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Send AARQ Request to the meter.
+        /// </summary>
+        public void AarqRequest()
+        {
+            GXReplyData reply = new GXReplyData();
+            //Generate AARQ request.
+            //Split requests to multiple packets if needed.
+            //If password is used all data might not fit to one packet.
+            foreach (byte[] it in Client.AARQRequest())
+            {
+                if (Trace > TraceLevel.Info)
+                {
+                    Console.WriteLine("Send AARQ request", GXCommon.ToHex(it, true));
+                }
+                reply.Clear();
+                ReadDataBlock(it, reply);
+            }
+            if (Trace > TraceLevel.Info)
+            {
+                Console.WriteLine("Parsing AARE reply" + reply.ToString());
+            }
+            //Parse reply.
+            Client.ParseAAREResponse(reply.Data);
+            reply.Clear();
+            //Get challenge Is HLS authentication is used.
+            if (Client.IsAuthenticationRequired)
+            {
+                foreach (byte[] it in Client.GetApplicationAssociationRequest())
+                {
+                    reply.Clear();
+                    ReadDataBlock(it, reply);
+                }
+                Client.ParseApplicationAssociationResponse(reply.Data);
+            }
+            if (Trace > TraceLevel.Info)
+            {
+                Console.WriteLine("Parsing AARE reply succeeded.");
             }
         }
 
@@ -147,6 +222,7 @@ namespace Gurux.DLMS.Reader
                 Console.WriteLine("Parsing AARE reply succeeded.");
             }
         }
+
         /// <summary>
         /// This method is used to update meter firmware.
         /// </summary>
@@ -197,7 +273,7 @@ namespace Gurux.DLMS.Reader
             //Read image transfer status.
             ReadDataBlock(Client.Read(target, 6), reply);
             Client.UpdateValue(target, 6, reply.Value);
-            if (target.ImageTransferStatus != ImageTransferStatus.VerificationSuccessful)
+            if (target.ImageTransferStatus != Gurux.DLMS.Objects.Enums.ImageTransferStatus.VerificationSuccessful)
             {
                 throw new Exception("Image transfer status is " + target.ImageTransferStatus.ToString());
             }
@@ -209,9 +285,7 @@ namespace Gurux.DLMS.Reader
 
             //Step 7: Activate image.
             ReadDataBlock(target.ImageActivate(Client), reply);
-
         }
-
         /// <summary>
         /// Read association view.
         /// </summary>
@@ -264,7 +338,7 @@ namespace Gurux.DLMS.Reader
             {
                 Console.WriteLine("Read scalers and units from the device.");
             }
-            if ((Client.NegotiatedConformance & Conformance.MultipleReferences) != 0)
+            if ((Client.NegotiatedConformance & Gurux.DLMS.Enums.Conformance.MultipleReferences) != 0)
             {
                 List<KeyValuePair<GXDLMSObject, int>> list = new List<KeyValuePair<GXDLMSObject, int>>();
                 foreach (GXDLMSObject it in objs)
@@ -459,7 +533,7 @@ namespace Gurux.DLMS.Reader
                     continue;
                 }
                 //All meters are not supporting parameterized read.
-                if ((Client.NegotiatedConformance & (Conformance.ParameterizedAccess | Conformance.SelectiveAccess)) != 0)
+                if ((Client.NegotiatedConformance & (Gurux.DLMS.Enums.Conformance.ParameterizedAccess | Gurux.DLMS.Enums.Conformance.SelectiveAccess)) != 0)
                 {
                     try
                     {
@@ -495,7 +569,7 @@ namespace Gurux.DLMS.Reader
                     }
                 }
                 //All meters are not supporting parameterized read.
-                if ((Client.NegotiatedConformance & (Conformance.ParameterizedAccess | Conformance.SelectiveAccess)) != 0)
+                if ((Client.NegotiatedConformance & (Gurux.DLMS.Enums.Conformance.ParameterizedAccess | Gurux.DLMS.Enums.Conformance.SelectiveAccess)) != 0)
                 {
                     try
                     {
@@ -573,6 +647,7 @@ namespace Gurux.DLMS.Reader
                     catch (Exception ex)
                     {
                         Console.WriteLine("Error! " + it.GetType().Name + " " + it.Name + "Index: " + pos + " " + ex.Message);
+                        Console.WriteLine(ex.ToString());
                     }
                 }
             }
@@ -613,22 +688,22 @@ namespace Gurux.DLMS.Reader
                     succeeded = Media.Receive(p);
                     if (!succeeded)
                     {
+                        if (++pos >= RetryCount)
+                        {
+                            throw new Exception("Failed to receive reply from the device in given time.");
+                        }
                         //If Eop is not set read one byte at time.
                         if (p.Eop == null)
                         {
                             p.Count = 1;
                         }
                         //Try to read again...
-                        if (++pos != 3)
-                        {
-                            System.Diagnostics.Debug.WriteLine("Data send failed. Try to resend " + pos.ToString() + "/3");
-                            continue;
-                        }
-                        throw new Exception("Failed to receive reply from the device in given time.");
+                        System.Diagnostics.Debug.WriteLine("Data send failed. Try to resend " + pos.ToString() + "/3");
                     }
                 }
                 try
                 {
+                    pos = 0;
                     //Loop until whole COSEM packet is received.
                     while (!Client.GetData(p.Reply, reply))
                     {
@@ -639,18 +714,17 @@ namespace Gurux.DLMS.Reader
                         }
                         while (!Media.Receive(p))
                         {
+                            if (++pos >= RetryCount)
+                            {
+                                throw new Exception("Failed to receive reply from the device in given time.");
+                            }
                             //If echo.
-                            if (p.Reply.Length == data.Length)
+                            if (p.Reply == null || p.Reply.Length == data.Length)
                             {
                                 Media.Send(data, null);
                             }
                             //Try to read again...
-                            if (++pos != 3)
-                            {
-                                System.Diagnostics.Debug.WriteLine("Data send failed. Try to resend " + pos.ToString() + "/3");
-                                continue;
-                            }
-                            throw new Exception("Failed to receive reply from the device in given time.");
+                            System.Diagnostics.Debug.WriteLine("Data send failed. Try to resend " + pos.ToString() + "/3");
                         }
                     }
                 }
@@ -772,7 +846,7 @@ namespace Gurux.DLMS.Reader
                 }
                 else if (reply.Value != null)
                 {
-                    //Value is null if data is send multiple frames.
+                    //Value is null if data is send in multiple frames.
                     values.Add(reply.Value);
                 }
                 reply.Clear();
@@ -823,6 +897,33 @@ namespace Gurux.DLMS.Reader
         }
 
         /// <summary>
+        /// Disconnect.
+        /// </summary>
+        public void Disconnect()
+        {
+            if (Media != null && Client != null)
+            {
+                try
+                {
+                    if (Trace > TraceLevel.Info)
+                    {
+                        Console.WriteLine("Disconnecting from the meter.");
+                    }
+                    GXReplyData reply = new GXReplyData();
+                    ReadDLMSPacket(Client.DisconnectRequest(), reply);
+                    Media.Close();
+                }
+                catch
+                {
+
+                }
+                Media = null;
+                Client = null;
+            }
+        }
+
+
+        /// <summary>
         /// Close connection to the meter.
         /// </summary>
         public void Close()
@@ -836,7 +937,14 @@ namespace Gurux.DLMS.Reader
                         Console.WriteLine("Disconnecting from the meter.");
                     }
                     GXReplyData reply = new GXReplyData();
-                    ReadDataBlock(Client.ReleaseRequest(), reply);
+                    try
+                    {
+                        ReadDataBlock(Client.ReleaseRequest(), reply);
+                    }
+                    catch (Exception e)
+                    {
+                        //All meters don't support Release.
+                    }
                     reply.Clear();
                     ReadDLMSPacket(Client.DisconnectRequest(), reply);
                     Media.Close();
@@ -860,9 +968,12 @@ namespace Gurux.DLMS.Reader
             {
                 Console.WriteLine(line);
             }
-            using (TextWriter writer = new StreamWriter(File.Open("trace.txt", FileMode.Append)))
+            using (FileStream fs = File.Open("trace.txt", FileMode.Append))
             {
-                writer.WriteLine(line);
+                using (TextWriter writer = new StreamWriter(fs))
+                {
+                    writer.WriteLine(line);
+                }
             }
         }
     }

@@ -175,6 +175,20 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
+        public GXDLMSObject FindByLN(ObjectType type, byte[] ln)
+        {
+            string name = GXCommon.ToLogicalName(ln);
+            foreach (GXDLMSObject it in this)
+            {
+                if ((type == ObjectType.None || it.ObjectType == type) && it.LogicalName.Trim() == name)
+                {
+                    return it;
+                }
+            }
+            return null;
+        }
+
+
         public GXDLMSObject FindBySN(ushort sn)
         {
             foreach (GXDLMSObject it in this)

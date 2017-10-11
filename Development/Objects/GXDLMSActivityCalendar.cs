@@ -311,7 +311,7 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetObjectCount(cnt, data);
                 foreach (GXDLMSWeekProfile it in target)
                 {
-                    data.SetUInt8((byte)DataType.Array);
+                    data.SetUInt8((byte)DataType.Structure);
                     data.SetUInt8(8);
                     GXCommon.SetData(settings, data, DataType.OctetString, it.Name);
                     GXCommon.SetData(settings, data, DataType.UInt8, it.Monday);

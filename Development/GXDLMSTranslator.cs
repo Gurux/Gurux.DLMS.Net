@@ -1391,6 +1391,12 @@ namespace Gurux.DLMS
         private static GXByteBuffer UpdateDataType(XmlNode node, GXDLMSXmlSettings s, int tag)
         {
             GXByteBuffer preData = null;
+            string v = GetValue(node, s);
+            if (s.template || v == "*")
+            {
+                s.template = true;
+                return preData;
+            }
             switch ((DataType)(tag - GXDLMS.DATA_TYPE_OFFSET))
             {
                 case DataType.Array:

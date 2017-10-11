@@ -55,6 +55,11 @@ namespace Gurux.DLMS
         public SortedList<string, int> tags = new SortedList<string, int>();
         public GXDateTime time = DateTime.MinValue;
         /// <summary>
+        /// Is xml used as a reply template.
+        /// </summary>
+        public bool template;
+
+        /// <summary>
         /// Are numeric values shows as hex.
         /// </summary>
         private bool showNumericsAsHex;

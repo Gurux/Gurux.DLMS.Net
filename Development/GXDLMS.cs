@@ -2162,15 +2162,16 @@ namespace Gurux.DLMS
 
             // Get type.
             GetCommandType type = (GetCommandType)data.GetUInt8();
+            reply.CommandType = (byte)type;
             // Get invoke ID and priority.
-            ch = data.GetUInt8();
+            reply.InvokeId = data.GetUInt8();
 
             if (reply.Xml != null)
             {
                 reply.Xml.AppendStartTag(Command.GetResponse);
                 reply.Xml.AppendStartTag(Command.GetResponse, type);
                 //InvokeIdAndPriority
-                reply.Xml.AppendLine(TranslatorTags.InvokeId, "Value", reply.Xml.IntegerToHex(ch, 2));
+                reply.Xml.AppendLine(TranslatorTags.InvokeId, "Value", reply.Xml.IntegerToHex(reply.InvokeId, 2));
             }
             // Response normal
             if (type == GetCommandType.Normal)
@@ -2283,7 +2284,11 @@ namespace Gurux.DLMS
                         {
                             throw new OutOfMemoryException();
                         }
-                        reply.Command = Command.None;
+                        //Keep command if this is last block for XML Client.
+                        if ((reply.MoreData & RequestTypes.DataBlock) != 0)
+                        {
+                            reply.Command = Command.None;
+                        }
                     }
                     GetDataFromBlock(data, index);
                     // If last packet and data is not try to peek.
@@ -2671,7 +2676,10 @@ namespace Gurux.DLMS
                 else
                 {
                     // Client do not need a command any more.
-                    data.Command = Command.None;
+                    if (data.IsMoreData)
+                    {
+                        data.Command = Command.None;
+                    }
                     //Ciphered messages are handled after whole PDU is received.
                     switch (cmd)
                     {

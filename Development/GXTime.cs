@@ -89,27 +89,31 @@ namespace Gurux.DLMS
             Skip = DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek;
             if (time != null)
             {
-                System.Globalization.CultureInfo culture = System.Globalization.CultureInfo.CurrentUICulture;
+                int year = 2000, month = 1, day = 1, hour = 0, min = 0, sec = 0;
+                System.Globalization.CultureInfo culture = System.Globalization.CultureInfo.CurrentCulture;
 #if !WINDOWS_UWP
                 string dateSeparator = culture.DateTimeFormat.DateSeparator, timeSeparator = culture.DateTimeFormat.TimeSeparator;
+                List<string> shortDatePattern = new List<string>(culture.DateTimeFormat.ShortDatePattern.Split(new string[] { dateSeparator, " " }, StringSplitOptions.RemoveEmptyEntries));
 #else
+                //In UWP Standard Date and Time Format Strings are used.
                 string dateSeparator = Internal.GXCommon.GetDateSeparator(), timeSeparator = Internal.GXCommon.GetTimeSeparator();
+                List<string> shortDatePattern = new List<string>("yyyy-MM-dd".Split(new string[] { dateSeparator, " " }, StringSplitOptions.RemoveEmptyEntries));
 #endif
-                int hour = 0, min = 0, sec = 0;
-                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { timeSeparator }, StringSplitOptions.RemoveEmptyEntries));
-                string[] values = time.Split(new string[] { timeSeparator }, StringSplitOptions.None);
-                if (shortTimePattern.Count != values.Length)
+                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { timeSeparator, " ", "." }, StringSplitOptions.RemoveEmptyEntries));
+                string[] values = time.Trim().Split(new string[] { dateSeparator, timeSeparator, " " }, StringSplitOptions.None);
+                int cnt = shortTimePattern.Count;
+                if (cnt > values.Length)
                 {
-                    throw new ArgumentOutOfRangeException("Invalid Time");
+                    cnt = values.Length;
                 }
-                for (int pos = 0; pos != shortTimePattern.Count; ++pos)
+                for (int pos = 0; pos != cnt; ++pos)
                 {
                     bool skip = false;
                     if (values[pos] == "*")
                     {
                         skip = true;
                     }
-                    if (string.Compare(shortTimePattern[pos], "h", true) == 0)
+                    if (shortTimePattern[pos].ToLower().StartsWith("h"))
                     {
                         if (skip)
                         {
@@ -119,8 +123,15 @@ namespace Gurux.DLMS
                         {
                             hour = int.Parse(values[pos]);
                         }
+                        if (!string.IsNullOrEmpty(culture.DateTimeFormat.PMDesignator))
+                        {
+                            if (time.IndexOf(culture.DateTimeFormat.PMDesignator) != -1)
+                            {
+                                hour += 12;
+                            }
+                        }
                     }
-                    else if (string.Compare(shortTimePattern[pos], "mm", true) == 0)
+                    else if (shortTimePattern[pos].ToLower().StartsWith("m"))
                     {
                         if (skip)
                         {
@@ -131,7 +142,7 @@ namespace Gurux.DLMS
                             min = int.Parse(values[pos]);
                         }
                     }
-                    else if (string.Compare(shortTimePattern[pos], "ss", true) == 0)
+                    else if (shortTimePattern[pos].ToLower().StartsWith("ss"))
                     {
                         if (skip)
                         {
@@ -144,11 +155,11 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        throw new ArgumentOutOfRangeException("Invalid Time pattern.");
+                        //This is OK. There might be some extra in some cultures.
                     }
                 }
-                DateTime dt = new DateTime(2000, 1, 1, hour, min, sec);
-                this.Value = new DateTimeOffset(dt, TimeZoneInfo.Local.GetUtcOffset(dt));
+                DateTime dt = culture.Calendar.ToDateTime(year, month, day, hour, min, sec, 0);
+                Value = new DateTimeOffset(dt, TimeZoneInfo.Local.GetUtcOffset(dt));
             }
         }
     }

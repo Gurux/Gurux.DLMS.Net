@@ -750,6 +750,7 @@ namespace Gurux.DLMS
             {
                 return null;
             }
+            Settings.Connected = false;
             if (Settings.InterfaceType == InterfaceType.HDLC)
             {
                 return GXDLMS.GetHdlcFrame(Settings, (byte)Command.DisconnectRequest, null);
@@ -1890,13 +1891,38 @@ namespace Gurux.DLMS
         ///</returns>
         public bool GetData(byte[] reply, GXReplyData data)
         {
-            if (data.Xml != null)
-            {
-                data.Xml.SetXmlLength(0);
-            }
+            return GetData(new GXByteBuffer(reply), data);
+        }
+        ///<summary>
+        ///Removes the HDLC frame from the packet, and returns COSEM data only.
+        ///</summary>
+        ///<param name="reply">
+        ///The received data from the device.
+        ///</param>
+        ///<param name="data">
+        ///The exported reply information.
+        ///</param>
+        ///<returns>
+        /// Is frame complete.
+        ///</returns>
+        public virtual bool GetData(GXByteBuffer reply, GXReplyData data)
+        {
             data.Xml = null;
-            bool ret = GXDLMS.GetData(Settings, new GXByteBuffer(reply), data);
-            if (ret && translator != null && data.Command != Command.None && (data.MoreData & RequestTypes.Frame) == 0)
+            bool ret = false;
+            Command cmd = data.Command;
+            try
+            {
+                ret = GXDLMS.GetData(Settings, reply, data);
+            }
+            catch (Exception ex)
+            {
+                if (translator == null)
+                {
+                    throw ex;
+                }
+                ret = true;
+            }
+            if (ret && translator != null && data.MoreData == RequestTypes.None)
             {
                 if (data.Xml == null)
                 {
@@ -1905,18 +1931,26 @@ namespace Gurux.DLMS
                 int pos = data.Data.Position;
                 try
                 {
-                    GXByteBuffer data2 = new GXByteBuffer(data.Data.SubArray(0, data.Data.Size));
-                    if (data.Command == Command.GetResponse ||
-                        data.Command == Command.SetResponse ||
-                        data.Command == Command.AccessResponse ||
-                        data.Command == Command.MethodResponse ||
-                        data.Command == Command.ReadResponse ||
-                        data.Command == Command.WriteResponse)
+                    GXByteBuffer data2 = data.Data;
+                    if (data.Command == Command.GetResponse)
                     {
-                        object value = data.Value;
-                        data.Clear();
-                        GXDLMS.GetData(Settings, new GXByteBuffer(reply), data);
-                        data.Value = value;
+                        GXByteBuffer tmp = new GXByteBuffer((UInt16)(3 + data.Data.Size));
+                        tmp.SetUInt8(data.Command);
+                        tmp.SetUInt8(GetCommandType.Normal);
+                        tmp.SetUInt8((byte)data.InvokeId);
+                        tmp.SetUInt8(0);
+                        tmp.Set(data.Data);
+                        data.Data = tmp;
+                    }
+                    if (data.Command == Command.ReadResponse)
+                    {
+                        GXByteBuffer tmp = new GXByteBuffer((UInt16)(3 + data.Data.Size));
+                        tmp.SetUInt8(data.Command);
+                        tmp.SetUInt8(VariableAccessSpecification.VariableName);
+                        tmp.SetUInt8((byte)data.InvokeId);
+                        tmp.SetUInt8(0);
+                        tmp.Set(data.Data);
+                        data.Data = tmp;
                     }
                     data.Data.Position = 0;
                     if (data.Command == Command.Snrm || data.Command == Command.Ua)
@@ -1928,8 +1962,8 @@ namespace Gurux.DLMS
                     else
                     {
                         translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace);
+                        data.Data = data2;
                     }
-                    data.Data = data2;
                 }
                 finally
                 {
@@ -1990,23 +2024,6 @@ namespace Gurux.DLMS
                 value = GXDLMSClient.ChangeType((byte[])value, type, useUtc);
             }
             return value;
-        }
-
-        ///<summary>
-        ///Removes the HDLC frame from the packet, and returns COSEM data only.
-        ///</summary>
-        ///<param name="reply">
-        ///The received data from the device.
-        ///</param>
-        ///<param name="data">
-        ///The exported reply information.
-        ///</param>
-        ///<returns>
-        /// Is frame complete.
-        ///</returns>
-        public virtual bool GetData(GXByteBuffer reply, GXReplyData data)
-        {
-            return GXDLMS.GetData(Settings, reply, data);
         }
 
         /// <summary>

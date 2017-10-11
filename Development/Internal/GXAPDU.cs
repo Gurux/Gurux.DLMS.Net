@@ -886,7 +886,7 @@ namespace Gurux.DLMS.Internal
                     throw new Exception("Invalid tag.");
                 }
             }
-            int len = buff.GetUInt8();
+            int len = GXCommon.GetObjectCount(buff);
             int size = buff.Size - buff.Position;
             if (len > size)
             {

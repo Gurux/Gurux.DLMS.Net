@@ -48,7 +48,11 @@ namespace Gurux.DLMS
 {
     public class GXDLMSXmlPdu
     {
-        private XmlNode XmlNode;
+        public XmlNode XmlNode
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Command.
@@ -102,27 +106,48 @@ namespace Gurux.DLMS
             if (string.Compare(expectedNode.Name, actualNode.Name) != 0)
             {
                 list.Add(expectedNode.Name + "-" + actualNode.Name);
+                return;
             }
             else if (cnt != actualNode.ChildNodes.Count)
             {
-                list.Add("Different amount: " + expectedNode.Name + "-" + actualNode.Name);
-            }
-            else
-            {
-                for (int pos = 0; pos != cnt; ++pos)
+                //If we are reading array items count might vary.
+                if (expectedNode.Name == "Array" || expectedNode.Name == "Structure")
                 {
-                    if (actualNode.ChildNodes[pos] == null)
+                    if (cnt < actualNode.ChildNodes.Count)
                     {
-                        list.Add("Different values. Expected: '" + expectedNode.ChildNodes[pos].OuterXml + "'. Actual: 'null'.");
+                        //Check only first If meter is returning more nodes what we have in template.
                     }
-                    else if (actualNode.ChildNodes[pos].ChildNodes.Count != 0)
+                    else
                     {
-                        Compare(expectedNode.ChildNodes[pos], actualNode.ChildNodes[pos], list);
+                        cnt = actualNode.ChildNodes.Count;
                     }
-                    else if (string.Compare(expectedNode.ChildNodes[pos].OuterXml, actualNode.ChildNodes[pos].OuterXml) != 0)
+                }
+                else
+                {
+                    list.Add("Different amount: " + expectedNode.Name + "-" + actualNode.Name);
+                    return;
+                }
+            }
+            for (int pos = 0; pos != cnt; ++pos)
+            {
+                if (actualNode.ChildNodes[pos] == null)
+                {
+                    list.Add("Different values. Expected: '" + expectedNode.ChildNodes[pos].OuterXml + "'. Actual: 'null'.");
+                }
+                else if (actualNode.ChildNodes[pos].ChildNodes.Count != 0)
+                {
+                    Compare(expectedNode.ChildNodes[pos], actualNode.ChildNodes[pos], list);
+                }
+                else if (string.Compare(expectedNode.ChildNodes[pos].OuterXml, actualNode.ChildNodes[pos].OuterXml) != 0)
+                {
+                    XmlAttribute a = expectedNode.ChildNodes[pos].Attributes["Value"];
+                    if (a == null ||
+                        //If value type is not defined.
+                        (string.Compare(expectedNode.ChildNodes[pos].Name, "None") != 0 &&
+                        string.Compare(expectedNode.ChildNodes[pos].Name, actualNode.ChildNodes[pos].Name) != 0)
+                        || string.Compare(a.Value, "*") != 0)
                     {
-                        XmlAttribute a = expectedNode.ChildNodes[pos].Attributes["Value"];
-                        if (a == null || string.Compare(a.Value, "*") != 0)
+                        if (expectedNode.FirstChild.Name != "Array")
                         {
                             list.Add("Different values. Expected: '" + expectedNode.ChildNodes[pos].OuterXml + "'. Actual: '" + actualNode.ChildNodes[pos].OuterXml + "'.");
                         }
@@ -223,6 +248,17 @@ namespace Gurux.DLMS
             UseLogicalNameReferencing = true;
         }
 
+
+        /// <summary>
+        /// Load XML commands from the file.
+        /// </summary>
+        /// <param name="stream">Stream.</param>
+        /// <returns></returns>
+        public List<GXDLMSXmlPdu> Load(StreamReader stream)
+        {
+            return LoadXml(stream.ReadToEnd());
+        }
+
         /// <summary>
         /// Load XML commands from the file.
         /// </summary>
@@ -230,8 +266,18 @@ namespace Gurux.DLMS
         /// <returns></returns>
         public List<GXDLMSXmlPdu> Load(string fileName)
         {
+            return LoadXml(File.ReadAllText(fileName));
+        }
+
+        /// <summary>
+        /// Load XML commands from xml string.
+        /// </summary>
+        /// <param name="xml"></param>
+        /// <returns></returns>
+        public List<GXDLMSXmlPdu> LoadXml(string xml)
+        {
             XmlDocument doc = new XmlDocument();
-            doc.LoadXml(File.ReadAllText(fileName));
+            doc.LoadXml(xml);
             List<GXDLMSXmlPdu> actions = new List<GXDLMSXmlPdu>();
             foreach (XmlNode m1 in doc.ChildNodes)
             {
@@ -259,6 +305,10 @@ namespace Gurux.DLMS
                                 Settings.Limits.WindowSizeRX = s.settings.Limits.WindowSizeRX;
                                 Settings.Limits.WindowSizeTX = s.settings.Limits.WindowSizeTX;
                             }
+                            if (s.template)
+                            {
+                                reply = null;
+                            }
                             actions.Add(new GXDLMSXmlPdu(s.command, node, reply));
                         }
                     }
@@ -266,6 +316,7 @@ namespace Gurux.DLMS
             }
             return actions;
         }
+
         /// <summary>
         /// Load XML commands from the file.
         /// </summary>

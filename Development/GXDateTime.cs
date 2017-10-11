@@ -36,6 +36,7 @@ using System;
 using System.Collections.Generic;
 using Gurux.DLMS.Enums;
 using System.ComponentModel;
+using System.Globalization;
 
 namespace Gurux.DLMS
 {
@@ -92,22 +93,48 @@ namespace Gurux.DLMS
         {
             if (value != null)
             {
+                DateTime dt;
+                if (value.IndexOf('*') == -1)
+                {
+                    if (DateTime.TryParse(value, System.Globalization.CultureInfo.CurrentCulture, System.Globalization.DateTimeStyles.None, out dt))
+                    {
+                        Value = new DateTimeOffset(dt, TimeZoneInfo.Local.GetUtcOffset(dt));
+                        if (dt.IsDaylightSavingTime())
+                        {
+                            Status |= ClockStatus.DaylightSavingActive;
+                        }
+                        return;
+                    }
+                }
                 int year = 2000, month = 1, day = 1, hour = 0, min = 0, sec = 0;
-                System.Globalization.CultureInfo culture = System.Globalization.CultureInfo.CurrentUICulture;
+                System.Globalization.CultureInfo culture = System.Globalization.CultureInfo.CurrentCulture;
 #if !WINDOWS_UWP
                 string dateSeparator = culture.DateTimeFormat.DateSeparator, timeSeparator = culture.DateTimeFormat.TimeSeparator;
-                List<string> shortDatePattern = new List<string>(culture.DateTimeFormat.ShortDatePattern.Split(new string[] { dateSeparator }, StringSplitOptions.RemoveEmptyEntries));
+                List<string> shortDatePattern = new List<string>(culture.DateTimeFormat.ShortDatePattern.Split(new string[] { dateSeparator, " " }, StringSplitOptions.RemoveEmptyEntries));
 #else
                 //In UWP Standard Date and Time Format Strings are used.
                 string dateSeparator = Internal.GXCommon.GetDateSeparator(), timeSeparator = Internal.GXCommon.GetTimeSeparator();
-                List<string> shortDatePattern = new List<string>("yyyy-MM-dd".Split(new string[] { dateSeparator }, StringSplitOptions.RemoveEmptyEntries));
+                List<string> shortDatePattern = new List<string>("yyyy-MM-dd".Split(new string[] { dateSeparator, " " }, StringSplitOptions.RemoveEmptyEntries));
 #endif
-                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { timeSeparator }, StringSplitOptions.RemoveEmptyEntries));
+                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { timeSeparator, " ", "." }, StringSplitOptions.RemoveEmptyEntries));
                 string[] values = value.Trim().Split(new string[] { dateSeparator, timeSeparator, " " }, StringSplitOptions.None);
-                if (shortDatePattern.Count != values.Length && shortDatePattern.Count + shortTimePattern.Count != values.Length)
+                int cnt = shortDatePattern.Count + shortTimePattern.Count;
+                if (!string.IsNullOrEmpty(culture.DateTimeFormat.PMDesignator))
                 {
-                    throw new ArgumentOutOfRangeException("Invalid DateTime");
+                    if (value.IndexOf(culture.DateTimeFormat.PMDesignator) != -1)
+                    {
+                        ++cnt;
+                    }
+                    else if (value.IndexOf(culture.DateTimeFormat.AMDesignator) != -1)
+                    {
+                        ++cnt;
+                    }
                 }
+                if (shortDatePattern.Count != values.Length && cnt != values.Length)
+                {
+                    //  throw new ArgumentOutOfRangeException("Invalid DateTime");
+                }
+                int offset = 3;
                 for (int pos = 0; pos != shortDatePattern.Count; ++pos)
                 {
                     bool skip = false;
@@ -115,7 +142,7 @@ namespace Gurux.DLMS
                     {
                         skip = true;
                     }
-                    if (shortDatePattern[pos] == "yyyy")
+                    if (shortDatePattern[pos].ToLower().StartsWith("yy"))
                     {
                         if (skip)
                         {
@@ -126,7 +153,7 @@ namespace Gurux.DLMS
                             year = int.Parse(values[pos]);
                         }
                     }
-                    else if (string.Compare(shortDatePattern[pos], "M", true) == 0)
+                    else if (shortDatePattern[pos].ToLower().StartsWith("m"))
                     {
                         if (skip)
                         {
@@ -137,7 +164,7 @@ namespace Gurux.DLMS
                             month = int.Parse(values[pos]);
                         }
                     }
-                    else if (string.Compare(shortDatePattern[pos], "d", true) == 0)
+                    else if (shortDatePattern[pos].ToLower().StartsWith("d"))
                     {
                         if (skip)
                         {
@@ -150,7 +177,8 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        throw new ArgumentOutOfRangeException("Invalid Date time pattern.");
+                        //This is OK. There might be day name in some cultures.
+                        ++offset;
                     }
                 }
                 if (values.Length > 3)
@@ -158,11 +186,11 @@ namespace Gurux.DLMS
                     for (int pos = 0; pos != shortTimePattern.Count; ++pos)
                     {
                         bool skip = false;
-                        if (values[3 + pos] == "*")
+                        if (values[offset + pos] == "*")
                         {
                             skip = true;
                         }
-                        if (string.Compare(shortTimePattern[pos], "h", true) == 0)
+                        if (shortTimePattern[pos].ToLower().StartsWith("h"))
                         {
                             if (skip)
                             {
@@ -170,10 +198,17 @@ namespace Gurux.DLMS
                             }
                             else
                             {
-                                hour = int.Parse(values[3 + pos]);
+                                hour = int.Parse(values[offset + pos]);
+                            }
+                            if (!string.IsNullOrEmpty(culture.DateTimeFormat.PMDesignator))
+                            {
+                                if (value.IndexOf(culture.DateTimeFormat.PMDesignator) != -1)
+                                {
+                                    hour += 12;
+                                }
                             }
                         }
-                        else if (string.Compare(shortTimePattern[pos], "mm", true) == 0)
+                        else if (shortTimePattern[pos].ToLower().StartsWith("m"))
                         {
                             if (skip)
                             {
@@ -181,10 +216,10 @@ namespace Gurux.DLMS
                             }
                             else
                             {
-                                min = int.Parse(values[3 + pos]);
+                                min = int.Parse(values[offset + pos]);
                             }
                         }
-                        else if (string.Compare(shortTimePattern[pos], "ss", true) == 0)
+                        else if (shortTimePattern[pos].ToLower().StartsWith("ss"))
                         {
                             if (skip)
                             {
@@ -192,16 +227,17 @@ namespace Gurux.DLMS
                             }
                             else
                             {
-                                sec = int.Parse(values[3 + pos]);
+                                sec = int.Parse(values[offset + pos]);
                             }
                         }
                         else
                         {
-                            throw new ArgumentOutOfRangeException("Invalid Date time pattern.");
+                            //This is OK. There might be some extra in some cultures.
+                            // ++offset;
                         }
                     }
                 }
-                DateTime dt = new DateTime(year, month, day, hour, min, sec);
+                dt = culture.Calendar.ToDateTime(year, month, day, hour, min, sec, 0);
                 Value = new DateTimeOffset(dt, TimeZoneInfo.Local.GetUtcOffset(dt));
                 if (dt.IsDaylightSavingTime())
                 {
@@ -454,7 +490,7 @@ namespace Gurux.DLMS
         {
             if (Skip != DateTimeSkips.None)
             {
-                System.Globalization.CultureInfo culture = System.Globalization.CultureInfo.CurrentUICulture;
+                System.Globalization.CultureInfo culture = System.Globalization.CultureInfo.CurrentCulture;
 #if !WINDOWS_UWP
                 string dateSeparator = culture.DateTimeFormat.DateSeparator, timeSeparator = culture.DateTimeFormat.TimeSeparator;
                 List<string> shortDatePattern = new List<string>(culture.DateTimeFormat.ShortDatePattern.Split(new string[] { dateSeparator }, StringSplitOptions.RemoveEmptyEntries));
@@ -467,18 +503,22 @@ namespace Gurux.DLMS
                 if ((Skip & DateTimeSkips.Year) != 0)
                 {
                     shortDatePattern.Remove("yyyy");
+                    shortDatePattern.Remove("yy");
                 }
                 if ((Skip & DateTimeSkips.Month) != 0)
                 {
                     shortDatePattern.Remove("M");
+                    shortDatePattern.Remove("MM");
                 }
                 if ((Skip & DateTimeSkips.Day) != 0)
                 {
                     shortDatePattern.Remove("d");
+                    shortDatePattern.Remove("dd");
                 }
                 if ((Skip & DateTimeSkips.Hour) != 0)
                 {
                     shortTimePattern.Remove("H");
+                    shortTimePattern.Remove("HH");
                 }
                 if ((Skip & DateTimeSkips.Minute) != 0)
                 {
@@ -510,7 +550,7 @@ namespace Gurux.DLMS
                 {
                     return "";
                 }
-                return Value.LocalDateTime.ToString(format);
+                return Value.LocalDateTime.ToString(format, culture);
             }
             return Value.LocalDateTime.ToString();
         }
