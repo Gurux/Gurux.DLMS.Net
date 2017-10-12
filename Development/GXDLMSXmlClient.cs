@@ -105,6 +105,11 @@ namespace Gurux.DLMS
             int cnt = expectedNode.ChildNodes.Count;
             if (string.Compare(expectedNode.Name, actualNode.Name) != 0)
             {
+                XmlAttribute a = expectedNode.Attributes["Value"];
+                if (string.Compare(expectedNode.Name, "None") == 0 && a != null && string.Compare(a.Value, "*") == 0)
+                {
+                    return;
+                }
                 list.Add(expectedNode.Name + "-" + actualNode.Name);
                 return;
             }

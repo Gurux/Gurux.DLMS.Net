@@ -166,9 +166,6 @@ namespace GuruxDLMSServerExample
             clock.End = new GXDateTime(-1, 3, 1, -1, -1, -1, -1);
             clock.Deviation = 0;
             Items.Add(clock);
-            //Add Tcp Udp setup. Default Logical Name is 0.0.25.0.0.255.
-            GXDLMSTcpUdpSetup tcp = new GXDLMSTcpUdpSetup();
-            Items.Add(tcp);
             ///////////////////////////////////////////////////////////////////////
             //Add Load profile.           
             GXDLMSProfileGeneric pg = new GXDLMSProfileGeneric("1.0.99.1.0.255");
