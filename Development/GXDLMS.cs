@@ -727,14 +727,23 @@ namespace Gurux.DLMS
                 }
                 if (ciphering)
                 {
-                    byte[] tmp = p.settings.Cipher.Encrypt((byte)GetGloMessage(p.command),
+                    byte cmd;
+                    if ((p.settings.NegotiatedConformance & Conformance.GeneralProtection) == 0)
+                    {
+                        cmd = (byte)GetGloMessage(p.command);
+                    }
+                    else
+                    {
+                        cmd = (byte)Command.GeneralGloCiphering;
+                    }
+                    byte[] tmp = p.settings.Cipher.Encrypt(cmd,
                                                            p.settings.Cipher.SystemTitle, reply.Array());
                     reply.Size = 0;
                     if (p.settings.InterfaceType == InterfaceType.HDLC)
                     {
                         AddLLCBytes(p.settings, reply);
                     }
-                    if (p.command == Command.DataNotification)
+                    if (p.command == Command.DataNotification || (p.settings.NegotiatedConformance & Conformance.GeneralProtection) != 0)
                     {
                         // Add command.
                         reply.SetUInt8(tmp[0]);
