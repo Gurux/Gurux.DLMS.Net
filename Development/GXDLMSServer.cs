@@ -57,9 +57,13 @@ namespace Gurux.DLMS
     public abstract class GXDLMSServer
     {
         /// <summary>
-        /// DLMS Settings. 
+        /// DLMS settings.
         /// </summary>
-        internal GXDLMSSettings Settings;
+        public GXDLMSSettings Settings
+        {
+            get;
+            private set;
+        }
 
         private readonly GXReplyData info = new GXReplyData();
         /// <summary>
@@ -1191,11 +1195,9 @@ namespace Gurux.DLMS
             replyData.SetUInt8(0x80); // GroupID
             replyData.SetUInt8(0); // Length
             replyData.SetUInt8(HDLCInfo.MaxInfoTX);
-            replyData.SetUInt8(1);
-            replyData.SetUInt8((byte)Settings.Limits.MaxInfoTX);
+            GXDLMS.AppendHdlcParameter(replyData, Settings.Limits.MaxInfoTX);
             replyData.SetUInt8(HDLCInfo.MaxInfoRX);
-            replyData.SetUInt8(1);
-            replyData.SetUInt8((byte)Settings.Limits.MaxInfoRX);
+            GXDLMS.AppendHdlcParameter(replyData, Settings.Limits.MaxInfoRX);
             replyData.SetUInt8(HDLCInfo.WindowSizeTX);
             replyData.SetUInt8(4);
             replyData.SetUInt32(Settings.Limits.WindowSizeTX);

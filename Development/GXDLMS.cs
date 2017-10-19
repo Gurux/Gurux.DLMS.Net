@@ -1808,6 +1808,7 @@ namespace Gurux.DLMS
                     {
                         GetDataFromBlock(reply.Data, 0);
                         reply.Value = values.ToArray();
+                        reply.ReadPosition = reply.Data.Position;
                     }
                     return false;
                 }
@@ -3289,6 +3290,25 @@ namespace Gurux.DLMS
                     default:
                         throw new GXDLMSException("Invalid UA response.");
                 }
+            }
+        }
+
+        /// <summary>
+        /// Add HDLC parameter.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="value"></param>
+        internal static void AppendHdlcParameter(GXByteBuffer data, UInt16 value)
+        {
+            if (value < 0x100)
+            {
+                data.SetUInt8(1);
+                data.SetUInt8((byte)value);
+            }
+            else
+            {
+                data.SetUInt8(2);
+                data.SetUInt16(value);
             }
         }
     }

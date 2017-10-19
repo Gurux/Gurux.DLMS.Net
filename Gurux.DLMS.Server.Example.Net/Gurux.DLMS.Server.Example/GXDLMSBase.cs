@@ -139,6 +139,7 @@ namespace GuruxDLMSServerExample
 
         void Init()
         {
+            this.Conformance |= Conformance.GeneralProtection;
             Media.OnReceived += new Gurux.Common.ReceivedEventHandler(OnReceived);
             Media.OnClientConnected += new Gurux.Common.ClientConnectedEventHandler(OnClientConnected);
             Media.OnClientDisconnected += new Gurux.Common.ClientDisconnectedEventHandler(OnClientDisconnected);

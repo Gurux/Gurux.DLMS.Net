@@ -447,7 +447,6 @@ namespace Gurux.DLMS
             }
         }
 
-
         /// <summary>
         /// Generates SNRM request.
         /// </summary>
@@ -484,14 +483,12 @@ namespace Gurux.DLMS
             if (GXDLMSLimitsDefault.DefaultMaxInfoTX != Limits.MaxInfoTX)
             {
                 data.SetUInt8((byte)HDLCInfo.MaxInfoTX);
-                data.SetUInt8(1);
-                data.SetUInt8((byte)Limits.MaxInfoTX);
+                GXDLMS.AppendHdlcParameter(data, Limits.MaxInfoTX);
             }
             if (GXDLMSLimitsDefault.DefaultMaxInfoRX != Limits.MaxInfoRX)
             {
                 data.SetUInt8((byte)HDLCInfo.MaxInfoRX);
-                data.SetUInt8(1);
-                data.SetUInt8((byte)Limits.MaxInfoRX);
+                GXDLMS.AppendHdlcParameter(data, Limits.MaxInfoRX);
             }
             if (GXDLMSLimitsDefault.DefaultWindowSizeTX != Limits.WindowSizeTX)
             {
