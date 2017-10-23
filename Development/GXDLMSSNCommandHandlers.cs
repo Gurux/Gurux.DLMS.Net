@@ -282,7 +282,6 @@ namespace Gurux.DLMS
                     {
                         xml.AppendEndTag(Command.WriteRequest, SingleReadResponse.Data);
                     }
-                    GXCommon.GetData(settings, data, di);
                 }
                 else if (results.GetUInt8(pos) == 0)
                 {

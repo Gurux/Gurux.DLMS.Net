@@ -382,6 +382,8 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorTags.KeyParameters, "KeyParameters");
             GXDLMSTranslator.AddTag(list, TranslatorTags.KeyCipheredData, "KeyCipheredData");
             GXDLMSTranslator.AddTag(list, TranslatorTags.AttributeValue, "attribute-value");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.ValueList, "value-list");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.DataAccessResult, "data-access-result");
         }
 
         public static void GetDataTypeTags(SortedList<int, string> list)

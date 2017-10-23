@@ -255,6 +255,8 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorTags.MaxInfoTX, "MaxInfoTX");
             GXDLMSTranslator.AddTag(list, TranslatorTags.WindowSizeRX, "WindowSizeRX");
             GXDLMSTranslator.AddTag(list, TranslatorTags.WindowSizeTX, "WindowSizeTX");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.ValueList, "ValueList");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.DataAccessResult, "DataAccessResult");
         }
 
         public static void GetDataTypeTags(SortedList<int, string> list)

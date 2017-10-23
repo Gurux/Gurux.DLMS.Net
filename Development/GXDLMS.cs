@@ -1227,7 +1227,6 @@ namespace Gurux.DLMS
             frameSize = Convert.ToInt32(settings.Limits.MaxInfoTX);
             //Remove BOP, type, len, primaryAddress, secondaryAddress, frame, header CRC, data CRC and EOP from data length.
             frameSize -= 11;
-
             // If no data
             if (data == null || data.Size == 0)
             {
@@ -1237,7 +1236,7 @@ namespace Gurux.DLMS
             {
                 len = data.Size - data.Position;
                 // Is last packet.
-                bb.SetUInt8((byte)(0xA0 | (len >> 8) & 0x7));
+                bb.SetUInt8((byte)(0xA0 | ((7 + primaryAddress.Length + secondaryAddress.Length + len) >> 8) & 0x7));
             }
             else
             {
@@ -1309,6 +1308,73 @@ namespace Gurux.DLMS
                 return data.Compare(GXCommon.LLCSendBytes);
             }
             return data.Compare(GXCommon.LLCReplyBytes);
+        }
+
+        /// <summary>
+        /// Get HDLC sender and receiver address information.
+        /// </summary>
+        /// <param name="reply">Received data.</param>
+        /// <param name="target">target (primary) address</param>
+        /// <param name="source">Source (secondary) address.</param>
+        internal static void GetHdlcAddressInfo(GXByteBuffer reply, out int target, out int source)
+        {
+            int position = reply.Position;
+            target = source = 0;
+            try
+            {
+                short ch;
+                int pos, packetStartID = reply.Position, frameLen = 0;
+                // If whole frame is not received yet.
+                if (reply.Size - reply.Position < 9)
+                {
+                    return;
+                }
+                // Find start of HDLC frame.
+                for (pos = reply.Position; pos < reply.Size; ++pos)
+                {
+                    ch = reply.GetUInt8();
+                    if (ch == GXCommon.HDLCFrameStartEnd)
+                    {
+                        packetStartID = pos;
+                        break;
+                    }
+                }
+                // Not a HDLC frame.
+                // Sometimes meters can send some strange data between DLMS frames.
+                if (reply.Position == reply.Size)
+                {
+                    // Not enough data to parse;
+                    return;
+                }
+                byte frame = reply.GetUInt8();
+                // Check frame length.
+                if ((frame & 0x7) != 0)
+                {
+                    frameLen = ((frame & 0x7) << 8);
+                }
+                ch = reply.GetUInt8();
+                // If not enough data.
+                frameLen += ch;
+                if (reply.Size - reply.Position + 1 < frameLen)
+                {
+                    reply.Position = packetStartID;
+                    // Not enough data to parse;
+                    return;
+                }
+                int eopPos = frameLen + packetStartID + 1;
+                ch = reply.GetUInt8(eopPos);
+                if (ch != GXCommon.HDLCFrameStartEnd)
+                {
+                    throw new GXDLMSException("Invalid data format.");
+                }
+                //Get address.
+                target = GXCommon.GetHDLCAddress(reply);
+                source = GXCommon.GetHDLCAddress(reply);
+            }
+            finally
+            {
+                reply.Position = position;
+            }
         }
 
         static byte GetHdlcData(bool server, GXDLMSSettings settings, GXByteBuffer reply, GXReplyData data)
@@ -2107,6 +2173,32 @@ namespace Gurux.DLMS
             {
                 data.Data.GetUInt32();
             }
+            else if (type == SetResponseType.WithList)
+            {
+                int cnt = GXCommon.GetObjectCount(data.Data);
+                if (data.Xml != null)
+                {
+                    data.Xml.AppendStartTag(TranslatorTags.Result, "Qty", cnt.ToString());
+                    for (int pos = 0; pos != cnt; ++pos)
+                    {
+                        int err = data.Data.GetUInt8();
+                        data.Xml.AppendLine(TranslatorTags.DataAccessResult, "Value",
+                            GXDLMSTranslator.ErrorCodeToString(data.Xml.OutputType, (ErrorCode)err));
+                    }
+                    data.Xml.AppendEndTag(TranslatorTags.Result);
+                }
+                else
+                {
+                    for (int pos = 0; pos != cnt; ++pos)
+                    {
+                        byte err = data.Data.GetUInt8();
+                        if (data.Error != 0 && err != 0)
+                        {
+                            data.Error = err;
+                        }
+                    }
+                }
+            }
             else
             {
                 throw new ArgumentException("Invalid data type.");
@@ -2300,7 +2392,15 @@ namespace Gurux.DLMS
                             reply.Command = Command.None;
                         }
                     }
-                    GetDataFromBlock(data, index);
+                    if (blockLength == 0)
+                    {
+                        //If meter sends empty data block.
+                        data.Size = index;
+                    }
+                    else
+                    {
+                        GetDataFromBlock(data, index);
+                    }
                     // If last packet and data is not try to peek.
                     if (reply.MoreData == RequestTypes.None)
                     {
@@ -3247,6 +3347,10 @@ namespace Gurux.DLMS
             //If default settings are used.
             if (data.Size == 0)
             {
+                limits.MaxInfoRX = GXDLMSLimitsDefault.DefaultMaxInfoRX;
+                limits.MaxInfoTX = GXDLMSLimitsDefault.DefaultMaxInfoTX;
+                limits.WindowSizeRX = GXDLMSLimitsDefault.DefaultWindowSizeRX;
+                limits.WindowSizeTX = GXDLMSLimitsDefault.DefaultWindowSizeTX;
                 return;
             }
             data.GetUInt8(); // Skip FromatID

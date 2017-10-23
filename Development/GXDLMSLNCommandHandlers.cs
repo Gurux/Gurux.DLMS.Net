@@ -137,6 +137,9 @@ namespace Gurux.DLMS
                 case SetRequestType.WithDataBlock:
                     HanleSetRequestWithDataBlock(settings, server, data, p, replyData, xml);
                     break;
+                case SetRequestType.WithList:
+                    HanleSetRequestWithList(settings, invoke, server, data, p, replyData, xml);
+                    break;
                 default:
                     System.Diagnostics.Debug.WriteLine("HandleSetRequest failed. Unknown command.");
                     settings.ResetBlockIndex();
@@ -622,27 +625,10 @@ namespace Gurux.DLMS
             byte index = data.GetUInt8();
             // Get Access Selection.
             data.GetUInt8();
-            if (xml != null)
-            {
-                AppendAttributeDescriptor(xml, (int)ci, ln, index);
-                xml.AppendStartTag(TranslatorTags.Value);
-                GXDataInfo di = new GXDataInfo();
-                di.xml = xml;
-                value = GXCommon.GetData(settings, data, di);
-                if (!di.Complete)
-                {
-                    value = GXCommon.ToHex(data.Data, false, data.Position, data.Size - data.Position);
-                }
-                else if (value is byte[])
-                {
-                    value = GXCommon.ToHex((byte[])value, false);
-                }
-                xml.AppendEndTag(TranslatorTags.Value);
-                return;
-            }
             if (type == 2)
             {
-                p.multipleBlocks = data.GetUInt8() == 0;
+                byte lastBlock = data.GetUInt8();
+                p.multipleBlocks = lastBlock == 0;
                 UInt32 blockNumber = data.GetUInt32();
                 if (blockNumber != settings.BlockIndex)
                 {
@@ -659,7 +645,40 @@ namespace Gurux.DLMS
                     p.status = (byte)ErrorCode.DataBlockUnavailable;
                     return;
                 }
+                if (xml != null)
+                {
+                    AppendAttributeDescriptor(xml, (int)ci, ln, index);
+                    xml.AppendStartTag(TranslatorTags.DataBlock);
+                    xml.AppendLine(TranslatorTags.LastBlock, "Value", xml.IntegerToHex(lastBlock, 2));
+                    xml.AppendLine(TranslatorTags.BlockNumber, "Value", xml.IntegerToHex(blockNumber, 8));
+                    xml.AppendLine(TranslatorTags.RawData, "Value", GXCommon.ToHex(data.Data, false, 0, data.Size));
+                    xml.AppendEndTag(TranslatorTags.DataBlock);
+                }
+                return;
             }
+            if (xml != null)
+            {
+                AppendAttributeDescriptor(xml, (int)ci, ln, index);
+                xml.AppendStartTag(TranslatorTags.Value);
+                GXDataInfo di = new GXDataInfo();
+                di.xml = xml;
+                value = GXCommon.GetData(settings, data, di);
+                if (!di.Complete)
+                {
+                    value = GXCommon.ToHex(data.Data, false, data.Position, data.Size - data.Position);
+                }
+                else if (value is byte[])
+                {
+                    value = GXCommon.ToHex((byte[])value, false);
+                }
+                xml.AppendEndTag(TranslatorTags.Value);
+            }
+
+            if (xml != null)
+            {
+                return;
+            }
+
             if (!p.multipleBlocks)
             {
                 settings.ResetBlockIndex();
@@ -796,6 +815,119 @@ namespace Gurux.DLMS
                 }
             }
             p.multipleBlocks = true;
+        }
+
+        private static void HanleSetRequestWithList(GXDLMSSettings settings, byte invokeID, GXDLMSServer server, GXByteBuffer data, GXDLMSLNParameters p, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
+        {
+            ValueEventArgs e;
+            int cnt = GXCommon.GetObjectCount(data);
+            List<ValueEventArgs> list = new List<ValueEventArgs>();
+            if (xml != null)
+            {
+                xml.AppendStartTag(TranslatorTags.AttributeDescriptorList, "Qty", xml.IntegerToHex(cnt, 2));
+            }
+            try
+            {
+                for (int pos = 0; pos != cnt; ++pos)
+                {
+                    ObjectType ci = (ObjectType)data.GetUInt16();
+                    byte[] ln = new byte[6];
+                    data.Get(ln);
+                    short attributeIndex = data.GetUInt8();
+                    // AccessSelection
+                    int selection = data.GetUInt8();
+                    int selector = 0;
+                    object parameters = null;
+                    if (selection != 0)
+                    {
+                        selector = data.GetUInt8();
+                        GXDataInfo info = new GXDataInfo();
+                        parameters = GXCommon.GetData(settings, data, info);
+                    }
+                    if (xml != null)
+                    {
+                        xml.AppendStartTag(TranslatorTags.AttributeDescriptorWithSelection);
+                        xml.AppendStartTag(TranslatorTags.AttributeDescriptor);
+                        xml.AppendComment(ci.ToString());
+                        xml.AppendLine(TranslatorTags.ClassId, "Value", xml.IntegerToHex((int)ci, 4));
+                        xml.AppendComment(GXCommon.ToLogicalName(ln));
+                        xml.AppendLine(TranslatorTags.InstanceId, "Value", GXCommon.ToHex(ln, false));
+                        xml.AppendLine(TranslatorTags.AttributeId, "Value", xml.IntegerToHex(attributeIndex, 2));
+                        xml.AppendEndTag(TranslatorTags.AttributeDescriptor);
+                        xml.AppendEndTag(TranslatorTags.AttributeDescriptorWithSelection);
+                    }
+                    else
+                    {
+                        GXDLMSObject obj = settings.Objects.FindByLN(ci, GXCommon.ToLogicalName(ln));
+                        if (obj == null)
+                        {
+                            obj = server.NotifyFindObject(ci, 0, GXCommon.ToLogicalName(ln));
+                        }
+                        if (obj == null)
+                        {
+                            // "Access Error : Device reports a undefined object."
+                            e = new ValueEventArgs(server, obj, attributeIndex, 0, 0);
+                            e.Error = ErrorCode.UndefinedObject;
+                            list.Add(e);
+                        }
+                        else
+                        {
+                            ValueEventArgs arg = new ValueEventArgs(server, obj, attributeIndex, selector, parameters);
+                            arg.InvokeId = invokeID;
+                            if (server.NotifyGetAttributeAccess(arg) == AccessMode.NoAccess)
+                            {
+                                //Read Write denied.
+                                arg.Error = ErrorCode.ReadWriteDenied;
+                                list.Add(arg);
+                            }
+                            else
+                            {
+                                list.Add(arg);
+                            }
+                        }
+                    }
+                }
+                cnt = GXCommon.GetObjectCount(data);
+                if (xml != null)
+                {
+                    xml.AppendEndTag(TranslatorTags.AttributeDescriptorList);
+                    xml.AppendStartTag(TranslatorTags.ValueList, "Qty", xml.IntegerToHex(cnt, 2));
+                }
+                for (int pos = 0; pos != cnt; ++pos)
+                {
+                    GXDataInfo di = new GXDataInfo();
+                    di.xml = xml;
+                    if (xml != null && xml.OutputType == TranslatorOutputType.StandardXml)
+                    {
+                        xml.AppendStartTag(Command.WriteRequest, SingleReadResponse.Data);
+                    }
+                    object value = GXCommon.GetData(settings, data, di);
+                    if (!di.Complete)
+                    {
+                        value = GXCommon.ToHex(data.Data, false, data.Position, data.Size - data.Position);
+                    }
+                    else if (value is byte[])
+                    {
+                        value = GXCommon.ToHex((byte[])value, false);
+                    }
+                    if (xml != null && xml
+                            .OutputType == TranslatorOutputType.StandardXml)
+                    {
+                        xml.AppendEndTag(Command.WriteRequest, SingleReadResponse.Data);
+                    }
+                }
+                if (xml != null)
+                {
+                    xml.AppendEndTag(TranslatorTags.ValueList);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (xml == null)
+                {
+                    throw ex;
+                }
+            }
         }
 
         ///<summary>

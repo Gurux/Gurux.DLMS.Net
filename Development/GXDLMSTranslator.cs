@@ -277,6 +277,17 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Get HDLC sender and receiver address information.
+        /// </summary>
+        /// <param name="reply">Received data.</param>
+        /// <param name="target">target (primary) address</param>
+        /// <param name="source">Source (secondary) address.</param>
+        public static void GetHdlcAddressInfo(GXByteBuffer reply, out int target, out int source)
+        {
+            GXDLMS.GetHdlcAddressInfo(reply, out target, out source);
+        }
+
+        /// <summary>
         /// Find next frame from the string.
         /// </summary>
         /// <remarks>
@@ -1779,6 +1790,11 @@ namespace Gurux.DLMS
                         s.attributeDescriptor.SetUInt8(ValueOfErrorCode(s.OutputType, GetValue(node, s)));
                         break;
                     case (int)TranslatorTags.ListOfVariableAccessSpecification:
+                        if (s.command == Command.WriteRequest)
+                        {
+                            GXCommon.SetObjectCount(node.ChildNodes.Count, s.data);
+                        }
+                        break;
                     case (int)TranslatorTags.VariableAccessSpecification:
                         break;
                     case (int)TranslatorTags.ListOfData:
@@ -1930,10 +1946,17 @@ namespace Gurux.DLMS
                         }
                         else if (s.command == Command.MethodResponse || s.command == Command.SetResponse)
                         {
-                            str = GetValue(node, s);
-                            if (str != "")
+                            if (s.requestType == (byte)SetResponseType.WithList)
                             {
-                                s.attributeDescriptor.SetUInt8((byte)ValueOfErrorCode(s.OutputType, str));
+                                GXCommon.SetObjectCount(node.ChildNodes.Count, s.attributeDescriptor);
+                            }
+                            else
+                            {
+                                str = GetValue(node, s);
+                                if (str != "")
+                                {
+                                    s.attributeDescriptor.SetUInt8((byte)ValueOfErrorCode(s.OutputType, str));
+                                }
                             }
                         }
                         else if (s.command == Command.AccessResponse)
@@ -1965,7 +1988,10 @@ namespace Gurux.DLMS
                     case (int)Command.AccessRequest << 8 | (byte)AccessServiceCommandType.Get:
                     case (int)Command.AccessRequest << 8 | (byte)AccessServiceCommandType.Set:
                     case (int)Command.AccessRequest << 8 | (byte)AccessServiceCommandType.Action:
-                        s.attributeDescriptor.SetUInt8((byte)(tag & 0xFF));
+                        if (s.command != Command.SetRequest)
+                        {
+                            s.attributeDescriptor.SetUInt8((byte)(tag & 0xFF));
+                        }
                         break;
                     case (int)Command.ReadRequest << 8 | (byte)VariableAccessSpecification.VariableName:
                     case (int)Command.WriteRequest << 8 | (byte)VariableAccessSpecification.VariableName:
@@ -2154,6 +2180,14 @@ namespace Gurux.DLMS
                         s.data.SetUInt32(value);
                         break;
                     case (byte)Command.InitiateRequest:
+                        break;
+                    case (UInt16)TranslatorTags.ValueList:
+                        GXCommon.SetObjectCount(node.ChildNodes.Count, s.data);
+                        break;
+                    case (UInt16)TranslatorTags.DataAccessResult:
+                        s.data.SetUInt8((byte)ValueOfErrorCode(s.OutputType, GetValue(node, s)));
+                        break;
+                    case (UInt16)TranslatorTags.WriteDataBlockAccess:
                         break;
                     default:
                         throw new ArgumentException("Invalid node: " + node.Name);

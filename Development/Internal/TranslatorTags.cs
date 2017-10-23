@@ -109,6 +109,8 @@ namespace Gurux.DLMS
         MaxInfoRX,
         MaxInfoTX,
         WindowSizeRX,
-        WindowSizeTX
+        WindowSizeTX,
+        ValueList,
+        DataAccessResult
     }
 }
