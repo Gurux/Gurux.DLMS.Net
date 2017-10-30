@@ -43,6 +43,7 @@ using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 using System.Xml;
+using System.Globalization;
 
 namespace Gurux.DLMS.Objects
 {
@@ -449,8 +450,8 @@ namespace Gurux.DLMS.Objects
             {
                 while (reader.IsStartElement("Item", true))
                 {
-                    GXDateTime start = new GXDateTime(reader.ReadElementContentAsString("Start"));
-                    GXDateTime end = new GXDateTime(reader.ReadElementContentAsString("End"));
+                    GXDateTime start = new GXDateTime(reader.ReadElementContentAsString("Start"), CultureInfo.InvariantCulture);
+                    GXDateTime end = new GXDateTime(reader.ReadElementContentAsString("End"), CultureInfo.InvariantCulture);
                     CommunicationWindow.Add(new KeyValuePair<DLMS.GXDateTime, DLMS.GXDateTime>(start, end));
                 }
                 reader.ReadEndElement("CommunicationWindow");
@@ -485,8 +486,8 @@ namespace Gurux.DLMS.Objects
                 foreach (KeyValuePair<GXDateTime, GXDateTime> it in CommunicationWindow)
                 {
                     writer.WriteStartElement("Item");
-                    writer.WriteElementString("Start", it.Key.ToFormatString());
-                    writer.WriteElementString("End", it.Value.ToFormatString());
+                    writer.WriteElementString("Start", it.Key.ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
+                    writer.WriteElementString("End", it.Value.ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();

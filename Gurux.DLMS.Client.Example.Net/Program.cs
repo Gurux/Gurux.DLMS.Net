@@ -188,7 +188,7 @@ namespace Gurux.DLMS.Client.Example
                         }
                         catch (Exception)
                         {
-                            throw new ArgumentException("Invalid Authentication option. (Error, Warning, Info, Verbose, Off)");
+                            throw new ArgumentException("Invalid trace level option. (Error, Warning, Info, Verbose, Off)");
                         }
                         break;
                     case 'p':

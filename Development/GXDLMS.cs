@@ -2365,7 +2365,7 @@ namespace Gurux.DLMS
                         // Check Block length.
                         if (blockLength > data.Size - data.Position)
                         {
-                            throw new OutOfMemoryException();
+                            reply.Xml.AppendComment("Block is not complete." + (data.Size - data.Position).ToString() + "/" + blockLength + ".");
                         }
                     }
                     //Result

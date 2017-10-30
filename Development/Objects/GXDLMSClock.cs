@@ -624,19 +624,19 @@ namespace Gurux.DLMS.Objects
         {
             if (string.Compare("Time", reader.Name, true) == 0)
             {
-                Time = new GXDateTime(reader.ReadElementContentAsString("Time"));
+                Time = new GXDateTime(reader.ReadElementContentAsString("Time"), CultureInfo.InvariantCulture);
             }
             TimeZone = reader.ReadElementContentAsInt("TimeZone");
             Status = (ClockStatus)reader.ReadElementContentAsInt("Status");
             string str = reader.ReadElementContentAsString("Begin");
             if (str != null)
             {
-                Begin = new GXDateTime(str);
+                Begin = new GXDateTime(str, CultureInfo.InvariantCulture);
             }
             str = reader.ReadElementContentAsString("End");
             if (str != null)
             {
-                End = new GXDateTime(str);
+                End = new GXDateTime(str, CultureInfo.InvariantCulture);
             }
             Deviation = reader.ReadElementContentAsInt("Deviation");
             Enabled = reader.ReadElementContentAsInt("Enabled") != 0;
@@ -647,17 +647,17 @@ namespace Gurux.DLMS.Objects
         {
             if (Time != null && Time != DateTime.MinValue)
             {
-                writer.WriteElementString("Time", Time.ToFormatString());
+                writer.WriteElementString("Time", Time.ToFormatString(CultureInfo.InvariantCulture));
             }
             writer.WriteElementString("TimeZone", TimeZone);
             writer.WriteElementString("Status", ((int)Status));
             if (Begin != null && Begin != DateTime.MinValue)
             {
-                writer.WriteElementString("Begin", Begin.ToFormatString());
+                writer.WriteElementString("Begin", Begin.ToFormatString(CultureInfo.InvariantCulture));
             }
             if (End != null && End != DateTime.MinValue)
             {
-                writer.WriteElementString("End", End.ToFormatString());
+                writer.WriteElementString("End", End.ToFormatString(CultureInfo.InvariantCulture));
             }
             writer.WriteElementString("Deviation", Deviation);
             writer.WriteElementString("Enabled", Enabled);

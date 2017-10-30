@@ -43,6 +43,7 @@ using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 using System.Xml;
+using System.Globalization;
 
 namespace Gurux.DLMS.Objects
 {
@@ -344,7 +345,7 @@ namespace Gurux.DLMS.Objects
             {
                 while (reader.IsStartElement("Time", false))
                 {
-                    GXDateTime it = new GXDateTime(reader.ReadElementContentAsString("Time"));
+                    GXDateTime it = new GXDateTime(reader.ReadElementContentAsString("Time"), CultureInfo.InvariantCulture);
                     list.Add(it);
                 }
                 reader.ReadEndElement("ExecutionTime");
@@ -366,7 +367,7 @@ namespace Gurux.DLMS.Objects
                 writer.WriteStartElement("ExecutionTime");
                 foreach (GXDateTime it in ExecutionTime)
                 {
-                    writer.WriteElementString("Time", it.ToFormatString());
+                    writer.WriteElementString("Time", it.ToFormatString(CultureInfo.InvariantCulture));
                 }
                 writer.WriteEndElement();
             }

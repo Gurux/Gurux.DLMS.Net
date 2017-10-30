@@ -250,15 +250,15 @@ namespace Gurux.DLMS.Objects
                     }
                     else if (tp == DataType.DateTime)
                     {
-                        ret = new GXDateTime(str);
+                        ret = new GXDateTime(str, CultureInfo.InvariantCulture);
                     }
                     else if (tp == DataType.Date)
                     {
-                        ret = new GXDate(str);
+                        ret = new GXDate(str, CultureInfo.InvariantCulture);
                     }
                     else if (tp == DataType.Time)
                     {
-                        ret = new GXTime(str);
+                        ret = new GXTime(str, CultureInfo.InvariantCulture);
                     }
                     else
                     {

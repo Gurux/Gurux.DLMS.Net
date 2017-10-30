@@ -857,6 +857,7 @@ namespace Gurux.DLMS
                 case (byte)Command.SetResponse:
                 case (byte)Command.MethodResponse:
                 case (byte)Command.AccessResponse:
+                case (byte)Command.GeneralBlockTransfer:
                     data.Xml = xml;
                     data.Data = value;
                     value.Position = 0;

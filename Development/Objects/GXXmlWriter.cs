@@ -171,7 +171,7 @@ namespace Gurux.DLMS.Objects
         {
             if (value != null && value != DateTime.MinValue)
             {
-                writer.WriteElementString(name, value.ToFormatString());
+                writer.WriteElementString(name, value.ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
             }
         }
 
@@ -257,7 +257,11 @@ namespace Gurux.DLMS.Objects
                 {
                     if (value is GXDateTime)
                     {
-                        writer.WriteString(((GXDateTime)value).ToFormatString());
+                        writer.WriteString(((GXDateTime)value).ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
+                    }
+                    else if (value is DateTime)
+                    {
+                        writer.WriteString(((DateTime)value).ToString(System.Globalization.CultureInfo.InvariantCulture));
                     }
                     else if (value is byte[])
                     {
@@ -268,6 +272,11 @@ namespace Gurux.DLMS.Objects
                         writer.WriteString(Convert.ToString(value));
                     }
                 }
+                writer.WriteEndElement();
+            }
+            else if (!skipDefaultValue)
+            {
+                writer.WriteStartElement(name);
                 writer.WriteEndElement();
             }
         }

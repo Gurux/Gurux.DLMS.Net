@@ -42,6 +42,7 @@ using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 using System.Xml;
+using System.Globalization;
 
 namespace Gurux.DLMS.Objects
 {
@@ -585,7 +586,7 @@ namespace Gurux.DLMS.Objects
                 {
                     GXDLMSSeasonProfile it = new GXDLMSSeasonProfile();
                     it.Name = GXDLMSTranslator.HexToBytes(reader.ReadElementContentAsString("Name"));
-                    it.Start = new GXDateTime(reader.ReadElementContentAsString("Start"));
+                    it.Start = new GXDateTime(reader.ReadElementContentAsString("Start"), CultureInfo.InvariantCulture);
                     it.WeekName = GXDLMSTranslator.HexToBytes(reader.ReadElementContentAsString("WeekName"));
                     list.Add(it);
                 }
@@ -634,7 +635,7 @@ namespace Gurux.DLMS.Objects
                         {
                             GXDLMSDayProfileAction d = new GXDLMSDayProfileAction();
                             actions.Add(d);
-                            d.StartTime = new GXTime(reader.ReadElementContentAsString("Start"));
+                            d.StartTime = new GXTime(reader.ReadElementContentAsString("Start"), CultureInfo.InvariantCulture);
                             d.ScriptLogicalName = reader.ReadElementContentAsString("LN");
                             d.ScriptSelector = (UInt16)reader.ReadElementContentAsInt("Selector");
                         }
@@ -660,7 +661,7 @@ namespace Gurux.DLMS.Objects
             string str = reader.ReadElementContentAsString("Time");
             if (!string.IsNullOrEmpty(str))
             {
-                Time = new GXDateTime(str);
+                Time = new GXDateTime(str, CultureInfo.InvariantCulture);
             }
         }
 
@@ -673,7 +674,7 @@ namespace Gurux.DLMS.Objects
                 {
                     writer.WriteStartElement("Item");
                     writer.WriteElementString("Name", GXDLMSTranslator.ToHex(it.Name));
-                    writer.WriteElementString("Start", it.Start.ToFormatString());
+                    writer.WriteElementString("Start", it.Start.ToFormatString(CultureInfo.InvariantCulture));
                     writer.WriteElementString("WeekName", GXDLMSTranslator.ToHex(it.WeekName));
                     writer.WriteEndElement();
                 }
@@ -716,7 +717,7 @@ namespace Gurux.DLMS.Objects
                     foreach (GXDLMSDayProfileAction d in it.DaySchedules)
                     {
                         writer.WriteStartElement("Action");
-                        writer.WriteElementString("Start", d.StartTime.ToFormatString());
+                        writer.WriteElementString("Start", d.StartTime.ToFormatString(CultureInfo.InvariantCulture));
                         writer.WriteElementString("LN", d.ScriptLogicalName);
                         writer.WriteElementString("Selector", d.ScriptSelector);
                         writer.WriteEndElement();
@@ -740,7 +741,7 @@ namespace Gurux.DLMS.Objects
             SaveDayProfileTable(writer, DayProfileTablePassive, "DayProfileTablePassive");
             if (Time != null)
             {
-                writer.WriteElementString("Time", Time.ToFormatString());
+                writer.WriteElementString("Time", Time.ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
             }
         }
 

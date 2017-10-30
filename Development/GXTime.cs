@@ -38,6 +38,7 @@ using System.Linq;
 using System.Text;
 using Gurux.DLMS.Enums;
 using System.ComponentModel;
+using System.Globalization;
 
 namespace Gurux.DLMS
 {
@@ -84,22 +85,26 @@ namespace Gurux.DLMS
         }
 
         public GXTime(string time)
+            : this(time, CultureInfo.CurrentCulture)
+        {
+        }
+
+        public GXTime(string time, CultureInfo culture)
             : base()
         {
             Skip = DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek;
             if (time != null)
             {
                 int year = 2000, month = 1, day = 1, hour = 0, min = 0, sec = 0;
-                System.Globalization.CultureInfo culture = System.Globalization.CultureInfo.CurrentCulture;
 #if !WINDOWS_UWP
                 string dateSeparator = culture.DateTimeFormat.DateSeparator, timeSeparator = culture.DateTimeFormat.TimeSeparator;
-                List<string> shortDatePattern = new List<string>(culture.DateTimeFormat.ShortDatePattern.Split(new string[] { dateSeparator, " " }, StringSplitOptions.RemoveEmptyEntries));
+                List<string> shortDatePattern = new List<string>(culture.DateTimeFormat.ShortDatePattern.Split(new string[] { CultureInfo.InvariantCulture.DateTimeFormat.DateSeparator, dateSeparator, " " }, StringSplitOptions.RemoveEmptyEntries));
 #else
                 //In UWP Standard Date and Time Format Strings are used.
                 string dateSeparator = Internal.GXCommon.GetDateSeparator(), timeSeparator = Internal.GXCommon.GetTimeSeparator();
                 List<string> shortDatePattern = new List<string>("yyyy-MM-dd".Split(new string[] { dateSeparator, " " }, StringSplitOptions.RemoveEmptyEntries));
 #endif
-                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { timeSeparator, " ", "." }, StringSplitOptions.RemoveEmptyEntries));
+                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { CultureInfo.InvariantCulture.DateTimeFormat.TimeSeparator, timeSeparator, " ", "." }, StringSplitOptions.RemoveEmptyEntries));
                 string[] values = time.Trim().Split(new string[] { dateSeparator, timeSeparator, " " }, StringSplitOptions.None);
                 int cnt = shortTimePattern.Count;
                 if (cnt > values.Length)

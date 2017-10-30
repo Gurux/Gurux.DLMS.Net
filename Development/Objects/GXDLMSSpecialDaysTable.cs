@@ -42,6 +42,7 @@ using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 using System.Xml;
+using System.Globalization;
 
 namespace Gurux.DLMS.Objects
 {
@@ -256,7 +257,7 @@ namespace Gurux.DLMS.Objects
                 {
                     GXDLMSSpecialDay it = new GXDLMSSpecialDay();
                     it.Index = (UInt16)reader.ReadElementContentAsInt("Index");
-                    it.Date = new GXDate(reader.ReadElementContentAsString("Date"));
+                    it.Date = new GXDate(reader.ReadElementContentAsString("Date"), CultureInfo.InvariantCulture);
                     it.DayId = (byte)reader.ReadElementContentAsInt("DayId");
                     list.Add(it);
                 }
@@ -274,7 +275,7 @@ namespace Gurux.DLMS.Objects
                 {
                     writer.WriteStartElement("Entry");
                     writer.WriteElementString("Index", it.Index);
-                    writer.WriteElementString("Date", it.Date.ToFormatString());
+                    writer.WriteElementString("Date", it.Date.ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
                     writer.WriteElementString("DayId", it.DayId);
                     writer.WriteEndElement();//Entry
                 }

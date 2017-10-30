@@ -1121,12 +1121,39 @@ namespace Gurux.DLMS.Objects
             if (Buffer != null)
             {
                 writer.WriteStartElement("Buffer");
+                GXDateTime lastdt = null;
+                int add = CapturePeriod;
+                //Some meters are returning 0 if capture period is one hour.
+                if (add == 0)
+                {
+                    add = 60;
+                }
                 foreach (object[] row in Buffer)
                 {
                     writer.WriteStartElement("Row");
+                    int pos = 0;
                     foreach (object it in row)
                     {
-                        writer.WriteElementObject("Cell", it);
+                        GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> c = CaptureObjects[pos];
+                        ++pos;
+                        if (CaptureObjects != null && c.Key is GXDLMSClock && c.Value.AttributeIndex == 2)
+                        {
+                            if (it != null)
+                            {
+                                lastdt = (c.Key as GXDLMSClock).Time;
+                            }
+                            else if (lastdt != null)
+                            {
+                                lastdt = new GXDateTime(lastdt.Value.AddMinutes(add));
+                                writer.WriteElementObject("Cell", lastdt, false);
+                                continue;
+                            }
+                            else
+                            {
+                                writer.WriteElementObject("Cell", DateTime.MinValue, false);
+                            }
+                        }
+                        writer.WriteElementObject("Cell", it, false);
                     }
                     writer.WriteEndElement();
                 }
