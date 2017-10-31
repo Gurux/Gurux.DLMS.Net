@@ -305,6 +305,7 @@ namespace Gurux.DLMS
         public GXDLMSServer(bool logicalNameReferencing, InterfaceType type)
         {
             Settings = new GXDLMSSettings(true);
+            Settings.Objects.Parent = this;
             Settings.ServerAddress = 1;
             Settings.ClientAddress = 16;
             Settings.UseLogicalNameReferencing = logicalNameReferencing;
@@ -1243,6 +1244,119 @@ namespace Gurux.DLMS
 
             int len = replyData.Position - 3;
             replyData.SetUInt8(2, (byte)len); // Length.
+        }
+
+        /// <summary>
+        /// Add value of COSEM object to byte buffer.
+        /// </summary>
+        /// <param name="obj">COSEM object.</param>
+        /// <param name="index">Attribute index.</param>
+        /// <param name="buff">Byte buffer.</param>
+        /// <remarks>
+        /// AddData method can be used with GetDataNotificationMessage -method.
+        /// DLMS spesification do not specify the structure of Data-Notification body.
+        /// So each manufacture can sent different data.
+        /// </remarks>
+        internal static void AddData(GXDLMSSettings settings, GXDLMSObject obj, int index, GXByteBuffer buff)
+        {
+            DataType dt;
+            object value = (obj as IGXDLMSBase).GetValue(settings, new ValueEventArgs(settings, obj, index, 0, null));
+            dt = obj.GetDataType(index);
+            if (dt == DataType.None && value != null)
+            {
+                dt = GXCommon.GetValueType(value);
+            }
+            GXCommon.SetData(settings, buff, dt, value);
+        }
+
+        /// <summary>
+        /// Add value of COSEM object to byte buffer.
+        /// </summary>
+        /// <param name="obj">COSEM object.</param>
+        /// <param name="index">Attribute index.</param>
+        /// <param name="buff">Byte buffer.</param>
+        /// <remarks>
+        /// AddData method can be used with GetDataNotificationMessage -method.
+        /// DLMS spesification do not specify the structure of Data-Notification body.
+        /// So each manufacture can sent different data.
+        /// </remarks>
+        /// <seealso cref="GenerateDataNotificationMessages"/>
+        public void AddData(GXDLMSObject obj, int index, GXByteBuffer buff)
+        {
+            AddData(Settings, obj, index, buff);
+        }
+
+        /// <summary>
+        /// Generates data notification message(s).
+        /// </summary>
+        /// <param name="time">Date time. Set To Min or Max if not added</param>
+        /// <param name="data">Notification body.</param>
+        /// <returns>Generated data notification message(s).</returns>
+        public byte[][] GenerateDataNotificationMessages(DateTime time, byte[] data)
+        {
+            byte[][] reply;
+            if (UseLogicalNameReferencing)
+            {
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.DataNotification, 0, null, new GXByteBuffer(data), 0xff);
+                p.time = time;
+                reply = GXDLMS.GetLnMessages(p);
+            }
+            else
+            {
+                GXDLMSSNParameters p = new GXDLMSSNParameters(Settings, Command.DataNotification, 1, 0, new GXByteBuffer(data), null);
+                reply = GXDLMS.GetSnMessages(p);
+            }
+            if ((Settings.ProposedConformance & Conformance.GeneralBlockTransfer) == 0 && reply.Length != 1)
+            {
+                throw new ArgumentException("Data is not fit to one PDU. Use general block transfer.");
+            }
+            return reply;
+        }
+
+        /// <summary>
+        /// Generates data notification message(s).
+        /// </summary>
+        /// <param name="time">Date time. Set To Min or Max if not added</param>
+        /// <param name="data">Notification body.</param>
+        /// <returns>Generated data notification message(s).</returns>
+        public byte[][] GenerateDataNotificationMessages(DateTime time, GXByteBuffer data)
+        {
+            byte[][] reply;
+            if (UseLogicalNameReferencing)
+            {
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.DataNotification, 0, null, data, 0xff);
+                p.time = time;
+                p.time.Skip |= DateTimeSkips.Ms;
+                reply = GXDLMS.GetLnMessages(p);
+            }
+            else
+            {
+                GXDLMSSNParameters p = new GXDLMSSNParameters(Settings, Command.DataNotification, 1, 0, data, null);
+                reply = GXDLMS.GetSnMessages(p);
+            }
+            return reply;
+        }
+
+        /// <summary>
+        /// Generates push setup message.
+        /// </summary>
+        /// <param name="date"> Date time. Set To Min or Max if not added.</param>
+        /// <param name="push">Target Push object.</param>
+        /// <returns>Generated data notification message(s).</returns>
+        public byte[][] GeneratePushSetupMessages(DateTime date, GXDLMSPushSetup push)
+        {
+            if (push == null)
+            {
+                throw new ArgumentNullException("push");
+            }
+            GXByteBuffer buff = new GXByteBuffer();
+            buff.SetUInt8((byte)DataType.Structure);
+            GXCommon.SetObjectCount(push.PushObjectList.Count, buff);
+            foreach (KeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in push.PushObjectList)
+            {
+                AddData(it.Key, it.Value.AttributeIndex, buff);
+            }
+            return GenerateDataNotificationMessages(date, buff);
         }
     }
 }

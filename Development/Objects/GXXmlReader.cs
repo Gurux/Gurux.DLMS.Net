@@ -54,7 +54,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSObjectCollection Objects
         {
             get;
-            private set;
+            internal set;
         }
 
 

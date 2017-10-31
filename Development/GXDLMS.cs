@@ -777,7 +777,7 @@ namespace Gurux.DLMS
             {
                 frame = 0x10;
             }
-            else if (p.command == Command.EventNotification)
+            else if (p.command == Command.DataNotification || p.command == Command.EventNotification)
             {
                 frame = 0x13;
             }

@@ -337,15 +337,41 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         ///  Load COSEM objects from the file.
         /// </summary>
+        /// <param name="filename"> File path.</param>
+        /// <returns>Collection of serialized COSEM objects.</returns>
+        public static void Load(string filename, GXDLMSObjectCollection objects)
+        {
+            using (Stream stream = File.OpenRead(filename))
+            {
+                Load(stream, objects);
+            }
+        }
+
+        /// <summary>
+        ///  Load COSEM objects from the file.
+        /// </summary>
         /// <param name="stream">Stream.</param>
         /// <returns>Collection of serialized COSEM objects.</returns>
         public static GXDLMSObjectCollection Load(Stream stream)
+        {
+            GXDLMSObjectCollection objects = new GXDLMSObjectCollection();
+            Load(stream, objects);
+            return objects;
+        }
+
+        /// <summary>
+        ///  Load COSEM objects from the file.
+        /// </summary>
+        /// <param name="stream">Stream.</param>
+        /// <param name="objects">Collection of COSEM objects.</param>
+        public static void Load(Stream stream, GXDLMSObjectCollection objects)
         {
             GXDLMSObject obj = null;
             String target;
             ObjectType type;
             using (GXXmlReader reader = new GXXmlReader(stream))
             {
+                reader.Objects = objects;
                 while (!reader.EOF)
                 {
                     if (reader.IsStartElement())
@@ -395,7 +421,6 @@ namespace Gurux.DLMS.Objects
                         reader.Read();
                     }
                 }
-                return reader.Objects;
             }
         }
 
