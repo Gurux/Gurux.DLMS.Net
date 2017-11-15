@@ -504,6 +504,10 @@ namespace Gurux.DLMS.Objects
                             tp = Gurux.DLMS.Internal.GXCommon.GetValueType(value);
                             types[pos] = tp;
                         }
+                        if (value == null)
+                        {
+                            tp = DataType.None;
+                        }
                         GXCommon.SetData(settings, data, tp, value);
                     }
                     ++pos;

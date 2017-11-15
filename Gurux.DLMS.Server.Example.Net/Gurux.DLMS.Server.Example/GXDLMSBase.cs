@@ -165,7 +165,8 @@ namespace GuruxDLMSServerExample
             GXDLMSClock clock = new GXDLMSClock();
             clock.Begin = new GXDateTime(-1, 9, 1, -1, -1, -1, -1);
             clock.End = new GXDateTime(-1, 3, 1, -1, -1, -1, -1);
-            clock.Deviation = 0;
+            clock.TimeZone = -(int)TimeZoneInfo.Local.BaseUtcOffset.TotalMinutes;
+            clock.Deviation = 60;
             Items.Add(clock);
             ///////////////////////////////////////////////////////////////////////
             //Add Load profile.           

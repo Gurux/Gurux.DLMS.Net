@@ -174,3 +174,5 @@ pip-log.txt
 *.nupkg
 *.XML
 *.db
+*.lock
+*.ide

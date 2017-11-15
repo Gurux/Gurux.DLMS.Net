@@ -52,7 +52,7 @@ namespace Gurux.DLMS.Server.Example2.Net
     class GXDLMSServerLN : GXDLMSBase
     {
         public GXDLMSServerLN()
-            : base(new GXDLMSAssociationLogicalName(), InterfaceType.HDLC)
+           : base(new GXDLMSAssociationLogicalName(), new GXDLMSHdlcSetup())
         {
         }
     }

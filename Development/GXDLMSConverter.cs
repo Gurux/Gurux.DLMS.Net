@@ -336,8 +336,8 @@ namespace Gurux.DLMS
                     return Gurux.DLMS.Properties.Resources.UnitMinuteTxt;
                 case Unit.Second:
                     return Gurux.DLMS.Properties.Resources.UnitSecondTxt;
-                case Unit.PhaseAngleGegree:
-                    return Gurux.DLMS.Properties.Resources.UnitPhasAngleGegreeTxt;
+                case Unit.PhaseAngleDegree:
+                    return Gurux.DLMS.Properties.Resources.UnitPhasAngleDegreeTxt;
                 case Unit.Temperature:
                     return Gurux.DLMS.Properties.Resources.UnitTemperatureTxt;
                 case Unit.LocalCurrency:

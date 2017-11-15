@@ -522,6 +522,43 @@ namespace Gurux.DLMS
             return null;
         }
 
+        private void CheckFrame(byte frame, GXDLMSTranslatorStructure xml)
+        {
+            if (frame == 0x93)
+            {
+                xml.AppendComment("SNRM frame.");
+            }
+            else if (frame == 0x73)
+            {
+                xml.AppendComment("UA frame.");
+            }
+            //If S -frame.
+            else if ((frame & (byte)HdlcFrameType.Sframe) == (byte)HdlcFrameType.Sframe)
+            {
+                xml.AppendComment("S frame.");
+            }
+            //Handle U-frame.
+            else if ((frame & 1) == (byte)HdlcFrameType.Uframe)
+            {
+                xml.AppendComment("U frame.");
+            }
+            else //I-frame.
+            {
+                if (frame == 0x10)
+                {
+                    xml.AppendComment("AARQ frame.");
+                }
+                else if (frame == 0x30)
+                {
+                    xml.AppendComment("AARE frame.");
+                }
+                else
+                {
+                    xml.AppendComment("I frame.");
+                }
+            }
+        }
+
         /// <summary>
         /// Convert message to xml.
         /// </summary>
@@ -554,6 +591,10 @@ namespace Gurux.DLMS
                             xml.AppendLine("<HDLC len=\"" + (data.PacketLength - offset).ToString("X") + "\" >");
                             xml.AppendLine("<TargetAddress Value=\"" + settings.ServerAddress.ToString("X") + "\" />");
                             xml.AppendLine("<SourceAddress Value=\"" + settings.ClientAddress.ToString("X") + "\" />");
+                            //Check frame.
+                            CheckFrame(data.FrameId, xml);
+                            xml.AppendLine("<FrameType Value=\"" + data.FrameId.ToString("X") + "\" />");
+
                         }
                         if (data.Data.Size == 0)
                         {

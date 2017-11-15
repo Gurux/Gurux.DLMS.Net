@@ -85,7 +85,7 @@ namespace Gurux.DLMS.Enums
         /// Unit is phase angle degree rad*180/p
         /// </summary>
         [XmlEnum("8")]
-        PhaseAngleGegree,
+        PhaseAngleDegree,
         /// <summary>
         /// Unit is temperature T degree centigrade
         /// </summary>

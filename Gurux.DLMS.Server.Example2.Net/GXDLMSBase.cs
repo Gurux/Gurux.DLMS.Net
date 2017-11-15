@@ -62,14 +62,13 @@ namespace Gurux.DLMS.Server.Example2.Net
         /// Constructor.
         /// </summary>
         /// <param name="ln">Logical name settings.</param>
-        /// <param name="type">Interface type.</param>
-        public GXDLMSBase(GXDLMSAssociationLogicalName ln, InterfaceType type)
-        : base(ln, type, "GRX", 12345678)
+        /// <param name="hdlc">HDLC settings.</param>
+        public GXDLMSBase(GXDLMSAssociationLogicalName ln, GXDLMSHdlcSetup hdlc)
+        : base(ln, hdlc)
         {
             MaxReceivePDUSize = 1024;
-            //Default secreds.
+            //Default secret.
             ln.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
-            ln.HlsSecret = ln.Secret;
         }
 
 
@@ -77,14 +76,40 @@ namespace Gurux.DLMS.Server.Example2.Net
         /// Constructor.
         /// </summary>
         /// <param name="sn">Short name settings.</param>
-        /// <param name="type">Interface type.</param>
-        public GXDLMSBase(GXDLMSAssociationShortName sn, InterfaceType type)
-        : base(sn, type, "GRX", 12345678)
+        /// <param name="hdlc">HDLC settings.</param>
+        public GXDLMSBase(GXDLMSAssociationShortName sn, GXDLMSHdlcSetup hdlc)
+        : base(sn, hdlc, "GRX", 12345678)
         {
             MaxReceivePDUSize = 1024;
-            //Default secreds.
+            //Default secret.
             sn.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
-            sn.HlsSecret = sn.Secret;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="ln">Logical name settings.</param>
+        /// <param name="wrapper">Wrapper settings.</param>
+        public GXDLMSBase(GXDLMSAssociationLogicalName ln, GXDLMSTcpUdpSetup wrapper)
+        : base(ln, wrapper, "GRX", 12345678)
+        {
+            MaxReceivePDUSize = 1024;
+            //Default secret.
+            ln.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
+        }
+
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="sn">Short name settings.</param>
+        /// <param name="wrapper">Wrapper settings.</param>
+        public GXDLMSBase(GXDLMSAssociationShortName sn, GXDLMSTcpUdpSetup wrapper)
+        : base(sn, wrapper, "GRX", 12345678)
+        {
+            MaxReceivePDUSize = 1024;
+            //Default secret.
+            sn.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
         }
 
         Gurux.Common.IGXMedia Media = null;

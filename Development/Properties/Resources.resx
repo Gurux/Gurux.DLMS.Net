@@ -237,7 +237,7 @@
   <data name="UnitOtherTxt" xml:space="preserve">
     <value>Other Unit</value>
   </data>
-  <data name="UnitPhasAngleGegreeTxt" xml:space="preserve">
+  <data name="UnitPhasAngleDegreeTxt" xml:space="preserve">
     <value>Phase angle degree rad*180/p</value>
   </data>
   <data name="UnitPressureBarTxt" xml:space="preserve">

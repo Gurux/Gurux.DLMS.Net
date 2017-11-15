@@ -941,10 +941,11 @@ namespace Gurux.DLMS.Reader
                     {
                         ReadDataBlock(Client.ReleaseRequest(), reply);
                     }
-                    catch (Exception e)
+                    catch (Exception ex)
                     {
                         //All meters don't support Release.
-                    }
+                        Console.WriteLine("Release failed. " + ex.Message);
+                    } 
                     reply.Clear();
                     ReadDLMSPacket(Client.DisconnectRequest(), reply);
                     Media.Close();

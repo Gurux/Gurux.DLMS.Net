@@ -1607,7 +1607,7 @@ namespace Gurux.DLMS
                     int sn = it.Key.ShortName;
                     sn += (it.Value - 1) * 8;
                     data.SetUInt16((UInt16)sn);
-                    if (data.Size >= p.settings.MaxPduSize)
+                    if (data.Size >= Settings.MaxPduSize)
                     {
                         messages.AddRange(GXDLMS.GetSnMessages(p));
                         data.Clear();

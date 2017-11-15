@@ -48,6 +48,7 @@ using Gurux.DLMS.Enums;
 using System.Threading;
 using Gurux.DLMS.Secure;
 using System.Diagnostics;
+using System.IO.Ports;
 
 namespace Gurux.DLMS.Client.Example
 {
@@ -148,6 +149,7 @@ namespace Gurux.DLMS.Client.Example
 
         static int GetParameters(string[] args, Settings settings)
         {
+            string[] tmp;
             List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:it:a:wP:g:S:C:");
             GXNet net = null;
             foreach (GXCmdParameter it in parameters)
@@ -211,7 +213,7 @@ namespace Gurux.DLMS.Client.Example
                         //Get (read) selected objects.
                         foreach (string o in it.Value.Split(new char[] { ';', ',' }))
                         {
-                            string[] tmp = o.Split(new char[] { ':' });
+                            tmp = o.Split(new char[] { ':' });
                             if (tmp.Length != 2)
                             {
                                 throw new ArgumentOutOfRangeException("Invalid Logical name or attribute index.");
@@ -222,7 +224,22 @@ namespace Gurux.DLMS.Client.Example
                     case 'S'://Serial Port
                         settings.media = new GXSerial();
                         GXSerial serial = settings.media as GXSerial;
-                        serial.PortName = it.Value;
+                        tmp = it.Value.Split(':');
+                        serial.PortName = tmp[0];
+                        if (tmp.Length > 1)
+                        {
+                            serial.BaudRate = int.Parse(tmp[1]);
+                            serial.DataBits = int.Parse(tmp[2].Substring(0, 1));
+                            serial.Parity = (Parity)Enum.Parse(typeof(Parity), tmp[2].Substring(1, tmp[2].Length - 2));
+                            serial.StopBits = (StopBits)int.Parse(tmp[2].Substring(tmp[2].Length - 1, 1));
+                        }
+                        else
+                        {
+                            serial.BaudRate = 9600;
+                            serial.DataBits = 8;
+                            serial.Parity = Parity.None;
+                            serial.StopBits = StopBits.One;
+                        }
                         break;
                     case 'a':
                         try
@@ -329,7 +346,7 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine("GuruxDlmsSample -h [Meter IP Address] -p [Meter Port No] -c 16 -s 1 -r SN");
             Console.WriteLine(" -h \t host name or IP address.");
             Console.WriteLine(" -p \t port number or name (Example: 1000).");
-            Console.WriteLine(" -S \t serial port.");
+            Console.WriteLine(" -S [COM1:9600:8None1]\t serial port.");
             Console.WriteLine(" -i IEC is a start protocol.");
             Console.WriteLine(" -a \t Authentication (None, Low, High).");
             Console.WriteLine(" -P \t Password for authentication.");
