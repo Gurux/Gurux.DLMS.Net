@@ -2192,7 +2192,7 @@ namespace Gurux.DLMS
                     for (int pos = 0; pos != cnt; ++pos)
                     {
                         byte err = data.Data.GetUInt8();
-                        if (data.Error != 0 && err != 0)
+                        if (data.Error == 0 && err != 0)
                         {
                             data.Error = err;
                         }

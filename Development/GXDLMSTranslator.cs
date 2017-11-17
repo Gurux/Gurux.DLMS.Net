@@ -1146,6 +1146,9 @@ namespace Gurux.DLMS
                     break;
                 case (byte)Command.GeneralGloCiphering:
                     break;
+                case (int)TranslatorTags.FrameType:
+                    s.command = 0;
+                    break;
                 default:
                     throw new ArgumentException("Invalid Command: " + node.Name);
             }
@@ -2230,6 +2233,8 @@ namespace Gurux.DLMS
                         s.data.SetUInt8((byte)ValueOfErrorCode(s.OutputType, GetValue(node, s)));
                         break;
                     case (UInt16)TranslatorTags.WriteDataBlockAccess:
+                        break;
+                    case (UInt16)TranslatorTags.FrameType:
                         break;
                     default:
                         throw new ArgumentException("Invalid node: " + node.Name);

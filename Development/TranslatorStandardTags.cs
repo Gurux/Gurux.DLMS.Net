@@ -382,6 +382,10 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorTags.KeyParameters, "KeyParameters");
             GXDLMSTranslator.AddTag(list, TranslatorTags.KeyCipheredData, "KeyCipheredData");
             GXDLMSTranslator.AddTag(list, TranslatorTags.AttributeValue, "attribute-value");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.MaxInfoRX, "MaxInfoRX");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.MaxInfoTX, "MaxInfoTX");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.WindowSizeRX, "WindowSizeRX");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.WindowSizeTX, "WindowSizeTX");
             GXDLMSTranslator.AddTag(list, TranslatorTags.ValueList, "value-list");
             GXDLMSTranslator.AddTag(list, TranslatorTags.DataAccessResult, "data-access-result");
         }
