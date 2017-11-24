@@ -42,6 +42,7 @@ using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 using System.Xml;
+using System.Globalization;
 
 namespace Gurux.DLMS.Objects
 {
@@ -493,7 +494,7 @@ namespace Gurux.DLMS.Objects
             }
             else
             {
-                CaptureTime = new GXDateTime(str);
+                CaptureTime = new GXDateTime(str, CultureInfo.InvariantCulture);
             }
             str = reader.ReadElementContentAsString("StartTimeCurrent");
             if (str == null)
@@ -502,7 +503,7 @@ namespace Gurux.DLMS.Objects
             }
             else
             {
-                StartTimeCurrent = new GXDateTime(str);
+                StartTimeCurrent = new GXDateTime(str, CultureInfo.InvariantCulture);
             }
             Period = (UInt32)reader.ReadElementContentAsInt("Period");
             NumberOfPeriods = (UInt16)reader.ReadElementContentAsInt("NumberOfPeriods");

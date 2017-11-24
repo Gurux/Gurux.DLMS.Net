@@ -33,21 +33,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Gurux.Common, Version=8.1.1708.2503, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.Common.8.1.1708.2503\lib\portable-win+net35\Gurux.Common.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Gurux.Common, Version=8.1.1711.2301, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Gurux.Common.8.1.1711.2301\lib\portable-win+net40\Gurux.Common.dll</HintPath>
     </Reference>
-    <Reference Include="Gurux.DLMS, Version=8.5.1708.2201, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.DLMS.8.5.1708.2201\lib\portable-win+net35\Gurux.DLMS.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Gurux.DLMS, Version=8.5.1711.1701, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Gurux.DLMS.8.5.1711.1701\lib\portable-win+net35\Gurux.DLMS.dll</HintPath>
     </Reference>
-    <Reference Include="Gurux.Net, Version=8.1.1708.2901, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.Net.8.1.1708.2901\lib\portable-win+net35\Gurux.Net.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Gurux.Net, Version=8.1.1711.2301, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Gurux.Net.8.1.1711.2301\lib\portable-win+net40\Gurux.Net.dll</HintPath>
     </Reference>
-    <Reference Include="Gurux.Serial, Version=8.1.1708.2901, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.Serial.8.1.1708.2901\lib\portable-win+net35\Gurux.Serial.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Gurux.Serial, Version=8.1.1711.2301, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Gurux.Serial.8.1.1711.2301\lib\portable-win+net40\Gurux.Serial.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

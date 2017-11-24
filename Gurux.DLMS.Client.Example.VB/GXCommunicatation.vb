@@ -567,9 +567,7 @@ Class GXCommunicatation
     ''' Read data block from the device.
     ''' </summary>
     ''' <param name="data">data to send</param>
-    ''' <param name="text">Progress text.</param>
-    ''' <param name="multiplier"></param>
-    ''' <returns>Received data.</returns>
+    ''' <param name="reply">Received reply.</param>
     Public Sub ReadDataBlock(data As Byte(), reply As GXReplyData)
         ReadDLMSPacket(data, reply)
         While reply.IsMoreData

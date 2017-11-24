@@ -1377,7 +1377,7 @@ namespace Gurux.Common.JSon
                         value = null;
                     }
                 }
-                else if (insideString || (ch != '\r' && ch != '\n'))
+                else if (insideString || (ch != '\r' && ch != '\n' && ch != ' '))
                 {
                     if (ch == '\"' && lastch != '\\')
                     {

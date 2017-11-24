@@ -76,12 +76,12 @@ namespace Gurux.Common
     public interface IGXPropertyPage
     {
         /// <summary>
-        /// Page becomes visible.
+        ///Initialize page.
         /// </summary>
         void Initialize();
 
         /// <summary>
-        /// Updates the data to the GXDevice.
+        /// Apply changes.
         /// </summary>
         void Apply();
 
@@ -92,6 +92,42 @@ namespace Gurux.Common
         {
             get;
             set;
+        }
+    }
+
+    /// <summary>
+    /// Settings page must implement this interface.
+    /// </summary>
+    /// <remarks>
+    /// Settings page is used to show custom general settings. 
+    /// </remarks>
+    public interface IGXSettingsPage
+    {
+        /// <summary>
+        /// Initialize page.
+        /// </summary>
+        void Initialize();
+
+        /// <summary>
+        /// Apply changes.
+        /// </summary>
+        void Apply();
+
+        /// <summary>
+        /// Has user change values of the settings page.
+        /// </summary>
+        bool Dirty
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Settings caption.
+        /// </summary>
+        string Caption
+        {
+            get;
         }
     }
 

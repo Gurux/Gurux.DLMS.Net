@@ -155,6 +155,11 @@ namespace Gurux.DLMS.Objects
         {
             if (!string.IsNullOrEmpty(value))
             {
+                int eof = value.IndexOf('\0');
+                if (eof != -1)
+                {
+                    value = value.Substring(0, eof);
+                }
                 writer.WriteElementString(name, value);
             }
         }

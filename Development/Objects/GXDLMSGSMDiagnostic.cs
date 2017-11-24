@@ -417,10 +417,9 @@ namespace Gurux.DLMS.Objects
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
             writer.WriteElementObject("Operator", Operator);
-            writer.WriteElementObject("Status", Status);
-            writer.WriteElementObject("CircuitSwitchStatus", CircuitSwitchStatus);
-            writer.WriteElementObject("PacketSwitchStatus", PacketSwitchStatus);
-            writer.WriteElementObject("CellInfo", CellInfo);
+            writer.WriteElementString("Status", (int) Status);
+            writer.WriteElementString("CircuitSwitchStatus", (int)CircuitSwitchStatus);
+            writer.WriteElementString("PacketSwitchStatus", (int)PacketSwitchStatus);       
             if (CellInfo != null)
             {
                 writer.WriteStartElement("CellInfo");

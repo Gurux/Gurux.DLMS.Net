@@ -48,30 +48,6 @@ namespace Gurux.DLMS.ManufacturerSettings
         DLMS = 2
     }
 
-    /// <summary>
-    /// Enumerates inactivity modes that are used, when communicating with IEC using serial port connection.
-    /// </summary>
-    public enum InactivityMode
-    {
-        None = 0,
-        /// <summary>
-        /// Keep alive message is sent, only if there is no traffic on the active connection.
-        /// </summary>
-        KeepAlive = 1,
-        /// <summary>
-        /// Connection is reopened, if there is no traffic on the active connection.
-        /// </summary>
-        Reopen,
-        /// <summary>
-        /// Connection is reopened, even if there is traffic on the active connection.
-        /// </summary>
-        ReopenActive,
-        /// <summary>
-        /// Closes connection, if there is no traffic on the active connection.
-        /// </summary>
-        Disconnect
-    }
-
 #if !WINDOWS_UWP
     [Serializable]
 #endif
@@ -82,12 +58,10 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// </summary>
         public GXManufacturer()
         {
-            InactivityMode = InactivityMode.KeepAlive;
             StartProtocol = StartProtocolType.IEC;
             ObisCodes = new GXObisCodeCollection();
             Settings = new List<GXAuthentication>();
             ServerSettings = new List<GXServerAddress>();
-            KeepAliveInterval = 40000;
         }
 
         /// <summary>
@@ -120,27 +94,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         {
             get;
             set;
-        }
-
-        /// <summary>
-        /// Is Keep alive message used.
-        /// </summary>
-        [DefaultValue(InactivityMode.KeepAlive)]
-        public InactivityMode InactivityMode
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Is Keep alive message forced for network connection as well.
-        /// </summary>
-        [DefaultValue(false)]
-        public bool ForceInactivity
-        {
-            get;
-            set;
-        }
+        }           
 
 #if !WINDOWS_UWP
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
@@ -167,16 +121,6 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// </summary>
         [DefaultValue(StartProtocolType.IEC)]
         public StartProtocolType StartProtocol
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Keep Alive interval.
-        /// </summary>
-        [DefaultValue(40000)]
-        public int KeepAliveInterval
         {
             get;
             set;

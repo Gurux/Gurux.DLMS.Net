@@ -88,7 +88,7 @@ Module main
         Dim comm As GXCommunicatation = Nothing
         Try
             Dim logFile As TextWriter = New StreamWriter(File.Open("LogFile.txt", FileMode.Create))
-            '''/////////////////////////////////////
+            '////////////////////////////////////////
             'Handle command line parameters.
             Dim sn As [String], client As [String] = "", server As [String] = "", id As [String] = "", host As [String] = "", port As [String] = "",
             pw As [String] = ""

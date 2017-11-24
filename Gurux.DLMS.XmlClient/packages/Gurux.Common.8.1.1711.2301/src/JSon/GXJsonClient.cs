@@ -43,10 +43,10 @@ namespace Gurux.Common.JSon
     /// <summary>
     /// Progress event handler.
     /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="current"></param>
-    /// <param name="max"></param>
-    public delegate void ProgressEventHandler(object sender, int current, int max);
+    /// <param name="sender">Sender.</param>
+    /// <param name="current">Bytes to read.</param>
+    /// <param name="total">Total bytes to read.</param>
+    public delegate void ProgressEventHandler(object sender, int current, int total);
 
     /// <summary>
     /// Gurux JSON Client.
@@ -54,7 +54,8 @@ namespace Gurux.Common.JSon
     public class GXJsonClient
     {
         private bool CancelOperation;
-        ProgressEventHandler Progress;
+        private ProgressEventHandler progress;
+        private TraceEventHandler trace;
 
         /// <summary>
         /// Server address.
@@ -115,13 +116,31 @@ namespace Gurux.Common.JSon
         {
             add
             {
-                Progress += value;
+                progress += value;
             }
             remove
             {
-                Progress -= value;
+                progress -= value;
             }
         }
+
+
+
+        /// <summary>
+        /// Progress event handler.
+        /// </summary>        
+        public event TraceEventHandler OnTrace
+        {
+            add
+            {
+                trace += value;
+            }
+            remove
+            {
+                trace -= value;
+            }
+        }
+
 
         /// <summary>
         /// Constructor.
@@ -266,7 +285,7 @@ namespace Gurux.Common.JSon
             GXAsyncData<T> data = new GXAsyncData<T>();
             data.OnError = onError;
             data.OnDone = onDone;
-            HttpWebRequest req = Send<T>("GET", request, data);           
+            HttpWebRequest req = Send<T>("GET", request, data);
         }
 
         /// <summary>
@@ -320,19 +339,23 @@ namespace Gurux.Common.JSon
             HttpWebRequest req;
             if (content)//If POST or PUT.
             {
-                req = WebRequest.Create(Address + "json/reply/" + request.GetType().Name) as HttpWebRequest;
+                req = WebRequest.Create(Address + request.GetType().Name) as HttpWebRequest;
             }
             else //If GET or DELETE.
             {
-                req = WebRequest.Create(Address + "json/reply/" + request.GetType().Name + "?" + cmd) as HttpWebRequest;
+                req = WebRequest.Create(Address + request.GetType().Name + "?" + cmd) as HttpWebRequest;
             }
             if (Timeout.TotalMilliseconds != 0)
             {
-                req.ReadWriteTimeout = req.Timeout = (int)this.Timeout.TotalMilliseconds;               
+                req.ReadWriteTimeout = req.Timeout = (int)this.Timeout.TotalMilliseconds;
             }
             req.ContentType = "application/json";
             req.Accept = "application/json";
             req.Method = method;
+            if (trace != null)
+            {
+                trace(this, new TraceEventArgs(TraceTypes.Sent, content ? cmd : null, req.Address.ToString()));
+            }
             //Add basic authentication if it is used.
             if (!string.IsNullOrEmpty(UserName))
             {
@@ -348,7 +371,7 @@ namespace Gurux.Common.JSon
                     data.Request = req;
                     req.BeginGetRequestStream(delegate (IAsyncResult result)
                     {
-                        lock(asyncOperations)
+                        lock (asyncOperations)
                         {
                             asyncOperations.Add(result.AsyncWaitHandle);
                         }
@@ -415,8 +438,8 @@ namespace Gurux.Common.JSon
                             asyncOperations.Remove(result.AsyncWaitHandle);
                         }
                     }
-                }, data);               
-            }           
+                }, data);
+            }
             return req;
         }
 
@@ -435,6 +458,10 @@ namespace Gurux.Common.JSon
         {
             if (response == null)
             {
+                if (trace != null)
+                {
+                    trace(this, new TraceEventArgs(TraceTypes.Error, null, "Timeout."));
+                }
                 throw new Exception("Timeout.");
             }
             int length = 0;
@@ -445,9 +472,9 @@ namespace Gurux.Common.JSon
             }
             try
             {
-                if (length != 0 && Progress != null)
+                if (length != 0 && progress != null)
                 {
-                    Progress(this, 0, length);
+                    progress(this, 0, length);
                 }
                 MemoryStream ms = new MemoryStream(length);
                 Stream stream = response.GetResponseStream();
@@ -464,20 +491,24 @@ namespace Gurux.Common.JSon
                     {
                         break;
                     }
-                    if (length != 0 && Progress != null)
+                    if (length != 0 && progress != null)
                     {
-                        Progress(this, (int)ms.Position, length);
+                        progress(this, (int)ms.Position, length);
                     }
                     read = stream.BeginRead(buffer, 0, buffer.Length, null, null);
                 }
                 ms.Position = 0;
+                if (trace != null)
+                {
+                    trace(this, new TraceEventArgs(TraceTypes.Received, ASCIIEncoding.ASCII.GetString(ms.GetBuffer()), response.ResponseUri.ToString()));
+                }
                 return Parser.Deserialize(ms, type);
             }
             finally
             {
-                if (length != 0 && Progress != null)
+                if (length != 0 && progress != null)
                 {
-                    Progress(this, (int)0, 0);
+                    progress(this, (int)0, 0);
                 }
             }
         }
