@@ -1133,11 +1133,11 @@ namespace Gurux.DLMS
         {
             Object tmp = GetHdlcAddress(value, size);
             GXByteBuffer bb = new GXByteBuffer();
-            if (tmp is byte)
+            if (tmp is byte && size < 2)
             {
                 bb.SetUInt8((byte)tmp);
             }
-            else if (tmp is UInt16)
+            else if (tmp is UInt16 && size < 4)
             {
                 bb.SetUInt16((UInt16)tmp);
             }
