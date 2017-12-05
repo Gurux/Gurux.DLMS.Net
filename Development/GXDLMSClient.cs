@@ -480,24 +480,18 @@ namespace Gurux.DLMS
             data.SetUInt8(0); // Length.
 
             // If custom HDLC parameters are used.
-            if (GXDLMSLimitsDefault.DefaultMaxInfoTX != Limits.MaxInfoTX)
+            if (GXDLMSLimitsDefault.DefaultMaxInfoTX != Limits.MaxInfoTX ||
+                GXDLMSLimitsDefault.DefaultMaxInfoRX != Limits.MaxInfoRX ||
+                GXDLMSLimitsDefault.DefaultWindowSizeTX != Limits.WindowSizeTX ||
+                GXDLMSLimitsDefault.DefaultWindowSizeRX != Limits.WindowSizeRX)
             {
                 data.SetUInt8((byte)HDLCInfo.MaxInfoTX);
                 GXDLMS.AppendHdlcParameter(data, Limits.MaxInfoTX);
-            }
-            if (GXDLMSLimitsDefault.DefaultMaxInfoRX != Limits.MaxInfoRX)
-            {
                 data.SetUInt8((byte)HDLCInfo.MaxInfoRX);
                 GXDLMS.AppendHdlcParameter(data, Limits.MaxInfoRX);
-            }
-            if (GXDLMSLimitsDefault.DefaultWindowSizeTX != Limits.WindowSizeTX)
-            {
                 data.SetUInt8((byte)HDLCInfo.WindowSizeTX);
                 data.SetUInt8(4);
                 data.SetUInt32(Limits.WindowSizeTX);
-            }
-            if (GXDLMSLimitsDefault.DefaultWindowSizeRX != Limits.WindowSizeRX)
-            {
                 data.SetUInt8((byte)HDLCInfo.WindowSizeRX);
                 data.SetUInt8(4);
                 data.SetUInt32(Limits.WindowSizeRX);

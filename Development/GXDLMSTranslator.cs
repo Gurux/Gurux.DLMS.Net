@@ -995,6 +995,10 @@ namespace Gurux.DLMS
                     }
 
                     int cnt = GXCommon.GetObjectCount(value);
+                    if (cnt != value.Size - value.Position)
+                    {
+                        xml.AppendComment("Invalid length: " + cnt + ". It should be: " + (value.Size - value.Position));
+                    }
                     xml.AppendLine(cmd, "Value", GXCommon.ToHex(value.Data, false, value.Position, value.Size - value.Position));
                     break;
                 case (byte)Command.GeneralGloCiphering:

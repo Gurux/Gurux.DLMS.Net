@@ -96,6 +96,9 @@ namespace Gurux.DLMS.ManufacturerSettings
             set;
         }           
 
+        /// <summary>
+        /// Manufacturer spesific OBIS codes.
+        /// </summary>
 #if !WINDOWS_UWP
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
         [Browsable(false)]
@@ -164,10 +167,13 @@ namespace Gurux.DLMS.ManufacturerSettings
             set;
         }
 
+        /// <summary>
+        /// Is manufacturer setting removed.
+        /// </summary>
 #if !WINDOWS_UWP
         [Browsable(false)]
 #endif
-        [System.Xml.Serialization.XmlIgnore()]
+        [XmlIgnore()]
         public bool Removed
         {
             get;

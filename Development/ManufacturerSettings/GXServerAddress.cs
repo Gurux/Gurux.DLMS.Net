@@ -72,6 +72,9 @@ namespace Gurux.DLMS.ManufacturerSettings
         Custom
     }
 
+    /// <summary>
+    /// Server address settings.
+    /// </summary>
 #if !WINDOWS_UWP
     [Serializable]
 #endif
@@ -103,18 +106,27 @@ namespace Gurux.DLMS.ManufacturerSettings
             set;
         }
 
+        /// <summary>
+        /// HDLC address type.
+        /// </summary>
         public HDLCAddressType HDLCAddress
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// Used formula.
+        /// </summary>
         public string Formula
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// Physical address of the meter.
+        /// </summary>
 #if !WINDOWS_UWP
         [Browsable(false)]
 #endif
@@ -125,8 +137,24 @@ namespace Gurux.DLMS.ManufacturerSettings
             set;
         }
 
+        /// <summary>
+        /// Logical address of the meter.
+        /// </summary>
         [DefaultValue(0)]
         public int LogicalAddress
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Custom address size of the meter.
+        /// </summary>
+        /// <remarks>
+        /// Some meters require fixed address size.
+        /// </remarks>
+        [DefaultValue(0)]
+        public int Size
         {
             get;
             set;

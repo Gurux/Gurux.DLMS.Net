@@ -461,18 +461,18 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(3);
             }
-            if (this.Version > 0)
+            //ClientSystemTitle
+            if (CanRead(4))
             {
-                //ClientSystemTitle
-                if (CanRead(4))
-                {
-                    attributes.Add(4);
-                }
-                //ServerSystemTitle
-                if (CanRead(5))
-                {
-                    attributes.Add(5);
-                }
+                attributes.Add(4);
+            }
+            //ServerSystemTitle
+            if (CanRead(5))
+            {
+                attributes.Add(5);
+            }
+            if (this.Version != 0)
+            {
                 //Certificates
                 if (CanRead(6))
                 {
@@ -488,7 +488,7 @@ namespace Gurux.DLMS.Objects
             if (this.Version == 0)
             {
                 return new string[] { Internal.GXCommon.GetLogicalNameString(), "Security Policy",
-                                  "Security Suite"
+                                  "Security Suite", "Client System Title", "Server System Title"
                                 };
             }
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "Security Policy",

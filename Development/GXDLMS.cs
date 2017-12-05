@@ -1105,7 +1105,7 @@ namespace Gurux.DLMS
         /// <param name="value">HDLC address.</param>
         /// <param name="size">HDLC address size. This is optional.</param>
         /// <returns>HDLC address.</returns>
-        internal static Object GetHhlcAddress(int value, byte size)
+        internal static Object GetHdlcAddress(int value, byte size)
         {
             if (size < 2 && value < 0x80)
             {
@@ -1131,7 +1131,7 @@ namespace Gurux.DLMS
         /// <returns></returns>
         private static byte[] GetHdlcAddressBytes(int value, byte size)
         {
-            Object tmp = GetHhlcAddress(value, size);
+            Object tmp = GetHdlcAddress(value, size);
             GXByteBuffer bb = new GXByteBuffer();
             if (tmp is byte)
             {
