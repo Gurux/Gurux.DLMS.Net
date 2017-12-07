@@ -53,7 +53,7 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSIp6Setup()
-        : this("0.0.25.1.0.255")
+        : this("0.0.25.7.0.255")
         {
         }
 

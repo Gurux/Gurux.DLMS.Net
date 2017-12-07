@@ -90,7 +90,7 @@ namespace Gurux.DLMS.Objects
         }
 
         [XmlIgnore()]
-        public uint[] MulticastIPAddress
+        public string[] MulticastIPAddress
         {
             get;
             set;
@@ -104,14 +104,14 @@ namespace Gurux.DLMS.Objects
         }
 
         [XmlIgnore()]
-        public UInt64 SubnetMask
+        public string SubnetMask
         {
             get;
             set;
         }
 
         [XmlIgnore()]
-        public UInt64 GatewayIPAddress
+        public string GatewayIPAddress
         {
             get;
             set;
@@ -125,14 +125,14 @@ namespace Gurux.DLMS.Objects
         }
 
         [XmlIgnore()]
-        public UInt64 PrimaryDNSAddress
+        public string PrimaryDNSAddress
         {
             get;
             set;
         }
 
         [XmlIgnore()]
-        public UInt64 SecondaryDNSAddress
+        public string SecondaryDNSAddress
         {
             get;
             set;
@@ -278,6 +278,16 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
+        private static UInt32 FromAddressString(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return 0;
+            }
+            long v = System.Net.IPAddress.HostToNetworkOrder(BitConverter.ToUInt32(System.Net.IPAddress.Parse(value).GetAddressBytes(), 0)) >> 32;
+            return (UInt32) v;
+        }
+
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
@@ -290,12 +300,7 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 3)
             {
-                //If IP address is not given.
-                if (IPAddress == null || IPAddress.Trim().Length == 0)
-                {
-                    return 0;
-                }
-                return BitConverter.ToUInt32(System.Net.IPAddress.Parse(IPAddress).GetAddressBytes(), 0);
+                return FromAddressString(IPAddress);
             }
             if (e.Index == 4)
             {
@@ -309,9 +314,9 @@ namespace Gurux.DLMS.Objects
                 else
                 {
                     GXCommon.SetObjectCount(MulticastIPAddress.Length, data);
-                    foreach (UInt16 it in MulticastIPAddress)
+                    foreach (string it in MulticastIPAddress)
                     {
-                        GXCommon.SetData(settings, data, DataType.UInt16, it);
+                        GXCommon.SetData(settings, data, DataType.UInt32, FromAddressString(it));
                     }
                 }
                 return data.Array();
@@ -341,11 +346,12 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 6)
             {
-                return this.SubnetMask;
+                //If subnet mask is not given.
+                return FromAddressString(SubnetMask);
             }
             if (e.Index == 7)
             {
-                return this.GatewayIPAddress;
+                return FromAddressString(GatewayIPAddress);
             }
             if (e.Index == 8)
             {
@@ -353,14 +359,19 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 9)
             {
-                return this.PrimaryDNSAddress;
+                return FromAddressString(PrimaryDNSAddress);
             }
             if (e.Index == 10)
             {
-                return this.SecondaryDNSAddress;
+                return FromAddressString(SecondaryDNSAddress);
             }
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
+        }
+
+        private static string ToAddressString(object value)
+        {
+            return new System.Net.IPAddress(System.Net.IPAddress.HostToNetworkOrder(Convert.ToUInt32(value)) >> 32).ToString();
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
@@ -375,18 +386,18 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 3)
             {
-                IPAddress = new System.Net.IPAddress(BitConverter.GetBytes(Convert.ToUInt32(e.Value))).ToString();
+                IPAddress = ToAddressString(e.Value);
             }
             else if (e.Index == 4)
             {
-                List<uint> data = new List<uint>();
-                if (e.Value != null)
+                List<string> data = new List<string>();
+                if (e.Value is Object[])
                 {
                     if (e.Value is Object[])
                     {
                         foreach (object it in (Object[])e.Value)
                         {
-                            data.Add(Convert.ToUInt16(it));
+                            data.Add(ToAddressString(it));
                         }
                     }
                     else if (e.Value is UInt16[])
@@ -394,7 +405,7 @@ namespace Gurux.DLMS.Objects
                         //Some meters are returning wrong data here.
                         foreach (UInt16 it in (UInt16[])e.Value)
                         {
-                            data.Add(it);
+                            data.Add(ToAddressString(it));
                         }
                     }
                 }
@@ -403,7 +414,7 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 5)
             {
                 List<GXDLMSIp4SetupIpOption> data = new List<GXDLMSIp4SetupIpOption>();
-                if (e.Value != null)
+                if (e.Value is Object[])
                 {
                     foreach (object[] it in (Object[])e.Value)
                     {
@@ -418,11 +429,11 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 6)
             {
-                SubnetMask = Convert.ToUInt32(e.Value);
+                SubnetMask = ToAddressString(Convert.ToUInt32(e.Value));
             }
             else if (e.Index == 7)
             {
-                GatewayIPAddress = Convert.ToUInt32(e.Value);
+                GatewayIPAddress = ToAddressString(e.Value);
             }
             else if (e.Index == 8)
             {
@@ -430,11 +441,11 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 9)
             {
-                PrimaryDNSAddress = Convert.ToUInt32(e.Value);
+                PrimaryDNSAddress = ToAddressString(e.Value);
             }
             else if (e.Index == 10)
             {
-                SecondaryDNSAddress = Convert.ToUInt32(e.Value);
+                SecondaryDNSAddress = ToAddressString(e.Value);
             }
             else
             {
@@ -446,12 +457,12 @@ namespace Gurux.DLMS.Objects
         {
             DataLinkLayerReference = reader.ReadElementContentAsString("DataLinkLayerReference");
             IPAddress = reader.ReadElementContentAsString("IPAddress");
-            List<UInt32> list = new List<UInt32>();
+            List<string> list = new List<string>();
             if (reader.IsStartElement("MulticastIPAddress", true))
             {
                 while (reader.IsStartElement("Value", false))
                 {
-                    list.Add((UInt32)reader.ReadElementContentAsInt("Value"));
+                    list.Add(reader.ReadElementContentAsString("Value"));
                 }
                 reader.ReadEndElement("MulticastIPAddress");
             }
@@ -471,11 +482,11 @@ namespace Gurux.DLMS.Objects
                 reader.ReadEndElement("IPOptions");
             }
             IPOptions = ipOptions.ToArray();
-            SubnetMask = reader.ReadElementContentAsULong("SubnetMask");
-            GatewayIPAddress = reader.ReadElementContentAsULong("GatewayIPAddress");
+            SubnetMask = reader.ReadElementContentAsString("SubnetMask");
+            GatewayIPAddress = reader.ReadElementContentAsString("GatewayIPAddress");
             UseDHCP = reader.ReadElementContentAsInt("UseDHCP") != 0;
-            PrimaryDNSAddress = reader.ReadElementContentAsULong("PrimaryDNSAddress");
-            SecondaryDNSAddress = reader.ReadElementContentAsULong("SecondaryDNSAddress");
+            PrimaryDNSAddress = reader.ReadElementContentAsString("PrimaryDNSAddress");
+            SecondaryDNSAddress = reader.ReadElementContentAsString("SecondaryDNSAddress");
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
@@ -485,7 +496,7 @@ namespace Gurux.DLMS.Objects
             if (MulticastIPAddress != null)
             {
                 writer.WriteStartElement("MulticastIPAddress");
-                foreach (UInt16 it in MulticastIPAddress)
+                foreach (string it in MulticastIPAddress)
                 {
                     writer.WriteElementString("Value", it);
                 }

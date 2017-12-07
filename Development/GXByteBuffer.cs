@@ -477,14 +477,14 @@ namespace Gurux.DLMS
             {
                 throw new System.OutOfMemoryException();
             }
-            UInt64 value = (UInt64)((Data[Position] & 0xFF) << 58 |
-                                    (Data[Position + 1] & 0xFF) << 48 |
-                                    (Data[Position + 2] & 0xFF) << 40 |
-                                    (Data[Position + 3] & 0xFF) << 32 |
-                                    (Data[Position + 4] & 0xFF) << 24 |
-                                    (Data[Position + 5] & 0xFF) << 16 |
-                                    (Data[Position + 6] & 0xFF) << 8 |
-                                    (Data[Position + 7] & 0xFF));
+            UInt64 value = (((UInt64)Data[Position] & 0xFF) << 56) |
+                          (((UInt64)Data[Position + 1] & 0xFF) << 48) |
+                          (((UInt64)Data[Position + 2] & 0xFF) << 40) |
+                          (((UInt64)Data[Position + 3] & 0xFF) << 32) |
+                          (((UInt64)Data[Position + 4] & 0xFF) << 24) |
+                          (((UInt64)Data[Position + 5] & 0xFF) << 16) |
+                           (((UInt64)Data[Position + 6] & 0xFF) << 8) |
+                          (((UInt64)Data[Position + 7] & 0xFF));
             Position += 8;
             return value;
         }
@@ -666,14 +666,14 @@ namespace Gurux.DLMS
             {
                 throw new System.OutOfMemoryException();
             }
-            Int64 value = (Int64)((Data[Position] & 0xFF) << 58 |
-                                  (Data[Position + 1] & 0xFF) << 48 |
-                                  (Data[Position + 2] & 0xFF) << 40 |
-                                  (Data[Position + 3] & 0xFF) << 32 |
-                                  (Data[Position + 4] & 0xFF) << 24 |
-                                  (Data[Position + 5] & 0xFF) << 16 |
-                                  (Data[Position + 6] & 0xFF) << 8 |
-                                  (Data[Position + 7] & 0xFF));
+            Int64 value = (((Int64)Data[Position] & 0xFF) << 56) |
+                          (((Int64)Data[Position + 1] & 0xFF) << 48) |
+                          (((Int64)Data[Position + 2] & 0xFF) << 40) |
+                          (((Int64)Data[Position + 3] & 0xFF) << 32) |
+                          (((Int64)Data[Position + 4] & 0xFF) << 24) |
+                          (((Int64)Data[Position + 5] & 0xFF) << 16) |
+                           (((Int64)Data[Position + 6] & 0xFF) << 8) |
+                          (((Int64)Data[Position + 7] & 0xFF));
             Position += 8;
             return value;
         }

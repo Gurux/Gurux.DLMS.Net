@@ -64,6 +64,24 @@ namespace Gurux.DLMS.Objects
                 WeekName = ASCIIEncoding.ASCII.GetBytes(weekName);
             }
         }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public GXDLMSSeasonProfile(string name, GXDateTime start, GXDLMSWeekProfile weekProfile)
+        {
+            if (name != null)
+            {
+                Name = ASCIIEncoding.ASCII.GetBytes(name);
+            }
+            Start = start;
+            if (weekProfile != null)
+            {
+                WeekName = weekProfile.Name;
+            }
+        }
+
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -73,6 +91,17 @@ namespace Gurux.DLMS.Objects
             Start = start;
             WeekName = weekName;
         }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public GXDLMSSeasonProfile(byte[] name, GXDateTime start, GXDLMSWeekProfile weekProfile)
+        {
+            Name = name;
+            Start = start;
+            WeekName = weekProfile.Name;
+        }
+        
 
         /// <summary>
         /// Name of season profile.

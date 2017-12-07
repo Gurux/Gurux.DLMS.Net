@@ -176,3 +176,5 @@ pip-log.txt
 *.db
 *.lock
 *.ide
+*.ide-wal
+*.ide-shm
