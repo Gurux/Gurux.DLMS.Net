@@ -192,15 +192,6 @@ namespace Gurux.DLMS
             set;
         }
 
-        /// <summary>
-        /// Is received message General Block Transfer message.
-        /// </summary>
-        public bool Gbt
-        {
-            get;
-            set;
-        }
-
         ///<summary>
         /// Data notification date time. 
         ///</summary>
@@ -209,6 +200,58 @@ namespace Gurux.DLMS
             get;
             set;
         }
+
+        /// <summary>
+        /// GBT block number.
+        /// </summary>
+        public UInt16 BlockNumber
+        {
+            get;
+            set;
+        }
+        /// <summary>
+        /// GBT block number ACK.
+        /// </summary>
+        public UInt16 BlockNumberAck
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Is GBT streaming in use.
+        /// </summary>
+        internal bool Streaming
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// GBT Window size.
+        /// </summary>
+        /// <remarks>
+        /// This is for internal use. 
+        /// </remarks>
+       internal byte WindowSize
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Is GBT streaming.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsStreaming()
+        {
+            return Streaming && (BlockNumberAck * WindowSize) + 1 > BlockNumber;
+        }
+
+        /// <summary>
+        /// Don't clear data. It's used later.
+        /// </summary>
+        internal bool leaveData;
 
         ///<summary>
         /// Reset data values to default. 
@@ -224,7 +267,6 @@ namespace Gurux.DLMS
             TotalCount = 0;
             Value = null;
             ReadPosition = 0;
-            Gbt = false;
             PacketLength = 0;
             DataType = DataType.None;
             CipherIndex = 0;

@@ -31,7 +31,7 @@ namespace Gurux.DLMS.XmlClient
             }
             else
             {
-                Console.WriteLine(Convert.ToString(reply.Value));
+                Console.WriteLine(Convert.ToString(reply));
             }
         }
 
@@ -150,8 +150,11 @@ namespace Gurux.DLMS.XmlClient
                                 Console.WriteLine("------------------------------------------------------------");
                                 Console.WriteLine(it.ToString());
                             }
-                            reader.ReadDataBlock(settings.client.PduToMessages(it), reply);
-                            HandleReply(it, reply);
+                            if (it.IsRequest())
+                            {
+                                reader.ReadDataBlock(settings.client.PduToMessages(it), reply);
+                                HandleReply(it, reply);
+                            }
                         }
                     }
                     catch (Exception ex)

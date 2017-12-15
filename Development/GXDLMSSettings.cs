@@ -196,6 +196,7 @@ namespace Gurux.DLMS
             Limits = new GXDLMSLimits();
             ProposedConformance = GXDLMSClient.GetInitialConformance(false);
             ResetFrameSequence();
+            WindowSize = 1;
         }
 
         /// <summary>
@@ -394,11 +395,21 @@ namespace Gurux.DLMS
 
 
         ///<summary>
+        /// Block number acknowledged in GBT. 
+        ///</summary>
+        public UInt16 BlockNumberAck
+        {
+            get;
+            set;
+        }
+
+        ///<summary>
         /// Resets block index to default value.
         ///</summary>
         internal void ResetBlockIndex()
         {
             BlockIndex = StartingBlockIndex;
+            BlockNumberAck = 0;
         }
 
         ///<summary>
@@ -445,6 +456,15 @@ namespace Gurux.DLMS
             set;
         }
 
+        /// <summary>
+        /// GBT window size.
+        /// </summary>
+        public byte WindowSize
+        {
+            get;
+            set;
+        }
+        
         /// <summary>
         /// Server address.
         /// </summary>

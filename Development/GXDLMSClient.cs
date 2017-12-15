@@ -149,6 +149,21 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// GBT window size.
+        /// </summary>
+        public byte WindowSize
+        {
+            get
+            {
+                return Settings.WindowSize;
+            }
+            set
+            {
+                Settings.WindowSize = value;
+            }
+        }
+
+        /// <summary>
         /// Standard says that Time zone is from normal time to UTC in minutes.
         /// If meter is configured to use UTC time (UTC to normal time) set this to true.
         /// </summary>
@@ -1436,6 +1451,9 @@ namespace Gurux.DLMS
                 // Access selection is not used.
                 attributeDescriptor.SetUInt8(0);
                 GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.SetRequest, (byte)SetRequestType.Normal, attributeDescriptor, data, 0xff);
+                p.blockIndex = Settings.BlockIndex;
+                p.blockNumberAck = Settings.BlockNumberAck;
+                p.Streaming = false;
                 reply = GXDLMS.GetLnMessages(p);
             }
             else
@@ -1903,6 +1921,7 @@ namespace Gurux.DLMS
             Command cmd = data.Command;
             try
             {
+                data.leaveData = translator != null;
                 ret = GXDLMS.GetData(Settings, reply, data);
             }
             catch (Exception ex)
@@ -1943,16 +1962,16 @@ namespace Gurux.DLMS
                         tmp.Set(data.Data);
                         data.Data = tmp;
                     }
-                    data.Data.Position = 0;
+                    data.Data.Position = 0;                   
                     if (data.Command == Command.Snrm || data.Command == Command.Ua)
                     {
                         data.Xml.AppendStartTag(data.Command);
-                        translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace);
+                        translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace, false);
                         data.Xml.AppendEndTag(data.Command);
                     }
                     else
                     {
-                        translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace);
+                        translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace, true);
                         data.Data = data2;
                     }
                 }

@@ -651,7 +651,7 @@ namespace Gurux.DLMS
                                     if (data.Command == Command.Snrm || data.Command == Command.Ua)
                                     {
                                         xml.AppendStartTag(data.Command);
-                                        PduToXml(xml, data.Data, true, true);
+                                        PduToXml(xml, data.Data, true, true, false);
                                         xml.AppendEndTag(data.Command);
                                         xml.sb.Length += 2;
                                     }
@@ -817,14 +817,15 @@ namespace Gurux.DLMS
         private string PduToXml(GXByteBuffer value, bool omitDeclaration, bool omitNameSpace)
         {
             GXDLMSTranslatorStructure xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
-            return PduToXml(xml, value, omitDeclaration, omitNameSpace);
+            return PduToXml(xml, value, omitDeclaration, omitNameSpace, false);
         }
 
-        internal string PduToXml(GXDLMSTranslatorStructure xml, GXByteBuffer value, bool omitDeclaration, bool omitNameSpace)
+        internal string PduToXml(GXDLMSTranslatorStructure xml, GXByteBuffer value, bool omitDeclaration, bool omitNameSpace, bool leaveData)
         {
             GXDLMSSettings settings = new GXDLMSSettings(true);
             settings.Cipher = GetCiphering();
             GXReplyData data = new GXReplyData();
+            data.leaveData = leaveData;
             byte cmd = value.GetUInt8();
             string str;
             int len;
@@ -983,7 +984,7 @@ namespace Gurux.DLMS
                             AesGcmParameter p = new AesGcmParameter(settings.Cipher.SystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
                             GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
                             xml.StartComment("Decrypt data:");
-                            PduToXml(xml, data2, omitDeclaration, omitNameSpace);
+                            PduToXml(xml, data2, omitDeclaration, omitNameSpace, false);
                             xml.EndComment();
                         }
                         catch (Exception)
@@ -1009,7 +1010,7 @@ namespace Gurux.DLMS
                         AesGcmParameter p = new AesGcmParameter(settings.Cipher.SystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
                         GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
                         xml.StartComment("Decrypt data:");
-                        PduToXml(xml, data2, omitDeclaration, omitNameSpace);
+                        PduToXml(xml, data2, omitDeclaration, omitNameSpace, false);
                         xml.EndComment();
                         value.Position = originalPosition;
                     }
@@ -1136,6 +1137,7 @@ namespace Gurux.DLMS
                 case (int)Command.InformationReport:
                 case (int)Command.EventNotification:
                 case (int)Command.DisconnectRequest:
+                case (int)Command.GeneralBlockTransfer:
                     break;
                 case (byte)Command.GloInitiateResponse:
                 case (byte)Command.GloGetResponse:
@@ -2240,6 +2242,15 @@ namespace Gurux.DLMS
                         break;
                     case (UInt16)TranslatorTags.FrameType:
                         break;
+                    case (UInt16)TranslatorTags.BlockControl:
+                        s.attributeDescriptor.SetUInt8((Byte)s.ParseShort(GetValue(node, s)));
+                        break;
+                    case (UInt16)TranslatorTags.BlockNumberAck:
+                        s.attributeDescriptor.SetUInt16((UInt16)s.ParseShort(GetValue(node, s)));
+                        break;
+                    case (UInt16)TranslatorTags.BlockData:
+                        s.data.Set(GXCommon.HexToBytes(GetValue(node, s)));
+                        break;
                     default:
                         throw new ArgumentException("Invalid node: " + node.Name);
                 }
@@ -2433,6 +2444,9 @@ namespace Gurux.DLMS
                 case Command.ExceptionResponse:
                     break;
                 case Command.GeneralBlockTransfer:
+                    ln = new GXDLMSLNParameters(s.settings, 0, s.command, s.requestType,
+                                                 s.attributeDescriptor, s.data, 0xff);
+                    GXDLMS.GetLNPdu(ln, bb);
                     break;
                 case Command.AccessRequest:
                     ln = new GXDLMSLNParameters(s.settings, 0, s.command, s.requestType,

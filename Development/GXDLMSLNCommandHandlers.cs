@@ -58,17 +58,21 @@ namespace Gurux.DLMS
                               ServiceError.Service, (byte)Service.Unsupported));
                 return;
             }
-
-            GetCommandType type = (GetCommandType)data.GetUInt8();
-            // Get invoke ID and priority.
-            byte invokeID = data.GetUInt8();
-            if (xml != null)
+            byte invokeID = 0;
+            GetCommandType type = GetCommandType.NextDataBlock;
+            //If GBT is used data is empty.
+            if (data.Size != 0)
             {
-                xml.AppendStartTag(Command.GetRequest);
-                xml.AppendStartTag(Command.GetRequest, type);
-                xml.AppendLine(TranslatorTags.InvokeId, "Value", xml.IntegerToHex(invokeID, 2));
+                type = (GetCommandType)data.GetUInt8();
+                // Get invoke ID and priority.
+                invokeID = data.GetUInt8();
+                if (xml != null)
+                {
+                    xml.AppendStartTag(Command.GetRequest);
+                    xml.AppendStartTag(Command.GetRequest, type);
+                    xml.AppendLine(TranslatorTags.InvokeId, "Value", xml.IntegerToHex(invokeID, 2));
+                }
             }
-
             // GetRequest normal
             if (type == GetCommandType.Normal)
             {
@@ -77,7 +81,7 @@ namespace Gurux.DLMS
             else if (type == GetCommandType.NextDataBlock)
             {
                 // Get request for next data block
-                GetRequestNextDataBlock(settings, invokeID, server, data, replyData, xml);
+                GetRequestNextDataBlock(settings, invokeID, server, data, replyData, xml, false);
             }
             else if (type == GetCommandType.WithList)
             {
@@ -394,7 +398,8 @@ namespace Gurux.DLMS
                     status = e.Error;
                 }
             }
-            GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, e.InvokeId, Command.GetResponse, 1, null, bb, (byte)status), replyData);
+            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, e.InvokeId, Command.GetResponse, 1, null, bb, (byte)status);
+            GXDLMS.GetLNPdu(p, replyData);
             if (settings.Count != settings.Index || bb.Size != bb.Position)
             {
                 server.transaction = new GXDLMSLongTransaction(new ValueEventArgs[] { e }, Command.GetRequest, bb);
@@ -405,77 +410,80 @@ namespace Gurux.DLMS
         /// Handle get request next data block command.
         /// </summary>
         /// <param name="data">Received data.</param>
-        private static void GetRequestNextDataBlock(GXDLMSSettings settings, byte invokeID, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
+        internal static void GetRequestNextDataBlock(GXDLMSSettings settings, byte invokeID, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml, bool streaming)
         {
             GXByteBuffer bb = new GXByteBuffer();
-            UInt32 index;
-            // Get block index.
-            index = data.GetUInt32();
-            if (xml != null)
+            if (!streaming)
             {
-                xml.AppendLine(TranslatorTags.BlockNumber, null, xml.IntegerToHex(index, 8));
-                return;
+                UInt32 index;
+                // Get block index.
+                index = data.GetUInt32();
+                if (xml != null)
+                {
+                    xml.AppendLine(TranslatorTags.BlockNumber, null, xml.IntegerToHex(index, 8));
+                    return;
+                }
+                if (index != settings.BlockIndex)
+                {
+                    Debug.WriteLine("handleGetRequest failed. Invalid block number. " + settings.BlockIndex + "/" + index);
+                    GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, 0, Command.GetResponse, 2, null, bb, (byte)ErrorCode.DataBlockNumberInvalid), replyData);
+                    return;
+                }
             }
-            if (index != settings.BlockIndex)
+            settings.IncreaseBlockIndex();
+            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeID, streaming ? Command.GeneralBlockTransfer : Command.GetResponse, 2, null, bb, (byte)ErrorCode.Ok);
+            p.Streaming = streaming;
+            p.WindowSize = settings.WindowSize;
+            //If transaction is not in progress.
+            if (server.transaction == null)
             {
-                Debug.WriteLine("handleGetRequest failed. Invalid block number. " + settings.BlockIndex + "/" + index);
-                GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, 0, Command.GetResponse, 2, null, bb, (byte)ErrorCode.DataBlockNumberInvalid), replyData);
+                p.status = (byte)ErrorCode.NoLongGetOrReadInProgress;
             }
             else
             {
-                settings.IncreaseBlockIndex();
-                GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeID, Command.GetResponse, 2, null, bb, (byte)ErrorCode.Ok);
-                //If transaction is not in progress.
-                if (server.transaction == null)
+                bb.Set(server.transaction.data);
+                bool moreData = settings.Index != settings.Count;
+                if (moreData)
                 {
-                    p.status = (byte)ErrorCode.NoLongGetOrReadInProgress;
+                    //If there is multiple blocks on the buffer.
+                    //This might happen when Max PDU size is very small.
+                    if (bb.Size < settings.MaxPduSize)
+                    {
+                        foreach (ValueEventArgs arg in server.transaction.targets)
+                        {
+                            object value;
+                            server.NotifyRead(new ValueEventArgs[] { arg });
+                            if (arg.Handled)
+                            {
+                                value = arg.Value;
+                            }
+                            else
+                            {
+                                value = (arg.Target as IGXDLMSBase).GetValue(settings, arg);
+                            }
+                            //Add data.
+                            if (arg.ByteArray)
+                            {
+                                bb.Set((byte[])value);
+                            }
+                            else
+                            {
+                                GXDLMS.AppendData(settings, arg.Target, arg.Index, bb, value);
+                            }
+                        }
+                        moreData = settings.Index != settings.Count;
+                    }
+                }
+                p.multipleBlocks = true;
+                GXDLMS.GetLNPdu(p, replyData);
+                if (moreData || bb.Size - bb.Position != 0)
+                {
+                    server.transaction.data = bb;
                 }
                 else
                 {
-                    bb.Set(server.transaction.data);
-                    bool moreData = settings.Index != settings.Count;
-                    if (moreData)
-                    {
-                        //If there is multiple blocks on the buffer.
-                        //This might happen when Max PDU size is very small.
-                        if (bb.Size < settings.MaxPduSize)
-                        {
-                            foreach (ValueEventArgs arg in server.transaction.targets)
-                            {
-                                object value;
-                                server.NotifyRead(new ValueEventArgs[] { arg });
-                                if (arg.Handled)
-                                {
-                                    value = arg.Value;
-                                }
-                                else
-                                {
-                                    value = (arg.Target as IGXDLMSBase).GetValue(settings, arg);
-                                }
-                                //Add data.
-                                if (arg.ByteArray)
-                                {
-                                    bb.Set((byte[])value);
-                                }
-                                else
-                                {
-                                    GXDLMS.AppendData(settings, arg.Target, arg.Index, bb, value);
-                                }
-                            }
-                            moreData = settings.Index != settings.Count;
-                        }
-                    }
-                    p.multipleBlocks = true;
-                    GXDLMS.GetLNPdu(p, replyData);
-                    if (moreData || bb.Size - bb.Position != 0)
-                    {
-                        server.transaction.data = bb;
-                    }
-                    else
-                    {
-                        server.transaction = null;
-                        settings.ResetBlockIndex();
-                    }
+                    server.transaction = null;
+                    settings.ResetBlockIndex();
                 }
             }
         }

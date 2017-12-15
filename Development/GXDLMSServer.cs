@@ -411,6 +411,21 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// GBT window size.
+        /// </summary>
+        public byte WindowSize
+        {
+            get
+            {
+                return Settings.WindowSize;
+            }
+            set
+            {
+                Settings.WindowSize = value;
+            }
+        }
+
+        /// <summary>
         /// Information from the connection size that server can handle.
         /// </summary>
         [Obsolete("Use Hdlc to set limits.")]
@@ -777,8 +792,7 @@ namespace Gurux.DLMS
         ///<summary>
         /// Handles client request.
         /// </summary>
-        ///<param name="buff">
-        /// Received data from the client. </param>
+        ///<param name="buff">Received data from the client. </param>
         ///<returns>
         ///Response to the request. Response is null if request packet is not complete.
         ///</returns>
@@ -797,9 +811,22 @@ namespace Gurux.DLMS
         ///</returns>
         public virtual byte[] HandleRequest(byte[] buff, GXDLMSConnectionEventArgs connectionInfo)
         {
-            if (buff == null || buff.Length == 0)
+            GXServerReply sr = new GXServerReply(buff);
+            sr.ConnectionInfo = connectionInfo;
+            HandleRequest(sr);
+            return sr.Reply;
+        }
+
+        ///<summary>
+        /// Handles client request.
+        /// </summary>
+        ///<param name="sr">Server reply parameters. </param>
+        public virtual void HandleRequest(GXServerReply sr)
+        {
+            sr.Reply = null;
+            if (!sr.IsStreaming && (sr.Data == null || sr.Data.Length == 0))
             {
-                return null;
+                return;
             }
             if (!Initialized)
             {
@@ -807,96 +834,100 @@ namespace Gurux.DLMS
             }
             try
             {
-                receivedData.Set(buff);
-                bool first = Settings.ServerAddress == 0 && Settings.ClientAddress == 0;
-                GXDLMS.GetData(Settings, receivedData, info);
-                //If all data is not received yet.
-                if (!info.IsComplete)
+                if (!sr.IsStreaming)
                 {
-                    return null;
-                }
-                receivedData.Clear();
-                if (first)
-                {
-                    // Check is data send to this server.
-                    if (!IsTarget(Settings.ServerAddress,
-                                  Settings.ClientAddress))
+                    receivedData.Set(sr.Data);
+                    bool first = Settings.ServerAddress == 0 && Settings.ClientAddress == 0;
+                    GXDLMS.GetData(Settings, receivedData, info);
+                    //If all data is not received yet.
+                    if (!info.IsComplete)
                     {
-                        info.Clear();
-                        return null;
+                        return;
                     }
-                }
+                    receivedData.Clear();
+                    if (first)
+                    {
+                        // Check is data send to this server.
+                        if (!IsTarget(Settings.ServerAddress,
+                                      Settings.ClientAddress))
+                        {
+                            info.Clear();
+                            return;
+                        }
+                    }
 
-                //If client want next frame.
-                if ((info.MoreData & RequestTypes.Frame) == RequestTypes.Frame)
-                {
-                    dataReceived = DateTime.Now;
-                    return GXDLMS.GetHdlcFrame(Settings, Settings.ReceiverReady(), replyData);
-                }
-                //Update command if transaction and next frame is asked.
-                if (info.Command == Command.None)
-                {
-                    if (transaction != null)
+                    //If client want next frame.
+                    if ((info.MoreData & RequestTypes.Frame) == RequestTypes.Frame)
                     {
-                        info.Command = transaction.command;
+                        dataReceived = DateTime.Now;
+                        sr.Reply = GXDLMS.GetHdlcFrame(Settings, Settings.ReceiverReady(), replyData);
+                        return;
                     }
-                }
-                //Check inactivity time out.
-                if (Hdlc != null && Hdlc.InactivityTimeout != 0)
-                {
-                    if (info.Command != Command.Snrm)
+                    //Update command if transaction and next frame is asked.
+                    if (info.Command == Command.None)
                     {
-                        int elapsed = (int)(DateTime.Now - dataReceived).TotalSeconds;
-                        //If inactivity time out is elapsed.
-                        if (elapsed >= Hdlc.InactivityTimeout)
+                        if (transaction != null)
                         {
-                            Reset();
-                            return null;
+                            info.Command = transaction.command;
+                        }
+                    }
+                    //Check inactivity time out.
+                    if (Hdlc != null && Hdlc.InactivityTimeout != 0)
+                    {
+                        if (info.Command != Command.Snrm)
+                        {
+                            int elapsed = (int)(DateTime.Now - dataReceived).TotalSeconds;
+                            //If inactivity time out is elapsed.
+                            if (elapsed >= Hdlc.InactivityTimeout)
+                            {
+                                Reset();
+                                return;
+                            }
+                        }
+                    }
+                    else if (Wrapper != null && Wrapper.InactivityTimeout != 0)
+                    {
+                        if (info.Command != Command.Aarq)
+                        {
+                            int elapsed = (int)(DateTime.Now - dataReceived).TotalSeconds;
+                            //If inactivity time out is elapsed.
+                            if (elapsed >= Wrapper.InactivityTimeout)
+                            {
+                                Reset();
+                                return;
+                            }
                         }
                     }
                 }
-                else if (Wrapper != null && Wrapper.InactivityTimeout != 0)
+                else
                 {
-                    if (info.Command != Command.Aarq)
-                    {
-                        int elapsed = (int)(DateTime.Now - dataReceived).TotalSeconds;
-                        //If inactivity time out is elapsed.
-                        if (elapsed >= Wrapper.InactivityTimeout)
-                        {
-                            Reset();
-                            return null;
-                        }
-                    }
+                    info.Command = Command.GeneralBlockTransfer;
                 }
-                byte[] reply = HandleCommand(info.Command, info.Data, connectionInfo);
+                sr.Reply = HandleCommand(info.Command, info.Data, sr);
                 info.Clear();
-                dataReceived = DateTime.Now;
-                return reply;
+                dataReceived = DateTime.Now;               
             }
             catch (GXDLMSConfirmedServiceError e)
             {
                 Debug.WriteLine(e.ToString());
                 replyData.Set(GenerateConfirmedServiceError(e.ConfirmedServiceError, e.ServiceError, e.ServiceErrorValue));
                 info.Clear();
-                byte[] reply;
                 if (this.InterfaceType == Enums.InterfaceType.WRAPPER)
                 {
-                    reply = GXDLMS.GetWrapperFrame(Settings, replyData);
+                    sr.Reply = GXDLMS.GetWrapperFrame(Settings, replyData);
                 }
                 else
                 {
-                    reply = GXDLMS.GetHdlcFrame(Settings, 0, replyData);
+                    sr.Reply = GXDLMS.GetHdlcFrame(Settings, 0, replyData);
                 }
-                return reply;
             }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.ToString());
                 if (info.Command != Command.None)
                 {
-                    byte[] reply = ReportError(info.Command, ErrorCode.HardwareFault);
+                    sr.Reply = ReportError(info.Command, ErrorCode.HardwareFault);
                     info.Clear();
-                    return reply;
                 }
                 else
                 {
@@ -904,9 +935,8 @@ namespace Gurux.DLMS
                     if (Settings.Connected)
                     {
                         Settings.Connected = false;
-                        Disconnected(connectionInfo);
+                        Disconnected(sr.ConnectionInfo);
                     }
-                    return null;
                 }
             }
         }
@@ -926,7 +956,7 @@ namespace Gurux.DLMS
         ///<summary>
         /// Handle received command.
         ///</summary>
-        private byte[] HandleCommand(Command cmd, GXByteBuffer data, GXDLMSConnectionEventArgs connectionInfo)
+        private byte[] HandleCommand(Command cmd, GXByteBuffer data, GXServerReply sr)
         {
             byte frame = 0;
             switch (cmd)
@@ -950,23 +980,29 @@ namespace Gurux.DLMS
                     GXDLMSSNCommandHandler.HandleReadRequest(Settings, this, data, replyData, null);
                     break;
                 case Command.MethodRequest:
-                    GXDLMSLNCommandHandler.HandleMethodRequest(Settings, this, data, connectionInfo, replyData, null);
+                    GXDLMSLNCommandHandler.HandleMethodRequest(Settings, this, data, sr.ConnectionInfo, replyData, null);
                     break;
                 case Command.Snrm:
                     HandleSnrmRequest(data);
                     frame = (byte)Command.Ua;
                     break;
                 case Command.Aarq:
-                    HandleAarqRequest(data, connectionInfo);
+                    HandleAarqRequest(data, sr.ConnectionInfo);
                     break;
                 case Command.ReleaseRequest:
-                    HandleReleaseRequest(data, connectionInfo);
+                    HandleReleaseRequest(data, sr.ConnectionInfo);
                     break;
                 case Command.DisconnectRequest:
                     GenerateDisconnectRequest();
                     Settings.Connected = false;
-                    Disconnected(connectionInfo);
+                    Disconnected(sr.ConnectionInfo);
                     frame = (byte)Command.Ua;
+                    break;
+                case Command.GeneralBlockTransfer:
+                    if (!HandleGeneralBlockTransfer(data, sr))
+                    {
+                        return null;
+                    }
                     break;
                 case Command.None:
                     //Get next frame.
@@ -985,6 +1021,97 @@ namespace Gurux.DLMS
                 reply = GXDLMS.GetHdlcFrame(Settings, frame, replyData);
             }
             return reply;
+        }
+
+        private bool HandleGeneralBlockTransfer(GXByteBuffer data, GXServerReply sr)
+        {
+            if (transaction != null)
+            {
+                if (transaction.command == Command.GetRequest)
+                {
+                    // Get request for next data block
+                    if (sr.Count == 0)
+                    {
+                        ++Settings.BlockNumberAck;
+                        sr.Count = Settings.WindowSize;
+                    }
+                    GXDLMSLNCommandHandler.GetRequestNextDataBlock(Settings, 0, this, data, replyData, null, true);
+                    if (sr.Count != 0)
+                    {
+                        --sr.Count;
+                    }
+                    if (this.transaction == null)
+                    {
+                        sr.Count = 0;
+                    }
+                }
+                else
+                {
+                    //BlockControl
+                    byte bc = data.GetUInt8();
+                    //Block number.
+                    UInt16 blockNumber = data.GetUInt16();
+                    //Block number acknowledged.
+                    UInt16 blockNumberAck = data.GetUInt16();
+                    int len = GXCommon.GetObjectCount(data);
+                    if (len > data.Size - data.Position)
+                    {
+                        replyData.Set(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
+                        ServiceError.Service, (byte)Service.Unsupported));
+                    }
+                    else
+                    {
+                        transaction.data.Set(data);
+                        //Send ACK.
+                        bool igonoreAck = (bc & 0x40) != 0 && (blockNumberAck * WindowSize) + 1 > blockNumber;
+                        UInt16 windowSize = Settings.WindowSize;
+                        UInt16 bn = (UInt16)Settings.BlockIndex;
+                        if ((bc & 0x80) != 0)
+                        {
+                            HandleCommand(transaction.command, transaction.data, sr);
+                            transaction = null;
+                            igonoreAck = false;
+                            windowSize = 1;
+                        }
+                        if (igonoreAck)
+                        {
+                            return false;
+                        }
+                        replyData.SetUInt8(Command.GeneralBlockTransfer);
+                        replyData.SetUInt8((byte)(0x80 | windowSize));
+                        ++Settings.BlockIndex;
+                        replyData.SetUInt16(bn);
+                        replyData.SetUInt16(blockNumber);
+                        replyData.SetUInt8(0);
+                    }
+                }
+            }
+            else
+            {
+                //BlockControl
+                byte bc = data.GetUInt8();
+                //Block number.
+                UInt16 blockNumber = data.GetUInt16();
+                //Block number acknowledged.
+                UInt16 blockNumberAck = data.GetUInt16();
+                int len = GXCommon.GetObjectCount(data);
+                if (len > data.Size - data.Position)
+                {
+                    replyData.Set(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
+                       ServiceError.Service, (byte)Service.Unsupported));
+                }
+                else
+                {
+                    transaction = new GXDLMSLongTransaction(null, (Command)data.GetUInt8(), data);
+                    replyData.SetUInt8(Command.GeneralBlockTransfer);
+                    replyData.SetUInt8((byte)(0x80 | Settings.WindowSize));
+                    replyData.SetUInt16(blockNumber);
+                    ++blockNumberAck;
+                    replyData.SetUInt16(blockNumberAck);
+                    replyData.SetUInt8(0);
+                }
+            }
+            return true;
         }
 
         private byte[] ReportError(Command cmd, ErrorCode error)

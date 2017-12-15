@@ -118,7 +118,7 @@ namespace Gurux.DLMS.Client.Example
                     }
                 }
                 else
-                {
+                {                  
                     reader.ReadAll(false);
                 }
             }

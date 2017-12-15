@@ -139,7 +139,6 @@ namespace GuruxDLMSServerExample
 
         void Init()
         {
-            this.Conformance |= Conformance.GeneralProtection;
             Media.OnReceived += new Gurux.Common.ReceivedEventHandler(OnReceived);
             Media.OnClientConnected += new Gurux.Common.ClientConnectedEventHandler(OnClientConnected);
             Media.OnClientDisconnected += new Gurux.Common.ClientDisconnectedEventHandler(OnClientDisconnected);
@@ -344,7 +343,7 @@ namespace GuruxDLMSServerExample
 
             ///////////////////////////////////////////////////////////////////////
             //Add IP6 Setup object.
-            GXDLMSIp6Setup ip6 = new GXDLMSIp6Setup();            
+            GXDLMSIp6Setup ip6 = new GXDLMSIp6Setup();
             Items.Add(ip6);
 
             //Add Push Setup. (On Connectivity)
@@ -521,7 +520,8 @@ namespace GuruxDLMSServerExample
             {
                 //Framework will handle Association objects automatically.
                 if (e.Target is GXDLMSAssociationLogicalName ||
-                        e.Target is GXDLMSAssociationShortName)
+                        e.Target is GXDLMSAssociationShortName ||
+                        e.Target is GXDLMSIp4Setup)
                 {
                     continue;
                 }
@@ -954,17 +954,23 @@ namespace GuruxDLMSServerExample
                     {
                         Console.WriteLine("<- " + Gurux.Common.GXCommon.ToHex((byte[])e.Data, true));
                     }
-                    byte[] reply = HandleRequest((byte[])e.Data);
-                    //Reply is null if we do not want to send any data to the client.
-                    //This is done if client try to make connection with wrong device ID.
-                    if (reply != null)
+                    GXServerReply sr = new GXServerReply((byte[])e.Data);
+                    do
                     {
-                        if (Trace > TraceLevel.Info)
+                        HandleRequest(sr);
+                        //Reply is null if we do not want to send any data to the client.
+                        //This is done if client try to make connection with wrong device ID.
+                        if (sr.Reply != null)
                         {
-                            Console.WriteLine("-> " + Gurux.Common.GXCommon.ToHex(reply, true));
+                            if (Trace > TraceLevel.Info)
+                            {
+                                Console.WriteLine("-> " + Gurux.Common.GXCommon.ToHex(sr.Reply, true));
+                            }
+                            Media.Send(sr.Reply, e.SenderInfo);
+                            sr.Data = null;
                         }
-                        Media.Send(reply, e.SenderInfo);
                     }
+                    while (sr.IsStreaming);
                 }
             }
             catch (Exception ex)

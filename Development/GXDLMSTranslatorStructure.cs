@@ -375,7 +375,7 @@ namespace Gurux.DLMS
             AppendSpaces();
             sb.Append("<");
             sb.Append(GetTag((int)cmd << 8 | Convert.ToByte(type)));
-            AppendLine(">");
+            sb.AppendLine(">");
             ++offset;
         }
 

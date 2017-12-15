@@ -82,10 +82,24 @@ namespace Gurux.DLMS
         /// </summary>
         public uint blockIndex;
 
+        /// <summary>
+        /// Block number ack.
+        /// </summary>
+        public UInt16 blockNumberAck;
         ///<summary> 
         /// Received invoke ID. 
         ///</summary>         
         public UInt32 InvokeId;
+
+        ///<summary> 
+        /// GBT window size. 
+        ///</summary>         
+        public byte WindowSize;
+
+        ///<summary> 
+        /// Is GBT streaming used. 
+        ///</summary>         
+        public bool Streaming;
 
         /// <summary>
         /// Constructor.
@@ -101,6 +115,7 @@ namespace Gurux.DLMS
             settings = forSettings;
             InvokeId = invokeId;
             blockIndex = settings.BlockIndex;
+            blockNumberAck = settings.BlockNumberAck;
             command = forCommand;
             requestType = forCommandType;
             attributeDescriptor = forAttributeDescriptor;
@@ -109,6 +124,7 @@ namespace Gurux.DLMS
             status = forStatus;
             multipleBlocks = forSettings.Count != forSettings.Index;
             lastBlock = forSettings.Count == forSettings.Index;
+            WindowSize = 1;
         }
     }
 }

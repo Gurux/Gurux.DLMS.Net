@@ -88,6 +88,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, Command.ConfirmedServiceError, "ConfirmedServiceError");
             GXDLMSTranslator.AddTag(list, Command.InformationReport, "InformationReportRequest");
             GXDLMSTranslator.AddTag(list, Command.EventNotification, "EventNotificationRequest");
+            GXDLMSTranslator.AddTag(list, Command.GeneralBlockTransfer, "GeneralBlockTransfer");            
         }
 
         /// <summary>
@@ -257,6 +258,11 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorTags.WindowSizeTX, "WindowSizeTX");
             GXDLMSTranslator.AddTag(list, TranslatorTags.ValueList, "ValueList");
             GXDLMSTranslator.AddTag(list, TranslatorTags.DataAccessResult, "DataAccessResult");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.BlockControl, "BlockControl");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.BlockNumberAck, "BlockNumberAck");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.BlockData, "BlockData");
+
+
         }
 
         public static void GetDataTypeTags(SortedList<int, string> list)

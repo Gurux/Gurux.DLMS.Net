@@ -32,45 +32,61 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 namespace Gurux.DLMS
 {
-    class GXServerReply
+    public class GXServerReply
     {
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXServerReply()
+        /// <param name="data">Received data.</param>
+        public GXServerReply(byte[] data)
         {
-            Data = new GXByteBuffer();
+            Data = data;
         }
 
         ///<summary>
         ///Server received data.
         ///</summary>
-        public GXByteBuffer Data
+        public byte[] Data
         {
             get;
             set;
         }
 
         ///<summary>
-        ///Server reply messages.
+        ///Server reply message.
         ///</summary>
-        public List<byte[][]> ReplyMessages
+        public byte[] Reply
         {
             get;
             set;
         }
 
         ///<summary>
-        ///Reply message index. 
+        /// Connection info.
         ///</summary>
-        public int Index   
+        public GXDLMSConnectionEventArgs ConnectionInfo
+        {
+            get;
+            set;
+        }
+
+        ///<summary>
+        ///Is GBT streaming in progress.
+        ///</summary>
+        public bool IsStreaming
+        {
+            get
+            {
+                return Count != 0;
+            }
+        }
+
+        ///<summary>
+        ///Message count to send.
+        ///</summary>
+        public int Count
         {
             get;
             set;

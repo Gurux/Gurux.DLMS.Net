@@ -153,7 +153,7 @@ namespace Gurux.DLMS
                 availableObjectTypes.Add(ObjectType.SecuritySetup, typeof(GXDLMSSecuritySetup));
                 availableObjectTypes.Add(ObjectType.SpecialDaysTable, typeof(GXDLMSSpecialDaysTable));
                 availableObjectTypes.Add(ObjectType.TcpUdpSetup, typeof(GXDLMSTcpUdpSetup));
-                availableObjectTypes.Add(ObjectType.GSMDiagnostic, typeof(GXDLMSGSMDiagnostic)); 
+                availableObjectTypes.Add(ObjectType.GSMDiagnostic, typeof(GXDLMSGSMDiagnostic));
             }
         }
 
@@ -266,26 +266,40 @@ namespace Gurux.DLMS
                 }
             }
             // Get next block.
-            GXByteBuffer bb = new GXByteBuffer(6);
-            if (settings.UseLogicalNameReferencing)
-            {
-                bb.SetUInt32(settings.BlockIndex);
-            }
-            else
-            {
-                bb.SetUInt16((UInt16)settings.BlockIndex);
-            }
-            settings.IncreaseBlockIndex();
+            GXByteBuffer bb = new GXByteBuffer(4);
             byte[][] reply;
-            if (settings.UseLogicalNameReferencing)
+            if ((settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) != 0)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, cmd, (byte)GetCommandType.NextDataBlock, bb, null, 0xff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, Command.GeneralBlockTransfer, 0, bb, null, 0xff);
+                p.WindowSize = settings.WindowSize;
+                p.blockNumberAck = settings.BlockNumberAck;
+                p.blockIndex = (UInt16)settings.BlockIndex;
+                p.Streaming = false;
                 reply = GXDLMS.GetLnMessages(p);
+                settings.IncreaseBlockIndex();
             }
             else
             {
-                GXDLMSSNParameters p = new GXDLMSSNParameters(settings, cmd, 1, (byte)VariableAccessSpecification.BlockNumberAccess, bb, null);
-                reply = GXDLMS.GetSnMessages(p);
+                // Get next block.
+                if (settings.UseLogicalNameReferencing)
+                {
+                    bb.SetUInt32(settings.BlockIndex);
+                }
+                else
+                {
+                    bb.SetUInt16((UInt16)settings.BlockIndex);
+                }
+                settings.IncreaseBlockIndex();
+                if (settings.UseLogicalNameReferencing)
+                {
+                    GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, cmd, (byte)GetCommandType.NextDataBlock, bb, null, 0xff);
+                    reply = GXDLMS.GetLnMessages(p);
+                }
+                else
+                {
+                    GXDLMSSNParameters p = new GXDLMSSNParameters(settings, cmd, 1, (byte)VariableAccessSpecification.BlockNumberAccess, bb, null);
+                    reply = GXDLMS.GetSnMessages(p);
+                }
             }
             return reply[0];
         }
@@ -498,7 +512,11 @@ namespace Gurux.DLMS
         private static void MultipleBlocks(GXDLMSLNParameters p, GXByteBuffer reply, bool ciphering)
         {
             //Check is all data fit to one message if data is given.
-            int len = p.data.Size - p.data.Position;
+            int len = 0;
+            if (p.data != null)
+            {
+                len = p.data.Size - p.data.Position;
+            }
             if (p.attributeDescriptor != null)
             {
                 len += p.attributeDescriptor.Size;
@@ -533,42 +551,17 @@ namespace Gurux.DLMS
         {
             bool ciphering = p.command != Command.Aarq && p.command != Command.Aare && p.settings.Cipher != null && p.settings.Cipher.Security != Gurux.DLMS.Enums.Security.None;
             int len = 0;
-            if (!ciphering && p.settings.InterfaceType == InterfaceType.HDLC)
-            {
-                AddLLCBytes(p.settings, reply);
-            }
             if (p.command == Command.Aarq)
             {
                 reply.Set(p.attributeDescriptor);
             }
             else
             {
-                if ((p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) != 0)
-                {
-                    reply.SetUInt8((byte)Command.GeneralBlockTransfer);
-                    MultipleBlocks(p, reply, ciphering);
-                    // Is last block
-                    if (!p.lastBlock)
-                    {
-                        reply.SetUInt8(0);
-                    }
-                    else
-                    {
-                        reply.SetUInt8(0x80);
-                    }
-                    // Set block number sent.
-                    reply.SetUInt8(0);
-                    // Set block number acknowledged
-                    reply.SetUInt8((byte)p.blockIndex);
-                    ++p.blockIndex;
-                    // Add APU tag.
-                    reply.SetUInt8(0);
-                    // Add Addl fields
-                    reply.SetUInt8(0);
-                }
                 // Add command.
-                reply.SetUInt8((byte)p.command);
-
+                if (p.command != Command.GeneralBlockTransfer)
+                {
+                    reply.SetUInt8((byte)p.command);
+                }
                 if (p.command == Command.EventNotification ||
                     p.command == Command.DataNotification ||
                     p.command == Command.AccessRequest ||
@@ -611,7 +604,7 @@ namespace Gurux.DLMS
                     //Change Request type if Set request and multiple blocks is needed.
                     if (p.command == Command.SetRequest)
                     {
-                        if (p.multipleBlocks)
+                        if (p.multipleBlocks && (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0)
                         {
                             if (p.requestType == 1)
                             {
@@ -626,7 +619,7 @@ namespace Gurux.DLMS
                     //Change request type If get response and multiple blocks is needed.
                     if (p.command == Command.GetResponse)
                     {
-                        if (p.multipleBlocks)
+                        if (p.multipleBlocks && (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0)
                         {
                             if (p.requestType == 1)
                             {
@@ -634,80 +627,81 @@ namespace Gurux.DLMS
                             }
                         }
                     }
-                    reply.SetUInt8(p.requestType);
-                    // Add Invoke Id And Priority.
-                    if (p.InvokeId != 0)
+                    if (p.command != Command.GeneralBlockTransfer)
                     {
-                        reply.SetUInt8((byte)p.InvokeId);
-                    }
-                    else
-                    {
-                        reply.SetUInt8(GetInvokeIDPriority(p.settings));
+                        reply.SetUInt8(p.requestType);
+                        // Add Invoke Id And Priority.
+                        if (p.InvokeId != 0)
+                        {
+                            reply.SetUInt8((byte)p.InvokeId);
+                        }
+                        else
+                        {
+                            reply.SetUInt8(GetInvokeIDPriority(p.settings));
+                        }
                     }
                 }
 
                 //Add attribute descriptor.
                 reply.Set(p.attributeDescriptor);
-                if (p.command != Command.EventNotification && p.command != Command.DataNotification && (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0)
+                //If multiple blocks.
+                if (p.multipleBlocks && (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0)
                 {
-                    //If multiple blocks.
-                    if (p.multipleBlocks)
+                    // Is last block.
+                    if (p.lastBlock)
                     {
-                        // Is last block.
-                        if (p.lastBlock)
+                        reply.SetUInt8(1);
+                        p.settings.Count = p.settings.Index = 0;
+                    }
+                    else
+                    {
+                        reply.SetUInt8(0);
+                    }
+                    // Block index.
+                    reply.SetUInt32(p.blockIndex);
+                    ++p.blockIndex;
+                    //Add status if reply.
+                    if (p.status != 0xFF)
+                    {
+                        if (p.status != 0 && p.command == Command.GetResponse)
                         {
                             reply.SetUInt8(1);
-                            p.settings.Count = p.settings.Index = 0;
                         }
-                        else
-                        {
-                            reply.SetUInt8(0);
-                        }
-                        // Block index.
-                        reply.SetUInt32(p.blockIndex);
-                        ++p.blockIndex;
-                        //Add status if reply.
-                        if (p.status != 0xFF)
-                        {
-                            if (p.status != 0 && p.command == Command.GetResponse)
-                            {
-                                reply.SetUInt8(1);
-                            }
-                            reply.SetUInt8(p.status);
-                        }
-                        //Block size.
-                        if (p.data != null)
-                        {
-                            len = p.data.Size - p.data.Position;
-                        }
-                        else
-                        {
-                            len = 0;
-                        }
-                        int totalLength = len + reply.Size;
+                        reply.SetUInt8(p.status);
+                    }
+                    //Block size.
+                    if (p.data != null)
+                    {
+                        len = p.data.Size - p.data.Position;
+                    }
+                    else
+                    {
+                        len = 0;
+                    }
+                    int totalLength = len + reply.Size;
+                    if (ciphering)
+                    {
+                        totalLength += CipheringHeaderSize;
+                    }
+
+                    if (totalLength > p.settings.MaxPduSize)
+                    {
+                        len = p.settings.MaxPduSize - reply.Size;
                         if (ciphering)
                         {
-                            totalLength += CipheringHeaderSize;
+                            len -= CipheringHeaderSize;
                         }
-
-                        if (totalLength > p.settings.MaxPduSize)
-                        {
-                            len = p.settings.MaxPduSize - reply.Size;
-                            if (ciphering)
-                            {
-                                len -= CipheringHeaderSize;
-                            }
-                            len -= GXCommon.GetObjectCountSizeInBytes(len);
-                        }
-                        GXCommon.SetObjectCount(len, reply);
-                        reply.Set(p.data, len);
+                        len -= GXCommon.GetObjectCountSizeInBytes(len);
                     }
+                    GXCommon.SetObjectCount(len, reply);
+                    reply.Set(p.data, len);
                 }
+
                 //Add data that fits to one block.
                 if (len == 0)
                 {
                     //Add status if reply.
-                    if (p.status != 0xFF)
+                    if (p.status != 0xFF && p.command != Command.GeneralBlockTransfer)
                     {
                         if (p.status != 0 && p.command == Command.GetResponse)
                         {
@@ -719,7 +713,14 @@ namespace Gurux.DLMS
                     {
                         len = p.data.Size - p.data.Position;
                         //Get request size can be bigger than PDU size.
-                        if (p.command != Command.GetRequest && len + reply.Size > p.settings.MaxPduSize)
+                        if ((p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) != 0)
+                        {
+                            if (7 + len + reply.Size > p.settings.MaxPduSize)
+                            {
+                                len = p.settings.MaxPduSize - reply.Size - 7;
+                            }
+                        }
+                        else if (p.command != Command.GetRequest && len + reply.Size > p.settings.MaxPduSize)
                         {
                             len = p.settings.MaxPduSize - reply.Size;
                         }
@@ -740,10 +741,6 @@ namespace Gurux.DLMS
                     byte[] tmp = p.settings.Cipher.Encrypt(cmd,
                                                            p.settings.Cipher.SystemTitle, reply.Array());
                     reply.Size = 0;
-                    if (p.settings.InterfaceType == InterfaceType.HDLC)
-                    {
-                        AddLLCBytes(p.settings, reply);
-                    }
                     if (p.command == Command.DataNotification || (p.settings.NegotiatedConformance & Conformance.GeneralProtection) != 0)
                     {
                         // Add command.
@@ -761,6 +758,53 @@ namespace Gurux.DLMS
                         reply.Set(tmp);
                     }
                 }
+                if (p.command == Command.GeneralBlockTransfer || (p.multipleBlocks && (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) != 0))
+                {
+                    GXByteBuffer bb = new GXByteBuffer();
+                    bb.Set(reply);
+                    reply.Clear();
+                    reply.SetUInt8((byte)Command.GeneralBlockTransfer);
+                    byte value = 0;
+                    // Is last block
+                    if (p.lastBlock)
+                    {
+                        value = 0x80;
+                    }
+                    else if (p.Streaming)
+                    {
+                        value |= 0x40;
+                    }
+                    value |= p.WindowSize;
+                    reply.SetUInt8(value);
+                    // Set block number sent.
+                    reply.SetUInt16((UInt16)p.blockIndex);
+                    ++p.blockIndex;
+                    // Set block number acknowledged
+                    if (p.command != Command.DataNotification && p.blockNumberAck != 0)
+                    {
+                        // Set block number acknowledged
+                        reply.SetUInt16(p.blockNumberAck);
+                        ++p.blockNumberAck;
+                    }
+                    else
+                    {
+                        p.blockNumberAck = UInt16.MaxValue;
+                        reply.SetUInt16(0);
+                    }
+                    //Add data length.
+                    GXCommon.SetObjectCount(bb.Size, reply);
+                    reply.Set(bb);
+                    ++p.blockNumberAck;
+                    if (p.command != Command.GeneralBlockTransfer)
+                    {
+                        p.command = Command.GeneralBlockTransfer;
+                        p.blockNumberAck = (UInt16)(p.settings.BlockNumberAck + 1);
+                    }
+                }
+            }
+            if (p.settings.InterfaceType == InterfaceType.HDLC)
+            {
+                AddLLCBytes(p.settings, reply);
             }
         }
 
@@ -1439,7 +1483,7 @@ namespace Gurux.DLMS
             // Check addresses.
             if (!CheckHdlcAddress(server, settings, reply, eopPos))
             {
-                //If echo,
+                //If echo.
                 reply.Position = 1 + eopPos;
                 return GetHdlcData(server, settings, reply, data);
             }
@@ -2026,7 +2070,10 @@ namespace Gurux.DLMS
                 //If data.
                 if (ret == 0)
                 {
-                    GetDataFromBlock(data.Data, 0);
+                    if (!data.leaveData)
+                    {
+                        GetDataFromBlock(data.Data, 0);
+                    }
                 }
                 else if (ret == 1)
                 {
@@ -2044,7 +2091,7 @@ namespace Gurux.DLMS
                             ret = 0;
                         }
                     }
-                    else
+                    else if (!data.leaveData)
                     {
                         GetDataFromBlock(data.Data, 0);
                     }
@@ -2476,59 +2523,74 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
         /// <param name="data"></param>
-        private static void HandleGbt(GXDLMSSettings settings, GXReplyData data)
+        internal static void HandleGbt(GXDLMSSettings settings, GXReplyData data)
         {
-            data.Gbt = true;
             int index = data.Data.Position - 1;
-            byte ch = data.Data.GetUInt8();
-
+            data.WindowSize = settings.WindowSize;
+            //BlockControl
+            byte bc = data.Data.GetUInt8();
             //Is streaming active.
-            bool streaming = (ch & 0x40) == 1;
-            byte window = (byte)(ch & 0x3F);
+            data.Streaming = (bc & 0x40) != 0;
+            //GBT Window size.
+            byte windowSize = (byte)(bc & 0x3F);
             //Block number.
-            byte bn = data.Data.GetUInt8();
+            data.BlockNumber = data.Data.GetUInt16();
             //Block number acknowledged.
-            byte bna = data.Data.GetUInt8();
-            // Get APU tag.
-            if (data.Data.GetUInt8() != 0)
-            {
-                throw new Exception("Invalid APU.");
-            }
-            // Get Addl tag.
-            if (data.Data.GetUInt8() != 0)
-            {
-                throw new Exception("Invalid APU.");
-            }
+            data.BlockNumberAck = data.Data.GetUInt16();
+            settings.BlockNumberAck = data.BlockNumber;
             data.Command = Command.None;
-            if (window != 0)
+            int len = GXCommon.GetObjectCount(data.Data);
+            if (len > data.Data.Size - data.Data.Position)
             {
-                int len = GXCommon.GetObjectCount(data.Data);
-                if (len != data.Data.Size - data.Data.Position)
+                data.IsComplete = false;
+                return;
+            }
+            if (data.Xml != null)
+            {
+                if ((data.Data.Size - data.Data.Position) != len)
                 {
-                    data.IsComplete = false;
-                    return;
+                    data.Xml.AppendComment("Data length is " + len
+                                    + "and there are " + (data.Data.Size - data.Data.Position)
+                                    + " bytes.");
                 }
+                data.Xml.AppendStartTag(Command.GeneralBlockTransfer);
+                if (data.Xml.Comments)
+                {
+                    data.Xml.AppendComment("Last block: " + ((bc & 0x80) != 0));
+                    data.Xml.AppendComment("Streaming: " + data.Streaming);
+                    data.Xml.AppendComment("Window size: " + windowSize);
+                }
+                data.Xml.AppendLine(TranslatorTags.BlockControl, null, data.Xml.IntegerToHex(bc, 2));
+                data.Xml.AppendLine(TranslatorTags.BlockNumber, null, data.Xml.IntegerToHex(data.BlockNumber, 4));
+                data.Xml.AppendLine(TranslatorTags.BlockNumberAck, null, data.Xml.IntegerToHex(data.BlockNumberAck, 4));
+                data.Xml.AppendLine(TranslatorTags.BlockData, null, GXCommon.ToHex(data.Data.Data, true, data.Data.Position, len));
+                data.Xml.AppendEndTag(Command.GeneralBlockTransfer);
+                return;
             }
             GetDataFromBlock(data.Data, index);
-            GetPdu(settings, data);
             //Is Last block,
-            if ((ch & 0x80) == 0)
+            if ((bc & 0x80) == 0)
             {
                 data.MoreData |= RequestTypes.DataBlock;
             }
             else
             {
                 data.MoreData &= ~RequestTypes.DataBlock;
-            }
-            // Get data if all data is read or we want to peek data.
-            if (data.Data.Position != data.Data.Size
-                    && (data.Command == Command.ReadResponse
-                        || data.Command == Command.GetResponse)
-                    && (data.MoreData == RequestTypes.None
-                        || data.Peek))
-            {
-                data.Data.Position = 0;
-                GetValueFromData(settings, data);
+                if (data.Data.Size != 0)
+                {
+                    data.Data.Position = 0;
+                    GetPdu(settings, data);
+                }
+                // Get data if all data is read or we want to peek data.
+                if (data.Data.Position != data.Data.Size
+                        && (data.Command == Command.ReadResponse
+                            || data.Command == Command.GetResponse)
+                        && (data.MoreData == RequestTypes.None
+                            || data.Peek))
+                {
+                    data.Data.Position = 0;
+                    GetValueFromData(settings, data);
+                }
             }
         }
 
@@ -2640,7 +2702,7 @@ namespace Gurux.DLMS
             short ch;
             Command cmd = data.Command;
             // If header is not read yet or GBT message.
-            if (data.Command == Command.None || data.Gbt)
+            if (data.Command == Command.None)
             {
                 //If PDU is missing.
                 if (data.Data.Size - data.Data.Position == 0)
@@ -2679,7 +2741,10 @@ namespace Gurux.DLMS
                         HandleAccessResponse(settings, data);
                         break;
                     case Command.GeneralBlockTransfer:
-                        HandleGbt(settings, data);
+                        if (data.Xml != null || (!settings.IsServer && (data.MoreData & RequestTypes.Frame) == 0))
+                        {
+                            HandleGbt(settings, data);
+                        }
                         break;
                     case Command.Aarq:
                     case Command.Aare:
@@ -2765,9 +2830,17 @@ namespace Gurux.DLMS
                         data.Data.Position = 1;
                     }
                 }
-                // Get command if operating as a server.
-                if (settings.IsServer)
+                if (cmd == Command.GeneralBlockTransfer)
                 {
+                    if (!data.IsMoreData)
+                    {
+                        HandleGbt(settings, data);
+                    }
+                    data.Command = Command.None;
+                }
+                else if (settings.IsServer)
+                {
+                    // Get command if operating as a server.
                     //Ciphered messages are handled after whole PDU is received.
                     switch (cmd)
                     {
@@ -3131,23 +3204,7 @@ namespace Gurux.DLMS
                 }
                 return true;
             }
-            GetPdu(settings, data);
-
-            if (data.Command == Command.DataNotification)
-            {
-                // Check is there more messages left.
-                // This is Push message special case.
-                if (reply.Position == reply.Size)
-                {
-                    reply.Clear();
-                }
-                else
-                {
-                    int cnt = reply.Size - reply.Position;
-                    reply.Move(reply.Position, 0, cnt);
-                    reply.Position = 0;
-                }
-            }
+            GetPdu(settings, data);           
             return true;
         }
 

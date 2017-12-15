@@ -52,7 +52,7 @@ namespace Gurux.DLMS.Reader
         /// <summary>
         /// Wait time.
         /// </summary>
-        public int WaitTime = 5000;
+        public int WaitTime = 500000;
         /// <summary>
         /// Retry count.
         /// </summary>
@@ -81,7 +81,7 @@ namespace Gurux.DLMS.Reader
             try
             {
                 InitializeConnection();
-                GetAssociationView(useCache);
+                GetAssociationView(useCache);              
                 GetScalersAndUnits();
                 GetProfileGenericColumns();
                 GetReadOut();
@@ -660,7 +660,7 @@ namespace Gurux.DLMS.Reader
         /// <returns>Received data.</returns>
         public void ReadDLMSPacket(byte[] data, GXReplyData reply)
         {
-            if (data == null)
+            if (data == null && !reply.IsStreaming())
             {
                 return;
             }
@@ -683,8 +683,11 @@ namespace Gurux.DLMS.Reader
             {
                 while (!succeeded && pos != 3)
                 {
-                    WriteTrace("<- " + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(data, true));
-                    Media.Send(data, null);
+                    if (!reply.IsStreaming())
+                    {
+                        WriteTrace("<- " + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(data, true));
+                        Media.Send(data, null);
+                    }
                     succeeded = Media.Receive(p);
                     if (!succeeded)
                     {
@@ -779,20 +782,30 @@ namespace Gurux.DLMS.Reader
         public void ReadDataBlock(byte[] data, GXReplyData reply)
         {
             ReadDLMSPacket(data, reply);
-            while (reply.IsMoreData)
+            lock (Media.Synchronous)
             {
-                data = Client.ReceiverReady(reply.MoreData);
-                ReadDLMSPacket(data, reply);
-                if (Trace > TraceLevel.Info)
+                while (reply.IsMoreData)
                 {
-                    //If data block is read.
-                    if ((reply.MoreData & RequestTypes.Frame) == 0)
+                    if (reply.IsStreaming())
                     {
-                        Console.Write("+");
+                        data = null;
                     }
                     else
                     {
-                        Console.Write("-");
+                        data = Client.ReceiverReady(reply.MoreData);
+                    }
+                    ReadDLMSPacket(data, reply);
+                    if (Trace > TraceLevel.Info)
+                    {
+                        //If data block is read.
+                        if ((reply.MoreData & RequestTypes.Frame) == 0)
+                        {
+                            Console.Write("+");
+                        }
+                        else
+                        {
+                            Console.Write("-");
+                        }
                     }
                 }
             }

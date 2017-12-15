@@ -112,6 +112,9 @@ namespace Gurux.DLMS
         WindowSizeTX,
         ValueList,
         DataAccessResult,
-        FrameType
+        FrameType,
+        BlockControl,
+        BlockNumberAck,
+        BlockData
     }
 }

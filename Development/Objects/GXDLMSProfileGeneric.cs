@@ -711,7 +711,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Returns captured objects.
         /// </summary>
-        /// <param name="items"></param>
+        /// <param name="settings">DLMS settings.</param>
         /// <returns></returns>
         byte[] GetColumns(GXDLMSSettings settings)
         {

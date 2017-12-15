@@ -220,11 +220,23 @@ namespace Gurux.DLMS.Objects
                     return null;
                 }
             }
+            else if (e.Index == 2)
+            {
+                byte[] tmp = e.Parameters as byte[];
+                if (tmp == null || tmp.Length == 1)
+                {
+                    e.Error = ErrorCode.ReadWriteDenied;
+                }
+                else
+                {
+                    Secret = tmp;
+                }
+            }
             else
             {
                 e.Error = ErrorCode.ReadWriteDenied;
-                return null;
             }
+            return null;
         }
 
         int[] IGXDLMSBase.GetAttributeIndexToRead()
