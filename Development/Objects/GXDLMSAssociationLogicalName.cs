@@ -363,10 +363,17 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(9);
             }
-            //Security Setup Reference is from version 2.
+            //User list and current user are in version 2.
             if (Version > 1)
             {
-                attributes.Add(9);
+                if (!base.IsRead(10))
+                {
+                    attributes.Add(10);
+                }
+                if (!base.IsRead(11))
+                {
+                    attributes.Add(11);
+                }
             }
             return attributes.ToArray();
         }
@@ -400,9 +407,9 @@ namespace Gurux.DLMS.Objects
 
         int IGXDLMSBase.GetAttributeCount()
         {
-            //Security Setup Reference is from version 1.
             if (Version > 1)
                 return 11;
+            //Security Setup Reference is from version 1.
             if (Version > 0)
                 return 9;
             return 8;
@@ -560,6 +567,7 @@ namespace Gurux.DLMS.Objects
                 ++pos;
                 if (!(pos <= settings.Index))
                 {
+                    ++settings.Index;
                     data.SetUInt8((byte)DataType.Structure);
                     data.SetUInt8(2); //Count
                     GXCommon.SetData(settings, data, DataType.UInt8, it.Key); //Id
