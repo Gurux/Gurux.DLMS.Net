@@ -56,9 +56,8 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSAutoConnect()
-        : base(ObjectType.AutoConnect, "0.0.2.1.0.255", 0)
+        : this("0.0.2.1.0.255")
         {
-            CallingWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
         }
 
         /// <summary>
@@ -66,9 +65,8 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSAutoConnect(string ln)
-        : base(ObjectType.AutoConnect, ln, 0)
+        : this(ln, 0)
         {
-            CallingWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
         }
 
         /// <summary>

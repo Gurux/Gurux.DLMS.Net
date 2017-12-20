@@ -366,7 +366,7 @@ namespace Gurux.DLMS.Objects
 
         private static string ToAddressString(object value)
         {
-            return new System.Net.IPAddress(System.Net.IPAddress.HostToNetworkOrder(Convert.ToUInt32(value)) >> 32).ToString();
+            return new System.Net.IPAddress(System.Net.IPAddress.HostToNetworkOrder((Convert.ToUInt32(value)) >> 32) & 0xFFFFFFFF).ToString();
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)

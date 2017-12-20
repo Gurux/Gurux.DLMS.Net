@@ -34,15 +34,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Gurux.DLMS.ManufacturerSettings;
 using System.Xml.Serialization;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Secure;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
-using System.Xml;
+
 
 namespace Gurux.DLMS.Objects
 {
@@ -68,6 +65,7 @@ namespace Gurux.DLMS.Objects
             ApplicationContextName = new GXApplicationContextName();
             XDLMSContextInfo = new GXxDLMSContextType();
             AuthenticationMechanismName = new GXAuthenticationMechanismName();
+            UserList = new List<KeyValuePair<byte, string>>();
         }
 
         [XmlIgnore()]
@@ -153,7 +151,19 @@ namespace Gurux.DLMS.Objects
                             };
         }
 
+        [XmlIgnore()]
+        public List<KeyValuePair<byte, string>> UserList
+        {
+            get;
+            set;
+        }
 
+        [XmlIgnore()]
+        public KeyValuePair<byte, string> CurrentUser
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Updates secret.
@@ -177,6 +187,43 @@ namespace Gurux.DLMS.Objects
             //Action is used to update High authentication password.
             return client.Method(this, 2, Secret, DataType.OctetString);
         }
+
+        /// <summary>
+        /// Add user to user list.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="id">User ID.</param>
+        /// <param name="name">User name.</param>
+        /// <returns></returns>
+        public byte[][] AddUser(GXDLMSClient client, byte id, string name)
+        {
+            GXByteBuffer data = new GXByteBuffer();
+            data.SetUInt8((byte)DataType.Structure);
+            //Add structure size.
+            data.SetUInt8(2);
+            GXCommon.SetData(null, data, DataType.UInt8, CurrentUser.Key);
+            GXCommon.SetData(null, data, DataType.String, CurrentUser.Value);
+            return client.Method(this, 5, data.Array(), DataType.OctetString);
+        }
+
+        /// <summary>
+        /// Remove user fro user list.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="id">User ID.</param>
+        /// <param name="name">User name.</param>
+        /// <returns></returns>
+        public byte[][] RemoveUser(GXDLMSClient client, byte id, string name)
+        {
+            GXByteBuffer data = new GXByteBuffer();
+            data.SetUInt8((byte)DataType.Structure);
+            //Add structure size.
+            data.SetUInt8(2);
+            GXCommon.SetData(null, data, DataType.UInt8, CurrentUser.Key);
+            GXCommon.SetData(null, data, DataType.String, CurrentUser.Value);
+            return client.Method(this, 6, data.Array(), DataType.OctetString);
+        }
+
 
         #region IGXDLMSBase Members
 
@@ -223,13 +270,37 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 2)
             {
                 byte[] tmp = e.Parameters as byte[];
-                if (tmp == null || tmp.Length == 1)
+                if (tmp == null || tmp.Length == 0)
                 {
                     e.Error = ErrorCode.ReadWriteDenied;
                 }
                 else
                 {
                     Secret = tmp;
+                }
+            }
+            else if (e.Index == 5)
+            {
+                object[] tmp = e.Parameters as object[];
+                if (tmp == null || tmp.Length != 2)
+                {
+                    e.Error = ErrorCode.ReadWriteDenied;
+                }
+                else
+                {
+                    UserList.Add(new KeyValuePair<byte, string>(Convert.ToByte(tmp[0]), Convert.ToString(tmp[1])));
+                }
+            }
+            else if (e.Index == 6)
+            {
+                object[] tmp = e.Parameters as object[];
+                if (tmp == null || tmp.Length != 2)
+                {
+                    e.Error = ErrorCode.ReadWriteDenied;
+                }
+                else
+                {
+                    UserList.Remove(new KeyValuePair<byte, string>(Convert.ToByte(tmp[0]), Convert.ToString(tmp[1])));
                 }
             }
             else
@@ -292,6 +363,11 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(9);
             }
+            //Security Setup Reference is from version 2.
+            if (Version > 1)
+            {
+                attributes.Add(9);
+            }
             return attributes.ToArray();
         }
 
@@ -325,6 +401,8 @@ namespace Gurux.DLMS.Objects
         int IGXDLMSBase.GetAttributeCount()
         {
             //Security Setup Reference is from version 1.
+            if (Version > 1)
+                return 11;
             if (Version > 0)
                 return 9;
             return 8;
@@ -332,6 +410,8 @@ namespace Gurux.DLMS.Objects
 
         int IGXDLMSBase.GetMethodCount()
         {
+            if (Version > 1)
+                return 6;
             return 4;
         }
 
@@ -461,6 +541,34 @@ namespace Gurux.DLMS.Objects
             }
         }
 
+        /// <summary>
+        /// Returns User list.
+        /// </summary>
+        private GXByteBuffer GetUserList(GXDLMSSettings settings, ValueEventArgs e)
+        {
+            GXByteBuffer data = new GXByteBuffer();
+            //Add count only for first time.
+            if (settings.Index == 0)
+            {
+                settings.Count = (UInt16)UserList.Count;
+                data.SetUInt8((byte)DataType.Array);
+                GXCommon.SetObjectCount(UserList.Count, data);
+            }
+            ushort pos = 0;
+            foreach (KeyValuePair<byte, string> it in UserList)
+            {
+                ++pos;
+                if (!(pos <= settings.Index))
+                {
+                    data.SetUInt8((byte)DataType.Structure);
+                    data.SetUInt8(2); //Count
+                    GXCommon.SetData(settings, data, DataType.UInt8, it.Key); //Id
+                    GXCommon.SetData(settings, data, DataType.String, it.Value); //Name
+                }
+            }
+            return data;
+        }
+
         /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
         public override DataType GetDataType(int index)
         {
@@ -496,9 +604,23 @@ namespace Gurux.DLMS.Objects
             {
                 return DataType.Enum;
             }
-            if (index == 9)
+            if (Version > 0)
             {
-                return DataType.OctetString;
+                if (index == 9)
+                {
+                    return DataType.OctetString;
+                }
+            }
+            if (Version > 1)
+            {
+                if (index == 10)
+                {
+                    return DataType.Array;
+                }
+                if (index == 11)
+                {
+                    return DataType.Structure;
+                }
             }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
@@ -582,6 +704,20 @@ namespace Gurux.DLMS.Objects
             {
                 return GXCommon.LogicalNameToBytes(SecuritySetupReference);
             }
+            if (e.Index == 10)
+            {
+                return GetUserList(settings, e).Array();
+            }
+            if (e.Index == 11)
+            {
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte)DataType.Structure);
+                //Add structure size.
+                data.SetUInt8(2);
+                GXCommon.SetData(settings, data, DataType.UInt8, CurrentUser.Key);
+                GXCommon.SetData(settings, data, DataType.String, CurrentUser.Value);
+                return data.Array();
+            }            
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
         }
@@ -829,6 +965,29 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 9)
             {
                 SecuritySetupReference = GXCommon.ToLogicalName(e.Value);
+            }
+            else if (e.Index == 10)
+            {
+                UserList.Clear();
+                if (e.Value != null)
+                {
+                    foreach (Object[] item in (Object[])e.Value)
+                    {
+                        UserList.Add(new KeyValuePair<byte, string>(Convert.ToByte(item[0]), Convert.ToString(item[1])));
+                    }
+                }
+            }
+            else if (e.Index == 11)
+            {
+                if (e.Value != null)
+                {
+                    Object[] tmp = (Object[])e.Value;
+                    CurrentUser = new KeyValuePair<byte, string>(Convert.ToByte(tmp[0]), Convert.ToString(tmp[1]));
+                }
+                else
+                {
+                    CurrentUser = new KeyValuePair<byte, string>(0, null);
+                }
             }
             else
             {

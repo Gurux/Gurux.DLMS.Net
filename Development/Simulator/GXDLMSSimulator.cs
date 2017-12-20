@@ -305,7 +305,10 @@ namespace Gurux.DLMS.Simulator
                                                         ve.Target.SetDataType(ve.Index, DataType.OctetString);
                                                     }
                                                 }
-                                                ((IGXDLMSBase)ve.Target).SetValue(settings, ve);
+                                                if (ve.Target is IGXDLMSBase)
+                                                {
+                                                    ((IGXDLMSBase)ve.Target).SetValue(settings, ve);
+                                                }
                                             }
                                             val.Clear();
                                         }
