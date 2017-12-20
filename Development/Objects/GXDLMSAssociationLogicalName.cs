@@ -147,8 +147,8 @@ namespace Gurux.DLMS.Objects
         public override object[] GetValues()
         {
             return new object[] { LogicalName, ObjectList, ClientSAP + "/" + ServerSAP, ApplicationContextName,
-                              XDLMSContextInfo, AuthenticationMechanismName, Secret, AssociationStatus, SecuritySetupReference
-                            };
+                              XDLMSContextInfo, AuthenticationMechanismName, Secret, AssociationStatus, SecuritySetupReference,
+                            UserList, CurrentUser};
         }
 
         [XmlIgnore()]
@@ -201,9 +201,9 @@ namespace Gurux.DLMS.Objects
             data.SetUInt8((byte)DataType.Structure);
             //Add structure size.
             data.SetUInt8(2);
-            GXCommon.SetData(null, data, DataType.UInt8, CurrentUser.Key);
-            GXCommon.SetData(null, data, DataType.String, CurrentUser.Value);
-            return client.Method(this, 5, data.Array(), DataType.OctetString);
+            GXCommon.SetData(null, data, DataType.UInt8, id);
+            GXCommon.SetData(null, data, DataType.String, name);
+            return client.Method(this, 5, data.Array(), DataType.Structure);
         }
 
         /// <summary>
@@ -219,9 +219,9 @@ namespace Gurux.DLMS.Objects
             data.SetUInt8((byte)DataType.Structure);
             //Add structure size.
             data.SetUInt8(2);
-            GXCommon.SetData(null, data, DataType.UInt8, CurrentUser.Key);
-            GXCommon.SetData(null, data, DataType.String, CurrentUser.Value);
-            return client.Method(this, 6, data.Array(), DataType.OctetString);
+            GXCommon.SetData(null, data, DataType.UInt8, id);
+            GXCommon.SetData(null, data, DataType.String, name);
+            return client.Method(this, 6, data.Array(), DataType.Structure);
         }
 
 
