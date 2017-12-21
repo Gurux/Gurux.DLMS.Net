@@ -170,6 +170,18 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// User id is the identifier of the user. 
+        /// </summary>
+        /// <remarks>
+        /// This value is used if user list on Association LN is used.
+        /// </remarks>
+        public int UserId
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Standard says that Time zone is from normal time to UTC in minutes.
         /// If meter is configured to use UTC time (UTC to normal time) set this to true.
         /// </summary>
@@ -197,6 +209,7 @@ namespace Gurux.DLMS
             ProposedConformance = GXDLMSClient.GetInitialConformance(false);
             ResetFrameSequence();
             WindowSize = 1;
+            UserId = -1;
         }
 
         /// <summary>

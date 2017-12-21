@@ -81,11 +81,52 @@ namespace Gurux.DLMS.Reader
             try
             {
                 InitializeConnection();
-                GetAssociationView(useCache);              
+                GetAssociationView(useCache);
+                //Mikko
+                GXDLMSAssociationLogicalName ln = Client.Objects.GetObjects(ObjectType.AssociationLogicalName)[0] as GXDLMSAssociationLogicalName;
+                Read(ln, 10);
+                Read(ln, 11);
+                if (ln.UserList.Count != 0)
+                {
+                    throw new Exception("Mikko");
+                }
+                GXReplyData reply = new GXReplyData();
+                if (!ReadDataBlock(ln.AddUser(Client, 1, "Mikko"), reply))
+                {
+                    if (reply.Error != (short)ErrorCode.Rejected)
+                    {
+                        throw new GXDLMSException(reply.Error);
+                    }
+                }
+                //Update data type.
+                Read(ln, 10);
+                if (ln.UserList.Count != 1)
+                {
+                    throw new Exception("Mikko");
+                }
+                if (ln.UserList[0].Key != 1 || ln.UserList[0].Value != "Mikko")
+                {
+                    throw new Exception("Mikko");
+                }
+                reply.Clear();
+                if (!ReadDataBlock(ln.RemoveUser(Client, 1, "Mikko"), reply))
+                {
+                    if (reply.Error != (short)ErrorCode.Rejected)
+                    {
+                        throw new GXDLMSException(reply.Error);
+                    }
+                }
+                Read(ln, 10);
+                if (ln.UserList.Count != 0)
+                {
+                    throw new Exception("Mikko");
+                }
+                /*
                 GetScalersAndUnits();
                 GetProfileGenericColumns();
                 GetReadOut();
                 GetProfileGenerics();
+                */
             }
             finally
             {

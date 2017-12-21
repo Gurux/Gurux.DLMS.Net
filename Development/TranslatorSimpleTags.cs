@@ -88,7 +88,14 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, Command.ConfirmedServiceError, "ConfirmedServiceError");
             GXDLMSTranslator.AddTag(list, Command.InformationReport, "InformationReportRequest");
             GXDLMSTranslator.AddTag(list, Command.EventNotification, "EventNotificationRequest");
-            GXDLMSTranslator.AddTag(list, Command.GeneralBlockTransfer, "GeneralBlockTransfer");            
+            GXDLMSTranslator.AddTag(list, Command.GeneralBlockTransfer, "GeneralBlockTransfer");
+            GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.CallingAeInvocationId,
+                                    "CallingAEInvocationId");
+            GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.CalledAeInvocationId,
+                "CalledAEInvocationId");            
+            GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.RespondingAeInvocationId,
+                "RespondingAeInvocationId");
+
         }
 
         /// <summary>

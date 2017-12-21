@@ -1294,6 +1294,15 @@ namespace Gurux.DLMS
                 case (int)TranslatorGeneralTags.CallingAPTitle:
                     s.settings
                     .CtoSChallenge = GXCommon.HexToBytes(GetValue(node, s));
+                    break;                    
+                case (int)TranslatorGeneralTags.CallingAeInvocationId:
+                    s.settings.UserId = s.ParseInt(GetValue(node, s));
+                    break;
+                case (int)TranslatorGeneralTags.CalledAeInvocationId:
+                    s.settings.UserId = s.ParseInt(GetValue(node, s));
+                    break;
+                case (int)TranslatorGeneralTags.RespondingAeInvocationId:
+                    s.settings.UserId = s.ParseInt(GetValue(node, s));
                     break;
                 case 0xA4:
                     //RespondingAPTitle.

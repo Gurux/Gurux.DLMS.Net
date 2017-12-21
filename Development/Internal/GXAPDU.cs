@@ -146,7 +146,7 @@ namespace Gurux.DLMS.Internal
                     throw new ArgumentNullException("SystemTitle");
                 }
                 //Add calling-AP-title
-                data.SetUInt8(((byte)BerType.Context | (byte)BerType.Constructed | 6));
+                data.SetUInt8(((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingApTitle));
                 //LEN
                 data.SetUInt8((byte)(2 + cipher.SystemTitle.Length));
                 data.SetUInt8((byte)BerType.OctetString);
@@ -154,6 +154,17 @@ namespace Gurux.DLMS.Internal
                 data.SetUInt8((byte)cipher.SystemTitle.Length);
                 data.Set(cipher.SystemTitle);
             }
+            //Add CallingAEInvocationId.
+            if (!settings.IsServer && settings.UserId != -1)
+            {
+                data.SetUInt8(((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingAeInvocationId));
+                //LEN
+                data.SetUInt8(3);
+                data.SetUInt8((byte)BerType.Integer);
+                //LEN
+                data.SetUInt8(1);
+                data.SetUInt8((byte) settings.UserId);
+            }            
         }
 
         /// <summary>
@@ -995,7 +1006,7 @@ namespace Gurux.DLMS.Internal
                         }
                         break;
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CalledApInvocationId:
-                        ////Result 0xA4
+                        //Result 0xA4
                         //Get len.
                         if (buff.GetUInt8() != 0xA)
                         {
@@ -1039,6 +1050,43 @@ namespace Gurux.DLMS.Internal
                         buff.Get(settings.StoCChallenge);
                         AppendServerSystemTitleToXml(settings, xml, tag);
                         break;
+                    //Client AEInvocationId.
+                    case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingAeInvocationId://0xA9
+                        len = buff.GetUInt8();
+                        tag = buff.GetUInt8();
+                        len = buff.GetUInt8();
+                        settings.UserId = buff.GetUInt8();
+                        if (xml != null)
+                        {
+                            //CallingAPTitle
+                            xml.AppendLine(TranslatorGeneralTags.CallingAeInvocationId, "Value", xml.IntegerToHex(settings.UserId, 2));
+                        }
+                        break;
+                    //Client CalledAeInvocationId.
+                    case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CalledAeInvocationId://0xA5
+                        len = buff.GetUInt8();
+                        tag = buff.GetUInt8();
+                        len = buff.GetUInt8();
+                        settings.UserId = buff.GetUInt8();
+                        if (xml != null)
+                        {
+                            //CallingAPTitle
+                            xml.AppendLine(TranslatorGeneralTags.CalledAeInvocationId, "Value", xml.IntegerToHex(settings.UserId, 2));
+                        }
+                        break;
+                    //Server RespondingAEInvocationId.
+                    case (byte)BerType.Context | (byte)BerType.Constructed | 7://0xA7
+                        len = buff.GetUInt8();
+                        tag = buff.GetUInt8();
+                        len = buff.GetUInt8();
+                        settings.UserId = buff.GetUInt8();
+                        if (xml != null)
+                        {
+                            //CallingAPTitle
+                            xml.AppendLine(TranslatorGeneralTags.RespondingAeInvocationId, "Value", xml.IntegerToHex(settings.UserId, 2));
+                        }
+                        break;
+
                     case (byte)BerType.Context | (byte)PduType.SenderAcseRequirements:
                     //0x8A
                     case (byte)BerType.Context | (byte)PduType.CallingApInvocationId:
@@ -1250,6 +1298,18 @@ namespace Gurux.DLMS.Internal
                 data.SetUInt8((byte)cipher.SystemTitle.Length);
                 data.Set(cipher.SystemTitle);
             }
+            //Add CalledAEInvocationId.
+            if (settings.UserId != -1)
+            {
+                data.SetUInt8((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingAeQualifier);
+                //LEN
+                data.SetUInt8(3);
+                data.SetUInt8((byte)BerType.Integer);
+                //LEN
+                data.SetUInt8(1);
+                data.SetUInt8((byte)settings.UserId);
+            }
+
             if (settings.Authentication > Authentication.Low)
             {
                 //Add server ACSE-requirenents field component.

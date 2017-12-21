@@ -180,6 +180,29 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// User id is the identifier of the user. 
+        /// </summary>
+        /// <remarks>
+        /// This value is used if user list on Association LN is used.
+        /// </remarks>
+        [DefaultValue(-1)]
+        public int UserId
+        {
+            get
+            {
+                return Settings.UserId;
+            }
+            set
+            {
+                if (value < -1 || value > 255)
+                {
+                    throw new ArgumentOutOfRangeException("Invalid user Id.");
+                }
+                Settings.UserId = value;
+            }
+        }       
+
+        /// <summary>
         /// Server address.
         /// </summary>
         public int ServerAddress
