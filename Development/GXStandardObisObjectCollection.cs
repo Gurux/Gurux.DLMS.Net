@@ -185,6 +185,50 @@ namespace Gurux.DLMS
             return true;
         }
 
+
+        /// <summary>
+        /// Get N1C description.
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        static string GetN1CDescription(string str)
+        {
+            if (string.IsNullOrEmpty(str) || str[0] != '$')
+            {
+                return "";
+            }
+            int value = int.Parse(str.Substring(1));
+            string tmp = "";
+            switch (value)
+            {
+                case 41:
+                    tmp = "Absolute temperature";
+                    break;
+                case 42:
+                    tmp = "Absolute pressure";
+                    break;
+                case 44:
+                    tmp = "Velocity of sound";
+                    break;
+                case 45:
+                    tmp = "Density(of gas)";
+                    break;
+                case 46:
+                    tmp = "Relative density";
+                    break;
+                case 47:
+                    tmp = "Gauge pressure";
+                    break;
+                case 48:
+                    tmp = "Differential pressure";
+                    break;
+                case 49:
+                    tmp = "Density of air";
+                    break;
+            }
+            return tmp;
+        }
+
         /// <summary>
         /// Get description.
         /// </summary>
@@ -414,7 +458,14 @@ namespace Gurux.DLMS
                         string desc = "";
                         if (obisCode != null && string.Compare("$1", tmp2[1].Trim()) == 0)
                         {
-                            desc = GetDescription("$" + obisCode[2]);
+                            if (obisCode[0] == 7)
+                            {
+                                desc = GetN1CDescription("$" + obisCode[2]);
+                            }
+                            else
+                            {
+                                desc = GetDescription("$" + obisCode[2]);
+                            }
                         }
                         if (desc != "")
                         {

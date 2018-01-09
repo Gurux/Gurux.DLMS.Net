@@ -462,6 +462,12 @@ namespace Gurux.DLMS.Enums
         /// IEC 14908 Diagnostic.
         /// </summary>
         [XmlEnum("153")]
-        IEC14908Diagnostic = 153
+        IEC14908Diagnostic = 153,
+
+        ///<summary>
+        /// Tariff Plan (Piano Tariffario) is used in Italian standard UNI/TS 11291-11.
+        ///</summary>
+        [XmlEnum("8192")]
+        TariffPlan = 8192,
     }
 }

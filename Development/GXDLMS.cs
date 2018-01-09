@@ -1739,8 +1739,122 @@ namespace Gurux.DLMS
             }
         }
 
-        private static void CheckWrapperAddress(GXDLMSSettings settings,
-                                                GXByteBuffer buff)
+        /// <summary>
+        /// Encrypt Flag name to two bytes.
+        /// </summary>
+        /// <param name="flagName">3 letter Flag name.</param>
+        /// <returns>Encrypted Flag name.</returns>
+        static UInt16 EncryptManufacturer(string flagName)
+        {
+            if (flagName.Length != 3)
+            {
+                throw new ArgumentOutOfRangeException("Invalid Flag name.");
+            }
+            UInt16 value = (char)((flagName[0] - 0x40) & 0x1f);
+            value <<= 5;
+            value += (char)((flagName[1] - 0x40) & 0x1f);
+            value <<= 5;
+            value += (char)((flagName[2] - 0x40) & 0x1f);
+            return value;
+        }
+
+        /// <summary>
+        /// Descrypt two bytes to Flag name.
+        /// </summary>
+        /// <param name="value">Encrypted Flag name.</param>
+        /// <returns>Flag name.</returns>
+        static string DecryptManufacturer(UInt16 value)
+        {
+            UInt16 tmp = (UInt16)(value >> 8 | value << 8);
+            char c = (char)((tmp & 0x1f) + 0x40);
+            tmp = (UInt16)(tmp >> 5);
+            char c1 = (char)((tmp & 0x1f) + 0x40);
+            tmp = (UInt16)(tmp >> 5);
+            char c2 = (char)((tmp & 0x1f) + 0x40);
+            return new string(new char[] { c2, c1, c });
+        }
+
+        /// <summary>
+        /// Get data from Wireless M-Bus frame.
+        /// </summary>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="buff">Received data.</param>
+        /// <param name="data">Reply information.</param>
+        static void GetMBusData(GXDLMSSettings settings,
+                               GXByteBuffer buff, GXReplyData data)
+        {
+            //L-field.
+            int len = buff.GetUInt8();
+            //Some meters are counting length to frame size.
+            if (buff.Size < len - 1)
+            {
+                data.IsComplete = false;
+                --buff.Position;
+            }
+            else
+            {
+                //Some meters are counting length to frame size.
+                if (buff.Size < len)
+                {
+                    --len;
+                }
+                data.PacketLength = len;
+                data.IsComplete = true;
+                //C-field.
+                MBusCommand cmd = (MBusCommand)buff.GetUInt8();
+                //M-Field.
+                UInt16 manufacturerID = buff.GetUInt16();
+                string man = DecryptManufacturer(manufacturerID);
+                //A-Field.
+                UInt32 id = buff.GetUInt32();
+                byte meterVersion = buff.GetUInt8();
+                MBusMeterType type = (MBusMeterType)buff.GetUInt8();
+                // CI-Field
+                MBusControlInfo ci = (MBusControlInfo)buff.GetUInt8();
+                //Access number.
+                byte frameId = buff.GetUInt8();
+                //State of the meter
+                byte state = buff.GetUInt8();
+                //Configuration word.
+                UInt16 configurationWord = buff.GetUInt16();
+                byte encryptedBlocks = (byte)(configurationWord >> 12);
+                MBusEncryptionMode encryption = (MBusEncryptionMode)(configurationWord & 7);
+                settings.ClientAddress = buff.GetUInt8();
+                settings.ServerAddress = buff.GetUInt8();
+                if (data.Xml != null && data.Xml.Comments)
+                {
+                    data.Xml.AppendComment("Command: " + cmd);
+                    data.Xml.AppendComment("Manufacturer: " + man);
+                    data.Xml.AppendComment("Meter Version: " + meterVersion);
+                    data.Xml.AppendComment("Meter Type: " + type);
+                    data.Xml.AppendComment("Control Info: " + ci);
+                    data.Xml.AppendComment("Encryption: " + encryption);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Check is this M-Bus message.
+        /// </summary>
+        /// <param name="buff">Received data.</param>
+        /// <returns>True, if this is M-Bus message.</returns>
+        internal static bool IsMBusData(GXByteBuffer buff)
+        {
+            if (buff.Size - buff.Position < 2)
+            {
+                return false;
+            }
+            MBusCommand cmd = (MBusCommand)buff.GetUInt8(buff.Position + 1);
+            if (!(cmd == MBusCommand.SndNr ||
+                cmd == MBusCommand.SndUd2 ||
+                cmd == MBusCommand.RspUd))
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private static void CheckWrapperAddress(GXDLMSSettings settings, GXByteBuffer buff)
         {
             int value;
             if (settings.IsServer)
@@ -2872,6 +2986,7 @@ namespace Gurux.DLMS
                         case Command.GloGetResponse:
                         case Command.GloSetResponse:
                         case Command.GloMethodResponse:
+                            data.Command = Command.None;
                             data.Data.Position = data.CipherIndex;
                             GetPdu(settings, data);
                             break;
@@ -3175,6 +3290,10 @@ namespace Gurux.DLMS
             {
                 GetTcpData(settings, reply, data);
             }
+            else if (settings.InterfaceType == InterfaceType.WirelessMBus)
+            {
+                GetMBusData(settings, reply, data);
+            }
             else if (settings.InterfaceType == InterfaceType.PDU)
             {
                 data.PacketLength = reply.Size;
@@ -3204,7 +3323,7 @@ namespace Gurux.DLMS
                 }
                 return true;
             }
-            GetPdu(settings, data);           
+            GetPdu(settings, data);
             return true;
         }
 
@@ -3347,6 +3466,10 @@ namespace Gurux.DLMS
                 case ObjectType.DisconnectControl:
                     value = 0x20;
                     count = 2;
+                    break;
+                case ObjectType.SecuritySetup:
+                    value = 0x30;
+                    count = 8;
                     break;
                 case ObjectType.PushSetup:
                     value = 0x38;

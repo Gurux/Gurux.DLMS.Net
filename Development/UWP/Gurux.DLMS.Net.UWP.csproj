@@ -355,6 +355,16 @@
     </Compile>
     <Compile Include="..\Properties\AssemblyInfo.cs" />
     <Compile Include="..\Objects\GXDLMSMBusMasterPortSetup.cs" />
+    <Compile Include="..\Objects\Italy\Enums\DefaultTariffBand.cs" />
+    <Compile Include="..\Objects\Italy\Enums\WeeklyActivation.cs" />
+    <Compile Include="..\Objects\Italy\GXBandDescriptor.cs" />
+    <Compile Include="..\Objects\Italy\GXDLMSInterval.cs" />
+    <Compile Include="..\Objects\Italy\GXDLMSTariffPlan.cs" />
+    <Compile Include="..\Objects\Italy\GXTariffPlan.cs" />
+    <Compile Include="..\Internal\MBusCommand.cs" />
+    <Compile Include="..\Internal\MBusControlInfo.cs" />
+    <Compile Include="..\Internal\MBusEncryptionMode.cs" />
+    <Compile Include="..\Internal\MBusMeterType.cs" />
     <EmbeddedResource Include="..\Properties\Gurux.DLMS.Net.UWP.rd.xml" />
   </ItemGroup>
   <ItemGroup />

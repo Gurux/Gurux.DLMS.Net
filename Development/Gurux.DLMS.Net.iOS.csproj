@@ -123,6 +123,10 @@
     <Compile Include="Internal\HdlcControlFrame.cs" />
     <Compile Include="Internal\HdlcFrameType.cs" />
     <Compile Include="Internal\HDLCInfo.cs" />
+    <Compile Include="Internal\MBusCommand.cs" />
+    <Compile Include="Internal\MBusControlInfo.cs" />
+    <Compile Include="Internal\MBusEncryptionMode.cs" />
+    <Compile Include="Internal\MBusMeterType.cs" />
     <Compile Include="Internal\PduType.cs" />
     <Compile Include="Internal\ReleaseRequestReason.cs" />
     <Compile Include="Internal\ReleaseResponseReason.cs" />
@@ -275,6 +279,12 @@
     <Compile Include="Objects\GXXmlWriter.cs" />
     <Compile Include="Objects\GXXmlWriterSettings.cs" />
     <Compile Include="Objects\IGXDLMSBase.cs" />
+    <Compile Include="Objects\Italy\Enums\DefaultTariffBand.cs" />
+    <Compile Include="Objects\Italy\Enums\WeeklyActivation.cs" />
+    <Compile Include="Objects\Italy\GXBandDescriptor.cs" />
+    <Compile Include="Objects\Italy\GXDLMSInterval.cs" />
+    <Compile Include="Objects\Italy\GXDLMSTariffPlan.cs" />
+    <Compile Include="Objects\Italy\GXTariffPlan.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>

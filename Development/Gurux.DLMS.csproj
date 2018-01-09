@@ -73,6 +73,10 @@
   <ItemGroup>
     <Compile Include="GXDLMSXmlClient.cs" />
     <Compile Include="GXDLMSConfirmedServiceError.cs" />
+    <Compile Include="Internal\MBusCommand.cs" />
+    <Compile Include="Internal\MBusEncryptionMode.cs" />
+    <Compile Include="Internal\MBusMeterType.cs" />
+    <Compile Include="Internal\MBusControlInfo.cs" />
     <Compile Include="Internal\ReleaseResponseReason.cs" />
     <Compile Include="Objects\Enums\GsmPacketSwitchStatus.cs" />
     <Compile Include="Objects\Enums\GsmCircuitSwitchStatus.cs" />
@@ -84,6 +88,11 @@
     <Compile Include="Objects\Enums\MBusEncryptionKeyStatus.cs" />
     <Compile Include="Objects\Enums\SecurityPolicy0.cs" />
     <Compile Include="Objects\GXDLMSBroadcastLogTable.cs" />
+    <Compile Include="Objects\Italy\Enums\WeeklyActivation.cs" />
+    <Compile Include="Objects\Italy\Enums\DefaultTariffBand.cs" />
+    <Compile Include="Objects\Italy\GXBandDescriptor.cs" />
+    <Compile Include="Objects\Italy\GXTariffPlan.cs" />
+    <Compile Include="Objects\Italy\GXDLMSTariffPlan.cs" />
     <Compile Include="Objects\GXDLMSGSMCellInfo.cs" />
     <Compile Include="Objects\GXDLMSGSMDiagnostic.cs" />
     <Compile Include="Objects\GXDLMSMBusMasterPortSetup.cs" />
@@ -107,6 +116,7 @@
     <Compile Include="Objects\GXDLMSSFSKMacSynchronizationTimeouts.cs" />
     <Compile Include="Objects\GXDLMSSFSKActiveInitiator.cs" />
     <Compile Include="Objects\GXDLMSSFSKPhyMacSetUp.cs" />
+    <Compile Include="Objects\Italy\GXDLMSInterval.cs" />
     <Compile Include="Simulator\GXDLMSSimulator.cs" />
     <Compile Include="Objects\Enums\CertificateIdentificationType.cs" />
     <Compile Include="TranslatorSimpleTags.cs" />

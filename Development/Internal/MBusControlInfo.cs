@@ -32,43 +32,37 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-namespace Gurux.DLMS.Objects
+
+namespace Gurux.DLMS.Internal
 {
-    public class GXDLMSImageActivateInfo
+    /// <summary>
+    /// M-Bus control info.
+    /// </summary>
+    public enum MBusControlInfo
     {
         /// <summary>
-        /// Image size is the size of the Image(s) to be activated. Expressed in octets;
+        /// Long M-Bus data header present, direction master to slave
         /// </summary>
-        public ulong Size
-        {
-            get;
-            set;
-        }
-
+        LongHeaderMaster = 0x60,
         /// <summary>
-        /// Image identification is the identification of the Image(s) 
-        /// to be activated, and may contain information like
-        /// manufacturer, device type, version information, etc.
+        /// Short M-Bus data header present, direction master to slave
         /// </summary>
-        public String Identification
-        {
-            get;
-            set;
-        }
-
+        ShortHeaderMaster = 0x61,
         /// <summary>
-        /// Image signature is the signature of the Image(s) to be activated.
+        /// Long M-Bus data header present, direction slave to master
         /// </summary>
-        public String Signature
-        {
-            get;
-            set;
-        }
-
-        public override string ToString()
-        {
-            return Identification + " " + Signature + " " + Convert.ToString(Size);
-        }
+        LongHeaderSlave = 0x7C,
+        /// <summary>
+        /// Short M-Bus data header present, direction slave to master
+        /// </summary>
+        ShortHeaderSlave = 0x7D,
+        /// <summary>
+        /// M-Bus short Header.
+        /// </summary>
+        ShortHeader = 0x7A,
+        /// <summary>
+        /// M-Bus long Header.
+        /// </summary>
+        LongHeader = 0x72
     }
 }

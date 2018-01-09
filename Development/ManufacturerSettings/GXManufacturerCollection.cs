@@ -80,7 +80,7 @@ namespace Gurux.DLMS.ManufacturerSettings
                 GXFileInfo.UpdateFileSecurity(path);
                 return true;
             }
-            return false;
+            return new FileInfo(path).Length == 0;
         }
 
         /// <summary>

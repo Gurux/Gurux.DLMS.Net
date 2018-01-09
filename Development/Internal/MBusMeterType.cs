@@ -32,43 +32,33 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-namespace Gurux.DLMS.Objects
+
+namespace Gurux.DLMS.Internal
 {
-    public class GXDLMSImageActivateInfo
+    /// <summary>
+    /// M-Bus meter type.
+    /// </summary>
+    public enum MBusMeterType
     {
         /// <summary>
-        /// Image size is the size of the Image(s) to be activated. Expressed in octets;
+        /// Oil meter.
         /// </summary>
-        public ulong Size
-        {
-            get;
-            set;
-        }
-
+        Oil = 1,
         /// <summary>
-        /// Image identification is the identification of the Image(s) 
-        /// to be activated, and may contain information like
-        /// manufacturer, device type, version information, etc.
+        /// Energy meter.
         /// </summary>
-        public String Identification
-        {
-            get;
-            set;
-        }
-
+        Energy = 2,
         /// <summary>
-        /// Image signature is the signature of the Image(s) to be activated.
+        /// Gas meter.
         /// </summary>
-        public String Signature
-        {
-            get;
-            set;
-        }
-
-        public override string ToString()
-        {
-            return Identification + " " + Signature + " " + Convert.ToString(Size);
-        }
+        Gas = 3,
+        /// <summary>
+        /// Water meter.
+        /// </summary>
+        Water = 7,
+        /// <summary>
+        /// Unknown meter type.
+        /// </summary>
+        Unknown = 0x0F
     }
 }

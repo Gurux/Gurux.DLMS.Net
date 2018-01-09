@@ -32,43 +32,41 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-namespace Gurux.DLMS.Objects
+
+namespace Gurux.DLMS.Internal
 {
-    public class GXDLMSImageActivateInfo
+    /// <summary>
+    /// Encryption modes.
+    /// </summary>
+    public enum MBusEncryptionMode
     {
         /// <summary>
-        /// Image size is the size of the Image(s) to be activated. Expressed in octets;
+        /// Encryption is not used.
         /// </summary>
-        public ulong Size
-        {
-            get;
-            set;
-        }
-
+        None,
         /// <summary>
-        /// Image identification is the identification of the Image(s) 
-        /// to be activated, and may contain information like
-        /// manufacturer, device type, version information, etc.
+        ///  AES with Counter Mode (CTR) noPadding and IV.
         /// </summary>
-        public String Identification
-        {
-            get;
-            set;
-        }
-
+        Aes128,
         /// <summary>
-        /// Image signature is the signature of the Image(s) to be activated.
+        ///  DES with Cipher Block Chaining Mode (CBC).
         /// </summary>
-        public String Signature
-        {
-            get;
-            set;
-        }
-
-        public override string ToString()
-        {
-            return Identification + " " + Signature + " " + Convert.ToString(Size);
-        }
+        DesCbc,
+        /// <summary>
+        ///  DES with Cipher Block Chaining Mode (CBC) and Initial Vector.
+        /// </summary>
+        DesCbcIv,
+        /// <summary>
+        /// AES with Cipher Block Chaining Mode (CBC) and Initial Vector.
+        /// </summary>
+        AesCbcIv = 5,
+        /// <summary>
+        /// AES 128 with Cipher Block Chaining Mode (CBC) and dynamic key and Initial Vector with 0.
+        /// </summary>
+        AesCbcIv0 = 7,
+        /// <summary>
+        /// TLS
+        /// </summary>
+        Tls = 13
     }
 }

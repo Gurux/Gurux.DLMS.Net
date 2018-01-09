@@ -118,12 +118,13 @@ namespace Gurux.DLMS
 #if !WINDOWS_UWP                
                 string dateSeparator = culture.DateTimeFormat.DateSeparator, timeSeparator = culture.DateTimeFormat.TimeSeparator;
                 List<string> shortDatePattern = new List<string>(culture.DateTimeFormat.ShortDatePattern.Split(new string[] { CultureInfo.InvariantCulture.DateTimeFormat.DateSeparator, dateSeparator, " " }, StringSplitOptions.RemoveEmptyEntries));
+                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { CultureInfo.InvariantCulture.DateTimeFormat.TimeSeparator, timeSeparator, " ", "." }, StringSplitOptions.RemoveEmptyEntries));
 #else
                 //In UWP Standard Date and Time Format Strings are used.
                 string dateSeparator = Internal.GXCommon.GetDateSeparator(), timeSeparator = Internal.GXCommon.GetTimeSeparator();
                 List<string> shortDatePattern = new List<string>("yyyy-MM-dd".Split(new string[] { dateSeparator, " " }, StringSplitOptions.RemoveEmptyEntries));
+                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { timeSeparator, " ", "." }, StringSplitOptions.RemoveEmptyEntries));
 #endif
-                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { CultureInfo.InvariantCulture.DateTimeFormat.TimeSeparator, timeSeparator, " ", "." }, StringSplitOptions.RemoveEmptyEntries));
                 string[] values = value.Trim().Split(new string[] { dateSeparator, timeSeparator, " " }, StringSplitOptions.None);
                 int cnt = shortDatePattern.Count + shortTimePattern.Count;
                 if (!string.IsNullOrEmpty(culture.DateTimeFormat.PMDesignator))

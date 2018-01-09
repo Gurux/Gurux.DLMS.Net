@@ -272,6 +272,10 @@ namespace Gurux.DLMS
                 {
                     return InterfaceType.WRAPPER;
                 }
+                if (GXDLMS.IsMBusData(value))
+                {
+                    return InterfaceType.WirelessMBus;
+                }
             }
             throw new ArgumentException("Invalid DLMS framing.");
         }
@@ -322,6 +326,17 @@ namespace Gurux.DLMS
                     {
                         pos = data.Position;
                         settings.InterfaceType = Enums.InterfaceType.WRAPPER;
+                        found = GXDLMS.GetData(settings, data, reply);
+                        data.Position = pos;
+                        if (found)
+                        {
+                            break;
+                        }
+                    }
+                    else if (type == InterfaceType.WirelessMBus)
+                    {
+                        pos = data.Position;
+                        settings.InterfaceType = Enums.InterfaceType.WirelessMBus;
                         found = GXDLMS.GetData(settings, data, reply);
                         data.Position = pos;
                         if (found)
@@ -726,6 +741,64 @@ namespace Gurux.DLMS
                     if (!PduOnly)
                     {
                         xml.AppendLine("</WRAPPER>");
+                    }
+                    return xml.sb.ToString();
+                }
+                //If Wireless M-Bus.
+                if (GXDLMS.IsMBusData(value))
+                {
+                    settings.InterfaceType = Enums.InterfaceType.WirelessMBus;
+                    int len = xml.GetXmlLength();
+                    GXDLMS.GetData(settings, value, data);
+                    string tmp = xml.ToString().Substring(len);
+                    xml.SetXmlLength(len);
+                    if (!PduOnly)
+                    {
+                        xml.AppendLine("<WirelessMBus len=\"" + (data.PacketLength - offset).ToString("X") + "\" >");
+                        xml.AppendLine("<TargetAddress Value=\"" + settings.ServerAddress.ToString("X") + "\" />");
+                        xml.AppendLine("<SourceAddress Value=\"" + settings.ClientAddress.ToString("X") + "\" />");
+                        xml.Append(tmp);
+                    }
+                    if (data.Data.Size == 0)
+                    {
+                        xml.AppendLine("<Command Value=\"" + data.Command.ToString().ToUpper() + "\" />");
+                    }
+                    else
+                    {
+                        if (data.Data.Size == 0)
+                        {
+                            if (data.Command == Command.None)
+                            {
+                                if (!CompletePdu)
+                                {
+                                    xml.AppendLine("<Command Value=\"NextFrame\" />");
+                                }
+                                multipleFrames = true;
+                            }
+                            else
+                            {
+                                xml.AppendStartTag(data.Command);
+                                xml.AppendEndTag(data.Command);
+                            }
+                        }
+                        else
+                        {
+                            if (!PduOnly)
+                            {
+                                xml.AppendLine("<PDU>");
+                            }
+                            xml.AppendLine(PduToXml(data.Data));
+                            //Remove \r\n.
+                            xml.sb.Length -= 2;
+                            if (!PduOnly)
+                            {
+                                xml.AppendLine("</PDU>");
+                            }
+                        }
+                    }
+                    if (!PduOnly)
+                    {
+                        xml.AppendLine("</WirelessMBus>");
                     }
                     return xml.sb.ToString();
                 }
@@ -1294,7 +1367,7 @@ namespace Gurux.DLMS
                 case (int)TranslatorGeneralTags.CallingAPTitle:
                     s.settings
                     .CtoSChallenge = GXCommon.HexToBytes(GetValue(node, s));
-                    break;                    
+                    break;
                 case (int)TranslatorGeneralTags.CallingAeInvocationId:
                     s.settings.UserId = s.ParseInt(GetValue(node, s));
                     break;

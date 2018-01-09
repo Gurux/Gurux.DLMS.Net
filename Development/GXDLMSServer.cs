@@ -627,6 +627,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <remarks>
         /// This must call after server objects are set.
+        /// </remarks>
         /// <param name="manually">If true, server handle objects and all data are updated manually.</param>
         public void Initialize(bool manually)
         {

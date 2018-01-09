@@ -747,15 +747,22 @@ namespace GuruxDLMSServerExample
                     {
                         sb.Append(';');
                     }
-                    // TODO: Read value here example from the meter if it's not
-                    // updated automatically.
-                    object value = it.Key.GetValues()[it.Value.AttributeIndex - 1];
-                    if (value == null)
+                    object value;
+                    if (it.Key is GXDLMSClock && it.Value.AttributeIndex == 2)
                     {
-                        // Generate random value here.
-                        value = GetProfileGenericDataCount(pg) + 1;
+                        value = (it.Key as GXDLMSClock).Now();
                     }
-
+                    else
+                    {
+                        // TODO: Read value here example from the meter if it's not
+                        // updated automatically.
+                        value = it.Key.GetValues()[it.Value.AttributeIndex - 1];
+                        if (value == null)
+                        {
+                            // Generate random value here.
+                            value = GetProfileGenericDataCount(pg) + 1;
+                        }
+                    }
                     if (value is DateTime)
                     {
                         sb.Append(((DateTime)value).ToString(CultureInfo.InvariantCulture));
@@ -792,7 +799,6 @@ namespace GuruxDLMSServerExample
             else if (it.Index == 2)
             {
                 //Profile generic Capture is called.
-                Capture(pg);
             }
         }
 
@@ -855,10 +861,10 @@ namespace GuruxDLMSServerExample
             {
                 return MethodAccessMode.NoAccess;
             }
-            //Only clock methods are allowed.
+            //Only clock and Profile generic methods are allowed.
             if (arg.Settings.Authentication == Authentication.Low)
             {
-                if (arg.Target is GXDLMSClock)
+                if (arg.Target is GXDLMSClock || arg.Target is GXDLMSProfileGeneric)
                 {
                     return MethodAccessMode.Access;
                 }

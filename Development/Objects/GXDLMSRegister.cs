@@ -188,7 +188,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Scaler and Unit", "Value" };
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Value" , "Scaler and Unit" };
         }
 
         int IGXDLMSBase.GetAttributeCount()

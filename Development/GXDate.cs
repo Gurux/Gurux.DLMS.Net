@@ -103,9 +103,8 @@ namespace Gurux.DLMS
                 string dateSeparator = Internal.GXCommon.GetDateSeparator(), timeSeparator = Internal.GXCommon.GetTimeSeparator();
                 List<string> shortDatePattern = new List<string>("yyyy-MM-dd".Split(new string[] { dateSeparator, " " }, StringSplitOptions.RemoveEmptyEntries));
 #endif
-                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { CultureInfo.InvariantCulture.DateTimeFormat.TimeSeparator, timeSeparator, " ", "." }, StringSplitOptions.RemoveEmptyEntries));
                 string[] values = date.Trim().Split(new string[] { dateSeparator, timeSeparator, " " }, StringSplitOptions.None);
-                int cnt = shortDatePattern.Count + shortTimePattern.Count;
+                int cnt = shortDatePattern.Count;
                 if (!string.IsNullOrEmpty(culture.DateTimeFormat.PMDesignator))
                 {
                     if (date.IndexOf(culture.DateTimeFormat.PMDesignator) != -1)
@@ -116,11 +115,7 @@ namespace Gurux.DLMS
                     {
                         ++cnt;
                     }
-                }
-                if (shortDatePattern.Count != values.Length && cnt != values.Length)
-                {
-                    //  throw new ArgumentOutOfRangeException("Invalid DateTime");
-                }
+                }               
                 int offset = 3;
                 for (int pos = 0; pos != shortDatePattern.Count; ++pos)
                 {
