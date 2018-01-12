@@ -327,6 +327,24 @@ namespace Gurux.DLMS.Enums
         [XmlEnum("103")]
         ZigBeeSasApsFragmentation = 103,
 
+        [XmlEnum("104")]
+        ZigBeeNetworkControl = 104,
+
+        [XmlEnum("30")]
+        DataProtection = 30,
+
+        [XmlEnum("111")]
+        Account = 111,
+
+        [XmlEnum("112")]
+        Credit = 112,
+
+        [XmlEnum("113")]
+        Charge = 113,
+
+        [XmlEnum("115")]
+        TokenGateway = 115,
+
         ///<summary>
         ///SapAssigment stores information of assignment of the logical devices to
         ///their SAP  = Service Access Points.

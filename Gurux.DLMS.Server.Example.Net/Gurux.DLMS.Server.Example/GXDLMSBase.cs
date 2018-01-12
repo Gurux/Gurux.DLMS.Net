@@ -370,6 +370,12 @@ namespace GuruxDLMSServerExample
             Items.Add(new GXDLMSG3PlcMacSetup());
             //Add security setup object
             Items.Add(new GXDLMSSecuritySetup());
+
+            Items.Add(new GXDLMSAccount());
+            Items.Add(new GXDLMSCredit());
+            Items.Add(new GXDLMSCharge());
+            Items.Add(new GXDLMSTokenGateway());
+
             ///////////////////////////////////////////////////////////////////////
             //Server must initialize after all objects are added.
             Initialize();

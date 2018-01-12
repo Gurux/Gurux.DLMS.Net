@@ -154,6 +154,10 @@ namespace Gurux.DLMS
                 availableObjectTypes.Add(ObjectType.SpecialDaysTable, typeof(GXDLMSSpecialDaysTable));
                 availableObjectTypes.Add(ObjectType.TcpUdpSetup, typeof(GXDLMSTcpUdpSetup));
                 availableObjectTypes.Add(ObjectType.GSMDiagnostic, typeof(GXDLMSGSMDiagnostic));
+                availableObjectTypes.Add(ObjectType.Account, typeof(GXDLMSAccount));
+                availableObjectTypes.Add(ObjectType.Credit, typeof(GXDLMSCredit));
+                availableObjectTypes.Add(ObjectType.Charge, typeof(GXDLMSCharge));
+                availableObjectTypes.Add(ObjectType.TokenGateway, typeof(GXDLMSTokenGateway));
             }
         }
 

@@ -51,7 +51,7 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSData()
-        : base(ObjectType.Data)
+        : this(null, 0)
         {
         }
 
@@ -60,7 +60,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSData(string ln)
-        : base(ObjectType.Data, ln, 0)
+        : this(ln, 0)
         {
         }
 

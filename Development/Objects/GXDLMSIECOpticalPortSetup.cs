@@ -247,172 +247,136 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
         public override DataType GetDataType(int index)
         {
-            if (index == 1)
+            switch (index)
             {
-                return DataType.OctetString;
-            }
-            if (index == 2)
-            {
-                return DataType.Enum;
-            }
-            if (index == 3)
-            {
-                return DataType.Enum;
-            }
-            if (index == 4)
-            {
-                return DataType.Enum;
-            }
-            if (index == 5)
-            {
-                return DataType.Enum;
-            }
-            if (index == 6)
-            {
-                return DataType.OctetString;
-            }
-            if (index == 7)
-            {
-                return DataType.OctetString;
-            }
-            if (index == 8)
-            {
-                return DataType.OctetString;
-            }
-            if (index == 9)
-            {
-                return DataType.OctetString;
+                case 1:
+                    return DataType.OctetString;
+                case 2:
+                    return DataType.Enum;
+                case 3:
+                    return DataType.Enum;
+                case 4:
+                    return DataType.Enum;
+                case 5:
+                    return DataType.Enum;
+                case 6:
+                    return DataType.OctetString;
+                case 7:
+                    return DataType.OctetString;
+                case 8:
+                    return DataType.OctetString;
+                case 9:
+                    return DataType.OctetString;
             }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            switch (e.Index)
             {
-                return GXCommon.LogicalNameToBytes(LogicalName);
+                case 1:
+                    return GXCommon.LogicalNameToBytes(LogicalName);
+                case 2:
+                    return this.DefaultMode;
+                case 3:
+                    return this.DefaultBaudrate;
+                case 4:
+                    return this.ProposedBaudrate;
+                case 5:
+                    return this.ResponseTime;
+                case 6:
+                    if (DeviceAddress == null)
+                    {
+                        return null;
+                    }
+                    return ASCIIEncoding.ASCII.GetBytes(DeviceAddress);
+                case 7:
+                    if (Password1 == null)
+                    {
+                        return null;
+                    }
+                    return ASCIIEncoding.ASCII.GetBytes(Password1);
+                case 8:
+                    if (Password2 == null)
+                    {
+                        return null;
+                    }
+                    return ASCIIEncoding.ASCII.GetBytes(Password2);
+                case 9:
+                    if (Password5 == null)
+                    {
+                        return null;
+                    }
+                    return ASCIIEncoding.ASCII.GetBytes(Password5);
             }
-            if (e.Index == 2)
-            {
-                return this.DefaultMode;
-            }
-            if (e.Index == 3)
-            {
-                return this.DefaultBaudrate;
-            }
-            if (e.Index == 4)
-            {
-                return this.ProposedBaudrate;
-            }
-            if (e.Index == 5)
-            {
-                return this.ResponseTime;
-            }
-            if (e.Index == 6)
-            {
-                if (DeviceAddress == null)
-                {
-                    return null;
-                }
-                return ASCIIEncoding.ASCII.GetBytes(DeviceAddress);
-            }
-            if (e.Index == 7)
-            {
-                if (Password1 == null)
-                {
-                    return null;
-                }
-                return ASCIIEncoding.ASCII.GetBytes(Password1);
-            }
-            if (e.Index == 8)
-            {
-                if (Password2 == null)
-                {
-                    return null;
-                }
-                return ASCIIEncoding.ASCII.GetBytes(Password2);
-            }
-            if (e.Index == 9)
-            {
-                if (Password5 == null)
-                {
-                    return null;
-                }
-                return ASCIIEncoding.ASCII.GetBytes(Password5);
-            }
+
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            switch (e.Index)
             {
-                LogicalName = GXCommon.ToLogicalName(e.Value);
-            }
-            else if (e.Index == 2)
-            {
-                DefaultMode = (OpticalProtocolMode)Convert.ToInt32(e.Value);
-            }
-            else if (e.Index == 3)
-            {
-                DefaultBaudrate = (BaudRate)Convert.ToInt32(e.Value);
-            }
-            else if (e.Index == 4)
-            {
-                ProposedBaudrate = (BaudRate)Convert.ToInt32(e.Value);
-            }
-            else if (e.Index == 5)
-            {
-                ResponseTime = (LocalPortResponseTime)Convert.ToInt32(e.Value);
-            }
-            else if (e.Index == 6)
-            {
-                if (e.Value is byte[])
-                {
-                    DeviceAddress = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String, settings.UseUtc2NormalTime).ToString();
-                }
-                else
-                {
-                    DeviceAddress = Convert.ToString(e.Value);
-                }
-            }
-            else if (e.Index == 7)
-            {
-                if (e.Value is byte[])
-                {
-                    Password1 = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String, settings.UseUtc2NormalTime).ToString();
-                }
-                else
-                {
-                    Password1 = Convert.ToString(e.Value);
-                }
-            }
-            else if (e.Index == 8)
-            {
-                if (e.Value is byte[])
-                {
-                    Password2 = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String, settings.UseUtc2NormalTime).ToString();
-                }
-                else
-                {
-                    Password2 = Convert.ToString(e.Value);
-                }
-            }
-            else if (e.Index == 9)
-            {
-                if (e.Value is byte[])
-                {
-                    Password5 = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String, settings.UseUtc2NormalTime).ToString();
-                }
-                else
-                {
-                    Password5 = Convert.ToString(e.Value);
-                }
-            }
-            else
-            {
-                e.Error = ErrorCode.ReadWriteDenied;
+                case 1:
+                    LogicalName = GXCommon.ToLogicalName(e.Value);
+                    break;
+                case 2:
+                    DefaultMode = (OpticalProtocolMode)Convert.ToInt32(e.Value);
+                    break;
+                case 3:
+                    DefaultBaudrate = (BaudRate)Convert.ToInt32(e.Value);
+                    break;
+                case 4:
+                    ProposedBaudrate = (BaudRate)Convert.ToInt32(e.Value);
+                    break;
+                case 5:
+                    ResponseTime = (LocalPortResponseTime)Convert.ToInt32(e.Value);
+                    break;
+                case 6:
+                    if (e.Value is byte[])
+                    {
+                        DeviceAddress = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String, settings.UseUtc2NormalTime).ToString();
+                    }
+                    else
+                    {
+                        DeviceAddress = Convert.ToString(e.Value);
+                    }
+                    break;
+                case 7:
+                    if (e.Value is byte[])
+                    {
+                        Password1 = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String, settings.UseUtc2NormalTime).ToString();
+                    }
+                    else
+                    {
+                        Password1 = Convert.ToString(e.Value);
+                    }
+                    break;
+                case 8:
+                    if (e.Value is byte[])
+                    {
+                        Password2 = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String, settings.UseUtc2NormalTime).ToString();
+                    }
+                    else
+                    {
+                        Password2 = Convert.ToString(e.Value);
+                    }
+                    break;
+                case 9:
+                    if (e.Value is byte[])
+                    {
+                        Password5 = GXDLMSClient.ChangeType((byte[])e.Value, DataType.String, settings.UseUtc2NormalTime).ToString();
+                    }
+                    else
+                    {
+                        Password5 = Convert.ToString(e.Value);
+                    }
+                    break;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
             }
         }
 

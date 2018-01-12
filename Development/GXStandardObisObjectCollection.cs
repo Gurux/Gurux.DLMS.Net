@@ -81,7 +81,7 @@ namespace Gurux.DLMS
         }
 
         public GXStandardObisCode[] Find(string obisCode, ObjectType objectType)
-        {
+        {         
             return Find(GetBytes(obisCode), (int)objectType);
         }
 
@@ -433,9 +433,13 @@ namespace Gurux.DLMS
         /// <param name="formula">OBIS formula.</param>
         /// <param name="value">OBIS value.</param>
         /// <returns></returns>
-        int GetObisValue(string formula, int value)
+        private static string GetObisValue(string formula, int value)
         {
-            return value + int.Parse(formula.Substring(1));
+            if (formula.Length == 1)
+            {
+                return value.ToString();
+            }
+            return "#" + (value + int.Parse(formula.Substring(1))).ToString();
         }
 
         /// <summary>
@@ -498,22 +502,22 @@ namespace Gurux.DLMS
                                 switch (v[0])
                                 {
                                     case 'A':
-                                        tmp.Description += "#" + GetObisValue(v, obisCode[0]);
+                                        tmp.Description += GetObisValue(v, obisCode[0]);
                                         break;
                                     case 'B':
-                                        tmp.Description += "#" + GetObisValue(v, obisCode[1]);
+                                        tmp.Description += GetObisValue(v, obisCode[1]);
                                         break;
                                     case 'C':
-                                        tmp.Description += "#" + GetObisValue(v, obisCode[2]);
+                                        tmp.Description += GetObisValue(v, obisCode[2]);
                                         break;
                                     case 'D':
-                                        tmp.Description += "#" + GetObisValue(v, obisCode[3]);
+                                        tmp.Description += GetObisValue(v, obisCode[3]);
                                         break;
                                     case 'E':
-                                        tmp.Description += "#" + GetObisValue(v, obisCode[4]);
+                                        tmp.Description += GetObisValue(v, obisCode[4]);
                                         break;
                                     case 'F':
-                                        tmp.Description += "#" + GetObisValue(v, obisCode[5]);
+                                        tmp.Description += GetObisValue(v, obisCode[5]);
                                         break;
                                     default:
                                         tmp.Description += v;
