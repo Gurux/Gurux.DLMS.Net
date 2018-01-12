@@ -283,6 +283,13 @@
     <Compile Include="..\Objects\GXDLMSAutoAnswer.cs" />
     <Compile Include="..\Objects\GXDLMSDemandRegister.cs" />
     <Compile Include="..\Objects\GXDLMSObjectCollection.cs" />
+
+    <Compile Include="..\Objects\GXDLMSAccount.cs" />
+    <Compile Include="..\Objects\GXDLMSCredit.cs" />
+    <Compile Include="..\Objects\GXDLMSCharge.cs" />
+    <Compile Include="..\Objects\GXDLMSTokenGateway.cs" />
+
+
     <Compile Include="..\Internal\GXFCS16.cs" />
     <Compile Include="..\Enums\InterfaceType.cs" />
     <Compile Include="..\ManufacturerSettings\GXAttribute.cs" />

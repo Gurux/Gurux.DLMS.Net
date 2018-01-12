@@ -195,6 +195,7 @@
     <Compile Include="Objects\Enums\SortMethod.cs" />
     <Compile Include="Objects\GXApplicationContextName.cs" />
     <Compile Include="Objects\GXAuthenticationMechanismName.cs" />
+    <Compile Include="Objects\GXDLMSAccount.cs" />
     <Compile Include="Objects\GXDLMSActionItem.cs" />
     <Compile Include="Objects\GXDLMSActionSchedule.cs" />
     <Compile Include="Objects\GXDLMSActionSet.cs" />
@@ -207,8 +208,10 @@
     <Compile Include="Objects\GXDLMSCallback.cs" />
     <Compile Include="Objects\GXDLMSCaptureObject.cs" />
     <Compile Include="Objects\GXDLMSCertificateInfo.cs" />
+    <Compile Include="Objects\GXDLMSCharge.cs" />
     <Compile Include="Objects\GXDLMSClock.cs" />
     <Compile Include="Objects\GXDLMSContextInformationTable.cs" />
+    <Compile Include="Objects\GXDLMSCredit.cs" />
     <Compile Include="Objects\GXDLMSData.cs" />
     <Compile Include="Objects\GXDLMSDayProfile.cs" />
     <Compile Include="Objects\GXDLMSDemandRegister.cs" />
@@ -270,6 +273,7 @@
     <Compile Include="Objects\GXDLMSSpecialDay.cs" />
     <Compile Include="Objects\GXDLMSSpecialDaysTable.cs" />
     <Compile Include="Objects\GXDLMSTcpUdpSetup.cs" />
+    <Compile Include="Objects\GXDLMSTokenGateway.cs" />
     <Compile Include="Objects\GXDLMSWeekProfile.cs" />
     <Compile Include="Objects\GXNeighborDiscoverySetup.cs" />
     <Compile Include="Objects\GXProfileGenericUpdater.cs" />
