@@ -34,17 +34,98 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using Gurux.DLMS;
-using System.ComponentModel;
 using System.Xml.Serialization;
-using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Enums;
-using System.Xml;
 using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Credit Type.
+    /// </summary>
+    public enum CreditType : byte
+    {
+        /// <summary>
+        /// Token credit.
+        /// </summary>
+        Token,
+        /// <summary>
+        /// Reserved credit.
+        /// </summary>
+        Reserved,
+        /// <summary>
+        /// Emergency credit.
+        /// </summary>
+        Emergency,
+        /// <summary>
+        /// TimeBased credit.
+        /// </summary>
+        TimeBased,
+        /// <summary>
+        /// Consumption based credit.
+        /// </summary>
+        ConsumptionBased
+    }
+
+    /// <summary>
+    /// Credit Status.
+    /// </summary>
+    public enum CreditStatus : byte
+    {
+        /// <summary>
+        /// Enabled state.
+        /// </summary>
+        Enabled,
+        /// <summary>
+        /// Selectable state.
+        /// </summary>
+        Selectable,
+        /// <summary>
+        /// Selected/Invoked state.
+        /// </summary>
+        Invoked,
+        /// <summary>
+        /// In use state.
+        /// </summary>
+        InUse,
+        /// <summary>
+        /// Consumed state.
+        /// </summary>
+        Consumed
+    }
+
+    /// <summary>
+    /// Enumerated Credit configuration values.
+    /// </summary>
+    [Flags]
+    public enum CreditConfiguration : byte
+    {
+        /// <summary>
+        /// Requires visual indication,
+        /// </summary>
+        Visual = 0x10,
+        /// <summary>
+        /// Requires confirmation before it can be selected/invoked
+        /// </summary>
+        Confirmation = 0x8,
+        /// <summary>
+        /// Requires the credit amount to be paid back.
+        /// </summary>
+        PaidBack = 0x4,
+        /// <summary>
+        /// Resettable.
+        /// </summary>
+        Resettable = 0x2,
+        /// <summary>
+        /// Able to receive credit amounts from tokens.
+        /// </summary>
+        Tokens = 0x1
+    }
+
+    /// <summary>
+    ///  Online help:<br/>
+    ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
+    /// </summary>
     public class GXDLMSCredit : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>
@@ -75,8 +156,12 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// 
+        /// Current credit amount.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
+        /// </remarks>
         [XmlIgnore()]
         public int CurrentCreditAmount
         {
@@ -85,17 +170,25 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// 
+        /// Type.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
+        /// </remarks>
         [XmlIgnore()]
-        public byte Type
+        public CreditType Type
         {
             get;
             set;
         }
         /// <summary>
-        /// 
+        /// Priority.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
+        /// </remarks>
         [XmlIgnore()]
         public byte Priority
         {
@@ -103,8 +196,12 @@ namespace Gurux.DLMS.Objects
             set;
         }
         /// <summary>
-        /// 
+        /// Warning threshold.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
+        /// </remarks>
         [XmlIgnore()]
         public int WarningThreshold
         {
@@ -112,8 +209,12 @@ namespace Gurux.DLMS.Objects
             set;
         }
         /// <summary>
-        /// 
+        /// Limit.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
+        /// </remarks>
         [XmlIgnore()]
         public int Limit
         {
@@ -121,26 +222,38 @@ namespace Gurux.DLMS.Objects
             set;
         }
         /// <summary>
-        /// 
+        /// Credit configuration.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
+        /// </remarks>
         [XmlIgnore()]
-        public string CreditConfiguration
+        public CreditConfiguration CreditConfiguration
         {
             get;
             set;
         }
         /// <summary>
-        /// 
+        /// Status.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
+        /// </remarks>
         [XmlIgnore()]
-        public byte Status
+        public CreditStatus Status
         {
             get;
             set;
         }
         /// <summary>
-        /// 
+        /// Preset credit amount.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
+        /// </remarks>
         [XmlIgnore()]
         public int PresetCreditAmount
         {
@@ -148,8 +261,12 @@ namespace Gurux.DLMS.Objects
             set;
         }
         /// <summary>
-        /// 
+        /// Credit available threshold.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
+        /// </remarks>
         [XmlIgnore()]
         public int CreditAvailableThreshold
         {
@@ -158,8 +275,12 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// 
+        /// Period.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
+        /// </remarks>
         [XmlIgnore()]
         public GXDateTime Period
         {
@@ -242,6 +363,16 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
+        public override DataType GetUIDataType(int index)
+        {
+            //Period
+            if (index == 11)
+            {
+                return DataType.DateTime;
+            }
+            return base.GetUIDataType(index);
+        }
+
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
@@ -310,7 +441,7 @@ namespace Gurux.DLMS.Objects
                 case 6:
                     return Limit;
                 case 7:
-                    return CreditConfiguration;
+                    return (byte) CreditConfiguration;
                 case 8:
                     return Status;
                 case 9:
@@ -337,7 +468,7 @@ namespace Gurux.DLMS.Objects
                     CurrentCreditAmount = (int)e.Value;
                     break;
                 case 3:
-                    Type = (byte)e.Value;
+                    Type = (CreditType)(byte)e.Value;
                     break;
                 case 4:
                     Priority = (byte)e.Value;
@@ -349,10 +480,12 @@ namespace Gurux.DLMS.Objects
                     Limit = (int)e.Value;
                     break;
                 case 7:
-                    CreditConfiguration = (string)e.Value;
+                    GXByteBuffer bb = new GXByteBuffer();
+                    GXCommon.SetBitString(bb, e.Value);
+                    CreditConfiguration = (CreditConfiguration)bb.GetUInt8(1);
                     break;
                 case 8:
-                    Status = (byte)e.Value;
+                    Status = (CreditStatus)(byte)e.Value;
                     break;
                 case 9:
                     PresetCreditAmount = (int)e.Value;
@@ -386,30 +519,30 @@ namespace Gurux.DLMS.Objects
         void IGXDLMSBase.Load(GXXmlReader reader)
         {
             CurrentCreditAmount = reader.ReadElementContentAsInt("CurrentCreditAmount");
-            Type = (byte)reader.ReadElementContentAsInt("Type");
+            Type = (CreditType)reader.ReadElementContentAsInt("Type");
             Priority = (byte)reader.ReadElementContentAsInt("Priority");
             WarningThreshold = reader.ReadElementContentAsInt("WarningThreshold");
             Limit = reader.ReadElementContentAsInt("Limit");
-            CreditConfiguration = reader.ReadElementContentAsString("CreditConfiguration");
-            Status = (byte)reader.ReadElementContentAsInt("Status");
+            CreditConfiguration = (CreditConfiguration)reader.ReadElementContentAsInt("CreditConfiguration");
+            Status = (CreditStatus)reader.ReadElementContentAsInt("Status");
             PresetCreditAmount = reader.ReadElementContentAsInt("PresetCreditAmount");
             CreditAvailableThreshold = reader.ReadElementContentAsInt("CreditAvailableThreshold");
             string str = reader.ReadElementContentAsString("Period");
             if (str != null)
             {
-                Period = new GXDateTime(str);
+                Period = new GXDateTime(str, System.Globalization.CultureInfo.InvariantCulture);
             }
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
             writer.WriteElementString("CurrentCreditAmount", CurrentCreditAmount);
-            writer.WriteElementString("Type", Type);
+            writer.WriteElementString("Type", (byte)Type);
             writer.WriteElementString("Priority", Priority);
             writer.WriteElementString("WarningThreshold", WarningThreshold);
             writer.WriteElementString("Limit", Limit);
-            writer.WriteElementString("CreditConfiguration", CreditConfiguration);
-            writer.WriteElementString("Status", Status);
+            writer.WriteElementString("CreditConfiguration", (byte) CreditConfiguration);
+            writer.WriteElementString("Status", (byte)Status);
             writer.WriteElementString("PresetCreditAmount", PresetCreditAmount);
             writer.WriteElementString("CreditAvailableThreshold", CreditAvailableThreshold);
             writer.WriteElementString("Period", Period);

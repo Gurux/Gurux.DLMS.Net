@@ -279,8 +279,7 @@ namespace Gurux.DLMS.Objects
             {
                 return 0;
             }
-            long v = System.Net.IPAddress.HostToNetworkOrder(BitConverter.ToUInt32(System.Net.IPAddress.Parse(value).GetAddressBytes(), 0)) >> 32;
-            return (UInt32) v;
+            return (UInt32)BitConverter.ToInt32(System.Net.IPAddress.Parse(value).GetAddressBytes(), 0);
         }
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
@@ -366,7 +365,7 @@ namespace Gurux.DLMS.Objects
 
         private static string ToAddressString(object value)
         {
-            return new System.Net.IPAddress(System.Net.IPAddress.HostToNetworkOrder((Convert.ToUInt32(value)) >> 32) & 0xFFFFFFFF).ToString();
+            return new System.Net.IPAddress(BitConverter.GetBytes(Convert.ToUInt32(value))).ToString();
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
@@ -479,9 +478,21 @@ namespace Gurux.DLMS.Objects
             IPOptions = ipOptions.ToArray();
             SubnetMask = reader.ReadElementContentAsString("SubnetMask");
             GatewayIPAddress = reader.ReadElementContentAsString("GatewayIPAddress");
+            if (string.IsNullOrEmpty(GatewayIPAddress))
+            {
+                GatewayIPAddress = "0.0.0.0";
+            }
             UseDHCP = reader.ReadElementContentAsInt("UseDHCP") != 0;
             PrimaryDNSAddress = reader.ReadElementContentAsString("PrimaryDNSAddress");
+            if (string.IsNullOrEmpty(PrimaryDNSAddress))
+            {
+                PrimaryDNSAddress = "0.0.0.0";
+            }
             SecondaryDNSAddress = reader.ReadElementContentAsString("SecondaryDNSAddress");
+            if (string.IsNullOrEmpty(SecondaryDNSAddress))
+            {
+                SecondaryDNSAddress = "0.0.0.0";
+            }
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)

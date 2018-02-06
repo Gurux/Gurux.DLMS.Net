@@ -36,11 +36,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.ComponentModel;
 
 using System.Collections;
 using Gurux.DLMS.Enums;
-using System.Xml;
 using System.IO;
 using Gurux.DLMS.Internal;
 
@@ -431,7 +429,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="settings">XML write settings.</param>
         public void Save(string filename, GXXmlWriterSettings settings)
         {
-            using (GXXmlWriter writer = new GXXmlWriter(filename))
+            using (GXXmlWriter writer = new GXXmlWriter(filename, settings.IgnoreDefaultValues))
             {
                 writer.WriteStartDocument();
                 writer.WriteStartElement("Objects");
@@ -451,7 +449,7 @@ namespace Gurux.DLMS.Objects
                     {
                         writer.WriteElementString("Description", it.Description);
                     }
-                    if (settings.Values)
+                    if (settings == null || settings.Values)
                     {
                         (it as IGXDLMSBase).Save(writer);
                     }

@@ -1436,7 +1436,16 @@ namespace Gurux.DLMS
             {
                 type = Gurux.DLMS.Internal.GXCommon.GetValueType(value);
             }
-            return Write(item.Name, value, type, item.ObjectType, index);
+            //If values is show as string, but send as byte array.
+            if (value is string && type == DataType.OctetString)
+            {
+                DataType tp = item.GetUIDataType(index);
+                if (tp == DataType.String)
+                {
+                    value = ASCIIEncoding.ASCII.GetBytes((string)value);
+                }
+            }
+            return Write2(item.Name, value, type, item.ObjectType, index);
         }
 
         /// <summary>
@@ -1447,8 +1456,14 @@ namespace Gurux.DLMS
         /// <param name="type">Data type of write object.</param>
         /// <param name="objectType"></param>
         /// <param name="index">Attribute index where data is write.</param>
-        /// <returns></returns>
+        /// <returns>Generated write frames.</returns>
+        [Obsolete("Use Write")]
         public byte[][] Write(object name, object value, DataType type, ObjectType objectType, int index)
+        {
+            return Write2(name, value, type, objectType, index);
+        }
+
+        private byte[][] Write2(object name, object value, DataType type, ObjectType objectType, int index)
         {
             Settings.ResetBlockIndex();
             if (type == DataType.None && value != null)

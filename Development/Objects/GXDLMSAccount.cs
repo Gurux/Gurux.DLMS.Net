@@ -71,6 +71,69 @@ namespace Gurux.DLMS.Objects
         AccountClosed = 3
     }
 
+    /// <summary>
+    /// Credit status.
+    /// </summary>
+    [Flags]
+    public enum AccountCreditStatus
+    {
+        /// <summary>
+        /// In credit.
+        /// </summary>
+        InCredit = 0x80,
+        /// <summary>
+        /// Low credit.
+        /// </summary>
+        LowCredit = 0x40,
+        /// <summary>
+        /// Next credit enabled.
+        /// </summary>
+        NextCreditEnabled = 0x20,
+        /// <summary>
+        /// Next credit selectable.
+        /// </summary>
+        NextCreditSelectable = 0x10,
+        /// <summary>
+        /// Credit reference list.
+        /// </summary>
+        CreditReferenceList = 0x8,
+        /// <summary>
+        /// Selectable credit in use.
+        /// </summary>
+        SelectableCreditInUse = 0x4,
+        /// <summary>
+        /// Out of credit.
+        /// </summary>
+        OutOfCredit = 0x2,
+        /// <summary>
+        /// Reserved.
+        /// </summary>
+        Reserved = 0x1
+    }
+
+    /// <summary>
+    /// Defines behaviour under specific conditions
+    /// </summary>
+    [Flags]
+    public enum CreditCollectionConfiguration
+    {
+        /// <summary>
+        /// None.
+        /// </summary>
+        None = 0,
+        /// <summary>
+        /// Collect when supply disconnected.
+        /// </summary>
+        Disconnected = 0x80,
+        /// <summary>
+        /// Collect in load limiting periods.
+        /// </summary>
+        LoadLimiting = 0x40,
+        /// <summary>
+        /// Collect in friendly credit periods.
+        /// </summary>
+        FriendlyCredit = 0x20
+    }
 
     public class GXCreditChargeConfiguration
     {
@@ -86,7 +149,7 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
-        public string CollectionConfiguration
+        public CreditCollectionConfiguration CollectionConfiguration
         {
             get;
             set;
@@ -160,6 +223,10 @@ namespace Gurux.DLMS.Objects
         }
     }
 
+    /// <summary>
+    ///  Online help:<br/>
+    ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+    /// </summary>
     public class GXDLMSAccount : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>
@@ -199,6 +266,10 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Payment mode.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        /// </remarks>
         [XmlIgnore()]
         public PaymentMode PaymentMode
         {
@@ -209,6 +280,10 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Account status.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        /// </remarks>
         [XmlIgnore()]
         public AccountStatus AccountStatus
         {
@@ -219,6 +294,10 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Index into the credit reference list indicating which Credit object is In use
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        /// </remarks>
         [XmlIgnore()]
         public byte CurrentCreditInUse
 
@@ -226,137 +305,196 @@ namespace Gurux.DLMS.Objects
             get;
             set;
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        [XmlIgnore()]
-        public string CurrentCreditStatus
 
+        /// <summary>
+        /// Current credit status.
+        /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        /// </remarks>
+        [XmlIgnore()]
+        public AccountCreditStatus CurrentCreditStatus
         {
             get;
             set;
         }
+
         /// <summary>
         /// The available_credit attribute is the sum of the positive current credit amount values in the instances of the Credit class.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        /// </remarks>
         [XmlIgnore()]
         public int AvailableCredit
-
         {
             get;
             set;
         }
+
         /// <summary>
-        /// 
+        /// Amount to clear.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        /// </remarks>
         [XmlIgnore()]
         public int AmountToClear
-
         {
             get;
             set;
         }
+
         /// <summary>
         /// Conjunction with the amount to clear, and is included in the description of that attribute.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        /// </remarks>
         [XmlIgnore()]
         public int ClearanceThreshold
-
         {
             get;
             set;
         }
+
         /// <summary>
         /// Simple sum of total_amount_remaining of all the Charge objects which are listed in the Account object.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        /// </remarks>
         [XmlIgnore()]
         public int AggregatedDebt
-
         {
             get;
             set;
         }
+
         /// <summary>
-        /// 
+        /// Credit references.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        /// </remarks>
         [XmlIgnore()]
         public List<string> CreditReferences
         {
             get;
             set;
         }
+
         /// <summary>
-        /// 
+        /// Charge references.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        /// </remarks>
         [XmlIgnore()]
         public List<string> ChargeReferences
-
         {
             get;
             set;
         }
+
         /// <summary>
-        /// 
+        /// Credit charge configurations
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        /// </remarks>
         [XmlIgnore()]
         public List<GXCreditChargeConfiguration> CreditChargeConfigurations
-
         {
             get;
             set;
         }
+
         /// <summary>
-        /// 
+        /// Token gateway configurations.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        /// </remarks>
         [XmlIgnore()]
         public List<GXTokenGatewayConfiguration> TokenGatewayConfigurations
-
         {
             get;
             set;
         }
+
         /// <summary>
-        /// 
+        /// Account activation time.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        /// </remarks>
         [XmlIgnore()]
         public GXDateTime AccountActivationTime
         {
             get;
             set;
         }
+
         /// <summary>
-        /// 
+        /// Account closure time.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        /// </remarks>
         [XmlIgnore()]
         public GXDateTime AccountClosureTime
-
         {
             get;
             set;
         }
+
         /// <summary>
-        /// 
+        /// Currency settings.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        /// </remarks>
         [XmlIgnore()]
         public GXCurrency Currency
-
         {
             get;
             set;
         }
+
         /// <summary>
-        /// 
+        /// Low credit threshold.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        /// </remarks>
         [XmlIgnore()]
         public int LowCreditThreshold
-
         {
             get;
             set;
         }
+
         /// <summary>
-        /// 
+        /// Next credit available threshold.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        /// </remarks> 
         [XmlIgnore()]
         public int NextCreditAvailableThreshold
         {
@@ -365,8 +503,12 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// 
+        /// Max provision.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        /// </remarks>
         [XmlIgnore()]
         public UInt16 MaxProvision
         {
@@ -377,6 +519,10 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// 
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        /// </remarks>
         [XmlIgnore()]
         public int MaxProvisionPeriod
         {
@@ -504,6 +650,16 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
             return attributes.ToArray();
         }
 
+        public override DataType GetUIDataType(int index)
+        {
+            //AccountActivationTime or AccountClosureTime
+            if (index == 13 || index == 14)
+            {
+                return DataType.DateTime;
+            }
+            return base.GetUIDataType(index);
+        }
+
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
@@ -591,7 +747,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                 case 3:
                     return CurrentCreditInUse;
                 case 4:
-                    return CurrentCreditStatus;
+                    return (byte) CurrentCreditStatus;
                 case 5:
                     return AvailableCredit;
                 case 6:
@@ -656,7 +812,10 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                             bb.SetUInt8(DataType.OctetString);
                             bb.SetUInt8(6);
                             bb.Set(GXCommon.LogicalNameToBytes(it.ChargeReference));
-                            GXCommon.SetData(settings, bb, DataType.BitString, it.CollectionConfiguration);
+
+                            bb.SetUInt8(DataType.BitString);
+                            bb.SetUInt8(3);
+                            bb.SetUInt8(it.CollectionConfiguration);
                         }
                     }
                     return bb.Array();
@@ -672,6 +831,8 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                         GXCommon.SetObjectCount(TokenGatewayConfigurations.Count, bb);
                         foreach (GXTokenGatewayConfiguration it in TokenGatewayConfigurations)
                         {
+                            bb.SetUInt8(DataType.Structure);
+                            bb.SetUInt8(2);
                             bb.SetUInt8(DataType.OctetString);
                             bb.SetUInt8(6);
                             bb.Set(GXCommon.LogicalNameToBytes(it.CreditReference));
@@ -722,7 +883,9 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                     CurrentCreditInUse = (byte)e.Value;
                     break;
                 case 4:
-                    CurrentCreditStatus = (string)e.Value;
+                    GXByteBuffer bb = new GXByteBuffer();
+                    GXCommon.SetBitString(bb, e.Value);
+                    CurrentCreditStatus = (AccountCreditStatus)bb.GetUInt8(1);
                     break;
                 case 5:
                     AvailableCredit = (int)e.Value;
@@ -765,7 +928,9 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                             GXCreditChargeConfiguration item = new GXCreditChargeConfiguration();
                             item.CreditReference = GXCommon.ToLogicalName(it[0]);
                             item.ChargeReference = GXCommon.ToLogicalName(it[1]);
-                            item.CollectionConfiguration = (string)it[2];
+                            GXByteBuffer tmp2 = new GXByteBuffer();
+                            GXCommon.SetBitString(tmp2, it[2]);
+                            item.CollectionConfiguration = (CreditCollectionConfiguration)tmp2.GetUInt8(1);
                             CreditChargeConfigurations.Add(item);
                         }
                     }
@@ -864,7 +1029,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                     GXCreditChargeConfiguration it = new GXCreditChargeConfiguration();
                     it.CreditReference = reader.ReadElementContentAsString("Credit");
                     it.ChargeReference = reader.ReadElementContentAsString("Charge");
-                    it.CollectionConfiguration = reader.ReadElementContentAsString("Configuration");
+                    it.CollectionConfiguration = (CreditCollectionConfiguration) reader.ReadElementContentAsInt("Configuration");
                     list.Add(it);
                 }
                 reader.ReadEndElement("CreditChargeConfigurations");
@@ -891,23 +1056,24 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
             PaymentMode = (PaymentMode)reader.ReadElementContentAsInt("PaymentMode");
             AccountStatus = (AccountStatus)reader.ReadElementContentAsInt("AccountStatus");
             CurrentCreditInUse = (byte)reader.ReadElementContentAsInt("CurrentCreditInUse");
-            CurrentCreditStatus = reader.ReadElementContentAsString("CurrentCreditSta  tus");
+            CurrentCreditStatus = (AccountCreditStatus) reader.ReadElementContentAsInt("CurrentCreditStatus");
             AvailableCredit = reader.ReadElementContentAsInt("AvailableCredit");
             AmountToClear = reader.ReadElementContentAsInt("AmountToClear");
+            ClearanceThreshold = reader.ReadElementContentAsInt("ClearanceThreshold");
             AggregatedDebt = reader.ReadElementContentAsInt("AggregatedDebt");
             LoadReferences(reader, "CreditReferences", CreditReferences);
             LoadReferences(reader, "ChargeReferences", ChargeReferences);
             LoadCreditChargeConfigurations(reader, CreditChargeConfigurations);
             LoadTokenGatewayConfigurations(reader, TokenGatewayConfigurations);
             string tmp = reader.ReadElementContentAsString("AccountActivationTime");
-            if (tmp != null)
+            if (!string.IsNullOrEmpty(tmp))
             {
-                AccountActivationTime = new GXDateTime(tmp);
+                AccountActivationTime = new GXDateTime(tmp, System.Globalization.CultureInfo.InvariantCulture);
             }
             tmp = reader.ReadElementContentAsString("AccountClosureTime");
-            if (tmp != null)
+            if (!string.IsNullOrEmpty(tmp))
             {
-                AccountClosureTime = new GXDateTime(tmp);
+                AccountClosureTime = new GXDateTime(tmp, System.Globalization.CultureInfo.InvariantCulture);
             }
 
             Currency.Name = reader.ReadElementContentAsString("CurrencyName");
@@ -944,7 +1110,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                     writer.WriteStartElement("Item");
                     writer.WriteElementString("Credit", it.CreditReference);
                     writer.WriteElementString("Charge", it.ChargeReference);
-                    writer.WriteElementString("Configuration", it.CollectionConfiguration);
+                    writer.WriteElementString("Configuration", (int)it.CollectionConfiguration);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();
@@ -969,10 +1135,9 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
             writer.WriteElementString("PaymentMode", (int)PaymentMode);
-
             writer.WriteElementString("AccountStatus", (int)AccountStatus);
             writer.WriteElementString("CurrentCreditInUse", CurrentCreditInUse);
-            writer.WriteElementString("CurrentCreditStatus", CurrentCreditStatus);
+            writer.WriteElementString("CurrentCreditStatus", (byte) CurrentCreditStatus);
             writer.WriteElementString("AvailableCredit", AvailableCredit);
             writer.WriteElementString("AmountToClear", AmountToClear);
             writer.WriteElementString("ClearanceThreshold", ClearanceThreshold);
@@ -985,9 +1150,17 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
             {
                 writer.WriteElementString("AccountActivationTime", AccountActivationTime.ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
             }
+            else
+            {
+                writer.WriteElementString("AccountActivationTime", "");
+            }
             if (AccountClosureTime != null)
             {
                 writer.WriteElementString("AccountClosureTime", AccountClosureTime.ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
+            }
+            else
+            {
+                writer.WriteElementString("AccountClosureTime", "");
             }
             writer.WriteElementString("CurrencyName", Currency.Name);
             writer.WriteElementString("CurrencyScale", Currency.Scale);

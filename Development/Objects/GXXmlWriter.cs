@@ -48,6 +48,7 @@ namespace Gurux.DLMS.Objects
     {
         XmlWriter writer = null;
         Stream stream = null;
+        bool skipDefaults;
 
         public void Dispose()
         {
@@ -73,9 +74,11 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="filename"></param>
-        public GXXmlWriter(string filename)
+        /// <param name="filename">File name.</param>
+        /// <param name="filename">Skip default values.</param>
+        public GXXmlWriter(string filename, bool skipDefaultValues)
         {
+            skipDefaults = skipDefaultValues;
             XmlWriterSettings settings = new XmlWriterSettings()
             {
                 Indent = true,
@@ -124,7 +127,7 @@ namespace Gurux.DLMS.Objects
 
         public void WriteElementString(string name, UInt64 value)
         {
-            if (value != 0)
+            if (!skipDefaults || value != 0)
             {
                 writer.WriteElementString(name, value.ToString());
             }
@@ -137,7 +140,7 @@ namespace Gurux.DLMS.Objects
 
         public void WriteElementString(string name, double value, double defaultValue)
         {
-            if (value != defaultValue)
+            if (!skipDefaults || value != defaultValue)
             {
                 writer.WriteElementString(name, value.ToString(CultureInfo.InvariantCulture));
             }
@@ -145,7 +148,7 @@ namespace Gurux.DLMS.Objects
 
         public void WriteElementString(string name, int value)
         {
-            if (value != 0)
+            if (!skipDefaults || value != 0)
             {
                 writer.WriteElementString(name, value.ToString());
             }
@@ -162,11 +165,15 @@ namespace Gurux.DLMS.Objects
                 }
                 writer.WriteElementString(name, value);
             }
+            else if (!skipDefaults)
+            {
+                writer.WriteElementString(name, "");
+            }
         }
 
         public void WriteElementString(string name, bool value)
         {
-            if (value)
+            if (!skipDefaults || value)
             {
                 writer.WriteElementString(name, "1");
             }
@@ -177,6 +184,10 @@ namespace Gurux.DLMS.Objects
             if (value != null && value != DateTime.MinValue)
             {
                 writer.WriteElementString(name, value.ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
+            }
+            else if (!skipDefaults)
+            {
+                writer.WriteElementString(name, "");
             }
         }
 

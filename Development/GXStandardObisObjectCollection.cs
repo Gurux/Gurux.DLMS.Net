@@ -439,7 +439,7 @@ namespace Gurux.DLMS
             {
                 return value.ToString();
             }
-            return "#" + (value + int.Parse(formula.Substring(1))).ToString();
+            return (value + int.Parse(formula.Substring(1))).ToString();
         }
 
         /// <summary>
@@ -492,7 +492,7 @@ namespace Gurux.DLMS
                         tmp.Description = tmp.Description.Replace("$E", obisCode[4].ToString());
                         tmp.Description = tmp.Description.Replace("$F", obisCode[5].ToString());
                         //Increase value
-                        int begin = tmp.Description.IndexOf("#$(");
+                        int begin = tmp.Description.IndexOf("$(");
                         if (begin != -1)
                         {
                             string[] arr = tmp.Description.Substring(begin + 2).Split(new char[] { '(', ')', '$' }, StringSplitOptions.RemoveEmptyEntries);

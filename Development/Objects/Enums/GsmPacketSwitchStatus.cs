@@ -39,7 +39,9 @@ using System.Text;
 
 namespace Gurux.DLMS.Objects.Enums
 {
-    //packet switched status of the modem
+    /// <summary>
+    /// Packet switched status of the modem.
+    /// </summary>
     public enum GsmPacketSwitchStatus
     {
         ///<summary>

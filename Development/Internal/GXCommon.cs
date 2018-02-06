@@ -2256,7 +2256,7 @@ namespace Gurux.DLMS.Internal
                     buff.SetUInt8(val);
                 }
             }
-            else if (value is sbyte[])
+            else if (value is byte[])
             {
                 byte[] arr = (byte[])value;
                 SetObjectCount(8 * arr.Length, buff);
@@ -2265,6 +2265,11 @@ namespace Gurux.DLMS.Internal
             else if (value == null)
             {
                 buff.SetUInt8(0);
+            }
+            else if (value is byte)
+            {
+                SetObjectCount(8, buff);
+                buff.SetUInt8((byte) value);
             }
             else
             {

@@ -121,6 +121,15 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
+        public override DataType GetUIDataType(int index)
+        {
+            if (index == 2)
+            {
+                return DataType.String;
+            }
+            return base.GetUIDataType(index);
+        }
+
         int[] IGXDLMSBase.GetAttributeIndexToRead()
         {
             List<int> attributes = new List<int>();

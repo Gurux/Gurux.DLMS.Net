@@ -325,11 +325,43 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 2)
             {
-                return this.CurrentAverageValue;
+                //If client set new value.
+                if (!settings.IsServer && Scaler != 1 && CurrentAverageValue != null)
+                {
+                    Type type = null;
+                    if (CurrentAverageValue != null)
+                    {
+                        type = CurrentAverageValue.GetType();
+                    }
+                    object tmp;
+                    tmp = Convert.ToDouble(CurrentAverageValue) / Scaler;
+                    if (type != null)
+                    {
+                        tmp = Convert.ChangeType(tmp, type);
+                    }
+                    return tmp;
+                }
+                return CurrentAverageValue;
             }
             if (e.Index == 3)
             {
-                return this.LastAverageValue;
+                //If client set new value.
+                if (!settings.IsServer && Scaler != 1 && LastAverageValue != null)
+                {
+                    Type type = null;
+                    if (LastAverageValue != null)
+                    {
+                        type = LastAverageValue.GetType();
+                    }
+                    object tmp;
+                    tmp = Convert.ToDouble(LastAverageValue) / Scaler;
+                    if (type != null)
+                    {
+                        tmp = Convert.ChangeType(tmp, type);
+                    }
+                    return tmp;
+                }
+                return LastAverageValue;
             }
             if (e.Index == 4)
             {
@@ -342,7 +374,7 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 5)
             {
-                return this.Status;
+                return Status;
             }
             if (e.Index == 6)
             {
@@ -372,11 +404,18 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 2)
             {
-                if (Scaler != 1)
+                if (Scaler != 1 && e.Value != null && !e.User)
                 {
                     try
                     {
-                        CurrentAverageValue = Convert.ToDouble(e.Value) * Scaler;
+                        if (settings.IsServer)
+                        {
+                            CurrentAverageValue = e.Value;
+                        }
+                        else
+                        {
+                            CurrentAverageValue = Convert.ToDouble(e.Value) * Scaler;
+                        }
                     }
                     catch (Exception)
                     {
@@ -391,11 +430,18 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 3)
             {
-                if (Scaler != 1)
+                if (Scaler != 1 && e.Value != null && !e.User)
                 {
                     try
                     {
-                        LastAverageValue = Convert.ToDouble(e.Value) * Scaler;
+                        if (settings.IsServer)
+                        {
+                            LastAverageValue = e.Value;
+                        }
+                        else
+                        {
+                            LastAverageValue = Convert.ToDouble(e.Value) * Scaler;
+                        }
                     }
                     catch (Exception)
                     {
@@ -476,7 +522,23 @@ namespace Gurux.DLMS.Objects
 
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
-            e.Error = ErrorCode.ReadWriteDenied;
+            // Resets the value to the default value.
+            // The default value is an instance specific constant.
+            if (e.Index == 1)
+            {
+                CurrentAverageValue = LastAverageValue = null;
+                CaptureTime = StartTimeCurrent = new GXDateTime(DateTime.Now);
+            }
+            else if (e.Index == 2)
+            {
+                LastAverageValue = CurrentAverageValue;
+                CurrentAverageValue = null;
+                CaptureTime = StartTimeCurrent = new GXDateTime(DateTime.Now);
+            }
+            else
+            {
+                e.Error = ErrorCode.ReadWriteDenied;
+            }
             return null;
         }
 

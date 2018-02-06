@@ -195,11 +195,21 @@ namespace Gurux.DLMS.Objects
             return packets.ToArray();
         }
 
+        /// <summary>
+        /// Verify image.
+        /// </summary>
+        /// <param name="client">DLMS Client.</param>
+        /// <returns>Bytes send to the meter.</returns>
         public byte[][] ImageVerify(GXDLMSClient client)
         {
             return client.Method(this, 3, 0, DataType.Int8);
         }
 
+        /// <summary>
+        /// Activate image.
+        /// </summary>
+        /// <param name="client">DLMS Client.</param>
+        /// <returns>Bytes send to the meter.</returns>
         public byte[][] ImageActivate(GXDLMSClient client)
         {
             return client.Method(this, 4, 0, DataType.Int8);
@@ -388,119 +398,123 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
+        private object GetImageActivateInfo(GXDLMSSettings settings)
         {
-            if (e.Index == 1)
+            GXByteBuffer data = new GXByteBuffer();
+            data.SetUInt8((byte)DataType.Array);
+            if (ImageActivateInfo == null)
             {
-                return GXCommon.LogicalNameToBytes(LogicalName);
+                GXCommon.SetObjectCount(0, data);
             }
-            if (e.Index == 2)
+            else
             {
-                return ImageBlockSize;
-            }
-            if (e.Index == 3)
-            {
-                return ImageTransferredBlocksStatus;
-            }
-            if (e.Index == 4)
-            {
-                return ImageFirstNotTransferredBlockNumber;
-            }
-            if (e.Index == 5)
-            {
-                return ImageTransferEnabled;
-            }
-            if (e.Index == 6)
-            {
-                return ImageTransferStatus;
-            }
-            if (e.Index == 7)
-            {
-                GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((byte)DataType.Array);
-                if (ImageActivateInfo == null)
+                GXCommon.SetObjectCount(ImageActivateInfo.Length, data);
+                foreach (GXDLMSImageActivateInfo it in ImageActivateInfo)
                 {
-                    GXCommon.SetObjectCount(0, data);
-                }
-                else
-                {
-                    GXCommon.SetObjectCount(ImageActivateInfo.Length, data);
-                    foreach (GXDLMSImageActivateInfo it in ImageActivateInfo)
+                    data.SetUInt8((byte)DataType.Structure);
+                    data.SetUInt8(3);
+                    GXCommon.SetData(settings, data, DataType.UInt32, it.Size);
+                    if (it.Identification == null)
                     {
-                        data.SetUInt8((byte)DataType.Structure);
-                        data.SetUInt8(3);
-                        GXCommon.SetData(settings, data, DataType.UInt32, it.Size);
-                        if (it.Identification == null)
-                        {
-                            GXCommon.SetData(settings, data, DataType.OctetString, null);
-                        }
-                        else
-                        {
-                            GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Identification));
-                        }
-                        if (it.Signature == null || it.Signature.Length == 0)
-                        {
-                            GXCommon.SetData(settings, data, DataType.OctetString, null);
-                        }
-                        else
-                        {
-                            GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Signature));
-                        }
+                        GXCommon.SetData(settings, data, DataType.OctetString, null);
+                    }
+                    else
+                    {
+                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Identification));
+                    }
+                    if (it.Signature == null || it.Signature.Length == 0)
+                    {
+                        GXCommon.SetData(settings, data, DataType.OctetString, null);
+                    }
+                    else
+                    {
+                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Signature));
                     }
                 }
-                return data.Array();
             }
-            e.Error = ErrorCode.ReadWriteDenied;
-            return null;
+            return data.Array();
+        }
+
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
+        {
+            object ret;
+            switch (e.Index)
+            {
+                case 1:
+                    ret = GXCommon.LogicalNameToBytes(LogicalName);
+                    break;
+                case 2:
+                    ret = ImageBlockSize;
+                    break;
+                case 3:
+                    ret = ImageTransferredBlocksStatus;
+                    break;
+                case 4:
+                    ret = ImageFirstNotTransferredBlockNumber;
+                    break;
+                case 5:
+                    ret = ImageTransferEnabled;
+                    break;
+                case 6:
+                    ret = ImageTransferStatus;
+                    break;
+                case 7:
+                    ret = GetImageActivateInfo(settings);
+                    break;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    ret = null;
+                    break;
+            }
+            return ret;
+        }
+        private void SetImageActivateInfo(object value)
+        {
+            ImageActivateInfo = null;
+            List<GXDLMSImageActivateInfo> list = new List<GXDLMSImageActivateInfo>();
+            if (value != null)
+            {
+                foreach (Object it in (Object[])value)
+                {
+                    GXDLMSImageActivateInfo item = new GXDLMSImageActivateInfo();
+                    Object[] tmp = (Object[])it;
+                    item.Size = Convert.ToUInt32(tmp[0]);
+                    item.Identification = ASCIIEncoding.ASCII.GetString((byte[])tmp[1]);
+                    item.Signature = ASCIIEncoding.ASCII.GetString((byte[])tmp[2]);
+                    list.Add(item);
+                }
+            }
+            ImageActivateInfo = list.ToArray();
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            switch (e.Index)
             {
-                LogicalName = GXCommon.ToLogicalName(e.Value);
-            }
-            else if (e.Index == 2)
-            {
-                ImageBlockSize = Convert.ToUInt32(e.Value);
-            }
-            else if (e.Index == 3)
-            {
-                ImageTransferredBlocksStatus = (string)e.Value;
-            }
-            else if (e.Index == 4)
-            {
-                ImageFirstNotTransferredBlockNumber = Convert.ToUInt32(e.Value);
-            }
-            else if (e.Index == 5)
-            {
-                ImageTransferEnabled = Convert.ToBoolean(e.Value);
-            }
-            else if (e.Index == 6)
-            {
-                ImageTransferStatus = (ImageTransferStatus)Convert.ToUInt32(e.Value);
-            }
-            else if (e.Index == 7)
-            {
-                ImageActivateInfo = null;
-                List<GXDLMSImageActivateInfo> list = new List<GXDLMSImageActivateInfo>();
-                if (e.Value != null)
-                {
-                    foreach (Object it in (Object[])e.Value)
-                    {
-                        GXDLMSImageActivateInfo item = new GXDLMSImageActivateInfo();
-                        Object[] tmp = (Object[])it;
-                        item.Size = Convert.ToUInt32(tmp[0]);
-                        item.Identification = ASCIIEncoding.ASCII.GetString((byte[])tmp[1]);
-                        item.Signature = ASCIIEncoding.ASCII.GetString((byte[])tmp[2]);
-                        list.Add(item);
-                    }
-                }
-                ImageActivateInfo = list.ToArray();
-            }
-            else
-            {
-                e.Error = ErrorCode.ReadWriteDenied;
+                case 1:
+                    LogicalName = GXCommon.ToLogicalName(e.Value);
+                    break;
+                case 2:
+                    ImageBlockSize = Convert.ToUInt32(e.Value);
+                    break;
+                case 3:
+                    ImageTransferredBlocksStatus = (string)e.Value;
+                    break;
+                case 4:
+                    ImageFirstNotTransferredBlockNumber = Convert.ToUInt32(e.Value);
+                    break;
+                case 5:
+                    ImageTransferEnabled = Convert.ToBoolean(e.Value);
+                    break;
+                case 6:
+                    ImageTransferStatus = (ImageTransferStatus)Convert.ToUInt32(e.Value);
+                    break;
+                case 7:
+                    SetImageActivateInfo(e.Value);
+                    break;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
             }
         }
 

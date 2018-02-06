@@ -35,12 +35,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Gurux.DLMS;
-using System.ComponentModel;
 using System.Xml.Serialization;
-using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Enums;
-using System.Xml;
 using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
@@ -602,14 +598,14 @@ namespace Gurux.DLMS.Objects
             string tmp = reader.ReadElementContentAsString("UnitChargeActivationTime");
             if (tmp != null)
             {
-                UnitChargeActivationTime = new GXDateTime(tmp);
+                UnitChargeActivationTime = new GXDateTime(tmp, System.Globalization.CultureInfo.InvariantCulture);
             }
             Period = (UInt16)reader.ReadElementContentAsInt("Period");
             ChargeConfiguration = reader.ReadElementContentAsString("ChargeConfiguration");
             tmp = reader.ReadElementContentAsString("LastCollectionTime");
             if (tmp != null)
             {
-                LastCollectionTime = new GXDateTime(tmp);
+                LastCollectionTime = new GXDateTime(tmp, System.Globalization.CultureInfo.InvariantCulture);
             }
             LastCollectionAmount = reader.ReadElementContentAsInt("LastCollectionAmount");
             TotalAmountRemaining = reader.ReadElementContentAsInt("TotalAmountRemaining");

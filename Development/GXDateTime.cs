@@ -99,7 +99,7 @@ namespace Gurux.DLMS
         public GXDateTime(string value, CultureInfo culture)
             : base()
         {
-            if (value != null)
+            if (!string.IsNullOrEmpty(value))
             {
                 DateTime dt;
                 if (value.IndexOf('*') == -1)

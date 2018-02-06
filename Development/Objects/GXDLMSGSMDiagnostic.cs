@@ -247,81 +247,77 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
         public override DataType GetDataType(int index)
         {
-            if (index == 1)
+            switch (index)
             {
-                return DataType.OctetString;
-            }
-            // Operator
-            if (index == 2)
-            {
-                return DataType.String;
-            }
-            //Status
-            if (index == 3)
-            {
-                return DataType.Enum;
-            }
-            //CircuitSwitchStatus
-            if (index == 4)
-            {
-                return DataType.Enum;
-            }
-            //PacketSwitchStatus
-            if (index == 5)
-            {
-                return DataType.Enum;
-            }
-            //CellInfo
-            if (index == 6)
-            {
-                return DataType.Structure;
-            }
-            //AdjacentCells
-            if (index == 7)
-            {
-                return DataType.Array;
-            }
-            //CaptureTime
-            if (index == 8)
-            {
-                return DataType.DateTime;
+                case 1:
+                    return DataType.OctetString;
+                case 2:
+                    return DataType.String;
+                case 3:
+                    return DataType.Enum;
+                case 4:
+                    return DataType.Enum;
+                case 5:
+                    return DataType.Enum;
+                case 6:
+                    return DataType.Structure;
+                case 7:
+                    return DataType.Array;
+                case 8:
+                    return DataType.DateTime;
             }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            GXByteBuffer bb;
+            switch (e.Index)
             {
-                return GXCommon.LogicalNameToBytes(LogicalName);
-            }
-            if (e.Index == 2)
-            {
-                return Operator;
-            }
-            if (e.Index == 3)
-            {
-                return Status;
-            }
-            if (e.Index == 4)
-            {
-                return CircuitSwitchStatus;
-            }
-            if (e.Index == 5)
-            {
-                return PacketSwitchStatus;
-            }
-            if (e.Index == 6)
-            {
-                return CellInfo;
-            }
-            if (e.Index == 7)
-            {
-                return AdjacentCells;
-            }
-            if (e.Index == 8)
-            {
-                return CaptureTime;
+                case 1:
+                    return GXCommon.LogicalNameToBytes(LogicalName);
+                case 2:
+                    if (string.IsNullOrEmpty(Operator))
+                    {
+                        return null;
+                    }
+                    return ASCIIEncoding.ASCII.GetBytes(Operator);
+                case 3:
+                    return Status;
+                case 4:
+                    return CircuitSwitchStatus;
+                case 5:
+                    return PacketSwitchStatus;
+                case 6:
+                    bb = new GXByteBuffer();
+                    bb.SetUInt8(DataType.Structure);
+                    bb.SetUInt8(4);
+                    GXCommon.SetData(settings, bb, DataType.UInt16, CellInfo.CellId);
+                    GXCommon.SetData(settings, bb, DataType.UInt16, CellInfo.LocationId);
+                    GXCommon.SetData(settings, bb, DataType.UInt8, CellInfo.SignalQuality);
+                    GXCommon.SetData(settings, bb, DataType.UInt8, CellInfo.Ber);
+                    return bb.Array();
+                case 7:
+                    bb = new GXByteBuffer();
+                    bb.SetUInt8(DataType.Array);
+                    if (AdjacentCells == null)
+                    {
+                        bb.SetUInt8(0);
+                    }
+                    else
+                    {
+                        bb.SetUInt8((byte)AdjacentCells.Count);
+                    }
+                    foreach (AdjacentCell it in AdjacentCells)
+                    {
+                        bb.SetUInt8(DataType.Structure);
+                        bb.SetUInt8(2);
+                        GXCommon.SetData(settings, bb, DataType.UInt16, it.CellId);
+                        GXCommon.SetData(settings, bb, DataType.UInt8, it.SignalQuality);
+                    }
+                    return bb.Array();
+                case 8:
+                    return CaptureTime;
             }
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
@@ -329,59 +325,67 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            switch (e.Index)
             {
-                LogicalName = GXCommon.ToLogicalName(e.Value);
-            }
-            else if (e.Index == 2)
-            {
-                Operator = (string)e.Value;
-            }
-            else if (e.Index == 3)
-            {
-                Status = (GsmStatus)e.Value;
-            }
-            else if (e.Index == 4)
-            {
-                CircuitSwitchStatus = (GsmCircuitSwitchStatus)e.Value;
-            }
-            else if (e.Index == 5)
-            {
-                PacketSwitchStatus = (GsmPacketSwitchStatus)e.Value;
-            }
-            else if (e.Index == 6)
-            {
-                if (e.Value != null)
-                {
-                    object[] tmp = (object[])e.Value;
-                    CellInfo.CellId = (string)tmp[0];
-                    CellInfo.LocationId = (UInt16)tmp[1];
-                    CellInfo.SignalQuality = (byte)tmp[2];
-                    CellInfo.Ber = (byte)tmp[3];
-                }
-            }
-            else if (e.Index == 7)
-            {
-                AdjacentCells.Clear();
-                if (e.Value != null)
-                {
-                    foreach (object it in (object[])e.Value)
+                case 1:
+                    LogicalName = GXCommon.ToLogicalName(e.Value);
+                    break;
+                case 2:
+                    if (e.Value is byte[])
                     {
-                        object[] tmp = (object[])it;
-                        AdjacentCell ac = new Objects.AdjacentCell();
-                        ac.CellId = (string)tmp[0];
-                        ac.SignalQuality = (byte)tmp[1];
-                        AdjacentCells.Add(ac);
+                        Operator = ASCIIEncoding.ASCII.GetString((byte[])e.Value);
                     }
-                }
-            }
-            else if (e.Index == 8)
-            {
-                CaptureTime = (GXDateTime)e.Value;
-            }
-            else
-            {
-                e.Error = ErrorCode.ReadWriteDenied;
+                    else
+                    {
+                        Operator = (string)e.Value;
+                    }
+                    break;
+                case 3:
+                    Status = (GsmStatus)(byte)e.Value;
+                    break;
+                case 4:
+                    CircuitSwitchStatus = (GsmCircuitSwitchStatus)(byte)e.Value;
+                    break;
+                case 5:
+                    PacketSwitchStatus = (GsmPacketSwitchStatus)(byte)e.Value;
+                    break;
+                case 6:
+                    if (e.Value != null)
+                    {
+                        object[] tmp = (object[])e.Value;
+                        CellInfo.CellId = (UInt16)tmp[0];
+                        CellInfo.LocationId = (UInt16)tmp[1];
+                        CellInfo.SignalQuality = (byte)tmp[2];
+                        CellInfo.Ber = (byte)tmp[3];
+                    }
+                    break;
+                case 7:
+                    AdjacentCells.Clear();
+                    if (e.Value != null)
+                    {
+                        foreach (object it in (object[])e.Value)
+                        {
+                            object[] tmp = (object[])it;
+                            AdjacentCell ac = new Objects.AdjacentCell();
+                            ac.CellId = (string)tmp[0];
+                            ac.SignalQuality = (byte)tmp[1];
+                            AdjacentCells.Add(ac);
+                        }
+                    }
+                    break;
+                case 8:
+                    if (e.Value is byte[])
+                    {
+                        CaptureTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
+                    }
+                    else
+                    {
+                        CaptureTime = (GXDateTime)e.Value;
+                    }
+                    break;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
             }
         }
 
@@ -393,7 +397,7 @@ namespace Gurux.DLMS.Objects
             PacketSwitchStatus = (GsmPacketSwitchStatus)reader.ReadElementContentAsInt("PacketSwitchStatus");
             if (reader.IsStartElement("CellInfo", true))
             {
-                CellInfo.CellId = reader.ReadElementContentAsString("CellId");
+                CellInfo.CellId = (UInt16)reader.ReadElementContentAsInt("CellId");
                 CellInfo.LocationId = (UInt16)reader.ReadElementContentAsInt("LocationId");
                 CellInfo.SignalQuality = (byte)reader.ReadElementContentAsInt("SignalQuality");
                 CellInfo.Ber = (byte)reader.ReadElementContentAsInt("Ber");
@@ -411,15 +415,15 @@ namespace Gurux.DLMS.Objects
                 }
                 reader.ReadEndElement("AdjacentCells");
             }
-            CaptureTime = new GXDateTime(reader.ReadElementContentAsString("CaptureTime"));
+            CaptureTime = new GXDateTime(reader.ReadElementContentAsString("CaptureTime"), System.Globalization.CultureInfo.InvariantCulture);
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementObject("Operator", Operator);
-            writer.WriteElementString("Status", (int) Status);
+            writer.WriteElementString("Operator", Operator);
+            writer.WriteElementString("Status", (int)Status);
             writer.WriteElementString("CircuitSwitchStatus", (int)CircuitSwitchStatus);
-            writer.WriteElementString("PacketSwitchStatus", (int)PacketSwitchStatus);       
+            writer.WriteElementString("PacketSwitchStatus", (int)PacketSwitchStatus);
             if (CellInfo != null)
             {
                 writer.WriteStartElement("CellInfo");

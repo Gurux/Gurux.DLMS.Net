@@ -188,7 +188,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Value" , "Scaler and Unit" };
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Value", "Scaler and Unit" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -231,6 +231,22 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 2)
             {
+                //If client set new value.
+                if (!settings.IsServer && Scaler != 1 && Value != null)
+                {
+                    Type type = null;
+                    if (Value != null)
+                    {
+                        type = Value.GetType();
+                    }
+                    object tmp;
+                    tmp = Convert.ToDouble(Value) / Scaler;
+                    if (type != null)
+                    {
+                        tmp = Convert.ChangeType(tmp, type);
+                    }
+                    return tmp;
+                }
                 return Value;
             }
             if (e.Index == 3)
@@ -254,11 +270,18 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 2)
             {
-                if (Scaler != 1)
+                if (Scaler != 1 && e.Value != null && !e.User)
                 {
                     try
                     {
-                        Value = Convert.ToDouble(e.Value) * Scaler;
+                        if (settings.IsServer)
+                        {
+                            Value = e.Value;
+                        }
+                        else
+                        {
+                            Value = Convert.ToDouble(e.Value) * Scaler;
+                        }
                     }
                     catch (Exception)
                     {

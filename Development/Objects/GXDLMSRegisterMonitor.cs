@@ -308,13 +308,21 @@ namespace Gurux.DLMS.Objects
                     if (reader.IsStartElement("Up", true))
                     {
                         it.ActionUp.LogicalName = reader.ReadElementContentAsString("LN", null);
+                        if (it.ActionUp.LogicalName == "")
+                        {
+                            it.ActionUp.LogicalName = "0.0.0.0.0.0";
+                        }
                         it.ActionUp.ScriptSelector = (UInt16)reader.ReadElementContentAsInt("Selector");
                         reader.ReadEndElement("Up");
                     }
                     if (reader.IsStartElement("Down", true))
                     {
-                        it.ActionUp.LogicalName = reader.ReadElementContentAsString("LN", null);
-                        it.ActionUp.ScriptSelector = (UInt16)reader.ReadElementContentAsInt("Selector");
+                        it.ActionDown.LogicalName = reader.ReadElementContentAsString("LN", null);
+                        if (it.ActionDown.LogicalName == "")
+                        {
+                            it.ActionDown.LogicalName = "0.0.0.0.0.0";
+                        }
+                        it.ActionDown.ScriptSelector = (UInt16)reader.ReadElementContentAsInt("Selector");
                         reader.ReadEndElement("Down");
                     }
                 }

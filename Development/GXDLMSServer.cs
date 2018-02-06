@@ -300,6 +300,15 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Notify client from connection.
+        /// </summary>
+        /// <param name="connectionInfo"></param>
+        internal void NotifyConnected(GXDLMSConnectionEventArgs connectionInfo)
+        {
+            Connected(connectionInfo);
+        }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         public GXDLMSServer(bool logicalNameReferencing, InterfaceType type)
@@ -992,11 +1001,11 @@ namespace Gurux.DLMS
                     break;
                 case Command.ReleaseRequest:
                     HandleReleaseRequest(data, sr.ConnectionInfo);
+                    Settings.Connected = false;
+                    Disconnected(sr.ConnectionInfo);
                     break;
                 case Command.DisconnectRequest:
                     GenerateDisconnectRequest();
-                    Settings.Connected = false;
-                    Disconnected(sr.ConnectionInfo);
                     frame = (byte)Command.Ua;
                     break;
                 case Command.GeneralBlockTransfer:

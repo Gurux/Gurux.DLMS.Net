@@ -279,71 +279,77 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
+        private object GetPushObjectList(GXDLMSSettings settings)
         {
-            if (e.Index == 1)
-            {
-                return GXCommon.LogicalNameToBytes(LogicalName);
-            }
             GXByteBuffer buff = new GXByteBuffer();
-            if (e.Index == 2)
-            {
-                buff.SetUInt8(DataType.Array);
-                GXCommon.SetObjectCount(PushObjectList.Count, buff);
-                foreach (KeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in PushObjectList)
-                {
-                    buff.SetUInt8(DataType.Structure);
-                    buff.SetUInt8(4);
-                    GXCommon.SetData(settings, buff, DataType.UInt16, it.Key.ObjectType);
-                    GXCommon.SetData(settings, buff, DataType.OctetString, GXCommon.LogicalNameToBytes(it.Key.LogicalName));
-                    GXCommon.SetData(settings, buff, DataType.Int8, it.Value.AttributeIndex);
-                    GXCommon.SetData(settings, buff, DataType.UInt16, it.Value.DataIndex);
-                }
-                return buff.Array();
-            }
-            if (e.Index == 3)
+            buff.SetUInt8(DataType.Array);
+            GXCommon.SetObjectCount(PushObjectList.Count, buff);
+            foreach (KeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in PushObjectList)
             {
                 buff.SetUInt8(DataType.Structure);
-                buff.SetUInt8(3);
-                GXCommon.SetData(settings, buff, DataType.UInt8, Service);
-                if (Destination != null)
-                {
-                    GXCommon.SetData(settings, buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(Destination));
-                }
-                else
-                {
-                    GXCommon.SetData(settings, buff, DataType.OctetString, null);
-                }
-                GXCommon.SetData(settings, buff, DataType.UInt8, Message);
-                return buff.Array();
+                buff.SetUInt8(4);
+                GXCommon.SetData(settings, buff, DataType.UInt16, it.Key.ObjectType);
+                GXCommon.SetData(settings, buff, DataType.OctetString, GXCommon.LogicalNameToBytes(it.Key.LogicalName));
+                GXCommon.SetData(settings, buff, DataType.Int8, it.Value.AttributeIndex);
+                GXCommon.SetData(settings, buff, DataType.UInt16, it.Value.DataIndex);
             }
-            if (e.Index == 4)
+            return buff.Array();
+        }
+
+        object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
+        {
+            GXByteBuffer buff = new GXByteBuffer();
+            object ret;
+            switch (e.Index)
             {
-                buff.SetUInt8(DataType.Array);
-                GXCommon.SetObjectCount(CommunicationWindow.Count, buff);
-                foreach (KeyValuePair<GXDateTime, GXDateTime> it in CommunicationWindow)
-                {
+                case 1:
+                    ret = GXCommon.LogicalNameToBytes(LogicalName);
+                    break;
+                case 2:
+                    ret = GetPushObjectList(settings);
+                    break;
+                case 3:
                     buff.SetUInt8(DataType.Structure);
-                    buff.SetUInt8(2);
-                    GXCommon.SetData(settings, buff, DataType.OctetString, it.Key);
-                    GXCommon.SetData(settings, buff, DataType.OctetString, it.Value);
-                }
-                return buff.Array();
+                    buff.SetUInt8(3);
+                    GXCommon.SetData(settings, buff, DataType.Enum, Service);
+                    if (Destination != null)
+                    {
+                        GXCommon.SetData(settings, buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(Destination));
+                    }
+                    else
+                    {
+                        GXCommon.SetData(settings, buff, DataType.OctetString, null);
+                    }
+                    GXCommon.SetData(settings, buff, DataType.Enum, Message);
+                    ret = buff.Array();
+                    break;
+                case 4:
+                    buff.SetUInt8(DataType.Array);
+                    GXCommon.SetObjectCount(CommunicationWindow.Count, buff);
+                    foreach (KeyValuePair<GXDateTime, GXDateTime> it in CommunicationWindow)
+                    {
+                        buff.SetUInt8(DataType.Structure);
+                        buff.SetUInt8(2);
+                        GXCommon.SetData(settings, buff, DataType.OctetString, it.Key);
+                        GXCommon.SetData(settings, buff, DataType.OctetString, it.Value);
+                    }
+                    ret = buff.Array();
+                    break;
+                case 5:
+                    ret = RandomisationStartInterval;
+                    break;
+                case 6:
+                    ret = NumberOfRetries;
+                    break;
+                case 7:
+                    ret = RepetitionDelay;
+                    break;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    ret = null;
+                    break;
             }
-            if (e.Index == 5)
-            {
-                return RandomisationStartInterval;
-            }
-            if (e.Index == 6)
-            {
-                return NumberOfRetries;
-            }
-            if (e.Index == 7)
-            {
-                return RepetitionDelay;
-            }
-            e.Error = ErrorCode.ReadWriteDenied;
-            return null;
+            return ret;
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
@@ -434,9 +440,14 @@ namespace Gurux.DLMS.Objects
                     string ln = reader.ReadElementContentAsString("LN");
                     int ai = reader.ReadElementContentAsInt("AI");
                     int di = reader.ReadElementContentAsInt("DI");
-                    reader.ReadEndElement("ObjectList");
+                    reader.ReadEndElement("Item");
                     GXDLMSCaptureObject co = new GXDLMSCaptureObject(ai, di);
                     GXDLMSObject obj = reader.Objects.FindByLN(ot, ln);
+                    if (obj == null)
+                    {
+                        obj = GXDLMSClient.CreateObject(ot);
+                        obj.LogicalName = ln;
+                    }
                     PushObjectList.Add(new KeyValuePair<Objects.GXDLMSObject, Objects.GXDLMSCaptureObject>(obj, co));
                 }
                 reader.ReadEndElement("ObjectList");

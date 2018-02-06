@@ -1566,7 +1566,7 @@ namespace Gurux.DLMS
                 }
                 else if (tmp == (byte)HdlcControlFrame.ReceiveReady)
                 {
-                    System.Diagnostics.Debug.WriteLine("Get next frame.");
+                  //  System.Diagnostics.Debug.WriteLine("Get next frame.");
                 }
                 //Get Eop if there is no data.
                 if (reply.Position == packetStartID + frameLen + 1)
@@ -1721,25 +1721,32 @@ namespace Gurux.DLMS
             }
             int pos = buff.Position;
             int value;
-            // Get version
-            value = buff.GetUInt16();
-            if (value != 1)
+            data.IsComplete = false;
+            while (buff.Position != buff.Size)
             {
-                throw new GXDLMSException("Unknown version.");
-            }
-
-            // Check TCP/IP addresses.
-            CheckWrapperAddress(settings, buff);
-            // Get length.
-            value = buff.GetUInt16();
-            data.IsComplete = !((buff.Size - buff.Position) < value);
-            if (!data.IsComplete)
-            {
-                buff.Position = pos;
-            }
-            else
-            {
-                data.PacketLength = buff.Position + value;
+                // Get version
+                value = buff.GetUInt16();
+                if (value == 1)
+                {
+                    // Check TCP/IP addresses.
+                    CheckWrapperAddress(settings, buff);
+                    // Get length.
+                    value = buff.GetUInt16();
+                    data.IsComplete = !((buff.Size - buff.Position) < value);
+                    if (!data.IsComplete)
+                    {
+                        buff.Position = pos;
+                    }
+                    else
+                    {
+                        data.PacketLength = buff.Position + value;
+                    }
+                    break;
+                }
+                else
+                {
+                    --buff.Position;
+                }
             }
         }
 

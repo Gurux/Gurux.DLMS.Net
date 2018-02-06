@@ -393,7 +393,9 @@ namespace Gurux.DLMS.Objects
                                  "Association Status"
                                 };
             }
-            return new string[] {Internal.GXCommon.GetLogicalNameString(),
+            if (Version == 1)
+            {
+                return new string[] {Internal.GXCommon.GetLogicalNameString(),
                              "Object List",
                              "Aassociated_partners_id",
                              "Application Context Name",
@@ -403,6 +405,19 @@ namespace Gurux.DLMS.Objects
                              "Association Status",
                              "Security Setup Reference"
                             };
+            }
+            return new string[] {Internal.GXCommon.GetLogicalNameString(),
+                             "Object List",
+                             "Aassociated_partners_id",
+                             "Application Context Name",
+                             "xDLMS Context Info",
+                             "Authentication Mechanism Name",
+                             "Secret",
+                             "Association Status",
+                             "Security Setup Reference",
+                             "UserList", "CurrentUser"
+                            };
+
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -725,7 +740,7 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetData(settings, data, DataType.UInt8, CurrentUser.Key);
                 GXCommon.SetData(settings, data, DataType.String, CurrentUser.Value);
                 return data.Array();
-            }            
+            }
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
         }

@@ -45,6 +45,7 @@ namespace Gurux.DLMS.Objects
         public GXXmlWriterSettings()
         {
             Values = true;
+            IgnoreDefaultValues = true;
         }
 
         /// <summary>
@@ -55,5 +56,15 @@ namespace Gurux.DLMS.Objects
             get;
             set;
         }
+
+        /// <summary>
+        /// Are default values serialized.
+        /// </summary>
+        public bool IgnoreDefaultValues
+        {
+            get;
+            set;
+        }
+        
     }
 }

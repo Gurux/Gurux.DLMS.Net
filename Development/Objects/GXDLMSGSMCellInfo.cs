@@ -40,7 +40,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Two byte cell ID.
         /// </summary>
-        public string CellId
+        public UInt16 CellId
         {
             get;
             set;

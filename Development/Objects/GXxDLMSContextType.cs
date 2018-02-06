@@ -45,8 +45,16 @@ namespace Gurux.DLMS.Objects
         Conformance conformance;
         UInt16 maxReceivePduSize;
         UInt16 maxSendPpuSize;
-        byte dlmsVersionNumber;
         internal GXDLMSSettings settings = null;
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public GXxDLMSContextType()
+        {
+            DlmsVersionNumber = 6;
+        }
+
         /// <summary>
         /// Conformance
         /// </summary>
@@ -107,25 +115,16 @@ namespace Gurux.DLMS.Objects
                 maxSendPpuSize = value;
             }
         }
+
+        /// <summary>
+        /// Dlms Version Number.
+        /// </summary>
         public Byte DlmsVersionNumber
         {
-            get
-            {
-                if (settings != null)
-                {
-                    return settings.DLMSVersion;
-                }
-                return dlmsVersionNumber;
-            }
-            set
-            {
-                if (settings != null)
-                {
-                    settings.DLMSVersion = value;
-                }
-                dlmsVersionNumber = value;
-            }
+            get;
+            set;
         }
+
         public sbyte QualityOfService
         {
             get;

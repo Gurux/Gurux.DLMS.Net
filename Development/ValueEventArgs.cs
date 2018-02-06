@@ -116,6 +116,18 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Is user updating the value.
+        /// </summary>
+        /// <remarks>
+        /// This is used example with register object. Scaler is not used if user is updating the value.
+        /// </remarks>
+        public bool User
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Is action. This is reserved for internal use.
         /// </summary>
         internal bool action;

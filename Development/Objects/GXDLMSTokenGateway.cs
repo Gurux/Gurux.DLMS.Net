@@ -44,6 +44,10 @@ namespace Gurux.DLMS.Objects
     /// <summary>
     /// Enumerates token status codes.
     /// </summary>
+    ///  <remarks>
+    ///  Online help:<br/>
+    ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSTokenGateway
+    /// </remarks>
     public enum TokenStatusCode : byte
     {
         /// <summary>
@@ -87,6 +91,10 @@ namespace Gurux.DLMS.Objects
     /// <summary>
     /// Enumerates token delivery methods.
     /// </summary>
+    /// <remarks>
+    ///  Online help:<br/>
+    ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSTokenGateway
+    /// </remarks>
     public enum TokenDelivery : byte
     {
         /// <summary>
@@ -103,6 +111,10 @@ namespace Gurux.DLMS.Objects
         Manual
     }
 
+    /// <summary>
+    /// Online help:<br/>
+    ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSTokenGateway
+    /// </summary>
     public class GXDLMSTokenGateway : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>
@@ -134,18 +146,26 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// 
+        /// Token.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSTokenGateway
+        /// </remarks>
         [XmlIgnore()]
-        public string Token
+        public byte[] Token
         {
             get;
             set;
         }
 
         /// <summary>
-        /// 
+        /// Time
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSTokenGateway
+        /// </remarks>
         [XmlIgnore()]
         public GXDateTime Time
         {
@@ -156,6 +176,10 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Descriptions.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSTokenGateway
+        /// </remarks>
         [XmlIgnore()]
         public List<string> Descriptions
         {
@@ -166,6 +190,10 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Token Delivery method.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSTokenGateway
+        /// </remarks>
         [XmlIgnore()]
         public TokenDelivery DeliveryMethod
         {
@@ -176,6 +204,10 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Token status code.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSTokenGateway
+        /// </remarks>
         [XmlIgnore()]
         public TokenStatusCode StatusCode
         {
@@ -186,13 +218,16 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Token data value.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSTokenGateway
+        /// </remarks>
         [XmlIgnore()]
         public string DataValue
         {
             get;
             set;
         }
-
 
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
@@ -335,7 +370,7 @@ namespace Gurux.DLMS.Objects
                     LogicalName = GXCommon.ToLogicalName(e.Value);
                     break;
                 case 2:
-                    Token = ASCIIEncoding.ASCII.GetString((byte[])e.Value);
+                    Token = (byte[])e.Value;
                     break;
                 case 3:
                     Time = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
@@ -365,11 +400,11 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Load(GXXmlReader reader)
         {
-            Token = reader.ReadElementContentAsString("Token");
+            Token = GXCommon.HexToBytes( reader.ReadElementContentAsString("Token"));
             string tmp = reader.ReadElementContentAsString("Time");
             if (tmp != null)
             {
-                Time = new GXDateTime(tmp);
+                Time = new GXDateTime(tmp, System.Globalization.CultureInfo.InvariantCulture);
             }
             Descriptions.Clear();
             if (reader.IsStartElement("Descriptions", true))
@@ -387,7 +422,7 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Token", Token);
+            writer.WriteElementString("Token", GXCommon.ToHex(Token, false));
             writer.WriteElementString("Time", Time);
 
             if (Descriptions != null)
