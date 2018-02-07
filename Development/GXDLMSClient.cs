@@ -2004,7 +2004,10 @@ namespace Gurux.DLMS
                     if (data.Command == Command.Snrm || data.Command == Command.Ua)
                     {
                         data.Xml.AppendStartTag(data.Command);
-                        translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace, false);
+                        if (data.Data.Size != 0)
+                        {
+                            translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace, false);
+                        }
                         data.Xml.AppendEndTag(data.Command);
                     }
                     else

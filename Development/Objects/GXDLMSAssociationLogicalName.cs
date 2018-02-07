@@ -661,10 +661,10 @@ namespace Gurux.DLMS.Objects
             if (e.Index == 3)
             {
                 GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((byte)DataType.Array);
+                data.SetUInt8((byte)DataType.Structure);
                 //Add count
                 data.SetUInt8(2);
-                data.SetUInt8((byte)DataType.UInt8);
+                data.SetUInt8((byte)DataType.Int8);
                 data.SetUInt8(ClientSAP);
                 data.SetUInt8((byte)DataType.UInt16);
                 data.SetUInt16(ServerSAP);
