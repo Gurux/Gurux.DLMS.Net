@@ -119,7 +119,7 @@ namespace Gurux.DLMS.ManufacturerSettings
                     {
                         if (string.Compare(node.InnerText, it.InnerText, true) == 0)
                         {
-                            if (DateTime.ParseExact(node.Attributes["Modified"].Value, "dd-MM-yyyy", null).Date == DateTime.ParseExact(it.Attributes["Modified"].Value, "dd-MM-yyyy", CultureInfo.CurrentUICulture).Date)
+                            if (DateTime.ParseExact(node.Attributes["Modified"].Value, "dd-MM-yyyy", null).Date == DateTime.ParseExact(it.Attributes["Modified"].Value, "dd-MM-yyyy", CultureInfo.CurrentCulture).Date)
                             {
                                 updated = false;
                             }

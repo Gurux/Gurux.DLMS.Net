@@ -540,7 +540,7 @@ namespace Gurux.DLMS.Objects
                         DateTime tm;
                         if (!DateTime.TryParse((String)e.Value, out tm))
                         {
-                            Time = DateTime.ParseExact((String)e.Value, CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + CultureInfo.CurrentUICulture.DateTimeFormat.LongTimePattern, CultureInfo.CurrentUICulture);
+                            Time = DateTime.ParseExact((String)e.Value, CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern + " " + CultureInfo.CurrentCulture.DateTimeFormat.LongTimePattern, CultureInfo.CurrentUICulture);
                         }
                         else
                         {

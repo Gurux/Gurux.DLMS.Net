@@ -2203,6 +2203,12 @@ namespace Gurux.DLMS.Internal
         ///</param>
         private static void SetString(GXByteBuffer buff, object value)
         {
+            if (value is byte[])
+            {
+                byte[] tmp = (byte[])value;
+                SetObjectCount(tmp.Length, buff);
+                buff.Set(tmp);
+            }
             if (value != null)
             {
                 string str = Convert.ToString(value);

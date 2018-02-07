@@ -1966,24 +1966,34 @@ namespace Gurux.DLMS
                         preData = UpdateDateTime(node, s, preData);
                         break;
                     case (int)TranslatorTags.InvokeId:
-                        value = (uint)s.ParseShort(GetValue(node, s));
-                        if ((value & 0x80) != 0)
+                        string id = GetValue(node, s);
+                        if (id == "*")
                         {
                             s.settings.Priority = Priority.High;
-                        }
-                        else
-                        {
-                            s.settings.Priority = Priority.Normal;
-                        }
-                        if ((value & 0x40) != 0)
-                        {
                             s.settings.ServiceClass = ServiceClass.Confirmed;
+                            s.settings.InvokeID = 1;
                         }
                         else
                         {
-                            s.settings.ServiceClass = ServiceClass.UnConfirmed;
+                            value = (uint)s.ParseShort(id);
+                            if ((value & 0x80) != 0)
+                            {
+                                s.settings.Priority = Priority.High;
+                            }
+                            else
+                            {
+                                s.settings.Priority = Priority.Normal;
+                            }
+                            if ((value & 0x40) != 0)
+                            {
+                                s.settings.ServiceClass = ServiceClass.Confirmed;
+                            }
+                            else
+                            {
+                                s.settings.ServiceClass = ServiceClass.UnConfirmed;
+                            }
+                            s.settings.InvokeID = (byte)(value & 0xF);
                         }
-                        s.settings.InvokeID = (byte)(value & 0xF);
                         break;
                     case (int)TranslatorTags.LongInvokeId:
                         value = (uint)s.ParseLong(GetValue(node, s));

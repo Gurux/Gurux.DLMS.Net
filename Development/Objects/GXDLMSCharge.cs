@@ -41,13 +41,35 @@ using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Charge per unit scaling.
+    /// </summary>
+    /// <remarks>
+    ///  Online help:<br/>
+    ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+    /// </remarks>
     public class GXChargePerUnitScaling
     {
+        /// <summary>
+        /// Commodity scale.
+        /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        /// </remarks>
         public sbyte CommodityScale
         {
             get;
             set;
         }
+
+        /// <summary>
+        /// Price scale.
+        /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        /// </remarks>
         public sbyte PriceScale
         {
             get;
@@ -55,12 +77,22 @@ namespace Gurux.DLMS.Objects
         }
     }
 
-
+    /// <summary>
+    /// Commodity.
+    /// </summary>
+    /// <remarks>
+    ///  Online help:<br/>
+    ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+    /// </remarks>
     public class GXCommodity
     {
         /// <summary>
         /// Executed object
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        /// </remarks>
         public GXDLMSObject Target
         {
             get;
@@ -70,6 +102,10 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Attribute index.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        /// </remarks>
         public int Index
         {
             get;
@@ -77,14 +113,35 @@ namespace Gurux.DLMS.Objects
         }
     };
 
+    /// <summary>
+    /// Charge table.
+    /// </summary>
+    /// <remarks>
+    ///  Online help:<br/>
+    ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+    /// </remarks>
     public class GXChargeTable
     {
+        /// <summary>
+        /// Index.
+        /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        /// </remarks>
         public string Index
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// Charge per unit.
+        /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        /// </remarks>
         public short ChargePerUnit
         {
             get;
@@ -92,6 +149,11 @@ namespace Gurux.DLMS.Objects
         }
     }
 
+
+    /// <summary>
+    ///  Online help:<br/>
+    ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+    /// </summary>
     public class GXUnitCharge
     {
         /// <summary>
@@ -103,18 +165,39 @@ namespace Gurux.DLMS.Objects
             Commodity = new GXCommodity();
         }
 
+        /// <summary>
+        /// Charge per unit scaling.
+        /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        /// </remarks>
         public GXChargePerUnitScaling ChargePerUnitScaling
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// Commodity.
+        /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        /// </remarks>
         public GXCommodity Commodity
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// Charge tables.
+        /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        /// </remarks>
         public GXChargeTable[] ChargeTables
         {
             get;
@@ -125,6 +208,10 @@ namespace Gurux.DLMS.Objects
     /// <summary>
     /// Charge type.
     /// </summary>
+    /// <remarks>
+    ///  Online help:<br/>
+    ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+    /// </remarks>
     public enum ChargeType : byte
     {
         /// <summary>
@@ -141,6 +228,10 @@ namespace Gurux.DLMS.Objects
         PaymentEventBasedCollection
     }
 
+    /// <summary>
+    ///  Online help:<br/>
+    ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+    /// </summary>
     public class GXDLMSCharge : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>
@@ -173,8 +264,12 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// 
+        /// Total amount paid
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        /// </remarks>
         [XmlIgnore()]
         public Int32 TotalAmountPaid
         {
@@ -183,8 +278,12 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// 
+        /// Charge type.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        /// </remarks>
         [XmlIgnore()]
         public ChargeType ChargeType
         {
@@ -192,8 +291,12 @@ namespace Gurux.DLMS.Objects
             set;
         }
         /// <summary>
-        /// 
+        /// Priority.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        /// </remarks>
         [XmlIgnore()]
         public byte Priority
         {
@@ -201,8 +304,12 @@ namespace Gurux.DLMS.Objects
             set;
         }
         /// <summary>
-        /// 
+        /// Unit charge active.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        /// </remarks>
         [XmlIgnore()]
         public GXUnitCharge UnitChargeActive
 
@@ -211,8 +318,12 @@ namespace Gurux.DLMS.Objects
             set;
         }
         /// <summary>
-        /// 
+        /// Unit charge passive.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        /// </remarks>
         [XmlIgnore()]
         public GXUnitCharge UnitChargePassive
         {
@@ -220,8 +331,12 @@ namespace Gurux.DLMS.Objects
             set;
         }
         /// <summary>
-        /// 
+        /// Unit charge activation time.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        /// </remarks>
         [XmlIgnore()]
         public GXDateTime UnitChargeActivationTime
         {
@@ -229,8 +344,12 @@ namespace Gurux.DLMS.Objects
             set;
         }
         /// <summary>
-        /// 
+        /// Period.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        /// </remarks>
         [XmlIgnore()]
         public UInt32 Period
         {
@@ -238,8 +357,12 @@ namespace Gurux.DLMS.Objects
             set;
         }
         /// <summary>
-        /// 
+        /// Charge configuration,
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        /// </remarks>
         [XmlIgnore()]
         public string ChargeConfiguration
         {
@@ -247,8 +370,12 @@ namespace Gurux.DLMS.Objects
             set;
         }
         /// <summary>
-        /// 
+        /// Last collection time.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        /// </remarks>
         [XmlIgnore()]
         public GXDateTime LastCollectionTime
         {
@@ -256,8 +383,12 @@ namespace Gurux.DLMS.Objects
             set;
         }
         /// <summary>
-        /// 
+        /// Last collection amount.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        /// </remarks>
         [XmlIgnore()]
         public Int32 LastCollectionAmount
         {
@@ -266,17 +397,26 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// 
+        /// Total amount remaining.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        /// </remarks>
         [XmlIgnore()]
         public Int32 TotalAmountRemaining
         {
             get;
             set;
         }
+
         /// <summary>
-        /// 
+        /// Proportion.
         /// </summary>
+        /// <remarks>
+        ///  Online help:<br/>
+        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        /// </remarks>
         [XmlIgnore()]
         public UInt16 Proportion
         {
@@ -363,7 +503,7 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(12);
             }
-            //Proportionreturn 
+            //Proportion
             if (CanRead(13))
             {
                 attributes.Add(13);

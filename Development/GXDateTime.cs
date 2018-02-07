@@ -208,13 +208,6 @@ namespace Gurux.DLMS
                             {
                                 hour = int.Parse(values[offset + pos]);
                             }
-                            if (!string.IsNullOrEmpty(culture.DateTimeFormat.PMDesignator))
-                            {
-                                if (value.IndexOf(culture.DateTimeFormat.PMDesignator) != -1)
-                                {
-                                    hour += 12;
-                                }
-                            }
                         }
                         else if (shortTimePattern[pos].ToLower().StartsWith("m"))
                         {
@@ -402,7 +395,7 @@ namespace Gurux.DLMS
 
         public string ToFormatString()
         {
-            return ToFormatString(System.Globalization.CultureInfo.CurrentUICulture);
+            return ToFormatString(System.Globalization.CultureInfo.CurrentCulture);
         }
 
         public string ToFormatString(CultureInfo culture)
