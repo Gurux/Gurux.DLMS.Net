@@ -121,13 +121,23 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// List of available custom obis codes.
+        /// Copy client settings.
         /// </summary>
-        /// <remarks>
-        /// This list is used when Association view is read from the meter and description of the object is needed.
-        /// If collection is not set description of object is empty.
-        /// </remarks>
-        public GXObisCodeCollection CustomObisCodes
+        /// <param name="target"></param>
+        public void CopyTo(GXDLMSClient target)
+        {
+            Settings.CopyTo(target.Settings);
+        }
+
+
+    /// <summary>
+    /// List of available custom obis codes.
+    /// </summary>
+    /// <remarks>
+    /// This list is used when Association view is read from the meter and description of the object is needed.
+    /// If collection is not set description of object is empty.
+    /// </remarks>
+    public GXObisCodeCollection CustomObisCodes
         {
             get;
             set;

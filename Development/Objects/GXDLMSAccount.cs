@@ -883,9 +883,16 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                     CurrentCreditInUse = (byte)e.Value;
                     break;
                 case 4:
-                    GXByteBuffer bb = new GXByteBuffer();
-                    GXCommon.SetBitString(bb, e.Value);
-                    CurrentCreditStatus = (AccountCreditStatus)bb.GetUInt8(1);
+                    if ((string)e.Value == "")
+                    {
+                        CurrentCreditStatus = (AccountCreditStatus)0;
+                    }
+                    else
+                    {
+                        GXByteBuffer bb = new GXByteBuffer();
+                        GXCommon.SetBitString(bb, e.Value);
+                        CurrentCreditStatus = (AccountCreditStatus)bb.GetUInt8(1);
+                    }
                     break;
                 case 5:
                     AvailableCredit = (int)e.Value;
@@ -928,9 +935,16 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                             GXCreditChargeConfiguration item = new GXCreditChargeConfiguration();
                             item.CreditReference = GXCommon.ToLogicalName(it[0]);
                             item.ChargeReference = GXCommon.ToLogicalName(it[1]);
-                            GXByteBuffer tmp2 = new GXByteBuffer();
-                            GXCommon.SetBitString(tmp2, it[2]);
-                            item.CollectionConfiguration = (CreditCollectionConfiguration)tmp2.GetUInt8(1);
+                            if ((string)it[2] == "")
+                            {
+                                item.CollectionConfiguration = 0;
+                            }
+                            else
+                            {
+                                GXByteBuffer tmp2 = new GXByteBuffer();
+                                GXCommon.SetBitString(tmp2, it[2]);
+                                item.CollectionConfiguration = (CreditCollectionConfiguration)tmp2.GetUInt8(1);
+                            }
                             CreditChargeConfigurations.Add(item);
                         }
                     }

@@ -480,9 +480,16 @@ namespace Gurux.DLMS.Objects
                     Limit = (int)e.Value;
                     break;
                 case 7:
-                    GXByteBuffer bb = new GXByteBuffer();
-                    GXCommon.SetBitString(bb, e.Value);
-                    CreditConfiguration = (CreditConfiguration)bb.GetUInt8(1);
+                    if ((string)e.Value == "")
+                    {
+                        CreditConfiguration = (CreditConfiguration)0;
+                    }
+                    else
+                    {
+                        GXByteBuffer bb = new GXByteBuffer();
+                        GXCommon.SetBitString(bb, e.Value);
+                        CreditConfiguration = (CreditConfiguration)bb.GetUInt8(1);
+                    }
                     break;
                 case 8:
                     Status = (CreditStatus)(byte)e.Value;

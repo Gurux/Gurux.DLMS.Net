@@ -32,19 +32,15 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using System;
+using Gurux.DLMS.Objects;
+using Gurux.DLMS.Enums;
+using Gurux.DLMS.Secure;
+using Gurux.DLMS.Internal;
+using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using Gurux.DLMS.Objects;
-    using Gurux.DLMS.Enums;
-    using Gurux.DLMS.Secure;
-    using Gurux.DLMS.Internal;
-    using Objects.Enums;
-
     /// <summary>
     /// This class includes DLMS communication settings.
     /// </summary>
@@ -213,6 +209,58 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Copy settings.
+        /// </summary>
+        /// <param name="target"></param>
+        internal void CopyTo(GXDLMSSettings target)
+        {
+            target.UseCustomChallenge = UseCustomChallenge;
+            target.StartingBlockIndex = StartingBlockIndex;
+            target.DLMSVersion = DLMSVersion;
+            target.BlockIndex = BlockIndex;
+            target.IsServer = IsServer;
+            target.useLogicalNameReferencing = useLogicalNameReferencing;
+            target.ClientAddress = ClientAddress;
+            target.ServerAddress = ServerAddress;
+            target.ServerAddressSize = ServerAddressSize;
+            target.Authentication = Authentication;
+            target.Password = Password;
+            target.ProposedConformance = ProposedConformance;
+            target.InvokeID = InvokeID;
+            target.longInvokeID = longInvokeID;
+            target.Priority = Priority;
+            target.ServiceClass = ServiceClass;
+            target.ctoSChallenge = ctoSChallenge;
+            target.stoCChallenge = stoCChallenge;
+            target.SenderFrame = SenderFrame;
+            target.ReceiverFrame = ReceiverFrame;
+            target.SourceSystemTitle = SourceSystemTitle;
+            target.Kek = Kek;
+            target.Count = Count;
+            target.Index = Index;
+            target.maxReceivePDUSize = maxReceivePDUSize;
+            target.MaxServerPDUSize = MaxServerPDUSize;
+            target.AllowAnonymousAccess = AllowAnonymousAccess;
+            target.ProposedConformance = ProposedConformance;
+            target.NegotiatedConformance = NegotiatedConformance;
+            target.SecuritySuite = SecuritySuite;
+            if (Cipher != null && target.Cipher != null)
+            {
+                ((GXCiphering)Cipher).CopyTo((GXCiphering) target.Cipher);
+            }
+            target.UserId = UserId;
+            target.UseUtc2NormalTime = UseUtc2NormalTime;
+            target.WindowSize = WindowSize;
+            target.UserId = UserId;
+            target.Objects.Clear();
+            target.Objects.AddRange(Objects);
+            target.Limits.MaxInfoRX = Limits.MaxInfoRX;
+            target.Limits.MaxInfoTX = Limits.MaxInfoTX;
+            target.Limits.WindowSizeRX = Limits.WindowSizeRX;
+            target.Limits.WindowSizeTX = Limits.WindowSizeTX;
+        }
+
+        /// <summary>
         /// Client to Server challenge.
         /// </summary>
         public byte[] CtoSChallenge
@@ -322,8 +370,9 @@ namespace Gurux.DLMS
             {
                 if (frame == 0x73 || frame == 0x93)
                 {
+                    bool isEcho = !IsServer && frame == 0x93 && SenderFrame == 0x10 && ReceiverFrame == 0xE;
                     ResetFrameSequence();
-                    return true;
+                    return !isEcho;
                 }
             }
             //If S -frame.
@@ -477,7 +526,7 @@ namespace Gurux.DLMS
             get;
             set;
         }
-        
+
         /// <summary>
         /// Server address.
         /// </summary>

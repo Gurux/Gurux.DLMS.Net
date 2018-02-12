@@ -33,11 +33,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Gurux.DLMS.Enums;
-using Gurux.DLMS.Secure;
 
 namespace Gurux.DLMS.Secure
 {
@@ -91,6 +86,15 @@ namespace Gurux.DLMS.Secure
             SystemTitle = title;
             BlockCipherKey = blockCipherKey;
             AuthenticationKey = authenticationKey;
+        }
+
+        public void CopyTo(GXCiphering target)
+        {
+            target.Security = Security;
+            target.InvocationCounter = InvocationCounter;
+            target.SystemTitle = SystemTitle;
+            target.BlockCipherKey = BlockCipherKey;
+            target.AuthenticationKey = AuthenticationKey;
         }
 
         /// <summary>

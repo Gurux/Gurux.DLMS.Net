@@ -253,7 +253,6 @@ namespace Gurux.DLMS
             UseLogicalNameReferencing = true;
         }
 
-
         /// <summary>
         /// Load XML commands from the file.
         /// </summary>
