@@ -129,13 +129,6 @@ namespace Gurux.DLMS
                         {
                             hour = int.Parse(values[pos]);
                         }
-                        if (!string.IsNullOrEmpty(culture.DateTimeFormat.PMDesignator))
-                        {
-                            if (time.IndexOf(culture.DateTimeFormat.PMDesignator) != -1)
-                            {
-                                hour += 12;
-                            }
-                        }
                     }
                     else if (shortTimePattern[pos].ToLower().StartsWith("m"))
                     {
@@ -157,6 +150,19 @@ namespace Gurux.DLMS
                         else
                         {
                             sec = int.Parse(values[pos]);
+                        }
+                    }
+                    else if (shortTimePattern[pos].ToLower().StartsWith("tt"))
+                    {
+                        if ((Skip & DateTimeSkips.Hour) == 0)
+                        {
+                            if (!string.IsNullOrEmpty(culture.DateTimeFormat.PMDesignator))
+                            {
+                                if (values[pos] == culture.DateTimeFormat.PMDesignator)
+                                {
+                                    hour += 12;
+                                }
+                            }
                         }
                     }
                     else

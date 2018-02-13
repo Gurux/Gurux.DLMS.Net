@@ -231,6 +231,19 @@ namespace Gurux.DLMS
                                 sec = int.Parse(values[offset + pos]);
                             }
                         }
+                        else if (shortTimePattern[pos].ToLower().StartsWith("tt"))
+                        {
+                            if ((Skip & DateTimeSkips.Hour) == 0)
+                            {
+                                if (!string.IsNullOrEmpty(culture.DateTimeFormat.PMDesignator))
+                                {
+                                    if (values[offset + pos] == culture.DateTimeFormat.PMDesignator)
+                                    {
+                                        hour += 12;
+                                    }
+                                }
+                            }
+                        }
                         else
                         {
                             //This is OK. There might be some extra in some cultures.
@@ -405,13 +418,13 @@ namespace Gurux.DLMS
             {
 #if !WINDOWS_UWP
                 string dateSeparator = culture.DateTimeFormat.DateSeparator, timeSeparator = culture.DateTimeFormat.TimeSeparator;
-                List<string> shortDatePattern = new List<string>(culture.DateTimeFormat.ShortDatePattern.Split(new string[] { dateSeparator }, StringSplitOptions.RemoveEmptyEntries));
+                List<string> shortDatePattern = new List<string>(culture.DateTimeFormat.ShortDatePattern.Split(new string[] { dateSeparator, " " }, StringSplitOptions.RemoveEmptyEntries));
 #else
                 //In UWP Standard Date and Time Format Strings are used.
                 string dateSeparator = Internal.GXCommon.GetDateSeparator(), timeSeparator = Internal.GXCommon.GetTimeSeparator();
                 List<string> shortDatePattern = new List<string>("yyyy-MM-dd".Split(new string[] { dateSeparator }, StringSplitOptions.RemoveEmptyEntries));
 #endif
-                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { timeSeparator }, StringSplitOptions.RemoveEmptyEntries));
+                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { CultureInfo.InvariantCulture.DateTimeFormat.TimeSeparator, timeSeparator, " ", "." }, StringSplitOptions.RemoveEmptyEntries));
                 if (this is GXTime)
                 {
                     shortDatePattern.Clear();
@@ -489,6 +502,7 @@ namespace Gurux.DLMS
                         format += " ";
                     }
                     format += string.Join(timeSeparator, shortTimePattern.ToArray());
+                    format = format.Replace(timeSeparator + "tt", " tt");
                 }
                 if (format == "H")
                 {
@@ -520,7 +534,7 @@ namespace Gurux.DLMS
                 string dateSeparator = Internal.GXCommon.GetDateSeparator(), timeSeparator = Internal.GXCommon.GetTimeSeparator();
                 List<string> shortDatePattern = new List<string>("yyyy-MM-dd".Split(new string[] { dateSeparator }, StringSplitOptions.RemoveEmptyEntries));
 #endif
-                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { timeSeparator }, StringSplitOptions.RemoveEmptyEntries));
+                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { timeSeparator, " ", "." }, StringSplitOptions.RemoveEmptyEntries));
                 if ((Skip & DateTimeSkips.Year) != 0)
                 {
                     shortDatePattern.Remove("yyyy");
