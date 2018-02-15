@@ -248,7 +248,7 @@ namespace GuruxDLMSServerExample
             ///////////////////////////////////////////////////////////////////////
             //Add Demand Register object.
             GXDLMSDemandRegister dr = new GXDLMSDemandRegister();
-            dr.LogicalName = "0.0.1.0.0.255";
+            dr.LogicalName = "1.0.31.4.0.255";
             dr.CurrentAverageValue = (uint)10;
             dr.LastAverageValue = (uint)20;
             dr.Status = (byte)1;
@@ -259,7 +259,7 @@ namespace GuruxDLMSServerExample
             ///////////////////////////////////////////////////////////////////////
             //Add Register Monitor object.
             GXDLMSRegisterMonitor rm = new GXDLMSRegisterMonitor();
-            rm.LogicalName = "0.0.1.0.0.255";
+            rm.LogicalName = "0.0.16.1.0.255";
             rm.Thresholds = new object[] { (int)0x1234, (int)0x5678 };
             GXDLMSActionSet set = new GXDLMSActionSet();
             set.ActionDown.LogicalName = rm.LogicalName;
@@ -330,22 +330,35 @@ namespace GuruxDLMSServerExample
             ///////////////////////////////////////////////////////////////////////
             //Add IP4 Setup object.
             GXDLMSIp4Setup ip4 = new GXDLMSIp4Setup();
+            Items.Add(ip4);
+
+            ///////////////////////////////////////////////////////////////////////
+            //Add IP6 Setup object.
+            GXDLMSIp6Setup ip6 = new GXDLMSIp6Setup();
+           
+            Items.Add(ip6);
+
             //Get local IP address.
             var host = Dns.GetHostEntry(Dns.GetHostName());
+            List<IPAddress> unicastIPAddress = new List<IPAddress>();
             foreach (var ip in host.AddressList)
             {
                 if (ip.AddressFamily == AddressFamily.InterNetwork)
                 {
                     ip4.IPAddress = ip.ToString();
                 }
+                if (ip.AddressFamily == AddressFamily.InterNetworkV6)
+                {
+                    unicastIPAddress.Add(ip);
+                }
             }
-            Items.Add(ip4);
-
-            ///////////////////////////////////////////////////////////////////////
-            //Add IP6 Setup object.
-            GXDLMSIp6Setup ip6 = new GXDLMSIp6Setup();
-            Items.Add(ip6);
-
+            //This is just random IP6 address to show how to work.
+            ip6.UnicastIPAddress = unicastIPAddress.ToArray();
+            GXNeighborDiscoverySetup ss = new GXNeighborDiscoverySetup();
+            ss.MaxRetry = 1;
+            ss.RetryWaitTime = 2;
+            ss.SendPeriod = 3;
+            ip6.NeighborDiscoverySetup = new GXNeighborDiscoverySetup[] { ss };
             //Add Push Setup. (On Connectivity)
             GXDLMSPushSetup push = new GXDLMSPushSetup("0.0.25.9.0.255");
             //Send Push messages to this address as default.

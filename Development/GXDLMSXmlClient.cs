@@ -149,7 +149,7 @@ namespace Gurux.DLMS
                         string.Compare(expectedNode.ChildNodes[pos].Name, actualNode.ChildNodes[pos].Name) != 0)
                         || string.Compare(a.Value, "*") != 0)
                     {
-                        if (expectedNode.FirstChild.Name != "Array" && expectedNode.ParentNode.Name != "Array")
+                        if (expectedNode.FirstChild.Name != "Structure" && expectedNode.FirstChild.Name != "Array" && expectedNode.ParentNode.Name != "Array")
                         {
                             list.Add("Different values. Expected: '" + expectedNode.ChildNodes[pos].OuterXml + "'. Actual: '" + actualNode.ChildNodes[pos].OuterXml + "'.");
                         }
