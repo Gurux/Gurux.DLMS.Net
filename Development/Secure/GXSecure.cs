@@ -146,11 +146,11 @@ namespace Gurux.DLMS.Secure
             else if (settings.Authentication == Authentication.HighGMAC)
             {
                 //SC is always Security.Authentication.
-                AesGcmParameter p = new AesGcmParameter(0, Security.Authentication, ic,
+                AesGcmParameter p = new AesGcmParameter(0, Enums.Security.Authentication, ic,
                     secret, cipher.BlockCipherKey, cipher.AuthenticationKey);
                 p.Type = CountType.Tag;
                 challenge.Clear();
-                challenge.SetUInt8((byte)Security.Authentication);
+                challenge.SetUInt8((byte)Enums.Security.Authentication);
                 challenge.SetUInt32((UInt32)p.InvocationCounter);
                 challenge.Set(GXDLMSChippering.EncryptAesGcm(p, tmp));
                 tmp = challenge.Array();

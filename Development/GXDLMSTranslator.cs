@@ -524,7 +524,7 @@ namespace Gurux.DLMS
 
         private GXCiphering GetCiphering()
         {
-            if (this.Security != Security.None)
+            if (this.Security != Enums.Security.None)
             {
                 GXCiphering c = new Secure.GXCiphering(this.SystemTitle);
                 c.Security = this.Security;
@@ -1193,7 +1193,7 @@ namespace Gurux.DLMS
                 case (byte)Command.GloWriteRequest:
                     s.settings.IsServer = false;
                     tmp = GXCommon.HexToBytes(GetValue(node, s));
-                    s.settings.Cipher.Security = (Security)tmp[0];
+                    s.settings.Cipher.Security = (Enums.Security)tmp[0];
                     s.data.Set(tmp);
                     break;
                 case (byte)Command.Ua:
@@ -1220,7 +1220,7 @@ namespace Gurux.DLMS
                 case (byte)Command.GloWriteResponse:
                 case (byte)Command.GloEventNotificationRequest:
                     tmp = GXCommon.HexToBytes(GetValue(node, s));
-                    s.settings.Cipher.Security = (Security)tmp[0];
+                    s.settings.Cipher.Security = (Enums.Security)tmp[0];
                     s.data.Set(tmp);
                     break;
                 case (byte)Command.GeneralGloCiphering:
@@ -1290,12 +1290,12 @@ namespace Gurux.DLMS
                 case (byte)Command.GloInitiateRequest:
                     s.settings.IsServer = false;
                     tmp = GXCommon.HexToBytes(GetValue(node, s));
-                    s.settings.Cipher.Security = (Security)tmp[0];
+                    s.settings.Cipher.Security = (Enums.Security)tmp[0];
                     s.data.Set(tmp);
                     break;
                 case (byte)Command.GloInitiateResponse:
                     tmp = GXCommon.HexToBytes(GetValue(node, s));
-                    s.settings.Cipher.Security = (Security)tmp[0];
+                    s.settings.Cipher.Security = (Enums.Security)tmp[0];
                     s.data.Set(tmp);
                     break;
                 case (byte)Command.InitiateRequest:
