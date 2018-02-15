@@ -35,14 +35,10 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Gurux.DLMS;
-using System.ComponentModel;
 using System.Xml.Serialization;
-using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Enums;
-using System.Xml;
 using System.Globalization;
 
 namespace Gurux.DLMS.Objects
@@ -138,7 +134,7 @@ namespace Gurux.DLMS.Objects
         public override object[] GetValues()
         {
             return new object[] { LogicalName, Mode, Repetitions, RepetitionDelay,
-                              CallingWindow, Destinations
+                              CallingWindow.ToArray(), Destinations
                             };
         }
 

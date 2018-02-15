@@ -33,12 +33,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using Gurux.DLMS;
-using System.ComponentModel;
-using System.Xml.Serialization;
-using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.Objects
 {

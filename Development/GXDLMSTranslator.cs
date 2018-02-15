@@ -31,23 +31,23 @@
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
+using System;
+using System.Text;
+using Gurux.DLMS.Internal;
+using System.Collections;
+using System.Collections.Generic;
+using System.Xml;
+#if !WINDOWS_UWP
+using System.Xml.XPath;
+#endif
+using Gurux.DLMS.Enums;
+using Gurux.DLMS.Secure;
+using Gurux.DLMS.Objects;
+using System.ComponentModel;
+using System.Diagnostics;
 
 namespace Gurux.DLMS
 {
-    using System;
-    using System.Text;
-    using Gurux.DLMS.Internal;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Xml;
-#if !WINDOWS_UWP
-    using System.Xml.XPath;
-#endif
-    using Gurux.DLMS.Enums;
-    using Gurux.DLMS.Secure;
-    using Gurux.DLMS.Objects;
-    using System.ComponentModel;
-    using System.Diagnostics;
 
     ///<summary>
     ///This class is used to translate DLMS frame or PDU to xml.

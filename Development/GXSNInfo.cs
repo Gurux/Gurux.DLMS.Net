@@ -31,14 +31,10 @@
 // This code is licensed under the GNU General Public License v2. 
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
+using Gurux.DLMS.Objects;
 
 namespace Gurux.DLMS
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using Gurux.DLMS.Objects;
 
     ///<summary>
     ///Server uses this class to find Short Name object and attribute index. 

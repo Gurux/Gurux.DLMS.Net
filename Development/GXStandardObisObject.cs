@@ -33,12 +33,9 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Gurux.DLMS
-{    
+{
     /// <summary>
     /// OBIS Code class is used to find out default descrition to OBIS Code.
     /// </summary>

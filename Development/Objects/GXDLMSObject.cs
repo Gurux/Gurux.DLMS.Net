@@ -35,16 +35,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.ComponentModel;
 using Gurux.DLMS.ManufacturerSettings;
-using System.Xml;
 using System.Xml.Serialization;
-#if !WINDOWS_UWP
-using System.Runtime.Serialization.Formatters.Binary;
-#endif
 using System.IO;
-using System.Runtime.Serialization;
 using System.Reflection;
 using Gurux.DLMS.Enums;
 

@@ -34,12 +34,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Gurux.DLMS.Enums;
 using System.Diagnostics;
-using Gurux.DLMS.Objects;
-using System.Xml;
 
 namespace Gurux.DLMS.Internal
 {

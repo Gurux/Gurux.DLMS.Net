@@ -34,13 +34,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using Gurux.DLMS;
 using System.ComponentModel;
 using System.Xml.Serialization;
-using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Enums;
-using System.Xml;
 using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects

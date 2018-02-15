@@ -33,9 +33,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Gurux.DLMS.Objects;
 using Gurux.DLMS.Enums;
 

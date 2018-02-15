@@ -33,11 +33,8 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.IO;
 using Gurux.DLMS.Internal;
-using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Secure

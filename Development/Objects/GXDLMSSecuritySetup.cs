@@ -35,16 +35,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Secure;
-using System.Xml;
-#if !WINDOWS_UWP
-using System.Security.Cryptography;
-#endif
 
 namespace Gurux.DLMS.Objects
 {

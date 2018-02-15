@@ -34,10 +34,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Gurux.DLMS.Enums;
-using System.ComponentModel;
 using Gurux.DLMS.Internal;
 using System.Diagnostics;
 using Gurux.DLMS.Objects;

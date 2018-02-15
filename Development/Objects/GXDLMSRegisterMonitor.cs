@@ -34,13 +34,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Xml.Serialization;
-using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
-using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {
@@ -199,7 +195,7 @@ namespace Gurux.DLMS.Objects
             if (e.Index == 4)
             {
                 GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((int)DataType.Structure);
+                data.SetUInt8((int)DataType.Array);
                 if (Actions == null)
                 {
                     data.SetUInt8(0);

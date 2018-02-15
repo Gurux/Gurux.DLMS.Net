@@ -34,17 +34,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using Gurux.DLMS;
 using System.ComponentModel;
 using System.Xml.Serialization;
-using System.Collections;
-using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 using System.Threading;
-using System.Xml;
 
 namespace Gurux.DLMS.Objects
 {

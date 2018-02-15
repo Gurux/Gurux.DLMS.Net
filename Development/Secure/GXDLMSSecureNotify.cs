@@ -35,7 +35,7 @@
 
 using System.Text;
 using Gurux.DLMS.Enums;
-using System;
+
 namespace Gurux.DLMS.Secure
 {
     public class GXDLMSSecureNotify : GXDLMSNotify

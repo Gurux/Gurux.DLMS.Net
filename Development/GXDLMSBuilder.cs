@@ -32,15 +32,11 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using Gurux.DLMS.Internal;
+using Gurux.DLMS.Enums;
+
 namespace Gurux.DLMS
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using Gurux.DLMS.Internal;
-    using Gurux.DLMS.Enums;
-
     /// <summary>
     /// This class is used to build custom DLMS content.
     /// </summary>

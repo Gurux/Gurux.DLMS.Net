@@ -33,7 +33,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using Gurux.DLMS.Enums;
 namespace Gurux.DLMS.Secure
 {
     internal interface GXICipher
