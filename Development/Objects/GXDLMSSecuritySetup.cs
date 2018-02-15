@@ -40,6 +40,9 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Secure;
+#if !WINDOWS_UWP
+using System.Security.Cryptography;
+#endif
 
 namespace Gurux.DLMS.Objects
 {
