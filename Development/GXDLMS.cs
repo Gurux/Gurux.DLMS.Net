@@ -1560,7 +1560,7 @@ namespace Gurux.DLMS
                 }
                 else if (tmp == (byte)HdlcControlFrame.ReceiveReady)
                 {
-                  //  System.Diagnostics.Debug.WriteLine("Get next frame.");
+                    //  System.Diagnostics.Debug.WriteLine("Get next frame.");
                 }
                 //Get Eop if there is no data.
                 if (reply.Position == packetStartID + frameLen + 1)
@@ -2219,7 +2219,7 @@ namespace Gurux.DLMS
                 {
                     throw new GXDLMSException("HandleActionResponseNormal failed. Invalid tag.");
                 }
-                if (data.Xml != null)
+                if (data.Xml != null && (ret != 0 || data.Data.Position < data.Data.Size))
                 {
                     data.Xml.AppendStartTag(TranslatorTags.ReturnParameters);
                     if (ret != 0)
@@ -2233,18 +2233,9 @@ namespace Gurux.DLMS
                     {
                         data.Xml.AppendStartTag(Command.ReadResponse,
                                                 SingleReadResponse.Data);
-                        if (data.Data.Size > 0 && data.Data.Position == data.Data.Size)
-                        {
-                            int tag = GXDLMS.DATA_TYPE_OFFSET | (int)DataType.None;
-                            data.Xml.AppendStartTag(tag, null, null);
-                            data.Xml.AppendEndTag(tag);
-                        }
-                        else
-                        {
-                            GXDataInfo di = new GXDataInfo();
-                            di.xml = data.Xml;
-                            GXCommon.GetData(settings, data.Data, di);
-                        }
+                        GXDataInfo di = new GXDataInfo();
+                        di.xml = data.Xml;
+                        GXCommon.GetData(settings, data.Data, di);
                         data.Xml.AppendEndTag(Command.ReadResponse,
                                               SingleReadResponse.Data);
                     }
