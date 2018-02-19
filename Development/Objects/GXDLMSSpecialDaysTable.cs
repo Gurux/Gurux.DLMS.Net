@@ -100,32 +100,13 @@ namespace Gurux.DLMS.Objects
         /// </returns>
         public byte[][] Insert(GXDLMSClient client, GXDLMSSpecialDay entry)
         {
-            return Insert(client, new GXDLMSSpecialDay[] { entry });
-        }
-
-        /// <summary>
-        /// Inserts a new entries in the table.
-        /// </summary>
-        /// <remarks>
-        /// </remarks>
-        /// <returns>
-        ///  If a special day with the same index or with the same date as an already defined day is inserted, 
-        ///  the old entry will be overwritten.
-        /// </returns>
-        public byte[][] Insert(GXDLMSClient client, GXDLMSSpecialDay[] entries)
-        {
             GXByteBuffer bb = new GXByteBuffer();
-            bb.SetUInt8(DataType.Array);
-            GXCommon.SetObjectCount(entries.Length, bb);
-            foreach (GXDLMSSpecialDay entry in entries)
-            {
-                bb.SetUInt8(DataType.Structure);
-                bb.SetUInt8(3);
-                GXCommon.SetData(null, bb, DataType.UInt16, entry.Index);
-                GXCommon.SetData(null, bb, DataType.OctetString, entry.Date);
-                GXCommon.SetData(null, bb, DataType.UInt8, entry.DayId);
-            }
-            return client.Method(this, 1, bb.Array());
+            bb.SetUInt8(DataType.Structure);
+            bb.SetUInt8(3);
+            GXCommon.SetData(null, bb, DataType.UInt16, entry.Index);
+            GXCommon.SetData(null, bb, DataType.OctetString, entry.Date);
+            GXCommon.SetData(null, bb, DataType.UInt8, entry.DayId);
+            return client.Method(this, 1, bb.Array(), DataType.Array);
         }
 
         /// <summary>
@@ -135,7 +116,7 @@ namespace Gurux.DLMS.Objects
         public byte[][] Delete(GXDLMSClient client, GXDLMSSpecialDay entry)
         {
             return client.Method(this, 2, (UInt16)entry.Index);
-        }        
+        }
 
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
@@ -259,7 +240,46 @@ namespace Gurux.DLMS.Objects
 
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
-            e.Error = ErrorCode.ReadWriteDenied;
+            if (e.Index != 1 && e.Index != 2)
+            {
+                e.Error = ErrorCode.ReadWriteDenied;
+            }
+            else
+            {
+
+                List<GXDLMSSpecialDay> items = new List<GXDLMSSpecialDay>();
+                items.AddRange(Entries);
+                if (e.Index == 1)
+                {
+                    Object[] item = (Object[])e.Parameters;
+                    GXDLMSSpecialDay it = new GXDLMSSpecialDay();
+                    it.Index = Convert.ToUInt16(item[0]);
+                    it.Date = (GXDate)GXDLMSClient.ChangeType((byte[])item[1], DataType.Date, settings.UseUtc2NormalTime);
+                    it.DayId = Convert.ToByte(item[2]);
+                    foreach (GXDLMSSpecialDay item2 in items)
+                    {
+                        if (item2.Index == it.Index)
+                        {
+                            items.Remove(item2);
+                            break;
+                        }
+                    }
+                    items.Add(it);
+                }
+                else if (e.Index == 2)
+                {
+                    UInt16 index = Convert.ToUInt16(e.Parameters);
+                    foreach (GXDLMSSpecialDay item in items)
+                    {
+                        if (item.Index == index)
+                        {
+                            items.Remove(item);
+                            break;
+                        }
+                    }
+                }
+                Entries = items.ToArray();
+            }
             return null;
         }
 
