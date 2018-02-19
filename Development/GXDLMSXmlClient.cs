@@ -255,9 +255,24 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="stream">Stream.</param>
         /// <returns></returns>
+        public List<GXDLMSXmlPdu> Load(Stream stream)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.Load(stream);
+            return Load(doc);
+        }
+
+
+        /// <summary>
+        /// Load XML commands from the file.
+        /// </summary>
+        /// <param name="stream">Stream.</param>
+        /// <returns></returns>
         public List<GXDLMSXmlPdu> Load(StreamReader stream)
         {
-            return LoadXml(stream.ReadToEnd());
+            XmlDocument doc = new XmlDocument();
+            doc.Load(stream);
+            return Load(doc);
         }
 
         /// <summary>
@@ -267,7 +282,9 @@ namespace Gurux.DLMS
         /// <returns></returns>
         public List<GXDLMSXmlPdu> Load(string fileName)
         {
-            return LoadXml(File.ReadAllText(fileName));
+            XmlDocument doc = new XmlDocument();
+            doc.Load(fileName);
+            return Load(doc);
         }
 
         /// <summary>
@@ -279,6 +296,11 @@ namespace Gurux.DLMS
         {
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xml);
+            return Load(doc);
+        }
+
+        private List<GXDLMSXmlPdu> Load(XmlDocument doc)
+        {
             List<GXDLMSXmlPdu> actions = new List<GXDLMSXmlPdu>();
             foreach (XmlNode m1 in doc.ChildNodes)
             {
