@@ -130,14 +130,14 @@ namespace Gurux.DLMS
         }
 
 
-    /// <summary>
-    /// List of available custom obis codes.
-    /// </summary>
-    /// <remarks>
-    /// This list is used when Association view is read from the meter and description of the object is needed.
-    /// If collection is not set description of object is empty.
-    /// </remarks>
-    public GXObisCodeCollection CustomObisCodes
+        /// <summary>
+        /// List of available custom obis codes.
+        /// </summary>
+        /// <remarks>
+        /// This list is used when Association view is read from the meter and description of the object is needed.
+        /// If collection is not set description of object is empty.
+        /// </remarks>
+        public GXObisCodeCollection CustomObisCodes
         {
             get;
             set;
@@ -210,7 +210,7 @@ namespace Gurux.DLMS
                 }
                 Settings.UserId = value;
             }
-        }       
+        }
 
         /// <summary>
         /// Server address.
@@ -630,17 +630,24 @@ namespace Gurux.DLMS
         /// <seealso cref="MaxReceivePDUSize"/>
         public void ParseAAREResponse(GXByteBuffer reply)
         {
-            IsAuthenticationRequired = GXAPDU.ParsePDU(Settings, Settings.Cipher, reply, null) == SourceDiagnostic.AuthenticationRequired;
-            //Some meters need disconnect even authentication is required.
-            Settings.Connected = true;
-            if (IsAuthenticationRequired)
+            try
             {
-                System.Diagnostics.Debug.WriteLine("Authentication is required.");
+                IsAuthenticationRequired = GXAPDU.ParsePDU(Settings, Settings.Cipher, reply, null) == SourceDiagnostic.AuthenticationRequired;
+                //Some meters need disconnect even authentication is required.
+                Settings.Connected = true;
+                if (IsAuthenticationRequired)
+                {
+                    System.Diagnostics.Debug.WriteLine("Authentication is required.");
+                }
+                System.Diagnostics.Debug.WriteLine("- Server max PDU size is " + MaxReceivePDUSize);
+                if (DLMSVersion != 6)
+                {
+                    throw new GXDLMSException("Invalid DLMS version number.");
+                }
             }
-            System.Diagnostics.Debug.WriteLine("- Server max PDU size is " + MaxReceivePDUSize);
-            if (DLMSVersion != 6)
+            catch(OutOfMemoryException)
             {
-                throw new GXDLMSException("Invalid DLMS version number.");
+                throw new Exception("Frame is not fully received.");
             }
         }
 
@@ -1969,7 +1976,6 @@ namespace Gurux.DLMS
             Command cmd = data.Command;
             try
             {
-                data.leaveData = translator != null;
                 ret = GXDLMS.GetData(Settings, reply, data);
             }
             catch (Exception ex)
@@ -1992,7 +1998,7 @@ namespace Gurux.DLMS
                     GXByteBuffer data2 = data.Data;
                     if (data.Command == Command.GetResponse)
                     {
-                        GXByteBuffer tmp = new GXByteBuffer((UInt16)(3 + data.Data.Size));
+                        GXByteBuffer tmp = new GXByteBuffer((UInt16)(4 + data.Data.Size));
                         tmp.SetUInt8(data.Command);
                         tmp.SetUInt8(GetCommandType.Normal);
                         tmp.SetUInt8((byte)data.InvokeId);
@@ -2000,7 +2006,19 @@ namespace Gurux.DLMS
                         tmp.Set(data.Data);
                         data.Data = tmp;
                     }
-                    if (data.Command == Command.ReadResponse)
+                    else if (data.Command == Command.MethodResponse)
+                    {
+                        GXByteBuffer tmp = new GXByteBuffer((UInt16)(6 + data.Data.Size));
+                        tmp.SetUInt8(data.Command);
+                        tmp.SetUInt8(GetCommandType.Normal);
+                        tmp.SetUInt8((byte)data.InvokeId);
+                        tmp.SetUInt8(0);
+                        tmp.SetUInt8(1);
+                        tmp.SetUInt8(0);
+                        tmp.Set(data.Data);
+                        data.Data = tmp;
+                    }
+                    else if (data.Command == Command.ReadResponse)
                     {
                         GXByteBuffer tmp = new GXByteBuffer((UInt16)(3 + data.Data.Size));
                         tmp.SetUInt8(data.Command);
@@ -2010,19 +2028,19 @@ namespace Gurux.DLMS
                         tmp.Set(data.Data);
                         data.Data = tmp;
                     }
-                    data.Data.Position = 0;                   
+                    data.Data.Position = 0;
                     if (data.Command == Command.Snrm || data.Command == Command.Ua)
                     {
                         data.Xml.AppendStartTag(data.Command);
                         if (data.Data.Size != 0)
                         {
-                            translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace, false);
+                            translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace);
                         }
                         data.Xml.AppendEndTag(data.Command);
                     }
                     else
                     {
-                        translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace, true);
+                        translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace);
                         data.Data = data2;
                     }
                 }

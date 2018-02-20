@@ -70,6 +70,25 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Description of the test.
+        /// </summary>
+        public string Description
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Shown error if this test fails.
+        /// </summary>
+        public string Error
+        {
+            get;
+            set;
+        }
+
+
+        /// <summary>
         /// Return PDU as XML string.
         /// </summary>
         public string PduAsXml
@@ -302,6 +321,7 @@ namespace Gurux.DLMS
         private List<GXDLMSXmlPdu> Load(XmlDocument doc)
         {
             List<GXDLMSXmlPdu> actions = new List<GXDLMSXmlPdu>();
+            string description = null, error = null;
             foreach (XmlNode m1 in doc.ChildNodes)
             {
                 if (m1.NodeType == XmlNodeType.Element)
@@ -310,6 +330,16 @@ namespace Gurux.DLMS
                     {
                         if (node.NodeType == XmlNodeType.Element)
                         {
+                            if (node.Name == "Description")
+                            {
+                                description = node.Value;
+                                continue;
+                            }
+                            if (node.Name == "Error")
+                            {
+                                error = node.Value;
+                                continue;
+                            }
                             GXDLMSXmlSettings s = new GXDLMSXmlSettings(translator.OutputType, translator.Hex, translator.ShowStringAsHex, translator.tagsByName); ;
                             s.settings.ClientAddress = Settings.ClientAddress;
                             s.settings.ServerAddress = Settings.ServerAddress;
@@ -332,7 +362,16 @@ namespace Gurux.DLMS
                             {
                                 reply = null;
                             }
-                            actions.Add(new GXDLMSXmlPdu(s.command, node, reply));
+                            GXDLMSXmlPdu p = new GXDLMSXmlPdu(s.command, node, reply);
+                            if (description != "")
+                            {
+                                p.Description = description;
+                            }
+                            if (error != "")
+                            {
+                                p.Error = error;
+                            }                            
+                            actions.Add(p);
                         }
                     }
                 }

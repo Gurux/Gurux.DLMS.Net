@@ -666,13 +666,13 @@ namespace Gurux.DLMS
                                     if (data.Command == Command.Snrm || data.Command == Command.Ua)
                                     {
                                         xml.AppendStartTag(data.Command);
-                                        PduToXml(xml, data.Data, true, true, false);
+                                        PduToXml(xml, data.Data, true, true);
                                         xml.AppendEndTag(data.Command);
                                         xml.sb.Length += 2;
                                     }
                                     else
                                     {
-                                        xml.AppendLine(PduToXml(data.Data, true, true));
+                                        xml.AppendLine(PduToXml(data.Data));
                                     }
                                 }
                                 // Remove \r\n.
@@ -855,21 +855,19 @@ namespace Gurux.DLMS
                     default:
                         throw new GXDLMSException("Invalid Exception.");
                 }
-                // RX / TX are delivered from the partner's point of view =>
-                // reversed to ours
                 switch (id)
                 {
                     case HDLCInfo.MaxInfoTX:
-                        xml.AppendLine("<MaxInfoRX Value=\"" + val.ToString() + "\" />");
-                        break;
-                    case HDLCInfo.MaxInfoRX:
                         xml.AppendLine("<MaxInfoTX Value=\"" + val.ToString() + "\" />");
                         break;
+                    case HDLCInfo.MaxInfoRX:
+                        xml.AppendLine("<MaxInfoRX Value=\"" + val.ToString() + "\" />");
+                        break;
                     case HDLCInfo.WindowSizeTX:
-                        xml.AppendLine("<WindowSizeRX Value=\"" + val.ToString() + "\" />");
+                        xml.AppendLine("<WindowSizeTX Value=\"" + val.ToString() + "\" />");
                         break;
                     case HDLCInfo.WindowSizeRX:
-                        xml.AppendLine("<WindowSizeTX Value=\"" + val.ToString() + "\" />");
+                        xml.AppendLine("<WindowSizeRX Value=\"" + val.ToString() + "\" />");
                         break;
                     default:
                         throw new GXDLMSException("Invalid UA response.");
@@ -890,15 +888,14 @@ namespace Gurux.DLMS
         private string PduToXml(GXByteBuffer value, bool omitDeclaration, bool omitNameSpace)
         {
             GXDLMSTranslatorStructure xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
-            return PduToXml(xml, value, omitDeclaration, omitNameSpace, false);
+            return PduToXml(xml, value, omitDeclaration, omitNameSpace);
         }
 
-        internal string PduToXml(GXDLMSTranslatorStructure xml, GXByteBuffer value, bool omitDeclaration, bool omitNameSpace, bool leaveData)
+        internal string PduToXml(GXDLMSTranslatorStructure xml, GXByteBuffer value, bool omitDeclaration, bool omitNameSpace)
         {
             GXDLMSSettings settings = new GXDLMSSettings(true);
             settings.Cipher = GetCiphering();
             GXReplyData data = new GXReplyData();
-            data.leaveData = leaveData;
             byte cmd = value.GetUInt8();
             string str;
             int len;
@@ -1057,7 +1054,7 @@ namespace Gurux.DLMS
                             AesGcmParameter p = new AesGcmParameter(settings.Cipher.SystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
                             GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
                             xml.StartComment("Decrypt data:");
-                            PduToXml(xml, data2, omitDeclaration, omitNameSpace, false);
+                            PduToXml(xml, data2, omitDeclaration, omitNameSpace);
                             xml.EndComment();
                         }
                         catch (Exception)
@@ -1083,7 +1080,7 @@ namespace Gurux.DLMS
                         AesGcmParameter p = new AesGcmParameter(settings.Cipher.SystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
                         GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
                         xml.StartComment("Decrypt data:");
-                        PduToXml(xml, data2, omitDeclaration, omitNameSpace, false);
+                        PduToXml(xml, data2, omitDeclaration, omitNameSpace);
                         xml.EndComment();
                         value.Position = originalPosition;
                     }

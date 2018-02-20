@@ -32,6 +32,7 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using Gurux.DLMS.Internal;
 using System.Text;
 
 namespace Gurux.DLMS.Objects
@@ -98,7 +99,7 @@ namespace Gurux.DLMS.Objects
             Start = start;
             WeekName = weekProfile.Name;
         }
-        
+
 
         /// <summary>
         /// Name of season profile.
@@ -135,7 +136,27 @@ namespace Gurux.DLMS.Objects
 
         public override string ToString()
         {
-            return GXDLMSTranslator.ToHex(Name) + " " + Start.ToFormatString() + " " + GXDLMSTranslator.ToHex(WeekName);
+            StringBuilder sb = new StringBuilder();
+            if (GXCommon.IsAscii(Name))
+            {
+                sb.Append(ASCIIEncoding.ASCII.GetString(Name));
+            }
+            else
+            {
+                sb.Append(GXDLMSTranslator.ToHex(Name));
+            }
+            sb.Append(' ');
+            sb.Append(Start.ToFormatString());
+            sb.Append(' ');
+            if (GXCommon.IsAscii(WeekName))
+            {
+                sb.Append(ASCIIEncoding.ASCII.GetString(WeekName));
+            }
+            else
+            {
+                sb.Append(GXDLMSTranslator.ToHex(WeekName));
+            }
+            return sb.ToString();
         }
 
     }

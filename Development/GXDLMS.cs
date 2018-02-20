@@ -2189,10 +2189,7 @@ namespace Gurux.DLMS
                 //If data.
                 if (ret == 0)
                 {
-                    if (!data.leaveData)
-                    {
-                        GetDataFromBlock(data.Data, 0);
-                    }
+                    GetDataFromBlock(data.Data, 0);
                 }
                 else if (ret == 1)
                 {
@@ -2210,7 +2207,7 @@ namespace Gurux.DLMS
                             ret = 0;
                         }
                     }
-                    else if (!data.leaveData)
+                    else
                     {
                         GetDataFromBlock(data.Data, 0);
                     }

@@ -248,11 +248,6 @@ namespace Gurux.DLMS
             return Streaming && (BlockNumberAck * WindowSize) + 1 > BlockNumber;
         }
 
-        /// <summary>
-        /// Don't clear data. It's used later.
-        /// </summary>
-        internal bool leaveData;
-
         ///<summary>
         /// Reset data values to default. 
         ///</summary>         
