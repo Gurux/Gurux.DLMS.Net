@@ -189,6 +189,53 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
+        /// Add object to object list.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="obj">COSEM object.</param>
+        /// <returns></returns>
+        public byte[][] AddObject(GXDLMSClient client, GXDLMSObject obj)
+        {
+            GXByteBuffer data = new GXByteBuffer();
+            data.SetUInt8((byte)DataType.Structure);
+            //Add structure size.
+            data.SetUInt8(4);
+            //ClassID
+            GXCommon.SetData(null, data, DataType.UInt16, obj.ObjectType);
+            //Version
+            GXCommon.SetData(null, data, DataType.UInt8, obj.Version);
+            //LN
+            GXCommon.SetData(null, data, DataType.OctetString, GXCommon.LogicalNameToBytes(obj.LogicalName));
+            //Access rights.
+            GetAccessRights(null, obj, null, data);
+            return client.Method(this, 3, data.Array(), DataType.Structure);
+        }
+
+        /// <summary>
+        /// Remove object from object list.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="obj">COSEM object.</param>
+        /// <returns></returns>
+        public byte[][] RemoveObject(GXDLMSClient client, GXDLMSObject obj)
+        {
+            GXByteBuffer data = new GXByteBuffer();
+            data.SetUInt8((byte)DataType.Structure);
+            //Add structure size.
+            data.SetUInt8(4);
+            //ClassID
+            GXCommon.SetData(null, data, DataType.UInt16, obj.ObjectType);
+            //Version
+            GXCommon.SetData(null, data, DataType.UInt8, obj.Version);
+            //LN
+            GXCommon.SetData(null, data, DataType.OctetString, GXCommon.LogicalNameToBytes(obj.LogicalName));
+            //Access rights.
+            GetAccessRights(null, obj, null, data);
+            return client.Method(this, 4, data.Array(), DataType.Structure);
+        }
+
+
+        /// <summary>
         /// Add user to user list.
         /// </summary>
         /// <param name="client">DLMS client.</param>
@@ -207,7 +254,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Remove user fro user list.
+        /// Remove user from user list.
         /// </summary>
         /// <param name="client">DLMS client.</param>
         /// <param name="id">User ID.</param>
@@ -277,6 +324,38 @@ namespace Gurux.DLMS.Objects
                 else
                 {
                     Secret = tmp;
+                }
+            }
+            else if (e.Index == 3)
+            {
+                //Add COSEM object.
+                GXDLMSObject obj = GetObject(settings, e.Parameters as object[]);
+                //Unknown objects are not add.
+                if (obj is IGXDLMSBase)
+                {
+                    if (ObjectList.FindByLN(obj.ObjectType, obj.LogicalName) == null)
+                    {
+                        ObjectList.Add(obj);
+                    }
+                    if (settings.Objects.FindByLN(obj.ObjectType, obj.LogicalName) == null)
+                    {
+                        settings.Objects.Add(obj);
+                    }
+                }
+            }
+            else if (e.Index == 4)
+            {
+                //Remove COSEM object.
+                GXDLMSObject obj = GetObject(settings, e.Parameters as object[]);
+                //Unknown objects are not removed.
+                if (obj is IGXDLMSBase)
+                {
+                    GXDLMSObject t = ObjectList.FindByLN(obj.ObjectType, obj.LogicalName);
+                    if (t != null)
+                    {
+                        ObjectList.Remove(t);
+                    }
+                    //Item is not removed from all objects. It might be that use wants remove object only from association view.
                 }
             }
             else if (e.Index == 5)
@@ -745,6 +824,34 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
+        /// <summary>
+        /// Add new object.
+        /// </summary>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="item">received data.</param>
+        private GXDLMSObject GetObject(GXDLMSSettings settings, Object[] item)
+        {
+            ObjectType type = (ObjectType)Convert.ToInt32(item[0]);
+            int version = Convert.ToInt32(item[1]);
+            String ln = GXCommon.ToLogicalName((byte[])item[2]);
+            GXDLMSObject obj = null;
+            if (settings.Objects != null)
+            {
+                obj = settings.Objects.FindByLN(type, ln);
+            }
+            if (obj == null)
+            {
+                obj = Gurux.DLMS.GXDLMSClient.CreateObject(type);
+                obj.LogicalName = ln;
+                obj.Version = version;
+            }
+            if (obj is IGXDLMSBase && item[3] != null)
+            {
+                UpdateAccessRights(obj, (Object[])item[3]);
+            }
+            return obj;
+        }
+
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
@@ -758,24 +865,10 @@ namespace Gurux.DLMS.Objects
                 {
                     foreach (Object[] item in (Object[])e.Value)
                     {
-                        ObjectType type = (ObjectType)Convert.ToInt32(item[0]);
-                        int version = Convert.ToInt32(item[1]);
-                        String ln = GXCommon.ToLogicalName((byte[])item[2]);
-                        GXDLMSObject obj = null;
-                        if (settings.Objects != null)
-                        {
-                            obj = settings.Objects.FindByLN(type, ln);
-                        }
-                        if (obj == null)
-                        {
-                            obj = Gurux.DLMS.GXDLMSClient.CreateObject(type);
-                            obj.LogicalName = ln;
-                            obj.Version = version;
-                        }
+                        GXDLMSObject obj = GetObject(settings, item);
                         //Unknown objects are not shown.
-                        if (obj is IGXDLMSBase && item[3] != null)
+                        if (obj is IGXDLMSBase)
                         {
-                            UpdateAccessRights(obj, (Object[])item[3]);
                             ObjectList.Add(obj);
                         }
                     }

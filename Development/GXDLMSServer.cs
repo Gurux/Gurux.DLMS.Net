@@ -34,14 +34,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.ComponentModel;
 using Gurux.DLMS.Objects;
 using Gurux.DLMS.Internal;
-using Gurux.DLMS.ManufacturerSettings;
-using System.Reflection;
-using System.Threading;
 #if !WINDOWS_UWP
 using System.Security.Cryptography;
 #endif
@@ -1006,6 +1001,11 @@ namespace Gurux.DLMS
                     break;
                 case Command.DisconnectRequest:
                     GenerateDisconnectRequest();
+                    if (Settings.Connected)
+                    {
+                        Settings.Connected = false;
+                        Disconnected(sr.ConnectionInfo);
+                    }
                     frame = (byte)Command.Ua;
                     break;
                 case Command.GeneralBlockTransfer:

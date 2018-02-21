@@ -134,7 +134,12 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 2)
             {
-                return base.GetDataType(index);
+                DataType dt = base.GetDataType(index);
+                if (dt == DataType.None && Value != null)
+                {
+                    dt = GXCommon.GetDLMSDataType(Value.GetType());
+                }
+                return dt;
             }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }

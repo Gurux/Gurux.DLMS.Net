@@ -251,7 +251,6 @@ namespace Gurux.DLMS
             target.UserId = UserId;
             target.UseUtc2NormalTime = UseUtc2NormalTime;
             target.WindowSize = WindowSize;
-            target.UserId = UserId;
             target.Objects.Clear();
             target.Objects.AddRange(Objects);
             target.Limits.MaxInfoRX = Limits.MaxInfoRX;

@@ -914,7 +914,21 @@ namespace Gurux.DLMS.Objects
                                 }
                             }
                         }
-
+                        else if (cols[pos].Key is GXDLMSRegister && index2 == 3)
+                        {
+                            try
+                            {
+                                GXDLMSRegister r = new GXDLMSRegister();
+                                ValueEventArgs v = new ValueEventArgs(r, 3, 0, null);
+                                v.Value = row[pos];
+                                (r as IGXDLMSBase).SetValue(null, v);
+                                row[pos] = new object[] { r.Scaler, r.Unit };
+                            }
+                            catch
+                            {
+                                //Skip error
+                            }
+                        }
                     }
                     Buffer.Add(row);
                 }

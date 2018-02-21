@@ -1086,7 +1086,6 @@ namespace Gurux.DLMS.Internal
                             xml.AppendLine(TranslatorGeneralTags.RespondingAeInvocationId, "Value", xml.IntegerToHex(settings.UserId, 2));
                         }
                         break;
-
                     case (byte)BerType.Context | (byte)PduType.SenderAcseRequirements:
                     //0x8A
                     case (byte)BerType.Context | (byte)PduType.CallingApInvocationId:

@@ -493,6 +493,11 @@ namespace Gurux.DLMS
             throw new Exception("Invalid DLMS data type.");
         }
 
+        /// <summary>
+        /// Get DLMS data type.
+        /// </summary>
+        /// <param name="value">Object</param>
+        /// <returns>DLMS data type.</returns>
         static public DataType GetDLMSDataType(object value)
         {
             return GXCommon.GetValueType(value);
