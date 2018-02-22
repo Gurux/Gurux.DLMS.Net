@@ -905,6 +905,8 @@ namespace GuruxDLMSServerExample
                 if (UseLogicalNameReferencing)
                 {
                     GXDLMSAssociationLogicalName ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
+                    ln.AuthenticationMechanismName.MechanismId = authentication;
+                    ln.AssociationStatus = AssociationStatus.Associated;
                     expected = ln.Secret;
                 }
                 else
@@ -917,6 +919,12 @@ namespace GuruxDLMSServerExample
                     return SourceDiagnostic.None;
                 }
                 return SourceDiagnostic.AuthenticationFailure;
+            }
+            if (UseLogicalNameReferencing)
+            {
+                GXDLMSAssociationLogicalName ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
+                ln.AuthenticationMechanismName.MechanismId = authentication;
+                ln.AssociationStatus = AssociationStatus.AssociationPending;
             }
             //Other authentication levels are check later.
             return SourceDiagnostic.None;
