@@ -32,12 +32,27 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using Gurux.DLMS.Objects.Enums;
 using System;
 
 namespace Gurux.DLMS.Objects
 {
     public class GXApplicationContextName
     {
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        public GXApplicationContextName()
+        {
+            JointIsoCtt = 2;
+            Country = 16;
+            CountryName = 756;
+            IdentifiedOrganization = 5;
+            DlmsUA = 8;
+            ApplicationContext = 1;
+            ContextId = ApplicationContextName.LogicalName;
+        }
+
         public byte JointIsoCtt
         {
             get;
@@ -68,7 +83,7 @@ namespace Gurux.DLMS.Objects
             get;
             set;
         }
-        public byte ContextId
+        public ApplicationContextName ContextId
         {
             get;
             set;

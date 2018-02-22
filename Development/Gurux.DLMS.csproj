@@ -78,6 +78,7 @@
     <Compile Include="Internal\MBusMeterType.cs" />
     <Compile Include="Internal\MBusControlInfo.cs" />
     <Compile Include="Internal\ReleaseResponseReason.cs" />
+    <Compile Include="Objects\Enums\ApplicationContextName.cs" />
     <Compile Include="Objects\Enums\GsmPacketSwitchStatus.cs" />
     <Compile Include="Objects\Enums\GsmCircuitSwitchStatus.cs" />
     <Compile Include="Objects\Enums\GsmStatus.cs" />

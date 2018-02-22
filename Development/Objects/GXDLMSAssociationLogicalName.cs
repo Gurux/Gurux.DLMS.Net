@@ -306,10 +306,12 @@ namespace Gurux.DLMS.Objects
                         secret = Secret;
                     }
                     settings.Connected = true;
+                    AssociationStatus = AssociationStatus.Associated;
                     return GXSecure.Secure(settings, settings.Cipher, ic, settings.CtoSChallenge, secret);
                 }
                 else //If the password does not match.
                 {
+                    AssociationStatus = AssociationStatus.NonAssociated;
                     settings.Connected = false;
                     return null;
                 }
@@ -900,7 +902,7 @@ namespace Gurux.DLMS.Objects
                         ApplicationContextName.IdentifiedOrganization = arr.GetUInt8();
                         ApplicationContextName.DlmsUA = arr.GetUInt8();
                         ApplicationContextName.ApplicationContext = arr.GetUInt8();
-                        ApplicationContextName.ContextId = arr.GetUInt8();
+                        ApplicationContextName.ContextId = (ApplicationContextName) arr.GetUInt8();
                     }
                     else
                     {
@@ -950,7 +952,7 @@ namespace Gurux.DLMS.Objects
                         {
                             throw new ArgumentOutOfRangeException();
                         }
-                        ApplicationContextName.ContextId = arr.GetUInt8();
+                        ApplicationContextName.ContextId = (ApplicationContextName) arr.GetUInt8();
                     }
                 }
                 else if (e.Value != null)
@@ -962,7 +964,7 @@ namespace Gurux.DLMS.Objects
                     ApplicationContextName.IdentifiedOrganization = Convert.ToByte(arr[3]);
                     ApplicationContextName.DlmsUA = Convert.ToByte(arr[4]);
                     ApplicationContextName.ApplicationContext = Convert.ToByte(arr[5]);
-                    ApplicationContextName.ContextId = Convert.ToByte(arr[6]);
+                    ApplicationContextName.ContextId = (ApplicationContextName) Convert.ToByte(arr[6]);
                 }
             }
             else if (e.Index == 5)
@@ -1123,7 +1125,7 @@ namespace Gurux.DLMS.Objects
                 ApplicationContextName.IdentifiedOrganization = (byte)reader.ReadElementContentAsInt("IdentifiedOrganization");
                 ApplicationContextName.DlmsUA = (byte)reader.ReadElementContentAsInt("DlmsUA");
                 ApplicationContextName.ApplicationContext = (byte)reader.ReadElementContentAsInt("ApplicationContext");
-                ApplicationContextName.ContextId = (byte)reader.ReadElementContentAsInt("ContextId");
+                ApplicationContextName.ContextId = (ApplicationContextName)reader.ReadElementContentAsInt("ContextId");
                 reader.ReadEndElement("ApplicationContextName");
             }
 
@@ -1174,7 +1176,7 @@ namespace Gurux.DLMS.Objects
                 writer.WriteElementString("IdentifiedOrganization", ApplicationContextName.IdentifiedOrganization);
                 writer.WriteElementString("DlmsUA", ApplicationContextName.DlmsUA);
                 writer.WriteElementString("ApplicationContext", ApplicationContextName.ApplicationContext);
-                writer.WriteElementString("ContextId", ApplicationContextName.ContextId);
+                writer.WriteElementString("ContextId", (int)ApplicationContextName.ContextId);
                 writer.WriteEndElement();
             }
             if (XDLMSContextInfo != null)

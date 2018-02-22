@@ -39,6 +39,16 @@ namespace Gurux.DLMS.Objects
 {
     public class GXAuthenticationMechanismName
     {        
+        public GXAuthenticationMechanismName()
+        {
+            JointIsoCtt = 2;
+            Country = 16;
+            CountryName = 756;
+            IdentifiedOrganization = 5;
+            DlmsUA = 8;
+            AuthenticationMechanismName = 2;
+        }
+
         public byte JointIsoCtt
         {
             get;

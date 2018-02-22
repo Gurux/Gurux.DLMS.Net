@@ -268,7 +268,7 @@ namespace Gurux.DLMS
                 {
                     return InterfaceType.HDLC;
                 }
-                if (value.GetUInt16(pos) == 1)
+                if (value.Available > 1 && value.GetUInt16(pos) == 1)
                 {
                     return InterfaceType.WRAPPER;
                 }
