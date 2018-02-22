@@ -155,6 +155,7 @@
     <Compile Include="Objects\Enums\AccessRange.cs" />
     <Compile Include="Objects\Enums\AddressConfigMode.cs" />
     <Compile Include="Objects\Enums\AddressState.cs" />
+    <Compile Include="Objects\Enums\ApplicationContextName.cs" />
     <Compile Include="Objects\Enums\AssociationStatus.cs" />
     <Compile Include="Objects\Enums\AutoAnswerMode.cs" />
     <Compile Include="Objects\Enums\AutoAnswerStatus.cs" />

@@ -1254,7 +1254,7 @@ namespace Gurux.DLMS
                             GXDLMSAssociationLogicalName ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
                             if (ln != null)
                             {
-                                if (Settings.Cipher == null || Settings.Cipher.Security == Security.None)
+                                if (Settings.Cipher == null || Settings.Cipher.Security == Enums.Security.None)
                                 {
                                     ln.ApplicationContextName.ContextId = ApplicationContextName.LogicalName;
                                 }
@@ -1274,7 +1274,7 @@ namespace Gurux.DLMS
                             GXDLMSAssociationLogicalName ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
                             if (ln != null)
                             {
-                                if (Settings.Cipher == null || Settings.Cipher.Security == Security.None)
+                                if (Settings.Cipher == null || Settings.Cipher.Security == Enums.Security.None)
                                 {
                                     ln.ApplicationContextName.ContextId = ApplicationContextName.LogicalName;
                                 }

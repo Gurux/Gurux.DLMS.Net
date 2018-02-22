@@ -111,6 +111,7 @@
     <Compile Include="..\GXDLMSConfirmedServiceError.cs" />
     <Compile Include="..\ManufacturerSettings\GXAttributeCollection.cs" />
     <Compile Include="..\Objects\Enums\DeviceType.cs" />
+    <Compile Include="..\Objects\Enums\ApplicationContextName.cs" />
     <Compile Include="..\Objects\Enums\GainResolution.cs" />
     <Compile Include="..\Objects\Enums\GsmCircuitSwitchStatus.cs" />
     <Compile Include="..\Objects\Enums\GsmPacketSwitchStatus.cs" />
