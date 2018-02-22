@@ -196,8 +196,7 @@ namespace Gurux.DLMS.Objects
 #if !WINDOWS_UWP
         [ReadOnly(true)]
 #endif
-        [DefaultValue(0)]
-        public int Version
+        public virtual int Version
         {
             get;
             set;

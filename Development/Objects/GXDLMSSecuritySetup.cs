@@ -77,7 +77,6 @@ namespace Gurux.DLMS.Objects
         : base(ObjectType.SecuritySetup, ln, sn)
         {
             Certificates = new List<GXDLMSCertificateInfo>();
-            Version = 0;
         }
 
         /// <summary>
