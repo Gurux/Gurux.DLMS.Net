@@ -892,13 +892,9 @@ namespace Gurux.DLMS.Objects
                     GXByteBuffer arr = new GXByteBuffer(e.Value as byte[]);
                     if (arr.GetUInt8(0) == 0x60)
                     {
-
-                        ApplicationContextName.JointIsoCtt = 0;
-                        ++arr.Position;
-                        ApplicationContextName.Country = 0;
-                        ++arr.Position;
-                        ApplicationContextName.CountryName = 0;
-                        ++arr.Position;
+                        ApplicationContextName.JointIsoCtt = arr.GetUInt8();
+                        ApplicationContextName.Country = arr.GetUInt8();
+                        ApplicationContextName.CountryName = arr.GetUInt8();
                         ApplicationContextName.IdentifiedOrganization = arr.GetUInt8();
                         ApplicationContextName.DlmsUA = arr.GetUInt8();
                         ApplicationContextName.ApplicationContext = arr.GetUInt8();
@@ -991,12 +987,9 @@ namespace Gurux.DLMS.Objects
                     GXByteBuffer arr = new GXByteBuffer(e.Value as byte[]);
                     if (arr.GetUInt8(0) == 0x60)
                     {
-                        AuthenticationMechanismName.JointIsoCtt = 0;
-                        ++arr.Position;
-                        AuthenticationMechanismName.Country = 0;
-                        ++arr.Position;
-                        AuthenticationMechanismName.CountryName = 0;
-                        ++arr.Position;
+                        AuthenticationMechanismName.JointIsoCtt = arr.GetUInt8();
+                        AuthenticationMechanismName.Country = arr.GetUInt8();
+                        AuthenticationMechanismName.CountryName = arr.GetUInt8();
                         AuthenticationMechanismName.IdentifiedOrganization = arr.GetUInt8();
                         AuthenticationMechanismName.DlmsUA = arr.GetUInt8();
                         AuthenticationMechanismName.AuthenticationMechanismName = arr.GetUInt8();

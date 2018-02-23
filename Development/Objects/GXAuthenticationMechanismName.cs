@@ -38,7 +38,10 @@ using Gurux.DLMS.Enums;
 namespace Gurux.DLMS.Objects
 {
     public class GXAuthenticationMechanismName
-    {        
+    {       
+        /// <summary>
+        /// Constuctor.
+        /// </summary>
         public GXAuthenticationMechanismName()
         {
             JointIsoCtt = 2;
@@ -47,6 +50,7 @@ namespace Gurux.DLMS.Objects
             IdentifiedOrganization = 5;
             DlmsUA = 8;
             AuthenticationMechanismName = 2;
+            MechanismId = Authentication.None;
         }
 
         public byte JointIsoCtt
