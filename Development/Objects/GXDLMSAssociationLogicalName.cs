@@ -401,7 +401,7 @@ namespace Gurux.DLMS.Objects
             }
 
             //ObjectList is static and read only once.
-            if (!base.IsRead(2))
+            if (ObjectList.Count == 0)
             {
                 attributes.Add(2);
             }

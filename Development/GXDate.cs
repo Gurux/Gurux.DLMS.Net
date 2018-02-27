@@ -100,6 +100,7 @@ namespace Gurux.DLMS
                 string dateSeparator = Internal.GXCommon.GetDateSeparator(), timeSeparator = Internal.GXCommon.GetTimeSeparator();
                 List<string> shortDatePattern = new List<string>("yyyy-MM-dd".Split(new string[] { dateSeparator, " " }, StringSplitOptions.RemoveEmptyEntries));
 #endif
+                Skip |= DateTimeSkips.DayOfWeek;
                 string[] values = date.Trim().Split(new string[] { dateSeparator, timeSeparator, " " }, StringSplitOptions.None);
                 int cnt = shortDatePattern.Count;
                 if (!string.IsNullOrEmpty(culture.DateTimeFormat.PMDesignator))

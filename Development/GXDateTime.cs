@@ -142,6 +142,7 @@ namespace Gurux.DLMS
                 {
                     //  throw new ArgumentOutOfRangeException("Invalid DateTime");
                 }
+                Skip |= DateTimeSkips.DayOfWeek;
                 int offset = 3;
                 for (int pos = 0; pos != shortDatePattern.Count; ++pos)
                 {
