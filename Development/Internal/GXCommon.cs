@@ -1500,7 +1500,7 @@ namespace Gurux.DLMS.Internal
             byte value = buff.GetUInt8();
             if (info.xml != null)
             {
-                info.xml.AppendLine(GXDLMS.DATA_TYPE_OFFSET + (int)info.Type, "Value", value);
+                info.xml.AppendLine(GXDLMS.DATA_TYPE_OFFSET + (int)info.Type, "Value", value != 0 ? "true" : "false");
             }
             return value != 0;
         }
@@ -2289,7 +2289,7 @@ namespace Gurux.DLMS.Internal
             else if (value is byte)
             {
                 SetObjectCount(8, buff);
-                buff.SetUInt8((byte) value);
+                buff.SetUInt8((byte)value);
             }
             else
             {

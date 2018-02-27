@@ -466,7 +466,7 @@ namespace Gurux.DLMS.Objects
             {
                 return new string[] {Internal.GXCommon.GetLogicalNameString(),
                                  "Object List",
-                                 "Aassociated_partners_id",
+                                 "Associated partners Id",
                                  "Application Context Name",
                                  "xDLMS Context Info",
                                  "Authentication Mechanism Name",
@@ -478,7 +478,7 @@ namespace Gurux.DLMS.Objects
             {
                 return new string[] {Internal.GXCommon.GetLogicalNameString(),
                              "Object List",
-                             "Aassociated_partners_id",
+                             "Associated partners Id",
                              "Application Context Name",
                              "xDLMS Context Info",
                              "Authentication Mechanism Name",
@@ -489,7 +489,7 @@ namespace Gurux.DLMS.Objects
             }
             return new string[] {Internal.GXCommon.GetLogicalNameString(),
                              "Object List",
-                             "Aassociated_partners_id",
+                             "Associated partners Id",
                              "Application Context Name",
                              "xDLMS Context Info",
                              "Authentication Mechanism Name",

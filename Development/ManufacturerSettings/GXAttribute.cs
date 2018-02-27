@@ -33,9 +33,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.ComponentModel;
 using System.Xml.Serialization;
 using Gurux.DLMS.Enums;
@@ -221,6 +218,19 @@ namespace Gurux.DLMS.ManufacturerSettings
 #endif
         [DefaultValue(false)]
         public bool Static
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Force that data is always sent as blocks.
+        /// </summary>
+        /// <remarks>
+        /// Some meters can handle only blocks. This property is used to force send all data in blocks. 
+        /// </remarks>
+        [DefaultValue(false)]
+        public bool ForceToBlocks
         {
             get;
             set;

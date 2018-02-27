@@ -190,6 +190,24 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Force that data is always sent as blocks.
+        /// </summary>
+        /// <remarks>
+        /// Some meters can handle only blocks. This property is used to force send all data in blocks. 
+        /// </remarks>
+        public bool ForceToBlocks
+        {
+            get
+            {
+                return Settings.ForceToBlocks;
+            }
+            set
+            {
+                Settings.ForceToBlocks = value;
+            }
+        }
+
+        /// <summary>
         /// User id is the identifier of the user. 
         /// </summary>
         /// <remarks>

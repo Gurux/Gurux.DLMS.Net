@@ -1552,7 +1552,7 @@ namespace Gurux.DLMS
                     GXCommon.SetData(s.settings, s.data, DataType.BitString, GetValue(node, s));
                     break;
                 case DataType.Boolean:
-                    GXCommon.SetData(s.settings, s.data, DataType.Boolean, s.ParseShort(GetValue(node, s)));
+                    GXCommon.SetData(s.settings, s.data, DataType.Boolean, Boolean.Parse(GetValue(node, s)));
                     break;
                 case DataType.Date:
                     GXCommon.SetData(s.settings, s.data, DataType.Date, GXDLMSClient.ChangeType(GXCommon.HexToBytes(GetValue(node, s)), DataType.DateTime, s.settings.UseUtc2NormalTime));

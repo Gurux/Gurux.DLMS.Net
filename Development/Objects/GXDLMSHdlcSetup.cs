@@ -73,6 +73,7 @@ namespace Gurux.DLMS.Objects
             WindowSizeReceive = WindowSizeTransmit = 1;
             MaximumInfoLengthTransmit = MaximumInfoLengthReceive = 128;
             InactivityTimeout = 120;
+            Version = 1;
         }
 
         [XmlIgnore()]

@@ -143,7 +143,7 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
-        public byte[][] ImageTransferInitiate(GXDLMSClient client, string imageIdentifier, long imageSize)
+        public byte[][] ImageTransferInitiate(GXDLMSClient client, byte[] imageIdentifier, long imageSize)
         {
             if (ImageBlockSize == 0)
             {
@@ -152,9 +152,14 @@ namespace Gurux.DLMS.Objects
             GXByteBuffer data = new GXByteBuffer();
             data.SetUInt8((byte)DataType.Structure);
             data.SetUInt8((byte)2);
-            GXCommon.SetData(client.Settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(imageIdentifier));
+            GXCommon.SetData(client.Settings, data, DataType.OctetString, imageIdentifier);
             GXCommon.SetData(client.Settings, data, DataType.UInt32, imageSize);
             return client.Method(this, 1, data.Array(), DataType.Array);
+        }
+
+        public byte[][] ImageTransferInitiate(GXDLMSClient client, string imageIdentifier, long imageSize)
+        {
+            return ImageTransferInitiate(client, ASCIIEncoding.ASCII.GetBytes(imageIdentifier), imageSize);
         }
 
         public byte[][] ImageBlockTransfer(GXDLMSClient client, byte[] imageBlockValue, out int ImageBlockCount)

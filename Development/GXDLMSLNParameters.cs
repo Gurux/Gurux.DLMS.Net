@@ -122,7 +122,7 @@ namespace Gurux.DLMS
             data = forData;
             time = null;
             status = forStatus;
-            multipleBlocks = forSettings.Count != forSettings.Index;
+            multipleBlocks = settings.ForceToBlocks || forSettings.Count != forSettings.Index;
             lastBlock = forSettings.Count == forSettings.Index;
             WindowSize = 1;
         }

@@ -187,6 +187,15 @@ namespace Gurux.DLMS
             set;
         }
 
+        /// <summary>
+        /// Force that data is always sent as blocks.
+        /// </summary>
+        internal bool ForceToBlocks
+        {
+            get;
+            set;
+        }
+
         ///<summary>
         ///Constructor.
         ///</summary>
@@ -246,7 +255,7 @@ namespace Gurux.DLMS
             target.SecuritySuite = SecuritySuite;
             if (Cipher != null && target.Cipher != null)
             {
-                ((GXCiphering)Cipher).CopyTo((GXCiphering) target.Cipher);
+                ((GXCiphering)Cipher).CopyTo((GXCiphering)target.Cipher);
             }
             target.UserId = UserId;
             target.UseUtc2NormalTime = UseUtc2NormalTime;

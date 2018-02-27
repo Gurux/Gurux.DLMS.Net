@@ -87,6 +87,24 @@ namespace Gurux.DLMS
             set;
         }
 
+        /// <summary>
+        /// Error url if test fails.
+        /// </summary>
+        public string ErrorUrl
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Sleep time in milliseconds.
+        /// </summary>
+        public int Sleep
+        {
+            get;
+            set;
+        }
+
 
         /// <summary>
         /// Return PDU as XML string.
@@ -321,7 +339,7 @@ namespace Gurux.DLMS
         private List<GXDLMSXmlPdu> Load(XmlDocument doc)
         {
             List<GXDLMSXmlPdu> actions = new List<GXDLMSXmlPdu>();
-            string description = null, error = null;
+            string description = null, error = null, errorUrl = null, sleep = null;
             foreach (XmlNode m1 in doc.ChildNodes)
             {
                 if (m1.NodeType == XmlNodeType.Element)
@@ -338,6 +356,16 @@ namespace Gurux.DLMS
                             if (node.Name == "Error")
                             {
                                 error = node.Value;
+                                continue;
+                            }
+                            if (node.Name == "ErrorUrl")
+                            {
+                                errorUrl = node.Value;
+                                continue;
+                            }
+                            if (node.Name == "Sleep")
+                            {
+                                sleep = node.Value;
                                 continue;
                             }
                             GXDLMSXmlSettings s = new GXDLMSXmlSettings(translator.OutputType, translator.Hex, translator.ShowStringAsHex, translator.tagsByName); ;
@@ -370,7 +398,15 @@ namespace Gurux.DLMS
                             if (error != "")
                             {
                                 p.Error = error;
-                            }                            
+                            }
+                            if (errorUrl != "")
+                            {
+                                p.ErrorUrl = errorUrl;
+                            }
+                            if (!string.IsNullOrEmpty(sleep))
+                            {
+                                p.Sleep = int.Parse(sleep);
+                            }
                             actions.Add(p);
                         }
                     }
