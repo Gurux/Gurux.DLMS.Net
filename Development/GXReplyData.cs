@@ -173,6 +173,16 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
+        /// True, if there are empty frames or blocks.
+        ///</summary>
+        public RequestTypes EmptyResponses
+        {
+            get;
+            set;
+        }
+
+
+        ///<summary>
         /// Expected count of elements in the array. 
         ///</summary>
         /// <seealso cref="Count"/>

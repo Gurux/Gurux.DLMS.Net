@@ -344,16 +344,16 @@ namespace Gurux.DLMS.Objects
                 //If client set new value.
                 if (!settings.IsServer && Scaler != 1 && LastAverageValue != null)
                 {
-                    Type type = null;
-                    if (LastAverageValue != null)
+                    DataType dt = base.GetDataType(3);
+                    if (dt == DataType.None && LastAverageValue != null)
                     {
-                        type = LastAverageValue.GetType();
+                        dt = GXCommon.GetDLMSDataType(LastAverageValue.GetType());
                     }
                     object tmp;
                     tmp = Convert.ToDouble(LastAverageValue) / Scaler;
-                    if (type != null)
+                    if (dt != DataType.None)
                     {
-                        tmp = Convert.ChangeType(tmp, type);
+                        tmp = Convert.ChangeType(tmp, GXCommon.GetDataType(dt));
                     }
                     return tmp;
                 }
@@ -430,6 +430,7 @@ namespace Gurux.DLMS.Objects
                 {
                     try
                     {
+                        SetDataType(e.Index, GXCommon.GetDLMSDataType(e.Value.GetType()));
                         if (settings.IsServer)
                         {
                             LastAverageValue = e.Value;

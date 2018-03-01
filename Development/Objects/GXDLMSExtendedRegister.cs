@@ -198,16 +198,16 @@ namespace Gurux.DLMS.Objects
                 //If client set new value.
                 if (!settings.IsServer && Scaler != 1 && Value != null)
                 {
-                    Type type = null;
-                    if (Value != null)
+                    DataType dt = base.GetDataType(2);
+                    if (dt == DataType.None && Value != null)
                     {
-                        type = Value.GetType();
+                        dt = GXCommon.GetDLMSDataType(Value.GetType());
                     }
                     object tmp;
                     tmp = Convert.ToDouble(Value) / Scaler;
-                    if (type != null)
+                    if (dt != DataType.None)
                     {
-                        tmp = Convert.ChangeType(tmp, type);
+                        tmp = Convert.ChangeType(tmp, GXCommon.GetDataType(dt));
                     }
                     return tmp;
                 }
@@ -244,6 +244,7 @@ namespace Gurux.DLMS.Objects
             {
                 if (Scaler != 1 && e.Value != null && !e.User)
                 {
+                    SetDataType(2, GXCommon.GetDLMSDataType(e.Value.GetType()));
                     try
                     {
                         if (settings.IsServer)

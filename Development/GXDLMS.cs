@@ -2566,6 +2566,11 @@ namespace Gurux.DLMS
                         settings.ResetBlockIndex();
                     }
                 }
+                else if (data.Position == data.Size)
+                {
+                    //Empty block. Conformance tests uses this.
+                    reply.EmptyResponses |= RequestTypes.DataBlock;
+                }
             }
             else if (type == GetCommandType.WithList)
             {

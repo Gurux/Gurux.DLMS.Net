@@ -406,7 +406,7 @@ namespace Gurux.DLMS
             {
                 return true;
             }
-            System.Diagnostics.Debug.WriteLine("Invalid HDLC Frame ID.");
+            System.Diagnostics.Debug.WriteLine("Invalid HDLC Frame ID: " + frame.ToString("X") + ".");
             return false;
         }
 
