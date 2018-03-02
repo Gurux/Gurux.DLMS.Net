@@ -162,36 +162,60 @@ namespace Gurux.DLMS.Objects
             return ImageTransferInitiate(client, ASCIIEncoding.ASCII.GetBytes(imageIdentifier), imageSize);
         }
 
-        public byte[][] ImageBlockTransfer(GXDLMSClient client, byte[] imageBlockValue, out int ImageBlockCount)
+        /// <summary>
+        /// Move image to the meter.
+        /// </summary>
+        /// <param name="client">DLMS Client.</param>
+        /// <param name="imageBlock">Image</param>
+        /// <param name="ImageBlockCount"></param>
+        /// <returns></returns>
+        public byte[][] ImageBlockTransfer(GXDLMSClient client, byte[] image, out int ImageBlockCount)
         {
-            ImageBlockCount = (int)(imageBlockValue.Length / ImageBlockSize);
-            if (imageBlockValue.Length % ImageBlockSize != 0)
+            List<byte[]> packets = new List<byte[]>();
+            byte[][] blocks = GetImageBlocks(image);
+            ImageBlockCount = blocks.Length;
+            foreach (byte[] it in blocks)
             {
-                ++ImageBlockCount;
+                packets.AddRange(client.Method(this, 2, it, DataType.Array));
+            }
+            return packets.ToArray();
+        }
+
+        /// <summary>
+        /// Returns image blocks to send to the meter.
+        /// </summary>
+        /// <param name="image">Image.</param>
+        /// <returns>Sent blocks.</returns>
+        public byte[][] GetImageBlocks(byte[] image)
+        {
+            int cnt = (int)(image.Length / ImageBlockSize);
+            if (image.Length % ImageBlockSize != 0)
+            {
+                ++cnt;
             }
             List<byte[]> packets = new List<byte[]>();
-            for (int pos = 0; pos != ImageBlockCount; ++pos)
+            for (int pos = 0; pos != cnt; ++pos)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8((byte)2);
-                GXCommon.SetData(client.Settings, data, DataType.UInt32, pos);
+                GXCommon.SetData(null, data, DataType.UInt32, pos);
                 byte[] tmp;
-                int bytes = (int)(imageBlockValue.Length - ((pos + 1) * ImageBlockSize));
+                int bytes = (int)(image.Length - ((pos + 1) * ImageBlockSize));
                 //If last packet
                 if (bytes < 0)
                 {
-                    bytes = (int)(imageBlockValue.Length - (pos * ImageBlockSize));
+                    bytes = (int)(image.Length - (pos * ImageBlockSize));
                     tmp = new byte[bytes];
-                    Array.Copy(imageBlockValue, pos * (int)ImageBlockSize, tmp, 0, bytes);
+                    Array.Copy(image, pos * (int)ImageBlockSize, tmp, 0, bytes);
                 }
                 else
                 {
                     tmp = new byte[ImageBlockSize];
-                    Array.Copy(imageBlockValue, (pos * (int)ImageBlockSize), tmp, 0, (int)ImageBlockSize);
+                    Array.Copy(image, (pos * (int)ImageBlockSize), tmp, 0, (int)ImageBlockSize);
                 }
-                GXCommon.SetData(client.Settings, data, DataType.OctetString, tmp);
-                packets.AddRange(client.Method(this, 2, data.Array(), DataType.Array));
+                GXCommon.SetData(null, data, DataType.OctetString, tmp);
+                packets.Add(data.Array());
             }
             return packets.ToArray();
         }

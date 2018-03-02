@@ -2182,7 +2182,7 @@ namespace Gurux.DLMS
                                         (ErrorCode)data.Error));
             }
             // Response normal. Get data if exists. Some meters do not return here anything.
-            if (data.Data.Position < data.Data.Size)
+            if (data.Error == 0 && data.Data.Position < data.Data.Size)
             {
                 //Get-Data-Result
                 ret = data.Data.GetUInt8();
@@ -3001,7 +3001,7 @@ namespace Gurux.DLMS
                 return;
             }
             // Get data if all data is read or we want to peek data.
-            if (data.Xml == null && data.Data.Position != data.Data.Size &&
+            if (data.Error == 0 && data.Xml == null && data.Data.Position != data.Data.Size &&
                     (cmd == Command.ReadResponse || cmd == Command.GetResponse || cmd == Command.MethodResponse)
                     && (data.MoreData == RequestTypes.None || data.Peek))
             {

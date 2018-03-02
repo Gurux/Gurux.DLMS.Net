@@ -338,6 +338,16 @@ namespace Gurux.DLMS
 
         private List<GXDLMSXmlPdu> Load(XmlDocument doc)
         {
+            //Remove comments.
+            List<XmlNode> comments = new List<XmlNode>();
+            foreach (XmlNode node in doc.SelectNodes("//comment()"))
+            {
+                comments.Add(node);
+            }
+            foreach (XmlNode node in comments)
+            {
+                node.ParentNode.RemoveChild(node);
+            }
             List<GXDLMSXmlPdu> actions = new List<GXDLMSXmlPdu>();
             string description = null, error = null, errorUrl = null, sleep = null;
             foreach (XmlNode m1 in doc.ChildNodes)

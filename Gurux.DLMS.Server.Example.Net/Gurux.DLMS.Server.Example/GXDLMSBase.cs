@@ -46,6 +46,7 @@ using System.Net.Sockets;
 using System.IO;
 using System.Globalization;
 using System.Diagnostics;
+using System.Threading;
 
 namespace GuruxDLMSServerExample
 {
@@ -335,7 +336,7 @@ namespace GuruxDLMSServerExample
             ///////////////////////////////////////////////////////////////////////
             //Add IP6 Setup object.
             GXDLMSIp6Setup ip6 = new GXDLMSIp6Setup();
-           
+
             Items.Add(ip6);
 
             //Get local IP address.
@@ -724,9 +725,28 @@ namespace GuruxDLMSServerExample
                     {
                         string file = Path.Combine(Path.GetDirectoryName(typeof(GXDLMSBase).Assembly.Location), ImageUpdate + ".exe");
                         object[] p = (object[])it.Parameters;
-                        using (BinaryWriter writer = new BinaryWriter(new FileStream(file, FileMode.Append)))
+                        try
                         {
-                            writer.Write((byte[])p[1]);
+                            using (FileStream fs = new FileStream(file, FileMode.Append))
+                            {
+                                using (BinaryWriter writer = new BinaryWriter(fs))
+                                {
+                                    writer.Write((byte[])p[1]);
+                                }
+                                fs.Close();
+                            }
+                        }
+                        catch (System.IO.IOException)
+                        {
+                            Thread.Sleep(1000);
+                            using (FileStream fs = new FileStream(file, FileMode.Append))
+                            {
+                                using (BinaryWriter writer = new BinaryWriter(fs))
+                                {
+                                    writer.Write((byte[])p[1]);
+                                }
+                                fs.Close();
+                            }
                         }
                     }
                     //Verifies the integrity of the Image before activation.

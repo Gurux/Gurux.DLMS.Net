@@ -2058,7 +2058,10 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace);
+                        if (data.Data.Size != 0)
+                        {
+                            translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace);
+                        }
                         data.Data = data2;
                     }
                 }
