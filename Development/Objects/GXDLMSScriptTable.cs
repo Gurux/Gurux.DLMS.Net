@@ -99,16 +99,16 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        int[] IGXDLMSBase.GetAttributeIndexToRead(bool all)
         {
             List<int> attributes = new List<int>();
             //LN is static and read only once.
-            if (string.IsNullOrEmpty(LogicalName))
+            if (all || string.IsNullOrEmpty(LogicalName))
             {
                 attributes.Add(1);
             }
             //Scripts
-            if (!base.IsRead(2))
+            if (all || !base.IsRead(2))
             {
                 attributes.Add(2);
             }

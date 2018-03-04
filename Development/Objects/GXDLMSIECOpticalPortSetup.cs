@@ -163,51 +163,51 @@ namespace Gurux.DLMS.Objects
 
         #region IGXDLMSBase Members
 
-        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        int[] IGXDLMSBase.GetAttributeIndexToRead(bool all)
         {
             List<int> attributes = new List<int>();
             //LN is static and read only once.
-            if (string.IsNullOrEmpty(LogicalName))
+            if (all || string.IsNullOrEmpty(LogicalName))
             {
                 attributes.Add(1);
             }
             //DefaultMode
-            if (!base.IsRead(2))
+            if (all || !base.IsRead(2))
             {
                 attributes.Add(2);
             }
             //DefaultBaudrate
-            if (!base.IsRead(3))
+            if (all || !base.IsRead(3))
             {
                 attributes.Add(3);
             }
             //ProposedBaudrate
-            if (!base.IsRead(4))
+            if (all || !base.IsRead(4))
             {
                 attributes.Add(4);
             }
             //ResponseTime
-            if (!base.IsRead(5))
+            if (all || !base.IsRead(5))
             {
                 attributes.Add(5);
             }
             //DeviceAddress
-            if (!base.IsRead(6))
+            if (all || !base.IsRead(6))
             {
                 attributes.Add(6);
             }
             //Password1
-            if (!base.IsRead(7))
+            if (all || !base.IsRead(7))
             {
                 attributes.Add(7);
             }
             //Password2
-            if (!base.IsRead(8))
+            if (all || !base.IsRead(8))
             {
                 attributes.Add(8);
             }
             //Password5
-            if (!base.IsRead(9))
+            if (all || !base.IsRead(9))
             {
                 attributes.Add(9);
             }

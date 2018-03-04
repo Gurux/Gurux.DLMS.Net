@@ -193,53 +193,53 @@ namespace Gurux.DLMS.Objects
 
         #region IGXDLMSBase Members
 
-        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        int[] IGXDLMSBase.GetAttributeIndexToRead(bool all)
         {
             List<int> attributes = new List<int>();
             //LN is static and read only once.
-            if (string.IsNullOrEmpty(LogicalName))
+            if (all || string.IsNullOrEmpty(LogicalName))
             {
                 attributes.Add(1);
             }
 
             //Scaler and Unit
-            if (!IsRead(4))
+            if (all || !IsRead(4))
             {
                 attributes.Add(4);
             }
             //CurrentAverageValue
-            if (CanRead(2))
+            if (all || CanRead(2))
             {
                 attributes.Add(2);
             }
 
             //LastAverageValue
-            if (CanRead(3))
+            if (all || CanRead(3))
             {
                 attributes.Add(3);
             }
             //Status
-            if (CanRead(5))
+            if (all || CanRead(5))
             {
                 attributes.Add(5);
             }
             //CaptureTime
-            if (CanRead(6))
+            if (all || CanRead(6))
             {
                 attributes.Add(6);
             }
             //StartTimeCurrent
-            if (CanRead(7))
+            if (all || CanRead(7))
             {
                 attributes.Add(7);
             }
             //Period
-            if (CanRead(8))
+            if (all || CanRead(8))
             {
                 attributes.Add(8);
             }
             //NumberOfPeriods
-            if (CanRead(9))
+            if (all || CanRead(9))
             {
                 attributes.Add(9);
             }

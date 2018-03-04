@@ -315,51 +315,51 @@ namespace Gurux.DLMS.Objects
             return client.Method(this, 6, time, DataType.Int16);
         }
 
-        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        int[] IGXDLMSBase.GetAttributeIndexToRead(bool all)
         {
             List<int> attributes = new List<int>();
             //LN is static and read only once.
-            if (string.IsNullOrEmpty(LogicalName))
+            if (all || string.IsNullOrEmpty(LogicalName))
             {
                 attributes.Add(1);
             }
             //Time
-            if (CanRead(2))
+            if (all || CanRead(2))
             {
                 attributes.Add(2);
             }
             //TimeZone
-            if (!base.IsRead(3))
+            if (all || !base.IsRead(3))
             {
                 attributes.Add(3);
             }
             //Status
-            if (CanRead(4))
+            if (all || CanRead(4))
             {
                 attributes.Add(4);
             }
             //Begin
-            if (!base.IsRead(5))
+            if (all || !base.IsRead(5))
             {
                 attributes.Add(5);
             }
             //End
-            if (!base.IsRead(6))
+            if (all || !base.IsRead(6))
             {
                 attributes.Add(6);
             }
             //Deviation
-            if (!base.IsRead(7))
+            if (all || !base.IsRead(7))
             {
                 attributes.Add(7);
             }
             //Enabled
-            if (!base.IsRead(8))
+            if (all || !base.IsRead(8))
             {
                 attributes.Add(8);
             }
             //ClockBase
-            if (!base.IsRead(9))
+            if (all || !base.IsRead(9))
             {
                 attributes.Add(9);
             }

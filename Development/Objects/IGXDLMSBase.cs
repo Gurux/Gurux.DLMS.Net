@@ -45,8 +45,9 @@ namespace Gurux.DLMS.Objects
         /// <remarks>
         /// If attribute is static and already read or device is returned HW error it is not returned.
         /// </remarks>
+        /// <param name="all">All items are returned even if they are read already.</param>
         /// <returns>Collection of attributes to read.</returns>                
-        int[] GetAttributeIndexToRead();
+        int[] GetAttributeIndexToRead(bool all);
 
         /// <summary>
         /// Returns amount of attributes.

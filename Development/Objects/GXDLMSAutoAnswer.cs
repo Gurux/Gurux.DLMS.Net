@@ -132,37 +132,37 @@ namespace Gurux.DLMS.Objects
 
         #region IGXDLMSBase Members
 
-        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        int[] IGXDLMSBase.GetAttributeIndexToRead(bool all)
         {
             List<int> attributes = new List<int>();
             //LN is static and read only once.
-            if (string.IsNullOrEmpty(LogicalName))
+            if (all || string.IsNullOrEmpty(LogicalName))
             {
                 attributes.Add(1);
             }
             //Mode is static and read only once.
-            if (!base.IsRead(2))
+            if (all || !base.IsRead(2))
             {
                 attributes.Add(2);
             }
             //ListeningWindow is static and read only once.
-            if (!base.IsRead(3))
+            if (all || !base.IsRead(3))
             {
                 attributes.Add(3);
             }
             //Status is not static.
-            if (CanRead(4))
+            if (all || CanRead(4))
             {
                 attributes.Add(4);
             }
 
             //NumberOfCalls is static and read only once.
-            if (!base.IsRead(5))
+            if (all || !base.IsRead(5))
             {
                 attributes.Add(5);
             }
             //NumberOfRingsInListeningWindow is static and read only once.
-            if (!base.IsRead(6))
+            if (all || !base.IsRead(6))
             {
                 attributes.Add(6);
             }

@@ -330,101 +330,101 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        int[] IGXDLMSBase.GetAttributeIndexToRead(bool all)
         {
             List<int> attributes = new List<int>();
             //LN is static and read only once.
-            if (string.IsNullOrEmpty(LogicalName))
+            if (all || string.IsNullOrEmpty(LogicalName))
             {
                 attributes.Add(1);
             }
             //MaxHops
-            if (CanRead(2))
+            if (all || CanRead(2))
             {
                 attributes.Add(2);
             }
             //WeakLqiValue
-            if (CanRead(3))
+            if (all || CanRead(3))
             {
                 attributes.Add(3);
             }
             //SecurityLevel
-            if (CanRead(4))
+            if (all || CanRead(4))
             {
                 attributes.Add(4);
             }
             //PrefixTable
-            if (CanRead(5))
+            if (all || CanRead(5))
             {
                 attributes.Add(5);
             }
             //RoutingConfiguration
-            if (CanRead(6))
+            if (all || CanRead(6))
             {
                 attributes.Add(6);
             }
             //BroadcastLogTableEntryTtl
-            if (CanRead(7))
+            if (all || CanRead(7))
             {
                 attributes.Add(7);
             }
             //RoutingTable
-            if (CanRead(8))
+            if (all || CanRead(8))
             {
                 attributes.Add(8);
             }
             //ContextInformationTable
-            if (CanRead(9))
+            if (all || CanRead(9))
             {
                 attributes.Add(9);
             }
             //BlacklistTable
-            if (CanRead(10))
+            if (all || CanRead(10))
             {
                 attributes.Add(10);
             }
             //BroadcastLogTable
-            if (CanRead(11))
+            if (all || CanRead(11))
             {
                 attributes.Add(11);
             }
             //GroupTable
-            if (CanRead(12))
+            if (all || CanRead(12))
             {
                 attributes.Add(12);
             }
             //MaxJoinWaitTime
-            if (CanRead(13))
+            if (all || CanRead(13))
             {
                 attributes.Add(13);
             }
             //PathDiscoveryTime
-            if (CanRead(14))
+            if (all || CanRead(14))
             {
                 attributes.Add(14);
             }
             //ActiveKeyIndex
-            if (CanRead(15))
+            if (all || CanRead(15))
             {
                 attributes.Add(15);
             }
             //MetricType
-            if (CanRead(16))
+            if (all || CanRead(16))
             {
                 attributes.Add(16);
             }
             //CoordShortAddress
-            if (CanRead(17))
+            if (all || CanRead(17))
             {
                 attributes.Add(17);
             }
             //DisableDefaultRouting
-            if (CanRead(18))
+            if (all || CanRead(18))
             {
                 attributes.Add(18);
             }
             //DeviceType
-            if (CanRead(19))
+            if (all || CanRead(19))
             {
                 attributes.Add(19);
             }

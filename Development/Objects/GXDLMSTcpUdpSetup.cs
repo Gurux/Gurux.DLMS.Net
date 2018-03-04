@@ -159,36 +159,36 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        int[] IGXDLMSBase.GetAttributeIndexToRead(bool all)
         {
             List<int> attributes = new List<int>();
             //LN is static and read only once.
-            if (string.IsNullOrEmpty(LogicalName))
+            if (all || string.IsNullOrEmpty(LogicalName))
             {
                 attributes.Add(1);
             }
             //Port
-            if (!base.IsRead(2))
+            if (all || !base.IsRead(2))
             {
                 attributes.Add(2);
             }
             //IPReference
-            if (!base.IsRead(3))
+            if (all || !base.IsRead(3))
             {
                 attributes.Add(3);
             }
             //MaximumSegmentSize
-            if (!base.IsRead(4))
+            if (all || !base.IsRead(4))
             {
                 attributes.Add(4);
             }
             //MaximumSimultaneousConnections
-            if (!base.IsRead(5))
+            if (all || !base.IsRead(5))
             {
                 attributes.Add(5);
             }
             //InactivityTimeout
-            if (!base.IsRead(6))
+            if (all || !base.IsRead(6))
             {
                 attributes.Add(6);
             }

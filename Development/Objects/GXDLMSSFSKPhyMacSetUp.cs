@@ -297,16 +297,16 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        int[] IGXDLMSBase.GetAttributeIndexToRead(bool all)
         {
             List<int> attributes = new List<int>();
             //LN is static and read only once.
-            if (string.IsNullOrEmpty(LogicalName))
+            if (all || string.IsNullOrEmpty(LogicalName))
             {
                 attributes.Add(1);
             }
             //InitiatorElectricalPhase
-            if (CanRead(2))
+            if (all || CanRead(2))
             {
                 attributes.Add(2);
             }
@@ -314,22 +314,22 @@ namespace Gurux.DLMS.Objects
             attributes.Add(3);
 
             //MaxReceivingGain,
-            if (CanRead(4))
+            if (all || CanRead(4))
             {
                 attributes.Add(4);
             }
             //MaxTransmittingGain
-            if (CanRead(5))
+            if (all || CanRead(5))
             {
                 attributes.Add(5);
             }
             //SearchInitiatorThreshold
-            if (CanRead(6))
+            if (all || CanRead(6))
             {
                 attributes.Add(6);
             }
             //MarkFrequency, SpaceFrequency
-            if (CanRead(7))
+            if (all || CanRead(7))
             {
                 attributes.Add(7);
             }
@@ -337,12 +337,12 @@ namespace Gurux.DLMS.Objects
             attributes.Add(8);
 
             //MacGroupAddresses
-            if (CanRead(9))
+            if (all || CanRead(9))
             {
                 attributes.Add(9);
             }
             //Repeater
-            if (CanRead(10))
+            if (all || CanRead(10))
             {
                 attributes.Add(10);
             }
@@ -359,7 +359,7 @@ namespace Gurux.DLMS.Objects
             attributes.Add(14);
 
             //TransmissionSpeed
-            if (CanRead(15))
+            if (all || CanRead(15))
             {
                 attributes.Add(15);
             }

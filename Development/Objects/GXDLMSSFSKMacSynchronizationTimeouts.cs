@@ -123,31 +123,31 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        int[] IGXDLMSBase.GetAttributeIndexToRead(bool all)
         {
             List<int> attributes = new List<int>();
             //LN is static and read only once.
-            if (string.IsNullOrEmpty(LogicalName))
+            if (all || string.IsNullOrEmpty(LogicalName))
             {
                 attributes.Add(1);
             }
             //SearchInitiatorTimeout
-            if (CanRead(2))
+            if (all || CanRead(2))
             {
                 attributes.Add(2);
             }
             //SynchronizationConfirmationTimeout
-            if (CanRead(3))
+            if (all || CanRead(3))
             {
                 attributes.Add(3);
             }
             //TimeOutNotAddressed
-            if (CanRead(4))
+            if (all || CanRead(4))
             {
                 attributes.Add(4);
             }
             //TimeOutFrameNotOK
-            if (CanRead(5))
+            if (all || CanRead(5))
             {
                 attributes.Add(5);
             }

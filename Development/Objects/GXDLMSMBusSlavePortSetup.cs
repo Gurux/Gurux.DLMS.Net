@@ -126,31 +126,31 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        int[] IGXDLMSBase.GetAttributeIndexToRead(bool all)
         {
             List<int> attributes = new List<int>();
             //LN is static and read only once.
-            if (string.IsNullOrEmpty(LogicalName))
+            if (all || string.IsNullOrEmpty(LogicalName))
             {
                 attributes.Add(1);
             }
             //DefaultBaud
-            if (!IsRead(2))
+            if (all || !IsRead(2))
             {
                 attributes.Add(2);
             }
             //AvailableBaud
-            if (!IsRead(3))
+            if (all || !IsRead(3))
             {
                 attributes.Add(3);
             }
             //AddressState
-            if (!IsRead(4))
+            if (all || !IsRead(4))
             {
                 attributes.Add(4);
             }
             //BusAddress
-            if (!IsRead(5))
+            if (all || !IsRead(5))
             {
                 attributes.Add(5);
             }

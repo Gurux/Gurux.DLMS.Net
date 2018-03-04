@@ -82,6 +82,7 @@ namespace Gurux.DLMS.Objects
             ImageFirstNotTransferredBlockNumber = 0;
             ImageTransferEnabled = true;
             ImageActivateInfo = null;
+            ImageTransferStatus = ImageTransferStatus.NotInitiated;
         }
 
         /// <summary>
@@ -312,13 +313,11 @@ namespace Gurux.DLMS.Objects
             //Image verify
             else if (e.Index == 3)
             {
-                ImageTransferStatus = ImageTransferStatus.VerificationSuccessful;
                 return null;
             }
             //Image activate.
             else if (e.Index == 4)
             {
-                ImageTransferStatus = ImageTransferStatus.ActivationSuccessful;
                 return null;
             }
             else
@@ -328,41 +327,32 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        int[] IGXDLMSBase.GetAttributeIndexToRead(bool all)
         {
             List<int> attributes = new List<int>();
             //LN is static and read only once.
-            if (string.IsNullOrEmpty(LogicalName))
+            if (all || string.IsNullOrEmpty(LogicalName))
             {
                 attributes.Add(1);
             }
             //ImageBlockSize
-            if (!IsRead(2))
+            if (all || !IsRead(2))
             {
                 attributes.Add(2);
             }
             //ImageTransferredBlocksStatus
-            if (!IsRead(3))
-            {
-                attributes.Add(3);
-            }
+            attributes.Add(3);
             //ImageFirstNotTransferredBlockNumber
-            if (!IsRead(4))
-            {
-                attributes.Add(4);
-            }
+            attributes.Add(4);
             //ImageTransferEnabled
-            if (!IsRead(5))
+            if (all || !IsRead(5))
             {
                 attributes.Add(5);
             }
             //ImageTransferStatus
-            if (!IsRead(6))
-            {
-                attributes.Add(6);
-            }
+            attributes.Add(6);
             //ImageActivateInfo
-            if (!IsRead(7))
+            if (all || !IsRead(7))
             {
                 attributes.Add(7);
             }

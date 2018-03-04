@@ -379,21 +379,21 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        int[] IGXDLMSBase.GetAttributeIndexToRead(bool all)
         {
             List<int> attributes = new List<int>();
             //LN is static and read only once.
-            if (string.IsNullOrEmpty(LogicalName))
+            if (all || string.IsNullOrEmpty(LogicalName))
             {
                 attributes.Add(1);
             }
             //CaptureObjects
-            if (CaptureObjects.Count == 0 && !base.IsRead(3))
+            if (all || (CaptureObjects.Count == 0 && !base.IsRead(3)))
             {
                 attributes.Add(3);
             }
             //CapturePeriod
-            if (!base.IsRead(4))
+            if (all || !base.IsRead(4))
             {
                 attributes.Add(4);
             }
@@ -401,19 +401,19 @@ namespace Gurux.DLMS.Objects
             attributes.Add(2);
 
             //SortMethod
-            if (!base.IsRead(5))
+            if (all || !base.IsRead(5))
             {
                 attributes.Add(5);
             }
             //SortObject
-            if (!base.IsRead(6))
+            if (all || !base.IsRead(6))
             {
                 attributes.Add(6);
             }
             //EntriesInUse
             attributes.Add(7);
             //ProfileEntries
-            if (!base.IsRead(8))
+            if (all || !base.IsRead(8))
             {
                 attributes.Add(8);
             }

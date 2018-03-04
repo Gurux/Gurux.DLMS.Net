@@ -126,26 +126,26 @@ namespace Gurux.DLMS.Objects
             return base.GetUIDataType(index);
         }
 
-        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        int[] IGXDLMSBase.GetAttributeIndexToRead(bool all)
         {
             List<int> attributes = new List<int>();
             //LN is static and read only once.
-            if (string.IsNullOrEmpty(LogicalName))
+            if (all || string.IsNullOrEmpty(LogicalName))
             {
                 attributes.Add(1);
             }
             //APN
-            if (!base.IsRead(2))
+            if (all || !base.IsRead(2))
             {
                 attributes.Add(2);
             }
             //PINCode
-            if (!base.IsRead(3))
+            if (all || !base.IsRead(3))
             {
                 attributes.Add(3);
             }
             //DefaultQualityOfService + RequestedQualityOfService
-            if (!base.IsRead(4))
+            if (all || !base.IsRead(4))
             {
                 attributes.Add(4);
             }

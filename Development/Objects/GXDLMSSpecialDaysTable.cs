@@ -126,16 +126,16 @@ namespace Gurux.DLMS.Objects
 
         #region IGXDLMSBase Members
 
-        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        int[] IGXDLMSBase.GetAttributeIndexToRead(bool all)
         {
             List<int> attributes = new List<int>();
             //LN is static and read only once.
-            if (string.IsNullOrEmpty(LogicalName))
+            if (all || string.IsNullOrEmpty(LogicalName))
             {
                 attributes.Add(1);
             }
             //Entries
-            if (!base.IsRead(2))
+            if (all || !base.IsRead(2))
             {
                 attributes.Add(2);
             }
@@ -248,7 +248,10 @@ namespace Gurux.DLMS.Objects
             {
 
                 List<GXDLMSSpecialDay> items = new List<GXDLMSSpecialDay>();
-                items.AddRange(Entries);
+                if (Entries != null)
+                {
+                    items.AddRange(Entries);
+                }
                 if (e.Index == 1)
                 {
                     Object[] item = (Object[])e.Parameters;

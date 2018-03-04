@@ -68,7 +68,7 @@ namespace Gurux.DLMS.Objects
                     System.Diagnostics.Debug.WriteLine(ex.Message);
                 }
             }
-            while (!Closing.WaitOne(Target.CapturePeriod * 1000));
+            while (!Closing.WaitOne(Target.CapturePeriod * 60000));
         }
     }
 }

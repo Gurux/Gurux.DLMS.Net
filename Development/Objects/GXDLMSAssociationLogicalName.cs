@@ -391,67 +391,67 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        int[] IGXDLMSBase.GetAttributeIndexToRead(bool all)
         {
             List<int> attributes = new List<int>();
             //LN is static and read only once.
-            if (string.IsNullOrEmpty(LogicalName))
+            if (all || string.IsNullOrEmpty(LogicalName))
             {
                 attributes.Add(1);
             }
 
             //ObjectList is static and read only once.
-            if (ObjectList.Count == 0)
+            if (all || ObjectList.Count == 0)
             {
                 attributes.Add(2);
             }
 
             //associated_partners_id is static and read only once.
-            if (!base.IsRead(3))
+            if (all || !base.IsRead(3))
             {
                 attributes.Add(3);
             }
             //Application Context Name is static and read only once.
-            if (!base.IsRead(4))
+            if (all || !base.IsRead(4))
             {
                 attributes.Add(4);
             }
 
             //xDLMS Context Info
-            if (!base.IsRead(5))
+            if (all || !base.IsRead(5))
             {
                 attributes.Add(5);
             }
 
             // Authentication Mechanism Name
-            if (!base.IsRead(6))
+            if (all || !base.IsRead(6))
             {
                 attributes.Add(6);
             }
 
             // LLS Secret
-            if (!base.IsRead(7))
+            if (all || !base.IsRead(7))
             {
                 attributes.Add(7);
             }
             // Association Status
-            if (!base.IsRead(8))
+            if (all || !base.IsRead(8))
             {
                 attributes.Add(8);
             }
             //Security Setup Reference is from version 1.
-            if (Version > 0 && !base.IsRead(9))
+            if (Version > 0 && (all || !base.IsRead(9)))
             {
                 attributes.Add(9);
             }
             //User list and current user are in version 2.
             if (Version > 1)
             {
-                if (!base.IsRead(10))
+                if (all || !base.IsRead(10))
                 {
                     attributes.Add(10);
                 }
-                if (!base.IsRead(11))
+                if (all || !base.IsRead(11))
                 {
                     attributes.Add(11);
                 }
@@ -898,7 +898,7 @@ namespace Gurux.DLMS.Objects
                         ApplicationContextName.IdentifiedOrganization = arr.GetUInt8();
                         ApplicationContextName.DlmsUA = arr.GetUInt8();
                         ApplicationContextName.ApplicationContext = arr.GetUInt8();
-                        ApplicationContextName.ContextId = (ApplicationContextName) arr.GetUInt8();
+                        ApplicationContextName.ContextId = (ApplicationContextName)arr.GetUInt8();
                     }
                     else
                     {
@@ -948,7 +948,7 @@ namespace Gurux.DLMS.Objects
                         {
                             throw new ArgumentOutOfRangeException();
                         }
-                        ApplicationContextName.ContextId = (ApplicationContextName) arr.GetUInt8();
+                        ApplicationContextName.ContextId = (ApplicationContextName)arr.GetUInt8();
                     }
                 }
                 else if (e.Value != null)
@@ -960,7 +960,7 @@ namespace Gurux.DLMS.Objects
                     ApplicationContextName.IdentifiedOrganization = Convert.ToByte(arr[3]);
                     ApplicationContextName.DlmsUA = Convert.ToByte(arr[4]);
                     ApplicationContextName.ApplicationContext = Convert.ToByte(arr[5]);
-                    ApplicationContextName.ContextId = (ApplicationContextName) Convert.ToByte(arr[6]);
+                    ApplicationContextName.ContextId = (ApplicationContextName)Convert.ToByte(arr[6]);
                 }
             }
             else if (e.Index == 5)

@@ -713,6 +713,7 @@ namespace GuruxDLMSServerExample
                     //Image name and size to transfer 
                     if (it.Index == 1)
                     {
+                        i.ImageTransferStatus = ImageTransferStatus.TransferInitiated;
                         ImageUpdate = ASCIIEncoding.ASCII.GetString((byte[])(it.Parameters as object[])[0]);
                         string file = Path.Combine(Path.GetDirectoryName(typeof(GXDLMSBase).Assembly.Location), ImageUpdate + ".exe");
                         System.Diagnostics.Debug.WriteLine("Updating image" + ImageUpdate + " Size:" + (it.Parameters as object[])[1]);
@@ -756,22 +757,47 @@ namespace GuruxDLMSServerExample
                         i.ImageTransferStatus = ImageTransferStatus.VerificationInitiated;
                         //Check that size match.
                         uint size = (uint)new FileInfo(file).Length;
+                        ImageTransferStatus status;
                         if (size != i.ImageSize)
                         {
-                            i.ImageTransferStatus = ImageTransferStatus.VerificationFailed;
+                            status= ImageTransferStatus.VerificationFailed;
                         }
                         else
                         {
-                            i.ImageTransferStatus = ImageTransferStatus.VerificationSuccessful;
+                            status = ImageTransferStatus.VerificationSuccessful;
                         }
+                        Thread newThread = new Thread(ImageVerification);
+                        newThread.Start(new object[] { i, status });
                     }
                     //Activates the Image.
                     else if (it.Index == 4)
                     {
-
+                        i.ImageTransferStatus = ImageTransferStatus.ActivationInitiated;
+                        Thread newThread = new Thread(ImageActivacation);
+                        newThread.Start(new object[] { i });
                     }
                 }
             }
+        }
+
+        public static void ImageVerification(object data)
+        {
+            object[] tmp = (object[])data;
+            //Wait 10 second before image is verificated
+            Thread.Sleep(10000);
+            Console.WriteLine("Image is verificated");
+            GXDLMSImageTransfer i = tmp[0] as GXDLMSImageTransfer;
+            i.ImageTransferStatus = (ImageTransferStatus)tmp[1];
+        }
+
+        public static void ImageActivacation(object data)
+        {
+            object[] tmp = (object[])data;
+            //Wait 10 second before image is activacated.
+            Thread.Sleep(10000);
+            Console.WriteLine("Image is activacated");
+            GXDLMSImageTransfer i = tmp[0] as GXDLMSImageTransfer;
+            i.ImageTransferStatus = ImageTransferStatus.ActivationSuccessful;
         }
 
         private void Capture(GXDLMSProfileGeneric pg)

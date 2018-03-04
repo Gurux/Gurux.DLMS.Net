@@ -150,28 +150,28 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        int[] IGXDLMSBase.GetAttributeIndexToRead()
+        int[] IGXDLMSBase.GetAttributeIndexToRead(bool all)
         {
             List<int> attributes = new List<int>();
             //LN is static and read only once.
-            if (string.IsNullOrEmpty(LogicalName))
+            if (all || string.IsNullOrEmpty(LogicalName))
             {
                 attributes.Add(1);
             }
             //ObjectList is static and read only once.
-            if (!base.IsRead(2))
+            if (all || !base.IsRead(2))
             {
                 attributes.Add(2);
             }
             if (Version > 1)
             {
                 //AccessRightsList is static and read only once.
-                if (!base.IsRead(3))
+                if (all || !base.IsRead(3))
                 {
                     attributes.Add(3);
                 }
                 //SecuritySetupReference is static and read only once.
-                if (!base.IsRead(4))
+                if (all || !base.IsRead(4))
                 {
                     attributes.Add(4);
                 }
