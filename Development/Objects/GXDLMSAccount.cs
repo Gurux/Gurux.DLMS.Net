@@ -973,6 +973,10 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                         {
                             e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
                         }
+                        else if (e.Value is string)
+                        {
+                            e.Value = new GXDateTime((string)e.Value);
+                        }
                         if (e.Value is GXDateTime)
                         {
                             AccountActivationTime = (GXDateTime)e.Value;
@@ -989,6 +993,10 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                         if (e.Value is byte[])
                         {
                             e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
+                        }
+                        else if (e.Value is string)
+                        {
+                            e.Value = new GXDateTime((string)e.Value);
                         }
                         if (e.Value is GXDateTime)
                         {

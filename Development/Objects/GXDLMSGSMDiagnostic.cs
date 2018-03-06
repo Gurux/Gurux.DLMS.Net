@@ -372,12 +372,13 @@ namespace Gurux.DLMS.Objects
                 case 8:
                     if (e.Value is byte[])
                     {
-                        CaptureTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
+                        e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
                     }
-                    else
+                    else if (e.Value is string)
                     {
-                        CaptureTime = (GXDateTime)e.Value;
+                        e.Value = new GXDateTime((string)e.Value);
                     }
+                    CaptureTime = (GXDateTime)e.Value;
                     break;
                 default:
                     e.Error = ErrorCode.ReadWriteDenied;

@@ -295,6 +295,10 @@ namespace Gurux.DLMS.Objects
                 {
                     e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
                 }
+                else if (e.Value is string)
+                {
+                    e.Value = new GXDateTime((string)e.Value);
+                }
                 //Actaris meters might return null.
                 if (e.Value == null)
                 {

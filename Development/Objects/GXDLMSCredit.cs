@@ -511,6 +511,10 @@ namespace Gurux.DLMS.Objects
                         {
                             e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
                         }
+                        else if (e.Value is string)
+                        {
+                            e.Value = new GXDateTime((string)e.Value);
+                        }
                         if (e.Value is GXDateTime)
                         {
                             Period = (GXDateTime)e.Value;
