@@ -88,23 +88,6 @@ namespace Gurux.DLMS.Internal
         }
 
         [DebuggerStepThrough]
-        public static bool IsAscii(byte[] value)
-        {
-            if (value == null)
-            {
-                return false;
-            }
-            foreach (byte it in value)
-            {
-                if (it < 0x20 || it > 0x7E)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        [DebuggerStepThrough]
         private static bool IsHex(byte c)
         {
             return GetValue(c) != 0xFF;

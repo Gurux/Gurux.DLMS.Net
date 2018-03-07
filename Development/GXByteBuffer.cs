@@ -692,16 +692,13 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
+        [DebuggerStepThrough]
         public static bool IsAsciiString(byte[] value)
         {
             if (value != null)
             {
-                foreach (char it in value)
-                {
-                    if (it == 0)
-                    {
-                        return true;
-                    }
+                foreach (byte it in value)
+                {                   
                     if ((it < 32 || it > 127) && it != '\r' && it != '\n' && it != 0)
                     {
                         return false;

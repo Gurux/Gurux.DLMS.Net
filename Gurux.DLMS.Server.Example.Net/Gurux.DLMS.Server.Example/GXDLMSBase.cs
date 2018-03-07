@@ -697,6 +697,7 @@ namespace GuruxDLMSServerExample
             }
         }
 
+        DateTime imageActionStartTime;
         protected override void PreAction(ValueEventArgs[] args)
         {
             foreach (ValueEventArgs it in args)
@@ -713,7 +714,8 @@ namespace GuruxDLMSServerExample
                     //Image name and size to transfer 
                     if (it.Index == 1)
                     {
-                        i.ImageTransferStatus = ImageTransferStatus.TransferInitiated;
+                        i.ImageTransferStatus = ImageTransferStatus.NotInitiated;
+                        i.ImageActivateInfo = null;
                         ImageUpdate = ASCIIEncoding.ASCII.GetString((byte[])(it.Parameters as object[])[0]);
                         string file = Path.Combine(Path.GetDirectoryName(typeof(GXDLMSBase).Assembly.Location), ImageUpdate + ".exe");
                         System.Diagnostics.Debug.WriteLine("Updating image" + ImageUpdate + " Size:" + (it.Parameters as object[])[1]);
@@ -724,6 +726,7 @@ namespace GuruxDLMSServerExample
                     //Transfers one block of the Image to the server
                     else if (it.Index == 2)
                     {
+                        i.ImageTransferStatus = ImageTransferStatus.TransferInitiated;
                         string file = Path.Combine(Path.GetDirectoryName(typeof(GXDLMSBase).Assembly.Location), ImageUpdate + ".exe");
                         object[] p = (object[])it.Parameters;
                         try
@@ -749,6 +752,7 @@ namespace GuruxDLMSServerExample
                                 fs.Close();
                             }
                         }
+                        imageActionStartTime = DateTime.Now;
                     }
                     //Verifies the integrity of the Image before activation.
                     else if (it.Index == 3)
@@ -757,48 +761,47 @@ namespace GuruxDLMSServerExample
                         i.ImageTransferStatus = ImageTransferStatus.VerificationInitiated;
                         //Check that size match.
                         uint size = (uint)new FileInfo(file).Length;
-                        ImageTransferStatus status;
                         if (size != i.ImageSize)
                         {
-                            status= ImageTransferStatus.VerificationFailed;
+                            i.ImageTransferStatus = ImageTransferStatus.VerificationFailed;
+                            it.Error = ErrorCode.OtherReason;
                         }
                         else
                         {
-                            status = ImageTransferStatus.VerificationSuccessful;
+                            //Wait 10 seconds before image is verified.
+                            if ((DateTime.Now - imageActionStartTime).TotalSeconds < 10)
+                            {
+                                Console.WriteLine("Image verification is on progress.");
+                                it.Error = ErrorCode.TemporaryFailure;
+                            }
+                            else
+                            {
+                                Console.WriteLine("Image is verificated");
+                                i.ImageTransferStatus = ImageTransferStatus.VerificationSuccessful;
+                                imageActionStartTime = DateTime.Now;
+                            }
                         }
-                        Thread newThread = new Thread(ImageVerification);
-                        newThread.Start(new object[] { i, status });
                     }
                     //Activates the Image.
                     else if (it.Index == 4)
                     {
                         i.ImageTransferStatus = ImageTransferStatus.ActivationInitiated;
-                        Thread newThread = new Thread(ImageActivacation);
-                        newThread.Start(new object[] { i });
+                        //Wait 10 seconds before image is verified.
+                        if ((DateTime.Now - imageActionStartTime).TotalSeconds < 10)
+                        {
+                            Console.WriteLine("Image activation is on progress.");
+                            it.Error = ErrorCode.TemporaryFailure;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Image is activated.");
+                            i.ImageTransferStatus = ImageTransferStatus.ActivationSuccessful;
+                            imageActionStartTime = DateTime.Now;
+                        }
                     }
                 }
             }
-        }
-
-        public static void ImageVerification(object data)
-        {
-            object[] tmp = (object[])data;
-            //Wait 10 second before image is verificated
-            Thread.Sleep(10000);
-            Console.WriteLine("Image is verificated");
-            GXDLMSImageTransfer i = tmp[0] as GXDLMSImageTransfer;
-            i.ImageTransferStatus = (ImageTransferStatus)tmp[1];
-        }
-
-        public static void ImageActivacation(object data)
-        {
-            object[] tmp = (object[])data;
-            //Wait 10 second before image is activacated.
-            Thread.Sleep(10000);
-            Console.WriteLine("Image is activacated");
-            GXDLMSImageTransfer i = tmp[0] as GXDLMSImageTransfer;
-            i.ImageTransferStatus = ImageTransferStatus.ActivationSuccessful;
-        }
+        }       
 
         private void Capture(GXDLMSProfileGeneric pg)
         {

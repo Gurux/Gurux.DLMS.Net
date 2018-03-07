@@ -137,7 +137,7 @@ namespace Gurux.DLMS.Objects
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
-            if (GXCommon.IsAscii(Name))
+            if (GXByteBuffer.IsAsciiString(Name))
             {
                 sb.Append(ASCIIEncoding.ASCII.GetString(Name));
             }
@@ -148,7 +148,7 @@ namespace Gurux.DLMS.Objects
             sb.Append(' ');
             sb.Append(Start.ToFormatString());
             sb.Append(' ');
-            if (GXCommon.IsAscii(WeekName))
+            if (GXByteBuffer.IsAsciiString(WeekName))
             {
                 sb.Append(ASCIIEncoding.ASCII.GetString(WeekName));
             }

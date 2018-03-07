@@ -856,7 +856,7 @@ namespace Gurux.DLMS
                         return;
                     }
                     receivedData.Clear();
-                    if (first)
+                    if (first || info.Command == Command.Snrm)
                     {
                         // Check is data send to this server.
                         if (!IsTarget(Settings.ServerAddress,
@@ -1035,6 +1035,11 @@ namespace Gurux.DLMS
             else
             {
                 reply = GXDLMS.GetHdlcFrame(Settings, frame, replyData);
+            }
+            if (cmd == Command.DisconnectRequest ||
+                (InterfaceType == InterfaceType.WRAPPER && cmd == Command.ReleaseRequest))
+            {
+                Reset();
             }
             return reply;
         }

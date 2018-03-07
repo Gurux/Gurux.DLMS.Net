@@ -256,11 +256,10 @@ namespace Gurux.DLMS.Objects
             //Image transfer initiate
             if (e.Index == 1)
             {
-                ImageTransferStatus = ImageTransferStatus.NotInitiated;
                 ImageFirstNotTransferredBlockNumber = 0;
                 ImageTransferredBlocksStatus = "";
                 object[] value = (object[])e.Parameters;
-                string imageIdentifier = ASCIIEncoding.ASCII.GetString((byte[])value[0]);
+                byte[] imageIdentifier = (byte[])value[0];
                 ImageSize = (UInt32)value[1];
                 ImageTransferStatus = ImageTransferStatus.TransferInitiated;
                 List<GXDLMSImageActivateInfo> list;
@@ -317,7 +316,7 @@ namespace Gurux.DLMS.Objects
             }
             //Image activate.
             else if (e.Index == 4)
-            {
+            {             
                 return null;
             }
             else
@@ -352,10 +351,7 @@ namespace Gurux.DLMS.Objects
             //ImageTransferStatus
             attributes.Add(6);
             //ImageActivateInfo
-            if (all || !IsRead(7))
-            {
-                attributes.Add(7);
-            }
+            attributes.Add(7);
             return attributes.ToArray();
         }
 
@@ -417,7 +413,8 @@ namespace Gurux.DLMS.Objects
         {
             GXByteBuffer data = new GXByteBuffer();
             data.SetUInt8((byte)DataType.Array);
-            if (ImageActivateInfo == null)
+            //ImageActivateInfo is returned only after verification is succeeded.
+            if (ImageTransferStatus != ImageTransferStatus.VerificationSuccessful || ImageActivateInfo == null)
             {
                 GXCommon.SetObjectCount(0, data);
             }
@@ -435,7 +432,7 @@ namespace Gurux.DLMS.Objects
                     }
                     else
                     {
-                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Identification));
+                        GXCommon.SetData(settings, data, DataType.OctetString, it.Identification);
                     }
                     if (it.Signature == null || it.Signature.Length == 0)
                     {
@@ -443,7 +440,7 @@ namespace Gurux.DLMS.Objects
                     }
                     else
                     {
-                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Signature));
+                        GXCommon.SetData(settings, data, DataType.OctetString, it.Signature);
                     }
                 }
             }
@@ -494,8 +491,8 @@ namespace Gurux.DLMS.Objects
                     GXDLMSImageActivateInfo item = new GXDLMSImageActivateInfo();
                     Object[] tmp = (Object[])it;
                     item.Size = Convert.ToUInt32(tmp[0]);
-                    item.Identification = ASCIIEncoding.ASCII.GetString((byte[])tmp[1]);
-                    item.Signature = ASCIIEncoding.ASCII.GetString((byte[])tmp[2]);
+                    item.Identification = (byte[])tmp[1];
+                    item.Signature = (byte[])tmp[2];
                     list.Add(item);
                 }
             }
@@ -549,8 +546,8 @@ namespace Gurux.DLMS.Objects
                 {
                     GXDLMSImageActivateInfo it = new GXDLMSImageActivateInfo();
                     it.Size = reader.ReadElementContentAsULong("Size");
-                    it.Identification = reader.ReadElementContentAsString("Identification");
-                    it.Signature = reader.ReadElementContentAsString("Signature");
+                    it.Identification = GXCommon.HexToBytes(reader.ReadElementContentAsString("Identification"));
+                    it.Signature = GXCommon.HexToBytes(reader.ReadElementContentAsString("Signature"));
                     list.Add(it);
                 }
                 reader.ReadEndElement("ImageActivateInfo");
@@ -573,8 +570,8 @@ namespace Gurux.DLMS.Objects
                 {
                     writer.WriteStartElement("Item");
                     writer.WriteElementString("Size", it.Size);
-                    writer.WriteElementString("Identification", it.Identification);
-                    writer.WriteElementString("Signature", it.Signature);
+                    writer.WriteElementString("Identification", GXCommon.ToHex(it.Identification, false));
+                    writer.WriteElementString("Signature", GXCommon.ToHex(it.Signature, false));
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();

@@ -33,6 +33,8 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Text;
+
 namespace Gurux.DLMS.Objects
 {
     public class GXDLMSImageActivateInfo
@@ -51,7 +53,7 @@ namespace Gurux.DLMS.Objects
         /// to be activated, and may contain information like
         /// manufacturer, device type, version information, etc.
         /// </summary>
-        public String Identification
+        public byte[] Identification
         {
             get;
             set;
@@ -60,7 +62,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Image signature is the signature of the Image(s) to be activated.
         /// </summary>
-        public String Signature
+        public byte[] Signature
         {
             get;
             set;
@@ -68,7 +70,27 @@ namespace Gurux.DLMS.Objects
 
         public override string ToString()
         {
-            return Identification + " " + Signature + " " + Convert.ToString(Size);
+            StringBuilder sb = new StringBuilder();
+            if (GXByteBuffer.IsAsciiString(Identification))
+            {
+                sb.Append(ASCIIEncoding.ASCII.GetString(Identification));
+            }
+            else
+            {
+                sb.Append(Internal.GXCommon.ToHex(Identification, false));
+            }
+            sb.Append(" ");
+            if (GXByteBuffer.IsAsciiString(Signature))
+            {
+                sb.Append(ASCIIEncoding.ASCII.GetString(Signature));
+            }
+            else
+            {
+                sb.Append(Internal.GXCommon.ToHex(Signature, false));
+            }
+            sb.Append(" ");
+            sb.Append(Convert.ToString(Size));
+            return sb.ToString();
         }
     }
 }
