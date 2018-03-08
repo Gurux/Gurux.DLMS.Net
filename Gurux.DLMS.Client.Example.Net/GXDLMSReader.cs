@@ -263,7 +263,7 @@ namespace Gurux.DLMS.Reader
             bool bFound = false;
             foreach (GXDLMSImageActivateInfo it in target.ImageActivateInfo)
             {
-                if (it.Identification == identification)
+                if (ASCIIEncoding.ASCII.GetString(it.Identification) == identification)
                 {
                     bFound = true;
                     break;
