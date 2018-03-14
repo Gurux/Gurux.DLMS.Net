@@ -40,15 +40,15 @@ namespace Gurux.DLMS.Objects.Enums
     public enum CertificateEntity
     {
         /// <summary>
-        /// Certificate entity is server
+        /// Certificate entity is server.
         /// </summary>
         Server = 0,
         /// <summary>
-        /// Certificate entity is client
+        /// Certificate entity is client.
         /// </summary>
         Client,
         /// <summary>
-        /// Certificate entity is certification authority
+        /// Certificate entity is certification authority.
         /// </summary>
         CertificationAuthority,
         /// <summary>

@@ -47,17 +47,21 @@
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Gurux.Common, Version=8.1.1702.602, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Gurux.Common">
       <HintPath>packages\Gurux.Common.8.1.1702.0602\lib\portable-win+net35\Gurux.Common.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="Gurux.DLMS, Version=8.5.1705.2202, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Gurux.DLMS">
       <HintPath>packages\Gurux.DLMS.8.5.1705.2202\lib\portable-win+net35\Gurux.DLMS.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="Gurux.Net, Version=8.1.1703.3101, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Gurux.Net">
       <HintPath>packages\Gurux.Net.8.1.1703.3101\lib\portable-win+net35\Gurux.Net.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="Gurux.Serial, Version=8.1.1702.1001, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Gurux.Serial">
       <HintPath>packages\Gurux.Serial.8.1.1702.1001\lib\portable-win+net35\Gurux.Serial.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />

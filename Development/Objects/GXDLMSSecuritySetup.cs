@@ -77,6 +77,7 @@ namespace Gurux.DLMS.Objects
         : base(ObjectType.SecuritySetup, ln, sn)
         {
             Certificates = new List<GXDLMSCertificateInfo>();
+            Version = 1;
         }
 
         /// <summary>
@@ -403,7 +404,18 @@ namespace Gurux.DLMS.Objects
 
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 2)
+            if (e.Index == 1)
+            {
+                if (Version == 0)
+                {
+                    SecurityPolicy0 = (SecurityPolicy0)e.Parameters;
+                }
+                else
+                {
+                    SecurityPolicy = (SecurityPolicy)e.Parameters;
+                }
+            }
+            else if (e.Index == 2)
             {
                 foreach (object tmp in e.Parameters as object[])
                 {
@@ -413,6 +425,8 @@ namespace Gurux.DLMS.Objects
                     switch (type)
                     {
                         case GlobalKeyType.UnicastEncryption:
+                            settings.Cipher.BlockCipherKey = GXDLMSSecureClient.Decrypt(settings.Kek, data);
+                            break;
                         case GlobalKeyType.BroadcastEncryption:
                             //Invalid type
                             e.Error = ErrorCode.ReadWriteDenied;
@@ -430,14 +444,13 @@ namespace Gurux.DLMS.Objects
                             break;
                     }
                 }
-                //Return standard reply.
-                return null;
             }
             else
             {
                 e.Error = ErrorCode.ReadWriteDenied;
-                return null;
             }
+            //Return standard reply.
+            return null;
         }
 
         int[] IGXDLMSBase.GetAttributeIndexToRead(bool all)
@@ -584,6 +597,10 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 2)
             {
+                if (Version == 0)
+                {
+                    return SecurityPolicy0;
+                }
                 return SecurityPolicy;
             }
             if (e.Index == 3)
@@ -636,7 +653,14 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 2)
             {
-                SecurityPolicy = (SecurityPolicy)Convert.ToInt32(e.Value);
+                if (Version == 0)
+                {
+                    SecurityPolicy0 = (SecurityPolicy0)Convert.ToInt32(e.Value);
+                }
+                else
+                {
+                    SecurityPolicy = (SecurityPolicy)Convert.ToInt32(e.Value);
+                }
             }
             else if (e.Index == 3)
             {

@@ -88,6 +88,7 @@ namespace Gurux.DLMS.Secure
         byte[] BlockCipherKey
         {
             get;
+            set;
         }
 
         /// <summary>

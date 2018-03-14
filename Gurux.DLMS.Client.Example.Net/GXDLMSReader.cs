@@ -227,7 +227,7 @@ namespace Gurux.DLMS.Reader
         /// This method is used to update meter firmware.
         /// </summary>
         /// <param name="target"></param>
-        public void ImageUpdate(GXDLMSImageTransfer target, string identification, byte[] data)
+        public void ImageUpdate(GXDLMSImageTransfer target, byte[] identification, byte[] data)
         {
             //Check that image transfer ia enabled.
             GXReplyData reply = new GXReplyData();
@@ -637,7 +637,7 @@ namespace Gurux.DLMS.Reader
                 {
                     Console.WriteLine("-------- Reading " + it.GetType().Name + " " + it.Name + " " + it.Description);
                 }
-                foreach (int pos in (it as IGXDLMSBase).GetAttributeIndexToRead())
+                foreach (int pos in (it as IGXDLMSBase).GetAttributeIndexToRead(true))
                 {
                     try
                     {

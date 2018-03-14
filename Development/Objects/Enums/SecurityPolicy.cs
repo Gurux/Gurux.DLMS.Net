@@ -32,11 +32,14 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace Gurux.DLMS.Objects.Enums
 {
     /// <summary>
     /// Security policy Enforces authentication and/or encryption algorithm provided with security suite version 1.
     /// </summary>
+    [Flags]
     public enum SecurityPolicy : byte
     {
         /// <summary>

@@ -57,10 +57,10 @@ Class GXCommunicatation
     ''' <summary>
     ''' Constructor.
     ''' </summary>
-    Public Sub New(dlms As GXDLMSSecureClient, media__1 As IGXMedia, initializeIEC__2 As Boolean, authentication As Authentication, password As String)
+    Public Sub New(dlms As GXDLMSSecureClient, media1 As IGXMedia, useIec As Boolean, authentication As Authentication, password As String)
         Client = dlms
-        Media = media__1
-        InitializeIEC = initializeIEC__2
+        Media = media1
+        InitializeIEC = useIec
         Client.Authentication = authentication
         Client.Password = ASCIIEncoding.ASCII.GetBytes(password)
         'Delete trace file if exists.
