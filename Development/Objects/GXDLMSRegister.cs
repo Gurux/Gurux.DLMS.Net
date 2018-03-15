@@ -40,6 +40,10 @@ using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSRegister
+    /// </summary>
     public class GXDLMSRegister : GXDLMSObject, IGXDLMSBase
     {
         protected int scaler;

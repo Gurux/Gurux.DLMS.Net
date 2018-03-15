@@ -42,6 +42,10 @@ using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSHdlcSetup
+    /// </summary>
     public class GXDLMSHdlcSetup : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>

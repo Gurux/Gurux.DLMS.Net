@@ -42,6 +42,10 @@ using System.Net;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSIp6Setup
+    /// </summary>
     public class GXDLMSIp6Setup : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>

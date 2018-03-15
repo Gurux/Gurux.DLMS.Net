@@ -289,6 +289,8 @@
     <Compile Include="..\Objects\GXDLMSCredit.cs" />
     <Compile Include="..\Objects\GXDLMSCharge.cs" />
     <Compile Include="..\Objects\GXDLMSTokenGateway.cs" />
+    <Compile Include="..\Objects\GXDLMSParameterMonitor.cs" />
+    <Compile Include="..\Objects\GXDLMSTarget.cs" />
 
 
     <Compile Include="..\Internal\GXFCS16.cs" />

@@ -43,6 +43,10 @@ using System.Threading;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSProfileGeneric
+    /// </summary>
     public class GXDLMSProfileGeneric : GXDLMSObject, IGXDLMSBase
     {
         private GXDLMSServer server = null;

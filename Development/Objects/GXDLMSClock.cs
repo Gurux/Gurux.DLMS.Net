@@ -43,6 +43,10 @@ using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSClock
+    /// </summary>
     public class GXDLMSClock : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>

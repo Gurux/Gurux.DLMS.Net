@@ -42,6 +42,10 @@ using System.Globalization;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSActivityCalendar
+    /// </summary>
     public class GXDLMSActivityCalendar : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>

@@ -41,7 +41,8 @@ using Gurux.DLMS.Internal;
 namespace Gurux.DLMS.Objects
 {
     /// <summary>
-    /// Stores counters related to the frame exchange, transmission and repetition phases.
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSSFSKMacCounters
     /// </summary>
     public class GXDLMSSFSKMacCounters : GXDLMSObject, IGXDLMSBase
     {

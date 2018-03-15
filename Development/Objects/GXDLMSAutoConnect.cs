@@ -45,6 +45,8 @@ namespace Gurux.DLMS.Objects
 {
     /// <summary>
     /// Auto Connect implements data transfer from the device to one or several destinations.
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAutoConnect
     /// </summary>
     public class GXDLMSAutoConnect : GXDLMSObject, IGXDLMSBase
     {

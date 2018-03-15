@@ -40,9 +40,10 @@ using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
-
     /// <summary>
     /// Diagnostic interface class allows to have knowledge about the device status inside the PLC network.
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSIEC14908Diagnostic
     /// </summary>
     public class GXDLMSIEC14908Diagnostic : GXDLMSObject, IGXDLMSBase
     {

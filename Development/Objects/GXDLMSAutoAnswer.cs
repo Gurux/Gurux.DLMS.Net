@@ -42,6 +42,10 @@ using System.Globalization;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAutoAnswer
+    /// </summary>
     public class GXDLMSAutoAnswer : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>

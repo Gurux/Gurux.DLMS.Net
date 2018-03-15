@@ -41,6 +41,10 @@ using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSIp4Setup
+    /// </summary>
     public class GXDLMSIp4Setup : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>

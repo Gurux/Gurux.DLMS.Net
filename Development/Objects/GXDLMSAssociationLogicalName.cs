@@ -43,6 +43,10 @@ using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAssociationLogicalName
+    /// </summary>
     public class GXDLMSAssociationLogicalName : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>

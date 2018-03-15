@@ -42,6 +42,10 @@ using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSModemConfiguration
+    /// </summary>
     public class GXDLMSModemConfiguration : GXDLMSObject, IGXDLMSBase
     {
         static string[] DefaultProfiles()

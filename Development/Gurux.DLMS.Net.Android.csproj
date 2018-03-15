@@ -249,6 +249,7 @@
     <Compile Include="Objects\GXDLMSObject.cs" />
     <Compile Include="Objects\GXDLMSObjectCollection.cs" />
     <Compile Include="Objects\GXDLMSObjectDefinition.cs" />
+    <Compile Include="Objects\GXDLMSParameterMonitor.cs" />
     <Compile Include="Objects\GXDLMSPppSetup.cs" />
     <Compile Include="Objects\GXDLMSPppSetupIPCPOption.cs" />
     <Compile Include="Objects\GXDLMSPppSetupLcpOption.cs" />
@@ -273,6 +274,7 @@
     <Compile Include="Objects\GXDLMSSFSKPhyMacSetUp.cs" />
     <Compile Include="Objects\GXDLMSSpecialDay.cs" />
     <Compile Include="Objects\GXDLMSSpecialDaysTable.cs" />
+    <Compile Include="Objects\GXDLMSTarget.cs" />
     <Compile Include="Objects\GXDLMSTcpUdpSetup.cs" />
     <Compile Include="Objects\GXDLMSTokenGateway.cs" />
     <Compile Include="Objects\GXDLMSWeekProfile.cs" />

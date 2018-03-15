@@ -101,7 +101,8 @@ namespace Gurux.DLMS.Objects
     }
 
     /// <summary>
-    /// The class stores the data necessary to set up and manage the physical and the MAC layer of the PLC S-FSK lower layer profile.
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSSFSKPhyMacSetUp
     /// </summary>
     public class GXDLMSSFSKPhyMacSetUp : GXDLMSObject, IGXDLMSBase
     {

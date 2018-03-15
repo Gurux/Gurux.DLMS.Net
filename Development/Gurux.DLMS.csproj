@@ -89,8 +89,10 @@
     <Compile Include="Objects\Enums\MBusEncryptionKeyStatus.cs" />
     <Compile Include="Objects\Enums\SecurityPolicy0.cs" />
     <Compile Include="Objects\GXDLMSBroadcastLogTable.cs" />
+    <Compile Include="Objects\GXDLMSTarget.cs" />
     <Compile Include="Objects\GXDLMSCredit.cs" />
     <Compile Include="Objects\GXDLMSAccount.cs" />
+    <Compile Include="Objects\GXDLMSParameterMonitor.cs" />
     <Compile Include="Objects\GXDLMSTokenGateway.cs" />
     <Compile Include="Objects\GXDLMSCharge.cs" />
     <Compile Include="Objects\Italy\Enums\WeeklyActivation.cs" />

@@ -40,6 +40,10 @@ using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSSFSKMacSynchronizationTimeouts
+    /// </summary>
     public class GXDLMSSFSKMacSynchronizationTimeouts : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>

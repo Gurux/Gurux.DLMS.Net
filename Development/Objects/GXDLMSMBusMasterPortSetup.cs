@@ -41,6 +41,10 @@ using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSMBusMasterPortSetup
+    /// </summary>
     public class GXDLMSMBusMasterPortSetup : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>

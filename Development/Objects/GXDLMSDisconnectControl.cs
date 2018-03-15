@@ -41,6 +41,10 @@ using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSDisconnectControl
+    /// </summary>
     public class GXDLMSDisconnectControl : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>

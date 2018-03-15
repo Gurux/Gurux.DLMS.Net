@@ -41,9 +41,11 @@ using System.Text;
 using Gurux.DLMS.Objects.Italy.Enums;
 
 namespace Gurux.DLMS.Objects.Italy
-{ 
+{
     /// <summary>
     /// Tariff Plan (Piano Tariffario) is used in Italian standard UNI/TS 11291-11.
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSTariffPlan
     /// </summary>
     public class GXDLMSTariffPlan : GXDLMSObject, IGXDLMSBase
     {

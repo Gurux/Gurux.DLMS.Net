@@ -42,6 +42,10 @@ using System.Globalization;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSSpecialDaysTable
+    /// </summary>
     public class GXDLMSSpecialDaysTable : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>

@@ -47,7 +47,8 @@ using System.Security.Cryptography;
 namespace Gurux.DLMS.Objects
 {
     /// <summary>
-    /// Security Setup.
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSSecuritySetup
     /// </summary>
     public class GXDLMSSecuritySetup : GXDLMSObject, IGXDLMSBase
     {
@@ -205,7 +206,7 @@ namespace Gurux.DLMS.Objects
                 throw new ArgumentException("Invalid list. It is empty.");
             }
             GXByteBuffer bb = new GXByteBuffer();
-            bb.SetUInt8(DataType.Array);
+            bb.SetUInt8(DataType.Array);  
             bb.SetUInt8((byte)list.Count);
             byte[] tmp;
             foreach (KeyValuePair<GlobalKeyType, byte[]> it in list)

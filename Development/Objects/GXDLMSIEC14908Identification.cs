@@ -42,6 +42,8 @@ namespace Gurux.DLMS.Objects
 {
     /// <summary>
     /// The IEC 14908 identification interface class allows the identification of the network on which the device is connected to.
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSHdlcSetup
     /// </summary>
     public class GXDLMSIEC14908Identification : GXDLMSObject, IGXDLMSBase
     {

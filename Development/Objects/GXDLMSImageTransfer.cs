@@ -42,6 +42,10 @@ using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSImageTransfer
+    /// </summary>
     public class GXDLMSImageTransfer : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>
