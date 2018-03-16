@@ -346,10 +346,17 @@ namespace Gurux.DLMS
             }
             try
             {
-                Value = new DateTime(year, month, day, hour, minute, second, millisecond, DateTimeKind.Local);
-                if (Value.DateTime.IsDaylightSavingTime())
+                if (year == 1 && month == 1 && day == 1 && hour == 0 && minute == 0 && second == 0)
                 {
-                    Status |= ClockStatus.DaylightSavingActive;
+                    Value = new DateTime(year, month, day, hour, minute, second, millisecond, DateTimeKind.Utc);
+                }
+                else
+                {
+                    Value = new DateTime(year, month, day, hour, minute, second, millisecond, DateTimeKind.Local);
+                    if (Value.DateTime.IsDaylightSavingTime())
+                    {
+                        Status |= ClockStatus.DaylightSavingActive;
+                    }
                 }
             }
             catch
@@ -553,8 +560,10 @@ namespace Gurux.DLMS
                 }
                 if ((Skip & DateTimeSkips.Hour) != 0)
                 {
+                    shortTimePattern.Remove("h");
                     shortTimePattern.Remove("H");
                     shortTimePattern.Remove("HH");
+                    shortTimePattern.Remove("tt");
                 }
                 if ((Skip & DateTimeSkips.Minute) != 0)
                 {

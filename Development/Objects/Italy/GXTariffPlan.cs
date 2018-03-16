@@ -51,7 +51,7 @@ namespace Gurux.DLMS.Objects.Italy
             SummerSeason = new GXBandDescriptor();
         }
         /// <summary>
-        /// Is tariff plan enabled.
+        /// Default tariff band.
         /// </summary>
         [XmlIgnore()]
         public byte DefaultTariffBand
@@ -81,7 +81,7 @@ namespace Gurux.DLMS.Objects.Italy
         }
 
         /// <summary>
-        /// Seasons.
+        /// Weekly activation.
         /// </summary>
         [XmlIgnore()]
         public string WeeklyActivation
@@ -91,7 +91,7 @@ namespace Gurux.DLMS.Objects.Italy
         }
 
         /// <summary>
-        /// Seasons.
+        /// Special days.
         /// </summary>
         [XmlIgnore()]
         public UInt16[] SpecialDays

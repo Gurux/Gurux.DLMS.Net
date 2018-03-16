@@ -197,13 +197,13 @@ namespace Gurux.DLMS.Objects.Italy
 
         private static void GetInterval(GXDLMSInterval interval, GXByteBuffer data)
         {
-            data.SetUInt8((byte)DataType.Array);
+            data.SetUInt8((byte)DataType.OctetString);
             data.SetUInt8(5);
             byte b = interval.StartHour;
             b |= (byte)((byte)interval.IntervalTariff << 5);
-            b |= (byte)((interval.UseInterval ? 1 : 0)<< 7);
+            b |= (byte)((interval.UseInterval ? 1 : 0) << 7);
             data.SetUInt8(b);
-            data.SetUInt16((UInt16) interval.WeeklyActivation);
+            data.SetUInt16((UInt16)interval.WeeklyActivation);
             UInt16 v = interval.SpecialDayMonth;
             v |= (UInt16)(interval.SpecialDay << 8);
             v |= (UInt16)((interval.SpecialDayEnabled ? 1 : 0) << 15);
@@ -212,6 +212,8 @@ namespace Gurux.DLMS.Objects.Italy
 
         private static void GetSeason(GXBandDescriptor season, GXByteBuffer data)
         {
+            data.SetUInt8((byte)DataType.Array);
+            data.SetUInt8(5);
             GXCommon.SetData(null, data, DataType.UInt8, season.DayOfMonth);
             GXCommon.SetData(null, data, DataType.UInt8, season.Month);
             GetInterval(season.WorkingDayIntervals, data);
@@ -227,7 +229,11 @@ namespace Gurux.DLMS.Objects.Italy
             }
             if (e.Index == 2)
             {
-                return CalendarName;
+                if (CalendarName == null)
+                {
+                    return null;
+                }
+                return ASCIIEncoding.ASCII.GetBytes(CalendarName);
             }
             if (e.Index == 3)
             {
@@ -248,26 +254,36 @@ namespace Gurux.DLMS.Objects.Italy
 
                 GXCommon.SetData(null, data, DataType.BitString, Plan.WeeklyActivation);
                 data.SetUInt8((byte)DataType.Array);
-                data.SetUInt8((byte)Plan.SpecialDays.Length);
-                foreach (UInt16 it in Plan.SpecialDays)
+                if (Plan.SpecialDays == null)
                 {
-                    data.SetUInt8((byte)DataType.UInt16);
-                    data.SetUInt16(it);
+                    data.SetUInt8(0);
                 }
+                else
+                {
+                    data.SetUInt8((byte)Plan.SpecialDays.Length);
+                    foreach (UInt16 it in Plan.SpecialDays)
+                    {
+                        data.SetUInt8((byte)DataType.UInt16);
+                        data.SetUInt16(it);
+                    }
+                }
+                return data.Array();
             }
             if (e.Index == 5)
             {
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
+                //Count
+                data.SetUInt8(2);
                 if (ActivationTime == null)
                 {
-                    GXCommon.SetObjectCount(0, data);
+                    //Time
+                    GXCommon.SetData(settings, data, DataType.OctetString, new GXTime());
+                    //Date
+                    GXCommon.SetData(settings, data, DataType.OctetString, new GXDate(DateTime.MinValue));
                 }
                 else
                 {
-                    data.SetUInt8((byte)DataType.Structure);
-                    //Count
-                    data.SetUInt8(2);
                     //Time
                     GXCommon.SetData(settings, data, DataType.OctetString, new GXTime(ActivationTime));
                     //Date
@@ -283,10 +299,10 @@ namespace Gurux.DLMS.Objects.Italy
         {
             GXByteBuffer bb = new GXByteBuffer(value);
             byte b = bb.GetUInt8();
-            interval.StartHour = (byte) (b & 0x1F);
+            interval.StartHour = (byte)(b & 0x1F);
             interval.IntervalTariff = (DefaultTariffBand)((b >> 5) & 0x3);
             interval.UseInterval = (b >> 7) != 0;
-            interval.WeeklyActivation = (WeeklyActivation) bb.GetUInt16();
+            interval.WeeklyActivation = (WeeklyActivation)bb.GetUInt16();
             UInt16 v = bb.GetUInt16();
             interval.SpecialDayMonth = (byte)(v & 0xF);
             interval.SpecialDay = (byte)((v >> 8) & 0xF);
@@ -295,11 +311,14 @@ namespace Gurux.DLMS.Objects.Italy
 
         private static void UpdateSeason(GXBandDescriptor season, object[] value)
         {
-            season.DayOfMonth = Convert.ToByte(value[0]);
-            season.Month = Convert.ToByte(value[1]);
-            UpdateInterval(season.WorkingDayIntervals, (byte[])value[2]);
-            UpdateInterval(season.SaturdayIntervals, (byte[])value[3]);
-            UpdateInterval(season.HolidayIntervals, (byte[])value[4]);
+            if (value != null)
+            {
+                season.DayOfMonth = Convert.ToByte(value[0]);
+                season.Month = Convert.ToByte(value[1]);
+                UpdateInterval(season.WorkingDayIntervals, (byte[])value[2]);
+                UpdateInterval(season.SaturdayIntervals, (byte[])value[3]);
+                UpdateInterval(season.HolidayIntervals, (byte[])value[4]);
+            }
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
@@ -310,7 +329,14 @@ namespace Gurux.DLMS.Objects.Italy
             }
             else if (e.Index == 2)
             {
-                CalendarName = ASCIIEncoding.ASCII.GetString((byte[])e.Value);
+                if (e.Value is byte[])
+                {
+                    CalendarName = ASCIIEncoding.ASCII.GetString((byte[])e.Value);
+                }
+                else
+                {
+                    CalendarName = Convert.ToString(e.Value);
+                }
             }
             else if (e.Index == 3)
             {
@@ -325,7 +351,12 @@ namespace Gurux.DLMS.Objects.Italy
                     UpdateSeason(Plan.WinterSeason, (it[1] as object[])[0] as object[]);
                     UpdateSeason(Plan.SummerSeason, (it[1] as object[])[1] as object[]);
                     Plan.WeeklyActivation = (string)it[2];
-                    Plan.SpecialDays = (UInt16[])it[3];
+                    List<UInt16> days = new List<ushort>();
+                    foreach (UInt16 v in (object[])it[3])
+                    {
+                        days.Add(v);
+                    }
+                    Plan.SpecialDays = days.ToArray();
                 }
             }
             else if (e.Index == 5)
@@ -342,6 +373,10 @@ namespace Gurux.DLMS.Objects.Italy
                     ActivationTime.Value = ActivationTime.Value.AddMinutes(time.Value.Minute);
                     ActivationTime.Value = ActivationTime.Value.AddSeconds(time.Value.Second);
                     ActivationTime.Skip = date.Skip | time.Skip;
+                }
+                else if (e.Value is string)
+                {
+                    ActivationTime = new GXDateTime((string)e.Value);
                 }
                 else
                 {

@@ -40,6 +40,7 @@ using Gurux.DLMS.Objects;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Secure;
+using Gurux.DLMS.Objects.Italy;
 
 namespace Gurux.DLMS
 {
@@ -153,6 +154,7 @@ namespace Gurux.DLMS
                 availableObjectTypes.Add(ObjectType.Charge, typeof(GXDLMSCharge));
                 availableObjectTypes.Add(ObjectType.TokenGateway, typeof(GXDLMSTokenGateway));
                 availableObjectTypes.Add(ObjectType.ParameterMonitor, typeof(GXDLMSParameterMonitor));
+                availableObjectTypes.Add(ObjectType.TariffPlan, typeof(GXDLMSTariffPlan));            
             }
         }
 
