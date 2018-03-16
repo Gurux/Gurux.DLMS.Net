@@ -115,12 +115,6 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Inserts a new entry in the table.
         /// </summary>
-        /// <remarks>
-        /// </remarks>
-        /// <returns>
-        ///  If a special day with the same index or with the same date as an already defined day is inserted, 
-        ///  the old entry will be overwritten.
-        /// </returns>
         public byte[][] Insert(GXDLMSClient client, GXDLMSTarget entry)
         {
             GXByteBuffer bb = new GXByteBuffer();
@@ -135,7 +129,6 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Deletes an entry from the table.
         /// </summary>
-        /// <returns></returns>
         public byte[][] Delete(GXDLMSClient client, GXDLMSTarget entry)
         {
             GXByteBuffer bb = new GXByteBuffer();
@@ -320,96 +313,106 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            switch (e.Index)
             {
-                LogicalName = GXCommon.ToLogicalName(e.Value);
-            }
-            else if (e.Index == 2)
-            {
-                ChangedParameter = new GXDLMSTarget();
-                if (e.Value is Object[])
-                {
-                    Object[] tmp = (Object[])e.Value;
-                    if (tmp.Length != 4)
+                case 1:
+                    LogicalName = GXCommon.ToLogicalName(e.Value);
+                    break;
+                case 2:
                     {
-                        throw new GXDLMSException("Invalid structure format.");
-                    }
-                    ObjectType type = (ObjectType)Convert.ToInt16(tmp[0]);
-                    ChangedParameter.Target = settings.Objects.FindByLN(type, (byte[])tmp[1]);
-                    if (ChangedParameter.Target == null)
-                    {
-                        ChangedParameter.Target = GXDLMSClient.CreateObject(type);
-                        ChangedParameter.Target.LogicalName = GXCommon.ToLogicalName((byte[])tmp[1]);
-                    }
-                    ChangedParameter.AttributeIndex = Convert.ToByte(tmp[2]);
-                    ChangedParameter.Value = tmp[3];
-                }
-            }
-            else if (e.Index == 3)
-            {
-                if (e.Value == null)
-                {
-                    CaptureTime = new GXDateTime(DateTime.MinValue);
-                }
-                else
-                {
-                    if (e.Value is byte[])
-                    {
-                        e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
-                    }
-                    else if (e.Value is string)
-                    {
-                        e.Value = new GXDateTime((string)e.Value);
-                    }
-                    if (e.Value is GXDateTime)
-                    {
-                        CaptureTime = (GXDateTime)e.Value;
-                    }
-                    else if (e.Value is String)
-                    {
-                        DateTime tm;
-                        if (!DateTime.TryParse((String)e.Value, out tm))
+                        ChangedParameter = new GXDLMSTarget();
+                        if (e.Value is Object[])
                         {
-                            CaptureTime = DateTime.ParseExact((String)e.Value, CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern + " " + CultureInfo.CurrentCulture.DateTimeFormat.LongTimePattern, CultureInfo.CurrentUICulture);
+                            Object[] tmp = (Object[])e.Value;
+                            if (tmp.Length != 4)
+                            {
+                                throw new GXDLMSException("Invalid structure format.");
+                            }
+                            ObjectType type = (ObjectType)Convert.ToInt16(tmp[0]);
+                            ChangedParameter.Target = settings.Objects.FindByLN(type, (byte[])tmp[1]);
+                            if (ChangedParameter.Target == null)
+                            {
+                                ChangedParameter.Target = GXDLMSClient.CreateObject(type);
+                                ChangedParameter.Target.LogicalName = GXCommon.ToLogicalName((byte[])tmp[1]);
+                            }
+                            ChangedParameter.AttributeIndex = Convert.ToByte(tmp[2]);
+                            ChangedParameter.Value = tmp[3];
+                        }
+
+                        break;
+                    }
+
+                case 3:
+                    {
+                        if (e.Value == null)
+                        {
+                            CaptureTime = new GXDateTime(DateTime.MinValue);
                         }
                         else
                         {
-                            CaptureTime = tm;
+                            if (e.Value is byte[])
+                            {
+                                e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
+                            }
+                            else if (e.Value is string)
+                            {
+                                e.Value = new GXDateTime((string)e.Value);
+                            }
+                            if (e.Value is GXDateTime)
+                            {
+                                CaptureTime = (GXDateTime)e.Value;
+                            }
+                            else if (e.Value is String)
+                            {
+                                DateTime tm;
+                                if (!DateTime.TryParse((String)e.Value, out tm))
+                                {
+                                    CaptureTime = DateTime.ParseExact((String)e.Value, CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern + " " + CultureInfo.CurrentCulture.DateTimeFormat.LongTimePattern, CultureInfo.CurrentUICulture);
+                                }
+                                else
+                                {
+                                    CaptureTime = tm;
+                                }
+                            }
+                            else
+                            {
+                                CaptureTime = Convert.ToDateTime(e.Value);
+                            }
                         }
+
+                        break;
                     }
-                    else
+
+                case 4:
                     {
-                        CaptureTime = Convert.ToDateTime(e.Value);
-                    }
-                }
-            }
-            else if (e.Index == 4)
-            {
-                Parameters.Clear();
-                if (e.Value != null)
-                {
-                    foreach (object[] tmp in (e.Value as object[]))
-                    {
-                        if (tmp.Length != 3)
+                        Parameters.Clear();
+                        if (e.Value != null)
                         {
-                            throw new GXDLMSException("Invalid structure format.");
+                            foreach (object[] tmp in (e.Value as object[]))
+                            {
+                                if (tmp.Length != 3)
+                                {
+                                    throw new GXDLMSException("Invalid structure format.");
+                                }
+                                GXDLMSTarget obj = new GXDLMSTarget();
+                                ObjectType type = (ObjectType)Convert.ToInt16(tmp[0]);
+                                obj.Target = settings.Objects.FindByLN(type, (byte[])tmp[1]);
+                                if (obj.Target == null)
+                                {
+                                    obj.Target = GXDLMSClient.CreateObject(type);
+                                    obj.Target.LogicalName = GXCommon.ToLogicalName((byte[])tmp[1]);
+                                }
+                                obj.AttributeIndex = Convert.ToByte(tmp[2]);
+                                Parameters.Add(obj);
+                            }
                         }
-                        GXDLMSTarget obj = new GXDLMSTarget();
-                        ObjectType type = (ObjectType)Convert.ToInt16(tmp[0]);
-                        obj.Target = settings.Objects.FindByLN(type, (byte[])tmp[1]);
-                        if (obj.Target == null)
-                        {
-                            obj.Target = GXDLMSClient.CreateObject(type);
-                            obj.Target.LogicalName = GXCommon.ToLogicalName((byte[])tmp[1]);
-                        }
-                        obj.AttributeIndex = Convert.ToByte(tmp[2]);
-                        Parameters.Add(obj);
+
+                        break;
                     }
-                }
-            }
-            else
-            {
-                e.Error = ErrorCode.ReadWriteDenied;
+
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
             }
         }
 
@@ -466,7 +469,7 @@ namespace Gurux.DLMS.Objects
                 writer.WriteStartElement("ChangedParameter");
                 writer.WriteElementString("Type", (int)ChangedParameter.Target.ObjectType);
                 writer.WriteElementString("LN", ChangedParameter.Target.LogicalName);
-                writer.WriteElementObject("Index", ChangedParameter.AttributeIndex);
+                writer.WriteElementString("Index", ChangedParameter.AttributeIndex);
                 writer.WriteElementObject("Value", ChangedParameter.Value);
                 writer.WriteEndElement();
             }
@@ -482,7 +485,7 @@ namespace Gurux.DLMS.Objects
                     writer.WriteStartElement("Item");
                     writer.WriteElementString("Type", (int)it.Target.ObjectType);
                     writer.WriteElementString("LN", it.Target.LogicalName);
-                    writer.WriteElementObject("Index", it.AttributeIndex);
+                    writer.WriteElementString("Index", it.AttributeIndex);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();

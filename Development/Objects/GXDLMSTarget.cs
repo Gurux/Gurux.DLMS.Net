@@ -91,6 +91,17 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="target">Target object.</param>
         /// <param name="attributeIndex">Attribute index.</param>
+        public GXDLMSTarget(GXDLMSObject target, byte attributeIndex)
+        {
+            Target = target;
+            AttributeIndex = attributeIndex;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="target">Target object.</param>
+        /// <param name="attributeIndex">Attribute index.</param>
         /// <param name="dataIndex">Data Index.</param>
         public GXDLMSTarget(GXDLMSObject target, byte attributeIndex, int dataIndex)
         {

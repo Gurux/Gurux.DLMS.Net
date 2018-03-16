@@ -663,7 +663,7 @@ namespace Gurux.DLMS
                     throw new GXDLMSException("Invalid DLMS version number.");
                 }
             }
-            catch(OutOfMemoryException)
+            catch (OutOfMemoryException)
             {
                 throw new Exception("Frame is not fully received.");
             }
@@ -1708,7 +1708,8 @@ namespace Gurux.DLMS
         /// </summary>
         /// <remarks>
         /// Keepalive message is needed only HDLC framing.
-        /// For keepalive we are reading logical name for fist object.
+        /// For keepalive we are reading logical name for Association object.
+        /// This is done because all the meters can't handle HDLC keep alive message.
         /// </remarks>
         /// <returns>Returns Keep alive message, as byte array.</returns>
         public byte[] GetKeepAlive()
@@ -1718,11 +1719,12 @@ namespace Gurux.DLMS
             {
                 return new byte[0];
             }
-            if (this.Objects.Count != 0)
+            Settings.ResetBlockIndex();
+            if (UseLogicalNameReferencing)
             {
-                return Read(this.Objects[0], 1)[0];
+                return Read("0.0.40.0.0.255", ObjectType.AssociationLogicalName, 1)[0];
             }
-            return new byte[0];
+            return Read(0xFA00, ObjectType.AssociationShortName, 1)[0];
         }
 
         /// <summary>

@@ -52,7 +52,7 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSSpecialDaysTable()
-        : base(ObjectType.SpecialDaysTable, "0.0.11.0.0.255", 0)
+        : this("0.0.11.0.0.255", 0)
         {
         }
 
@@ -61,7 +61,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSSpecialDaysTable(string ln)
-        : base(ObjectType.SpecialDaysTable, ln, 0)
+        : this(ln, 0)
         {
         }
 

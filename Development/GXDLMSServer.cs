@@ -856,7 +856,8 @@ namespace Gurux.DLMS
                         return;
                     }
                     receivedData.Clear();
-                    if (first || info.Command == Command.Snrm)
+                    if (first || info.Command == Command.Snrm ||
+                        (Settings.InterfaceType == InterfaceType.WRAPPER && info.Command == Command.Aarq))
                     {
                         // Check is data send to this server.
                         if (!IsTarget(Settings.ServerAddress,
