@@ -213,7 +213,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         }
 
         /// <summary>
-        /// GMAC System Title.
+        /// System Title.
         /// </summary>
 #if !WINDOWS_UWP
         [Browsable(false)]
@@ -224,6 +224,20 @@ namespace Gurux.DLMS.ManufacturerSettings
             get;
             set;
         }
+
+        /// <summary>
+        /// Server System Title.
+        /// </summary>
+#if !WINDOWS_UWP
+        [Browsable(false)]
+#endif
+        [DefaultValue(null)]
+        public byte[] ServerSystemTitle
+        {
+            get;
+            set;
+        }
+
 
         /// <summary>
         /// GMAC block cipher key.

@@ -223,73 +223,71 @@ namespace Gurux.DLMS.Objects.Italy
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            switch (e.Index)
             {
-                return GXCommon.LogicalNameToBytes(LogicalName);
-            }
-            if (e.Index == 2)
-            {
-                if (CalendarName == null)
-                {
-                    return null;
-                }
-                return ASCIIEncoding.ASCII.GetBytes(CalendarName);
-            }
-            if (e.Index == 3)
-            {
-                return Enabled;
-            }
-            if (e.Index == 4)
-            {
-                GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((byte)DataType.Structure);
-                data.SetUInt8(4);
-                data.SetUInt8((byte)DataType.UInt8);
-                data.SetUInt8(Plan.DefaultTariffBand);
-
-                data.SetUInt8((byte)DataType.Array);
-                data.SetUInt8(2);
-                GetSeason(Plan.WinterSeason, data);
-                GetSeason(Plan.SummerSeason, data);
-
-                GXCommon.SetData(null, data, DataType.BitString, Plan.WeeklyActivation);
-                data.SetUInt8((byte)DataType.Array);
-                if (Plan.SpecialDays == null)
-                {
-                    data.SetUInt8(0);
-                }
-                else
-                {
-                    data.SetUInt8((byte)Plan.SpecialDays.Length);
-                    foreach (UInt16 it in Plan.SpecialDays)
+                case 1:
+                    return GXCommon.LogicalNameToBytes(LogicalName);
+                case 2:
+                    if (CalendarName == null)
                     {
-                        data.SetUInt8((byte)DataType.UInt16);
-                        data.SetUInt16(it);
+                        return null;
                     }
-                }
-                return data.Array();
-            }
-            if (e.Index == 5)
-            {
-                GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((byte)DataType.Structure);
-                //Count
-                data.SetUInt8(2);
-                if (ActivationTime == null)
-                {
-                    //Time
-                    GXCommon.SetData(settings, data, DataType.OctetString, new GXTime());
-                    //Date
-                    GXCommon.SetData(settings, data, DataType.OctetString, new GXDate(DateTime.MinValue));
-                }
-                else
-                {
-                    //Time
-                    GXCommon.SetData(settings, data, DataType.OctetString, new GXTime(ActivationTime));
-                    //Date
-                    GXCommon.SetData(settings, data, DataType.OctetString, new GXDate(ActivationTime));
-                }
-                return data.Array();
+                    return ASCIIEncoding.ASCII.GetBytes(CalendarName);
+                case 3:
+                    return Enabled;
+                case 4:
+                    {
+                        GXByteBuffer data = new GXByteBuffer();
+                        data.SetUInt8((byte)DataType.Structure);
+                        data.SetUInt8(4);
+                        data.SetUInt8((byte)DataType.UInt8);
+                        data.SetUInt8(Plan.DefaultTariffBand);
+
+                        data.SetUInt8((byte)DataType.Array);
+                        data.SetUInt8(2);
+                        GetSeason(Plan.WinterSeason, data);
+                        GetSeason(Plan.SummerSeason, data);
+
+                        GXCommon.SetData(null, data, DataType.BitString, Plan.WeeklyActivation);
+                        data.SetUInt8((byte)DataType.Array);
+                        if (Plan.SpecialDays == null)
+                        {
+                            data.SetUInt8(0);
+                        }
+                        else
+                        {
+                            data.SetUInt8((byte)Plan.SpecialDays.Length);
+                            foreach (UInt16 it in Plan.SpecialDays)
+                            {
+                                data.SetUInt8((byte)DataType.UInt16);
+                                data.SetUInt16(it);
+                            }
+                        }
+                        return data.Array();
+                    }
+
+                case 5:
+                    {
+                        GXByteBuffer data = new GXByteBuffer();
+                        data.SetUInt8((byte)DataType.Structure);
+                        //Count
+                        data.SetUInt8(2);
+                        if (ActivationTime == null)
+                        {
+                            //Time
+                            GXCommon.SetData(settings, data, DataType.OctetString, new GXTime());
+                            //Date
+                            GXCommon.SetData(settings, data, DataType.OctetString, new GXDate(DateTime.MinValue));
+                        }
+                        else
+                        {
+                            //Time
+                            GXCommon.SetData(settings, data, DataType.OctetString, new GXTime(ActivationTime));
+                            //Date
+                            GXCommon.SetData(settings, data, DataType.OctetString, new GXDate(ActivationTime));
+                        }
+                        return data.Array();
+                    }
             }
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
@@ -323,69 +321,75 @@ namespace Gurux.DLMS.Objects.Italy
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            switch (e.Index)
             {
-                LogicalName = GXCommon.ToLogicalName(e.Value);
-            }
-            else if (e.Index == 2)
-            {
-                if (e.Value is byte[])
-                {
-                    CalendarName = ASCIIEncoding.ASCII.GetString((byte[])e.Value);
-                }
-                else
-                {
-                    CalendarName = Convert.ToString(e.Value);
-                }
-            }
-            else if (e.Index == 3)
-            {
-                Enabled = Convert.ToBoolean(e.Value);
-            }
-            else if (e.Index == 4)
-            {
-                if (e.Value is object[])
-                {
-                    object[] it = e.Value as object[];
-                    Plan.DefaultTariffBand = Convert.ToByte(it[0]);
-                    UpdateSeason(Plan.WinterSeason, (it[1] as object[])[0] as object[]);
-                    UpdateSeason(Plan.SummerSeason, (it[1] as object[])[1] as object[]);
-                    Plan.WeeklyActivation = (string)it[2];
-                    List<UInt16> days = new List<ushort>();
-                    foreach (UInt16 v in (object[])it[3])
+                case 1:
+                    LogicalName = GXCommon.ToLogicalName(e.Value);
+                    break;
+                case 2:
+                    if (e.Value is byte[])
                     {
-                        days.Add(v);
+                        CalendarName = ASCIIEncoding.ASCII.GetString((byte[])e.Value);
                     }
-                    Plan.SpecialDays = days.ToArray();
-                }
-            }
-            else if (e.Index == 5)
-            {
-                if (e.Value is object[])
-                {
-                    object[] it = e.Value as object[];
-                    GXDateTime time = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[0], DataType.Time, settings.UseUtc2NormalTime);
-                    time.Skip &= ~(DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek);
-                    GXDateTime date = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[1], DataType.Date, settings.UseUtc2NormalTime);
-                    date.Skip &= ~(DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms);
-                    ActivationTime = new DLMS.GXDateTime(date);
-                    ActivationTime.Value = ActivationTime.Value.AddHours(time.Value.Hour);
-                    ActivationTime.Value = ActivationTime.Value.AddMinutes(time.Value.Minute);
-                    ActivationTime.Value = ActivationTime.Value.AddSeconds(time.Value.Second);
-                    ActivationTime.Skip = date.Skip | time.Skip;
-                }
-                else if (e.Value is string)
-                {
-                    ActivationTime = new GXDateTime((string)e.Value);
-                }
-                else
-                {
-                    ActivationTime = new GXDateTime(DateTime.MinValue);
-                }
-            }
-            else
-            {
-                e.Error = ErrorCode.ReadWriteDenied;
+                    else
+                    {
+                        CalendarName = Convert.ToString(e.Value);
+                    }
+
+                    break;
+                case 3:
+                    Enabled = Convert.ToBoolean(e.Value);
+                    break;
+                case 4:
+                    {
+                        if (e.Value is object[])
+                        {
+                            object[] it = e.Value as object[];
+                            Plan.DefaultTariffBand = Convert.ToByte(it[0]);
+                            UpdateSeason(Plan.WinterSeason, (it[1] as object[])[0] as object[]);
+                            UpdateSeason(Plan.SummerSeason, (it[1] as object[])[1] as object[]);
+                            Plan.WeeklyActivation = (string)it[2];
+                            List<UInt16> days = new List<ushort>();
+                            foreach (UInt16 v in (object[])it[3])
+                            {
+                                days.Add(v);
+                            }
+                            Plan.SpecialDays = days.ToArray();
+                        }
+
+                        break;
+                    }
+
+                case 5:
+                    {
+                        if (e.Value is object[])
+                        {
+                            object[] it = e.Value as object[];
+                            GXDateTime time = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[0], DataType.Time, settings.UseUtc2NormalTime);
+                            time.Skip &= ~(DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek);
+                            GXDateTime date = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[1], DataType.Date, settings.UseUtc2NormalTime);
+                            date.Skip &= ~(DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms);
+                            ActivationTime = new DLMS.GXDateTime(date);
+                            ActivationTime.Value = ActivationTime.Value.AddHours(time.Value.Hour);
+                            ActivationTime.Value = ActivationTime.Value.AddMinutes(time.Value.Minute);
+                            ActivationTime.Value = ActivationTime.Value.AddSeconds(time.Value.Second);
+                            ActivationTime.Skip = date.Skip | time.Skip;
+                        }
+                        else if (e.Value is string)
+                        {
+                            ActivationTime = new GXDateTime((string)e.Value);
+                        }
+                        else
+                        {
+                            ActivationTime = new GXDateTime(DateTime.MinValue);
+                        }
+
+                        break;
+                    }
+
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
             }
         }
 

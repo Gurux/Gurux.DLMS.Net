@@ -104,10 +104,10 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
-        ///  Server system title.
+        ///  Server system title. 
         /// </summary>
         /// <remarks>
-        /// Server system title is optional and server usually gives it when connection is established.
+        /// Server system title is optional and it's used when Pre-established Application Associations is used.
         /// </remarks>
         public byte[] ServerSystemTitle
         {

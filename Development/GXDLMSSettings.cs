@@ -373,6 +373,11 @@ namespace Gurux.DLMS
 
         public bool CheckFrame(byte frame)
         {
+            //If notify
+            if (frame == 0x13)
+            {
+                return true;
+            }
             //If U frame.
             if ((frame & (byte)HdlcFrameType.Uframe) == (byte)HdlcFrameType.Uframe)
             {
@@ -382,6 +387,7 @@ namespace Gurux.DLMS
                     ResetFrameSequence();
                     return !isEcho;
                 }
+                return true;
             }
             //If S -frame.
             if ((frame & (byte)HdlcFrameType.Sframe) == (byte)HdlcFrameType.Sframe)

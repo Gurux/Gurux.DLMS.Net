@@ -229,7 +229,7 @@ namespace Gurux.DLMS.Objects
         /// Maximum Entries (rows) count.
         /// </summary>
         [XmlIgnore()]
-        public int ProfileEntries
+        public UInt32 ProfileEntries
         {
             get;
             set;
@@ -1075,7 +1075,7 @@ namespace Gurux.DLMS.Objects
                 {
                     Reset();
                 }
-                ProfileEntries = Convert.ToInt32(e.Value);
+                ProfileEntries = Convert.ToUInt32(e.Value);
             }
             else
             {
@@ -1130,7 +1130,7 @@ namespace Gurux.DLMS.Objects
                 reader.ReadEndElement("SortObject");
             }
             EntriesInUse = reader.ReadElementContentAsInt("EntriesInUse");
-            ProfileEntries = reader.ReadElementContentAsInt("ProfileEntries");
+            ProfileEntries = (UInt32)reader.ReadElementContentAsLong("ProfileEntries");
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
