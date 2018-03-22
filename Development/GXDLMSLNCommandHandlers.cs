@@ -660,7 +660,7 @@ namespace Gurux.DLMS
                     xml.AppendStartTag(TranslatorTags.DataBlock);
                     xml.AppendLine(TranslatorTags.LastBlock, "Value", xml.IntegerToHex(lastBlock, 2));
                     xml.AppendLine(TranslatorTags.BlockNumber, "Value", xml.IntegerToHex(blockNumber, 8));
-                    xml.AppendLine(TranslatorTags.RawData, "Value", GXCommon.ToHex(data.Data, false, 0, data.Size));
+                    xml.AppendLine(TranslatorTags.RawData, "Value", data.RemainingHexString(true));
                     xml.AppendEndTag(TranslatorTags.DataBlock);
                 }
                 return;
@@ -681,10 +681,6 @@ namespace Gurux.DLMS
                     value = GXCommon.ToHex((byte[])value, false);
                 }
                 xml.AppendEndTag(TranslatorTags.Value);
-            }
-
-            if (xml != null)
-            {
                 return;
             }
 
