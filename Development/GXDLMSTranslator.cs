@@ -34,7 +34,6 @@
 using System;
 using System.Text;
 using Gurux.DLMS.Internal;
-using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 #if !WINDOWS_UWP
@@ -42,7 +41,6 @@ using System.Xml.XPath;
 #endif
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Secure;
-using Gurux.DLMS.Objects;
 using System.ComponentModel;
 using System.Diagnostics;
 
@@ -54,6 +52,13 @@ namespace Gurux.DLMS
     ///</summary>
     public class GXDLMSTranslator
     {
+        UInt16 SAck = 0, RAck = 0;
+        bool sending = false;
+        byte SSendSequence = 0;
+        byte SReceiveSequence = 0;
+        byte RSendSequence = 0;
+        byte RReceiveSequence = 0;
+
         internal SortedList<int, string> tags = new SortedList<int, string>();
         internal SortedList<string, int> tagsByName = new SortedList<string, int>();
 
@@ -508,6 +513,9 @@ namespace Gurux.DLMS
         {
             multipleFrames = false;
             pduFrames.Clear();
+            sending = false;
+            SSendSequence = SReceiveSequence = RSendSequence = RReceiveSequence = 0;
+            SAck = RAck = 0;
         }
 
         /// <summary>
@@ -536,21 +544,47 @@ namespace Gurux.DLMS
             }
             return null;
         }
-
         private void CheckFrame(byte frame, GXDLMSTranslatorStructure xml)
         {
-            if (frame == 0x93)
+            sending = !sending;
+            if (frame == (byte)Command.Snrm)
             {
+                sending = true;
                 xml.AppendComment("SNRM frame.");
+                SSendSequence = SReceiveSequence = RSendSequence = RReceiveSequence = 0;
+                SAck = RAck = 0;
             }
-            else if (frame == 0x73)
+            else if (frame == (byte)Command.Ua)
             {
+                sending = false;
+                SSendSequence = SReceiveSequence = RSendSequence = RReceiveSequence = 0;
+                SAck = RAck = 0;
                 xml.AppendComment("UA frame.");
+            }
+            else if (frame == (byte)Command.DisconnectRequest)
+            {
+                sending = false;
+                xml.AppendComment("Disconnect Request frame.");
             }
             //If S -frame.
             else if ((frame & (byte)HdlcFrameType.Sframe) == (byte)HdlcFrameType.Sframe)
             {
                 xml.AppendComment("S frame.");
+                byte receiveSequence = (byte)((frame >> 5) & 7);
+                byte sendSequence = (byte)((frame >> 1) & 7);
+                if (!sending && SSendSequence + 1 == receiveSequence)
+                {
+                    ++RAck;
+                }
+                else if (sending && ((RSendSequence + 1) % 8) == receiveSequence)
+                {
+                    ++SAck;
+                }
+                else
+                {
+                    byte expected = 0;
+                    xml.AppendComment("Invalid I Frame: " + frame.ToString("X") + ". Expected: " + expected.ToString("X"));
+                }
             }
             //Handle U-frame.
             else if ((frame & 1) == (byte)HdlcFrameType.Uframe)
@@ -559,17 +593,85 @@ namespace Gurux.DLMS
             }
             else //I-frame.
             {
-                if (frame == 0x10)
+                if (frame == 0x10 && SReceiveSequence == 0 && SSendSequence == 0)
                 {
                     xml.AppendComment("AARQ frame.");
                 }
-                else if (frame == 0x30)
+                else if (frame == 0x30 && RReceiveSequence == 0 && RSendSequence == 0)
                 {
                     xml.AppendComment("AARE frame.");
+                    RReceiveSequence = 1;
                 }
                 else
                 {
-                    xml.AppendComment("I frame.");
+                    byte sendSequence = (byte)((frame >> 1) & 7);
+                    byte receiveSequence = (byte)((frame >> 5) & 7);
+                    if (sending)
+                    {
+                        //If send.
+                        if ((SSendSequence + 1) % 8 == sendSequence)
+                        {
+                            if ((SReceiveSequence + 1) % 8 == receiveSequence)
+                            {
+                                SSendSequence = sendSequence;
+                                SReceiveSequence = receiveSequence;
+                            }
+                            else if (RAck != 0 && SReceiveSequence == receiveSequence)
+                            {
+                                SSendSequence = sendSequence;
+                                SReceiveSequence = receiveSequence;
+                            }
+                            else if ((SReceiveSequence + 1 + SAck) % 8 == receiveSequence)
+                            {
+                                SSendSequence = sendSequence;
+                                SReceiveSequence = receiveSequence;
+                                SAck = 0;
+                            }
+                        }
+                        else if (SSendSequence == 0 && SReceiveSequence == 0 && RSendSequence == 0 && RReceiveSequence == 0)
+                        {
+                            //If all data is not handled.
+                            SSendSequence = sendSequence;
+                            SReceiveSequence = receiveSequence;
+                        }
+                        else
+                        {
+                            byte expected = (byte)(((SReceiveSequence + 1) << 1 | 1) << 4 | (SSendSequence + 1) << 1);
+                            xml.AppendComment("Invalid I Frame: " + frame.ToString("X") + ". Expected: " + expected.ToString("X"));
+                        }
+                    }
+                    else
+                    {
+                        if ((RReceiveSequence + RAck + 1) % 8 == receiveSequence ||
+                            SAck != 0 && RReceiveSequence == receiveSequence)
+                        {
+                            if ((RSendSequence + 1) % 8 == sendSequence)
+                            {
+                                RSendSequence = sendSequence;
+                                RReceiveSequence = receiveSequence;
+                            }
+                            else
+                            {
+                                SAck = 0;
+                            }
+                            if (RAck != 0)
+                            {
+                                RAck = 0;
+                                RReceiveSequence = (byte)((RReceiveSequence - 1) % 8);
+                            }
+                        }
+                        else if (RSendSequence == 0 && RReceiveSequence == 0)
+                        {
+                            //If all data is not handled.
+                            RSendSequence = sendSequence;
+                            RReceiveSequence = receiveSequence;
+                        }
+                        else
+                        {
+                            byte expected = (byte)(((SReceiveSequence + 1) << 1 | 1) << 4 | (SSendSequence + 1) << 1);
+                            xml.AppendComment("Invalid I Frame: " + frame.ToString("X") + ". Expected: " + expected.ToString("X"));
+                        }
+                    }
                 }
             }
         }

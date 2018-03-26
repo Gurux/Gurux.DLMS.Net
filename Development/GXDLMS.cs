@@ -154,7 +154,7 @@ namespace Gurux.DLMS
                 availableObjectTypes.Add(ObjectType.Charge, typeof(GXDLMSCharge));
                 availableObjectTypes.Add(ObjectType.TokenGateway, typeof(GXDLMSTokenGateway));
                 availableObjectTypes.Add(ObjectType.ParameterMonitor, typeof(GXDLMSParameterMonitor));
-                availableObjectTypes.Add(ObjectType.TariffPlan, typeof(GXDLMSTariffPlan));            
+                availableObjectTypes.Add(ObjectType.TariffPlan, typeof(GXDLMSTariffPlan));
             }
         }
 
@@ -850,15 +850,7 @@ namespace Gurux.DLMS
                         messages.Add(GXDLMS.GetHdlcFrame(p.settings, frame, reply));
                         if (reply.Position != reply.Size)
                         {
-                            if (p.settings.IsServer || p.command == Command.SetRequest ||
-                                 p.command == Command.MethodRequest)
-                            {
-                                frame = 0;
-                            }
-                            else
-                            {
-                                frame = p.settings.NextSend(false);
-                            }
+                            frame = p.settings.NextSend(false);
                         }
                     }
                     else if (p.settings.InterfaceType == Enums.InterfaceType.PDU)
@@ -873,6 +865,7 @@ namespace Gurux.DLMS
                     }
                 }
                 reply.Clear();
+                frame = 0;
             }
             while (p.data != null && p.data.Position != p.data.Size);
             return messages.ToArray();
