@@ -265,8 +265,8 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorTags.BlockControl, "BlockControl");
             GXDLMSTranslator.AddTag(list, TranslatorTags.BlockNumberAck, "BlockNumberAck");
             GXDLMSTranslator.AddTag(list, TranslatorTags.BlockData, "BlockData");
-
-
+            GXDLMSTranslator.AddTag(list, TranslatorTags.ContentsDescription, "ContentsDescription");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.ArrayContents, "ArrayContents");
         }
 
         public static void GetDataTypeTags(SortedList<int, string> list)

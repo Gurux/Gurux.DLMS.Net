@@ -339,6 +339,11 @@ namespace Gurux.DLMS
 
         public void AppendStartTag(int tag, string name, string value)
         {
+            AppendStartTag(tag, name, value, false);
+        }
+
+        public void AppendStartTag(int tag, string name, string value, bool plain)
+        {
             AppendSpaces();
             sb.Append('<');
             sb.Append(GetTag(tag));
@@ -348,15 +353,15 @@ namespace Gurux.DLMS
                 sb.Append(name);
                 sb.Append("=\"");
                 sb.Append(value);
-                if (IgnoreSpaces)
-                {
-
-                }
-                sb.AppendLine("\" >");
+                sb.Append("\" >");
             }
             else
             {
-                sb.AppendLine(">");
+                sb.Append(">");
+            }
+            if (!plain)
+            {
+                sb.AppendLine("");
             }
             ++offset;
         }
@@ -384,6 +389,11 @@ namespace Gurux.DLMS
             AppendEndTag(Convert.ToInt32(cmd));
         }
 
+        public void AppendEndTag(Enum cmd, bool plain)
+        {
+            AppendEndTag(Convert.ToInt32(cmd), plain);
+        }
+
         public void AppendEndTag(Command cmd, Enum type)
         {
             AppendEndTag((int)cmd << 8 | Convert.ToByte(type));
@@ -391,12 +401,33 @@ namespace Gurux.DLMS
 
         public void AppendEndTag(int tag)
         {
+            AppendEndTag(tag, false);
+        }
+
+        public void AppendEndTag(int tag, bool plain)
+        {
             --Offset;
-            AppendSpaces();
+            if (!plain)
+            {
+                AppendSpaces();
+            }
             sb.Append("</");
             sb.Append(GetTag(tag));
             sb.Append(">");
             AppendLine("");
+        }
+
+        public void AppendEmptyTag(int tag)
+        {
+            AppendEmptyTag(tags[tag]);
+        }
+
+        public void AppendEmptyTag(String tag)
+        {
+            AppendSpaces();
+            sb.Append("<");
+            sb.Append(tag);
+            sb.AppendLine("/>");
         }
 
         /// <summary>

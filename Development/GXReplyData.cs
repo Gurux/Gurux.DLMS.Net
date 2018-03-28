@@ -250,6 +250,30 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Client address of the notification message.
+        /// </summary>
+        /// <remarks>
+        /// Nofification message sets this. 
+        /// </remarks>
+        public byte ClientAddress
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Server address of the notification message.
+        /// </summary>
+        /// <remarks>
+        /// Nofification message sets this. 
+        /// </remarks>
+        public int ServerAddress
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Is GBT streaming.
         /// </summary>
         /// <returns></returns>

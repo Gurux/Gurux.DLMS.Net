@@ -1475,11 +1475,21 @@ namespace Gurux.DLMS
             }
 
             // Check addresses.
-            if (!CheckHdlcAddress(server, settings, reply, eopPos))
+            int source, target;
+            if (!CheckHdlcAddress(server, settings, reply, eopPos, out source, out target))
             {
-                //If echo.
-                reply.Position = 1 + eopPos;
-                return GetHdlcData(server, settings, reply, data);
+                //If not notify.
+                if (!(reply.Position < reply.Size && reply.GetUInt8(reply.Position) == 0x13))
+                {
+                    //If echo.
+                    reply.Position = 1 + eopPos;
+                    return GetHdlcData(server, settings, reply, data);
+                }
+                else
+                {
+                    data.ClientAddress = (byte)target;
+                    data.ServerAddress = source;
+                }
             }
 
             // Is there more data available.
@@ -1614,9 +1624,8 @@ namespace Gurux.DLMS
             bool server,
             GXDLMSSettings settings,
             GXByteBuffer reply,
-            int index)
-        {
-            int source, target;
+            int index, out int source, out int target)
+        {            
             // Get destination and source addresses.
             target = GXCommon.GetHDLCAddress(reply);
             source = GXCommon.GetHDLCAddress(reply);
@@ -2508,24 +2517,32 @@ namespace Gurux.DLMS
                 }
                 if (reply.Xml != null)
                 {
-                    // Get data size.
-                    int blockLength = GXCommon.GetObjectCount(data);
-                    // if whole block is read.
-                    if ((reply.MoreData & RequestTypes.Frame) == 0)
-                    {
-                        // Check Block length.
-                        if (blockLength > data.Size - data.Position)
-                        {
-                            reply.Xml.AppendComment("Block is not complete." + (data.Size - data.Position).ToString() + "/" + blockLength + ".");
-                        }
-                    }
                     //Result
                     reply.Xml.AppendStartTag(TranslatorTags.Result);
-                    reply.Xml.AppendLine(TranslatorTags.RawData, "Value",
-                                         GXCommon.ToHex(reply.Data.Data, false, data.Position, reply.Data.Size - data.Position));
+                    if (reply.Error != 0)
+                    {
+                        reply.Xml.AppendLine(TranslatorTags.DataAccessResult, "Value",
+                            GXDLMSTranslator.ErrorCodeToString(reply.Xml.OutputType, (ErrorCode)reply.Error));
+                    }
+                    else if (reply.Data.Available != 0)
+                    {
+                        // Get data size.
+                        int blockLength = GXCommon.GetObjectCount(data);
+                        // if whole block is read.
+                        if ((reply.MoreData & RequestTypes.Frame) == 0)
+                        {
+                            // Check Block length.
+                            if (blockLength > data.Size - data.Position)
+                            {
+                                reply.Xml.AppendComment("Block is not complete." + (data.Size - data.Position).ToString() + "/" + blockLength + ".");
+                            }
+                        }
+                        reply.Xml.AppendLine(TranslatorTags.RawData, "Value",
+                                             GXCommon.ToHex(reply.Data.Data, false, data.Position, reply.Data.Available));
+                    }
                     reply.Xml.AppendEndTag(TranslatorTags.Result);
                 }
-                else if (data.Position != data.Size)
+                else if (reply.Data.Available != 0)
                 {
                     // Get data size.
                     int blockLength = GXCommon.GetObjectCount(data);
@@ -2671,6 +2688,27 @@ namespace Gurux.DLMS
                 data.Xml.AppendLine(TranslatorTags.BlockControl, null, data.Xml.IntegerToHex(bc, 2));
                 data.Xml.AppendLine(TranslatorTags.BlockNumber, null, data.Xml.IntegerToHex(data.BlockNumber, 4));
                 data.Xml.AppendLine(TranslatorTags.BlockNumberAck, null, data.Xml.IntegerToHex(data.BlockNumberAck, 4));
+                //If last block and comments.
+                if ((bc & 0x80) != 0 && data.Xml.Comments)
+                {
+                    int pos = data.Data.Position;
+                    int len2 = data.Xml.GetXmlLength();
+                    try
+                    {
+                        GXReplyData reply = new GXReplyData();
+                        reply.Data = data.Data;
+                        reply.Xml = data.Xml;
+                        reply.Xml.StartComment("");
+                        GetPdu(settings, reply);
+                        reply.Xml.EndComment();
+                    }
+                    catch (Exception)
+                    {
+                        data.Xml.SetXmlLength(len2);
+                        //It's ok if this fails.
+                    }
+                    data.Data.Position = pos;
+                }
                 data.Xml.AppendLine(TranslatorTags.BlockData, null, GXCommon.ToHex(data.Data.Data, true, data.Data.Position, len));
                 data.Xml.AppendEndTag(Command.GeneralBlockTransfer);
                 return;

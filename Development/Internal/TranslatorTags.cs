@@ -115,6 +115,8 @@ namespace Gurux.DLMS
         FrameType,
         BlockControl,
         BlockNumberAck,
-        BlockData
+        BlockData,
+        ContentsDescription,
+        ArrayContents
     }
 }

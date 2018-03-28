@@ -473,7 +473,8 @@ namespace Gurux.DLMS.Internal
                     value = GetUInt16(data, info);
                     break;
                 case DataType.CompactArray:
-                    throw new Exception("Invalid data type.");
+                    value = GetCompactArray(settings, data, info);
+                    break;
                 case DataType.Int64:
                     value = GetInt64(data, info);
                     break;
@@ -999,6 +1000,185 @@ namespace Gurux.DLMS.Internal
                 info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", info.xml.IntegerToHex(value, 4));
             }
             return value;
+        }
+
+        private static void GetCompactArrayItem(GXDLMSSettings settings, GXByteBuffer buff, DataType dt, List<Object> list, int len)
+        {
+            GXDataInfo tmp = new GXDataInfo();
+            tmp.Type = dt;
+            int start = buff.Position;
+            if (dt == DataType.String)
+            {
+                while (buff.Position - start < len)
+                {
+                    list.Add(GetString(buff, tmp, false));
+                }
+            }
+            else if (dt == DataType.OctetString)
+            {
+                while (buff.Position - start < len)
+                {
+                    list.Add(GetOctetString(settings, buff, tmp, false));
+                }
+            }
+            else
+            {
+                while (buff.Position - start < len)
+                {
+                    list.Add(GetData(null, buff, tmp));
+                }
+            }
+
+        }
+
+        /// <summary>
+        /// Get compact array value from DLMS data.
+        /// </summary>
+        /// <param name="settings">Received DLMS data.</param>
+        /// <param name="buff">Data info.</param>
+        /// <param name="info"></param>
+        /// <returns>Parsed value</returns>
+        private static object GetCompactArray(GXDLMSSettings settings, GXByteBuffer buff, GXDataInfo info)
+        {
+            // If there is not enough data available.
+            if (buff.Size - buff.Position < 2)
+            {
+                info.Complete = false;
+                return null;
+            }
+            DataType dt = (DataType)buff.GetUInt8();
+            if (dt == DataType.Array)
+            {
+                throw new ArgumentException("Invalid compact array data.");
+            }
+            int len = GXCommon.GetObjectCount(buff);
+            List<Object> list = new List<Object>();
+
+            if (dt == DataType.Structure)
+            {
+                // Get data types.
+                DataType[] cols = new DataType[len];
+                for (int pos = 0; pos != len; ++pos)
+                {
+                    cols[pos] = (DataType)buff.GetUInt8();
+                }
+                len = GXCommon.GetObjectCount(buff);
+                if (info.xml != null)
+                {
+                    info.xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.CompactArray, null , null);
+                    info.xml.AppendStartTag(TranslatorTags.ContentsDescription);
+                    foreach (DataType it in cols)
+                    {
+                        info.xml.AppendEmptyTag(info.xml.GetDataType(it));
+                    }
+                    info.xml.AppendEndTag(TranslatorTags.ContentsDescription);
+                    if (info.xml.OutputType == TranslatorOutputType.StandardXml)
+                    {
+                        info.xml.AppendStartTag((int)TranslatorTags.ArrayContents, null, null, true);
+                        info.xml.Append(buff.RemainingHexString(true));
+                        info.xml.AppendEndTag(TranslatorTags.ArrayContents, true);
+                        info.xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.CompactArray);
+                    }
+                    else
+                    {
+                        info.xml.AppendStartTag(TranslatorTags.ArrayContents);
+                    }
+                }
+                int start = buff.Position;
+                while (buff.Position - start < len)
+                {
+                    List<Object> row = new List<Object>();
+                    for (int pos = 0; pos != cols.Length; ++pos)
+                    {
+                        GetCompactArrayItem(null, buff, cols[pos], row, 1);
+                    }
+                    list.Add(row.ToArray());
+                }
+                object[,] tmp = new object[list.Count, cols.Length];
+                int r = 0;
+                foreach (Object row in list)
+                {
+                    int c = 0;
+                    foreach (Object it in (Object[])row)
+                    {
+                        tmp[r,c] = it;
+                        ++c;
+                    }
+                    ++r;
+                }
+                if (info.xml != null && info.xml.OutputType == TranslatorOutputType.SimpleXml)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    for(r = 0; r != list.Count; ++r)
+                    {
+                        for (int c = 0; c != cols.Length; ++c)
+                        {
+                            object it = tmp[r, c];
+                            if (it is byte[])
+                            {
+                                sb.Append(GXCommon.ToHex((byte[])it, true));
+                            }
+                            else
+                            {
+                                sb.Append(Convert.ToString(it));
+                            }
+                            sb.Append(";");
+                        }
+                        if (sb.Length != 0)
+                        {
+                            --sb.Length;
+                        }
+                        info.xml.AppendLine(sb.ToString());
+                        sb.Length = 0;
+                    }
+                }
+                if (info.xml != null && info.xml.OutputType == TranslatorOutputType.SimpleXml)
+                {
+                    info.xml.AppendEndTag(TranslatorTags.ArrayContents);
+                    info.xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.CompactArray);
+                }
+                return tmp;
+            }
+            else
+            {
+                if (info.xml != null)
+                {
+                    info.xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.CompactArray, null, null);
+                    info.xml.AppendStartTag(TranslatorTags.ContentsDescription);
+                    info.xml.AppendEmptyTag(GXDLMS.DATA_TYPE_OFFSET + (int)dt);
+                    info.xml.AppendEndTag(TranslatorTags.ContentsDescription);
+                    info.xml.AppendStartTag((int)TranslatorTags.ArrayContents, null, null, true);
+                    if (info.xml.OutputType == TranslatorOutputType.StandardXml)
+                    {
+                        info.xml.Append(buff.RemainingHexString(true));
+                        info.xml.AppendEndTag(TranslatorTags.ArrayContents, true);
+                        info.xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.CompactArray);
+                    }
+                }
+                GetCompactArrayItem(null, buff, dt, list, len);
+                if (info.xml != null && info.xml.OutputType == TranslatorOutputType.SimpleXml)
+                {
+                    foreach (Object it in list)
+                    {
+                        if (it is byte[])
+                        {
+                            info.xml.Append(GXCommon.ToHex((byte[])it, true));
+                        }
+                        else
+                        {
+                            info.xml.Append(Convert.ToString(it));
+                        }
+                        info.xml.Append(";");
+                    }
+                    if (list.Count != 0)
+                    {
+                        info.xml.SetXmlLength(info.xml.GetXmlLength() - 1);
+                    }
+                    info.xml.AppendEndTag(TranslatorTags.ArrayContents, true);
+                    info.xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.CompactArray);
+                }
+            }
+            return list.ToArray();
         }
 
         ///<summary>

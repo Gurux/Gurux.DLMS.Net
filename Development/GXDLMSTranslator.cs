@@ -546,6 +546,12 @@ namespace Gurux.DLMS
         }
         private void CheckFrame(byte frame, GXDLMSTranslatorStructure xml)
         {
+            ///Skip notification frames.
+            if (frame == 0x13)
+            {
+                xml.AppendComment("Notification frame.");
+                return;
+            }
             sending = !sending;
             if (frame == (byte)Command.Snrm)
             {
@@ -1739,6 +1745,9 @@ namespace Gurux.DLMS
                 case DataType.UInt8:
                     GXCommon.SetData(s.settings, s.data, DataType.UInt8, s.ParseShort(GetValue(node, s)));
                     break;
+                case DataType.CompactArray:
+                    s.data.SetUInt8(DataType.CompactArray);
+                    break;
                 default:
                     throw new ArgumentException("Invalid node: " + node.Name);
             }
@@ -2442,6 +2451,21 @@ namespace Gurux.DLMS
                     case (UInt16)TranslatorTags.BlockData:
                         s.data.Set(GXCommon.HexToBytes(GetValue(node, s)));
                         break;
+                    case (UInt16)TranslatorTags.ContentsDescription:
+                        GetNodeTypes(s, node);
+                        return;
+                    case (UInt16)TranslatorTags.ArrayContents:
+                        if (s.OutputType == TranslatorOutputType.SimpleXml)
+                        {
+                            GetNodeValues(s, node);
+                        }
+                        else
+                        {
+                            tmp = GXCommon.HexToBytes(GetValue(node, s));
+                            GXCommon.SetObjectCount(tmp.Length, s.data);
+                            s.data.Set(tmp);
+                        }
+                        break;
                     default:
                         throw new ArgumentException("Invalid node: " + node.Name);
                 }
@@ -2459,6 +2483,92 @@ namespace Gurux.DLMS
                 preData.Set(s.data);
                 s.data.Size = 0;
                 s.data.Set(preData);
+            }
+        }
+
+        private static void GetNodeValues(GXDLMSXmlSettings s, XmlNode node)
+        {
+            int cnt = 1;
+            int offset = 2;
+            if (s.data.GetUInt8(2) == (int)DataType.Structure)
+            {
+                cnt = s.data.GetUInt8(3);
+                offset = 4;
+            }
+            DataType[] types = new DataType[cnt];
+            for (int pos = 0; pos != cnt; ++pos)
+            {
+                types[pos] = (DataType)s.data.GetUInt8(offset + pos);
+            }
+            GXByteBuffer tmp = new GXByteBuffer();
+            GXByteBuffer tmp2 = new GXByteBuffer();
+            DataType dt;
+            foreach (XmlNode str in node.ChildNodes)
+            {
+                foreach (String r in str.Value.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    if (r.Trim() == "")
+                    {
+                        continue;
+                    }
+                    int col = 0;
+                    foreach (String it in r.Trim().Split(';'))
+                    {
+                        dt = types[col % types.Length];
+                        tmp.Clear();
+                        if (dt == DataType.OctetString)
+                        {
+                            GXCommon.SetData(s.settings, tmp, dt, GXCommon.HexToBytes(it));
+                        }
+                        else
+                        {
+                            GXCommon.SetData(s.settings, tmp, dt, Convert.ChangeType(it, GXCommon.GetDataType(dt)));
+                        }
+                        if (tmp.Size == 1)
+                        {
+                            // If value is null.
+                            s.data.SetUInt8(0);
+                        }
+                        else
+                        {
+                            tmp2.Set(tmp.SubArray(1, tmp.Size - 1));
+                        }
+                        ++col;
+                    }
+                }
+            }
+            GXCommon.SetObjectCount(tmp2.Size, s.data);
+            s.data.Set(tmp2);
+        }
+
+        private static void GetNodeTypes(GXDLMSXmlSettings s, XmlNode node)
+        {
+            int len = node.ChildNodes.Count;
+            if (len > 1)
+            {
+                s.data.SetUInt8(DataType.Structure);
+                GXCommon.SetObjectCount(len, s.data);
+            }
+            foreach (XmlNode node2 in node.ChildNodes)
+            {
+                String str;
+                if (s.OutputType == TranslatorOutputType.SimpleXml)
+                {
+                    str = node2.Name.ToLower();
+                }
+                else
+                {
+                    if (node2.Name.StartsWith("x:"))
+                    {
+                        str = node2.Name.Substring(2);
+                    }
+                    else
+                    {
+                        str = node2.Name;
+                    }
+                }
+                int tag = s.tags[str];
+                s.data.SetUInt8((byte)(tag - GXDLMS.DATA_TYPE_OFFSET));
             }
         }
 

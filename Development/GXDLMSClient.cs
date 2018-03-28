@@ -1755,6 +1755,14 @@ namespace Gurux.DLMS
         public byte[][] ReadRowsByEntry(GXDLMSProfileGeneric pg, int index, int count,
                                         List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
         {
+            if (index < 0)
+            {
+                throw new ArgumentOutOfRangeException("index");
+            }
+            if (count < 0)
+            {
+                throw new ArgumentOutOfRangeException("count");
+            }
             pg.Reset();
             Settings.ResetBlockIndex();
             GXByteBuffer buff = new GXByteBuffer(19);
@@ -1767,7 +1775,14 @@ namespace Gurux.DLMS
             // Add start index
             GXCommon.SetData(Settings, buff, DataType.UInt32, index);
             // Add Count
-            GXCommon.SetData(Settings, buff, DataType.UInt32, count);
+            if (count == 0)
+            {
+                GXCommon.SetData(Settings, buff, DataType.UInt32, count);
+            }
+            else
+            {
+                GXCommon.SetData(Settings, buff, DataType.UInt32, index + count);
+            }
             int columnIndex = 1;
             int columnCount = 0;
             int pos = 0;
