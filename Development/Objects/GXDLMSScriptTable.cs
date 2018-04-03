@@ -97,7 +97,10 @@ namespace Gurux.DLMS.Objects
 
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
-            e.Error = ErrorCode.ReadWriteDenied;
+            if (e.Index != 1)
+            {
+                e.Error = ErrorCode.ReadWriteDenied;
+            }
             return null;
         }
 
@@ -115,6 +118,17 @@ namespace Gurux.DLMS.Objects
                 attributes.Add(2);
             }
             return attributes.ToArray();
+        }
+
+        /// <summary>
+        /// Executes selected script.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="script">Executed script.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] Execute(GXDLMSClient client, GXDLMSScript script)
+        {
+            return client.Method(this, 1, (UInt16)script.Id);
         }
 
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>

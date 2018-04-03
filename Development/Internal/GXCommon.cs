@@ -1011,6 +1011,8 @@ namespace Gurux.DLMS.Internal
             {
                 while (buff.Position - start < len)
                 {
+                    tmp.Clear();
+                    tmp.Type = dt;
                     list.Add(GetString(buff, tmp, false));
                 }
             }
@@ -1018,17 +1020,65 @@ namespace Gurux.DLMS.Internal
             {
                 while (buff.Position - start < len)
                 {
+                    tmp.Clear();
+                    tmp.Type = dt;
                     list.Add(GetOctetString(settings, buff, tmp, false));
+                    if (!tmp.Complete)
+                    {
+                        break;
+                    }
                 }
             }
             else
             {
                 while (buff.Position - start < len)
                 {
+                    tmp.Clear();
+                    tmp.Type = dt;
                     list.Add(GetData(null, buff, tmp));
+                    if (!tmp.Complete)
+                    {
+                        break;
+                    }
                 }
             }
+        }
 
+        private static void GetDataTypes(GXByteBuffer buff, List<object> cols, int len)
+        {
+            DataType dt;
+            for (int pos = 0; pos != len; ++pos)
+            {
+                dt = (DataType)buff.GetUInt8();
+                if (dt == DataType.Array || dt == DataType.Structure)
+                {
+                    List<object> tmp = new List<object>();
+                    GetDataTypes(buff, tmp, buff.GetUInt8());
+                    cols.Add(tmp.ToArray());
+                }
+                else
+                {
+                    cols.Add(dt);
+                }
+            }
+        }
+
+
+        private static void AppendDataTypeAsXml(object[] cols, GXDataInfo info)
+        {
+            foreach (object it in cols)
+            {
+                if (it is DataType)
+                {
+                    info.xml.AppendEmptyTag(info.xml.GetDataType((DataType)it));
+                }
+                else
+                {
+                    info.xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure, null, null);
+                    AppendDataTypeAsXml((object[])it, info);
+                    info.xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure);
+                }
+            }
         }
 
         /// <summary>
@@ -1053,24 +1103,17 @@ namespace Gurux.DLMS.Internal
             }
             int len = GXCommon.GetObjectCount(buff);
             List<Object> list = new List<Object>();
-
             if (dt == DataType.Structure)
             {
                 // Get data types.
-                DataType[] cols = new DataType[len];
-                for (int pos = 0; pos != len; ++pos)
-                {
-                    cols[pos] = (DataType)buff.GetUInt8();
-                }
+                List<object> cols = new List<object>();
+                GetDataTypes(buff, cols, len);
                 len = GXCommon.GetObjectCount(buff);
                 if (info.xml != null)
                 {
                     info.xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.CompactArray, null , null);
                     info.xml.AppendStartTag(TranslatorTags.ContentsDescription);
-                    foreach (DataType it in cols)
-                    {
-                        info.xml.AppendEmptyTag(info.xml.GetDataType(it));
-                    }
+                    AppendDataTypeAsXml(cols.ToArray(), info);
                     info.xml.AppendEndTag(TranslatorTags.ContentsDescription);
                     if (info.xml.OutputType == TranslatorOutputType.StandardXml)
                     {
@@ -1088,35 +1131,79 @@ namespace Gurux.DLMS.Internal
                 while (buff.Position - start < len)
                 {
                     List<Object> row = new List<Object>();
-                    for (int pos = 0; pos != cols.Length; ++pos)
+                    for (int pos = 0; pos != cols.Count; ++pos)
                     {
-                        GetCompactArrayItem(null, buff, cols[pos], row, 1);
+                        if (cols[pos] is object[])
+                        {
+                            List<object> tmp2 = new List<object>();
+                            foreach(DataType it in (object[]) cols[pos])
+                            {
+                                GetCompactArrayItem(null, buff, it, tmp2, 1);
+                            }
+                            row.Add(tmp2.ToArray());
+                        }
+                        else
+                        {
+                            GetCompactArrayItem(null, buff, (DataType)cols[pos], row, 1);
+                        }
+                        if (buff.Position == buff.Size)
+                        {
+                            break;
+                        }
                     }
-                    list.Add(row.ToArray());
+                    //If all columns are read.
+                    if (row.Count == cols.Count)
+                    {
+                        list.Add(row.ToArray());
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
-                object[,] tmp = new object[list.Count, cols.Length];
+                object[] tmp = new object[list.Count];
                 int r = 0;
                 foreach (Object row in list)
                 {
                     int c = 0;
+                    object[] cols2 = new object[cols.Count];
                     foreach (Object it in (Object[])row)
                     {
-                        tmp[r,c] = it;
+                        cols2[c] = it;
                         ++c;
                     }
+                    tmp[r] = cols2;
                     ++r;
                 }
                 if (info.xml != null && info.xml.OutputType == TranslatorOutputType.SimpleXml)
                 {
                     StringBuilder sb = new StringBuilder();
-                    for(r = 0; r != list.Count; ++r)
+                    foreach(object[] row in tmp)
                     {
-                        for (int c = 0; c != cols.Length; ++c)
+                        foreach (object it in row)
                         {
-                            object it = tmp[r, c];
                             if (it is byte[])
                             {
                                 sb.Append(GXCommon.ToHex((byte[])it, true));
+                            }
+                            else if (it is object[])
+                            {
+                                foreach (object it2 in (object[]) it)
+                                {
+                                    if (it2 is byte[])
+                                    {
+                                        sb.Append(GXCommon.ToHex((byte[])it2, true));
+                                    }
+                                    else
+                                    {
+                                        sb.Append(Convert.ToString(it2));
+                                    }
+                                    sb.Append(";");
+                                }
+                                if (((object[])it).Length != 0)
+                                {
+                                    --sb.Length;
+                                }
                             }
                             else
                             {

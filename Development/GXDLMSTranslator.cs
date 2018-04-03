@@ -220,6 +220,15 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Server system title.
+        /// </summary>
+        public byte[] ServerSystemTitle
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Block cipher key.
         /// </summary>
         public byte[] BlockCipherKey
@@ -530,19 +539,23 @@ namespace Gurux.DLMS
             return MessageToXml(new GXByteBuffer(value));
         }
 
-        private GXCiphering GetCiphering()
+        private void GetCiphering(GXDLMSSettings settings)
         {
             if (this.Security != Enums.Security.None)
             {
                 GXCiphering c = new Secure.GXCiphering(this.SystemTitle);
-                c.Security = this.Security;
-                c.SystemTitle = this.SystemTitle;
-                c.BlockCipherKey = this.BlockCipherKey;
-                c.AuthenticationKey = this.AuthenticationKey;
-                c.InvocationCounter = this.InvocationCounter;
-                return c;
+                c.Security = Security;
+                c.SystemTitle = SystemTitle;
+                c.BlockCipherKey = BlockCipherKey;
+                c.AuthenticationKey = AuthenticationKey;
+                c.InvocationCounter = InvocationCounter;
+                settings.SourceSystemTitle = ServerSystemTitle;
+                settings.Cipher = c;
             }
-            return null;
+            else
+            {
+                settings.Cipher = null;
+            }
         }
         private void CheckFrame(byte frame, GXDLMSTranslatorStructure xml)
         {
@@ -703,7 +716,7 @@ namespace Gurux.DLMS
                 //If HDLC framing.
                 int offset = value.Position;
                 GXDLMSSettings settings = new GXDLMSSettings(true);
-                settings.Cipher = GetCiphering();
+                GetCiphering(settings);
                 if (value.GetUInt8(value.Position) == 0x7e)
                 {
                     settings.InterfaceType = Enums.InterfaceType.HDLC;
@@ -1002,7 +1015,7 @@ namespace Gurux.DLMS
         internal string PduToXml(GXDLMSTranslatorStructure xml, GXByteBuffer value, bool omitDeclaration, bool omitNameSpace)
         {
             GXDLMSSettings settings = new GXDLMSSettings(true);
-            settings.Cipher = GetCiphering();
+            GetCiphering(settings);
             GXReplyData data = new GXReplyData();
             byte cmd = value.GetUInt8();
             string str;
@@ -1023,7 +1036,7 @@ namespace Gurux.DLMS
                 case (byte)Command.InitiateResponse:
                     value.Position = 0;
                     settings = new GXDLMSSettings(false);
-                    settings.Cipher = GetCiphering();
+                    GetCiphering(settings);
                     GXAPDU.ParseInitiate(true, settings, settings.Cipher, value,
                             xml);
                     break;
@@ -1034,7 +1047,7 @@ namespace Gurux.DLMS
                 case (byte)Command.Aare:
                     value.Position = 0;
                     settings = new GXDLMSSettings(false);
-                    settings.Cipher = GetCiphering();
+                    GetCiphering(settings);
                     GXAPDU.ParsePDU(settings, settings.Cipher, value, xml);
                     break;
                 case (byte)Command.GetRequest:
@@ -1159,11 +1172,24 @@ namespace Gurux.DLMS
                         try
                         {
                             --value.Position;
-                            AesGcmParameter p = new AesGcmParameter(settings.Cipher.SystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
-                            GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
-                            xml.StartComment("Decrypt data:");
-                            PduToXml(xml, data2, omitDeclaration, omitNameSpace);
-                            xml.EndComment();
+                            Command c = (Command)cmd;
+                            byte[] st;
+                            if (c == Command.GloReadRequest || c == Command.GloWriteRequest || c == Command.GloGetRequest || c == Command.GloSetRequest || c == Command.GloMethodRequest)
+                            {
+                                st = settings.Cipher.SystemTitle;
+                            }
+                            else
+                            {
+                                st = settings.SourceSystemTitle;
+                            }
+                            if (st != null)
+                            {
+                                AesGcmParameter p = new AesGcmParameter(st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                                GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
+                                xml.StartComment("Decrypt data:");
+                                PduToXml(xml, data2, omitDeclaration, omitNameSpace);
+                                xml.EndComment();
+                            }
                         }
                         catch (Exception)
                         {
@@ -1183,13 +1209,28 @@ namespace Gurux.DLMS
                 case (byte)Command.GeneralGloCiphering:
                     if (settings.Cipher != null && Comments)
                     {
+                        int len2 = xml.GetXmlLength();
                         int originalPosition = value.Position;
                         --value.Position;
-                        AesGcmParameter p = new AesGcmParameter(settings.Cipher.SystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
-                        GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
-                        xml.StartComment("Decrypt data:");
-                        PduToXml(xml, data2, omitDeclaration, omitNameSpace);
-                        xml.EndComment();
+                        try
+                        {
+                            byte[] st;
+                            st = settings.Cipher.SystemTitle;
+                            st = settings.SourceSystemTitle;
+                            if (st != null)
+                            {
+                                AesGcmParameter p = new AesGcmParameter(st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                                GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
+                                xml.StartComment("Decrypt data:");
+                                PduToXml(xml, data2, omitDeclaration, omitNameSpace);
+                                xml.EndComment();
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            // It's OK if this fails. Ciphering settings are not correct.
+                            xml.SetXmlLength(len2);
+                        }
                         value.Position = originalPosition;
                     }
                     len = GXCommon.GetObjectCount(value);
@@ -2844,37 +2885,46 @@ namespace Gurux.DLMS
         /// <summary>
         /// Convert data bytes to XML.
         /// </summary>
-        /// <param name="data">Data as hex string.</param>
+        /// <param name="data">Data to parse as a hex string.</param>
+        /// <param name="data">Generated xml.</param>
         /// <returns></returns>
-        public string DataToXml(string data)
+        public void DataToXml(string data, out string xml)
         {
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetHexString(data);
-            return DataToXml(bb);
+            DataToXml(bb, out xml);
         }
 
         /// <summary>
         /// Convert data bytes to XML.
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">Data to parse.</param>
+        /// <param name="data">Generated xml.</param>
         /// <returns></returns>
-        public string DataToXml(byte[] data)
+        public void DataToXml(byte[] data, out string xml)
         {
-            return DataToXml(new GXByteBuffer(data));
+            DataToXml(new GXByteBuffer(data), out xml);
         }
 
         /// <summary>
         /// Convert data bytes to XML.
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">Data to parse.</param>
+        /// <param name="data">Generated xml.</param>
         /// <returns></returns>
-        public string DataToXml(GXByteBuffer data)
+        public void DataToXml(GXByteBuffer data, out string xml)
         {
             GXDataInfo di = new GXDataInfo();
             GXDLMSSettings settings = new GXDLMSSettings(false);
             di.xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
-            GXCommon.GetData(settings, data, di);
-            return di.xml.ToString();
+            try
+            {
+                GXCommon.GetData(settings, data, di);
+            }
+            finally
+            {
+                xml = di.xml.ToString();
+            }
         }
     }
 }

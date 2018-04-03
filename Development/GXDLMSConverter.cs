@@ -279,6 +279,11 @@ namespace Gurux.DLMS
                     code.UIDataType = "10";
                 }
             }
+            //Unix time
+            else if (it.ObjectType == ObjectType.Data && GXStandardObisCodeCollection.EqualsMask("0.0.1.1.0.255", it.LogicalName))
+            {
+                code.UIDataType = "25";
+            }
             if (code.DataType != "*" && code.DataType != string.Empty && !code.DataType.Contains(","))
             {
                 DataType type = (DataType)int.Parse(code.DataType);

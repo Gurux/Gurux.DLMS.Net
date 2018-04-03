@@ -888,6 +888,12 @@ namespace Gurux.DLMS.Objects
                                 row[pos] = new GXDateTime(lastDate);
                             }
                         }
+                        else if (type == DataType.DateTime && row[pos] is UInt32)
+                        {
+                            DateTime dt = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
+                            row[pos] = new GXDateTime(dt.AddSeconds((UInt32)row[pos]).ToLocalTime());                            
+                        }
+
                         if (cols[pos].Key is GXDLMSRegister && index2 == 2)
                         {
                             double scaler = (cols[pos].Key as GXDLMSRegister).Scaler;
@@ -953,6 +959,7 @@ namespace Gurux.DLMS.Objects
 
         private static void GetCaptureObjects(GXDLMSSettings settings, List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> list, object[] array)
         {
+            GXDLMSConverter c = null;
             foreach (object it in array)
             {
                 object[] tmp = it as object[];
@@ -972,6 +979,11 @@ namespace Gurux.DLMS.Objects
                 if (obj == null)
                 {
                     obj = GXDLMSClient.CreateDLMSObject((int)type, null, 0, ln, 0);
+                    if (c == null)
+                    {
+                        c = new GXDLMSConverter();
+                    }
+                    c.UpdateOBISCodeInformation(obj);
                 }
                 list.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, new GXDLMSCaptureObject(attributeIndex, dataIndex)));
             }
