@@ -125,6 +125,15 @@ namespace Gurux.DLMS
                 List<string> shortDatePattern = new List<string>("yyyy-MM-dd".Split(new string[] { dateSeparator, " " }, StringSplitOptions.RemoveEmptyEntries));
                 List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { timeSeparator, " ", "." }, StringSplitOptions.RemoveEmptyEntries));
 #endif
+                //If week day is used.
+                if (char.IsLetter(value.Trim()[0]))
+                {
+                    shortDatePattern.Insert(0, "dddd");
+                }
+                else
+                {
+                    Skip |= DateTimeSkips.DayOfWeek;
+                }
                 string[] values = value.Trim().Split(new string[] { dateSeparator, timeSeparator, " " }, StringSplitOptions.None);
                 int cnt = shortDatePattern.Count + shortTimePattern.Count;
                 if (!string.IsNullOrEmpty(culture.DateTimeFormat.PMDesignator))
@@ -138,12 +147,7 @@ namespace Gurux.DLMS
                         ++cnt;
                     }
                 }
-                if (shortDatePattern.Count != values.Length && cnt != values.Length)
-                {
-                    //  throw new ArgumentOutOfRangeException("Invalid DateTime");
-                }
-                Skip |= DateTimeSkips.DayOfWeek;
-                int offset = 3;
+                int offset = 0;
                 for (int pos = 0; pos != shortDatePattern.Count; ++pos)
                 {
                     bool skip = false;
@@ -173,6 +177,22 @@ namespace Gurux.DLMS
                             month = int.Parse(values[pos]);
                         }
                     }
+                    else if (shortDatePattern[pos].ToLower().StartsWith("dddd"))
+                    {
+                        if (skip)
+                        {
+                            Skip |= DateTimeSkips.DayOfWeek;
+                        }
+                        else
+                        {
+                            DayOfWeek = (int)Enum.Parse(typeof(DayOfWeek), values[pos]);
+                            //Sunday is special case.
+                            if (DayOfWeek == 0)
+                            {
+                                DayOfWeek = 7;
+                            }
+                        }
+                    }
                     else if (shortDatePattern[pos].ToLower().StartsWith("d"))
                     {
                         if (skip)
@@ -184,16 +204,17 @@ namespace Gurux.DLMS
                             day = int.Parse(values[pos]);
                         }
                     }
-                    else
-                    {
-                        //This is OK. There might be day name in some cultures.
-                        ++offset;
-                    }
+                    ++offset;
                 }
                 if (values.Length > 3)
                 {
                     for (int pos = 0; pos != shortTimePattern.Count; ++pos)
                     {
+                        //If ms is used.
+                        if (offset + pos >= values.Length )
+                        {
+                            continue;
+                        }
                         bool skip = false;
                         if (values[offset + pos] == "*")
                         {
@@ -238,9 +259,16 @@ namespace Gurux.DLMS
                             {
                                 if (!string.IsNullOrEmpty(culture.DateTimeFormat.PMDesignator))
                                 {
-                                    if (values[offset + pos] == culture.DateTimeFormat.PMDesignator)
+                                    if (values[offset + pos] == culture.DateTimeFormat.PMDesignator && hour != 12)
                                     {
                                         hour += 12;
+                                    }
+                                }
+                                if (!string.IsNullOrEmpty(culture.DateTimeFormat.AMDesignator))
+                                {
+                                    if (values[pos] == culture.DateTimeFormat.AMDesignator && hour == 12)
+                                    {
+                                        hour = 0;
                                     }
                                 }
                             }
@@ -384,6 +412,14 @@ namespace Gurux.DLMS
             set;
         }
 
+        [DefaultValue(0)]
+        public int DayOfWeek
+        {
+            get;
+            set;
+        }
+
+
         /// <summary>
         /// Daylight savings begin.
         /// </summary>
@@ -520,7 +556,17 @@ namespace Gurux.DLMS
                 {
                     return "";
                 }
-                return Value.LocalDateTime.ToString(format, culture);
+                string str = Value.LocalDateTime.ToString(format, culture);
+                if (DayOfWeek != 0 && (Skip & DateTimeSkips.DayOfWeek) == 0)
+                {
+                    System.DayOfWeek t = (System.DayOfWeek)DayOfWeek;
+                    if (DayOfWeek == 7)
+                    {
+                        t = System.DayOfWeek.Sunday;
+                    }
+                    str = t.ToString() + " " + str;
+                }
+                return str;
             }
             return Value.LocalDateTime.ToString(culture);
         }
@@ -579,6 +625,10 @@ namespace Gurux.DLMS
                 {
                     format = string.Join(dateSeparator, shortDatePattern.ToArray());
                 }
+                if (DayOfWeek != 0)
+                {
+                    format = "dddd " + format;
+                }
                 if (shortTimePattern.Count != 0)
                 {
                     if (format != null)
@@ -596,6 +646,10 @@ namespace Gurux.DLMS
                     return "";
                 }
                 return Value.LocalDateTime.ToString(format, culture);
+            }
+            if (DayOfWeek != 0)
+            {
+                return Value.LocalDateTime.ToLongDateString();
             }
             return Value.LocalDateTime.ToString();
         }

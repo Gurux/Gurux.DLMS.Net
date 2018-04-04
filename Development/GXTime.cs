@@ -155,9 +155,16 @@ namespace Gurux.DLMS
                         {
                             if (!string.IsNullOrEmpty(culture.DateTimeFormat.PMDesignator))
                             {
-                                if (values[pos] == culture.DateTimeFormat.PMDesignator)
+                                if (values[pos] == culture.DateTimeFormat.PMDesignator && hour != 12)
                                 {
                                     hour += 12;
+                                }
+                            }
+                            if (!string.IsNullOrEmpty(culture.DateTimeFormat.AMDesignator))
+                            {
+                                if (values[pos] == culture.DateTimeFormat.AMDesignator && hour == 12)
+                                {
+                                    hour = 0;
                                 }
                             }
                         }

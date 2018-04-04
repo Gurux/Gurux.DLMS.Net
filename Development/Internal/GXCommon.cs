@@ -584,7 +584,7 @@ namespace Gurux.DLMS.Internal
         ///</returns>
         private static object GetTime(GXByteBuffer buff, GXDataInfo info)
         {
-            object value = null;
+            GXTime value = null;
             if (buff.Size - buff.Position < 4)
             {
                 // If there is not enough data available.
@@ -607,8 +607,7 @@ namespace Gurux.DLMS.Internal
                 {
                     ms *= 10;
                 }
-                GXTime dt = new GXTime(hour, minute, second, ms);
-                value = dt;
+                value = new GXTime(hour, minute, second, ms);
             }
             catch (Exception ex)
             {
@@ -621,7 +620,7 @@ namespace Gurux.DLMS.Internal
             {
                 if (value != null)
                 {
-                    info.xml.AppendComment(Convert.ToString(value));
+                    info.xml.AppendComment(value.ToFormatString());
                 }
                 info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", str);
             }
@@ -642,7 +641,7 @@ namespace Gurux.DLMS.Internal
         ///</returns>
         private static object GetDate(GXByteBuffer buff, GXDataInfo info)
         {
-            object value = null;
+            GXDate value = null;
             if (buff.Size - buff.Position < 5)
             {
                 // If there is not enough data available.
@@ -662,13 +661,12 @@ namespace Gurux.DLMS.Internal
                 int month = buff.GetUInt8();
                 // Get day
                 int day = buff.GetUInt8();
-                GXDate dt = new GXDate(year, month, day);
+                value = new GXDate(year, month, day);
                 // Skip week day
                 if (buff.GetUInt8() == 0xFF)
                 {
-                    dt.Skip |= DateTimeSkips.DayOfWeek;
+                    value.Skip |= DateTimeSkips.DayOfWeek;
                 }
-                value = dt;
             }
             catch (Exception ex)
             {
@@ -681,7 +679,7 @@ namespace Gurux.DLMS.Internal
             {
                 if (value != null)
                 {
-                    info.xml.AppendComment(Convert.ToString(value));
+                    info.xml.AppendComment(value.ToFormatString());
                 }
                 info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", str);
             }
@@ -745,14 +743,27 @@ namespace Gurux.DLMS.Internal
                     day = 1;
                     dt.Skip |= DateTimeSkips.Day;
                 }
-                else if (day == 0xFD || day == 0xFE)
+                else if (day == 0xFD)
                 {
-                    day = DateTime.DaysInMonth(year, month) + (sbyte)day + 2;
+                    day = 1;
+                    dt.DaylightSavingsBegin = true;
+                    dt.Skip |= DateTimeSkips.Day;
                 }
-                //Skip week day
-                if (buff.GetUInt8() == 0xFF)
+                else if (day == 0xFE)
+                {
+                    day = 1;
+                    dt.DaylightSavingsEnd = true;
+                    dt.Skip |= DateTimeSkips.Day;
+                }
+                //Skip week day.
+                byte wd = buff.GetUInt8();
+                if (wd == 0xFF)
                 {
                     dt.Skip |= DateTimeSkips.DayOfWeek;
+                }
+                else
+                {
+                    dt.DayOfWeek = wd;
                 }
                 //Get time.
                 int hours = buff.GetUInt8();
@@ -823,7 +834,7 @@ namespace Gurux.DLMS.Internal
             {
                 if (dt != null)
                 {
-                    info.xml.AppendComment(Convert.ToString(dt));
+                    info.xml.AppendComment(dt.ToFormatString());
                 }
                 info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", str);
             }
@@ -1111,7 +1122,7 @@ namespace Gurux.DLMS.Internal
                 len = GXCommon.GetObjectCount(buff);
                 if (info.xml != null)
                 {
-                    info.xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.CompactArray, null , null);
+                    info.xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.CompactArray, null, null);
                     info.xml.AppendStartTag(TranslatorTags.ContentsDescription);
                     AppendDataTypeAsXml(cols.ToArray(), info);
                     info.xml.AppendEndTag(TranslatorTags.ContentsDescription);
@@ -1136,7 +1147,7 @@ namespace Gurux.DLMS.Internal
                         if (cols[pos] is object[])
                         {
                             List<object> tmp2 = new List<object>();
-                            foreach(DataType it in (object[]) cols[pos])
+                            foreach (DataType it in (object[])cols[pos])
                             {
                                 GetCompactArrayItem(null, buff, it, tmp2, 1);
                             }
@@ -1178,7 +1189,7 @@ namespace Gurux.DLMS.Internal
                 if (info.xml != null && info.xml.OutputType == TranslatorOutputType.SimpleXml)
                 {
                     StringBuilder sb = new StringBuilder();
-                    foreach(object[] row in tmp)
+                    foreach (object[] row in tmp)
                     {
                         foreach (object it in row)
                         {
@@ -1188,7 +1199,7 @@ namespace Gurux.DLMS.Internal
                             }
                             else if (it is object[])
                             {
-                                foreach (object it2 in (object[]) it)
+                                foreach (object it2 in (object[])it)
                                 {
                                     if (it2 is byte[])
                                     {
@@ -2248,18 +2259,15 @@ namespace Gurux.DLMS.Internal
             }
             if ((dt.Skip & DateTimeSkips.Month) == 0)
             {
-                if (dt.DaylightSavingsBegin)
-                {
-                    buff.SetUInt8(0xFE);
-                }
-                else if (dt.DaylightSavingsEnd)
-                {
-                    buff.SetUInt8(0xFD);
-                }
-                else
-                {
-                    buff.SetUInt8((byte)tm.Month);
-                }
+                buff.SetUInt8((byte)tm.Month);
+            }
+            else if (dt.DaylightSavingsBegin)
+            {
+                buff.SetUInt8(0xFE);
+            }
+            else if (dt.DaylightSavingsEnd)
+            {
+                buff.SetUInt8(0xFD);
             }
             else
             {
@@ -2280,14 +2288,7 @@ namespace Gurux.DLMS.Internal
             }
             else
             {
-                if (dt.Value.DayOfWeek == DayOfWeek.Sunday)
-                {
-                    buff.SetUInt8(7);
-                }
-                else
-                {
-                    buff.SetUInt8((byte)(dt.Value.DayOfWeek));
-                }
+                buff.SetUInt8((byte)(dt.DayOfWeek));
             }
             //Add time.
             if ((dt.Skip & DateTimeSkips.Hour) == 0)
@@ -2637,39 +2638,39 @@ namespace Gurux.DLMS.Internal
             {
                 return DataType.None;
             }
-            if (type == typeof(Int32))
+            else if (type == typeof(Int32))
             {
                 return DataType.Int32;
             }
-            if (type == typeof(UInt32))
+            else if (type == typeof(UInt32))
             {
                 return DataType.UInt32;
             }
-            if (type == typeof(String))
+            else if (type == typeof(String))
             {
                 return DataType.String;
             }
-            if (type == typeof(byte))
+            else if (type == typeof(byte))
             {
                 return DataType.UInt8;
             }
-            if (type == typeof(sbyte))
+            else if (type == typeof(sbyte))
             {
                 return DataType.Int8;
             }
-            if (type == typeof(Int16))
+            else if (type == typeof(Int16))
             {
                 return DataType.Int16;
             }
-            if (type == typeof(UInt16))
+            else if (type == typeof(UInt16))
             {
                 return DataType.UInt16;
             }
-            if (type == typeof(Int64))
+            else if (type == typeof(Int64))
             {
                 return DataType.Int64;
             }
-            if (type == typeof(UInt64))
+            else if (type == typeof(UInt64))
             {
                 return DataType.UInt64;
             }
@@ -2677,35 +2678,38 @@ namespace Gurux.DLMS.Internal
             {
                 return DataType.Float32;
             }
-            if (type == typeof(double))
+            else if (type == typeof(double))
             {
                 return DataType.Float64;
             }
-            if (type == typeof(DateTime))
+            else if (type == typeof(DateTime) || type == typeof(GXDateTime))
             {
                 return DataType.DateTime;
             }
-            if (type == typeof(GXDate))
+            else if (type == typeof(GXDate))
             {
                 return DataType.Date;
             }
-            if (type == typeof(GXTime))
+            else if (type == typeof(GXTime))
             {
                 return DataType.Time;
             }
-            if (type == typeof(Boolean) || type == typeof(bool))
+            else if (type == typeof(Boolean) || type == typeof(bool))
             {
                 return DataType.Boolean;
             }
-            if (type == typeof(byte[]))
+            else if (type == typeof(byte[]))
             {
                 return DataType.OctetString;
             }
-            if (type == typeof(object[]))
+            else if (type == typeof(object[]))
             {
                 return DataType.Array;
             }
-            throw new Exception("Failed to convert data type to DLMS data type. Unknown data type.");
+            else
+            {
+                throw new Exception("Failed to convert data type to DLMS data type. Unknown data type.");
+            }
         }
 
         public static DateTimeOffset GetGeneralizedTime(string dateString)

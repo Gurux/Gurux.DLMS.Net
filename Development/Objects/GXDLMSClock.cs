@@ -491,10 +491,14 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 5)
             {
+                Begin.DaylightSavingsEnd = false;
+                Begin.DaylightSavingsBegin = true;
                 return Begin;
             }
             if (e.Index == 6)
             {
+                End.DaylightSavingsBegin = false;
+                End.DaylightSavingsEnd = true;
                 return End;
             }
             if (e.Index == 7)

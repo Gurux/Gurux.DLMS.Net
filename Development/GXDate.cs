@@ -100,6 +100,11 @@ namespace Gurux.DLMS
                 string dateSeparator = Internal.GXCommon.GetDateSeparator(), timeSeparator = Internal.GXCommon.GetTimeSeparator();
                 List<string> shortDatePattern = new List<string>("yyyy-MM-dd".Split(new string[] { dateSeparator, " " }, StringSplitOptions.RemoveEmptyEntries));
 #endif
+                //If week day is used.
+                if (char.IsLetter(date.Trim()[0]))
+                {
+                    shortDatePattern.Insert(0, "dddd");
+                }                
                 Skip |= DateTimeSkips.DayOfWeek;
                 string[] values = date.Trim().Split(new string[] { dateSeparator, timeSeparator, " " }, StringSplitOptions.None);
                 int cnt = shortDatePattern.Count;
@@ -143,6 +148,10 @@ namespace Gurux.DLMS
                         {
                             month = int.Parse(values[pos]);
                         }
+                    }
+                    else if (shortDatePattern[pos].ToLower().StartsWith("dddd"))
+                    {
+                        ++offset;
                     }
                     else if (shortDatePattern[pos].ToLower().StartsWith("d"))
                     {

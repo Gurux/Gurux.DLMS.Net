@@ -170,6 +170,10 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 2)
             {
+                if (e.Value != null && GetDataType(2) == DataType.None)
+                {
+                    SetDataType(2, GXCommon.GetDLMSDataType(e.Value.GetType()));
+                }
                 Value = e.Value;
             }
             else

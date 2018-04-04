@@ -110,6 +110,55 @@ namespace Gurux.DLMS.Objects
             return new object[] { LogicalName, RegisterAssignment, MaskList, ActiveMask };
         }
 
+        /// <summary>
+        /// Add new register.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="script">Register to add.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] AddRegister(GXDLMSClient client, GXDLMSObject target)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetUInt8(DataType.Structure);
+            bb.SetUInt8(2);
+            GXCommon.SetData(null, bb, DataType.UInt16, target.ObjectType);
+            GXCommon.SetData(null, bb, DataType.OctetString, GXCommon.LogicalNameToBytes(target.LogicalName));
+            return client.Method(this, 1, bb.Array(), DataType.Array);
+        }
+
+        /// <summary>
+        /// Add new register activation mask.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="name">Register activation mask name.</param>
+        /// <param name="indexes">Register activation indexes.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] AddMask(GXDLMSClient client, byte[] name, byte[] indexes)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetUInt8(DataType.Structure);
+            bb.SetUInt8(2);
+            GXCommon.SetData(null, bb, DataType.OctetString, name);
+            bb.SetUInt8(DataType.Array);
+            bb.SetUInt8((byte) indexes.Length);
+            foreach(byte it in indexes)
+            {
+                GXCommon.SetData(null, bb, DataType.UInt8, it);
+            }
+            return client.Method(this, 2, bb.Array(), DataType.Array);
+        }
+
+        /// <summary>
+        /// Remove register activation mask.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="name">Register activation mask name.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] RemoveMask(GXDLMSClient client, byte[] name)
+        {
+            return client.Method(this, 3, name);
+        }
+
         #region IGXDLMSBase Members
 
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
