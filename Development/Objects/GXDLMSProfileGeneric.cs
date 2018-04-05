@@ -842,7 +842,7 @@ namespace Gurux.DLMS.Objects
                 {
                     if ((row as object[]).Length != cols.Count)
                     {
-                        throw new Exception("Number of columns do not match.");
+                        throw new Exception("The number of columns does not match.");
                     }
                     for (int pos = 0; pos != row.Length; ++pos)
                     {

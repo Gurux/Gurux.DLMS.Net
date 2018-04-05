@@ -2284,11 +2284,24 @@ namespace Gurux.DLMS.Internal
             // Add week day
             if ((dt.Skip & DateTimeSkips.DayOfWeek) != 0)
             {
+                //Skip.
                 buff.SetUInt8(0xFF);
             }
             else
             {
-                buff.SetUInt8((byte)(dt.DayOfWeek));
+                if (dt.DayOfWeek == 0)
+                {
+                    buff.SetUInt8((byte)(dt.Value.DayOfWeek));
+                }
+                else if (dt.DayOfWeek != 0)
+                {
+                    buff.SetUInt8((byte)(dt.DayOfWeek));
+                }
+                else
+                {
+                    //Skip.
+                    buff.SetUInt8(0xFF);
+                }
             }
             //Add time.
             if ((dt.Skip & DateTimeSkips.Hour) == 0)

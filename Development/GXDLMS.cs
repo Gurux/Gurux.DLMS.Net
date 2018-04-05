@@ -543,6 +543,36 @@ namespace Gurux.DLMS
             }
         }
 
+        private static byte[] Cipher0(GXDLMSLNParameters p, byte[] data)
+        {
+            byte cmd;
+            if ((p.settings.NegotiatedConformance & Conformance.GeneralProtection) == 0)
+            {
+                cmd = (byte)GetGloMessage(p.command);
+            }
+            else
+            {
+                cmd = (byte)Command.GeneralGloCiphering;
+            }
+            byte[] tmp = p.settings.Cipher.Encrypt(cmd,
+                                                   p.settings.Cipher.SystemTitle, data);
+            if (p.command == Command.DataNotification || (p.settings.NegotiatedConformance & Conformance.GeneralProtection) != 0)
+            {
+                GXByteBuffer reply = new GXByteBuffer();
+                // Add command.
+                reply.SetUInt8(tmp[0]);
+                // Add system title.
+                GXCommon.SetObjectCount(
+                    p.settings.Cipher.SystemTitle.Length,
+                    reply);
+                reply.Set(p.settings.Cipher.SystemTitle);
+                // Add data.
+                reply.Set(tmp, 1, tmp.Length - 1);
+                return reply.Array();
+            }
+            return tmp;
+        }
+
         /// <summary>
         /// Get next logical name PDU.
         /// </summary>
@@ -593,6 +623,7 @@ namespace Gurux.DLMS
                         GXCommon.SetData(p.settings, reply, DataType.OctetString, p.time);
                         reply.Move(pos + 1, pos, reply.Size - pos - 1);
                     }
+                    MultipleBlocks(p, reply, ciphering);
                 }
                 else if (p.command != Command.ReleaseRequest)
                 {
@@ -720,6 +751,15 @@ namespace Gurux.DLMS
                             {
                                 len = p.settings.MaxPduSize - reply.Size - 7;
                             }
+                            //Cipher data only once.
+                            if (ciphering && p.command != Command.GeneralBlockTransfer)
+                            {
+                                reply.Set(p.data);
+                                byte[] tmp = Cipher0(p, reply.Array());
+                                p.data.Size = 0;
+                                p.data.Set(tmp);
+                                reply.Size = 0;
+                            }
                         }
                         else if (p.command != Command.GetRequest && len + reply.Size > p.settings.MaxPduSize)
                         {
@@ -728,36 +768,12 @@ namespace Gurux.DLMS
                         reply.Set(p.data, len);
                     }
                 }
-                if (ciphering)
+                if (ciphering && ((p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0))
                 {
-                    byte cmd;
-                    if ((p.settings.NegotiatedConformance & Conformance.GeneralProtection) == 0)
-                    {
-                        cmd = (byte)GetGloMessage(p.command);
-                    }
-                    else
-                    {
-                        cmd = (byte)Command.GeneralGloCiphering;
-                    }
-                    byte[] tmp = p.settings.Cipher.Encrypt(cmd,
-                                                           p.settings.Cipher.SystemTitle, reply.Array());
+                    //GBT ciphering is done for all the data, not just block.
+                    byte[] tmp = Cipher0(p, reply.Array());
                     reply.Size = 0;
-                    if (p.command == Command.DataNotification || (p.settings.NegotiatedConformance & Conformance.GeneralProtection) != 0)
-                    {
-                        // Add command.
-                        reply.SetUInt8(tmp[0]);
-                        // Add system title.
-                        GXCommon.SetObjectCount(
-                            p.settings.Cipher.SystemTitle.Length,
-                            reply);
-                        reply.Set(p.settings.Cipher.SystemTitle);
-                        // Add data.
-                        reply.Set(tmp, 1, tmp.Length - 1);
-                    }
-                    else
-                    {
-                        reply.Set(tmp);
-                    }
+                    reply.Set(tmp);
                 }
                 if (p.command == Command.GeneralBlockTransfer || (p.multipleBlocks && (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) != 0))
                 {
@@ -1265,7 +1281,7 @@ namespace Gurux.DLMS
             bb.SetUInt8(GXCommon.HDLCFrameStartEnd);
             frameSize = Convert.ToInt32(settings.Limits.MaxInfoTX);
             //Remove BOP, type, len, primaryAddress, secondaryAddress, frame, header CRC, data CRC and EOP from data length.
-            frameSize -= 11;
+            frameSize -= (10 + secondaryAddress.Length);
             // If no data
             if (data == null || data.Size == 0)
             {
@@ -1625,7 +1641,7 @@ namespace Gurux.DLMS
             GXDLMSSettings settings,
             GXByteBuffer reply,
             int index, out int source, out int target)
-        {            
+        {
             // Get destination and source addresses.
             target = GXCommon.GetHDLCAddress(reply);
             source = GXCommon.GetHDLCAddress(reply);
@@ -2709,7 +2725,7 @@ namespace Gurux.DLMS
                     }
                     data.Data.Position = pos;
                 }
-                data.Xml.AppendLine(TranslatorTags.BlockData, null, GXCommon.ToHex(data.Data.Data, true, data.Data.Position, len));
+                data.Xml.AppendLine(TranslatorTags.BlockData, null, data.Data.RemainingHexString(true));
                 data.Xml.AppendEndTag(Command.GeneralBlockTransfer);
                 return;
             }

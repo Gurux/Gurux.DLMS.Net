@@ -71,6 +71,21 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        ///  What kind of services are used.
+        /// </summary>
+        public Conformance Conformance
+        {
+            get
+            {
+                return Settings.NegotiatedConformance;
+            }
+            set
+            {
+                Settings.NegotiatedConformance = value;
+            }
+        }
+
+        /// <summary>
         /// Used priority in General Block Transfer.
         /// </summary>
         public Priority Priority
@@ -242,7 +257,7 @@ namespace Gurux.DLMS
                 GXDLMSSNParameters p = new GXDLMSSNParameters(Settings, Command.DataNotification, 1, 0, new GXByteBuffer(data), null);
                 reply = GXDLMS.GetSnMessages(p);
             }
-            if ((Settings.ProposedConformance & Conformance.GeneralBlockTransfer) == 0 && reply.Length != 1)
+            if ((Settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0 && reply.Length != 1)
             {
                 throw new ArgumentException("Data is not fit to one PDU. Use general block transfer.");
             }

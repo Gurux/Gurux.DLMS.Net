@@ -80,6 +80,7 @@ namespace Gurux.DLMS
                 {
                     Status |= ClockStatus.DaylightSavingActive;
                 }
+                Skip |= DateTimeSkips.Ms;
             }
         }
 
@@ -309,6 +310,7 @@ namespace Gurux.DLMS
         public static implicit operator GXDateTime(DateTime value)
         {
             GXDateTime dt = new GXDateTime(value);
+            dt.Skip |= DateTimeSkips.Ms;
             if (value.IsDaylightSavingTime())
             {
                 dt.Status |= ClockStatus.DaylightSavingActive;
