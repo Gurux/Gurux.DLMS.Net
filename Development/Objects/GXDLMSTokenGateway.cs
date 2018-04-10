@@ -373,7 +373,7 @@ namespace Gurux.DLMS.Objects
                     Token = (byte[])e.Value;
                     break;
                 case 3:
-                    Time = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
+                    Time = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
                     break;
                 case 4:
                     Descriptions.Clear();

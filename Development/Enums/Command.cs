@@ -110,8 +110,11 @@ namespace Gurux.DLMS
         MethodResponse = 0xC7,
 
         /// <summary>
-        /// HDLC Disconnect Mode.
+        /// HDLC Disconnect Mode. 
         /// </summary>
+        /// <remarks>
+        /// Responder for Disconnect Mode request.
+        /// </remarks>
         DisconnectMode = 0x1f,
 
         /// <summary>
@@ -140,7 +143,7 @@ namespace Gurux.DLMS
         Aare = 0x61,
 
         /// <summary>
-        /// Disconnect request for HDLC framing.
+        /// Disconnect request for HDLC framing. (DISC)
         /// </summary>
         DisconnectRequest = 0x53,
 

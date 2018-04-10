@@ -235,7 +235,9 @@ namespace Gurux.DLMS
         {
             if (type == RequestTypes.None)
             {
-                throw new ArgumentException("Invalid receiverReady RequestTypes parameter.");
+                //Generate RR.
+                byte id = settings.KeepAlive();
+                return GetHdlcFrame(settings, id, null);
             }
             // Get next frame.
             if ((type & RequestTypes.Frame) != 0)
@@ -320,7 +322,13 @@ namespace Gurux.DLMS
                     str = "";
                     break;
                 case ErrorCode.Rejected:
-                    str = "Connection rejected.";
+                    str = Properties.Resources.Rejected;
+                    break;
+                case ErrorCode.UnacceptableFrame:
+                    str = Properties.Resources.UnacceptableFrame;
+                    break;
+                case ErrorCode.DisconnectMode:
+                    str = Properties.Resources.DisconnectMode;
                     break;
                 case ErrorCode.HardwareFault: //Access Error : Device reports a hardware fault
                     str = Gurux.DLMS.Properties.Resources.HardwareFaultTxt;

@@ -697,7 +697,7 @@ namespace Gurux.DLMS.Objects
                     SetUnitCharge(UnitChargePassive, e.Value);
                     break;
                 case 7:
-                    UnitChargeActivationTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
+                    UnitChargeActivationTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
                     break;
                 case 8:
                     Period = (UInt32)e.Value;
@@ -706,7 +706,7 @@ namespace Gurux.DLMS.Objects
                     ChargeConfiguration = (string)e.Value;
                     break;
                 case 10:
-                    LastCollectionTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
+                    LastCollectionTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
                     break;
                 case 11:
                     LastCollectionAmount = (Int32)e.Value;

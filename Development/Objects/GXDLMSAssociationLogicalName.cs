@@ -1201,7 +1201,14 @@ namespace Gurux.DLMS.Objects
             }
             writer.WriteElementString("Secret", GXDLMSTranslator.ToHex(Secret));
             writer.WriteElementString("AssociationStatus", (int)AssociationStatus);
-            writer.WriteElementString("SecuritySetupReference", SecuritySetupReference);
+            if (string.IsNullOrEmpty(SecuritySetupReference))
+            {
+                writer.WriteElementString("SecuritySetupReference", "0.0.0.0.0.0");
+            }
+            else
+            {
+                writer.WriteElementString("SecuritySetupReference", SecuritySetupReference);
+            }
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

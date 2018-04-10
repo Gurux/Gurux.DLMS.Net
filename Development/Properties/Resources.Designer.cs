@@ -88,6 +88,15 @@ namespace Gurux.DLMS.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Disconnect mode..
+        /// </summary>
+        internal static string DisconnectMode {
+            get {
+                return ResourceManager.GetString("DisconnectMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Access Error : Device reports a hardware fault..
         /// </summary>
         internal static string HardwareFaultTxt {
@@ -193,11 +202,29 @@ namespace Gurux.DLMS.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to HDLC message rejected..
+        /// </summary>
+        internal static string Rejected {
+            get {
+                return ResourceManager.GetString("Rejected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Access Error : Device reports a temporary failure..
         /// </summary>
         internal static string TemporaryFailureTxt {
             get {
                 return ResourceManager.GetString("TemporaryFailureTxt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unacceptable frame..
+        /// </summary>
+        internal static string UnacceptableFrame {
+            get {
+                return ResourceManager.GetString("UnacceptableFrame", resourceCulture);
             }
         }
         

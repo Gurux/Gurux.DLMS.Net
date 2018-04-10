@@ -376,7 +376,7 @@ namespace Gurux.DLMS.Objects
                 case 8:
                     if (e.Value is byte[])
                     {
-                        e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime);
+                        e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
                     }
                     else if (e.Value is string)
                     {

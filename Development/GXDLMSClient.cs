@@ -808,12 +808,6 @@ namespace Gurux.DLMS
         {
             //Reset to max PDU size when connection is closed.
             Settings.MaxPduSize = 0xFFFF;
-            // If connection is not established, there is no need to send
-            // DisconnectRequest.
-            if (!Settings.Connected)
-            {
-                return null;
-            }
             Settings.Connected = false;
             if (Settings.InterfaceType == InterfaceType.HDLC)
             {
@@ -1250,7 +1244,7 @@ namespace Gurux.DLMS
         /// <param name="value">Byte array received from the meter.</param>
         /// <param name="type">Wanted type.</param>
         /// <returns>Value changed by type.</returns>
-        public static object ChangeType(GXByteBuffer value, DataType type)
+        public object ChangeType(GXByteBuffer value, DataType type)
         {
             return ChangeType(value, type, false);
         }
@@ -1781,7 +1775,7 @@ namespace Gurux.DLMS
             }
             else
             {
-                GXCommon.SetData(Settings, buff, DataType.UInt32, index + count);
+                GXCommon.SetData(Settings, buff, DataType.UInt32, index + count - 1);
             }
             int columnIndex = 1;
             int columnCount = 0;
@@ -2344,6 +2338,24 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentException("Invalid command. " + reply.Command);
             }
+        }
+
+        /// <summary>
+        /// Generates a invalid HDLC frame.
+        /// </summary>
+        /// <param name="command">HDLC command.</param>
+        /// <param name="data">data</param>
+        /// <returns>HDLC frame request, as byte array.</returns>
+        /// <remarks>
+        /// This method can be used for sending custom HDLC frames example in testing.
+        /// </remarks>
+        public byte[] CustomHdlcFrameRequest(byte command, GXByteBuffer data)
+        {
+            if (Settings.InterfaceType != InterfaceType.HDLC)
+            {
+                throw new Exception("This method can be used only to generate HDLC custom frames");
+            }
+            return GXDLMS.GetHdlcFrame(Settings, command, data);
         }
     }
 }
