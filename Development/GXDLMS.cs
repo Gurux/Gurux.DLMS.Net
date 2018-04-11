@@ -1473,7 +1473,7 @@ namespace Gurux.DLMS
             byte frame = reply.GetUInt8();
             if ((frame & 0xF0) != 0xA0)
             {
-                //If same strage data.
+                --reply.Position;
                 return GetHdlcData(server, settings, reply, data);
             }
             // Check frame length.
@@ -1495,12 +1495,23 @@ namespace Gurux.DLMS
             ch = reply.GetUInt8(eopPos);
             if (ch != GXCommon.HDLCFrameStartEnd)
             {
-                throw new GXDLMSException("Invalid data format.");
+                reply.Position -= 2;
+                return GetHdlcData(server, settings, reply, data);
             }
 
             // Check addresses.
             int source, target;
-            if (!CheckHdlcAddress(server, settings, reply, eopPos, out source, out target))
+            bool ret;
+            try
+            {
+                ret = CheckHdlcAddress(server, settings, reply, eopPos, out source, out target);
+            }
+            catch
+            {
+                ret = false;
+                source = target = 0;
+            }
+            if (!ret)
             {
                 //If not notify.
                 if (!(reply.Position < reply.Size && reply.GetUInt8(reply.Position) == 0x13))
@@ -1537,6 +1548,10 @@ namespace Gurux.DLMS
             crcRead = reply.GetUInt16();
             if (crc != crcRead)
             {
+                if (reply.Size - reply.Position > 8)
+                {
+                    return GetHdlcData(server, settings, reply, data);
+                }
                 throw new Exception("Wrong CRC.");
             }
             // Check that packet CRC match only if there is a data part.

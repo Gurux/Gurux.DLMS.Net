@@ -849,13 +849,30 @@ namespace Gurux.DLMS
                 {
                     receivedData.Set(sr.Data);
                     bool first = Settings.ServerAddress == 0 && Settings.ClientAddress == 0;
-                    GXDLMS.GetData(Settings, receivedData, info);
+                    try
+                    {
+                        GXDLMS.GetData(Settings, receivedData, info);
+                    }
+                    catch (Exception)
+                    {
+                        dataReceived = DateTime.Now;
+                        receivedData.Size = 0;
+                        sr.Reply = GXDLMS.GetHdlcFrame(Settings, (byte)Command.UnacceptableFrame, replyData);
+                        return;
+                    }
                     //If all data is not received yet.
                     if (!info.IsComplete)
                     {
                         return;
                     }
                     receivedData.Clear();
+                    if (info.Command == Command.DisconnectRequest && !Settings.Connected)
+                    {
+                        sr.Reply = GXDLMS.GetHdlcFrame(Settings, (byte)Command.DisconnectMode, replyData);
+                        info.Clear();
+                        return;
+                    }
+
                     if (first || info.Command == Command.Snrm ||
                         (Settings.InterfaceType == InterfaceType.WRAPPER && info.Command == Command.Aarq))
                     {
@@ -881,6 +898,11 @@ namespace Gurux.DLMS
                         if (transaction != null)
                         {
                             info.Command = transaction.command;
+                        }
+                        else if (replyData.Size == 0)
+                        {
+                            sr.Reply = GXDLMS.GetHdlcFrame(Settings, Settings.ReceiverReady(), replyData);
+                            return;
                         }
                     }
                     //Check inactivity time out.
@@ -915,7 +937,15 @@ namespace Gurux.DLMS
                 {
                     info.Command = Command.GeneralBlockTransfer;
                 }
-                sr.Reply = HandleCommand(info.Command, info.Data, sr);
+                try
+                {
+                    sr.Reply = HandleCommand(info.Command, info.Data, sr);
+                }
+                catch (Exception)
+                {
+                    receivedData.Size = 0;
+                    sr.Reply = GXDLMS.GetHdlcFrame(Settings, (byte)Command.UnacceptableFrame, replyData);
+                }
                 info.Clear();
                 dataReceived = DateTime.Now;
             }
@@ -1025,8 +1055,7 @@ namespace Gurux.DLMS
                     //Get next frame.
                     break;
                 default:
-                    Debug.WriteLine("Invalid command: " + (int)cmd);
-                    break;
+                    throw new Exception("Invalid command: " + (int)cmd);
             }
             byte[] reply;
             if (this.InterfaceType == Enums.InterfaceType.WRAPPER)
