@@ -125,6 +125,11 @@ namespace Gurux.DLMS
         /// </summary>
         internal bool AllowAnonymousAccess = false;
 
+        internal bool CanAccess()
+        {
+            return AllowAnonymousAccess || SourceSystemTitle != null;
+        }
+
         /// <summary>
         /// When connection is made client tells what kind of services it want's to use.
         /// </summary>
@@ -324,7 +329,7 @@ namespace Gurux.DLMS
             set;
         }
 
-        internal bool Connected = false;
+        internal ConnectionState Connected = ConnectionState.None;
 
         ///<summary>
         /// Increase receiver sequence.

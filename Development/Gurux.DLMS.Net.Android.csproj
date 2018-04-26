@@ -55,6 +55,7 @@
     <Compile Include="Enums\ConfirmedServiceError.cs" />
     <Compile Include="Enums\Conformance.cs" />
     <Compile Include="Enums\DataType.cs" />
+    <Compile Include="Enums\DateTimeExtraInfo.cs" />
     <Compile Include="Enums\DateTimeSkips.cs" />
     <Compile Include="Enums\Definition.cs" />
     <Compile Include="Enums\ErrorCode.cs" />
@@ -73,6 +74,7 @@
     <Compile Include="Enums\ServiceClass.cs" />
     <Compile Include="Enums\ServiceError.cs" />
     <Compile Include="Enums\SourceDiagnostic.cs" />
+    <Compile Include="Enums\Standard.cs" />
     <Compile Include="Enums\Task.cs" />
     <Compile Include="Enums\TranslatorOutputType.cs" />
     <Compile Include="Enums\Unit.cs" />
@@ -114,6 +116,7 @@
     <Compile Include="Internal\ActionRequestType.cs" />
     <Compile Include="Internal\ActionResponseType.cs" />
     <Compile Include="Internal\BerType.cs" />
+    <Compile Include="Internal\ConnectionState.cs" />
     <Compile Include="Internal\GetCommandType.cs" />
     <Compile Include="Internal\GXAes128.cs" />
     <Compile Include="Internal\GXAPDU.cs" />

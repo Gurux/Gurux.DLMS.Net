@@ -37,6 +37,7 @@ using System.Collections.Generic;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects;
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.ManufacturerSettings;
 
 namespace Gurux.DLMS
 {
@@ -507,5 +508,46 @@ namespace Gurux.DLMS
         {
             return GXCommon.GetValueType(value);
         }
+
+        static public byte[] GetBytes(object value, DataType type)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            GXCommon.SetData(null, bb, type, value);
+            return bb.Array();
+        }
+
+        static public GXObisCode[] GetObjects(Standard standard)
+        {
+            List<GXObisCode> codes = new List<GXObisCode>();
+            if (standard == Standard.Italian)
+            {
+#if !WINDOWS_UWP
+                string[] rows = Gurux.DLMS.Properties.Resources.Italian.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (string it in rows)
+                {
+                    string[] items = it.Split(new char[] { ';' });
+                    ObjectType ot = (ObjectType)int.Parse(items[0]);
+                    string ln = GXCommon.ToLogicalName(GXCommon.LogicalNameToBytes(items[1]));
+                    int version = int.Parse(items[2]);
+                    string desc = items[3];
+                    GXObisCode code = new GXObisCode(ln, ot, desc);
+                    code.Version = version;
+                    codes.Add(code);
+                }
+#endif
+            }
+            return codes.ToArray();
+        }
+
+        /// <summary>
+        /// Convert logical name to byte array.
+        /// </summary>
+        /// <param name="value">Logical name as a string.</param>
+        /// <returns>Logical name as byte array.</returns>
+        public static byte[] LogicalNameToBytes(string value)
+        {
+            return GXCommon.LogicalNameToBytes(value);
+        }
     }
 }
+

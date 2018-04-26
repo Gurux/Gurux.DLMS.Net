@@ -130,16 +130,7 @@ namespace Gurux.DLMS
             ShowStringAsHex = hex;
             Comments = comments;
             tags = list;
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="xml">Geerated XML.</param>
-        public GXDLMSTranslatorStructure(string xml)
-        {
-            sb.Append(xml);
-        }
+        }     
 
         public override string ToString()
         {
@@ -246,6 +237,14 @@ namespace Gurux.DLMS
             else if (value is Int64)
             {
                 sb.Append(IntegerToHex((Int64)value, 16));
+            }
+            else if (value is byte[])
+            {
+                sb.Append(GXCommon.ToHex((byte[]) value, true));
+            }
+            else if (value is sbyte[])
+            {
+                sb.Append(GXCommon.ToHex((byte[])value, true));
             }
             else
             {

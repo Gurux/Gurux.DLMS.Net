@@ -39,7 +39,7 @@ using Gurux.DLMS.Enums;
 using System.Diagnostics;
 
 namespace Gurux.DLMS.Internal
-{
+{ 
     /// <summary>
     /// Reserved for internal use.
     /// </summary>
@@ -400,7 +400,6 @@ namespace Gurux.DLMS.Internal
         ///<param name="data">Received data.</param>
         ///<param name="info"> Data info.</param>
         ///<returns>Parsed object.</returns>
-        ///
         public static object GetData(GXDLMSSettings settings, GXByteBuffer data, GXDataInfo info)
         {
             object value = null;
@@ -732,10 +731,24 @@ namespace Gurux.DLMS.Internal
                 }
                 //Get month
                 int month = buff.GetUInt8();
-                if (month == 0 || month == 0xFF || month == 0xFE || month == 0xFD)
+                if (month == 0 || month == 0xFF)
                 {
                     month = 1;
                     dt.Skip |= DateTimeSkips.Month;
+                }
+                else if (month == 0xFE)
+                {
+                    //Daylight savings begin.
+                    month = 1;
+                    dt.Skip |= DateTimeSkips.Month;
+                    dt.Extra |= DateTimeExtraInfo.DstBegin;
+                }
+                else if (month == 0xFD)
+                {
+                    // Daylight savings end.
+                    month = 1;
+                    dt.Skip |= DateTimeSkips.Month;
+                    dt.Extra |= DateTimeExtraInfo.DstEnd;
                 }
                 int day = buff.GetUInt8();
                 if (day < 1 || day == 0xFF)
@@ -745,14 +758,14 @@ namespace Gurux.DLMS.Internal
                 }
                 else if (day == 0xFD)
                 {
+                    // 2nd last day of month.
                     day = 1;
-                    dt.DaylightSavingsBegin = true;
                     dt.Skip |= DateTimeSkips.Day;
                 }
                 else if (day == 0xFE)
                 {
+                    //Last day of month
                     day = 1;
-                    dt.DaylightSavingsEnd = true;
                     dt.Skip |= DateTimeSkips.Day;
                 }
                 //Skip week day.
@@ -796,14 +809,6 @@ namespace Gurux.DLMS.Internal
                 }
                 int deviation = buff.GetInt16();
                 dt.Status = (ClockStatus)buff.GetUInt8();
-                if (deviation != -32768 && (dt.Status & ClockStatus.DaylightSavingActive) != 0)
-                {
-#if !WINDOWS_UWP
-                    deviation -= (int)TimeZone.CurrentTimeZone.GetDaylightChanges(year).Delta.TotalMinutes;
-#else
-                    deviation -= 60;
-#endif
-                }
                 if (settings != null && settings.UseUtc2NormalTime)
                 {
                     deviation = -deviation;
@@ -2167,21 +2172,24 @@ namespace Gurux.DLMS.Internal
                 buff.SetUInt16((UInt16)dt.Value.Year);
             }
             // Add month
-            if (dt.DaylightSavingsBegin)
-            {
-                buff.SetUInt8(0xFE);
-            }
-            else if (dt.DaylightSavingsEnd)
-            {
-                buff.SetUInt8(0xFD);
-            }
-            else if ((dt.Skip & DateTimeSkips.Month) != 0)
+            if ((dt.Skip & DateTimeSkips.Month) != 0)
             {
                 buff.SetUInt8(0xFF);
             }
             else
             {
-                buff.SetUInt8((byte)dt.Value.Month);
+                if ((dt.Extra & DateTimeExtraInfo.DstBegin) != 0)
+                {
+                    buff.SetUInt8(0xFE);
+                }
+                else if ((dt.Extra & DateTimeExtraInfo.DstEnd) != 0)
+                {
+                    buff.SetUInt8(0xFD);
+                }
+                else
+                {
+                    buff.SetUInt8((byte)dt.Value.Month);
+                }
             }
             // Add day
             if ((dt.Skip & DateTimeSkips.Day) != 0)
@@ -2259,15 +2267,18 @@ namespace Gurux.DLMS.Internal
             }
             if ((dt.Skip & DateTimeSkips.Month) == 0)
             {
-                buff.SetUInt8((byte)tm.Month);
-            }
-            else if (dt.DaylightSavingsBegin)
-            {
-                buff.SetUInt8(0xFE);
-            }
-            else if (dt.DaylightSavingsEnd)
-            {
-                buff.SetUInt8(0xFD);
+                if ((dt.Extra & DateTimeExtraInfo.DstBegin) != 0)
+                {
+                    buff.SetUInt8(0xFE);
+                }
+                else if ((dt.Extra & DateTimeExtraInfo.DstEnd) != 0)
+                {
+                    buff.SetUInt8(0xFD);
+                }
+                else
+                {
+                    buff.SetUInt8((byte)tm.Month);
+                }
             }
             else
             {
@@ -2296,11 +2307,6 @@ namespace Gurux.DLMS.Internal
                 else if (dt.DayOfWeek != 0)
                 {
                     buff.SetUInt8((byte)(dt.DayOfWeek));
-                }
-                else
-                {
-                    //Skip.
-                    buff.SetUInt8(0xFF);
                 }
             }
             //Add time.
@@ -2342,14 +2348,6 @@ namespace Gurux.DLMS.Internal
             if ((dt.Skip & DateTimeSkips.Deviation) == 0)
             {
                 Int16 deviation = (Int16)dt.Value.Offset.TotalMinutes;
-                if (dt.Value.LocalDateTime.IsDaylightSavingTime())
-                {
-#if !WINDOWS_UWP
-                    deviation -= (short)TimeZone.CurrentTimeZone.GetDaylightChanges(tm.Year).Delta.TotalMinutes;
-#else
-                    deviation -= 60;
-#endif
-                }
                 if (settings != null && settings.UseUtc2NormalTime)
                 {
                     buff.SetInt16(deviation);
@@ -2707,7 +2705,7 @@ namespace Gurux.DLMS.Internal
             {
                 return DataType.Time;
             }
-            else if (type == typeof(Boolean) || type == typeof(bool))
+            else if (type == typeof(bool))
             {
                 return DataType.Boolean;
             }
@@ -2769,6 +2767,44 @@ namespace Gurux.DLMS.Internal
             //UTC time.
             sb.Append("Z");
             return sb.ToString();
+        }
+
+        public static void DatatoXml(object value, GXDLMSTranslatorStructure xml)
+        {
+            if (value is null)
+            {
+                xml.AppendEmptyTag(xml.GetDataType(DataType.None));
+            }
+            else if (value is object[])
+            {
+                bool array = xml.GetXmlLength() == 0;
+                if (array)
+                {
+                    xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array, null, null);
+                }
+                else
+                {
+                    xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure, null, null);
+                }
+                foreach (object it in (object[])value)
+                {
+                    DatatoXml(it, xml);
+                }
+                if (array)
+                {
+                    xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array);
+                }
+                else
+                {
+                    xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure);
+                }
+            }
+            else
+            {
+                DataType dt = GetDLMSDataType(value.GetType());
+                //                xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)dt, null, Convert.ToString(value));
+                xml.AppendLine(GXDLMS.DATA_TYPE_OFFSET + (int)dt, null, value);
+            }
         }
     }
 }

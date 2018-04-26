@@ -197,7 +197,7 @@ namespace Gurux.DLMS.Objects
 
         int IGXDLMSBase.GetMethodCount()
         {
-            return 0;
+            return 1;
         }
 
         /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
@@ -284,7 +284,14 @@ namespace Gurux.DLMS.Objects
                     GXCommon.SetObjectCount(cnt, data);
                     foreach (string it in Destinations)
                     {
-                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it)); //destination
+                        if (DestinationsAsString)
+                        {
+                            GXCommon.SetData(settings, data, DataType.String, it); //destination
+                        }
+                        else
+                        {
+                            GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it)); //destination
+                        }
                     }
                 }
                 return data.Array();
@@ -330,9 +337,18 @@ namespace Gurux.DLMS.Objects
                 if (e.Value != null)
                 {
                     List<string> items = new List<string>();
-                    foreach (byte[] item in (object[])e.Value)
+                    foreach (object item in (object[])e.Value)
                     {
-                        string it = GXDLMSClient.ChangeType(item, DataType.String, false).ToString();
+                        string it;
+                        if (item is byte[])
+                        {
+                            it = GXDLMSClient.ChangeType((byte[]) item, DataType.String, false).ToString();
+                        }
+                        else
+                        {
+                            it = Convert.ToString(item);
+                            DestinationsAsString = true;
+                        }
                         items.Add(it);
                     }
                     Destinations = items.ToArray();
@@ -344,9 +360,24 @@ namespace Gurux.DLMS.Objects
             }
         }
 
+        bool DestinationsAsString = false;
+
+        /// <summary>
+        /// Initiates the connection process.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] Connect(GXDLMSClient client)
+        {
+            return client.Method(this, 1, (sbyte)0);
+        }
+
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
-            e.Error = ErrorCode.ReadWriteDenied;
+            if (e.Index != 1)
+            {
+                e.Error = ErrorCode.ReadWriteDenied;
+            }
             return null;
         }
 

@@ -111,6 +111,9 @@
     <Compile Include="..\GXDLMSConfirmedServiceError.cs" />
     <Compile Include="..\ManufacturerSettings\GXAttributeCollection.cs" />
     <Compile Include="..\Objects\Enums\DeviceType.cs" />
+    <Compile Include="..\Internal\ConnectionState.cs" />
+    <Compile Include="..\Enums\DateTimeExtraInfo.cs" />
+    <Compile Include="..\Enums\Standard.cs" />
     <Compile Include="..\Objects\Enums\ApplicationContextName.cs" />
     <Compile Include="..\Objects\Enums\GainResolution.cs" />
     <Compile Include="..\Objects\Enums\GsmCircuitSwitchStatus.cs" />
@@ -284,15 +287,12 @@
     <Compile Include="..\Objects\GXDLMSAutoAnswer.cs" />
     <Compile Include="..\Objects\GXDLMSDemandRegister.cs" />
     <Compile Include="..\Objects\GXDLMSObjectCollection.cs" />
-
     <Compile Include="..\Objects\GXDLMSAccount.cs" />
     <Compile Include="..\Objects\GXDLMSCredit.cs" />
     <Compile Include="..\Objects\GXDLMSCharge.cs" />
     <Compile Include="..\Objects\GXDLMSTokenGateway.cs" />
     <Compile Include="..\Objects\GXDLMSParameterMonitor.cs" />
     <Compile Include="..\Objects\GXDLMSTarget.cs" />
-
-
     <Compile Include="..\Internal\GXFCS16.cs" />
     <Compile Include="..\Enums\InterfaceType.cs" />
     <Compile Include="..\ManufacturerSettings\GXAttribute.cs" />

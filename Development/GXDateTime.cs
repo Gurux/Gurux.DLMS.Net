@@ -53,10 +53,18 @@ namespace Gurux.DLMS
         {
 
         }
+
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXDateTime(DateTime value)
+        public GXDateTime(DateTime value) : this(value, null)
+        {
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public GXDateTime(DateTime value, TimeZoneInfo timeZone)
         {
             if (value == DateTime.MinValue)
             {
@@ -68,7 +76,11 @@ namespace Gurux.DLMS
             }
             else
             {
-                if (value.Kind == DateTimeKind.Utc)
+                if (timeZone != null)
+                {
+                    Value = new DateTimeOffset(value, timeZone.GetUtcOffset(value));
+                }
+                else if (value.Kind == DateTimeKind.Utc)
                 {
                     Value = new DateTimeOffset(value, TimeZoneInfo.Utc.GetUtcOffset(value));
                 }
@@ -175,7 +187,20 @@ namespace Gurux.DLMS
                         }
                         else
                         {
-                            month = int.Parse(values[pos]);
+                            if (string.Compare(values[pos], "B", true) == 0)
+                            {
+                                month = 1;
+                                Extra |= DateTimeExtraInfo.DstBegin;
+                            }
+                            else if (string.Compare(values[pos], "E", true) == 0)
+                            {
+                                month = 1;
+                                Extra |= DateTimeExtraInfo.DstEnd;
+                            }
+                            else
+                            {
+                                month = int.Parse(values[pos]);
+                            }
                         }
                     }
                     else if (shortDatePattern[pos].ToLower().StartsWith("dddd"))
@@ -203,6 +228,16 @@ namespace Gurux.DLMS
                         else
                         {
                             day = int.Parse(values[pos]);
+                            if (day == -1)
+                            {
+                                day = 1;
+                                Extra |= DateTimeExtraInfo.LastDay;
+                            }
+                            else if (day == -1)
+                            {
+                                day = 1;
+                                Extra |= DateTimeExtraInfo.LastDay2;
+                            }
                         }
                     }
                     ++offset;
@@ -212,7 +247,7 @@ namespace Gurux.DLMS
                     for (int pos = 0; pos != shortTimePattern.Count; ++pos)
                     {
                         //If ms is used.
-                        if (offset + pos >= values.Length )
+                        if (offset + pos >= values.Length)
                         {
                             continue;
                         }
@@ -267,7 +302,7 @@ namespace Gurux.DLMS
                                 }
                                 if (!string.IsNullOrEmpty(culture.DateTimeFormat.AMDesignator))
                                 {
-                                    if (values[pos] == culture.DateTimeFormat.AMDesignator && hour == 12)
+                                    if (values[offset + pos] == culture.DateTimeFormat.AMDesignator && hour == 12)
                                     {
                                         hour = 0;
                                     }
@@ -342,8 +377,14 @@ namespace Gurux.DLMS
                 Skip |= DateTimeSkips.Year;
                 year = 2;
             }
-            DaylightSavingsBegin = month == 0xFE;
-            DaylightSavingsEnd = month == 0xFD;
+            if (month == 0xFE)
+            {
+                Extra |= DateTimeExtraInfo.DstBegin;
+            }
+            else if (month == 0xFD)
+            {
+                Extra |= DateTimeExtraInfo.DstEnd;
+            }
             if (month < 1 || month > 12)
             {
                 Skip |= DateTimeSkips.Month;
@@ -414,6 +455,19 @@ namespace Gurux.DLMS
             set;
         }
 
+        /// <summary>
+        /// Date time extra information.
+        /// </summary>
+        [DefaultValue(DateTimeExtraInfo.None)]
+        public DateTimeExtraInfo Extra
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Day of week.
+        /// </summary>
         [DefaultValue(0)]
         public int DayOfWeek
         {
@@ -421,26 +475,6 @@ namespace Gurux.DLMS
             set;
         }
 
-
-        /// <summary>
-        /// Daylight savings begin.
-        /// </summary>
-        [DefaultValue(false)]
-        public bool DaylightSavingsBegin
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Daylight savings end.
-        /// </summary>
-        [DefaultValue(false)]
-        public bool DaylightSavingsEnd
-        {
-            get;
-            set;
-        }
 
         /// <summary>
         /// Status of the clock.
@@ -504,6 +538,22 @@ namespace Gurux.DLMS
                         }
                         shortDatePattern[pos] = "*";
                     }
+                    else
+                    {
+                        pos = shortDatePattern.IndexOf("d");
+                        if (pos == -1)
+                        {
+                            pos = shortDatePattern.IndexOf("dd");
+                        }
+                        if ((Extra & DateTimeExtraInfo.LastDay) != 0)
+                        {
+                            shortDatePattern[pos] = "-1";
+                        }
+                        else if ((Extra & DateTimeExtraInfo.LastDay2) != 0)
+                        {
+                            shortDatePattern[pos] = "-2";
+                        }
+                    }
                 }
                 if (this is GXDate)
                 {
@@ -559,7 +609,8 @@ namespace Gurux.DLMS
                     return "";
                 }
                 string str = Value.LocalDateTime.ToString(format, culture);
-                if (DayOfWeek != 0 && (Skip & DateTimeSkips.DayOfWeek) == 0)
+                if (DayOfWeek != 0 && (Skip & DateTimeSkips.DayOfWeek) == 0 &&
+                    (Skip & (DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day)) != 0)
                 {
                     System.DayOfWeek t = (System.DayOfWeek)DayOfWeek;
                     if (DayOfWeek == 7)
@@ -601,7 +652,7 @@ namespace Gurux.DLMS
                     shortDatePattern.Remove("M");
                     shortDatePattern.Remove("MM");
                 }
-                if ((Skip & DateTimeSkips.Day) != 0)
+                if ((Skip & DateTimeSkips.Day) != 0 || (Extra & DateTimeExtraInfo.LastDay) != 0 || (Extra & DateTimeExtraInfo.LastDay2) != 0)
                 {
                     shortDatePattern.Remove("d");
                     shortDatePattern.Remove("dd");
@@ -627,10 +678,6 @@ namespace Gurux.DLMS
                 {
                     format = string.Join(dateSeparator, shortDatePattern.ToArray());
                 }
-                if (DayOfWeek != 0)
-                {
-                    format = "dddd " + format;
-                }
                 if (shortTimePattern.Count != 0)
                 {
                     if (format != null)
@@ -647,13 +694,92 @@ namespace Gurux.DLMS
                 {
                     return "";
                 }
-                return Value.LocalDateTime.ToString(format, culture);
+                string str = Value.LocalDateTime.ToString(format, culture);
+                if (DayOfWeek != 0 && (Skip & DateTimeSkips.DayOfWeek) == 0)
+                {
+                    System.DayOfWeek t = (System.DayOfWeek)DayOfWeek;
+                    if (DayOfWeek == 7)
+                    {
+                        t = System.DayOfWeek.Sunday;
+                    }
+                    str = t.ToString() + " " + str;
+
+                    if ((Extra & DateTimeExtraInfo.LastDay) != 0)
+                    {
+                        str = "Last " + str;
+                    }
+                }
+                else if ((Extra & DateTimeExtraInfo.LastDay) != 0)
+                {
+                    str = "Last Day of month " + str;
+                }
+                return str;
             }
             if (DayOfWeek != 0)
             {
+#if !WINDOWS_UWP
                 return Value.LocalDateTime.ToLongDateString();
+#else
+                return Value.LocalDateTime.ToString();
+#endif //!WINDOWS_UWP
             }
             return Value.LocalDateTime.ToString();
+        }
+
+        /// <summary>
+        /// Get next schedule dates.
+        /// </summary>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public static DateTime[] GetNextScheduledDates(DateTime start, GXDateTime value, int count)
+        {
+            DateTime tmp;
+            List<DateTime> list = new List<DateTime>();
+            for (int pos = 0; pos != count; ++pos)
+            {
+                if ((value.Extra & DateTimeExtraInfo.LastDay) != 0)
+                {
+                    int y = 0;
+                    int m = start.Month + pos;
+                    if (m > 12)
+                    {
+                        y = m / 12;
+                        m %= 12;
+                    }
+                    tmp = new DateTime(start.Year + y, m, DateTime.DaysInMonth(start.Year, m), value.Value.Hour, value.Value.Minute, value.Value.Second);
+                    if ((value.Skip & DateTimeSkips.DayOfWeek) == 0)
+                    {
+                        int d = value.DayOfWeek;
+                        if (value.DayOfWeek == 7)
+                        {
+                            d = 0;
+                        }
+                        tmp = tmp.AddDays(-((int)tmp.DayOfWeek - d));
+                    }
+                    list.Add(tmp);
+                }
+                else if ((value.Skip & DateTimeSkips.Second) != 0)
+                {
+                    list.Add(start.AddSeconds(pos));
+                }
+                else if ((value.Skip & DateTimeSkips.Minute) != 0)
+                {
+                    list.Add(start.AddMinutes(pos));
+                }
+                else if ((value.Skip & DateTimeSkips.Hour) != 0)
+                {
+                    list.Add(start.AddHours(pos));
+                }
+                else if ((value.Skip & DateTimeSkips.Day) != 0)
+                {
+                    list.Add(start.AddDays(pos));
+                }
+                else if ((value.Skip & DateTimeSkips.Month) != 0)
+                {
+                    list.Add(start.AddMonths(pos));
+                }
+            }
+            return list.ToArray();
         }
 
         /// <summary>
@@ -773,7 +899,7 @@ namespace Gurux.DLMS
             return diff;
         }
 
-        #region IConvertible Members
+#region IConvertible Members
 
         TypeCode IConvertible.GetTypeCode()
         {
@@ -860,6 +986,6 @@ namespace Gurux.DLMS
             throw new NotImplementedException();
         }
 
-        #endregion
+#endregion
     }
 }

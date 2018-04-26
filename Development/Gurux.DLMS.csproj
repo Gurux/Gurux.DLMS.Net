@@ -71,8 +71,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Enums\Standard.cs" />
+    <Compile Include="Enums\DateTimeExtraInfo.cs" />
     <Compile Include="GXDLMSXmlClient.cs" />
     <Compile Include="GXDLMSConfirmedServiceError.cs" />
+    <Compile Include="Internal\ConnectionState.cs" />
     <Compile Include="Internal\MBusCommand.cs" />
     <Compile Include="Internal\MBusEncryptionMode.cs" />
     <Compile Include="Internal\MBusMeterType.cs" />
@@ -368,6 +371,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Italian.txt" />
     <Content Include="OBISCodes.txt" />
   </ItemGroup>
   <ItemGroup />

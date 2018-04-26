@@ -49,7 +49,7 @@ namespace Gurux.DLMS
         public static void HandleGetRequest(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
         {
             //Return error if connection is not established.
-            if (xml == null && !settings.Connected && !settings.AllowAnonymousAccess)
+            if (xml == null && settings.Connected == ConnectionState.None && !settings.CanAccess())
             {
                 replyData.Set(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));
@@ -110,7 +110,7 @@ namespace Gurux.DLMS
         public static void HandleSetRequest(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
         {
             //Return error if connection is not established.
-            if (xml == null && !settings.Connected && !settings.AllowAnonymousAccess)
+            if (xml == null && settings.Connected == ConnectionState.None && !settings.CanAccess())
             {
                 replyData.Set(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));
@@ -205,7 +205,7 @@ namespace Gurux.DLMS
             }
 
             GXDLMSObject obj = settings.Objects.FindByLN(ci, GXCommon.ToLogicalName(ln));
-            if (!settings.Connected && !settings.AllowAnonymousAccess && (ci != ObjectType.AssociationLogicalName || id != 1))
+            if (settings.Connected == ConnectionState.None && !settings.CanAccess() && (ci != ObjectType.AssociationLogicalName || id != 1))
             {
                 replyData.Set(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));
@@ -241,7 +241,7 @@ namespace Gurux.DLMS
                     {
                         actionReply = (obj as IGXDLMSBase).Invoke(settings, e);
                         server.NotifyPostAction(new ValueEventArgs[] { e });
-                        if (settings.Connected && (ci == ObjectType.AssociationLogicalName &&  id == 1))
+                        if (settings.Connected == ConnectionState.Dlms && (ci == ObjectType.AssociationLogicalName &&  id == 1))
                         {
                             server.NotifyConnected(connectionInfo);
                         }
@@ -268,7 +268,7 @@ namespace Gurux.DLMS
             GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeId, Command.MethodResponse, 1, null, bb, (byte)error);
             GXDLMS.GetLNPdu(p, replyData);
             //If High level authentication fails.
-            if (!settings.Connected && !settings.AllowAnonymousAccess && obj is GXDLMSAssociationLogicalName && id == 1)
+            if (settings.Connected == ConnectionState.None && !settings.CanAccess() && obj is GXDLMSAssociationLogicalName && id == 1)
             {
                 server.NotifyInvalidConnection(connectionInfo);
             }
@@ -942,7 +942,7 @@ namespace Gurux.DLMS
                                                GXByteBuffer reply, GXDLMSTranslatorStructure xml)
         {
             //Return error if connection is not established.
-            if (xml == null && !settings.Connected && !settings.AllowAnonymousAccess)
+            if (xml == null && settings.Connected == ConnectionState.None && !settings.CanAccess())
             {
                 reply.Set(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                           ServiceError.Service, (byte)Service.Unsupported));

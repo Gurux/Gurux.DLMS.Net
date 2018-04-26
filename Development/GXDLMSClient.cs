@@ -533,7 +533,7 @@ namespace Gurux.DLMS
         /// <seealso cref="ParseUAResponse"/>
         public byte[] SNRMRequest()
         {
-            Settings.Connected = false;
+            Settings.Connected = ConnectionState.None;
             IsAuthenticationRequired = false;
             // SNRM request is not used in network connections.
             if (InterfaceType == InterfaceType.WRAPPER)
@@ -585,6 +585,7 @@ namespace Gurux.DLMS
         public void ParseUAResponse(GXByteBuffer data)
         {
             GXDLMS.ParseSnrmUaResponse(data, Limits);
+            Settings.Connected = ConnectionState.Hdlc;
         }
 
         /// <summary>
@@ -596,7 +597,7 @@ namespace Gurux.DLMS
         {
             Settings.NegotiatedConformance = (Conformance)0;
             Settings.ResetBlockIndex();
-            Settings.Connected = false;
+            Settings.Connected &= ~ConnectionState.Dlms;
             GXByteBuffer buff = new GXByteBuffer(20);
             GXDLMS.CheckInit(Settings);
             Settings.StoCChallenge = null;
@@ -652,10 +653,13 @@ namespace Gurux.DLMS
             {
                 IsAuthenticationRequired = GXAPDU.ParsePDU(Settings, Settings.Cipher, reply, null) == SourceDiagnostic.AuthenticationRequired;
                 //Some meters need disconnect even authentication is required.
-                Settings.Connected = true;
                 if (IsAuthenticationRequired)
                 {
                     System.Diagnostics.Debug.WriteLine("Authentication is required.");
+                }
+                else
+                {
+                    Settings.Connected |= ConnectionState.Dlms;
                 }
                 System.Diagnostics.Debug.WriteLine("- Server max PDU size is " + MaxReceivePDUSize);
                 if (DLMSVersion != 6)
@@ -694,6 +698,17 @@ namespace Gurux.DLMS
         /// <seealso cref="ParseApplicationAssociationResponse"/>
         public byte[][] GetApplicationAssociationRequest()
         {
+            return GetApplicationAssociationRequest(null);
+        }
+
+        /// <summary>
+        /// Get challenge request if HLS authentication is used.
+        /// </summary>
+        /// <returns></returns>
+        /// <seealso cref="IsAuthenticationRequired"/>
+        /// <seealso cref="ParseApplicationAssociationResponse"/>
+        public byte[][] GetApplicationAssociationRequest(string ln)
+        {
             if (Settings.Authentication != Authentication.HighECDSA &&
                 Settings.Authentication != Authentication.HighGMAC &&
                     (Settings.Password == null || Settings.Password.Length == 0))
@@ -719,7 +734,11 @@ namespace Gurux.DLMS
                                                Settings.StoCChallenge, pw);
             if (UseLogicalNameReferencing)
             {
-                return Method("0.0.40.0.0.255", ObjectType.AssociationLogicalName,
+                if (string.IsNullOrEmpty(ln))
+                {
+                    ln = "0.0.40.0.0.255";
+                }
+                return Method(ln, ObjectType.AssociationLogicalName,
                               1, challenge, DataType.OctetString);
             }
             return Method(0xFA00, ObjectType.AssociationShortName, 8, challenge,
@@ -756,9 +775,11 @@ namespace Gurux.DLMS
                                              Settings.CtoSChallenge, secret);
                 GXByteBuffer challenge = new GXByteBuffer(tmp);
                 equals = challenge.Compare(value);
+                Settings.Connected |= ConnectionState.Dlms;
             }
             if (!equals)
             {
+                Settings.Connected &= ~ConnectionState.Dlms;
                 throw new GXDLMSException("Invalid password. Server to Client challenge do not match.");
             }
         }
@@ -771,7 +792,7 @@ namespace Gurux.DLMS
         {
             // If connection is not established, there is no need to send
             // DisconnectRequest.
-            if (!Settings.Connected)
+            if (Settings.SourceSystemTitle != null || Settings.Connected != ConnectionState.Dlms)
             {
                 return null;
             }
@@ -795,28 +816,45 @@ namespace Gurux.DLMS
             }
             if (Settings.InterfaceType == InterfaceType.WRAPPER)
             {
-                Settings.Connected = false;
+                Settings.Connected = ConnectionState.Dlms;
             }
             return reply;
         }
-
         /// <summary>
         /// Generates a disconnect request.
         /// </summary>
         /// <returns>Disconnected request, as byte array.</returns>
         public byte[] DisconnectRequest()
         {
+            return DisconnectRequest(false);
+        }
+
+        /// <summary>
+        /// Generates a disconnect request.
+        /// </summary>
+        /// <returns>Disconnected request, as byte array.</returns>
+        public byte[] DisconnectRequest(bool force)
+        {
+            if (!force && Settings.Connected == ConnectionState.None)
+            {
+                return null;
+            }
+            byte[] ret = null;
             //Reset to max PDU size when connection is closed.
             Settings.MaxPduSize = 0xFFFF;
-            Settings.Connected = false;
             if (Settings.InterfaceType == InterfaceType.HDLC)
             {
-                return GXDLMS.GetHdlcFrame(Settings, (byte)Command.DisconnectRequest, null);
+                ret = GXDLMS.GetHdlcFrame(Settings, (byte)Command.DisconnectRequest, null);
             }
-            GXByteBuffer bb = new GXByteBuffer(2);
-            bb.SetUInt8((byte)Command.ReleaseRequest);
-            bb.SetUInt8(0x0);
-            return GXDLMS.GetWrapperFrame(Settings, bb);
+            else if (force || Settings.Connected == ConnectionState.Dlms)
+            {
+                GXByteBuffer bb = new GXByteBuffer(2);
+                bb.SetUInt8((byte)Command.ReleaseRequest);
+                bb.SetUInt8(0x0);
+                ret = GXDLMS.GetWrapperFrame(Settings, bb);
+            }
+            Settings.Connected = ConnectionState.None;
+            return ret;
         }
 
         /// <summary>
@@ -1333,11 +1371,30 @@ namespace Gurux.DLMS
         /// <returns>Read request, as byte array.</returns>
         public byte[] GetObjectsRequest()
         {
+            return GetObjectsRequest(null);
+        }
+
+        /// <summary>
+        /// Reads the selected object from the device.
+        /// </summary>
+        /// <remarks>
+        /// This method is used to get all registers in the device.
+        /// </remarks>
+        /// <returns>Read request, as byte array.</returns>
+        public byte[] GetObjectsRequest(string ln)
+        {
             object name;
             Settings.ResetBlockIndex();
             if (UseLogicalNameReferencing)
             {
-                name = "0.0.40.0.0.255";
+                if (string.IsNullOrEmpty(ln))
+                {
+                    name = "0.0.40.0.0.255";
+                }
+                else
+                {
+                    name = ln;
+                }
             }
             else
             {

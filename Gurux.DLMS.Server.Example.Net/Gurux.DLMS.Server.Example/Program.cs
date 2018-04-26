@@ -38,6 +38,7 @@ using System.Text;
 using Gurux.Net;
 using System.Diagnostics;
 using Gurux.Common;
+using Gurux.DLMS.Secure;
 
 namespace GuruxDLMSServerExample
 {
@@ -92,7 +93,16 @@ namespace GuruxDLMSServerExample
                 Console.WriteLine("Logical Name DLMS Server with IEC 62056-47 in port {0}.", settings.port + 3);
                 Console.WriteLine("Example connection settings:");
                 Console.WriteLine("Gurux.DLMS.Client.Example.Net -h localhost -p {0} -w", settings.port + 3);
-                while (Console.ReadKey().Key != ConsoleKey.Enter) ;
+                ConsoleKey k;
+                while ((k = Console.ReadKey().Key) != ConsoleKey.Escape)
+                {
+                    if (k == ConsoleKey.Delete)
+                    {
+                        Console.Clear();
+                    }
+                    Console.WriteLine("Press Esc to close application or delete clear the console.");
+                }
+
                 //Close servers.
                 SNServer.Close();
                 LNServer.Close();

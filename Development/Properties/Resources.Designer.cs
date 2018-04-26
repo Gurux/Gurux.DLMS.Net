@@ -124,6 +124,26 @@ namespace Gurux.DLMS.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 1;0.0.96.1.0.255;Manufacturing number
+        ///1;0.0.96.1.10.255;Metering Point Identifier
+        ///1;0.0.96.1.3.255;Equipment Class Identifier
+        ///1;0.0.96.1.5.255;UNI/TS Reference version
+        ///17;0.0.41.0.0.255;SAP assigment
+        ///1;0.0.42.0.0.255;Logical Device Name
+        ///15;0.0.40.0.1.255;Management Association
+        ///15;0.0.40.0.16.255;Public Association
+        ///15;0.0.40.0.3.255;Installer/Maintainer Association
+        ///15;0.0.40.0.48.255;Guarantor Authority Association
+        ///15;0.0.40.0.64.255;Gateway Association
+        ///15;0.0.40.0.32.255;Broadcasting Association        /// [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Italian {
+            get {
+                return ResourceManager.GetString("Italian", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Logical Name.
         /// </summary>
         internal static string LogicalNameTxt {

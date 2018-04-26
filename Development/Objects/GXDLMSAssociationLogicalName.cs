@@ -309,14 +309,14 @@ namespace Gurux.DLMS.Objects
                     {
                         secret = Secret;
                     }
-                    settings.Connected = true;
+                    settings.Connected = ConnectionState.Dlms;
                     AssociationStatus = AssociationStatus.Associated;
                     return GXSecure.Secure(settings, settings.Cipher, ic, settings.CtoSChallenge, secret);
                 }
                 else //If the password does not match.
                 {
                     AssociationStatus = AssociationStatus.NonAssociated;
-                    settings.Connected = false;
+                    settings.Connected &= ~ConnectionState.Dlms;
                     return null;
                 }
             }

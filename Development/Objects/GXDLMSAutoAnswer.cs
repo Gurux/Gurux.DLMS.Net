@@ -52,9 +52,8 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSAutoAnswer()
-        : base(ObjectType.AutoAnswer, "0.0.2.2.0.255", 0)
+        : this("0.0.2.2.0.255")
         {
-            ListeningWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
         }
 
         /// <summary>
@@ -62,9 +61,8 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSAutoAnswer(string ln)
-        : base(ObjectType.AutoAnswer, ln, 0)
+        : this(ln, 0)
         {
-            ListeningWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
         }
 
         /// <summary>

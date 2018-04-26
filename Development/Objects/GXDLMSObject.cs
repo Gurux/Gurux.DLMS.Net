@@ -70,7 +70,7 @@ namespace Gurux.DLMS.Objects
                 return true;
             }
             //If value is changed or value is not read yet.
-            return !(DirtyAttributes.ContainsKey(index) ||
+            return !(Status.ContainsKey(index) ||
                      GetLastReadTime(index) == DateTime.MinValue);
         }
 
@@ -84,12 +84,36 @@ namespace Gurux.DLMS.Objects
             return GetAccess(index) != AccessMode.NoAccess;
         }
 
-        /// <summary>
-        /// List of changed items.
-        /// </summary>
-        System.Collections.Generic.SortedDictionary<int, object> DirtyAttributes = new SortedDictionary<int, object>();
+        class GXStatusInfo
+        {
+            /// <summary>
+            /// Last read time.
+            /// </summary>
+            public DateTime Read
+            {
+                get;
+                set;
+            }
 
-        System.Collections.Generic.SortedDictionary<int, DateTime> ReadTimes = new SortedDictionary<int, DateTime>();
+            /// <summary>
+            /// Changed value.
+            /// </summary>
+            public object Value
+            {
+                get;
+                set;
+            }
+
+            /// <summary>
+            /// Last exception.
+            /// </summary>
+            public Exception Error
+            {
+                get;
+                set;
+            }
+        }
+        SortedDictionary<int, GXStatusInfo> Status = new SortedDictionary<int, GXStatusInfo>();
 
         public event ObjectChangeEventHandler OnChange;
 
@@ -293,11 +317,35 @@ namespace Gurux.DLMS.Objects
         {
             if (attributeIndex == 0)
             {
-                DirtyAttributes.Clear();
+                Status.Clear();
             }
             else
             {
-                DirtyAttributes.Remove(attributeIndex);
+                if (Status.ContainsKey(attributeIndex))
+                {
+                    Status[attributeIndex].Value = null;
+                }
+            }
+            if (OnChange != null)
+            {
+                OnChange(this, false, attributeIndex, null);
+            }
+        }
+
+        /// <summary>
+        /// Clears status information.
+        /// </summary>
+        /// <param name="attributeIndex">Attribute index of the COSEM object.</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void ClearStatus(int attributeIndex)
+        {
+            if (attributeIndex == 0)
+            {
+                Status.Clear();
+            }
+            else
+            {
+                Status.Remove(attributeIndex);
             }
             if (OnChange != null)
             {
@@ -314,10 +362,10 @@ namespace Gurux.DLMS.Objects
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool GetDirty(int attributeIndex, out object value)
         {
-            if (DirtyAttributes.ContainsKey(attributeIndex))
+            if (Status.ContainsKey(attributeIndex))
             {
-                value = DirtyAttributes[attributeIndex];
-                return true;
+                value = Status[attributeIndex].Value;
+                return value != null;
             }
             value = null;
             return false;
@@ -330,7 +378,15 @@ namespace Gurux.DLMS.Objects
         [EditorBrowsable(EditorBrowsableState.Never)]
         public int[] GetDirtyAttributeIndexes()
         {
-            return DirtyAttributes.Keys.ToArray();
+            List<int> list = new List<int>();
+            foreach (var it in Status)
+            {
+                if (it.Value != null && it.Value.Value != null)
+                {
+                    list.Add(it.Key);
+                }
+            }
+            return list.ToArray();
         }
 
         /// <summary>
@@ -341,7 +397,16 @@ namespace Gurux.DLMS.Objects
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void UpdateDirty(int attributeIndex, object value)
         {
-            DirtyAttributes[attributeIndex] = value;
+            if (!Status.ContainsKey(attributeIndex))
+            {
+                GXStatusInfo s = new GXStatusInfo();
+                s.Value = value;
+                Status.Add(attributeIndex, s);
+            }
+            else
+            {
+                Status[attributeIndex].Value = value;
+            }
             if (OnChange != null)
             {
                 OnChange(this, true, attributeIndex, value);
@@ -355,11 +420,11 @@ namespace Gurux.DLMS.Objects
         /// <returns>Is attribute read only.</returns>
         public DateTime GetLastReadTime(int attributeIndex)
         {
-            if (!ReadTimes.ContainsKey(attributeIndex))
+            if (!Status.ContainsKey(attributeIndex))
             {
                 return DateTime.MinValue;
             }
-            return ReadTimes[attributeIndex];
+            return Status[attributeIndex].Read;
         }
 
         /// <summary>
@@ -370,17 +435,68 @@ namespace Gurux.DLMS.Objects
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetLastReadTime(int attributeIndex, DateTime tm)
         {
-            ReadTimes[attributeIndex] = tm;
+            if (!Status.ContainsKey(attributeIndex))
+            {
+                GXStatusInfo s = new GXStatusInfo();
+                s.Read = tm;
+                Status.Add(attributeIndex, s);
+            }
+            else
+            {
+                Status[attributeIndex].Read = tm;
+            }
         }
 
         /// <summary>
-        /// CLear read times.
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void ClearReadTime()
+        /// Returns last error.
+        /// </summary>-
+        /// <param name="attributeIndex">Attribute index.</param>
+        /// <returns>Last exception.</returns>
+        public Exception GetLastError(int attributeIndex)
         {
-            ReadTimes.Clear();
+            if (!Status.ContainsKey(attributeIndex))
+            {
+                return null;
+            }
+            return Status[attributeIndex].Error;
         }
+
+        /// <summary>
+        /// Returns last errors.
+        /// </summary>-
+        /// <returns>Last exception.</returns>
+        public SortedDictionary<int, Exception> GetLastErrors()
+        {
+            SortedDictionary<int, Exception> errors = new SortedDictionary<int, Exception>();
+            foreach(var it in Status)
+            {
+                if (it.Value.Error != null)
+                {
+                    errors.Add(it.Key, it.Value.Error);
+                }
+            }
+            return errors;
+        }
+    
+        /// <summary>
+        /// Set time when attribute was last time read.
+        /// </summary>
+        /// <param name="attributeIndex">>Attribute index.</param>
+        /// <param name="error">Last Error.</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void SetLastError(int attributeIndex, Exception error)
+        {
+            if (!Status.ContainsKey(attributeIndex))
+            {
+                GXStatusInfo s = new GXStatusInfo();
+                s.Error = error;
+                Status.Add(attributeIndex, s);
+            }
+            else
+            {
+                Status[attributeIndex].Error = error;
+            }
+        }      
 
         /// <summary>
         /// Returns is attribute read only.

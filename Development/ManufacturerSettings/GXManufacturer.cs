@@ -113,11 +113,23 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// Is IEC 62056-47 supported.
         /// </summary>
         [DefaultValue(false)]
+        //[Obsolete("Use Objects", false)]
         public bool UseIEC47
         {
             get;
             set;
         }
+       
+        /// <summary>
+        /// Used standard.
+        /// </summary>
+        [DefaultValue(Standard.DLMS)]
+        public Standard Standard
+        {
+            get;
+            set;
+        }
+        
 
         /// <summary>
         /// Is IEC 62056-21 skipped when using serial port connection.

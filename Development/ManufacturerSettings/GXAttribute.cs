@@ -270,6 +270,6 @@ namespace Gurux.DLMS.ManufacturerSettings
         {
             get;
             set;
-        }
+        }       
     }
 }

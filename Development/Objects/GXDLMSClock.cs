@@ -443,8 +443,17 @@ namespace Gurux.DLMS.Objects
         /// <returns>Current time</returns>
         public GXDateTime Now()
         {
-            DateTime now = DateTime.Now;
-            GXDateTime tm = new GXDateTime(now);
+            return GetTime(DateTime.Now);
+        }
+
+        /// <summary>
+        /// Returns time using clock settings.
+        /// </summary>
+        /// <param name="time"></param>
+        /// <returns></returns>
+        public GXDateTime GetTime(DateTime time)
+        {
+            GXDateTime tm = new GXDateTime(time);
             //-32768 == 0x8000
             if (TimeZone == -1 || TimeZone == -32768)
             {
@@ -453,20 +462,31 @@ namespace Gurux.DLMS.Objects
             else
             {
                 //If clock's time zone is different what user want's to use.
-                int offset = TimeZone + (int)tm.Value.Offset.TotalMinutes;
-                if (offset != 0)
+                int offset = TimeZone;
+                offset += (int)TimeZoneInfo.Local.BaseUtcOffset.TotalMinutes;
+                if (offset != 0 ||
+                    (!Enabled && time.IsDaylightSavingTime()))
                 {
-                    TimeSpan zone = new TimeSpan(0, -TimeZone, 0);
-                    now = now.AddMinutes(-offset);
-                    now = new DateTime(now.Ticks, DateTimeKind.Unspecified);
-                    tm.Value = new DateTimeOffset(now, zone);
+                    TimeSpan zone;
+                    if (Enabled)
+                    {
+                        zone = new TimeSpan(0, -TimeZone + Deviation, 0);
+                    }
+                    else
+                    {
+                        time = time.AddMinutes(-60);
+                        zone = new TimeSpan(0, -TimeZone, 0);
+                    }
+                    time = time.AddMinutes(-offset);
+                    time = new DateTime(time.Ticks, DateTimeKind.Unspecified);
+                    tm.Value = new DateTimeOffset(time, zone);
                 }
             }
             //If clock's daylight saving is active but user do not want to use it.
-            if (!Enabled && now.IsDaylightSavingTime())
+            if (!Enabled && time.IsDaylightSavingTime())
             {
                 tm.Status &= ~ClockStatus.DaylightSavingActive;
-                tm.Value = tm.Value.AddMinutes(-Deviation);
+                //                tm.Value = tm.Value.AddMinutes(-Deviation);
             }
             return tm;
         }
@@ -491,14 +511,10 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 5)
             {
-                Begin.DaylightSavingsEnd = false;
-                Begin.DaylightSavingsBegin = true;
                 return Begin;
             }
             if (e.Index == 6)
             {
-                End.DaylightSavingsBegin = false;
-                End.DaylightSavingsEnd = true;
                 return End;
             }
             if (e.Index == 7)

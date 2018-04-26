@@ -635,7 +635,16 @@ namespace Gurux.DLMS.Internal
                         try
                         {
                             data.Position = originalPos - 1;
-                            p = new AesGcmParameter(settings.SourceSystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                            byte[] st;
+                            if (settings.IsServer)
+                            {
+                                st = settings.SourceSystemTitle;
+                            }
+                            else
+                            {
+                                st = settings.Cipher.SystemTitle;
+                            }
+                            p = new AesGcmParameter(st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
                             p.Xml = xml;
                             tmp = GXDLMSChippering.DecryptAesGcm(p, data);
                             data.Clear();

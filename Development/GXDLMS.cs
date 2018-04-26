@@ -554,7 +554,9 @@ namespace Gurux.DLMS
         private static byte[] Cipher0(GXDLMSLNParameters p, byte[] data)
         {
             byte cmd;
-            if ((p.settings.NegotiatedConformance & Conformance.GeneralProtection) == 0)
+            byte[] st = p.settings.Cipher.SystemTitle;
+            if ((p.settings.ProposedConformance & Conformance.GeneralProtection) == 0
+                && (p.settings.NegotiatedConformance & Conformance.GeneralProtection) == 0)
             {
                 cmd = (byte)GetGloMessage(p.command);
             }
@@ -562,18 +564,23 @@ namespace Gurux.DLMS
             {
                 cmd = (byte)Command.GeneralGloCiphering;
             }
-            byte[] tmp = p.settings.Cipher.Encrypt(cmd,
-                                                   p.settings.Cipher.SystemTitle, data);
-            if (p.command == Command.DataNotification || (p.settings.NegotiatedConformance & Conformance.GeneralProtection) != 0)
+            byte[] tmp = p.settings.Cipher.Encrypt(cmd, st, data);
+            if (p.command == Command.DataNotification || cmd == (byte)Command.GeneralGloCiphering)
             {
                 GXByteBuffer reply = new GXByteBuffer();
                 // Add command.
                 reply.SetUInt8(tmp[0]);
                 // Add system title.
-                GXCommon.SetObjectCount(
-                    p.settings.Cipher.SystemTitle.Length,
-                    reply);
-                reply.Set(p.settings.Cipher.SystemTitle);
+                if (st != null)
+                {
+                    GXCommon.SetObjectCount(st.Length, reply);
+                    reply.Set(st);
+                }
+                else
+                {
+                    //System title is not send on Pre-Established connections.
+                    reply.SetUInt8(0);
+                }
                 // Add data.
                 reply.Set(tmp, 1, tmp.Length - 1);
                 return reply.Array();
@@ -2477,35 +2484,42 @@ namespace Gurux.DLMS
             // Response normal
             if (type == GetCommandType.Normal)
             {
-                // Result
-                ch = data.GetUInt8();
-                if (ch != 0)
+                if (data.Available == 0)
                 {
-                    reply.Error = data.GetUInt8();
-                }
-                if (reply.Xml != null)
-                {
-                    // Result start tag.
-                    reply.Xml.AppendStartTag(TranslatorTags.Result);
-                    if (reply.Error != 0)
-                    {
-                        reply.Xml.AppendLine(TranslatorTags.DataAccessError,
-                                             "Value",
-                                             GXDLMSTranslator.ErrorCodeToString(
-                                                 reply.Xml.OutputType, (ErrorCode)reply.Error));
-                    }
-                    else
-                    {
-                        reply.Xml.AppendStartTag(TranslatorTags.Data);
-                        GXDataInfo di = new GXDataInfo();
-                        di.xml = reply.Xml;
-                        GXCommon.GetData(settings, reply.Data, di);
-                        reply.Xml.AppendEndTag(TranslatorTags.Data);
-                    }
+                    GetDataFromBlock(data, 0);
                 }
                 else
                 {
-                    GetDataFromBlock(data, 0);
+                    // Result
+                    ch = data.GetUInt8();
+                    if (ch != 0)
+                    {
+                        reply.Error = data.GetUInt8();
+                    }
+                    if (reply.Xml != null)
+                    {
+                        // Result start tag.
+                        reply.Xml.AppendStartTag(TranslatorTags.Result);
+                        if (reply.Error != 0)
+                        {
+                            reply.Xml.AppendLine(TranslatorTags.DataAccessError,
+                                                 "Value",
+                                                 GXDLMSTranslator.ErrorCodeToString(
+                                                     reply.Xml.OutputType, (ErrorCode)reply.Error));
+                        }
+                        else
+                        {
+                            reply.Xml.AppendStartTag(TranslatorTags.Data);
+                            GXDataInfo di = new GXDataInfo();
+                            di.xml = reply.Xml;
+                            GXCommon.GetData(settings, reply.Data, di);
+                            reply.Xml.AppendEndTag(TranslatorTags.Data);
+                        }
+                    }
+                    else
+                    {
+                        GetDataFromBlock(data, 0);
+                    }
                 }
             }
             else if (type == GetCommandType.NextDataBlock)
@@ -2836,7 +2850,12 @@ namespace Gurux.DLMS
                 if ((data.MoreData & RequestTypes.Frame) == 0)
                 {
                     --data.Data.Position;
-                    settings.Cipher.Decrypt(settings.SourceSystemTitle, data.Data);
+                    byte[] st = settings.SourceSystemTitle;
+                    if (st == null)
+                    {
+                        st = settings.Cipher.SystemTitle;
+                    }
+                    settings.Cipher.Decrypt(st, data.Data);
                     // Get command.
                     data.Command = (Command)data.Data.GetUInt8();
                 }

@@ -171,7 +171,7 @@ namespace Gurux.DLMS
                                               GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
         {
             //Return error if connection is not established.
-            if (xml == null && !settings.Connected && !settings.AllowAnonymousAccess)
+            if (xml == null && settings.Connected == ConnectionState.None && !settings.CanAccess())
             {
                 replyData.Add(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));
@@ -407,7 +407,7 @@ namespace Gurux.DLMS
                 e.Parameters = GXCommon.GetData(settings, data, di);
             }
             //Return error if connection is not established.
-            if (!settings.Connected && !settings.AllowAnonymousAccess && (!e.action || e.Target.ShortName != 0xFA00 || e.Index != 8))
+            if (settings.Connected == ConnectionState.None && !settings.CanAccess() && (!e.action || e.Target.ShortName != 0xFA00 || e.Index != 8))
             {
                 replyData.Add(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));

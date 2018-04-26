@@ -71,6 +71,25 @@ namespace Gurux.DLMS
         /// </summary>
         private GXByteBuffer replyData = new GXByteBuffer();
 
+
+        /// <summary>
+        /// Client system title. 
+        /// </summary>
+        /// <remarks>
+        /// Client system title is optional and it's used when Pre-established Application Associations is used.
+        /// </remarks>
+        public byte[] ClientSystemTitle
+        {
+            get
+            {
+                return Settings.SourceSystemTitle;
+            }
+            set
+            {
+                Settings.SourceSystemTitle = value;
+            }
+        }
+
         internal GXDLMSLongTransaction transaction;
 
         bool Initialized = false;
@@ -774,7 +793,7 @@ namespace Gurux.DLMS
             transaction = null;
             Settings.BlockIndex = 1;
             Settings.Count = Settings.Index = 0;
-            Settings.Connected = false;
+            Settings.Connected = ConnectionState.None;
             replyData.Clear();
             receivedData.Clear();
             Settings.Password = null;
@@ -866,7 +885,7 @@ namespace Gurux.DLMS
                         return;
                     }
                     receivedData.Clear();
-                    if (info.Command == Command.DisconnectRequest && !Settings.Connected)
+                    if (info.Command == Command.DisconnectRequest && Settings.Connected == ConnectionState.None)
                     {
                         sr.Reply = GXDLMS.GetHdlcFrame(Settings, (byte)Command.DisconnectMode, replyData);
                         info.Clear();
@@ -974,9 +993,9 @@ namespace Gurux.DLMS
                 else
                 {
                     Reset();
-                    if (Settings.Connected)
+                    if (Settings.Connected == ConnectionState.Dlms)
                     {
-                        Settings.Connected = false;
+                        Settings.Connected &= ~ConnectionState.Dlms;
                         Disconnected(sr.ConnectionInfo);
                     }
                 }
@@ -1033,15 +1052,18 @@ namespace Gurux.DLMS
                     break;
                 case Command.ReleaseRequest:
                     HandleReleaseRequest(data, sr.ConnectionInfo);
-                    Settings.Connected = false;
+                    Settings.Connected &= ~ConnectionState.Dlms;
                     Disconnected(sr.ConnectionInfo);
                     break;
                 case Command.DisconnectRequest:
                     GenerateDisconnectRequest();
-                    if (Settings.Connected)
+                    if (Settings.Connected > ConnectionState.None)
                     {
-                        Settings.Connected = false;
-                        Disconnected(sr.ConnectionInfo);
+                        if (Settings.Connected == ConnectionState.Dlms)
+                        {
+                            Disconnected(sr.ConnectionInfo);
+                        }
+                        Settings.Connected = ConnectionState.None;
                     }
                     frame = (byte)Command.Ua;
                     break;
@@ -1322,7 +1344,7 @@ namespace Gurux.DLMS
                             }
                         }
                         Connected(connectionInfo);
-                        Settings.Connected = true;
+                        Settings.Connected |= ConnectionState.Dlms;
                     }
                 }
             }
@@ -1353,7 +1375,7 @@ namespace Gurux.DLMS
         private void HandleReleaseRequest(GXByteBuffer data, GXDLMSConnectionEventArgs connectionInfo)
         {
             //Return error if connection is not established.
-            if (!Settings.Connected && !Settings.IsAuthenticationRequired && !Settings.AllowAnonymousAccess)
+            if (Settings.Connected == ConnectionState.None && !Settings.IsAuthenticationRequired && !Settings.CanAccess())
             {
                 replyData.Add(GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));
@@ -1429,7 +1451,7 @@ namespace Gurux.DLMS
         private void GenerateDisconnectRequest()
         {
             //Return error if connection is not established.
-            if (!Settings.Connected && !Settings.IsAuthenticationRequired && !Settings.AllowAnonymousAccess)
+            if (Settings.Connected == ConnectionState.None && !Settings.IsAuthenticationRequired && !Settings.CanAccess())
             {
                 replyData.Add(GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));

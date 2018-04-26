@@ -53,7 +53,7 @@ namespace Gurux.DLMS.Objects.Italy
         /// Constructor.
         /// </summary>
         public GXDLMSTariffPlan()
-        : this(null)
+        : this("0.0.94.39.21.101")
         {
         }
 

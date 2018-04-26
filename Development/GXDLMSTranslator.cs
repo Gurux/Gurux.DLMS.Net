@@ -1124,8 +1124,15 @@ namespace Gurux.DLMS
                         xml.AppendLine(TranslatorTags.Reason, "Value", str);
                         if (value.Available != 0)
                         {
-                            GXAPDU.ParsePDU2(settings, settings.Cipher, value,
-                                    xml);
+                            try
+                            {
+                                GXAPDU.ParsePDU2(settings, settings.Cipher, value,
+                                        xml);
+                            }
+                            catch (Exception)
+                            {
+                                //This usually fails if keys are wrong.
+                            }
                         }
                     }
                     xml.AppendEndTag(cmd);
@@ -1212,11 +1219,11 @@ namespace Gurux.DLMS
                         int len2 = xml.GetXmlLength();
                         int originalPosition = value.Position;
                         --value.Position;
+                        //Check is this client msg.
                         try
                         {
                             byte[] st;
                             st = settings.Cipher.SystemTitle;
-                            st = settings.SourceSystemTitle;
                             if (st != null)
                             {
                                 AesGcmParameter p = new AesGcmParameter(st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
@@ -1228,8 +1235,27 @@ namespace Gurux.DLMS
                         }
                         catch (Exception)
                         {
-                            // It's OK if this fails. Ciphering settings are not correct.
-                            xml.SetXmlLength(len2);
+                            value.Position = originalPosition;
+                            --value.Position;
+                            //Check is this server msg.
+                            try
+                            {
+                                byte[] st;
+                                st = settings.SourceSystemTitle;
+                                if (st != null)
+                                {
+                                    AesGcmParameter p = new AesGcmParameter(st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                                    GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
+                                    xml.StartComment("Decrypt data:");
+                                    PduToXml(xml, data2, omitDeclaration, omitNameSpace);
+                                    xml.EndComment();
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                // It's OK if this fails. Ciphering settings are not correct.
+                                xml.SetXmlLength(len2);
+                            }
                         }
                         value.Position = originalPosition;
                     }
@@ -2925,6 +2951,75 @@ namespace Gurux.DLMS
             {
                 xml = di.xml.ToString();
             }
+        }
+
+        /// <summary>
+        /// Convert data to xml.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static string ValueToXml(object value)
+        {
+            SortedList<int, string> tags = new SortedList<int, string>();
+            TranslatorSimpleTags.GetDataTypeTags(tags);
+            GXDLMSTranslatorStructure xml = new GXDLMSTranslatorStructure(TranslatorOutputType.SimpleXml, true, false, false, false, tags);
+            GXCommon.DatatoXml(value, xml);
+            return xml.ToString();
+        }
+
+        private static List<object> GetNodes(XmlNodeList nodes)
+        {
+            List<object> values = new List<object>();
+            String str;
+            foreach (XmlNode node in nodes)
+            {
+                if (node.NodeType == XmlNodeType.Element)
+                {
+                    if (node.Name.StartsWith("x:"))
+                    {
+                        str = node.Name.Substring(2);
+                    }
+                    else
+                    {
+                        str = node.Name;
+                    }
+                    DataType dt = (DataType)Enum.Parse(typeof(DataType), str);
+                    if (dt == DataType.Array)
+                    {
+                        values.Add(GetNodes(node.ChildNodes).ToArray());
+                    }
+                    else if (dt == DataType.Structure)
+                    {
+                        values.Add(GetNodes(node.ChildNodes).ToArray());
+                    }
+                    else if (dt == DataType.OctetString)
+                    {
+                        values.Add(GXCommon.HexToBytes(node.Attributes["Value"].Value));
+                    }
+                    else
+                    {
+                        values.Add(Convert.ChangeType(node.Attributes["Value"].Value, GXCommon.GetDataType(dt)));
+                    }
+                }
+            }
+            return values;
+        }
+
+        /// <summary>
+        /// Convert data to xml.
+        /// </summary>
+        /// <param name="xml"></param>
+        /// <returns></returns>
+        public static object XmlToValue(string xml)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(xml);
+            List<object> values = GetNodes(doc.ChildNodes);
+            if (values.Count == 0)
+            {
+                return null;
+            }
+            return values[0];
         }
     }
 }

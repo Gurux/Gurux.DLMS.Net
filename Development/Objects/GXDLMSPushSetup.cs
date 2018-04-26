@@ -180,7 +180,8 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Activates the push process.
         /// </summary>
-        /// <returns></returns>
+        /// <param name="client">DLMS client.</param>
+        /// <returns>Action bytes.</returns>
         public byte[][] Activate(GXDLMSClient client)
         {
             return client.Method(this, 1, (sbyte)0);

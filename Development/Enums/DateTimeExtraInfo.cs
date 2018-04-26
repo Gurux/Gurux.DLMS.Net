@@ -36,67 +36,37 @@ using System;
 using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Enums
-{   
+{
     /// <summary>
-    /// Enumerates skipped fields from date time.
+    /// DataType extra info.
     /// </summary>
     [Flags]
-    public enum DateTimeSkips
+    public enum DateTimeExtraInfo
     {
         /// <summary>
-        /// Nothing is skipped from date time.
+        /// No extra info.
         /// </summary>
         [XmlEnum("0")]
         None = 0x0,
         /// <summary>
-        /// Year part of date time is skipped.
+        /// Daylight savings begin.
         /// </summary>
         [XmlEnum("1")]
-        Year = 0x1,
+        DstBegin = 0x1,
         /// <summary>
-        /// Month part of date time is skipped.
+        ///Daylight savings end.
         /// </summary>
         [XmlEnum("2")]
-        Month = 0x2,
+        DstEnd = 0x2,
         /// <summary>
-        /// Day part is skipped.
+        /// Last day of month.
         /// </summary>
         [XmlEnum("4")]
-        Day = 0x4,
+        LastDay = 0x4,
         /// <summary>
-        /// Day of week part of date time is skipped.
+        /// 2nd last day of month
         /// </summary>
         [XmlEnum("8")]
-        DayOfWeek = 0x8,
-        /// <summary>
-        /// Hours part of date time is skipped.
-        /// </summary>
-        [XmlEnum("16")]
-        Hour = 0x10,
-        /// <summary>
-        /// Minute part of date time is skipped.
-        /// </summary>
-        [XmlEnum("32")]
-        Minute = 0x20,
-        /// <summary>
-        /// Seconds part of date time is skipped.
-        /// </summary>
-        [XmlEnum("64")]
-        Second = 0x40,
-        /// <summary>
-        /// Hundreds of seconds part of date time is skipped.
-        /// </summary>
-        [XmlEnum("128")]
-        Ms = 0x80,
-        /// <summary>
-        /// Deviation is skipped on write.
-        /// </summary>
-        [XmlEnum("256")]
-        Deviation = 0x100,
-        /// <summary>
-        /// Status is skipped on write.
-        /// </summary>
-        [XmlEnum("512")]
-        Status = 0x200
+        LastDay2 = 0x8,
     }
 }
