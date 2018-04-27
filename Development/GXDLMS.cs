@@ -1612,7 +1612,7 @@ namespace Gurux.DLMS
                 }
                 else if (tmp == (byte)HdlcControlFrame.ReceiveReady)
                 {
-                    //  System.Diagnostics.Debug.WriteLine("Get next frame.");
+                    System.Diagnostics.Debug.WriteLine("ReceiveReady.");
                 }
                 //Get Eop if there is no data.
                 if (reply.Position == packetStartID + frameLen + 1)
@@ -2467,7 +2467,7 @@ namespace Gurux.DLMS
             long number;
             short ch = 0;
             GXByteBuffer data = reply.Data;
-
+            bool empty = false;
             // Get type.
             GetCommandType type = (GetCommandType)data.GetUInt8();
             reply.CommandType = (byte)type;
@@ -2486,6 +2486,7 @@ namespace Gurux.DLMS
             {
                 if (data.Available == 0)
                 {
+                    empty = true;
                     GetDataFromBlock(data, 0);
                 }
                 else
@@ -2689,7 +2690,10 @@ namespace Gurux.DLMS
             }
             if (reply.Xml != null)
             {
-                reply.Xml.AppendEndTag(TranslatorTags.Result);
+                if (!empty)
+                {
+                    reply.Xml.AppendEndTag(TranslatorTags.Result);
+                }
                 reply.Xml.AppendEndTag(Command.GetResponse, type);
                 reply.Xml.AppendEndTag(Command.GetResponse);
             }

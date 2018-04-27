@@ -39,7 +39,7 @@ using Gurux.DLMS.Enums;
 using System.Diagnostics;
 
 namespace Gurux.DLMS.Internal
-{ 
+{
     /// <summary>
     /// Reserved for internal use.
     /// </summary>
@@ -2302,9 +2302,15 @@ namespace Gurux.DLMS.Internal
             {
                 if (dt.DayOfWeek == 0)
                 {
-                    buff.SetUInt8((byte)(dt.Value.DayOfWeek));
+                    byte d = (byte)dt.Value.DayOfWeek;
+                    //If Sunday.
+                    if (d == 0)
+                    {
+                        d = 7;
+                    }
+                    buff.SetUInt8(d);
                 }
-                else if (dt.DayOfWeek != 0)
+                else
                 {
                     buff.SetUInt8((byte)(dt.DayOfWeek));
                 }
