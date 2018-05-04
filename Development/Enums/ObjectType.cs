@@ -277,6 +277,9 @@ namespace Gurux.DLMS.Enums
         [XmlEnum("72")]
         MBusClient = 72,
 
+        [XmlEnum("62")]
+        CompactData = 62,
+
 
         [XmlEnum("65")]
         ParameterMonitor = 65,

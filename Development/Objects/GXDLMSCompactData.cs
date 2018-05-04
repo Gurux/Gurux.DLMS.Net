@@ -40,16 +40,28 @@ using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
+    public enum CaptureMethod : byte
+    {
+        /// <summary>
+        /// Data is captured with Capture-method.
+        /// </summary>
+        Invoke,
+        /// <summary>
+        /// Data is captured upon reading.
+        /// </summary>
+        Implicit
+    }
+
     /// <summary>
     /// Online help:
-    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSData
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCompactData
     /// </summary>
-    public class GXDLMSData : GXDLMSObject, IGXDLMSBase
+    public class GXDLMSCompactData : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXDLMSData()
+        public GXDLMSCompactData()
         : this(null, 0)
         {
         }
@@ -58,7 +70,7 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
-        public GXDLMSData(string ln)
+        public GXDLMSCompactData(string ln)
         : this(ln, 0)
         {
         }
@@ -68,16 +80,56 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
-        public GXDLMSData(string ln, ushort sn)
-        : base(ObjectType.Data, ln, sn)
+        public GXDLMSCompactData(string ln, ushort sn)
+        : base(ObjectType.CompactData, ln, sn)
         {
         }
 
         /// <summary>
-        /// Value of COSEM Data object.
+        /// Compact buffer
         /// </summary>
         [XmlIgnore()]
-        public object Value
+        public string Buffer
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Capture objects.
+        /// </summary>
+        [XmlIgnore()]
+        public object CaptureObjects
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Template ID.
+        /// </summary>
+        [XmlIgnore()]
+        public byte TemplateId
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Template description.
+        /// </summary>
+        [XmlIgnore()]
+        public byte[] TemplateDescription
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Capture method.
+        /// </summary>
+        [XmlIgnore()]
+        public CaptureMethod CaptureMethod
         {
             get;
             set;
@@ -86,7 +138,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, Value };
+            return new object[] { LogicalName, Buffer, CaptureObjects, TemplateId, TemplateDescription, CaptureMethod };
         }
 
         #region IGXDLMSBase Members
@@ -105,10 +157,30 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(1);
             }
-            //Value
+            //Buffer
             if (all || CanRead(2))
             {
                 attributes.Add(2);
+            }
+            //CaptureObjects
+            if (all || CanRead(3))
+            {
+                attributes.Add(3);
+            }
+            //TemplateId
+            if (all || CanRead(4))
+            {
+                attributes.Add(4);
+            }
+            //TemplateDescription
+            if (all || CanRead(5))
+            {
+                attributes.Add(5);
+            }
+            //CaptureMethod
+            if (all || CanRead(6))
+            {
+                attributes.Add(6);
             }
             return attributes.ToArray();
         }
@@ -116,17 +188,17 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Value" };
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Buffer", "CaptureObjects", "TemplateId", "TemplateDescription", "CaptureMethod" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
         {
-            return 2;
+            return 6;
         }
 
         int IGXDLMSBase.GetMethodCount()
         {
-            return 0;
+            return 2;
         }
 
         /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
@@ -137,14 +209,15 @@ namespace Gurux.DLMS.Objects
                 case 1:
                     return DataType.OctetString;
                 case 2:
-                    {
-                        DataType dt = base.GetDataType(index);
-                        if (dt == DataType.None && Value != null)
-                        {
-                            dt = GXCommon.GetDLMSDataType(Value.GetType());
-                        }
-                        return dt;
-                    }
+                    return DataType.OctetString;
+                case 3:
+                    return DataType.Array;
+                case 4:
+                    return DataType.UInt8;
+                case 5:
+                    return DataType.OctetString;
+                case 6:
+                    return DataType.Enum;
                 default:
                     throw new ArgumentException("GetDataType failed. Invalid attribute index.");
             }
@@ -157,7 +230,15 @@ namespace Gurux.DLMS.Objects
                 case 1:
                     return GXCommon.LogicalNameToBytes(LogicalName);
                 case 2:
-                    return Value;
+                    return Buffer;
+                case 3:
+                    return CaptureObjects;
+                case 4:
+                    return TemplateId;
+                case 5:
+                    return TemplateDescription;
+                case 6:
+                    return CaptureMethod;
                 default:
                     e.Error = ErrorCode.ReadWriteDenied;
                     break;
@@ -167,39 +248,49 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            switch (e.Index)
+            if (e.Index == 1)
             {
-                case 1:
-                    LogicalName = GXCommon.ToLogicalName(e.Value);
-                    break;
-                case 2:
-                    if (!e.User && e.Value != null && GetDataType(2) == DataType.None)
-                    {
-                        SetDataType(2, GXCommon.GetDLMSDataType(e.Value.GetType()));
-                    }
-                    Value = e.Value;
-                    break;
-                default:
-                    e.Error = ErrorCode.ReadWriteDenied;
-                    break;
+                LogicalName = GXCommon.ToLogicalName(e.Value);
+            }
+            else if (e.Index == 2)
+            {
+                if (e.Value is byte[])
+                {
+                    Buffer = GXCommon.ToHex((byte[])e.Value, true);
+                }
+                else
+                {
+                    Buffer = Convert.ToString(e.Value);
+                }
+            }
+            else if (e.Index == 3)
+            {
+                CaptureObjects = e.Value;
+            }
+            else if (e.Index == 4)
+            {
+                TemplateId = (byte)e.Value;
+            }
+            else if (e.Index == 5)
+            {
+                TemplateDescription = (byte[])e.Value;
+            }
+            else if (e.Index == 6)
+            {
+                CaptureMethod = (CaptureMethod)e.Value;
+            }
+            else
+            {
+                e.Error = ErrorCode.ReadWriteDenied;
             }
         }
 
         void IGXDLMSBase.Load(GXXmlReader reader)
         {
-            Value = reader.ReadElementContentAsObject("Value", null);
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            if (Value is string)
-            {
-                writer.WriteElementObject("Value", Value, GetDataType(2), GetUIDataType(2));
-            }
-            else
-            {
-                writer.WriteElementObject("Value", Value);
-            }
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

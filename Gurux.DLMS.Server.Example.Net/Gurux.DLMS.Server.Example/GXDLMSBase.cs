@@ -55,6 +55,11 @@ namespace GuruxDLMSServerExample
     /// </summary>
     class GXDLMSBase : GXDLMSSecureServer
     {
+        /// <summary>
+        /// Is data saved to ring buffer.
+        /// </summary>
+        bool UseRingBuffer = false;
+
         //Image to update.
         string ImageUpdate = null;
         static readonly object FileLock = new object();
@@ -407,6 +412,44 @@ namespace GuruxDLMSServerExample
         }
 
         /// <summary>
+        /// Get head position where next new item is inserted.
+        /// </summary>
+        /// <remarks>
+        /// This is used with ring buffer.
+        /// </remarks>
+        /// <returns>Position where next item is inserted.</returns>
+        UInt32 GetHead()
+        {
+            UInt16 head = 0;
+            DateTime last = DateTime.MinValue;
+            lock (FileLock)
+            {
+                using (var fs = File.OpenRead(GetdataFile()))
+                {
+                    using (var reader = new StreamReader(fs))
+                    {
+                        while (!reader.EndOfStream)
+                        {
+                            string line = reader.ReadLine();
+                            if (line.Length != 0)
+                            {
+                                string[] values = line.Split(';');
+                                DateTime tm = DateTime.Parse(values[0], CultureInfo.InvariantCulture);
+                                if (last > tm)
+                                {
+                                    break;
+                                }
+                                last = tm;
+                                ++head;
+                            }
+                        }
+                    }
+                }
+            }
+            return head;
+        }
+
+        /// <summary>
         /// Return data using start and end indexes.
         /// </summary>
         /// <param name="p">ProfileGeneric</param>
@@ -415,8 +458,6 @@ namespace GuruxDLMSServerExample
         /// <returns>Add data Rows</returns>
         void GetProfileGenericDataByEntry(GXDLMSProfileGeneric p, UInt32 index, UInt32 count)
         {
-            //Clear old data. It's already serialized.
-            p.Buffer.Clear();
             if (count != 0)
             {
                 lock (FileLock)
@@ -445,6 +486,75 @@ namespace GuruxDLMSServerExample
                                         break;
                                     }
                                 }
+                            }
+                        }
+                    }
+                }
+                //Read values from the begin if ring buffer is used.
+                if (p.Buffer.Count != count)
+                {
+                    GetProfileGenericDataByEntry(p, index, count);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Find start index and row count using start and end date time.
+        /// </summary>
+        /// <param name="start">Start time.</param>
+        /// <param name="end">End time</param>
+        /// <param name="index">Start index.</param>
+        /// <param name="count">Item count.</param>
+        void GetProfileGenericDataByRangeFromRingBuffer(ValueEventArgs e)
+        {
+            GXDateTime start = (GXDateTime)GXDLMSClient.ChangeType((byte[])((object[])e.Parameters)[1], DataType.DateTime);
+            GXDateTime end = (GXDateTime)GXDLMSClient.ChangeType((byte[])((object[])e.Parameters)[2], DataType.DateTime);
+            uint pos = 0;
+            DateTime last = DateTime.MinValue;
+            lock (FileLock)
+            {
+                using (var fs = File.OpenRead(GetdataFile()))
+                {
+                    using (var reader = new StreamReader(fs))
+                    {
+                        while (!reader.EndOfStream)
+                        {
+                            string line = reader.ReadLine();
+                            if (line.Length != 0)
+                            {
+                                string[] values = line.Split(';');
+                                DateTime tm = DateTime.Parse(values[0], CultureInfo.InvariantCulture);
+                                //If value is inside of start and end time.
+                                if (tm >= start && tm <= end)
+                                {
+                                    if (last == DateTime.MinValue)
+                                    {
+                                        e.RowBeginIndex = pos;
+                                        //Save end position if we have only one row.
+                                        e.RowEndIndex = pos + 1;
+                                    }
+                                    else
+                                    {
+                                        if (tm > last)
+                                        {
+                                            e.RowEndIndex = pos + 1;
+                                        }
+                                        else
+                                        {
+                                            GXDLMSProfileGeneric p = (GXDLMSProfileGeneric)e.Target;
+                                            if (e.RowEndIndex == 0)
+                                            {
+                                                ++e.RowEndIndex;
+                                            }
+                                            e.RowEndIndex += GetProfileGenericDataCount(p);
+                                            e.RowBeginIndex = pos;
+                                            break;
+                                        }
+                                    }
+                                    last = tm;
+
+                                }
+                                ++pos;
                             }
                         }
                     }
@@ -569,7 +679,14 @@ namespace GuruxDLMSServerExample
                             else if (e.Selector == 1)
                             {
                                 //Read by entry.
-                                GetProfileGenericDataByRange(e);
+                                if (UseRingBuffer)
+                                {
+                                    GetProfileGenericDataByRangeFromRingBuffer(e);
+                                }
+                                else
+                                {
+                                    GetProfileGenericDataByRange(e);
+                                }
                             }
                             else if (e.Selector == 2)
                             {
@@ -580,7 +697,14 @@ namespace GuruxDLMSServerExample
                                 UInt16 cnt = GetProfileGenericDataCount(p);
                                 if (e.RowEndIndex - e.RowBeginIndex > cnt - e.RowBeginIndex)
                                 {
-                                    e.RowEndIndex = cnt - e.RowBeginIndex;
+                                    if (UseRingBuffer)
+                                    {
+                                        e.RowEndIndex = cnt;
+                                    }
+                                    else
+                                    {
+                                        e.RowEndIndex = cnt - e.RowBeginIndex;
+                                    }
                                     if (e.RowEndIndex < 0)
                                     {
                                         e.RowEndIndex = 0;
@@ -594,7 +718,22 @@ namespace GuruxDLMSServerExample
                         {
                             count = e.RowToPdu;
                         }
-                        GetProfileGenericDataByEntry(p, e.RowBeginIndex, count);
+                        //Clear old data. It's already serialized.
+                        p.Buffer.Clear();
+                        if (e.Selector == 1)
+                        {
+                            GetProfileGenericDataByEntry(p, e.RowBeginIndex, count);
+                        }
+                        else
+                        {
+                            //Index where to start.
+                            UInt32 index = e.RowBeginIndex;
+                            if (UseRingBuffer)
+                            {
+                                index += GetHead();
+                            }
+                            GetProfileGenericDataByEntry(p, index, count);
+                        }
                     }
                     continue;
                 }
@@ -801,7 +940,74 @@ namespace GuruxDLMSServerExample
                     }
                 }
             }
-        }       
+        }
+
+        /// <summary>
+        /// Capture data to the ring buffer.
+        /// </summary>
+        /// <param name="pg"></param>
+        private void CaptureToRingBuffer(GXDLMSProfileGeneric pg)
+        {
+            lock (FileLock)
+            {
+                StringBuilder sb = new StringBuilder();
+                UInt32 head = GetHead();
+                foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in pg.CaptureObjects)
+                {
+                    if (sb.Length != 0)
+                    {
+                        sb.Append(';');
+                    }
+                    object value;
+                    if (it.Key is GXDLMSClock && it.Value.AttributeIndex == 2)
+                    {
+                        value = (it.Key as GXDLMSClock).Now();
+                    }
+                    else
+                    {
+                        // TODO: Read value here example from the meter if it's not
+                        // updated automatically.
+                        value = it.Key.GetValues()[it.Value.AttributeIndex - 1];
+                        if (value == null)
+                        {
+                            // Generate random value here.
+                            value = GetProfileGenericDataCount(pg) + 1 + head;
+                        }
+                    }
+                    if (value is DateTime)
+                    {
+                        sb.Append(((DateTime)value).ToString(CultureInfo.InvariantCulture));
+                    }
+                    else if (value is GXDateTime)
+                    {
+                        sb.Append(((GXDateTime)value).Value.ToString(CultureInfo.InvariantCulture));
+                    }
+                    else
+                    {
+                        sb.Append(Convert.ToString(value));
+                    }
+                }
+                //Read all rows and write them back. This is not elegant sulution, but it works.
+                List<string> rows = new List<string>();
+                rows.AddRange(File.ReadAllLines(GetdataFile()));
+                if (pg.ProfileEntries == rows.Count)
+                {
+                    head = head % pg.ProfileEntries;
+                    rows[(int)head] = sb.ToString();
+                }
+                else
+                {
+                    rows.Add(sb.ToString());
+                }
+                using (var writer = File.CreateText(GetdataFile()))
+                {
+                    foreach (string it in rows)
+                    {
+                        writer.WriteLine(it);
+                    }
+                }
+            }
+        }
 
         private void Capture(GXDLMSProfileGeneric pg)
         {
@@ -1075,7 +1281,14 @@ namespace GuruxDLMSServerExample
                 if (it.Target is GXDLMSProfileGeneric)
                 {
                     GXDLMSProfileGeneric pg = (GXDLMSProfileGeneric)it.Target;
-                    Capture(pg);
+                    if (UseRingBuffer)
+                    {
+                        CaptureToRingBuffer(pg);
+                    }
+                    else
+                    {
+                        Capture(pg);
+                    }
                 }
             }
         }

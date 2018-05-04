@@ -214,6 +214,7 @@
     <Compile Include="Objects\GXDLMSCertificateInfo.cs" />
     <Compile Include="Objects\GXDLMSCharge.cs" />
     <Compile Include="Objects\GXDLMSClock.cs" />
+    <Compile Include="Objects\GXDLMSCompactData.cs" />
     <Compile Include="Objects\GXDLMSContextInformationTable.cs" />
     <Compile Include="Objects\GXDLMSCredit.cs" />
     <Compile Include="Objects\GXDLMSData.cs" />
@@ -281,6 +282,7 @@
     <Compile Include="Objects\GXDLMSTcpUdpSetup.cs" />
     <Compile Include="Objects\GXDLMSTokenGateway.cs" />
     <Compile Include="Objects\GXDLMSWeekProfile.cs" />
+    <Compile Include="Objects\GXDLMSWirelessModeQchannel.cs" />
     <Compile Include="Objects\GXNeighborDiscoverySetup.cs" />
     <Compile Include="Objects\GXProfileGenericUpdater.cs" />
     <Compile Include="Objects\GXScheduleEntry.cs" />

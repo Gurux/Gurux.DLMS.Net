@@ -41,15 +41,30 @@ using Gurux.DLMS.Internal;
 namespace Gurux.DLMS.Objects
 {
     /// <summary>
-    /// Online help:
-    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSData
+    /// Enumerates address states.
     /// </summary>
-    public class GXDLMSData : GXDLMSObject, IGXDLMSBase
+    public enum AddressState : byte
+    {
+        /// <summary>
+        /// Device is not assign the address.
+        /// </summary>
+        None,
+        /// <summary>
+        /// evice is assigned the address.
+        /// </summary>
+        Assined
+    }
+
+    /// <summary>
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSWirelessModeQchannel
+    /// </summary>
+    public class GXDLMSWirelessModeQchannel : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXDLMSData()
+        public GXDLMSWirelessModeQchannel()
         : this(null, 0)
         {
         }
@@ -58,7 +73,7 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
-        public GXDLMSData(string ln)
+        public GXDLMSWirelessModeQchannel(string ln)
         : this(ln, 0)
         {
         }
@@ -68,25 +83,47 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
-        public GXDLMSData(string ln, ushort sn)
-        : base(ObjectType.Data, ln, sn)
+        public GXDLMSWirelessModeQchannel(string ln, ushort sn)
+        : base(ObjectType.WirelessModeQchannel, ln, sn)
         {
+            Version = 1;
         }
 
         /// <summary>
-        /// Value of COSEM Data object.
+        /// Address State.
         /// </summary>
         [XmlIgnore()]
-        public object Value
+        public AddressState AddressState
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// Device address.
+        /// </summary>
+        [XmlIgnore()]
+        public byte[] DeviceAddress
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Address mask.
+        /// </summary>
+        [XmlIgnore()]
+        public byte[] AddressMask
+        {
+            get;
+            set;
+        }
+
+
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, Value };
+            return new object[] { LogicalName, AddressState, DeviceAddress, AddressMask };
         }
 
         #region IGXDLMSBase Members
@@ -105,10 +142,20 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(1);
             }
-            //Value
+            //AddressState
             if (all || CanRead(2))
             {
                 attributes.Add(2);
+            }
+            //DeviceAddress
+            if (all || CanRead(3))
+            {
+                attributes.Add(3);
+            }
+            //AddressMask
+            if (all || CanRead(4))
+            {
+                attributes.Add(4);
             }
             return attributes.ToArray();
         }
@@ -116,12 +163,12 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Value" };
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Address State", "Device Address", "Address Mask" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
         {
-            return 2;
+            return 4;
         }
 
         int IGXDLMSBase.GetMethodCount()
@@ -137,14 +184,11 @@ namespace Gurux.DLMS.Objects
                 case 1:
                     return DataType.OctetString;
                 case 2:
-                    {
-                        DataType dt = base.GetDataType(index);
-                        if (dt == DataType.None && Value != null)
-                        {
-                            dt = GXCommon.GetDLMSDataType(Value.GetType());
-                        }
-                        return dt;
-                    }
+                    return DataType.Enum;
+                case 3:
+                    return DataType.OctetString;
+                case 4:
+                    return DataType.OctetString;
                 default:
                     throw new ArgumentException("GetDataType failed. Invalid attribute index.");
             }
@@ -157,7 +201,11 @@ namespace Gurux.DLMS.Objects
                 case 1:
                     return GXCommon.LogicalNameToBytes(LogicalName);
                 case 2:
-                    return Value;
+                    return AddressState;
+                case 3:
+                    return DeviceAddress;
+                case 4:
+                    return AddressMask;
                 default:
                     e.Error = ErrorCode.ReadWriteDenied;
                     break;
@@ -173,11 +221,13 @@ namespace Gurux.DLMS.Objects
                     LogicalName = GXCommon.ToLogicalName(e.Value);
                     break;
                 case 2:
-                    if (!e.User && e.Value != null && GetDataType(2) == DataType.None)
-                    {
-                        SetDataType(2, GXCommon.GetDLMSDataType(e.Value.GetType()));
-                    }
-                    Value = e.Value;
+                    AddressState = (AddressState)e.Value;
+                    break;
+                case 3:
+                    DeviceAddress = (byte[])e.Value;
+                    break;
+                case 4:
+                    AddressMask = (byte[])e.Value;
                     break;
                 default:
                     e.Error = ErrorCode.ReadWriteDenied;
@@ -187,19 +237,12 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Load(GXXmlReader reader)
         {
-            Value = reader.ReadElementContentAsObject("Value", null);
+            AddressState = (AddressState)reader.ReadElementContentAsInt("AddressState");
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            if (Value is string)
-            {
-                writer.WriteElementObject("Value", Value, GetDataType(2), GetUIDataType(2));
-            }
-            else
-            {
-                writer.WriteElementObject("Value", Value);
-            }
+            writer.WriteElementString("AddressState", (int)AddressState);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

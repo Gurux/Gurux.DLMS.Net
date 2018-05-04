@@ -317,7 +317,7 @@ namespace Gurux.DLMS
                     }
                 }
                 dt = culture.Calendar.ToDateTime(year, month, day, hour, min, sec, 0);
-                Value = new DateTimeOffset(dt, TimeZoneInfo.Local.GetUtcOffset(dt));
+                Value = new DateTimeOffset(dt);
                 if (dt.IsDaylightSavingTime())
                 {
                     Status |= ClockStatus.DaylightSavingActive;
@@ -374,8 +374,10 @@ namespace Gurux.DLMS
         {
             if (year < 1 || year == 0xFFFF)
             {
-                Skip |= DateTimeSkips.Year;
-                year = 2;
+                Skip |= DateTimeSkips.Year | DateTimeSkips.DayOfWeek;
+                //Set year to 4 because there might be leap year.
+                //29/02/*" (29th February) 
+                year = 4;
             }
             if (month == 0xFE)
             {

@@ -213,9 +213,6 @@ namespace Gurux.DLMS.ManufacturerSettings
             set;
         }
 
-#if !WINDOWS_UWP
-        [Browsable(false)]
-#endif
         [DefaultValue(false)]
         public bool Static
         {

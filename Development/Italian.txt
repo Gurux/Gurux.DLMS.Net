@@ -19,11 +19,12 @@
 1;0.0.43.1.32.255;0;Broadcast Frame Counter
 8;0.0.1.0.0.255;0;Clock
 1;0.0.1.1.0.255;0;UNIX Time
+1;0.0.1.1.0.101;0;UNIX Time, Daily historical value, previous gas day
 1;0.0.94.39.44.255;0;Synchronization Algorithm
 1;0.0.94.39.20.255;0;Synchronization Registers
 1;0.0.96.14.0.255;0;Currently Active Tariff
 8192;0.0.94.39.21.255;0;Active UNI/TS Tariff Plan
-8192;0.0.94.39.21.255;0;Piano tariffario UNI/TS 11291 Passivo
+8192;0.0.94.39.22.255;0;Passive UNI/TS Tariff Plan
 9;0.0.10.0.0.255;0;Global Script
 1;7.0.96.5.0.255;0;UNI/TS Device Status
 3;0.0.94.39.31.255;0;Installer/Maintainer Remaining Time
@@ -124,7 +125,7 @@
 7;7.0.99.98.6.255;0;PM1 Logbook
 1;0.0.96.15.3.255;0;PM1 Event Counter
 19;0.0.20.0.0.255;0;IEC Local Port Setup
-23;0.0.22.0.0.255;0;IEC HDLC Setup
+23;0.0.22.0.0.255;1;IEC HDLC Setup
 1;0.0.94.39.40.255;0;Spare Object
 62;0.0.66.0.1.255;0;CF1 
 62;0.0.66.0.2.255;0;CF2 
@@ -141,3 +142,11 @@
 8192;0.0.94.39.22.255;0;Passive UNI/TS Tariff Plan
 28;0.0.2.2.0.255;0;Auto Answer
 29;0.0.2.1.0.255;0;Auto Connect
+1;7.0.96.5.1.101;0;Current Diagnostic
+1;0.0.96.10.2.101;0;Snapshot Reason Code (end-of-billing-period)
+1;7.0.0.1.0.101;0;Snapshot/Billing Period Counter (end-of-billing-period)
+3;7.0.13.2.0.101;0;Current Index of Converted Volume (end-of-billing-period)
+3;7.0.13.83.1.101;0;Current Index of Converted Volume in F1 rate (end-of-billing-period)
+1;7.2.96.5.1.101;0;Snapshot Period Diagnostic (end-of-billing-period)
+43;0.1.25.2.0.255;0;PM1 Peer MAC address
+7;0.0.21.0.1.255;1;Not Enrolled Detected List

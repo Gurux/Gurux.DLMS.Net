@@ -50,6 +50,23 @@ namespace Gurux.DLMS
         /// Collection of standard OBIS codes.
         /// </summary>
         private GXStandardObisCodeCollection codes = new GXStandardObisCodeCollection();
+        Standard Standard;
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public GXDLMSConverter()
+        {
+
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public GXDLMSConverter(Standard standard)
+        {
+            Standard = standard;
+        }
 
         /// <summary>
         /// Get OBIS code description.
@@ -99,7 +116,7 @@ namespace Gurux.DLMS
             {
                 if (codes.Count == 0)
                 {
-                    ReadStandardObisInfo(codes);
+                    ReadStandardObisInfo(Standard, codes);
                 }
             }
             List<String> list = new List<String>();
@@ -147,7 +164,7 @@ namespace Gurux.DLMS
             {
                 if (codes.Count == 0)
                 {
-                    ReadStandardObisInfo(codes);
+                    ReadStandardObisInfo(Standard, codes);
                 }
             }
             List<KeyValuePair<string, string>> list = new List<KeyValuePair<string, string>>();
@@ -173,7 +190,7 @@ namespace Gurux.DLMS
             {
                 if (codes.Count == 0)
                 {
-                    ReadStandardObisInfo(codes);
+                    ReadStandardObisInfo(Standard, codes);
                 }
                 UpdateOBISCodeInfo(codes, target);
             }
@@ -189,7 +206,7 @@ namespace Gurux.DLMS
             {
                 if (codes.Count == 0)
                 {
-                    ReadStandardObisInfo(codes);
+                    ReadStandardObisInfo(Standard, codes);
                 }
                 foreach (GXDLMSObject it in targets)
                 {
@@ -202,9 +219,22 @@ namespace Gurux.DLMS
         /// Read standard OBIS code information from the file.
         /// </summary>
         /// <param name="codes">Collection of standard OBIS codes.</param>
-        private static void ReadStandardObisInfo(GXStandardObisCodeCollection codes)
+        private static void ReadStandardObisInfo(Standard standard, GXStandardObisCodeCollection codes)
         {
 #if !WINDOWS_UWP
+            if (standard == Standard.Italian)
+            {
+                foreach (GXObisCode it in GetObjects(standard))
+                {
+                    GXStandardObisCode tmp = new GXStandardObisCode()
+                    {
+                        Interfaces = ((int)it.ObjectType).ToString(),
+                        OBIS = it.LogicalName.Split(new char[] { '.' }),
+                        Description = it.Description
+                    };
+                    codes.Add(tmp);
+                }
+            }
             string[] rows = Gurux.DLMS.Properties.Resources.OBISCodes.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string it in rows)
             {
@@ -228,17 +258,22 @@ namespace Gurux.DLMS
             GXStandardObisCode code = codes.Find(it.LogicalName, it.ObjectType)[0];
             it.Description = code.Description;
             //If string is used
-            if (code.DataType.Contains("10"))
+            string datatype = code.DataType;
+            if (datatype == null)
+            {
+                datatype = "";
+            }
+            if (datatype.Contains("10"))
             {
                 code.UIDataType = "10";
             }
             //If date time is used.
-            else if (code.DataType.Contains("25") || code.DataType.Contains("26"))
+            else if (datatype.Contains("25") || datatype.Contains("26"))
             {
                 code.UIDataType = code.DataType = "25";
             }
             //Time stamps of the billing periods objects (first scheme if there are two)
-            else if (code.DataType.Contains("9"))
+            else if (datatype.Contains("9"))
             {
                 if ((GXStandardObisCodeCollection.EqualsMask("0.0-64.96.7.10-14.255", it.LogicalName) ||
                         //Time stamps of the billing periods objects (second scheme)
@@ -285,7 +320,8 @@ namespace Gurux.DLMS
             {
                 code.UIDataType = "25";
             }
-            if (code.DataType != "*" && code.DataType != string.Empty && !code.DataType.Contains(","))
+
+            if (code.DataType != "*" && !string.IsNullOrEmpty(code.DataType) && !code.DataType.Contains(","))
             {
                 DataType type = (DataType)int.Parse(code.DataType);
                 switch (it.ObjectType)
@@ -516,7 +552,12 @@ namespace Gurux.DLMS
             return bb.Array();
         }
 
-        static public GXObisCode[] GetObjects(Standard standard)
+        /// <summary>
+        /// Get country spesific OBIS codes.
+        /// </summary>
+        /// <param name="standard">Used standard.</param>
+        /// <returns>Collection for special OBIC codes.</returns>
+        public static GXObisCode[] GetObjects(Standard standard)
         {
             List<GXObisCode> codes = new List<GXObisCode>();
             if (standard == Standard.Italian)

@@ -448,15 +448,34 @@ namespace Gurux.DLMS
             else
             {
                 GXByteBuffer reply;
-                if (Settings.InterfaceType == Enums.InterfaceType.WRAPPER)
+                if (Settings.InterfaceType == InterfaceType.WRAPPER)
                 {
-                    reply = new GXByteBuffer(pdu.Data);
+                    if (Ciphering.Security != Enums.Security.None)
+                    {
+                        GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, pdu.Command, 0x0, null, null, 0xff);
+                        reply = new GXByteBuffer(GXDLMS.Cipher0(p, pdu.Data));
+                    }
+                    else
+                    {
+                        reply = new GXByteBuffer(pdu.Data);
+                    }
                 }
                 else
                 {
-                    reply = new GXByteBuffer((UInt16)(3 + pdu.Data.Length));
-                    reply.Set(GXCommon.LLCSendBytes);
-                    reply.Set(pdu.Data);
+                    if (Ciphering.Security != Enums.Security.None)
+                    {
+                        GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, pdu.Command, 0x0, null, null, 0xff);
+                        byte[] tmp = GXDLMS.Cipher0(p, pdu.Data);
+                        reply = new GXByteBuffer((UInt16)(3 + tmp.Length));
+                        reply.Set(GXCommon.LLCSendBytes);
+                        reply.Set(tmp);
+                    }
+                    else
+                    {
+                        reply = new GXByteBuffer((UInt16)(3 + pdu.Data.Length));
+                        reply.Set(GXCommon.LLCSendBytes);
+                        reply.Set(pdu.Data);
+                    }
                 }
                 while (reply.Position != reply.Size)
                 {

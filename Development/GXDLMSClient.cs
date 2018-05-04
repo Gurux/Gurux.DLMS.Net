@@ -996,7 +996,10 @@ namespace Gurux.DLMS
                             {
                                 tmp = Convert.ToInt32(methodAccess[1]);
                             }
-                            obj.SetMethodAccess(id, (MethodAccessMode)tmp);
+                            if (id > 0)
+                            {
+                                obj.SetMethodAccess(id, (MethodAccessMode)tmp);
+                            }
                         }
                     }
                     else //All versions from Actaris SL 7000 do not return collection as standard says.
@@ -1055,6 +1058,18 @@ namespace Gurux.DLMS
             GXByteBuffer data,
             bool onlyKnownObjects)
         {
+            return ParseObjects(data, onlyKnownObjects);
+        }
+        /// <summary>
+        /// Parses the COSEM objects of the received data.
+        /// </summary>
+        /// <param name="data">Received data, from the device, as byte array. </param>
+        /// <returns>Collection of COSEM objects.</returns>
+        public GXDLMSObjectCollection ParseObjects(
+        GXByteBuffer data,
+        bool onlyKnownObjects,
+        Standard standard)
+        {
             if (data == null || data.Size == 0)
             {
                 throw new GXDLMSException("ParseObjects failed. Invalid parameter.");
@@ -1082,7 +1097,7 @@ namespace Gurux.DLMS
                     }
                 }
             }
-            GXDLMSConverter c = new GXDLMSConverter();
+            GXDLMSConverter c = new GXDLMSConverter(standard);
             c.UpdateOBISCodeInformation(objects);
             Settings.Objects = objects;
             Settings.Objects.Parent = this;
@@ -1768,7 +1783,7 @@ namespace Gurux.DLMS
             // There is no need for keep alive in IEC 62056-47.
             if (this.InterfaceType == InterfaceType.WRAPPER)
             {
-                return new byte[0];
+                return null;
             }
             Settings.ResetBlockIndex();
             if (UseLogicalNameReferencing)

@@ -154,6 +154,9 @@ namespace Gurux.DLMS
                 availableObjectTypes.Add(ObjectType.Charge, typeof(GXDLMSCharge));
                 availableObjectTypes.Add(ObjectType.TokenGateway, typeof(GXDLMSTokenGateway));
                 availableObjectTypes.Add(ObjectType.ParameterMonitor, typeof(GXDLMSParameterMonitor));
+                availableObjectTypes.Add(ObjectType.CompactData, typeof(GXDLMSCompactData));
+                availableObjectTypes.Add(ObjectType.WirelessModeQchannel, typeof(GXDLMSWirelessModeQchannel));
+                //Italian standard uses this.
                 availableObjectTypes.Add(ObjectType.TariffPlan, typeof(GXDLMSTariffPlan));
             }
         }
@@ -551,7 +554,7 @@ namespace Gurux.DLMS
             }
         }
 
-        private static byte[] Cipher0(GXDLMSLNParameters p, byte[] data)
+        internal static byte[] Cipher0(GXDLMSLNParameters p, byte[] data)
         {
             byte cmd;
             byte[] st = p.settings.Cipher.SystemTitle;

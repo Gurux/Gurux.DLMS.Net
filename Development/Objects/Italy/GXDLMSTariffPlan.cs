@@ -293,9 +293,13 @@ namespace Gurux.DLMS.Objects.Italy
             return null;
         }
 
-        private static void UpdateInterval(GXDLMSInterval interval, byte[] value)
+        private static void UpdateInterval(GXDLMSInterval interval, object[] value)
         {
-            GXByteBuffer bb = new GXByteBuffer(value);
+            GXByteBuffer bb = new GXByteBuffer();
+            foreach (byte it in value)
+            {
+                bb.SetUInt8(it);
+            }
             byte b = bb.GetUInt8();
             interval.StartHour = (byte)(b & 0x1F);
             interval.IntervalTariff = (DefaultTariffBand)((b >> 5) & 0x3);
@@ -313,9 +317,9 @@ namespace Gurux.DLMS.Objects.Italy
             {
                 season.DayOfMonth = Convert.ToByte(value[0]);
                 season.Month = Convert.ToByte(value[1]);
-                UpdateInterval(season.WorkingDayIntervals, (byte[])value[2]);
-                UpdateInterval(season.SaturdayIntervals, (byte[])value[3]);
-                UpdateInterval(season.HolidayIntervals, (byte[])value[4]);
+                UpdateInterval(season.WorkingDayIntervals, (object[])value[2]);
+                UpdateInterval(season.SaturdayIntervals, (object[])value[3]);
+                UpdateInterval(season.HolidayIntervals, (object[])value[4]);
             }
         }
 
@@ -365,9 +369,9 @@ namespace Gurux.DLMS.Objects.Italy
                         if (e.Value is object[])
                         {
                             object[] it = e.Value as object[];
-                            GXDateTime time = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[0], DataType.Time, settings.UseUtc2NormalTime);
+                            GXDateTime time = (GXDateTime)it[0];
                             time.Skip &= ~(DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek);
-                            GXDateTime date = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[1], DataType.Date, settings.UseUtc2NormalTime);
+                            GXDateTime date = (GXDateTime)it[1];
                             date.Skip &= ~(DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms);
                             ActivationTime = new DLMS.GXDateTime(date);
                             ActivationTime.Value = ActivationTime.Value.AddHours(time.Value.Hour);

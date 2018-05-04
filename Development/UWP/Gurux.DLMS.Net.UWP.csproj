@@ -123,6 +123,8 @@
     <Compile Include="..\Objects\Enums\AddressConfigMode.cs" />
     <Compile Include="..\Objects\Enums\MBusEncryptionKeyStatus.cs" />
     <Compile Include="..\Objects\Enums\SecurityPolicy0.cs" />
+    <Compile Include="..\Objects\GXDLMSCompactData.cs" />
+    <Compile Include="..\Objects\GXDLMSWirelessModeQchannel.cs" />
     <Compile Include="..\Objects\GXDLMSBroadcastLogTable.cs" />
     <Compile Include="..\Objects\GXDLMSContextInformationTable.cs" />
     <Compile Include="..\Objects\GXDLMSG3PlcMacLayerCounters.cs" />
