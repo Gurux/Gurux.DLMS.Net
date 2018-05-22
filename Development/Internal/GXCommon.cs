@@ -824,7 +824,7 @@ namespace Gurux.DLMS.Internal
                 {
                     dt.Skip |= DateTimeSkips.Deviation;
                     DateTime tmp = new DateTime(year, month, day, hours, minutes, seconds, milliseconds, DateTimeKind.Local);
-                    dt.Value = new DateTimeOffset(tmp, TimeZoneInfo.Local.GetUtcOffset(tmp));
+                    dt.Value = new DateTimeOffset(tmp);
                 }
             }
             catch (Exception ex)
@@ -1018,6 +1018,23 @@ namespace Gurux.DLMS.Internal
             return value;
         }
 
+        private static void GetCompactArrayItem(GXDLMSSettings settings, GXByteBuffer buff, object[] dt, List<Object> list, int len)
+        {
+            List<object> tmp2 = new List<object>();
+            foreach (object it in dt)
+            {
+                if (it is DataType)
+                {
+                    GetCompactArrayItem(settings, buff, (DataType)it, tmp2, 1);
+                }
+                else
+                {
+                    GetCompactArrayItem(settings, buff, (object[])it, tmp2, 1);
+                }
+            }
+            list.Add(tmp2.ToArray());
+        }
+
         private static void GetCompactArrayItem(GXDLMSSettings settings, GXByteBuffer buff, DataType dt, List<Object> list, int len)
         {
             GXDataInfo tmp = new GXDataInfo();
@@ -1030,6 +1047,10 @@ namespace Gurux.DLMS.Internal
                     tmp.Clear();
                     tmp.Type = dt;
                     list.Add(GetString(buff, tmp, false));
+                    if (!tmp.Complete)
+                    {
+                        break;
+                    }
                 }
             }
             else if (dt == DataType.OctetString)
@@ -1066,7 +1087,19 @@ namespace Gurux.DLMS.Internal
             for (int pos = 0; pos != len; ++pos)
             {
                 dt = (DataType)buff.GetUInt8();
-                if (dt == DataType.Array || dt == DataType.Structure)
+                if (dt == DataType.Array)
+                {
+                    int cnt = buff.GetUInt16();
+                    List<object> tmp = new List<object>();
+                    List<object> tmp2 = new List<object>();
+                    GetDataTypes(buff, tmp, 1);
+                    for (int i = 0; i != cnt; ++i)
+                    {
+                        tmp2.AddRange(tmp);
+                    }
+                    cols.Add(tmp2);
+                }
+                else if (dt == DataType.Structure)
                 {
                     List<object> tmp = new List<object>();
                     GetDataTypes(buff, tmp, buff.GetUInt8());
@@ -1088,11 +1121,17 @@ namespace Gurux.DLMS.Internal
                 {
                     info.xml.AppendEmptyTag(info.xml.GetDataType((DataType)it));
                 }
-                else
+                else if (it is object[])
                 {
                     info.xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure, null, null);
                     AppendDataTypeAsXml((object[])it, info);
                     info.xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure);
+                }
+                else
+                {
+                    info.xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array, null, null);
+                    AppendDataTypeAsXml(((List<Object>)it).ToArray(), info);
+                    info.xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array);
                 }
             }
         }
@@ -1151,12 +1190,13 @@ namespace Gurux.DLMS.Internal
                     {
                         if (cols[pos] is object[])
                         {
+                            GetCompactArrayItem(null, buff, (object[])cols[pos], row, 1);
+                        }
+                        else if (cols[pos] is List<object>)
+                        {
                             List<object> tmp2 = new List<object>();
-                            foreach (DataType it in (object[])cols[pos])
-                            {
-                                GetCompactArrayItem(null, buff, it, tmp2, 1);
-                            }
-                            row.Add(tmp2.ToArray());
+                            GetCompactArrayItem(null, buff, ((List<object>)cols[pos]).ToArray(), tmp2, 1);
+                            row.AddRange((Object[]) tmp2[0]);
                         }
                         else
                         {
@@ -1168,7 +1208,7 @@ namespace Gurux.DLMS.Internal
                         }
                     }
                     //If all columns are read.
-                    if (row.Count == cols.Count)
+                    if (row.Count >= cols.Count)
                     {
                         list.Add(row.ToArray());
                     }
@@ -1176,25 +1216,11 @@ namespace Gurux.DLMS.Internal
                     {
                         break;
                     }
-                }
-                object[] tmp = new object[list.Count];
-                int r = 0;
-                foreach (Object row in list)
-                {
-                    int c = 0;
-                    object[] cols2 = new object[cols.Count];
-                    foreach (Object it in (Object[])row)
-                    {
-                        cols2[c] = it;
-                        ++c;
-                    }
-                    tmp[r] = cols2;
-                    ++r;
-                }
+                }               
                 if (info.xml != null && info.xml.OutputType == TranslatorOutputType.SimpleXml)
                 {
                     StringBuilder sb = new StringBuilder();
-                    foreach (object[] row in tmp)
+                    foreach (object[] row in list)
                     {
                         foreach (object it in row)
                         {
@@ -1240,7 +1266,7 @@ namespace Gurux.DLMS.Internal
                     info.xml.AppendEndTag(TranslatorTags.ArrayContents);
                     info.xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.CompactArray);
                 }
-                return tmp;
+                return list.ToArray();
             }
             else
             {

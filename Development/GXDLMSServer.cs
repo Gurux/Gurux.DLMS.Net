@@ -1020,6 +1020,11 @@ namespace Gurux.DLMS
         private byte[] HandleCommand(Command cmd, GXByteBuffer data, GXServerReply sr)
         {
             byte frame = 0;
+            if (Settings.InterfaceType == InterfaceType.HDLC && replyData.Size != 0)
+            {
+                //Get next frame.
+                frame = Settings.NextSend(false);
+            }
             switch (cmd)
             {
                 case Command.AccessRequest:
@@ -1046,6 +1051,7 @@ namespace Gurux.DLMS
                 case Command.Snrm:
                     HandleSnrmRequest(data);
                     frame = (byte)Command.Ua;
+                    Settings.Connected = ConnectionState.Hdlc;
                     break;
                 case Command.Aarq:
                     HandleAarqRequest(data, sr.ConnectionInfo);

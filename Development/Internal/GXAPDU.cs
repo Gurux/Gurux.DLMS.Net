@@ -309,26 +309,17 @@ namespace Gurux.DLMS.Internal
                     //<InitiateRequest>
                     xml.AppendStartTag(Command.InitiateRequest);
                 }
-                //Optional usage field of the negotiated quality of service component
+                //Optional usage field of dedicated key.
                 tag = data.GetUInt8();
                 if (tag != 0)
                 {
                     len = data.GetUInt8();
-                    if (initiateRequest)
+                    settings.DedicatedKey = new byte[len];
+                    data.Get(settings.DedicatedKey);
+                    if (xml != null)
                     {
-                        settings.DedicatedKey = new byte[len];
-                        data.Get(settings.DedicatedKey);
-                        if (xml != null)
-                        {
-                            xml.AppendLine(TranslatorGeneralTags.DedicatedKey,
-                                    null, GXCommon.ToHex(settings.DedicatedKey, false));
-                        }
-                    }
-                    else
-                    {
-                        // CtoS.
-                        settings.CtoSChallenge = new byte[len];
-                        data.Get(settings.CtoSChallenge);
+                        xml.AppendLine(TranslatorGeneralTags.DedicatedKey,
+                                null, GXCommon.ToHex(settings.DedicatedKey, false));
                     }
                 }
                 //Optional usage field of the negotiated quality of service component

@@ -1058,7 +1058,7 @@ namespace Gurux.DLMS
             GXByteBuffer data,
             bool onlyKnownObjects)
         {
-            return ParseObjects(data, onlyKnownObjects);
+            return ParseObjects(data, onlyKnownObjects, Standard.DLMS);
         }
         /// <summary>
         /// Parses the COSEM objects of the received data.

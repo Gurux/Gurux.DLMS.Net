@@ -401,23 +401,32 @@ namespace Gurux.DLMS
                 return true;
             }
             //Handle I-frame.
-            if (frame == (byte)IncreaseReceiverSequence(IncreaseSendSequence(ReceiverFrame)))
+            byte expected;
+            if ((SenderFrame & 0x1) == 0)
             {
-                ReceiverFrame = frame;
-                return true;
+                expected = IncreaseReceiverSequence(IncreaseSendSequence(ReceiverFrame));
+                if (frame == expected)
+                {
+                    ReceiverFrame = frame;
+                    return true;
+                }
             }
             //If answer for RR.
-            if (frame == (byte)IncreaseSendSequence(ReceiverFrame))
+            else
             {
-                ReceiverFrame = frame;
-                return true;
+                expected = IncreaseSendSequence(ReceiverFrame);
+                if (frame == expected)
+                {
+                    ReceiverFrame = frame;
+                    return true;
+                }
             }
             //If try to find data from bytestream and not real communicating.
             if (ReceiverFrame == 0xEE)
             {
                 return true;
             }
-            System.Diagnostics.Debug.WriteLine("Invalid HDLC Frame ID: " + frame.ToString("X") + ".");
+            System.Diagnostics.Debug.WriteLine("Invalid HDLC Frame: " + frame.ToString("X") + ". Expected: " + expected.ToString("X"));
             return false;
         }
 

@@ -136,7 +136,7 @@ namespace Gurux.DLMS.Objects
                     {
                         secret = Secret;
                     }
-                    settings.Connected = ConnectionState.Dlms;
+                    settings.Connected |= ConnectionState.Dlms;
                     return GXSecure.Secure(settings, settings.Cipher, ic, settings.CtoSChallenge, secret);
                 }
                 else

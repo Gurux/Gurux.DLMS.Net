@@ -108,7 +108,7 @@
 1;0.0.94.39.13.255;0;PhyTransmittingERPower 
 1;0.0.94.39.15.255;0;Physical channel Information Plan
 1;0.0.94.39.16.255;0;PIB
-1;0.0.94.39.34.255;0;Transmission Frequency Offset
+1;0.0.94.39.34.255;0;Detected Transmission Frequency Offset
 1;0.0.94.39.18.255;0;MIB
 1;0.0.94.39.18.254;0;MIB
 1;0.0.94.39.9.255;0;Synchronous Access
@@ -137,7 +137,7 @@
 62;0.0.66.0.9.255;0;CF9
 1;0.0.96.15.4.255;0;Directory event counter
 1;0.0.96.11.4.255;0;Directory event code
-7;7.0.99.98.1.255;0;Directory event logbook
+7;7.0.99.98.1.255;0;Metrological logbook
 4;0.0.21.0.14.255;0;Command Buffer
 8192;0.0.94.39.22.255;0;Passive UNI/TS Tariff Plan
 28;0.0.2.2.0.255;0;Auto Answer
@@ -150,3 +150,14 @@
 1;7.2.96.5.1.101;0;Snapshot Period Diagnostic (end-of-billing-period)
 43;0.1.25.2.0.255;0;PM1 Peer MAC address
 7;0.0.21.0.1.255;1;Not Enrolled Detected List
+7;0.1.21.0.1.255;1;Enrolled Detected List
+1;0.0.94.39.36.255;0;PM1 first detected UNIX Time
+1;0.0.94.39.35.255;0;PM1 RSSI Statistic
+1;0.0.94.39.38.255;0;Detected Entry Status
+1;0.0.94.39.48.255;0;White Listed Devices
+7;0.0.21.0.2.255;1;White List
+7;0.0.21.0.3.255;1;Black List
+7;7.0.99.98.3.255;0;Directory Event Logbook
+7;7.0.21.0.10.255;0;Command Queue
+7;7.0.21.0.11.255;0;Response Queue
+7;7.0.21.0.12.255;0;Broadcast Command Queue

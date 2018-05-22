@@ -777,6 +777,11 @@ namespace Gurux.DLMS
                                 p.data.Size = 0;
                                 p.data.Set(tmp);
                                 reply.Size = 0;
+                                len = p.data.Size;
+                                if (7 + len > p.settings.MaxPduSize)
+                                {
+                                    len = p.settings.MaxPduSize - 7;
+                                }
                             }
                         }
                         else if (p.command != Command.GetRequest && len + reply.Size > p.settings.MaxPduSize)
