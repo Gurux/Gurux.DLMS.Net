@@ -283,7 +283,8 @@ namespace Gurux.DLMS.Objects
             {
                 return 0;
             }
-            return (UInt32)BitConverter.ToInt32(System.Net.IPAddress.Parse(value).GetAddressBytes(), 0);
+            GXByteBuffer bb = new GXByteBuffer(System.Net.IPAddress.Parse(value).GetAddressBytes());
+            return bb.GetUInt32();
         }
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
@@ -369,7 +370,9 @@ namespace Gurux.DLMS.Objects
 
         private static string ToAddressString(object value)
         {
-            return new System.Net.IPAddress(BitConverter.GetBytes(Convert.ToUInt32(value))).ToString();
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.Add(value);
+            return new System.Net.IPAddress(bb.Array()).ToString();
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)

@@ -660,7 +660,7 @@ namespace Gurux.DLMS
                     xml.AppendStartTag(TranslatorTags.DataBlock);
                     xml.AppendLine(TranslatorTags.LastBlock, "Value", xml.IntegerToHex(lastBlock, 2));
                     xml.AppendLine(TranslatorTags.BlockNumber, "Value", xml.IntegerToHex(blockNumber, 8));
-                    xml.AppendLine(TranslatorTags.RawData, "Value", data.RemainingHexString(true));
+                    xml.AppendLine(TranslatorTags.RawData, "Value", data.RemainingHexString(false));
                     xml.AppendEndTag(TranslatorTags.DataBlock);
                 }
                 return;

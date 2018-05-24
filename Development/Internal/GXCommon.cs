@@ -2803,7 +2803,7 @@ namespace Gurux.DLMS.Internal
 
         public static void DatatoXml(object value, GXDLMSTranslatorStructure xml)
         {
-            if (value is null)
+            if (value == null)
             {
                 xml.AppendEmptyTag(xml.GetDataType(DataType.None));
             }
@@ -2834,7 +2834,6 @@ namespace Gurux.DLMS.Internal
             else
             {
                 DataType dt = GetDLMSDataType(value.GetType());
-                //                xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)dt, null, Convert.ToString(value));
                 xml.AppendLine(GXDLMS.DATA_TYPE_OFFSET + (int)dt, null, value);
             }
         }

@@ -477,6 +477,7 @@ namespace Gurux.DLMS
                         reply.Set(pdu.Data);
                     }
                 }
+                byte frame = 0;
                 while (reply.Position != reply.Size)
                 {
                     if (Settings.InterfaceType == Enums.InterfaceType.WRAPPER)
@@ -485,7 +486,6 @@ namespace Gurux.DLMS
                     }
                     else if (Settings.InterfaceType == Enums.InterfaceType.HDLC)
                     {
-                        byte frame = 0;
                         if (pdu.Command == Command.Aarq)
                         {
                             frame = 0x10;
@@ -501,15 +501,7 @@ namespace Gurux.DLMS
                         messages.Add(GXDLMS.GetHdlcFrame(Settings, frame, reply));
                         if (reply.Position != reply.Size)
                         {
-                            if (Settings.IsServer || pdu.Command == Command.SetRequest ||
-                                pdu.Command == Command.MethodRequest)
-                            {
-                                frame = 0;
-                            }
-                            else
-                            {
-                                frame = Settings.NextSend(false);
-                            }
+                            frame = Settings.NextSend(false);
                         }
                     }
                     else if (Settings.InterfaceType == Enums.InterfaceType.PDU)

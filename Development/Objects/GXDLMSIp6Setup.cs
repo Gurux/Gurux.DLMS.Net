@@ -287,7 +287,7 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 2)
             {
-                return this.DataLinkLayerReference;
+                return GXCommon.LogicalNameToBytes(DataLinkLayerReference);
             }
             if (e.Index == 3)
             {
@@ -407,11 +407,11 @@ namespace Gurux.DLMS.Objects
             {
                 if (e.Value is string)
                 {
-                    this.DataLinkLayerReference = e.Value.ToString();
+                    DataLinkLayerReference = e.Value.ToString();
                 }
                 else
                 {
-                    this.DataLinkLayerReference = GXDLMSClient.ChangeType((byte[])e.Value, DataType.OctetString, settings.UseUtc2NormalTime).ToString();
+                    DataLinkLayerReference = GXCommon.ToLogicalName(e.Value);
                 }
             }
             else if (e.Index == 3)

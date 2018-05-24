@@ -2912,7 +2912,7 @@ namespace Gurux.DLMS
         /// Convert data bytes to XML.
         /// </summary>
         /// <param name="data">Data to parse as a hex string.</param>
-        /// <param name="data">Generated xml.</param>
+        /// <param name="xml">Generated xml.</param>
         /// <returns></returns>
         public void DataToXml(string data, out string xml)
         {
@@ -2925,7 +2925,7 @@ namespace Gurux.DLMS
         /// Convert data bytes to XML.
         /// </summary>
         /// <param name="data">Data to parse.</param>
-        /// <param name="data">Generated xml.</param>
+        /// <param name="xml">Generated xml.</param>
         /// <returns></returns>
         public void DataToXml(byte[] data, out string xml)
         {
@@ -2936,7 +2936,7 @@ namespace Gurux.DLMS
         /// Convert data bytes to XML.
         /// </summary>
         /// <param name="data">Data to parse.</param>
-        /// <param name="data">Generated xml.</param>
+        /// <param name="xml">Generated xml.</param>
         /// <returns></returns>
         public void DataToXml(GXByteBuffer data, out string xml)
         {
