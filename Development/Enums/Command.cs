@@ -274,6 +274,43 @@ namespace Gurux.DLMS
         /// <summary>
         /// Event Notification request.
         /// </summary>
-        EventNotification = 0xC2
+        EventNotification = 0xC2,
+
+
+
+        /// <summary>
+        /// Ded get request.
+        /// </summary>
+        DedGetRequest = 0xD0,
+
+        /// <summary>
+        /// Ded get response.
+        /// </summary>
+        DedGetResponse = 0xD4,
+
+        /// <summary>
+        /// Ded set request.
+        /// </summary>
+        DedSetRequest = 0xD1,
+
+        /// <summary>
+        /// Ded set response.
+        /// </summary>
+        DedSetResponse = 0xD5,
+
+        /// <summary>
+        /// Ded event notification request.
+        /// </summary>
+        DedEventNotificationRequest = 0xD2,
+
+        /// <summary>
+        /// Ded method request.
+        /// </summary>
+        DedMethodRequest = 0xD3,
+
+        /// <summary>
+        /// Ded method response.
+        /// </summary>
+        DedMethodResponse = 0xD6,
     }
 }

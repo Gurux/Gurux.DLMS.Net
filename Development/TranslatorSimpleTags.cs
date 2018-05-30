@@ -197,6 +197,22 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Get ded tags.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="list"></param>
+        internal static void GetDedTags(TranslatorOutputType type, SortedList<int, string> list)
+        {
+            GXDLMSTranslator.AddTag(list, Command.DedGetRequest, "ded_GetRequest");
+            GXDLMSTranslator.AddTag(list, Command.DedGetResponse, "ded_GetResponse");
+            GXDLMSTranslator.AddTag(list, Command.DedSetRequest, "ded_SetRequest");
+            GXDLMSTranslator.AddTag(list, Command.DedSetResponse, "ded_SetResponse");
+            GXDLMSTranslator.AddTag(list, Command.DedMethodRequest, "ded_ActionRequest");
+            GXDLMSTranslator.AddTag(list, Command.DedMethodResponse, "ded_ActionResponse");
+            GXDLMSTranslator.AddTag(list, Command.GeneralDedCiphering, "generalDedCiphering");
+        }
+
+        /// <summary>
         /// Get translator tags.
         /// </summary>
         /// <param name="type"></param>

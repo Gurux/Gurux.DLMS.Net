@@ -341,6 +341,22 @@ namespace Gurux.DLMS
             }
         }
 
+
+        /// <summary>
+        /// Dedicated key.
+        /// </summary>
+        public byte[] DedicatedKey
+        {
+            get
+            {
+                return Settings.DedicatedKey;
+            }
+            set
+            {
+                Settings.DedicatedKey = value;
+            }
+        }
+
         /// <summary>
         /// Retrieves the password that is used in communication.
         /// </summary>
@@ -601,6 +617,7 @@ namespace Gurux.DLMS
             GXByteBuffer buff = new GXByteBuffer(20);
             GXDLMS.CheckInit(Settings);
             Settings.StoCChallenge = null;
+            Settings.Cipher.DedicatedKey = null;
             //If High authentication is used.
             if (Authentication > Authentication.Low)
             {
@@ -660,6 +677,11 @@ namespace Gurux.DLMS
                 else
                 {
                     Settings.Connected |= ConnectionState.Dlms;
+                    //The dedicated-key, if transferred, can be used from this moment
+                    if (Settings.Cipher != null)
+                    {
+                        Settings.Cipher.DedicatedKey = Settings.DedicatedKey;
+                    }
                 }
                 System.Diagnostics.Debug.WriteLine("- Server max PDU size is " + MaxReceivePDUSize);
                 if (DLMSVersion != 6)
@@ -781,6 +803,11 @@ namespace Gurux.DLMS
             {
                 Settings.Connected &= ~ConnectionState.Dlms;
                 throw new GXDLMSException("Invalid password. Server to Client challenge do not match.");
+            }
+            //The dedicated-key, if transferred, can be used from this moment
+            if (Settings.Cipher != null)
+            {
+                Settings.Cipher.DedicatedKey = Settings.DedicatedKey;
             }
         }
 
@@ -1780,11 +1807,6 @@ namespace Gurux.DLMS
         /// <returns>Returns Keep alive message, as byte array.</returns>
         public byte[] GetKeepAlive()
         {
-            // There is no need for keep alive in IEC 62056-47.
-            if (this.InterfaceType == InterfaceType.WRAPPER)
-            {
-                return null;
-            }
             Settings.ResetBlockIndex();
             if (UseLogicalNameReferencing)
             {

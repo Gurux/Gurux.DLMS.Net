@@ -55,6 +55,12 @@ namespace Gurux.DLMS.Secure
         private byte[] blockCipherKey;
 
         /// <summary>
+        /// Dedicated key.
+        /// </summary>
+        private byte[] dedicatedKey;
+        
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         /// <remarks>
@@ -174,13 +180,41 @@ namespace Gurux.DLMS.Secure
                 authenticationKey = value;
             }
         }
+        /// <summary>
+        /// Authentication Key is 16 bytes value.
+        /// </summary>
+        public byte[] DedicatedKey
+        {
+            get
+            {
+                return dedicatedKey;
+            }
+            set
+            {
+                if (value != null && value.Length != 16 && value.Length != 0)
+                {
+                    throw new ArgumentOutOfRangeException("Invalid DedicatedKey Key.");
+                }
+                dedicatedKey = value;
+            }
+        }
+        
 
         byte[] GXICipher.Encrypt(byte tag, byte[] title, byte[] data)
         {
             if (Security != Gurux.DLMS.Enums.Security.None)
             {
-                AesGcmParameter p = new AesGcmParameter(tag, Security, InvocationCounter,
-                                                        title, BlockCipherKey, AuthenticationKey);
+                AesGcmParameter p;
+                if (dedicatedKey == null)
+                {
+                    p = new AesGcmParameter(tag, Security, InvocationCounter,
+                                                       title, BlockCipherKey, AuthenticationKey);
+                }
+                else
+                {
+                    p = new AesGcmParameter(tag, Security, InvocationCounter,
+                                                            title, dedicatedKey, AuthenticationKey);
+                }
                 byte[] tmp = GXDLMSChippering.EncryptAesGcm(p, data);
                 ++InvocationCounter;
                 return tmp;
@@ -190,7 +224,15 @@ namespace Gurux.DLMS.Secure
 
         AesGcmParameter GXICipher.Decrypt(byte[] title, GXByteBuffer data)
         {
-            AesGcmParameter p = new AesGcmParameter(title, BlockCipherKey, AuthenticationKey);
+            AesGcmParameter p;
+            if (dedicatedKey == null)
+            {
+                p = new AesGcmParameter(title, BlockCipherKey, AuthenticationKey);
+            }
+            else
+            {
+                p = new AesGcmParameter(title, dedicatedKey, AuthenticationKey);
+            }
             byte[] tmp = GXDLMSChippering.DecryptAesGcm(p, data);
             data.Clear();
             data.Set(tmp);

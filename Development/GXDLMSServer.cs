@@ -1248,6 +1248,7 @@ namespace Gurux.DLMS
             GXByteBuffer error = null;
             AssociationResult result = AssociationResult.Accepted;
             Settings.CtoSChallenge = null;
+            Settings.Cipher.DedicatedKey = Settings.DedicatedKey = null;
             if (!Settings.UseCustomChallenge)
             {
                 Settings.StoCChallenge = null;
@@ -1371,6 +1372,10 @@ namespace Gurux.DLMS
             }
             // Generate AARE packet.
             GXAPDU.GenerateAARE(Settings, replyData, result, diagnostic, Settings.Cipher, error, null);
+            if (Settings.Authentication < Authentication.High)
+            {
+                Settings.Cipher.DedicatedKey = Settings.DedicatedKey;
+            }
         }
 
         /// <summary>

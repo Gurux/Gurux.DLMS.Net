@@ -194,6 +194,13 @@ namespace Gurux.DLMS.Secure
                 case Command.GloMethodRequest:
                 case Command.GloMethodResponse:
                 case Command.GloEventNotificationRequest:
+                case Command.DedGetRequest:
+                case Command.DedGetResponse:
+                case Command.DedSetRequest:
+                case Command.DedSetResponse:
+                case Command.DedMethodRequest:
+                case Command.DedMethodResponse:
+                case Command.DedEventNotificationRequest:
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("cryptedData");

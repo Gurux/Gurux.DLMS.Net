@@ -131,6 +131,17 @@ namespace Gurux.DLMS.Objects
             return client.Method(this, 1, (UInt16)script.Id);
         }
 
+        /// <summary>
+        /// Executes selected script by id.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="scriptId">Executed script id.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] Execute(GXDLMSClient client, UInt16 scriptId)
+        {
+            return client.Method(this, 1, scriptId);
+        }
+
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {

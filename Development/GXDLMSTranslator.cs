@@ -229,6 +229,16 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Dedicated key.
+        /// </summary>
+        public byte[] DedicatedKey
+        {
+            get;
+            set;
+        }
+        
+
+        /// <summary>
         /// Block cipher key.
         /// </summary>
         public byte[] BlockCipherKey
@@ -443,6 +453,7 @@ namespace Gurux.DLMS
                 TranslatorSimpleTags.GetSnTags(type, list);
                 TranslatorSimpleTags.GetLnTags(type, list);
                 TranslatorSimpleTags.GetGloTags(type, list);
+                TranslatorSimpleTags.GetDedTags(type, list);
                 TranslatorSimpleTags.GetTranslatorTags(type, list);
                 TranslatorSimpleTags.GetDataTypeTags(list);
             }
@@ -452,6 +463,7 @@ namespace Gurux.DLMS
                 TranslatorStandardTags.GetSnTags(type, list);
                 TranslatorStandardTags.GetLnTags(type, list);
                 TranslatorStandardTags.GetGloTags(type, list);
+                TranslatorStandardTags.GetDedTags(type, list);
                 TranslatorStandardTags.GetTranslatorTags(type, list);
                 TranslatorStandardTags.GetDataTypeTags(list);
             }
@@ -1172,6 +1184,12 @@ namespace Gurux.DLMS
                 case (byte)Command.GloSetResponse:
                 case (byte)Command.GloMethodRequest:
                 case (byte)Command.GloMethodResponse:
+                case (byte)Command.DedGetRequest:
+                case (byte)Command.DedSetRequest:
+                case (byte)Command.DedGetResponse:
+                case (byte)Command.DedSetResponse:
+                case (byte)Command.DedMethodRequest:
+                case (byte)Command.DedMethodResponse:
                     if (settings.Cipher != null && Comments)
                     {
                         int originalPosition = value.Position;
@@ -1181,7 +1199,8 @@ namespace Gurux.DLMS
                             --value.Position;
                             Command c = (Command)cmd;
                             byte[] st;
-                            if (c == Command.GloReadRequest || c == Command.GloWriteRequest || c == Command.GloGetRequest || c == Command.GloSetRequest || c == Command.GloMethodRequest)
+                            if (c == Command.GloReadRequest || c == Command.GloWriteRequest || c == Command.GloGetRequest || c == Command.GloSetRequest || c == Command.GloMethodRequest ||
+                                c == Command.DedGetRequest || c == Command.DedSetRequest || c == Command.DedMethodRequest)
                             {
                                 st = settings.Cipher.SystemTitle;
                             }
@@ -1191,11 +1210,22 @@ namespace Gurux.DLMS
                             }
                             if (st != null)
                             {
-                                AesGcmParameter p = new AesGcmParameter(st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
-                                GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
-                                xml.StartComment("Decrypt data:");
-                                PduToXml(xml, data2, omitDeclaration, omitNameSpace);
-                                xml.EndComment();
+                                AesGcmParameter p;
+                                if (c == Command.DedGetRequest || c == Command.DedSetRequest || c == Command.DedMethodRequest)
+                                {
+                                    p = new AesGcmParameter(st, settings.DedicatedKey, settings.Cipher.AuthenticationKey);
+                                }
+                                else
+                                {
+                                    p = new AesGcmParameter(st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                                }
+                                if (p.BlockCipherKey != null)
+                                {
+                                    GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
+                                    xml.StartComment("Decrypt data:");
+                                    PduToXml(xml, data2, omitDeclaration, omitNameSpace);
+                                    xml.EndComment();
+                                }
                             }
                         }
                         catch (Exception)
@@ -1363,6 +1393,9 @@ namespace Gurux.DLMS
                 case (byte)Command.GloMethodRequest:
                 case (byte)Command.GloReadRequest:
                 case (byte)Command.GloWriteRequest:
+                case (byte)Command.DedGetRequest:
+                case (byte)Command.DedSetRequest:
+                case (byte)Command.DedMethodRequest:
                     s.settings.IsServer = false;
                     tmp = GXCommon.HexToBytes(GetValue(node, s));
                     s.settings.Cipher.Security = (Enums.Security)tmp[0];
@@ -1391,6 +1424,10 @@ namespace Gurux.DLMS
                 case (byte)Command.GloReadResponse:
                 case (byte)Command.GloWriteResponse:
                 case (byte)Command.GloEventNotificationRequest:
+                case (byte)Command.DedGetResponse:
+                case (byte)Command.DedSetResponse:
+                case (byte)Command.DedMethodResponse:
+                case (byte)Command.DedEventNotificationRequest:
                     tmp = GXCommon.HexToBytes(GetValue(node, s));
                     s.settings.Cipher.Security = (Enums.Security)tmp[0];
                     s.data.Set(tmp);
@@ -2730,6 +2767,12 @@ namespace Gurux.DLMS
                 case Command.GloWriteRequest:
                 case Command.GloReadResponse:
                 case Command.GloWriteResponse:
+                case Command.DedGetRequest:
+                case Command.DedGetResponse:
+                case Command.DedSetRequest:
+                case Command.DedSetResponse:
+                case Command.DedMethodRequest:
+                case Command.DedMethodResponse:
                     bb.SetUInt8((byte)s.command);
                     GXCommon.SetObjectCount(s.data.Size, bb);
                     bb.Set(s.data);

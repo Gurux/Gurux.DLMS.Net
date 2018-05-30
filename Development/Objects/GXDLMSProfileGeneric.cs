@@ -427,9 +427,8 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Internal.GXCommon.GetLogicalNameString(), "CaptureObjects",
-                             "Capture Period", "Buffer", "Sort Method", "Sort Object", "Entries In Use", "Profile Entries"
-                            };
+            return new string[] {Internal.GXCommon.GetLogicalNameString(), "Buffer", "CaptureObjects",
+                             "Capture Period", "Sort Method", "Sort Object", "Entries In Use", "Profile Entries"};
         }
 
         int IGXDLMSBase.GetAttributeCount()

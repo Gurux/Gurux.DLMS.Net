@@ -32,11 +32,6 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 namespace Gurux.DLMS.Enums
 {
     /// <summary>
@@ -56,6 +51,38 @@ namespace Gurux.DLMS.Enums
         /// The application context name is not supported. 
         /// </summary>
         ApplicationContextNameNotSupported = 2,
+        /// <summary>
+        /// Calling AP title not recognized.
+        /// </summary>
+        CallingApTitleNotRecognized = 3,
+        /// <summary>
+        /// Calling AP invocation identifier not recognized.
+        /// </summary>
+        CallingApInvocationIdentifierNotRecognized = 4,
+        /// <summary>
+        /// Calling AE qualifier not recognized
+        /// </summary>
+        CallingAeQualifierNotRecognized = 5,
+        /// <summary>
+        /// Calling AE invocation identifier not recognized
+        /// </summary>
+        CallingAeInvocationIdentifierNotRecognized = 6,
+        /// <summary>
+        /// Called AP title not recognized
+        /// </summary>
+        CalledApTitleNotRecognized = 7,
+        /// <summary>
+        /// Called AP invocation identifier not recognized 
+        /// </summary>
+        CalledApInvocationIdentifierNotRecognized = 8,
+        /// <summary>
+        /// Called AE qualifier not recognized
+        /// </summary>
+        CalledAeQualifierNotRecognized = 9,
+        /// <summary>
+        /// Called AE invocation identifier not recognized
+        /// </summary>
+        CalledAeInvocationIdentifierNotRecognized = 10,
         /// <summary>
         /// The authentication mechanism name is not recognized.
         /// </summary>

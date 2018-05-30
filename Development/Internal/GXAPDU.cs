@@ -177,8 +177,17 @@ namespace Gurux.DLMS.Internal
         {
             // Tag for xDLMS-Initiate request
             data.SetUInt8((byte)Command.InitiateRequest);
-            // Usage field for dedicated-key component. Not used
-            data.SetUInt8(0x00);
+            // Usage field for dedicated-key component.
+            if (settings.DedicatedKey == null)
+            {
+                data.SetUInt8(0x00);
+            }
+            else
+            {
+                data.SetUInt8(0x1);
+                GXCommon.SetObjectCount(settings.DedicatedKey.Length, data);
+                data.Set(settings.DedicatedKey);
+            }
             //encoding of the response-allowed component (BOOLEAN DEFAULT TRUE)
             // usage flag (FALSE, default value TRUE conveyed)
             data.SetUInt8(0);
@@ -215,9 +224,11 @@ namespace Gurux.DLMS.Internal
                 data.SetUInt8(0x10);
                 //Coding the choice for user-information (Octet STRING, universal)
                 data.SetUInt8(BerType.OctetString);
+                GXByteBuffer tmp = new GXByteBuffer();
+                GetInitiateRequest(settings, cipher, tmp);
                 //Length
-                data.SetUInt8(0x0E);
-                GetInitiateRequest(settings, cipher, data);
+                GXCommon.SetObjectCount(tmp.Size, data);
+                data.Set(tmp);
             }
             else
             {
@@ -237,6 +248,7 @@ namespace Gurux.DLMS.Internal
                 {
                     GXByteBuffer tmp = new GXByteBuffer();
                     GetInitiateRequest(settings, cipher, tmp);
+                    cipher.DedicatedKey = null;
                     byte[] crypted = cipher.Encrypt((byte)Command.GloInitiateRequest, cipher.SystemTitle, tmp.Array());
                     //Length for AARQ user field
                     data.SetUInt8((byte)(2 + crypted.Length));
@@ -313,6 +325,10 @@ namespace Gurux.DLMS.Internal
                 tag = data.GetUInt8();
                 if (tag != 0)
                 {
+                    if (settings.Cipher != null)
+                    {
+                        settings.Cipher.DedicatedKey = null;
+                    }
                     len = data.GetUInt8();
                     settings.DedicatedKey = new byte[len];
                     data.Get(settings.DedicatedKey);
@@ -320,6 +336,14 @@ namespace Gurux.DLMS.Internal
                     {
                         xml.AppendLine(TranslatorGeneralTags.DedicatedKey,
                                 null, GXCommon.ToHex(settings.DedicatedKey, false));
+                    }
+                }
+                else
+                {
+                    settings.DedicatedKey = null;
+                    if (settings.Cipher != null)
+                    {
+                        settings.Cipher.DedicatedKey = null;
                     }
                 }
                 //Optional usage field of the negotiated quality of service component

@@ -370,6 +370,10 @@ namespace Gurux.DLMS.Objects
 
         private static string ToAddressString(object value)
         {
+            if (value is string)
+            {
+                return System.Net.IPAddress.Parse((string)value).ToString();
+            }
             GXByteBuffer bb = new GXByteBuffer();
             bb.Add(value);
             return new System.Net.IPAddress(bb.Array()).ToString();
@@ -430,7 +434,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 6)
             {
-                SubnetMask = ToAddressString(Convert.ToUInt32(e.Value));
+                SubnetMask = ToAddressString(e.Value);
             }
             else if (e.Index == 7)
             {

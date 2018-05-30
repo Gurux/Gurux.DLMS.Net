@@ -289,6 +289,17 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Dedicated key.
+        /// </summary>
+        public byte[] DedicatedKey
+        {
+            get;
+            set;
+        }
+
+        
+
+        /// <summary>
         /// Server to Client challenge.
         /// </summary>
         public byte[] StoCChallenge
@@ -303,14 +314,6 @@ namespace Gurux.DLMS
             }
         }
 
-        /// <summary>
-        /// Dedicated key.
-        /// </summary>
-        public byte[] DedicatedKey
-        {
-            get;
-            set;
-        }
         /// <summary>
         /// Used authentication.
         /// </summary>

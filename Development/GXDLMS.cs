@@ -500,6 +500,48 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Get used ded message.
+        /// </summary>
+        /// <param name="cmd">Executed command.</param>
+        /// <returns>Integer value of ded message.</returns>
+        private static byte GetDedMessage(Command cmd)
+        {
+            switch (cmd)
+            {
+                case Command.GetRequest:
+                    cmd = Command.DedGetRequest;
+                    break;
+                case Command.SetRequest:
+                    cmd = Command.DedSetRequest;
+                    break;
+                case Command.MethodRequest:
+                    cmd = Command.DedMethodRequest;
+                    break;
+                case Command.GetResponse:
+                    cmd = Command.DedGetResponse;
+                    break;
+                case Command.SetResponse:
+                    cmd = Command.DedSetResponse;
+                    break;
+                case Command.MethodResponse:
+                    cmd = Command.DedMethodResponse;
+                    break;
+                case Command.DataNotification:
+                    cmd = Command.GeneralDedCiphering;
+                    break;
+                case Command.ReleaseRequest:
+                    cmd = Command.ReleaseRequest;
+                    break;
+                case Command.ReleaseResponse:
+                    cmd = Command.ReleaseResponse;
+                    break;
+                default:
+                    throw new GXDLMSException("Invalid GLO command.");
+            }
+            return (byte)cmd;
+        }
+
+        /// <summary>
         /// Add LLC bytes to generated message.
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
@@ -558,7 +600,11 @@ namespace Gurux.DLMS
         {
             byte cmd;
             byte[] st = p.settings.Cipher.SystemTitle;
-            if ((p.settings.ProposedConformance & Conformance.GeneralProtection) == 0
+            if (p.settings.Cipher.DedicatedKey != null)
+            {
+                cmd = (byte)GetDedMessage(p.command);
+            }
+            else if ((p.settings.ProposedConformance & Conformance.GeneralProtection) == 0
                 && (p.settings.NegotiatedConformance & Conformance.GeneralProtection) == 0)
             {
                 cmd = (byte)GetGloMessage(p.command);
@@ -568,7 +614,8 @@ namespace Gurux.DLMS
                 cmd = (byte)Command.GeneralGloCiphering;
             }
             byte[] tmp = p.settings.Cipher.Encrypt(cmd, st, data);
-            if (p.command == Command.DataNotification || cmd == (byte)Command.GeneralGloCiphering)
+            if (p.command == Command.DataNotification || cmd == (byte)Command.GeneralGloCiphering ||
+                cmd == (byte)Command.GeneralDedCiphering)
             {
                 GXByteBuffer reply = new GXByteBuffer();
                 // Add command.
@@ -2844,7 +2891,7 @@ namespace Gurux.DLMS
             }
         }
 
-        private static void HandledGloRequest(GXDLMSSettings settings,
+        private static void HandledGloDedRequest(GXDLMSSettings settings,
                                               GXReplyData data)
         {
             if (data.Xml != null)
@@ -2878,7 +2925,7 @@ namespace Gurux.DLMS
             }
         }
 
-        private static void HandledGloResponse(GXDLMSSettings settings,
+        private static void HandledGloDedResponse(GXDLMSSettings settings,
                                                GXReplyData data, int index)
         {
             if (data.Xml != null)
@@ -2992,7 +3039,7 @@ namespace Gurux.DLMS
                     case Command.GloGetRequest:
                     case Command.GloSetRequest:
                     case Command.GloMethodRequest:
-                        HandledGloRequest(settings, data);
+                        HandledGloDedRequest(settings, data);
                         // Server handles this.
                         break;
                     case Command.GloReadResponse:
@@ -3001,16 +3048,29 @@ namespace Gurux.DLMS
                     case Command.GloSetResponse:
                     case Command.GloMethodResponse:
                     case Command.GloEventNotificationRequest:
-                        HandledGloResponse(settings, data, index);
+                        HandledGloDedResponse(settings, data, index);
+                        break;
+                    case Command.DedGetRequest:
+                    case Command.DedSetRequest:
+                    case Command.DedMethodRequest:
+                        HandledGloDedRequest(settings, data);
+                        // Server handles this.
+                        break;
+                    case Command.DedGetResponse:
+                    case Command.DedSetResponse:
+                    case Command.DedMethodResponse:
+                    case Command.DedEventNotificationRequest:
+                        HandledGloDedResponse(settings, data, index);
                         break;
                     case Command.GeneralGloCiphering:
+                    case Command.GeneralDedCiphering:
                         if (settings.IsServer)
                         {
-                            HandledGloRequest(settings, data);
+                            HandledGloDedRequest(settings, data);
                         }
                         else
                         {
-                            HandledGloResponse(settings, data, index);
+                            HandledGloDedResponse(settings, data, index);
                         }
                         break;
 

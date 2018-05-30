@@ -272,6 +272,10 @@ namespace Gurux.DLMS
             {
                 server.NotifyInvalidConnection(connectionInfo);
             }
+            if (settings.Cipher != null && settings.DedicatedKey != null)
+            {
+                settings.Cipher.DedicatedKey = settings.DedicatedKey;
+            }
         }
 
         private static void AppendAttributeDescriptor(GXDLMSTranslatorStructure xml, int ci, byte[] ln, byte attributeIndex)
