@@ -163,8 +163,8 @@ namespace Gurux.DLMS.Internal
                 data.SetUInt8((byte)BerType.Integer);
                 //LEN
                 data.SetUInt8(1);
-                data.SetUInt8((byte) settings.UserId);
-            }            
+                data.SetUInt8((byte)settings.UserId);
+            }
         }
 
         /// <summary>
@@ -178,15 +178,15 @@ namespace Gurux.DLMS.Internal
             // Tag for xDLMS-Initiate request
             data.SetUInt8((byte)Command.InitiateRequest);
             // Usage field for dedicated-key component.
-            if (settings.DedicatedKey == null)
+            if (settings.Cipher == null || settings.Cipher.DedicatedKey == null)
             {
                 data.SetUInt8(0x00);
             }
             else
             {
                 data.SetUInt8(0x1);
-                GXCommon.SetObjectCount(settings.DedicatedKey.Length, data);
-                data.Set(settings.DedicatedKey);
+                GXCommon.SetObjectCount(settings.Cipher.DedicatedKey.Length, data);
+                data.Set(settings.Cipher.DedicatedKey);
             }
             //encoding of the response-allowed component (BOOLEAN DEFAULT TRUE)
             // usage flag (FALSE, default value TRUE conveyed)
@@ -248,8 +248,11 @@ namespace Gurux.DLMS.Internal
                 {
                     GXByteBuffer tmp = new GXByteBuffer();
                     GetInitiateRequest(settings, cipher, tmp);
-                    cipher.DedicatedKey = null;
-                    byte[] crypted = cipher.Encrypt((byte)Command.GloInitiateRequest, cipher.SystemTitle, tmp.Array());
+                    AesGcmParameter p = new AesGcmParameter((int)Command.GloInitiateRequest, cipher.Security,
+                        cipher.InvocationCounter, cipher.SystemTitle,
+                        cipher.BlockCipherKey,
+                        cipher.AuthenticationKey);
+                    byte[] crypted = GXCiphering.Encrypt(p, tmp.Array());
                     //Length for AARQ user field
                     data.SetUInt8((byte)(2 + crypted.Length));
                     //Coding the choice for user-information (Octet STRING, universal)
@@ -323,28 +326,28 @@ namespace Gurux.DLMS.Internal
                 }
                 //Optional usage field of dedicated key.
                 tag = data.GetUInt8();
+                if (settings.Cipher != null)
+                {
+                    settings.Cipher.DedicatedKey = null;
+                }
                 if (tag != 0)
                 {
+                    len = data.GetUInt8();
+                    byte[] tmp2 = new byte[len];
+                    data.Get(tmp2);
                     if (settings.Cipher != null)
                     {
-                        settings.Cipher.DedicatedKey = null;
+                        settings.Cipher.DedicatedKey = tmp2;
                     }
-                    len = data.GetUInt8();
-                    settings.DedicatedKey = new byte[len];
-                    data.Get(settings.DedicatedKey);
                     if (xml != null)
                     {
                         xml.AppendLine(TranslatorGeneralTags.DedicatedKey,
-                                null, GXCommon.ToHex(settings.DedicatedKey, false));
+                                null, GXCommon.ToHex(tmp2, false));
                     }
                 }
-                else
+                else if (settings.Cipher != null)
                 {
-                    settings.DedicatedKey = null;
-                    if (settings.Cipher != null)
-                    {
-                        settings.Cipher.DedicatedKey = null;
-                    }
+                    settings.Cipher.DedicatedKey = null;
                 }
                 //Optional usage field of the negotiated quality of service component
                 tag = data.GetUInt8();
@@ -1277,7 +1280,11 @@ namespace Gurux.DLMS.Internal
             }
             if (cipher != null && cipher.IsCiphered())
             {
-                return cipher.Encrypt((byte)Command.GloInitiateResponse, cipher.SystemTitle, data.Array());
+                AesGcmParameter p = new AesGcmParameter((byte)
+                     Command.GloInitiateResponse, cipher.Security,
+                     cipher.InvocationCounter, cipher.SystemTitle,
+                     cipher.BlockCipherKey, cipher.AuthenticationKey);
+                return GXCiphering.Encrypt(p, data.Array());
             }
             return data.Array();
         }

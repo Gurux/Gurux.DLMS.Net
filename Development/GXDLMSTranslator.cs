@@ -1213,7 +1213,7 @@ namespace Gurux.DLMS
                                 AesGcmParameter p;
                                 if (c == Command.DedGetRequest || c == Command.DedSetRequest || c == Command.DedMethodRequest)
                                 {
-                                    p = new AesGcmParameter(st, settings.DedicatedKey, settings.Cipher.AuthenticationKey);
+                                    p = new AesGcmParameter(st, settings.Cipher.DedicatedKey, settings.Cipher.AuthenticationKey);
                                 }
                                 else
                                 {
@@ -1571,7 +1571,7 @@ namespace Gurux.DLMS
                     break;
                 case (int)TranslatorGeneralTags.DedicatedKey:
                     tmp = GXCommon.HexToBytes(GetValue(node, s));
-                    s.settings.DedicatedKey = tmp;
+                    s.settings.Cipher.DedicatedKey = tmp;
                     break;
                 case (int)TranslatorGeneralTags.CallingAPTitle:
                     s.settings

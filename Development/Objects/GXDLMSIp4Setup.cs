@@ -370,6 +370,10 @@ namespace Gurux.DLMS.Objects
 
         private static string ToAddressString(object value)
         {
+            if (value == null)
+            {
+                return "";
+            }
             if (value is string)
             {
                 return System.Net.IPAddress.Parse((string)value).ToString();

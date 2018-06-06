@@ -200,43 +200,23 @@ namespace Gurux.DLMS.Secure
         }
         
 
-        byte[] GXICipher.Encrypt(byte tag, byte[] title, byte[] data)
+        internal static byte[] Encrypt(AesGcmParameter p, byte[] data)
         {
-            if (Security != Gurux.DLMS.Enums.Security.None)
+            if (p.Security != Gurux.DLMS.Enums.Security.None)
             {
-                AesGcmParameter p;
-                if (dedicatedKey == null)
-                {
-                    p = new AesGcmParameter(tag, Security, InvocationCounter,
-                                                       title, BlockCipherKey, AuthenticationKey);
-                }
-                else
-                {
-                    p = new AesGcmParameter(tag, Security, InvocationCounter,
-                                                            title, dedicatedKey, AuthenticationKey);
-                }
                 byte[] tmp = GXDLMSChippering.EncryptAesGcm(p, data);
-                ++InvocationCounter;
+                ++p.InvocationCounter;
                 return tmp;
             }
             return data;
         }
 
-        AesGcmParameter GXICipher.Decrypt(byte[] title, GXByteBuffer data)
+        internal static byte[] Decrypt(AesGcmParameter p, GXByteBuffer data)
         {
-            AesGcmParameter p;
-            if (dedicatedKey == null)
-            {
-                p = new AesGcmParameter(title, BlockCipherKey, AuthenticationKey);
-            }
-            else
-            {
-                p = new AesGcmParameter(title, dedicatedKey, AuthenticationKey);
-            }
             byte[] tmp = GXDLMSChippering.DecryptAesGcm(p, data);
             data.Clear();
             data.Set(tmp);
-            return p;
+            return tmp;
         }
 
         public void Reset()

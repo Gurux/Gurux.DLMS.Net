@@ -268,13 +268,18 @@ namespace Gurux.DLMS
             GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeId, Command.MethodResponse, 1, null, bb, (byte)error);
             GXDLMS.GetLNPdu(p, replyData);
             //If High level authentication fails.
-            if (settings.Connected == ConnectionState.None && !settings.CanAccess() && obj is GXDLMSAssociationLogicalName && id == 1)
+            if (obj is GXDLMSAssociationLogicalName && id == 1)
             {
-                server.NotifyInvalidConnection(connectionInfo);
-            }
-            if (settings.Cipher != null && settings.DedicatedKey != null)
-            {
-                settings.Cipher.DedicatedKey = settings.DedicatedKey;
+                if ((obj as GXDLMSAssociationLogicalName).AssociationStatus == Objects.Enums.AssociationStatus.Associated)
+                {
+                    server.NotifyConnected(connectionInfo);
+                    settings.Connected |= ConnectionState.Dlms;
+                }
+                else
+                {
+                    server.NotifyInvalidConnection(connectionInfo);
+                    settings.Connected &= ~ConnectionState.Dlms;
+                }
             }
         }
 

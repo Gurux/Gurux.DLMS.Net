@@ -38,22 +38,6 @@ namespace Gurux.DLMS.Secure
     internal interface GXICipher
     {
         /// <summary>
-        /// Encrypt PDU.
-        /// </summary>
-        /// <param name="tag">Command.</param>
-        /// <param name="title">System title.</param>
-        /// <param name="data">Data to encrypt.</param>
-        /// <returns>Encrypted data.</returns>
-        byte[] Encrypt(byte tag, byte[] title, byte[] data);
-
-        /// <summary>
-        /// Decrypt data.
-        /// </summary>
-        /// <param name="title">System title.</param>
-        /// <param name="data">Decrypted data.</param>
-        AesGcmParameter Decrypt(byte[] title, GXByteBuffer data);
-
-        /// <summary>
         /// Reset encrypt settings.
         /// </summary>
         void Reset();
@@ -115,6 +99,7 @@ namespace Gurux.DLMS.Secure
         UInt32 InvocationCounter
         {
             get;
+            set;
         }
     }
 }

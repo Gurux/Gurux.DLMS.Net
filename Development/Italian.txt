@@ -43,7 +43,7 @@
 1;0.0.94.39.26.255;0;Leakage Test Parameters 
 1;0.0.94.39.7.255;0;Valve Closure Cause
 1;0.0.94.39.46.255;0;User Message
-3;7.0.96.5.1.255;0;User Message
+3;7.0.96.5.1.255;0;Current Diagnostic
 1;7.1.96.5.1.255;0;Daily diagnostic
 1;7.2.96.5.1.255;0;Snapshot Period Diagnostic
 1;0.0.96.20.25.255;0;Anti-fraud totalizer
@@ -102,7 +102,7 @@
 3;0.0.94.39.14.255;0;Battery Change Authorization 
 3;7.0.41.0.0.255;0;Current Temperature
 3;7.0.41.2.0.255;0;Base Temperature
-3;7.0.41.3.0.255;0;Fallback Temperature
+3;7.0.41.3.0.255;0;Temperature, backup value
 43;0.0.25.2.0.255;0;RF module MAC address
 73;0.0.31.0.0.255;0;RF module Secondary Address
 1;0.0.94.39.13.255;0;PhyTransmittingERPower 
@@ -162,4 +162,10 @@
 7;7.0.21.0.11.255;0;Response Queue
 7;7.0.21.0.12.255;0;Broadcast Command Queue
 1;0.0.94.39.44.255;0;Synchronization Algorithm 
-4;0.0.21.0.14.255;0;Command Buffer 
+4;0.0.21.0.14.255;0;Command Buffer
+1;0.0.94.39.39.255;0;White List Control Information
+1;0.0.94.39.45.255;0;PM1 Request Priority
+1;0.0.94.39.27.255;0;PM1 Request Identifier
+1;0.0.94.39.50.255;0;PM1 DataLink Payload
+1;0.0.94.39.28.255;0;PM1 Request Time-To-Live
+7;0.0.21.0.10.255;0;Command Queue

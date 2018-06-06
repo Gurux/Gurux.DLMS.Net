@@ -190,6 +190,21 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Used standard.
+        /// </summary>
+        public Standard Standard
+        {
+            get
+            {
+                return Settings.Standard;
+            }
+            set
+            {
+                Settings.Standard = value;
+            }
+        }
+
+        /// <summary>
         /// Force that data is always sent as blocks.
         /// </summary>
         /// <remarks>
@@ -338,22 +353,6 @@ namespace Gurux.DLMS
             {
                 Settings.UseCustomChallenge = value != null;
                 Settings.CtoSChallenge = value;
-            }
-        }
-
-
-        /// <summary>
-        /// Dedicated key.
-        /// </summary>
-        public byte[] DedicatedKey
-        {
-            get
-            {
-                return Settings.DedicatedKey;
-            }
-            set
-            {
-                Settings.DedicatedKey = value;
             }
         }
 
@@ -617,7 +616,6 @@ namespace Gurux.DLMS
             GXByteBuffer buff = new GXByteBuffer(20);
             GXDLMS.CheckInit(Settings);
             Settings.StoCChallenge = null;
-            Settings.Cipher.DedicatedKey = null;
             //If High authentication is used.
             if (Authentication > Authentication.Low)
             {
@@ -677,11 +675,6 @@ namespace Gurux.DLMS
                 else
                 {
                     Settings.Connected |= ConnectionState.Dlms;
-                    //The dedicated-key, if transferred, can be used from this moment
-                    if (Settings.Cipher != null)
-                    {
-                        Settings.Cipher.DedicatedKey = Settings.DedicatedKey;
-                    }
                 }
                 System.Diagnostics.Debug.WriteLine("- Server max PDU size is " + MaxReceivePDUSize);
                 if (DLMSVersion != 6)
@@ -803,11 +796,6 @@ namespace Gurux.DLMS
             {
                 Settings.Connected &= ~ConnectionState.Dlms;
                 throw new GXDLMSException("Invalid password. Server to Client challenge do not match.");
-            }
-            //The dedicated-key, if transferred, can be used from this moment
-            if (Settings.Cipher != null)
-            {
-                Settings.Cipher.DedicatedKey = Settings.DedicatedKey;
             }
         }
 

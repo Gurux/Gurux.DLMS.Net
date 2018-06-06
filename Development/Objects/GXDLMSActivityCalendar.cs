@@ -270,7 +270,14 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
-        static Object GetSeasonProfile(GXDLMSSettings settings, GXDLMSSeasonProfile[] target)
+        /// <summary>
+        /// Get season profile bytes.
+        /// </summary>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="target">Season profile array.</param>
+        /// <param name="useOctectString">Is date time send as octect string.</param>
+        /// <returns></returns>
+        static Object GetSeasonProfile(GXDLMSSettings settings, GXDLMSSeasonProfile[] target, bool useOctectString)
         {
             GXByteBuffer data = new GXByteBuffer();
             data.SetUInt8((byte)DataType.Array);
@@ -289,7 +296,14 @@ namespace Gurux.DLMS.Objects
                     data.SetUInt8((byte)DataType.Structure);
                     data.SetUInt8(3);
                     GXCommon.SetData(settings, data, DataType.OctetString, it.Name);
-                    GXCommon.SetData(settings, data, DataType.OctetString, it.Start);
+                    if (useOctectString)
+                    {
+                        GXCommon.SetData(settings, data, DataType.OctetString, it.Start);
+                    }
+                    else
+                    {
+                        GXCommon.SetData(settings, data, DataType.DateTime, it.Start);
+                    }
                     GXCommon.SetData(settings, data, DataType.OctetString, it.WeekName);
                 }
             }
@@ -380,7 +394,8 @@ namespace Gurux.DLMS.Objects
             if (e.Index == 3)
             {
                 e.ByteArray = true;
-                return GetSeasonProfile(settings, SeasonProfileActive);
+                bool useOctectString = settings.Standard != Standard.SEC;
+                return GetSeasonProfile(settings, SeasonProfileActive, useOctectString);
             }
             if (e.Index == 4)
             {
@@ -400,11 +415,11 @@ namespace Gurux.DLMS.Objects
                 }
                 return ASCIIEncoding.ASCII.GetBytes(CalendarNamePassive);
             }
-            //
             if (e.Index == 7)
             {
                 e.ByteArray = true;
-                return GetSeasonProfile(settings, SeasonProfilePassive);
+                bool useOctectString = settings.Standard != Standard.SEC;
+                return GetSeasonProfile(settings, SeasonProfilePassive, useOctectString);
             }
             if (e.Index == 8)
             {
@@ -433,7 +448,18 @@ namespace Gurux.DLMS.Objects
                 {
                     GXDLMSSeasonProfile it = new GXDLMSSeasonProfile();
                     it.Name = (byte[])item[0];
-                    it.Start = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime, settings.UseUtc2NormalTime);
+                    if (item[1] is byte[])
+                    {
+                        it.Start = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime, settings.UseUtc2NormalTime);
+                    }
+                    else if (item[1] is GXDateTime)
+                    {
+                        it.Start = (GXDateTime) item[1];
+                    }
+                    else
+                    {
+                        throw new Exception("Invalid date time.");
+                    }
                     it.WeekName = (byte[])item[2];
                     items.Add(it);
                 }
@@ -520,7 +546,7 @@ namespace Gurux.DLMS.Objects
                 }
             }
             else if (e.Index == 3)
-            {
+            {                
                 SeasonProfileActive = SetSeasonProfile(settings, e.Value);
             }
             else if (e.Index == 4)

@@ -48,7 +48,6 @@ namespace Gurux.DLMS
     {
         private bool useLogicalNameReferencing;
 
-
         ///<summary>
         /// Server frame sequence starting number.
         ///</summary>
@@ -201,6 +200,15 @@ namespace Gurux.DLMS
             set;
         }
 
+        /// <summary>
+        /// Used standard.
+        /// </summary>
+        public Standard Standard
+        {
+            get;
+            set;
+        }
+
         ///<summary>
         ///Constructor.
         ///</summary>
@@ -220,6 +228,7 @@ namespace Gurux.DLMS
             ResetFrameSequence();
             WindowSize = 1;
             UserId = -1;
+            Standard = Standard.DLMS;
         }
 
         /// <summary>
@@ -287,17 +296,6 @@ namespace Gurux.DLMS
                 ctoSChallenge = value;
             }
         }
-
-        /// <summary>
-        /// Dedicated key.
-        /// </summary>
-        public byte[] DedicatedKey
-        {
-            get;
-            set;
-        }
-
-        
 
         /// <summary>
         /// Server to Client challenge.

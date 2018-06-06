@@ -157,7 +157,6 @@ namespace Gurux.DLMS.Objects
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Array);
                 data.SetUInt8((byte)Entries.Count);
-                /*TODO:
                 foreach (GXScheduleEntry it in Entries)
                 {
                     data.SetUInt8((byte)DataType.Structure);
@@ -168,71 +167,27 @@ namespace Gurux.DLMS.Objects
                     //Add enable.
                     data.SetUInt8((byte)DataType.Boolean);
                     data.SetUInt8((byte) (it.Enable ? 1 : 0));
-
                     //Add logical Name.
                     data.SetUInt8((byte)DataType.OctetString);
                     data.SetUInt8((byte) it.LogicalName.Length);
-                    //TODO: data.SetUInt8((byte)it.LogicalName.Length);
-
+                    data.Set(GXCommon.LogicalNameToBytes(it.LogicalName));
                     //Add script selector.
                     data.SetUInt8((byte)DataType.UInt8);
                     data.SetUInt8(it.ScriptSelector);
-
                     //Add switch time.
-                    ret = var_setDateTime(&tmp, &se->switchTime);
-                    if (ret != 0)
-                    {
-                        var_clear(&tmp);
-                        break;
-                    }
-                    ret = var_getBytes(&tmp, &value->byteArr);
-                    var_clear(&tmp);
-                    if (ret != 0)
-                    {
-                        break;
-                    }
+                    GXCommon.SetData(settings, data, DataType.OctetString, it.SwitchTime);
                     //Add validity window.
                     data.SetUInt8((byte)DataType.UInt8);
                     data.SetUInt8(it.ValidityWindow);
-
                     //Add exec week days.
-                    ba_setUInt8(&value->byteArr, DLMS_DATA_TYPE_BIT_STRING);
-                    setObjectCount(se->execWeekdays.size, &value->byteArr);
-                    ba_addRange(&value->byteArr, se->execWeekdays.data, bit_getByteCount(se->execWeekdays.size));
-
+                    GXCommon.SetData(settings, data, DataType.BitString, it.ExecWeekdays);
                     //Add exec spec days.
-                    ba_setUInt8(&value->byteArr, DLMS_DATA_TYPE_BIT_STRING);
-                    setObjectCount(se->execSpecDays.size, &value->byteArr);
-                    ba_addRange(&value->byteArr, se->execSpecDays.data, bit_getByteCount(se->execSpecDays.size));
-
+                    GXCommon.SetData(settings, data, DataType.BitString, it.ExecSpecDays);
                     //Add begin date.
-                    ret = var_setDateTime(&tmp, &se->beginDate);
-                    if (ret != 0)
-                    {
-                        var_clear(&tmp);
-                        break;
-                    }
-                    ret = var_getBytes(&tmp, &value->byteArr);
-                    var_clear(&tmp);
-                    if (ret != 0)
-                    {
-                        break;
-                    }
+                    GXCommon.SetData(settings, data, DataType.OctetString, it.BeginDate);
                     //Add end date.
-                    ret = var_setDateTime(&tmp, &se->endDate);
-                    if (ret != 0)
-                    {
-                        var_clear(&tmp);
-                        break;
-                    }
-                    ret = var_getBytes(&tmp, &value->byteArr);
-                    var_clear(&tmp);
-                    if (ret != 0)
-                    {
-                        break;
-                    }
+                    GXCommon.SetData(settings, data, DataType.OctetString, it.EndDate);
                 }
-                 * */
                 return data.Array();
             }
             e.Error = ErrorCode.ReadWriteDenied;

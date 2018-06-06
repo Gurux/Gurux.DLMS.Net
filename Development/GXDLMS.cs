@@ -599,21 +599,40 @@ namespace Gurux.DLMS
         internal static byte[] Cipher0(GXDLMSLNParameters p, byte[] data)
         {
             byte cmd;
-            byte[] st = p.settings.Cipher.SystemTitle;
-            if (p.settings.Cipher.DedicatedKey != null)
-            {
-                cmd = (byte)GetDedMessage(p.command);
-            }
-            else if ((p.settings.ProposedConformance & Conformance.GeneralProtection) == 0
+            byte[] key;
+            GXICipher cipher = p.settings.Cipher;
+            byte[] st = cipher.SystemTitle;
+            if ((p.settings.ProposedConformance & Conformance.GeneralProtection) == 0
                 && (p.settings.NegotiatedConformance & Conformance.GeneralProtection) == 0)
             {
-                cmd = (byte)GetGloMessage(p.command);
+                if (cipher.DedicatedKey != null && (p.settings.Connected & ConnectionState.Dlms) != 0)
+                {
+                    cmd = (byte)GetDedMessage(p.command);
+                    key = cipher.DedicatedKey;
+                }
+                else
+                {
+                    cmd = (byte)GetGloMessage(p.command);
+                    key = cipher.BlockCipherKey;
+                }
             }
             else
             {
-                cmd = (byte)Command.GeneralGloCiphering;
+                if (p.settings.Cipher.DedicatedKey != null)
+                {
+                    cmd = (byte)Command.GeneralDedCiphering;
+                    key = cipher.DedicatedKey;
+                }
+                else
+                {
+                    cmd = (byte)Command.GeneralGloCiphering;
+                    key = cipher.BlockCipherKey;
+                }
             }
-            byte[] tmp = p.settings.Cipher.Encrypt(cmd, st, data);
+            AesGcmParameter s = new AesGcmParameter(cmd, cipher.Security,
+                ++cipher.InvocationCounter, cipher.SystemTitle, key,
+                cipher.AuthenticationKey);
+            byte[] tmp = GXCiphering.Encrypt(s, data);
             if (p.command == Command.DataNotification || cmd == (byte)Command.GeneralGloCiphering ||
                 cmd == (byte)Command.GeneralDedCiphering)
             {
@@ -1205,7 +1224,12 @@ namespace Gurux.DLMS
             // If Ciphering is used.
             if (ciphering && p.command != Command.Aarq && p.command != Command.Aare)
             {
-                byte[] tmp = p.settings.Cipher.Encrypt((byte)GetGloMessage(p.command), p.settings.Cipher.SystemTitle, reply.Array());
+                GXICipher cipher = p.settings.Cipher;
+                AesGcmParameter s = new AesGcmParameter(
+                    GetGloMessage(p.command), cipher.Security,
+                    cipher.InvocationCounter, cipher.SystemTitle,
+                    cipher.BlockCipherKey, cipher.AuthenticationKey);
+                byte[] tmp = GXCiphering.Encrypt(s, reply.Array());
                 System.Diagnostics.Debug.Assert(!(p.settings.MaxPduSize < tmp.Length));
                 reply.Size = 0;
                 if (p.settings.InterfaceType == InterfaceType.HDLC)
@@ -2909,12 +2933,24 @@ namespace Gurux.DLMS
                 if ((data.MoreData & RequestTypes.Frame) == 0)
                 {
                     --data.Data.Position;
-                    byte[] st = settings.SourceSystemTitle;
-                    if (st == null)
+                    AesGcmParameter p;
+                    GXICipher cipher = settings.Cipher;
+                    if (cipher.DedicatedKey != null && (settings.Connected & ConnectionState.Dlms) != 0)
                     {
-                        st = settings.Cipher.SystemTitle;
+                        p = new AesGcmParameter(settings.SourceSystemTitle,
+                                cipher.DedicatedKey,
+                                cipher.AuthenticationKey);
                     }
-                    settings.Cipher.Decrypt(st, data.Data);
+                    else
+                    {
+                        p = new AesGcmParameter(settings.SourceSystemTitle,
+                                cipher.BlockCipherKey,
+                                cipher.AuthenticationKey);
+                    }
+
+                    byte[] tmp = GXCiphering.Decrypt(p, data.Data);
+                    data.Data.Clear();
+                    data.Data.Set(tmp);
                     // Get command.
                     data.Command = (Command)data.Data.GetUInt8();
                 }
@@ -2945,8 +2981,22 @@ namespace Gurux.DLMS
                     --data.Data.Position;
                     GXByteBuffer bb = new GXByteBuffer(data.Data);
                     data.Data.Position = data.Data.Size = index;
-                    settings.Cipher.Decrypt(settings.SourceSystemTitle, bb);
-                    data.Data.Set(bb);
+                    AesGcmParameter p;
+                    GXICipher cipher = settings.Cipher;
+                    if (cipher.DedicatedKey != null
+                            && (settings.Connected & ConnectionState.Dlms) != 0)
+                    {
+                        p = new AesGcmParameter(settings.SourceSystemTitle,
+                                cipher.DedicatedKey,
+                                cipher.AuthenticationKey);
+                    }
+                    else
+                    {
+                        p = new AesGcmParameter(settings.SourceSystemTitle,
+                                cipher.BlockCipherKey,
+                                cipher.AuthenticationKey);
+                    }
+                    data.Data.Set(GXCiphering.Decrypt(p, bb));
                     data.Command = Command.None;
                     GetPdu(settings, data);
                     data.CipherIndex = data.Data.Size;
@@ -3148,6 +3198,9 @@ namespace Gurux.DLMS
                         case Command.GloGetResponse:
                         case Command.GloSetResponse:
                         case Command.GloMethodResponse:
+                        case Command.DedGetResponse:
+                        case Command.DedSetResponse:
+                        case Command.DedMethodResponse:
                             data.Command = Command.None;
                             data.Data.Position = data.CipherIndex;
                             GetPdu(settings, data);
@@ -3311,10 +3364,14 @@ namespace Gurux.DLMS
             {
                 int origPos = data.Xml.GetXmlLength();
                 --data.Data.Position;
-                AesGcmParameter p = null;
+                AesGcmParameter p = new AesGcmParameter(settings.SourceSystemTitle,
+                        settings.Cipher.BlockCipherKey,
+                        settings.Cipher.AuthenticationKey);
                 try
                 {
-                    p = settings.Cipher.Decrypt(null, data.Data);
+                    byte[] tmp = GXCiphering.Decrypt(p, data.Data);
+                    data.Data.Clear();
+                    data.Data.Set(tmp);
                     data.Command = Command.None;
                     if (p.Security != Enums.Security.None)
                     {

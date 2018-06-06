@@ -42,7 +42,7 @@ namespace Gurux.DLMS
     public enum Standard
     {
         /// <summary>
-        /// Meter uses default DLMS standard.
+        /// Meter uses default DLMS IEC 62056 standard.
         /// </summary>
         [XmlEnum("0")]
         DLMS = 0,
@@ -55,6 +55,11 @@ namespace Gurux.DLMS
         /// Meter uses Italian DLMS standard UNI/TS 11291-11-2.
         /// </summary>
         [XmlEnum("2")]
-        Italian
+        Italian,
+        /// <summary>
+        /// Meter uses Saudi Electricity Company DLMS standard.
+        /// </summary>
+        [XmlEnum("3")]
+        SEC
     }
 }
