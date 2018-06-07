@@ -248,10 +248,20 @@ namespace Gurux.DLMS.Objects
                         data.SetUInt8((byte)DataType.Structure);
                         //Count
                         data.SetUInt8((byte)2);
-                        //Time
-                        GXCommon.SetData(settings, data, DataType.OctetString, new GXTime(it));
-                        //Date
-                        GXCommon.SetData(settings, data, DataType.OctetString, new GXDate(it));
+                        if (settings.Standard == Standard.SEC)
+                        {
+                            //Time
+                            GXCommon.SetData(settings, data, DataType.Time, new GXTime(it));
+                            //Date
+                            GXCommon.SetData(settings, data, DataType.Date, new GXDate(it));
+                        }
+                        else
+                        {
+                            //Time
+                            GXCommon.SetData(settings, data, DataType.OctetString, new GXTime(it));
+                            //Date
+                            GXCommon.SetData(settings, data, DataType.OctetString, new GXDate(it));
+                        }
                     }
                 }
                 return data.Array();
@@ -296,9 +306,33 @@ namespace Gurux.DLMS.Objects
                     List<GXDateTime> items = new List<GXDateTime>();
                     foreach (object[] it in (object[])e.Value)
                     {
-                        GXDateTime time = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[0], DataType.Time, settings.UseUtc2NormalTime);
+                        GXDateTime time;
+                        if (it[0] is byte[])
+                        {
+                            time = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[0], DataType.Time, settings.UseUtc2NormalTime);
+                        }
+                        else if (it[0] is GXDateTime)
+                        {
+                            time = (GXDateTime)it[0];
+                        }
+                        else
+                        {
+                            throw new Exception("Invalid time.");
+                        }
                         time.Skip &= ~(DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek);
-                        GXDateTime date = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[1], DataType.Date, settings.UseUtc2NormalTime);
+                        GXDateTime date;
+                        if (it[1] is byte[])
+                        {
+                            date = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[1], DataType.Date, settings.UseUtc2NormalTime);
+                        }
+                        else if (it[1] is GXDateTime)
+                        {
+                            date = (GXDateTime)it[1];
+                        }
+                        else
+                        {
+                            throw new Exception("Invalid date.");
+                        }
                         date.Skip &= ~(DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms);
                         GXDateTime tmp = new DLMS.GXDateTime(date);
                         tmp.Value = tmp.Value.AddHours(time.Value.Hour);

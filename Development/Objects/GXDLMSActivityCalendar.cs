@@ -223,6 +223,15 @@ namespace Gurux.DLMS.Objects
             return 1;
         }
 
+        private bool IsSec()
+        {
+            if (Parent != null && Parent.Parent is GXDLMSClient)
+            {
+                return (Parent.Parent as GXDLMSClient).Standard == Standard.SEC;
+            }
+            return false;
+        }
+
         /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
         public override DataType GetDataType(int index)
         {
@@ -248,6 +257,10 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 6)
             {
+                if (IsSec())
+                {
+                    return DataType.Bcd;
+                }
                 return DataType.OctetString;
             }
             //
@@ -265,6 +278,10 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 10)
             {
+                if (IsSec())
+                {
+                    return DataType.DateTime;
+                }
                 return DataType.OctetString;
             }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
@@ -561,6 +578,10 @@ namespace Gurux.DLMS.Objects
             {
                 if (e.Value is byte[])
                 {
+                    if (IsSec())
+                    {
+                        CalendarNamePassive = ASCIIEncoding.ASCII.GetString((byte[])e.Value);
+                    }
                     CalendarNamePassive = ASCIIEncoding.ASCII.GetString((byte[])e.Value);
                 }
                 else

@@ -809,7 +809,7 @@ namespace Gurux.DLMS.Internal
                 }
                 int deviation = buff.GetInt16();
                 dt.Status = (ClockStatus)buff.GetUInt8();
-                if (settings != null && settings.UseUtc2NormalTime)
+                if (settings != null && settings.UseUtc2NormalTime && deviation != -32768)
                 {
                     deviation = -deviation;
                 }
