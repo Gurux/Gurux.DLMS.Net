@@ -202,7 +202,14 @@ namespace Gurux.DLMS.Objects
                             data.SetUInt8((byte)DataType.Structure);
                             data.SetUInt8((byte)3); //Count
                             GXCommon.SetData(settings, data, DataType.UInt16, it.Index);
-                            GXCommon.SetData(settings, data, DataType.OctetString, it.Date);
+                            if (settings.Standard == Standard.SEC)
+                            {
+                                GXCommon.SetData(settings, data, DataType.Date, it.Date);
+                            }
+                            else
+                            {
+                                GXCommon.SetData(settings, data, DataType.OctetString, it.Date);
+                            }
                             GXCommon.SetData(settings, data, DataType.UInt8, it.DayId);
                         }
                     }
@@ -229,7 +236,18 @@ namespace Gurux.DLMS.Objects
                     {
                         GXDLMSSpecialDay it = new GXDLMSSpecialDay();
                         it.Index = Convert.ToUInt16(item[0]);
-                        it.Date = (GXDate)GXDLMSClient.ChangeType((byte[])item[1], DataType.Date, settings.UseUtc2NormalTime);
+                        if (item[1] is GXDate)
+                        {
+                            it.Date = (GXDate)item[1];
+                        }
+                        else if (item[1] is byte[])
+                        {
+                            it.Date = (GXDate)GXDLMSClient.ChangeType((byte[])item[1], DataType.Date, settings.UseUtc2NormalTime);
+                        }
+                        else
+                        {
+                            throw new Exception("Invalid date.");
+                        }
                         it.DayId = Convert.ToByte(item[2]);
                         items.Add(it);
                     }

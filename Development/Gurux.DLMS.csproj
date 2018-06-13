@@ -73,6 +73,7 @@
   <ItemGroup>
     <Compile Include="Enums\Standard.cs" />
     <Compile Include="Enums\DateTimeExtraInfo.cs" />
+    <Compile Include="GXDLMSGateway.cs" />
     <Compile Include="GXDLMSXmlClient.cs" />
     <Compile Include="GXDLMSConfirmedServiceError.cs" />
     <Compile Include="Internal\ConnectionState.cs" />
@@ -129,6 +130,11 @@
     <Compile Include="Objects\GXDLMSSFSKActiveInitiator.cs" />
     <Compile Include="Objects\GXDLMSSFSKPhyMacSetUp.cs" />
     <Compile Include="Objects\Italy\GXDLMSInterval.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Simulator\GXDLMSSimulator.cs" />
     <Compile Include="Objects\Enums\CertificateIdentificationType.cs" />
     <Compile Include="TranslatorSimpleTags.cs" />
@@ -329,11 +335,6 @@
     <Compile Include="Enums\ObjectType.cs" />
     <Compile Include="Enums\Priority.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="Enums\RequestTypes.cs" />
     <Compile Include="Secure\CountType.cs" />
     <Compile Include="Secure\GXSecure.cs" />
@@ -351,8 +352,8 @@
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -373,7 +374,9 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Italian.txt" />
+    <Content Include="SEC.txt" />
+    <Content Include="India.txt" />
+    <Content Include="Italy.txt" />
     <Content Include="OBISCodes.txt" />
   </ItemGroup>
   <ItemGroup />

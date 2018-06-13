@@ -224,6 +224,7 @@ namespace Gurux.DLMS
             IsServer = server;
             Objects = new GXDLMSObjectCollection();
             Limits = new GXDLMSLimits();
+            Gateway = null;
             ProposedConformance = GXDLMSClient.GetInitialConformance(false);
             ResetFrameSequence();
             WindowSize = 1;
@@ -280,6 +281,12 @@ namespace Gurux.DLMS
             target.Limits.MaxInfoTX = Limits.MaxInfoTX;
             target.Limits.WindowSizeRX = Limits.WindowSizeRX;
             target.Limits.WindowSizeTX = Limits.WindowSizeTX;
+            if (Gateway != null)
+            {
+                target.Gateway = new GXDLMSGateway();
+                target.Gateway.NetworkId = Gateway.NetworkId;
+                target.Gateway.PhysicalDeviceAddress = Gateway.PhysicalDeviceAddress;
+            }
         }
 
         /// <summary>
@@ -528,6 +535,15 @@ namespace Gurux.DLMS
             get;
             internal set;
         }
+
+        /// <summary>
+        /// Gateway settings.
+        /// </summary>
+        public GXDLMSGateway Gateway
+        {
+            get;
+            internal set;
+        }        
 
         /// <summary>
         /// Used interface.

@@ -1307,6 +1307,22 @@ namespace Gurux.DLMS
                     data.Data = value;
                     GXDLMS.HandleConfirmedServiceError(data);
                     break;
+                case (byte)Command.GatewayRequest:
+                case (byte)Command.GatewayResponse:
+                    data.Xml = xml;
+                    data.Data = value;
+                    //Get Network ID.
+                    byte id = value.GetUInt8();
+                    //Get Physical device address.
+                    len = GXCommon.GetObjectCount(value);
+                    tmp = new byte[len];
+                    value.Get(tmp);
+                    xml.AppendStartTag((Command) cmd);
+                    xml.AppendLine(TranslatorTags.NetworkId, null, id.ToString());
+                    xml.AppendLine(TranslatorTags.PhysicalDeviceAddress, null, GXCommon.ToHex(tmp, false, 0, len));
+                    PduToXml(xml, new GXByteBuffer(value.Remaining()), omitDeclaration, omitNameSpace);
+                    xml.AppendEndTag(cmd);
+                    break;
                 default:
                     xml.AppendLine("<Data=\"" + GXCommon.ToHex(value.Data, false, value.Position, value.Size - value.Position) + "\" />");
                     break;
@@ -1436,6 +1452,13 @@ namespace Gurux.DLMS
                     break;
                 case (int)TranslatorTags.FrameType:
                     s.command = 0;
+                    break;
+                case (byte)Command.GatewayRequest:
+                    s.gwCommand = Command.GatewayRequest;
+                    s.settings.IsServer = false;
+                    break;
+                case (byte)Command.GatewayResponse:
+                    s.gwCommand = Command.GatewayResponse;
                     break;
                 default:
                     throw new ArgumentException("Invalid Command: " + node.Name);
@@ -2570,6 +2593,13 @@ namespace Gurux.DLMS
                             s.data.Set(tmp);
                         }
                         break;
+                    case (UInt16)TranslatorTags.NetworkId:
+                        s.networkId = (byte)s.ParseShort(GetValue(node, s));
+                        break;
+                    case (UInt16)TranslatorTags.PhysicalDeviceAddress:
+                        s.physicalDeviceAddress = GXCommon.HexToBytes(GetValue(node, s));
+                        s.command = Command.None;
+                        break;
                     default:
                         throw new ArgumentException("Invalid node: " + node.Name);
                 }
@@ -2901,37 +2931,57 @@ namespace Gurux.DLMS
                 case Command.None:
                     throw new ArgumentException("Invalid command.");
             }
+            if (s.physicalDeviceAddress != null)
+            {
+                GXByteBuffer bb2 = new GXByteBuffer();
+                bb2.SetUInt8(s.gwCommand);
+                bb2.SetUInt8(s.networkId);
+                if (s.physicalDeviceAddress != null)
+                {
+                    GXCommon.SetObjectCount(s.physicalDeviceAddress.Length, bb2);
+                    bb2.Set(s.physicalDeviceAddress);
+                }
+                else
+                {
+                    bb2.SetUInt8(0);
+                }
+                bb2.Set(bb);
+                return bb2.Array();
+            }
             return bb.Array();
         }
 
         private void GetAllDataNodes(XmlNodeList nodes, GXDLMSXmlSettings s)
         {
             GXByteBuffer preData;
+            int tag;
             foreach (XmlNode it in nodes)
             {
-                int tag;
-                if (s.OutputType == TranslatorOutputType.SimpleXml)
+                if (it.NodeType == XmlNodeType.Element)
                 {
-                    tag = s.tags[it.Name.ToLower()];
-                }
-                else
-                {
-                    tag = s.tags[it.Name];
-                }
-                if (tag == (int)TranslatorTags.RawData)
-                {
-                    s.data.SetHexString(it.InnerText);
-                }
-                else
-                {
-                    preData = UpdateDataType(it, s, tag);
-                    if (preData != null)
+                    if (s.OutputType == TranslatorOutputType.SimpleXml)
                     {
-                        GXCommon.SetObjectCount(it.ChildNodes.Count, preData);
-                        preData.Set(s.data);
-                        s.data.Size = 0;
-                        s.data.Set(preData);
-                        GetAllDataNodes(it.ChildNodes, s);
+                        tag = s.tags[it.Name.ToLower()];
+                    }
+                    else
+                    {
+                        tag = s.tags[it.Name];
+                    }
+                    if (tag == (int)TranslatorTags.RawData)
+                    {
+                        s.data.SetHexString(it.InnerText);
+                    }
+                    else
+                    {
+                        preData = UpdateDataType(it, s, tag);
+                        if (preData != null)
+                        {
+                            GXCommon.SetObjectCount(it.ChildNodes.Count, preData);
+                            preData.Set(s.data);
+                            s.data.Size = 0;
+                            s.data.Set(preData);
+                            GetAllDataNodes(it.ChildNodes, s);
+                        }
                     }
                 }
             }

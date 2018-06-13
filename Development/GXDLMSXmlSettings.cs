@@ -49,6 +49,19 @@ namespace Gurux.DLMS
         public Command command;
         public int count = 0;
         public byte requestType = 0xFF;
+
+        /// <summary>
+        /// GW network ID.
+        /// </summary>
+        public Command gwCommand = 0;
+        /// <summary>
+        /// GW network ID.
+        /// </summary>
+        public byte networkId = 0;
+        /// <summary>
+        /// GW physical device address.
+        /// </summary>
+        public byte[] physicalDeviceAddress = null;
         public GXByteBuffer attributeDescriptor = new GXByteBuffer();
         public GXByteBuffer data = new GXByteBuffer();
         public GXDLMSSettings settings = new GXDLMSSettings(true);

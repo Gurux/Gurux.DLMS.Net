@@ -529,6 +529,21 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Gateway settings.
+        /// </summary>
+        public GXDLMSGateway Gateway
+        {
+            get
+            {
+                return Settings.Gateway;
+            }
+            set
+            {
+                Settings.Gateway = value;
+            }
+        }
+
+        /// <summary>
         /// Generates SNRM request.
         /// </summary>
         /// <remarks>
@@ -1070,20 +1085,8 @@ namespace Gurux.DLMS
         /// <param name="data">Received data, from the device, as byte array. </param>
         /// <returns>Collection of COSEM objects.</returns>
         public GXDLMSObjectCollection ParseObjects(
-            GXByteBuffer data,
-            bool onlyKnownObjects)
-        {
-            return ParseObjects(data, onlyKnownObjects, Standard.DLMS);
-        }
-        /// <summary>
-        /// Parses the COSEM objects of the received data.
-        /// </summary>
-        /// <param name="data">Received data, from the device, as byte array. </param>
-        /// <returns>Collection of COSEM objects.</returns>
-        public GXDLMSObjectCollection ParseObjects(
         GXByteBuffer data,
-        bool onlyKnownObjects,
-        Standard standard)
+        bool onlyKnownObjects)
         {
             if (data == null || data.Size == 0)
             {
@@ -1112,7 +1115,7 @@ namespace Gurux.DLMS
                     }
                 }
             }
-            GXDLMSConverter c = new GXDLMSConverter(standard);
+            GXDLMSConverter c = new GXDLMSConverter(Standard);
             c.UpdateOBISCodeInformation(objects);
             Settings.Objects = objects;
             Settings.Objects.Parent = this;

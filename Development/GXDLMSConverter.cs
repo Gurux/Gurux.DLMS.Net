@@ -222,7 +222,7 @@ namespace Gurux.DLMS
         private static void ReadStandardObisInfo(Standard standard, GXStandardObisCodeCollection codes)
         {
 #if !WINDOWS_UWP
-            if (standard == Standard.Italian)
+            if (standard != Standard.DLMS)
             {
                 foreach (GXObisCode it in GetObjects(standard))
                 {
@@ -560,23 +560,36 @@ namespace Gurux.DLMS
         public static GXObisCode[] GetObjects(Standard standard)
         {
             List<GXObisCode> codes = new List<GXObisCode>();
-            if (standard == Standard.Italian)
-            {
 #if !WINDOWS_UWP
-                string[] rows = Gurux.DLMS.Properties.Resources.Italian.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (string it in rows)
-                {
-                    string[] items = it.Split(new char[] { ';' });
-                    ObjectType ot = (ObjectType)int.Parse(items[0]);
-                    string ln = GXCommon.ToLogicalName(GXCommon.LogicalNameToBytes(items[1]));
-                    int version = int.Parse(items[2]);
-                    string desc = items[3];
-                    GXObisCode code = new GXObisCode(ln, ot, desc);
-                    code.Version = version;
-                    codes.Add(code);
-                }
-#endif
+            string[] rows;
+            if (standard == Standard.Italy)
+            {
+                rows = Gurux.DLMS.Properties.Resources.Italy.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             }
+            else if (standard == Standard.India)
+            {
+                rows = Gurux.DLMS.Properties.Resources.India.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            }
+            else if (standard == Standard.SEC)
+            {
+                rows = Gurux.DLMS.Properties.Resources.SEC.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            }
+            else
+            {
+                return new GXObisCode[0];
+            }
+            foreach (string it in rows)
+            {
+                string[] items = it.Split(new char[] { ';' });
+                ObjectType ot = (ObjectType)int.Parse(items[0]);
+                string ln = GXCommon.ToLogicalName(GXCommon.LogicalNameToBytes(items[1]));
+                int version = int.Parse(items[2]);
+                string desc = items[3];
+                GXObisCode code = new GXObisCode(ln, ot, desc);
+                code.Version = version;
+                codes.Add(code);
+            }
+#endif
             return codes.ToArray();
         }
 

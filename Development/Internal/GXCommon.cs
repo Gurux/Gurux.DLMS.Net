@@ -2436,7 +2436,12 @@ namespace Gurux.DLMS.Internal
                 SetObjectCount(arr.Length, buff);
                 foreach (object it in arr)
                 {
-                    SetData(settings, buff, GetValueType(it), it);
+                    DataType dt = GetValueType(it);
+                    if (dt == DataType.Array)
+                    {
+                        dt = DataType.Structure;
+                    }
+                    SetData(settings, buff, dt, it);
                 }
             }
             else

@@ -32,34 +32,36 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System.Xml.Serialization;
-
 namespace Gurux.DLMS
 {
     /// <summary>
-    /// Used DLMS standard.
+    /// GXDLMSGateway contains information that is needed if gateway is used between the client and the meter.
     /// </summary>
-    public enum Standard
+    public class GXDLMSGateway
     {
         /// <summary>
-        /// Meter uses default DLMS IEC 62056 standard.
+        /// Constructor.
         /// </summary>
-        [XmlEnum("0")]
-        DLMS = 0,
+        public GXDLMSGateway()
+        {
+        }
+
         /// <summary>
-        /// Meter uses India DLMS standard IS 15959-2.
+        /// Gateway network ID.
         /// </summary>
-        [XmlEnum("1")]
-        India,
+        public byte NetworkId
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Meter uses Italy DLMS standard UNI/TS 11291-11-2.
+        /// Physical device address.
         /// </summary>
-        [XmlEnum("2")]
-        Italy,
-        /// <summary>
-        /// Meter uses Saudi Electricity Company DLMS standard.
-        /// </summary>
-        [XmlEnum("3")]
-        SEC
+        public byte[] PhysicalDeviceAddress
+        {
+            get;
+            set;
+        }
     }
 }

@@ -274,6 +274,7 @@ namespace Gurux.DLMS
             // Get next block.
             GXByteBuffer bb = new GXByteBuffer(4);
             byte[][] reply;
+            /*
             if ((settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) != 0)
             {
                 GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, Command.GeneralBlockTransfer, 0, bb, null, 0xff);
@@ -285,6 +286,7 @@ namespace Gurux.DLMS
                 settings.IncreaseBlockIndex();
             }
             else
+            */
             {
                 // Get next block.
                 if (settings.UseLogicalNameReferencing)
@@ -668,6 +670,13 @@ namespace Gurux.DLMS
             int len = 0;
             if (p.command == Command.Aarq)
             {
+                if (p.settings.Gateway != null && p.settings.Gateway.PhysicalDeviceAddress != null)
+                {
+                    reply.SetUInt8(Command.GatewayRequest);
+                    reply.SetUInt8(p.settings.Gateway.NetworkId);
+                    reply.SetUInt8((byte)p.settings.Gateway.PhysicalDeviceAddress.Length);
+                    reply.Set(p.settings.Gateway.PhysicalDeviceAddress);
+                }
                 reply.Set(p.attributeDescriptor);
             }
             else
@@ -828,6 +837,20 @@ namespace Gurux.DLMS
                     if (p.data != null && p.data.Size != 0)
                     {
                         len = p.data.Size - p.data.Position;
+                        if (p.settings.Gateway != null && p.settings.Gateway.PhysicalDeviceAddress != null)
+                        {
+                            if (3 + len + p.settings.Gateway.PhysicalDeviceAddress.Length > p.settings.MaxPduSize)
+                            {
+                                len -= (3 + p.settings.Gateway.PhysicalDeviceAddress.Length);
+                            }
+                            GXByteBuffer tmp = new GXByteBuffer(reply);
+                            reply.Size = 0;
+                            reply.SetUInt8(Command.GatewayRequest);
+                            reply.SetUInt8(p.settings.Gateway.NetworkId);
+                            reply.SetUInt8((byte) p.settings.Gateway.PhysicalDeviceAddress.Length);
+                            reply.Set(p.settings.Gateway.PhysicalDeviceAddress);
+                            reply.Set(tmp);
+                        }
                         //Get request size can be bigger than PDU size.
                         if ((p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) != 0)
                         {
@@ -856,7 +879,20 @@ namespace Gurux.DLMS
                         }
                         reply.Set(p.data, len);
                     }
+                    else if ((p.settings.Gateway != null && p.settings.Gateway.PhysicalDeviceAddress != null) &&
+                        !(p.command == Command.GeneralBlockTransfer || (p.multipleBlocks && (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) != 0)))
+                    {
+                        len -= (3 + p.settings.Gateway.PhysicalDeviceAddress.Length);
+                        GXByteBuffer tmp = new GXByteBuffer(reply);
+                        reply.Size = 0;
+                        reply.SetUInt8(Command.GatewayRequest);
+                        reply.SetUInt8(p.settings.Gateway.NetworkId);
+                        reply.SetUInt8((byte)p.settings.Gateway.PhysicalDeviceAddress.Length);
+                        reply.Set(p.settings.Gateway.PhysicalDeviceAddress);
+                        reply.Set(tmp);
+                    }
                 }
+               
                 if (ciphering && ((p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0))
                 {
                     //GBT ciphering is done for all the data, not just block.
@@ -905,6 +941,17 @@ namespace Gurux.DLMS
                     {
                         p.command = Command.GeneralBlockTransfer;
                         p.blockNumberAck = (UInt16)(p.settings.BlockNumberAck + 1);
+                    }
+                    if (p.settings.Gateway != null && p.settings.Gateway.PhysicalDeviceAddress != null)
+                    {
+                        len -= (3 + p.settings.Gateway.PhysicalDeviceAddress.Length);
+                        GXByteBuffer tmp = new GXByteBuffer(reply);
+                        reply.Size = 0;
+                        reply.SetUInt8(Command.GatewayRequest);
+                        reply.SetUInt8(p.settings.Gateway.NetworkId);
+                        reply.SetUInt8((byte)p.settings.Gateway.PhysicalDeviceAddress.Length);
+                        reply.Set(p.settings.Gateway.PhysicalDeviceAddress);
+                        reply.Set(tmp);
                     }
                 }
             }
@@ -3123,7 +3170,6 @@ namespace Gurux.DLMS
                             HandledGloDedResponse(settings, data, index);
                         }
                         break;
-
                     case Command.DataNotification:
                         HandleDataNotification(settings, data);
                         //Client handles this.
@@ -3136,6 +3182,16 @@ namespace Gurux.DLMS
                         break;
                     case Command.GeneralCiphering:
                         HandleGeneralCiphering(settings, data);
+                        break;
+                    case Command.GatewayRequest:
+                    case Command.GatewayResponse:
+                        data.Data.GetUInt8();
+                        int len = GXCommon.GetObjectCount(data.Data);
+                        byte[] pda = new byte[len];
+                        data.Data.Get(pda);
+                        GetDataFromBlock(data.Data, index);
+                        data.Command = Command.None;
+                        GetPdu(settings, data);
                         break;
                     default:
                         throw new ArgumentException("Invalid Command.");

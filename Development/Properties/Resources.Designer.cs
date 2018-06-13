@@ -115,6 +115,26 @@ namespace Gurux.DLMS.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 1;0.0.94.91.9.255;0;Meter type
+        ///1;0.0.94.91.11.255;0;Category
+        ///1;0.0.94.91.12.255;0;Current rating 
+        ///1;0.0.96.1.4.255;0;0;Meter year of manufacture
+        ///1;0.0.94.91.18.255;0;Event Status word 1 (ESW 1)
+        ///1;0.0.94.91.0.255;0;Cumulative tamper count
+        ///3;0.0.94.91.13.255;0;Cumulative power ON duration in minutes
+        ///3;1.0.94.91.14.255;0;Current
+        ///3;0.0.94.91.8.255;0;Cumulative power — OFF duration in min
+        ///7;1.0.94.91.0.255;0;Snapshot of Instantaneous Parameters
+        ///7;1.0.94.91.7.255;0;Scaler Profile
+        ///7;1.0.94.91.3.255;0;Sc [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string India {
+            get {
+                return ResourceManager.GetString("India", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid Logical name..
         /// </summary>
         internal static string InvalidLogicalName {
@@ -124,22 +144,22 @@ namespace Gurux.DLMS.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 1;0.0.96.1.0.255;Manufacturing number
-        ///1;0.0.96.1.10.255;Metering Point Identifier
-        ///1;0.0.96.1.3.255;Equipment Class Identifier
-        ///1;0.0.96.1.5.255;UNI/TS Reference version
-        ///17;0.0.41.0.0.255;SAP assigment
-        ///1;0.0.42.0.0.255;Logical Device Name
-        ///15;0.0.40.0.1.255;Management Association
-        ///15;0.0.40.0.16.255;Public Association
-        ///15;0.0.40.0.3.255;Installer/Maintainer Association
-        ///15;0.0.40.0.48.255;Guarantor Authority Association
-        ///15;0.0.40.0.64.255;Gateway Association
-        ///15;0.0.40.0.32.255;Broadcasting Association        /// [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to 1;0.0.96.1.0.255;0;Manufacturing number
+        ///1;0.0.96.1.10.255;0;Metering Point Identifier
+        ///1;0.0.96.1.3.255;0;Equipment Class Identifier
+        ///1;0.0.96.1.5.255;0;UNI/TS Reference version
+        ///17;0.0.41.0.0.255;0;SAP assigment
+        ///1;0.0.42.0.0.255;0;Logical Device Name
+        ///15;0.0.40.0.1.255;2;Management Association
+        ///15;0.0.40.0.16.255;2;Public Association
+        ///15;0.0.40.0.3.255;2;Installer/Maintainer Association
+        ///15;0.0.40.0.48.255;2;Guarantor Authority Association
+        ///15;0.0.40.0.64.255;2;Gateway Association
+        ///15;0.0.40.0.32.255;2;B [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string Italian {
+        internal static string Italy {
             get {
-                return ResourceManager.GetString("Italian", resourceCulture);
+                return ResourceManager.GetString("Italy", resourceCulture);
             }
         }
         
@@ -227,6 +247,15 @@ namespace Gurux.DLMS.Properties {
         internal static string Rejected {
             get {
                 return ResourceManager.GetString("Rejected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string SEC {
+            get {
+                return ResourceManager.GetString("SEC", resourceCulture);
             }
         }
         

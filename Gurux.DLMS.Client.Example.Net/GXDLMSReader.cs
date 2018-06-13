@@ -80,6 +80,11 @@ namespace Gurux.DLMS.Reader
         {
             try
             {
+                //Mikko
+                Client.Password = ASCIIEncoding.ASCII.GetBytes("00000000");
+                Client.Authentication = Authentication.Low;
+                Client.Gateway = new GXDLMSGateway();
+                Client.Gateway.PhysicalDeviceAddress = GXCommon.HexToBytes("3137343738353030");
                 InitializeConnection();
                 GetAssociationView(useCache);
                 GetScalersAndUnits();

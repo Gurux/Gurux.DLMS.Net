@@ -117,6 +117,8 @@ namespace Gurux.DLMS
         BlockNumberAck,
         BlockData,
         ContentsDescription,
-        ArrayContents
+        ArrayContents,
+        NetworkId,
+        PhysicalDeviceAddress
     }
 }
