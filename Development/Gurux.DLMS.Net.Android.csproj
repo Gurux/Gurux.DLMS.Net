@@ -91,6 +91,7 @@
     <Compile Include="GXDLMSConnectionEventArgs.cs" />
     <Compile Include="GXDLMSConverter.cs" />
     <Compile Include="GXDLMSException.cs" />
+    <Compile Include="GXDLMSGateway.cs" />
     <Compile Include="GXDLMSLimits.cs" />
     <Compile Include="GXDLMSLNCommandHandlers.cs" />
     <Compile Include="GXDLMSLNParameters.cs" />

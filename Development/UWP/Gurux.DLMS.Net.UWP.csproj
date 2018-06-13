@@ -252,6 +252,7 @@
     <Compile Include="..\Internal\BerType.cs" />
     <Compile Include="..\Internal\GXCommon.cs" />
     <Compile Include="..\GXDLMS.cs" />
+    <Compile Include="..\GXDLMSGateway.cs" />
     <Compile Include="..\GXDLMSException.cs" />
     <Compile Include="..\GXDLMSLimits.cs" />
     <Compile Include="..\Internal\GXDLMSLimitsDefault.cs" />
