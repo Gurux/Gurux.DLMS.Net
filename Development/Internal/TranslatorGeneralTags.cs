@@ -66,6 +66,6 @@ namespace Gurux.DLMS
         CalledAeInvocationId = 0xA5,
         RespondingAeInvocationId = 0xA7,
         CharString = 0xAA,
-        UserInformation = 0xAB,
+        UserInformation = 0xAB
     }
 }

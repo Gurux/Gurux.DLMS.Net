@@ -236,7 +236,7 @@ namespace Gurux.DLMS
             get;
             set;
         }
-        
+
 
         /// <summary>
         /// Block cipher key.
@@ -1317,7 +1317,7 @@ namespace Gurux.DLMS
                     len = GXCommon.GetObjectCount(value);
                     tmp = new byte[len];
                     value.Get(tmp);
-                    xml.AppendStartTag((Command) cmd);
+                    xml.AppendStartTag((Command)cmd);
                     xml.AppendLine(TranslatorTags.NetworkId, null, id.ToString());
                     xml.AppendLine(TranslatorTags.PhysicalDeviceAddress, null, GXCommon.ToHex(tmp, false, 0, len));
                     PduToXml(xml, new GXByteBuffer(value.Remaining()), omitDeclaration, omitNameSpace);
@@ -1473,6 +1473,7 @@ namespace Gurux.DLMS
         /// <param name="tag">XML tag.</param>
         private static bool HandleAarqAare(XmlNode node, GXDLMSXmlSettings s, int tag)
         {
+            string str;
             byte[] tmp;
             Conformance c;
             int value;
@@ -1502,7 +1503,7 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        string str = node.Attributes[0].InnerText;
+                        str = node.Attributes[0].InnerText;
                         if (string.Compare(str, "SN") == 0 ||
                                 string.Compare(str, "SN_WITH_CIPHERING") == 0)
                         {
@@ -1756,6 +1757,13 @@ namespace Gurux.DLMS
                         }
                         return false;
                     }
+                    break;
+                case (UInt16)TranslatorTags.ProtocolVersion:
+                    str = GetValue(node, s);
+                    GXByteBuffer pv = new GXByteBuffer();
+                    pv.SetUInt8((byte)(8 - str.Length));
+                    GXCommon.SetBitString(pv, str, false);
+                    s.settings.protocolVersion = str;
                     break;
                 default:
                     throw new ArgumentException("Invalid AARQ node: " + node.Name);
@@ -2599,7 +2607,7 @@ namespace Gurux.DLMS
                     case (UInt16)TranslatorTags.PhysicalDeviceAddress:
                         s.physicalDeviceAddress = GXCommon.HexToBytes(GetValue(node, s));
                         s.command = Command.None;
-                        break;
+                        break;                    
                     default:
                         throw new ArgumentException("Invalid node: " + node.Name);
                 }

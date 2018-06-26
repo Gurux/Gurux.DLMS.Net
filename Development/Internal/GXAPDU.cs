@@ -108,6 +108,14 @@ namespace Gurux.DLMS.Internal
         /// <param name="cipher">Is ciphering settings.</param>
         private static void GenerateApplicationContextName(GXDLMSSettings settings, GXByteBuffer data, GXICipher cipher)
         {
+            //ProtocolVersion
+            if (settings.protocolVersion != null)
+            {
+                data.SetUInt8(((byte)BerType.Context | (byte)PduType.ProtocolVersion));
+                data.SetUInt8(2);
+                data.SetUInt8((byte)(8 - settings.protocolVersion.Length));
+                GXCommon.SetBitString(data, settings.protocolVersion, false);
+            }
             //Application context name tag
             data.SetUInt8(((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.ApplicationContextName));
             //Len
@@ -116,26 +124,33 @@ namespace Gurux.DLMS.Internal
             //Len
             data.SetUInt8(0x07);
             bool ciphered = cipher != null && cipher.IsCiphered();
+
+            data.SetUInt8(0x60);
+            data.SetUInt8(0x85);
+            data.SetUInt8(0x74);
+            data.SetUInt8(0x5);
+            data.SetUInt8(0x8);
+            data.SetUInt8(0x1);
             if (settings.UseLogicalNameReferencing)
             {
                 if (ciphered)
                 {
-                    data.Set(GXCommon.LogicalNameObjectIdWithCiphering);
+                    data.SetUInt8(3);
                 }
                 else
                 {
-                    data.Set(GXCommon.LogicalNameObjectID);
+                    data.SetUInt8(1);
                 }
             }
             else
             {
                 if (ciphered)
                 {
-                    data.Set(GXCommon.ShortNameObjectIdWithCiphering);
+                    data.SetUInt8(4);
                 }
                 else
                 {
-                    data.Set(GXCommon.ShortNameObjectID);
+                    data.SetUInt8(2);
                 }
             }
             //Add system title if cipher or GMAC authentication is used..
@@ -758,9 +773,19 @@ namespace Gurux.DLMS.Internal
             }
             //Object ID length.
             len = buff.GetUInt8();
+            if (buff.GetUInt8() != 0x60 ||
+                buff.GetUInt8() != 0x85 ||
+                buff.GetUInt8() != 0x74 ||
+                buff.GetUInt8() != 0x5 ||
+                buff.GetUInt8() != 0x8 ||
+                buff.GetUInt8() != 0x1)
+            {
+                throw new Exception("Encoding failed. Invalid Application context name.");
+            }
+            byte name = buff.GetUInt8();
             if (xml != null)
             {
-                if (buff.Compare(GXCommon.LogicalNameObjectID))
+                if (name == 1)
                 {
                     if (xml.OutputType == TranslatorOutputType.SimpleXml)
                     {
@@ -775,7 +800,7 @@ namespace Gurux.DLMS.Internal
                     }
                     settings.UseLogicalNameReferencing = true;
                 }
-                else if (buff.Compare(GXCommon.LogicalNameObjectIdWithCiphering))
+                else if (name == 3)
                 {
                     if (xml.OutputType == TranslatorOutputType.SimpleXml)
                     {
@@ -790,7 +815,7 @@ namespace Gurux.DLMS.Internal
                     }
                     settings.UseLogicalNameReferencing = true;
                 }
-                else if (buff.Compare(GXCommon.ShortNameObjectID))
+                else if (name == 2)
                 {
                     if (xml.OutputType == TranslatorOutputType.SimpleXml)
                     {
@@ -805,7 +830,7 @@ namespace Gurux.DLMS.Internal
                     }
                     settings.UseLogicalNameReferencing = false;
                 }
-                else if (buff.Compare(GXCommon.ShortNameObjectIdWithCiphering))
+                else if (name == 4)
                 {
                     if (xml.OutputType == TranslatorOutputType.SimpleXml)
                     {
@@ -822,25 +847,39 @@ namespace Gurux.DLMS.Internal
                 }
                 else
                 {
+                    if (xml != null)
+                    {
+                        if (xml.OutputType == TranslatorOutputType.SimpleXml)
+                        {
+                            xml.AppendLine(TranslatorGeneralTags.ApplicationContextName,
+                                           "Value", "UNKNOWN");
+                        }
+                        else
+                        {
+                            xml.AppendLine(
+                                TranslatorGeneralTags.ApplicationContextName,
+                                null, "5");
+                        }
+                    }
                     return false;
                 }
                 return true;
             }
             if (settings.UseLogicalNameReferencing)
             {
-                if (buff.Compare(GXCommon.LogicalNameObjectID))
+                if (name == 1)
                 {
                     return true;
                 }
                 // If ciphering is used.
-                return buff.Compare(GXCommon.LogicalNameObjectIdWithCiphering);
+                return name == 3;
             }
-            if (buff.Compare(GXCommon.ShortNameObjectID))
+            if (name == 2)
             {
                 return true;
             }
             // If ciphering is used.
-            return buff.Compare(GXCommon.ShortNameObjectIdWithCiphering);
+            return name == 4;
         }
 
         private static void UpdateAuthentication(GXDLMSSettings settings,
@@ -912,7 +951,7 @@ namespace Gurux.DLMS.Internal
             byte tag = buff.GetUInt8();
             if (settings.IsServer)
             {
-                if (tag != ((byte)BerType.Application | (byte)BerType.Constructed | (byte)PduType.ProtocolVersion))
+                if (tag != ((byte)BerType.Application | (byte)BerType.Constructed))
                 {
                     throw new Exception("Invalid tag.");
                 }
@@ -960,6 +999,20 @@ namespace Gurux.DLMS.Internal
                 }
             }
             return ret;
+        }
+
+        static void ParseProtocolVersion(GXDLMSSettings settings, GXByteBuffer buff, GXDLMSTranslatorStructure xml)
+        {
+            byte cnt = buff.GetUInt8();
+            byte unusedBits = buff.GetUInt8();
+            byte value = buff.GetUInt8();
+            StringBuilder sb = new StringBuilder();
+            GXCommon.ToBitString(sb, value, 8 - unusedBits);
+            settings.protocolVersion = sb.ToString();
+            if (xml != null)
+            {
+                xml.AppendLine(TranslatorTags.ProtocolVersion, "Value", settings.protocolVersion);
+            }
         }
 
         static internal SourceDiagnostic ParsePDU2(GXDLMSSettings settings, GXICipher cipher,
@@ -1174,6 +1227,9 @@ namespace Gurux.DLMS.Internal
                                         SourceDiagnostic.NoReasonGiven);
                             }
                         }
+                        break;
+                    case (byte)BerType.Context: //0x80
+                        ParseProtocolVersion(settings, buff, xml);
                         break;
                     default:
                         //Unknown tags.

@@ -374,7 +374,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="SEC.txt" />
+    <Content Include="SaudiArabia.txt" />
     <Content Include="India.txt" />
     <Content Include="Italy.txt" />
     <Content Include="OBISCodes.txt" />

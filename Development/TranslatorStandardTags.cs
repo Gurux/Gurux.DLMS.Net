@@ -132,7 +132,7 @@ namespace Gurux.DLMS
                                     "calling-AE-invocation-id");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.CalledAeInvocationId,
                                     "called-AE-invocation-id");
-            GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.RespondingAeInvocationId,"responding-AE-invocation-id");
+            GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.RespondingAeInvocationId, "responding-AE-invocation-id");
         }
 
         /// <summary>
@@ -415,6 +415,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorTags.ArrayContents, "array-contents");
             GXDLMSTranslator.AddTag(list, TranslatorTags.NetworkId, "network-id");
             GXDLMSTranslator.AddTag(list, TranslatorTags.PhysicalDeviceAddress, "physical-device-address");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.ProtocolVersion, "protocol-version");
         }
 
         public static void GetDataTypeTags(SortedList<int, string> list)

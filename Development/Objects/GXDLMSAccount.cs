@@ -890,7 +890,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                     else
                     {
                         GXByteBuffer bb = new GXByteBuffer();
-                        GXCommon.SetBitString(bb, e.Value);
+                        GXCommon.SetBitString(bb, e.Value, true);
                         CurrentCreditStatus = (AccountCreditStatus)bb.GetUInt8(1);
                     }
                     break;
@@ -942,7 +942,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                             else
                             {
                                 GXByteBuffer tmp2 = new GXByteBuffer();
-                                GXCommon.SetBitString(tmp2, it[2]);
+                                GXCommon.SetBitString(tmp2, it[2], true);
                                 item.CollectionConfiguration = (CreditCollectionConfiguration)tmp2.GetUInt8(1);
                             }
                             CreditChargeConfigurations.Add(item);

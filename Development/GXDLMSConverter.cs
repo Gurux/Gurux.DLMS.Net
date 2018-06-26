@@ -570,9 +570,9 @@ namespace Gurux.DLMS
             {
                 rows = Gurux.DLMS.Properties.Resources.India.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             }
-            else if (standard == Standard.SEC)
+            else if (standard == Standard.SaudiArabia)
             {
-                rows = Gurux.DLMS.Properties.Resources.SEC.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+                rows = Gurux.DLMS.Properties.Resources.SaudiArabia.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             }
             else
             {

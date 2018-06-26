@@ -279,7 +279,7 @@ namespace Gurux.DLMS.Objects
                     SetDataType(2, GXCommon.GetDLMSDataType(e.Value.GetType()));
                     try
                     {
-                        if (settings.IsServer)
+                        if (settings != null && settings.IsServer)
                         {
                             Value = e.Value;
                         }

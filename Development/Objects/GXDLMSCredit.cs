@@ -487,7 +487,7 @@ namespace Gurux.DLMS.Objects
                     else
                     {
                         GXByteBuffer bb = new GXByteBuffer();
-                        GXCommon.SetBitString(bb, e.Value);
+                        GXCommon.SetBitString(bb, e.Value, true);
                         CreditConfiguration = (CreditConfiguration)bb.GetUInt8(1);
                     }
                     break;

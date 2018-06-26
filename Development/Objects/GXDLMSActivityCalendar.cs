@@ -227,7 +227,7 @@ namespace Gurux.DLMS.Objects
         {
             if (Parent != null && Parent.Parent is GXDLMSClient)
             {
-                return (Parent.Parent as GXDLMSClient).Standard == Standard.SEC;
+                return (Parent.Parent as GXDLMSClient).Standard == Standard.SaudiArabia;
             }
             return false;
         }
@@ -257,10 +257,6 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 6)
             {
-                if (IsSec())
-                {
-                    return DataType.Bcd;
-                }
                 return DataType.OctetString;
             }
             //
@@ -406,12 +402,16 @@ namespace Gurux.DLMS.Objects
                 {
                     return null;
                 }
+                if (IsSec())
+                {
+                    return GXCommon.HexToBytes(CalendarNameActive);
+                }
                 return ASCIIEncoding.ASCII.GetBytes(CalendarNameActive);
             }
             if (e.Index == 3)
             {
                 e.ByteArray = true;
-                bool useOctectString = settings.Standard != Standard.SEC;
+                bool useOctectString = settings.Standard != Standard.SaudiArabia;
                 return GetSeasonProfile(settings, SeasonProfileActive, useOctectString);
             }
             if (e.Index == 4)
@@ -430,12 +430,16 @@ namespace Gurux.DLMS.Objects
                 {
                     return null;
                 }
+                if (IsSec())
+                {
+                    return GXCommon.HexToBytes(CalendarNamePassive);
+                }
                 return ASCIIEncoding.ASCII.GetBytes(CalendarNamePassive);
             }
             if (e.Index == 7)
             {
                 e.ByteArray = true;
-                bool useOctectString = settings.Standard != Standard.SEC;
+                bool useOctectString = settings.Standard != Standard.SaudiArabia;
                 return GetSeasonProfile(settings, SeasonProfilePassive, useOctectString);
             }
             if (e.Index == 8)
@@ -555,7 +559,14 @@ namespace Gurux.DLMS.Objects
             {
                 if (e.Value is byte[])
                 {
-                    CalendarNameActive = ASCIIEncoding.ASCII.GetString((byte[])e.Value);
+                    if (IsSec())
+                    {
+                        CalendarNameActive = GXCommon.ToHex((byte[])e.Value, false);
+                    }
+                    else
+                    {
+                        CalendarNameActive = ASCIIEncoding.ASCII.GetString((byte[])e.Value);
+                    }
                 }
                 else
                 {
@@ -580,9 +591,12 @@ namespace Gurux.DLMS.Objects
                 {
                     if (IsSec())
                     {
+                        CalendarNamePassive = GXCommon.ToHex((byte[])e.Value, false);
+                    }
+                    else
+                    {
                         CalendarNamePassive = ASCIIEncoding.ASCII.GetString((byte[])e.Value);
                     }
-                    CalendarNamePassive = ASCIIEncoding.ASCII.GetString((byte[])e.Value);
                 }
                 else
                 {

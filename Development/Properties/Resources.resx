@@ -349,7 +349,7 @@
   <data name="Italy" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\italy.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
-  <data name="SEC" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\sec.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  <data name="SaudiArabia" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\saudiarabia.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
 </root>

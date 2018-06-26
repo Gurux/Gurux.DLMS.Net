@@ -882,7 +882,10 @@ namespace Gurux.DLMS
                     else if ((p.settings.Gateway != null && p.settings.Gateway.PhysicalDeviceAddress != null) &&
                         !(p.command == Command.GeneralBlockTransfer || (p.multipleBlocks && (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) != 0)))
                     {
-                        len -= (3 + p.settings.Gateway.PhysicalDeviceAddress.Length);
+                        if (3 + len + p.settings.Gateway.PhysicalDeviceAddress.Length > p.settings.MaxPduSize)
+                        {
+                            len -= (3 + p.settings.Gateway.PhysicalDeviceAddress.Length);
+                        }
                         GXByteBuffer tmp = new GXByteBuffer(reply);
                         reply.Size = 0;
                         reply.SetUInt8(Command.GatewayRequest);
@@ -944,7 +947,10 @@ namespace Gurux.DLMS
                     }
                     if (p.settings.Gateway != null && p.settings.Gateway.PhysicalDeviceAddress != null)
                     {
-                        len -= (3 + p.settings.Gateway.PhysicalDeviceAddress.Length);
+                        if (3 + len + p.settings.Gateway.PhysicalDeviceAddress.Length > p.settings.MaxPduSize)
+                        {
+                            len -= (3 + p.settings.Gateway.PhysicalDeviceAddress.Length);
+                        }
                         GXByteBuffer tmp = new GXByteBuffer(reply);
                         reply.Size = 0;
                         reply.SetUInt8(Command.GatewayRequest);
@@ -2732,7 +2738,7 @@ namespace Gurux.DLMS
                         // Check Block length.
                         if (blockLength > data.Size - data.Position)
                         {
-                            throw new OutOfMemoryException();
+                           throw new OutOfMemoryException();
                         }
                         //Keep command if this is last block for XML Client.
                         if ((reply.MoreData & RequestTypes.DataBlock) != 0)

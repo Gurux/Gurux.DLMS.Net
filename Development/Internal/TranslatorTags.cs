@@ -119,6 +119,7 @@ namespace Gurux.DLMS
         ContentsDescription,
         ArrayContents,
         NetworkId,
-        PhysicalDeviceAddress
+        PhysicalDeviceAddress,
+        ProtocolVersion
     }
 }

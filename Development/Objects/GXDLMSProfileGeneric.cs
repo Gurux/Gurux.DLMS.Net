@@ -839,103 +839,105 @@ namespace Gurux.DLMS.Objects
                 DateTime lastDate = DateTime.MinValue;
                 foreach (object[] row in (e.Value as object[]))
                 {
-                    if ((row as object[]).Length != cols.Count)
+                    if (cols.Count != 0)
                     {
-                        throw new Exception("The number of columns does not match.");
-                    }
-                    for (int pos = 0; pos != row.Length; ++pos)
-                    {
-                        if (cols == null)
+                        if ((row as object[]).Length != cols.Count)
                         {
-                            index2 = 0;
+                            throw new Exception("The number of columns does not match.");
                         }
-                        else
+                        for (int pos = 0; pos != row.Length; ++pos)
                         {
-                            index2 = cols[pos].Value.AttributeIndex;
-                        }
-                        DataType type;
-                        //Actaris SL 7000 and ACE 6000 returns 0.
-                        if (index2 != 0)
-                        {
-                            type = cols[pos].Key.GetUIDataType(index2);
-                        }
-                        else
-                        {
-                            type = DataType.None;
-                        }
-                        if (row[pos] is byte[])
-                        {
-                            if (type != DataType.None && row[pos] is byte[])
+                            if (cols == null)
                             {
-                                row[pos] = GXDLMSClient.ChangeType(row[pos] as byte[], type, settings.UseUtc2NormalTime);
-                                if (row[pos] is GXDateTime)
+                                index2 = 0;
+                            }
+                            else
+                            {
+                                index2 = cols[pos].Value.AttributeIndex;
+                            }
+                            DataType type;
+                            //Actaris SL 7000 and ACE 6000 returns 0.
+                            if (index2 != 0)
+                            {
+                                type = cols[pos].Key.GetUIDataType(index2);
+                            }
+                            else
+                            {
+                                type = DataType.None;
+                            }
+                            if (row[pos] is byte[])
+                            {
+                                if (type != DataType.None && row[pos] is byte[])
                                 {
-                                    GXDateTime dt = (GXDateTime)row[pos];
-                                    lastDate = dt.Value.LocalDateTime;
+                                    row[pos] = GXDLMSClient.ChangeType(row[pos] as byte[], type, settings.UseUtc2NormalTime);
+                                    if (row[pos] is GXDateTime)
+                                    {
+                                        GXDateTime dt = (GXDateTime)row[pos];
+                                        lastDate = dt.Value.LocalDateTime;
+                                    }
                                 }
                             }
-                        }
-                        else if (type == DataType.DateTime && row[pos] == null && CapturePeriod != 0)
-                        {
-                            if (lastDate == DateTime.MinValue && Buffer.Count != 0)
+                            else if (type == DataType.DateTime && row[pos] == null && CapturePeriod != 0)
                             {
-                                lastDate = ((GXDateTime)Buffer[Buffer.Count - 1].GetValue(pos)).Value.LocalDateTime;
+                                if (lastDate == DateTime.MinValue && Buffer.Count != 0)
+                                {
+                                    lastDate = ((GXDateTime)Buffer[Buffer.Count - 1].GetValue(pos)).Value.LocalDateTime;
+                                }
+                                if (lastDate != DateTime.MinValue)
+                                {
+                                    lastDate = lastDate.AddSeconds(CapturePeriod);
+                                    row[pos] = new GXDateTime(lastDate);
+                                }
                             }
-                            if (lastDate != DateTime.MinValue)
+                            else if (type == DataType.DateTime && row[pos] is UInt32)
                             {
-                                lastDate = lastDate.AddSeconds(CapturePeriod);
-                                row[pos] = new GXDateTime(lastDate);
+                                row[pos] = GXDateTime.FromUnixTime(((UInt32)row[pos]));
                             }
-                        }
-                        else if (type == DataType.DateTime && row[pos] is UInt32)
-                        {
-                            DateTime dt = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
-                            row[pos] = new GXDateTime(dt.AddSeconds((UInt32)row[pos]).ToLocalTime());                            
-                        }
 
-                        if (cols[pos].Key is GXDLMSRegister && index2 == 2)
-                        {
-                            double scaler = (cols[pos].Key as GXDLMSRegister).Scaler;
-                            if (scaler != 1)
+                            if (cols[pos].Key is GXDLMSRegister && index2 == 2)
+                            {
+                                double scaler = (cols[pos].Key as GXDLMSRegister).Scaler;
+                                if (scaler != 1)
+                                {
+                                    try
+                                    {
+                                        row[pos] = Convert.ToDouble(row[pos]) * scaler;
+                                    }
+                                    catch
+                                    {
+                                        //Skip error
+                                    }
+                                }
+                            }
+                            else if (cols[pos].Key is GXDLMSDemandRegister && (index2 == 2 || index2 == 3))
+                            {
+                                double scaler = (cols[pos].Key as GXDLMSDemandRegister).Scaler;
+                                if (scaler != 1)
+                                {
+                                    try
+                                    {
+                                        row[pos] = Convert.ToDouble(row[pos]) * scaler;
+                                    }
+                                    catch
+                                    {
+                                        //Skip error
+                                    }
+                                }
+                            }
+                            else if (cols[pos].Key is GXDLMSRegister && index2 == 3)
                             {
                                 try
                                 {
-                                    row[pos] = Convert.ToDouble(row[pos]) * scaler;
+                                    GXDLMSRegister r = new GXDLMSRegister();
+                                    ValueEventArgs v = new ValueEventArgs(r, 3, 0, null);
+                                    v.Value = row[pos];
+                                    (r as IGXDLMSBase).SetValue(null, v);
+                                    row[pos] = new object[] { r.Scaler, r.Unit };
                                 }
                                 catch
                                 {
                                     //Skip error
                                 }
-                            }
-                        }
-                        else if (cols[pos].Key is GXDLMSDemandRegister && (index2 == 2 || index2 == 3))
-                        {
-                            double scaler = (cols[pos].Key as GXDLMSDemandRegister).Scaler;
-                            if (scaler != 1)
-                            {
-                                try
-                                {
-                                    row[pos] = Convert.ToDouble(row[pos]) * scaler;
-                                }
-                                catch
-                                {
-                                    //Skip error
-                                }
-                            }
-                        }
-                        else if (cols[pos].Key is GXDLMSRegister && index2 == 3)
-                        {
-                            try
-                            {
-                                GXDLMSRegister r = new GXDLMSRegister();
-                                ValueEventArgs v = new ValueEventArgs(r, 3, 0, null);
-                                v.Value = row[pos];
-                                (r as IGXDLMSBase).SetValue(null, v);
-                                row[pos] = new object[] { r.Scaler, r.Unit };
-                            }
-                            catch
-                            {
-                                //Skip error
                             }
                         }
                     }

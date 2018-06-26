@@ -971,7 +971,7 @@ namespace Gurux.DLMS.Objects
                 {
                     Object[] arr = (Object[])e.Value;
                     GXByteBuffer bb = new GXByteBuffer();
-                    GXCommon.SetBitString(bb, arr[0]);
+                    GXCommon.SetBitString(bb, arr[0], true);
                     bb.SetUInt8(0, 0);
                     XDLMSContextInfo.Conformance = (Conformance)bb.GetUInt32();
                     XDLMSContextInfo.MaxReceivePduSize = Convert.ToUInt16(arr[1]);

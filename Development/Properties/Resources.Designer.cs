@@ -251,11 +251,19 @@ namespace Gurux.DLMS.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to 1;0.1.94.96.2.255;0;Storage Device Failure Date/Time
+        ///1;0.1.94.96.22.255;0;LCD time-to-return to default screen
+        ///1;0.1.94.96.23.255;0;LCD auto scroll time
+        ///1;0.1.94.96.24.255;0;LCD night off option
+        ///1;0.1.94.96.25.255;0;Start-stop time setting of LCD night off
+        ///9;0.1.94.96.10.255;0;Meter Program Configuration
+        ///9;0.1.94.96.11.255;0;Meter Program Configuration Status
+        ///1;0.96.94.96.8.255;0;Remote output relay control Selection of the input control signals
+        ///1;0.96.94.96.9.255;0;Auto recovery operation times of  [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string SEC {
+        internal static string SaudiArabia {
             get {
-                return ResourceManager.GetString("SEC", resourceCulture);
+                return ResourceManager.GetString("SaudiArabia", resourceCulture);
             }
         }
         

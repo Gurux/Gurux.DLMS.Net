@@ -46,10 +46,6 @@ namespace Gurux.DLMS.Internal
     internal class GXCommon
     {
         internal const byte HDLCFrameStartEnd = 0x7E;
-        internal static readonly byte[] LogicalNameObjectID = { 0x60, 0x85, 0x74, 0x05, 0x08, 0x01, 0x01 };
-        internal static readonly byte[] ShortNameObjectID = { 0x60, 0x85, 0x74, 0x05, 0x08, 0x01, 0x02 };
-        internal static readonly byte[] LogicalNameObjectIdWithCiphering = { 0x60, 0x85, 0x74, 0x05, 0x08, 0x01, 0x03 };
-        internal static readonly byte[] ShortNameObjectIdWithCiphering = { 0x60, 0x85, 0x74, 0x05, 0x08, 0x01, 0x04 };
 
         /// <summary>
         /// Sent LLC bytes.
@@ -370,7 +366,7 @@ namespace Gurux.DLMS.Internal
         /// <param name="sb">String where bit string is append.</param>
         /// <param name="value">Byte value</param>
         /// <param name="count">Bit count to add.</param>
-        static void ToBitString(StringBuilder sb, byte value, int count)
+        internal static void ToBitString(StringBuilder sb, byte value, int count)
         {
             if (count > 0)
             {
@@ -2030,7 +2026,7 @@ namespace Gurux.DLMS.Internal
                     buff.SetDouble((double)value);
                     break;
                 case DataType.BitString:
-                    SetBitString(buff, value);
+                    SetBitString(buff, value, true);
                     break;
                 case DataType.String:
                     SetString(buff, value);
@@ -2543,13 +2539,16 @@ namespace Gurux.DLMS.Internal
         ///<param name="value">
         ///Added value.
         ///</param>
-        internal static void SetBitString(GXByteBuffer buff, object value)
+        internal static void SetBitString(GXByteBuffer buff, object value, bool addCount)
         {
             if (value is string)
             {
                 byte val = 0;
                 String str = (String)value;
-                SetObjectCount(str.Length, buff);
+                if (addCount)
+                {
+                    SetObjectCount(str.Length, buff);
+                }
                 int index = 7;
                 for (int pos = 0; pos != str.Length; ++pos)
                 {
@@ -2841,6 +2840,6 @@ namespace Gurux.DLMS.Internal
                 DataType dt = GetDLMSDataType(value.GetType());
                 xml.AppendLine(GXDLMS.DATA_TYPE_OFFSET + (int)dt, null, value);
             }
-        }
+        }      
     }
 }

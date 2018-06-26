@@ -790,6 +790,7 @@ namespace Gurux.DLMS
         /// <param name="connected"></param>
         public void Reset(bool connected)
         {
+            Settings.protocolVersion = null;
             transaction = null;
             Settings.BlockIndex = 1;
             Settings.Count = Settings.Index = 0;

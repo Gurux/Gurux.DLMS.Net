@@ -57,9 +57,9 @@ namespace Gurux.DLMS
         [XmlEnum("2")]
         Italy,
         /// <summary>
-        /// Meter uses Saudi Electricity Company DLMS standard.
+        /// Meter uses Saudi Arabia DLMS standard.
         /// </summary>
         [XmlEnum("3")]
-        SEC
+        SaudiArabia
     }
 }

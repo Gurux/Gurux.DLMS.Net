@@ -286,7 +286,8 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorTags.ContentsDescription, "ContentsDescription");
             GXDLMSTranslator.AddTag(list, TranslatorTags.ArrayContents, "ArrayContents");
             GXDLMSTranslator.AddTag(list, TranslatorTags.NetworkId, "NetworkId");
-            GXDLMSTranslator.AddTag(list, TranslatorTags.PhysicalDeviceAddress, "PhysicalDeviceAddress");            
+            GXDLMSTranslator.AddTag(list, TranslatorTags.PhysicalDeviceAddress, "PhysicalDeviceAddress");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.ProtocolVersion, "ProtocolVersion");            
         }
 
         public static void GetDataTypeTags(SortedList<int, string> list)

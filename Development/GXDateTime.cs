@@ -901,7 +901,41 @@ namespace Gurux.DLMS
             return diff;
         }
 
-#region IConvertible Members
+        /// <summary>
+        /// Get date time from Epoch time.
+        /// </summary>
+        /// <param name="unixTime">Unix time.</param>
+        /// <returns>Date and time.</returns>
+        public static GXDateTime FromUnixTime(long unixTime)
+        {
+            DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            return new GXDateTime(epoch.AddSeconds(unixTime));
+        }
+
+        /// <summary>
+        /// Convert date time to Epoch time.
+        /// </summary>
+        /// <param name="date">Date and time.</param>
+        /// <returns>Unix time.</returns>
+        public static long ToUnixTime(DateTime date)
+        {
+            DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            return Convert.ToInt64((date - epoch).TotalSeconds);
+        }
+
+        /// <summary>
+        /// Convert date time to Epoch time.
+        /// </summary>
+        /// <param name="date">Date and time.</param>
+        /// <returns>Unix time.</returns>
+        public static long ToUnixTime(GXDateTime date)
+        {
+            DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            return Convert.ToInt64((date.Value.DateTime - epoch).TotalSeconds);
+        }
+
+
+        #region IConvertible Members
 
         TypeCode IConvertible.GetTypeCode()
         {

@@ -119,6 +119,11 @@ namespace Gurux.DLMS
         internal UInt16 maxReceivePDUSize;
 
         /// <summary>
+        /// Protocol version.
+        /// </summary>
+        internal string protocolVersion = null;
+
+        /// <summary>
         /// Can user access meter data anonymously (Without AARQ/AARE messages). 
         /// In DLMS standard this is known as Pre-established application associations.
         /// </summary>

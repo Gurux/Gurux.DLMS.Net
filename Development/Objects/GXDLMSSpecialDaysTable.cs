@@ -202,7 +202,7 @@ namespace Gurux.DLMS.Objects
                             data.SetUInt8((byte)DataType.Structure);
                             data.SetUInt8((byte)3); //Count
                             GXCommon.SetData(settings, data, DataType.UInt16, it.Index);
-                            if (settings.Standard == Standard.SEC)
+                            if (settings.Standard == Standard.SaudiArabia)
                             {
                                 GXCommon.SetData(settings, data, DataType.Date, it.Date);
                             }

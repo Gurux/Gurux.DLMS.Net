@@ -407,6 +407,21 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Protocol version.
+        /// </summary>
+        public string ProtocolVersion
+        {
+            get
+            {
+                return Settings.protocolVersion;
+            }
+            set
+            {
+                Settings.protocolVersion = value;
+            }
+        }
+
+        /// <summary>
         /// Retrieves the authentication used in communicating with the device.
         /// </summary>
         /// <remarks>
@@ -1981,6 +1996,15 @@ namespace Gurux.DLMS
             string ln = "0.0.1.0.0.255";
             ObjectType type = ObjectType.Clock;
             int index = 2;
+            bool unixTime = false;
+            //If Unix time is used.
+            if (pg.CaptureObjects.Count != 0 && pg.CaptureObjects[0].Key is GXDLMSData && 
+                pg.CaptureObjects[0].Key.LogicalName == "0.0.1.1.0.255")
+            {
+                unixTime = true;
+                ln = "0.0.1.1.0.255";
+                type = ObjectType.Data;
+            }
             GXByteBuffer buff = new GXByteBuffer(51);
             // Add AccessSelector value.
             buff.SetUInt8(0x01);
@@ -2001,10 +2025,20 @@ namespace Gurux.DLMS
             GXCommon.SetData(Settings, buff, DataType.Int8, index);
             // Add version.
             GXCommon.SetData(Settings, buff, DataType.UInt16, 0);
-            // Add start time.
-            GXCommon.SetData(Settings, buff, DataType.OctetString, start);
-            // Add end time.
-            GXCommon.SetData(Settings, buff, DataType.OctetString, end);
+            if (unixTime)
+            {
+                // Add start time.
+                GXCommon.SetData(Settings, buff, DataType.UInt32, GXDateTime.ToUnixTime(start));
+                // Add end time.
+                GXCommon.SetData(Settings, buff, DataType.UInt32, GXDateTime.ToUnixTime(end));
+            }
+            else
+            {
+                // Add start time.
+                GXCommon.SetData(Settings, buff, DataType.OctetString, start);
+                // Add end time.
+                GXCommon.SetData(Settings, buff, DataType.OctetString, end);
+            }
 
             // Add array of read columns.
             buff.SetUInt8(DataType.Array);

@@ -248,7 +248,7 @@ namespace Gurux.DLMS.Objects
                         data.SetUInt8((byte)DataType.Structure);
                         //Count
                         data.SetUInt8((byte)2);
-                        if (settings.Standard == Standard.SEC)
+                        if (settings.Standard == Standard.SaudiArabia)
                         {
                             //Time
                             GXCommon.SetData(settings, data, DataType.Time, new GXTime(it));
