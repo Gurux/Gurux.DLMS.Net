@@ -274,6 +274,16 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Gateway information.
+        /// </summary>
+        public GXDLMSGateway Gateway
+        {
+            get;
+            set;
+        }
+        
+
+        /// <summary>
         /// Is GBT streaming.
         /// </summary>
         /// <returns></returns>

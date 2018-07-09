@@ -909,7 +909,7 @@ namespace Gurux.DLMS
         public static GXDateTime FromUnixTime(long unixTime)
         {
             DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            return new GXDateTime(epoch.AddSeconds(unixTime));
+            return new GXDateTime(epoch.AddSeconds(unixTime).ToLocalTime());
         }
 
         /// <summary>
@@ -919,8 +919,13 @@ namespace Gurux.DLMS
         /// <returns>Unix time.</returns>
         public static long ToUnixTime(DateTime date)
         {
+            if (date == DateTime.MinValue ||
+                date == DateTime.MaxValue)
+            {
+                return Convert.ToInt64(0);
+            }
             DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            return Convert.ToInt64((date - epoch).TotalSeconds);
+            return Convert.ToInt64((date.ToUniversalTime() - epoch).TotalSeconds);
         }
 
         /// <summary>
@@ -930,10 +935,8 @@ namespace Gurux.DLMS
         /// <returns>Unix time.</returns>
         public static long ToUnixTime(GXDateTime date)
         {
-            DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            return Convert.ToInt64((date.Value.DateTime - epoch).TotalSeconds);
+            return ToUnixTime(date.Value.DateTime);
         }
-
 
         #region IConvertible Members
 

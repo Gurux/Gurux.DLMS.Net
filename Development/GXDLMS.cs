@@ -3191,10 +3191,11 @@ namespace Gurux.DLMS
                         break;
                     case Command.GatewayRequest:
                     case Command.GatewayResponse:
-                        data.Data.GetUInt8();
+                        data.Gateway = new GXDLMSGateway();
+                        data.Gateway.NetworkId = data.Data.GetUInt8();
                         int len = GXCommon.GetObjectCount(data.Data);
-                        byte[] pda = new byte[len];
-                        data.Data.Get(pda);
+                        data.Gateway.PhysicalDeviceAddress = new byte[len];
+                        data.Data.Get(data.Gateway.PhysicalDeviceAddress);
                         GetDataFromBlock(data.Data, index);
                         data.Command = Command.None;
                         GetPdu(settings, data);

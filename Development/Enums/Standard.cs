@@ -34,7 +34,7 @@
 
 using System.Xml.Serialization;
 
-namespace Gurux.DLMS
+namespace Gurux.DLMS.Enums
 {
     /// <summary>
     /// Used DLMS standard.
