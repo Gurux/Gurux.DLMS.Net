@@ -847,7 +847,7 @@ namespace Gurux.DLMS
                             reply.Size = 0;
                             reply.SetUInt8(Command.GatewayRequest);
                             reply.SetUInt8(p.settings.Gateway.NetworkId);
-                            reply.SetUInt8((byte) p.settings.Gateway.PhysicalDeviceAddress.Length);
+                            reply.SetUInt8((byte)p.settings.Gateway.PhysicalDeviceAddress.Length);
                             reply.Set(p.settings.Gateway.PhysicalDeviceAddress);
                             reply.Set(tmp);
                         }
@@ -895,7 +895,7 @@ namespace Gurux.DLMS
                         reply.Set(tmp);
                     }
                 }
-               
+
                 if (ciphering && ((p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0))
                 {
                     //GBT ciphering is done for all the data, not just block.
@@ -2738,7 +2738,7 @@ namespace Gurux.DLMS
                         // Check Block length.
                         if (blockLength > data.Size - data.Position)
                         {
-                           throw new OutOfMemoryException();
+                            throw new OutOfMemoryException();
                         }
                         //Keep command if this is last block for XML Client.
                         if ((reply.MoreData & RequestTypes.DataBlock) != 0)
@@ -2996,9 +2996,17 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        p = new AesGcmParameter(settings.SourceSystemTitle,
-                                cipher.BlockCipherKey,
-                                cipher.AuthenticationKey);
+                        //If pre-set connection is made.
+                        if (settings.PreEstablishedSystemTitle == null)
+                        {
+                            p = new AesGcmParameter(settings.SourceSystemTitle, cipher.BlockCipherKey, cipher.AuthenticationKey);
+                        }
+                        else
+                        {
+                            p = new AesGcmParameter(settings.PreEstablishedSystemTitle,
+                                    cipher.BlockCipherKey,
+                                    cipher.AuthenticationKey);
+                        }
                     }
 
                     byte[] tmp = GXCiphering.Decrypt(p, data.Data);

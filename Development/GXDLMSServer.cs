@@ -82,11 +82,11 @@ namespace Gurux.DLMS
         {
             get
             {
-                return Settings.SourceSystemTitle;
+                return Settings.PreEstablishedSystemTitle;
             }
             set
             {
-                Settings.SourceSystemTitle = value;
+                Settings.PreEstablishedSystemTitle = value;
             }
         }
 
@@ -479,26 +479,6 @@ namespace Gurux.DLMS
             set
             {
                 Settings.MaxServerPDUSize = value;
-            }
-        }
-
-        /// <summary>
-        /// Can client read or write values as Anonymous.
-        /// </summary>
-        /// <remarks>
-        /// This can be used when meter allows client to read some values without AARQ/AARE messages.
-        /// In DLMS standard this is known as Pre-established application associations.
-        /// </remarks>
-        [DefaultValue(false)]
-        public bool AllowAnonymousAccess
-        {
-            get
-            {
-                return Settings.AllowAnonymousAccess;
-            }
-            set
-            {
-                Settings.AllowAnonymousAccess = value;
             }
         }
 

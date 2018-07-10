@@ -863,6 +863,7 @@ namespace Gurux.DLMS
             {
                 Settings.Connected = ConnectionState.Dlms;
             }
+            Settings.ResetFrameSequence();
             return reply;
         }
         /// <summary>
@@ -899,6 +900,7 @@ namespace Gurux.DLMS
                 ret = GXDLMS.GetWrapperFrame(Settings, bb);
             }
             Settings.Connected = ConnectionState.None;
+            Settings.ResetFrameSequence();
             return ret;
         }
 

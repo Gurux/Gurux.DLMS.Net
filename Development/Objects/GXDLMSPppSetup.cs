@@ -52,7 +52,7 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSPppSetup()
-        : this(null)
+        : this("0.0.25.3.0.255")
         {
         }
 

@@ -241,10 +241,6 @@ namespace Gurux.DLMS
                     {
                         actionReply = (obj as IGXDLMSBase).Invoke(settings, e);
                         server.NotifyPostAction(new ValueEventArgs[] { e });
-                        if (settings.Connected == ConnectionState.Dlms && (ci == ObjectType.AssociationLogicalName &&  id == 1))
-                        {
-                            server.NotifyConnected(connectionInfo);
-                        }
                     }
                     //Set default action reply if not given.
                     if (actionReply != null && e.Error == 0)

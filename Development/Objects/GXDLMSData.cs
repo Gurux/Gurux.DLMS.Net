@@ -173,7 +173,8 @@ namespace Gurux.DLMS.Objects
                     LogicalName = GXCommon.ToLogicalName(e.Value);
                     break;
                 case 2:
-                    if (!e.User && e.Value != null && GetDataType(2) == DataType.None)
+                    DataType dt = GetDataType(2);
+                    if (!e.User && e.Value != null && (dt == DataType.None || dt == DataType.DateTime))
                     {
                         SetDataType(2, GXCommon.GetDLMSDataType(e.Value.GetType()));
                     }

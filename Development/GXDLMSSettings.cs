@@ -99,6 +99,12 @@ namespace Gurux.DLMS
         internal byte[] SourceSystemTitle;
 
         /// <summary>
+        /// Pre-established system title.
+        /// </summary>
+        internal byte[] PreEstablishedSystemTitle;
+
+
+        /// <summary>
         /// Key Encrypting Key, also known as Master key.
         /// </summary>
         internal byte[] Kek;
@@ -123,15 +129,9 @@ namespace Gurux.DLMS
         /// </summary>
         internal string protocolVersion = null;
 
-        /// <summary>
-        /// Can user access meter data anonymously (Without AARQ/AARE messages). 
-        /// In DLMS standard this is known as Pre-established application associations.
-        /// </summary>
-        internal bool AllowAnonymousAccess = false;
-
         internal bool CanAccess()
         {
-            return AllowAnonymousAccess || SourceSystemTitle != null;
+            return SourceSystemTitle != null;
         }
 
         /// <summary>
@@ -269,7 +269,6 @@ namespace Gurux.DLMS
             target.Index = Index;
             target.maxReceivePDUSize = maxReceivePDUSize;
             target.MaxServerPDUSize = MaxServerPDUSize;
-            target.AllowAnonymousAccess = AllowAnonymousAccess;
             target.ProposedConformance = ProposedConformance;
             target.NegotiatedConformance = NegotiatedConformance;
             target.SecuritySuite = SecuritySuite;

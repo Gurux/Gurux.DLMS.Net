@@ -113,11 +113,11 @@ namespace Gurux.DLMS.Secure
         {
             get
             {
-                return Settings.SourceSystemTitle;
+                return Settings.PreEstablishedSystemTitle;
             }
             set
             {
-                Settings.SourceSystemTitle = value;
+                Settings.PreEstablishedSystemTitle = value;
             }
         }
 

@@ -908,7 +908,7 @@ namespace Gurux.DLMS
         /// <returns>Date and time.</returns>
         public static GXDateTime FromUnixTime(long unixTime)
         {
-            DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 1, DateTimeKind.Utc);
             return new GXDateTime(epoch.AddSeconds(unixTime).ToLocalTime());
         }
 
@@ -924,7 +924,7 @@ namespace Gurux.DLMS
             {
                 return Convert.ToInt64(0);
             }
-            DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 1, DateTimeKind.Utc);
             return Convert.ToInt64((date.ToUniversalTime() - epoch).TotalSeconds);
         }
 
