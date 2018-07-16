@@ -594,6 +594,15 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Convert byte array to logical name.
+        /// </summary>
+        /// <param name="value">Logical name as byte array.</param>
+        /// <returns>Logical name as a string.</returns>
+        public static string ToLogicalName(object value)
+        {
+            return GXCommon.ToLogicalName(value);
+        }
+        /// <summary>
         /// Convert logical name to byte array.
         /// </summary>
         /// <param name="value">Logical name as a string.</param>

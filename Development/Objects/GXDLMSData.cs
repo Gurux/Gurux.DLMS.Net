@@ -178,7 +178,15 @@ namespace Gurux.DLMS.Objects
                     {
                         SetDataType(2, GXCommon.GetDLMSDataType(e.Value.GetType()));
                     }
-                    Value = e.Value;
+                    dt = GetUIDataType(2);
+                    if (dt == DataType.DateTime && (e.Value is UInt32 || e.Value is UInt64 || e.Value is Int32 || e.Value is Int64))
+                    {
+                        Value = GXDateTime.FromUnixTime(Convert.ToUInt32(e.Value));
+                    }
+                    else
+                    {
+                        Value = e.Value;
+                    }
                     break;
                 default:
                     e.Error = ErrorCode.ReadWriteDenied;

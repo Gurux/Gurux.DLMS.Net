@@ -1017,14 +1017,14 @@ namespace Gurux.DLMS
 
         uint IConvertible.ToUInt32(IFormatProvider provider)
         {
-            throw new NotImplementedException();
+            return (uint) GXDateTime.ToUnixTime(this.Value.DateTime);
         }
 
         ulong IConvertible.ToUInt64(IFormatProvider provider)
         {
-            throw new NotImplementedException();
+            return (ulong) GXDateTime.ToUnixTime(this.Value.DateTime);
         }
 
-#endregion
+        #endregion
     }
 }

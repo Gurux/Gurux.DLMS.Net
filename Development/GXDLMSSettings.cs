@@ -390,6 +390,11 @@ namespace Gurux.DLMS
 
         public bool CheckFrame(byte frame)
         {
+            //Return true if pre-established connections are used.
+            if (Connected == ConnectionState.None)
+            {
+                return true;
+            }
             //If notify
             if (frame == 0x13)
             {

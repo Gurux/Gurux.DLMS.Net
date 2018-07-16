@@ -3053,9 +3053,18 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        p = new AesGcmParameter(settings.SourceSystemTitle,
-                                cipher.BlockCipherKey,
-                                cipher.AuthenticationKey);
+                        if (settings.PreEstablishedSystemTitle != null && (settings.Connected & ConnectionState.Dlms) == 0)
+                        {
+                            p = new AesGcmParameter(settings.PreEstablishedSystemTitle,
+                            cipher.BlockCipherKey,
+                            cipher.AuthenticationKey);
+                        }
+                        else
+                        {
+                            p = new AesGcmParameter(settings.SourceSystemTitle,
+                                    cipher.BlockCipherKey,
+                                    cipher.AuthenticationKey);
+                        }
                     }
                     data.Data.Set(GXCiphering.Decrypt(p, bb));
                     data.Command = Command.None;
