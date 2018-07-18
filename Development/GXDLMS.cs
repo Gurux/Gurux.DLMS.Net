@@ -1412,26 +1412,29 @@ namespace Gurux.DLMS
         internal static byte[] GetHdlcFrame(GXDLMSSettings settings, byte frame, GXByteBuffer data)
         {
             GXByteBuffer bb = new GXByteBuffer();
-            int frameSize, len = 0;
+            int frameSize, len;
             byte[] primaryAddress, secondaryAddress;
             if (settings.IsServer)
             {
                 primaryAddress = GetHdlcAddressBytes(settings.ClientAddress, 0);
                 secondaryAddress = GetHdlcAddressBytes(settings.ServerAddress, settings.ServerAddressSize);
+                len = secondaryAddress.Length;
             }
             else
             {
                 primaryAddress = GetHdlcAddressBytes(settings.ServerAddress, settings.ServerAddressSize);
                 secondaryAddress = GetHdlcAddressBytes(settings.ClientAddress, 0);
+                len = primaryAddress.Length;
             }
             // Add BOP
             bb.SetUInt8(GXCommon.HDLCFrameStartEnd);
             frameSize = Convert.ToInt32(settings.Limits.MaxInfoTX);
             //Remove BOP, type, len, primaryAddress, secondaryAddress, frame, header CRC, data CRC and EOP from data length.
-            frameSize -= (10 + secondaryAddress.Length);
+            frameSize -= (10 + len);
             // If no data
             if (data == null || data.Size == 0)
             {
+                len = 0;
                 bb.SetUInt8(0xA0);
             }
             else if (data.Size - data.Position <= frameSize)
