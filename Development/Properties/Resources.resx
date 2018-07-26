@@ -120,17 +120,66 @@
   <data name="AccessViolatedTxt" xml:space="preserve">
     <value>Access Error : Device reports scope of access violated.</value>
   </data>
+  <data name="DataBlockNumberInvalidTxt" xml:space="preserve">
+    <value>Access Error : Data Block Number Invalid.</value>
+  </data>
+  <data name="DataBlockUnavailableTxt" xml:space="preserve">
+    <value>Access Error : Data Block Unavailable.</value>
+  </data>
+  <data name="DisconnectMode" xml:space="preserve">
+    <value>Disconnect mode.</value>
+  </data>
   <data name="HardwareFaultTxt" xml:space="preserve">
     <value>Access Error : Device reports a hardware fault.</value>
   </data>
   <data name="InconsistentClassTxt" xml:space="preserve">
     <value>Access Error : Device reports a inconsistent Class or object.</value>
   </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="India" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\india.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="InvalidLogicalName" xml:space="preserve">
+    <value>Invalid Logical name.</value>
+  </data>
+  <data name="Italy" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\italy.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="LogicalNameTxt" xml:space="preserve">
+    <value>Logical Name</value>
+  </data>
+  <data name="LongGetOrReadAbortedTxt" xml:space="preserve">
+    <value>Access Error : Long Get Or Read Aborted.</value>
+  </data>
+  <data name="LongSetOrWriteAbortedTxt" xml:space="preserve">
+    <value>Access Error : Long Set Or Write Aborted.</value>
+  </data>
+  <data name="NoLongGetOrReadInProgressTxt" xml:space="preserve">
+    <value>Access Error : No Long Get Or Read In Progress.</value>
+  </data>
+  <data name="NoLongSetOrWriteInProgressTxt" xml:space="preserve">
+    <value>Access Error : No Long Set Or Write In Progress.</value>
+  </data>
+  <data name="OBISCodes" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\obiscodes.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="OtherReasonTxt" xml:space="preserve">
+    <value>Access Error : Other Reason.</value>
+  </data>
   <data name="ReadWriteDeniedTxt" xml:space="preserve">
     <value>Access Error : Device reports Read-Write denied.</value>
   </data>
+  <data name="Rejected" xml:space="preserve">
+    <value>HDLC message rejected.</value>
+  </data>
+  <data name="SaudiArabia" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\saudiarabia.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
   <data name="TemporaryFailureTxt" xml:space="preserve">
     <value>Access Error : Device reports a temporary failure.</value>
+  </data>
+  <data name="UnacceptableFrame" xml:space="preserve">
+    <value>Unacceptable frame.</value>
   </data>
   <data name="UnavailableObjectTxt" xml:space="preserve">
     <value>Access Error : Device reports a unavailable object.</value>
@@ -302,54 +351,5 @@
   </data>
   <data name="UnmatchedTypeTxt" xml:space="preserve">
     <value>Access Error : Device reports a unmatched type.</value>
-  </data>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="OBISCodes" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\obiscodes.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="DataBlockNumberInvalidTxt" xml:space="preserve">
-    <value>Access Error : Data Block Number Invalid.</value>
-  </data>
-  <data name="DataBlockUnavailableTxt" xml:space="preserve">
-    <value>Access Error : Data Block Unavailable.</value>
-  </data>
-  <data name="LongGetOrReadAbortedTxt" xml:space="preserve">
-    <value>Access Error : Long Get Or Read Aborted.</value>
-  </data>
-  <data name="LongSetOrWriteAbortedTxt" xml:space="preserve">
-    <value>Access Error : Long Set Or Write Aborted.</value>
-  </data>
-  <data name="NoLongGetOrReadInProgressTxt" xml:space="preserve">
-    <value>Access Error : No Long Get Or Read In Progress.</value>
-  </data>
-  <data name="NoLongSetOrWriteInProgressTxt" xml:space="preserve">
-    <value>Access Error : No Long Set Or Write In Progress.</value>
-  </data>
-  <data name="OtherReasonTxt" xml:space="preserve">
-    <value>Access Error : Other Reason.</value>
-  </data>
-  <data name="LogicalNameTxt" xml:space="preserve">
-    <value>Logical Name</value>
-  </data>
-  <data name="InvalidLogicalName" xml:space="preserve">
-    <value>Invalid Logical name.</value>
-  </data>
-  <data name="DisconnectMode" xml:space="preserve">
-    <value>Disconnect mode.</value>
-  </data>
-  <data name="Rejected" xml:space="preserve">
-    <value>HDLC message rejected.</value>
-  </data>
-  <data name="UnacceptableFrame" xml:space="preserve">
-    <value>Unacceptable frame.</value>
-  </data>
-  <data name="India" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\india.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="Italy" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\italy.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="SaudiArabia" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\saudiarabia.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
 </root>

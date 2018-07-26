@@ -4,8 +4,8 @@
     <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">0.0.0-local</Version>
     <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
 
-    <RootNamespace>Gurux.DLMS.Net</RootNamespace>
-    <AssemblyName>Gurux.DLMS.Net</AssemblyName>
+    <RootNamespace>Gurux.DLMS</RootNamespace>
+    <AssemblyName>Gurux.DLMS</AssemblyName>
     <Company>Gurux Ltd</Company>
     <Authors>Gurux Ltd</Authors>
     <Copyright>Copyright (c) 1998-2018 Gurux Ltd. All rights reserved.</Copyright>
@@ -37,5 +37,20 @@
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp2.0|AnyCPU'">
     <DefineConstants>TRACE;DEBUG</DefineConstants>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
 
 </Project>
