@@ -19,6 +19,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/gurux/gurux.dlms.net</RepositoryUrl>
     <PackageTags>DLMS AMR, AMI IOT</PackageTags>
+    <PackageId>Gurux.DLMS</PackageId>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
