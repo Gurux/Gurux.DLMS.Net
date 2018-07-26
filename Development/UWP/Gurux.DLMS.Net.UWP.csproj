@@ -153,6 +153,7 @@
     <Compile Include="..\TranslatorSimpleTags.cs" />
     <Compile Include="..\TranslatorStandardTags.cs" />
     <Compile Include="..\GXDLMSAccessItem.cs" />
+    <Compile Include="..\GXEnum.cs" />
     <Compile Include="..\GXTime.cs" />
     <Compile Include="..\GXDate.cs" />
     <Compile Include="..\Enums\Conformance.cs" />

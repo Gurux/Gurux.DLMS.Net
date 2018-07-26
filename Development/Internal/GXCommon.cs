@@ -1192,7 +1192,7 @@ namespace Gurux.DLMS.Internal
                         {
                             List<object> tmp2 = new List<object>();
                             GetCompactArrayItem(null, buff, ((List<object>)cols[pos]).ToArray(), tmp2, 1);
-                            row.AddRange((Object[]) tmp2[0]);
+                            row.AddRange((Object[])tmp2[0]);
                         }
                         else
                         {
@@ -1212,7 +1212,7 @@ namespace Gurux.DLMS.Internal
                     {
                         break;
                     }
-                }               
+                }
                 if (info.xml != null && info.xml.OutputType == TranslatorOutputType.SimpleXml)
                 {
                     StringBuilder sb = new StringBuilder();
@@ -1946,6 +1946,10 @@ namespace Gurux.DLMS.Internal
             {
                 return DataType.Float64;
             }
+            if (value is GXEnum)
+            {
+                return DataType.Enum;
+            }
             throw new Exception("Invalid value.");
         }
 
@@ -2671,9 +2675,8 @@ namespace Gurux.DLMS.Internal
                     return typeof(UInt64);
                 case DataType.UInt8:
                     return typeof(byte);
-                default:
                 case DataType.Enum:
-                    break;
+                    return typeof(GXEnum);
             }
             throw new Exception("Invalid DLMS data type.");
         }
@@ -2752,6 +2755,10 @@ namespace Gurux.DLMS.Internal
             else if (type == typeof(object[]))
             {
                 return DataType.Array;
+            }
+            else if (type == typeof(GXEnum))
+            {
+                return DataType.Enum;
             }
             else
             {
@@ -2840,6 +2847,6 @@ namespace Gurux.DLMS.Internal
                 DataType dt = GetDLMSDataType(value.GetType());
                 xml.AppendLine(GXDLMS.DATA_TYPE_OFFSET + (int)dt, null, value);
             }
-        }      
+        }
     }
 }

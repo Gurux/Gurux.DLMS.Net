@@ -5,7 +5,7 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gurux.DLMS.Server.Example2.Net", "Gurux.DLMS.Server.Example2.Net.csproj", "{6D3F791F-EEBC-4A8A-AACA-333B59AF33F7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gurux.DLMS", "..\Development\Gurux.DLMS.csproj", "{EFD71BFF-AD54-45ED-B473-305813C2F83A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gurux.DLMS.Net", "..\Development\Gurux.DLMS.Net.csproj", "{EFD71BFF-AD54-45ED-B473-305813C2F83A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

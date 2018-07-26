@@ -1138,7 +1138,6 @@ namespace Gurux.DLMS.Internal
                         settings.UserId = buff.GetUInt8();
                         if (xml != null)
                         {
-                            //CallingAPTitle
                             xml.AppendLine(TranslatorGeneralTags.CallingAeInvocationId, "Value", xml.IntegerToHex(settings.UserId, 2));
                         }
                         break;
@@ -1150,7 +1149,6 @@ namespace Gurux.DLMS.Internal
                         settings.UserId = buff.GetUInt8();
                         if (xml != null)
                         {
-                            //CallingAPTitle
                             xml.AppendLine(TranslatorGeneralTags.CalledAeInvocationId, "Value", xml.IntegerToHex(settings.UserId, 2));
                         }
                         break;
@@ -1162,7 +1160,6 @@ namespace Gurux.DLMS.Internal
                         settings.UserId = buff.GetUInt8();
                         if (xml != null)
                         {
-                            //CallingAPTitle
                             xml.AppendLine(TranslatorGeneralTags.RespondingAeInvocationId, "Value", xml.IntegerToHex(settings.UserId, 2));
                         }
                         break;

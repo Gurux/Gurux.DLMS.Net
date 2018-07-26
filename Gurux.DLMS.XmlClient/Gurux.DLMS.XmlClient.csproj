@@ -57,7 +57,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Development\Gurux.DLMS.csproj">
+    <ProjectReference Include="..\Development\Gurux.DLMS.Net.csproj">
       <Project>{efd71bff-ad54-45ed-b473-305813c2f83a}</Project>
       <Name>Gurux.DLMS</Name>
     </ProjectReference>

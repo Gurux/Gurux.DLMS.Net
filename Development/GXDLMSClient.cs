@@ -2184,7 +2184,7 @@ namespace Gurux.DLMS
                         data.Xml.AppendStartTag(data.Command);
                         if (data.Data.Size != 0)
                         {
-                            translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace);
+                            translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace, true);
                         }
                         data.Xml.AppendEndTag(data.Command);
                     }
@@ -2192,7 +2192,7 @@ namespace Gurux.DLMS
                     {
                         if (data.Data.Size != 0)
                         {
-                            translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace);
+                            translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace, true);
                         }
                         data.Data = data2;
                     }

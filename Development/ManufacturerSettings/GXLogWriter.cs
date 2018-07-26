@@ -40,9 +40,6 @@ using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Security.AccessControl;
 using System.Diagnostics;
-#if !__MOBILE__
-using System.Windows.Forms;
-#endif
 
 namespace GXDLMS.ManufacturerSettings
 {
@@ -226,8 +223,8 @@ namespace GXDLMS.ManufacturerSettings
         /// </summary>
         public static void UpdateFileSecurity(string filePath)
         {
-#if !__MOBILE__
-        if (!IsReallyVista() || !IsElevated())
+#if !__MOBILE__ && !NETCOREAPP2_0
+            if (!IsReallyVista() || !IsElevated())
         {
             return;
         }

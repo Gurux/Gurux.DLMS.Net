@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">0.0.0-local</Version>
+    <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
+
+    <RootNamespace>Gurux.DLMS.Net</RootNamespace>
+    <AssemblyName>Gurux.DLMS.Net</AssemblyName>
+    <Company>Gurux Ltd</Company>
+    <Authors>Gurux Ltd</Authors>
+    <Copyright>Copyright (c) 1998-2018 Gurux Ltd. All rights reserved.</Copyright>
+    <PackageProjectUrl>www.gurux.fi</PackageProjectUrl>
+    <PackageLicenseUrl>http://www.gnu.org/licenses/gpl-2.0.txt</PackageLicenseUrl>
+    <Description>Gurux DLMS library for C#</Description>
+  <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">0.0.1-local</Version>
+    <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <TargetFrameworks>netcoreapp2.0;net45;net40</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <RepositoryUrl>https://github.com/gurux/gurux.dlms.net</RepositoryUrl>
+    <PackageTags>DLMS AMR, AMI IOT</PackageTags>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>bin\Debug\</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>bin\Release\</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netcoreapp2.0|AnyCPU'">
+    <DefineConstants>TRACE;RELEASE;</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp2.0|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+  </PropertyGroup>
+
+</Project>

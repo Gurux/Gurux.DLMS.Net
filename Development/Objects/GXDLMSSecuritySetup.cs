@@ -267,7 +267,7 @@ namespace Gurux.DLMS.Objects
             return client.Method(this, 5, type, DataType.Enum);
         }
 
-#if !__MOBILE__ && !WINDOWS_UWP
+#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0
         /// <summary>
         ///  Imports an X.509 v3 certificate of a public key.
         /// </summary>
