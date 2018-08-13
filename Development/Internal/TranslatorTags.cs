@@ -120,6 +120,11 @@ namespace Gurux.DLMS
         ArrayContents,
         NetworkId,
         PhysicalDeviceAddress,
-        ProtocolVersion
+        ProtocolVersion,
+        CalledAPTitle,
+        CalledAPInvocationId,
+        CalledAEInvocationId,
+        CallingApInvocationId,
+        CalledAEQualifier
     }
 }

@@ -311,7 +311,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Ded method response.
         /// </summary>
-        DedMethodResponse = 0xD6,
+        DedMethodResponse = 0xD7,
 
         /// <summary>
         /// Request message from client to gateway.

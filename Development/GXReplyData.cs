@@ -243,7 +243,7 @@ namespace Gurux.DLMS
         /// <remarks>
         /// This is for internal use. 
         /// </remarks>
-       internal byte WindowSize
+        internal byte WindowSize
         {
             get;
             set;
@@ -281,7 +281,7 @@ namespace Gurux.DLMS
             get;
             set;
         }
-        
+
 
         /// <summary>
         /// Is GBT streaming.
@@ -314,6 +314,7 @@ namespace Gurux.DLMS
             {
                 Xml.SetXmlLength(0);
             }
+            InvokeId = 0;
         }
 
         /// <summary>
@@ -334,7 +335,7 @@ namespace Gurux.DLMS
         {
             get
             {
-                return Command == Command.EventNotification || Command == Command.DataNotification || Command == Command.InformationReport;
+                return FrameId == 0x13 || Command == Command.EventNotification || Command == Command.DataNotification || Command == Command.InformationReport;
             }
         }
 

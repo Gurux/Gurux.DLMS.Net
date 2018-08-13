@@ -1562,6 +1562,7 @@ namespace Gurux.DLMS
                     break;
                 case 0xBE00:
                     //NegotiatedQualityOfService
+                    s.settings.QualityOfService = (byte) s.ParseInt(GetValue(node, s));
                     break;
                 case 0xBE06:
                 case 0xBE01:
@@ -1681,6 +1682,7 @@ namespace Gurux.DLMS
                     break;
                 case 0xBE09:
                     // ProposedQualityOfService
+                    s.settings.QualityOfService = (byte) s.ParseInt(GetValue(node, s));
                     break;
                 case (int)TranslatorGeneralTags.CharString:
                     // Get PW
@@ -1769,6 +1771,36 @@ namespace Gurux.DLMS
                     pv.SetUInt8((byte)(8 - str.Length));
                     GXCommon.SetBitString(pv, str, false);
                     s.settings.protocolVersion = str;
+                    break;
+                case (int)TranslatorTags.CalledAPTitle:
+                case (int)TranslatorTags.CalledAEQualifier:
+                    tmp = GXCommon.HexToBytes(GetValue(node, s));
+                    s.attributeDescriptor.SetUInt8((byte)(tag == (int)TranslatorTags.CalledAPTitle ? 0xA2 : 0xA3));
+                    s.attributeDescriptor.SetUInt8(03);
+                    s.attributeDescriptor.SetUInt8(BerType.OctetString);
+                    s.attributeDescriptor.SetUInt8((byte)tmp.Length);
+                    s.attributeDescriptor.Set(tmp);
+                    break;
+                case (int)TranslatorTags.CalledAPInvocationId:
+                    s.attributeDescriptor.SetUInt8(0xA6);
+                    s.attributeDescriptor.SetUInt8(03);
+                    s.attributeDescriptor.SetUInt8(BerType.Integer);
+                    s.attributeDescriptor.SetUInt8(1);
+                    s.attributeDescriptor.SetUInt8((byte)s.ParseInt(GetValue(node, s)));
+                    break;
+                case (int)TranslatorTags.CalledAEInvocationId:
+                    s.attributeDescriptor.SetUInt8(0xA5);
+                    s.attributeDescriptor.SetUInt8(03);
+                    s.attributeDescriptor.SetUInt8(BerType.Integer);
+                    s.attributeDescriptor.SetUInt8(1);
+                    s.attributeDescriptor.SetUInt8((byte)s.ParseInt(GetValue(node, s)));
+                    break;
+                case (int)TranslatorTags.CallingApInvocationId:
+                    s.attributeDescriptor.SetUInt8(0xA4);
+                    s.attributeDescriptor.SetUInt8(03);
+                    s.attributeDescriptor.SetUInt8(BerType.Integer);
+                    s.attributeDescriptor.SetUInt8(1);
+                    s.attributeDescriptor.SetUInt8((byte)s.ParseInt(GetValue(node, s)));
                     break;
                 default:
                     throw new ArgumentException("Invalid AARQ node: " + node.Name);
@@ -2612,7 +2644,7 @@ namespace Gurux.DLMS
                     case (UInt16)TranslatorTags.PhysicalDeviceAddress:
                         s.physicalDeviceAddress = GXCommon.HexToBytes(GetValue(node, s));
                         s.command = Command.None;
-                        break;                    
+                        break;
                     default:
                         throw new ArgumentException("Invalid node: " + node.Name);
                 }

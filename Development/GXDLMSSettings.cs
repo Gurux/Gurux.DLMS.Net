@@ -187,6 +187,15 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Quality of service.
+        /// </summary>
+        public byte QualityOfService
+        {
+            get;
+            set;
+        }
+        
+        /// <summary>
         /// Standard says that Time zone is from normal time to UTC in minutes.
         /// If meter is configured to use UTC time (UTC to normal time) set this to true.
         /// </summary>
@@ -390,11 +399,6 @@ namespace Gurux.DLMS
 
         public bool CheckFrame(byte frame)
         {
-            //Return true if pre-established connections are used.
-            if (Connected == ConnectionState.None)
-            {
-                return true;
-            }
             //If notify
             if (frame == 0x13)
             {
@@ -409,6 +413,11 @@ namespace Gurux.DLMS
                     ResetFrameSequence();
                     return !isEcho;
                 }
+                return true;
+            }
+            //Return true if pre-established connections are used.
+            if (Connected == ConnectionState.None)
+            {
                 return true;
             }
             //If S -frame.

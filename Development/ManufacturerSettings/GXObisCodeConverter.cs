@@ -40,6 +40,11 @@ namespace Gurux.DLMS.ManufacturerSettings
 {
     public class GXObisCodeConverter : TypeConverter
     {
+        /// <summary>
+        /// Allows us to display the + symbol near the property name
+        /// </summary>
+        /// <param name="context">An System.ComponentModel.ITypeDescriptorContext that provides a format context.</param>
+        /// <returns>true if System.ComponentModel.TypeConverter.GetProperties(System.Object) should be called to find the properties of this object; otherwise, false.</returns>
         public override bool GetPropertiesSupported(ITypeDescriptorContext context)
         {
             return true;

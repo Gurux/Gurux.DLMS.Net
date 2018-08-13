@@ -208,7 +208,15 @@ namespace Gurux.DLMS.Internal
             data.SetUInt8(0);
 
             // Usage field of the proposed-quality-of-service component. Not used
-            data.SetUInt8(0x00);
+            if (settings.QualityOfService == 0)
+            {
+                data.SetUInt8(0x00);
+            }
+            else
+            {
+                data.SetUInt8(0x01);
+                data.SetUInt8(settings.QualityOfService);
+            }
             data.SetUInt8(settings.DLMSVersion);
             // Tag for conformance block
             data.SetUInt8(0x5F);
@@ -323,12 +331,11 @@ namespace Gurux.DLMS.Internal
                 len = 0;
                 if (tag != 0)//Skip if used.
                 {
-                    len = data.GetUInt8();
-                    data.Position += len;
+                    settings.QualityOfService = data.GetUInt8();
                     if (len == 0 && xml != null)
                     {
                         //NegotiatedQualityOfService
-                        xml.AppendLine(TranslatorGeneralTags.NegotiatedQualityOfService, "Value", "00");
+                        xml.AppendLine(TranslatorGeneralTags.NegotiatedQualityOfService, "Value", settings.QualityOfService.ToString());
                     }
                 }
             }
@@ -368,10 +375,10 @@ namespace Gurux.DLMS.Internal
                 tag = data.GetUInt8();
                 if (tag != 0)
                 {
-                    len = data.GetUInt8();
+                    settings.QualityOfService = data.GetUInt8();
                     if (xml != null && (initiateRequest || xml.OutputType == TranslatorOutputType.SimpleXml))
                     {
-                        xml.AppendLine(TranslatorGeneralTags.ProposedQualityOfService, null, len.ToString());
+                        xml.AppendLine(TranslatorGeneralTags.ProposedQualityOfService, null, settings.QualityOfService.ToString());
                     }
                 }
                 else
@@ -385,8 +392,11 @@ namespace Gurux.DLMS.Internal
                 tag = data.GetUInt8();
                 if (tag != 0)//Skip if used.
                 {
-                    len = data.GetUInt8();
-                    data.Position += len;
+                    settings.QualityOfService = data.GetUInt8();
+                    if (xml != null && xml.OutputType == TranslatorOutputType.SimpleXml)
+                    {
+                        xml.AppendLine(TranslatorGeneralTags.ProposedQualityOfService, null, settings.QualityOfService.ToString());
+                    }
                 }
             }
             else if (tag == (byte)Command.ConfirmedServiceError)
@@ -773,16 +783,23 @@ namespace Gurux.DLMS.Internal
             }
             //Object ID length.
             len = buff.GetUInt8();
-            if (buff.GetUInt8() != 0x60 ||
-                buff.GetUInt8() != 0x85 ||
-                buff.GetUInt8() != 0x74 ||
-                buff.GetUInt8() != 0x5 ||
-                buff.GetUInt8() != 0x8 ||
-                buff.GetUInt8() != 0x1)
+            byte[] tmp = new byte[len];
+            buff.Get(tmp);
+            if (tmp[0] != 0x60 ||
+                tmp[1] != 0x85 ||
+                tmp[2] != 0x74 ||
+                tmp[3] != 0x5 ||
+                tmp[4] != 0x8 ||
+                tmp[5] != 0x1)
             {
+                if (xml != null)
+                {
+                    xml.AppendLine(TranslatorGeneralTags.ApplicationContextName, "Value", "UNKNOWN");
+                    return true;
+                }
                 throw new Exception("Encoding failed. Invalid Application context name.");
             }
-            byte name = buff.GetUInt8();
+            byte name = tmp[6];
             if (xml != null)
             {
                 if (name == 1)
@@ -1039,25 +1056,44 @@ namespace Gurux.DLMS.Internal
                         {
                             throw new Exception("Invalid tag.");
                         }
-                        //Choice for result (INTEGER, universal)
-                        if (buff.GetUInt8() != (byte)BerType.Integer)
+                        if (settings.IsServer)
                         {
-                            throw new Exception("Invalid tag.");
-                        }
-                        //Get len.
-                        if (buff.GetUInt8() != 1)
-                        {
-                            throw new Exception("Invalid tag.");
-                        }
-                        resultComponent = (AssociationResult)buff.GetUInt8();
-                        if (xml != null)
-                        {
-                            if (resultComponent != AssociationResult.Accepted)
+                            //Choice for result (INTEGER, universal)
+                            if (buff.GetUInt8() != (byte)BerType.OctetString)
                             {
-                                xml.AppendComment(resultComponent.ToString());
+                                throw new Exception("Invalid tag.");
                             }
-                            xml.AppendLine(TranslatorGeneralTags.AssociationResult, "Value", xml.IntegerToHex((int)resultComponent, 2));
-                            xml.AppendStartTag(TranslatorGeneralTags.ResultSourceDiagnostic);
+                            len = buff.GetUInt8();
+                            settings.SourceSystemTitle = new byte[len];
+                            buff.Get(settings.SourceSystemTitle);
+                            if (xml != null)
+                            {
+                                //RespondingAPTitle
+                                xml.AppendLine(TranslatorTags.CalledAPTitle, "Value", GXCommon.ToHex(settings.SourceSystemTitle, false));
+                            }
+                        }
+                        else
+                        {
+                            //Choice for result (INTEGER, universal)
+                            if (buff.GetUInt8() != (byte)BerType.Integer)
+                            {
+                                throw new Exception("Invalid tag.");
+                            }
+                            //Get len.
+                            if (buff.GetUInt8() != 1)
+                            {
+                                throw new Exception("Invalid tag.");
+                            }
+                            resultComponent = (AssociationResult)buff.GetUInt8();
+                            if (xml != null)
+                            {
+                                if (resultComponent != AssociationResult.Accepted)
+                                {
+                                    xml.AppendComment(resultComponent.ToString());
+                                }
+                                xml.AppendLine(TranslatorGeneralTags.AssociationResult, "Value", xml.IntegerToHex((int)resultComponent, 2));
+                                xml.AppendStartTag(TranslatorGeneralTags.ResultSourceDiagnostic);
+                            }
                         }
                         break;
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CalledAeQualifier:////SourceDiagnostic 0xA3
@@ -1065,47 +1101,86 @@ namespace Gurux.DLMS.Internal
                         // ACSE service user tag.
                         tag = buff.GetUInt8();
                         len = buff.GetUInt8();
-                        // Result source diagnostic component.
-                        if (buff.GetUInt8() != (byte)BerType.Integer)
+                        if (settings.IsServer)
                         {
-                            throw new Exception("Invalid tag.");
-                        }
-                        if (buff.GetUInt8() != 1)
-                        {
-                            throw new Exception("Invalid tag.");
-                        }
-                        resultDiagnosticValue = (SourceDiagnostic)buff.GetUInt8();
-                        if (xml != null)
-                        {
-                            if (resultDiagnosticValue != SourceDiagnostic.None)
+                            byte[] CalledAEQualifier = new byte[len];
+                            buff.Get(CalledAEQualifier);
+                            if (xml != null)
                             {
-                                xml.AppendComment(resultDiagnosticValue.ToString());
+                                xml.AppendLine(TranslatorTags.CalledAEQualifier, "Value", GXCommon.ToHex(CalledAEQualifier, false));
                             }
-                            xml.AppendLine(TranslatorGeneralTags.ACSEServiceUser, "Value", xml.IntegerToHex((int)resultDiagnosticValue, 2));
-                            xml.AppendEndTag(TranslatorGeneralTags.ResultSourceDiagnostic);
+                        }
+                        else
+                        {
+                            // Result source diagnostic component.
+                            if (buff.GetUInt8() != (byte)BerType.Integer)
+                            {
+                                throw new Exception("Invalid tag.");
+                            }
+                            if (buff.GetUInt8() != 1)
+                            {
+                                throw new Exception("Invalid tag.");
+                            }
+                            resultDiagnosticValue = (SourceDiagnostic)buff.GetUInt8();
+                            if (xml != null)
+                            {
+                                if (resultDiagnosticValue != SourceDiagnostic.None)
+                                {
+                                    xml.AppendComment(resultDiagnosticValue.ToString());
+                                }
+                                xml.AppendLine(TranslatorGeneralTags.ACSEServiceUser, "Value", xml.IntegerToHex((int)resultDiagnosticValue, 2));
+                                xml.AppendEndTag(TranslatorGeneralTags.ResultSourceDiagnostic);
+                            }
                         }
                         break;
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CalledApInvocationId:
                         //Result 0xA4
-                        //Get len.
-                        if (buff.GetUInt8() != 0xA)
+                        if (settings.IsServer)
                         {
-                            throw new Exception("Invalid tag.");
+                            //Get len.
+                            if (buff.GetUInt8() != 3)
+                            {
+                                throw new Exception("Invalid tag.");
+                            }
+                            //Choice for result (Universal, Octetstring type)
+                            if (buff.GetUInt8() != (byte)BerType.Integer)
+                            {
+                                throw new Exception("Invalid tag.");
+                            }
+                            if (buff.GetUInt8() != 1)
+                            {
+                                throw new Exception("Invalid tag length.");
+                            }
+                            //Get value.
+                            len = buff.GetUInt8();
+                            if (xml != null)
+                            {
+                                //RespondingAPTitle
+                                xml.AppendLine(TranslatorTags.CalledAPInvocationId, "Value", xml.IntegerToHex(len, 2));
+                            }
                         }
-                        //Choice for result (Universal, Octetstring type)
-                        if (buff.GetUInt8() != (byte)BerType.OctetString)
+                        else
                         {
-                            throw new Exception("Invalid tag.");
-                        }
-                        //responding-AP-title-field
-                        //Get len.
-                        len = buff.GetUInt8();
-                        settings.SourceSystemTitle = new byte[len];
-                        buff.Get(settings.SourceSystemTitle);
-                        if (xml != null)
-                        {
-                            //RespondingAPTitle
-                            xml.AppendLine(TranslatorGeneralTags.RespondingAPTitle, "Value", GXCommon.ToHex(settings.SourceSystemTitle, false));
+                            //Get len.
+                            if (buff.GetUInt8() != 0xA)
+                            {
+                                throw new Exception("Invalid tag.");
+                            }
+                            //Choice for result (Universal, Octetstring type)
+                            if (buff.GetUInt8() != (byte)BerType.OctetString)
+                            {
+                                throw new Exception("Invalid tag.");
+                            }
+                            //responding-AP-title-field
+                            //Get len.
+                            len = buff.GetUInt8();
+                            settings.SourceSystemTitle = new byte[len];
+                            buff.Get(settings.SourceSystemTitle);
+                            if (xml != null)
+                            {
+                                //RespondingAPTitle
+                                xml.AppendLine(TranslatorGeneralTags.RespondingAPTitle, "Value", GXCommon.ToHex(settings.SourceSystemTitle, false));
+                            }
                         }
                         break;
                     //Client Challenge.
@@ -1143,13 +1218,38 @@ namespace Gurux.DLMS.Internal
                         break;
                     //Client CalledAeInvocationId.
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CalledAeInvocationId://0xA5
-                        len = buff.GetUInt8();
-                        tag = buff.GetUInt8();
-                        len = buff.GetUInt8();
-                        settings.UserId = buff.GetUInt8();
-                        if (xml != null)
+                        if (settings.IsServer)
                         {
-                            xml.AppendLine(TranslatorGeneralTags.CalledAeInvocationId, "Value", xml.IntegerToHex(settings.UserId, 2));
+                            if (buff.GetUInt8() != 3)
+                            {
+                                throw new Exception("Invalid tag.");
+                            }
+                            if (buff.GetUInt8() != 2)
+                            {
+                                throw new Exception("Invalid length.");
+                            }
+                            if (buff.GetUInt8() != 1)
+                            {
+                                throw new Exception("Invalid tag length.");
+                            }
+                            //Get value.
+                            len = buff.GetUInt8();
+                            if (xml != null)
+                            {
+                                //CalledAEInvocationId
+                                xml.AppendLine(TranslatorTags.CalledAEInvocationId, "Value", xml.IntegerToHex(len, 2));
+                            }
+                        }
+                        else
+                        {
+                            len = buff.GetUInt8();
+                            tag = buff.GetUInt8();
+                            len = buff.GetUInt8();
+                            settings.UserId = buff.GetUInt8();
+                            if (xml != null)
+                            {
+                                xml.AppendLine(TranslatorGeneralTags.CalledAeInvocationId, "Value", xml.IntegerToHex(settings.UserId, 2));
+                            }
                         }
                         break;
                     //Server RespondingAEInvocationId.
@@ -1161,6 +1261,27 @@ namespace Gurux.DLMS.Internal
                         if (xml != null)
                         {
                             xml.AppendLine(TranslatorGeneralTags.RespondingAeInvocationId, "Value", xml.IntegerToHex(settings.UserId, 2));
+                        }
+                        break;
+                    case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingApInvocationId://0xA8
+                        if (buff.GetUInt8() != 3)
+                        {
+                            throw new Exception("Invalid tag.");
+                        }
+                        if (buff.GetUInt8() != 2)
+                        {
+                            throw new Exception("Invalid length.");
+                        }
+                        if (buff.GetUInt8() != 1)
+                        {
+                            throw new Exception("Invalid tag length.");
+                        }
+                        //Get value.
+                        len = buff.GetUInt8();
+                        if (xml != null)
+                        {
+                            //CallingApInvocationId
+                            xml.AppendLine(TranslatorTags.CallingApInvocationId, "Value", xml.IntegerToHex(len, 2));
                         }
                         break;
                     case (byte)BerType.Context | (byte)PduType.SenderAcseRequirements:
@@ -1206,19 +1327,23 @@ namespace Gurux.DLMS.Internal
                         break;
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.UserInformation:
                         //0xBE
-                        //Check result component. Some meters are returning invalid user-information if connection failed.
-                        if (xml == null && resultComponent != AssociationResult.Accepted && resultDiagnosticValue != SourceDiagnostic.None)
-                        {
-                            throw new GXDLMSException(resultComponent, resultDiagnosticValue);
-                        }
                         try
                         {
                             ParseUserInformation(settings, cipher, buff, xml);
+                        }
+                        catch(GXDLMSConfirmedServiceError ex)
+                        {
+                            throw ex;
                         }
                         catch (Exception)
                         {
                             if (xml == null)
                             {
+                                //Check result component. Some meters are returning invalid user-information if connection failed.
+                                if (resultComponent != AssociationResult.Accepted && resultDiagnosticValue != SourceDiagnostic.None)
+                                {
+                                    throw new GXDLMSException(resultComponent, resultDiagnosticValue);
+                                }
                                 throw new GXDLMSException(
                                         AssociationResult.PermanentRejected,
                                         SourceDiagnostic.NoReasonGiven);
@@ -1238,12 +1363,12 @@ namespace Gurux.DLMS.Internal
                         }
                         break;
                 }
-                //All meters don't send user-information if connection is failed.
-                //For this reason result component is check again.
-                if (xml == null && resultComponent != AssociationResult.Accepted && resultDiagnosticValue != SourceDiagnostic.None)
-                {
-                    throw new GXDLMSException(resultComponent, resultDiagnosticValue);
-                }
+            }
+            //All meters don't send user-information if connection is failed.
+            //For this reason result component is check again.
+            if (xml == null && resultComponent != AssociationResult.Accepted && resultDiagnosticValue != SourceDiagnostic.None)
+            {
+                throw new GXDLMSException(resultComponent, resultDiagnosticValue);
             }
             return resultDiagnosticValue;
         }
@@ -1310,8 +1435,16 @@ namespace Gurux.DLMS.Internal
             GXByteBuffer data = new GXByteBuffer();
             // Tag for xDLMS-Initiate response
             data.SetUInt8(Command.InitiateResponse);
-            // NegotiatedQualityOfService (not used)
-            data.SetUInt8(0x00);
+            if (settings.QualityOfService == 0)
+            {
+                // NegotiatedQualityOfService (not used)
+                data.SetUInt8(0x00);
+            }
+            else
+            {
+                data.SetUInt8(1);
+                data.SetUInt8(settings.QualityOfService);
+            }
             // DLMS Version Number
             data.SetUInt8(06);
             data.SetUInt8(0x5F);

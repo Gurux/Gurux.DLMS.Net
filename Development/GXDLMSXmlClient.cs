@@ -287,6 +287,24 @@ namespace Gurux.DLMS
             UseLogicalNameReferencing = true;
         }
 
+
+        /// <summary>
+        /// XML client don't throw exceptions. It serializes them as a default. 
+        /// Set value to true, if exceptions are thrown.
+        /// </summary>
+        public bool ThrowExceptions
+        {
+            get
+            {
+                return throwExceptions;
+            }
+            set
+            {
+                throwExceptions = value;
+            }
+        }
+
+
         /// <summary>
         /// Load XML commands from the file.
         /// </summary>

@@ -1418,19 +1418,20 @@ namespace Gurux.DLMS
             {
                 primaryAddress = GetHdlcAddressBytes(settings.ClientAddress, 0);
                 secondaryAddress = GetHdlcAddressBytes(settings.ServerAddress, settings.ServerAddressSize);
-                len = secondaryAddress.Length;
             }
             else
             {
                 primaryAddress = GetHdlcAddressBytes(settings.ServerAddress, settings.ServerAddressSize);
                 secondaryAddress = GetHdlcAddressBytes(settings.ClientAddress, 0);
-                len = primaryAddress.Length;
             }
             // Add BOP
             bb.SetUInt8(GXCommon.HDLCFrameStartEnd);
             frameSize = Convert.ToInt32(settings.Limits.MaxInfoTX);
             //Remove BOP, type, len, primaryAddress, secondaryAddress, frame, header CRC, data CRC and EOP from data length.
-            frameSize -= (10 + len);
+            if (data != null && data.Size == 0)
+            {
+                frameSize -= 3;
+            }
             // If no data
             if (data == null || data.Size == 0)
             {
@@ -1727,6 +1728,10 @@ namespace Gurux.DLMS
                     data.Error = (int)ErrorCode.UnacceptableFrame;
                 }
                 else if (frame == 0x1F)
+                {
+                    data.Error = (int)ErrorCode.DisconnectMode;
+                }
+                else if (frame == 0x17)
                 {
                     data.Error = (int)ErrorCode.DisconnectMode;
                 }

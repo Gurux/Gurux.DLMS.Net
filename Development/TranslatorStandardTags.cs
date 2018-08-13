@@ -416,6 +416,11 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorTags.NetworkId, "network-id");
             GXDLMSTranslator.AddTag(list, TranslatorTags.PhysicalDeviceAddress, "physical-device-address");
             GXDLMSTranslator.AddTag(list, TranslatorTags.ProtocolVersion, "protocol-version");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.CalledAPTitle, "called-ap-title");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.CalledAPInvocationId, "called-ap-invocation-id");            
+            GXDLMSTranslator.AddTag(list, TranslatorTags.CalledAEInvocationId, "called-ae-invocation-id");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.CallingApInvocationId, "calling-ap-invocation-id");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.CalledAEQualifier, "called-ae-qualifier");
         }
 
         public static void GetDataTypeTags(SortedList<int, string> list)

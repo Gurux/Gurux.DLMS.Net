@@ -52,6 +52,11 @@ namespace Gurux.DLMS
         protected GXDLMSTranslator translator;
 
         /// <summary>
+        /// XML client don't throw exceptions. It serializes them as a default. Set value to true, if exceptions are thrown.
+        /// </summary>
+        protected bool throwExceptions;
+
+        /// <summary>
         /// DLMS settings.
         /// </summary>
         public GXDLMSSettings Settings
@@ -219,6 +224,22 @@ namespace Gurux.DLMS
             set
             {
                 Settings.ForceToBlocks = value;
+            }
+        }
+
+        /// <summary>
+        /// Quality of service.
+        /// </summary>
+        [DefaultValue(0)]
+        public byte QualityOfService
+        {
+            get
+            {
+                return Settings.QualityOfService;
+            }
+            set
+            {
+                Settings.QualityOfService = value;
             }
         }
 
@@ -2000,7 +2021,7 @@ namespace Gurux.DLMS
             int index = 2;
             bool unixTime = false;
             //If Unix time is used.
-            if (pg.CaptureObjects.Count != 0 && pg.CaptureObjects[0].Key is GXDLMSData && 
+            if (pg.CaptureObjects.Count != 0 && pg.CaptureObjects[0].Key is GXDLMSData &&
                 pg.CaptureObjects[0].Key.LogicalName == "0.0.1.1.0.255")
             {
                 unixTime = true;
@@ -2130,7 +2151,7 @@ namespace Gurux.DLMS
             }
             catch (Exception ex)
             {
-                if (translator == null)
+                if (translator == null || throwExceptions)
                 {
                     throw ex;
                 }
