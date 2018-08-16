@@ -276,7 +276,7 @@ namespace Gurux.DLMS.Objects
                             GXCommon.SetData(settings, data, DataType.UInt16, ChangedParameter.Target.ObjectType);
                             GXCommon.SetData(settings, data, DataType.OctetString, GXCommon.LogicalNameToBytes(ChangedParameter.Target.LogicalName));
                             GXCommon.SetData(settings, data, DataType.Int8, ChangedParameter.AttributeIndex);
-                            GXCommon.SetData(settings, data, GXCommon.GetValueType(ChangedParameter.Value), ChangedParameter.Value);
+                            GXCommon.SetData(settings, data, GXDLMSConverter.GetDLMSDataType(ChangedParameter.Value), ChangedParameter.Value);
                         }
                         return data.Array();
                     }

@@ -254,7 +254,7 @@ namespace Gurux.DLMS.Objects
                         data.SetUInt8((byte)3);
                         GXCommon.SetData(settings, data, DataType.UInt8, it.Type);
                         GXCommon.SetData(settings, data, DataType.UInt8, it.Length);
-                        GXCommon.SetData(settings, data, GXCommon.GetValueType(it.Data), it.Data);
+                        GXCommon.SetData(settings, data, GXDLMSConverter.GetDLMSDataType(it.Data), it.Data);
                     }
                 }
                 return data.Array();
@@ -276,7 +276,7 @@ namespace Gurux.DLMS.Objects
                         data.SetUInt8((byte)3);
                         GXCommon.SetData(settings, data, DataType.UInt8, it.Type);
                         GXCommon.SetData(settings, data, DataType.UInt8, it.Length);
-                        GXCommon.SetData(settings, data, GXCommon.GetValueType(it.Data), it.Data);
+                        GXCommon.SetData(settings, data, GXDLMSConverter.GetDLMSDataType(it.Data), it.Data);
                     }
                 }
                 return data.Array();

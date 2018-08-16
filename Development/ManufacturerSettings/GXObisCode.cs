@@ -177,62 +177,6 @@ namespace Gurux.DLMS.ManufacturerSettings
         {
             get;
             set;
-        }
-
-        /// <summary>
-        /// Opsolite. Do not use.
-        /// </summary>
-        /// <remarks>        
-        /// </remarks>
-#if !WINDOWS_UWP
-        [Browsable(false)]
-#endif
-        [DefaultValue(DataType.None)]
-        public DataType Type
-        {
-            get
-            {
-                return DataType.None;
-            }
-            set
-            {
-                GXDLMSAttributeSettings att = Attributes.Find(2);
-                if (att == null)
-                {
-                    att = new GXDLMSAttribute();
-                    att.Index = 2;
-                    Attributes.Add(att);
-                }
-                att.Type = value;
-            }
-        }
-
-        /// <summary>
-        /// Opsolite. Do not use.
-        /// </summary>
-        /// <remarks>        
-        /// </remarks>
-#if !WINDOWS_UWP
-        [Browsable(false)]
-#endif
-        [DefaultValue(DataType.None)]
-        public DataType UIType
-        {
-            get
-            {
-                return DataType.None;
-            }
-            set
-            {
-                GXDLMSAttributeSettings att = Attributes.Find(2);
-                if (att == null)
-                {
-                    att = new GXDLMSAttribute();
-                    att.Index = 2;
-                    Attributes.Add(att);
-                }
-                att.UIType = value;
-            }
-        }
+        }    
     }
 }

@@ -126,6 +126,7 @@ namespace Gurux.DLMS.ManufacturerSettings
             target.Values = Values;
             target.Order = Order;
             target.MinimumVersion = MinimumVersion;
+            target.Xml = Xml;
         }
 
         /// <summary>
@@ -144,6 +145,10 @@ namespace Gurux.DLMS.ManufacturerSettings
 
         public override string ToString()
         {
+            if (string.IsNullOrEmpty(Name))
+            {
+                return "Attribute #" + Index.ToString();
+            }
             return Name + Index.ToString();
         }
 
@@ -236,11 +241,23 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <summary>
         /// Attribute values.
         /// </summary>
-#if !WINDOWS_UWP
-        [Browsable(false)]
-#endif
-        [XmlIgnore]
         public GXObisValueItemCollection Values
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// XML Data template.
+        /// </summary>
+        /// <remarks>
+        /// Xml template can be used to visualize complex data. 
+        /// </remarks>
+        [DefaultValue(null)]
+#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0
+        [Editor(typeof(UIXmlTypeEditor), typeof(System.Drawing.Design.UITypeEditor))]
+#endif
+        public string Xml
         {
             get;
             set;
@@ -250,6 +267,9 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// Read order.
         /// </summary>
         [XmlIgnore()]
+#if !WINDOWS_UWP
+        [Browsable(false)]
+#endif
         public int Order
         {
             get;

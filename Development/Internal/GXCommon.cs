@@ -1859,100 +1859,7 @@ namespace Gurux.DLMS.Internal
             }
             return size;
         }
-
-
-        public static DataType GetValueType(object value)
-        {
-            if (value == null)
-            {
-                return DataType.None;
-            }
-            if (value is byte[])
-            {
-                return DataType.OctetString;
-            }
-#if !WINDOWS_UWP
-            if (value.GetType().IsEnum)
-            {
-                return DataType.Enum;
-            }
-#else
-            if (value is Enum)
-            {
-                return DataType.Enum;
-            }
-#endif
-            if (value is byte)
-            {
-                return DataType.UInt8;
-            }
-            if (value is sbyte)
-            {
-                return DataType.Int8;
-            }
-            if (value is UInt16)
-            {
-                return DataType.UInt16;
-            }
-            if (value is Int16)
-            {
-                return DataType.Int16;
-            }
-            if (value is UInt32)
-            {
-                return DataType.UInt32;
-            }
-            if (value is Int32)
-            {
-                return DataType.Int32;
-            }
-            if (value is UInt64)
-            {
-                return DataType.UInt64;
-            }
-            if (value is Int64)
-            {
-                return DataType.Int64;
-            }
-            if (value is GXDate)
-            {
-                return DataType.Date;
-            }
-            if (value is GXTime)
-            {
-                return DataType.Time;
-            }
-            if (value is DateTime || value is GXDateTime)
-            {
-                return DataType.DateTime;
-            }
-            if (value.GetType().IsArray)
-            {
-                return DataType.Array;
-            }
-            if (value is string)
-            {
-                return DataType.String;
-            }
-            if (value is bool)
-            {
-                return DataType.Boolean;
-            }
-            if (value is float)
-            {
-                return DataType.Float32;
-            }
-            if (value is double)
-            {
-                return DataType.Float64;
-            }
-            if (value is GXEnum)
-            {
-                return DataType.Enum;
-            }
-            throw new Exception("Invalid value.");
-        }
-
+       
         ///<summary>
         ///Convert object to DLMS bytes.
         ///</summary>
@@ -2436,7 +2343,7 @@ namespace Gurux.DLMS.Internal
                 SetObjectCount(arr.Length, buff);
                 foreach (object it in arr)
                 {
-                    DataType dt = GetValueType(it);
+                    DataType dt = GXDLMSConverter.GetDLMSDataType(it);
                     if (dt == DataType.Array)
                     {
                         dt = DataType.Structure;

@@ -249,7 +249,7 @@ namespace Gurux.DLMS
                         bb.SetUInt8(1);
                         //Add parameters error code.
                         bb.SetUInt8(0);
-                        GXCommon.SetData(settings, bb, GXCommon.GetValueType(actionReply), actionReply);
+                        GXCommon.SetData(settings, bb, GXDLMSConverter.GetDLMSDataType(actionReply), actionReply);
                     }
                     else
                     {

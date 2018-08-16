@@ -707,7 +707,7 @@ namespace Gurux.DLMS
                     //If action.
                     if (e.action)
                     {
-                        GXCommon.SetData(settings, data, GXCommon.GetValueType(value), value);
+                        GXCommon.SetData(settings, data, GXDLMSConverter.GetDLMSDataType(value), value);
                     }
                     else
                     {

@@ -54,7 +54,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXObisValueItem(object deviceValue, string uiValue)
+        public GXObisValueItem(int deviceValue, string uiValue)
         {
             Value = deviceValue;
             UIValue = uiValue;
@@ -63,7 +63,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <summary>
         /// Value that is read from or written to the Device.
         /// </summary>
-        public object Value
+        public int Value
         {
             get;
             set;

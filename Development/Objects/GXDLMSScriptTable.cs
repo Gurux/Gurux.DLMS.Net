@@ -221,7 +221,7 @@ namespace Gurux.DLMS.Objects
                         DataType tp = a.ParameterDataType;
                         if (tp == DataType.None)
                         {
-                            tp = GXCommon.GetValueType(a.Parameter);
+                            tp = GXDLMSConverter.GetDLMSDataType(a.Parameter);
                         }
                         GXCommon.SetData(settings, data, tp, a.Parameter);
                     }

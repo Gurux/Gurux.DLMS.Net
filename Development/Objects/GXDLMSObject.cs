@@ -659,6 +659,29 @@ namespace Gurux.DLMS.Objects
             att.Static = isStatic;
         }
 
+        /// <summary>
+        /// Update enumeration values.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="values"></param>
+        public void SetValues(int index, GXObisValueItemCollection values)
+        {
+            GXDLMSAttributeSettings att = GetAttribute(index, Attributes);
+            att.Values.Clear();
+            att.Values.AddRange(values);
+        }
+
+        /// <summary>
+        /// Update XML template.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="values"></param>
+        public void SetXml(int index, string xml)
+        {
+            GXDLMSAttributeSettings att = GetAttribute(index, Attributes);
+            att.Xml = xml;
+        }
+
         public bool GetStatic(int index)
         {
             GXDLMSAttributeSettings att = GetAttribute(index, null);

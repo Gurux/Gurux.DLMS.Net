@@ -542,7 +542,21 @@ namespace Gurux.DLMS
         /// <returns>DLMS data type.</returns>
         static public DataType GetDLMSDataType(object value)
         {
-            return GXCommon.GetValueType(value);
+            if (value == null)
+            {
+                return DataType.None;
+            }
+            return GXCommon.GetDLMSDataType(value.GetType());
+        }
+        
+        /// <summary>
+        /// Get DLMS data type.
+        /// </summary>
+        /// <param name="type">Data type.</param>
+        /// <returns>DLMS data type.</returns>
+        static public DataType GetDLMSDataType(Type type)
+        {
+            return GXCommon.GetDLMSDataType(type);
         }
 
         static public byte[] GetBytes(object value, DataType type)

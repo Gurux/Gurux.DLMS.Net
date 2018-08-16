@@ -585,7 +585,7 @@ namespace Gurux.DLMS.Objects
                     GXCommon.SetObjectCount(PrefixTable.Length, bb);
                     foreach (var it in PrefixTable)
                     {
-                        GXCommon.SetData(settings, bb, GXCommon.GetValueType(it), it);
+                        GXCommon.SetData(settings, bb, GXDLMSConverter.GetDLMSDataType(it), it);
                     }
                 }
                 return bb.Array();

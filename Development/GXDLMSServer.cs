@@ -1489,7 +1489,7 @@ namespace Gurux.DLMS
             dt = obj.GetDataType(index);
             if (dt == DataType.None && value != null)
             {
-                dt = GXCommon.GetValueType(value);
+                dt = GXDLMSConverter.GetDLMSDataType(value);
             }
             GXCommon.SetData(settings, buff, dt, value);
         }

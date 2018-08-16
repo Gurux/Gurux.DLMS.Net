@@ -1516,7 +1516,7 @@ namespace Gurux.DLMS
             Settings.ResetBlockIndex();
             if (type == DataType.None && value != null)
             {
-                type = GXCommon.GetValueType(value);
+                type = GXDLMSConverter.GetDLMSDataType(value);
             }
             GXByteBuffer attributeDescriptor = new GXByteBuffer();
             GXByteBuffer data = new GXByteBuffer();
@@ -1591,7 +1591,7 @@ namespace Gurux.DLMS
             DataType type = item.GetDataType(index);
             if (type == DataType.None)
             {
-                type = Gurux.DLMS.Internal.GXCommon.GetValueType(value);
+                type = GXDLMSConverter.GetDLMSDataType(value);
             }
             //If values is show as string, but send as byte array.
             if (value is string && type == DataType.OctetString)
@@ -1625,7 +1625,7 @@ namespace Gurux.DLMS
             Settings.ResetBlockIndex();
             if (type == DataType.None && value != null)
             {
-                type = GXCommon.GetValueType(value);
+                type = GXDLMSConverter.GetDLMSDataType(value);
                 if (type == DataType.None)
                 {
                     throw new ArgumentException("Invalid parameter. Unknown value type.");
@@ -1829,9 +1829,7 @@ namespace Gurux.DLMS
         /// Generates the keep alive message.
         /// </summary>
         /// <remarks>
-        /// Keepalive message is needed only HDLC framing.
-        /// For keepalive we are reading logical name for Association object.
-        /// This is done because all the meters can't handle HDLC keep alive message.
+        /// Keepalive message is needed to keep the connection up. Connection is closed if keepalive is not sent in meter's inactivity timeout period.
         /// </remarks>
         /// <returns>Returns Keep alive message, as byte array.</returns>
         public byte[] GetKeepAlive()
@@ -1839,7 +1837,7 @@ namespace Gurux.DLMS
             Settings.ResetBlockIndex();
             if (UseLogicalNameReferencing)
             {
-                return Read("0.0.40.0.0.255", ObjectType.AssociationLogicalName, 1)[0];
+                return Read("0.0.42.0.0.255", ObjectType.Data, 1)[0];
             }
             return Read(0xFA00, ObjectType.AssociationShortName, 1)[0];
         }
@@ -2421,7 +2419,7 @@ namespace Gurux.DLMS
                     DataType type = it.Target.GetDataType(it.Index);
                     if (type == DataType.None)
                     {
-                        type = Gurux.DLMS.Internal.GXCommon.GetValueType(value);
+                        type = GXDLMSConverter.GetDLMSDataType(value);
                     }
                     GXCommon.SetData(Settings, bb, type, value);
                 }

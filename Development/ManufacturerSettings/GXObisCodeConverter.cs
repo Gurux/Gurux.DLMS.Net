@@ -53,14 +53,8 @@ namespace Gurux.DLMS.ManufacturerSettings
         {
             PropertyDescriptorCollection pdc = TypeDescriptor.GetProperties(value, attributes);
             PropertyDescriptorCollection properties = new PropertyDescriptorCollection(null);
-            ObjectType type = ((GXObisCode)value).ObjectType;
-            bool bBrowsable = type == ObjectType.Data || type == ObjectType.Register || type == ObjectType.ExtendedRegister || type == ObjectType.DemandRegister;
             foreach (PropertyDescriptor it in pdc)
             {
-                if ((it.Name == "UIType" || it.Name == "Type") && !bBrowsable)
-                {
-                    continue;
-                }
                 properties.Add(it);
             }
             return properties;

@@ -429,7 +429,7 @@ namespace Gurux.DLMS
             {
                 if (tp == DataType.None)
                 {
-                    tp = GXCommon.GetValueType(value);
+                    tp = GXDLMSConverter.GetDLMSDataType(value);
                 }
                 else if (tp == DataType.OctetString && value is string)
                 {
@@ -1418,16 +1418,19 @@ namespace Gurux.DLMS
             {
                 primaryAddress = GetHdlcAddressBytes(settings.ClientAddress, 0);
                 secondaryAddress = GetHdlcAddressBytes(settings.ServerAddress, settings.ServerAddressSize);
+                len = secondaryAddress.Length;
             }
             else
             {
                 primaryAddress = GetHdlcAddressBytes(settings.ServerAddress, settings.ServerAddressSize);
                 secondaryAddress = GetHdlcAddressBytes(settings.ClientAddress, 0);
+                len = primaryAddress.Length;
             }
             // Add BOP
             bb.SetUInt8(GXCommon.HDLCFrameStartEnd);
             frameSize = Convert.ToInt32(settings.Limits.MaxInfoTX);
             //Remove BOP, type, len, primaryAddress, secondaryAddress, frame, header CRC, data CRC and EOP from data length.
+            //frameSize -= (10 + len);
             if (data != null && data.Size == 0)
             {
                 frameSize -= 3;

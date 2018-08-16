@@ -499,7 +499,7 @@ namespace Gurux.DLMS.Objects
                         tp = types[pos];
                         if (tp == DataType.None)
                         {
-                            tp = Gurux.DLMS.Internal.GXCommon.GetValueType(value);
+                            tp = GXDLMSConverter.GetDLMSDataType(value);
                             types[pos] = tp;
                         }
                         if (value == null)
@@ -961,32 +961,47 @@ namespace Gurux.DLMS.Objects
         private static void GetCaptureObjects(GXDLMSSettings settings, List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> list, object[] array)
         {
             GXDLMSConverter c = null;
-            foreach (object it in array)
+            int max = Enum.GetValues(typeof(ObjectType)).GetUpperBound(0);
+            try
             {
-                object[] tmp = it as object[];
-                if (tmp.Length != 4)
+                foreach (object it in array)
                 {
-                    throw new GXDLMSException("Invalid structure format.");
-                }
-                ObjectType type = (ObjectType)Convert.ToInt16(tmp[0]);
-                string ln = GXCommon.ToLogicalName((byte[])tmp[1]);
-                int attributeIndex = Convert.ToInt16(tmp[2]);
-                int dataIndex = Convert.ToInt16(tmp[3]);
-                GXDLMSObject obj = null;
-                if (settings != null && settings.Objects != null)
-                {
-                    obj = settings.Objects.FindByLN(type, ln);
-                }
-                if (obj == null)
-                {
-                    obj = GXDLMSClient.CreateDLMSObject((int)type, null, 0, ln, 0);
-                    if (c == null)
+                    object[] tmp = it as object[];
+                    if (tmp.Length != 4)
                     {
-                        c = new GXDLMSConverter();
+                        throw new GXDLMSException("Invalid structure format.");
                     }
-                    c.UpdateOBISCodeInformation(obj);
+                    int v = Convert.ToInt16(tmp[0]);
+                    //If object is unknown.
+                    if (!(v > (int)ObjectType.None && v <= max))
+                    {
+                        list.Clear();
+                        return;
+                    }
+                    ObjectType type = (ObjectType)v;
+                    string ln = GXCommon.ToLogicalName((byte[])tmp[1]);
+                    int attributeIndex = Convert.ToInt16(tmp[2]);
+                    int dataIndex = Convert.ToInt16(tmp[3]);
+                    GXDLMSObject obj = null;
+                    if (settings != null && settings.Objects != null)
+                    {
+                        obj = settings.Objects.FindByLN(type, ln);
+                    }
+                    if (obj == null)
+                    {
+                        obj = GXDLMSClient.CreateDLMSObject((int)type, null, 0, ln, 0);
+                        if (c == null)
+                        {
+                            c = new GXDLMSConverter();
+                        }
+                        c.UpdateOBISCodeInformation(obj);
+                    }
+                    list.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, new GXDLMSCaptureObject(attributeIndex, dataIndex)));
                 }
-                list.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, new GXDLMSCaptureObject(attributeIndex, dataIndex)));
+            }
+            catch (Exception)
+            {
+                list.Clear();
             }
         }
 
