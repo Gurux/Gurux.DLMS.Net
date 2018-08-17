@@ -52,6 +52,15 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Is Max Info TX and RX count for frame size or PDU size.
+        /// </summary>
+        public bool UseFrameSize
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// The maximum information field length in transmit.
         /// </summary>
         /// <remarks>

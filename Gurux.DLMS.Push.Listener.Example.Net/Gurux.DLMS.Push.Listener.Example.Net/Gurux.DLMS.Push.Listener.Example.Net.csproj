@@ -96,14 +96,14 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Development\Gurux.DLMS.csproj">
-      <Project>{efd71bff-ad54-45ed-b473-305813c2f83a}</Project>
-      <Name>Gurux.DLMS</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Development\Gurux.DLMS.Net.csproj">
+      <Project>{8b2efc8a-34be-4a70-ac6f-bb03141c9013}</Project>
+      <Name>Gurux.DLMS.Net</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

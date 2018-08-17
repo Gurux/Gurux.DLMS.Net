@@ -1511,10 +1511,22 @@ namespace Gurux.DLMS.Internal
             }
             byte[] buff = new byte[6];
             byte pos = 0;
-            foreach (string it in items)
+            try
             {
-                buff[pos] = Convert.ToByte(it);
-                ++pos;
+                foreach (string it in items)
+                {
+                    buff[pos] = Convert.ToByte(it);
+                    ++pos;
+                }
+            }
+            catch (Exception)
+            {
+#if !WINDOWS_UWP
+                throw new ArgumentException(Properties.Resources.InvalidLogicalName);
+#else
+                var loader = new Windows.ApplicationModel.Resources.ResourceLoader();
+                throw new ArgumentException(loader.GetString("InvalidLogicalName"));
+#endif
             }
             return buff;
         }
@@ -1859,7 +1871,7 @@ namespace Gurux.DLMS.Internal
             }
             return size;
         }
-       
+
         ///<summary>
         ///Convert object to DLMS bytes.
         ///</summary>

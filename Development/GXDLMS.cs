@@ -1430,10 +1430,16 @@ namespace Gurux.DLMS
             bb.SetUInt8(GXCommon.HDLCFrameStartEnd);
             frameSize = Convert.ToInt32(settings.Limits.MaxInfoTX);
             //Remove BOP, type, len, primaryAddress, secondaryAddress, frame, header CRC, data CRC and EOP from data length.
-            //frameSize -= (10 + len);
-            if (data != null && data.Size == 0)
+            if (settings.Limits.UseFrameSize)
             {
-                frameSize -= 3;
+                frameSize -= (10 + len);
+            }
+            else
+            {
+                if (data != null && data.Size == 0)
+                {
+                    frameSize -= 3;
+                }
             }
             // If no data
             if (data == null || data.Size == 0)
