@@ -41,6 +41,7 @@ using System.Xml.Serialization;
 using System.Xml;
 using Gurux.DLMS.ManufacturerSettings;
 using System.Globalization;
+using System.Net;
 
 namespace Gurux.DLMS.ManufacturerSettings
 {
@@ -105,6 +106,9 @@ namespace Gurux.DLMS.ManufacturerSettings
             {
                 xml.Load(path);
                 System.Net.WebClient client = new System.Net.WebClient();
+                IWebProxy proxy = WebRequest.DefaultWebProxy;
+                proxy.Credentials = CredentialCache.DefaultCredentials;
+                client.Proxy = proxy;
                 // Put the byte array into a stream and rewind it to the beginning
                 MemoryStream ms = new MemoryStream(client.DownloadData("http://www.gurux.org/obis/files.xml"));
                 ms.Flush();
@@ -173,6 +177,9 @@ namespace Gurux.DLMS.ManufacturerSettings
             }
             backupPath = Path.Combine(backupPath, Guid.NewGuid().ToString());
             System.Net.WebClient client = new System.Net.WebClient();
+            IWebProxy proxy = WebRequest.DefaultWebProxy;
+            proxy.Credentials = CredentialCache.DefaultCredentials;
+            client.Proxy = proxy;
             byte[] files = client.DownloadData("http://www.gurux.org/obis/files.xml");
             System.IO.File.WriteAllBytes(Path.Combine(ObisCodesPath, "files.xml"), files);
             Gurux.DLMS.ManufacturerSettings.GXFileInfo.UpdateFileSecurity(Path.Combine(ObisCodesPath, "files.xml"));
