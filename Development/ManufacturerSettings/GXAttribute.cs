@@ -264,6 +264,16 @@ namespace Gurux.DLMS.ManufacturerSettings
         }
 
         /// <summary>
+        /// How this value is visualized on the UI.
+        /// </summary>
+        public ValueFieldType UIValueType
+        {
+            get;
+            set;
+        }
+        
+
+        /// <summary>
         /// Read order.
         /// </summary>
         [XmlIgnore()]

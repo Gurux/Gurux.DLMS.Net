@@ -528,11 +528,11 @@ namespace Gurux.DLMS
                     return typeof(UInt64);
                 case DataType.UInt8:
                     return typeof(byte);
-                default:
                 case DataType.Enum:
-                    break;
+                    return typeof(GXEnum);
+                default:
+                    throw new Exception("Invalid DLMS data type.");
             }
-            throw new Exception("Invalid DLMS data type.");
         }
 
         /// <summary>
@@ -548,7 +548,7 @@ namespace Gurux.DLMS
             }
             return GXCommon.GetDLMSDataType(value.GetType());
         }
-        
+
         /// <summary>
         /// Get DLMS data type.
         /// </summary>

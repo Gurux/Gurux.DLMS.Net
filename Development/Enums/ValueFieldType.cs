@@ -32,29 +32,39 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-using Gurux.DLMS.Enums;
+using System.Xml.Serialization;
 
-namespace Gurux.DLMS.ManufacturerSettings
+namespace Gurux.DLMS.Enums
 {
-#if !WINDOWS_UWP
-    [Serializable]
-#endif
-    public class GXObisCodeCollection : List<GXObisCode>
+    /// <summary>
+    /// How value is shown.
+    /// </summary>
+    public enum ValueFieldType
     {
-        public GXObisCode FindByLN(ObjectType type, string ln, GXObisCode skipItem)
-        {
-            ln = ln.Trim();
-            foreach (GXObisCode it in this)
-            {
-                if ((it.ObjectType == type || type == ObjectType.None) && it.LogicalName == ln && it != skipItem)
-                {
-                    return it;
-                }
-            }
-            return null;
-        }
-    }
+        /// <summary>
+        /// Value is shown as text box.
+        /// </summary>
+        [XmlEnum("0")]
+        TextBox,
+        /// <summary>
+        /// Value is shown as compo box.
+        /// </summary>
+        [XmlEnum("1")]
+        CompoBox,
+        /// <summary>
+        /// Value is shown as list box.
+        /// </summary>
+        [XmlEnum("2")]
+        ListBox,
+        /// <summary>
+        /// Value is shown as checked list box.
+        /// </summary>
+        [XmlEnum("3")]
+        CheckedListBox,
+        /// <summary>
+        /// Value is shown as XML format.
+        /// </summary>
+        [XmlEnum("4")]
+        Xml
+    }   
 }
