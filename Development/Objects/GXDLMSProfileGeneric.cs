@@ -961,7 +961,6 @@ namespace Gurux.DLMS.Objects
         private static void GetCaptureObjects(GXDLMSSettings settings, List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> list, object[] array)
         {
             GXDLMSConverter c = null;
-            int max = Enum.GetValues(typeof(ObjectType)).GetUpperBound(0);
             try
             {
                 foreach (object it in array)
@@ -972,8 +971,7 @@ namespace Gurux.DLMS.Objects
                         throw new GXDLMSException("Invalid structure format.");
                     }
                     int v = Convert.ToInt16(tmp[0]);
-                    //If object is unknown.
-                    if (!(v > (int)ObjectType.None && v <= max))
+                    if (Enum.GetName(typeof(ObjectType), v) == null)
                     {
                         list.Clear();
                         return;
