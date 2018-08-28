@@ -2523,10 +2523,27 @@ namespace Gurux.DLMS
                                             (ErrorCode)data.Error));
                 }
             }
-            else if (type == SetResponseType.DataBlock ||
-                type == SetResponseType.LastDataBlock)
+            else if (type == SetResponseType.DataBlock)
             {
-                data.Data.GetUInt32();
+                UInt32 number = data.Data.GetUInt32();
+                if (data.Xml != null)
+                {
+                    data.Xml.AppendLine(TranslatorTags.BlockNumber, "Value", data.Xml.IntegerToHex(number, 8));
+                }
+            }
+            else if (type == SetResponseType.LastDataBlock)
+            {
+                data.Error = data.Data.GetUInt8();
+                UInt32 number = data.Data.GetUInt32();
+                if (data.Xml != null)
+                {
+                    // Result start tag.
+                    data.Xml.AppendLine(TranslatorTags.Result, "Value",
+                                        GXDLMSTranslator.ErrorCodeToString(
+                                            data.Xml.OutputType,
+                                            (ErrorCode)data.Error));
+                    data.Xml.AppendLine(TranslatorTags.BlockNumber, "Value", data.Xml.IntegerToHex(number, 8));
+                }
             }
             else if (type == SetResponseType.WithList)
             {
