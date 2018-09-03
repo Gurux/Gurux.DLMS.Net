@@ -1177,23 +1177,27 @@ namespace Gurux.DLMS.Objects
                     int pos = 0;
                     foreach (object it in row)
                     {
-                        GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> c = CaptureObjects[pos];
-                        ++pos;
-                        if (CaptureObjects != null && c.Key is GXDLMSClock && c.Value.AttributeIndex == 2)
+                        //If capture objects is not read.
+                        if (CaptureObjects.Count > pos)
                         {
-                            if (it != null)
+                            GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> c = CaptureObjects[pos];
+                            ++pos;
+                            if (CaptureObjects != null && c.Key is GXDLMSClock && c.Value.AttributeIndex == 2)
                             {
-                                lastdt = (c.Key as GXDLMSClock).Time;
-                            }
-                            else if (lastdt != null)
-                            {
-                                lastdt = new GXDateTime(lastdt.Value.AddMinutes(add));
-                                writer.WriteElementObject("Cell", lastdt, false);
-                                continue;
-                            }
-                            else
-                            {
-                                writer.WriteElementObject("Cell", DateTime.MinValue, false);
+                                if (it != null)
+                                {
+                                    lastdt = (c.Key as GXDLMSClock).Time;
+                                }
+                                else if (lastdt != null)
+                                {
+                                    lastdt = new GXDateTime(lastdt.Value.AddMinutes(add));
+                                    writer.WriteElementObject("Cell", lastdt, false);
+                                    continue;
+                                }
+                                else
+                                {
+                                    writer.WriteElementObject("Cell", DateTime.MinValue, false);
+                                }
                             }
                         }
                         writer.WriteElementObject("Cell", it, false);
