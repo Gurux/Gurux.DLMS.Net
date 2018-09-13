@@ -379,6 +379,14 @@ namespace Gurux.DLMS.Objects
                             //Skip.
                             reader.Read();
                         }
+                        else if (target.StartsWith("GXDLMS"))
+                        {
+                            string str = target.Substring(6);
+                            reader.Read();
+                            type = (ObjectType)Enum.Parse(typeof(ObjectType), str);
+                            obj = GXDLMSClient.CreateObject(type);
+                            reader.Objects.Add(obj);
+                        }
                         else if (string.Compare("Object", target, true) == 0)
                         {
                             int r = 0;
@@ -434,8 +442,15 @@ namespace Gurux.DLMS.Objects
                 writer.WriteStartElement("Objects");
                 foreach (GXDLMSObject it in this)
                 {
-                    writer.WriteStartElement("Object");
-                    writer.WriteAttributeString("Type", ((int)it.ObjectType).ToString());
+                    if (settings == null || !settings.Old)
+                    {
+                        writer.WriteStartElement("GXDLMS" + it.ObjectType.ToString());
+                    }
+                    else
+                    {
+                        writer.WriteStartElement("Object");
+                        writer.WriteAttributeString("Type", ((int)it.ObjectType).ToString());
+                    }
                     // Add SN
                     if (it.ShortName != 0)
                     {

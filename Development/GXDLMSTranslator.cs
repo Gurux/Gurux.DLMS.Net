@@ -1109,7 +1109,6 @@ namespace Gurux.DLMS
                     GXDLMS.GetPdu(settings, data);
                     break;
                 case (byte)Command.GeneralCiphering:
-                    settings.Cipher = new GXCiphering(ASCIIEncoding.ASCII.GetBytes("ABCDEFGH"));
                     data.Xml = xml;
                     data.Data = value;
                     value.Position = 0;
@@ -1222,7 +1221,7 @@ namespace Gurux.DLMS
                                 if (p.BlockCipherKey != null)
                                 {
                                     GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
-                                    xml.StartComment("Decrypt data:");
+                                    xml.StartComment("Decrypt data: " + data2.ToString());
                                     PduToXml(xml, data2, omitDeclaration, omitNameSpace, false);
                                     xml.EndComment();
                                 }
@@ -1258,7 +1257,7 @@ namespace Gurux.DLMS
                             {
                                 AesGcmParameter p = new AesGcmParameter(st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
                                 GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
-                                xml.StartComment("Decrypt data:");
+                                xml.StartComment("Decrypt data: " + data2.ToString());
                                 PduToXml(xml, data2, omitDeclaration, omitNameSpace, false);
                                 xml.EndComment();
                             }
@@ -1277,7 +1276,7 @@ namespace Gurux.DLMS
                                 {
                                     AesGcmParameter p = new AesGcmParameter(st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
                                     GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
-                                    xml.StartComment("Decrypt data:");
+                                    xml.StartComment("Decrypt data: " + data2.ToString());
                                     PduToXml(xml, data2, omitDeclaration, omitNameSpace, false);
                                     xml.EndComment();
                                 }

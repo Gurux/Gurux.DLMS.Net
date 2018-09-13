@@ -677,7 +677,7 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            if (Time != null && Time != DateTime.MinValue)
+            if (Time != null && Time.Value.DateTime != DateTime.MinValue)
             {
                 writer.WriteElementString("Time", Time.ToFormatString(CultureInfo.InvariantCulture));
             }

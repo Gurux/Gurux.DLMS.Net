@@ -1240,7 +1240,7 @@ namespace GuruxDLMSServerExample
                 {
                     if (Trace > TraceLevel.Info)
                     {
-                        Console.WriteLine("<- " + Gurux.Common.GXCommon.ToHex((byte[])e.Data, true));
+                        Console.WriteLine("RX:\t" + Gurux.Common.GXCommon.ToHex((byte[])e.Data, true));
                     }
                     GXServerReply sr = new GXServerReply((byte[])e.Data);
                     do
@@ -1252,7 +1252,7 @@ namespace GuruxDLMSServerExample
                         {
                             if (Trace > TraceLevel.Info)
                             {
-                                Console.WriteLine("-> " + Gurux.Common.GXCommon.ToHex(sr.Reply, true));
+                                Console.WriteLine("TX:\t" + Gurux.Common.GXCommon.ToHex(sr.Reply, true));
                             }
                             Media.Send(sr.Reply, e.SenderInfo);
                             sr.Data = null;

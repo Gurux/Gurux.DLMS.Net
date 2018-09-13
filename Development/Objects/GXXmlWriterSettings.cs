@@ -65,6 +65,14 @@ namespace Gurux.DLMS.Objects
             get;
             set;
         }
-        
+
+        /// <summary>
+        /// Are serialized in old format.
+        /// </summary>
+        public bool Old
+        {
+            get;
+            set;
+        }
     }
 }

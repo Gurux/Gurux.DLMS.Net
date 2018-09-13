@@ -77,5 +77,10 @@ namespace Gurux.DLMS.ManufacturerSettings
             get;
             set;
         }
+
+        public override string ToString()
+        {
+            return UIValue + " (" + Value + ")";
+        }
     }
 }

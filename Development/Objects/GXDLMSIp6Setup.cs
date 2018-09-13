@@ -522,7 +522,7 @@ namespace Gurux.DLMS.Objects
             List<GXNeighborDiscoverySetup> list = new List<GXNeighborDiscoverySetup>();
             if (reader.IsStartElement(name, true))
             {
-                while (reader.IsStartElement("Item", false))
+                while (reader.IsStartElement("Item", true))
                 {
                     GXNeighborDiscoverySetup it = new GXNeighborDiscoverySetup();
                     list.Add(it);

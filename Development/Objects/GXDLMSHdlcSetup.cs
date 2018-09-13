@@ -77,10 +77,12 @@ namespace Gurux.DLMS.Objects
             WindowSizeReceive = WindowSizeTransmit = 1;
             MaximumInfoLengthTransmit = MaximumInfoLengthReceive = 128;
             InactivityTimeout = 120;
+            InterCharachterTimeout = 30;
             Version = 1;
         }
 
         [XmlIgnore()]
+        [DefaultValue(BaudRate.Baudrate9600)]
         public BaudRate CommunicationSpeed
         {
             get;
@@ -379,14 +381,38 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Speed", (int)CommunicationSpeed);
-            writer.WriteElementString("WindowSizeTx", WindowSizeTransmit);
-            writer.WriteElementString("WindowSizeRx", WindowSizeReceive);
-            writer.WriteElementString("MaximumInfoLengthTx", MaximumInfoLengthTransmit);
-            writer.WriteElementString("MaximumInfoLengthRx", MaximumInfoLengthReceive);
-            writer.WriteElementString("InterCharachterTimeout", InterCharachterTimeout);
-            writer.WriteElementString("InactivityTimeout", InactivityTimeout);
-            writer.WriteElementString("DeviceAddress", DeviceAddress);
+            if (CommunicationSpeed != BaudRate.Baudrate9600)
+            {
+                writer.WriteElementString("Speed", (int)CommunicationSpeed);
+            }
+            if (WindowSizeTransmit != 1)
+            {
+                writer.WriteElementString("WindowSizeTx", WindowSizeTransmit);
+            }
+            if (WindowSizeReceive != 1)
+            {
+                writer.WriteElementString("WindowSizeRx", WindowSizeReceive);
+            }
+            if (MaximumInfoLengthTransmit != 0x80)
+            {
+                writer.WriteElementString("MaximumInfoLengthTx", MaximumInfoLengthTransmit);
+            }
+            if (MaximumInfoLengthReceive != 0x80)
+            {
+                writer.WriteElementString("MaximumInfoLengthRx", MaximumInfoLengthReceive);
+            }
+            if (InterCharachterTimeout != 30)
+            {
+                writer.WriteElementString("InterCharachterTimeout", InterCharachterTimeout);
+            }
+            if (InactivityTimeout != 120)
+            {
+                writer.WriteElementString("InactivityTimeout", InactivityTimeout);
+            }
+            if (DeviceAddress != 0)
+            {
+                writer.WriteElementString("DeviceAddress", DeviceAddress);
+            }
         }
 
 

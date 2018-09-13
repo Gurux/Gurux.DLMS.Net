@@ -682,6 +682,26 @@ namespace Gurux.DLMS.Objects
             att.Xml = xml;
         }
 
+        /// <summary>
+        /// How this value is visualized on the UI.
+        /// </summary>
+        public void SetUIValueType(int index, ValueFieldType value)
+        {
+            GXDLMSAttributeSettings att = GetAttribute(index, Attributes);
+            att.UIValueType = value;
+        }
+
+        /// <summary>
+        /// How this value is visualized on the UI.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public ValueFieldType GetUIValueType(int index)
+        {
+            GXDLMSAttributeSettings att = GetAttribute(index, null);
+            return att.UIValueType;
+        }
+
         public bool GetStatic(int index)
         {
             GXDLMSAttributeSettings att = GetAttribute(index, null);
