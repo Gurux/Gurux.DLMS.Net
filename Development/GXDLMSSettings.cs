@@ -194,7 +194,7 @@ namespace Gurux.DLMS
             get;
             set;
         }
-        
+
         /// <summary>
         /// Standard says that Time zone is from normal time to UTC in minutes.
         /// If meter is configured to use UTC time (UTC to normal time) set this to true.
@@ -416,7 +416,7 @@ namespace Gurux.DLMS
                 return true;
             }
             //Return true if pre-established connections are used.
-            if (Connected == ConnectionState.None)
+            if ((Connected & ConnectionState.Dlms) == 0)
             {
                 return true;
             }
@@ -561,7 +561,7 @@ namespace Gurux.DLMS
         {
             get;
             internal set;
-        }        
+        }
 
         /// <summary>
         /// Used interface.

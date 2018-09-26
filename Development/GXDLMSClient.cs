@@ -858,7 +858,7 @@ namespace Gurux.DLMS
         {
             // If connection is not established, there is no need to send
             // DisconnectRequest.
-            if (Settings.SourceSystemTitle != null || Settings.Connected != ConnectionState.Dlms)
+            if ((Settings.Connected & ConnectionState.Dlms) == 0)
             {
                 return null;
             }
