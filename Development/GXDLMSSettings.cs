@@ -416,7 +416,7 @@ namespace Gurux.DLMS
                 return true;
             }
             //Return true if pre-established connections are used.
-            if ((Connected & ConnectionState.Dlms) == 0)
+            if (Connected == ConnectionState.Dlms)
             {
                 return true;
             }

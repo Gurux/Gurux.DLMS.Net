@@ -884,7 +884,6 @@ namespace Gurux.DLMS
             {
                 Settings.Connected = ConnectionState.Dlms;
             }
-            Settings.ResetFrameSequence();
             return reply;
         }
         /// <summary>
