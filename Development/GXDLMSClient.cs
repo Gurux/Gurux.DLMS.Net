@@ -580,6 +580,17 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Connection state to the meter.
+        /// </summary>
+        public ConnectionState ConnectionState
+        {
+            get
+            {
+                return Settings.Connected;
+            }
+        }
+
+        /// <summary>
         /// Generates SNRM request.
         /// </summary>
         /// <remarks>

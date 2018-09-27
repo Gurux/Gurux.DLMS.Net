@@ -105,7 +105,7 @@ namespace Gurux.DLMS.Objects
             data.SetUInt8(2);
             GXCommon.SetData(null, data, DataType.UInt16, id);
             GXCommon.SetData(null, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(name));
-            return client.Method(this, 5, data.Array(), DataType.Structure);
+            return client.Method(this, 1, data.Array(), DataType.Structure);
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace Gurux.DLMS.Objects
             data.SetUInt8(2);
             GXCommon.SetData(null, data, DataType.UInt16, 0);
             GXCommon.SetData(null, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(name));
-            return client.Method(this, 6, data.Array(), DataType.Structure);
+            return client.Method(this, 1, data.Array(), DataType.Structure);
         }
 
         #region IGXDLMSBase Members
@@ -240,7 +240,39 @@ namespace Gurux.DLMS.Objects
 
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
-            e.Error = ErrorCode.ReadWriteDenied;
+            if (e.Index == 1)
+            {
+                object[] tmp = (object[])e.Parameters;
+                UInt16 id = (UInt16)tmp[0];
+                string str;
+                if (tmp[1] is byte[])
+                {
+                    str = ASCIIEncoding.ASCII.GetString((byte[])tmp[1]);
+                }
+                else
+                {
+                    str = tmp[1].ToString();
+                }
+                if (id == 0)
+                {
+                    foreach(var it in SapAssignmentList)
+                    {
+                        if (it.Value == str)
+                        {
+                            SapAssignmentList.Remove(it);
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    SapAssignmentList.Add(new KeyValuePair<UInt16, string>(id, str));
+                }
+            }
+            else
+            {
+                e.Error = ErrorCode.ReadWriteDenied;
+            }
             return null;
         }
 

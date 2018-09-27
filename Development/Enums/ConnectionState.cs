@@ -32,16 +32,15 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-
 using System;
 
-namespace Gurux.DLMS.Internal
+namespace Gurux.DLMS.Enums
 {
     /// <summary>
     /// Enumerates Action request types.
     /// </summary>
     [Flags]
-    enum ConnectionState
+    public enum ConnectionState
     {
         /// <summary>
         ///Connection is not made for the meter.
@@ -54,6 +53,6 @@ namespace Gurux.DLMS.Internal
         /// <summary>
         /// Connection is made for DLMS level.
         /// </summary>
-        Dlms = 2      
+        Dlms = 2
     }
 }

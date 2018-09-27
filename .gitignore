@@ -179,3 +179,5 @@ pip-log.txt
 *.ide-wal
 *.ide-shm
 *.zip
+Development/.vs/Gurux.DLMS.Net/DesignTimeBuild/.dtbcache
+Gurux.DLMS.Client.Example.Net/.vs/Gurux.DLMS.Client.Example.Net/DesignTimeBuild/.dtbcache

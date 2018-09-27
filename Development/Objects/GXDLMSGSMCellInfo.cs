@@ -38,9 +38,9 @@ namespace Gurux.DLMS.Objects
     public class GXDLMSGSMCellInfo
     {
         /// <summary>
-        /// Two byte cell ID.
+        /// Four byte cell ID.
         /// </summary>
-        public UInt16 CellId
+        public UInt32 CellId
         {
             get;
             set;

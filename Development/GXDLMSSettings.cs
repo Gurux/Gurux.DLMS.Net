@@ -392,7 +392,7 @@ namespace Gurux.DLMS
             }
             else
             {
-                SenderFrame = 0x10;
+                SenderFrame = 0xFE;
                 ReceiverFrame = 0xE;
             }
         }
@@ -413,11 +413,6 @@ namespace Gurux.DLMS
                     ResetFrameSequence();
                     return !isEcho;
                 }
-                return true;
-            }
-            //Return true if pre-established connections are used.
-            if (Connected == ConnectionState.Dlms)
-            {
                 return true;
             }
             //If S -frame.
@@ -448,8 +443,10 @@ namespace Gurux.DLMS
                 }
             }
             //If try to find data from bytestream and not real communicating.
-            if (ReceiverFrame == 0xEE)
+            if ((!IsServer && ReceiverFrame == 0xE) ||
+                (IsServer && ReceiverFrame == 0xEE))
             {
+                ReceiverFrame = frame;
                 return true;
             }
             System.Diagnostics.Debug.WriteLine("Invalid HDLC Frame: " + frame.ToString("X") + ". Expected: " + expected.ToString("X"));

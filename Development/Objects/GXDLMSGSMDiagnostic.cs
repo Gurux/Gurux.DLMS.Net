@@ -353,7 +353,7 @@ namespace Gurux.DLMS.Objects
                     if (e.Value != null)
                     {
                         object[] tmp = (object[])e.Value;
-                        CellInfo.CellId = (UInt16)tmp[0];
+                        CellInfo.CellId = (UInt32)tmp[0];
                         CellInfo.LocationId = (UInt16)tmp[1];
                         CellInfo.SignalQuality = (byte)tmp[2];
                         CellInfo.Ber = (byte)tmp[3];
