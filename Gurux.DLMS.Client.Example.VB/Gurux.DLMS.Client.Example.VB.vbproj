@@ -51,9 +51,8 @@
       <HintPath>packages\Gurux.Common.8.1.1702.0602\lib\portable-win+net35\Gurux.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Gurux.DLMS">
-      <HintPath>packages\Gurux.DLMS.8.5.1705.2202\lib\portable-win+net35\Gurux.DLMS.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Gurux.DLMS, Version=8.5.1809.2701, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Gurux.DLMS.8.5.1809.2701\lib\net40\Gurux.DLMS.dll</HintPath>
     </Reference>
     <Reference Include="Gurux.Net">
       <HintPath>packages\Gurux.Net.8.1.1703.3101\lib\portable-win+net35\Gurux.Net.dll</HintPath>
@@ -66,6 +65,8 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing.Design" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />

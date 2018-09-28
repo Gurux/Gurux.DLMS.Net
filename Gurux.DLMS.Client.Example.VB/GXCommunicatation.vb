@@ -495,7 +495,7 @@ Class GXCommunicatation
         End If
     End Sub
 
-    Public Sub UpdateImage(target As GXDLMSImageTransfer, data As Byte(), Identification As String)
+    Public Sub UpdateImage(target As GXDLMSImageTransfer, data As Byte(), Identification As Byte())
         Dim reply As New GXReplyData()
         'Check that image transfer ia enabled.
         ReadDataBlock(Client.Read(target, 5), reply)
@@ -526,13 +526,13 @@ Class GXCommunicatation
         ReadDataBlock(target.ImageVerify(Client), reply)
         ' Step 6: Before activation, the Image is checked;
 
-        'Get list to imaages to activate.
+        'Get images list to activate.
         reply.Clear()
         ReadDataBlock(Client.Read(target, 7), reply)
         Client.UpdateValue(target, 7, reply)
         Dim bFound As Boolean = False
         For Each it As GXDLMSImageActivateInfo In target.ImageActivateInfo
-            If it.Identification = Identification Then
+            If it.Identification.SequenceEqual(Identification) Then
                 bFound = True
                 Exit For
             End If

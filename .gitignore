@@ -181,3 +181,4 @@ pip-log.txt
 *.zip
 Development/.vs/Gurux.DLMS.Net/DesignTimeBuild/.dtbcache
 Gurux.DLMS.Client.Example.Net/.vs/Gurux.DLMS.Client.Example.Net/DesignTimeBuild/.dtbcache
+Gurux.DLMS.XmlClient/.vs/Gurux.DLMS.XmlClient/DesignTimeBuild/.dtbcache

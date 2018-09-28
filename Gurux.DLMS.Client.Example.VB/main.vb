@@ -278,7 +278,7 @@ Module main
                     Continue For
                 End If
                 TraceLine(logFile, "-------- Reading " + it.[GetType]().Name + " " + Convert.ToString(it.Name) + " " + it.Description)
-                For Each pos As Integer In TryCast(it, IGXDLMSBase).GetAttributeIndexToRead()
+                For Each pos As Integer In TryCast(it, IGXDLMSBase).GetAttributeIndexToRead(True)
                     Try
                         Dim val As Object = comm.Read(it, pos)
                         'If data is array.
