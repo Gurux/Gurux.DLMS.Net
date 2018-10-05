@@ -621,10 +621,19 @@ namespace Gurux.DLMS
             data.SetUInt8(0x81); // FromatID
             data.SetUInt8(0x80); // GroupID
             data.SetUInt8(0); // Length.
+            int maxInfoTX = Limits.MaxInfoTX, maxInfoRX = Limits.MaxInfoRX;
+            if (Limits.UseFrameSize)
+            {
+                byte[] primaryAddress, secondaryAddress;
+                primaryAddress = GXDLMS.GetHdlcAddressBytes(Settings.ServerAddress, Settings.ServerAddressSize);
+                secondaryAddress = GXDLMS.GetHdlcAddressBytes(Settings.ClientAddress, 0);
+                maxInfoTX -= (10 + secondaryAddress.Length);
+                maxInfoRX -= (10 + primaryAddress.Length);
+            }
 
             // If custom HDLC parameters are used.
-            if (GXDLMSLimitsDefault.DefaultMaxInfoTX != Limits.MaxInfoTX ||
-                GXDLMSLimitsDefault.DefaultMaxInfoRX != Limits.MaxInfoRX ||
+            if (GXDLMSLimitsDefault.DefaultMaxInfoTX != maxInfoTX ||
+                GXDLMSLimitsDefault.DefaultMaxInfoRX != maxInfoRX ||
                 GXDLMSLimitsDefault.DefaultWindowSizeTX != Limits.WindowSizeTX ||
                 GXDLMSLimitsDefault.DefaultWindowSizeRX != Limits.WindowSizeRX)
             {
