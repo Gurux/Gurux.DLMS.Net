@@ -169,16 +169,6 @@ namespace Gurux.DLMS.ManufacturerSettings
             set;
         }
 
-
-        /// <summary>
-        /// Used extension class.
-        /// </summary>
-        public string Extension
-        {
-            get;
-            set;
-        }
-
         /// <summary>
         /// Is manufacturer setting removed.
         /// </summary>

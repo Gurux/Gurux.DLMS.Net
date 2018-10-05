@@ -638,9 +638,9 @@ namespace Gurux.DLMS
                 GXDLMSLimitsDefault.DefaultWindowSizeRX != Limits.WindowSizeRX)
             {
                 data.SetUInt8((byte)HDLCInfo.MaxInfoTX);
-                GXDLMS.AppendHdlcParameter(data, Limits.MaxInfoTX);
+                GXDLMS.AppendHdlcParameter(data, (UInt16)maxInfoTX);
                 data.SetUInt8((byte)HDLCInfo.MaxInfoRX);
-                GXDLMS.AppendHdlcParameter(data, Limits.MaxInfoRX);
+                GXDLMS.AppendHdlcParameter(data, (UInt16)maxInfoRX);
                 data.SetUInt8((byte)HDLCInfo.WindowSizeTX);
                 data.SetUInt8(4);
                 data.SetUInt32(Limits.WindowSizeTX);
