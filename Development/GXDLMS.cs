@@ -300,7 +300,7 @@ namespace Gurux.DLMS
                 settings.IncreaseBlockIndex();
                 if (settings.UseLogicalNameReferencing)
                 {
-                    GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, cmd, (byte)GetCommandType.NextDataBlock, bb, null, 0xff);
+                    GXDLMSLNParameters p = new GXDLMSLNParameters(null, settings, 0, cmd, (byte)GetCommandType.NextDataBlock, bb, null, 0xff);
                     reply = GXDLMS.GetLnMessages(p);
                 }
                 else
@@ -896,6 +896,10 @@ namespace Gurux.DLMS
                     }
                 }
 
+                if (p.command != Command.GeneralBlockTransfer && p.Owner != null && p.Owner.pdu != null)
+                {
+                    p.Owner.pdu(p.Owner, reply.Array());
+                }
                 if (ciphering && ((p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0))
                 {
                     //GBT ciphering is done for all the data, not just block.
@@ -2907,7 +2911,7 @@ namespace Gurux.DLMS
                         reply.Data = data.Data;
                         reply.Xml = data.Xml;
                         reply.Xml.StartComment("");
-                        GetPdu(settings, reply);
+                        GetPdu(settings, reply, null);
                         reply.Xml.EndComment();
                     }
                     catch (Exception)
@@ -2933,7 +2937,7 @@ namespace Gurux.DLMS
                 if (data.Data.Size != 0)
                 {
                     data.Data.Position = 0;
-                    GetPdu(settings, data);
+                    GetPdu(settings, data, null);
                 }
                 // Get data if all data is read or we want to peek data.
                 if (data.Data.Position != data.Data.Size
@@ -2988,7 +2992,7 @@ namespace Gurux.DLMS
         }
 
         private static void HandledGloDedRequest(GXDLMSSettings settings,
-                                              GXReplyData data)
+                                              GXReplyData data, GXDLMSClient client)
         {
             if (data.Xml != null)
             {
@@ -3029,6 +3033,10 @@ namespace Gurux.DLMS
                     }
 
                     byte[] tmp = GXCiphering.Decrypt(p, data.Data);
+                    if (client != null && client.pdu != null && data.IsComplete && (data.MoreData & RequestTypes.Frame) == 0)
+                    {
+                        client.pdu(client, tmp);
+                    }
                     data.Data.Clear();
                     data.Data.Set(tmp);
                     // Get command.
@@ -3042,7 +3050,8 @@ namespace Gurux.DLMS
         }
 
         private static void HandledGloDedResponse(GXDLMSSettings settings,
-                                               GXReplyData data, int index)
+                                               GXReplyData data, int index
+            , GXDLMSClient client)
         {
             if (data.Xml != null)
             {
@@ -3085,9 +3094,14 @@ namespace Gurux.DLMS
                                     cipher.AuthenticationKey);
                         }
                     }
-                    data.Data.Set(GXCiphering.Decrypt(p, bb));
+                    byte[] tmp = GXCiphering.Decrypt(p, bb);
+                    if (client != null && client.pdu != null)
+                    {
+                        client.pdu(client, tmp);
+                    }
+                    data.Data.Set(tmp);
                     data.Command = Command.None;
-                    GetPdu(settings, data);
+                    GetPdu(settings, data, client);
                     data.CipherIndex = data.Data.Size;
                 }
             }
@@ -3099,7 +3113,7 @@ namespace Gurux.DLMS
         /// <param name="settings">DLMS settings.</param>
         /// <param name="data">received data.</param>
         public static void GetPdu(GXDLMSSettings settings,
-                                  GXReplyData data)
+                                  GXReplyData data, GXDLMSClient client)
         {
             short ch;
             Command cmd = data.Command;
@@ -3178,7 +3192,7 @@ namespace Gurux.DLMS
                     case Command.GloGetRequest:
                     case Command.GloSetRequest:
                     case Command.GloMethodRequest:
-                        HandledGloDedRequest(settings, data);
+                        HandledGloDedRequest(settings, data, client);
                         // Server handles this.
                         break;
                     case Command.GloReadResponse:
@@ -3187,29 +3201,29 @@ namespace Gurux.DLMS
                     case Command.GloSetResponse:
                     case Command.GloMethodResponse:
                     case Command.GloEventNotificationRequest:
-                        HandledGloDedResponse(settings, data, index);
+                        HandledGloDedResponse(settings, data, index, client);
                         break;
                     case Command.DedGetRequest:
                     case Command.DedSetRequest:
                     case Command.DedMethodRequest:
-                        HandledGloDedRequest(settings, data);
+                        HandledGloDedRequest(settings, data, client);
                         // Server handles this.
                         break;
                     case Command.DedGetResponse:
                     case Command.DedSetResponse:
                     case Command.DedMethodResponse:
                     case Command.DedEventNotificationRequest:
-                        HandledGloDedResponse(settings, data, index);
+                        HandledGloDedResponse(settings, data, index, client);
                         break;
                     case Command.GeneralGloCiphering:
                     case Command.GeneralDedCiphering:
                         if (settings.IsServer)
                         {
-                            HandledGloDedRequest(settings, data);
+                            HandledGloDedRequest(settings, data, client);
                         }
                         else
                         {
-                            HandledGloDedResponse(settings, data, index);
+                            HandledGloDedResponse(settings, data, index, client);
                         }
                         break;
                     case Command.DataNotification:
@@ -3234,7 +3248,7 @@ namespace Gurux.DLMS
                         data.Data.Get(data.Gateway.PhysicalDeviceAddress);
                         GetDataFromBlock(data.Data, index);
                         data.Command = Command.None;
-                        GetPdu(settings, data);
+                        GetPdu(settings, data, null);
                         break;
                     default:
                         throw new ArgumentException("Invalid Command.");
@@ -3276,7 +3290,7 @@ namespace Gurux.DLMS
                         case Command.GloMethodRequest:
                             data.Command = Command.None;
                             data.Data.Position = data.CipherIndex;
-                            GetPdu(settings, data);
+                            GetPdu(settings, data, client);
                             break;
                         default:
                             break;
@@ -3302,7 +3316,7 @@ namespace Gurux.DLMS
                         case Command.DedMethodResponse:
                             data.Command = Command.None;
                             data.Data.Position = data.CipherIndex;
-                            GetPdu(settings, data);
+                            GetPdu(settings, data, client);
                             break;
                         default:
                             break;
@@ -3474,7 +3488,7 @@ namespace Gurux.DLMS
                     data.Command = Command.None;
                     if (p.Security != Enums.Security.None)
                     {
-                        GetPdu(settings, data);
+                        GetPdu(settings, data, null);
                     }
                 }
                 catch (Exception ex)
@@ -3595,7 +3609,7 @@ namespace Gurux.DLMS
         }
 
         public static bool GetData(GXDLMSSettings settings,
-                                   GXByteBuffer reply, GXReplyData data)
+                                   GXByteBuffer reply, GXReplyData data, GXDLMSClient client)
         {
             byte frame = 0;
             // If DLMS frame is generated.
@@ -3615,7 +3629,7 @@ namespace Gurux.DLMS
             else if (settings.InterfaceType == InterfaceType.PDU)
             {
                 data.PacketLength = reply.Size;
-                data.IsComplete = true;
+                data.IsComplete = reply.Size != 0;
             }
             else
             {
@@ -3641,7 +3655,7 @@ namespace Gurux.DLMS
                 }
                 return true;
             }
-            GetPdu(settings, data);
+            GetPdu(settings, data, client);
             return true;
         }
 

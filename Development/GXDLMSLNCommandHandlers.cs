@@ -92,7 +92,7 @@ namespace Gurux.DLMS
                 GXByteBuffer bb = new GXByteBuffer();
                 // Access Error : Device reports a hardware fault.
                 bb.SetUInt8((byte)ErrorCode.HardwareFault);
-                GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, invokeID, Command.GetResponse, (byte)type, null, bb, (byte)ErrorCode.Ok), replyData);
+                GXDLMS.GetLNPdu(new GXDLMSLNParameters(null, settings, invokeID, Command.GetResponse, (byte)type, null, bb, (byte)ErrorCode.Ok), replyData);
             }
             if (xml != null)
             {
@@ -121,7 +121,7 @@ namespace Gurux.DLMS
             // Get invoke ID and priority.
             byte invoke = data.GetUInt8();
             // SetRequest normal or Set Request With First Data Block
-            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invoke, Command.SetResponse, (byte)type, null, null, 0);
+            GXDLMSLNParameters p = new GXDLMSLNParameters(null, settings, invoke, Command.SetResponse, (byte)type, null, null, 0);
             if (xml != null)
             {
                 xml.AppendStartTag(Command.SetRequest);
@@ -261,7 +261,7 @@ namespace Gurux.DLMS
                 invokeId = (byte)e.InvokeId;
             }
 
-            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeId, Command.MethodResponse, 1, null, bb, (byte)error);
+            GXDLMSLNParameters p = new GXDLMSLNParameters(null, settings, invokeId, Command.MethodResponse, 1, null, bb, (byte)error);
             GXDLMS.GetLNPdu(p, replyData);
             //If High level authentication fails.
             if (obj is GXDLMSAssociationLogicalName && id == 1)
@@ -404,7 +404,7 @@ namespace Gurux.DLMS
                     status = e.Error;
                 }
             }
-            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, e.InvokeId, Command.GetResponse, 1, null, bb, (byte)status);
+            GXDLMSLNParameters p = new GXDLMSLNParameters(null, settings, e.InvokeId, Command.GetResponse, 1, null, bb, (byte)status);
             GXDLMS.GetLNPdu(p, replyData);
             if (settings.Count != settings.Index || bb.Size != bb.Position)
             {
@@ -432,12 +432,12 @@ namespace Gurux.DLMS
                 if (index != settings.BlockIndex)
                 {
                     Debug.WriteLine("handleGetRequest failed. Invalid block number. " + settings.BlockIndex + "/" + index);
-                    GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, 0, Command.GetResponse, 2, null, bb, (byte)ErrorCode.DataBlockNumberInvalid), replyData);
+                    GXDLMS.GetLNPdu(new GXDLMSLNParameters(null, settings, 0, Command.GetResponse, 2, null, bb, (byte)ErrorCode.DataBlockNumberInvalid), replyData);
                     return;
                 }
             }
             settings.IncreaseBlockIndex();
-            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeID, streaming ? Command.GeneralBlockTransfer : Command.GetResponse, 2, null, bb, (byte)ErrorCode.Ok);
+            GXDLMSLNParameters p = new GXDLMSLNParameters(null, settings, invokeID, streaming ? Command.GeneralBlockTransfer : Command.GetResponse, 2, null, bb, (byte)ErrorCode.Ok);
             p.Streaming = streaming;
             p.WindowSize = settings.WindowSize;
             //If transaction is not in progress.
@@ -622,7 +622,7 @@ namespace Gurux.DLMS
                 ++pos;
             }
             server.NotifyPostRead(list.ToArray());
-            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeID, Command.GetResponse, 3, null, bb, 0xFF);
+            GXDLMSLNParameters p = new GXDLMSLNParameters(null, settings, invokeID, Command.GetResponse, 3, null, bb, 0xFF);
             GXDLMS.GetLNPdu(p, replyData);
         }
 

@@ -32,10 +32,7 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Enums
 {
@@ -48,19 +45,23 @@ namespace Gurux.DLMS.Enums
         /// General interface type is used for meters that support 
         /// IEC 62056-46 Data link layer using HDLC protocol.
         /// </summary>
+        [XmlEnum("0")]
         HDLC,
         /// <summary>
         /// Network interface type is used for meters that support 
         /// IEC 62056-47 COSEM transport layers for IPv4 networks.
         /// </summary>
+        [XmlEnum("1")]
         WRAPPER,
         /// <summary>
         /// Plain PDU is returned.
         /// </summary>
+        [XmlEnum("2")]
         PDU,
         /// <summary>
         /// Wireless M-Bus frame.
         /// </summary>
+        [XmlEnum("3")]
         WirelessMBus
     }
 }

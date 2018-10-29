@@ -919,10 +919,13 @@ namespace Gurux.DLMS
         /// <returns>Unix time.</returns>
         public static long ToUnixTime(DateTime date)
         {
-            if (date == DateTime.MinValue ||
-                date == DateTime.MaxValue)
+            if (date == DateTime.MinValue)
             {
                 return Convert.ToInt64(0);
+            }
+            if (date == DateTime.MaxValue)
+            {
+                return 0xFFFFFFFF;
             }
             DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 1, DateTimeKind.Utc);
             return Convert.ToInt64((date.ToUniversalTime() - epoch).TotalSeconds);

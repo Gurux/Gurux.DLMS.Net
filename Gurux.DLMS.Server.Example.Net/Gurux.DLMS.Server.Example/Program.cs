@@ -46,6 +46,7 @@ namespace GuruxDLMSServerExample
     {
         public TraceLevel trace = TraceLevel.Info;
         public int port = 4060;
+        public string serial;
     }
 
     class Program
@@ -62,53 +63,74 @@ namespace GuruxDLMSServerExample
             }
             try
             {
-                ///////////////////////////////////////////////////////////////////////
-                //Create Gurux DLMS server component for Short Name and start listen events.
-                GXDLMSServerSN SNServer = new GXDLMSServerSN();
-                SNServer.Initialize(settings.port, settings.trace);
-                Console.WriteLine("Short Name DLMS Server in port {0}.", settings.port);
-                Console.WriteLine("Example connection settings:");
-                Console.WriteLine("Gurux.DLMS.Client.Example.Net -r sn -h localhost -p {0}", settings.port);
-                Console.WriteLine("----------------------------------------------------------");
-                ///////////////////////////////////////////////////////////////////////
-                //Create Gurux DLMS server component for Short Name and start listen events.
-                GXDLMSServerLN LNServer = new GXDLMSServerLN();
-                LNServer.Initialize(settings.port + 1, settings.trace);
-                Console.WriteLine("Logical Name DLMS Server in port {0}.", settings.port + 1);
-                Console.WriteLine("Example connection settings:");
-                Console.WriteLine("Gurux.DLMS.Client.Example.Net -h localhost -p {0}", settings.port + 1);
-                Console.WriteLine("----------------------------------------------------------");
-                ///////////////////////////////////////////////////////////////////////
-                //Create Gurux DLMS server component for Short Name and start listen events.
-                GXDLMSServerSN_47 SN_47Server = new GXDLMSServerSN_47();
-                SN_47Server.Initialize(settings.port + 2, settings.trace);
-                Console.WriteLine("Short Name DLMS Server with IEC 62056-47 in port {0}.", settings.port + 2);
-                Console.WriteLine("Example connection settings:");
-                Console.WriteLine("Gurux.DLMS.Client.Example.Net -r sn -h localhost -p {0} -w", settings.port + 2);
-                Console.WriteLine("----------------------------------------------------------");
-                ///////////////////////////////////////////////////////////////////////
-                //Create Gurux DLMS server component for Short Name and start listen events.
-                GXDLMSServerLN_47 LN_47Server = new GXDLMSServerLN_47();
-                LN_47Server.Initialize(settings.port + 3, settings.trace);
-                Console.WriteLine("Logical Name DLMS Server with IEC 62056-47 in port {0}.", settings.port + 3);
-                Console.WriteLine("Example connection settings:");
-                Console.WriteLine("Gurux.DLMS.Client.Example.Net -h localhost -p {0} -w", settings.port + 3);
-                ConsoleKey k;
-                while ((k = Console.ReadKey().Key) != ConsoleKey.Escape)
+                if (settings.serial != null)
                 {
-                    if (k == ConsoleKey.Delete)
+                    GXDLMSServerLN LNServer = new GXDLMSServerLN();
+                    LNServer.Initialize(settings.serial, settings.trace);
+                    Console.WriteLine("Logical Name DLMS Server in serial port {0}.", settings.serial);
+                    Console.WriteLine("----------------------------------------------------------");
+                    ConsoleKey k;
+                    while ((k = Console.ReadKey().Key) != ConsoleKey.Escape)
                     {
-                        Console.Clear();
+                        if (k == ConsoleKey.Delete)
+                        {
+                            Console.Clear();
+                        }
+                        Console.WriteLine("Press Esc to close application or delete clear the console.");
                     }
-                    Console.WriteLine("Press Esc to close application or delete clear the console.");
+                    //Close servers.
+                    LNServer.Close();
                 }
+                else
+                {
+                    ///////////////////////////////////////////////////////////////////////
+                    //Create Gurux DLMS server component for Short Name and start listen events.
+                    GXDLMSServerSN SNServer = new GXDLMSServerSN();
+                    SNServer.Initialize(settings.port, settings.trace);
+                    Console.WriteLine("Short Name DLMS Server in port {0}.", settings.port);
+                    Console.WriteLine("Example connection settings:");
+                    Console.WriteLine("Gurux.DLMS.Client.Example.Net -r sn -h localhost -p {0}", settings.port);
+                    Console.WriteLine("----------------------------------------------------------");
+                    ///////////////////////////////////////////////////////////////////////
+                    //Create Gurux DLMS server component for Short Name and start listen events.
+                    GXDLMSServerLN LNServer = new GXDLMSServerLN();
+                    LNServer.Initialize(settings.port + 1, settings.trace);
+                    Console.WriteLine("Logical Name DLMS Server in port {0}.", settings.port + 1);
+                    Console.WriteLine("Example connection settings:");
+                    Console.WriteLine("Gurux.DLMS.Client.Example.Net -h localhost -p {0}", settings.port + 1);
+                    Console.WriteLine("----------------------------------------------------------");
+                    ///////////////////////////////////////////////////////////////////////
+                    //Create Gurux DLMS server component for Short Name and start listen events.
+                    GXDLMSServerSN_47 SN_47Server = new GXDLMSServerSN_47();
+                    SN_47Server.Initialize(settings.port + 2, settings.trace);
+                    Console.WriteLine("Short Name DLMS Server with IEC 62056-47 in port {0}.", settings.port + 2);
+                    Console.WriteLine("Example connection settings:");
+                    Console.WriteLine("Gurux.DLMS.Client.Example.Net -r sn -h localhost -p {0} -w", settings.port + 2);
+                    Console.WriteLine("----------------------------------------------------------");
+                    ///////////////////////////////////////////////////////////////////////
+                    //Create Gurux DLMS server component for Short Name and start listen events.
+                    GXDLMSServerLN_47 LN_47Server = new GXDLMSServerLN_47();
+                    LN_47Server.Initialize(settings.port + 3, settings.trace);
+                    Console.WriteLine("Logical Name DLMS Server with IEC 62056-47 in port {0}.", settings.port + 3);
+                    Console.WriteLine("Example connection settings:");
+                    Console.WriteLine("Gurux.DLMS.Client.Example.Net -h localhost -p {0} -w", settings.port + 3);
+                    ConsoleKey k;
+                    while ((k = Console.ReadKey().Key) != ConsoleKey.Escape)
+                    {
+                        if (k == ConsoleKey.Delete)
+                        {
+                            Console.Clear();
+                        }
+                        Console.WriteLine("Press Esc to close application or delete clear the console.");
+                    }
 
-                //Close servers.
-                SNServer.Close();
-                LNServer.Close();
-                SN_47Server.Close();
-                LN_47Server.Close();
-                Console.WriteLine("Servers closed.");
+                    //Close servers.
+                    SNServer.Close();
+                    LNServer.Close();
+                    SN_47Server.Close();
+                    LN_47Server.Close();
+                    Console.WriteLine("Servers closed.");
+                }
                 return 0;
             }
             catch (Exception ex)
@@ -120,7 +142,7 @@ namespace GuruxDLMSServerExample
 
         static int GetParameters(string[] args, Settings settings)
         {
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "t:p:");
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "t:p:s:");
             foreach (GXCmdParameter it in parameters)
             {
                 switch (it.Tag)
@@ -139,6 +161,10 @@ namespace GuruxDLMSServerExample
                     case 'p':
                         //Port.
                         settings.port = int.Parse(it.Value);
+                        break;
+                    case 's':
+                        //serial port.
+                        settings.serial = it.Value;
                         break;
                     case '?':
                         switch (it.Tag)
@@ -164,6 +190,7 @@ namespace GuruxDLMSServerExample
             Console.WriteLine("Gurux DLMS example Server implements four DLMS/COSEM devices.");
             Console.WriteLine(" -t [Error, Warning, Info, Verbose] Trace messages.");
             Console.WriteLine(" -p Start port number. Default is 4060.");
+            Console.WriteLine(" -s Serial port.");
         }
     }
 }

@@ -194,7 +194,7 @@ namespace Gurux.DLMS
         ///</returns>
         public bool GetData(GXByteBuffer reply, GXReplyData data)
         {
-            return GXDLMS.GetData(Settings, reply, data);
+            return GXDLMS.GetData(Settings, reply, data, null);
         }
 
         /// <summary>
@@ -248,7 +248,7 @@ namespace Gurux.DLMS
             byte[][] reply;
             if (UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.DataNotification, 0, null, new GXByteBuffer(data), 0xff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(null, Settings, 0, Command.DataNotification, 0, null, new GXByteBuffer(data), 0xff);
                 p.time = time;
                 reply = GXDLMS.GetLnMessages(p);
             }
@@ -275,7 +275,7 @@ namespace Gurux.DLMS
             byte[][] reply;
             if (UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.DataNotification, 0, null, data, 0xff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(null, Settings, 0, Command.DataNotification, 0, null, data, 0xff);
                 p.time = time;
                 p.time.Skip |= DateTimeSkips.Ms;
                 reply = GXDLMS.GetLnMessages(p);
@@ -310,7 +310,7 @@ namespace Gurux.DLMS
             byte[][] reply;
             if (UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.DataNotification, 0, null, buff, 0xff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(null, Settings, 0, Command.DataNotification, 0, null, buff, 0xff);
                 p.time = time;
                 reply = GXDLMS.GetLnMessages(p);
             }
@@ -431,7 +431,7 @@ namespace Gurux.DLMS
                     buff.SetUInt8((byte)it.Value);
                     AddData(it.Key, it.Value, buff);
                 }
-                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.EventNotification, 0, null, buff, 0xff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(null, Settings, 0, Command.EventNotification, 0, null, buff, 0xff);
                 p.time = time;
                 reply = GXDLMS.GetLnMessages(p);
             }

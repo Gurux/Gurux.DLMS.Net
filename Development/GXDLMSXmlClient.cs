@@ -470,7 +470,7 @@ namespace Gurux.DLMS
                 {
                     if (Ciphering.Security != Enums.Security.None)
                     {
-                        GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, pdu.Command, 0x0, null, null, 0xff);
+                        GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, pdu.Command, 0x0, null, null, 0xff);
                         reply = new GXByteBuffer(GXDLMS.Cipher0(p, pdu.Data));
                     }
                     else
@@ -482,7 +482,7 @@ namespace Gurux.DLMS
                 {
                     if (Ciphering.Security != Enums.Security.None)
                     {
-                        GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, pdu.Command, 0x0, null, null, 0xff);
+                        GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, pdu.Command, 0x0, null, null, 0xff);
                         byte[] tmp = GXDLMS.Cipher0(p, pdu.Data);
                         reply = new GXByteBuffer((UInt16)(3 + tmp.Length));
                         reply.Set(GXCommon.LLCSendBytes);

@@ -226,6 +226,14 @@ namespace Gurux.DLMS
         ///<summary>
         ///Constructor.
         ///</summary>
+        public GXDLMSSettings() : this(false)
+        {
+
+        }
+
+        ///<summary>
+        ///Constructor.
+        ///</summary>
         internal GXDLMSSettings(bool server)
         {
             UseCustomChallenge = false;

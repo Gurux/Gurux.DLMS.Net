@@ -150,7 +150,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, ObjectList, ClientSAP + "/" + ServerSAP, ApplicationContextName,
+            return new object[] { LogicalName, ObjectList, new object[]{ClientSAP, ServerSAP }, ApplicationContextName,
                               XDLMSContextInfo, AuthenticationMechanismName, Secret, AssociationStatus, SecuritySetupReference,
                             UserList, CurrentUser};
         }
@@ -837,9 +837,17 @@ namespace Gurux.DLMS.Objects
         {
             ObjectType type = (ObjectType)Convert.ToInt32(item[0]);
             int version = Convert.ToInt32(item[1]);
-            String ln = GXCommon.ToLogicalName((byte[])item[2]);
+            String ln;
+            if (item[2] is byte[])
+            {
+                ln = GXCommon.ToLogicalName((byte[])item[2]);
+            }
+            else
+            {
+                ln = (string)item[2];
+            }
             GXDLMSObject obj = null;
-            if (settings.Objects != null)
+            if (settings != null && settings.Objects != null)
             {
                 obj = settings.Objects.FindByLN(type, ln);
             }
@@ -970,10 +978,17 @@ namespace Gurux.DLMS.Objects
                 if (e.Value != null)
                 {
                     Object[] arr = (Object[])e.Value;
-                    GXByteBuffer bb = new GXByteBuffer();
-                    GXCommon.SetBitString(bb, arr[0], true);
-                    bb.SetUInt8(0, 0);
-                    XDLMSContextInfo.Conformance = (Conformance)bb.GetUInt32();
+                    if (arr[0] is string || arr[0] is byte[])
+                    {
+                        GXByteBuffer bb = new GXByteBuffer();
+                        GXCommon.SetBitString(bb, arr[0], true);
+                        bb.SetUInt8(0, 0);
+                        XDLMSContextInfo.Conformance = (Conformance)bb.GetUInt32();
+                    }
+                    else
+                    {
+                        XDLMSContextInfo.Conformance = (Conformance) Convert.ToUInt16(arr[0]);
+                    }
                     XDLMSContextInfo.MaxReceivePduSize = Convert.ToUInt16(arr[1]);
                     XDLMSContextInfo.MaxSendPduSize = Convert.ToUInt16(arr[2]);
                     XDLMSContextInfo.DlmsVersionNumber = Convert.ToByte(arr[3]);
@@ -1095,7 +1110,14 @@ namespace Gurux.DLMS.Objects
                 if (e.Value != null)
                 {
                     Object[] tmp = (Object[])e.Value;
-                    CurrentUser = new KeyValuePair<byte, string>(Convert.ToByte(tmp[0]), Convert.ToString(tmp[1]));
+                    if (tmp.Length == 1)
+                    {
+                        CurrentUser = new KeyValuePair<byte, string>(Convert.ToByte(tmp[0]), null);
+                    }
+                    else
+                    {
+                        CurrentUser = new KeyValuePair<byte, string>(Convert.ToByte(tmp[0]), Convert.ToString(tmp[1]));
+                    }
                 }
                 else
                 {

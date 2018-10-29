@@ -47,6 +47,7 @@ using System.IO;
 using System.Globalization;
 using System.Diagnostics;
 using System.Threading;
+using Gurux.Serial;
 
 namespace GuruxDLMSServerExample
 {

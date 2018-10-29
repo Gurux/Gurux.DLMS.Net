@@ -851,7 +851,7 @@ namespace Gurux.DLMS
                     bool first = Settings.ServerAddress == 0 && Settings.ClientAddress == 0;
                     try
                     {
-                        GXDLMS.GetData(Settings, receivedData, info);
+                        GXDLMS.GetData(Settings, receivedData, info, null);
                     }
                     catch (Exception)
                     {
@@ -1199,7 +1199,7 @@ namespace Gurux.DLMS
             }
             if (Settings.UseLogicalNameReferencing)
             {
-                GXDLMS.GetLNPdu(new GXDLMSLNParameters(Settings, 0, cmd, 1, null, null, (byte)error), replyData);
+                GXDLMS.GetLNPdu(new GXDLMSLNParameters(null, Settings, 0, cmd, 1, null, null, (byte)error), replyData);
             }
             else
             {
@@ -1522,7 +1522,7 @@ namespace Gurux.DLMS
             byte[][] reply;
             if (UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.DataNotification, 0, null, new GXByteBuffer(data), 0xff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(null, Settings, 0, Command.DataNotification, 0, null, new GXByteBuffer(data), 0xff);
                 p.time = time;
                 reply = GXDLMS.GetLnMessages(p);
             }
@@ -1549,7 +1549,7 @@ namespace Gurux.DLMS
             byte[][] reply;
             if (UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.DataNotification, 0, null, data, 0xff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(null, Settings, 0, Command.DataNotification, 0, null, data, 0xff);
                 p.time = time;
                 p.time.Skip |= DateTimeSkips.Ms;
                 reply = GXDLMS.GetLnMessages(p);

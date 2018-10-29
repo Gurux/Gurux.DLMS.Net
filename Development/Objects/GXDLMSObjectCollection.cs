@@ -108,6 +108,10 @@ namespace Gurux.DLMS.Objects
         /// <param name="index">The zero-based index of the item to remove.</param>
         public void RemoveAt(int index)
         {
+            if (Items[index].Parent == this)
+            {
+                Items[index].Parent = null;
+            }
             this.Items.RemoveAt(index);
         }
         #endregion
@@ -280,6 +284,10 @@ namespace Gurux.DLMS.Objects
 
         public bool Remove(GXDLMSObject item)
         {
+            if (item.Parent == this)
+            {
+                item.Parent = null;
+            }
             return Objects.Remove(item);
         }
 

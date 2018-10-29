@@ -44,12 +44,27 @@ using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS
 {
+    public delegate void PduEventHandler(object sender, byte[] data);
+
     /// <summary>
     /// GXDLMS implements methods to communicate with DLMS/COSEM metering devices.
     /// </summary>
     public class GXDLMSClient
     {
         protected GXDLMSTranslator translator;
+        internal PduEventHandler pdu;
+
+        public event PduEventHandler OnPdu
+        {
+            add
+            {
+                pdu += value;
+            }
+            remove
+            {
+                pdu -= value;
+            }
+        }
 
         /// <summary>
         /// XML client don't throw exceptions. It serializes them as a default. Set value to true, if exceptions are thrown.
@@ -613,7 +628,7 @@ namespace Gurux.DLMS
             Settings.Connected = ConnectionState.None;
             IsAuthenticationRequired = false;
             // SNRM request is not used in network connections.
-            if (InterfaceType == InterfaceType.WRAPPER)
+            if (InterfaceType != InterfaceType.HDLC)
             {
                 return null;
             }
@@ -703,7 +718,7 @@ namespace Gurux.DLMS
             byte[][] reply;
             if (UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.Aarq, 0, buff, null, 0xff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, Command.Aarq, 0, buff, null, 0xff);
                 reply = GXDLMS.GetLnMessages(p);
             }
             else
@@ -893,7 +908,7 @@ namespace Gurux.DLMS
             byte[][] reply;
             if (UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.ReleaseRequest, 0, buff, null, 0xff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, Command.ReleaseRequest, 0, buff, null, 0xff);
                 reply = GXDLMS.GetLnMessages(p);
             }
             else
@@ -1557,7 +1572,7 @@ namespace Gurux.DLMS
                 {
                     attributeDescriptor.SetUInt8(1);
                 }
-                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.MethodRequest, (byte)ActionRequestType.Normal, attributeDescriptor, data, 0xff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, Command.MethodRequest, (byte)ActionRequestType.Normal, attributeDescriptor, data, 0xff);
                 return GXDLMS.GetLnMessages(p);
             }
             else
@@ -1664,7 +1679,7 @@ namespace Gurux.DLMS
                 attributeDescriptor.SetUInt8((byte)index);
                 // Access selection is not used.
                 attributeDescriptor.SetUInt8(0);
-                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.SetRequest, (byte)SetRequestType.Normal, attributeDescriptor, data, 0xff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, Command.SetRequest, (byte)SetRequestType.Normal, attributeDescriptor, data, 0xff);
                 p.blockIndex = Settings.BlockIndex;
                 p.blockNumberAck = Settings.BlockNumberAck;
                 p.Streaming = false;
@@ -1724,7 +1739,7 @@ namespace Gurux.DLMS
                     // Access selection is used.
                     attributeDescriptor.SetUInt8(1);
                 }
-                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.GetRequest, (byte)GetCommandType.Normal, attributeDescriptor, data, 0xff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, Command.GetRequest, (byte)GetCommandType.Normal, attributeDescriptor, data, 0xff);
                 reply = GXDLMS.GetLnMessages(p);
             }
             else
@@ -1775,7 +1790,7 @@ namespace Gurux.DLMS
             GXByteBuffer data = new GXByteBuffer();
             if (this.UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.GetRequest, (byte)GetCommandType.WithList, null, data, 0xff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, Command.GetRequest, (byte)GetCommandType.WithList, null, data, 0xff);
                 //Request service primitive shall always fit in a single APDU.
                 int pos = 0, count = (Settings.MaxPduSize - 12) / 10;
                 if (list.Count < count)
@@ -2164,7 +2179,7 @@ namespace Gurux.DLMS
             Command cmd = data.Command;
             try
             {
-                ret = GXDLMS.GetData(Settings, reply, data);
+                ret = GXDLMS.GetData(Settings, reply, data, this);
             }
             catch (Exception ex)
             {
@@ -2444,7 +2459,7 @@ namespace Gurux.DLMS
                 }
             }
 
-            GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.AccessRequest, 0xFF, null, bb, 0xff);
+            GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, Command.AccessRequest, 0xFF, null, bb, 0xff);
             p.time = new GXDateTime(time);
             return GXDLMS.GetLnMessages(p);
         }

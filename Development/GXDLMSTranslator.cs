@@ -339,7 +339,7 @@ namespace Gurux.DLMS
                     {
                         pos = data.Position;
                         settings.InterfaceType = Enums.InterfaceType.HDLC;
-                        found = GXDLMS.GetData(settings, data, reply);
+                        found = GXDLMS.GetData(settings, data, reply, null);
                         data.Position = pos;
                         if (found)
                         {
@@ -350,7 +350,7 @@ namespace Gurux.DLMS
                     {
                         pos = data.Position;
                         settings.InterfaceType = Enums.InterfaceType.WRAPPER;
-                        found = GXDLMS.GetData(settings, data, reply);
+                        found = GXDLMS.GetData(settings, data, reply, null);
                         data.Position = pos;
                         if (found)
                         {
@@ -361,7 +361,7 @@ namespace Gurux.DLMS
                     {
                         pos = data.Position;
                         settings.InterfaceType = Enums.InterfaceType.WirelessMBus;
-                        found = GXDLMS.GetData(settings, data, reply);
+                        found = GXDLMS.GetData(settings, data, reply, null);
                         data.Position = pos;
                         if (found)
                         {
@@ -405,7 +405,7 @@ namespace Gurux.DLMS
                 {
                     pos = data.Position;
                     settings.InterfaceType = Enums.InterfaceType.HDLC;
-                    found = GXDLMS.GetData(settings, data, reply);
+                    found = GXDLMS.GetData(settings, data, reply, null);
                     data.Position = pos;
                     if (found)
                     {
@@ -416,7 +416,7 @@ namespace Gurux.DLMS
                 {
                     pos = data.Position;
                     settings.InterfaceType = Enums.InterfaceType.WRAPPER;
-                    found = GXDLMS.GetData(settings, data, reply);
+                    found = GXDLMS.GetData(settings, data, reply, null);
                     data.Position = pos;
                     if (found)
                     {
@@ -517,7 +517,7 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentNullException("Invalid DLMS framing.");
             }
-            GXDLMS.GetData(settings, value, data);
+            GXDLMS.GetData(settings, value, data, null);
             //Only fully PDUs are returned.
             if (data.IsMoreData)
             {
@@ -732,7 +732,7 @@ namespace Gurux.DLMS
                 if (value.GetUInt8(value.Position) == 0x7e)
                 {
                     settings.InterfaceType = Enums.InterfaceType.HDLC;
-                    if (GXDLMS.GetData(settings, value, data))
+                    if (GXDLMS.GetData(settings, value, data, null))
                     {
                         if (!PduOnly)
                         {
@@ -827,7 +827,7 @@ namespace Gurux.DLMS
                 if (value.GetUInt16(value.Position) == 1)
                 {
                     settings.InterfaceType = Enums.InterfaceType.WRAPPER;
-                    GXDLMS.GetData(settings, value, data);
+                    GXDLMS.GetData(settings, value, data, null);
                     if (!PduOnly)
                     {
                         xml.AppendLine("<WRAPPER len=\"" + (data.PacketLength - offset).ToString("X") + "\" >");
@@ -882,7 +882,7 @@ namespace Gurux.DLMS
                 {
                     settings.InterfaceType = Enums.InterfaceType.WirelessMBus;
                     int len = xml.GetXmlLength();
-                    GXDLMS.GetData(settings, value, data);
+                    GXDLMS.GetData(settings, value, data, null);
                     string tmp = xml.ToString().Substring(len);
                     xml.SetXmlLength(len);
                     if (!PduOnly)
@@ -1084,7 +1084,7 @@ namespace Gurux.DLMS
                     data.Xml = xml;
                     data.Data = value;
                     value.Position = 0;
-                    GXDLMS.GetPdu(settings, data);
+                    GXDLMS.GetPdu(settings, data, null);
                     break;
                 case (byte)Command.InformationReport:
                     data.Xml = xml;
@@ -1106,13 +1106,13 @@ namespace Gurux.DLMS
                     data.Xml = xml;
                     data.Data = value;
                     value.Position = 0;
-                    GXDLMS.GetPdu(settings, data);
+                    GXDLMS.GetPdu(settings, data, null);
                     break;
                 case (byte)Command.GeneralCiphering:
                     data.Xml = xml;
                     data.Data = value;
                     value.Position = 0;
-                    GXDLMS.GetPdu(settings, data);
+                    GXDLMS.GetPdu(settings, data, null);
                     break;
                 case (byte)Command.ReleaseRequest:
                     xml.AppendStartTag((Command)cmd);
@@ -2827,7 +2827,7 @@ namespace Gurux.DLMS
                 case Command.SetResponse:
                 case Command.MethodRequest:
                 case Command.MethodResponse:
-                    ln = new GXDLMSLNParameters(s.settings, 0, s.command, s.requestType,
+                    ln = new GXDLMSLNParameters(null, s.settings, 0, s.command, s.requestType,
                                                 s.attributeDescriptor, s.data, 0xff);
                     GXDLMS.GetLNPdu(ln, bb);
                     break;
@@ -2929,22 +2929,22 @@ namespace Gurux.DLMS
                 case Command.ExceptionResponse:
                     break;
                 case Command.GeneralBlockTransfer:
-                    ln = new GXDLMSLNParameters(s.settings, 0, s.command, s.requestType,
+                    ln = new GXDLMSLNParameters(null, s.settings, 0, s.command, s.requestType,
                                                  s.attributeDescriptor, s.data, 0xff);
                     GXDLMS.GetLNPdu(ln, bb);
                     break;
                 case Command.AccessRequest:
-                    ln = new GXDLMSLNParameters(s.settings, 0, s.command, s.requestType,
+                    ln = new GXDLMSLNParameters(null, s.settings, 0, s.command, s.requestType,
                                                 s.attributeDescriptor, s.data, 0xff);
                     GXDLMS.GetLNPdu(ln, bb);
                     break;
                 case Command.AccessResponse:
-                    ln = new GXDLMSLNParameters(s.settings, 0, s.command, s.requestType,
+                    ln = new GXDLMSLNParameters(null, s.settings, 0, s.command, s.requestType,
                                                 s.attributeDescriptor, s.data, 0xff);
                     GXDLMS.GetLNPdu(ln, bb);
                     break;
                 case Command.DataNotification:
-                    ln = new GXDLMSLNParameters(s.settings, 0, s.command, s.requestType,
+                    ln = new GXDLMSLNParameters(null, s.settings, 0, s.command, s.requestType,
                                                 s.attributeDescriptor, s.data, 0xff);
                     ln.time = s.time;
                     GXDLMS.GetLNPdu(ln, bb);
@@ -2956,7 +2956,7 @@ namespace Gurux.DLMS
                     GXDLMS.GetSNPdu(sn, bb);
                     break;
                 case Command.EventNotification:
-                    ln = new GXDLMSLNParameters(s.settings, 0, s.command, s.requestType,
+                    ln = new GXDLMSLNParameters(null, s.settings, 0, s.command, s.requestType,
                                                 s.attributeDescriptor, s.data, 0xff);
                     ln.time = s.time;
                     GXDLMS.GetLNPdu(ln, bb);

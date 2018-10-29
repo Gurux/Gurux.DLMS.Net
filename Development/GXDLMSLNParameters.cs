@@ -101,17 +101,25 @@ namespace Gurux.DLMS
         ///</summary>         
         public bool Streaming;
 
+        public GXDLMSClient Owner
+        {
+            get;
+            private set;
+        }
+
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="owner">Owner component.</param>
         /// <param name="forSettings">DLMS settings.</param>
         /// <param name="forCommand">Command.</param>
         /// <param name="forCommandType">Command type.</param>
         /// <param name="forAttributeDescriptor">Attribute descriptor,</param>
         /// <param name="forData">Data,</param>
-        public GXDLMSLNParameters(GXDLMSSettings forSettings, UInt32 invokeId, Command forCommand, byte forCommandType,
+        public GXDLMSLNParameters(GXDLMSClient owner, GXDLMSSettings forSettings, UInt32 invokeId, Command forCommand, byte forCommandType,
            GXByteBuffer forAttributeDescriptor, GXByteBuffer forData, byte forStatus)
         {
+            Owner = owner;
             settings = forSettings;
             InvokeId = invokeId;
             blockIndex = settings.BlockIndex;
