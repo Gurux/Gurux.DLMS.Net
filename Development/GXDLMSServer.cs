@@ -1392,7 +1392,7 @@ namespace Gurux.DLMS
         ///</returns>
         private void HandleSnrmRequest(GXByteBuffer data)
         {
-            GXDLMS.ParseSnrmUaResponse(data, Settings.Limits);
+            GXDLMS.ParseSnrmUaResponse(data, Settings);
             Reset(true);
             if (Hdlc != null)
             {

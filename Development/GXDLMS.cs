@@ -3855,15 +3855,15 @@ namespace Gurux.DLMS
         /// <remarks>
         /// </remarks>
         /// <param name="data">Received data</param>
-        internal static void ParseSnrmUaResponse(GXByteBuffer data, GXDLMSLimits limits)
+        internal static void ParseSnrmUaResponse(GXByteBuffer data, GXDLMSSettings settings)
         {
             //If default settings are used.
             if (data.Size == 0)
             {
-                limits.MaxInfoRX = GXDLMSLimitsDefault.DefaultMaxInfoRX;
-                limits.MaxInfoTX = GXDLMSLimitsDefault.DefaultMaxInfoTX;
-                limits.WindowSizeRX = GXDLMSLimitsDefault.DefaultWindowSizeRX;
-                limits.WindowSizeTX = GXDLMSLimitsDefault.DefaultWindowSizeTX;
+                settings.Limits.MaxInfoRX = GXDLMSLimitsDefault.DefaultMaxInfoRX;
+                settings.Limits.MaxInfoTX = GXDLMSLimitsDefault.DefaultMaxInfoTX;
+                settings.Limits.WindowSizeRX = GXDLMSLimitsDefault.DefaultWindowSizeRX;
+                settings.Limits.WindowSizeTX = GXDLMSLimitsDefault.DefaultWindowSizeTX;
                 return;
             }
             data.GetUInt8(); // Skip FromatID
@@ -3893,16 +3893,22 @@ namespace Gurux.DLMS
                 switch (id)
                 {
                     case HDLCInfo.MaxInfoTX:
-                        limits.MaxInfoRX = Convert.ToUInt16(val);
+                        settings.Limits.MaxInfoRX = Convert.ToUInt16(val);
                         break;
                     case HDLCInfo.MaxInfoRX:
-                        limits.MaxInfoTX = Convert.ToUInt16(val);
+                        settings.Limits.MaxInfoTX = Convert.ToUInt16(val);
+                        if (settings.Limits.UseFrameSize)
+                        {
+                            byte[] secondaryAddress;
+                            secondaryAddress = GXDLMS.GetHdlcAddressBytes(settings.ClientAddress, 0);
+                            settings.Limits.MaxInfoTX += (UInt16)(10 + secondaryAddress.Length);
+                        }
                         break;
                     case HDLCInfo.WindowSizeTX:
-                        limits.WindowSizeRX = Convert.ToByte(val);
+                        settings.Limits.WindowSizeRX = Convert.ToByte(val);
                         break;
                     case HDLCInfo.WindowSizeRX:
-                        limits.WindowSizeTX = Convert.ToByte(val);
+                        settings.Limits.WindowSizeTX = Convert.ToByte(val);
                         break;
                     default:
                         throw new GXDLMSException("Invalid UA response.");

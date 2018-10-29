@@ -685,7 +685,7 @@ namespace Gurux.DLMS
         /// <seealso cref="ParseUAResponse"/>
         public void ParseUAResponse(GXByteBuffer data)
         {
-            GXDLMS.ParseSnrmUaResponse(data, Limits);
+            GXDLMS.ParseSnrmUaResponse(data, Settings);
             Settings.Connected = ConnectionState.Hdlc;
         }
 
