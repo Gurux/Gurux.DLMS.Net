@@ -549,7 +549,7 @@ namespace Gurux.DLMS
         public GXDLMSObjectCollection Objects
         {
             get;
-            internal set;
+            set;
         }
     }
 }
