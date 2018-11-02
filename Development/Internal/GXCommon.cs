@@ -865,6 +865,10 @@ namespace Gurux.DLMS.Internal
             double value = buff.GetDouble();
             if (info.xml != null)
             {
+                if (info.xml.Comments)
+                {
+                    info.xml.AppendComment(value.ToString());
+                }
                 GXByteBuffer tmp = new GXByteBuffer();
                 SetData(null, tmp, DataType.Float64, value);
                 info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", GXCommon.ToHex(tmp.Data, false, 1, tmp.Size - 1));
@@ -893,8 +897,13 @@ namespace Gurux.DLMS.Internal
                 return null;
             }
             float value = buff.GetFloat();
+
             if (info.xml != null)
             {
+                if (info.xml.Comments)
+                {
+                    info.xml.AppendComment(value.ToString());
+                }
                 GXByteBuffer tmp = new GXByteBuffer();
                 SetData(null, tmp, DataType.Float32, value);
                 info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", GXCommon.ToHex(tmp.Data, false, 1, tmp.Size - 1));

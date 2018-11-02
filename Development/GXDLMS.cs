@@ -981,7 +981,11 @@ namespace Gurux.DLMS
             GXByteBuffer reply = new GXByteBuffer();
             List<byte[]> messages = new List<byte[]>();
             byte frame = 0;
-            if (p.command == Command.DataNotification || p.command == Command.EventNotification)
+            if (p.command == Command.Aarq)
+            {
+                frame = 0x10;
+            }
+            else if (p.command == Command.DataNotification || p.command == Command.EventNotification)
             {
                 frame = 0x13;
             }
@@ -1039,7 +1043,11 @@ namespace Gurux.DLMS
             GXByteBuffer reply = new GXByteBuffer();
             List<byte[]> messages = new List<byte[]>();
             byte frame = 0x0;
-            if (p.command == Command.InformationReport)
+            if (p.command == Command.Aarq)
+            {
+                frame = 0x10;
+            }
+            else if (p.command == Command.InformationReport)
             {
                 frame = 0x13;
             }

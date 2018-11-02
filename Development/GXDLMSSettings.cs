@@ -400,7 +400,7 @@ namespace Gurux.DLMS
             }
             else
             {
-                SenderFrame = 0xFE;
+                SenderFrame = 0x10;
                 ReceiverFrame = 0xE;
             }
         }
