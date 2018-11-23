@@ -707,6 +707,31 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Update invoke ID and priority.
+        /// </summary>
+        /// <param name="value"></param>
+        internal void UpdateInvokeId(byte value)
+        {
+            if ((value & 0x80) != 0)
+            {
+                Priority = Priority.High;
+            }
+            else
+            {
+                Priority = Priority.Normal;
+            }
+            if ((value & 0x40) != 0)
+            {
+                ServiceClass = ServiceClass.Confirmed;
+            }
+            else
+            {
+                ServiceClass = ServiceClass.UnConfirmed;
+            }
+            invokeID = (byte)(value & 0xF);
+        }
+
+        /// <summary>
         /// Collection of the objects.
         /// </summary>
         public GXDLMSObjectCollection Objects

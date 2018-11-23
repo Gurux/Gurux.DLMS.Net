@@ -63,6 +63,7 @@ namespace Gurux.DLMS
                 type = (GetCommandType)data.GetUInt8();
                 // Get invoke ID and priority.
                 invokeID = data.GetUInt8();
+                settings.UpdateInvokeId(invokeID);
                 if (xml != null)
                 {
                     xml.AppendStartTag(Command.GetRequest);
@@ -120,6 +121,7 @@ namespace Gurux.DLMS
             SetRequestType type = (SetRequestType)data.GetUInt8();
             // Get invoke ID and priority.
             byte invoke = data.GetUInt8();
+            settings.UpdateInvokeId(invoke);
             // SetRequest normal or Set Request With First Data Block
             GXDLMSLNParameters p = new GXDLMSLNParameters(null, settings, invoke, Command.SetResponse, (byte)type, null, null, 0);
             if (xml != null)
@@ -167,6 +169,7 @@ namespace Gurux.DLMS
             ActionRequestType type = (ActionRequestType)data.GetUInt8();
             // Get invoke ID and priority.
             byte invokeId = data.GetUInt8();
+            settings.UpdateInvokeId(invokeId);
             // CI
             ObjectType ci = (ObjectType)data.GetUInt16();
             byte[] ln = new byte[6];
@@ -955,6 +958,7 @@ namespace Gurux.DLMS
             }
             //Get long invoke id and priority.
             UInt32 invokeId = data.GetUInt32();
+            settings.longInvokeID = invokeId;
             int len = GXCommon.GetObjectCount(data);
             byte[] tmp = null;
             // If date time is given.

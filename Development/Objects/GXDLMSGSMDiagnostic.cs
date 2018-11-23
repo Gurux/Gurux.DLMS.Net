@@ -45,9 +45,9 @@ namespace Gurux.DLMS.Objects
     public class AdjacentCell
     {
         /// <summary>
-        /// Two byte cell ID.
+        /// Cell ID in hex format.
         /// </summary>
-        public string CellId
+        public UInt32 CellId
         {
             get;
             set;
@@ -73,7 +73,7 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSGSMDiagnostic()
-        : this(null, 0)
+        : this("0.0.25.6.0.255", 0)
         {
         }
 
@@ -291,11 +291,25 @@ namespace Gurux.DLMS.Objects
                 case 6:
                     bb = new GXByteBuffer();
                     bb.SetUInt8(DataType.Structure);
-                    bb.SetUInt8(4);
-                    GXCommon.SetData(settings, bb, DataType.UInt16, CellInfo.CellId);
+                    if (Version == 0)
+                    {
+                        bb.SetUInt8(4);
+                        GXCommon.SetData(settings, bb, DataType.UInt16, CellInfo.CellId);
+                    }
+                    else
+                    {
+                        bb.SetUInt8(7);
+                        GXCommon.SetData(settings, bb, DataType.UInt32, CellInfo.CellId);
+                    }
                     GXCommon.SetData(settings, bb, DataType.UInt16, CellInfo.LocationId);
                     GXCommon.SetData(settings, bb, DataType.UInt8, CellInfo.SignalQuality);
                     GXCommon.SetData(settings, bb, DataType.UInt8, CellInfo.Ber);
+                    if (Version > 0)
+                    {
+                        GXCommon.SetData(settings, bb, DataType.UInt16, CellInfo.MobileCountryCode);
+                        GXCommon.SetData(settings, bb, DataType.UInt16, CellInfo.MobileNetworkCode);
+                        GXCommon.SetData(settings, bb, DataType.UInt32, CellInfo.ChannelNumber);
+                    }
                     return bb.Array();
                 case 7:
                     bb = new GXByteBuffer();
@@ -312,7 +326,7 @@ namespace Gurux.DLMS.Objects
                     {
                         bb.SetUInt8(DataType.Structure);
                         bb.SetUInt8(2);
-                        GXCommon.SetData(settings, bb, DataType.UInt16, it.CellId);
+                        GXCommon.SetData(settings, bb, Version == 0 ? DataType.UInt16 : DataType.UInt32, it.CellId);
                         GXCommon.SetData(settings, bb, DataType.UInt8, it.SignalQuality);
                     }
                     return bb.Array();
@@ -353,10 +367,16 @@ namespace Gurux.DLMS.Objects
                     if (e.Value != null)
                     {
                         object[] tmp = (object[])e.Value;
-                        CellInfo.CellId = (UInt32)tmp[0];
+                        CellInfo.CellId = Convert.ToUInt32(tmp[0]);
                         CellInfo.LocationId = (UInt16)tmp[1];
                         CellInfo.SignalQuality = (byte)tmp[2];
                         CellInfo.Ber = (byte)tmp[3];
+                        if (Version > 0)
+                        {
+                            CellInfo.MobileCountryCode = (UInt16)tmp[4];
+                            CellInfo.MobileNetworkCode = (UInt16)tmp[5];
+                            CellInfo.ChannelNumber = (UInt32)tmp[6];
+                        }
                     }
                     break;
                 case 7:
@@ -367,7 +387,7 @@ namespace Gurux.DLMS.Objects
                         {
                             object[] tmp = (object[])it;
                             AdjacentCell ac = new Objects.AdjacentCell();
-                            ac.CellId = (string)tmp[0];
+                            ac.CellId = Convert.ToUInt32(tmp[0]);
                             ac.SignalQuality = (byte)tmp[1];
                             AdjacentCells.Add(ac);
                         }
@@ -410,7 +430,7 @@ namespace Gurux.DLMS.Objects
                 while (reader.IsStartElement("Item", true))
                 {
                     AdjacentCell it = new Objects.AdjacentCell();
-                    it.CellId = reader.ReadElementContentAsString("CellId");
+                    it.CellId = (UInt32) reader.ReadElementContentAsInt("CellId");
                     it.SignalQuality = (byte)reader.ReadElementContentAsInt("SignalQuality");
                     AdjacentCells.Add(it);
                 }

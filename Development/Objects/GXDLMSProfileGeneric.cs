@@ -857,7 +857,7 @@ namespace Gurux.DLMS.Objects
                             }
                             DataType type;
                             //Actaris SL 7000 and ACE 6000 returns 0.
-                            if (index2 != 0)
+                            if (index2 > 0)
                             {
                                 type = cols[pos].Key.GetUIDataType(index2);
                             }

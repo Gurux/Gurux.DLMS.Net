@@ -2254,24 +2254,8 @@ namespace Gurux.DLMS
                         }
                         else
                         {
-                            value = (uint)s.ParseShort(id);
-                            if ((value & 0x80) != 0)
-                            {
-                                s.settings.Priority = Priority.High;
-                            }
-                            else
-                            {
-                                s.settings.Priority = Priority.Normal;
-                            }
-                            if ((value & 0x40) != 0)
-                            {
-                                s.settings.ServiceClass = ServiceClass.Confirmed;
-                            }
-                            else
-                            {
-                                s.settings.ServiceClass = ServiceClass.UnConfirmed;
-                            }
-                            s.settings.InvokeID = (byte)(value & 0xF);
+                            value = (byte)s.ParseShort(id);
+                            s.settings.UpdateInvokeId((byte)value);
                         }
                         break;
                     case (int)TranslatorTags.LongInvokeId:

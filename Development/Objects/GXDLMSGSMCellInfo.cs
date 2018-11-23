@@ -65,12 +65,40 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        ///  Bit Error Rate.
+        /// Bit Error Rate.
         /// </summary>
         public byte Ber
         {
             get;
             set;
         }
+
+        /// <summary>
+        /// Mobile Country Code.
+        /// </summary>
+        public UInt16 MobileCountryCode
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        ///  Mobile Network Code.
+        /// </summary>
+        public UInt16 MobileNetworkCode
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        ///  Absolute radio frequency channel number.
+        /// </summary>
+        public UInt32 ChannelNumber
+        {
+            get;
+            set;
+        }
+
     }
 }

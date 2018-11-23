@@ -203,5 +203,14 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="objects">Objects and attribute index to call.</param>
         void MethodObjects(GXDLMSMeter[] devices, List<KeyValuePair<GXDLMSObject, byte>> objects);
+
+        /// <summary>
+        /// Returns custom pages for selected object.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <returns></returns>
+#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1
+        System.Windows.Forms.Form[] CustomPages(object target, object communication);
+#endif// !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1
     }
 }

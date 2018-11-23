@@ -2097,7 +2097,7 @@ namespace Gurux.DLMS
             {
                 value = buff.GetUInt16();
                 // Check that server addresses match.
-                if (settings.ClientAddress != 0
+                if (settings.ServerAddress != 0
                         && settings.ServerAddress != value)
                 {
                     throw new GXDLMSException(

@@ -471,7 +471,7 @@ namespace Gurux.DLMS.Objects
                     it.Name = (byte[])item[0];
                     if (item[1] is byte[])
                     {
-                        it.Start = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime, settings.UseUtc2NormalTime);
+                        it.Start = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime, settings == null ? false : settings.UseUtc2NormalTime);
                     }
                     else if (item[1] is GXDateTime)
                     {

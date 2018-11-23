@@ -53,7 +53,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <param name="path">Directory to updated.</param>
         public static void UpdateDirectorySecurity(string path)
         {
-#if !WINDOWS_UWP && !NETCOREAPP2_0
+#if !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1
             DirectoryInfo dInfo = new DirectoryInfo(path);
             DirectorySecurity dSecurity = dInfo.GetAccessControl();
             dSecurity.AddAccessRule(new FileSystemAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null),
@@ -68,7 +68,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <param name="filePath">File path.</param>
         public static void UpdateFileSecurity(string filePath)
         {
-#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0
+#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1
             SecurityIdentifier everyone = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
             FileInfo fInfo = new FileInfo(filePath);
             FileSecurity fSecurity = File.GetAccessControl(filePath);

@@ -107,6 +107,8 @@ namespace Gurux.DLMS.Client.Example
                 ////////////////////////////////////////
                 reader = new Reader.GXDLMSReader(settings.client, settings.media, settings.trace);
                 settings.media.Open();
+                //Some meters need a break here.
+                Thread.Sleep(1000);
                 if (settings.readObjects.Count != 0)
                 {
                     reader.InitializeConnection();
