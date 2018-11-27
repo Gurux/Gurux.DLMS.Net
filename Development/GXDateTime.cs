@@ -37,6 +37,7 @@ using System.Collections.Generic;
 using Gurux.DLMS.Enums;
 using System.ComponentModel;
 using System.Globalization;
+using System.Text;
 
 namespace Gurux.DLMS
 {
@@ -104,6 +105,25 @@ namespace Gurux.DLMS
             : this(value, System.Globalization.CultureInfo.CurrentCulture)
         {
         }
+
+        private static bool IsNumeric(char value)
+        {
+            return value >= '0' && value <= '9';
+        }
+
+        private static string GetDateTimeFormat(CultureInfo culture)
+        {
+            string str = culture.DateTimeFormat.ShortDatePattern + " " + culture.DateTimeFormat.LongTimePattern;
+            foreach (string it in culture.DateTimeFormat.GetAllDateTimePatterns())
+            {
+                if (!it.Contains("dddd") && it.Contains(culture.DateTimeFormat.ShortDatePattern) && it.Contains(culture.DateTimeFormat.LongTimePattern))
+                {
+                    return it;
+                }
+            }
+            return str;
+        }
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -114,213 +134,123 @@ namespace Gurux.DLMS
         {
             if (!string.IsNullOrEmpty(value))
             {
-                DateTime dt;
-                if (value.IndexOf('*') == -1)
+                StringBuilder format = new StringBuilder();
+                format.Append(GetDateTimeFormat(culture));
+                Remove(format, culture);
+                String v = value;
+                if (value.IndexOf('*') != -1)
                 {
-                    if (DateTime.TryParse(value, culture, System.Globalization.DateTimeStyles.None, out dt))
+                    int lastFormatIndex = -1;
+                    int offset = 0;
+                    for (int pos = 0; pos < value.Length; ++pos)
                     {
-                        Value = new DateTimeOffset(dt, TimeZoneInfo.Local.GetUtcOffset(dt));
-                        if (dt.IsDaylightSavingTime())
+                        char c = value[pos];
+                        if (!IsNumeric(c))
+                        {
+                            if (c == '*')
+                            {
+                                int cnt = 1;
+                                c = format[lastFormatIndex + 1];
+                                string val = "1";
+                                while (lastFormatIndex + cnt + 1 < format.Length && format[lastFormatIndex + cnt + 1] == c)
+                                {
+                                    val += "0";
+                                    ++cnt;
+                                }
+                                v = v.Substring(0, pos + offset) + val
+                                        + value.Substring(pos + 1);
+                                offset += cnt - 1;
+                                String tmp = format.ToString().Substring(lastFormatIndex + 1, cnt).Trim();
+                                if (tmp.StartsWith("y"))
+                                {
+                                    Skip |= DateTimeSkips.Year;
+                                }
+                                else if (tmp == "M" || tmp == "MM")
+                                {
+                                    Skip |= DateTimeSkips.Month;
+                                }
+                                else if (tmp == "M" || tmp == "MM" || tmp == "MMM")
+                                {
+                                    Skip |= DateTimeSkips.Month;
+                                }
+                                else if (tmp.Equals("dd") || tmp.Equals("d"))
+                                {
+                                    Skip |= DateTimeSkips.Day;
+                                }
+                                else if (tmp.Equals("h") || tmp.Equals("hh")
+                                      || tmp.Equals("HH") || tmp.Equals("H"))
+                                {
+                                    Skip |= DateTimeSkips.Hour;
+                                    format.Replace("tt", "");
+                                }
+                                else if (tmp.Equals("mm") || tmp.Equals("m"))
+                                {
+                                    Skip |= DateTimeSkips.Minute;
+                                }
+                                else if (tmp.Equals("tt"))
+                                {
+                                    Skip |= DateTimeSkips.Hour;
+                                    format.Replace("tt", "");
+                                }
+                                else if (tmp.Equals("ss"))
+                                {
+                                    Skip |= DateTimeSkips.Second;
+                                }
+                                else if (tmp.Length != 0 && !tmp.Equals("G"))
+                                {
+                                    throw new Exception("Invalid date time format.");
+                                }
+                            }
+                            else
+                            {
+                                lastFormatIndex = format.ToString().IndexOf(c, lastFormatIndex + 1);
+                                //Dot is used time separator in some countries.
+                                if (lastFormatIndex == -1 && c == ':')
+                                {
+                                    lastFormatIndex = format.ToString().IndexOf('.', lastFormatIndex + 1);
+                                }
+                            }
+                        }
+                    }
+                }
+                try
+                {
+                    Value = DateTime.ParseExact(v, format.ToString(), culture);
+                    Skip |= DateTimeSkips.Ms;
+                    if ((Skip & (DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.Hour | DateTimeSkips.Minute)) == 0)
+                    {
+                        if (Value.DateTime.IsDaylightSavingTime())
                         {
                             Status |= ClockStatus.DaylightSavingActive;
                         }
-                        return;
                     }
                 }
-                int year = 2000, month = 1, day = 1, hour = 0, min = 0, sec = 0;
-#if !WINDOWS_UWP                
-                string dateSeparator = culture.DateTimeFormat.DateSeparator, timeSeparator = culture.DateTimeFormat.TimeSeparator;
-                List<string> shortDatePattern = new List<string>(culture.DateTimeFormat.ShortDatePattern.Split(new string[] { CultureInfo.InvariantCulture.DateTimeFormat.DateSeparator, dateSeparator, " " }, StringSplitOptions.RemoveEmptyEntries));
-                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { CultureInfo.InvariantCulture.DateTimeFormat.TimeSeparator, timeSeparator, " ", "." }, StringSplitOptions.RemoveEmptyEntries));
-#else
-                //In UWP Standard Date and Time Format Strings are used.
-                string dateSeparator = Internal.GXCommon.GetDateSeparator(), timeSeparator = Internal.GXCommon.GetTimeSeparator();
-                List<string> shortDatePattern = new List<string>("yyyy-MM-dd".Split(new string[] { dateSeparator, " " }, StringSplitOptions.RemoveEmptyEntries));
-                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { timeSeparator, " ", "." }, StringSplitOptions.RemoveEmptyEntries));
-#endif
-                //If week day is used.
-                if (char.IsLetter(value.Trim()[0]))
+                catch (Exception e)
                 {
-                    shortDatePattern.Insert(0, "dddd");
-                }
-                else
-                {
-                    Skip |= DateTimeSkips.DayOfWeek;
-                }
-                string[] values = value.Trim().Split(new string[] { dateSeparator, timeSeparator, " " }, StringSplitOptions.None);
-                int cnt = shortDatePattern.Count + shortTimePattern.Count;
-                if (!string.IsNullOrEmpty(culture.DateTimeFormat.PMDesignator))
-                {
-                    if (value.IndexOf(culture.DateTimeFormat.PMDesignator) != -1)
+                    try
                     {
-                        ++cnt;
-                    }
-                    else if (value.IndexOf(culture.DateTimeFormat.AMDesignator) != -1)
-                    {
-                        ++cnt;
-                    }
-                }
-                int offset = 0;
-                for (int pos = 0; pos != shortDatePattern.Count; ++pos)
-                {
-                    bool skip = false;
-                    if (values[pos] == "*")
-                    {
-                        skip = true;
-                    }
-                    if (shortDatePattern[pos].ToLower().StartsWith("yy"))
-                    {
-                        if (skip)
+                        if ((Skip & DateTimeSkips.Second) == 0)
                         {
-                            Skip |= DateTimeSkips.Year;
+                            format.Replace("mm", "mm" + culture.DateTimeFormat.TimeSeparator + "ss");
                         }
-                        else
+                        Value = DateTime.ParseExact(v, format.ToString().Trim(), culture);
+                        Skip |= DateTimeSkips.Ms;
+                    }
+                    catch (Exception e1)
+                    {
+                        try
                         {
-                            year = int.Parse(values[pos]);
+                            if ((Skip & DateTimeSkips.Ms) == 0)
+                            {
+                                format.Replace("ss", "ss.fff");
+                            }
+                            Value = DateTime.ParseExact(v, format.ToString().Trim(), culture);
+                        }
+                        catch (Exception e2)
+                        {
+                            throw e2;
                         }
                     }
-                    else if (shortDatePattern[pos].ToLower().StartsWith("m"))
-                    {
-                        if (skip)
-                        {
-                            Skip |= DateTimeSkips.Month;
-                        }
-                        else
-                        {
-                            if (string.Compare(values[pos], "B", true) == 0)
-                            {
-                                month = 1;
-                                Extra |= DateTimeExtraInfo.DstBegin;
-                            }
-                            else if (string.Compare(values[pos], "E", true) == 0)
-                            {
-                                month = 1;
-                                Extra |= DateTimeExtraInfo.DstEnd;
-                            }
-                            else
-                            {
-                                month = int.Parse(values[pos]);
-                            }
-                        }
-                    }
-                    else if (shortDatePattern[pos].ToLower().StartsWith("dddd"))
-                    {
-                        if (skip)
-                        {
-                            Skip |= DateTimeSkips.DayOfWeek;
-                        }
-                        else
-                        {
-                            DayOfWeek = (int)Enum.Parse(typeof(DayOfWeek), values[pos]);
-                            //Sunday is special case.
-                            if (DayOfWeek == 0)
-                            {
-                                DayOfWeek = 7;
-                            }
-                        }
-                    }
-                    else if (shortDatePattern[pos].ToLower().StartsWith("d"))
-                    {
-                        if (skip)
-                        {
-                            Skip |= DateTimeSkips.Day;
-                        }
-                        else
-                        {
-                            day = int.Parse(values[pos]);
-                            if (day == -1)
-                            {
-                                day = 1;
-                                Extra |= DateTimeExtraInfo.LastDay;
-                            }
-                            else if (day == -1)
-                            {
-                                day = 1;
-                                Extra |= DateTimeExtraInfo.LastDay2;
-                            }
-                        }
-                    }
-                    ++offset;
-                }
-                if (values.Length > 3)
-                {
-                    for (int pos = 0; pos != shortTimePattern.Count; ++pos)
-                    {
-                        //If ms is used.
-                        if (offset + pos >= values.Length)
-                        {
-                            continue;
-                        }
-                        bool skip = false;
-                        if (values[offset + pos] == "*")
-                        {
-                            skip = true;
-                        }
-                        if (shortTimePattern[pos].ToLower().StartsWith("h"))
-                        {
-                            if (skip)
-                            {
-                                Skip |= DateTimeSkips.Hour;
-                            }
-                            else
-                            {
-                                hour = int.Parse(values[offset + pos]);
-                            }
-                        }
-                        else if (shortTimePattern[pos].ToLower().StartsWith("m"))
-                        {
-                            if (skip)
-                            {
-                                Skip |= DateTimeSkips.Minute;
-                            }
-                            else
-                            {
-                                min = int.Parse(values[offset + pos]);
-                            }
-                        }
-                        else if (shortTimePattern[pos].ToLower().StartsWith("ss"))
-                        {
-                            if (skip)
-                            {
-                                Skip |= DateTimeSkips.Second;
-                            }
-                            else
-                            {
-                                sec = int.Parse(values[offset + pos]);
-                            }
-                        }
-                        else if (shortTimePattern[pos].ToLower().StartsWith("tt"))
-                        {
-                            if ((Skip & DateTimeSkips.Hour) == 0)
-                            {
-                                if (!string.IsNullOrEmpty(culture.DateTimeFormat.PMDesignator))
-                                {
-                                    if (values[offset + pos] == culture.DateTimeFormat.PMDesignator && hour != 12)
-                                    {
-                                        hour += 12;
-                                    }
-                                }
-                                if (!string.IsNullOrEmpty(culture.DateTimeFormat.AMDesignator))
-                                {
-                                    if (values[offset + pos] == culture.DateTimeFormat.AMDesignator && hour == 12)
-                                    {
-                                        hour = 0;
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            //This is OK. There might be some extra in some cultures.
-                            // ++offset;
-                        }
-                    }
-                }
-                dt = culture.Calendar.ToDateTime(year, month, day, hour, min, sec, 0);
-                Value = new DateTimeOffset(dt);
-                if (dt.IsDaylightSavingTime())
-                {
-                    Status |= ClockStatus.DaylightSavingActive;
                 }
             }
         }
@@ -490,140 +420,117 @@ namespace Gurux.DLMS
 
         public string ToFormatString()
         {
-            return ToFormatString(System.Globalization.CultureInfo.CurrentCulture);
+            return ToFormatString(CultureInfo.CurrentCulture);
         }
 
         public string ToFormatString(CultureInfo culture)
         {
-            int pos;
+            StringBuilder format = new StringBuilder();
             if (Skip != DateTimeSkips.None)
             {
-#if !WINDOWS_UWP
-                string dateSeparator = culture.DateTimeFormat.DateSeparator, timeSeparator = culture.DateTimeFormat.TimeSeparator;
-                List<string> shortDatePattern = new List<string>(culture.DateTimeFormat.ShortDatePattern.Split(new string[] { dateSeparator, " " }, StringSplitOptions.RemoveEmptyEntries));
-#else
-                //In UWP Standard Date and Time Format Strings are used.
-                string dateSeparator = Internal.GXCommon.GetDateSeparator(), timeSeparator = Internal.GXCommon.GetTimeSeparator();
-                List<string> shortDatePattern = new List<string>("yyyy-MM-dd".Split(new string[] { dateSeparator }, StringSplitOptions.RemoveEmptyEntries));
-#endif
-                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { timeSeparator, " ", "." }, StringSplitOptions.RemoveEmptyEntries));
-                if (this is GXTime)
+                format.Append(GetDateTimeFormat(culture));
+                Remove(format, culture);
+                if ((Skip & DateTimeSkips.Year) != 0)
                 {
-                    shortDatePattern.Clear();
+                    Replace(format, "yyyy");
+                    Replace(format, "yy");
                 }
-                else
+                if ((Skip & DateTimeSkips.Month) != 0)
                 {
-                    if ((Skip & DateTimeSkips.Year) != 0)
-                    {
-                        pos = shortDatePattern.IndexOf("yyyy");
-                        if (pos == -1)
-                        {
-                            pos = shortDatePattern.IndexOf("yy");
-                        }
-                        shortDatePattern[pos] = "*";
-                    }
-                    if ((Skip & DateTimeSkips.Month) != 0)
-                    {
-                        pos = shortDatePattern.IndexOf("M");
-                        if (pos == -1)
-                        {
-                            pos = shortDatePattern.IndexOf("MM");
-                        }
-                        shortDatePattern[pos] = "*";
-                    }
-                    if ((Skip & DateTimeSkips.Day) != 0)
-                    {
-                        pos = shortDatePattern.IndexOf("d");
-                        if (pos == -1)
-                        {
-                            pos = shortDatePattern.IndexOf("dd");
-                        }
-                        shortDatePattern[pos] = "*";
-                    }
-                    else
-                    {
-                        pos = shortDatePattern.IndexOf("d");
-                        if (pos == -1)
-                        {
-                            pos = shortDatePattern.IndexOf("dd");
-                        }
-                        if ((Extra & DateTimeExtraInfo.LastDay) != 0)
-                        {
-                            shortDatePattern[pos] = "-1";
-                        }
-                        else if ((Extra & DateTimeExtraInfo.LastDay2) != 0)
-                        {
-                            shortDatePattern[pos] = "-2";
-                        }
-                    }
+                    Replace(format, "MMM");
+                    Replace(format, "MM");
+                    Replace(format, "M");
                 }
-                if (this is GXDate)
+                if ((Skip & DateTimeSkips.Day) != 0)
                 {
-                    shortTimePattern.Clear();
+                    Replace(format, "dd");
+                    Replace(format, "d");
                 }
-                else
+                if ((Skip & DateTimeSkips.Hour) != 0)
                 {
-                    if ((Skip & DateTimeSkips.Hour) != 0)
-                    {
-                        pos = shortTimePattern.IndexOf("h");
-                        if (pos == -1)
-                        {
-                            pos = shortTimePattern.IndexOf("H");
-                            if (pos == -1)
-                            {
-                                pos = shortTimePattern.IndexOf("HH");
-                            }
-                        }
-                        shortTimePattern[pos] = "*";
-                    }
-                    if ((Skip & DateTimeSkips.Minute) != 0)
-                    {
-                        pos = shortTimePattern.IndexOf("mm");
-                        shortTimePattern[pos] = "*";
-                    }
-                    if ((Skip & DateTimeSkips.Second) != 0 ||
-                        (shortTimePattern.Count == 1 && Value.Second == 0))
-                    {
-                        pos = shortTimePattern.IndexOf("ss");
-                        shortTimePattern[pos] = "*";
-                    }
+                    Replace(format, "HH");
+                    Replace(format, "H");
+                    Replace(format, "hh");
+                    Replace(format, "h");
+                    Remove(format, "tt", null);
                 }
-                string format = null;
-                if (shortDatePattern.Count != 0)
+                if ((Skip & DateTimeSkips.Ms) != 0)
                 {
-                    format = string.Join(dateSeparator, shortDatePattern.ToArray());
+                    Replace(format, ".fff");
                 }
-                if (shortTimePattern.Count != 0)
+                else if (format.ToString().IndexOf(".fff") == -1)
                 {
-                    if (format != null)
-                    {
-                        format += " ";
-                    }
-                    format += string.Join(timeSeparator, shortTimePattern.ToArray());
-                    format = format.Replace(timeSeparator + "tt", " tt");
+                    format.Replace("ss", "ss.fff");
                 }
-                if (format == "H")
+                if ((Skip & DateTimeSkips.Second) != 0)
                 {
-                    return Value.Hour.ToString();
+                    Replace(format, "ss");
                 }
-                if (format == null)
+                else if (format.ToString().IndexOf("ss") == -1)
                 {
-                    return "";
+                    format.Replace("mm", "mm" + culture.DateTimeFormat.TimeSeparator + "ss");
                 }
-                string str = Value.LocalDateTime.ToString(format, culture);
-                if (DayOfWeek != 0 && (Skip & DateTimeSkips.DayOfWeek) == 0 &&
-                    (Skip & (DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day)) != 0)
+                if ((Skip & DateTimeSkips.Minute) != 0)
                 {
-                    System.DayOfWeek t = (System.DayOfWeek)DayOfWeek;
-                    if (DayOfWeek == 7)
-                    {
-                        t = System.DayOfWeek.Sunday;
-                    }
-                    str = t.ToString() + " " + str;
+                    Replace(format, "mm");
+                    Replace(format, "m");
                 }
-                return str;
+                return Value.LocalDateTime.ToString(format.ToString());
             }
             return Value.LocalDateTime.ToString(culture);
+        }
+
+        private void Remove(StringBuilder value, String tag, string sep)
+        {
+            if (sep != null)
+            {
+                if (value.ToString().IndexOf(tag + sep) != -1)
+                {
+                    value.Replace(tag + sep, "");
+                    return;
+                }
+                else if (value.ToString().IndexOf(sep + tag) != -1)
+                {
+                    value.Replace(sep + tag, "");
+                    return;
+                }
+            }
+            value.Replace(tag, "");
+        }
+
+        private void Replace(StringBuilder value, string tag)
+        {
+            value.Replace(tag, "*");
+        }
+
+        private void Remove(StringBuilder format, CultureInfo culture)
+        {
+            if (this is GXDate)
+            {
+                Remove(format, "HH", culture.DateTimeFormat.TimeSeparator);
+                Remove(format, "hh", culture.DateTimeFormat.TimeSeparator);
+                Remove(format, "H", culture.DateTimeFormat.TimeSeparator);
+                Remove(format, "h", culture.DateTimeFormat.TimeSeparator);
+                Remove(format, "mm", culture.DateTimeFormat.TimeSeparator);
+                Remove(format, "m", culture.DateTimeFormat.TimeSeparator);
+                Remove(format, "ss", culture.DateTimeFormat.TimeSeparator);
+                Remove(format, "tt", culture.DateTimeFormat.TimeSeparator);
+                Skip |= DateTimeSkips.Hour | DateTimeSkips.Minute | DateTimeSkips.Second | DateTimeSkips.Ms;
+            }
+            else if (this is GXTime)
+            {
+                Remove(format, "yyyy", culture.DateTimeFormat.DateSeparator);
+                Remove(format, "yy", culture.DateTimeFormat.DateSeparator);
+                Remove(format, "MM", culture.DateTimeFormat.DateSeparator);
+                Remove(format, "M", culture.DateTimeFormat.DateSeparator);
+                Remove(format, "dd", culture.DateTimeFormat.DateSeparator);
+                Remove(format, "d", culture.DateTimeFormat.DateSeparator);
+                Skip |= DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek;
+            }
+            // Trim
+            String tmp = format.ToString();
+            format.Length = 0;
+            format.Append(tmp.Trim());
         }
 
         /// <summary>
@@ -632,101 +539,97 @@ namespace Gurux.DLMS
         /// <returns>Date time as a string.</returns>
         public override string ToString()
         {
+            StringBuilder format = new StringBuilder();
             if (Skip != DateTimeSkips.None)
             {
-                System.Globalization.CultureInfo culture = System.Globalization.CultureInfo.CurrentCulture;
-#if !WINDOWS_UWP
-                string dateSeparator = culture.DateTimeFormat.DateSeparator, timeSeparator = culture.DateTimeFormat.TimeSeparator;
-                List<string> shortDatePattern = new List<string>(culture.DateTimeFormat.ShortDatePattern.Split(new string[] { dateSeparator }, StringSplitOptions.RemoveEmptyEntries));
-#else
-                //In UWP Standard Date and Time Format Strings are used.
-                string dateSeparator = Internal.GXCommon.GetDateSeparator(), timeSeparator = Internal.GXCommon.GetTimeSeparator();
-                List<string> shortDatePattern = new List<string>("yyyy-MM-dd".Split(new string[] { dateSeparator }, StringSplitOptions.RemoveEmptyEntries));
-#endif
-                List<string> shortTimePattern = new List<string>(culture.DateTimeFormat.LongTimePattern.Split(new string[] { timeSeparator, " ", "." }, StringSplitOptions.RemoveEmptyEntries));
+                System.Globalization.CultureInfo culture = CultureInfo.CurrentCulture;
+                format.Append(GetDateTimeFormat(culture));
+                Remove(format, culture);
                 if ((Skip & DateTimeSkips.Year) != 0)
                 {
-                    shortDatePattern.Remove("yyyy");
-                    shortDatePattern.Remove("yy");
+                    Remove(format, "yyyy", culture.DateTimeFormat.DateSeparator);
+                    Remove(format, "yy", culture.DateTimeFormat.DateSeparator);
                 }
                 if ((Skip & DateTimeSkips.Month) != 0)
                 {
-                    shortDatePattern.Remove("M");
-                    shortDatePattern.Remove("MM");
+                    Remove(format, "MM", culture.DateTimeFormat.DateSeparator);
+                    Remove(format, "M", culture.DateTimeFormat.DateSeparator);
                 }
-                if ((Skip & DateTimeSkips.Day) != 0 || (Extra & DateTimeExtraInfo.LastDay) != 0 || (Extra & DateTimeExtraInfo.LastDay2) != 0)
+                if ((Skip & DateTimeSkips.Day) != 0)
                 {
-                    shortDatePattern.Remove("d");
-                    shortDatePattern.Remove("dd");
+                    Remove(format, "dd", culture.DateTimeFormat.DateSeparator);
+                    Remove(format, "d", culture.DateTimeFormat.DateSeparator);
                 }
                 if ((Skip & DateTimeSkips.Hour) != 0)
                 {
-                    shortTimePattern.Remove("h");
-                    shortTimePattern.Remove("H");
-                    shortTimePattern.Remove("HH");
-                    shortTimePattern.Remove("tt");
+                    Remove(format, "HH", culture.DateTimeFormat.TimeSeparator);
+                    Remove(format, "H", culture.DateTimeFormat.TimeSeparator);
+                    Remove(format, "hh", culture.DateTimeFormat.TimeSeparator);
+                    Remove(format, "h", culture.DateTimeFormat.TimeSeparator);
+                    Remove(format, "tt", culture.DateTimeFormat.TimeSeparator);
+                }
+                if ((Skip & DateTimeSkips.Ms) != 0)
+                {
+                    Remove(format, ".fff", culture.DateTimeFormat.TimeSeparator);
+                }
+                else if (format.ToString().IndexOf(".fff") == -1)
+                {
+                    format.Replace("ss", "ss.fff");
+                }
+                if ((Skip & DateTimeSkips.Second) != 0)
+                {
+                    Remove(format, "ss", culture.DateTimeFormat.TimeSeparator);
+                }
+                else if (format.ToString().IndexOf("ss") == -1)
+                {
+                    format.Replace("mm", "mm" + culture.DateTimeFormat.TimeSeparator + "ss");
                 }
                 if ((Skip & DateTimeSkips.Minute) != 0)
                 {
-                    shortTimePattern.Remove("mm");
+                    Remove(format, "mm", culture.DateTimeFormat.TimeSeparator);
+                    Remove(format, "m", culture.DateTimeFormat.TimeSeparator);
                 }
-                if ((Skip & DateTimeSkips.Second) != 0 ||
-                    (shortTimePattern.Count == 1 && Value.Second == 0))
-                {
-                    shortTimePattern.Remove("ss");
-                }
-                string format = null;
-                if (shortDatePattern.Count != 0)
-                {
-                    format = string.Join(dateSeparator, shortDatePattern.ToArray());
-                }
-                if (shortTimePattern.Count != 0)
-                {
-                    if (format != null)
-                    {
-                        format += " ";
-                    }
-                    format += string.Join(timeSeparator, shortTimePattern.ToArray());
-                }
-                if (format == "H")
-                {
-                    return Value.Hour.ToString();
-                }
-                if (format == null)
-                {
-                    return "";
-                }
-                string str = Value.LocalDateTime.ToString(format, culture);
-                if (DayOfWeek != 0 && (Skip & DateTimeSkips.DayOfWeek) == 0)
-                {
-                    System.DayOfWeek t = (System.DayOfWeek)DayOfWeek;
-                    if (DayOfWeek == 7)
-                    {
-                        t = System.DayOfWeek.Sunday;
-                    }
-                    str = t.ToString() + " " + str;
-
-                    if ((Extra & DateTimeExtraInfo.LastDay) != 0)
-                    {
-                        str = "Last " + str;
-                    }
-                }
-                else if ((Extra & DateTimeExtraInfo.LastDay) != 0)
-                {
-                    str = "Last Day of month " + str;
-                }
-                return str;
-            }
-            if (DayOfWeek != 0)
-            {
-#if !WINDOWS_UWP
-                return Value.LocalDateTime.ToLongDateString();
-#else
-                return Value.LocalDateTime.ToString();
-#endif //!WINDOWS_UWP
+                return Value.LocalDateTime.ToString(format.ToString());
             }
             return Value.LocalDateTime.ToString();
         }
+
+        private static int GetSeconds(DateTime start, GXDateTime value)
+        {
+            int ret = 0;
+            if ((value.Skip & DateTimeSkips.Second) != 0)
+            {
+                return value.Value.Second;
+            }
+            else if ((value.Skip & DateTimeSkips.Minute) != 0)
+            {
+                ret = value.Value.Second;
+                ret -= start.Second;
+            }
+            else if ((value.Skip & DateTimeSkips.Hour) != 0)
+            {
+                ret = (60 * value.Value.Minute) + value.Value.Second;
+                ret -= (60 * start.Minute) + start.Second;
+            }
+            else if ((value.Skip & DateTimeSkips.Day) != 0)
+            {
+                ret = (60 * 60 * value.Value.Hour) + (60 * value.Value.Minute) + value.Value.Second;
+                ret -= (60 * 60 * start.Hour) + (60 * start.Minute) + start.Second;
+            }
+            else if ((value.Skip & DateTimeSkips.Month) != 0)
+            {
+                ret = 1 * ((60 * 60 * value.Value.Hour) + (60 * value.Value.Minute) + value.Value.Second);
+                ret -= 1 * ((60 * 60 * start.Hour) + (60 * start.Minute) + start.Second);
+            }
+            else if ((value.Skip & DateTimeSkips.Year) != 0)
+            {
+                DateTime tmp = value.Value.DateTime;
+                tmp = tmp.AddYears(start.Year - tmp.Year);
+                ret = (int)(tmp - start).TotalSeconds;
+            }
+            return ret;
+        }
+
 
         /// <summary>
         /// Get next schedule dates.
@@ -739,6 +642,7 @@ namespace Gurux.DLMS
             List<DateTime> list = new List<DateTime>();
             for (int pos = 0; pos != count; ++pos)
             {
+                int seconds = GetSeconds(start, value);
                 if ((value.Extra & DateTimeExtraInfo.LastDay) != 0)
                 {
                     int y = 0;
@@ -762,23 +666,93 @@ namespace Gurux.DLMS
                 }
                 else if ((value.Skip & DateTimeSkips.Second) != 0)
                 {
-                    list.Add(start.AddSeconds(pos));
+                    start = start.AddSeconds(1);
+                    list.Add(start);
                 }
                 else if ((value.Skip & DateTimeSkips.Minute) != 0)
                 {
-                    list.Add(start.AddMinutes(pos));
+                    if (pos != 0 && seconds == 0)
+                    {
+                        start = start.AddMinutes(1);
+                    }
+                    else
+                    {
+                        if (seconds < 0)
+                        {
+                            start = start.AddMinutes(1);
+                        }
+                        start = start.AddSeconds(seconds);
+                    }
+                    list.Add(start);
                 }
                 else if ((value.Skip & DateTimeSkips.Hour) != 0)
                 {
-                    list.Add(start.AddHours(pos));
+                    if (pos != 0 && seconds == 0)
+                    {
+                        start = start.AddHours(1);
+                    }
+                    else
+                    {
+                        if (seconds < 0)
+                        {
+                            start = start.AddHours(1);
+                        }
+                        start = start.AddSeconds(seconds);
+                    }
+                    list.Add(start);
                 }
                 else if ((value.Skip & DateTimeSkips.Day) != 0)
                 {
-                    list.Add(start.AddDays(pos));
+                    if (pos != 0 && seconds == 0)
+                    {
+                        start = start.AddDays(1);
+                    }
+                    else
+                    {
+                        if (seconds < 0)
+                        {
+                            start = start.AddDays(1);
+                        }
+                        start = start.AddSeconds(seconds);
+                    }
+                    list.Add(start);
                 }
                 else if ((value.Skip & DateTimeSkips.Month) != 0)
                 {
-                    list.Add(start.AddMonths(pos));
+                    if (pos != 0 && seconds == 0)
+                    {
+                        start = start.AddMonths(1);
+                    }
+                    else
+                    {
+                        if (seconds < 0)
+                        {
+                            start = start.AddMonths(1);
+                        }
+                        start = start.AddSeconds(seconds);
+                    }
+                    list.Add(start);
+                }
+                else if ((value.Skip & DateTimeSkips.Year) != 0)
+                {
+                    if (pos != 0 && seconds == 0)
+                    {
+                        start = start.AddYears(1);
+                    }
+                    else
+                    {
+                        if (seconds < 0)
+                        {
+                            start = start.AddYears(1);
+                        }
+                        start = start.AddSeconds(seconds);
+                    }
+                    list.Add(start);
+                }
+                else
+                {
+                    start = start.Add(value - start);
+                    list.Add(start);
                 }
             }
             return list.ToArray();
@@ -1020,12 +994,12 @@ namespace Gurux.DLMS
 
         uint IConvertible.ToUInt32(IFormatProvider provider)
         {
-            return (uint) GXDateTime.ToUnixTime(this.Value.DateTime);
+            return (uint)GXDateTime.ToUnixTime(this.Value.DateTime);
         }
 
         ulong IConvertible.ToUInt64(IFormatProvider provider)
         {
-            return (ulong) GXDateTime.ToUnixTime(this.Value.DateTime);
+            return (ulong)GXDateTime.ToUnixTime(this.Value.DateTime);
         }
 
         #endregion
