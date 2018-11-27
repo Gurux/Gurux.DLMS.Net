@@ -181,7 +181,10 @@ namespace Gurux.DLMS
                                       || tmp.Equals("HH") || tmp.Equals("H"))
                                 {
                                     Skip |= DateTimeSkips.Hour;
-                                    format.Replace("tt", "");
+                                    if (format.ToString().IndexOf("tt") != -1)
+                                    {
+                                        value += " " + culture.DateTimeFormat.AMDesignator;
+                                    }
                                 }
                                 else if (tmp.Equals("mm") || tmp.Equals("m"))
                                 {

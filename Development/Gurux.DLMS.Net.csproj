@@ -9,8 +9,8 @@
     <Company>Gurux Ltd</Company>
     <Authors>Gurux Ltd</Authors>
     <Copyright>Copyright (c) 1998-2018 Gurux Ltd. All rights reserved.</Copyright>
-    <PackageProjectUrl>www.gurux.fi</PackageProjectUrl>
-    <PackageLicenseUrl>http://www.gnu.org/licenses/gpl-2.0.txt</PackageLicenseUrl>
+    <PackageProjectUrl>https://www.gurux.fi</PackageProjectUrl>
+    <PackageLicenseUrl>https://www.gnu.org/licenses/gpl-2.0.txt</PackageLicenseUrl>
     <Description>Gurux DLMS library for C#</Description>
   <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">0.0.1-local</Version>
     <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
@@ -20,6 +20,7 @@
     <RepositoryUrl>https://github.com/gurux/gurux.dlms.net</RepositoryUrl>
     <PackageTags>DLMS AMR, AMI IOT</PackageTags>
     <PackageId>Gurux.DLMS</PackageId>
+    <PackageIconUrl>https://www.gurux.org/gurux.ico</PackageIconUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
