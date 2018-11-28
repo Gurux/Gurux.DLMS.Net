@@ -184,6 +184,7 @@ namespace Gurux.DLMS
                                     if (format.ToString().IndexOf("tt") != -1)
                                     {
                                         value += " " + culture.DateTimeFormat.AMDesignator;
+                                        v += " " + culture.DateTimeFormat.AMDesignator;
                                     }
                                 }
                                 else if (tmp.Equals("mm") || tmp.Equals("m"))
