@@ -32,6 +32,7 @@ Structure of XML
 In xml you describe what you want to do. Example below makes Get (read) reguest to the meter.
 You give (Interface type, OBIS code and attribute id).
 
+```
 <?xml version="1.0" encoding="utf-8"?>
 <!--Update new Firmware to the meter.-->
 <Messages>
@@ -48,6 +49,7 @@ You give (Interface type, OBIS code and attribute id).
     </GetRequestNormal>
   </GetRequest>
 </Messages>
+```
 
 You can convert DLMS bytes to xml easily. First read your meter with GXDLMSDirector or some other app. Then open [GuruxDLMSTranslator](https://www.gurux.fi/GuruxDLMSTranslator) and 
 select Messages tab. Paste sent bytes to the left side and press "To Messages" -button. Create file and copy generated xml to file ("sample1.xml")
@@ -70,6 +72,7 @@ You can read data from Gurux example server using HDLC framing and Logican name 
 Gurux.DLMS.XmlClient -h localhost -p 4061 -x "Path to the file to execute."
 
 Parameters are:
+```
 -h host name or IP address.
 -p port number or name (Example: 1000).
 -S Serial port settings (Example: COM1:9600:8None1).
@@ -83,10 +86,11 @@ Parameters are:
 -w WRAPPER profile is used. HDLC is default.
 -t [Error, Warning, Info, Verbose] Trace messages.
 -x input XML file.
+```
 
 Example:
-Gurux DLMS Xml Client TCP/IP connection:
-Gurux.DLMS.XmlClient -r LN -c 16 -s 1 -h [Meter IP Address] -p [Meter Port No]
-Gurux DLMS Xml Client using serial port connection:
-Gurux.DLMS.XmlClient -r SN -c 16 -s 1 -S COM1:9600:8None1 -i
-Gurux.DLMS.XmlClient -S COM1:9600:8None1 -c 16 -s 1 -a Low -P [password]
+Gurux DLMS Xml Client TCP/IP connection:  
+`Gurux.DLMS.XmlClient -r LN -c 16 -s 1 -h [Meter IP Address] -p [Meter Port No]`  
+Gurux DLMS Xml Client using serial port connection:  
+`Gurux.DLMS.XmlClient -r SN -c 16 -s 1 -S COM1:9600:8None1 -i`  
+`Gurux.DLMS.XmlClient -S COM1:9600:8None1 -c 16 -s 1 -a Low -P [password]`  
