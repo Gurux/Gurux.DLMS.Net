@@ -479,7 +479,7 @@ namespace Gurux.DLMS
                     Replace(format, "mm");
                     Replace(format, "m");
                 }
-                return Value.LocalDateTime.ToString(format.ToString());
+                return Value.LocalDateTime.ToString(format.ToString().Trim());
             }
             return Value.LocalDateTime.ToString(culture);
         }
