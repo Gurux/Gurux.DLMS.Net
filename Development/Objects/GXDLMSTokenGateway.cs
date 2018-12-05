@@ -390,7 +390,7 @@ namespace Gurux.DLMS.Objects
                     break;
                 case 6:
                     StatusCode = (TokenStatusCode)((object[])e.Value)[0];
-                    DataValue = (string)((object[])e.Value)[1];
+                    DataValue = Convert.ToString(((object[])e.Value)[1]);
                     break;
                 default:
                     e.Error = ErrorCode.ReadWriteDenied;

@@ -3121,6 +3121,10 @@ namespace Gurux.DLMS
                     {
                         values.Add(new GXEnum(byte.Parse(node.Attributes["Value"].Value)));
                     }
+                    else if (dt == DataType.BitString)
+                    {
+                        values.Add(new GXBitString(node.Attributes["Value"].Value));
+                    }                    
                     else
                     {
                         values.Add(Convert.ChangeType(node.Attributes["Value"].Value, GXCommon.GetDataType(dt)));

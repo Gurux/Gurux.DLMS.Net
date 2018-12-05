@@ -1006,6 +1006,47 @@ namespace Gurux.DLMS
             return (ulong)GXDateTime.ToUnixTime(this.Value.DateTime);
         }
 
-        #endregion
+        #endregion      
+
+        /// <summary>
+        /// Compare to date time.
+        /// </summary>
+        /// <param name="value">Date and time.</param>
+        /// <returns>Zero if values are equal, -1 if value is bigger and - if value is smaller.</returns>
+        public int Compare(DateTime value)
+        {
+            int ret = 0;
+            if ((Skip & Gurux.DLMS.Enums.DateTimeSkips.Year) == 0 &&
+                Value.Month != value.Year)
+            {
+                ret = Value.Month < value.Year ? -1 : 1;
+            }
+            else if ((Skip & Gurux.DLMS.Enums.DateTimeSkips.Month) == 0 &&
+                Value.Month != value.Month)
+            {
+                ret = Value.Month < value.Month ? -1 : 1;
+            }
+            else if ((Skip & Gurux.DLMS.Enums.DateTimeSkips.Day) == 0 &&
+                Value.Day != value.Day)
+            {
+                ret = Value.Day < value.Day ? -1 : 1;
+            }
+            else if ((Skip & Gurux.DLMS.Enums.DateTimeSkips.Hour) == 0 &&
+                Value.Hour != value.Hour)
+            {
+                ret = Value.Hour < value.Hour ? -1 : 1;
+            }
+            else if ((Skip & Gurux.DLMS.Enums.DateTimeSkips.Minute) == 0 &&
+                Value.Minute != value.Minute)
+            {
+                ret = Value.Minute < value.Minute ? -1 : 1;
+            }
+            else if ((Skip & Gurux.DLMS.Enums.DateTimeSkips.Second) == 0 &&
+                Value.Second != value.Second)
+            {
+                ret = Value.Second < value.Second ? -1 : 1;
+            }
+            return ret;
+        }
     }
 }

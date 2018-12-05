@@ -703,7 +703,7 @@ namespace Gurux.DLMS.Objects
                     Period = (UInt32)e.Value;
                     break;
                 case 9:
-                    ChargeConfiguration = (string)e.Value;
+                    ChargeConfiguration = Convert.ToString(e.Value);
                     break;
                 case 10:
                     LastCollectionTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);

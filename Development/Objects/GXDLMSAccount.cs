@@ -812,7 +812,6 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                             bb.SetUInt8(DataType.OctetString);
                             bb.SetUInt8(6);
                             bb.Set(GXCommon.LogicalNameToBytes(it.ChargeReference));
-
                             bb.SetUInt8(DataType.BitString);
                             bb.SetUInt8(3);
                             bb.SetUInt8(it.CollectionConfiguration);
@@ -883,16 +882,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                     CurrentCreditInUse = (byte)e.Value;
                     break;
                 case 4:
-                    if ((string)e.Value == "")
-                    {
-                        CurrentCreditStatus = (AccountCreditStatus)0;
-                    }
-                    else
-                    {
-                        GXByteBuffer bb = new GXByteBuffer();
-                        GXCommon.SetBitString(bb, e.Value, true);
-                        CurrentCreditStatus = (AccountCreditStatus)bb.GetUInt8(1);
-                    }
+                    CurrentCreditStatus = (AccountCreditStatus)Convert.ToByte(e.Value);
                     break;
                 case 5:
                     AvailableCredit = (int)e.Value;
@@ -935,16 +925,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                             GXCreditChargeConfiguration item = new GXCreditChargeConfiguration();
                             item.CreditReference = GXCommon.ToLogicalName(it[0]);
                             item.ChargeReference = GXCommon.ToLogicalName(it[1]);
-                            if ((string)it[2] == "")
-                            {
-                                item.CollectionConfiguration = 0;
-                            }
-                            else
-                            {
-                                GXByteBuffer tmp2 = new GXByteBuffer();
-                                GXCommon.SetBitString(tmp2, it[2], true);
-                                item.CollectionConfiguration = (CreditCollectionConfiguration)tmp2.GetUInt8(1);
-                            }
+                            item.CollectionConfiguration = (CreditCollectionConfiguration)Convert.ToByte(it[2]);
                             CreditChargeConfigurations.Add(item);
                         }
                     }

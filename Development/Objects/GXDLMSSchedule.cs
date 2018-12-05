@@ -216,8 +216,8 @@ namespace Gurux.DLMS.Objects
                         item.ScriptSelector = Convert.ToByte(tmp[3]);
                         item.SwitchTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[4], DataType.DateTime, settings.UseUtc2NormalTime);
                         item.ValidityWindow = Convert.ToByte(tmp[5]);
-                        item.ExecWeekdays = (string)tmp[6];
-                        item.ExecSpecDays = (string)tmp[7];
+                        item.ExecWeekdays = Convert.ToString(tmp[6]);
+                        item.ExecSpecDays = Convert.ToString(tmp[7]);
                         item.BeginDate = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[8], DataType.DateTime, settings.UseUtc2NormalTime);
                         item.EndDate = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[9], DataType.DateTime, settings.UseUtc2NormalTime);
                         Entries.Add(item);

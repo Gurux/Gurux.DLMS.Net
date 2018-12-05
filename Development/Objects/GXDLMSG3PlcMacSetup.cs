@@ -805,7 +805,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 7)
             {
-                ToneMask = (string)e.Value;
+                ToneMask = Convert.ToString(e.Value);
             }
             else if (e.Index == 8)
             {
@@ -830,11 +830,11 @@ namespace Gurux.DLMS.Objects
                         GXDLMSNeighbourTable it = new GXDLMSNeighbourTable();
                         it.ShortAddress = Convert.ToUInt16(tmp[0]);
                         it.Enabled = Convert.ToBoolean(tmp[1]);
-                        it.ToneMap = (string)tmp[2];
+                        it.ToneMap = Convert.ToString(tmp[2]);
                         it.Modulation = (Modulation)Convert.ToInt32(tmp[3]);
                         it.TxGain = Convert.ToSByte(tmp[4]);
                         it.TxRes = (GainResolution)Convert.ToInt32(tmp[5]);
-                        it.TxCoeff = (string)tmp[6];
+                        it.TxCoeff = Convert.ToString(tmp[6]);
                         it.Lqi = Convert.ToByte(tmp[7]);
                         it.PhaseDifferential = Convert.ToSByte(tmp[8]);
                         it.TMRValidTime = Convert.ToByte(tmp[9]);

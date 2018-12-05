@@ -862,7 +862,7 @@ namespace Gurux.DLMS.Objects
                     {
                         object[] tmp = (object[])v;
                         GXDLMSContextInformationTable it = new GXDLMSContextInformationTable();
-                        it.CID = (string)tmp[0];
+                        it.CID = Convert.ToString(tmp[0]);
                         it.Context = (byte[])tmp[2];
                         it.Compression = Convert.ToBoolean(tmp[3]);
                         it.ValidLifetime = Convert.ToUInt16(tmp[4]);

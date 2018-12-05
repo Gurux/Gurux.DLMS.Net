@@ -602,6 +602,10 @@ namespace Gurux.DLMS.Internal
                 {
                     ms *= 10;
                 }
+                else
+                {
+                    ms = -1;
+                }
                 value = new GXTime(hour, minute, second, ms);
             }
             catch (Exception ex)
@@ -1757,7 +1761,7 @@ namespace Gurux.DLMS.Internal
         ///<returns>
         ///Parsed bit string value.
         ///</returns>
-        private static string GetBitString(GXByteBuffer buff, GXDataInfo info)
+        private static GXBitString GetBitString(GXByteBuffer buff, GXDataInfo info)
         {
             int cnt = GetObjectCount(buff);
             double t = cnt;
@@ -1783,7 +1787,7 @@ namespace Gurux.DLMS.Internal
             {
                 info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", sb.ToString());
             }
-            return sb.ToString();
+            return new GXBitString(sb.ToString());
         }
 
         ///<summary>
@@ -2473,6 +2477,10 @@ namespace Gurux.DLMS.Internal
         ///</param>
         internal static void SetBitString(GXByteBuffer buff, object value, bool addCount)
         {
+            if (value is GXBitString)
+            {
+                value = (value as GXBitString).Value;
+            }
             if (value is string)
             {
                 byte val = 0;
@@ -2570,7 +2578,7 @@ namespace Gurux.DLMS.Internal
                 case DataType.Bcd:
                     return typeof(string);
                 case DataType.BitString:
-                    return typeof(string);
+                    return typeof(GXBitString);
                 case DataType.Boolean:
                     return typeof(bool);
                 case DataType.Date:
@@ -2687,6 +2695,10 @@ namespace Gurux.DLMS.Internal
             else if (type == typeof(GXEnum))
             {
                 return DataType.Enum;
+            }
+            else if (type == typeof(GXBitString))
+            {
+                return DataType.BitString;
             }
             else
             {

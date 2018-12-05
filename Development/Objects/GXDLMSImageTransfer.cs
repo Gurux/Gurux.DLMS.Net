@@ -514,7 +514,7 @@ namespace Gurux.DLMS.Objects
                     ImageBlockSize = Convert.ToUInt32(e.Value);
                     break;
                 case 3:
-                    ImageTransferredBlocksStatus = (string)e.Value;
+                    ImageTransferredBlocksStatus = Convert.ToString(e.Value);
                     break;
                 case 4:
                     ImageFirstNotTransferredBlockNumber = Convert.ToUInt32(e.Value);
