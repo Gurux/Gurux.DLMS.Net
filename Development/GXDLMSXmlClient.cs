@@ -271,6 +271,27 @@ namespace Gurux.DLMS
         }
     }
 
+    public class GXXmlLoadSettings
+    {
+        /// <summary>
+        /// Start date of profile Generic.
+        /// </summary>
+        public DateTime Start
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// End date of profile Generic.
+        /// </summary>
+        public DateTime End
+        {
+            get;
+            set;
+        }
+    }
+
     /// <summary>
     /// GXDLMS Xml client implements methods to communicate with DLMS/COSEM metering devices using XML.
     /// </summary>
@@ -304,7 +325,6 @@ namespace Gurux.DLMS
             }
         }
 
-
         /// <summary>
         /// Load XML commands from the file.
         /// </summary>
@@ -312,11 +332,20 @@ namespace Gurux.DLMS
         /// <returns></returns>
         public List<GXDLMSXmlPdu> Load(Stream stream)
         {
-            XmlDocument doc = new XmlDocument();
-            doc.Load(stream);
-            return Load(doc);
+            return Load(stream, null);
         }
 
+        /// <summary>
+        /// Load XML commands from the file.
+        /// </summary>
+        /// <param name="stream">Stream.</param>
+        /// <returns></returns>
+        public List<GXDLMSXmlPdu> Load(Stream stream, GXXmlLoadSettings settings)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.Load(stream);
+            return Load(doc, settings);
+        }
 
         /// <summary>
         /// Load XML commands from the file.
@@ -325,21 +354,42 @@ namespace Gurux.DLMS
         /// <returns></returns>
         public List<GXDLMSXmlPdu> Load(StreamReader stream)
         {
-            XmlDocument doc = new XmlDocument();
-            doc.Load(stream);
-            return Load(doc);
+            return Load(stream, null);
         }
 
         /// <summary>
         /// Load XML commands from the file.
         /// </summary>
-        /// <param name="fileName"></param>
+        /// <param name="stream">Stream.</param>
+        /// <returns></returns>
+        public List<GXDLMSXmlPdu> Load(StreamReader stream, GXXmlLoadSettings settings)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.Load(stream);
+            return Load(doc, settings);
+        }
+
+        /// <summary>
+        /// Load XML commands from the file.
+        /// </summary>
+        /// <param name="fileName">Name of the file.</param>
         /// <returns></returns>
         public List<GXDLMSXmlPdu> Load(string fileName)
         {
+            return Load(fileName, null);
+        }
+
+        /// <summary>
+        /// Load XML commands from the file.
+        /// </summary>
+        /// <param name="fileName">Name of the file.</param>
+        /// <param name="settings">Additional settings.</param>
+        /// <returns></returns>
+        public List<GXDLMSXmlPdu> Load(string fileName, GXXmlLoadSettings settings)
+        {
             XmlDocument doc = new XmlDocument();
             doc.Load(fileName);
-            return Load(doc);
+            return Load(doc, settings);
         }
 
         /// <summary>
@@ -349,12 +399,22 @@ namespace Gurux.DLMS
         /// <returns></returns>
         public List<GXDLMSXmlPdu> LoadXml(string xml)
         {
-            XmlDocument doc = new XmlDocument();
-            doc.LoadXml(xml);
-            return Load(doc);
+            return LoadXml(xml, null);
         }
 
-        private List<GXDLMSXmlPdu> Load(XmlDocument doc)
+        /// <summary>
+        /// Load XML commands from xml string.
+        /// </summary>
+        /// <param name="xml"></param>
+        /// <returns></returns>
+        public List<GXDLMSXmlPdu> LoadXml(string xml, GXXmlLoadSettings settings)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(xml);
+            return Load(doc, settings);
+        }
+
+        private List<GXDLMSXmlPdu> Load(XmlDocument doc, GXXmlLoadSettings settings)
         {
             //Remove comments.
             List<XmlNode> comments = new List<XmlNode>();
@@ -396,6 +456,69 @@ namespace Gurux.DLMS
                                 sleep = node.Value;
                                 continue;
                             }
+                            if (settings != null && node.Name == "GetRequest")
+                            {
+                                if (settings.Start != DateTime.MinValue && settings.End != DateTime.MinValue)
+                                {
+                                    foreach (XmlNode n1 in node.ChildNodes)
+                                    {
+                                        if (n1.Name == "GetRequestNormal")
+                                        {
+                                            foreach (XmlNode n2 in n1.ChildNodes)
+                                            {
+                                                if (n2.Name == "AccessSelection")
+                                                {
+                                                    foreach (XmlNode n3 in n2.ChildNodes)
+                                                    {
+                                                        if (n3.Name == "AccessSelector")
+                                                        {
+                                                            if (n3.Attributes["Value"].Value != "1")
+                                                            {
+                                                                break;
+                                                            }
+                                                        }
+                                                        else if (n3.Name == "AccessParameters")
+                                                        {
+                                                            foreach (XmlNode n4 in n3.ChildNodes)
+                                                            {
+                                                                if (n4.Name == "Structure")
+                                                                {
+                                                                    bool start = true;
+                                                                    foreach (XmlNode n5 in n4.ChildNodes)
+                                                                    {
+                                                                        if (n5.Name == "OctetString")
+                                                                        {
+                                                                            if (start)
+                                                                            {
+                                                                                GXByteBuffer bb = new GXByteBuffer();
+                                                                                GXCommon.SetData(this.Settings, bb, DataType.OctetString, settings.Start);
+                                                                                n5.Attributes["Value"].Value = bb.ToHex(false, 2);
+                                                                                start = false;
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                GXByteBuffer bb = new GXByteBuffer();
+                                                                                GXCommon.SetData(this.Settings, bb, DataType.OctetString, settings.End);
+                                                                                n5.Attributes["Value"].Value = bb.ToHex(false, 2);
+                                                                                break;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                                break;
+                                                            }
+                                                            break;
+                                                        }
+                                                    }
+                                                    break;
+                                                }
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
                             GXDLMSXmlSettings s = new GXDLMSXmlSettings(translator.OutputType, translator.Hex, translator.ShowStringAsHex, translator.tagsByName); ;
                             s.settings.ClientAddress = Settings.ClientAddress;
                             s.settings.ServerAddress = Settings.ServerAddress;

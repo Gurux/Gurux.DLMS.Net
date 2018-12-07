@@ -286,13 +286,13 @@ namespace Gurux.DLMS
         /// <returns>Interface type.</returns>
         public static InterfaceType GetDlmsFraming(GXByteBuffer value)
         {
-            for (int pos = value.Position; pos != value.Size; ++pos)
+            for (int pos = value.Position; pos < value.Size; ++pos)
             {
                 if (value.GetUInt8(pos) == 0x7e)
                 {
                     return InterfaceType.HDLC;
                 }
-                if (value.Available > 1 && value.GetUInt16(pos) == 1)
+                if (value.Size - pos > 1 && value.GetUInt16(pos) == 1)
                 {
                     return InterfaceType.WRAPPER;
                 }
