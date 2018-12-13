@@ -32,23 +32,18 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Gurux.DLMS.Objects;
 using Gurux.DLMS;
 using Gurux.Net;
 using Gurux.DLMS.Enums;
-using Gurux.DLMS.Objects.Enums;
-using Gurux.DLMS.Secure;
 using System.Diagnostics;
+using Gurux.Common;
 
 namespace GuruxDLMSServerExample
 {
     /// <summary>
     /// All example servers are using same objects.
     /// </summary>
-    class GXDLMSPushListener : GXDLMSNotify
+    class GXDLMSPushListener
     {
         /// <summary>
         /// Are messages traced.
@@ -71,11 +66,15 @@ namespace GuruxDLMSServerExample
         private GXReplyData data = new GXReplyData();
 
         /// <summary>
+        /// Client used to parse received data.
+        /// </summary>
+        private GXDLMSClient client = new GXDLMSClient(true, 1, 1, Authentication.None, null, InterfaceType.WRAPPER);
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="port">Port to listen.</param>
         public GXDLMSPushListener(int port)
-            : base(true, 1, 1, InterfaceType.WRAPPER)
         {
             // TODO: Must set communication specific settings.
             media = new GXNet(NetworkType.Tcp, port);
@@ -112,6 +111,30 @@ namespace GuruxDLMSServerExample
             Console.WriteLine("Client Connected.");
         }
 
+        private static void PrintData(Object value)
+        {
+            if (value is object[])
+            {
+                Console.WriteLine("+++++++++++++++++++++++++++++++++++++++++");
+                // Print received data.
+                foreach (Object it in (Object[])value)
+                {
+                    PrintData(it);
+                }
+                Console.WriteLine("+++++++++++++++++++++++++++++++++++++++++");
+            }
+            else if (value is byte[])
+            {
+                // Print value.
+                Console.WriteLine(GXCommon.ToHex((byte[]) value, true));
+            }
+            else
+            {
+                // Print value.
+                Console.WriteLine(Convert.ToString(value));
+            }
+        }
+
         /// <summary>
         /// Client has send data.
         /// </summary>
@@ -128,22 +151,20 @@ namespace GuruxDLMSServerExample
                         Console.WriteLine("<- " + Gurux.Common.GXCommon.ToHex((byte[])e.Data, true));
                     }
                     reply.Set((byte[])e.Data);
-                    GetData(reply, data);
+                    client.GetData(reply, data);
                     // If all data is received.
                     if (data.IsComplete && !data.IsMoreData)
                     {
                         try
                         {
-                            List<KeyValuePair<GXDLMSObject, int>> list;
-                            list = ParsePush((Object[])data.Value);
+                            //Show data as XML.
+                            string xml;
+                            GXDLMSTranslator t = new GXDLMSTranslator(TranslatorOutputType.SimpleXml);
+                            t.DataToXml(data.Data, out xml);
+                            Console.WriteLine(xml);
+
                             // Print received data.
-                            foreach (KeyValuePair<GXDLMSObject, int> it in list)
-                            {
-                                // Print LN.
-                                Console.WriteLine(it.Key.ToString());
-                                // Print Value.
-                                Console.WriteLine(it.Key.GetValues()[it.Value - 1]);
-                            }
+                            PrintData(data.Value);
                         }
                         catch (Exception ex)
                         {
