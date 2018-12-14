@@ -570,7 +570,7 @@ namespace Gurux.DLMS.Internal
                     else
                     {
                         // If LN
-                        if (!settings.UseLogicalNameReferencing)
+                        if (!settings.UseLogicalNameReferencing && xml == null)
                         {
                             throw new ArgumentException("Invalid VAA.");
                         }
@@ -1430,7 +1430,7 @@ namespace Gurux.DLMS.Internal
             }
         }
 
-        private static byte[] GetUserInformation(GXDLMSSettings settings, GXICipher cipher)
+        internal static byte[] GetUserInformation(GXDLMSSettings settings, GXICipher cipher)
         {
             GXByteBuffer data = new GXByteBuffer();
             // Tag for xDLMS-Initiate response

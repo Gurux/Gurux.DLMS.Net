@@ -900,7 +900,7 @@ namespace Gurux.DLMS
                 {
                     p.Owner.pdu(p.Owner, reply.Array());
                 }
-                if (ciphering && ((p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0))
+                if (p.command != Command.ReleaseRequest && ciphering && ((p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0))
                 {
                     //GBT ciphering is done for all the data, not just block.
                     byte[] tmp = Cipher0(p, reply.Array());

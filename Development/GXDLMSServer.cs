@@ -44,6 +44,7 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Secure;
 using System.Diagnostics;
 using Gurux.DLMS.Objects.Enums;
+using System.Threading;
 
 namespace Gurux.DLMS
 {
@@ -60,6 +61,14 @@ namespace Gurux.DLMS
             get;
             private set;
         }
+
+        EventWaitHandle waiting = null;
+
+        /// <summary>
+        /// List of times when last objects are executed last time.
+        /// </summary>
+        public Dictionary<GXDLMSObject, DateTime> ExecutionTimes;
+
 
         private readonly GXReplyData info = new GXReplyData();
         /// <summary>
@@ -207,6 +216,13 @@ namespace Gurux.DLMS
         /// <param name="args">Handled action requests.</param>
         protected abstract void PostAction(ValueEventArgs[] args);
 
+
+        /// <summary>
+        /// Execute selected actions
+        /// </summary>
+        /// <param name="actions">List of actions to execute.</param>
+        protected abstract void Execute(List<KeyValuePair<GXDLMSObject, int>> actions);
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -335,6 +351,7 @@ namespace Gurux.DLMS
             Settings.UseLogicalNameReferencing = logicalNameReferencing;
             Reset();
             InterfaceType = type;
+            ExecutionTimes = new Dictionary<GXDLMSObject, DateTime>();
         }
 
 
@@ -1376,12 +1393,18 @@ namespace Gurux.DLMS
             {
                 replyData.Set(0, GXCommon.LLCReplyBytes);
             }
+            byte[] tmp = GXAPDU.GetUserInformation(Settings, Settings.Cipher);
             replyData.SetUInt8(0x63);
-            //LEN.
-            replyData.SetUInt8(0x03);
+            //Len.
+            replyData.SetUInt8((byte) (tmp.Length + 3));
             replyData.SetUInt8(0x80);
             replyData.SetUInt8(0x01);
             replyData.SetUInt8(0x00);
+            replyData.SetUInt8(0xBE);
+            replyData.SetUInt8((byte)(tmp.Length + 1));
+            replyData.SetUInt8(4);
+            replyData.SetUInt8((byte)(tmp.Length));
+            replyData.Set(tmp);
         }
 
         ///<summary>
@@ -1582,6 +1605,80 @@ namespace Gurux.DLMS
                 AddData(it.Key, it.Value.AttributeIndex, buff);
             }
             return GenerateDataNotificationMessages(date, buff);
+        }
+
+        internal void TimeUpdated()
+        {
+            if (waiting != null)
+            {
+                waiting.Set();
+            }
+        }
+
+
+        /// <summary>
+        /// Run the background processes.
+        /// </summary>
+        /// <returns>Wait time before next exent is triggered.</returns>
+        public int Run(EventWaitHandle wait)
+        {
+            List<KeyValuePair<GXDLMSObject, int>> list = new List<KeyValuePair<GXDLMSObject, int>>();
+            waiting = wait;
+            DateTime now = DateTime.Now;
+            DateTime next = now.AddDays(1);
+            foreach (GXDLMSAutoConnect it in Items.GetObjects(ObjectType.AutoConnect))
+            {
+                foreach (var time in it.CallingWindow)
+                {
+                    if (time.Key.Compare(now) != 1 && time.Value.Compare(now) != -1)
+                    {
+                        if (ExecutionTimes.ContainsKey(it))
+                        {
+                            DateTime tmp = ExecutionTimes[it];
+                            if (tmp < now)
+                            {
+                                list.Add(new KeyValuePair<GXDLMSObject, int>(it, 1));
+                                ExecutionTimes[it] = now;
+                            }
+                        }
+                        else
+                        {
+                            list.Add(new KeyValuePair<GXDLMSObject, int>(it, 1));
+                            ExecutionTimes.Add(it, now);
+                        }
+                        break;
+                    }
+                    else
+                    {
+                        DateTime tmp = GXDateTime.GetNextScheduledDates(now, time.Key, 1)[0];
+                        if (tmp < next)
+                        {
+                            next = tmp;
+                        }
+                    }
+                }
+            }
+            /*
+            foreach (GXDLMSAutoConnect it in Items.GetObjects(ObjectType.AutoConnect))
+            {
+                foreach (var time in it.CallingWindow)
+                {
+                    if (time.Key.Compare(now) != 1 && time.Value.Compare(now) != -1)
+                    {
+                        DateTime tmp = GXDateTime.GetNextScheduledDates(now, time.Key, 1)[0];
+                        if (tmp < next)
+                        {
+                            next = tmp;
+                        }
+                    }
+                }
+            }
+            */
+            if (list.Count != 0)
+            {
+                Execute(list);
+            }
+            return (int)(next - now).TotalSeconds;
         }
     }
 }
