@@ -140,6 +140,8 @@ namespace Gurux.DLMS
                 String v = value;
                 if (value.IndexOf('*') != -1)
                 {
+                    //Day of week is not supported when date time is give as a string.
+                    Skip |= DateTimeSkips.DayOfWeek;
                     int lastFormatIndex = -1;
                     int offset = 0;
                     for (int pos = 0; pos < value.Length; ++pos)
@@ -458,7 +460,7 @@ namespace Gurux.DLMS
                     Replace(format, "h");
                     Remove(format, "tt", null);
                 }
-                if ((Skip & DateTimeSkips.Ms) != 0)
+                if ((Skip & DateTimeSkips.Ms) != 0 || Value.LocalDateTime.Millisecond == 0)
                 {
                     Replace(format, ".fff");
                 }

@@ -104,6 +104,16 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
+        /// Is test mode used.
+        /// </summary>
+        public bool TestMode
+        {
+            get;
+            set;
+        }
+
+
+        /// <summary>
         /// Used security.
         /// </summary>
         public Gurux.DLMS.Enums.Security Security
@@ -135,7 +145,7 @@ namespace Gurux.DLMS.Secure
             }
             set
             {
-                if (value != null && value.Length != 8 && value.Length != 0)
+                if (!TestMode && value != null && value.Length != 8 && value.Length != 0)
                 {
                     throw new ArgumentOutOfRangeException("Invalid System Title.");
                 }
@@ -154,7 +164,7 @@ namespace Gurux.DLMS.Secure
             }
             set
             {
-                if (value != null && value.Length != 16 && value.Length != 0)
+                if (!TestMode && value != null && value.Length != 16 && value.Length != 0)
                 {
                     throw new ArgumentOutOfRangeException("Invalid Block Cipher Key.");
                 }
@@ -173,7 +183,7 @@ namespace Gurux.DLMS.Secure
             }
             set
             {
-                if (value != null && value.Length != 16 && value.Length != 0)
+                if (!TestMode && value != null && value.Length != 16 && value.Length != 0)
                 {
                     throw new ArgumentOutOfRangeException("Invalid Authentication Key.");
                 }
@@ -191,7 +201,7 @@ namespace Gurux.DLMS.Secure
             }
             set
             {
-                if (value != null && value.Length != 16 && value.Length != 0)
+                if (!TestMode && value != null && value.Length != 16 && value.Length != 0)
                 {
                     throw new ArgumentOutOfRangeException("Invalid DedicatedKey Key.");
                 }

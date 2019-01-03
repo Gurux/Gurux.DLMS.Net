@@ -561,6 +561,7 @@ namespace Gurux.DLMS
                 c.BlockCipherKey = BlockCipherKey;
                 c.AuthenticationKey = AuthenticationKey;
                 c.InvocationCounter = InvocationCounter;
+                c.DedicatedKey = DedicatedKey;
                 settings.SourceSystemTitle = ServerSystemTitle;
                 settings.Cipher = c;
             }
@@ -1210,7 +1211,7 @@ namespace Gurux.DLMS
                             if (st != null)
                             {
                                 AesGcmParameter p;
-                                if (c == Command.DedGetRequest || c == Command.DedSetRequest || c == Command.DedMethodRequest)
+                                if (settings.Cipher.DedicatedKey != null && settings.Cipher.DedicatedKey.Length != 0 && (c == Command.DedGetRequest || c == Command.DedSetRequest || c == Command.DedMethodRequest))
                                 {
                                     p = new AesGcmParameter(st, settings.Cipher.DedicatedKey, settings.Cipher.AuthenticationKey);
                                 }
@@ -1218,6 +1219,7 @@ namespace Gurux.DLMS
                                 {
                                     p = new AesGcmParameter(st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
                                 }
+                                p.Xml = xml;
                                 if (p.BlockCipherKey != null)
                                 {
                                     GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
@@ -1611,6 +1613,11 @@ namespace Gurux.DLMS
                     break;
                 case (int)TranslatorGeneralTags.CalledAeInvocationId:
                     s.settings.UserId = s.ParseInt(GetValue(node, s));
+                    s.attributeDescriptor.SetUInt8(0xA5);
+                    s.attributeDescriptor.SetUInt8(03);
+                    s.attributeDescriptor.SetUInt8(BerType.Integer);
+                    s.attributeDescriptor.SetUInt8(1);
+                    s.attributeDescriptor.SetUInt8((byte)s.ParseInt(GetValue(node, s)));
                     break;
                 case (int)TranslatorGeneralTags.RespondingAeInvocationId:
                     s.settings.UserId = s.ParseInt(GetValue(node, s));
@@ -1781,7 +1788,7 @@ namespace Gurux.DLMS
                     s.attributeDescriptor.Set(tmp);
                     break;
                 case (int)TranslatorTags.CalledAPInvocationId:
-                    s.attributeDescriptor.SetUInt8(0xA6);
+                    s.attributeDescriptor.SetUInt8(0xA4);
                     s.attributeDescriptor.SetUInt8(03);
                     s.attributeDescriptor.SetUInt8(BerType.Integer);
                     s.attributeDescriptor.SetUInt8(1);
@@ -1795,7 +1802,7 @@ namespace Gurux.DLMS
                     s.attributeDescriptor.SetUInt8((byte)s.ParseInt(GetValue(node, s)));
                     break;
                 case (int)TranslatorTags.CallingApInvocationId:
-                    s.attributeDescriptor.SetUInt8(0xA4);
+                    s.attributeDescriptor.SetUInt8(0xA8);
                     s.attributeDescriptor.SetUInt8(03);
                     s.attributeDescriptor.SetUInt8(BerType.Integer);
                     s.attributeDescriptor.SetUInt8(1);

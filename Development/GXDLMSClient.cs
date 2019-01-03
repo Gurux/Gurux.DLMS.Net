@@ -549,6 +549,16 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Auto increase Invoke ID.
+        /// </summary>
+        [DefaultValue(false)]
+        public bool AutoIncreaseInvokeID
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Determines the type of the connection
         /// </summary>
         /// <remarks>
@@ -918,6 +928,14 @@ namespace Gurux.DLMS
             if (Settings.InterfaceType == InterfaceType.WRAPPER)
             {
                 Settings.Connected = ConnectionState.Dlms;
+            }
+            if (AutoIncreaseInvokeID)
+            {
+                Settings.InvokeID = 0;
+            }
+            else
+            {
+                Settings.InvokeID = 1;
             }
             return reply;
         }
@@ -1548,6 +1566,10 @@ namespace Gurux.DLMS
                 throw new ArgumentOutOfRangeException("Invalid parameter");
             }
             Settings.ResetBlockIndex();
+            if (AutoIncreaseInvokeID)
+            {
+                Settings.InvokeID = (byte)((Settings.InvokeID + 1) & 0xF);
+            }
             if (type == DataType.None && value != null)
             {
                 type = GXDLMSConverter.GetDLMSDataType(value);
@@ -1657,6 +1679,10 @@ namespace Gurux.DLMS
         private byte[][] Write2(object name, object value, DataType type, ObjectType objectType, int index)
         {
             Settings.ResetBlockIndex();
+            if (AutoIncreaseInvokeID)
+            {
+                Settings.InvokeID = (byte)((Settings.InvokeID + 1) & 0xF);
+            }
             if (type == DataType.None && value != null)
             {
                 type = GXDLMSConverter.GetDLMSDataType(value);
@@ -1719,6 +1745,10 @@ namespace Gurux.DLMS
                 throw new ArgumentException("Invalid parameter");
             }
             Settings.ResetBlockIndex();
+            if (AutoIncreaseInvokeID)
+            {
+                Settings.InvokeID = (byte)((Settings.InvokeID + 1) & 0xF);
+            }
             GXByteBuffer attributeDescriptor = new GXByteBuffer();
             byte[][] reply;
             if (UseLogicalNameReferencing)

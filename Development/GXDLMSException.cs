@@ -127,31 +127,59 @@ namespace Gurux.DLMS
         /// <returns></returns>
         static string GetDiagnostic(SourceDiagnostic diagnostic)
         {
-            if (diagnostic == SourceDiagnostic.NoReasonGiven)
+            string str;
+            switch (diagnostic)
             {
-                return "No reason is given.";
+                case SourceDiagnostic.None:
+                    str = "None";
+                    break;
+                case SourceDiagnostic.NoReasonGiven:
+                    str = "No reason is given.";
+                    break;
+                case SourceDiagnostic.ApplicationContextNameNotSupported:
+                    str = "The application context name is not supported.";
+                    break;
+                case SourceDiagnostic.CallingApTitleNotRecognized:
+                    str = "Calling AP title not recognized.";
+                    break;
+                case SourceDiagnostic.CallingApInvocationIdentifierNotRecognized:
+                    str = "The authentication mechanism name is not recognized.";
+                    break;
+                case SourceDiagnostic.CallingAeQualifierNotRecognized:
+                    str = "Calling AE qualifier not recognized.";
+                    break;
+                case SourceDiagnostic.CallingAeInvocationIdentifierNotRecognized:
+                    str = "Calling AE invocation identifier not recognized";
+                    break;
+                case SourceDiagnostic.CalledApTitleNotRecognized:
+                    str = "called AP title not recognized.";
+                    break;
+                case SourceDiagnostic.CalledApInvocationIdentifierNotRecognized:
+                    str = "Called AP invocation identifier not recognized.";
+                    break;
+                case SourceDiagnostic.CalledAeQualifierNotRecognized:
+                    str = "Called AE qualifier not recognized.";
+                    break;
+                case SourceDiagnostic.CalledAeInvocationIdentifierNotRecognized:
+                    str = "Called AE invocation identifier not recognized.";
+                    break;
+                case SourceDiagnostic.AuthenticationMechanismNameNotRecognised:
+                    str = "Authentication mechanism name not recognised.";
+                    break;
+                case SourceDiagnostic.AuthenticationMechanismNameReguired:
+                    str = "Authentication mechanism name is required.";
+                    break;
+                case SourceDiagnostic.AuthenticationFailure:
+                    str = "Authentication failure.";
+                    break;
+                case SourceDiagnostic.AuthenticationRequired:
+                    str = "Authentication is required.";
+                    break;
+                default:
+                    str = "Unknown diagnostic error.";
+                    break;
             }
-            if (diagnostic == SourceDiagnostic.ApplicationContextNameNotSupported)
-            {
-                return "The application context name is not supported.";
-            }
-            if (diagnostic == SourceDiagnostic.AuthenticationMechanismNameNotRecognised)
-            {
-                return "The authentication mechanism name is not recognized.";
-            }
-            if (diagnostic == SourceDiagnostic.AuthenticationMechanismNameReguired)
-            {
-                return "Authentication mechanism name is required.";
-            }
-            if (diagnostic == SourceDiagnostic.AuthenticationFailure)
-            {
-                return "Authentication failure.";
-            }
-            if (diagnostic == SourceDiagnostic.AuthenticationRequired)
-            {
-                return "Authentication is required.";
-            }
-            throw new InvalidOperationException();
+            return str;
         }
 
         /// <summary>

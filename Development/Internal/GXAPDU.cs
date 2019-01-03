@@ -332,7 +332,7 @@ namespace Gurux.DLMS.Internal
                 if (tag != 0)//Skip if used.
                 {
                     settings.QualityOfService = data.GetUInt8();
-                    if (len == 0 && xml != null)
+                    if (xml != null)
                     {
                         //NegotiatedQualityOfService
                         xml.AppendLine(TranslatorGeneralTags.NegotiatedQualityOfService, "Value", settings.QualityOfService.ToString());
@@ -367,10 +367,6 @@ namespace Gurux.DLMS.Internal
                                 null, GXCommon.ToHex(tmp2, false));
                     }
                 }
-                else if (settings.Cipher != null)
-                {
-                    settings.Cipher.DedicatedKey = null;
-                }
                 //Optional usage field of the negotiated quality of service component
                 tag = data.GetUInt8();
                 if (tag != 0)
@@ -390,7 +386,7 @@ namespace Gurux.DLMS.Internal
                 }
                 //Optional usage field of the proposed quality of service component
                 tag = data.GetUInt8();
-                if (tag != 0)//Skip if used.
+                if (tag != 0)
                 {
                     settings.QualityOfService = data.GetUInt8();
                     if (xml != null && xml.OutputType == TranslatorOutputType.SimpleXml)
