@@ -664,6 +664,7 @@ namespace Gurux.DLMS.Reader
             {
                 return;
             }
+            GXReplyData notify = new GXReplyData();
             reply.Error = 0;
             object eop = (byte)0x7E;
             //In network connection terminator is not used.
@@ -679,6 +680,7 @@ namespace Gurux.DLMS.Reader
                 Count = 5,
                 WaitTime = WaitTime,
             };
+            GXByteBuffer rd = new GXByteBuffer();
             lock (Media.Synchronous)
             {
                 while (!succeeded && pos != 3)
@@ -704,14 +706,30 @@ namespace Gurux.DLMS.Reader
                         System.Diagnostics.Debug.WriteLine("Data send failed. Try to resend " + pos.ToString() + "/3");
                     }
                 }
+                rd = new GXByteBuffer(p.Reply);
                 try
                 {
                     pos = 0;
                     //Loop until whole COSEM packet is received.
-                    while (!Client.GetData(p.Reply, reply))
+                    while (!Client.GetData(rd, reply, notify))
                     {
+                        p.Reply = null;
+                        if (notify.Data.Data != null)
+                        {
+                            //Handle notify.
+                            if (!notify.IsMoreData)
+                            {
+                                //Show received push message as XML.
+                                string xml;
+                                GXDLMSTranslator t = new GXDLMSTranslator(TranslatorOutputType.SimpleXml);
+                                t.DataToXml(notify.Data, out xml);
+                                Console.WriteLine(xml);
+                                notify.Clear();
+                            }
+                            continue;
+                        }
                         //If Eop is not set read one byte at time.
-                        if (p.Eop == null)
+                        else if (p.Eop == null)
                         {
                             p.Count = 1;
                         }
@@ -722,22 +740,23 @@ namespace Gurux.DLMS.Reader
                                 throw new Exception("Failed to receive reply from the device in given time.");
                             }
                             //If echo.
-                            if (p.Reply == null || p.Reply.Length == data.Length)
+                            if (rd == null || rd.Size == data.Length)
                             {
                                 Media.Send(data, null);
                             }
                             //Try to read again...
                             System.Diagnostics.Debug.WriteLine("Data send failed. Try to resend " + pos.ToString() + "/3");
                         }
+                        rd.Set(p.Reply);
                     }
                 }
                 catch (Exception ex)
                 {
-                    WriteTrace("RX:\t" + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(p.Reply, true));
+                    WriteTrace("RX:\t" + DateTime.Now.ToLongTimeString() + "\t" + rd);
                     throw ex;
                 }
             }
-            WriteTrace("RX:\t" + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(p.Reply, true));
+            WriteTrace("RX:\t" + DateTime.Now.ToLongTimeString() + "\t" + rd);
             if (reply.Error != 0)
             {
                 if (reply.Error == (short)ErrorCode.Rejected)

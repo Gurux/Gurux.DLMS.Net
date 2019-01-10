@@ -306,11 +306,24 @@ namespace Gurux.DLMS.Internal
 
         private static void GetConformance(UInt32 value, GXDLMSTranslatorStructure xml)
         {
-            foreach (var it in Enum.GetValues(typeof(Conformance)))
+            if (xml.OutputType == TranslatorOutputType.SimpleXml)
             {
-                if (((UInt32)it & value) != 0)
+                foreach (var it in Enum.GetValues(typeof(Conformance)))
                 {
-                    xml.AppendLine(TranslatorGeneralTags.ConformanceBit, "Name", it.ToString());
+                    if (((UInt32)it & value) != 0)
+                    {
+                        xml.AppendLine(TranslatorGeneralTags.ConformanceBit, "Name", it.ToString());
+                    }
+                }
+            }
+            else
+            {
+                foreach (var it in Enum.GetValues(typeof(Conformance)))
+                {
+                    if (((UInt32)it & value) != 0)
+                    {
+                        xml.Append(it.ToString() + " ");
+                    }
                 }
             }
         }
@@ -381,7 +394,7 @@ namespace Gurux.DLMS.Internal
                 {
                     if (xml != null && xml.OutputType == TranslatorOutputType.StandardXml)
                     {
-                        xml.AppendLine(TranslatorGeneralTags.ResponseAllowed, null, "true");
+                        xml.AppendLine(TranslatorTags.ResponseAllowed, null, "true");
                     }
                 }
                 //Optional usage field of the proposed quality of service component
@@ -488,7 +501,7 @@ namespace Gurux.DLMS.Internal
                 settings.NegotiatedConformance = (Conformance)v & settings.ProposedConformance;
                 if (xml != null)
                 {
-                    xml.AppendStartTag(TranslatorGeneralTags.ProposedConformance);
+                    xml.AppendStartTag((int)TranslatorGeneralTags.ProposedConformance, null, null, xml.OutputType == TranslatorOutputType.StandardXml);
                     GetConformance(v, xml);
                 }
             }
@@ -515,7 +528,7 @@ namespace Gurux.DLMS.Internal
                     }
                     else if (initiateRequest)
                     {
-                        xml.Append((int)TranslatorGeneralTags.ProposedConformance, false);
+                        xml.AppendEndTag(TranslatorGeneralTags.ProposedConformance, true);
                     }
                     // ProposedMaxPduSize
                     xml.AppendLine(TranslatorGeneralTags.ProposedMaxPduSize,

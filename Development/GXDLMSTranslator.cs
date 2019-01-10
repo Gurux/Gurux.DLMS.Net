@@ -339,7 +339,7 @@ namespace Gurux.DLMS
                     {
                         pos = data.Position;
                         settings.InterfaceType = Enums.InterfaceType.HDLC;
-                        found = GXDLMS.GetData(settings, data, reply, null);
+                        found = GXDLMS.GetData(settings, data, reply, null, null);
                         data.Position = pos;
                         if (found)
                         {
@@ -350,7 +350,7 @@ namespace Gurux.DLMS
                     {
                         pos = data.Position;
                         settings.InterfaceType = Enums.InterfaceType.WRAPPER;
-                        found = GXDLMS.GetData(settings, data, reply, null);
+                        found = GXDLMS.GetData(settings, data, reply, null, null);
                         data.Position = pos;
                         if (found)
                         {
@@ -361,7 +361,7 @@ namespace Gurux.DLMS
                     {
                         pos = data.Position;
                         settings.InterfaceType = Enums.InterfaceType.WirelessMBus;
-                        found = GXDLMS.GetData(settings, data, reply, null);
+                        found = GXDLMS.GetData(settings, data, reply, null, null);
                         data.Position = pos;
                         if (found)
                         {
@@ -405,7 +405,7 @@ namespace Gurux.DLMS
                 {
                     pos = data.Position;
                     settings.InterfaceType = Enums.InterfaceType.HDLC;
-                    found = GXDLMS.GetData(settings, data, reply, null);
+                    found = GXDLMS.GetData(settings, data, reply, null, null);
                     data.Position = pos;
                     if (found)
                     {
@@ -416,7 +416,7 @@ namespace Gurux.DLMS
                 {
                     pos = data.Position;
                     settings.InterfaceType = Enums.InterfaceType.WRAPPER;
-                    found = GXDLMS.GetData(settings, data, reply, null);
+                    found = GXDLMS.GetData(settings, data, reply, null, null);
                     data.Position = pos;
                     if (found)
                     {
@@ -517,7 +517,7 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentNullException("Invalid DLMS framing.");
             }
-            GXDLMS.GetData(settings, value, data, null);
+            GXDLMS.GetData(settings, value, data, null, null);
             //Only fully PDUs are returned.
             if (data.IsMoreData)
             {
@@ -733,7 +733,7 @@ namespace Gurux.DLMS
                 if (value.GetUInt8(value.Position) == 0x7e)
                 {
                     settings.InterfaceType = Enums.InterfaceType.HDLC;
-                    if (GXDLMS.GetData(settings, value, data, null))
+                    if (GXDLMS.GetData(settings, value, data, null, null))
                     {
                         if (!PduOnly)
                         {
@@ -828,7 +828,7 @@ namespace Gurux.DLMS
                 if (value.GetUInt16(value.Position) == 1)
                 {
                     settings.InterfaceType = Enums.InterfaceType.WRAPPER;
-                    GXDLMS.GetData(settings, value, data, null);
+                    GXDLMS.GetData(settings, value, data, null, null);
                     if (!PduOnly)
                     {
                         xml.AppendLine("<WRAPPER len=\"" + (data.PacketLength - offset).ToString("X") + "\" >");
@@ -883,7 +883,7 @@ namespace Gurux.DLMS
                 {
                     settings.InterfaceType = Enums.InterfaceType.WirelessMBus;
                     int len = xml.GetXmlLength();
-                    GXDLMS.GetData(settings, value, data, null);
+                    GXDLMS.GetData(settings, value, data, null, null);
                     string tmp = xml.ToString().Substring(len);
                     xml.SetXmlLength(len);
                     if (!PduOnly)

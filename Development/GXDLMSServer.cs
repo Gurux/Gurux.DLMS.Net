@@ -868,7 +868,7 @@ namespace Gurux.DLMS
                     bool first = Settings.ServerAddress == 0 && Settings.ClientAddress == 0;
                     try
                     {
-                        GXDLMS.GetData(Settings, receivedData, info, null);
+                        GXDLMS.GetData(Settings, receivedData, info, null, null);
                     }
                     catch (Exception)
                     {

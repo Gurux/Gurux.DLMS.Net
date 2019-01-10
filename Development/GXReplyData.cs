@@ -253,9 +253,9 @@ namespace Gurux.DLMS
         /// Client address of the notification message.
         /// </summary>
         /// <remarks>
-        /// Nofification message sets this. 
+        /// Notification message sets this. 
         /// </remarks>
-        public byte ClientAddress
+        public int ClientAddress
         {
             get;
             set;
@@ -265,7 +265,7 @@ namespace Gurux.DLMS
         /// Server address of the notification message.
         /// </summary>
         /// <remarks>
-        /// Nofification message sets this. 
+        /// Notification message sets this. 
         /// </remarks>
         public int ServerAddress
         {

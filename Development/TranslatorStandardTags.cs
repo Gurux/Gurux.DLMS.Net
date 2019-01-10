@@ -59,7 +59,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, Command.InitiateResponse,
                                     "InitiateResponse");
             GXDLMSTranslator.AddTag(list, Command.InitiateRequest,
-                                    "user-information");
+                                    "initiateRequest");
             GXDLMSTranslator.AddTag(list,
                                     TranslatorGeneralTags.NegotiatedQualityOfService,
                                     "negotiated-quality-of-service");
@@ -123,6 +123,9 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.RespondingAPTitle,
                                     "RespondingAPTitle");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.CharString, "charstring");
+            GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.DedicatedKey, "dedicated-key");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.ResponseAllowed, "response-allowed");
+            GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.UserInformation, "user-information");
 
             GXDLMSTranslator.AddTag(list, Command.ConfirmedServiceError, "confirmedServiceError");
             GXDLMSTranslator.AddTag(list, Command.InformationReport, "InformationReport");
@@ -365,10 +368,10 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorTags.AccessParameters,
                                     "access-parameters");
             GXDLMSTranslator.AddTag(list, TranslatorTags.AttributeDescriptorList,
-                                    "AttributeDescriptorList");
+                                    "attribute-descriptor-list");
             GXDLMSTranslator.AddTag(list,
                                     TranslatorTags.AttributeDescriptorWithSelection,
-                                    "AttributeDescriptorWithSelection");
+                                    "Cosem-Attribute-Descriptor-With-Selection");
             GXDLMSTranslator.AddTag(list, TranslatorTags.ReadDataBlockAccess,
                                     "ReadDataBlockAccess");
             GXDLMSTranslator.AddTag(list, TranslatorTags.WriteDataBlockAccess,

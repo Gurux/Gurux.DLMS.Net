@@ -194,7 +194,24 @@ namespace Gurux.DLMS
         ///</returns>
         public bool GetData(GXByteBuffer reply, GXReplyData data)
         {
-            return GXDLMS.GetData(Settings, reply, data, null);
+            return GXDLMS.GetData(Settings, reply, data, null, null);
+        }
+
+        ///<summary>
+        /// Removes the HDLC frame from the packet, and returns COSEM data only.
+        ///</summary>
+        ///<param name="reply">
+        /// The received data from the device. 
+        ///</param>
+        ///<param name="data">
+        /// Information from the received data. 
+        ///</param>
+        ///<returns>
+        /// Is frame complete.
+        ///</returns>
+        public bool GetData(GXByteBuffer reply, GXReplyData data, GXReplyData notify)
+        {
+            return GXDLMS.GetData(Settings, reply, data, notify, null);
         }
 
         /// <summary>

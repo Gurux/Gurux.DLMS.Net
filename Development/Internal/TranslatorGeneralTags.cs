@@ -58,7 +58,6 @@ namespace Gurux.DLMS.Internal
         ACSEServiceUser = 0xA301,
         CallingAPTitle = 0xA6,
         RespondingAPTitle = 0xA4,
-        ResponseAllowed = 0xA4,
         DedicatedKey = 0xA8,
         CallingAeInvocationId = 0xA9,
         CalledAeInvocationId = 0xA5,

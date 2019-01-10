@@ -1210,14 +1210,53 @@ namespace Gurux.DLMS
             Settings.Objects = objects;
             Settings.Objects.Parent = this;
             return objects;
+        }       
+
+        /// <summary>
+        /// Returns collection of push objects.
+        /// </summary>
+        /// <param name="data">Received data.</param>
+        /// <returns>Array of objects and called indexes.</returns>
+        public List<KeyValuePair<GXDLMSObject, int>> ParsePushObjects(object[] data)
+        {
+            List<KeyValuePair<GXDLMSObject, int>> objects = new List<KeyValuePair<GXDLMSObject, int>>();
+            if (data != null)
+            {
+                GXDLMSConverter c = new GXDLMSConverter(Standard);
+                foreach (object it in (object[])data)
+                {
+                    Object[] tmp = (Object[])it;
+                    int classID = ((UInt16)(tmp[0])) & 0xFFFF;
+                    if (classID > 0)
+                    {
+                        GXDLMSObject comp;
+                        comp = this.Objects.FindByLN((ObjectType)classID, GXCommon.ToLogicalName(tmp[1] as byte[]));
+                        if (comp == null)
+                        {
+                            comp = GXDLMSClient.CreateDLMSObject(classID, 0, 0, tmp[1], null);
+                            c.UpdateOBISCodeInformation(comp);
+                        }
+                        if ((comp is IGXDLMSBase))
+                        {
+                            objects.Add(new KeyValuePair<GXDLMSObject, int>(comp, (sbyte)tmp[2]));
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine(string.Format("Unknown object : {0} {1}",
+                                classID, GXCommon.ToLogicalName((byte[])tmp[1])));
+                        }
+                    }
+                }               
+            }
+            return objects;
         }
 
         /// <summary>
         /// Reserved for internal use.
         /// </summary>
         GXDLMSObjectCollection ParseLNObjects(
-            GXByteBuffer buff,
-            bool onlyKnownObjects)
+        GXByteBuffer buff,
+        bool onlyKnownObjects)
         {
             byte size = buff.GetUInt8();
             //Check that data is in the array.
@@ -2174,22 +2213,25 @@ namespace Gurux.DLMS
             return GXDLMS.ReceiverReady(Settings, type);
         }
 
-        ///<summary>
-        /// Removes the frame from the packet, and returns DLMS PDU.
-        ///</summary>
-        ///<param name="reply">
-        /// The received data from the device.
-        ///</param>
-        ///<param name="data">
-        /// Information from the received data.
-        ///</param>
-        ///<returns>
-        /// Is frame complete.
-        ///</returns>
+        ///<summary>Removes the frame from the packet, and returns DLMS PDU.</summary>
+        ///<param name="reply">The received data from the device.</param>
+        ///<param name="data">Information from the received data.</param>
+        ///<returns>Is frame complete.</returns>
+        [Obsolete("Use GetData with notify parameter instead.")]
         public bool GetData(byte[] reply, GXReplyData data)
         {
             return GetData(new GXByteBuffer(reply), data);
         }
+
+        ///<summary>Removes the frame from the packet, and returns DLMS PDU.</summary>
+        ///<param name="reply">The received data from the device.</param>
+        ///<param name="data">Information from the received data.</param>
+        ///<returns>Is frame complete.</returns>
+        public bool GetData(byte[] reply, GXReplyData data, GXReplyData notify)
+        {
+            return GetData(new GXByteBuffer(reply), data, notify);
+        }
+
         ///<summary>
         ///Removes the HDLC frame from the packet, and returns COSEM data only.
         ///</summary>
@@ -2202,14 +2244,27 @@ namespace Gurux.DLMS
         ///<returns>
         /// Is frame complete.
         ///</returns>
+        [Obsolete("Use GetData with notify parameter instead.")]
         public virtual bool GetData(GXByteBuffer reply, GXReplyData data)
+        {
+            return GetData(reply, data, null);
+        }
+
+        ///<summary>
+        ///Removes the HDLC frame from the packet, and returns COSEM data only.
+        ///</summary>
+        ///<param name="reply">The received data from the device.</param>
+        ///<param name="data">The exported reply information.</param>
+        ///<param name="notify">Optional notify data.</param>
+        ///<returns>Is frame complete.</returns>
+        public virtual bool GetData(GXByteBuffer reply, GXReplyData data, GXReplyData notify)
         {
             data.Xml = null;
             bool ret = false;
             Command cmd = data.Command;
             try
             {
-                ret = GXDLMS.GetData(Settings, reply, data, this);
+                ret = GXDLMS.GetData(Settings, reply, data, notify, this);
             }
             catch (Exception ex)
             {

@@ -37,6 +37,9 @@ using Gurux.Net;
 using Gurux.DLMS.Enums;
 using System.Diagnostics;
 using Gurux.Common;
+using System.Text;
+using System.Collections.Generic;
+using Gurux.DLMS.Objects;
 
 namespace GuruxDLMSServerExample
 {
@@ -63,12 +66,12 @@ namespace GuruxDLMSServerExample
         /// <summary>
         /// Received data. This is used if GBT is used and data is received on several data blocks.
         /// </summary>
-        private GXReplyData data = new GXReplyData();
+        private GXReplyData notify = new GXReplyData();
 
         /// <summary>
         /// Client used to parse received data.
         /// </summary>
-        private GXDLMSClient client = new GXDLMSClient(true, 1, 1, Authentication.None, null, InterfaceType.WRAPPER);
+        private GXDLMSClient client = new GXDLMSClient(true, -1, -1, Authentication.None, null, InterfaceType.WRAPPER);
 
         /// <summary>
         /// Constructor.
@@ -111,27 +114,31 @@ namespace GuruxDLMSServerExample
             Console.WriteLine("Client Connected.");
         }
 
-        private static void PrintData(Object value)
+        private static void PrintData(Object value, int offset)
         {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(' ', 2 * offset);
             if (value is object[])
             {
-                Console.WriteLine("+++++++++++++++++++++++++++++++++++++++++");
+                Console.WriteLine(sb + "{");
+                ++offset;
                 // Print received data.
                 foreach (Object it in (Object[])value)
                 {
-                    PrintData(it);
+                    PrintData(it, offset);
                 }
-                Console.WriteLine("+++++++++++++++++++++++++++++++++++++++++");
+                Console.WriteLine(sb + "}");
+                --offset;
             }
             else if (value is byte[])
             {
                 // Print value.
-                Console.WriteLine(GXCommon.ToHex((byte[]) value, true));
+                Console.WriteLine(sb + GXCommon.ToHex((byte[])value, true));
             }
             else
             {
                 // Print value.
-                Console.WriteLine(Convert.ToString(value));
+                Console.WriteLine(sb + Convert.ToString(value));
             }
         }
 
@@ -151,20 +158,41 @@ namespace GuruxDLMSServerExample
                         Console.WriteLine("<- " + Gurux.Common.GXCommon.ToHex((byte[])e.Data, true));
                     }
                     reply.Set((byte[])e.Data);
-                    client.GetData(reply, data);
+                    //Example handles only notify messages.
+                    GXReplyData data = new GXReplyData();
+                    client.GetData(reply, data, notify);
                     // If all data is received.
-                    if (data.IsComplete && !data.IsMoreData)
+                    if (notify.IsComplete && !notify.IsMoreData)
                     {
                         try
                         {
                             //Show data as XML.
                             string xml;
                             GXDLMSTranslator t = new GXDLMSTranslator(TranslatorOutputType.SimpleXml);
-                            t.DataToXml(data.Data, out xml);
+                            t.DataToXml(notify.Data, out xml);
                             Console.WriteLine(xml);
 
                             // Print received data.
-                            PrintData(data.Value);
+                            PrintData(notify.Value, 0);
+
+                            //Example is sending list of push messages in first parameter.
+                            if (notify.Value is object[])
+                            {
+                                object[] tmp = notify.Value as object[];
+                                List<KeyValuePair<GXDLMSObject, int>> objects = client.ParsePushObjects((object[])tmp[0]);
+                                //Remove first item because it's not needed anymore.
+                                objects.RemoveAt(0);
+                                //Update clock.
+                                int Valueindex = 1;
+                                foreach (KeyValuePair<GXDLMSObject, int> it in objects)
+                                {
+                                    client.UpdateValue(it.Key, it.Value, tmp[Valueindex]);
+                                    ++Valueindex;
+                                    //Print value
+                                    Console.WriteLine(it.Key.ObjectType + " " + it.Key.LogicalName + " " + it.Value + ":" + it.Key.GetValues()[it.Value - 1]);
+                                }
+                            }
+                            Console.WriteLine("Server address:" + notify.ServerAddress + " Client Address:" + notify.ClientAddress);
                         }
                         catch (Exception ex)
                         {
@@ -172,7 +200,7 @@ namespace GuruxDLMSServerExample
                         }
                         finally
                         {
-                            data.Clear();
+                            notify.Clear();
                         }
                     }
                 }

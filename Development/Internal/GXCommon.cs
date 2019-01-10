@@ -1813,7 +1813,7 @@ namespace Gurux.DLMS.Internal
             byte value = buff.GetUInt8();
             if (info.xml != null)
             {
-                info.xml.AppendLine(GXDLMS.DATA_TYPE_OFFSET + (int)info.Type, "Value", value != 0 ? "true" : "false");
+                info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", value != 0 ? "true" : "false");
             }
             return value != 0;
         }

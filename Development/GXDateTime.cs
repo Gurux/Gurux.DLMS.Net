@@ -231,7 +231,7 @@ namespace Gurux.DLMS
                         }
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     try
                     {
@@ -242,7 +242,7 @@ namespace Gurux.DLMS
                         Value = DateTime.ParseExact(v, format.ToString().Trim(), culture);
                         Skip |= DateTimeSkips.Ms;
                     }
-                    catch (Exception e1)
+                    catch (Exception)
                     {
                         try
                         {

@@ -51,7 +51,7 @@ namespace GuruxDLMSServerExample
             {
                 int port = 4059;
                 GXNet media = new GXNet(NetworkType.Tcp, "localhost", port);
-                GXDLMSNotify cl = new GXDLMSNotify(true, 1, 1, InterfaceType.WRAPPER);
+                GXDLMSNotify cl = new GXDLMSNotify(true, 16, 1, InterfaceType.WRAPPER);
                 GXDLMSPushSetup p = new GXDLMSPushSetup();
                 GXDLMSClock clock = new GXDLMSClock();
                 p.PushObjectList.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(p, new GXDLMSCaptureObject(2, 0)));

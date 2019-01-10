@@ -1589,7 +1589,7 @@ namespace Gurux.DLMS
             }
         }
 
-        static byte GetHdlcData(bool server, GXDLMSSettings settings, GXByteBuffer reply, GXReplyData data)
+        static byte GetHdlcData(bool server, GXDLMSSettings settings, GXByteBuffer reply, GXReplyData data, GXReplyData notify)
         {
             short ch;
             int pos, packetStartID = reply.Position, frameLen = 0;
@@ -1601,6 +1601,11 @@ namespace Gurux.DLMS
                 return 0;
             }
             data.IsComplete = true;
+            if (notify != null)
+            {
+                notify.IsComplete = true;
+            }
+            bool isNotify = false;
             // Find start of HDLC frame.
             for (pos = reply.Position; pos < reply.Size; ++pos)
             {
@@ -1616,6 +1621,10 @@ namespace Gurux.DLMS
             if (reply.Position == reply.Size)
             {
                 data.IsComplete = false;
+                if (notify != null)
+                {
+                    notify.IsComplete = false;
+                }
                 // Not enough data to parse;
                 return 0;
             }
@@ -1623,7 +1632,7 @@ namespace Gurux.DLMS
             if ((frame & 0xF0) != 0xA0)
             {
                 --reply.Position;
-                return GetHdlcData(server, settings, reply, data);
+                return GetHdlcData(server, settings, reply, data, notify);
             }
             // Check frame length.
             if ((frame & 0x7) != 0)
@@ -1645,7 +1654,7 @@ namespace Gurux.DLMS
             if (ch != GXCommon.HDLCFrameStartEnd)
             {
                 reply.Position -= 2;
-                return GetHdlcData(server, settings, reply, data);
+                return GetHdlcData(server, settings, reply, data, notify);
             }
 
             // Check addresses.
@@ -1667,30 +1676,45 @@ namespace Gurux.DLMS
                 {
                     //If echo.
                     reply.Position = 1 + eopPos;
-                    return GetHdlcData(server, settings, reply, data);
+                    return GetHdlcData(server, settings, reply, data, notify);
                 }
-                else
+                else if (notify != null)
                 {
-                    data.ClientAddress = (byte)target;
-                    data.ServerAddress = source;
+                    isNotify = true;
+                    notify.ClientAddress = (byte)target;
+                    notify.ServerAddress = source;
                 }
             }
 
             // Is there more data available.
             if ((frame & 0x8) != 0)
             {
-                data.MoreData = (RequestTypes)(data.MoreData | RequestTypes.Frame);
+                if (isNotify)
+                {
+                    notify.MoreData = (RequestTypes)(notify.MoreData | RequestTypes.Frame);
+                }
+                else
+                {
+                    data.MoreData = (RequestTypes)(data.MoreData | RequestTypes.Frame);
+                }
             }
             else
             {
-                data.MoreData = (RequestTypes)(data.MoreData & ~RequestTypes.Frame);
+                if (isNotify)
+                {
+                    notify.MoreData = (RequestTypes)(notify.MoreData & ~RequestTypes.Frame);
+                }
+                else
+                {
+                    data.MoreData = (RequestTypes)(data.MoreData & ~RequestTypes.Frame);
+                }
             }
             // Get frame type.
             frame = reply.GetUInt8();
             if (data.Xml == null && !settings.CheckFrame(frame))
             {
                 reply.Position = (eopPos + 1);
-                return GetHdlcData(server, settings, reply, data);
+                return GetHdlcData(server, settings, reply, data, notify);
             }
             // Check that header CRC is correct.
             crc = GXFCS16.CountFCS16(reply.Data, packetStartID + 1, reply.Position - packetStartID - 1);
@@ -1699,7 +1723,7 @@ namespace Gurux.DLMS
             {
                 if (reply.Size - reply.Position > 8)
                 {
-                    return GetHdlcData(server, settings, reply, data);
+                    return GetHdlcData(server, settings, reply, data, notify);
                 }
                 throw new Exception("Wrong CRC.");
             }
@@ -1714,11 +1738,25 @@ namespace Gurux.DLMS
                     throw new Exception("Wrong CRC.");
                 }
                 // Remove CRC and EOP from packet length.
-                data.PacketLength = eopPos - 2;
+                if (isNotify)
+                {
+                    notify.PacketLength = eopPos - 2;
+                }
+                else
+                {
+                    data.PacketLength = eopPos - 2;
+                }
             }
             else
             {
-                data.PacketLength = reply.Position + 1;
+                if (isNotify)
+                {
+                    notify.PacketLength = reply.Position + 1;
+                }
+                else
+                {
+                    data.PacketLength = reply.Position + 1;
+                }
             }
 
             if (frame != 0x13 && (frame & (byte)HdlcFrameType.Uframe) == (byte)HdlcFrameType.Uframe)
@@ -1900,16 +1938,18 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
         /// <param name="buff">Received data.</param>
-        /// <param name="data"> Reply information.</param>
-        static void GetTcpData(GXDLMSSettings settings,
-                               GXByteBuffer buff, GXReplyData data)
+        /// <param name="data">Reply information.</param>
+        /// <param name="notify">Notify information.</param>
+        static bool GetTcpData(GXDLMSSettings settings,
+                               GXByteBuffer buff, GXReplyData data, GXReplyData notify)
         {
             // If whole frame is not received yet.
             if (buff.Size - buff.Position < 8)
             {
                 data.IsComplete = false;
-                return;
+                return true;
             }
+            bool isData = true;
             int pos = buff.Position;
             int value;
             data.IsComplete = false;
@@ -1920,7 +1960,11 @@ namespace Gurux.DLMS
                 if (value == 1)
                 {
                     // Check TCP/IP addresses.
-                    CheckWrapperAddress(settings, buff);
+                    if (!CheckWrapperAddress(settings, buff, notify))
+                    {
+                        data = notify;
+                        isData = false;
+                    }
                     // Get length.
                     value = buff.GetUInt16();
                     data.IsComplete = !((buff.Size - buff.Position) < value);
@@ -1939,6 +1983,7 @@ namespace Gurux.DLMS
                     --buff.Position;
                 }
             }
+            return isData;
         }
 
         /// <summary>
@@ -2056,8 +2101,9 @@ namespace Gurux.DLMS
             return true;
         }
 
-        private static void CheckWrapperAddress(GXDLMSSettings settings, GXByteBuffer buff)
+        private static bool CheckWrapperAddress(GXDLMSSettings settings, GXByteBuffer buff, GXReplyData notify)
         {
+            bool ret = true;
             int value;
             if (settings.IsServer)
             {
@@ -2066,11 +2112,9 @@ namespace Gurux.DLMS
                 if (settings.ClientAddress != 0
                         && settings.ClientAddress != value)
                 {
-                    throw new GXDLMSException(
-                        "Source addresses do not match. It is "
+                    throw new Exception("Source addresses do not match. It is "
                         + value.ToString() + ". It should be "
-                        + settings.ClientAddress.ToString()
-                        + ".");
+                        + settings.ClientAddress.ToString());
                 }
                 else
                 {
@@ -2082,11 +2126,10 @@ namespace Gurux.DLMS
                 if (settings.ServerAddress != 0
                         && settings.ServerAddress != value)
                 {
-                    throw new GXDLMSException(
-                        "Destination addresses do not match. It is "
-                        + value.ToString() + ". It should be "
-                        + settings.ServerAddress.ToString()
-                        + ".");
+                    throw new Exception("Destination addresses do not match. It is "
+                    + value.ToString() + ". It should be "
+                    + settings.ServerAddress.ToString()
+                    + ".");
                 }
                 else
                 {
@@ -2100,12 +2143,15 @@ namespace Gurux.DLMS
                 if (settings.ServerAddress != 0
                         && settings.ServerAddress != value)
                 {
-                    throw new GXDLMSException(
-                        "Source addresses do not match. It is "
+                    if (notify == null)
+                    {
+                        throw new Exception("Source addresses do not match. It is "
                         + value.ToString() + ". It should be "
                         + settings.ServerAddress.ToString()
                         + ".");
-
+                    }
+                    notify.ServerAddress = value;
+                    ret = false;
                 }
                 else
                 {
@@ -2117,17 +2163,21 @@ namespace Gurux.DLMS
                 if (settings.ClientAddress != 0
                         && settings.ClientAddress != value)
                 {
-                    throw new GXDLMSException(
-                        "Destination addresses do not match. It is "
+                    if (notify == null)
+                    {
+                        throw new Exception("Destination addresses do not match. It is "
                         + value.ToString() + ". It should be "
-                        + settings.ClientAddress.ToString()
-                        + ".");
+                        + settings.ClientAddress.ToString() + ".");
+                    }
+                    ret = false;
+                    notify.ClientAddress = value;
                 }
                 else
                 {
                     settings.ClientAddress = value;
                 }
             }
+            return ret;
         }
 
         /// <summary>
@@ -2226,6 +2276,7 @@ namespace Gurux.DLMS
             {
                 reply.Xml.AppendStartTag(Command.ReadResponse, "Qty", reply.Xml.IntegerToHex(cnt, 2));
             }
+            bool standardXml = reply.Xml != null && reply.Xml.OutputType == TranslatorOutputType.StandardXml;
             for (pos = 0; pos != cnt; ++pos)
             {
                 if (reply.Data.Available == 0)
@@ -2249,7 +2300,6 @@ namespace Gurux.DLMS
                 {
                     type = (SingleReadResponse)reply.CommandType;
                 }
-                bool standardXml = reply.Xml != null && reply.Xml.OutputType == TranslatorOutputType.StandardXml;
                 switch (type)
                 {
                     case SingleReadResponse.Data:
@@ -3057,9 +3107,11 @@ namespace Gurux.DLMS
             }
         }
 
-        private static void HandledGloDedResponse(GXDLMSSettings settings,
-                                               GXReplyData data, int index
-            , GXDLMSClient client)
+        private static void HandledGloDedResponse(
+            GXDLMSSettings settings,
+            GXReplyData data,
+            int index,
+            GXDLMSClient client)
         {
             if (data.Xml != null)
             {
@@ -3617,18 +3669,28 @@ namespace Gurux.DLMS
         }
 
         public static bool GetData(GXDLMSSettings settings,
-                                   GXByteBuffer reply, GXReplyData data, GXDLMSClient client)
+                                   GXByteBuffer reply, GXReplyData data, GXReplyData notify, GXDLMSClient client)
         {
             byte frame = 0;
+            bool isNotify = false;
             // If DLMS frame is generated.
             if (settings.InterfaceType == InterfaceType.HDLC)
             {
-                frame = GetHdlcData(settings.IsServer, settings, reply, data);
+                frame = GetHdlcData(settings.IsServer, settings, reply, data, notify);
+                if (notify != null && frame == 0x13)
+                {
+                    data = notify;
+                    isNotify = true;
+                }
                 data.FrameId = frame;
             }
             else if (settings.InterfaceType == InterfaceType.WRAPPER)
             {
-                GetTcpData(settings, reply, data);
+                if (!GetTcpData(settings, reply, data, notify))
+                {
+                    data = notify;
+                    isNotify = true;
+                }
             }
             else if (settings.InterfaceType == InterfaceType.WirelessMBus)
             {
@@ -3643,15 +3705,16 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentException("Invalid Interface type.");
             }
+            bool moreData;
             // If all data is not read yet.
             if (!data.IsComplete)
             {
                 return false;
             }
-
             GetDataFromFrame(reply, data);
+            moreData = data.IsMoreData;
             // If keepalive or get next frame request.
-            if (data.Xml != null || ((frame != 0x13) && (frame & 0x1) != 0))
+            if (data.Xml != null || ((frame != 0x13 || moreData) && (frame & 0x1) != 0))
             {
                 if (settings.InterfaceType == InterfaceType.HDLC && (data.Error == (int)ErrorCode.Rejected || data.Data.Size != 0))
                 {
@@ -3664,6 +3727,10 @@ namespace Gurux.DLMS
                 return true;
             }
             GetPdu(settings, data, client);
+            if (isNotify)
+            {
+                return false;
+            }
             return true;
         }
 
