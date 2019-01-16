@@ -712,6 +712,14 @@ namespace Gurux.DLMS
             GXByteBuffer buff = new GXByteBuffer(20);
             GXDLMS.CheckInit(Settings);
             Settings.StoCChallenge = null;
+            if (AutoIncreaseInvokeID)
+            {
+                Settings.InvokeID = 0;
+            }
+            else
+            {
+                Settings.InvokeID = 1;
+            }
             //If High authentication is used.
             if (Authentication > Authentication.Low)
             {
@@ -763,7 +771,6 @@ namespace Gurux.DLMS
             try
             {
                 IsAuthenticationRequired = GXAPDU.ParsePDU(Settings, Settings.Cipher, reply, null) == SourceDiagnostic.AuthenticationRequired;
-                //Some meters need disconnect even authentication is required.
                 if (IsAuthenticationRequired)
                 {
                     System.Diagnostics.Debug.WriteLine("Authentication is required.");
@@ -925,18 +932,7 @@ namespace Gurux.DLMS
             {
                 reply = GXDLMS.GetSnMessages(new GXDLMSSNParameters(Settings, Command.ReleaseRequest, 0xFF, 0xFF, null, buff));
             }
-            if (Settings.InterfaceType == InterfaceType.WRAPPER)
-            {
-                Settings.Connected = ConnectionState.Dlms;
-            }
-            if (AutoIncreaseInvokeID)
-            {
-                Settings.InvokeID = 0;
-            }
-            else
-            {
-                Settings.InvokeID = 1;
-            }
+            Settings.Connected &= ~ConnectionState.Dlms;            
             return reply;
         }
         /// <summary>
@@ -2615,6 +2611,27 @@ namespace Gurux.DLMS
                 throw new Exception("This method can be used only to generate HDLC custom frames");
             }
             return GXDLMS.GetHdlcFrame(Settings, command, data);
+        }
+
+        /// <summary>
+        /// Get size of the frame.
+        /// </summary>
+        /// <remarks>
+        /// When WRAPPER is used this method can be used to check how many bytes we need to read.
+        /// </remarks>
+        /// <param name="data">Received data.</param>
+        /// <returns>Size of received bytes on the frame.</returns>
+        public int GetFrameSize(GXByteBuffer data)
+        {
+            if (InterfaceType == InterfaceType.WRAPPER)
+            {
+                if (data.Available < 8 || data.GetUInt16(data.Position) != 1)
+                {
+                    return 8 - data.Available;
+                }
+                return data.GetUInt16(data.Position + 6);
+            }
+            return 1;
         }
     }
 }

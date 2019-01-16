@@ -57,14 +57,14 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Development\Gurux.DLMS.Net.csproj">
-      <Project>{efd71bff-ad54-45ed-b473-305813c2f83a}</Project>
-      <Name>Gurux.DLMS</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Development\Gurux.DLMS.Net.csproj">
+      <Project>{efd71bff-ad54-45ed-b473-305813c2f83a}</Project>
+      <Name>Gurux.DLMS.Net</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

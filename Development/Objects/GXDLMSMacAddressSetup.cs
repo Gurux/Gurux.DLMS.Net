@@ -160,8 +160,16 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 2)
             {
-                MacAddress = GXCommon.ToHex((byte[])e.Value, true);
-                MacAddress = MacAddress.Replace(' ', ':');
+                if (e.Value is byte[])
+                {
+                    MacAddress = GXCommon.ToHex((byte[])e.Value, true);
+                    MacAddress = MacAddress.Replace(' ', ':');
+                }
+                else
+                {
+                    MacAddress = GXCommon.ToHex(GXCommon.HexToBytes((string)e.Value), true);
+                    MacAddress = MacAddress.Replace(' ', ':');
+                }
             }
             else
             {

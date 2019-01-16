@@ -677,9 +677,16 @@ namespace Gurux.DLMS.Reader
             ReceiveParameters<byte[]> p = new ReceiveParameters<byte[]>()
             {
                 Eop = eop,
-                Count = 5,
                 WaitTime = WaitTime,
             };
+            if (eop == null)
+            {
+                p.Count = 8;
+            }
+            else
+            {
+                p.Count = 5;
+            }
             GXByteBuffer rd = new GXByteBuffer();
             lock (Media.Synchronous)
             {
@@ -728,10 +735,9 @@ namespace Gurux.DLMS.Reader
                             }
                             continue;
                         }
-                        //If Eop is not set read one byte at time.
                         else if (p.Eop == null)
                         {
-                            p.Count = 1;
+                            p.Count = Client.GetFrameSize(rd);
                         }
                         while (!Media.Receive(p))
                         {

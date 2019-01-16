@@ -105,6 +105,8 @@ namespace Gurux.DLMS.Reader
                 if (Trace > TraceLevel.Info)
                 {
                     Console.WriteLine("Send SNRM request." + GXCommon.ToHex(data, true));
+                    GXDLMSTranslator t = new GXDLMSTranslator(TranslatorOutputType.SimpleXml);
+                    Console.WriteLine(t.MessageToXml(data));
                 }
                 ReadDataBlock(data, reply);
                 if (Trace == TraceLevel.Verbose)
@@ -133,14 +135,16 @@ namespace Gurux.DLMS.Reader
             {
                 if (Trace > TraceLevel.Info)
                 {
-                    Console.WriteLine("Send AARQ request", GXCommon.ToHex(it, true));
+                    Console.WriteLine("Send AARQ request" + GXCommon.ToHex(it, true));
+                    GXDLMSTranslator t = new GXDLMSTranslator(TranslatorOutputType.SimpleXml);
+                    Console.WriteLine(t.MessageToXml(it));
                 }
                 reply.Clear();
                 ReadDataBlock(it, reply);
             }
             if (Trace > TraceLevel.Info)
             {
-                Console.WriteLine("Parsing AARE reply" + reply.ToString());
+                Console.WriteLine("Parsing AARE reply\r\n" + reply.ToString());
             }
             //Parse reply.
             Client.ParseAAREResponse(reply.Data);
@@ -589,10 +593,11 @@ namespace Gurux.DLMS.Reader
         /// <returns>Received data.</returns>
         public void ReadDLMSPacket(byte[] data, GXReplyData reply)
         {
-            if (data == null)
+            if (data == null && !reply.IsStreaming())
             {
                 return;
             }
+            GXReplyData notify = new GXReplyData();
             reply.Error = 0;
             object eop = (byte)0x7E;
             //In network connection terminator is not used.
@@ -605,15 +610,26 @@ namespace Gurux.DLMS.Reader
             ReceiveParameters<byte[]> p = new ReceiveParameters<byte[]>()
             {
                 Eop = eop,
-                Count = 5,
                 WaitTime = WaitTime,
             };
+            if (eop == null)
+            {
+                p.Count = 8;
+            }
+            else
+            {
+                p.Count = 5;
+            }
+            GXByteBuffer rd = new GXByteBuffer();
             lock (Media.Synchronous)
             {
                 while (!succeeded && pos != 3)
                 {
-                    WriteTrace("<- " + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(data, true));
-                    Media.Send(data, null);
+                    if (!reply.IsStreaming())
+                    {
+                        WriteTrace("TX:\t" + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(data, true));
+                        Media.Send(data, null);
+                    }
                     succeeded = Media.Receive(p);
                     if (!succeeded)
                     {
@@ -630,16 +646,31 @@ namespace Gurux.DLMS.Reader
                         System.Diagnostics.Debug.WriteLine("Data send failed. Try to resend " + pos.ToString() + "/3");
                     }
                 }
+                rd = new GXByteBuffer(p.Reply);
                 try
                 {
                     pos = 0;
                     //Loop until whole COSEM packet is received.
-                    while (!Client.GetData(p.Reply, reply))
+                    while (!Client.GetData(rd, reply, notify))
                     {
-                        //If Eop is not set read one byte at time.
-                        if (p.Eop == null)
+                        p.Reply = null;
+                        if (notify.Data.Data != null)
                         {
-                            p.Count = 1;
+                            //Handle notify.
+                            if (!notify.IsMoreData)
+                            {
+                                //Show received push message as XML.
+                                string xml;
+                                GXDLMSTranslator t = new GXDLMSTranslator(TranslatorOutputType.SimpleXml);
+                                t.DataToXml(notify.Data, out xml);
+                                Console.WriteLine(xml);
+                                notify.Clear();
+                            }
+                            continue;
+                        }
+                        else if (p.Eop == null)
+                        {
+                            p.Count = Client.GetFrameSize(rd);
                         }
                         while (!Media.Receive(p))
                         {
@@ -648,32 +679,29 @@ namespace Gurux.DLMS.Reader
                                 throw new Exception("Failed to receive reply from the device in given time.");
                             }
                             //If echo.
-                            if (p.Reply == null || p.Reply.Length == data.Length)
+                            if (rd == null || rd.Size == data.Length)
                             {
                                 Media.Send(data, null);
                             }
                             //Try to read again...
                             System.Diagnostics.Debug.WriteLine("Data send failed. Try to resend " + pos.ToString() + "/3");
                         }
+                        rd.Set(p.Reply);
                     }
                 }
                 catch (Exception ex)
                 {
-                    WriteTrace("-> " + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(p.Reply, true));
+                    WriteTrace("RX:\t" + DateTime.Now.ToLongTimeString() + "\t" + rd);
                     throw ex;
                 }
             }
-            WriteTrace("-> " + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(p.Reply, true));
+            WriteTrace("RX:\t" + DateTime.Now.ToLongTimeString() + "\t" + rd);
             if (reply.Error != 0)
             {
                 if (reply.Error == (short)ErrorCode.Rejected)
                 {
                     Thread.Sleep(1000);
                     ReadDLMSPacket(data, reply);
-                }
-                else
-                {
-                    throw new GXDLMSException(reply.Error);
                 }
             }
         }

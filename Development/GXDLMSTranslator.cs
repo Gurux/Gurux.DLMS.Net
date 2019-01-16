@@ -3065,7 +3065,6 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="data">Data to parse.</param>
         /// <param name="xml">Generated xml.</param>
-        /// <returns></returns>
         public void DataToXml(GXByteBuffer data, out string xml)
         {
             GXDataInfo di = new GXDataInfo();

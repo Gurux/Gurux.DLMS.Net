@@ -1681,7 +1681,7 @@ namespace Gurux.DLMS
                 else if (notify != null)
                 {
                     isNotify = true;
-                    notify.ClientAddress = (byte)target;
+                    notify.ClientAddress = target;
                     notify.ServerAddress = source;
                 }
             }
@@ -1953,7 +1953,11 @@ namespace Gurux.DLMS
             int pos = buff.Position;
             int value;
             data.IsComplete = false;
-            while (buff.Position != buff.Size)
+            if (notify != null)
+            {
+                notify.IsComplete = false;
+            }
+            while (buff.Position < buff.Size - 1)
             {
                 // Get version
                 value = buff.GetUInt16();
@@ -3711,17 +3715,13 @@ namespace Gurux.DLMS
             {
                 return false;
             }
-            GetDataFromFrame(reply, data);
+            GetDataFromFrame(reply, data, settings.InterfaceType == InterfaceType.HDLC);
             moreData = data.IsMoreData;
             // If keepalive or get next frame request.
             if (data.Xml != null || ((frame != 0x13 || moreData) && (frame & 0x1) != 0))
             {
                 if (settings.InterfaceType == InterfaceType.HDLC && (data.Error == (int)ErrorCode.Rejected || data.Data.Size != 0))
                 {
-                    if (reply.Position != reply.Size)
-                    {
-                        reply.Position += 3;
-                    }
                     System.Diagnostics.Debug.Assert(reply.GetUInt8(reply.Position - 1) == 0x7e);
                 }
                 return true;
@@ -3739,7 +3739,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="reply">Received data that includes HDLC frame.</param>
         /// <param name="info">Reply data.</param>
-        private static void GetDataFromFrame(GXByteBuffer reply, GXReplyData info)
+        private static void GetDataFromFrame(GXByteBuffer reply, GXReplyData info, bool hdlc)
         {
             int offset = info.Data.Size;
             int cnt = info.PacketLength - reply.Position;
@@ -3748,6 +3748,10 @@ namespace Gurux.DLMS
                 info.Data.Capacity = (offset + cnt);
                 info.Data.Set(reply.Data, reply.Position, cnt);
                 reply.Position = (reply.Position + cnt);
+                if (hdlc)
+                {
+                    reply.Position += 3;
+                }
             }
             // Set position to begin of new data.
             info.Data.Position = offset;

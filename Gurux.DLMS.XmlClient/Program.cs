@@ -28,6 +28,7 @@ namespace Gurux.DLMS.XmlClient
             if (reply.Value is byte[])
             {
                 Console.WriteLine(GXCommon.ToHex((byte[])reply.Value, true));
+                Console.WriteLine(reply.ToString());
             }
             else
             {
@@ -164,7 +165,7 @@ namespace Gurux.DLMS.XmlClient
                     }
                     finally
                     {
-                        //Send AARQ if not in xml.
+                        //Send disconnect if not in xml.
                         if (!ContainsCommand(actions, Command.DisconnectRequest))
                         {
                             reader.Disconnect();
