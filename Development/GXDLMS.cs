@@ -642,7 +642,7 @@ namespace Gurux.DLMS
                 // Add command.
                 reply.SetUInt8(tmp[0]);
                 // Add system title.
-                if (st != null)
+                if (st != null && p.settings.Standard != Standard.Italy)
                 {
                     GXCommon.SetObjectCount(st.Length, reply);
                     reply.Set(st);
