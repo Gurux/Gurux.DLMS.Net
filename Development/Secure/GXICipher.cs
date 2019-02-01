@@ -101,5 +101,14 @@ namespace Gurux.DLMS.Secure
             get;
             set;
         }
+
+        /// <summary>
+        /// Frame counter for Dedicated key. Invocation counter.
+        /// </summary>
+        UInt32 DedicatedInvocationCounter
+        {
+            get;
+            set;
+        }
     }
 }

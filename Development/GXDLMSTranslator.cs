@@ -1245,6 +1245,7 @@ namespace Gurux.DLMS
                     xml.AppendLine(cmd, "Value", GXCommon.ToHex(value.Data, false, value.Position, value.Size - value.Position));
                     break;
                 case (byte)Command.GeneralGloCiphering:
+                case (byte)Command.GeneralDedCiphering:
                     if (settings.Cipher != null && Comments)
                     {
                         int len2 = xml.GetXmlLength();
@@ -1294,7 +1295,7 @@ namespace Gurux.DLMS
                     len = GXCommon.GetObjectCount(value);
                     tmp = new byte[len];
                     value.Get(tmp);
-                    xml.AppendStartTag(Command.GeneralGloCiphering);
+                    xml.AppendStartTag((Command)cmd);
                     xml.AppendLine(TranslatorTags.SystemTitle, null,
                             GXCommon.ToHex(tmp, false, 0, len));
                     len = GXCommon.GetObjectCount(value);
@@ -1302,7 +1303,7 @@ namespace Gurux.DLMS
                     value.Get(tmp);
                     xml.AppendLine(TranslatorTags.CipheredService, null,
                             GXCommon.ToHex(tmp, false, 0, len));
-                    xml.AppendEndTag(Command.GeneralGloCiphering);
+                    xml.AppendEndTag((Command)cmd);
                     break;
                 case (byte)Command.ConfirmedServiceError:
                     data.Xml = xml;

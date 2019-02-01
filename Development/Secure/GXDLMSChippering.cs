@@ -173,6 +173,7 @@ namespace Gurux.DLMS.Secure
             switch (cmd)
             {
                 case Command.GeneralGloCiphering:
+                case Command.GeneralDedCiphering:
                     len = GXCommon.GetObjectCount(data);
                     if (len != 0)
                     {

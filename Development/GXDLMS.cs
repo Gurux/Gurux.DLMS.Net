@@ -604,6 +604,7 @@ namespace Gurux.DLMS
             byte[] key;
             GXICipher cipher = p.settings.Cipher;
             byte[] st = cipher.SystemTitle;
+            UInt32 ic;
             if ((p.settings.ProposedConformance & Conformance.GeneralProtection) == 0
                 && (p.settings.NegotiatedConformance & Conformance.GeneralProtection) == 0)
             {
@@ -611,28 +612,33 @@ namespace Gurux.DLMS
                 {
                     cmd = (byte)GetDedMessage(p.command);
                     key = cipher.DedicatedKey;
+                    ic = ++cipher.DedicatedInvocationCounter;
                 }
                 else
                 {
                     cmd = (byte)GetGloMessage(p.command);
                     key = cipher.BlockCipherKey;
+                    ic = ++cipher.InvocationCounter;
                 }
             }
             else
             {
-                if (p.settings.Cipher.DedicatedKey != null)
+                if (p.settings.Cipher.DedicatedKey != null &&
+                    (p.settings.Connected & ConnectionState.Dlms) != 0)
                 {
                     cmd = (byte)Command.GeneralDedCiphering;
                     key = cipher.DedicatedKey;
+                    ic = ++cipher.DedicatedInvocationCounter;
                 }
                 else
                 {
                     cmd = (byte)Command.GeneralGloCiphering;
                     key = cipher.BlockCipherKey;
+                    ic = ++cipher.InvocationCounter;
                 }
             }
             AesGcmParameter s = new AesGcmParameter(cmd, cipher.Security,
-                ++cipher.InvocationCounter, cipher.SystemTitle, key,
+                ic, cipher.SystemTitle, key,
                 cipher.AuthenticationKey);
             byte[] tmp = GXCiphering.Encrypt(s, data);
             if (p.command == Command.DataNotification || cmd == (byte)Command.GeneralGloCiphering ||

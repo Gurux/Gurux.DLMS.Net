@@ -132,6 +132,15 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
+        /// DedicatedInvocation counter.
+        /// </summary>
+        public UInt32 DedicatedInvocationCounter
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// The SystemTitle is a 8 bytes (64 bit) value that identifies a partner of the communication.
         /// First 3 bytes contains the three letters manufacturer ID.
         /// The remainder of the system title holds for example a serial number.
@@ -191,7 +200,7 @@ namespace Gurux.DLMS.Secure
             }
         }
         /// <summary>
-        /// Authentication Key is 16 bytes value.
+        /// Dedicated Key is 16 bytes value.
         /// </summary>
         public byte[] DedicatedKey
         {
@@ -206,6 +215,7 @@ namespace Gurux.DLMS.Secure
                     throw new ArgumentOutOfRangeException("Invalid DedicatedKey Key.");
                 }
                 dedicatedKey = value;
+                DedicatedInvocationCounter = 0;
             }
         }
         
@@ -233,6 +243,7 @@ namespace Gurux.DLMS.Secure
         {
             Security = Gurux.DLMS.Enums.Security.None;
             InvocationCounter = 0;
+            DedicatedInvocationCounter = 0;
         }
 
         bool GXICipher.IsCiphered()
