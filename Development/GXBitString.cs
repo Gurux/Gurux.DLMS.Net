@@ -68,6 +68,46 @@ namespace Gurux.DLMS
             Value = value;
         }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="value">byte array.</param>
+        public GXBitString(byte[] value)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach(byte it in value)
+            {
+                GXCommon.ToBitString(sb, it, 8);
+            }
+            Value = sb.ToString();
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="value">byte array.</param>
+        public GXBitString(byte[] value, int index, int count)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (byte it in value)
+            {
+                if (index != 0)
+                {
+                    --index;
+                }
+                else
+                {
+                    if (count < 1)
+                    {
+                        break;
+                    }
+                    GXCommon.ToBitString(sb, it, count);
+                    count -= 8;
+                }
+            }
+            Value = sb.ToString();
+        }
+
         public override string ToString()
         {
             return Value;

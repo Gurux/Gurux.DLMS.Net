@@ -83,8 +83,28 @@
 7;1.96.99.98.13.255;1;Current over limit release
 7;1.96.99.98.6.255;1;Temperature over limit
 7;1.96.99.98.7.255;1;Maximum current
-7;1.96.99.98.8.255;1;Harmonics (THD) limit 
+7;1.96.99.98.8.255;1;Harmonics (THD) limit
 7;1.96.99.10.1.255;1;Sag limit
 7;1.96.99.10.2.255;1;Swell limit
 7;1.96.99.98.19.255;1;Security association Event
 7;1.96.99.98.20.255;1;Display Roll-Over to Zero Event
+1;0.1.94.96.11.255;0;Meter Program Configuration Status
+1;0.1.94.96.12.255;0;Data Transport Security Mode
+1;0.1.94.96.22.255;0;LCD time-to-return to default screen
+1;0.1.94.96.23.255;0;LCD auto scroll time
+1;0.1.94.96.24.255;0;LCD night off option
+1;0.1.94.96.25.255;0;Start-stop time setting of LCD night off
+22;0.128.15.0.4.255;0;Load Profile
+22;0.129.15.0.4.255;0;Energy Profile (Daily snapshot)
+22;0.130.15.0.4.255;0;EOB Data Profile (Monthly snapshot for billing purpose)
+22;0.131.15.0.4.255;0;Maximum Demand Profile
+22;0.132.15.0.4.255;0;Cumulative Maximum Demand Profile
+22;0.133.15.0.4.255;0;Average Voltages and Currents Profile
+22;0.134.15.0.4.255;0;Instantaneous Values Profile
+40;0.128.25.9.0.255;0;Load Profile
+40;0.129.25.9.0.255;0;Energy Profile (Daily snapshot)
+40;0.130.25.9.0.255;0;EOB Data Profile (Monthly snapshot for billing purpose)
+40;0.131.25.9.0.255;0;Maximum Demand Profile
+40;0.132.25.9.0.255;0;Cumulative Maximum Demand Profile
+40;0.133.25.9.0.255;0;Average Voltages and Currents Profile
+40;0.134.25.9.0.255;0;Instantaneous Values Profile

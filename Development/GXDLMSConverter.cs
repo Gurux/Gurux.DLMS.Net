@@ -121,7 +121,7 @@ namespace Gurux.DLMS
             }
             List<String> list = new List<String>();
             bool all = string.IsNullOrEmpty(logicalName);
-            foreach (GXStandardObisCode it in codes.Find(logicalName, type))
+            foreach (GXStandardObisCode it in codes.Find(logicalName, type, Standard))
             {
                 if (!string.IsNullOrEmpty(description)
                         && !it.Description.ToLower().Contains(description.ToLower()))
@@ -137,7 +137,14 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    list.Add(it.Description);
+                    if (Standard == Standard.SaudiArabia)
+                    {
+                        list.Add(it.Description.Replace("U(", "V("));
+                    }
+                    else
+                    {
+                        list.Add(it.Description);
+                    }
                 }
             }
             return list.ToArray();
@@ -168,13 +175,13 @@ namespace Gurux.DLMS
                 }
             }
             List<KeyValuePair<string, string>> list = new List<KeyValuePair<string, string>>();
-            foreach (GXStandardObisCode it in codes.Find(null, type))
+            foreach (GXStandardObisCode it in codes.Find(null, type, Standard))
             {
                 if (it.Interfaces != "*")
                 {
                     string obis = GetCode(it.OBIS[0]) + "." + GetCode(it.OBIS[1]) + "." +
                         GetCode(it.OBIS[2]) + "." + GetCode(it.OBIS[3]) + "." + GetCode(it.OBIS[4]) + "." + GetCode(it.OBIS[5]);
-                    list.Add(new KeyValuePair<string, string>(obis, codes.Find(obis, type)[0].Description));
+                    list.Add(new KeyValuePair<string, string>(obis, codes.Find(obis, type, Standard)[0].Description));
                 }
             }
             return list.ToArray();
@@ -192,7 +199,7 @@ namespace Gurux.DLMS
                 {
                     ReadStandardObisInfo(Standard, codes);
                 }
-                UpdateOBISCodeInfo(codes, target);
+                UpdateOBISCodeInfo(codes, target, Standard);
             }
         }
 
@@ -210,7 +217,7 @@ namespace Gurux.DLMS
                 }
                 foreach (GXDLMSObject it in targets)
                 {
-                    UpdateOBISCodeInfo(codes, it);
+                    UpdateOBISCodeInfo(codes, it, Standard);
                 }
             }
         }
@@ -249,14 +256,18 @@ namespace Gurux.DLMS
 #endif
         }
 
-        private static void UpdateOBISCodeInfo(GXStandardObisCodeCollection codes, GXDLMSObject it)
+        private static void UpdateOBISCodeInfo(GXStandardObisCodeCollection codes, GXDLMSObject it, Standard standard)
         {
             if (!string.IsNullOrEmpty(it.Description))
             {
                 return;
             }
-            GXStandardObisCode code = codes.Find(it.LogicalName, it.ObjectType)[0];
+            GXStandardObisCode code = codes.Find(it.LogicalName, it.ObjectType, standard)[0];
             it.Description = code.Description;
+            if (standard == Standard.SaudiArabia)
+            {
+                it.Description = it.Description.Replace("U(", "V(");
+            }
             //If string is used
             string datatype = code.DataType;
             if (datatype == null)

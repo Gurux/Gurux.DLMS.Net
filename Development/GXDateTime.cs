@@ -595,7 +595,11 @@ namespace Gurux.DLMS
                     Remove(format, "mm", culture.DateTimeFormat.TimeSeparator);
                     Remove(format, "m", culture.DateTimeFormat.TimeSeparator);
                 }
-                return Value.LocalDateTime.ToString(format.ToString());
+                if (format.ToString().Trim() == "")
+                {
+                    return "";
+                }
+                return Value.LocalDateTime.ToString(format.ToString().Trim());
             }
             return Value.LocalDateTime.ToString();
         }

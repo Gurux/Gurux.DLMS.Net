@@ -444,7 +444,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="settings">XML write settings.</param>
         public void Save(string filename, GXXmlWriterSettings settings)
         {
-            using (GXXmlWriter writer = new GXXmlWriter(filename, settings.IgnoreDefaultValues))
+            using (GXXmlWriter writer = new GXXmlWriter(filename, settings != null ? settings.IgnoreDefaultValues : true))
             {
                 writer.WriteStartDocument();
                 writer.WriteStartElement("Objects");

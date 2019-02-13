@@ -1211,7 +1211,7 @@ namespace Gurux.DLMS
                             if (st != null)
                             {
                                 AesGcmParameter p;
-                                if (settings.Cipher.DedicatedKey != null && settings.Cipher.DedicatedKey.Length != 0 && (c == Command.DedGetRequest || c == Command.DedSetRequest || c == Command.DedMethodRequest))
+                                if (settings.Cipher.DedicatedKey != null && settings.Cipher.DedicatedKey.Length != 0)
                                 {
                                     p = new AesGcmParameter(st, settings.Cipher.DedicatedKey, settings.Cipher.AuthenticationKey);
                                 }

@@ -34,6 +34,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 
 namespace Gurux.DLMS.ManufacturerSettings
@@ -73,6 +74,26 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// Value that is shown to the user.
         /// </summary>
         public string UIValue
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Mask size in bits. Zero if not used.
+        /// </summary>
+        [DefaultValue(0)]
+        public int MaskSize
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Abount of bits to shift the mask.
+        /// </summary>
+        [DefaultValue(0)]
+        public int Shift
         {
             get;
             set;
