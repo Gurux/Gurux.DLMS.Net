@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -38,13 +38,16 @@ using Gurux.DLMS.Internal;
 namespace Gurux.DLMS
 {
     /// <summary>
-    /// GXDLMSLimits contains commands for retrieving and setting the limits of 
-    /// field length and window size, when communicating with the server. 
+    /// GXDLMSLimits contains commands for retrieving and setting the limits of
+    /// field length and window size, when communicating with the server.
     /// </summary>
     public class GXDLMSLimits
     {
-        internal GXDLMSLimits()
+        private GXDLMSSettings settings;
+
+        internal GXDLMSLimits(GXDLMSSettings s)
         {
+            settings = s;
             MaxInfoRX = GXDLMSLimitsDefault.DefaultMaxInfoRX;
             MaxInfoTX = GXDLMSLimitsDefault.DefaultMaxInfoTX;
             WindowSizeRX = GXDLMSLimitsDefault.DefaultWindowSizeRX;
@@ -106,6 +109,36 @@ namespace Gurux.DLMS
         {
             get;
             set;
+        }
+
+        /// <summary>
+        ///  HDLC sender frame sequence number.
+        /// </summary>
+        public byte SenderFrame
+        {
+            get
+            {
+                return settings.SenderFrame;
+            }
+            set
+            {
+                settings.SenderFrame = value;
+            }
+        }
+
+        /// <summary>
+        /// HDLC receiver frame sequence number.
+        /// </summary>
+        public byte ReceiverFrame
+        {
+            get
+            {
+                return settings.ReceiverFrame;
+            }
+            set
+            {
+                settings.ReceiverFrame = value;
+            }
         }
     }
 }

@@ -1146,7 +1146,8 @@ namespace Gurux.DLMS.Objects
                 XDLMSContextInfo.CypheringInfo = GXDLMSTranslator.HexToBytes(reader.ReadElementContentAsString("CypheringInfo"));
                 reader.ReadEndElement("XDLMSContextInfo");
             }
-            if (reader.IsStartElement("XDLMSContextInfo", true))
+            if (reader.IsStartElement("AuthenticationMechanismName", true) ||
+                reader.IsStartElement("XDLMSContextInfo", true))
             {
                 AuthenticationMechanismName.JointIsoCtt = (byte)reader.ReadElementContentAsInt("JointIsoCtt");
                 AuthenticationMechanismName.Country = (byte)reader.ReadElementContentAsInt("Country");
@@ -1155,6 +1156,7 @@ namespace Gurux.DLMS.Objects
                 AuthenticationMechanismName.DlmsUA = (byte)reader.ReadElementContentAsInt("DlmsUA");
                 AuthenticationMechanismName.AuthenticationMechanismName = (byte)reader.ReadElementContentAsInt("AuthenticationMechanismName");
                 AuthenticationMechanismName.MechanismId = (Authentication)reader.ReadElementContentAsInt("MechanismId");
+                reader.ReadEndElement("AuthenticationMechanismName");
                 reader.ReadEndElement("XDLMSContextInfo");
             }
             string str = reader.ReadElementContentAsString("Secret");
@@ -1199,7 +1201,7 @@ namespace Gurux.DLMS.Objects
             }
             if (AuthenticationMechanismName != null)
             {
-                writer.WriteStartElement("XDLMSContextInfo");
+                writer.WriteStartElement("AuthenticationMechanismName");
                 writer.WriteElementString("JointIsoCtt", AuthenticationMechanismName.JointIsoCtt);
                 writer.WriteElementString("Country", AuthenticationMechanismName.Country);
                 writer.WriteElementString("CountryName", AuthenticationMechanismName.CountryName);

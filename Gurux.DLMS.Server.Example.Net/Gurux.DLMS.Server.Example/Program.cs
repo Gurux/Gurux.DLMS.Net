@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -39,6 +39,7 @@ using Gurux.Net;
 using System.Diagnostics;
 using Gurux.Common;
 using Gurux.DLMS.Secure;
+using System.Threading;
 
 namespace GuruxDLMSServerExample
 {
@@ -114,6 +115,15 @@ namespace GuruxDLMSServerExample
                     Console.WriteLine("Logical Name DLMS Server with IEC 62056-47 in port {0}.", settings.port + 3);
                     Console.WriteLine("Example connection settings:");
                     Console.WriteLine("Gurux.DLMS.Client.Example.Net -h localhost -p {0} -w", settings.port + 3);
+                    Thread t = new Thread(() => DoWork(SNServer));
+                    t.Start();
+                    t = new Thread(() => DoWork(LNServer));
+                    t.Start();
+                    t = new Thread(() => DoWork(SN_47Server));
+                    t.Start();
+                    t = new Thread(() => DoWork(LN_47Server));
+                    t.Start();
+
                     ConsoleKey k;
                     while ((k = Console.ReadKey().Key) != ConsoleKey.Escape)
                     {
@@ -137,6 +147,23 @@ namespace GuruxDLMSServerExample
             {
                 Console.WriteLine(ex.Message);
                 return 1;
+            }
+        }
+
+        /// <summary>
+        /// Call servers run to handle all notifications.
+        /// </summary>
+        /// <param name="param"></param>
+        private static void DoWork(object param)
+        {
+            AutoResetEvent wait = new AutoResetEvent(false);
+            GXDLMSBase server = (GXDLMSBase)param;
+            while (true)
+            {
+                int wt = server.Run(wait);
+                //Wait until next event needs to execute.
+                Console.WriteLine("Waiting " + TimeSpan.FromSeconds(wt).ToString() + " before next execution.");
+                wait.WaitOne(wt * 1000);
             }
         }
 

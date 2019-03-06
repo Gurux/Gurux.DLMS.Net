@@ -271,7 +271,20 @@ namespace Gurux.DLMS.Internal
                 {
                     GXByteBuffer tmp = new GXByteBuffer();
                     GetInitiateRequest(settings, cipher, tmp);
-                    AesGcmParameter p = new AesGcmParameter((int)Command.GloInitiateRequest, cipher.Security,
+                    byte cmd = (byte)Command.GloInitiateRequest;
+
+                    if ((settings.ProposedConformance & Conformance.GeneralProtection) != 0)
+                    {
+                        if (settings.Cipher.DedicatedKey != null && settings.Cipher.DedicatedKey.Length != 0)
+                        {
+                            cmd = (byte)Command.GeneralDedCiphering;
+                        }
+                        else
+                        {
+                            cmd = (byte)Command.GeneralGloCiphering;
+                        }
+                    }
+                    AesGcmParameter p = new AesGcmParameter(cmd, cipher.Security,
                         cipher.InvocationCounter, cipher.SystemTitle,
                         cipher.BlockCipherKey,
                         cipher.AuthenticationKey);
@@ -628,12 +641,28 @@ namespace Gurux.DLMS.Internal
             byte[] tmp;
             byte[] encrypted;
             AesGcmParameter p;
-            if (tag == (byte)Command.GloInitiateResponse)
+            if (tag == (byte)Command.GloInitiateResponse ||
+                tag == (byte)Command.GloInitiateRequest ||
+                tag == (byte)Command.GeneralGloCiphering ||
+                tag == (byte)Command.GeneralDedCiphering)
             {
                 if (xml != null)
                 {
                     originalPos = data.Position;
-                    int cnt = GXCommon.GetObjectCount(data);
+                    byte[] st;
+                    int cnt;
+                    if (tag == (byte)Command.GeneralGloCiphering ||
+                        tag == (byte)Command.GeneralDedCiphering)
+                    {
+                        cnt = GXCommon.GetObjectCount(data);
+                        st = new byte[cnt];
+                        data.Get(st);
+                    }
+                    else
+                    {
+                        st = settings.SourceSystemTitle;
+                    }
+                    cnt = GXCommon.GetObjectCount(data);
                     encrypted = new byte[cnt];
                     data.Get(encrypted);
                     if (cipher != null && xml.Comments)
@@ -642,17 +671,17 @@ namespace Gurux.DLMS.Internal
                         try
                         {
                             data.Position = originalPos - 1;
-                            p = new AesGcmParameter(settings.SourceSystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                            p = new AesGcmParameter(st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
                             p.Xml = xml;
                             tmp = GXDLMSChippering.DecryptAesGcm(p, data);
                             data.Clear();
                             data.Set(tmp);
                             cipher.Security = p.Security;
-                            tag = data.GetUInt8();
+                            byte tag1 = data.GetUInt8();
                             xml.StartComment("Decrypted data:");
                             xml.AppendLine("Security: " + p.Security);
                             xml.AppendLine("Invocation Counter: " + p.InvocationCounter);
-                            Parse(initiateRequest, settings, cipher, data, xml, tag);
+                            Parse(initiateRequest, settings, cipher, data, xml, tag1);
                             xml.EndComment();
                         }
                         catch (Exception)
@@ -662,61 +691,7 @@ namespace Gurux.DLMS.Internal
                         }
                     }
                     //<glo_InitiateResponse>
-                    xml.AppendLine(Command.GloInitiateResponse, "Value", GXCommon.ToHex(encrypted, false));
-                    return;
-                }
-                --data.Position;
-                p = new AesGcmParameter(settings.SourceSystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
-                tmp = GXDLMSChippering.DecryptAesGcm(p, data);
-                data.Clear();
-                data.Set(tmp);
-                cipher.Security = p.Security;
-                tag = data.GetUInt8();
-            }
-            else if (tag == (byte)Command.GloInitiateRequest)
-            {
-                if (xml != null)
-                {
-                    originalPos = data.Position;
-                    int cnt = GXCommon.GetObjectCount(data);
-                    encrypted = new byte[cnt];
-                    data.Get(encrypted);
-                    if (cipher != null && xml.Comments)
-                    {
-                        int pos = xml.GetXmlLength();
-                        try
-                        {
-                            data.Position = originalPos - 1;
-                            byte[] st;
-                            if (settings.IsServer)
-                            {
-                                st = settings.SourceSystemTitle;
-                            }
-                            else
-                            {
-                                st = settings.Cipher.SystemTitle;
-                            }
-                            p = new AesGcmParameter(st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
-                            p.Xml = xml;
-                            tmp = GXDLMSChippering.DecryptAesGcm(p, data);
-                            data.Clear();
-                            data.Set(tmp);
-                            cipher.Security = p.Security;
-                            tag = data.GetUInt8();
-                            xml.StartComment("Decrypted data:");
-                            xml.AppendLine("Security: " + p.Security);
-                            xml.AppendLine("Invocation Counter: " + p.InvocationCounter);
-                            Parse(initiateRequest, settings, cipher, data, xml, tag);
-                            xml.EndComment();
-                        }
-                        catch (Exception)
-                        {
-                            //It's OK if this fails.
-                            xml.SetXmlLength(pos);
-                        }
-                    }
-                    //<glo_InitiateRequest>
-                    xml.AppendLine(Command.GloInitiateRequest, "Value", GXCommon.ToHex(encrypted, false));
+                    xml.AppendLine((Command)tag, "Value", GXCommon.ToHex(encrypted, false));
                     return;
                 }
                 --data.Position;
@@ -1340,7 +1315,7 @@ namespace Gurux.DLMS.Internal
                         {
                             ParseUserInformation(settings, cipher, buff, xml);
                         }
-                        catch(GXDLMSConfirmedServiceError ex)
+                        catch (GXDLMSConfirmedServiceError ex)
                         {
                             throw ex;
                         }
@@ -1475,8 +1450,23 @@ namespace Gurux.DLMS.Internal
             }
             if (cipher != null && cipher.IsCiphered())
             {
-                AesGcmParameter p = new AesGcmParameter((byte)
-                     Command.GloInitiateResponse, cipher.Security,
+                byte cmd;
+                if ((settings.NegotiatedConformance & Conformance.GeneralProtection) != 0)
+                {
+                    if (settings.Cipher.DedicatedKey != null && settings.Cipher.DedicatedKey.Length != 0)
+                    {
+                        cmd = (byte)Command.GeneralDedCiphering;
+                    }
+                    else
+                    {
+                        cmd = (byte)Command.GeneralGloCiphering;
+                    }
+                }
+                else
+                {
+                    cmd = (byte)Command.GloInitiateResponse;
+                }
+                AesGcmParameter p = new AesGcmParameter(cmd, cipher.Security,
                      cipher.InvocationCounter, cipher.SystemTitle,
                      cipher.BlockCipherKey, cipher.AuthenticationKey);
                 return GXCiphering.Encrypt(p, data.Array());

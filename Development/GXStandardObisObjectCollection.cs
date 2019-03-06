@@ -405,13 +405,13 @@ namespace Gurux.DLMS
                 case 82:
                     return "Unitless quantities (pulses or pieces)";
                 case 84:
-                    return "Sum Li energy factor-";
+                    return "Sum Li power factor-";
                 case 85:
-                    return "L1 energy factor-";
+                    return "L1 power factor-";
                 case 86:
-                    return "L2 energy factor-";
+                    return "L2 power factor-";
                 case 87:
-                    return "L3 energy factor-";
+                    return "L3 power factor-";
                 case 88:
                     return "Sum Li A2h QI+QII+QIII+QIV";
                 case 89:

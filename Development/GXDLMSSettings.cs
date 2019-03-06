@@ -86,12 +86,12 @@ namespace Gurux.DLMS
         /// <summary>
         /// HDLC sender frame sequence number.
         /// </summary>
-        private byte SenderFrame;
+        internal byte SenderFrame;
 
         /// <summary>
         /// HDLC receiver frame sequence number.
         /// </summary>
-        private byte ReceiverFrame;
+        internal byte ReceiverFrame;
 
         /// <summary>
         /// Source system title.
@@ -175,7 +175,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// User id is the identifier of the user. 
+        /// User id is the identifier of the user.
         /// </summary>
         /// <remarks>
         /// This value is used if user list on Association LN is used.
@@ -245,9 +245,13 @@ namespace Gurux.DLMS
             MaxServerPDUSize = MaxPduSize = DefaultMaxReceivePduSize;
             IsServer = server;
             Objects = new GXDLMSObjectCollection();
-            Limits = new GXDLMSLimits();
+            Limits = new GXDLMSLimits(this);
             Gateway = null;
             ProposedConformance = GXDLMSClient.GetInitialConformance(false);
+            if (server)
+            {
+                ProposedConformance |= Conformance.GeneralProtection;
+            }
             ResetFrameSequence();
             WindowSize = 1;
             UserId = -1;
@@ -400,7 +404,7 @@ namespace Gurux.DLMS
             }
             else
             {
-                SenderFrame = 0x10;
+                SenderFrame = 0xFE;
                 ReceiverFrame = 0xE;
             }
         }
@@ -516,7 +520,7 @@ namespace Gurux.DLMS
 
 
         ///<summary>
-        /// Block number acknowledged in GBT. 
+        /// Block number acknowledged in GBT.
         ///</summary>
         public UInt16 BlockNumberAck
         {
@@ -665,6 +669,10 @@ namespace Gurux.DLMS
                 {
                     useLogicalNameReferencing = value;
                     ProposedConformance = GXDLMSClient.GetInitialConformance(value);
+                    if (IsServer)
+                    {
+                        ProposedConformance |= Conformance.GeneralProtection;
+                    }
                 }
             }
         }

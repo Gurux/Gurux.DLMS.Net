@@ -228,7 +228,7 @@ namespace Gurux.DLMS
         /// Force that data is always sent as blocks.
         /// </summary>
         /// <remarks>
-        /// Some meters can handle only blocks. This property is used to force send all data in blocks. 
+        /// Some meters can handle only blocks. This property is used to force send all data in blocks.
         /// </remarks>
         public bool ForceToBlocks
         {
@@ -259,7 +259,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// User id is the identifier of the user. 
+        /// User id is the identifier of the user.
         /// </summary>
         /// <remarks>
         /// This value is used if user list on Association LN is used.
@@ -932,7 +932,7 @@ namespace Gurux.DLMS
             {
                 reply = GXDLMS.GetSnMessages(new GXDLMSSNParameters(Settings, Command.ReleaseRequest, 0xFF, 0xFF, null, buff));
             }
-            Settings.Connected &= ~ConnectionState.Dlms;            
+            Settings.Connected &= ~ConnectionState.Dlms;
             return reply;
         }
         /// <summary>
@@ -1206,7 +1206,7 @@ namespace Gurux.DLMS
             Settings.Objects = objects;
             Settings.Objects.Parent = this;
             return objects;
-        }       
+        }
 
         /// <summary>
         /// Returns collection of push objects.
@@ -1242,7 +1242,7 @@ namespace Gurux.DLMS
                                 classID, GXCommon.ToLogicalName((byte[])tmp[1])));
                         }
                     }
-                }               
+                }
             }
             return objects;
         }
@@ -2428,36 +2428,6 @@ namespace Gurux.DLMS
             return value;
         }
 
-
-        private static void GetItem(GXSerialNumberItem value)
-        {
-
-        }
-
-        class GXSerialNumberItem
-        {
-            public int Index
-            {
-                get;
-                set;
-            }
-            public string Formula
-            {
-                get;
-                set;
-            }
-            public string Tag
-            {
-                get;
-                set;
-            }
-            public string Value
-            {
-                get;
-                set;
-            }
-        }
-
         /// <summary>
         /// Converts meter serial number to server address.
         /// Default formula is used.
@@ -2572,8 +2542,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="reply">Reply.</param>
         /// <returns>Data notification data.</returns>
-        public object
-            ParseReport(GXReplyData reply, List<KeyValuePair<GXDLMSObject, int>> list)
+        public object ParseReport(GXReplyData reply, List<KeyValuePair<GXDLMSObject, int>> list)
         {
             if (reply.Command == Command.EventNotification)
             {
@@ -2632,6 +2601,18 @@ namespace Gurux.DLMS
                 return data.GetUInt16(data.Position + 6);
             }
             return 1;
+        }
+
+        /// <summary>
+        /// Get HDLC sender and receiver address information.
+        /// </summary>
+        /// <param name="reply">Received data.</param>
+        /// <param name="target">target (primary) address</param>
+        /// <param name="source">Source (secondary) address.</param>
+        /// <param name="type">DLMS frame type.</param>
+        public static void GetHdlcAddressInfo(GXByteBuffer reply, out int target, out int source, out byte type)
+        {
+            GXDLMS.GetHdlcAddressInfo(reply, out target, out source, out type);
         }
     }
 }

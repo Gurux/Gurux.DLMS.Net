@@ -82,7 +82,7 @@ namespace Gurux.DLMS
 
 
         /// <summary>
-        /// Client system title. 
+        /// Client system title.
         /// </summary>
         /// <remarks>
         /// Client system title is optional and it's used when Pre-established Application Associations is used.
@@ -1396,7 +1396,7 @@ namespace Gurux.DLMS
             byte[] tmp = GXAPDU.GetUserInformation(Settings, Settings.Cipher);
             replyData.SetUInt8(0x63);
             //Len.
-            replyData.SetUInt8((byte) (tmp.Length + 3));
+            replyData.SetUInt8((byte)(tmp.Length + 3));
             replyData.SetUInt8(0x80);
             replyData.SetUInt8(0x01);
             replyData.SetUInt8(0x00);

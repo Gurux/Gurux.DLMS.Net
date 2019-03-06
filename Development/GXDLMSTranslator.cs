@@ -312,7 +312,20 @@ namespace Gurux.DLMS
         /// <param name="source">Source (secondary) address.</param>
         public static void GetHdlcAddressInfo(GXByteBuffer reply, out int target, out int source)
         {
-            GXDLMS.GetHdlcAddressInfo(reply, out target, out source);
+            byte type;
+            GXDLMS.GetHdlcAddressInfo(reply, out target, out source, out type);
+        }
+
+        /// <summary>
+        /// Get HDLC sender and receiver address information.
+        /// </summary>
+        /// <param name="reply">Received data.</param>
+        /// <param name="target">target (primary) address</param>
+        /// <param name="source">Source (secondary) address.</param>
+        /// <param name="type">DLMS frame type.</param>
+        public static void GetHdlcAddressInfo(GXByteBuffer reply, out int target, out int source, out byte type)
+        {
+            GXDLMS.GetHdlcAddressInfo(reply, out target, out source, out type);
         }
 
         /// <summary>
@@ -1245,6 +1258,7 @@ namespace Gurux.DLMS
                     xml.AppendLine(cmd, "Value", GXCommon.ToHex(value.Data, false, value.Position, value.Size - value.Position));
                     break;
                 case (byte)Command.GeneralGloCiphering:
+                case (byte)Command.GeneralDedCiphering:
                     if (settings.Cipher != null && Comments)
                     {
                         int len2 = xml.GetXmlLength();
@@ -1294,7 +1308,7 @@ namespace Gurux.DLMS
                     len = GXCommon.GetObjectCount(value);
                     tmp = new byte[len];
                     value.Get(tmp);
-                    xml.AppendStartTag(Command.GeneralGloCiphering);
+                    xml.AppendStartTag((Command) cmd);
                     xml.AppendLine(TranslatorTags.SystemTitle, null,
                             GXCommon.ToHex(tmp, false, 0, len));
                     len = GXCommon.GetObjectCount(value);
@@ -1302,7 +1316,7 @@ namespace Gurux.DLMS
                     value.Get(tmp);
                     xml.AppendLine(TranslatorTags.CipheredService, null,
                             GXCommon.ToHex(tmp, false, 0, len));
-                    xml.AppendEndTag(Command.GeneralGloCiphering);
+                    xml.AppendEndTag(cmd);
                     break;
                 case (byte)Command.ConfirmedServiceError:
                     data.Xml = xml;
@@ -3130,7 +3144,7 @@ namespace Gurux.DLMS
                     else if (dt == DataType.BitString)
                     {
                         values.Add(new GXBitString(node.Attributes["Value"].Value));
-                    }                    
+                    }
                     else
                     {
                         values.Add(Convert.ChangeType(node.Attributes["Value"].Value, GXCommon.GetDataType(dt)));

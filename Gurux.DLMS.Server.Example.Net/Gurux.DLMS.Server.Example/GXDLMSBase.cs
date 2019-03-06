@@ -222,9 +222,9 @@ namespace GuruxDLMSServerExample
             ac.Mode = AutoConnectMode.AutoDiallingAllowedAnytime;
             ac.Repetitions = 10;
             ac.RepetitionDelay = 60;
-            //Calling is allowed between 1am to 6am.
-            ac.CallingWindow.Add(new KeyValuePair<GXDateTime, GXDateTime>(new GXDateTime(-1, -1, -1, 1, 0, 0, -1), new GXDateTime(-1, -1, -1, 6, 0, 0, -1)));
-            ac.Destinations = new string[] { "www.gurux.org" };
+            //Calling is allowed between 1am to 1pm.
+            ac.CallingWindow.Add(new KeyValuePair<GXDateTime, GXDateTime>(new GXDateTime(-1, -1, -1, -1, -1, 0, -1), new GXDateTime(-1, -1, -1, -1, -1, 0, -1)));
+            ac.Destinations = new string[] { "localhost:4059" };
             Items.Add(ac);
             ///////////////////////////////////////////////////////////////////////
             //Add Activity Calendar object.
@@ -1268,6 +1268,18 @@ namespace GuruxDLMSServerExample
                 {
                     Console.WriteLine(ex.Message);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Execute selected actions
+        /// </summary>
+        /// <param name="actions">List of actions to execute.</param>
+        protected override void Execute(List<KeyValuePair<GXDLMSObject, int>> actions)
+        {
+            foreach(var it in actions)
+            {
+                Console.WriteLine(DateTime.Now + " Executing: " + it.Key.ObjectType + " " + it.Key);
             }
         }
 

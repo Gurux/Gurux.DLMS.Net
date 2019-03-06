@@ -164,6 +164,15 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
+        /// System title is not send on pre-established connecions.
+        /// </summary>
+        public bool IgnoreSystemTitle
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tag">Command.</param>

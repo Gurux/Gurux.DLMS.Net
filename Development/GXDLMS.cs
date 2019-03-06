@@ -634,28 +634,8 @@ namespace Gurux.DLMS
             AesGcmParameter s = new AesGcmParameter(cmd, cipher.Security,
                 ++cipher.InvocationCounter, cipher.SystemTitle, key,
                 cipher.AuthenticationKey);
+            s.IgnoreSystemTitle = p.settings.Standard == Standard.Italy;
             byte[] tmp = GXCiphering.Encrypt(s, data);
-            if (p.command == Command.DataNotification || cmd == (byte)Command.GeneralGloCiphering ||
-                cmd == (byte)Command.GeneralDedCiphering)
-            {
-                GXByteBuffer reply = new GXByteBuffer();
-                // Add command.
-                reply.SetUInt8(tmp[0]);
-                // Add system title.
-                if (st != null && p.settings.Standard != Standard.Italy)
-                {
-                    GXCommon.SetObjectCount(st.Length, reply);
-                    reply.Set(st);
-                }
-                else
-                {
-                    //System title is not send on Pre-Established connections.
-                    reply.SetUInt8(0);
-                }
-                // Add data.
-                reply.Set(tmp, 1, tmp.Length - 1);
-                return reply.Array();
-            }
             return tmp;
         }
 
@@ -981,11 +961,7 @@ namespace Gurux.DLMS
             GXByteBuffer reply = new GXByteBuffer();
             List<byte[]> messages = new List<byte[]>();
             byte frame = 0;
-            if (p.command == Command.Aarq)
-            {
-                frame = 0x10;
-            }
-            else if (p.command == Command.DataNotification || p.command == Command.EventNotification)
+            if (p.command == Command.DataNotification || p.command == Command.EventNotification)
             {
                 frame = 0x13;
             }
@@ -1528,10 +1504,12 @@ namespace Gurux.DLMS
         /// <param name="reply">Received data.</param>
         /// <param name="target">target (primary) address</param>
         /// <param name="source">Source (secondary) address.</param>
-        internal static void GetHdlcAddressInfo(GXByteBuffer reply, out int target, out int source)
+        /// <param name="type">DLMS frame type.</param>
+        internal static void GetHdlcAddressInfo(GXByteBuffer reply, out int target, out int source, out byte type)
         {
             int position = reply.Position;
             target = source = 0;
+            type = 0;
             try
             {
                 short ch;
@@ -1582,6 +1560,7 @@ namespace Gurux.DLMS
                 //Get address.
                 target = GXCommon.GetHDLCAddress(reply);
                 source = GXCommon.GetHDLCAddress(reply);
+                type = reply.GetUInt8();
             }
             finally
             {
@@ -2294,7 +2273,7 @@ namespace Gurux.DLMS
                     }
                     return false;
                 }
-                // Get status code. Status code is begin of each PDU. 
+                // Get status code. Status code is begin of each PDU.
                 if (first)
                 {
                     type = (SingleReadResponse)reply.Data.GetUInt8();
@@ -3378,6 +3357,8 @@ namespace Gurux.DLMS
                         case Command.DedGetResponse:
                         case Command.DedSetResponse:
                         case Command.DedMethodResponse:
+                        case Command.GeneralGloCiphering:
+                        case Command.GeneralDedCiphering:
                             data.Command = Command.None;
                             data.Data.Position = data.CipherIndex;
                             GetPdu(settings, data, client);
@@ -3790,30 +3771,6 @@ namespace Gurux.DLMS
             count = value = 0;
             switch (objectType)
             {
-                case ObjectType.Data:
-                case ObjectType.ActionSchedule:
-                case ObjectType.None:
-                case ObjectType.AutoAnswer:
-                case ObjectType.AutoConnect:
-                case ObjectType.MacAddressSetup:
-                case ObjectType.GprsSetup:
-                case ObjectType.IecHdlcSetup:
-                case ObjectType.IecLocalPortSetup:
-                case ObjectType.IecTwistedPairSetup:
-                case ObjectType.ModemConfiguration:
-                case ObjectType.PppSetup:
-                case ObjectType.RegisterMonitor:
-                case ObjectType.SapAssignment:
-                case ObjectType.ZigBeeSasStartup:
-                case ObjectType.ZigBeeSasJoin:
-                case ObjectType.ZigBeeSasApsFragmentation:
-                case ObjectType.Schedule:
-                case ObjectType.StatusMapping:
-                case ObjectType.TcpUdpSetup:
-                case ObjectType.UtilityTables:
-                    value = 0;
-                    count = 0;
-                    break;
                 case ObjectType.ImageTransfer:
                     value = 0x40;
                     count = 4;
@@ -3885,6 +3842,10 @@ namespace Gurux.DLMS
                 case ObjectType.PushSetup:
                     value = 0x38;
                     count = 1;
+                    break;
+                default:
+                    value = 0;
+                    count = 0;
                     break;
             }
         }
