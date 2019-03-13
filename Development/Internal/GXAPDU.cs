@@ -193,7 +193,7 @@ namespace Gurux.DLMS.Internal
             // Tag for xDLMS-Initiate request
             data.SetUInt8((byte)Command.InitiateRequest);
             // Usage field for dedicated-key component.
-            if (settings.Cipher == null || settings.Cipher.DedicatedKey == null)
+            if (settings.Cipher == null || settings.Cipher.DedicatedKey == null || settings.Cipher.Security == Security.None)
             {
                 data.SetUInt8(0x00);
             }
