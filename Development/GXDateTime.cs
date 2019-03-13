@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -312,7 +312,7 @@ namespace Gurux.DLMS
             {
                 Skip |= DateTimeSkips.Year | DateTimeSkips.DayOfWeek;
                 //Set year to 4 because there might be leap year.
-                //29/02/*" (29th February) 
+                //29/02/*" (29th February)
                 year = 4;
             }
             if (month == 0xFE)
@@ -481,7 +481,7 @@ namespace Gurux.DLMS
                     Replace(format, "mm");
                     Replace(format, "m");
                 }
-                return Value.LocalDateTime.ToString(format.ToString().Trim());
+                return Value.LocalDateTime.ToString(format.ToString().Trim(), culture);
             }
             return Value.LocalDateTime.ToString(culture);
         }
@@ -1012,7 +1012,7 @@ namespace Gurux.DLMS
             return (ulong)GXDateTime.ToUnixTime(this.Value.DateTime);
         }
 
-        #endregion      
+        #endregion
 
         /// <summary>
         /// Compare to date time.

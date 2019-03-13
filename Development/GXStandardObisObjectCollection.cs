@@ -243,7 +243,7 @@ namespace Gurux.DLMS
             switch (value)
             {
                 case 1:
-                    return "Sum Li Active energy (QI+QIV)";
+                    return "Sum Li Active energy+ (QI+QIV)";
                 case 2:
                     return "Sum Li Active energy- (QII+QIII)";
                 case 3:
@@ -273,15 +273,15 @@ namespace Gurux.DLMS
                 case 15:
                     return "Sum Li Active energy (abs(QI+QIV)+abs(QII+QIII))";
                 case 16:
-                    return "Sum Li Active energy (abs(QI+QIV)-abs(QII+QIII))";
+                    return "Sum Li Active power        (abs(QI+QIV)-abs(QII+QIII))";
                 case 17:
-                    return "Sum Li Active energy QI";
+                    return "Sum Li Active power QI";
                 case 18:
-                    return "Sum Li Active energy QII";
+                    return "Sum Li Active power QII";
                 case 19:
-                    return "Sum Li Active energy QIII";
+                    return "Sum Li Active power QIII";
                 case 20:
-                    return "Sum Li Active energy QIV";
+                    return "Sum Li Active power QIV";
                 case 21:
                     return "L1 Active energy+ (QI+QIV)";
                 case 22:
@@ -311,17 +311,17 @@ namespace Gurux.DLMS
                 case 34:
                     return "L1 Supply frequency";
                 case 35:
-                    return "L1 Active energy (abs(QI+QIV)+abs(QII+QIII))";
+                    return "L1 Active power (abs(QI+QIV)+abs(QII+QIII))";
                 case 36:
-                    return "L1 Active energy (abs(QI+QIV)-abs(QII+QIII))";
+                    return "L1 Active power (abs(QI+QIV)-abs(QII+QIII))";
                 case 37:
-                    return "L1 Active energy QI";
+                    return "L1 Active power QI";
                 case 38:
-                    return "L1 Active energy QII";
+                    return "L1 Active power QII";
                 case 39:
-                    return "L1 Active energy QIII";
+                    return "L1 Active power QIII";
                 case 40:
-                    return "L1 Active energy QIV";
+                    return "L1 Active power QIV";
                 case 41:
                     return "L2 Active energy+ (QI+QIV)";
                 case 42:
@@ -351,17 +351,17 @@ namespace Gurux.DLMS
                 case 54:
                     return "L2 Supply frequency";
                 case 55:
-                    return "L2 Active energy (abs(QI+QIV)+abs(QII+QIII))";
+                    return "L2 Active power (abs(QI+QIV)+abs(QII+QIII))";
                 case 56:
-                    return "L2 Active energy (abs(QI+QIV)-abs(QI+QIII))";
+                    return "L2 Active power (abs(QI+QIV)-abs(QI+QIII))";
                 case 57:
-                    return "L2 Active energy QI";
+                    return "L2 Active power QI";
                 case 58:
-                    return "L2 Active energy QII";
+                    return "L2 Active power QII";
                 case 59:
-                    return "L2 Active energy QIII";
+                    return "L2 Active power QIII";
                 case 60:
-                    return "L2 Active energy QIV";
+                    return "L2 Active power QIV";
                 case 61:
                     return "L3 Active energy+ (QI+QIV)";
                 case 62:
@@ -391,27 +391,27 @@ namespace Gurux.DLMS
                 case 74:
                     return "L3 Supply frequency";
                 case 75:
-                    return "L3 Active energy (abs(QI+QIV)+abs(QII+QIII))";
+                    return "L3 Active power (abs(QI+QIV)+abs(QII+QIII))";
                 case 76:
-                    return "L3 Active energy (abs(QI+QIV)-abs(QI+QIII))";
+                    return "L3 Active power (abs(QI+QIV)-abs(QI+QIII))";
                 case 77:
-                    return "L3 Active energy QI";
+                    return "L3 Active power QI";
                 case 78:
-                    return "L3 Active energy QII";
+                    return "L3 Active power QII";
                 case 79:
-                    return "L3 Active energy QIII";
+                    return "L3 Active power QIII";
                 case 80:
-                    return "L3 Active energy QIV";
+                    return "L3 Active power QIV";
                 case 82:
                     return "Unitless quantities (pulses or pieces)";
                 case 84:
-                    return "Sum Li power factor-";
+                    return "Sum Li Power factor-";
                 case 85:
-                    return "L1 power factor-";
+                    return "L1 Power factor-";
                 case 86:
-                    return "L2 power factor-";
+                    return "L2 Power factor-";
                 case 87:
-                    return "L3 power factor-";
+                    return "L3 Power factor-";
                 case 88:
                     return "Sum Li A2h QI+QII+QIII+QIV";
                 case 89:

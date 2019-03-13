@@ -1262,7 +1262,7 @@ namespace Gurux.DLMS
             SourceDiagnostic diagnostic = SourceDiagnostic.NoReasonGiven;
             try
             {
-                diagnostic = GXAPDU.ParsePDU(Settings, Settings.Cipher, data, null);
+                diagnostic = (SourceDiagnostic)GXAPDU.ParsePDU(Settings, Settings.Cipher, data, null);
                 if (Settings.NegotiatedConformance == Conformance.None)
                 {
                     result = AssociationResult.PermanentRejected;
@@ -1359,7 +1359,7 @@ namespace Gurux.DLMS
             catch (GXDLMSException e)
             {
                 result = e.Result;
-                diagnostic = e.Diagnostic;
+                diagnostic = (SourceDiagnostic)e.Diagnostic;
             }
             if (Settings.Authentication > Authentication.Low && !Settings.UseCustomChallenge)
             {

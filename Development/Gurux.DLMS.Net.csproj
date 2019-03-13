@@ -8,7 +8,7 @@
     <AssemblyName>Gurux.DLMS</AssemblyName>
     <Company>Gurux Ltd</Company>
     <Authors>Gurux Ltd</Authors>
-    <Copyright>Copyright (c) 1998-2018 Gurux Ltd. All rights reserved.</Copyright>
+    <Copyright>Copyright (c) 1998-2019 Gurux Ltd. All rights reserved.</Copyright>
     <PackageProjectUrl>https://www.gurux.fi</PackageProjectUrl>
     <PackageLicenseUrl>https://www.gnu.org/licenses/gpl-2.0.txt</PackageLicenseUrl>
     <Description>Gurux DLMS library for C#</Description>

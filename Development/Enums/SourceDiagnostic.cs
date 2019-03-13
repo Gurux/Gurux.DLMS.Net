@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,21 +19,40 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
 namespace Gurux.DLMS.Enums
 {
+    /// <summary>
+    /// ACSE service provider.
+    /// </summary>
+    public enum AcseServiceProvider
+    {
+        /// <summary>
+        /// There is no error.
+        /// </summary>
+        None,
+        /// <summary>
+        /// Reason is not given.
+        /// </summary>
+        NoReasonGiven = 1,
+        /// <summary>
+        /// Invlid ACSE version.
+        /// </summary>
+        NoCommonAcseVersion = 2
+    }
+
     /// <summary>
     /// SourceDiagnostic enumerates the error codes for reasons that can cause the server to reject the client.
     /// </summary>
@@ -48,7 +67,7 @@ namespace Gurux.DLMS.Enums
         /// </summary>
         NoReasonGiven = 1,
         /// <summary>
-        /// The application context name is not supported. 
+        /// The application context name is not supported.
         /// </summary>
         ApplicationContextNameNotSupported = 2,
         /// <summary>
@@ -72,7 +91,7 @@ namespace Gurux.DLMS.Enums
         /// </summary>
         CalledApTitleNotRecognized = 7,
         /// <summary>
-        /// Called AP invocation identifier not recognized 
+        /// Called AP invocation identifier not recognized
         /// </summary>
         CalledApInvocationIdentifierNotRecognized = 8,
         /// <summary>

@@ -468,7 +468,7 @@ namespace Gurux.DLMS.Internal
                     value = GetUInt16(data, info);
                     break;
                 case DataType.CompactArray:
-                    value = GetCompactArray(settings, data, info);
+                    value = GetCompactArray(settings, data, info, false);
                     break;
                 case DataType.Int64:
                     value = GetInt64(data, info);
@@ -1152,7 +1152,7 @@ namespace Gurux.DLMS.Internal
         /// <param name="buff">Data info.</param>
         /// <param name="info"></param>
         /// <returns>Parsed value</returns>
-        private static object GetCompactArray(GXDLMSSettings settings, GXByteBuffer buff, GXDataInfo info)
+        internal static object GetCompactArray(GXDLMSSettings settings, GXByteBuffer buff, GXDataInfo info, bool onlyDataTypes)
         {
             // If there is not enough data available.
             if (buff.Size - buff.Position < 2)
@@ -1172,7 +1172,18 @@ namespace Gurux.DLMS.Internal
                 // Get data types.
                 List<object> cols = new List<object>();
                 GetDataTypes(buff, cols, len);
-                len = GXCommon.GetObjectCount(buff);
+                if (onlyDataTypes)
+                {
+                    return cols.ToArray();
+                }
+                if (buff.Position == buff.Size)
+                {
+                    len = 0;
+                }
+                else
+                {
+                    len = GXCommon.GetObjectCount(buff);
+                }
                 if (info.xml != null)
                 {
                     info.xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.CompactArray, null, null);

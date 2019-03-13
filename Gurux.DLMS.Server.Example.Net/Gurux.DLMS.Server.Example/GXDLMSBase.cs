@@ -175,7 +175,7 @@ namespace GuruxDLMSServerExample
             clock.Deviation = 60;
             Items.Add(clock);
             ///////////////////////////////////////////////////////////////////////
-            //Add Load profile.           
+            //Add Load profile.
             GXDLMSProfileGeneric pg = new GXDLMSProfileGeneric("1.0.99.1.0.255");
             //Set capture period to 60 second.
             pg.CapturePeriod = 60;
@@ -194,7 +194,7 @@ namespace GuruxDLMSServerExample
             lock (FileLock)
             {
                 //Create 10 000 rows for profile generic file.
-                //In example profile generic we have two columns. 
+                //In example profile generic we have two columns.
                 //Date time and integer value.
                 int rowCount = 10000;
                 DateTime dt = DateTime.Now;
@@ -851,7 +851,7 @@ namespace GuruxDLMSServerExample
                 if (it.Target is GXDLMSImageTransfer)
                 {
                     GXDLMSImageTransfer i = it.Target as GXDLMSImageTransfer;
-                    //Image name and size to transfer 
+                    //Image name and size to transfer
                     if (it.Index == 1)
                     {
                         i.ImageTransferStatus = ImageTransferStatus.NotInitiated;
@@ -1277,7 +1277,7 @@ namespace GuruxDLMSServerExample
         /// <param name="actions">List of actions to execute.</param>
         protected override void Execute(List<KeyValuePair<GXDLMSObject, int>> actions)
         {
-            foreach(var it in actions)
+            foreach (var it in actions)
             {
                 Console.WriteLine(DateTime.Now + " Executing: " + it.Key.ObjectType + " " + it.Key);
             }

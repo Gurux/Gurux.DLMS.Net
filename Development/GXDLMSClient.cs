@@ -1965,9 +1965,66 @@ namespace Gurux.DLMS
         /// <param name="pg">Profile generic object to read.</param>
         /// <param name="index">One based start index.</param>
         /// <param name="count">Rows count to read.</param>
+        /// <param name="columns">Columns to read.</param>
         /// <returns>Read message as byte array.</returns>
         public byte[][] ReadRowsByEntry(GXDLMSProfileGeneric pg, int index, int count,
                                         List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
+        {
+            int columnIndex = 1;
+            int columnEnd = 0;
+            int pos = 0;
+            // If columns are given find indexes.
+            if (columns != null && columns.Count != 0)
+            {
+                if (pg.CaptureObjects == null || pg.CaptureObjects.Count == 0)
+                {
+                    throw new Exception("Read capture objects first.");
+                }
+                columnIndex = pg.CaptureObjects.Count;
+                columnEnd = 1;
+                foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> c in columns)
+                {
+                    pos = 0;
+                    bool found = false;
+                    foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in pg.CaptureObjects)
+                    {
+                        ++pos;
+                        if (it.Key.ObjectType == c.Key.ObjectType
+                                && it.Key.LogicalName.CompareTo(c.Key.LogicalName) == 0
+                                && it.Value.AttributeIndex == c.Value.AttributeIndex
+                                && it.Value.DataIndex == c.Value.DataIndex)
+                        {
+                            found = true;
+                            if (pos < columnIndex)
+                            {
+                                columnIndex = pos;
+                            }
+                            columnEnd = pos;
+                            break;
+                        }
+                    }
+                    if (!found)
+                    {
+                        throw new Exception("Invalid column: " + c.Key.LogicalName);
+                    }
+                }
+            }
+            return ReadRowsByEntry(pg, index, count, columnIndex, columnEnd);
+        }
+
+        /// <summary>
+        /// Read rows by entry.
+        /// </summary>
+        /// <remarks>
+        /// Check Conformance because all meters do not support this.
+        /// </remarks>
+        /// <param name="pg">Profile generic object to read.</param>
+        /// <param name="index">One based start index.</param>
+        /// <param name="count">Rows count to read.</param>
+        /// <param name="columnStart">One based column start index.</param>
+        /// <param name="columnEnd">Column end index.</param>
+        /// <returns>Read message as byte array.</returns>
+        public byte[][] ReadRowsByEntry(GXDLMSProfileGeneric pg, int index, int count, int columnStart, int columnEnd)
         {
             if (index < 0)
             {
@@ -1976,6 +2033,14 @@ namespace Gurux.DLMS
             if (count < 0)
             {
                 throw new ArgumentOutOfRangeException("count");
+            }
+            if (columnStart < 1)
+            {
+                throw new ArgumentOutOfRangeException("columnStart");
+            }
+            if (columnEnd < 0)
+            {
+                throw new ArgumentOutOfRangeException("columnEnd");
             }
             pg.Reset();
             Settings.ResetBlockIndex();
@@ -1997,48 +2062,9 @@ namespace Gurux.DLMS
             {
                 GXCommon.SetData(Settings, buff, DataType.UInt32, index + count - 1);
             }
-            int columnIndex = 1;
-            int columnCount = 0;
-            int pos = 0;
-            // If columns are given find indexes.
-            if (columns != null && columns.Count != 0)
-            {
-                if (pg.CaptureObjects == null || pg.CaptureObjects.Count == 0)
-                {
-                    throw new Exception("Read capture objects first.");
-                }
-                columnIndex = pg.CaptureObjects.Count;
-                columnCount = 1;
-                foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> c in columns)
-                {
-                    pos = 0;
-                    bool found = false;
-                    foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in pg.CaptureObjects)
-                    {
-                        ++pos;
-                        if (it.Key.ObjectType == c.Key.ObjectType
-                                && it.Key.LogicalName.CompareTo(c.Key.LogicalName) == 0
-                                && it.Value.AttributeIndex == c.Value.AttributeIndex
-                                && it.Value.DataIndex == c.Value.DataIndex)
-                        {
-                            found = true;
-                            if (pos < columnIndex)
-                            {
-                                columnIndex = pos;
-                            }
-                            columnCount = pos - columnIndex + 1;
-                            break;
-                        }
-                    }
-                    if (!found)
-                    {
-                        throw new Exception("Invalid column: " + c.Key.LogicalName);
-                    }
-                }
-            }
             // Select columns to read.
-            GXCommon.SetData(Settings, buff, DataType.UInt16, columnIndex);
-            GXCommon.SetData(Settings, buff, DataType.UInt16, columnCount);
+            GXCommon.SetData(Settings, buff, DataType.UInt16, columnStart);
+            GXCommon.SetData(Settings, buff, DataType.UInt16, columnEnd);
             return Read(pg.Name, ObjectType.ProfileGeneric, 2, buff);
         }
 

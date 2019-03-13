@@ -269,7 +269,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Copies the values of the objects to capture into the buffer by reading each capture object. 
+        /// Copies the values of the objects to capture into the buffer by reading each capture object.
         /// </summary>
         /// <param name="client">DLMS client.</param>
         /// <returns>Action bytes.</returns>
@@ -456,7 +456,34 @@ namespace Gurux.DLMS.Objects
             List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> cols = columns;
             if (columns == null)
             {
+                cols = CaptureObjects;
+            }
+            DataType[] types = new DataType[cols.Count];
+            foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in cols)
+            {
+                types[pos] = it.Key.GetDataType(it.Value.AttributeIndex);
+                ++pos;
+            }
+            UInt16 columnStart = 1, columnEnd = 0;
+            if (e.Selector == 2)
+            {
+                columnStart = (UInt16)((object[])e.Parameters)[2];
+                columnEnd = (UInt16)((object[])e.Parameters)[3];
+            }
 
+            if (columnStart > 1 || columnEnd != 0)
+            {
+                pos = 1;
+                cols = new List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
+                foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in CaptureObjects)
+                {
+                    if (!(pos < columnStart || pos > columnEnd))
+                    {
+                        cols.Add(it);
+                    }
+                    ++pos;
+                }
+                pos = 0;
             }
             GXByteBuffer data = new GXByteBuffer();
             if (settings.Index == 0)
@@ -469,32 +496,18 @@ namespace Gurux.DLMS.Objects
                 else
                 {
                     GXCommon.SetObjectCount(table.Count, data);
-
                 }
-            }
-            DataType[] types = new DataType[CaptureObjects.Count];
-            foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in CaptureObjects)
-            {
-                types[pos] = it.Key.GetDataType(it.Value.AttributeIndex);
-                ++pos;
             }
 
             foreach (object[] items in table)
             {
                 data.SetUInt8((byte)DataType.Structure);
-                if (columns == null || columns.Count == 0)
-                {
-                    GXCommon.SetObjectCount(items.Length, data);
-                }
-                else
-                {
-                    GXCommon.SetObjectCount(columns.Count, data);
-                }
+                GXCommon.SetObjectCount(cols.Count, data);
                 pos = 0;
                 DataType tp;
                 foreach (object value in items)
                 {
-                    if (columns == null || columns.Contains(CaptureObjects[pos]))
+                    if (cols == null || cols.Contains(CaptureObjects[pos]))
                     {
                         tp = types[pos];
                         if (tp == DataType.None)
@@ -954,11 +967,11 @@ namespace Gurux.DLMS.Objects
         public static List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> GetCaptureObjects(object[] array)
         {
             List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> list = new List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
-            GetCaptureObjects(null, list, array);
+            SetCaptureObjects(null, list, array);
             return list;
         }
 
-        private static void GetCaptureObjects(GXDLMSSettings settings, List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> list, object[] array)
+        private static void SetCaptureObjects(GXDLMSSettings settings, List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> list, object[] array)
         {
             GXDLMSConverter c = null;
             try
@@ -1026,13 +1039,13 @@ namespace Gurux.DLMS.Objects
                 CaptureObjects.Clear();
                 if (e.Value != null)
                 {
-                    GetCaptureObjects(settings, CaptureObjects, e.Value as object[]);
+                    SetCaptureObjects(settings, CaptureObjects, e.Value as object[]);
                 }
             }
             else if (e.Index == 4)
             {
-                //Any write access to one of the attributes will automatically call a reset 
-                //and this call will propagate to all other profiles capturing this profile. 
+                //Any write access to one of the attributes will automatically call a reset
+                //and this call will propagate to all other profiles capturing this profile.
                 if (settings.IsServer)
                 {
                     Reset();
@@ -1041,8 +1054,8 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 5)
             {
-                //Any write access to one of the attributes will automatically call a reset 
-                //and this call will propagate to all other profiles capturing this profile. 
+                //Any write access to one of the attributes will automatically call a reset
+                //and this call will propagate to all other profiles capturing this profile.
                 if (settings.IsServer)
                 {
                     Reset();
@@ -1051,8 +1064,8 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 6)
             {
-                //Any write access to one of the attributes will automatically call a reset 
-                //and this call will propagate to all other profiles capturing this profile. 
+                //Any write access to one of the attributes will automatically call a reset
+                //and this call will propagate to all other profiles capturing this profile.
                 if (settings.IsServer)
                 {
                     Reset();
@@ -1095,8 +1108,8 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 8)
             {
-                //Any write access to one of the attributes will automatically call a reset 
-                //and this call will propagate to all other profiles capturing this profile. 
+                //Any write access to one of the attributes will automatically call a reset
+                //and this call will propagate to all other profiles capturing this profile.
                 if (settings.IsServer)
                 {
                     Reset();
