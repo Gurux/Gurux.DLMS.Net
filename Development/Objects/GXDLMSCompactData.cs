@@ -147,7 +147,20 @@ namespace Gurux.DLMS.Objects
 
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
-            e.Error = ErrorCode.ReadWriteDenied;
+            if (e.Index == 1)
+            {
+                //Reset.
+                Reset();
+            }
+            else if (e.Index == 2)
+            {
+                //Capture.
+                Capture(e.Server);
+            }
+            else
+            {
+                e.Error = ErrorCode.ReadWriteDenied;
+            }
             return null;
         }
 
@@ -205,16 +218,19 @@ namespace Gurux.DLMS.Objects
 
         public static DataType[] GetDataTypes(byte[] value)
         {
-            if (value == null)
+            if (value == null || value.Length == 0)
             {
                 return new DataType[0];
             }
             List<DataType> list = new List<DataType>();
             GXDataInfo info = new GXDataInfo();
-            object[] tmp = (object[]) GXCommon.GetCompactArray(null, new GXByteBuffer(value), info, true);
-            foreach(DataType it in tmp)
+            object[] tmp = (object[])GXCommon.GetCompactArray(null, new GXByteBuffer(value), info, true);
+            if (tmp != null)
             {
-                list.Add(it);
+                foreach (DataType it in tmp)
+                {
+                    list.Add(it);
+                }
             }
             return list.ToArray();
         }
@@ -234,7 +250,7 @@ namespace Gurux.DLMS.Objects
             GXCommon.SetObjectCount(value.Length, bb);
             bb.Set(value);
             object[] tmp = (object[])GXCommon.GetCompactArray(null, bb, info, false);
-            row.Add((object[]) tmp[0]);
+            row.Add((object[])tmp[0]);
             return row.ToArray();
         }
 
@@ -317,38 +333,46 @@ namespace Gurux.DLMS.Objects
             list.Clear();
             try
             {
-                foreach (object it in array)
+                if (array != null)
                 {
-                    object[] tmp = it as object[];
-                    if (tmp.Length != 4)
+                    foreach (object it in array)
                     {
-                        throw new GXDLMSException("Invalid structure format.");
-                    }
-                    int v = Convert.ToInt16(tmp[0]);
-                    if (Enum.GetName(typeof(ObjectType), v) == null)
-                    {
-                        list.Clear();
-                        return;
-                    }
-                    ObjectType type = (ObjectType)v;
-                    string ln = GXCommon.ToLogicalName((byte[])tmp[1]);
-                    int attributeIndex = Convert.ToInt16(tmp[2]);
-                    int dataIndex = Convert.ToInt16(tmp[3]);
-                    GXDLMSObject obj = null;
-                    if (settings != null && settings.Objects != null)
-                    {
-                        obj = settings.Objects.FindByLN(type, ln);
-                    }
-                    if (obj == null)
-                    {
-                        obj = GXDLMSClient.CreateDLMSObject((int)type, null, 0, ln, 0);
-                        if (c == null)
+                        object[] tmp = it as object[];
+                        if (tmp.Length != 4)
                         {
-                            c = new GXDLMSConverter();
+                            throw new GXDLMSException("Invalid structure format.");
                         }
-                        c.UpdateOBISCodeInformation(obj);
+                        int v = Convert.ToInt16(tmp[0]);
+                        if (Enum.GetName(typeof(ObjectType), v) == null)
+                        {
+                            list.Clear();
+                            return;
+                        }
+                        ObjectType type = (ObjectType)v;
+                        string ln = GXCommon.ToLogicalName((byte[])tmp[1]);
+                        int attributeIndex = Convert.ToInt16(tmp[2]);
+                        //If profile generic selective access is used.
+                        if (attributeIndex < 0)
+                        {
+                            attributeIndex = 2;
+                        }
+                        int dataIndex = Convert.ToInt16(tmp[3]);
+                        GXDLMSObject obj = null;
+                        if (settings != null && settings.Objects != null)
+                        {
+                            obj = settings.Objects.FindByLN(type, ln);
+                        }
+                        if (obj == null)
+                        {
+                            obj = GXDLMSClient.CreateDLMSObject((int)type, null, 0, ln, 0);
+                            if (c == null)
+                            {
+                                c = new GXDLMSConverter();
+                            }
+                            c.UpdateOBISCodeInformation(obj);
+                        }
+                        list.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, new GXDLMSCaptureObject(attributeIndex, dataIndex)));
                     }
-                    list.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, new GXDLMSCaptureObject(attributeIndex, dataIndex)));
                 }
             }
             catch (Exception)
@@ -356,7 +380,6 @@ namespace Gurux.DLMS.Objects
                 list.Clear();
             }
         }
-
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
@@ -374,10 +397,10 @@ namespace Gurux.DLMS.Objects
                     {
                         Buffer = GXCommon.HexToBytes((string)e.Value);
                     }
-
                     break;
                 case 3:
                     SetCaptureObjects(settings, CaptureObjects, (object[])e.Value);
+                    UpdateTemplateDescription();
                     break;
                 case 4:
                     TemplateId = (byte)e.Value;
@@ -447,5 +470,81 @@ namespace Gurux.DLMS.Objects
         {
         }
         #endregion
+
+        /// <summary>
+        /// Clears the buffer.
+        /// </summary>
+        public void Reset()
+        {
+            lock (this)
+            {
+                Buffer = null;
+            }
+        }
+
+        /// <summary>
+        /// Copies the values of the objects to capture
+        /// into the buffer by reading capture objects.
+        /// </summary>
+        public void Capture(GXDLMSServer server)
+        {
+            lock (this)
+            {
+                GXByteBuffer bb = new GXByteBuffer();
+                ValueEventArgs[] args = new ValueEventArgs[] { new ValueEventArgs(server, this, 2, 0, null) };
+                Buffer = null;
+                server.PreGet(args);
+                if (!args[0].Handled)
+                {
+                    foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in CaptureObjects)
+                    {
+                        ValueEventArgs e = new ValueEventArgs(server, it.Key, it.Value.AttributeIndex, 0, null);
+                        object value = (it.Key as IGXDLMSBase).GetValue(server.Settings, e);
+                        if (value is byte[])
+                        {
+                            bb.Set((byte[])value);
+                        }
+                        else
+                        {
+                            GXByteBuffer tmp = new GXByteBuffer();
+                            GXCommon.SetData(server.Settings, tmp, (it.Key as IGXDLMSBase).GetDataType(it.Value.AttributeIndex), value);
+                            //If data is empty.
+                            if (tmp.Size == 1)
+                            {
+                                bb.SetUInt8(0);
+                            }
+                            else
+                            {
+                                tmp.Position = 1;
+                                bb.Set(tmp);
+                            }
+                        }
+                    }
+                    Buffer = bb.Array();
+                }
+                server.PostGet(args);
+                server.NotifyAction(args);
+                server.NotifyPostAction(args);
+            }
+        }
+
+        /// <summary>
+        /// Update template description.
+        /// </summary>
+        public void UpdateTemplateDescription()
+        {
+            lock (this)
+            {
+                GXByteBuffer bb = new GXByteBuffer();
+                Buffer = null;
+                bb.SetUInt8((byte) DataType.Structure);
+                GXCommon.SetObjectCount(CaptureObjects.Count, bb);
+                foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in CaptureObjects)
+                {
+                    bb.SetUInt8((it.Key as IGXDLMSBase).GetDataType(it.Value.AttributeIndex));
+                }
+                TemplateDescription = bb.Array();
+            }
+        }
     }
 }

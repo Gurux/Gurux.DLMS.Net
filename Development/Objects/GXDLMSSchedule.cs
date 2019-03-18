@@ -162,8 +162,8 @@ namespace Gurux.DLMS.Objects
                     data.SetUInt8((byte)DataType.Structure);
                     data.SetUInt8(10);
                     //Add index.
-                    data.SetUInt8((byte)DataType.UInt8);
-                    data.SetUInt8(it.Index);
+                    data.SetUInt8((byte)DataType.UInt16);
+                    data.SetUInt16(it.Index);
                     //Add enable.
                     data.SetUInt8((byte)DataType.Boolean);
                     data.SetUInt8((byte) (it.Enable ? 1 : 0));
@@ -172,13 +172,13 @@ namespace Gurux.DLMS.Objects
                     data.SetUInt8((byte) it.LogicalName.Length);
                     data.Set(GXCommon.LogicalNameToBytes(it.LogicalName));
                     //Add script selector.
-                    data.SetUInt8((byte)DataType.UInt8);
-                    data.SetUInt8(it.ScriptSelector);
+                    data.SetUInt8((byte)DataType.UInt16);
+                    data.SetUInt16(it.ScriptSelector);
                     //Add switch time.
                     GXCommon.SetData(settings, data, DataType.OctetString, it.SwitchTime);
                     //Add validity window.
-                    data.SetUInt8((byte)DataType.UInt8);
-                    data.SetUInt8(it.ValidityWindow);
+                    data.SetUInt8((byte)DataType.UInt16);
+                    data.SetUInt16(it.ValidityWindow);
                     //Add exec week days.
                     GXCommon.SetData(settings, data, DataType.BitString, it.ExecWeekdays);
                     //Add exec spec days.
@@ -210,12 +210,12 @@ namespace Gurux.DLMS.Objects
                     {
                         GXScheduleEntry item = new GXScheduleEntry();
                         Object[] tmp = (Object[])it;
-                        item.Index = Convert.ToByte(tmp[0]);
+                        item.Index = Convert.ToUInt16(tmp[0]);
                         item.Enable = (bool)tmp[1];
                         item.LogicalName = GXCommon.ToLogicalName(tmp[2]);
-                        item.ScriptSelector = Convert.ToByte(tmp[3]);
+                        item.ScriptSelector = Convert.ToUInt16(tmp[3]);
                         item.SwitchTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[4], DataType.DateTime, settings.UseUtc2NormalTime);
-                        item.ValidityWindow = Convert.ToByte(tmp[5]);
+                        item.ValidityWindow = Convert.ToUInt16(tmp[5]);
                         item.ExecWeekdays = Convert.ToString(tmp[6]);
                         item.ExecSpecDays = Convert.ToString(tmp[7]);
                         item.BeginDate = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[8], DataType.DateTime, settings.UseUtc2NormalTime);

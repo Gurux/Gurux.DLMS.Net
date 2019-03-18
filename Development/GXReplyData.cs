@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 using System;
@@ -67,8 +67,8 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
-        /// Constructor. 
-        ///</summary>         
+        /// Constructor.
+        ///</summary>
         public GXReplyData()
         {
             Data = new GXByteBuffer();
@@ -82,7 +82,7 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
-        /// Read value. 
+        /// Read value.
         ///</summary>
         public object Value
         {
@@ -100,7 +100,7 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
-        /// Packet length. 
+        /// Packet length.
         ///</summary>
         public int PacketLength
         {
@@ -109,9 +109,9 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
-        /// Received command. 
+        /// Received command.
         ///</summary>
-        internal Command Command
+        public Command Command
         {
             get;
             set;
@@ -126,9 +126,18 @@ namespace Gurux.DLMS
             set;
         }
 
+        ///<summary>
+        /// Received Ciphered command.
+        ///</summary>
+        internal Command CipheredCommand
+        {
+            get;
+            set;
+        }
+
 
         ///<summary>
-        /// Received data. 
+        /// Received data.
         ///</summary>
         public GXByteBuffer Data
         {
@@ -136,27 +145,27 @@ namespace Gurux.DLMS
             set;
         }
 
-        ///<summary> 
-        /// Is frame complete. 
-        ///</summary>         
+        ///<summary>
+        /// Is frame complete.
+        ///</summary>
         public bool IsComplete
         {
             get;
             internal set;
         }
 
-        ///<summary> 
-        /// HDLC frame ID. 
-        ///</summary>         
+        ///<summary>
+        /// HDLC frame ID.
+        ///</summary>
         public byte FrameId
         {
             get;
             internal set;
         }
 
-        ///<summary> 
-        /// Received invoke ID. 
-        ///</summary>         
+        ///<summary>
+        /// Received invoke ID.
+        ///</summary>
         public UInt32 InvokeId
         {
             get;
@@ -164,7 +173,7 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
-        /// Received error. 
+        /// Received error.
         ///</summary>
         public short Error
         {
@@ -183,7 +192,7 @@ namespace Gurux.DLMS
 
 
         ///<summary>
-        /// Expected count of elements in the array. 
+        /// Expected count of elements in the array.
         ///</summary>
         /// <seealso cref="Count"/>
         ///<seealso cref="Peek"/>
@@ -203,7 +212,7 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
-        /// Data notification date time. 
+        /// Data notification date time.
         ///</summary>
         public DateTime Time
         {
@@ -241,7 +250,7 @@ namespace Gurux.DLMS
         /// GBT Window size.
         /// </summary>
         /// <remarks>
-        /// This is for internal use. 
+        /// This is for internal use.
         /// </remarks>
         internal byte WindowSize
         {
@@ -253,7 +262,7 @@ namespace Gurux.DLMS
         /// Client address of the notification message.
         /// </summary>
         /// <remarks>
-        /// Notification message sets this. 
+        /// Notification message sets this.
         /// </remarks>
         public int ClientAddress
         {
@@ -265,7 +274,7 @@ namespace Gurux.DLMS
         /// Server address of the notification message.
         /// </summary>
         /// <remarks>
-        /// Notification message sets this. 
+        /// Notification message sets this.
         /// </remarks>
         public int ServerAddress
         {
@@ -293,12 +302,12 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
-        /// Reset data values to default. 
-        ///</summary>         
+        /// Reset data values to default.
+        ///</summary>
         public void Clear()
         {
             MoreData = RequestTypes.None;
-            Command = Command.None;
+            CipheredCommand = Command = Command.None;
             CommandType = 0;
             Data.Capacity = 0;
             IsComplete = false;
@@ -341,7 +350,7 @@ namespace Gurux.DLMS
 
         /// <summary>
         /// Is more data available. Return None if more data is not available or Frame or Block type.
-        /// </summary>         
+        /// </summary>
         public RequestTypes MoreData
         {
             get;
@@ -374,7 +383,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Is value try to peek. 
+        /// Is value try to peek.
         /// </summary>
         /// <seealso cref="Count"/>
         /// <seealso cref="TotalCount"/>

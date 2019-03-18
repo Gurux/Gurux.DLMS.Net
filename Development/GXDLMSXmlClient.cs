@@ -310,7 +310,7 @@ namespace Gurux.DLMS
 
 
         /// <summary>
-        /// XML client don't throw exceptions. It serializes them as a default. 
+        /// XML client don't throw exceptions. It serializes them as a default.
         /// Set value to true, if exceptions are thrown.
         /// </summary>
         public bool ThrowExceptions
@@ -593,7 +593,7 @@ namespace Gurux.DLMS
                 {
                     if (Ciphering.Security != Enums.Security.None)
                     {
-                        GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, pdu.Command, 0x0, null, null, 0xff);
+                        GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, pdu.Command, 0x0, null, null, 0xff, Command.None);
                         reply = new GXByteBuffer(GXDLMS.Cipher0(p, pdu.Data));
                     }
                     else
@@ -605,7 +605,7 @@ namespace Gurux.DLMS
                 {
                     if (Ciphering.Security != Enums.Security.None)
                     {
-                        GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, pdu.Command, 0x0, null, null, 0xff);
+                        GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, pdu.Command, 0x0, null, null, 0xff, Command.None);
                         byte[] tmp = GXDLMS.Cipher0(p, pdu.Data);
                         reply = new GXByteBuffer((UInt16)(3 + tmp.Length));
                         reply.Set(GXCommon.LLCSendBytes);

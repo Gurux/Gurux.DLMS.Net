@@ -129,11 +129,6 @@ namespace Gurux.DLMS
         /// </summary>
         internal string protocolVersion = null;
 
-        internal bool CanAccess()
-        {
-            return SourceSystemTitle != null;
-        }
-
         /// <summary>
         /// When connection is made client tells what kind of services it want's to use.
         /// </summary>

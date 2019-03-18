@@ -310,7 +310,6 @@ namespace Gurux.DLMS.Objects
                 tmp[(int)imageIndex] = '1';
                 ImageTransferredBlocksStatus = new string(tmp);
                 ImageFirstNotTransferredBlockNumber = imageIndex + 1;
-                ImageTransferStatus = ImageTransferStatus.TransferInitiated;
                 return null;
             }
             //Image verify
@@ -320,7 +319,7 @@ namespace Gurux.DLMS.Objects
             }
             //Image activate.
             else if (e.Index == 4)
-            {             
+            {
                 return null;
             }
             else

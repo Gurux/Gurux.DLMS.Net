@@ -52,8 +52,16 @@ namespace Gurux.DLMS
         /// <param name="settings">DLMS settings.</param>
         /// <param name="server">DLMS server.</param>
         /// <param name="data">Received data.</param>
-        public static void HandleReadRequest(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
+        public static void HandleReadRequest(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml, Command cipheredCommand)
         {
+            //Return error if connection is not established.
+            if (xml == null && (settings.Connected & ConnectionState.Hdlc) == 0 && cipheredCommand == Command.None)
+            {
+                replyData.Add(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
+                              ServiceError.Service, (byte)Service.Unsupported));
+                return;
+            }
+
             GXByteBuffer bb = new GXByteBuffer();
             int cnt = 0xFF;
             byte type = 0;
@@ -88,7 +96,7 @@ namespace Gurux.DLMS
                     if (type == (byte)VariableAccessSpecification.VariableName ||
                             type == (byte)VariableAccessSpecification.ParameterisedAccess)
                     {
-                        HandleRead(settings, server, type, data, list, reads, actions, replyData, xml);
+                        HandleRead(settings, server, type, data, list, reads, actions, replyData, xml, cipheredCommand);
                     }
                     else if (type == (byte)VariableAccessSpecification.BlockNumberAccess)
                     {
@@ -101,7 +109,7 @@ namespace Gurux.DLMS
                     }
                     else if (type == (byte)VariableAccessSpecification.ReadDataBlockAccess)
                     {
-                        HandleReadDataBlockAccess(settings, server, Command.ReadResponse, data, cnt, replyData, xml);
+                        HandleReadDataBlockAccess(settings, server, Command.ReadResponse, data, cnt, replyData, xml, cipheredCommand);
                         if (xml != null)
                         {
                             xml.AppendEndTag(Command.ReadRequest);
@@ -168,10 +176,10 @@ namespace Gurux.DLMS
         /// Handle write request.
         ///</summary>
         public static void HandleWriteRequest(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data,
-                                              GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
+                                              GXByteBuffer replyData, GXDLMSTranslatorStructure xml, Command cipheredCommand)
         {
             //Return error if connection is not established.
-            if (xml == null && settings.Connected == ConnectionState.None && !settings.CanAccess())
+            if (xml == null && (settings.Connected & ConnectionState.Hdlc) == 0 && cipheredCommand == Command.None)
             {
                 replyData.Add(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));
@@ -226,7 +234,7 @@ namespace Gurux.DLMS
                 }
                 else if (type == (byte)VariableAccessSpecification.WriteDataBlockAccess)
                 {
-                    HandleReadDataBlockAccess(settings, server, Command.WriteResponse, data, cnt, replyData, xml);
+                    HandleReadDataBlockAccess(settings, server, Command.WriteResponse, data, cnt, replyData, xml, cipheredCommand);
                     if (xml == null)
                     {
                         return;
@@ -351,7 +359,7 @@ namespace Gurux.DLMS
 
         private static void HandleRead(GXDLMSSettings settings, GXDLMSServer server, byte type, GXByteBuffer data,
                                        List<ValueEventArgs> list, List<ValueEventArgs> reads, List<ValueEventArgs> actions,
-                                       GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
+                                       GXByteBuffer replyData, GXDLMSTranslatorStructure xml, Command cipheredCommand)
         {
             int sn = data.GetInt16();
             if (xml != null)
@@ -407,7 +415,7 @@ namespace Gurux.DLMS
                 e.Parameters = GXCommon.GetData(settings, data, di);
             }
             //Return error if connection is not established.
-            if (settings.Connected == ConnectionState.None && !settings.CanAccess() && (!e.action || e.Target.ShortName != 0xFA00 || e.Index != 8))
+            if ((settings.Connected & ConnectionState.Hdlc) == 0 && cipheredCommand == Command.None && (!e.action || e.Target.ShortName != 0xFA00 || e.Index != 8))
             {
                 replyData.Add(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));
@@ -517,7 +525,7 @@ namespace Gurux.DLMS
 
         private static void HandleReadDataBlockAccess(
             GXDLMSSettings settings, GXDLMSServer server,
-            Command command, GXByteBuffer data, int cnt, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
+            Command command, GXByteBuffer data, int cnt, GXByteBuffer replyData, GXDLMSTranslatorStructure xml, Command cipheredCommand)
         {
             GXByteBuffer bb = new GXByteBuffer();
             byte lastBlock = data.GetUInt8();
@@ -602,11 +610,11 @@ namespace Gurux.DLMS
                 }
                 if (command == Command.ReadResponse)
                 {
-                    HandleReadRequest(settings, server, data, replyData, xml);
+                    HandleReadRequest(settings, server, data, replyData, xml, cipheredCommand);
                 }
                 else
                 {
-                    HandleWriteRequest(settings, server, data, replyData, xml);
+                    HandleWriteRequest(settings, server, data, replyData, xml, cipheredCommand);
                 }
                 settings.ResetBlockIndex();
             }

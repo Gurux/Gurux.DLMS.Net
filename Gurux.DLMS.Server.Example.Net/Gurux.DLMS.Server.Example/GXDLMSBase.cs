@@ -395,6 +395,7 @@ namespace GuruxDLMSServerExample
             Items.Add(new GXDLMSCredit());
             Items.Add(new GXDLMSCharge());
             Items.Add(new GXDLMSTokenGateway());
+            Items.Add(new GXDLMSCompactData());
 
             ///////////////////////////////////////////////////////////////////////
             //Server must initialize after all objects are added.

@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -43,7 +43,7 @@ using System.ComponentModel;
 namespace Gurux.DLMS
 {
     /// <summary>
-    /// This class is used to send data notify and push messages to the clients. 
+    /// This class is used to send data notify and push messages to the clients.
     /// </summary>
     public class GXDLMSNotify
     {
@@ -132,7 +132,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Determines, whether Logical, or Short name, referencing is used.     
+        /// Determines, whether Logical, or Short name, referencing is used.
         /// </summary>
         /// <remarks>
         /// Referencing depends on the device to communicate with.
@@ -184,10 +184,10 @@ namespace Gurux.DLMS
         /// Removes the HDLC frame from the packet, and returns COSEM data only.
         ///</summary>
         ///<param name="reply">
-        /// The received data from the device. 
+        /// The received data from the device.
         ///</param>
         ///<param name="data">
-        /// Information from the received data. 
+        /// Information from the received data.
         ///</param>
         ///<returns>
         /// Is frame complete.
@@ -201,10 +201,10 @@ namespace Gurux.DLMS
         /// Removes the HDLC frame from the packet, and returns COSEM data only.
         ///</summary>
         ///<param name="reply">
-        /// The received data from the device. 
+        /// The received data from the device.
         ///</param>
         ///<param name="data">
-        /// Information from the received data. 
+        /// Information from the received data.
         ///</param>
         ///<returns>
         /// Is frame complete.
@@ -265,7 +265,7 @@ namespace Gurux.DLMS
             byte[][] reply;
             if (UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(null, Settings, 0, Command.DataNotification, 0, null, new GXByteBuffer(data), 0xff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(null, Settings, 0, Command.DataNotification, 0, null, new GXByteBuffer(data), 0xff, Command.None);
                 p.time = time;
                 reply = GXDLMS.GetLnMessages(p);
             }
@@ -292,7 +292,7 @@ namespace Gurux.DLMS
             byte[][] reply;
             if (UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(null, Settings, 0, Command.DataNotification, 0, null, data, 0xff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(null, Settings, 0, Command.DataNotification, 0, null, data, 0xff, Command.None);
                 p.time = time;
                 p.time.Skip |= DateTimeSkips.Ms;
                 reply = GXDLMS.GetLnMessages(p);
@@ -327,7 +327,7 @@ namespace Gurux.DLMS
             byte[][] reply;
             if (UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(null, Settings, 0, Command.DataNotification, 0, null, buff, 0xff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(null, Settings, 0, Command.DataNotification, 0, null, buff, 0xff, Command.None);
                 p.time = time;
                 reply = GXDLMS.GetLnMessages(p);
             }
@@ -448,7 +448,7 @@ namespace Gurux.DLMS
                     buff.SetUInt8((byte)it.Value);
                     AddData(it.Key, it.Value, buff);
                 }
-                GXDLMSLNParameters p = new GXDLMSLNParameters(null, Settings, 0, Command.EventNotification, 0, null, buff, 0xff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(null, Settings, 0, Command.EventNotification, 0, null, buff, 0xff, Command.None);
                 p.time = time;
                 reply = GXDLMS.GetLnMessages(p);
             }

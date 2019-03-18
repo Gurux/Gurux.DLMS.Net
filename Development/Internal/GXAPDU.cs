@@ -272,7 +272,6 @@ namespace Gurux.DLMS.Internal
                     GXByteBuffer tmp = new GXByteBuffer();
                     GetInitiateRequest(settings, cipher, tmp);
                     byte cmd = (byte)Command.GloInitiateRequest;
-
                     if ((settings.ProposedConformance & Conformance.GeneralProtection) != 0)
                     {
                         if (settings.Cipher.DedicatedKey != null && settings.Cipher.DedicatedKey.Length != 0)
@@ -283,6 +282,10 @@ namespace Gurux.DLMS.Internal
                         {
                             cmd = (byte)Command.GeneralGloCiphering;
                         }
+                    }
+                    else if (settings.Cipher.DedicatedKey != null && settings.Cipher.DedicatedKey.Length != 0)
+                    {
+                        cmd = (byte)Command.DedInitiateRequest;
                     }
                     AesGcmParameter p = new AesGcmParameter(cmd, cipher.Security,
                         cipher.InvocationCounter, cipher.SystemTitle,
@@ -643,6 +646,8 @@ namespace Gurux.DLMS.Internal
             AesGcmParameter p;
             if (tag == (byte)Command.GloInitiateResponse ||
                 tag == (byte)Command.GloInitiateRequest ||
+                tag == (byte)Command.DedInitiateResponse ||
+                tag == (byte)Command.DedInitiateRequest ||
                 tag == (byte)Command.GeneralGloCiphering ||
                 tag == (byte)Command.GeneralDedCiphering)
             {
@@ -690,7 +695,6 @@ namespace Gurux.DLMS.Internal
                             xml.SetXmlLength(pos);
                         }
                     }
-                    //<glo_InitiateResponse>
                     xml.AppendLine((Command)tag, "Value", GXCommon.ToHex(encrypted, false));
                     return;
                 }

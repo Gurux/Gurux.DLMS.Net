@@ -956,7 +956,7 @@ namespace Gurux.DLMS
                 }
                 try
                 {
-                    sr.Reply = HandleCommand(info.Command, info.Data, sr);
+                    sr.Reply = HandleCommand(info.Command, info.Data, sr, info.CipheredCommand);
                 }
                 catch (Exception)
                 {
@@ -1015,7 +1015,7 @@ namespace Gurux.DLMS
         ///<summary>
         /// Handle received command.
         ///</summary>
-        private byte[] HandleCommand(Command cmd, GXByteBuffer data, GXServerReply sr)
+        private byte[] HandleCommand(Command cmd, GXByteBuffer data, GXServerReply sr, Command cipheredCommand)
         {
             byte frame = 0;
             if (Settings.InterfaceType == InterfaceType.HDLC && replyData.Size != 0)
@@ -1026,25 +1026,25 @@ namespace Gurux.DLMS
             switch (cmd)
             {
                 case Command.AccessRequest:
-                    GXDLMSLNCommandHandler.HandleAccessRequest(Settings, this, data, replyData, null);
+                    GXDLMSLNCommandHandler.HandleAccessRequest(Settings, this, data, replyData, null, cipheredCommand);
                     break;
                 case Command.SetRequest:
-                    GXDLMSLNCommandHandler.HandleSetRequest(Settings, this, data, replyData, null);
+                    GXDLMSLNCommandHandler.HandleSetRequest(Settings, this, data, replyData, null, cipheredCommand);
                     break;
                 case Command.WriteRequest:
-                    GXDLMSSNCommandHandler.HandleWriteRequest(Settings, this, data, replyData, null);
+                    GXDLMSSNCommandHandler.HandleWriteRequest(Settings, this, data, replyData, null, cipheredCommand);
                     break;
                 case Command.GetRequest:
                     if (data.Size != 0)
                     {
-                        GXDLMSLNCommandHandler.HandleGetRequest(Settings, this, data, replyData, null);
+                        GXDLMSLNCommandHandler.HandleGetRequest(Settings, this, data, replyData, null, cipheredCommand);
                     }
                     break;
                 case Command.ReadRequest:
-                    GXDLMSSNCommandHandler.HandleReadRequest(Settings, this, data, replyData, null);
+                    GXDLMSSNCommandHandler.HandleReadRequest(Settings, this, data, replyData, null, cipheredCommand);
                     break;
                 case Command.MethodRequest:
-                    GXDLMSLNCommandHandler.HandleMethodRequest(Settings, this, data, sr.ConnectionInfo, replyData, null);
+                    GXDLMSLNCommandHandler.HandleMethodRequest(Settings, this, data, sr.ConnectionInfo, replyData, null, cipheredCommand);
                     break;
                 case Command.Snrm:
                     HandleSnrmRequest(data);
@@ -1072,7 +1072,7 @@ namespace Gurux.DLMS
                     frame = (byte)Command.Ua;
                     break;
                 case Command.GeneralBlockTransfer:
-                    if (!HandleGeneralBlockTransfer(data, sr))
+                    if (!HandleGeneralBlockTransfer(data, sr, info.CipheredCommand))
                     {
                         return null;
                     }
@@ -1100,7 +1100,7 @@ namespace Gurux.DLMS
             return reply;
         }
 
-        private bool HandleGeneralBlockTransfer(GXByteBuffer data, GXServerReply sr)
+        private bool HandleGeneralBlockTransfer(GXByteBuffer data, GXServerReply sr, Command cipheredCommand)
         {
             if (transaction != null)
             {
@@ -1112,7 +1112,7 @@ namespace Gurux.DLMS
                         ++Settings.BlockNumberAck;
                         sr.Count = Settings.WindowSize;
                     }
-                    GXDLMSLNCommandHandler.GetRequestNextDataBlock(Settings, 0, this, data, replyData, null, true);
+                    GXDLMSLNCommandHandler.GetRequestNextDataBlock(Settings, 0, this, data, replyData, null, true, cipheredCommand);
                     if (sr.Count != 0)
                     {
                         --sr.Count;
@@ -1145,7 +1145,7 @@ namespace Gurux.DLMS
                         UInt16 bn = (UInt16)Settings.BlockIndex;
                         if ((bc & 0x80) != 0)
                         {
-                            HandleCommand(transaction.command, transaction.data, sr);
+                            HandleCommand(transaction.command, transaction.data, sr, cipheredCommand);
                             transaction = null;
                             igonoreAck = false;
                             windowSize = 1;
@@ -1216,7 +1216,7 @@ namespace Gurux.DLMS
             }
             if (Settings.UseLogicalNameReferencing)
             {
-                GXDLMS.GetLNPdu(new GXDLMSLNParameters(null, Settings, 0, cmd, 1, null, null, (byte)error), replyData);
+                GXDLMS.GetLNPdu(new GXDLMSLNParameters(null, Settings, 0, cmd, 1, null, null, (byte)error, info.CipheredCommand), replyData);
             }
             else
             {
@@ -1383,7 +1383,7 @@ namespace Gurux.DLMS
         private void HandleReleaseRequest(GXByteBuffer data, GXDLMSConnectionEventArgs connectionInfo)
         {
             //Return error if connection is not established.
-            if (Settings.Connected == ConnectionState.None && !Settings.IsAuthenticationRequired && !Settings.CanAccess())
+            if ((Settings.Connected & ConnectionState.Hdlc) == 0)
             {
                 replyData.Add(GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));
@@ -1465,7 +1465,7 @@ namespace Gurux.DLMS
         private void GenerateDisconnectRequest()
         {
             //Return error if connection is not established.
-            if (Settings.Connected == ConnectionState.None && !Settings.IsAuthenticationRequired && !Settings.CanAccess())
+            if ((Settings.Connected & ConnectionState.Dlms) == 0 && !Settings.IsAuthenticationRequired)
             {
                 replyData.Add(GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));
@@ -1545,7 +1545,7 @@ namespace Gurux.DLMS
             byte[][] reply;
             if (UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(null, Settings, 0, Command.DataNotification, 0, null, new GXByteBuffer(data), 0xff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(null, Settings, 0, Command.DataNotification, 0, null, new GXByteBuffer(data), 0xff, Command.None);
                 p.time = time;
                 reply = GXDLMS.GetLnMessages(p);
             }
@@ -1572,7 +1572,7 @@ namespace Gurux.DLMS
             byte[][] reply;
             if (UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(null, Settings, 0, Command.DataNotification, 0, null, data, 0xff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(null, Settings, 0, Command.DataNotification, 0, null, data, 0xff, Command.None);
                 p.time = time;
                 p.time.Skip |= DateTimeSkips.Ms;
                 reply = GXDLMS.GetLnMessages(p);
