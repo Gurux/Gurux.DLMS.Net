@@ -358,13 +358,13 @@ namespace Gurux.DLMS.Objects
                 {
                     GXCommon.SetData(settings, data, DataType.Int16, 0);
                     GXCommon.SetData(settings, data, DataType.OctetString, GXCommon.LogicalNameToBytes(null));
-                    GXCommon.SetData(settings, data, DataType.UInt8, 0);
+                    GXCommon.SetData(settings, data, DataType.Int8, 0);
                 }
                 else
                 {
                     GXCommon.SetData(settings, data, DataType.Int16, MonitoredValue.ObjectType);
                     GXCommon.SetData(settings, data, DataType.OctetString, GXCommon.LogicalNameToBytes(MonitoredValue.LogicalName));
-                    GXCommon.SetData(settings, data, DataType.UInt8, MonitoredAttributeIndex);
+                    GXCommon.SetData(settings, data, DataType.Int8, MonitoredAttributeIndex);
 
                 }
                 return data.Array();

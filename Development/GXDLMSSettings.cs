@@ -140,30 +140,12 @@ namespace Gurux.DLMS
         internal Conformance NegotiatedConformance = (Conformance)0;
 
         /// <summary>
-        /// Is authentication Required.
-        /// </summary>
-        internal bool IsAuthenticationRequired
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// Cipher interface.
         /// </summary>
         /// <remarks>
         /// GXDLMSAssociationShortName and GXDLMSAssociationLogicalName use this is GMAC authentication is used.
         /// </remarks>
         internal GXICipher Cipher
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Used security suite.
-        /// </summary>
-        internal SecuritySuite SecuritySuite
         {
             get;
             set;
@@ -287,7 +269,6 @@ namespace Gurux.DLMS
             target.MaxServerPDUSize = MaxServerPDUSize;
             target.ProposedConformance = ProposedConformance;
             target.NegotiatedConformance = NegotiatedConformance;
-            target.SecuritySuite = SecuritySuite;
             if (Cipher != null && target.Cipher != null)
             {
                 ((GXCiphering)Cipher).CopyTo((GXCiphering)target.Cipher);

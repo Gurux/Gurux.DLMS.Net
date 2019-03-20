@@ -802,7 +802,6 @@ namespace Gurux.DLMS
                 Settings.ClientAddress = 0;
             }
             Settings.Authentication = Authentication.None;
-            Settings.IsAuthenticationRequired = false;
             if (Settings.Cipher != null)
             {
                 if (!connected)
@@ -1366,7 +1365,6 @@ namespace Gurux.DLMS
                 // If High authentication is used.
                 Settings.StoCChallenge = GXSecure.GenerateChallenge(Settings.Authentication);
             }
-            Settings.IsAuthenticationRequired = diagnostic == SourceDiagnostic.AuthenticationRequired;
             if (Settings.InterfaceType == Enums.InterfaceType.HDLC)
             {
                 replyData.Set(GXCommon.LLCReplyBytes);
@@ -1465,7 +1463,7 @@ namespace Gurux.DLMS
         private void GenerateDisconnectRequest()
         {
             //Return error if connection is not established.
-            if ((Settings.Connected & ConnectionState.Dlms) == 0 && !Settings.IsAuthenticationRequired)
+            if ((Settings.Connected & ConnectionState.Dlms) == 0)
             {
                 replyData.Add(GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));

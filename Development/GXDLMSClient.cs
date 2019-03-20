@@ -798,14 +798,8 @@ namespace Gurux.DLMS
         /// <seealso cref="ParseApplicationAssociationResponse"/>
         public bool IsAuthenticationRequired
         {
-            get
-            {
-                return Settings.IsAuthenticationRequired;
-            }
-            private set
-            {
-                Settings.IsAuthenticationRequired = value;
-            }
+            get;
+            private set;
         }
 
         /// <summary>

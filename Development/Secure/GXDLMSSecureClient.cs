@@ -95,16 +95,16 @@ namespace Gurux.DLMS.Secure
         {
             get
             {
-                return Settings.SecuritySuite;
+                return Settings.Cipher.SecuritySuite;
             }
             set
             {
-                Settings.SecuritySuite = value;
+                Settings.Cipher.SecuritySuite = value;
             }
         }
 
         /// <summary>
-        ///  Server system title. 
+        ///  Server system title.
         /// </summary>
         /// <remarks>
         /// Server system title is optional and it's used when Pre-established Application Associations is used.

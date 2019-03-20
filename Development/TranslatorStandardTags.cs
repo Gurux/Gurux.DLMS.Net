@@ -303,6 +303,8 @@ namespace Gurux.DLMS
         /// <param name="list"></param>
         internal static void GetDedTags(TranslatorOutputType type, SortedList<int, string> list)
         {
+            GXDLMSTranslator.AddTag(list, Command.DedInitiateRequest, "ded-initiate-request");
+            GXDLMSTranslator.AddTag(list, Command.DedInitiateResponse, "ded-initiate-response");
             GXDLMSTranslator.AddTag(list, Command.DedGetRequest, "ded-get-request");
             GXDLMSTranslator.AddTag(list, Command.DedGetResponse, "ded-get-response");
             GXDLMSTranslator.AddTag(list, Command.DedSetRequest, "ded-set-request");
@@ -417,7 +419,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorTags.PhysicalDeviceAddress, "physical-device-address");
             GXDLMSTranslator.AddTag(list, TranslatorTags.ProtocolVersion, "protocol-version");
             GXDLMSTranslator.AddTag(list, TranslatorTags.CalledAPTitle, "called-ap-title");
-            GXDLMSTranslator.AddTag(list, TranslatorTags.CalledAPInvocationId, "called-ap-invocation-id");            
+            GXDLMSTranslator.AddTag(list, TranslatorTags.CalledAPInvocationId, "called-ap-invocation-id");
             GXDLMSTranslator.AddTag(list, TranslatorTags.CalledAEInvocationId, "called-ae-invocation-id");
             GXDLMSTranslator.AddTag(list, TranslatorTags.CallingApInvocationId, "calling-ap-invocation-id");
             GXDLMSTranslator.AddTag(list, TranslatorTags.CalledAEQualifier, "called-ae-qualifier");

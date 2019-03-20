@@ -114,7 +114,7 @@ namespace Gurux.DLMS
         public Command Command
         {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -129,10 +129,10 @@ namespace Gurux.DLMS
         ///<summary>
         /// Received Ciphered command.
         ///</summary>
-        internal Command CipheredCommand
+        public Command CipheredCommand
         {
             get;
-            set;
+            internal set;
         }
 
 

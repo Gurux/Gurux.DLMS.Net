@@ -608,7 +608,6 @@ namespace Gurux.DLMS
             byte cmd;
             byte[] key;
             GXICipher cipher = p.settings.Cipher;
-            byte[] st = cipher.SystemTitle;
             //If client.
             if (p.cipheredCommand == Command.None)
             {
@@ -3106,8 +3105,8 @@ namespace Gurux.DLMS
                                 cipher.AuthenticationKey);
                     }
                     byte[] tmp = GXCiphering.Decrypt(p, data.Data);
-                    settings.SecuritySuite = p.SecuritySuite;
-                    settings.Cipher.Security = p.Security;
+                    cipher.SecuritySuite = p.SecuritySuite;
+                    cipher.Security = p.Security;
                     if (client != null && client.pdu != null && data.IsComplete && (data.MoreData & RequestTypes.Frame) == 0)
                     {
                         client.pdu(client, tmp);
@@ -3178,10 +3177,9 @@ namespace Gurux.DLMS
                         client.pdu(client, tmp);
                     }
                     data.Data.Set(tmp);
-                    Command cmd = data.Command;
+                    data.CipheredCommand = data.Command;
                     data.Command = Command.None;
                     GetPdu(settings, data, client);
-                    data.Command = cmd;
                     data.CipherIndex = data.Data.Size;
                 }
             }
@@ -3272,6 +3270,9 @@ namespace Gurux.DLMS
                     case Command.GloGetRequest:
                     case Command.GloSetRequest:
                     case Command.GloMethodRequest:
+                    case Command.DedGetRequest:
+                    case Command.DedSetRequest:
+                    case Command.DedMethodRequest:
                         HandledGloDedRequest(settings, data, client);
                         // Server handles this.
                         break;
@@ -3281,14 +3282,6 @@ namespace Gurux.DLMS
                     case Command.GloSetResponse:
                     case Command.GloMethodResponse:
                     case Command.GloEventNotificationRequest:
-                        HandledGloDedResponse(settings, data, index, client);
-                        break;
-                    case Command.DedGetRequest:
-                    case Command.DedSetRequest:
-                    case Command.DedMethodRequest:
-                        HandledGloDedRequest(settings, data, client);
-                        // Server handles this.
-                        break;
                     case Command.DedGetResponse:
                     case Command.DedSetResponse:
                     case Command.DedMethodResponse:

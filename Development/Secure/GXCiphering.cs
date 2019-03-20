@@ -32,6 +32,7 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using Gurux.DLMS.Objects.Enums;
 using System;
 
 namespace Gurux.DLMS.Secure
@@ -58,7 +59,7 @@ namespace Gurux.DLMS.Secure
         /// Dedicated key.
         /// </summary>
         private byte[] dedicatedKey;
-        
+
 
         /// <summary>
         /// Constructor.
@@ -97,6 +98,7 @@ namespace Gurux.DLMS.Secure
         public void CopyTo(GXCiphering target)
         {
             target.Security = Security;
+            target.SecuritySuite = SecuritySuite;
             target.InvocationCounter = InvocationCounter;
             target.SystemTitle = SystemTitle;
             target.BlockCipherKey = BlockCipherKey;
@@ -112,11 +114,19 @@ namespace Gurux.DLMS.Secure
             set;
         }
 
-
         /// <summary>
         /// Used security.
         /// </summary>
         public Gurux.DLMS.Enums.Security Security
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Used security suite.
+        /// </summary>
+        public SecuritySuite SecuritySuite
         {
             get;
             set;
@@ -208,7 +218,7 @@ namespace Gurux.DLMS.Secure
                 dedicatedKey = value;
             }
         }
-        
+
 
         internal static byte[] Encrypt(AesGcmParameter p, byte[] data)
         {

@@ -32,6 +32,7 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using Gurux.DLMS.Objects.Enums;
 using System;
 namespace Gurux.DLMS.Secure
 {
@@ -56,6 +57,16 @@ namespace Gurux.DLMS.Secure
             get;
             set;
         }
+
+        /// <summary>
+        /// Used security suite.
+        /// </summary>
+        SecuritySuite SecuritySuite
+        {
+            get;
+            set;
+        }
+
 
         /// <summary>
         /// System title.

@@ -89,7 +89,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.CallingAeInvocationId,
                                     "CallingAEInvocationId");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.CalledAeInvocationId,
-                "CalledAEInvocationId");            
+                "CalledAEInvocationId");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.RespondingAeInvocationId,
                 "RespondingAeInvocationId");
         }
@@ -204,6 +204,8 @@ namespace Gurux.DLMS
         /// <param name="list"></param>
         internal static void GetDedTags(TranslatorOutputType type, SortedList<int, string> list)
         {
+            GXDLMSTranslator.AddTag(list, Command.DedInitiateRequest, "ded_InitiateRequest");
+            GXDLMSTranslator.AddTag(list, Command.DedInitiateResponse, "ded_InitiateResponse");
             GXDLMSTranslator.AddTag(list, Command.DedGetRequest, "ded_GetRequest");
             GXDLMSTranslator.AddTag(list, Command.DedGetResponse, "ded_GetResponse");
             GXDLMSTranslator.AddTag(list, Command.DedSetRequest, "ded_SetRequest");
@@ -629,7 +631,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="error">Service error enumeration value.</param>
         /// <returns>Service error simple XML tag.</returns>
@@ -639,7 +641,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="value">Service error simple XML tag.</param>
         /// <returns>Service error enumeration value.</returns>

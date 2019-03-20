@@ -49,7 +49,7 @@ namespace Gurux.DLMS
         public static void HandleGetRequest(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml, Command cipheredCommand)
         {
             //Return error if connection is not established.
-            if (xml == null && (settings.Connected & ConnectionState.Hdlc) == 0 && cipheredCommand == Command.None)
+            if (xml == null && (settings.Connected & ConnectionState.Dlms) == 0 && cipheredCommand == Command.None)
             {
                 replyData.Set(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));
@@ -121,7 +121,7 @@ namespace Gurux.DLMS
         public static void HandleSetRequest(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml, Command cipheredCommand)
         {
             //Return error if connection is not established.
-            if (xml == null && (settings.Connected & ConnectionState.Hdlc) == 0 && cipheredCommand == Command.None)
+            if (xml == null && (settings.Connected & ConnectionState.Dlms) == 0 && cipheredCommand == Command.None)
             {
                 replyData.Set(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));
@@ -228,7 +228,7 @@ namespace Gurux.DLMS
             }
 
             GXDLMSObject obj = settings.Objects.FindByLN(ci, GXCommon.ToLogicalName(ln));
-            if ((settings.Connected & ConnectionState.Hdlc) == 0 && cipheredCommand == Command.None && (ci != ObjectType.AssociationLogicalName || id != 1))
+            if ((settings.Connected & ConnectionState.Dlms) == 0 && cipheredCommand == Command.None && (ci != ObjectType.AssociationLogicalName || id != 1))
             {
                 replyData.Set(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));
@@ -992,7 +992,7 @@ namespace Gurux.DLMS
                                                GXByteBuffer reply, GXDLMSTranslatorStructure xml, Command cipheredCommand)
         {
             //Return error if connection is not established.
-            if (xml == null && (settings.Connected & ConnectionState.Hdlc) == 0 && cipheredCommand == Command.None)
+            if (xml == null && (settings.Connected & ConnectionState.Dlms) == 0 && cipheredCommand == Command.None)
             {
                 reply.Set(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                           ServiceError.Service, (byte)Service.Unsupported));
