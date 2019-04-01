@@ -3060,7 +3060,7 @@ namespace Gurux.DLMS
             }
         }
 
-        private static void HandledGloDedRequest(GXDLMSSettings settings,
+        private static void HandleGloDedRequest(GXDLMSSettings settings,
                                               GXReplyData data, GXDLMSClient client)
         {
             if (data.Xml != null)
@@ -3116,6 +3116,13 @@ namespace Gurux.DLMS
                     // Get command.
                     data.CipheredCommand = data.Command;
                     data.Command = (Command)data.Data.GetUInt8();
+                    if (data.Command == Command.DataNotification
+                        || data.Command == Command.InformationReport)
+                    {
+                        data.Command = Command.None;
+                        --data.Data.Position;
+                        GetPdu(settings, data, client);
+                    }
                 }
                 else
                 {
@@ -3273,7 +3280,7 @@ namespace Gurux.DLMS
                     case Command.DedGetRequest:
                     case Command.DedSetRequest:
                     case Command.DedMethodRequest:
-                        HandledGloDedRequest(settings, data, client);
+                        HandleGloDedRequest(settings, data, client);
                         // Server handles this.
                         break;
                     case Command.GloReadResponse:
@@ -3292,7 +3299,7 @@ namespace Gurux.DLMS
                     case Command.GeneralDedCiphering:
                         if (settings.IsServer)
                         {
-                            HandledGloDedRequest(settings, data, client);
+                            HandleGloDedRequest(settings, data, client);
                         }
                         else
                         {
@@ -3560,6 +3567,7 @@ namespace Gurux.DLMS
                     byte[] tmp = GXCiphering.Decrypt(p, data.Data);
                     data.Data.Clear();
                     data.Data.Set(tmp);
+                    data.CipheredCommand = Command.GeneralCiphering;
                     data.Command = Command.None;
                     if (p.Security != Enums.Security.None)
                     {

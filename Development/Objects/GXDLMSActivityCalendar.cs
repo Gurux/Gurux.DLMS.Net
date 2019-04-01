@@ -375,14 +375,21 @@ namespace Gurux.DLMS.Objects
                     GXCommon.SetData(settings, data, DataType.UInt8, it.DayId);
                     data.SetUInt8((byte)DataType.Array);
                     //Add count
-                    GXCommon.SetObjectCount(it.DaySchedules.Length, data);
-                    foreach (GXDLMSDayProfileAction action in it.DaySchedules)
+                    if (it.DaySchedules == null)
                     {
-                        data.SetUInt8((byte)DataType.Structure);
-                        data.SetUInt8(3);
-                        GXCommon.SetData(settings, data, DataType.OctetString, action.StartTime);
-                        GXCommon.SetData(settings, data, DataType.OctetString, GXCommon.LogicalNameToBytes(action.ScriptLogicalName));
-                        GXCommon.SetData(settings, data, DataType.UInt16, action.ScriptSelector);
+                        data.SetUInt8(0);
+                    }
+                    else
+                    {
+                        GXCommon.SetObjectCount(it.DaySchedules.Length, data);
+                        foreach (GXDLMSDayProfileAction action in it.DaySchedules)
+                        {
+                            data.SetUInt8((byte)DataType.Structure);
+                            data.SetUInt8(3);
+                            GXCommon.SetData(settings, data, DataType.OctetString, action.StartTime);
+                            GXCommon.SetData(settings, data, DataType.OctetString, GXCommon.LogicalNameToBytes(action.ScriptLogicalName));
+                            GXCommon.SetData(settings, data, DataType.UInt16, action.ScriptSelector);
+                        }
                     }
                 }
             }
@@ -574,7 +581,7 @@ namespace Gurux.DLMS.Objects
                 }
             }
             else if (e.Index == 3)
-            {                
+            {
                 SeasonProfileActive = SetSeasonProfile(settings, e.Value);
             }
             else if (e.Index == 4)

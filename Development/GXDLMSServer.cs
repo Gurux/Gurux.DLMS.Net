@@ -1678,5 +1678,21 @@ namespace Gurux.DLMS
             }
             return (int)(next - now).TotalSeconds;
         }
+
+        /// <summary>
+        /// Server to Client challenge.
+        /// </summary>
+        public byte[] StoCChallenge
+        {
+            get
+            {
+                return Settings.StoCChallenge;
+            }
+            set
+            {
+                Settings.UseCustomChallenge = value != null;
+                Settings.StoCChallenge = value;
+            }
+        }
     }
 }

@@ -146,6 +146,10 @@ namespace GuruxDLMSServerExample
 
         void Init()
         {
+            //If pre-established connections are used.
+            ClientSystemTitle = ASCIIEncoding.ASCII.GetBytes("ABCDEFGH");
+            Ciphering.Security = Security.AuthenticationEncryption;
+
             Media.OnReceived += new Gurux.Common.ReceivedEventHandler(OnReceived);
             Media.OnClientConnected += new Gurux.Common.ClientConnectedEventHandler(OnClientConnected);
             Media.OnClientDisconnected += new Gurux.Common.ClientDisconnectedEventHandler(OnClientDisconnected);
@@ -222,8 +226,8 @@ namespace GuruxDLMSServerExample
             ac.Mode = AutoConnectMode.AutoDiallingAllowedAnytime;
             ac.Repetitions = 10;
             ac.RepetitionDelay = 60;
-            //Calling is allowed between 1am to 1pm.
-            ac.CallingWindow.Add(new KeyValuePair<GXDateTime, GXDateTime>(new GXDateTime(-1, -1, -1, -1, -1, 0, -1), new GXDateTime(-1, -1, -1, -1, -1, 0, -1)));
+            //Calling is allowed for every hour.
+            ac.CallingWindow.Add(new KeyValuePair<GXDateTime, GXDateTime>(new GXDateTime(-1, -1, -1, -1, 0, 0, 0), new GXDateTime(-1, -1, -1, -1, 0, 0, 0)));
             ac.Destinations = new string[] { "localhost:4059" };
             Items.Add(ac);
             ///////////////////////////////////////////////////////////////////////

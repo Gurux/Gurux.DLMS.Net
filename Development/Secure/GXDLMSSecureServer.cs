@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 using System;
@@ -47,10 +47,10 @@ namespace Gurux.DLMS.Secure
         /// Constructor.
         ///</summary>
         ///<param name="logicalNameReferencing">
-        /// Is logical name referencing used. 
+        /// Is logical name referencing used.
         ///</param>
         ///<param name="type">
-        /// Interface type. 
+        /// Interface type.
         ///</param>
         [Obsolete("Use other constructor.")]
         public GXDLMSSecureServer(bool logicalNameReferencing, InterfaceType type) :
@@ -64,10 +64,10 @@ namespace Gurux.DLMS.Secure
         /// Constructor.
         ///</summary>
         ///<param name="logicalNameReferencing">
-        /// Is logical name referencing used. 
+        /// Is logical name referencing used.
         ///</param>
         ///<param name="type">
-        /// Interface type. 
+        /// Interface type.
         ///</param>
         public GXDLMSSecureServer(GXDLMSAssociationLogicalName ln, GXDLMSHdlcSetup hdlc) :
             base(ln, hdlc)
@@ -81,10 +81,10 @@ namespace Gurux.DLMS.Secure
         ///</summary>
         ///<param name="ln">Logical name settings. </param>
         ///<param name="hdlc">
-        /// Interface type. 
+        /// Interface type.
         ///</param>
         ///<param name="flagID">
-        /// Three letters FLAG ID. 
+        /// Three letters FLAG ID.
         ///</param>
         ///<param name="serialNumber">
         /// Meter serial number. Size of serial number is 5 bytes.
@@ -115,10 +115,10 @@ namespace Gurux.DLMS.Secure
         ///</summary>
         ///<param name="sn">Short name settings. </param>
         ///<param name="hdlc">
-        /// Interface type. 
+        /// Interface type.
         ///</param>
         ///<param name="flagID">
-        /// Three letters FLAG ID. 
+        /// Three letters FLAG ID.
         ///</param>
         ///<param name="serialNumber">
         /// Meter serial number. Size of serial number is 5 bytes.
@@ -148,10 +148,10 @@ namespace Gurux.DLMS.Secure
         ///</summary>
         ///<param name="ln">Logical name settings. </param>
         ///<param name="hdlc">
-        /// Interface type. 
+        /// Interface type.
         ///</param>
         ///<param name="flagID">
-        /// Three letters FLAG ID. 
+        /// Three letters FLAG ID.
         ///</param>
         ///<param name="serialNumber">
         /// Meter serial number. Size of serial number is 5 bytes.
@@ -182,10 +182,10 @@ namespace Gurux.DLMS.Secure
         ///</summary>
         ///<param name="sn">Short name settings. </param>
         ///<param name="hdlc">
-        /// Interface type. 
+        /// Interface type.
         ///</param>
         ///<param name="flagID">
-        /// Three letters FLAG ID. 
+        /// Three letters FLAG ID.
         ///</param>
         ///<param name="serialNumber">
         /// Meter serial number. Size of serial number is 5 bytes.
@@ -233,22 +233,5 @@ namespace Gurux.DLMS.Secure
                 Settings.Kek = value;
             }
         }
-
-        /// <summary>
-        /// Server to Client challenge.         
-        /// </summary>
-        public byte[] StoCChallenge
-        {
-            get
-            {
-                return Settings.StoCChallenge;
-            }
-            set
-            {
-                Settings.UseCustomChallenge = value != null;
-                Settings.StoCChallenge = value;
-            }
-        }
-
     }
 }

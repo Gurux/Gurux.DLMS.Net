@@ -56,59 +56,72 @@ namespace Gurux.DLMS
                 return;
             }
             byte invokeID = 0;
-            byte type = (byte)GetCommandType.NextDataBlock;
-            //If GBT is used data is empty.
-            if (data.Size != 0)
+            byte type = (byte)GetCommandType.Normal;
+            try
             {
-                type = data.GetUInt8();
-                // Get invoke ID and priority.
-                invokeID = data.GetUInt8();
-                settings.UpdateInvokeId(invokeID);
+                //If GBT is used data is empty.
+                if (data.Size != 0)
+                {
+                    type = data.GetUInt8();
+                    // Get invoke ID and priority.
+                    invokeID = data.GetUInt8();
+                    settings.UpdateInvokeId(invokeID);
+                    if (xml != null)
+                    {
+                        xml.AppendStartTag(Command.GetRequest);
+                        if (type < 4)
+                        {
+                            xml.AppendStartTag(Command.GetRequest, (GetCommandType)type);
+                        }
+                        else
+                        {
+                            xml.AppendComment("Unknown tag: " + type);
+                        }
+                        xml.AppendLine(TranslatorTags.InvokeId, "Value", xml.IntegerToHex(invokeID, 2));
+                    }
+                }
+                // GetRequest normal
+                if (type == (byte)GetCommandType.Normal)
+                {
+                    GetRequestNormal(settings, invokeID, server, data, replyData, xml, cipheredCommand);
+                }
+                else if (type == (byte)GetCommandType.NextDataBlock)
+                {
+                    // Get request for next data block
+                    GetRequestNextDataBlock(settings, invokeID, server, data, replyData, xml, false, cipheredCommand);
+                }
+                else if (type == (byte)GetCommandType.WithList)
+                {
+                    // Get request with a list.
+                    GetRequestWithList(settings, invokeID, server, data, replyData, xml, cipheredCommand);
+                }
+                else if (xml == null)
+                {
+                    Debug.WriteLine("HandleGetRequest failed. Invalid command type.");
+                    settings.ResetBlockIndex();
+                    type = (byte)GetCommandType.Normal;
+                    data.Clear();
+                    GXDLMS.GetLNPdu(new GXDLMSLNParameters(null, settings, invokeID, Command.GetResponse, type, null, null, (byte)ErrorCode.ReadWriteDenied, cipheredCommand), replyData);
+                }
                 if (xml != null)
                 {
-                    xml.AppendStartTag(Command.GetRequest);
                     if (type < 4)
                     {
-                        xml.AppendStartTag(Command.GetRequest, (GetCommandType)type);
+                        xml.AppendEndTag(Command.GetRequest, (GetCommandType)type);
                     }
-                    else
-                    {
-                        xml.AppendComment("Unknown tag: " + type);
-                    }
-                    xml.AppendLine(TranslatorTags.InvokeId, "Value", xml.IntegerToHex(invokeID, 2));
+                    xml.AppendEndTag(Command.GetRequest);
                 }
             }
-            // GetRequest normal
-            if (type == (byte)GetCommandType.Normal)
+            catch (Exception ex)
             {
-                GetRequestNormal(settings, invokeID, server, data, replyData, xml, cipheredCommand);
-            }
-            else if (type == (byte)GetCommandType.NextDataBlock)
-            {
-                // Get request for next data block
-                GetRequestNextDataBlock(settings, invokeID, server, data, replyData, xml, false, cipheredCommand);
-            }
-            else if (type == (byte)GetCommandType.WithList)
-            {
-                // Get request with a list.
-                GetRequestWithList(settings, invokeID, server, data, replyData, xml, cipheredCommand);
-            }
-            else if (xml == null)
-            {
-                Debug.WriteLine("HandleGetRequest failed. Invalid command type.");
-                settings.ResetBlockIndex();
-                GXByteBuffer bb = new GXByteBuffer();
-                // Access Error : Device reports a hardware fault.
-                bb.SetUInt8((byte)ErrorCode.HardwareFault);
-                GXDLMS.GetLNPdu(new GXDLMSLNParameters(null, settings, invokeID, Command.GetResponse, type, null, bb, (byte)ErrorCode.Ok, cipheredCommand), replyData);
-            }
-            if (xml != null)
-            {
-                if (type < 4)
+                if (xml != null)
                 {
-                    xml.AppendEndTag(Command.GetRequest, (GetCommandType)type);
+                    throw ex;
                 }
-                xml.AppendEndTag(Command.GetRequest);
+                Debug.WriteLine("HandleGetRequest failed. " + ex.Message);
+                settings.ResetBlockIndex();
+                data.Clear();
+                GXDLMS.GetLNPdu(new GXDLMSLNParameters(null, settings, invokeID, Command.GetResponse, type, null, null, (byte)ErrorCode.ReadWriteDenied, cipheredCommand), replyData);
             }
         }
 
@@ -129,51 +142,67 @@ namespace Gurux.DLMS
             }
             // Get type.
             byte type = data.GetUInt8();
-            // Get invoke ID and priority.
-            byte invoke = data.GetUInt8();
-            settings.UpdateInvokeId(invoke);
-            // SetRequest normal or Set Request With First Data Block
-            GXDLMSLNParameters p = new GXDLMSLNParameters(null, settings, invoke, Command.SetResponse, (byte)type, null, null, 0, cipheredCommand);
-            if (xml != null)
+            GXDLMSLNParameters p = null;
+            try
             {
-                xml.AppendStartTag(Command.SetRequest);
-                if (type < 6)
+                // Get invoke ID and priority.
+                byte invoke = data.GetUInt8();
+                settings.UpdateInvokeId(invoke);
+                p = new GXDLMSLNParameters(null, settings, invoke, Command.SetResponse, (byte)type, null, null, 0, cipheredCommand);
+                // SetRequest normal or Set Request With First Data Block
+                if (xml != null)
                 {
-                    xml.AppendStartTag(Command.SetRequest, (SetRequestType)type);
+                    xml.AppendStartTag(Command.SetRequest);
+                    if (type < 6)
+                    {
+                        xml.AppendStartTag(Command.SetRequest, (SetRequestType)type);
+                    }
+                    else
+                    {
+                        xml.AppendComment("Unknown tag: " + type);
+                    }
+                    //InvokeIdAndPriority
+                    xml.AppendLine(TranslatorTags.InvokeId, "Value", xml.IntegerToHex(invoke, 2));
                 }
-                else
+                switch (type)
                 {
-                    xml.AppendComment("Unknown tag: " + type);
+                    case (byte)SetRequestType.Normal:
+                    case (byte)SetRequestType.FirstDataBlock:
+                        HandleSetRequestNormal(settings, server, data, (byte)type, p, replyData, xml);
+                        break;
+                    case (byte)SetRequestType.WithDataBlock:
+                        HanleSetRequestWithDataBlock(settings, server, data, p, replyData, xml);
+                        break;
+                    case (byte)SetRequestType.WithList:
+                        HanleSetRequestWithList(settings, invoke, server, data, p, replyData, xml);
+                        break;
+                    default:
+                        System.Diagnostics.Debug.WriteLine("HandleSetRequest failed. Unknown command.");
+                        data.Clear();
+                        settings.ResetBlockIndex();
+                        p.status = (byte)ErrorCode.ReadWriteDenied;
+                        break;
                 }
-                //InvokeIdAndPriority
-                xml.AppendLine(TranslatorTags.InvokeId, "Value", xml.IntegerToHex(invoke, 2));
+                if (xml != null)
+                {
+                    if (type < 6)
+                    {
+                        xml.AppendEndTag(Command.SetRequest, (SetRequestType)type);
+                    }
+                    xml.AppendEndTag(Command.SetRequest);
+                    return;
+                }
             }
-            switch (type)
+            catch(Exception ex)
             {
-                case (byte)SetRequestType.Normal:
-                case (byte)SetRequestType.FirstDataBlock:
-                    HandleSetRequestNormal(settings, server, data, (byte)type, p, replyData, xml);
-                    break;
-                case (byte)SetRequestType.WithDataBlock:
-                    HanleSetRequestWithDataBlock(settings, server, data, p, replyData, xml);
-                    break;
-                case (byte)SetRequestType.WithList:
-                    HanleSetRequestWithList(settings, invoke, server, data, p, replyData, xml);
-                    break;
-                default:
-                    System.Diagnostics.Debug.WriteLine("HandleSetRequest failed. Unknown command.");
-                    settings.ResetBlockIndex();
-                    p.status = (byte)ErrorCode.HardwareFault;
-                    break;
-            }
-            if (xml != null)
-            {
-                if (type < 6)
+                if (xml != null)
                 {
-                    xml.AppendEndTag(Command.SetRequest, (SetRequestType)type);
+                    throw ex;
                 }
-                xml.AppendEndTag(Command.SetRequest);
-                return;
+                Debug.WriteLine("HandleGetRequest failed. " + ex.Message);
+                data.Clear();
+                settings.ResetBlockIndex();
+                p.status = (byte)ErrorCode.ReadWriteDenied;
             }
             GXDLMS.GetLNPdu(p, replyData);
         }

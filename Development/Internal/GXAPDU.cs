@@ -283,10 +283,6 @@ namespace Gurux.DLMS.Internal
                             cmd = (byte)Command.GeneralGloCiphering;
                         }
                     }
-                    else if (settings.Cipher.DedicatedKey != null && settings.Cipher.DedicatedKey.Length != 0)
-                    {
-                        cmd = (byte)Command.DedInitiateRequest;
-                    }
                     AesGcmParameter p = new AesGcmParameter(cmd, cipher.Security,
                         cipher.InvocationCounter, cipher.SystemTitle,
                         cipher.BlockCipherKey,
