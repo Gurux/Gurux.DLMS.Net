@@ -685,7 +685,7 @@ namespace Gurux.DLMS.Objects
                     TotalAmountPaid = (Int32)e.Value;
                     break;
                 case 3:
-                    ChargeType = (ChargeType)e.Value;
+                    ChargeType = (ChargeType)Convert.ToByte(e.Value);
                     break;
                 case 4:
                     Priority = (byte)e.Value;

@@ -409,7 +409,7 @@ namespace Gurux.DLMS.Objects
                     TemplateDescription = (byte[])e.Value;
                     break;
                 case 6:
-                    CaptureMethod = (CaptureMethod)e.Value;
+                    CaptureMethod = (CaptureMethod)Convert.ToByte(e.Value);
                     break;
                 default:
                     e.Error = ErrorCode.ReadWriteDenied;

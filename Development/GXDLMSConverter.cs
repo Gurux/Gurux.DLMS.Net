@@ -38,6 +38,7 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.ManufacturerSettings;
+using System.Globalization;
 
 namespace Gurux.DLMS
 {
@@ -635,6 +636,72 @@ namespace Gurux.DLMS
         public static byte[] LogicalNameToBytes(string value)
         {
             return GXCommon.LogicalNameToBytes(value);
+        }
+
+
+        static public object ChangeType(object value, DataType type, CultureInfo cultureInfo)
+        {
+            object ret;
+            if (type == DataType.OctetString)
+            {
+                if (value is byte[])
+                {
+                    ret = value;
+                }
+                else
+                {
+                    ret = GXDLMSTranslator.HexToBytes((string)value);
+                }
+            }
+            else if (type == DataType.DateTime)
+            {
+                if (value is GXDateTime)
+                {
+                    ret = value;
+                }
+                else
+                {
+                    ret = new GXDateTime((string)value, CultureInfo.InvariantCulture);
+                }
+            }
+            else if (type == DataType.Date)
+            {
+                if (value is GXDateTime)
+                {
+                    ret = value;
+                }
+                else
+                {
+                    ret = new GXDate((string)value, CultureInfo.InvariantCulture);
+                }
+            }
+            else if (type == DataType.Time)
+            {
+                if (value is GXDateTime)
+                {
+                    ret = value;
+                }
+                else
+                {
+                    ret = new GXTime((string)value, CultureInfo.InvariantCulture);
+                }
+            }
+            else if (type == DataType.Enum)
+            {
+                if (value is GXEnum)
+                {
+                    ret = value;
+                }
+                else
+                {
+                    ret = new GXEnum((byte) Convert.ChangeType(value, typeof(byte)));
+                }
+            }
+            else
+            {
+                ret = Convert.ChangeType(value, GXDLMSConverter.GetDataType(type));
+            }
+            return ret;
         }
     }
 }

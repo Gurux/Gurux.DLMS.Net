@@ -468,7 +468,7 @@ namespace Gurux.DLMS.Objects
                     CurrentCreditAmount = (int)e.Value;
                     break;
                 case 3:
-                    Type = (CreditType)(byte)e.Value;
+                    Type = (CreditType)Convert.ToByte(e.Value);
                     break;
                 case 4:
                     Priority = (byte)e.Value;
@@ -483,7 +483,7 @@ namespace Gurux.DLMS.Objects
                     CreditConfiguration = (CreditConfiguration)Convert.ToByte(e.Value);
                     break;
                 case 8:
-                    Status = (CreditStatus)(byte)e.Value;
+                    Status = (CreditStatus)Convert.ToByte(e.Value);
                     break;
                 case 9:
                     PresetCreditAmount = (int)e.Value;

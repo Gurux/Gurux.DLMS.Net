@@ -386,10 +386,10 @@ namespace Gurux.DLMS.Objects
                     }
                     break;
                 case 5:
-                    DeliveryMethod = (TokenDelivery)e.Value;
+                    DeliveryMethod = (TokenDelivery)Convert.ToByte(e.Value);
                     break;
                 case 6:
-                    StatusCode = (TokenStatusCode)((object[])e.Value)[0];
+                    StatusCode = (TokenStatusCode)Convert.ToByte(((object[])e.Value)[0]);
                     DataValue = Convert.ToString(((object[])e.Value)[1]);
                     break;
                 default:

@@ -355,13 +355,13 @@ namespace Gurux.DLMS.Objects
                     }
                     break;
                 case 3:
-                    Status = (GsmStatus)(byte)e.Value;
+                    Status = (GsmStatus)Convert.ToByte(e.Value);
                     break;
                 case 4:
-                    CircuitSwitchStatus = (GsmCircuitSwitchStatus)(byte)e.Value;
+                    CircuitSwitchStatus = (GsmCircuitSwitchStatus)Convert.ToByte(e.Value);
                     break;
                 case 5:
-                    PacketSwitchStatus = (GsmPacketSwitchStatus)(byte)e.Value;
+                    PacketSwitchStatus = (GsmPacketSwitchStatus)Convert.ToByte(e.Value);
                     break;
                 case 6:
                     if (e.Value != null)

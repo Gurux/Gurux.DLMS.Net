@@ -38,6 +38,7 @@ using System.Xml.Serialization;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
+using System.Globalization;
 
 namespace Gurux.DLMS.Objects
 {
@@ -201,7 +202,7 @@ namespace Gurux.DLMS.Objects
                         GXCommon.SetData(settings, data, DataType.Enum, a.Type);
                         if (a.Target == null)
                         {
-#pragma warning disable CS0618  
+#pragma warning disable CS0618
                             //class_id
                             GXCommon.SetData(settings, data, DataType.UInt16, a.ObjectType);
                             //logical_name
@@ -334,7 +335,12 @@ namespace Gurux.DLMS.Objects
                                 a.Target.LogicalName = ln;
                             }
                             a.ParameterDataType = (DataType)reader.ReadElementContentAsInt("ParameterDataType");
-                            a.Parameter = reader.ReadElementContentAsObject("Parameter", null);
+                            a.Parameter = reader.ReadElementContentAsString("Parameter", null);
+                            if (a.ParameterDataType != DataType.None)
+                            {
+                                a.Parameter = GXDLMSConverter.ChangeType(a.Parameter, a.ParameterDataType, CultureInfo.InvariantCulture);
+                            }
+                            it.Actions.Add(a);
                         }
                         reader.ReadEndElement("Actions");
                     }
@@ -363,14 +369,22 @@ namespace Gurux.DLMS.Objects
                             writer.WriteElementString("LN", "0.0.0.0.0.0");
                             writer.WriteElementString("Index", "0");
                             writer.WriteElementString("ParameterDataType", (int)DataType.None);
-                            writer.WriteElementObject("Parameter", "");
+                            writer.WriteElementString("Parameter", "");
                         }
                         else
                         {
                             writer.WriteElementString("ObjectType", (int)a.Target.ObjectType);
                             writer.WriteElementString("LN", a.Target.LogicalName);
                             writer.WriteElementString("Index", a.Index);
-                            writer.WriteElementObject("Parameter", a.Parameter);
+                            writer.WriteElementString("ParameterDataType", (int)a.ParameterDataType);
+                            if (a.Parameter is byte[])
+                            {
+                                writer.WriteElementString("Parameter", GXCommon.ToHex((byte[]) a.Parameter, false));
+                            }
+                            else
+                            {
+                                writer.WriteElementString("Parameter", Convert.ToString(a.Parameter));
+                            }
                         }
                         writer.WriteEndElement();
                     }

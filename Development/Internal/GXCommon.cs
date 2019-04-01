@@ -940,7 +940,7 @@ namespace Gurux.DLMS.Internal
             {
                 info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", info.xml.IntegerToHex(value, 2));
             }
-            return value;
+            return new GXEnum(value);
         }
 
         ///<summary>

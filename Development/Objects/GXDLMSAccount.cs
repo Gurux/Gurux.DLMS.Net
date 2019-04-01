@@ -494,7 +494,7 @@ namespace Gurux.DLMS.Objects
         /// <remarks>
         ///  Online help:<br/>
         ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
-        /// </remarks> 
+        /// </remarks>
         [XmlIgnore()]
         public int NextCreditAvailableThreshold
         {
@@ -517,7 +517,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
@@ -642,7 +642,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
             {
                 attributes.Add(18);
             }
-            //MaxProvisionPeriod            
+            //MaxProvisionPeriod
             if (all || CanRead(19))
             {
                 attributes.Add(19);
@@ -875,8 +875,8 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                     LogicalName = GXCommon.ToLogicalName(e.Value);
                     break;
                 case 2:
-                    AccountStatus = (AccountStatus)((object[])e.Value)[0];
-                    PaymentMode = (PaymentMode)((object[])e.Value)[1];
+                    AccountStatus = (AccountStatus)Convert.ToByte(((object[])e.Value)[0]);
+                    PaymentMode = (PaymentMode)Convert.ToByte(((object[])e.Value)[1]);
                     break;
                 case 3:
                     CurrentCreditInUse = (byte)e.Value;
@@ -989,7 +989,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                     object[] tmp = (object[])e.Value;
                     Currency.Name = (string)tmp[0];
                     Currency.Scale = (sbyte)tmp[1];
-                    Currency.Unit = (Currency)tmp[2];
+                    Currency.Unit = (Currency)Convert.ToByte(tmp[2]);
                     break;
                 case 16:
                     LowCreditThreshold = (int)e.Value;
