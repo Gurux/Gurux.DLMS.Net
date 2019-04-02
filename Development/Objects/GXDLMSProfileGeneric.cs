@@ -878,7 +878,11 @@ namespace Gurux.DLMS.Objects
                             {
                                 type = DataType.None;
                             }
-                            if (row[pos] is byte[])
+                            if (row[pos] is GXEnum)
+                            {
+                                row[pos] = Convert.ToByte(row[pos]);
+                            }
+                            else if (row[pos] is byte[])
                             {
                                 if (type != DataType.None && row[pos] is byte[])
                                 {
