@@ -216,23 +216,15 @@ namespace Gurux.DLMS.Objects
             return 2;
         }
 
-        public static DataType[] GetDataTypes(byte[] value)
+        public static object[] GetDataTypes(byte[] value)
         {
             if (value == null || value.Length == 0)
             {
-                return new DataType[0];
+                return new object[0];
             }
-            List<DataType> list = new List<DataType>();
+            List<object> list = new List<object>();
             GXDataInfo info = new GXDataInfo();
-            object[] tmp = (object[])GXCommon.GetCompactArray(null, new GXByteBuffer(value), info, true);
-            if (tmp != null)
-            {
-                foreach (DataType it in tmp)
-                {
-                    list.Add(it);
-                }
-            }
-            return list.ToArray();
+            return (object[])GXCommon.GetCompactArray(null, new GXByteBuffer(value), info, true);
         }
 
         public static object[][] GetData(byte[] columns, byte[] value)
@@ -400,7 +392,10 @@ namespace Gurux.DLMS.Objects
                     break;
                 case 3:
                     SetCaptureObjects(settings, CaptureObjects, (object[])e.Value);
-                    UpdateTemplateDescription();
+                    if (settings.IsServer)
+                    {
+                        UpdateTemplateDescription();
+                    }
                     break;
                 case 4:
                     TemplateId = (byte)e.Value;
@@ -541,7 +536,16 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetObjectCount(CaptureObjects.Count, bb);
                 foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in CaptureObjects)
                 {
-                    bb.SetUInt8((it.Key as IGXDLMSBase).GetDataType(it.Value.AttributeIndex));
+                    DataType type = (it.Key as IGXDLMSBase).GetDataType(it.Value.AttributeIndex);
+                    if (type == DataType.Array || type == DataType.Structure)
+                    {
+                        object val = it.Key.GetValues()[it.Value.DataIndex - 1];
+                        bb.SetUInt8(GXCommon.GetDLMSDataType(val.GetType()));
+                    }
+                    else
+                    {
+                        bb.SetUInt8((it.Key as IGXDLMSBase).GetDataType(it.Value.AttributeIndex));
+                    }
                 }
                 TemplateDescription = bb.Array();
             }

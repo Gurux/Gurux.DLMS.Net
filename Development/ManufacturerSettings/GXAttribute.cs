@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: http://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -97,12 +97,21 @@ namespace Gurux.DLMS.ManufacturerSettings
     public class GXDLMSAttributeSettings : Attribute
     {
         /// <summary>
+        /// Attribute data type.
+        /// </summary>
+        private DataType type;
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         public GXDLMSAttributeSettings(int index)
             : this()
         {
             Index = index;
+            if (index == 1)
+            {
+                Type = DataType.OctetString;
+            }
         }
 
         /// <summary>
@@ -187,8 +196,18 @@ namespace Gurux.DLMS.ManufacturerSettings
         [DefaultValue(DataType.None)]
         public DataType Type
         {
-            get;
-            set;
+            get
+            {
+                if (Index == 1 && type == DataType.None)
+                {
+                    return DataType.OctetString;
+                }
+                return type;
+            }
+            set
+            {
+                type = value;
+            }
         }
 
         /// <summary>
@@ -229,7 +248,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// Force that data is always sent as blocks.
         /// </summary>
         /// <remarks>
-        /// Some meters can handle only blocks. This property is used to force send all data in blocks. 
+        /// Some meters can handle only blocks. This property is used to force send all data in blocks.
         /// </remarks>
         [DefaultValue(false)]
         public bool ForceToBlocks
@@ -251,7 +270,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// XML Data template.
         /// </summary>
         /// <remarks>
-        /// Xml template can be used to visualize complex data. 
+        /// Xml template can be used to visualize complex data.
         /// </remarks>
         [DefaultValue(null)]
 #if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1
@@ -271,7 +290,7 @@ namespace Gurux.DLMS.ManufacturerSettings
             get;
             set;
         }
-        
+
 
         /// <summary>
         /// Read order.
@@ -297,6 +316,6 @@ namespace Gurux.DLMS.ManufacturerSettings
         {
             get;
             set;
-        }       
+        }
     }
 }

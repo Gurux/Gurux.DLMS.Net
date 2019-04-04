@@ -1304,6 +1304,18 @@ namespace Gurux.DLMS
             object value,
             List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
         {
+            //Update data type if value is readable.
+            if (value != null)
+            {
+                try
+                {
+                    target.SetDataType(attributeIndex, GXCommon.GetDLMSDataType(value.GetType()));
+                }
+                catch(Exception)
+                {
+                    //It's ok if this fails.
+                }
+            }
             if (value is byte[])
             {
                 DataType type = target.GetUIDataType(attributeIndex);

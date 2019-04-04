@@ -400,6 +400,7 @@ namespace GuruxDLMSServerExample
             Items.Add(new GXDLMSCharge());
             Items.Add(new GXDLMSTokenGateway());
             Items.Add(new GXDLMSCompactData());
+            Items.Add(new GXDLMSDisconnectControl());
 
             ///////////////////////////////////////////////////////////////////////
             //Server must initialize after all objects are added.

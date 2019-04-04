@@ -601,7 +601,6 @@ namespace Gurux.DLMS.Objects
             return att.Type;
         }
 
-
         /// <summary>
         /// Returns UI data type of selected index.
         /// </summary>

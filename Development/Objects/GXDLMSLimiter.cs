@@ -454,6 +454,22 @@ namespace Gurux.DLMS.Objects
                 int attIndex = Convert.ToInt32(((object[])e.Value)[2]);
                 MonitoredValue = settings.Objects.FindByLN(ot, ln);
                 MonitoredAttributeIndex = attIndex;
+                if (MonitoredValue != null && attIndex != 0)
+                {
+                    try
+                    {
+                        DataType dt = MonitoredValue.GetDataType(attIndex);
+                        SetDataType(3, dt);
+                        SetDataType(4, dt);
+                        SetDataType(5, dt);
+                        SetDataType(6, dt);
+                        SetDataType(7, dt);
+                    }
+                    catch (Exception)
+                    {
+                        //It's OK if this fails.
+                    }
+                }
             }
             else if (e.Index == 3)
             {
