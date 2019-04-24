@@ -112,7 +112,7 @@ namespace Gurux.DLMS.ManufacturerSettings
                 //For Net45 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
                 // Put the byte array into a stream and rewind it to the beginning
-                MemoryStream ms = new MemoryStream(client.DownloadData("https://www.gurux.org/obis/files.xml"));
+                MemoryStream ms = new MemoryStream(client.DownloadData("https://www.gurux.fi/obis/files.xml"));
                 ms.Flush();
                 ms.Position = 0;
                 System.Xml.XmlDocument downloadsXml = new System.Xml.XmlDocument();
@@ -200,7 +200,7 @@ namespace Gurux.DLMS.ManufacturerSettings
             foreach (XmlNode it in xml.ChildNodes[1].ChildNodes)
             {
                 string path = Path.Combine(ObisCodesPath, it.InnerText);
-                byte[] data = client.DownloadData("https://www.gurux.org/obis/" + it.InnerText);
+                byte[] data = client.DownloadData("https://www.gurux.fi/obis/" + it.InnerText);
                 //Make backup if file exists or content has change.
                 if (System.IO.File.Exists(path) && GetMD5Hash(data) != GetMD5HashFromFile(path))
                 {
