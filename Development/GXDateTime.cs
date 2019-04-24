@@ -102,7 +102,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="value">Date time value as a string.</param>
         public GXDateTime(string value)
-            : this(value, System.Globalization.CultureInfo.CurrentCulture)
+            : this(value, CultureInfo.CurrentCulture)
         {
         }
 
@@ -1022,35 +1022,36 @@ namespace Gurux.DLMS
         public int Compare(DateTime value)
         {
             int ret = 0;
+            DateTime localValue = Value.LocalDateTime;
             if ((Skip & Gurux.DLMS.Enums.DateTimeSkips.Year) == 0 &&
-                Value.Month != value.Year)
+                localValue.Year != value.Year)
             {
-                ret = Value.Month < value.Year ? -1 : 1;
+                ret = localValue.Year < value.Year ? -1 : 1;
             }
             else if ((Skip & Gurux.DLMS.Enums.DateTimeSkips.Month) == 0 &&
-                Value.Month != value.Month)
+                localValue.Month != value.Month)
             {
-                ret = Value.Month < value.Month ? -1 : 1;
+                ret = localValue.Month < value.Month ? -1 : 1;
             }
             else if ((Skip & Gurux.DLMS.Enums.DateTimeSkips.Day) == 0 &&
-                Value.Day != value.Day)
+                localValue.Day != value.Day)
             {
-                ret = Value.Day < value.Day ? -1 : 1;
+                ret = localValue.Day < value.Day ? -1 : 1;
             }
             else if ((Skip & Gurux.DLMS.Enums.DateTimeSkips.Hour) == 0 &&
-                Value.Hour != value.Hour)
+                localValue.Hour != value.Hour)
             {
-                ret = Value.Hour < value.Hour ? -1 : 1;
+                ret = localValue.Hour < value.Hour ? -1 : 1;
             }
             else if ((Skip & Gurux.DLMS.Enums.DateTimeSkips.Minute) == 0 &&
-                Value.Minute != value.Minute)
+                localValue.Minute != value.Minute)
             {
-                ret = Value.Minute < value.Minute ? -1 : 1;
+                ret = localValue.Minute < value.Minute ? -1 : 1;
             }
             else if ((Skip & Gurux.DLMS.Enums.DateTimeSkips.Second) == 0 &&
-                Value.Second != value.Second)
+                localValue.Second != value.Second)
             {
-                ret = Value.Second < value.Second ? -1 : 1;
+                ret = localValue.Second < value.Second ? -1 : 1;
             }
             return ret;
         }

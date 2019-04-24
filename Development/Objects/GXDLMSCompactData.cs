@@ -483,7 +483,6 @@ namespace Gurux.DLMS.Objects
             //Skip type.
             tmp.GetUInt8();
             int cnt = GXCommon.GetObjectCount(tmp);
-            GXByteBuffer tmp2 = new GXByteBuffer();
             for (int pos = 0; pos != cnt; ++pos)
             {
                 if (index == -1 || index == pos)
@@ -667,9 +666,8 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Convert compact data buffer to array of values.
         /// </summary>
-        /// <param name="settings"></param>
-        /// <param name="templateDescription"></param>
-        /// <param name="buffer"></param>
+        /// <param name="templateDescription">Template description byte array.</param>
+        /// <param name="buffer">Buffer byte array.</param>
         /// <returns>Values from byte buffer.</returns>
         object[] GetValues(
             byte[] templateDescription,

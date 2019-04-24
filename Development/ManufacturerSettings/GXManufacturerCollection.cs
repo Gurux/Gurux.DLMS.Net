@@ -108,6 +108,9 @@ namespace Gurux.DLMS.ManufacturerSettings
                 {
                     client.Proxy = proxy;
                 }
+                //This will fix the error: request was aborted could not create ssl/tls secure channel.
+                //For Net45 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
                 // Put the byte array into a stream and rewind it to the beginning
                 MemoryStream ms = new MemoryStream(client.DownloadData("https://www.gurux.org/obis/files.xml"));
                 ms.Flush();
@@ -181,7 +184,10 @@ namespace Gurux.DLMS.ManufacturerSettings
             {
                 client.Proxy = proxy;
             }
-            byte[] files = client.DownloadData("https://www.gurux.org/obis/files.xml");
+            //This will fix the error: request was aborted could not create ssl/tls secure channel.
+            //For Net45 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
+            byte[] files = client.DownloadData("https://www.gurux.fi/obis/files.xml");
             System.IO.File.WriteAllBytes(Path.Combine(ObisCodesPath, "files.xml"), files);
             Gurux.DLMS.ManufacturerSettings.GXFileInfo.UpdateFileSecurity(Path.Combine(ObisCodesPath, "files.xml"));
             // Put the byte array into a stream and rewind it to the beginning
