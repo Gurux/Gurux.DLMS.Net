@@ -26,7 +26,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
-// More information of Gurux products: http://www.gurux.org
+// More information of Gurux products: https://www.gurux.org
 //
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
@@ -34,10 +34,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.ComponentModel;
 using System.Xml.Serialization;
-using Gurux.DLMS;
 using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.ManufacturerSettings
@@ -94,7 +92,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         {
             get;
             set;
-        }           
+        }
 
         /// <summary>
         /// Manufacturer spesific OBIS codes.
@@ -119,7 +117,7 @@ namespace Gurux.DLMS.ManufacturerSettings
             get;
             set;
         }
-       
+
         /// <summary>
         /// Used standard.
         /// </summary>
@@ -129,7 +127,7 @@ namespace Gurux.DLMS.ManufacturerSettings
             get;
             set;
         }
-        
+
 
         /// <summary>
         /// Is IEC 62056-21 skipped when using serial port connection.

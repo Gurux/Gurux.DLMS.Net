@@ -26,7 +26,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 // See the GNU General Public License for more details.
 //
-// More information of Gurux products: http://www.gurux.org
+// More information of Gurux products: https://www.gurux.org
 //
 // This code is licensed under the GNU General Public License v2. 
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
@@ -45,7 +45,7 @@ namespace Gurux.DLMS.ManufacturerSettings
     /// </summary>
     /// <remarks>
     /// Read more from HDLC Address counting from here:
-    /// http://www.gurux.fi/index.php?q=node/336 
+    /// https://www.gurux.fi/index.php?q=node/336 
     /// </remarks>
     public enum HDLCAddressType : int
     {

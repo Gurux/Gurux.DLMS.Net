@@ -26,7 +26,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
-// More information of Gurux products: http://www.gurux.org
+// More information of Gurux products: https://www.gurux.org
 //
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
@@ -124,7 +124,7 @@ namespace Gurux.DLMS.Objects
 
     /// <summary>
     ///  Online help:<br/>
-    ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
+    ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
     /// </summary>
     public class GXDLMSCredit : GXDLMSObject, IGXDLMSBase
     {
@@ -160,7 +160,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
         /// </remarks>
         [XmlIgnore()]
         public int CurrentCreditAmount
@@ -174,7 +174,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
         /// </remarks>
         [XmlIgnore()]
         public CreditType Type
@@ -187,7 +187,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
         /// </remarks>
         [XmlIgnore()]
         public byte Priority
@@ -200,7 +200,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
         /// </remarks>
         [XmlIgnore()]
         public int WarningThreshold
@@ -213,7 +213,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
         /// </remarks>
         [XmlIgnore()]
         public int Limit
@@ -226,7 +226,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
         /// </remarks>
         [XmlIgnore()]
         public CreditConfiguration CreditConfiguration
@@ -239,7 +239,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
         /// </remarks>
         [XmlIgnore()]
         public CreditStatus Status
@@ -252,7 +252,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
         /// </remarks>
         [XmlIgnore()]
         public int PresetCreditAmount
@@ -265,7 +265,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
         /// </remarks>
         [XmlIgnore()]
         public int CreditAvailableThreshold
@@ -279,7 +279,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
         /// </remarks>
         [XmlIgnore()]
         public GXDateTime Period

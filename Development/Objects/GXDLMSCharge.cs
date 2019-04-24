@@ -26,7 +26,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
-// More information of Gurux products: http://www.gurux.org
+// More information of Gurux products: https://www.gurux.org
 //
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
@@ -46,7 +46,7 @@ namespace Gurux.DLMS.Objects
     /// </summary>
     /// <remarks>
     ///  Online help:<br/>
-    ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+    ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
     /// </remarks>
     public class GXChargePerUnitScaling
     {
@@ -55,7 +55,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
         /// </remarks>
         public sbyte CommodityScale
         {
@@ -68,7 +68,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
         /// </remarks>
         public sbyte PriceScale
         {
@@ -82,7 +82,7 @@ namespace Gurux.DLMS.Objects
     /// </summary>
     /// <remarks>
     ///  Online help:<br/>
-    ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+    ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
     /// </remarks>
     public class GXCommodity
     {
@@ -91,7 +91,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
         /// </remarks>
         public GXDLMSObject Target
         {
@@ -104,7 +104,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
         /// </remarks>
         public int Index
         {
@@ -118,7 +118,7 @@ namespace Gurux.DLMS.Objects
     /// </summary>
     /// <remarks>
     ///  Online help:<br/>
-    ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+    ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
     /// </remarks>
     public class GXChargeTable
     {
@@ -127,7 +127,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
         /// </remarks>
         public string Index
         {
@@ -140,7 +140,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
         /// </remarks>
         public short ChargePerUnit
         {
@@ -152,7 +152,7 @@ namespace Gurux.DLMS.Objects
 
     /// <summary>
     ///  Online help:<br/>
-    ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+    ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
     /// </summary>
     public class GXUnitCharge
     {
@@ -170,7 +170,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
         /// </remarks>
         public GXChargePerUnitScaling ChargePerUnitScaling
         {
@@ -183,7 +183,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
         /// </remarks>
         public GXCommodity Commodity
         {
@@ -196,7 +196,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
         /// </remarks>
         public GXChargeTable[] ChargeTables
         {
@@ -210,7 +210,7 @@ namespace Gurux.DLMS.Objects
     /// </summary>
     /// <remarks>
     ///  Online help:<br/>
-    ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+    ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
     /// </remarks>
     public enum ChargeType : byte
     {
@@ -230,7 +230,7 @@ namespace Gurux.DLMS.Objects
 
     /// <summary>
     ///  Online help:<br/>
-    ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+    ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
     /// </summary>
     public class GXDLMSCharge : GXDLMSObject, IGXDLMSBase
     {
@@ -268,7 +268,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
         /// </remarks>
         [XmlIgnore()]
         public Int32 TotalAmountPaid
@@ -282,7 +282,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
         /// </remarks>
         [XmlIgnore()]
         public ChargeType ChargeType
@@ -295,7 +295,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
         /// </remarks>
         [XmlIgnore()]
         public byte Priority
@@ -308,7 +308,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
         /// </remarks>
         [XmlIgnore()]
         public GXUnitCharge UnitChargeActive
@@ -322,7 +322,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
         /// </remarks>
         [XmlIgnore()]
         public GXUnitCharge UnitChargePassive
@@ -335,7 +335,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
         /// </remarks>
         [XmlIgnore()]
         public GXDateTime UnitChargeActivationTime
@@ -348,7 +348,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
         /// </remarks>
         [XmlIgnore()]
         public UInt32 Period
@@ -361,7 +361,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
         /// </remarks>
         [XmlIgnore()]
         public string ChargeConfiguration
@@ -374,7 +374,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
         /// </remarks>
         [XmlIgnore()]
         public GXDateTime LastCollectionTime
@@ -387,7 +387,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
         /// </remarks>
         [XmlIgnore()]
         public Int32 LastCollectionAmount
@@ -401,7 +401,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
         /// </remarks>
         [XmlIgnore()]
         public Int32 TotalAmountRemaining
@@ -415,7 +415,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
         /// </remarks>
         [XmlIgnore()]
         public UInt16 Proportion

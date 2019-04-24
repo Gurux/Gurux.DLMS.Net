@@ -26,7 +26,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
-// More information of Gurux products: http://www.gurux.org
+// More information of Gurux products: https://www.gurux.org
 //
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
@@ -225,7 +225,7 @@ namespace Gurux.DLMS.Objects
 
     /// <summary>
     ///  Online help:<br/>
-    ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+    ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
     /// </summary>
     public class GXDLMSAccount : GXDLMSObject, IGXDLMSBase
     {
@@ -268,7 +268,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
         /// </remarks>
         [XmlIgnore()]
         public PaymentMode PaymentMode
@@ -282,7 +282,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
         /// </remarks>
         [XmlIgnore()]
         public AccountStatus AccountStatus
@@ -296,7 +296,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
         /// </remarks>
         [XmlIgnore()]
         public byte CurrentCreditInUse
@@ -311,7 +311,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
         /// </remarks>
         [XmlIgnore()]
         public AccountCreditStatus CurrentCreditStatus
@@ -325,7 +325,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
         /// </remarks>
         [XmlIgnore()]
         public int AvailableCredit
@@ -339,7 +339,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
         /// </remarks>
         [XmlIgnore()]
         public int AmountToClear
@@ -353,7 +353,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
         /// </remarks>
         [XmlIgnore()]
         public int ClearanceThreshold
@@ -367,7 +367,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
         /// </remarks>
         [XmlIgnore()]
         public int AggregatedDebt
@@ -381,7 +381,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
         /// </remarks>
         [XmlIgnore()]
         public List<string> CreditReferences
@@ -395,7 +395,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
         /// </remarks>
         [XmlIgnore()]
         public List<string> ChargeReferences
@@ -409,7 +409,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
         /// </remarks>
         [XmlIgnore()]
         public List<GXCreditChargeConfiguration> CreditChargeConfigurations
@@ -423,7 +423,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
         /// </remarks>
         [XmlIgnore()]
         public List<GXTokenGatewayConfiguration> TokenGatewayConfigurations
@@ -437,7 +437,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
         /// </remarks>
         [XmlIgnore()]
         public GXDateTime AccountActivationTime
@@ -451,7 +451,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
         /// </remarks>
         [XmlIgnore()]
         public GXDateTime AccountClosureTime
@@ -465,7 +465,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
         /// </remarks>
         [XmlIgnore()]
         public GXCurrency Currency
@@ -479,7 +479,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
         /// </remarks>
         [XmlIgnore()]
         public int LowCreditThreshold
@@ -493,7 +493,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
         /// </remarks>
         [XmlIgnore()]
         public int NextCreditAvailableThreshold
@@ -507,7 +507,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
         /// </remarks>
         [XmlIgnore()]
         public UInt16 MaxProvision
@@ -521,7 +521,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <remarks>
         ///  Online help:<br/>
-        ///  http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
+        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
         /// </remarks>
         [XmlIgnore()]
         public int MaxProvisionPeriod

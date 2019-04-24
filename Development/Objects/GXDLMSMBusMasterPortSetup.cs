@@ -26,7 +26,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
-// More information of Gurux products: http://www.gurux.org
+// More information of Gurux products: https://www.gurux.org
 //
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
@@ -43,7 +43,7 @@ namespace Gurux.DLMS.Objects
 {
     /// <summary>
     /// Online help:
-    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSMBusMasterPortSetup
+    /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSMBusMasterPortSetup
     /// </summary>
     public class GXDLMSMBusMasterPortSetup : GXDLMSObject, IGXDLMSBase
     {

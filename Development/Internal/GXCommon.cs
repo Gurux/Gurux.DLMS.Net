@@ -26,7 +26,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
-// More information of Gurux products: http://www.gurux.org
+// More information of Gurux products: https://www.gurux.org
 //
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
@@ -1216,7 +1216,7 @@ namespace Gurux.DLMS.Internal
                         {
                             List<object> tmp2 = new List<object>();
                             GetCompactArrayItem(null, buff, ((List<object>)cols[pos]).ToArray(), tmp2, 1);
-                            row.AddRange((Object[])tmp2[0]);
+                            row.Add(tmp2[0]);
                         }
                         else
                         {
@@ -2701,6 +2701,10 @@ namespace Gurux.DLMS.Internal
             }
             else if (type == typeof(object[]))
             {
+                return DataType.Structure;
+            }
+            else if (type == typeof(List<object>))
+            {
                 return DataType.Array;
             }
             else if (type == typeof(GXEnum))
@@ -2768,6 +2772,15 @@ namespace Gurux.DLMS.Internal
             if (value == null)
             {
                 xml.AppendEmptyTag(xml.GetDataType(DataType.None));
+            }
+            else if (value is List<object>)
+            {
+                xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array, null, null);
+                foreach (object it in (List<object>) value)
+                {
+                    DatatoXml(it, xml);
+                }
+                xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array);
             }
             else if (value is object[])
             {

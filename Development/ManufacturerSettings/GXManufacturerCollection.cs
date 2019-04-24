@@ -26,7 +26,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
-// More information of Gurux products: http://www.gurux.org
+// More information of Gurux products: https://www.gurux.org
 //
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
@@ -34,12 +34,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using Gurux.DLMS;
 using System.IO;
 using System.Xml.Serialization;
 using System.Xml;
-using Gurux.DLMS.ManufacturerSettings;
 using System.Globalization;
 using System.Net;
 
@@ -112,7 +109,7 @@ namespace Gurux.DLMS.ManufacturerSettings
                     client.Proxy = proxy;
                 }
                 // Put the byte array into a stream and rewind it to the beginning
-                MemoryStream ms = new MemoryStream(client.DownloadData("http://www.gurux.org/obis/files.xml"));
+                MemoryStream ms = new MemoryStream(client.DownloadData("https://www.gurux.org/obis/files.xml"));
                 ms.Flush();
                 ms.Position = 0;
                 System.Xml.XmlDocument downloadsXml = new System.Xml.XmlDocument();
@@ -184,7 +181,7 @@ namespace Gurux.DLMS.ManufacturerSettings
             {
                 client.Proxy = proxy;
             }
-            byte[] files = client.DownloadData("http://www.gurux.org/obis/files.xml");
+            byte[] files = client.DownloadData("https://www.gurux.org/obis/files.xml");
             System.IO.File.WriteAllBytes(Path.Combine(ObisCodesPath, "files.xml"), files);
             Gurux.DLMS.ManufacturerSettings.GXFileInfo.UpdateFileSecurity(Path.Combine(ObisCodesPath, "files.xml"));
             // Put the byte array into a stream and rewind it to the beginning
@@ -197,7 +194,7 @@ namespace Gurux.DLMS.ManufacturerSettings
             foreach (XmlNode it in xml.ChildNodes[1].ChildNodes)
             {
                 string path = Path.Combine(ObisCodesPath, it.InnerText);
-                byte[] data = client.DownloadData("http://www.gurux.org/obis/" + it.InnerText);
+                byte[] data = client.DownloadData("https://www.gurux.org/obis/" + it.InnerText);
                 //Make backup if file exists or content has change.
                 if (System.IO.File.Exists(path) && GetMD5Hash(data) != GetMD5HashFromFile(path))
                 {

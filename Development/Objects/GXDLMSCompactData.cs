@@ -26,7 +26,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
-// More information of Gurux products: http://www.gurux.org
+// More information of Gurux products: https://www.gurux.org
 //
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
@@ -54,7 +54,7 @@ namespace Gurux.DLMS.Objects
 
     /// <summary>
     /// Online help:
-    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCompactData
+    /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCompactData
     /// </summary>
     public class GXDLMSCompactData : GXDLMSObject, IGXDLMSBase
     {
@@ -367,9 +367,10 @@ namespace Gurux.DLMS.Objects
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 list.Clear();
+                throw ex;
             }
         }
 
@@ -477,6 +478,51 @@ namespace Gurux.DLMS.Objects
             }
         }
 
+        private static void CaptureArray(GXDLMSServer server, GXByteBuffer tmp, GXByteBuffer bb, int index)
+        {
+            //Skip type.
+            tmp.GetUInt8();
+            int cnt = GXCommon.GetObjectCount(tmp);
+            GXByteBuffer tmp2 = new GXByteBuffer();
+            for (int pos = 0; pos != cnt; ++pos)
+            {
+                if (index == -1 || index == pos)
+                {
+                    DataType dt = (DataType)tmp.GetUInt8(tmp.Position);
+                    if (dt == DataType.Structure || dt == DataType.Array)
+                    {
+                        CaptureArray(server, tmp, bb, -1);
+                    }
+                    else
+                    {
+                        CaptureValue(server, tmp, bb);
+                    }
+                    if (index == pos)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
+        private static void CaptureValue(GXDLMSServer server, GXByteBuffer tmp, GXByteBuffer bb)
+        {
+            GXByteBuffer tmp2 = new GXByteBuffer();
+            GXDataInfo info = new GXDataInfo();
+            object value = GXCommon.GetData(server.Settings, tmp, info);
+            GXCommon.SetData(server.Settings, tmp2, info.Type, value);
+            //If data is empty.
+            if (tmp2.Size == 1)
+            {
+                bb.SetUInt8(0);
+            }
+            else
+            {
+                tmp2.Position = 1;
+                bb.Set(tmp2);
+            }
+        }
+
         /// <summary>
         /// Copies the values of the objects to capture
         /// into the buffer by reading capture objects.
@@ -495,14 +541,24 @@ namespace Gurux.DLMS.Objects
                     {
                         ValueEventArgs e = new ValueEventArgs(server, it.Key, it.Value.AttributeIndex, 0, null);
                         object value = (it.Key as IGXDLMSBase).GetValue(server.Settings, e);
-                        if (value is byte[])
+                        DataType dt = (it.Key as IGXDLMSBase).GetDataType(it.Value.AttributeIndex);
+                        if ((value is byte[] || value is GXByteBuffer[]) && (dt == DataType.Structure || dt == DataType.Array))
                         {
-                            bb.Set((byte[])value);
+                            GXByteBuffer tmp;
+                            if (value is byte[])
+                            {
+                                tmp = new GXByteBuffer((byte[])value);
+                            }
+                            else
+                            {
+                                tmp = (GXByteBuffer)value;
+                            }
+                            CaptureArray(server, tmp, bb, it.Value.DataIndex - 1);
                         }
                         else
                         {
                             GXByteBuffer tmp = new GXByteBuffer();
-                            GXCommon.SetData(server.Settings, tmp, (it.Key as IGXDLMSBase).GetDataType(it.Value.AttributeIndex), value);
+                            GXCommon.SetData(server.Settings, tmp, dt, value);
                             //If data is empty.
                             if (tmp.Size == 1)
                             {
@@ -523,6 +579,52 @@ namespace Gurux.DLMS.Objects
             }
         }
 
+        private static void UpdateTemplateDescription(GXByteBuffer columns, GXByteBuffer data, int index)
+        {
+            DataType ch = (DataType) data.GetUInt8();
+            int count = GXCommon.GetObjectCount(data);
+            if (index == -1)
+            {
+                columns.SetUInt8(ch);
+                if (ch == DataType.Array)
+                {
+                    columns.SetUInt16((UInt16)count);
+                }
+                else
+                {
+                    columns.SetUInt8((byte)count);
+                }
+            }
+            GXDataInfo info = new GXDataInfo();
+            for (int pos = 0; pos < count; ++pos)
+            {
+                //If all data is captured.
+                if (index == -1 || pos == index)
+                {
+                    DataType dt = (DataType)data.GetUInt8(data.Position);
+                    if (dt == DataType.Array || dt == DataType.Structure)
+                    {
+                        UpdateTemplateDescription(columns, data, -1);
+                        if (ch == DataType.Array)
+                        {
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        info.Clear();
+                        columns.SetUInt8((byte)dt);
+                        //Get data.
+                        GXCommon.GetData(null, data, info);
+                    }
+                    if (index == pos)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Update template description.
         /// </summary>
@@ -532,23 +634,61 @@ namespace Gurux.DLMS.Objects
             {
                 GXByteBuffer bb = new GXByteBuffer();
                 Buffer = null;
-                bb.SetUInt8((byte) DataType.Structure);
+                bb.SetUInt8((byte)DataType.Structure);
                 GXCommon.SetObjectCount(CaptureObjects.Count, bb);
                 foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in CaptureObjects)
                 {
-                    DataType type = (it.Key as IGXDLMSBase).GetDataType(it.Value.AttributeIndex);
-                    if (type == DataType.Array || type == DataType.Structure)
+                    DataType dt = (it.Key as IGXDLMSBase).GetDataType(it.Value.AttributeIndex);
+                    if (dt == DataType.Array || dt == DataType.Structure)
                     {
-                        object val = it.Key.GetValues()[it.Value.DataIndex - 1];
-                        bb.SetUInt8(GXCommon.GetDLMSDataType(val.GetType()));
+                        ValueEventArgs e = new ValueEventArgs(null, it.Value.AttributeIndex, 0, null);
+                        GXByteBuffer data = new GXByteBuffer();
+                        object v = ((IGXDLMSBase)it.Key).GetValue(null, e);
+                        if (v is byte[])
+                        {
+                            data.Set((byte[])v);
+                        }
+                        else
+                        {
+                            data = (GXByteBuffer)v;
+                        }
+                        UpdateTemplateDescription(bb, data, ((GXDLMSCaptureObject)it.Value).DataIndex - 1);
                     }
                     else
                     {
-                        bb.SetUInt8((it.Key as IGXDLMSBase).GetDataType(it.Value.AttributeIndex));
+                        bb.SetUInt8(dt);
                     }
                 }
                 TemplateDescription = bb.Array();
             }
+        }
+
+
+        /// <summary>
+        /// Convert compact data buffer to array of values.
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="templateDescription"></param>
+        /// <param name="buffer"></param>
+        /// <returns>Values from byte buffer.</returns>
+        object[] GetValues(
+            byte[] templateDescription,
+            byte[] buffer)
+        {
+            //If templateDescription or buffer is not given.
+            if (templateDescription == null || buffer == null || templateDescription.Length == 0 || buffer.Length == 0)
+            {
+                throw new ArgumentException();
+            }
+            GXDataInfo info = new GXDataInfo();
+            object tmp;
+            GXByteBuffer data = new GXByteBuffer();
+            data.Set(templateDescription);
+            GXCommon.SetObjectCount(buffer.Length, data);
+            data.Set(buffer);
+            info.Type = DataType.CompactArray;
+            tmp = GXCommon.GetData(null, data, info);
+            return (object[])tmp;
         }
     }
 }
