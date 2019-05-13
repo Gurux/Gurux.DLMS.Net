@@ -156,6 +156,7 @@ namespace Gurux.DLMS
                 availableObjectTypes.Add(ObjectType.ParameterMonitor, typeof(GXDLMSParameterMonitor));
                 availableObjectTypes.Add(ObjectType.CompactData, typeof(GXDLMSCompactData));
                 availableObjectTypes.Add(ObjectType.WirelessModeQchannel, typeof(GXDLMSWirelessModeQchannel));
+                availableObjectTypes.Add(ObjectType.UtilityTables, typeof(GXDLMSUtilityTables));
                 //Italian standard uses this.
                 availableObjectTypes.Add(ObjectType.TariffPlan, typeof(GXDLMSTariffPlan));
             }

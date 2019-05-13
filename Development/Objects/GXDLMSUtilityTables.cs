@@ -50,7 +50,7 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSUtilityTables()
-        : this(null, 0)
+        : this("0.0.65.0.0.255", 0)
         {
         }
 
@@ -141,7 +141,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Value" };
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Table Id", "Length", "Buffer" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
