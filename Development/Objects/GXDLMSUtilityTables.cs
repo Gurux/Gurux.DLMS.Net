@@ -120,10 +120,20 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(1);
             }
-            //Value
+            //TableId
             if (all || CanRead(2))
             {
                 attributes.Add(2);
+            }
+            //Length
+            if (all || CanRead(3))
+            {
+                attributes.Add(3);
+            }
+            //Buffer
+            if (all || CanRead(4))
+            {
+                attributes.Add(4);
             }
             return attributes.ToArray();
         }
