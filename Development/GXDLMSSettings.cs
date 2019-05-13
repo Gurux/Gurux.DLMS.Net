@@ -200,6 +200,25 @@ namespace Gurux.DLMS
             set;
         }
 
+        /// <summary>
+        /// Last executed command.
+        /// </summary>
+        public Command Command
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Last executed command type.
+        /// </summary>
+        public byte CommandType
+        {
+            get;
+            set;
+        }
+
+
         ///<summary>
         ///Constructor.
         ///</summary>

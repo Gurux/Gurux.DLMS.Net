@@ -17,7 +17,7 @@
 //  DESCRIPTION
 //
 // This file is a part of Gurux Device Framework.
-//
+//SetArray
 // Gurux Device Framework is Open Source software; you can redistribute it
 // and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
@@ -2375,8 +2375,15 @@ namespace Gurux.DLMS.Internal
         {
             if (value != null)
             {
-                object[] arr = (object[])value;
-                SetObjectCount(arr.Length, buff);
+                IEnumerable<object> arr = (IEnumerable<object>)value;
+                if (value is object[])
+                {
+                    SetObjectCount(((object[])arr).Length, buff);
+                }
+                else
+                {
+                    SetObjectCount(((List<object>)arr).Count, buff);
+                }
                 foreach (object it in arr)
                 {
                     DataType dt = GXDLMSConverter.GetDLMSDataType(it);

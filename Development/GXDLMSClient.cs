@@ -914,6 +914,11 @@ namespace Gurux.DLMS
             buff.SetUInt8(0x80);
             buff.SetUInt8(01);
             buff.SetUInt8(00);
+            //Increase IC.
+            if (Settings.Cipher != null && Settings.Cipher.IsCiphered())
+            {
+                ++Settings.Cipher.InvocationCounter;
+            }
             GXAPDU.GenerateUserInformation(Settings, Settings.Cipher, null, buff);
             buff.SetUInt8(0, (byte)(buff.Size - 1));
             byte[][] reply;
@@ -1311,7 +1316,7 @@ namespace Gurux.DLMS
                 {
                     target.SetDataType(attributeIndex, GXCommon.GetDLMSDataType(value.GetType()));
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     //It's ok if this fails.
                 }

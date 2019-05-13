@@ -2678,6 +2678,58 @@ namespace Gurux.DLMS
             }
         }
 
+
+        /// <summary>
+        /// Handle get response with list.
+        /// </summary>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="reply">Received data from the client.</param>
+        static void HandleGetResponseWithList(GXDLMSSettings settings, GXReplyData reply)
+        {
+            byte ch = 0;
+            //Get object count.
+            int cnt = GXCommon.GetObjectCount(reply.Data);
+            object[] values = new object[cnt];
+            if (reply.Xml != null)
+            {
+                //Result start tag.
+                reply.Xml.AppendStartTag(TranslatorTags.Result, "Qty", reply.Xml.IntegerToHex(cnt, 2));
+            }
+            for (int pos = 0; pos != cnt; ++pos)
+            {
+                // Result
+                ch = reply.Data.GetUInt8();
+                if (ch != 0)
+                {
+                    reply.Error = reply.Data.GetUInt8();
+                }
+                else
+                {
+                    if (reply.Xml != null)
+                    {
+                        GXDataInfo di = new GXDataInfo();
+                        di.xml = reply.Xml;
+                        //Data.
+                        reply.Xml.AppendStartTag(Command.ReadResponse, SingleReadResponse.Data);
+                        GXCommon.GetData(settings, reply.Data, di);
+                        reply.Xml.AppendEndTag(Command.ReadResponse, SingleReadResponse.Data);
+                    }
+                    else
+                    {
+                        reply.ReadPosition = reply.Data.Position;
+                        GetValueFromData(settings, reply);
+                        reply.Data.Position = reply.ReadPosition;
+                        if (values != null)
+                        {
+                            values[pos] = reply.Value;
+                        }
+                        reply.Value = null;
+                    }
+                }
+            }
+            reply.Value = values;
+        }
+
         /// <summary>
         /// Handle get response and get data from block and/or update error status.
         /// </summary>
@@ -2862,50 +2914,16 @@ namespace Gurux.DLMS
                     //Empty block. Conformance tests uses this.
                     reply.EmptyResponses |= RequestTypes.DataBlock;
                 }
+                if (reply.MoreData == RequestTypes.None && settings != null && settings.Command == Command.GetRequest &&
+                    settings.CommandType == (byte) GetCommandType.WithList)
+                {
+                    HandleGetResponseWithList(settings, reply);
+                    ret = false;
+                }
             }
             else if (type == GetCommandType.WithList)
             {
-                //Get object count.
-                int cnt = GXCommon.GetObjectCount(data);
-                object[] values = new object[cnt];
-                if (reply.Xml != null)
-                {
-                    //Result start tag.
-                    reply.Xml.AppendStartTag(TranslatorTags.Result, "Qty", reply.Xml.IntegerToHex(cnt, 2));
-                }
-                for (int pos = 0; pos != cnt; ++pos)
-                {
-                    // Result
-                    ch = data.GetUInt8();
-                    if (ch != 0)
-                    {
-                        reply.Error = data.GetUInt8();
-                    }
-                    else
-                    {
-                        if (reply.Xml != null)
-                        {
-                            GXDataInfo di = new GXDataInfo();
-                            di.xml = reply.Xml;
-                            //Data.
-                            reply.Xml.AppendStartTag(Command.ReadResponse, SingleReadResponse.Data);
-                            GXCommon.GetData(settings, reply.Data, di);
-                            reply.Xml.AppendEndTag(Command.ReadResponse, SingleReadResponse.Data);
-                        }
-                        else
-                        {
-                            reply.ReadPosition = reply.Data.Position;
-                            GetValueFromData(settings, reply);
-                            reply.Data.Position = reply.ReadPosition;
-                            if (values != null)
-                            {
-                                values[pos] = reply.Value;
-                            }
-                            reply.Value = null;
-                        }
-                    }
-                }
-                reply.Value = values;
+                HandleGetResponseWithList(settings, reply);
                 ret = false;
             }
             else

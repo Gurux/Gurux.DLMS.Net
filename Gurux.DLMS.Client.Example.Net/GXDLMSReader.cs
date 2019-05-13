@@ -732,8 +732,8 @@ namespace Gurux.DLMS.Reader
                                 t.DataToXml(notify.Data, out xml);
                                 Console.WriteLine(xml);
                                 notify.Clear();
+                                continue;
                             }
-                            continue;
                         }
                         else if (p.Eop == null)
                         {
@@ -878,14 +878,10 @@ namespace Gurux.DLMS.Reader
             foreach (byte[] it in data)
             {
                 ReadDataBlock(it, reply);
-                if (list.Count != 1 && reply.Value is object[])
+                //Value is null if data is send in multiple frames.
+                if (reply.Value is object[])
                 {
                     values.AddRange((object[])reply.Value);
-                }
-                else if (reply.Value != null)
-                {
-                    //Value is null if data is send in multiple frames.
-                    values.Add(reply.Value);
                 }
                 reply.Clear();
             }
@@ -983,7 +979,7 @@ namespace Gurux.DLMS.Reader
                     {
                         //All meters don't support Release.
                         Console.WriteLine("Release failed. " + ex.Message);
-                    } 
+                    }
                     reply.Clear();
                     ReadDLMSPacket(Client.DisconnectRequest(), reply);
                     Media.Close();
