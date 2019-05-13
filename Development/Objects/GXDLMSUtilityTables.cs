@@ -205,7 +205,14 @@ namespace Gurux.DLMS.Objects
                     //Skip len.
                     break;
                 case 4:
-                    Buffer = (byte[])e.Value;
+                    if (e.Value is string)
+                    {
+                        Buffer = GXCommon.HexToBytes((string)e.Value);
+                    }
+                    else
+                    {
+                        Buffer = (byte[])e.Value;
+                    }
                     break;
                 default:
                     e.Error = ErrorCode.ReadWriteDenied;
