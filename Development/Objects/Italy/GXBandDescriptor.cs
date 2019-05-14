@@ -46,9 +46,15 @@ namespace Gurux.DLMS.Objects.Italy
         /// </summary>
         public GXBandDescriptor()
         {
-            WorkingDayIntervals = new GXDLMSInterval();
-            SaturdayIntervals = new GXDLMSInterval();
-            HolidayIntervals = new GXDLMSInterval();
+            WorkingDayIntervals = new GXDLMSInterval[5];
+            SaturdayIntervals = new GXDLMSInterval[5];
+            HolidayIntervals = new GXDLMSInterval[5];
+            for (int pos = 0; pos != 5; ++pos)
+            {
+                WorkingDayIntervals[pos] = new GXDLMSInterval();
+                SaturdayIntervals[pos] = new GXDLMSInterval();
+                HolidayIntervals[pos] = new GXDLMSInterval();
+            }
         }
         /// <summary>
         /// Day of month when the season will become active.
@@ -73,7 +79,7 @@ namespace Gurux.DLMS.Objects.Italy
         /// Working day intervals.
         /// </summary>
         [XmlIgnore()]
-        public GXDLMSInterval WorkingDayIntervals
+        public GXDLMSInterval[] WorkingDayIntervals
         {
             get;
             set;
@@ -83,7 +89,7 @@ namespace Gurux.DLMS.Objects.Italy
         /// Saturday intervals.
         /// </summary>
         [XmlIgnore()]
-        public GXDLMSInterval SaturdayIntervals
+        public GXDLMSInterval[] SaturdayIntervals
         {
             get;
             set;
@@ -93,7 +99,7 @@ namespace Gurux.DLMS.Objects.Italy
         /// Saturday intervals.
         /// </summary>
         [XmlIgnore()]
-        public GXDLMSInterval HolidayIntervals
+        public GXDLMSInterval[] HolidayIntervals
         {
             get;
             set;

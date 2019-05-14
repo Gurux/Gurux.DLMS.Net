@@ -32,9 +32,11 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace Gurux.DLMS.Objects.Italy.Enums
 {
-
+    [Flags]
     public enum WeeklyActivation
     {
         /// <summary>

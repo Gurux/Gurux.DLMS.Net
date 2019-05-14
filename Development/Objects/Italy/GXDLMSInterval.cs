@@ -71,45 +71,5 @@ namespace Gurux.DLMS.Objects.Italy
             get;
             set;
         }
-
-        /// <summary>
-        /// Weekly Activation.
-        /// </summary>
-        [XmlIgnore()]
-        public WeeklyActivation WeeklyActivation
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Month of the year of the special day.
-        /// </summary>
-        [XmlIgnore()]
-        public byte SpecialDayMonth
-        {
-            get;
-            set;
-        }
-        /// <summary>
-        /// Day of the month of the special day.
-        /// </summary>
-        [XmlIgnore()]
-        public byte SpecialDay
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Day of the month of the special day.
-        /// </summary>
-        [XmlIgnore()]
-        public bool SpecialDayEnabled
-        {
-            get;
-            set;
-        }
     }
-
 }
