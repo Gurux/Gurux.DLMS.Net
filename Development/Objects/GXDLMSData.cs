@@ -174,9 +174,13 @@ namespace Gurux.DLMS.Objects
                     break;
                 case 2:
                     DataType dt = GetDataType(2);
-                    if (!e.User && e.Value != null && (dt == DataType.None || dt == DataType.DateTime))
+                    if (!e.User && e.Value != null && (dt == DataType.None || dt == DataType.DateTime || dt == DataType.String))
                     {
-                        SetDataType(2, GXCommon.GetDLMSDataType(e.Value.GetType()));
+                        DataType dt2 = GXCommon.GetDLMSDataType(e.Value.GetType());
+                        if (dt != dt2)
+                        {
+                            SetDataType(2, dt2);
+                        }
                     }
                     dt = GetUIDataType(2);
                     if (dt == DataType.DateTime && (e.Value is UInt32 || e.Value is UInt64 || e.Value is Int32 || e.Value is Int64))

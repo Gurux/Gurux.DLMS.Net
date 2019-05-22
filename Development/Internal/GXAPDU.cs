@@ -272,17 +272,6 @@ namespace Gurux.DLMS.Internal
                     GXByteBuffer tmp = new GXByteBuffer();
                     GetInitiateRequest(settings, cipher, tmp);
                     byte cmd = (byte)Command.GloInitiateRequest;
-                    if ((settings.ProposedConformance & Conformance.GeneralProtection) != 0)
-                    {
-                        if (settings.Cipher.DedicatedKey != null && settings.Cipher.DedicatedKey.Length != 0)
-                        {
-                            cmd = (byte)Command.GeneralDedCiphering;
-                        }
-                        else
-                        {
-                            cmd = (byte)Command.GeneralGloCiphering;
-                        }
-                    }
                     AesGcmParameter p = new AesGcmParameter(cmd, cipher.Security,
                         cipher.InvocationCounter, cipher.SystemTitle,
                         cipher.BlockCipherKey,
