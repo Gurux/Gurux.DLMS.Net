@@ -308,6 +308,16 @@ namespace Gurux.DLMS
             UseLogicalNameReferencing = true;
         }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="type">XML type.</param>
+        public GXDLMSXmlClient(TranslatorOutputType type, bool hex)
+        {
+            translator = new GXDLMSTranslator(type);
+            translator.Hex = hex;
+            UseLogicalNameReferencing = true;
+        }
 
         /// <summary>
         /// XML client don't throw exceptions. It serializes them as a default.
@@ -432,6 +442,17 @@ namespace Gurux.DLMS
             {
                 if (m1.NodeType == XmlNodeType.Element)
                 {
+                    if (m1.Name == "AssociationRequest")
+                    {
+                        GXDLMSXmlSettings s = new GXDLMSXmlSettings(translator.OutputType, translator.Hex, translator.ShowStringAsHex, translator.tagsByName);
+                        s.settings.ClientAddress = Settings.ClientAddress;
+                        s.settings.ServerAddress = Settings.ServerAddress;
+                        ((GXCiphering)s.settings.Cipher).TestMode = this.Ciphering.TestMode;
+                        byte[] reply = translator.XmlToPdu(m1.OuterXml, s);
+                        GXDLMSXmlPdu p = new GXDLMSXmlPdu(s.command, m1, reply);
+                        actions.Add(p);
+                        return actions;
+                    }
                     foreach (XmlNode node in m1.ChildNodes)
                     {
                         if (node.NodeType == XmlNodeType.Element)

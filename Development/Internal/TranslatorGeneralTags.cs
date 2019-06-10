@@ -56,13 +56,15 @@ namespace Gurux.DLMS.Internal
         AssociationResult = 0xA2,
         ResultSourceDiagnostic = 0xA3,
         ACSEServiceUser = 0xA301,
+        ACSEServiceProvider = 0xA302,
         CallingAPTitle = 0xA6,
         RespondingAPTitle = 0xA4,
         DedicatedKey = 0xA8,
         CallingAeInvocationId = 0xA9,
         CalledAeInvocationId = 0xA5,
-        RespondingAeInvocationId = 0xA7,
+        CallingAeQualifier = 0xA7,
         CharString = 0xAA,
-        UserInformation = 0xAB
+        UserInformation = 0xAB,
+        RespondingAeInvocationId = 0xAD
     }
 }

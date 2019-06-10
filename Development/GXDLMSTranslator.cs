@@ -2816,6 +2816,7 @@ namespace Gurux.DLMS
             if (s == null)
             {
                 s = new GXDLMSXmlSettings(OutputType, Hex, ShowStringAsHex, tagsByName);
+                ((GXCiphering)s.settings.Cipher).TestMode = true;
             }
             ReadAllNodes(doc, s);
             GXByteBuffer bb = new GXByteBuffer();

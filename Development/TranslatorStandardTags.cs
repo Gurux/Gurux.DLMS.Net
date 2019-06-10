@@ -115,6 +115,8 @@ namespace Gurux.DLMS
                                     "result-source-diagnostic");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.ACSEServiceUser,
                                     "acse-service-user");
+            GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.ACSEServiceProvider,
+                                    "acse-service-provider");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.CallingAPTitle,
                                     "CallingAPTitle");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.RespondingAPTitle,
@@ -133,6 +135,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.CalledAeInvocationId,
                                     "called-AE-invocation-id");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.RespondingAeInvocationId, "responding-AE-invocation-id");
+            GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.CallingAeQualifier, "calling-Ae-qualifier");
         }
 
         /// <summary>

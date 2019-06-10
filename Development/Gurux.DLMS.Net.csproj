@@ -10,7 +10,7 @@
     <Authors>Gurux Ltd</Authors>
     <Copyright>Copyright (c) 1998-2019 Gurux Ltd. All rights reserved.</Copyright>
     <PackageProjectUrl>https://www.gurux.fi</PackageProjectUrl>
-    <PackageLicenseUrl>https://www.gnu.org/licenses/gpl-2.0.txt</PackageLicenseUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
     <Description>Gurux DLMS library for C#</Description>
   <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">0.0.1-local</Version>
     <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
@@ -21,6 +21,7 @@
     <PackageTags>DLMS AMR, AMI IOT</PackageTags>
     <PackageId>Gurux.DLMS</PackageId>
     <PackageIconUrl>https://www.gurux.org/gurux.ico</PackageIconUrl>
+    <PackageLicenseExpression>GPL-2.0-only</PackageLicenseExpression>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -51,9 +52,7 @@
    </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="ManufacturerSettings\GXXmlEditor.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="ManufacturerSettings\GXXmlEditor.cs" />
     <Compile Update="ManufacturerSettings\GXXmlEditor.Designer.cs">
       <DependentUpon>GXXmlEditor.cs</DependentUpon>
     </Compile>

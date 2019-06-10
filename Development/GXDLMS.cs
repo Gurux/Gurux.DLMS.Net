@@ -237,14 +237,30 @@ namespace Gurux.DLMS
         ///</returns>
         internal static byte[] ReceiverReady(GXDLMSSettings settings, RequestTypes type)
         {
-            if (type == RequestTypes.None)
+            GXReplyData reply = new GXReplyData() { MoreData = type };
+            reply.WindowSize = settings.WindowSize;
+            reply.BlockNumberAck = settings.BlockNumberAck;
+            reply.BlockNumber = (UInt16)settings.BlockIndex;
+            return ReceiverReady(settings, reply);
+        }
+
+        ///<summary>
+        ///Generates an acknowledgment message, with which the server is informed to send next packets.
+        ///</summary>
+        ///<param name="reply">Reply data.</param>
+        ///<returns>
+        ///Acknowledgment message as byte array.
+        ///</returns>
+        internal static byte[] ReceiverReady(GXDLMSSettings settings, GXReplyData reply)
+        {
+            if (reply.MoreData == RequestTypes.None)
             {
                 //Generate RR.
                 byte id = settings.KeepAlive();
                 return GetHdlcFrame(settings, id, null);
             }
             // Get next frame.
-            if ((type & RequestTypes.Frame) != 0)
+            if ((reply.MoreData & RequestTypes.Frame) != 0)
             {
                 byte id = settings.ReceiverReady();
                 return GetHdlcFrame(settings, id, null);
@@ -273,23 +289,20 @@ namespace Gurux.DLMS
                 }
             }
             // Get next block.
-            GXByteBuffer bb = new GXByteBuffer(4);
-            byte[][] reply;
-            /*
-            if ((settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) != 0)
+            byte[][] data;
+            if (reply.MoreData == RequestTypes.GBT)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, Command.GeneralBlockTransfer, 0, bb, null, 0xff);
-                p.WindowSize = settings.WindowSize;
-                p.blockNumberAck = settings.BlockNumberAck;
-                p.blockIndex = (UInt16)settings.BlockIndex;
+                GXDLMSLNParameters p = new GXDLMSLNParameters(null, settings, 0, Command.GeneralBlockTransfer, 0, null, null, 0xff, Command.None);
+                p.WindowSize = reply.WindowSize;
+                p.blockNumberAck = reply.BlockNumberAck;
+                p.blockIndex = reply.BlockNumber;
                 p.Streaming = false;
-                reply = GXDLMS.GetLnMessages(p);
-                settings.IncreaseBlockIndex();
+                data = GXDLMS.GetLnMessages(p);
             }
             else
-            */
             {
                 // Get next block.
+                GXByteBuffer bb = new GXByteBuffer(4);
                 if (settings.UseLogicalNameReferencing)
                 {
                     bb.SetUInt32(settings.BlockIndex);
@@ -302,15 +315,15 @@ namespace Gurux.DLMS
                 if (settings.UseLogicalNameReferencing)
                 {
                     GXDLMSLNParameters p = new GXDLMSLNParameters(null, settings, 0, cmd, (byte)GetCommandType.NextDataBlock, bb, null, 0xff, Command.None);
-                    reply = GXDLMS.GetLnMessages(p);
+                    data = GXDLMS.GetLnMessages(p);
                 }
                 else
                 {
                     GXDLMSSNParameters p = new GXDLMSSNParameters(settings, cmd, 1, (byte)VariableAccessSpecification.BlockNumberAccess, bb, null);
-                    reply = GXDLMS.GetSnMessages(p);
+                    data = GXDLMS.GetSnMessages(p);
                 }
             }
-            return reply[0];
+            return data[0];
         }
 
         /// <summary>
@@ -2916,7 +2929,7 @@ namespace Gurux.DLMS
                     reply.EmptyResponses |= RequestTypes.DataBlock;
                 }
                 if (reply.MoreData == RequestTypes.None && settings != null && settings.Command == Command.GetRequest &&
-                    settings.CommandType == (byte) GetCommandType.WithList)
+                    settings.CommandType == (byte)GetCommandType.WithList)
                 {
                     HandleGetResponseWithList(settings, reply);
                     ret = false;
@@ -2962,6 +2975,10 @@ namespace Gurux.DLMS
             data.BlockNumber = data.Data.GetUInt16();
             //Block number acknowledged.
             data.BlockNumberAck = data.Data.GetUInt16();
+            if (data.Xml == null && data.BlockNumberAck != settings.BlockIndex - 1)
+            {
+                System.Diagnostics.Debug.Write("Invalid GBT ACK.");
+            }
             settings.BlockNumberAck = data.BlockNumber;
             data.Command = Command.None;
             int len = GXCommon.GetObjectCount(data.Data);
@@ -2989,7 +3006,7 @@ namespace Gurux.DLMS
                 data.Xml.AppendLine(TranslatorTags.BlockNumber, null, data.Xml.IntegerToHex(data.BlockNumber, 4));
                 data.Xml.AppendLine(TranslatorTags.BlockNumberAck, null, data.Xml.IntegerToHex(data.BlockNumberAck, 4));
                 //If last block and comments.
-                if ((bc & 0x80) != 0 && data.Xml.Comments)
+                if ((bc & 0x80) != 0 && data.Xml.Comments && data.Data.Available != 0)
                 {
                     int pos = data.Data.Position;
                     int len2 = data.Xml.GetXmlLength();
@@ -3017,11 +3034,11 @@ namespace Gurux.DLMS
             //Is Last block,
             if ((bc & 0x80) == 0)
             {
-                data.MoreData |= RequestTypes.DataBlock;
+                data.MoreData |= RequestTypes.GBT;
             }
             else
             {
-                data.MoreData &= ~RequestTypes.DataBlock;
+                data.MoreData &= ~RequestTypes.GBT;
                 if (data.Data.Size != 0)
                 {
                     data.Data.Position = 0;

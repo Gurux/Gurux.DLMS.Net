@@ -79,6 +79,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.AssociationResult, "AssociationResult");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.ResultSourceDiagnostic, "ResultSourceDiagnostic");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.ACSEServiceUser, "ACSEServiceUser");
+            GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.ACSEServiceProvider, "ACSEServiceProvider");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.CallingAPTitle, "CallingAPTitle");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.RespondingAPTitle, "RespondingAPTitle");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.DedicatedKey, "DedicatedKey");
@@ -92,6 +93,8 @@ namespace Gurux.DLMS
                 "CalledAEInvocationId");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.RespondingAeInvocationId,
                 "RespondingAeInvocationId");
+            GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.CallingAeQualifier,
+                "CallingAEQualifier");
         }
 
         /// <summary>
@@ -292,7 +295,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorTags.CalledAPTitle, "CalledAPTitle");
             GXDLMSTranslator.AddTag(list, TranslatorTags.CalledAPInvocationId, "CalledAPInvocationId");
             GXDLMSTranslator.AddTag(list, TranslatorTags.CalledAEInvocationId, "CalledAEInvocationId");
-            GXDLMSTranslator.AddTag(list, TranslatorTags.CallingApInvocationId, "CallingApInvocationId");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.CallingApInvocationId, "CallingAPInvocationId");
             GXDLMSTranslator.AddTag(list, TranslatorTags.CalledAEQualifier, "CalledAEQualifier");
         }
 

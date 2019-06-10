@@ -320,6 +320,12 @@ namespace Gurux.DLMS.Internal
                 {
                     return data.GetUInt16();
                 }
+                else if (cnt == 0x83)
+                {
+                    cnt = data.GetUInt24(data.Position);
+                    data.Position += 3;
+                    return cnt;
+                }
                 else if (cnt == 0x84)
                 {
                     return (int)data.GetUInt32();
@@ -1955,7 +1961,18 @@ namespace Gurux.DLMS.Internal
                     buff.SetUInt16(Convert.ToUInt16(value));
                     break;
                 case DataType.Int32:
-                    buff.SetUInt32((UInt32)Convert.ToInt32(value));
+                    if (value is DateTime)
+                    {
+                        buff.SetUInt32((UInt32) GXDateTime.ToUnixTime((DateTime)value));
+                    }
+                    else if (value is GXDateTime)
+                    {
+                        buff.SetUInt32((UInt32)GXDateTime.ToUnixTime(((GXDateTime)value).Value.DateTime));
+                    }
+                    else
+                    {
+                        buff.SetUInt32((UInt32)Convert.ToInt32(value));
+                    }
                     break;
                 case DataType.UInt32:
                     buff.SetUInt32(Convert.ToUInt32(value));
@@ -2783,7 +2800,7 @@ namespace Gurux.DLMS.Internal
             else if (value is List<object>)
             {
                 xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array, null, null);
-                foreach (object it in (List<object>) value)
+                foreach (object it in (List<object>)value)
                 {
                     DatatoXml(it, xml);
                 }

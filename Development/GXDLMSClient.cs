@@ -770,7 +770,7 @@ namespace Gurux.DLMS
         {
             try
             {
-                IsAuthenticationRequired = GXAPDU.ParsePDU(Settings, Settings.Cipher, reply, null) == SourceDiagnostic.AuthenticationRequired;
+                IsAuthenticationRequired = (SourceDiagnostic)GXAPDU.ParsePDU(Settings, Settings.Cipher, reply, null) == SourceDiagnostic.AuthenticationRequired;
                 if (IsAuthenticationRequired)
                 {
                     System.Diagnostics.Debug.WriteLine("Authentication is required.");
@@ -2246,6 +2246,17 @@ namespace Gurux.DLMS
             return GXDLMS.ReceiverReady(Settings, type);
         }
 
+        /// <summary>
+        /// Generates an acknowledgment message, with which the server is informed to
+        /// send next packets.
+        /// </summary>
+        /// <param name="reply">Reply data.</param>
+        /// <returns>Acknowledgment message as byte array.</returns>
+        public byte[] ReceiverReady(GXReplyData reply)
+        {
+            return GXDLMS.ReceiverReady(Settings, reply);
+        }
+
         ///<summary>Removes the frame from the packet, and returns DLMS PDU.</summary>
         ///<param name="reply">The received data from the device.</param>
         ///<param name="data">Information from the received data.</param>
@@ -2617,6 +2628,48 @@ namespace Gurux.DLMS
                 throw new Exception("This method can be used only to generate HDLC custom frames");
             }
             return GXDLMS.GetHdlcFrame(Settings, command, data);
+        }
+
+        /// <summary>
+        /// Generates a invalid HDLC frame.
+        /// </summary>
+        /// <param name="command">HDLC command.</param>
+        /// <param name="data">data</param>
+        /// <returns>HDLC frame request, as byte array.</returns>
+        /// <remarks>
+        /// This method can be used for sending custom HDLC frames example in testing.
+        /// </remarks>
+        public byte[][] CustomFrameRequest(Command command, GXByteBuffer data)
+        {
+            if (Settings.InterfaceType == InterfaceType.HDLC ||
+                Settings.InterfaceType == InterfaceType.WRAPPER)
+            {
+                byte[][] reply;
+                if (command == Command.None)
+                {
+                    List<byte[]> messages = new List<byte[]>();
+                    if (Settings.InterfaceType == Enums.InterfaceType.WRAPPER)
+                    {
+                        messages.Add(GXDLMS.GetWrapperFrame(Settings, data));
+                    }
+                    else if (Settings.InterfaceType == Enums.InterfaceType.HDLC)
+                    {
+                        messages.Add(GXDLMS.GetHdlcFrame(Settings, (byte)command, data));
+                    }
+                    reply = messages.ToArray();
+                }
+                else if (UseLogicalNameReferencing)
+                {
+                    GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, command, 0, data, null, 0xff, Command.None);
+                    reply = GXDLMS.GetLnMessages(p);
+                }
+                else
+                {
+                    reply = GXDLMS.GetSnMessages(new GXDLMSSNParameters(Settings, command, 0, 0, null, data));
+                }
+                return reply;
+            }
+            throw new Exception("This method can be used only to generate HDLC or WRAPPER custom frames");
         }
 
         /// <summary>

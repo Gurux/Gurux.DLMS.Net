@@ -1258,107 +1258,114 @@ namespace Gurux.DLMS
             {
                 Reset(true);
             }
-            SourceDiagnostic diagnostic = SourceDiagnostic.NoReasonGiven;
+            object ret;
             try
             {
-                diagnostic = (SourceDiagnostic)GXAPDU.ParsePDU(Settings, Settings.Cipher, data, null);
-                if (Settings.NegotiatedConformance == Conformance.None)
+                ret = GXAPDU.ParsePDU(Settings, Settings.Cipher, data, null);
+                if (!(ret is AcseServiceProvider))
                 {
-                    result = AssociationResult.PermanentRejected;
-                    diagnostic = SourceDiagnostic.NoReasonGiven;
-                    error = new GXByteBuffer();
-                    error.SetUInt8(0xE);
-                    error.SetUInt8(ConfirmedServiceError.InitiateError);
-                    error.SetUInt8(ServiceError.Initiate);
-                    error.SetUInt8(Initiate.IncompatibleConformance);
-                }
-                //If PDU is too low.
-                else if (Settings.MaxPduSize < 64)
-                {
-                    result = AssociationResult.PermanentRejected;
-                    diagnostic = SourceDiagnostic.NoReasonGiven;
-                    error = new GXByteBuffer();
-                    error.SetUInt8(0xE);
-                    error.SetUInt8(ConfirmedServiceError.InitiateError);
-                    error.SetUInt8(ServiceError.Initiate);
-                    error.SetUInt8(Initiate.PduSizeTooShort);
-                }
-                else if (Settings.DLMSVersion != 6)
-                {
-                    Settings.DLMSVersion = 6;
-                    result = AssociationResult.PermanentRejected;
-                    diagnostic = SourceDiagnostic.NoReasonGiven;
-                    error = new GXByteBuffer();
-                    error.SetUInt8(0xE);
-                    error.SetUInt8(ConfirmedServiceError.InitiateError);
-                    error.SetUInt8(ServiceError.Initiate);
-                    error.SetUInt8(Initiate.DlmsVersionTooLow);
-                }
-                else if (diagnostic != SourceDiagnostic.None)
-                {
-                    result = AssociationResult.PermanentRejected;
-                    diagnostic = SourceDiagnostic.ApplicationContextNameNotSupported;
-                    InvalidConnection(connectionInfo);
-                }
-                else
-                {
-                    diagnostic = ValidateAuthentication(Settings.Authentication, Settings.Password);
-                    if (diagnostic != SourceDiagnostic.None)
+                    if (Settings.NegotiatedConformance == Conformance.None)
                     {
                         result = AssociationResult.PermanentRejected;
-                        InvalidConnection(connectionInfo);
+                        ret = SourceDiagnostic.NoReasonGiven;
+                        error = new GXByteBuffer();
+                        error.SetUInt8(0xE);
+                        error.SetUInt8(ConfirmedServiceError.InitiateError);
+                        error.SetUInt8(ServiceError.Initiate);
+                        error.SetUInt8(Initiate.IncompatibleConformance);
                     }
-                    else if (Settings.Authentication > Authentication.Low)
+                    //If PDU is too low.
+                    else if (Settings.MaxPduSize < 64)
                     {
-                        // If High authentication is used.
-                        result = AssociationResult.Accepted;
-                        diagnostic = SourceDiagnostic.AuthenticationRequired;
-                        if (UseLogicalNameReferencing)
-                        {
-                            GXDLMSAssociationLogicalName ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
-                            if (ln != null)
-                            {
-                                if (Settings.Cipher == null || Settings.Cipher.Security == Enums.Security.None)
-                                {
-                                    ln.ApplicationContextName.ContextId = ApplicationContextName.LogicalName;
-                                }
-                                else
-                                {
-                                    ln.ApplicationContextName.ContextId = ApplicationContextName.LogicalNameWithCiphering;
-                                }
-                                ln.AuthenticationMechanismName.MechanismId = Settings.Authentication;
-                                ln.AssociationStatus = AssociationStatus.AssociationPending;
-                            }
-                        }
+                        result = AssociationResult.PermanentRejected;
+                        ret = SourceDiagnostic.NoReasonGiven;
+                        error = new GXByteBuffer();
+                        error.SetUInt8(0xE);
+                        error.SetUInt8(ConfirmedServiceError.InitiateError);
+                        error.SetUInt8(ServiceError.Initiate);
+                        error.SetUInt8(Initiate.PduSizeTooShort);
+                    }
+                    else if (Settings.DLMSVersion != 6)
+                    {
+                        Settings.DLMSVersion = 6;
+                        result = AssociationResult.PermanentRejected;
+                        ret = SourceDiagnostic.NoReasonGiven;
+                        error = new GXByteBuffer();
+                        error.SetUInt8(0xE);
+                        error.SetUInt8(ConfirmedServiceError.InitiateError);
+                        error.SetUInt8(ServiceError.Initiate);
+                        error.SetUInt8(Initiate.DlmsVersionTooLow);
+                    }
+                    else if ((SourceDiagnostic)ret != SourceDiagnostic.None)
+                    {
+                        result = AssociationResult.PermanentRejected;
+                        ret = SourceDiagnostic.ApplicationContextNameNotSupported;
+                        InvalidConnection(connectionInfo);
                     }
                     else
                     {
-                        if (UseLogicalNameReferencing)
+                        ret = ValidateAuthentication(Settings.Authentication, Settings.Password);
+                        if ((SourceDiagnostic)ret != SourceDiagnostic.None)
                         {
-                            GXDLMSAssociationLogicalName ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
-                            if (ln != null)
+                            result = AssociationResult.PermanentRejected;
+                            InvalidConnection(connectionInfo);
+                        }
+                        else if (Settings.Authentication > Authentication.Low)
+                        {
+                            // If High authentication is used.
+                            result = AssociationResult.Accepted;
+                            ret = SourceDiagnostic.AuthenticationRequired;
+                            if (UseLogicalNameReferencing)
                             {
-                                if (Settings.Cipher == null || Settings.Cipher.Security == Enums.Security.None)
+                                GXDLMSAssociationLogicalName ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
+                                if (ln != null)
                                 {
-                                    ln.ApplicationContextName.ContextId = ApplicationContextName.LogicalName;
+                                    if (Settings.Cipher == null || Settings.Cipher.Security == Enums.Security.None)
+                                    {
+                                        ln.ApplicationContextName.ContextId = ApplicationContextName.LogicalName;
+                                    }
+                                    else
+                                    {
+                                        ln.ApplicationContextName.ContextId = ApplicationContextName.LogicalNameWithCiphering;
+                                    }
+                                    ln.AuthenticationMechanismName.MechanismId = Settings.Authentication;
+                                    ln.AssociationStatus = AssociationStatus.AssociationPending;
                                 }
-                                else
-                                {
-                                    ln.ApplicationContextName.ContextId = ApplicationContextName.LogicalNameWithCiphering;
-                                }
-                                ln.AuthenticationMechanismName.MechanismId = Settings.Authentication;
-                                ln.AssociationStatus = AssociationStatus.Associated;
                             }
                         }
-                        Connected(connectionInfo);
-                        Settings.Connected |= ConnectionState.Dlms;
+                        else
+                        {
+                            if (UseLogicalNameReferencing)
+                            {
+                                GXDLMSAssociationLogicalName ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
+                                if (ln != null)
+                                {
+                                    if (Settings.Cipher == null || Settings.Cipher.Security == Enums.Security.None)
+                                    {
+                                        ln.ApplicationContextName.ContextId = ApplicationContextName.LogicalName;
+                                    }
+                                    else
+                                    {
+                                        ln.ApplicationContextName.ContextId = ApplicationContextName.LogicalNameWithCiphering;
+                                    }
+                                    ln.AuthenticationMechanismName.MechanismId = Settings.Authentication;
+                                    ln.AssociationStatus = AssociationStatus.Associated;
+                                }
+                            }
+                            Connected(connectionInfo);
+                            Settings.Connected |= ConnectionState.Dlms;
+                        }
                     }
+                }
+                else if (result == AssociationResult.Accepted && Convert.ToByte(ret) != 0)
+                {
+                    result = AssociationResult.PermanentRejected;
                 }
             }
             catch (GXDLMSException e)
             {
                 result = e.Result;
-                diagnostic = (SourceDiagnostic)e.Diagnostic;
+                ret = (SourceDiagnostic)e.Diagnostic;
             }
             if (Settings.Authentication > Authentication.Low && !Settings.UseCustomChallenge)
             {
@@ -1370,7 +1377,7 @@ namespace Gurux.DLMS
                 replyData.Set(GXCommon.LLCReplyBytes);
             }
             // Generate AARE packet.
-            GXAPDU.GenerateAARE(Settings, replyData, result, diagnostic, Settings.Cipher, error, null);
+            GXAPDU.GenerateAARE(Settings, replyData, result, ret, Settings.Cipher, error, null);
         }
 
         /// <summary>

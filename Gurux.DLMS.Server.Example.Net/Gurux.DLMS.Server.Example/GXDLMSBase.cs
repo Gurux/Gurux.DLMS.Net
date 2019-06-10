@@ -146,6 +146,7 @@ namespace GuruxDLMSServerExample
 
         void Init()
         {
+            this.Conformance |= Conformance.GeneralBlockTransfer;
             //If pre-established connections are used.
             ClientSystemTitle = ASCIIEncoding.ASCII.GetBytes("ABCDEFGH");
             Ciphering.Security = Security.AuthenticationEncryption;
@@ -167,6 +168,10 @@ namespace GuruxDLMSServerExample
             GXDLMSData fw = new GXDLMSData("1.0.0.2.0.255");
             fw.Value = "Gurux FW 0.0.1";
             Items.Add(fw);
+
+            GXDLMSData unixTime = new GXDLMSData("0.0.1.1.0.255");
+            Items.Add(unixTime);
+
             //Add Last average.
             GXDLMSRegister r = new GXDLMSRegister("1.1.21.25.0.255");
             //Set access right. Client can't change average value.
@@ -698,11 +703,11 @@ namespace GuruxDLMSServerExample
                             else if (e.Selector == 2)
                             {
                                 //Read by range.
-                                e.RowBeginIndex = (UInt32)((object[])e.Parameters)[0];
-                                e.RowEndIndex = e.RowBeginIndex + (UInt32)((object[])e.Parameters)[1];
+                                e.RowBeginIndex = (UInt32)((object[])e.Parameters)[0] - 1;
+                                e.RowEndIndex = (UInt32)((object[])e.Parameters)[1];
                                 //If client wants to read more data what we have.
                                 UInt16 cnt = GetProfileGenericDataCount(p);
-                                if (e.RowEndIndex - e.RowBeginIndex > cnt - e.RowBeginIndex)
+                                if (e.RowEndIndex > cnt)
                                 {
                                     if (UseRingBuffer)
                                     {
@@ -740,6 +745,8 @@ namespace GuruxDLMSServerExample
                                 index += GetHead();
                             }
                             GetProfileGenericDataByEntry(p, index, count);
+                            e.RowEndIndex -= e.RowBeginIndex;
+                            e.RowBeginIndex = 0;
                         }
                     }
                     continue;

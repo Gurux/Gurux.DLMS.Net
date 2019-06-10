@@ -550,7 +550,7 @@ namespace Gurux.DLMS.Objects
                     if (settings.IsServer)
                     {
                         //If PDU is full.
-                        if (!e.SkipMaxPduSize && data.Size >= settings.MaxPduSize)
+                        if ((settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0 && !e.SkipMaxPduSize && data.Size >= settings.MaxPduSize)
                         {
                             break;
                         }

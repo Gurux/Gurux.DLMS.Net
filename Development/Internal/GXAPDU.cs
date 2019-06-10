@@ -124,7 +124,6 @@ namespace Gurux.DLMS.Internal
             //Len
             data.SetUInt8(0x07);
             bool ciphered = cipher != null && cipher.IsCiphered();
-
             data.SetUInt8(0x60);
             data.SetUInt8(0x85);
             data.SetUInt8(0x74);
@@ -655,7 +654,7 @@ namespace Gurux.DLMS.Internal
                     cnt = GXCommon.GetObjectCount(data);
                     encrypted = new byte[cnt];
                     data.Get(encrypted);
-                    if (cipher != null && xml.Comments)
+                    if (st != null && cipher != null && xml.Comments)
                     {
                         int pos = xml.GetXmlLength();
                         try
@@ -934,7 +933,7 @@ namespace Gurux.DLMS.Internal
         ///<summary>
         ///Parse APDU.
         ///</summary>
-        static internal SourceDiagnostic ParsePDU(GXDLMSSettings settings, GXICipher cipher,
+        static internal object ParsePDU(GXDLMSSettings settings, GXICipher cipher,
                 GXByteBuffer buff, GXDLMSTranslatorStructure xml)
         {
             // Get AARE tag and length
@@ -975,7 +974,7 @@ namespace Gurux.DLMS.Internal
                     xml.AppendStartTag(Command.Aare);
                 }
             }
-            SourceDiagnostic ret = ParsePDU2(settings, cipher, buff, xml);
+            object ret = ParsePDU2(settings, cipher, buff, xml);
             //Closing tags
             if (xml != null)
             {
@@ -991,10 +990,14 @@ namespace Gurux.DLMS.Internal
             return ret;
         }
 
-        static void ParseProtocolVersion(GXDLMSSettings settings, GXByteBuffer buff, GXDLMSTranslatorStructure xml)
+        static AcseServiceProvider ParseProtocolVersion(GXDLMSSettings settings, GXByteBuffer buff, GXDLMSTranslatorStructure xml)
         {
             byte cnt = buff.GetUInt8();
             byte unusedBits = buff.GetUInt8();
+            if (unusedBits > 8)
+            {
+                throw new ArgumentOutOfRangeException("unusedBits");
+            }
             byte value = buff.GetUInt8();
             StringBuilder sb = new StringBuilder();
             GXCommon.ToBitString(sb, value, 8 - unusedBits);
@@ -1003,15 +1006,23 @@ namespace Gurux.DLMS.Internal
             {
                 xml.AppendLine(TranslatorTags.ProtocolVersion, "Value", settings.protocolVersion);
             }
+            else
+            {
+                if (settings.protocolVersion != "100001")
+                {
+                    return AcseServiceProvider.NoCommonAcseVersion;
+                }
+            }
+            return AcseServiceProvider.None;
         }
 
-        static internal SourceDiagnostic ParsePDU2(GXDLMSSettings settings, GXICipher cipher,
+        static internal object ParsePDU2(GXDLMSSettings settings, GXICipher cipher,
                 GXByteBuffer buff, GXDLMSTranslatorStructure xml)
         {
             int len;
             byte tag;
             AssociationResult resultComponent = AssociationResult.Accepted;
-            SourceDiagnostic resultDiagnosticValue = SourceDiagnostic.None;
+            object ret = 0;
             while (buff.Position < buff.Size)
             {
                 tag = buff.GetUInt8();
@@ -1024,7 +1035,7 @@ namespace Gurux.DLMS.Internal
                         }
                         break;
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CalledApTitle://0xA2
-                                                                                                         //Get len.
+                        //Get len.
                         if (buff.GetUInt8() != 3)
                         {
                             throw new Exception("Invalid tag.");
@@ -1094,14 +1105,33 @@ namespace Gurux.DLMS.Internal
                             {
                                 throw new Exception("Invalid tag.");
                             }
-                            resultDiagnosticValue = (SourceDiagnostic)buff.GetUInt8();
+                            if (tag == 0xA1)
+                            {
+                                ret = (SourceDiagnostic)buff.GetUInt8();
+                                if (xml != null)
+                                {
+                                    if ((SourceDiagnostic)ret != SourceDiagnostic.None)
+                                    {
+                                        xml.AppendComment(ret.ToString());
+                                    }
+                                    xml.AppendLine(TranslatorGeneralTags.ACSEServiceUser, "Value", xml.IntegerToHex((int)ret, 2));
+                                }
+                            }
+                            else
+                            {
+                                //ACSEServiceProvicer
+                                ret = (AcseServiceProvider)buff.GetUInt8();
+                                if (xml != null)
+                                {
+                                    if ((AcseServiceProvider)ret != AcseServiceProvider.None)
+                                    {
+                                        xml.AppendComment(ret.ToString());
+                                    }
+                                    xml.AppendLine(TranslatorGeneralTags.ACSEServiceProvider, "Value", xml.IntegerToHex((int)ret, 2));
+                                }
+                            }
                             if (xml != null)
                             {
-                                if (resultDiagnosticValue != SourceDiagnostic.None)
-                                {
-                                    xml.AppendComment(resultDiagnosticValue.ToString());
-                                }
-                                xml.AppendLine(TranslatorGeneralTags.ACSEServiceUser, "Value", xml.IntegerToHex((int)resultDiagnosticValue, 2));
                                 xml.AppendEndTag(TranslatorGeneralTags.ResultSourceDiagnostic);
                             }
                         }
@@ -1225,15 +1255,15 @@ namespace Gurux.DLMS.Internal
                             }
                         }
                         break;
-                    //Server RespondingAEInvocationId.
-                    case (byte)BerType.Context | (byte)BerType.Constructed | 7://0xA7
+                    //Server CallingAeQualifier.
+                    case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingAeQualifier://0xA7
                         len = buff.GetUInt8();
                         tag = buff.GetUInt8();
                         len = buff.GetUInt8();
                         settings.UserId = buff.GetUInt8();
                         if (xml != null)
                         {
-                            xml.AppendLine(TranslatorGeneralTags.RespondingAeInvocationId, "Value", xml.IntegerToHex(settings.UserId, 2));
+                            xml.AppendLine(TranslatorGeneralTags.CallingAeQualifier, "Value", xml.IntegerToHex(settings.UserId, 2));
                         }
                         break;
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingApInvocationId://0xA8
@@ -1313,9 +1343,13 @@ namespace Gurux.DLMS.Internal
                             if (xml == null)
                             {
                                 //Check result component. Some meters are returning invalid user-information if connection failed.
-                                if (resultComponent != AssociationResult.Accepted && resultDiagnosticValue != SourceDiagnostic.None)
+                                if (resultComponent != AssociationResult.Accepted && ret is SourceDiagnostic && (SourceDiagnostic)ret != SourceDiagnostic.None)
                                 {
-                                    throw new GXDLMSException(resultComponent, resultDiagnosticValue);
+                                    throw new GXDLMSException(resultComponent, (SourceDiagnostic)ret);
+                                }
+                                if (resultComponent != AssociationResult.Accepted && ret is AcseServiceProvider && (AcseServiceProvider)ret != AcseServiceProvider.None)
+                                {
+                                    throw new GXDLMSException(resultComponent, (AcseServiceProvider)ret);
                                 }
                                 throw new GXDLMSException(
                                         AssociationResult.PermanentRejected,
@@ -1324,10 +1358,19 @@ namespace Gurux.DLMS.Internal
                         }
                         break;
                     case (byte)BerType.Context: //0x80
-                        ParseProtocolVersion(settings, buff, xml);
+                        AcseServiceProvider tmp = ParseProtocolVersion(settings, buff, xml);
+                        if (tmp != AcseServiceProvider.None)
+                        {
+                            resultComponent = AssociationResult.PermanentRejected;
+                        }
+                        ret = tmp;
                         break;
                     default:
                         //Unknown tags.
+                        if (xml != null)
+                        {
+                            xml.AppendComment("Unknown tag: " + tag + ".");
+                        }
                         System.Diagnostics.Debug.WriteLine("Unknown tag: " + tag + ".");
                         if (buff.Position < buff.Size)
                         {
@@ -1339,11 +1382,18 @@ namespace Gurux.DLMS.Internal
             }
             //All meters don't send user-information if connection is failed.
             //For this reason result component is check again.
-            if (xml == null && resultComponent != AssociationResult.Accepted && resultDiagnosticValue != SourceDiagnostic.None)
+            if (!settings.IsServer && xml == null && resultComponent != AssociationResult.Accepted && (int)ret != 0)
             {
-                throw new GXDLMSException(resultComponent, resultDiagnosticValue);
+                if (ret is SourceDiagnostic)
+                {
+                    throw new GXDLMSException(resultComponent, (SourceDiagnostic)ret);
+                }
+                else
+                {
+                    throw new GXDLMSException(resultComponent, (AcseServiceProvider)ret);
+                }
             }
-            return resultDiagnosticValue;
+            return ret;
         }
 
         private static void updatePassword(GXDLMSSettings settings, GXByteBuffer buff, GXDLMSTranslatorStructure xml)
@@ -1467,7 +1517,7 @@ namespace Gurux.DLMS.Internal
         ///Server generates AARE message.
         ///</summary>
         internal static void GenerateAARE(GXDLMSSettings settings, GXByteBuffer data,
-                                          AssociationResult result, SourceDiagnostic diagnostic, GXICipher cipher,
+                                          AssociationResult result, object diagnostic, GXICipher cipher,
                                           GXByteBuffer errorData, GXByteBuffer encryptedData)
         {
             int offset = data.Size;
@@ -1485,13 +1535,24 @@ namespace Gurux.DLMS.Internal
             data.SetUInt8((byte)result); //ResultValue
                                          //SourceDiagnostic
             data.SetUInt8(0xA3);
-            data.SetUInt8(5); //len
-            data.SetUInt8(0xA1); //Tag
+            //len
+            data.SetUInt8(5);
+            //Tag
+            if (diagnostic is SourceDiagnostic)
+            {
+                data.SetUInt8(0xA1);
+            }
+            else
+            {
+                data.SetUInt8(0xA2);
+            }
             data.SetUInt8(3); //len
             data.SetUInt8(2); //Tag
                               //Choice for result (INTEGER, universal)
-            data.SetUInt8(1); //Len
-            data.SetUInt8((byte)diagnostic); //diagnostic
+                              //Len
+            data.SetUInt8(1);
+            //diagnostic
+            data.SetUInt8(Convert.ToByte(diagnostic));
 
             //SystemTitle
             if (cipher != null && (cipher.IsCiphered() || settings.Authentication == Authentication.HighGMAC))

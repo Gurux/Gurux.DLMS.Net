@@ -613,6 +613,21 @@ namespace Gurux.DLMS
                             (Data[index + 2] & 0xFF) << 8 | (Data[index + 3] & 0xFF));
         }
 
+
+        /// <summary>
+        /// Get UInt24 value from byte array.
+        /// </summary>
+        /// <param name="index">Byte index.</param>
+        public int GetUInt24(int index)
+        {
+            if (index + 3 > Size)
+            {
+                throw new System.OutOfMemoryException();
+            }
+            return (int)((Data[index] & 0xFF) << 16 | (Data[index + 1] & 0xFF) << 8 |
+                            (Data[index + 2] & 0xFF));
+        }
+
         /// <summary>
         /// Get float value from byte array from the current position and then increments the position.
         /// </summary>
@@ -698,7 +713,7 @@ namespace Gurux.DLMS
             if (value != null)
             {
                 foreach (byte it in value)
-                {                   
+                {
                     if ((it < 32 || it > 127) && it != '\r' && it != '\n' && it != 0)
                     {
                         return false;
