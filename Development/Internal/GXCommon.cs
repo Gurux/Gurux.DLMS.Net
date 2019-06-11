@@ -1151,6 +1151,34 @@ namespace Gurux.DLMS.Internal
             }
         }
 
+        private static void ToString(object it, StringBuilder sb)
+        {
+            if (it is byte[])
+            {
+                sb.Append(GXCommon.ToHex((byte[])it, true));
+            }
+            else if (it is IEnumerable<object>)
+            {
+                bool empty = true;
+//                sb.Append("[");
+                foreach (object it2 in (IEnumerable<object>)it)
+                {
+                    empty = false;
+                    ToString(it2, sb);
+                }
+                if (!empty)
+                {
+                    --sb.Length;
+                }
+//                sb.Append("]");
+            }
+            else
+            {
+                sb.Append(Convert.ToString(it));
+            }
+            sb.Append(";");
+        }
+
         /// <summary>
         /// Get compact array value from DLMS data.
         /// </summary>
@@ -1224,7 +1252,7 @@ namespace Gurux.DLMS.Internal
                             List<object> tmp2 = new List<object>();
                             GetCompactArrayItem(null, buff, ((List<object>)cols[pos]).ToArray(), tmp2, 1);
                             List<object> tmp3 = new List<object>();
-                            tmp3.AddRange((object[]) tmp2[0]);
+                            tmp3.AddRange((object[])tmp2[0]);
                             row.Add(tmp3);
                         }
                         else
@@ -1253,34 +1281,7 @@ namespace Gurux.DLMS.Internal
                     {
                         foreach (object it in row)
                         {
-                            if (it is byte[])
-                            {
-                                sb.Append(GXCommon.ToHex((byte[])it, true));
-                            }
-                            else if (it is object[])
-                            {
-                                foreach (object it2 in (object[])it)
-                                {
-                                    if (it2 is byte[])
-                                    {
-                                        sb.Append(GXCommon.ToHex((byte[])it2, true));
-                                    }
-                                    else
-                                    {
-                                        sb.Append(Convert.ToString(it2));
-                                    }
-                                    sb.Append(";");
-                                }
-                                if (((object[])it).Length != 0)
-                                {
-                                    --sb.Length;
-                                }
-                            }
-                            else
-                            {
-                                sb.Append(Convert.ToString(it));
-                            }
-                            sb.Append(";");
+                            ToString(it, sb);
                         }
                         if (sb.Length != 0)
                         {
@@ -1966,7 +1967,7 @@ namespace Gurux.DLMS.Internal
                 case DataType.Int32:
                     if (value is DateTime)
                     {
-                        buff.SetUInt32((UInt32) GXDateTime.ToUnixTime((DateTime)value));
+                        buff.SetUInt32((UInt32)GXDateTime.ToUnixTime((DateTime)value));
                     }
                     else if (value is GXDateTime)
                     {
