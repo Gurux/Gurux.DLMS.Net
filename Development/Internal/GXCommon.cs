@@ -1220,9 +1220,12 @@ namespace Gurux.DLMS.Internal
                         }
                         else if (cols[pos] is List<object>)
                         {
+                            //Add array as a list. In that way we can separate structure and array.
                             List<object> tmp2 = new List<object>();
                             GetCompactArrayItem(null, buff, ((List<object>)cols[pos]).ToArray(), tmp2, 1);
-                            row.Add(tmp2[0]);
+                            List<object> tmp3 = new List<object>();
+                            tmp3.AddRange((object[]) tmp2[0]);
+                            row.Add(tmp3);
                         }
                         else
                         {

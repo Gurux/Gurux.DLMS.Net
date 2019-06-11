@@ -850,15 +850,31 @@ namespace Gurux.DLMS.Objects
             {
                 int index2 = 0;
                 DateTime lastDate = DateTime.MinValue;
-                foreach (object[] row in (e.Value as object[]))
+                foreach (object[] t in (e.Value as object[]))
                 {
+                    List<object> row = new List<object>();
+                    foreach(object it in t)
+                    {
+                        if (it is object[])
+                        {
+                            row.Add((object[]) it);
+                        }
+                        else if (it is List<object>)
+                        {
+                            row.AddRange((List<object>)it);
+                        }
+                        else
+                        {
+                            row.Add(it);
+                        }
+                    }
                     if (cols.Count != 0)
                     {
-                        if ((row as object[]).Length != cols.Count)
+                        if (row.Count != cols.Count)
                         {
                             throw new Exception("The number of columns does not match.");
                         }
-                        for (int pos = 0; pos != row.Length; ++pos)
+                        for (int pos = 0; pos != row.Count; ++pos)
                         {
                             if (cols == null)
                             {
@@ -958,7 +974,7 @@ namespace Gurux.DLMS.Objects
                             }
                         }
                     }
-                    Buffer.Add(row);
+                    Buffer.Add(row.ToArray());
                 }
                 EntriesInUse = Buffer.Count;
             }
