@@ -1607,7 +1607,7 @@ namespace Gurux.DLMS
         /// <returns></returns>
         public byte[][] Method(object name, ObjectType objectType, int index, Object value, DataType type)
         {
-            if (name == null || index < 1)
+            if (name == null || (index < 1 && Standard != Standard.Italy))
             {
                 throw new ArgumentOutOfRangeException("Invalid parameter");
             }
