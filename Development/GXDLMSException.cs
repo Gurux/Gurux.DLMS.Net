@@ -95,7 +95,7 @@ namespace Gurux.DLMS
         /// Constructor for AARE error.
         /// </summary>
         internal GXDLMSException(AssociationResult result, SourceDiagnostic diagnostic)
-            : base("Connection is " + GetResult(result) + ". " + GetDiagnostic(result, diagnostic))
+            : base("Connection is " + GetResult(result) + ". " + GetDiagnostic(diagnostic))
         {
             Result = result;
             Diagnostic = (byte)diagnostic;
@@ -106,7 +106,7 @@ namespace Gurux.DLMS
         /// Constructor for AARE error.
         /// </summary>
         internal GXDLMSException(AssociationResult result, AcseServiceProvider diagnostic)
-            : base("Connection is " + GetResult(result) + ". " + GetDiagnostic(result, diagnostic))
+            : base("Connection is " + GetResult(result) + ". " + GetDiagnostic(diagnostic))
         {
             Result = result;
             Diagnostic = (byte) diagnostic;
@@ -135,10 +135,10 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="diagnostic"></param>
         /// <returns></returns>
-        static string GetDiagnostic(AssociationResult result, AcseServiceProvider diagnostic)
+        static string GetDiagnostic(AcseServiceProvider diagnostic)
         {
             string str;
-            switch ((AcseServiceProvider)diagnostic)
+            switch (diagnostic)
             {
                 case AcseServiceProvider.None:
                     str = "None.";
@@ -161,7 +161,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="diagnostic"></param>
         /// <returns></returns>
-        static string GetDiagnostic(AssociationResult result, SourceDiagnostic diagnostic)
+        static string GetDiagnostic(SourceDiagnostic diagnostic)
         {
             string str;
             switch (diagnostic)
