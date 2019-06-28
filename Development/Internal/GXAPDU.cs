@@ -56,6 +56,9 @@ namespace Gurux.DLMS.Internal
         private static void GetAuthenticationString(GXDLMSSettings settings, GXByteBuffer data)
         {
             //If authentication is used.
+            if (settings.Authentication != Authentication.None ||
+                (settings.Cipher != null && settings.Cipher.Security != Security.None))
+            {
                 //Add sender ACSE-requirements field component.
                 data.SetUInt8((byte)BerType.Context | (byte)PduType.SenderAcseRequirements);
                 data.SetUInt8(2);
@@ -67,6 +70,7 @@ namespace Gurux.DLMS.Internal
                 // OBJECT IDENTIFIER
                 byte[] p = { (byte)0x60, (byte)0x85, (byte)0x74, (byte)0x05, (byte)0x08, (byte)0x02, (byte)settings.Authentication };
                 data.Set(p);
+            }
             if (settings.Authentication != Authentication.None)
             {
                 //Add Calling authentication information.
