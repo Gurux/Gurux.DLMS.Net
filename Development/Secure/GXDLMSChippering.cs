@@ -294,6 +294,19 @@ namespace Gurux.DLMS.Secure
             p.CipheredContent = data.Remaining();
             byte sc = (byte)data.GetUInt8();
             Enums.Security security = (Enums.Security)(sc & 0x30);
+            if ((sc & 0x80) != 0)
+            {
+                System.Diagnostics.Debug.WriteLine("Compression is used.");
+            }
+            if ((sc & 0x40) != 0)
+            {
+                System.Diagnostics.Debug.WriteLine("Error: Key_Set is used.");
+            }
+            if ((sc & 0x20) != 0)
+            {
+                System.Diagnostics.Debug.WriteLine("Encryption is applied.");
+            }
+
             SecuritySuite ss = (SecuritySuite)(sc & 0x3);
             p.Security = security;
             UInt32 invocationCounter = data.GetUInt32();

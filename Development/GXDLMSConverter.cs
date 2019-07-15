@@ -243,7 +243,12 @@ namespace Gurux.DLMS
                     codes.Add(tmp);
                 }
             }
+#if __MOBILE__
+            string[] rows = Resources.OBISCodes.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+#else
             string[] rows = Gurux.DLMS.Properties.Resources.OBISCodes.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+#endif //__MOBILE__
+
             foreach (string it in rows)
             {
                 string[] items = it.Split(new char[] { ';' });
@@ -373,7 +378,7 @@ namespace Gurux.DLMS
         /// <returns></returns>
         public static string GetUnit(Unit value)
         {
-#if !WINDOWS_UWP
+#if !WINDOWS_UWP && !__MOBILE__
             switch (value)
             {
                 case Unit.Year:
@@ -485,7 +490,120 @@ namespace Gurux.DLMS
             }
             return "";
 #else
+#if __MOBILE__
+            switch (value)
+            {
+                case Unit.Year:
+                    return Resources.UnitYearTxt;
+                case Unit.Month:
+                    return Resources.UnitMonthTxt;
+                case Unit.Week:
+                    return Resources.UnitWeekTxt;
+                case Unit.Day:
+                    return Resources.UnitDayTxt;
+                case Unit.Hour:
+                    return Resources.UnitHourTxt;
+                case Unit.Minute:
+                    return Resources.UnitMinuteTxt;
+                case Unit.Second:
+                    return Resources.UnitSecondTxt;
+                case Unit.PhaseAngleDegree:
+                    return Resources.UnitPhasAngleDegreeTxt;
+                case Unit.Temperature:
+                    return Resources.UnitTemperatureTxt;
+                case Unit.LocalCurrency:
+                    return Resources.UnitLocalCurrencyTxt;
+                case Unit.Length:
+                    return Resources.UnitLengthTxt;
+                case Unit.Speed:
+                    return Resources.UnitSpeedTxt;
+                case Unit.VolumeCubicMeter:
+                    return Resources.UnitVolumeCubicMeterTxt;
+                case Unit.CorrectedVolume:
+                    return Resources.UnitCorrectedVolumeTxt;
+                case Unit.VolumeFluxHour:
+                    return Resources.UnitVolumeFluxHourTxt;
+                case Unit.CorrectedVolumeFluxHour:
+                    return Resources.UnitCorrectedVolumeFluxHourTxt;
+                case Unit.VolumeFluxDay:
+                    return Resources.UnitVolumeFluxDayTxt;
+                case Unit.CorrecteVolumeFluxDay:
+                    return Resources.UnitCorrecteVolumeFluxDayTxt;
+                case Unit.VolumeLiter:
+                    return Resources.UnitVolumeLiterTxt;
+                case Unit.MassKg:
+                    return Resources.UnitMassKgTxt;
+                case Unit.Force:
+                    return Resources.UnitForceTxt;
+                case Unit.Energy:
+                    return Resources.UnitEnergyTxt;
+                case Unit.PressurePascal:
+                    return Resources.UnitPressurePascalTxt;
+                case Unit.PressureBar:
+                    return Resources.UnitPressureBarTxt;
+                case Unit.EnergyJoule:
+                    return Resources.UnitEnergyJouleTxt;
+                case Unit.ThermalPower:
+                    return Resources.UnitThermalPowerTxt;
+                case Unit.ActivePower:
+                    return Resources.UnitActivePowerTxt;
+                case Unit.ApparentPower:
+                    return Resources.UnitApparentPowerTxt;
+                case Unit.ReactivePower:
+                    return Resources.UnitReactivePowerTxt;
+                case Unit.ActiveEnergy:
+                    return Resources.UnitActiveEnergyTxt;
+                case Unit.ApparentEnergy:
+                    return Resources.UnitApparentEnergyTxt;
+                case Unit.ReactiveEnergy:
+                    return Resources.UnitReactiveEnergyTxt;
+                case Unit.Current:
+                    return Resources.UnitCurrentTxt;
+                case Unit.ElectricalCharge:
+                    return Resources.UnitElectricalChargeTxt;
+                case Unit.Voltage:
+                    return Resources.UnitVoltageTxt;
+                case Unit.ElectricalFieldStrength:
+                    return Resources.UnitElectricalFieldStrengthTxt;
+                case Unit.Capacity:
+                    return Resources.UnitCapacityTxt;
+                case Unit.Resistance:
+                    return Resources.UnitResistanceTxt;
+                case Unit.Resistivity:
+                    return Resources.UnitResistivityTxt;
+                case Unit.MagneticFlux:
+                    return Resources.UnitMagneticFluxTxt;
+                case Unit.Induction:
+                    return Resources.UnitInductionTxt;
+                case Unit.Magnetic:
+                    return Resources.UnitMagneticTxt;
+                case Unit.Inductivity:
+                    return Resources.UnitInductivityTxt;
+                case Unit.Frequency:
+                    return Resources.UnitFrequencyTxt;
+                case Unit.Active:
+                    return Resources.UnitActiveTxt;
+                case Unit.Reactive:
+                    return Resources.UnitReactiveTxt;
+                case Unit.Apparent:
+                    return Resources.UnitApparentTxt;
+                case Unit.V260:
+                    return Resources.UnitV260Txt;
+                case Unit.A260:
+                    return Resources.UnitA260Txt;
+                case Unit.MassKgPerSecond:
+                    return Resources.UnitMassKgPerSecondTxt;
+                case Unit.Conductance:
+                    return Resources.UnitConductanceTxt;
+                case Unit.OtherUnit:
+                    return Resources.UnitOtherTxt;
+                case Unit.NoUnit:
+                    return Resources.UnitNoneTxt;
+            }
+            return "";
+#else
             return value.ToString();
+#endif
 #endif
         }
 
@@ -588,6 +706,24 @@ namespace Gurux.DLMS
             List<GXObisCode> codes = new List<GXObisCode>();
 #if !WINDOWS_UWP
             string[] rows;
+#if __MOBILE__
+            if (standard == Standard.Italy)
+            {
+                rows = Resources.Italy.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            }
+            else if (standard == Standard.India)
+            {
+                rows = Resources.India.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            }
+            else if (standard == Standard.SaudiArabia)
+            {
+                rows = Resources.SaudiArabia.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            }
+            else
+            {
+                return new GXObisCode[0];
+            }
+#else
             if (standard == Standard.Italy)
             {
                 rows = Gurux.DLMS.Properties.Resources.Italy.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
@@ -604,6 +740,7 @@ namespace Gurux.DLMS
             {
                 return new GXObisCode[0];
             }
+#endif //!__MOBILE__
             foreach (string it in rows)
             {
                 string[] items = it.Split(new char[] { ';' });
@@ -694,7 +831,7 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    ret = new GXEnum((byte) Convert.ChangeType(value, typeof(byte)));
+                    ret = new GXEnum((byte)Convert.ChangeType(value, typeof(byte)));
                 }
             }
             else

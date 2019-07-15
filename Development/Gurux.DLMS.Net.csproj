@@ -40,6 +40,15 @@
     <DefineConstants>TRACE;DEBUG</DefineConstants>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="Gurux.DLMS.Net.Android\**" />
+    <Compile Remove="UWP\**" />
+    <EmbeddedResource Remove="Gurux.DLMS.Net.Android\**" />
+    <EmbeddedResource Remove="UWP\**" />
+    <None Remove="Gurux.DLMS.Net.Android\**" />
+    <None Remove="UWP\**" />
+  </ItemGroup>
+
  <ItemGroup>
 	<Reference Condition="'$(TargetFramework)' == 'net45'" Include="System.Windows.Forms" />
 	<Reference Condition="'$(TargetFramework)' == 'net40'" Include="System.Windows.Forms" />

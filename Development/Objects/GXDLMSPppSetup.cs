@@ -222,6 +222,10 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 5)
             {
+                if (UserName == null || UserName.Length == 0)
+                {
+                    return DataType.None;
+                }
                 return DataType.Structure;
             }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
@@ -283,6 +287,10 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 5)
             {
+                if (UserName == null || UserName.Length == 0)
+                {
+                    return null;
+                }
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8(2);
@@ -338,8 +346,11 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 5)
             {
-                UserName = (byte[])((Object[])e.Value)[0];
-                Password = (byte[])((Object[])e.Value)[1];
+                if (e.Value != null)
+                {
+                    UserName = (byte[])((Object[])e.Value)[0];
+                    Password = (byte[])((Object[])e.Value)[1];
+                }
             }
             else
             {

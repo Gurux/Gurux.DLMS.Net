@@ -333,7 +333,7 @@ namespace Gurux.DLMS
         /// <returns>Error as plain text.</returns>
         internal static string GetDescription(ErrorCode error)
         {
-#if !WINDOWS_UWP
+#if !WINDOWS_UWP && !__MOBILE__
             string str = null;
             switch (error)
             {
@@ -400,7 +400,76 @@ namespace Gurux.DLMS
             }
             return str;
 #else
+#if WINDOWS_UWP
             return error.ToString();
+#endif //WINDOWS_UWP
+#if __MOBILE__
+            string str = null;
+            switch (error)
+            {
+                case ErrorCode.Ok:
+                    str = "";
+                    break;
+                case ErrorCode.Rejected:
+                    str = Resources.Rejected;
+                    break;
+                case ErrorCode.UnacceptableFrame:
+                    str = Resources.UnacceptableFrame;
+                    break;
+                case ErrorCode.DisconnectMode:
+                    str = Resources.DisconnectMode;
+                    break;
+                case ErrorCode.HardwareFault: //Access Error : Device reports a hardware fault
+                    str = Resources.HardwareFaultTxt;
+                    break;
+                case ErrorCode.TemporaryFailure: //Access Error : Device reports a temporary failure
+                    str = Resources.TemporaryFailureTxt;
+                    break;
+                case ErrorCode.ReadWriteDenied: // Access Error : Device reports Read-Write denied
+                    str = Resources.ReadWriteDeniedTxt;
+                    break;
+                case ErrorCode.UndefinedObject: // Access Error : Device reports a undefined object
+                    str = Resources.UndefinedObjectTxt;
+                    break;
+                case ErrorCode.InconsistentClass: // Access Error : Device reports a inconsistent Class or object
+                    str = Resources.InconsistentClassTxt;
+                    break;
+                case ErrorCode.UnavailableObject: // Access Error : Device reports a unavailable object
+                    str = Resources.UnavailableObjectTxt;
+                    break;
+                case ErrorCode.UnmatchedType: // Access Error : Device reports a unmatched type
+                    str = Resources.UnmatchedTypeTxt;
+                    break;
+                case ErrorCode.AccessViolated: // Access Error : Device reports scope of access violated
+                    str = Resources.AccessViolatedTxt;
+                    break;
+                case ErrorCode.DataBlockUnavailable: // Access Error : Data Block Unavailable.
+                    str = Resources.DataBlockUnavailableTxt;
+                    break;
+                case ErrorCode.LongGetOrReadAborted: // Access Error : Long Get Or Read Aborted.
+                    str = Resources.LongGetOrReadAbortedTxt;
+                    break;
+                case ErrorCode.NoLongGetOrReadInProgress: // Access Error : No Long Get Or Read In Progress.
+                    str = Resources.NoLongGetOrReadInProgressTxt;
+                    break;
+                case ErrorCode.LongSetOrWriteAborted: // Access Error : Long Set Or Write Aborted.
+                    str = Resources.LongSetOrWriteAbortedTxt;
+                    break;
+                case ErrorCode.NoLongSetOrWriteInProgress: // Access Error : No Long Set Or Write In Progress.
+                    str = Resources.NoLongSetOrWriteInProgressTxt;
+                    break;
+                case ErrorCode.DataBlockNumberInvalid: // Access Error : Data Block Number Invalid.
+                    str = Resources.DataBlockNumberInvalidTxt;
+                    break;
+                case ErrorCode.OtherReason: // Access Error : Other Reason.
+                    str = Resources.OtherReasonTxt;
+                    break;
+                default:
+                    str = Resources.UnknownErrorTxt;
+                    break;
+            }
+            return str;
+#endif //__MOBILE__
 #endif
         }
 

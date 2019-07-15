@@ -229,6 +229,11 @@ namespace Gurux.DLMS.Objects
 
         public static object[][] GetData(byte[] columns, byte[] value)
         {
+            return GetData(columns, value, false);
+        }
+
+        public static object[][] GetData(byte[] columns, byte[] value, bool AppendAA)
+        {
             List<object[]> row = new List<object[]>();
             if (columns == null || columns.Length == 0 ||
                 value == null || value.Length == 0)
@@ -237,6 +242,7 @@ namespace Gurux.DLMS.Objects
             }
             List<DataType> list = new List<DataType>();
             GXDataInfo info = new GXDataInfo();
+            info.AppendAA = AppendAA;
             GXByteBuffer bb = new GXByteBuffer();
             bb.Set(columns);
             GXCommon.SetObjectCount(value.Length, bb);
@@ -580,7 +586,7 @@ namespace Gurux.DLMS.Objects
 
         private static void UpdateTemplateDescription(GXByteBuffer columns, GXByteBuffer data, int index)
         {
-            DataType ch = (DataType) data.GetUInt8();
+            DataType ch = (DataType)data.GetUInt8();
             int count = GXCommon.GetObjectCount(data);
             if (index == -1)
             {

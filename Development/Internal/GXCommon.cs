@@ -1160,7 +1160,7 @@ namespace Gurux.DLMS.Internal
             else if (it is IEnumerable<object>)
             {
                 bool empty = true;
-//                sb.Append("[");
+                //                sb.Append("[");
                 foreach (object it2 in (IEnumerable<object>)it)
                 {
                     empty = false;
@@ -1170,7 +1170,7 @@ namespace Gurux.DLMS.Internal
                 {
                     --sb.Length;
                 }
-//                sb.Append("]");
+                //                sb.Append("]");
             }
             else
             {
@@ -1250,6 +1250,11 @@ namespace Gurux.DLMS.Internal
                         {
                             //Add array as a list. In that way we can separate structure and array.
                             List<object> tmp2 = new List<object>();
+                            //For some reason there is count here in Italy standard. Remove it.
+                            if (info.AppendAA)
+                            {
+                                GXCommon.GetObjectCount(buff);
+                            }
                             GetCompactArrayItem(null, buff, ((List<object>)cols[pos]).ToArray(), tmp2, 1);
                             List<object> tmp3 = new List<object>();
                             tmp3.AddRange((object[])tmp2[0]);
@@ -1516,12 +1521,17 @@ namespace Gurux.DLMS.Internal
                     return (buff[0] & 0xFF) + "." + (buff[1] & 0xFF) + "." + (buff[2] & 0xFF) + "." +
                            (buff[3] & 0xFF) + "." + (buff[4] & 0xFF) + "." + (buff[5] & 0xFF);
                 }
-#if !WINDOWS_UWP
+#if !WINDOWS_UWP && !__MOBILE__
                 throw new ArgumentException(Properties.Resources.InvalidLogicalName);
 #else
+#if WINDOWS_UWP
                 var loader = new Windows.ApplicationModel.Resources.ResourceLoader();
                 throw new ArgumentException(loader.GetString("InvalidLogicalName"));
-#endif
+#endif //WINDOWS_UWP
+#if __MOBILE__
+                throw new ArgumentException(Resources.InvalidLogicalName);
+#endif //__MOBILE__
+#endif //!WINDOWS_UWP && !__MOBILE__
             }
             return Convert.ToString(value);
         }
@@ -1536,12 +1546,17 @@ namespace Gurux.DLMS.Internal
             // If data is string.
             if (items.Length != 6)
             {
-#if !WINDOWS_UWP
+#if !WINDOWS_UWP && !__MOBILE__
                 throw new ArgumentException(Properties.Resources.InvalidLogicalName);
 #else
+#if WINDOWS_UWP
                 var loader = new Windows.ApplicationModel.Resources.ResourceLoader();
                 throw new ArgumentException(loader.GetString("InvalidLogicalName"));
-#endif
+#endif //WINDOWS_UWP
+#if __MOBILE__
+                throw new ArgumentException(Resources.InvalidLogicalName);
+#endif //__MOBILE__
+#endif //!WINDOWS_UWP && !__MOBILE__
             }
             byte[] buff = new byte[6];
             byte pos = 0;
@@ -1555,12 +1570,17 @@ namespace Gurux.DLMS.Internal
             }
             catch (Exception)
             {
-#if !WINDOWS_UWP
+#if !WINDOWS_UWP && !__MOBILE__
                 throw new ArgumentException(Properties.Resources.InvalidLogicalName);
 #else
+#if WINDOWS_UWP
                 var loader = new Windows.ApplicationModel.Resources.ResourceLoader();
                 throw new ArgumentException(loader.GetString("InvalidLogicalName"));
-#endif
+#endif //WINDOWS_UWP
+#if __MOBILE__
+                throw new ArgumentException(Resources.InvalidLogicalName);
+#endif //__MOBILE__
+#endif //!WINDOWS_UWP && !__MOBILE__
             }
             return buff;
         }
@@ -2580,12 +2600,17 @@ namespace Gurux.DLMS.Internal
         /// <returns></returns>
         public static string GetLogicalNameString()
         {
-#if !WINDOWS_UWP
+#if !WINDOWS_UWP && !__MOBILE__
             return Gurux.DLMS.Properties.Resources.LogicalNameTxt;
 #else
+#if WINDOWS_UWP
             var loader = new Windows.ApplicationModel.Resources.ResourceLoader();
             return loader.GetString("LogicalNameTxt");
-#endif
+#endif //WINDOWS_UWP
+#if __MOBILE__
+            return Resources.LogicalNameTxt;
+#endif //__MOBILE__
+#endif //!WINDOWS_UWP && !__MOBILE__
         }
 
 #if WINDOWS_UWP
