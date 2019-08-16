@@ -48,13 +48,13 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <param name="path">Directory to updated.</param>
         public static void UpdateDirectorySecurity(string path)
         {
-#if !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1
+#if !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0
             DirectoryInfo dInfo = new DirectoryInfo(path);
             DirectorySecurity dSecurity = dInfo.GetAccessControl();
             dSecurity.AddAccessRule(new FileSystemAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null),
                                     FileSystemRights.FullControl, InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.NoPropagateInherit, AccessControlType.Allow));
             dInfo.SetAccessControl(dSecurity);
-#endif //WINDOWS_UWP && !NETCOREAPP2_0
+#endif //WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0
         }
 
         /// <summary>
@@ -63,14 +63,14 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <param name="filePath">File path.</param>
         public static void UpdateFileSecurity(string filePath)
         {
-#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1
+#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0
             SecurityIdentifier everyone = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
             FileInfo fInfo = new FileInfo(filePath);
             FileSecurity fSecurity = File.GetAccessControl(filePath);
             fSecurity.AddAccessRule(new FileSystemAccessRule(everyone, FileSystemRights.FullControl,
                                     InheritanceFlags.None, PropagationFlags.NoPropagateInherit, AccessControlType.Allow));
             fInfo.SetAccessControl(fSecurity);
-#endif //__MOBILE__ && WINDOWS_UWP
+#endif //!__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0
         }
     }
 }

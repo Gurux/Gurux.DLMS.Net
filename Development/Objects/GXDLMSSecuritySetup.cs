@@ -206,7 +206,7 @@ namespace Gurux.DLMS.Objects
                 throw new ArgumentException("Invalid list. It is empty.");
             }
             GXByteBuffer bb = new GXByteBuffer();
-            bb.SetUInt8(DataType.Array);  
+            bb.SetUInt8(DataType.Array);
             bb.SetUInt8((byte)list.Count);
             byte[] tmp;
             foreach (KeyValuePair<GlobalKeyType, byte[]> it in list)
@@ -267,7 +267,7 @@ namespace Gurux.DLMS.Objects
             return client.Method(this, 5, type, DataType.Enum);
         }
 
-#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1
+#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0
         /// <summary>
         ///  Imports an X.509 v3 certificate of a public key.
         /// </summary>

@@ -221,7 +221,7 @@ namespace GXDLMS.ManufacturerSettings
         /// </summary>
         public static void UpdateFileSecurity(string filePath)
         {
-#if !__MOBILE__ && !NETCOREAPP2_0 && !NETCOREAPP2_1
+#if !__MOBILE__ && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0
             if (!IsReallyVista() || !IsElevated())
         {
             return;

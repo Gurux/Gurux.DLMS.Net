@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">0.0.0-local</Version>
@@ -15,7 +15,7 @@
   <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">0.0.1-local</Version>
     <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <TargetFrameworks>net40;net45;net35;netcoreapp2.0;netcoreapp2.1</TargetFrameworks>
+    <TargetFrameworks>net40;net45;net35;netcoreapp2.0;netcoreapp2.1;netstandard2.0</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/gurux/gurux.dlms.net</RepositoryUrl>
     <PackageTags>DLMS AMR, AMI IOT</PackageTags>
