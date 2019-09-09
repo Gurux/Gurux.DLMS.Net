@@ -799,7 +799,7 @@ namespace Gurux.DLMS.Objects
                 List<object> list = new List<object>();
                 if (e.Value != null)
                 {
-                    list.AddRange((object[])e.Value);
+                    list.AddRange((List<object>)e.Value);
                 }
                 PrefixTable = list.ToArray();
             }
@@ -808,24 +808,23 @@ namespace Gurux.DLMS.Objects
                 RoutingConfiguration.Clear();
                 if (e.Value != null)
                 {
-                    foreach (object v in (object[])e.Value)
+                    foreach (List<object> v in (List<object>)e.Value)
                     {
-                        object[] tmp = (object[])v;
                         GXDLMSRoutingConfiguration it = new GXDLMSRoutingConfiguration();
-                        it.NetTraversalTime = Convert.ToByte(tmp[0]);
-                        it.RoutingTableEntryTtl = Convert.ToUInt16(tmp[1]);
-                        it.Kr = Convert.ToByte(tmp[2]);
-                        it.Km = Convert.ToByte(tmp[3]);
-                        it.Kc = Convert.ToByte(tmp[4]);
-                        it.Kq = Convert.ToByte(tmp[5]);
-                        it.Kh = Convert.ToByte(tmp[6]);
-                        it.Krt = Convert.ToByte(tmp[7]);
-                        it.RreqRetries = Convert.ToByte(tmp[8]);
-                        it.RreqRerrWait = Convert.ToByte(tmp[9]);
-                        it.BlacklistTableEntryTtl = Convert.ToUInt16(tmp[10]);
-                        it.UnicastRreqGenEnable = Convert.ToBoolean(tmp[11]);
-                        it.RlcEnabled = Convert.ToBoolean(tmp[12]);
-                        it.AddRevLinkCost = Convert.ToByte(tmp[13]);
+                        it.NetTraversalTime = Convert.ToByte(v[0]);
+                        it.RoutingTableEntryTtl = Convert.ToUInt16(v[1]);
+                        it.Kr = Convert.ToByte(v[2]);
+                        it.Km = Convert.ToByte(v[3]);
+                        it.Kc = Convert.ToByte(v[4]);
+                        it.Kq = Convert.ToByte(v[5]);
+                        it.Kh = Convert.ToByte(v[6]);
+                        it.Krt = Convert.ToByte(v[7]);
+                        it.RreqRetries = Convert.ToByte(v[8]);
+                        it.RreqRerrWait = Convert.ToByte(v[9]);
+                        it.BlacklistTableEntryTtl = Convert.ToUInt16(v[10]);
+                        it.UnicastRreqGenEnable = Convert.ToBoolean(v[11]);
+                        it.RlcEnabled = Convert.ToBoolean(v[12]);
+                        it.AddRevLinkCost = Convert.ToByte(v[13]);
                         RoutingConfiguration.Add(it);
                     }
                 }
@@ -839,16 +838,15 @@ namespace Gurux.DLMS.Objects
                 RoutingTable.Clear();
                 if (e.Value != null)
                 {
-                    foreach (object v in (object[])e.Value)
+                    foreach (List<object> v in (List<object>)e.Value)
                     {
-                        object[] tmp = (object[])v;
                         GXDLMSRoutingTable it = new GXDLMSRoutingTable();
-                        it.DestinationAddress = Convert.ToUInt16(tmp[10]);
-                        it.NextHopAddress = Convert.ToUInt16(tmp[10]);
-                        it.RouteCost = Convert.ToUInt16(tmp[10]);
-                        it.HopCount = Convert.ToByte(tmp[10]);
-                        it.WeakLinkCount = Convert.ToByte(tmp[10]);
-                        it.ValidTime = Convert.ToUInt16(tmp[10]);
+                        it.DestinationAddress = Convert.ToUInt16(v[0]);
+                        it.NextHopAddress = Convert.ToUInt16(v[1]);
+                        it.RouteCost = Convert.ToUInt16(v[2]);
+                        it.HopCount = Convert.ToByte(v[3]);
+                        it.WeakLinkCount = Convert.ToByte(v[4]);
+                        it.ValidTime = Convert.ToUInt16(v[5]);
                         RoutingTable.Add(it);
                     }
                 }
@@ -858,14 +856,13 @@ namespace Gurux.DLMS.Objects
                 ContextInformationTable.Clear();
                 if (e.Value != null)
                 {
-                    foreach (object v in (object[])e.Value)
+                    foreach (List<object> v in (List<object>)e.Value)
                     {
-                        object[] tmp = (object[])v;
                         GXDLMSContextInformationTable it = new GXDLMSContextInformationTable();
-                        it.CID = Convert.ToString(tmp[0]);
-                        it.Context = (byte[])tmp[2];
-                        it.Compression = Convert.ToBoolean(tmp[3]);
-                        it.ValidLifetime = Convert.ToUInt16(tmp[4]);
+                        it.CID = Convert.ToString(v[0]);
+                        it.Context = (byte[])v[2];
+                        it.Compression = Convert.ToBoolean(v[3]);
+                        it.ValidLifetime = Convert.ToUInt16(v[4]);
                         ContextInformationTable.Add(it);
                     }
                 }
@@ -875,10 +872,9 @@ namespace Gurux.DLMS.Objects
                 List<GXKeyValuePair<UInt16, UInt16>> list = new List<GXKeyValuePair<UInt16, UInt16>>();
                 if (e.Value != null)
                 {
-                    foreach (object v in (object[])e.Value)
+                    foreach (List<object> v in (List<object>) e.Value)
                     {
-                        object[] tmp = (object[])v;
-                        list.Add(new GXKeyValuePair<UInt16, UInt16>(Convert.ToUInt16(tmp[0]), Convert.ToUInt16(tmp[1])));
+                        list.Add(new GXKeyValuePair<UInt16, UInt16>(Convert.ToUInt16(v[0]), Convert.ToUInt16(v[1])));
                     }
                 }
                 BlacklistTable = list;
@@ -888,13 +884,12 @@ namespace Gurux.DLMS.Objects
                 BroadcastLogTable.Clear();
                 if (e.Value != null)
                 {
-                    foreach (object v in (object[])e.Value)
+                    foreach (List<object> v in (List<object>)e.Value)
                     {
-                        object[] tmp = (object[])v;
                         GXDLMSBroadcastLogTable it = new GXDLMSBroadcastLogTable();
-                        it.SourceAddress = Convert.ToUInt16(tmp[0]);
-                        it.SequenceNumber = Convert.ToByte(tmp[1]);
-                        it.ValidTime = Convert.ToUInt16(tmp[2]);
+                        it.SourceAddress = Convert.ToUInt16(v[0]);
+                        it.SequenceNumber = Convert.ToByte(v[1]);
+                        it.ValidTime = Convert.ToUInt16(v[2]);
                         BroadcastLogTable.Add(it);
                     }
                 }
@@ -904,7 +899,7 @@ namespace Gurux.DLMS.Objects
                 List<UInt16> list = new List<UInt16>();
                 if (e.Value != null)
                 {
-                    foreach (object it in (object[])e.Value)
+                    foreach (object it in (List<object>)e.Value)
                     {
                         list.Add(Convert.ToUInt16(it));
                     }

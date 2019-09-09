@@ -152,7 +152,7 @@ namespace Gurux.DLMS.Objects
             {
                 if (e.Index == 1)
                 {
-                    Object[] tmp = (Object[])e.Parameters;
+                    List<object> tmp = (List<object>)e.Parameters;
                     ObjectType type = (ObjectType)Convert.ToUInt16(tmp[0]);
                     string ln = GXCommon.ToLogicalName((byte[])tmp[1]);
                     byte index = Convert.ToByte(tmp[2]);
@@ -176,7 +176,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else if (e.Index == 2)
                 {
-                    Object[] tmp = (Object[])e.Parameters;
+                    List<object> tmp = (List<object>)e.Parameters;
                     ObjectType ot = (ObjectType) Convert.ToUInt16(tmp[0]);
                     string ln = GXCommon.ToLogicalName((byte[])tmp[1]);
                     byte index = Convert.ToByte(tmp[2]);
@@ -321,10 +321,10 @@ namespace Gurux.DLMS.Objects
                 case 2:
                     {
                         ChangedParameter = new GXDLMSTarget();
-                        if (e.Value is Object[])
+                        if (e.Value is List<object>)
                         {
-                            Object[] tmp = (Object[])e.Value;
-                            if (tmp.Length != 4)
+                            List<object> tmp = (List<object>)e.Value;
+                            if (tmp.Count != 4)
                             {
                                 throw new GXDLMSException("Invalid structure format.");
                             }
@@ -388,9 +388,9 @@ namespace Gurux.DLMS.Objects
                         Parameters.Clear();
                         if (e.Value != null)
                         {
-                            foreach (object[] tmp in (e.Value as object[]))
+                            foreach (List<object> tmp in (e.Value as List<object>))
                             {
-                                if (tmp.Length != 3)
+                                if (tmp.Count != 3)
                                 {
                                     throw new GXDLMSException("Invalid structure format.");
                                 }

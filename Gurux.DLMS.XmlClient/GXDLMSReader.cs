@@ -799,7 +799,7 @@ namespace Gurux.DLMS.Reader
                 ReadDataBlock(it, reply);
                 if (reply.Value is object[])
                 {
-                    values.AddRange((object[])reply.Value);
+                    values.AddRange((List<object>)reply.Value);
                 }
                 else if (reply.Value != null)
                 {
@@ -840,7 +840,7 @@ namespace Gurux.DLMS.Reader
         {
             GXReplyData reply = new GXReplyData();
             ReadDataBlock(Client.ReadRowsByEntry(it, index, count), reply);
-            return (object[])Client.UpdateValue(it, 2, reply.Value);
+            return ((List<object>)Client.UpdateValue(it, 2, reply.Value)).ToArray();
         }
 
         /// <summary>
@@ -850,7 +850,7 @@ namespace Gurux.DLMS.Reader
         {
             GXReplyData reply = new GXReplyData();
             ReadDataBlock(Client.ReadRowsByRange(it, start, end), reply);
-            return (object[])Client.UpdateValue(it, 2, reply.Value);
+            return ((List<object>)Client.UpdateValue(it, 2, reply.Value)).ToArray();
         }
 
         /// <summary>

@@ -280,13 +280,13 @@ namespace Gurux.DLMS.Objects
             {
                 if (e.Value != null)
                 {
-                    String ln = GXCommon.ToLogicalName(((object[])e.Value)[0]);
+                    String ln = GXCommon.ToLogicalName(((List<object>)e.Value)[0]);
                     Target = (GXDLMSScriptTable)settings.Objects.FindByLN(ObjectType.ScriptTable, ln);
                     if (Target == null)
                     {
                         Target = new GXDLMSScriptTable(ln);
                     }
-                    ExecutedScriptSelector = Convert.ToUInt16(((object[])e.Value)[1]);
+                    ExecutedScriptSelector = Convert.ToUInt16(((List<object>)e.Value)[1]);
                 }
                 else
                 {
@@ -304,7 +304,7 @@ namespace Gurux.DLMS.Objects
                 if (e.Value != null)
                 {
                     List<GXDateTime> items = new List<GXDateTime>();
-                    foreach (object[] it in (object[])e.Value)
+                    foreach (List<object> it in (List<object>)e.Value)
                     {
                         GXDateTime time;
                         if (it[0] is byte[])

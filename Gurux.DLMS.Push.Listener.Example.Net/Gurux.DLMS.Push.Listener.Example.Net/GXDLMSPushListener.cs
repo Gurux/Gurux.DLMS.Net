@@ -118,12 +118,12 @@ namespace GuruxDLMSServerExample
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(' ', 2 * offset);
-            if (value is object[])
+            if (value is List<object>)
             {
                 Console.WriteLine(sb + "{");
                 ++offset;
                 // Print received data.
-                foreach (Object it in (Object[])value)
+                foreach (List<object> it in (List<object>)value)
                 {
                     PrintData(it, offset);
                 }
@@ -176,10 +176,10 @@ namespace GuruxDLMSServerExample
                             PrintData(notify.Value, 0);
 
                             //Example is sending list of push messages in first parameter.
-                            if (notify.Value is object[])
+                            if (notify.Value is List<object>)
                             {
-                                object[] tmp = notify.Value as object[];
-                                List<KeyValuePair<GXDLMSObject, int>> objects = client.ParsePushObjects((object[])tmp[0]);
+                                List<object> tmp = notify.Value as List<object>;
+                                List<KeyValuePair<GXDLMSObject, int>> objects = client.ParsePushObjects((List<object>)tmp[0]);
                                 //Remove first item because it's not needed anymore.
                                 objects.RemoveAt(0);
                                 //Update clock.

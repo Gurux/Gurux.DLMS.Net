@@ -290,17 +290,19 @@ namespace Gurux.DLMS.Objects
                 RequestedQualityOfService.Precedence = RequestedQualityOfService.Delay = RequestedQualityOfService.Reliability = RequestedQualityOfService.PeakThroughput = RequestedQualityOfService.MeanThroughput = 0;
                 if (e.Value != null)
                 {
-                    Object[] tmp = (Object[])e.Value;
-                    DefaultQualityOfService.Precedence = Convert.ToByte((tmp[0] as Object[])[0]);
-                    DefaultQualityOfService.Delay = Convert.ToByte((tmp[0] as Object[])[1]);
-                    DefaultQualityOfService.Reliability = Convert.ToByte((tmp[0] as Object[])[2]);
-                    DefaultQualityOfService.PeakThroughput = Convert.ToByte((tmp[0] as Object[])[3]);
-                    DefaultQualityOfService.MeanThroughput = Convert.ToByte((tmp[0] as Object[])[4]);
-                    RequestedQualityOfService.Precedence = Convert.ToByte((tmp[1] as Object[])[0]);
-                    RequestedQualityOfService.Delay = Convert.ToByte((tmp[1] as Object[])[1]);
-                    RequestedQualityOfService.Reliability = Convert.ToByte((tmp[1] as Object[])[2]);
-                    RequestedQualityOfService.PeakThroughput = Convert.ToByte((tmp[1] as Object[])[3]);
-                    RequestedQualityOfService.MeanThroughput = Convert.ToByte((tmp[1] as Object[])[4]);
+                    List<object> tmp = (List<object>)e.Value;
+                    List<object> t = (List<object>)tmp[0] as List<object>;
+                    DefaultQualityOfService.Precedence = Convert.ToByte(t[0]);
+                    DefaultQualityOfService.Delay = Convert.ToByte(t[1]);
+                    DefaultQualityOfService.Reliability = Convert.ToByte(t[2]);
+                    DefaultQualityOfService.PeakThroughput = Convert.ToByte(t[3]);
+                    DefaultQualityOfService.MeanThroughput = Convert.ToByte(t[4]);
+                    t = (List<object>)tmp[1] as List<object>;
+                    RequestedQualityOfService.Precedence = Convert.ToByte(t[0]);
+                    RequestedQualityOfService.Delay = Convert.ToByte(t[1]);
+                    RequestedQualityOfService.Reliability = Convert.ToByte(t[2]);
+                    RequestedQualityOfService.PeakThroughput = Convert.ToByte(t[3]);
+                    RequestedQualityOfService.MeanThroughput = Convert.ToByte(t[4]);
                 }
             }
             else

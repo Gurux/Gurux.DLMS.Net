@@ -226,9 +226,9 @@ namespace Gurux.DLMS.Objects
             // avalidity_interval within which the new time can be activated.
             else if (e.Index == 5)
             {
-                GXDateTime presetTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])((Object[])e.Parameters)[0], DataType.DateTime, settings.UseUtc2NormalTime);
-                GXDateTime validityIntervalStart = (GXDateTime)GXDLMSClient.ChangeType((byte[])((Object[])e.Parameters)[1], DataType.DateTime, settings.UseUtc2NormalTime);
-                GXDateTime validityIntervalEnd = (GXDateTime)GXDLMSClient.ChangeType((byte[])((Object[])e.Parameters)[2], DataType.DateTime, settings.UseUtc2NormalTime);
+                GXDateTime presetTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])((List<object>)e.Parameters)[0], DataType.DateTime, settings.UseUtc2NormalTime);
+                GXDateTime validityIntervalStart = (GXDateTime)GXDLMSClient.ChangeType((byte[])((List<object>)e.Parameters)[1], DataType.DateTime, settings.UseUtc2NormalTime);
+                GXDateTime validityIntervalEnd = (GXDateTime)GXDLMSClient.ChangeType((byte[])((List<object>)e.Parameters)[2], DataType.DateTime, settings.UseUtc2NormalTime);
                 this.Time.Value = presetTime.Value;
             }
             // Shifts the time.

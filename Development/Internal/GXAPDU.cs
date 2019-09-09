@@ -53,11 +53,11 @@ namespace Gurux.DLMS.Internal
         ///<summary>
         ///Retrieves the string that indicates the level of authentication, if any.
         ///</summary>
-        private static void GetAuthenticationString(GXDLMSSettings settings, GXByteBuffer data)
+        private static void GetAuthenticationString(GXDLMSSettings settings, GXByteBuffer data, bool ignoreAcse)
         {
             //If authentication is used.
             if (settings.Authentication != Authentication.None ||
-                (settings.Cipher != null && settings.Cipher.Security != Security.None))
+                (!ignoreAcse && settings.Cipher != null && settings.Cipher.Security != Security.None))
             {
                 //Add sender ACSE-requirements field component.
                 data.SetUInt8((byte)BerType.Context | (byte)PduType.SenderAcseRequirements);
@@ -303,7 +303,7 @@ namespace Gurux.DLMS.Internal
             ///////////////////////////////////////////
             // Add Application context name.
             GenerateApplicationContextName(settings, data, cipher);
-            GetAuthenticationString(settings, data);
+            GetAuthenticationString(settings, data, encryptedData != null && encryptedData.Size != 0);
             GenerateUserInformation(settings, cipher, encryptedData, data);
             data.SetUInt8(offset, (byte)(data.Size - offset - 1));
         }
@@ -1186,6 +1186,10 @@ namespace Gurux.DLMS.Internal
                             if (xml != null)
                             {
                                 //RespondingAPTitle
+                                if (xml.Comments)
+                                {
+                                    xml.AppendComment(GXCommon.SystemTitleToString(settings.Standard, settings.SourceSystemTitle));
+                                }
                                 xml.AppendLine(TranslatorGeneralTags.RespondingAPTitle, "Value", GXCommon.ToHex(settings.SourceSystemTitle, false));
                             }
                         }

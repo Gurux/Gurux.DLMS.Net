@@ -146,7 +146,6 @@ namespace GuruxDLMSServerExample
 
         void Init()
         {
-            this.Conformance |= Conformance.GeneralBlockTransfer;
             //If pre-established connections are used.
             ClientSystemTitle = ASCIIEncoding.ASCII.GetBytes("ABCDEFGH");
             Ciphering.Security = Security.AuthenticationEncryption;
@@ -168,10 +167,6 @@ namespace GuruxDLMSServerExample
             GXDLMSData fw = new GXDLMSData("1.0.0.2.0.255");
             fw.Value = "Gurux FW 0.0.1";
             Items.Add(fw);
-
-            GXDLMSData unixTime = new GXDLMSData("0.0.1.1.0.255");
-            Items.Add(unixTime);
-
             //Add Last average.
             GXDLMSRegister r = new GXDLMSRegister("1.1.21.25.0.255");
             //Set access right. Client can't change average value.
@@ -519,8 +514,8 @@ namespace GuruxDLMSServerExample
         /// <param name="count">Item count.</param>
         void GetProfileGenericDataByRangeFromRingBuffer(ValueEventArgs e)
         {
-            GXDateTime start = (GXDateTime)GXDLMSClient.ChangeType((byte[])((object[])e.Parameters)[1], DataType.DateTime);
-            GXDateTime end = (GXDateTime)GXDLMSClient.ChangeType((byte[])((object[])e.Parameters)[2], DataType.DateTime);
+            GXDateTime start = (GXDateTime)GXDLMSClient.ChangeType((byte[])((List<object>)e.Parameters)[1], DataType.DateTime);
+            GXDateTime end = (GXDateTime)GXDLMSClient.ChangeType((byte[])((List<object>)e.Parameters)[2], DataType.DateTime);
             uint pos = 0;
             DateTime last = DateTime.MinValue;
             lock (FileLock)
@@ -583,8 +578,8 @@ namespace GuruxDLMSServerExample
         /// <param name="count">Item count.</param>
         void GetProfileGenericDataByRange(ValueEventArgs e)
         {
-            GXDateTime start = (GXDateTime)GXDLMSClient.ChangeType((byte[])((object[])e.Parameters)[1], DataType.DateTime);
-            GXDateTime end = (GXDateTime)GXDLMSClient.ChangeType((byte[])((object[])e.Parameters)[2], DataType.DateTime);
+            GXDateTime start = (GXDateTime)GXDLMSClient.ChangeType((byte[])((List<object>)e.Parameters)[1], DataType.DateTime);
+            GXDateTime end = (GXDateTime)GXDLMSClient.ChangeType((byte[])((List<object>)e.Parameters)[2], DataType.DateTime);
             lock (FileLock)
             {
                 using (var fs = File.OpenRead(GetdataFile()))
@@ -703,8 +698,8 @@ namespace GuruxDLMSServerExample
                             else if (e.Selector == 2)
                             {
                                 //Read by range.
-                                e.RowBeginIndex = (UInt32)((object[])e.Parameters)[0] - 1;
-                                e.RowEndIndex = (UInt32)((object[])e.Parameters)[1];
+                                e.RowBeginIndex = (UInt32)((List<object>)e.Parameters)[0] - 1;
+                                e.RowEndIndex = (UInt32)((List<object>)e.Parameters)[1];
                                 //If client wants to read more data what we have.
                                 UInt16 cnt = GetProfileGenericDataCount(p);
                                 if (e.RowEndIndex > cnt)
@@ -881,7 +876,7 @@ namespace GuruxDLMSServerExample
                     {
                         i.ImageTransferStatus = ImageTransferStatus.TransferInitiated;
                         string file = Path.Combine(Path.GetDirectoryName(typeof(GXDLMSBase).Assembly.Location), ImageUpdate + ".exe");
-                        object[] p = (object[])it.Parameters;
+                        List<object> p = (List<object>)it.Parameters;
                         try
                         {
                             using (FileStream fs = new FileStream(file, FileMode.Append))

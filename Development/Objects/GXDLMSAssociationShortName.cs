@@ -386,21 +386,21 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        void UpdateAccessRights(Object[] buff)
+        void UpdateAccessRights(List<object> buff)
         {
-            foreach (Object[] access in buff)
+            foreach (List<object> access in buff)
             {
                 ushort sn = Convert.ToUInt16(access[0]);
                 GXDLMSObject obj = ObjectList.FindBySN(sn);
                 if (obj != null)
                 {
-                    foreach (Object[] attributeAccess in (Object[])access[1])
+                    foreach (List<object> attributeAccess in (List<object>)access[1])
                     {
                         int id = Convert.ToInt32(attributeAccess[0]);
                         int mode = Convert.ToInt32(attributeAccess[1]);
                         obj.SetAccess(id, (AccessMode)mode);
                     }
-                    foreach (Object[] methodAccess in (Object[])access[2])
+                    foreach (List<object> methodAccess in (List<object>)access[2])
                     {
                         int id = Convert.ToInt32(methodAccess[0]);
                         int mode = Convert.ToInt32(methodAccess[1]);
@@ -421,7 +421,7 @@ namespace Gurux.DLMS.Objects
                 ObjectList.Clear();
                 if (e.Value != null)
                 {
-                    foreach (Object[] item in (Object[])e.Value)
+                    foreach (List<object> item in (List<object>)e.Value)
                     {
                         ushort sn = (ushort)(Convert.ToInt32(item[0]) & 0xFFFF);
                         ObjectType type = (ObjectType)Convert.ToInt32(item[1]);
@@ -464,7 +464,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    UpdateAccessRights((Object[])e.Value);
+                    UpdateAccessRights((List<object>)e.Value);
                 }
             }
             else if (e.Index == 4)

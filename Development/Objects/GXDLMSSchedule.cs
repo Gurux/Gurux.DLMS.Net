@@ -203,23 +203,22 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 2)
             {
                 Entries.Clear();
-                Object[] arr = (Object[])e.Value;
+                List<object> arr = (List<object>)e.Value;
                 if (arr != null)
                 {
-                    foreach (var it in arr)
+                    foreach (List<object> it in arr)
                     {
                         GXScheduleEntry item = new GXScheduleEntry();
-                        Object[] tmp = (Object[])it;
-                        item.Index = Convert.ToUInt16(tmp[0]);
-                        item.Enable = (bool)tmp[1];
-                        item.LogicalName = GXCommon.ToLogicalName(tmp[2]);
-                        item.ScriptSelector = Convert.ToUInt16(tmp[3]);
-                        item.SwitchTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[4], DataType.DateTime, settings.UseUtc2NormalTime);
-                        item.ValidityWindow = Convert.ToUInt16(tmp[5]);
-                        item.ExecWeekdays = Convert.ToString(tmp[6]);
-                        item.ExecSpecDays = Convert.ToString(tmp[7]);
-                        item.BeginDate = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[8], DataType.DateTime, settings.UseUtc2NormalTime);
-                        item.EndDate = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[9], DataType.DateTime, settings.UseUtc2NormalTime);
+                        item.Index = Convert.ToUInt16(it[0]);
+                        item.Enable = (bool)it[1];
+                        item.LogicalName = GXCommon.ToLogicalName(it[2]);
+                        item.ScriptSelector = Convert.ToUInt16(it[3]);
+                        item.SwitchTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[4], DataType.DateTime, settings.UseUtc2NormalTime);
+                        item.ValidityWindow = Convert.ToUInt16(it[5]);
+                        item.ExecWeekdays = Convert.ToString(it[6]);
+                        item.ExecSpecDays = Convert.ToString(it[7]);
+                        item.BeginDate = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[8], DataType.DateTime, settings.UseUtc2NormalTime);
+                        item.EndDate = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[9], DataType.DateTime, settings.UseUtc2NormalTime);
                         Entries.Add(item);
                     }
                 }

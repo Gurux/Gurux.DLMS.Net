@@ -35,6 +35,7 @@ using Gurux.Common;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Objects;
+using Gurux.DLMS.Secure;
 using Gurux.Net;
 using Gurux.Serial;
 using System;
@@ -59,14 +60,14 @@ namespace Gurux.DLMS.Reader
         public int RetryCount = 3;
         IGXMedia Media;
         TraceLevel Trace;
-        GXDLMSClient Client;
+        GXDLMSSecureClient Client;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="client">DLMS Client.</param>
         /// <param name="media">Media.</param>
-        public GXDLMSReader(GXDLMSClient client, IGXMedia media, TraceLevel trace)
+        public GXDLMSReader(GXDLMSSecureClient client, IGXMedia media, TraceLevel trace)
         {
             Trace = trace;
             Media = media;
@@ -879,9 +880,9 @@ namespace Gurux.DLMS.Reader
             {
                 ReadDataBlock(it, reply);
                 //Value is null if data is send in multiple frames.
-                if (reply.Value is object[])
+                if (reply.Value is List<object>)
                 {
-                    values.AddRange((object[])reply.Value);
+                    values.AddRange((List<object>)reply.Value);
                 }
                 reply.Clear();
             }
@@ -973,7 +974,13 @@ namespace Gurux.DLMS.Reader
                     GXReplyData reply = new GXReplyData();
                     try
                     {
-                        ReadDataBlock(Client.ReleaseRequest(), reply);
+                        //Release is call only for secured connections.
+                        //All meters are not supporting Release and it's causing problems.
+                        if (Client.InterfaceType == InterfaceType.WRAPPER ||
+                            (Client.InterfaceType == InterfaceType.HDLC && Client.Ciphering.Security != Security.None))
+                        {
+                            ReadDataBlock(Client.ReleaseRequest(), reply);
+                        }
                     }
                     catch (Exception ex)
                     {

@@ -244,16 +244,16 @@ namespace Gurux.DLMS.Objects
                 Scripts.Clear();
                 //Fix Xemex bug here.
                 //Xemex meters do not return array as they shoul be according standard.
-                if (e.Value is Object[] && ((Object[])e.Value).Length != 0)
+                if (e.Value is List<object> && ((List<object>)e.Value).Count != 0)
                 {
-                    if (((Object[])e.Value)[0] is Object[])
+                    if (((List<object>)e.Value)[0] is List<object>)
                     {
-                        foreach (Object[] item in (Object[])e.Value)
+                        foreach (List<object> item in (List<object>)e.Value)
                         {
                             GXDLMSScript script = new GXDLMSScript();
                             script.Id = Convert.ToInt32(item[0]);
                             Scripts.Add(script);
-                            foreach (Object[] arr in (Object[])item[1])
+                            foreach (List<object> arr in (List<object>)item[1])
                             {
                                 GXDLMSScriptAction it = new GXDLMSScriptAction();
                                 it.Type = (ScriptActionType)Convert.ToInt32(arr[0]);
@@ -281,9 +281,9 @@ namespace Gurux.DLMS.Objects
                     else //Read Xemex meter here.
                     {
                         GXDLMSScript script = new GXDLMSScript();
-                        script.Id = Convert.ToInt32(((Object[])e.Value)[0]);
+                        script.Id = Convert.ToInt32(((List<object>)e.Value)[0]);
                         Scripts.Add(script);
-                        Object[] arr = (Object[])((Object[])e.Value)[1];
+                        List<object> arr = (List<object>)((List<object>)e.Value)[1];
                         GXDLMSScriptAction it = new GXDLMSScriptAction();
                         it.Type = (ScriptActionType)Convert.ToInt32(arr[0]);
                         ObjectType ot = (ObjectType)Convert.ToInt32(arr[1]);

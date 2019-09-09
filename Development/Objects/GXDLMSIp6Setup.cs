@@ -423,7 +423,7 @@ namespace Gurux.DLMS.Objects
                 List<IPAddress> data = new List<IPAddress>();
                 if (e.Value != null)
                 {
-                    foreach (object it in (Object[])e.Value)
+                    foreach (object it in (List<object>)e.Value)
                     {
                         data.Add(new IPAddress((byte[])it));
                     }
@@ -435,7 +435,7 @@ namespace Gurux.DLMS.Objects
                 List<IPAddress> data = new List<IPAddress>();
                 if (e.Value != null)
                 {
-                    foreach (object it in (Object[])e.Value)
+                    foreach (object it in (List<object>)e.Value)
                     {
                         data.Add(new IPAddress((byte[])it));
                     }
@@ -447,7 +447,7 @@ namespace Gurux.DLMS.Objects
                 List<IPAddress> data = new List<IPAddress>();
                 if (e.Value != null)
                 {
-                    foreach (object it in (Object[])e.Value)
+                    foreach (object it in (List<object>)e.Value)
                     {
                         data.Add(new IPAddress((byte[])it));
                     }
@@ -485,13 +485,12 @@ namespace Gurux.DLMS.Objects
                 List<GXNeighborDiscoverySetup> data = new List<GXNeighborDiscoverySetup>();
                 if (e.Value != null)
                 {
-                    foreach (object it in (Object[])e.Value)
+                    foreach (List<object> it in (List<object>)e.Value)
                     {
-                        object[] tmp = (object[])it;
                         GXNeighborDiscoverySetup v = new GXNeighborDiscoverySetup();
-                        v.MaxRetry = Convert.ToByte(tmp[0]);
-                        v.RetryWaitTime = Convert.ToUInt16(tmp[1]);
-                        v.SendPeriod = Convert.ToUInt32(tmp[2]);
+                        v.MaxRetry = Convert.ToByte(it[0]);
+                        v.RetryWaitTime = Convert.ToUInt16(it[1]);
+                        v.SendPeriod = Convert.ToUInt32(it[2]);
                         data.Add(v);
                     }
                 }

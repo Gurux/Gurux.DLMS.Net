@@ -580,7 +580,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 7)
             {
-                object[] tmp = (object[])e.Value;
+                List<object> tmp = (List<object>)e.Value;
                 MarkFrequency = (UInt32)tmp[0];
                 SpaceFrequency = (UInt32)tmp[1];
             }
@@ -593,7 +593,7 @@ namespace Gurux.DLMS.Objects
                 List<ushort> list = new List<ushort>();
                 if (e.Value != null)
                 {
-                    foreach (object it in (object[])e.Value)
+                    foreach (object it in (List<object>)e.Value)
                     {
                         list.Add((ushort)it);
                     }

@@ -449,9 +449,10 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 2)
             {
-                ObjectType ot = (ObjectType)Convert.ToInt16(((object[])e.Value)[0]);
-                string ln = GXCommon.ToLogicalName(((object[])e.Value)[1]);
-                int attIndex = Convert.ToInt32(((object[])e.Value)[2]);
+                List<object> tmp = (List<object>)e.Value;
+                ObjectType ot = (ObjectType)Convert.ToInt16(tmp[0]);
+                string ln = GXCommon.ToLogicalName(tmp[1]);
+                int attIndex = Convert.ToInt32(tmp[2]);
                 MonitoredValue = settings.Objects.FindByLN(ot, ln);
                 MonitoredAttributeIndex = attIndex;
                 if (MonitoredValue != null && attIndex != 0)
@@ -493,7 +494,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 8)
             {
-                object[] tmp = (object[])e.Value;
+                List<object> tmp = (List<object>)e.Value;
                 EmergencyProfile.ID = (UInt16)tmp[0];
                 EmergencyProfile.ActivationTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])tmp[1], DataType.DateTime, settings.UseUtc2NormalTime);
                 EmergencyProfile.Duration = (UInt32)tmp[2];
@@ -503,7 +504,7 @@ namespace Gurux.DLMS.Objects
                 List<UInt16> list = new List<UInt16>();
                 if (e.Value != null)
                 {
-                    foreach (object it in (object[])e.Value)
+                    foreach (object it in (List<object>)e.Value)
                     {
                         list.Add(Convert.ToUInt16(it));
                     }
@@ -516,9 +517,9 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 11)
             {
-                object[] tmp = (object[])e.Value;
-                object[] tmp1 = (object[])tmp[0];
-                object[] tmp2 = (object[])tmp[1];
+                List<object> tmp = (List<object>)e.Value;
+                List<object> tmp1 = (List<object>)tmp[0];
+                List<object> tmp2 = (List<object>)tmp[1];
                 ActionOverThreshold.LogicalName = GXCommon.ToLogicalName(tmp1[0]);
                 ActionOverThreshold.ScriptSelector = Convert.ToUInt16(tmp1[1]);
                 ActionUnderThreshold.LogicalName = GXCommon.ToLogicalName((byte[])tmp2[0]);

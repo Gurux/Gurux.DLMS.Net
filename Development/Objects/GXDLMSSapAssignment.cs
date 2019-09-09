@@ -217,7 +217,7 @@ namespace Gurux.DLMS.Objects
                 SapAssignmentList.Clear();
                 if (e.Value != null)
                 {
-                    foreach (Object[] item in (Object[])e.Value)
+                    foreach (List<object> item in (List<object>)e.Value)
                     {
                         string str;
                         if (item[1] is byte[])
@@ -242,7 +242,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                object[] tmp = (object[])e.Parameters;
+                List<object> tmp = (List<object>)e.Parameters;
                 UInt16 id = (UInt16)tmp[0];
                 string str;
                 if (tmp[1] is byte[])

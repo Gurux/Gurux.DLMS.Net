@@ -875,8 +875,8 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                     LogicalName = GXCommon.ToLogicalName(e.Value);
                     break;
                 case 2:
-                    AccountStatus = (AccountStatus)Convert.ToByte(((object[])e.Value)[0]);
-                    PaymentMode = (PaymentMode)Convert.ToByte(((object[])e.Value)[1]);
+                    AccountStatus = (AccountStatus)Convert.ToByte(((List<object>)e.Value)[0]);
+                    PaymentMode = (PaymentMode)Convert.ToByte(((List<object>)e.Value)[1]);
                     break;
                 case 3:
                     CurrentCreditInUse = (byte)e.Value;
@@ -900,7 +900,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                     CreditReferences.Clear();
                     if (e.Value != null)
                     {
-                        foreach (object it in (object[])e.Value)
+                        foreach (object it in (List<object>)e.Value)
                         {
                             CreditReferences.Add(GXCommon.ToLogicalName(it));
                         }
@@ -910,7 +910,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                     ChargeReferences.Clear();
                     if (e.Value != null)
                     {
-                        foreach (object it in (object[])e.Value)
+                        foreach (object it in (List<object>)e.Value)
                         {
                             ChargeReferences.Add(GXCommon.ToLogicalName(it));
                         }
@@ -920,7 +920,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                     CreditChargeConfigurations.Clear();
                     if (e.Value != null)
                     {
-                        foreach (object[] it in (object[])e.Value)
+                        foreach (List<object> it in (List<object>)e.Value)
                         {
                             GXCreditChargeConfiguration item = new GXCreditChargeConfiguration();
                             item.CreditReference = GXCommon.ToLogicalName(it[0]);
@@ -934,7 +934,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                     TokenGatewayConfigurations.Clear();
                     if (e.Value != null)
                     {
-                        foreach (object[] it in (object[])e.Value)
+                        foreach (List<object> it in (List<object>)e.Value)
                         {
                             GXTokenGatewayConfiguration item = new GXTokenGatewayConfiguration();
                             item.CreditReference = GXCommon.ToLogicalName(it[0]);
@@ -986,7 +986,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                     }
                     break;
                 case 15:
-                    object[] tmp = (object[])e.Value;
+                    List<object> tmp = (List<object>)e.Value;
                     Currency.Name = (string)tmp[0];
                     Currency.Scale = (sbyte)tmp[1];
                     Currency.Unit = (Currency)Convert.ToByte(tmp[2]);

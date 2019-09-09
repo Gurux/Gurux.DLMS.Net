@@ -792,10 +792,9 @@ namespace Gurux.DLMS.Objects
                 KeyTable.Clear();
                 if (e.Value != null)
                 {
-                    foreach (object v in (object[])e.Value)
+                    foreach (List<object> v in (List<object>)e.Value)
                     {
-                        object[] tmp = (object[])v;
-                        KeyTable.Add(new GXKeyValuePair<byte, byte[]>(Convert.ToByte(tmp[0]), (byte[])tmp[1]));
+                        KeyTable.Add(new GXKeyValuePair<byte, byte[]>(Convert.ToByte(v[0]), (byte[])v[1]));
                     }
                 }
             }
@@ -824,21 +823,20 @@ namespace Gurux.DLMS.Objects
                 List<GXDLMSNeighbourTable> list = new List<GXDLMSNeighbourTable>();
                 if (e.Value != null)
                 {
-                    foreach (object v in (object[])e.Value)
+                    foreach (List<object> v in (List<object>)e.Value)
                     {
-                        object[] tmp = (object[])v;
                         GXDLMSNeighbourTable it = new GXDLMSNeighbourTable();
-                        it.ShortAddress = Convert.ToUInt16(tmp[0]);
-                        it.Enabled = Convert.ToBoolean(tmp[1]);
-                        it.ToneMap = Convert.ToString(tmp[2]);
-                        it.Modulation = (Modulation)Convert.ToInt32(tmp[3]);
-                        it.TxGain = Convert.ToSByte(tmp[4]);
-                        it.TxRes = (GainResolution)Convert.ToInt32(tmp[5]);
-                        it.TxCoeff = Convert.ToString(tmp[6]);
-                        it.Lqi = Convert.ToByte(tmp[7]);
-                        it.PhaseDifferential = Convert.ToSByte(tmp[8]);
-                        it.TMRValidTime = Convert.ToByte(tmp[9]);
-                        it.NeighbourValidTime = Convert.ToByte(tmp[10]);
+                        it.ShortAddress = Convert.ToUInt16(v[0]);
+                        it.Enabled = Convert.ToBoolean(v[1]);
+                        it.ToneMap = Convert.ToString(v[2]);
+                        it.Modulation = (Modulation)Convert.ToInt32(v[3]);
+                        it.TxGain = Convert.ToSByte(v[4]);
+                        it.TxRes = (GainResolution)Convert.ToInt32(v[5]);
+                        it.TxCoeff = Convert.ToString(v[6]);
+                        it.Lqi = Convert.ToByte(v[7]);
+                        it.PhaseDifferential = Convert.ToSByte(v[8]);
+                        it.TMRValidTime = Convert.ToByte(v[9]);
+                        it.NeighbourValidTime = Convert.ToByte(v[10]);
                         list.Add(it);
                     }
                 }

@@ -653,18 +653,18 @@ namespace Gurux.DLMS.Objects
 
         private void SetUnitCharge(GXUnitCharge charge, object value)
         {
-            object[] tmp = (object[])value;
-            object[] tmp2 = (object[])tmp[0];
+            List<object> tmp = (List<object>)value;
+            List<object> tmp2 = (List<object>)tmp[0];
             charge.ChargePerUnitScaling.CommodityScale = (sbyte)tmp2[0];
             charge.ChargePerUnitScaling.PriceScale = (sbyte)tmp2[1];
-            tmp2 = (object[])tmp[1];
+            tmp2 = (List<object>)tmp[1];
             ObjectType ot = (ObjectType)Convert.ToInt32(tmp2[0]);
             string ln = GXCommon.ToLogicalName(tmp2[1]);
             charge.Commodity.Target = Parent.FindByLN(ot, ln);
             charge.Commodity.Index = (sbyte)tmp2[2];
             List<GXChargeTable> list = new List<GXChargeTable>();
-            tmp2 = (object[])tmp[2];
-            foreach (object[] it in tmp2)
+            tmp2 = (List<object>)tmp[2];
+            foreach (List<object> it in tmp2)
             {
                 GXChargeTable item = new GXChargeTable();
                 item.Index = ASCIIEncoding.ASCII.GetString((byte[])it[0]);

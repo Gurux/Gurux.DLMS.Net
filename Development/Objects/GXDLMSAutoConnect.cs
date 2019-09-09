@@ -323,7 +323,7 @@ namespace Gurux.DLMS.Objects
                 CallingWindow.Clear();
                 if (e.Value != null)
                 {
-                    foreach (Object[] item in (Object[])e.Value)
+                    foreach (List<object> item in (List<object>)e.Value)
                     {
                         GXDateTime start = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[0], DataType.DateTime, settings.UseUtc2NormalTime);
                         GXDateTime end = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime, settings.UseUtc2NormalTime);
@@ -337,7 +337,7 @@ namespace Gurux.DLMS.Objects
                 if (e.Value != null)
                 {
                     List<string> items = new List<string>();
-                    foreach (object item in (object[])e.Value)
+                    foreach (object item in (List<object>)e.Value)
                     {
                         string it;
                         if (item is byte[])

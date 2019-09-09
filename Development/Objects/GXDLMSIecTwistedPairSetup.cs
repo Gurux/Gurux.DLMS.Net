@@ -282,7 +282,7 @@ namespace Gurux.DLMS.Objects
                 GXByteBuffer list = new GXByteBuffer();
                 if (e.Value != null)
                 {
-                    foreach (object it in (object[])e.Value)
+                    foreach (object it in (List<object>)e.Value)
                     {
                         list.Add((byte)it);
                     }
@@ -294,7 +294,7 @@ namespace Gurux.DLMS.Objects
                 List<sbyte> list = new List<sbyte>();
                 if (e.Value != null)
                 {
-                    foreach (object it in (object[])e.Value)
+                    foreach (object it in (List<object>)e.Value)
                     {
                         list.Add((sbyte)it);
                     }

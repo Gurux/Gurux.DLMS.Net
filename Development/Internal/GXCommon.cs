@@ -17,7 +17,7 @@
 //  DESCRIPTION
 //
 // This file is a part of Gurux Device Framework.
-//SetArray
+//
 // Gurux Device Framework is Open Source software; you can redistribute it
 // and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
@@ -522,7 +522,6 @@ namespace Gurux.DLMS.Internal
         ///</returns>
         private static object GetArray(GXDLMSSettings settings, GXByteBuffer buff, GXDataInfo info, int index)
         {
-            object value;
             if (info.Count == 0)
             {
                 info.Count = GXCommon.GetObjectCount(buff);
@@ -539,7 +538,15 @@ namespace Gurux.DLMS.Internal
                 return null;
             }
             int startIndex = index;
-            List<object> arr = new List<object>();
+            List<object> arr;
+            if (info.Type == DataType.Array)
+            {
+                arr = new GXArray();
+            }
+            else
+            {
+                arr = new GXStructure();
+            }
             // Position where last row was found. Cache uses this info.
             int pos = info.Index;
             for (; pos != info.Count; ++pos)
@@ -567,8 +574,7 @@ namespace Gurux.DLMS.Internal
                 info.xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)info.Type);
             }
             info.Index = pos;
-            value = arr.ToArray();
-            return value;
+            return arr;
         }
 
         ///<summary>
@@ -1033,7 +1039,7 @@ namespace Gurux.DLMS.Internal
             return value;
         }
 
-        private static void GetCompactArrayItem(GXDLMSSettings settings, GXByteBuffer buff, object[] dt, List<Object> list, int len)
+        private static void GetCompactArrayItem(GXDLMSSettings settings, GXByteBuffer buff, List<object> dt, List<Object> list, int len)
         {
             List<object> tmp2 = new List<object>();
             foreach (object it in dt)
@@ -1044,7 +1050,7 @@ namespace Gurux.DLMS.Internal
                 }
                 else
                 {
-                    GetCompactArrayItem(settings, buff, (object[])it, tmp2, 1);
+                    GetCompactArrayItem(settings, buff, (List<object>)it, tmp2, 1);
                 }
             }
             list.Add(tmp2.ToArray());
@@ -1128,7 +1134,7 @@ namespace Gurux.DLMS.Internal
         }
 
 
-        private static void AppendDataTypeAsXml(object[] cols, GXDataInfo info)
+        private static void AppendDataTypeAsXml(List<object> cols, GXDataInfo info)
         {
             foreach (object it in cols)
             {
@@ -1136,16 +1142,16 @@ namespace Gurux.DLMS.Internal
                 {
                     info.xml.AppendEmptyTag(info.xml.GetDataType((DataType)it));
                 }
-                else if (it is object[])
+                else if (it is GXStructure)
                 {
                     info.xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure, null, null);
-                    AppendDataTypeAsXml((object[])it, info);
+                    AppendDataTypeAsXml((List<object>)it, info);
                     info.xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure);
                 }
                 else
                 {
                     info.xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array, null, null);
-                    AppendDataTypeAsXml(((List<Object>)it).ToArray(), info);
+                    AppendDataTypeAsXml(((List<Object>)it), info);
                     info.xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array);
                 }
             }
@@ -1208,7 +1214,7 @@ namespace Gurux.DLMS.Internal
                 GetDataTypes(buff, cols, len);
                 if (onlyDataTypes)
                 {
-                    return cols.ToArray();
+                    return cols;
                 }
                 if (buff.Position == buff.Size)
                 {
@@ -1222,7 +1228,7 @@ namespace Gurux.DLMS.Internal
                 {
                     info.xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.CompactArray, null, null);
                     info.xml.AppendStartTag(TranslatorTags.ContentsDescription);
-                    AppendDataTypeAsXml(cols.ToArray(), info);
+                    AppendDataTypeAsXml(cols, info);
                     info.xml.AppendEndTag(TranslatorTags.ContentsDescription);
                     if (info.xml.OutputType == TranslatorOutputType.StandardXml)
                     {
@@ -1239,14 +1245,14 @@ namespace Gurux.DLMS.Internal
                 int start = buff.Position;
                 while (buff.Position - start < len)
                 {
-                    List<Object> row = new List<Object>();
+                    List<object> row = new List<object>();
                     for (int pos = 0; pos != cols.Count; ++pos)
                     {
-                        if (cols[pos] is object[])
+                        if (cols[pos] is GXStructure)
                         {
-                            GetCompactArrayItem(null, buff, (object[])cols[pos], row, 1);
+                            GetCompactArrayItem(null, buff, (List<object>)cols[pos], row, 1);
                         }
-                        else if (cols[pos] is List<object>)
+                        else if (cols[pos] is GXArray)
                         {
                             //Add array as a list. In that way we can separate structure and array.
                             List<object> tmp2 = new List<object>();
@@ -1255,9 +1261,9 @@ namespace Gurux.DLMS.Internal
                             {
                                 GXCommon.GetObjectCount(buff);
                             }
-                            GetCompactArrayItem(null, buff, ((List<object>)cols[pos]).ToArray(), tmp2, 1);
+                            GetCompactArrayItem(null, buff, ((List<object>)cols[pos]), tmp2, 1);
                             List<object> tmp3 = new List<object>();
-                            tmp3.AddRange((object[])tmp2[0]);
+                            tmp3.AddRange((List<object>)tmp2[0]);
                             row.Add(tmp3);
                         }
                         else
@@ -1272,7 +1278,7 @@ namespace Gurux.DLMS.Internal
                     //If all columns are read.
                     if (row.Count >= cols.Count)
                     {
-                        list.Add(row.ToArray());
+                        list.Add(row);
                     }
                     else
                     {
@@ -1282,7 +1288,7 @@ namespace Gurux.DLMS.Internal
                 if (info.xml != null && info.xml.OutputType == TranslatorOutputType.SimpleXml)
                 {
                     StringBuilder sb = new StringBuilder();
-                    foreach (object[] row in list)
+                    foreach (List<object> row in list)
                     {
                         foreach (object it in row)
                         {
@@ -1301,7 +1307,7 @@ namespace Gurux.DLMS.Internal
                     info.xml.AppendEndTag(TranslatorTags.ArrayContents);
                     info.xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.CompactArray);
                 }
-                return list.ToArray();
+                return list;
             }
             else
             {
@@ -1342,7 +1348,7 @@ namespace Gurux.DLMS.Internal
                     info.xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.CompactArray);
                 }
             }
-            return list.ToArray();
+            return list;
         }
 
         ///<summary>
@@ -2416,16 +2422,18 @@ namespace Gurux.DLMS.Internal
         {
             if (value != null)
             {
-                IEnumerable<object> arr = (IEnumerable<object>)value;
-                if (value is object[])
+                List<object> tmp;
+                if (value is List<object>)
                 {
-                    SetObjectCount(((object[])arr).Length, buff);
+                    tmp = (List<object>) value;
                 }
                 else
                 {
-                    SetObjectCount(((List<object>)arr).Count, buff);
+                    tmp = new List<object>();
+                    tmp.AddRange((object[]) value);
                 }
-                foreach (object it in arr)
+                SetObjectCount(tmp.Count, buff);
+                foreach (object it in tmp)
                 {
                     DataType dt = GXDLMSConverter.GetDLMSDataType(it);
                     if (dt == DataType.Array)
@@ -2636,9 +2644,10 @@ namespace Gurux.DLMS.Internal
                 case DataType.None:
                     return null;
                 case DataType.Array:
+                    return typeof(GXArray);
                 case DataType.CompactArray:
                 case DataType.Structure:
-                    return typeof(object[]);
+                    return typeof(GXStructure);
                 case DataType.Bcd:
                     return typeof(string);
                 case DataType.BitString:
@@ -2752,11 +2761,11 @@ namespace Gurux.DLMS.Internal
             {
                 return DataType.OctetString;
             }
-            else if (type == typeof(object[]))
+            else if (type == typeof(GXStructure))
             {
                 return DataType.Structure;
             }
-            else if (type == typeof(List<object>))
+            else if (type == typeof(GXArray) || type == typeof(object[]))
             {
                 return DataType.Array;
             }
@@ -2826,7 +2835,7 @@ namespace Gurux.DLMS.Internal
             {
                 xml.AppendEmptyTag(xml.GetDataType(DataType.None));
             }
-            else if (value is List<object>)
+            else if (value is GXArray)
             {
                 xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array, null, null);
                 foreach (object it in (List<object>)value)
@@ -2835,35 +2844,144 @@ namespace Gurux.DLMS.Internal
                 }
                 xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array);
             }
-            else if (value is object[])
+            else if (value is GXStructure)
             {
-                bool array = xml.GetXmlLength() == 0;
-                if (array)
-                {
-                    xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array, null, null);
-                }
-                else
-                {
-                    xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure, null, null);
-                }
-                foreach (object it in (object[])value)
+                xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure, null, null);
+                foreach (object it in (List<object>)value)
                 {
                     DatatoXml(it, xml);
                 }
-                if (array)
-                {
-                    xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array);
-                }
-                else
-                {
-                    xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure);
-                }
+                xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure);
             }
             else
             {
                 DataType dt = GetDLMSDataType(value.GetType());
                 xml.AppendLine(GXDLMS.DATA_TYPE_OFFSET + (int)dt, null, value);
             }
+        }
+
+        /// <summary>
+        /// Encrypt Flag name to two bytes.
+        /// </summary>
+        /// <param name="flagName">3 letter Flag name.</param>
+        /// <returns>Encrypted Flag name.</returns>
+        public static UInt16 EncryptManufacturer(string flagName)
+        {
+            if (flagName.Length != 3)
+            {
+                throw new ArgumentOutOfRangeException("Invalid Flag name.");
+            }
+            UInt16 value = (char)((flagName[0] - 0x40) & 0x1f);
+            value <<= 5;
+            value += (char)((flagName[1] - 0x40) & 0x1f);
+            value <<= 5;
+            value += (char)((flagName[2] - 0x40) & 0x1f);
+            return value;
+        }
+
+        /// <summary>
+        /// Descrypt two bytes to Flag name.
+        /// </summary>
+        /// <param name="value">Encrypted Flag name.</param>
+        /// <returns>Flag name.</returns>
+        public static string DecryptManufacturer(UInt16 value)
+        {
+            UInt16 tmp = (UInt16)(value >> 8 | value << 8);
+            char c = (char)((tmp & 0x1f) + 0x40);
+            tmp = (UInt16)(tmp >> 5);
+            char c1 = (char)((tmp & 0x1f) + 0x40);
+            tmp = (UInt16)(tmp >> 5);
+            char c2 = (char)((tmp & 0x1f) + 0x40);
+            return new string(new char[] { c2, c1, c });
+        }
+
+        static string IdisSystemTitleToString(byte[] st)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("");
+            sb.AppendLine("IDIS system title:");
+            sb.Append("Manufacturer Code: ");
+            sb.AppendLine(new string(new char[] { (char)st[0], (char)st[1], (char)st[2] }));
+            sb.Append("Function type: ");
+            int ft = st[4] >> 4;
+            bool add = false;
+            if ((ft & 0x1) != 0)
+            {
+                sb.Append("Disconnector extension");
+                add = true;
+            }
+            if ((ft & 0x2) != 0)
+            {
+                if (add)
+                {
+                    sb.Append(", ");
+                }
+                add = true;
+                sb.Append("Load Management extension");
+            }
+            if ((ft & 0x4) != 0)
+            {
+                if (add)
+                {
+                    sb.Append(", ");
+                }
+                sb.Append("Multi Utility extension");
+            }
+            //Serial number;
+            int sn = (st[4] & 0xF) << 24;
+            sn |= (st[5] << 16);
+            sn |= (st[6] << 8);
+            sn |= (st[7]);
+            sb.AppendLine("");
+            sb.Append("Serial number: ");
+            sb.AppendLine(sn.ToString());
+            return sb.ToString();
+        }
+
+        static string DlmsSystemTitleToString(byte[] st)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("");
+            sb.AppendLine("IDIS system title:");
+            sb.Append("Manufacturer Code: ");
+            sb.AppendLine(new string(new char[] { (char)st[0], (char)st[1], (char)st[2] }));
+            sb.Append("Serial number: ");
+            sb.AppendLine(new string(new char[] { (char)st[3], (char)st[4], (char)st[5], (char)st[6], (char)st[7] }));
+            return sb.ToString();
+        }
+
+        static string UNISystemTitleToString(byte[] st)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("");
+            sb.AppendLine("UNI/TS system title:");
+            sb.Append("Manufacturer: ");
+            UInt16 m = (UInt16)(st[0] << 8 | st[1]);
+            sb.AppendLine(DecryptManufacturer(m));
+            sb.Append("Serial number: ");
+            sb.AppendLine(ToHex(new byte[] { st[7], st[6], st[5], st[4], st[3], st[2] }, false));
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Conver system title to string.
+        /// </summary>
+        /// <param name="standard"></param>
+        /// <param name="st"></param>
+        /// <returns></returns>
+        public static string SystemTitleToString(Standard standard, byte[] st)
+        {
+            if (standard == Standard.Italy || !Char.IsLetter((char)st[0]) || !Char.IsLetter((char)st[1]) ||
+                !Char.IsLetter((char)st[2]))
+            {
+                return UNISystemTitleToString(st);
+            }
+            if (standard == Standard.Idis || !Char.IsNumber((char)st[3]) || !Char.IsNumber((char)st[4]) ||
+                !Char.IsNumber((char)st[5]) || !Char.IsNumber((char)st[6]) || !Char.IsNumber((char)st[7]))
+            {
+                return IdisSystemTitleToString(st);
+            }
+            return DlmsSystemTitleToString(st);
         }
     }
 }

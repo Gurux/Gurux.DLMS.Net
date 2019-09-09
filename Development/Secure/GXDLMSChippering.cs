@@ -34,6 +34,7 @@
 
 using System;
 using System.Linq;
+using Gurux.DLMS.Enums;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Objects.Enums;
 
@@ -193,6 +194,10 @@ namespace Gurux.DLMS.Secure
                     {
                         p.SystemTitle = new byte[len];
                         data.Get(p.SystemTitle);
+                        if (p.Xml != null && p.Xml.Comments)
+                        {
+                            p.Xml.AppendComment(GXCommon.SystemTitleToString(Standard.DLMS, p.SystemTitle));
+                        }
                     }
                     break;
                 case Command.GeneralCiphering:

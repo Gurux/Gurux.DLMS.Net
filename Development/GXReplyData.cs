@@ -32,6 +32,7 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
 using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS
@@ -374,9 +375,9 @@ namespace Gurux.DLMS
         {
             get
             {
-                if (Value is object[])
+                if (Value is List<object>)
                 {
-                    return ((object[])Value).Length;
+                    return ((List<object>)Value).Count;
                 }
                 return 0;
             }

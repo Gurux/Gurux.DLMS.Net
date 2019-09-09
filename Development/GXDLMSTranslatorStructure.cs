@@ -130,7 +130,7 @@ namespace Gurux.DLMS
             ShowStringAsHex = hex;
             Comments = comments;
             tags = list;
-        }     
+        }
 
         public override string ToString()
         {

@@ -362,27 +362,26 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 2)
             {
                 PushObjectList.Clear();
-                if (e.Value is Object[])
+                if (e.Value is List<object>)
                 {
-                    foreach (object it in e.Value as Object[])
+                    foreach (List<object> it in (List<object>)e.Value)
                     {
-                        Object[] tmp = it as Object[];
-                        ObjectType type = (ObjectType)Convert.ToUInt16(tmp[0]);
-                        String ln = GXCommon.ToLogicalName(tmp[1]);
+                        ObjectType type = (ObjectType)Convert.ToUInt16(it[0]);
+                        String ln = GXCommon.ToLogicalName(it[1]);
                         GXDLMSObject obj = settings.Objects.FindByLN(type, ln);
                         if (obj == null)
                         {
                             obj = GXDLMSClient.CreateObject(type);
                             obj.LogicalName = ln;
                         }
-                        GXDLMSCaptureObject co = new GXDLMSCaptureObject(Convert.ToInt32(tmp[2]), Convert.ToInt32(tmp[3]));
+                        GXDLMSCaptureObject co = new GXDLMSCaptureObject(Convert.ToInt32(it[2]), Convert.ToInt32(it[3]));
                         PushObjectList.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, co));
                     }
                 }
             }
             else if (e.Index == 3)
             {
-                object[] tmp = e.Value as object[];
+                List<object> tmp = e.Value as List<object>;
                 if (tmp != null)
                 {
                     Service = (ServiceType)Convert.ToInt32(tmp[0]);
@@ -401,13 +400,12 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 4)
             {
                 CommunicationWindow.Clear();
-                if (e.Value is Object[])
+                if (e.Value is List<object>)
                 {
-                    foreach (object it in e.Value as Object[])
+                    foreach (List<object> it in e.Value as List<object>)
                     {
-                        Object[] tmp = it as Object[];
-                        GXDateTime start = GXDLMSClient.ChangeType((byte[])tmp[0], DataType.DateTime, settings.UseUtc2NormalTime) as GXDateTime;
-                        GXDateTime end = GXDLMSClient.ChangeType((byte[])tmp[1], DataType.DateTime, settings.UseUtc2NormalTime) as GXDateTime;
+                        GXDateTime start = GXDLMSClient.ChangeType((byte[])it[0], DataType.DateTime, settings.UseUtc2NormalTime) as GXDateTime;
+                        GXDateTime end = GXDLMSClient.ChangeType((byte[])it[1], DataType.DateTime, settings.UseUtc2NormalTime) as GXDateTime;
                         CommunicationWindow.Add(new KeyValuePair<GXDateTime, GXDateTime>(start, end));
                     }
                 }

@@ -32,39 +32,18 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System.Xml.Serialization;
+using System;
+using System.Collections.Generic;
 
-namespace Gurux.DLMS.Enums
+namespace Gurux.DLMS
 {
     /// <summary>
-    /// Used DLMS standard.
+    /// This class is used to save arrays.
     /// </summary>
-    public enum Standard
+    /// <remarks>
+    /// This class is added because we want to save collection inforamation (array/structure).
+    /// </remarks>
+    public class GXArray : List<object>
     {
-        /// <summary>
-        /// Meter uses default DLMS IEC 62056 standard. https://dlms.com
-        /// </summary>
-        [XmlEnum("0")]
-        DLMS = 0,
-        /// <summary>
-        /// Meter uses India DLMS standard IS 15959-2. https://www.standardsbis.in
-        /// </summary>
-        [XmlEnum("1")]
-        India,
-        /// <summary>
-        /// Meter uses Italy DLMS standard UNI/TS 11291-11-2. https://uni.com
-        /// </summary>
-        [XmlEnum("2")]
-        Italy,
-        /// <summary>
-        /// Meter uses Saudi Arabia DLMS standard.
-        /// </summary>
-        [XmlEnum("3")]
-        SaudiArabia,
-        /// <summary>
-        /// Meter uses IDIS DLMS standard. https://www.idis-association.com/
-        /// </summary>
-        [XmlEnum("4")]
-        Idis
     }
 }

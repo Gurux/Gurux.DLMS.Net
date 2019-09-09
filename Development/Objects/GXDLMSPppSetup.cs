@@ -315,9 +315,9 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 3)
             {
                 List<GXDLMSPppSetupLcpOption> items = new List<GXDLMSPppSetupLcpOption>();
-                if (e.Value is Object[])
+                if (e.Value is List<object>)
                 {
-                    foreach (Object[] item in (Object[])e.Value)
+                    foreach (List<object> item in (List<object>)e.Value)
                     {
                         GXDLMSPppSetupLcpOption it = new GXDLMSPppSetupLcpOption();
                         it.Type = (PppSetupLcpOptionType)Convert.ToByte(item[0]);
@@ -331,9 +331,9 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 4)
             {
                 List<GXDLMSPppSetupIPCPOption> items = new List<GXDLMSPppSetupIPCPOption>();
-                if (e.Value is Object[])
+                if (e.Value is List<object>)
                 {
-                    foreach (Object[] item in (Object[])e.Value)
+                    foreach (List<object> item in (List<object>)e.Value)
                     {
                         GXDLMSPppSetupIPCPOption it = new GXDLMSPppSetupIPCPOption();
                         it.Type = (PppSetupIPCPOptionType)Convert.ToByte(item[0]);
@@ -348,8 +348,12 @@ namespace Gurux.DLMS.Objects
             {
                 if (e.Value != null)
                 {
-                    UserName = (byte[])((Object[])e.Value)[0];
-                    Password = (byte[])((Object[])e.Value)[1];
+                    UserName = (byte[])((List<object>)e.Value)[0];
+                    Password = (byte[])((List<object>)e.Value)[1];
+                }
+                else
+                {
+                    UserName = Password = null;
                 }
             }
             else

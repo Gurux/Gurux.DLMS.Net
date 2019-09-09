@@ -303,7 +303,7 @@ namespace Gurux.DLMS.Objects
                 List<GXDLMSObjectDefinition> items = new List<GXDLMSObjectDefinition>();
                 if (e.Value != null)
                 {
-                    foreach (Object[] it in (Object[])e.Value)
+                    foreach (List<object> it in (List<object>)e.Value)
                     {
                         GXDLMSObjectDefinition item = new GXDLMSObjectDefinition();
                         item.ObjectType = (ObjectType)Convert.ToInt32(it[0]);
@@ -318,10 +318,10 @@ namespace Gurux.DLMS.Objects
                 MaskList.Clear();
                 if (e.Value != null)
                 {
-                    foreach (Object[] it in (Object[])e.Value)
+                    foreach (List<object> it in (List<object>)e.Value)
                     {
                         List<byte> index_list = new List<byte>();
-                        foreach (byte b in (Object[])it[1])
+                        foreach (byte b in (List<object>)it[1])
                         {
                             index_list.Add(b);
                         }

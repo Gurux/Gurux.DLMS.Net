@@ -400,22 +400,19 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 4)
             {
                 List<string> data = new List<string>();
-                if (e.Value is Object[])
+                if (e.Value is List<object>)
                 {
-                    if (e.Value is Object[])
+                    foreach (object it in (List<object>)e.Value)
                     {
-                        foreach (object it in (Object[])e.Value)
-                        {
-                            data.Add(ToAddressString(it));
-                        }
+                        data.Add(ToAddressString(it));
                     }
-                    else if (e.Value is UInt16[])
+                }
+                else if (e.Value is UInt16[])
+                {
+                    //Some meters are returning wrong data here.
+                    foreach (UInt16 it in (UInt16[])e.Value)
                     {
-                        //Some meters are returning wrong data here.
-                        foreach (UInt16 it in (UInt16[])e.Value)
-                        {
-                            data.Add(ToAddressString(it));
-                        }
+                        data.Add(ToAddressString(it));
                     }
                 }
                 MulticastIPAddress = data.ToArray();
@@ -423,9 +420,9 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 5)
             {
                 List<GXDLMSIp4SetupIpOption> data = new List<GXDLMSIp4SetupIpOption>();
-                if (e.Value is Object[])
+                if (e.Value is List<object>)
                 {
-                    foreach (object[] it in (Object[])e.Value)
+                    foreach (List<object> it in (List<object>)e.Value)
                     {
                         GXDLMSIp4SetupIpOption item = new GXDLMSIp4SetupIpOption();
                         item.Type = (Ip4SetupIpOptionType)Convert.ToInt32(it[0]);

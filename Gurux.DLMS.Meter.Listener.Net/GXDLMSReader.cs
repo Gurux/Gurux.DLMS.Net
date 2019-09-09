@@ -697,9 +697,9 @@ namespace Gurux.DLMS.Reader
             foreach (byte[] it in data)
             {
                 ReadDataBlock(it, reply);
-                if (reply.Value is object[])
+                if (reply.Value is List<object>)
                 {
-                    values.AddRange((object[])reply.Value);
+                    values.AddRange((List<object>)reply.Value);
                 }
                 else if (reply.Value != null)
                 {

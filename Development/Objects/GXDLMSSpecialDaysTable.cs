@@ -232,7 +232,7 @@ namespace Gurux.DLMS.Objects
                 if (e.Value != null)
                 {
                     List<GXDLMSSpecialDay> items = new List<GXDLMSSpecialDay>();
-                    foreach (Object[] item in (Object[])e.Value)
+                    foreach (List<object> item in (List<object>)e.Value)
                     {
                         GXDLMSSpecialDay it = new GXDLMSSpecialDay();
                         it.Index = Convert.ToUInt16(item[0]);
@@ -276,7 +276,7 @@ namespace Gurux.DLMS.Objects
                 }
                 if (e.Index == 1)
                 {
-                    Object[] item = (Object[])e.Parameters;
+                    List<object> item = (List<object>)e.Parameters;
                     GXDLMSSpecialDay it = new GXDLMSSpecialDay();
                     it.Index = Convert.ToUInt16(item[0]);
                     it.Date = (GXDate)GXDLMSClient.ChangeType((byte[])item[1], DataType.Date, settings.UseUtc2NormalTime);

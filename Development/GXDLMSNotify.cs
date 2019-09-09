@@ -366,8 +366,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="data">Received data.</param>
         /// <returns>Array of objects and called indexes.</returns>
-        public List<KeyValuePair<GXDLMSObject, int>>
-            ParsePush(Object[] data)
+        public List<KeyValuePair<GXDLMSObject, int>> ParsePush(List<object> data)
         {
             int index;
             GXDLMSObject obj;
@@ -378,32 +377,31 @@ namespace Gurux.DLMS
             {
                 GXDLMSConverter c = new GXDLMSConverter();
                 GXDLMSObjectCollection objects = new GXDLMSObjectCollection();
-                foreach (Object it in (Object[])data[0])
+                foreach (List<object> it in (List<object>)data[0])
                 {
-                    Object[] tmp = (Object[])it;
-                    int classID = ((UInt16)(tmp[0])) & 0xFFFF;
+                    int classID = ((UInt16)(it[0])) & 0xFFFF;
                     if (classID > 0)
                     {
                         GXDLMSObject comp;
-                        comp = this.Objects.FindByLN((ObjectType)classID, GXCommon.ToLogicalName(tmp[1] as byte[]));
+                        comp = this.Objects.FindByLN((ObjectType)classID, GXCommon.ToLogicalName(it[1] as byte[]));
                         if (comp == null)
                         {
-                            comp = GXDLMSClient.CreateDLMSObject(classID, 0, 0, tmp[1], null);
+                            comp = GXDLMSClient.CreateDLMSObject(classID, 0, 0, it[1], null);
                             c.UpdateOBISCodeInformation(comp);
                             objects.Add(comp);
                         }
                         if ((comp is IGXDLMSBase))
                         {
-                            items.Add(new KeyValuePair<GXDLMSObject, int>(comp, (sbyte)tmp[2]));
+                            items.Add(new KeyValuePair<GXDLMSObject, int>(comp, (sbyte)it[2]));
                         }
                         else
                         {
                             System.Diagnostics.Debug.WriteLine(string.Format("Unknown object : {0} {1}",
-                                classID, GXCommon.ToLogicalName((byte[])tmp[1])));
+                                classID, GXCommon.ToLogicalName((byte[])it[1])));
                         }
                     }
                 }
-                for (int pos = 0; pos < data.Length; ++pos)
+                for (int pos = 0; pos < data.Count; ++pos)
                 {
                     obj = items[pos].Key as GXDLMSObject;
                     value = data[pos];

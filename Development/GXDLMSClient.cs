@@ -1035,9 +1035,9 @@ namespace Gurux.DLMS
                 {
                     break;
                 }
-                object[] objects = (object[])GXCommon.GetData(Settings, buff, info);
+                List<object> objects = (List<object>)GXCommon.GetData(Settings, buff, info);
                 info.Clear();
-                if (objects.Length != 4)
+                if (objects.Count != 4)
                 {
                     throw new GXDLMSException("Invalid structure format.");
                 }
@@ -1080,11 +1080,11 @@ namespace Gurux.DLMS
         {
             obj.ObjectType = objectType;
             // Check access rights...
-            if (accessRights is object[] && ((object[])accessRights).Length == 2)
+            if (accessRights is List<object> && ((List<object>)accessRights).Count == 2)
             {
                 //access_rights: access_right
-                object[] access = (object[])accessRights;
-                foreach (object[] attributeAccess in (object[])access[0])
+                List<object> access = (List<object>)accessRights;
+                foreach (List<object> attributeAccess in (List<object>)access[0])
                 {
                     int id = Convert.ToInt32(attributeAccess[0]);
                     AccessMode mode = (AccessMode)Convert.ToInt32(attributeAccess[1]);
@@ -1094,11 +1094,11 @@ namespace Gurux.DLMS
                         obj.SetAccess(id, mode);
                     }
                 }
-                if (((object[])access[1]).Length != 0)
+                if (((List<object>)access[1]).Count != 0)
                 {
-                    if (((object[])access[1])[0] is object[])
+                    if (((List<object>)access[1])[0] is List<object>)
                     {
-                        foreach (object[] methodAccess in (object[])access[1])
+                        foreach (List<object> methodAccess in (List<object>)access[1])
                         {
                             int id = Convert.ToInt32(methodAccess[0]);
                             int tmp;
@@ -1119,7 +1119,7 @@ namespace Gurux.DLMS
                     }
                     else //All versions from Actaris SL 7000 do not return collection as standard says.
                     {
-                        object[] arr = (object[])access[1];
+                        List<object> arr = (List<object>)access[1];
                         int id = Convert.ToInt32(arr[0]) + 1;
                         int tmp;
                         //If version is 0.
@@ -1212,33 +1212,32 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="data">Received data.</param>
         /// <returns>Array of objects and called indexes.</returns>
-        public List<KeyValuePair<GXDLMSObject, int>> ParsePushObjects(object[] data)
+        public List<KeyValuePair<GXDLMSObject, int>> ParsePushObjects(List<object> data)
         {
             List<KeyValuePair<GXDLMSObject, int>> objects = new List<KeyValuePair<GXDLMSObject, int>>();
             if (data != null)
             {
                 GXDLMSConverter c = new GXDLMSConverter(Standard);
-                foreach (object it in (object[])data)
+                foreach (List<object> it in (List<object>)data)
                 {
-                    Object[] tmp = (Object[])it;
-                    int classID = ((UInt16)(tmp[0])) & 0xFFFF;
+                    int classID = ((UInt16)(it[0])) & 0xFFFF;
                     if (classID > 0)
                     {
                         GXDLMSObject comp;
-                        comp = this.Objects.FindByLN((ObjectType)classID, GXCommon.ToLogicalName(tmp[1] as byte[]));
+                        comp = this.Objects.FindByLN((ObjectType)classID, GXCommon.ToLogicalName(it[1] as byte[]));
                         if (comp == null)
                         {
-                            comp = GXDLMSClient.CreateDLMSObject(classID, 0, 0, tmp[1], null);
+                            comp = GXDLMSClient.CreateDLMSObject(classID, 0, 0, it[1], null);
                             c.UpdateOBISCodeInformation(comp);
                         }
                         if ((comp is IGXDLMSBase))
                         {
-                            objects.Add(new KeyValuePair<GXDLMSObject, int>(comp, (sbyte)tmp[2]));
+                            objects.Add(new KeyValuePair<GXDLMSObject, int>(comp, (sbyte)it[2]));
                         }
                         else
                         {
                             System.Diagnostics.Debug.WriteLine(string.Format("Unknown object : {0} {1}",
-                                classID, GXCommon.ToLogicalName((byte[])tmp[1])));
+                                classID, GXCommon.ToLogicalName((byte[])it[1])));
                         }
                     }
                 }
@@ -1268,8 +1267,8 @@ namespace Gurux.DLMS
             while (buff.Position != buff.Size && cnt != objectCnt)
             {
                 info.Clear();
-                object[] objects = (object[])GXCommon.GetData(Settings, buff, info);
-                if (objects.Length != 4)
+                List<object> objects = (List<object>)GXCommon.GetData(Settings, buff, info);
+                if (objects.Count != 4)
                 {
                     throw new GXDLMSException("Invalid structure format.");
                 }

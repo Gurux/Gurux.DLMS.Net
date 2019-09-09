@@ -619,9 +619,10 @@ namespace Gurux.DLMS
                 case DataType.None:
                     return null;
                 case DataType.Array:
+                    return typeof(GXArray);
                 case DataType.CompactArray:
                 case DataType.Structure:
-                    return typeof(object[]);
+                    return typeof(GXStructure);
                 case DataType.Bcd:
                     return typeof(string);
                 case DataType.BitString:

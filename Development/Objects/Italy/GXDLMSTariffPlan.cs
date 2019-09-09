@@ -292,7 +292,7 @@ namespace Gurux.DLMS.Objects.Italy
             return null;
         }
 
-        private static void UpdateIntervals(GXDLMSInterval[] intervals, object[] value)
+        private static void UpdateIntervals(GXDLMSInterval[] intervals, List<object> value)
         {
             int pos = 0;
             foreach (byte it in value)
@@ -305,15 +305,15 @@ namespace Gurux.DLMS.Objects.Italy
             }
         }
 
-        private static void UpdateSeason(GXBandDescriptor season, object[] value)
+        private static void UpdateSeason(GXBandDescriptor season, List<object> value)
         {
             if (value != null)
             {
                 season.DayOfMonth = Convert.ToByte(value[0]);
                 season.Month = Convert.ToByte(value[1]);
-                UpdateIntervals(season.WorkingDayIntervals, (object[])value[2]);
-                UpdateIntervals(season.SaturdayIntervals, (object[])value[3]);
-                UpdateIntervals(season.HolidayIntervals, (object[])value[4]);
+                UpdateIntervals(season.WorkingDayIntervals, (List<object>)value[2]);
+                UpdateIntervals(season.SaturdayIntervals, (List<object>)value[3]);
+                UpdateIntervals(season.HolidayIntervals, (List<object>)value[4]);
             }
         }
 
@@ -346,15 +346,15 @@ namespace Gurux.DLMS.Objects.Italy
                     break;
                 case 4:
                     {
-                        if (e.Value is object[])
+                        if (e.Value is List<object>)
                         {
-                            object[] it = e.Value as object[];
+                            List<object> it = e.Value as List<object>;
                             Plan.DefaultTariffBand = Convert.ToByte(it[0]);
-                            UpdateSeason(Plan.WinterSeason, (it[1] as object[])[0] as object[]);
-                            UpdateSeason(Plan.SummerSeason, (it[1] as object[])[1] as object[]);
+                            UpdateSeason(Plan.WinterSeason, (it[1] as List<object>)[0] as List<object>);
+                            UpdateSeason(Plan.SummerSeason, (it[1] as List<object>)[1] as List<object>);
                             Plan.WeeklyActivation = Convert.ToString(it[2]);
                             List<UInt16> days = new List<ushort>();
-                            foreach (UInt16 v in (object[])it[3])
+                            foreach (UInt16 v in (List<object>)it[3])
                             {
                                 days.Add(v);
                             }
@@ -366,9 +366,9 @@ namespace Gurux.DLMS.Objects.Italy
 
                 case 5:
                     {
-                        if (e.Value is object[])
+                        if (e.Value is List<object>)
                         {
-                            object[] it = e.Value as object[];
+                            List<object> it = e.Value as List<object>;
                             GXDateTime time = (GXDateTime)it[0];
                             time.Skip &= ~(DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.DayOfWeek);
                             GXDateTime date = (GXDateTime)it[1];

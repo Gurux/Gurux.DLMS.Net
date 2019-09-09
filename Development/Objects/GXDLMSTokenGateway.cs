@@ -379,7 +379,7 @@ namespace Gurux.DLMS.Objects
                     Descriptions.Clear();
                     if (e.Value != null)
                     {
-                        foreach (object it in (object[])e.Value)
+                        foreach (object it in (List<object>)e.Value)
                         {
                             Descriptions.Add(ASCIIEncoding.ASCII.GetString((byte[])it));
                         }
@@ -389,8 +389,8 @@ namespace Gurux.DLMS.Objects
                     DeliveryMethod = (TokenDelivery)Convert.ToByte(e.Value);
                     break;
                 case 6:
-                    StatusCode = (TokenStatusCode)Convert.ToByte(((object[])e.Value)[0]);
-                    DataValue = Convert.ToString(((object[])e.Value)[1]);
+                    StatusCode = (TokenStatusCode)Convert.ToByte(((List<object>)e.Value)[0]);
+                    DataValue = Convert.ToString(((List<object>)e.Value)[1]);
                     break;
                 default:
                     e.Error = ErrorCode.ReadWriteDenied;

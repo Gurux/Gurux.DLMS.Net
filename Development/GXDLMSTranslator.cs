@@ -1290,22 +1290,21 @@ namespace Gurux.DLMS
                         {
                             byte[] st;
                             st = settings.Cipher.SystemTitle;
-                            if (st != null)
+                            AesGcmParameter p;
+                            if (cmd == (byte)Command.GeneralDedCiphering && settings.Cipher.DedicatedKey != null)
                             {
-                                AesGcmParameter p;
-                                if (cmd == (byte)Command.GeneralDedCiphering && settings.Cipher.DedicatedKey != null)
-                                {
-                                    p = new AesGcmParameter(st, settings.Cipher.DedicatedKey, settings.Cipher.AuthenticationKey);
-                                }
-                                else
-                                {
-                                    p = new AesGcmParameter(st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
-                                }
-                                GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
-                                xml.StartComment("Decrypt data: " + data2.ToString());
-                                PduToXml(xml, data2, omitDeclaration, omitNameSpace, false);
-                                xml.EndComment();
+                                p = new AesGcmParameter(st, settings.Cipher.DedicatedKey, settings.Cipher.AuthenticationKey);
                             }
+                            else
+                            {
+                                p = new AesGcmParameter(st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                            }
+                            p.Xml = xml;
+                            GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
+                            len2 = xml.GetXmlLength();
+                            xml.StartComment("Decrypt data: " + data2.ToString());
+                            PduToXml(xml, data2, omitDeclaration, omitNameSpace, false);
+                            xml.EndComment();
                         }
                         catch (Exception)
                         {
@@ -2703,9 +2702,9 @@ namespace Gurux.DLMS
         private static void AppendValue(GXDLMSXmlSettings s, object dt, GXByteBuffer tmp2, string[] values, ref int pos)
         {
             GXByteBuffer tmp = new GXByteBuffer();
-            if (dt is List<object> || dt is object[])
+            if (dt is List<object>)
             {
-                foreach (object dt2 in (IEnumerable<object>)dt)
+                foreach (object dt2 in (List<object>)dt)
                 {
                     //For some reason there is count here in Italy standard. Add it.
                     if (s.settings.Standard == Standard.Italy && dt is List<object>)
@@ -2743,7 +2742,7 @@ namespace Gurux.DLMS
         {
             s.data.Position = 2;
             GXDataInfo info = new GXDataInfo();
-            object[] types = (object[])GXCommon.GetCompactArray(null, s.data, info, true);
+            List<object> types = (List<object>)GXCommon.GetCompactArray(null, s.data, info, true);
             object dt;
             s.data.Position = 0;
             GXByteBuffer tmp2 = new GXByteBuffer();
@@ -2760,7 +2759,7 @@ namespace Gurux.DLMS
                     string[] values = r.Trim().Split(';');
                     while (pos < values.Length)
                     {
-                        dt = types[col % types.Length];
+                        dt = types[col % types.Count];
                         AppendValue(s, dt, tmp2, values, ref pos);
                         ++col;
                     }

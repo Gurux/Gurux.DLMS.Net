@@ -289,7 +289,7 @@ namespace Gurux.DLMS.Objects
                 ListeningWindow.Clear();
                 if (e.Value != null)
                 {
-                    foreach (Object[] item in (Object[])e.Value)
+                    foreach (List<object> item in (List<object>)e.Value)
                     {
                         GXDateTime start = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[0], DataType.DateTime, settings.UseUtc2NormalTime);
                         GXDateTime end = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime, settings.UseUtc2NormalTime);
@@ -310,8 +310,8 @@ namespace Gurux.DLMS.Objects
                 NumberOfRingsInListeningWindow = NumberOfRingsOutListeningWindow = 0;
                 if (e.Value != null)
                 {
-                    NumberOfRingsInListeningWindow = Convert.ToInt32(((Object[])e.Value)[0]);
-                    NumberOfRingsOutListeningWindow = Convert.ToInt32(((Object[])e.Value)[1]);
+                    NumberOfRingsInListeningWindow = Convert.ToInt32(((List<object>)e.Value)[0]);
+                    NumberOfRingsOutListeningWindow = Convert.ToInt32(((List<object>)e.Value)[1]);
                 }
             }
             else

@@ -2081,41 +2081,6 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Encrypt Flag name to two bytes.
-        /// </summary>
-        /// <param name="flagName">3 letter Flag name.</param>
-        /// <returns>Encrypted Flag name.</returns>
-        static UInt16 EncryptManufacturer(string flagName)
-        {
-            if (flagName.Length != 3)
-            {
-                throw new ArgumentOutOfRangeException("Invalid Flag name.");
-            }
-            UInt16 value = (char)((flagName[0] - 0x40) & 0x1f);
-            value <<= 5;
-            value += (char)((flagName[1] - 0x40) & 0x1f);
-            value <<= 5;
-            value += (char)((flagName[2] - 0x40) & 0x1f);
-            return value;
-        }
-
-        /// <summary>
-        /// Descrypt two bytes to Flag name.
-        /// </summary>
-        /// <param name="value">Encrypted Flag name.</param>
-        /// <returns>Flag name.</returns>
-        static string DecryptManufacturer(UInt16 value)
-        {
-            UInt16 tmp = (UInt16)(value >> 8 | value << 8);
-            char c = (char)((tmp & 0x1f) + 0x40);
-            tmp = (UInt16)(tmp >> 5);
-            char c1 = (char)((tmp & 0x1f) + 0x40);
-            tmp = (UInt16)(tmp >> 5);
-            char c2 = (char)((tmp & 0x1f) + 0x40);
-            return new string(new char[] { c2, c1, c });
-        }
-
-        /// <summary>
         /// Get data from Wireless M-Bus frame.
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
@@ -2145,7 +2110,7 @@ namespace Gurux.DLMS
                 MBusCommand cmd = (MBusCommand)buff.GetUInt8();
                 //M-Field.
                 UInt16 manufacturerID = buff.GetUInt16();
-                string man = DecryptManufacturer(manufacturerID);
+                string man = GXCommon.DecryptManufacturer(manufacturerID);
                 //A-Field.
                 UInt32 id = buff.GetUInt32();
                 byte meterVersion = buff.GetUInt8();
@@ -2360,9 +2325,9 @@ namespace Gurux.DLMS
             if (cnt != 1)
             {
                 values = new List<object>();
-                if (reply.Value is object[])
+                if (reply.Value is List<object>)
                 {
-                    values.AddRange((object[])reply.Value);
+                    values.AddRange((List<object>)reply.Value);
                 }
                 reply.Value = null;
             }
@@ -2772,7 +2737,7 @@ namespace Gurux.DLMS
             byte ch = 0;
             //Get object count.
             int cnt = GXCommon.GetObjectCount(reply.Data);
-            object[] values = new object[cnt];
+            List<object> values = new List<object>(cnt);
             if (reply.Xml != null)
             {
                 //Result start tag.
@@ -2802,10 +2767,7 @@ namespace Gurux.DLMS
                         reply.ReadPosition = reply.Data.Position;
                         GetValueFromData(settings, reply);
                         reply.Data.Position = reply.ReadPosition;
-                        if (values != null)
-                        {
-                            values[pos] = reply.Value;
-                        }
+                        values.Add(reply.Value);
                         reply.Value = null;
                     }
                 }
@@ -3728,7 +3690,7 @@ namespace Gurux.DLMS
         {
             GXByteBuffer data = reply.Data;
             GXDataInfo info = new GXDataInfo();
-            if (reply.Value is Object[])
+            if (reply.Value is List<object>)
             {
                 info.Type = DataType.Array;
                 info.Count = reply.TotalCount;
@@ -3744,7 +3706,7 @@ namespace Gurux.DLMS
                     lock (reply)
                     {
                         // If new data.
-                        if (!(value is Object[]))
+                        if (!(value is List<object>))
                         {
                             reply.DataType = info.Type;
                             reply.Value = value;
@@ -3753,7 +3715,7 @@ namespace Gurux.DLMS
                         }
                         else
                         {
-                            if (((Object[])value).Length != 0)
+                            if (((List<object>)value).Count != 0)
                             {
                                 if (reply.Value == null)
                                 {
@@ -3762,10 +3724,7 @@ namespace Gurux.DLMS
                                 else
                                 {
                                     // Add items to collection.
-                                    List<Object> list = new List<Object>();
-                                    list.AddRange((Object[])reply.Value);
-                                    list.AddRange((Object[])value);
-                                    reply.Value = list.ToArray();
+                                    ((List<object>)reply.Value).AddRange((List<object>)value);
                                 }
                             }
                             reply.ReadPosition = data.Position;

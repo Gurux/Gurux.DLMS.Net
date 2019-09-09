@@ -333,7 +333,7 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 3)
             {
                 //Add COSEM object.
-                GXDLMSObject obj = GetObject(settings, e.Parameters as object[]);
+                GXDLMSObject obj = GetObject(settings, e.Parameters as List<object>);
                 //Unknown objects are not add.
                 if (obj is IGXDLMSBase)
                 {
@@ -350,7 +350,7 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 4)
             {
                 //Remove COSEM object.
-                GXDLMSObject obj = GetObject(settings, e.Parameters as object[]);
+                GXDLMSObject obj = GetObject(settings, e.Parameters as List<object>);
                 //Unknown objects are not removed.
                 if (obj is IGXDLMSBase)
                 {
@@ -364,8 +364,8 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 5)
             {
-                object[] tmp = e.Parameters as object[];
-                if (tmp == null || tmp.Length != 2)
+                List<object> tmp = e.Parameters as List<object>;
+                if (tmp == null || tmp.Count != 2)
                 {
                     e.Error = ErrorCode.ReadWriteDenied;
                 }
@@ -376,8 +376,8 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 6)
             {
-                object[] tmp = e.Parameters as object[];
-                if (tmp == null || tmp.Length != 2)
+                List<object> tmp = e.Parameters as List<object>;
+                if (tmp == null || tmp.Count != 2)
                 {
                     e.Error = ErrorCode.ReadWriteDenied;
                 }
@@ -618,17 +618,17 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        void UpdateAccessRights(GXDLMSObject obj, Object[] buff)
+        void UpdateAccessRights(GXDLMSObject obj, List<object> buff)
         {
-            if (buff.Length != 0)
+            if (buff.Count != 0)
             {
-                foreach (Object[] attributeAccess in (Object[])buff[0])
+                foreach (List<object> attributeAccess in (List<object>)buff[0])
                 {
                     int id = Convert.ToInt32(attributeAccess[0]);
                     int mode = Convert.ToInt32(attributeAccess[1]);
                     obj.SetAccess(id, (AccessMode)mode);
                 }
-                foreach (Object[] methodAccess in (Object[])buff[1])
+                foreach (List<object> methodAccess in (List<object>)buff[1])
                 {
                     int id = Convert.ToInt32(methodAccess[0]);
                     int tmp;
@@ -833,7 +833,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
         /// <param name="item">received data.</param>
-        private GXDLMSObject GetObject(GXDLMSSettings settings, Object[] item)
+        private GXDLMSObject GetObject(GXDLMSSettings settings, List<object> item)
         {
             ObjectType type = (ObjectType)Convert.ToInt32(item[0]);
             int version = Convert.ToInt32(item[1]);
@@ -859,7 +859,7 @@ namespace Gurux.DLMS.Objects
             }
             if (obj is IGXDLMSBase && item[3] != null)
             {
-                UpdateAccessRights(obj, (Object[])item[3]);
+                UpdateAccessRights(obj, (List<object>)item[3]);
             }
             return obj;
         }
@@ -875,7 +875,7 @@ namespace Gurux.DLMS.Objects
                 ObjectList.Clear();
                 if (e.Value != null)
                 {
-                    foreach (Object[] item in (Object[])e.Value)
+                    foreach (List<object> item in (List<object>)e.Value)
                     {
                         GXDLMSObject obj = GetObject(settings, item);
                         //Unknown objects are not shown.
@@ -890,8 +890,8 @@ namespace Gurux.DLMS.Objects
             {
                 if (e.Value != null)
                 {
-                    ClientSAP = Convert.ToByte(((Object[])e.Value)[0]);
-                    ServerSAP = Convert.ToUInt16(((Object[])e.Value)[1]);
+                    ClientSAP = Convert.ToByte(((List<object>)e.Value)[0]);
+                    ServerSAP = Convert.ToUInt16(((List<object>)e.Value)[1]);
                 }
             }
             else if (e.Index == 4)
@@ -963,7 +963,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else if (e.Value != null)
                 {
-                    Object[] arr = (Object[])e.Value;
+                    List<object> arr = (List<object>)e.Value;
                     ApplicationContextName.JointIsoCtt = Convert.ToByte(arr[0]);
                     ApplicationContextName.Country = Convert.ToByte(arr[1]);
                     ApplicationContextName.CountryName = Convert.ToUInt16(arr[2]);
@@ -977,7 +977,7 @@ namespace Gurux.DLMS.Objects
             {
                 if (e.Value != null)
                 {
-                    Object[] arr = (Object[])e.Value;
+                    List<object> arr = (List<object>)e.Value;
                     XDLMSContextInfo.Conformance = (Conformance)Convert.ToUInt32(arr[0]);
                     XDLMSContextInfo.MaxReceivePduSize = Convert.ToUInt16(arr[1]);
                     XDLMSContextInfo.MaxSendPduSize = Convert.ToUInt16(arr[2]);
@@ -1055,7 +1055,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else if (e.Value != null)
                 {
-                    Object[] arr = (Object[])e.Value;
+                    List<object> arr = (List<object>)e.Value;
                     AuthenticationMechanismName.JointIsoCtt = Convert.ToByte(arr[0]);
                     AuthenticationMechanismName.Country = Convert.ToByte(arr[1]);
                     AuthenticationMechanismName.CountryName = Convert.ToUInt16(arr[2]);
@@ -1089,7 +1089,7 @@ namespace Gurux.DLMS.Objects
                 UserList.Clear();
                 if (e.Value != null)
                 {
-                    foreach (Object[] item in (Object[])e.Value)
+                    foreach (List<object> item in (List<object>)e.Value)
                     {
                         UserList.Add(new KeyValuePair<byte, string>(Convert.ToByte(item[0]), Convert.ToString(item[1])));
                     }
@@ -1099,8 +1099,8 @@ namespace Gurux.DLMS.Objects
             {
                 if (e.Value != null)
                 {
-                    Object[] tmp = (Object[])e.Value;
-                    if (tmp.Length == 1)
+                    List<object> tmp = (List<object>)e.Value;
+                    if (tmp.Count == 1)
                     {
                         CurrentUser = new KeyValuePair<byte, string>(Convert.ToByte(tmp[0]), null);
                     }

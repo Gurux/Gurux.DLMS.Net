@@ -366,7 +366,7 @@ namespace Gurux.DLMS.Objects
                 case 6:
                     if (e.Value != null)
                     {
-                        object[] tmp = (object[])e.Value;
+                        List<object> tmp = (List<object>)e.Value;
                         CellInfo.CellId = Convert.ToUInt32(tmp[0]);
                         CellInfo.LocationId = (UInt16)tmp[1];
                         CellInfo.SignalQuality = (byte)tmp[2];
@@ -383,12 +383,11 @@ namespace Gurux.DLMS.Objects
                     AdjacentCells.Clear();
                     if (e.Value != null)
                     {
-                        foreach (object it in (object[])e.Value)
+                        foreach (List<object> it in (List<object>)e.Value)
                         {
-                            object[] tmp = (object[])it;
                             AdjacentCell ac = new Objects.AdjacentCell();
-                            ac.CellId = Convert.ToUInt32(tmp[0]);
-                            ac.SignalQuality = (byte)tmp[1];
+                            ac.CellId = Convert.ToUInt32(it[0]);
+                            ac.SignalQuality = (byte)it[1];
                             AdjacentCells.Add(ac);
                         }
                     }

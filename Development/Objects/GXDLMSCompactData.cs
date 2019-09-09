@@ -222,23 +222,22 @@ namespace Gurux.DLMS.Objects
             {
                 return new object[0];
             }
-            List<object> list = new List<object>();
             GXDataInfo info = new GXDataInfo();
-            return (object[])GXCommon.GetCompactArray(null, new GXByteBuffer(value), info, true);
+            return ((List<List<object>>)GXCommon.GetCompactArray(null, new GXByteBuffer(value), info, true)).ToArray();
         }
 
-        public static object[][] GetData(byte[] columns, byte[] value)
+        public static List<List<object>> GetData(byte[] columns, byte[] value)
         {
             return GetData(columns, value, false);
         }
 
-        public static object[][] GetData(byte[] columns, byte[] value, bool AppendAA)
+        public static List<List<object>> GetData(byte[] columns, byte[] value, bool AppendAA)
         {
-            List<object[]> row = new List<object[]>();
+            List<List<object>> row = new List<List<object>>();
             if (columns == null || columns.Length == 0 ||
                 value == null || value.Length == 0)
             {
-                return row.ToArray();
+                return row;
             }
             List<DataType> list = new List<DataType>();
             GXDataInfo info = new GXDataInfo();
@@ -247,9 +246,9 @@ namespace Gurux.DLMS.Objects
             bb.Set(columns);
             GXCommon.SetObjectCount(value.Length, bb);
             bb.Set(value);
-            object[] tmp = (object[])GXCommon.GetCompactArray(null, bb, info, false);
-            row.Add((object[])tmp[0]);
-            return row.ToArray();
+            List<object> tmp = (List<object>)GXCommon.GetCompactArray(null, bb, info, false);
+            row.Add((List<object>)tmp[0]);
+            return row;
         }
 
         /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
@@ -325,7 +324,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        private static void SetCaptureObjects(GXDLMSSettings settings, List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> list, object[] array)
+        private static void SetCaptureObjects(GXDLMSSettings settings, List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> list, List<object> array)
         {
             GXDLMSConverter c = null;
             list.Clear();
@@ -333,28 +332,27 @@ namespace Gurux.DLMS.Objects
             {
                 if (array != null)
                 {
-                    foreach (object it in array)
+                    foreach (List<object> it in array)
                     {
-                        object[] tmp = it as object[];
-                        if (tmp.Length != 4)
+                        if (it.Count != 4)
                         {
                             throw new GXDLMSException("Invalid structure format.");
                         }
-                        int v = Convert.ToInt16(tmp[0]);
+                        int v = Convert.ToInt16(it[0]);
                         if (Enum.GetName(typeof(ObjectType), v) == null)
                         {
                             list.Clear();
                             return;
                         }
                         ObjectType type = (ObjectType)v;
-                        string ln = GXCommon.ToLogicalName((byte[])tmp[1]);
-                        int attributeIndex = Convert.ToInt16(tmp[2]);
+                        string ln = GXCommon.ToLogicalName((byte[])it[1]);
+                        int attributeIndex = Convert.ToInt16(it[2]);
                         //If profile generic selective access is used.
                         if (attributeIndex < 0)
                         {
                             attributeIndex = 2;
                         }
-                        int dataIndex = Convert.ToInt16(tmp[3]);
+                        int dataIndex = Convert.ToInt16(it[3]);
                         GXDLMSObject obj = null;
                         if (settings != null && settings.Objects != null)
                         {
@@ -398,7 +396,7 @@ namespace Gurux.DLMS.Objects
                     }
                     break;
                 case 3:
-                    SetCaptureObjects(settings, CaptureObjects, (object[])e.Value);
+                    SetCaptureObjects(settings, CaptureObjects, (List<object>)e.Value);
                     if (settings.IsServer)
                     {
                         UpdateTemplateDescription();
@@ -675,9 +673,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="templateDescription">Template description byte array.</param>
         /// <param name="buffer">Buffer byte array.</param>
         /// <returns>Values from byte buffer.</returns>
-        object[] GetValues(
-            byte[] templateDescription,
-            byte[] buffer)
+        List<object> GetValues(byte[] templateDescription, byte[] buffer)
         {
             //If templateDescription or buffer is not given.
             if (templateDescription == null || buffer == null || templateDescription.Length == 0 || buffer.Length == 0)
@@ -692,7 +688,7 @@ namespace Gurux.DLMS.Objects
             data.Set(buffer);
             info.Type = DataType.CompactArray;
             tmp = GXCommon.GetData(null, data, info);
-            return (object[])tmp;
+            return (List<object>)tmp;
         }
     }
 }
