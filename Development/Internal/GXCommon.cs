@@ -37,6 +37,7 @@ using System.Collections.Generic;
 using System.Text;
 using Gurux.DLMS.Enums;
 using System.Diagnostics;
+using System.Net;
 
 namespace Gurux.DLMS.Internal
 {
@@ -2835,6 +2836,15 @@ namespace Gurux.DLMS.Internal
             {
                 xml.AppendEmptyTag(xml.GetDataType(DataType.None));
             }
+            else if (value is GXStructure)
+            {
+                xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure, null, null);
+                foreach (object it in (List<object>)value)
+                {
+                    DatatoXml(it, xml);
+                }
+                xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure);
+            }
             else if (value is GXArray)
             {
                 xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array, null, null);
@@ -2844,14 +2854,18 @@ namespace Gurux.DLMS.Internal
                 }
                 xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array);
             }
-            else if (value is GXStructure)
+            else if (value.GetType().IsArray)
             {
-                xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure, null, null);
-                foreach (object it in (List<object>)value)
+                xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array, null, null);
+                foreach (object it in (object[])value)
                 {
                     DatatoXml(it, xml);
                 }
-                xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure);
+                xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array);
+            }
+            else if (value is IPAddress)
+            {
+                xml.AppendLine(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.OctetString, null, ((IPAddress)value).GetAddressBytes());
             }
             else
             {
