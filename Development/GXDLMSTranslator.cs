@@ -3192,11 +3192,15 @@ namespace Gurux.DLMS
                     DataType dt = (DataType)Enum.Parse(typeof(DataType), str);
                     if (dt == DataType.Array)
                     {
-                        values.Add(GetNodes(node.ChildNodes).ToArray());
+                        GXArray arr = new GXArray();
+                        arr.AddRange(GetNodes(node.ChildNodes));
+                        values.Add(arr);
                     }
                     else if (dt == DataType.Structure)
                     {
-                        values.Add(GetNodes(node.ChildNodes).ToArray());
+                        GXStructure strucure = new GXStructure();
+                        strucure.AddRange(GetNodes(node.ChildNodes));
+                        values.Add(strucure);
                     }
                     else if (dt == DataType.OctetString)
                     {

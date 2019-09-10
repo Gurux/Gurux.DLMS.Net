@@ -2857,7 +2857,7 @@ namespace Gurux.DLMS.Internal
             else if (value.GetType().IsArray)
             {
                 xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array, null, null);
-                foreach (object it in (object[])value)
+                foreach (object it in (System.Collections.IEnumerable)value)
                 {
                     DatatoXml(it, xml);
                 }

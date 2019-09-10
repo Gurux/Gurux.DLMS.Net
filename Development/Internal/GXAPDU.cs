@@ -136,25 +136,11 @@ namespace Gurux.DLMS.Internal
             data.SetUInt8(0x1);
             if (settings.UseLogicalNameReferencing)
             {
-                if (ciphered)
-                {
-                    data.SetUInt8(3);
-                }
-                else
-                {
-                    data.SetUInt8(1);
-                }
+                data.SetUInt8((byte) (ciphered ? 3 : 1));
             }
             else
             {
-                if (ciphered)
-                {
-                    data.SetUInt8(4);
-                }
-                else
-                {
-                    data.SetUInt8(2);
-                }
+                data.SetUInt8((byte) (ciphered ? 4 : 2));
             }
             //Add system title if cipher or GMAC authentication is used..
             if (!settings.IsServer && (ciphered || settings.Authentication == Authentication.HighGMAC))
