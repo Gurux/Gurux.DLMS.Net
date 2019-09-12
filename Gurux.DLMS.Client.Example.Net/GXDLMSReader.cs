@@ -818,7 +818,7 @@ namespace Gurux.DLMS.Reader
                     }
                     else
                     {
-                        data = Client.ReceiverReady(reply.MoreData);
+                        data = Client.ReceiverReady(reply);
                     }
                     ReadDLMSPacket(data, reply);
                     if (Trace > TraceLevel.Info)

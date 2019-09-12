@@ -966,6 +966,7 @@ namespace Gurux.DLMS
                                 {
                                     len = p.settings.MaxPduSize - 7;
                                 }
+                                ciphering = false;
                             }
                         }
                         else if (p.command != Command.GetRequest && len + reply.Size > p.settings.MaxPduSize)
@@ -990,12 +991,11 @@ namespace Gurux.DLMS
                         reply.Set(tmp);
                     }
                 }
-
-                if (p.command != Command.GeneralBlockTransfer && p.Owner != null && p.Owner.pdu != null)
+                if (reply.Size != 0 && p.command != Command.GeneralBlockTransfer && p.Owner != null && p.Owner.pdu != null)
                 {
                     p.Owner.pdu(p.Owner, reply.Array());
                 }
-                if (p.command != Command.ReleaseRequest && ciphering && ((p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0))
+                if (ciphering && reply.Size != 0 && p.command != Command.ReleaseRequest && (!p.multipleBlocks || (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0))
                 {
                     //GBT ciphering is done for all the data, not just block.
                     byte[] tmp = Cipher0(p, reply.Array());
@@ -3418,10 +3418,9 @@ namespace Gurux.DLMS
                 }
                 if (cmd == Command.GeneralBlockTransfer)
                 {
-                    if (!data.IsMoreData)
-                    {
-                        HandleGbt(settings, data);
-                    }
+                    data.Data.Position = data.CipherIndex + 1;
+                    HandleGbt(settings, data);
+                    data.CipherIndex = data.Data.Size;
                     data.Command = Command.None;
                 }
                 else if (settings.IsServer)

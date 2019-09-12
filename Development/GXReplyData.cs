@@ -204,7 +204,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Cipher index is position where data is decrypted.
+        /// Cipher index is position where data is decrypted or GBT is read.
         /// </summary>
         public int CipherIndex
         {
