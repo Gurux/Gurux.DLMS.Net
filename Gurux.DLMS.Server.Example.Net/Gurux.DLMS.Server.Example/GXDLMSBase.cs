@@ -865,9 +865,9 @@ namespace GuruxDLMSServerExample
                     {
                         i.ImageTransferStatus = ImageTransferStatus.NotInitiated;
                         i.ImageActivateInfo = null;
-                        ImageUpdate = ASCIIEncoding.ASCII.GetString((byte[])(it.Parameters as object[])[0]);
+                        ImageUpdate = ASCIIEncoding.ASCII.GetString((byte[])(it.Parameters as List<object>)[0]);
                         string file = Path.Combine(Path.GetDirectoryName(typeof(GXDLMSBase).Assembly.Location), ImageUpdate + ".exe");
-                        System.Diagnostics.Debug.WriteLine("Updating image" + ImageUpdate + " Size:" + (it.Parameters as object[])[1]);
+                        System.Diagnostics.Debug.WriteLine("Updating image" + ImageUpdate + " Size:" + (it.Parameters as List<object>)[1]);
                         using (var writer = File.Create(file))
                         {
                         }
