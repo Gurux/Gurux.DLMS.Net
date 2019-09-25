@@ -312,6 +312,20 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        ///  Source system title.
+        /// </summary>
+        /// <remarks>
+        /// Meter returns system title when ciphered connection is made or GMAC authentication is used.
+        /// </remarks>
+        public byte[] SourceSystemTitle
+        {
+            get
+            {
+                return Settings.SourceSystemTitle;
+            }
+        }
+
+        /// <summary>
         /// DLMS version number.
         /// </summary>
         /// <remarks>

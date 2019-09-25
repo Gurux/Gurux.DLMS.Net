@@ -154,6 +154,10 @@ namespace Gurux.DLMS.Objects
             {
                 throw new Exception("Invalid image block size");
             }
+            if (ImageBlockSize > client.MaxReceivePDUSize)
+            {
+                throw new Exception("Image block size is bigger than max PDU size.");
+            }
             GXByteBuffer data = new GXByteBuffer();
             data.SetUInt8((byte)DataType.Structure);
             data.SetUInt8((byte)2);

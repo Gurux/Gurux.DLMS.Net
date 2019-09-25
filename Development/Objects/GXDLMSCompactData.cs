@@ -673,7 +673,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="templateDescription">Template description byte array.</param>
         /// <param name="buffer">Buffer byte array.</param>
         /// <returns>Values from byte buffer.</returns>
-        List<object> GetValues(byte[] templateDescription, byte[] buffer)
+        public List<object> GetValues(byte[] templateDescription, byte[] buffer)
         {
             //If templateDescription or buffer is not given.
             if (templateDescription == null || buffer == null || templateDescription.Length == 0 || buffer.Length == 0)
