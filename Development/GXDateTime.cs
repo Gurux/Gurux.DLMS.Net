@@ -615,11 +615,44 @@ namespace Gurux.DLMS
                     Remove(format, "mm", timeSeparator);
                     Remove(format, "m", timeSeparator);
                 }
-                if (format.ToString().Trim() == "")
+                string tmp = format.ToString().Trim();
+                if (tmp == "")
                 {
                     return "";
                 }
-                return Value.LocalDateTime.ToString(format.ToString().Trim());
+                //FormatException is thrown if length of format is 1.
+                if (tmp.IndexOf(dateSeparator) == -1 && tmp.IndexOf(timeSeparator) == -1)
+                {
+                    if ((Skip & DateTimeSkips.Year) == 0)
+                    {
+                        return Value.Year.ToString();
+                    }
+                    if ((Skip & DateTimeSkips.Month) == 0)
+                    {
+                        return Value.Month.ToString();
+                    }
+                    if ((Skip & DateTimeSkips.Day) == 0)
+                    {
+                        return Value.Day.ToString();
+                    }
+                    if ((Skip & DateTimeSkips.Hour) == 0)
+                    {
+                        return Value.Hour.ToString();
+                    }
+                    if ((Skip & DateTimeSkips.Minute) == 0)
+                    {
+                        return Value.Minute.ToString();
+                    }
+                    if ((Skip & DateTimeSkips.Second) == 0)
+                    {
+                        return Value.Second.ToString();
+                    }
+                    if ((Skip & DateTimeSkips.Ms) == 0)
+                    {
+                        return Value.Millisecond.ToString();
+                    }
+                }
+                return Value.LocalDateTime.ToString(tmp);
             }
             return Value.LocalDateTime.ToString();
         }

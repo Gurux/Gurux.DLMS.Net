@@ -223,7 +223,7 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8(2);
                 GXCommon.SetData(settings, data, DataType.Int8, scaler);
-                GXCommon.SetData(settings, data, DataType.UInt8, Unit);
+                GXCommon.SetData(settings, data, DataType.Enum, Unit);
                 return data.Array();
             }
             if (e.Index == 4)

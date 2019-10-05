@@ -34,15 +34,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Gurux.Common;
 using Gurux.Serial;
-using Gurux.DLMS;
-using Gurux.DLMS.ManufacturerSettings;
-using System.IO;
-using System.Xml.Serialization;
-using Gurux.DLMS.Objects;
 using Gurux.Net;
 using Gurux.DLMS.Enums;
 using System.Threading;
@@ -120,7 +114,7 @@ namespace Gurux.DLMS.Client.Example
                     }
                 }
                 else
-                {                  
+                {
                     reader.ReadAll(false);
                 }
             }
@@ -291,7 +285,7 @@ namespace Gurux.DLMS.Client.Example
                         }
                         catch (Exception)
                         {
-                            throw new ArgumentException("Invalid Ciphering option. (None, Authentication, Encrypted, AuthenticationEncryption)");
+                            throw new ArgumentException("Invalid Ciphering option '" + it.Value + "'. (None, Authentication, Encryption, AuthenticationEncryption)");
                         }
                         break;
                     case 'o':

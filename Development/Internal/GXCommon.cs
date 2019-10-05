@@ -1040,21 +1040,29 @@ namespace Gurux.DLMS.Internal
             return value;
         }
 
-        private static void GetCompactArrayItem(GXDLMSSettings settings, GXByteBuffer buff, List<object> dt, List<Object> list, int len)
+        private static void GetCompactArrayItem(GXDLMSSettings settings, GXByteBuffer buff, List<object> dt, List<Object> list, int len, bool array)
         {
-            List<object> tmp2 = new List<object>();
+            List<object> tmp;
+            if (array)
+            {
+                tmp = new GXArray();
+            }
+            else
+            {
+                tmp = new GXStructure();
+            }
             foreach (object it in dt)
             {
                 if (it is DataType)
                 {
-                    GetCompactArrayItem(settings, buff, (DataType)it, tmp2, 1);
+                    GetCompactArrayItem(settings, buff, (DataType)it, tmp, 1);
                 }
                 else
                 {
-                    GetCompactArrayItem(settings, buff, (List<object>)it, tmp2, 1);
+                    GetCompactArrayItem(settings, buff, (List<object>)it, tmp, 1, it is GXArray);
                 }
             }
-            list.Add(tmp2.ToArray());
+            list.Add(tmp);
         }
 
         private static void GetCompactArrayItem(GXDLMSSettings settings, GXByteBuffer buff, DataType dt, List<Object> list, int len)
@@ -1113,19 +1121,19 @@ namespace Gurux.DLMS.Internal
                 {
                     int cnt = buff.GetUInt16();
                     List<object> tmp = new List<object>();
-                    List<object> tmp2 = new List<object>();
+                    GXArray tmp2 = new GXArray();
                     GetDataTypes(buff, tmp, 1);
                     for (int i = 0; i != cnt; ++i)
                     {
-                        tmp2.AddRange(tmp);
+                        tmp2.Add(tmp[0]);
                     }
                     cols.Add(tmp2);
                 }
                 else if (dt == DataType.Structure)
                 {
-                    List<object> tmp = new List<object>();
+                    GXStructure tmp = new GXStructure();
                     GetDataTypes(buff, tmp, buff.GetUInt8());
-                    cols.Add(tmp.ToArray());
+                    cols.Add(tmp);
                 }
                 else
                 {
@@ -1207,11 +1215,19 @@ namespace Gurux.DLMS.Internal
                 throw new ArgumentException("Invalid compact array data.");
             }
             int len = GXCommon.GetObjectCount(buff);
-            List<Object> list = new List<Object>();
+            List<Object> list;
+            if (dt == DataType.Structure)
+            {
+                list = new GXStructure();
+            }
+            else
+            {
+                list = new GXArray();
+            }
             if (dt == DataType.Structure)
             {
                 // Get data types.
-                List<object> cols = new List<object>();
+                GXStructure cols = new GXStructure();
                 GetDataTypes(buff, cols, len);
                 if (onlyDataTypes)
                 {
@@ -1246,26 +1262,21 @@ namespace Gurux.DLMS.Internal
                 int start = buff.Position;
                 while (buff.Position - start < len)
                 {
-                    List<object> row = new List<object>();
+                    GXStructure row = new GXStructure();
                     for (int pos = 0; pos != cols.Count; ++pos)
                     {
                         if (cols[pos] is GXStructure)
                         {
-                            GetCompactArrayItem(null, buff, (List<object>)cols[pos], row, 1);
+                            GetCompactArrayItem(null, buff, (List<object>)cols[pos], row, 1, false);
                         }
                         else if (cols[pos] is GXArray)
                         {
-                            //Add array as a list. In that way we can separate structure and array.
-                            List<object> tmp2 = new List<object>();
                             //For some reason there is count here in Italy standard. Remove it.
                             if (info.AppendAA)
                             {
                                 GXCommon.GetObjectCount(buff);
                             }
-                            GetCompactArrayItem(null, buff, ((List<object>)cols[pos]), tmp2, 1);
-                            List<object> tmp3 = new List<object>();
-                            tmp3.AddRange((List<object>)tmp2[0]);
-                            row.Add(tmp3);
+                            GetCompactArrayItem(null, buff, ((List<object>)cols[pos]), row, 1, true);
                         }
                         else
                         {
@@ -2426,12 +2437,12 @@ namespace Gurux.DLMS.Internal
                 List<object> tmp;
                 if (value is List<object>)
                 {
-                    tmp = (List<object>) value;
+                    tmp = (List<object>)value;
                 }
                 else
                 {
                     tmp = new List<object>();
-                    tmp.AddRange((object[]) value);
+                    tmp.AddRange((object[])value);
                 }
                 SetObjectCount(tmp.Count, buff);
                 foreach (object it in tmp)
@@ -2849,15 +2860,6 @@ namespace Gurux.DLMS.Internal
             {
                 xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array, null, null);
                 foreach (object it in (List<object>)value)
-                {
-                    DatatoXml(it, xml);
-                }
-                xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array);
-            }
-            else if (value.GetType().IsArray)
-            {
-                xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array, null, null);
-                foreach (object it in (System.Collections.IEnumerable)value)
                 {
                     DatatoXml(it, xml);
                 }

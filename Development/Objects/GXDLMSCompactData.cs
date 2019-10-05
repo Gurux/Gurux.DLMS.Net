@@ -216,28 +216,28 @@ namespace Gurux.DLMS.Objects
             return 2;
         }
 
-        public static object[] GetDataTypes(byte[] value)
+        public static List<object> GetDataTypes(byte[] value)
         {
             if (value == null || value.Length == 0)
             {
-                return new object[0];
+                return new List<object>();
             }
             GXDataInfo info = new GXDataInfo();
-            return ((List<List<object>>)GXCommon.GetCompactArray(null, new GXByteBuffer(value), info, true)).ToArray();
+            object ret = GXCommon.GetCompactArray(null, new GXByteBuffer(value), info, true);
+            return ((List<object>)ret);
         }
 
-        public static List<List<object>> GetData(byte[] columns, byte[] value)
+        public static List<object> GetData(byte[] columns, byte[] value)
         {
             return GetData(columns, value, false);
         }
 
-        public static List<List<object>> GetData(byte[] columns, byte[] value, bool AppendAA)
+        public static List<object> GetData(byte[] columns, byte[] value, bool AppendAA)
         {
-            List<List<object>> row = new List<List<object>>();
             if (columns == null || columns.Length == 0 ||
                 value == null || value.Length == 0)
             {
-                return row;
+                return new GXArray();
             }
             List<DataType> list = new List<DataType>();
             GXDataInfo info = new GXDataInfo();
@@ -247,8 +247,7 @@ namespace Gurux.DLMS.Objects
             GXCommon.SetObjectCount(value.Length, bb);
             bb.Set(value);
             List<object> tmp = (List<object>)GXCommon.GetCompactArray(null, bb, info, false);
-            row.Add((List<object>)tmp[0]);
-            return row;
+            return tmp;
         }
 
         /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>

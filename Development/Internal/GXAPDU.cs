@@ -533,7 +533,7 @@ namespace Gurux.DLMS.Internal
             else
             {
                 //Max PDU size.
-                settings.MaxPduSize = data.GetUInt16();
+                settings.maxReceivePDUSize = data.GetUInt16();
                 if (xml != null)
                 {
                     // NegotiatedConformance closing

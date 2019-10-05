@@ -880,7 +880,11 @@ namespace Gurux.DLMS.Reader
             {
                 ReadDataBlock(it, reply);
                 //Value is null if data is send in multiple frames.
-                if (reply.Value is List<object>)
+                if (reply.Value is object[])
+                {
+                    values.AddRange((object[])reply.Value);
+                }
+                else if (reply.Value is List<object>)
                 {
                     values.AddRange((List<object>)reply.Value);
                 }

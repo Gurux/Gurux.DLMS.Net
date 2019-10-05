@@ -632,7 +632,7 @@ namespace Gurux.DLMS
             }
             set
             {
-                if (!IsServer && value < 64)
+                if (value < 64)
                 {
                     throw new ArgumentOutOfRangeException("MaxReceivePDUSize");
                 }

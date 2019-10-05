@@ -131,16 +131,20 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            string str = "";
+            StringBuilder sb = new StringBuilder();
             if (UserName != null)
             {
-                str = ASCIIEncoding.ASCII.GetString(UserName);
+                sb.Append(ASCIIEncoding.ASCII.GetString(UserName));
             }
             if (Password != null)
             {
-                str += " " + ASCIIEncoding.ASCII.GetString(Password);
+                if (sb.Length != 0)
+                {
+                    sb.Append(" ");
+                }
+                sb.Append(ASCIIEncoding.ASCII.GetString(Password));
             }
-            return new object[] { LogicalName, PHYReference, LCPOptions, IPCPOptions, str };
+            return new object[] { LogicalName, PHYReference, LCPOptions, IPCPOptions, sb.ToString() };
         }
 
         #region IGXDLMSBase Members
