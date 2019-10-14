@@ -553,7 +553,7 @@ namespace Gurux.DLMS.Objects
                 case 9:
                     return DataType.BitString;
                 case 10:
-                    return DataType.OctetString;
+                    return DataType.DateTime;
                 case 11:
                     return DataType.Int32;
                 case 12:
@@ -612,6 +612,15 @@ namespace Gurux.DLMS.Objects
                 }
             }
             return bb.Array();
+        }
+
+        public override DataType GetUIDataType(int index)
+        {
+            if (index == 7 || index == 10)
+            {
+                return DataType.DateTime;
+            }
+            return base.GetUIDataType(index);
         }
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
@@ -697,7 +706,14 @@ namespace Gurux.DLMS.Objects
                     SetUnitCharge(UnitChargePassive, e.Value);
                     break;
                 case 7:
-                    UnitChargeActivationTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
+                    if (e.Value is GXDateTime)
+                    {
+                        UnitChargeActivationTime = (GXDateTime)e.Value;
+                    }
+                    else
+                    {
+                        UnitChargeActivationTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
+                    }
                     break;
                 case 8:
                     Period = (UInt32)e.Value;
@@ -706,7 +722,14 @@ namespace Gurux.DLMS.Objects
                     ChargeConfiguration = Convert.ToString(e.Value);
                     break;
                 case 10:
-                    LastCollectionTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
+                    if (e.Value is GXDateTime)
+                    {
+                        LastCollectionTime = (GXDateTime)e.Value;
+                    }
+                    else
+                    {
+                        LastCollectionTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
+                    }
                     break;
                 case 11:
                     LastCollectionAmount = (Int32)e.Value;

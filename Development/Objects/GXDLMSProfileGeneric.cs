@@ -988,7 +988,7 @@ namespace Gurux.DLMS.Objects
             List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> list = new List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
             List<object> tmp = new List<object>();
             tmp.AddRange(array);
-            SetCaptureObjects(null, list, tmp);
+            SetCaptureObjects(null, null, list, tmp);
             return list;
         }
 
@@ -999,11 +999,11 @@ namespace Gurux.DLMS.Objects
         public static List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> GetCaptureObjects(List<object> array)
         {
             List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> list = new List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
-            SetCaptureObjects(null, list, array);
+            SetCaptureObjects(null, null, list, array);
             return list;
         }
 
-        private static void SetCaptureObjects(GXDLMSSettings settings, List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> list, List<object> array)
+        private static void SetCaptureObjects(GXDLMSProfileGeneric parent, GXDLMSSettings settings, List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> list, List<object> array)
         {
             GXDLMSConverter c = null;
             try
@@ -1030,7 +1030,8 @@ namespace Gurux.DLMS.Objects
                     {
                         obj = settings.Objects.FindByLN(type, ln);
                     }
-                    if (obj == null)
+                    //Create a new instance to avoid circular references.
+                    if (obj == null || obj == parent)
                     {
                         obj = GXDLMSClient.CreateDLMSObject((int)type, null, 0, ln, 0);
                         if (c == null)
@@ -1071,7 +1072,7 @@ namespace Gurux.DLMS.Objects
                 CaptureObjects.Clear();
                 if (e.Value != null)
                 {
-                    SetCaptureObjects(settings, CaptureObjects, e.Value as List<object>);
+                    SetCaptureObjects(this, settings, CaptureObjects, e.Value as List<object>);
                 }
             }
             else if (e.Index == 4)

@@ -307,10 +307,6 @@ namespace Gurux.DLMS.ManufacturerSettings
 
         public GXDLMSAttributeSettings Find(int index)
         {
-            if (index < 1)
-            {
-                throw new ArgumentOutOfRangeException("Invalid attribute Index.");
-            }
             foreach (GXDLMSAttributeSettings it in this)
             {
                 if (it.Index == index)
