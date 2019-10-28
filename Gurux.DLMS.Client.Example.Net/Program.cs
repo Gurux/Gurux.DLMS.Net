@@ -146,7 +146,7 @@ namespace Gurux.DLMS.Client.Example
         static int GetParameters(string[] args, Settings settings)
         {
             string[] tmp;
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:it:a:wP:g:S:C:");
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:it:a:wP:g:S:C:n:");
             GXNet net = null;
             foreach (GXCmdParameter it in parameters)
             {
@@ -295,6 +295,9 @@ namespace Gurux.DLMS.Client.Example
                         break;
                     case 's':
                         settings.client.ServerAddress = int.Parse(it.Value);
+                        break;
+                    case 'n':
+                        settings.client.ServerAddress = GXDLMSClient.GetServerAddress(int.Parse(it.Value));
                         break;
                     case '?':
                         switch (it.Tag)
