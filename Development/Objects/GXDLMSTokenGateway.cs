@@ -48,7 +48,8 @@ namespace Gurux.DLMS.Objects
     ///  Online help:<br/>
     ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSTokenGateway
     /// </remarks>
-    public enum TokenStatusCode : byte
+    [Flags]
+    public enum TokenStatusCode : int
     {
         /// <summary>
         /// Token format result OK.
@@ -389,7 +390,7 @@ namespace Gurux.DLMS.Objects
                     DeliveryMethod = (TokenDelivery)Convert.ToByte(e.Value);
                     break;
                 case 6:
-                    StatusCode = (TokenStatusCode)Convert.ToByte(((List<object>)e.Value)[0]);
+                    StatusCode = (TokenStatusCode)Convert.ToInt32(((List<object>)e.Value)[0]);
                     DataValue = Convert.ToString(((List<object>)e.Value)[1]);
                     break;
                 default:
@@ -400,7 +401,7 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Load(GXXmlReader reader)
         {
-            Token = GXCommon.HexToBytes( reader.ReadElementContentAsString("Token"));
+            Token = GXCommon.HexToBytes(reader.ReadElementContentAsString("Token"));
             string tmp = reader.ReadElementContentAsString("Time");
             if (tmp != null)
             {
@@ -436,7 +437,7 @@ namespace Gurux.DLMS.Objects
                 }
                 writer.WriteEndElement();
             }
-            writer.WriteElementString("DeliveryMethod", (int) DeliveryMethod);
+            writer.WriteElementString("DeliveryMethod", (int)DeliveryMethod);
             writer.WriteElementString("Status", (int)StatusCode);
             writer.WriteElementString("Data", DataValue);
         }

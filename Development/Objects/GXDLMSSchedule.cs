@@ -50,9 +50,8 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSSchedule()
-        : base(ObjectType.Schedule)
+        : this("0.0.12.0.0.255", 0)
         {
-            Entries = new List<GXScheduleEntry>();
         }
 
         /// <summary>
@@ -60,9 +59,8 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSSchedule(string ln)
-        : base(ObjectType.Schedule, ln, 0)
+        : this(ln, 0)
         {
-            Entries = new List<GXScheduleEntry>();
         }
 
         /// <summary>

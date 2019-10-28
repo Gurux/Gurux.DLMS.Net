@@ -33,7 +33,6 @@
 //---------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Gurux.DLMS.Objects;
 using Gurux.DLMS;
@@ -47,7 +46,6 @@ using System.IO;
 using System.Globalization;
 using System.Diagnostics;
 using System.Threading;
-using Gurux.Serial;
 
 namespace GuruxDLMSServerExample
 {

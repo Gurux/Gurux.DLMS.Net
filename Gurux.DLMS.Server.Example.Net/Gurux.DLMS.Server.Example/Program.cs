@@ -34,11 +34,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using Gurux.Net;
 using System.Diagnostics;
 using Gurux.Common;
-using Gurux.DLMS.Secure;
 using System.Threading;
 
 namespace GuruxDLMSServerExample
@@ -48,6 +45,7 @@ namespace GuruxDLMSServerExample
         public TraceLevel trace = TraceLevel.Info;
         public int port = 4060;
         public string serial;
+        public bool useLogicalNameReferencing = true;
     }
 
     class Program
@@ -66,9 +64,18 @@ namespace GuruxDLMSServerExample
             {
                 if (settings.serial != null)
                 {
-                    GXDLMSServerLN LNServer = new GXDLMSServerLN();
-                    LNServer.Initialize(settings.serial, settings.trace);
-                    Console.WriteLine("Logical Name DLMS Server in serial port {0}.", settings.serial);
+                    GXDLMSBase server;
+                    if (settings.useLogicalNameReferencing)
+                    {
+                        server = new GXDLMSServerLN();
+                        Console.WriteLine("Logical Name DLMS Server in serial port {0}.", settings.serial);
+                    }
+                    else
+                    {
+                        server = new GXDLMSServerSN();
+                        Console.WriteLine("Short Name DLMS Server in serial port {0}.", settings.serial);
+                    }
+                    server.Initialize(settings.serial, settings.trace);
                     Console.WriteLine("----------------------------------------------------------");
                     ConsoleKey k;
                     while ((k = Console.ReadKey().Key) != ConsoleKey.Escape)
@@ -80,7 +87,7 @@ namespace GuruxDLMSServerExample
                         Console.WriteLine("Press Esc to close application or delete clear the console.");
                     }
                     //Close servers.
-                    LNServer.Close();
+                    server.Close();
                 }
                 else
                 {
@@ -169,7 +176,7 @@ namespace GuruxDLMSServerExample
 
         static int GetParameters(string[] args, Settings settings)
         {
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "t:p:s:");
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "t:p:S:r:");
             foreach (GXCmdParameter it in parameters)
             {
                 switch (it.Tag)
@@ -189,9 +196,23 @@ namespace GuruxDLMSServerExample
                         //Port.
                         settings.port = int.Parse(it.Value);
                         break;
-                    case 's':
+                    case 'S':
                         //serial port.
                         settings.serial = it.Value;
+                        break;
+                    case 'r':
+                        if (string.Compare(it.Value, "sn", true) == 0)
+                        {
+                            settings.useLogicalNameReferencing = false;
+                        }
+                        else if (string.Compare(it.Value, "ln", true) == 0)
+                        {
+                            settings.useLogicalNameReferencing = true;
+                        }
+                        else
+                        {
+                            throw new ArgumentException("Invalid reference option.");
+                        }
                         break;
                     case '?':
                         switch (it.Tag)
@@ -200,6 +221,10 @@ namespace GuruxDLMSServerExample
                                 throw new ArgumentException("Missing mandatory port option.");
                             case 't':
                                 throw new ArgumentException("Missing mandatory trace option.\n");
+                            case 'S':
+                                throw new ArgumentException("Missing mandatory Serial port option.");
+                            case 'r':
+                                throw new ArgumentException("Missing mandatory reference option.");
                             default:
                                 ShowHelp();
                                 return 1;
@@ -217,7 +242,9 @@ namespace GuruxDLMSServerExample
             Console.WriteLine("Gurux DLMS example Server implements four DLMS/COSEM devices.");
             Console.WriteLine(" -t [Error, Warning, Info, Verbose] Trace messages.");
             Console.WriteLine(" -p Start port number. Default is 4060.");
-            Console.WriteLine(" -s Serial port.");
+            Console.WriteLine(" -S Serial port.");
+            Console.WriteLine(" -S Serial port.");
+            Console.WriteLine(" -r [sn, sn]\t Short name or Logican Name (default) referencing is used.");
         }
     }
 }

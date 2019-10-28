@@ -55,7 +55,7 @@ namespace Gurux.DLMS
         public static void HandleReadRequest(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml, Command cipheredCommand)
         {
             //Return error if connection is not established.
-            if (xml == null && (settings.Connected & ConnectionState.Hdlc) == 0 && cipheredCommand == Command.None)
+            if (xml == null && (settings.Connected & ConnectionState.Dlms) == 0 && cipheredCommand == Command.None)
             {
                 replyData.Add(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));
@@ -179,7 +179,7 @@ namespace Gurux.DLMS
                                               GXByteBuffer replyData, GXDLMSTranslatorStructure xml, Command cipheredCommand)
         {
             //Return error if connection is not established.
-            if (xml == null && (settings.Connected & ConnectionState.Hdlc) == 0 && cipheredCommand == Command.None)
+            if (xml == null && (settings.Connected & ConnectionState.Dlms) == 0 && cipheredCommand == Command.None)
             {
                 replyData.Add(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));
@@ -415,7 +415,7 @@ namespace Gurux.DLMS
                 e.Parameters = GXCommon.GetData(settings, data, di);
             }
             //Return error if connection is not established.
-            if ((settings.Connected & ConnectionState.Hdlc) == 0 && cipheredCommand == Command.None && (!e.action || e.Target.ShortName != 0xFA00 || e.Index != 8))
+            if ((settings.Connected & ConnectionState.Dlms) == 0 && cipheredCommand == Command.None && (!e.action || e.Target.ShortName != 0xFA00 || e.Index != 8))
             {
                 replyData.Add(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));
