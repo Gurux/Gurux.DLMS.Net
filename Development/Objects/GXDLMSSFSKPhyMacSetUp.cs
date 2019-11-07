@@ -580,9 +580,17 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 7)
             {
-                List<object> tmp = (List<object>)e.Value;
-                MarkFrequency = (UInt32)tmp[0];
-                SpaceFrequency = (UInt32)tmp[1];
+                if (e.Value != null)
+                {
+                    List<object> tmp = (List<object>)e.Value;
+                    MarkFrequency = (UInt32)tmp[0];
+                    SpaceFrequency = (UInt32)tmp[1];
+                }
+                else
+                {
+                    MarkFrequency = 0;
+                    SpaceFrequency = 0;
+                }
             }
             else if (e.Index == 8)
             {

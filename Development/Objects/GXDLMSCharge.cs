@@ -662,25 +662,36 @@ namespace Gurux.DLMS.Objects
 
         private void SetUnitCharge(GXUnitCharge charge, object value)
         {
-            List<object> tmp = (List<object>)value;
-            List<object> tmp2 = (List<object>)tmp[0];
-            charge.ChargePerUnitScaling.CommodityScale = (sbyte)tmp2[0];
-            charge.ChargePerUnitScaling.PriceScale = (sbyte)tmp2[1];
-            tmp2 = (List<object>)tmp[1];
-            ObjectType ot = (ObjectType)Convert.ToInt32(tmp2[0]);
-            string ln = GXCommon.ToLogicalName(tmp2[1]);
-            charge.Commodity.Target = Parent.FindByLN(ot, ln);
-            charge.Commodity.Index = (sbyte)tmp2[2];
-            List<GXChargeTable> list = new List<GXChargeTable>();
-            tmp2 = (List<object>)tmp[2];
-            foreach (List<object> it in tmp2)
+            if (value != null)
             {
-                GXChargeTable item = new GXChargeTable();
-                item.Index = ASCIIEncoding.ASCII.GetString((byte[])it[0]);
-                item.ChargePerUnit = (Int16)it[1];
-                list.Add(item);
+                List<object> tmp = (List<object>)value;
+                List<object> tmp2 = (List<object>)tmp[0];
+                charge.ChargePerUnitScaling.CommodityScale = (sbyte)tmp2[0];
+                charge.ChargePerUnitScaling.PriceScale = (sbyte)tmp2[1];
+                tmp2 = (List<object>)tmp[1];
+                ObjectType ot = (ObjectType)Convert.ToInt32(tmp2[0]);
+                string ln = GXCommon.ToLogicalName(tmp2[1]);
+                charge.Commodity.Target = Parent.FindByLN(ot, ln);
+                charge.Commodity.Index = (sbyte)tmp2[2];
+                List<GXChargeTable> list = new List<GXChargeTable>();
+                tmp2 = (List<object>)tmp[2];
+                foreach (List<object> it in tmp2)
+                {
+                    GXChargeTable item = new GXChargeTable();
+                    item.Index = ASCIIEncoding.ASCII.GetString((byte[])it[0]);
+                    item.ChargePerUnit = (Int16)it[1];
+                    list.Add(item);
+                }
+                charge.ChargeTables = list.ToArray();
             }
-            charge.ChargeTables = list.ToArray();
+            else
+            {
+                charge.ChargePerUnitScaling.CommodityScale = 0;
+                charge.ChargePerUnitScaling.PriceScale = 0;
+                charge.Commodity.Target = null;
+                charge.Commodity.Index = 0;
+                charge.ChargeTables = new GXChargeTable[0];
+            }
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
@@ -712,7 +723,7 @@ namespace Gurux.DLMS.Objects
                     }
                     else
                     {
-                        UnitChargeActivationTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
+                        UnitChargeActivationTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings != null && settings.UseUtc2NormalTime);
                     }
                     break;
                 case 8:
@@ -726,9 +737,17 @@ namespace Gurux.DLMS.Objects
                     {
                         LastCollectionTime = (GXDateTime)e.Value;
                     }
+                    else if (e.Value is byte[])
+                    {
+                        LastCollectionTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings != null && settings.UseUtc2NormalTime);
+                    }
+                    else if (e.Value is string)
+                    {
+                        LastCollectionTime = new GXDateTime(e.Value as string);
+                    }
                     else
                     {
-                        LastCollectionTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
+                        LastCollectionTime = null;
                     }
                     break;
                 case 11:

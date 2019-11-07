@@ -235,7 +235,14 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 2)
             {
-                Thresholds = ((List<object>)e.Value).ToArray();
+                if (e.Value != null)
+                {
+                    Thresholds = ((List<object>)e.Value).ToArray();
+                }
+                else
+                {
+                    Thresholds = new object[0];
+                }
             }
             else if (e.Index == 3)
             {
@@ -243,9 +250,18 @@ namespace Gurux.DLMS.Objects
                 {
                     MonitoredValue = new GXDLMSMonitoredValue();
                 }
-                MonitoredValue.ObjectType = (ObjectType)Convert.ToInt32(((List<object>)e.Value)[0]);
-                MonitoredValue.LogicalName = GXCommon.ToLogicalName(((List<object>)e.Value)[1]);
-                MonitoredValue.AttributeIndex = Convert.ToInt32(((List<object>)e.Value)[2]);
+                if (e.Value != null)
+                {
+                    MonitoredValue.ObjectType = (ObjectType)Convert.ToInt32(((List<object>)e.Value)[0]);
+                    MonitoredValue.LogicalName = GXCommon.ToLogicalName(((List<object>)e.Value)[1]);
+                    MonitoredValue.AttributeIndex = Convert.ToInt32(((List<object>)e.Value)[2]);
+                }
+                else
+                {
+                    MonitoredValue.ObjectType = ObjectType.None;
+                    MonitoredValue.LogicalName = "";
+                    MonitoredValue.AttributeIndex = 0;
+                }
             }
             else if (e.Index == 4)
             {

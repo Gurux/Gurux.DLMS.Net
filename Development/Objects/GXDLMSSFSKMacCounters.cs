@@ -357,12 +357,23 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 3)
             {
-                List<object> tmp = (List<object>)e.Value;
-                PhysicalLayerDesynchronization = (UInt32)tmp[0];
-                TimeOutNotAddressedDesynchronization = (UInt32)tmp[1];
-                TimeOutFrameNotOkDesynchronization = (UInt32)tmp[2];
-                WriteRequestDesynchronization = (UInt32)tmp[3];
-                WrongInitiatorDesynchronization = (UInt32)tmp[4];
+                if (e.Value != null)
+                {
+                    List<object> tmp = (List<object>)e.Value;
+                    PhysicalLayerDesynchronization = (UInt32)tmp[0];
+                    TimeOutNotAddressedDesynchronization = (UInt32)tmp[1];
+                    TimeOutFrameNotOkDesynchronization = (UInt32)tmp[2];
+                    WriteRequestDesynchronization = (UInt32)tmp[3];
+                    WrongInitiatorDesynchronization = (UInt32)tmp[4];
+                }
+                else
+                {
+                    PhysicalLayerDesynchronization = 0;
+                    TimeOutNotAddressedDesynchronization = 0;
+                    TimeOutFrameNotOkDesynchronization = 0;
+                    WriteRequestDesynchronization = 0;
+                    WrongInitiatorDesynchronization = 0;
+                }
             }
             else if (e.Index == 4)
             {

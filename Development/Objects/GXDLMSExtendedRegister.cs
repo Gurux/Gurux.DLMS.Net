@@ -105,7 +105,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, Value, "Scaler: " + Scaler + " Unit: " + Unit, Status, CaptureTime };
+            return new object[] { LogicalName, Value, new object[] { Scaler, Unit }, Status, CaptureTime };
         }
 
         public override bool IsRead(int index)

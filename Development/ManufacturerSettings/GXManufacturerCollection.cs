@@ -270,7 +270,7 @@ namespace Gurux.DLMS.ManufacturerSettings
                 XmlSerializer x = new XmlSerializer(typeof(GXManufacturer), extraTypes);
                 foreach (string it in Directory.GetFiles(path, "*.obx"))
                 {
-                    using (Stream stream = File.Open(it, FileMode.Open))
+                    using (Stream stream = File.Open(it, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     {
                         using (TextReader reader = new StreamReader(stream))
                         {

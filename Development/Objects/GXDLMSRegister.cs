@@ -133,7 +133,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, Value, "Scaler: " + Scaler + " Unit: " + Unit };
+            return new object[] { LogicalName, Value, new GXStructure { Scaler, Unit } };
         }
 
         #region IGXDLMSBase Members

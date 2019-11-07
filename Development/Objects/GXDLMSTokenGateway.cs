@@ -48,7 +48,6 @@ namespace Gurux.DLMS.Objects
     ///  Online help:<br/>
     ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSTokenGateway
     /// </remarks>
-    [Flags]
     public enum TokenStatusCode : int
     {
         /// <summary>
@@ -296,6 +295,16 @@ namespace Gurux.DLMS.Objects
             return 1;
         }
 
+        public override DataType GetUIDataType(int index)
+        {
+            if (index == 3)
+            {
+                return DataType.DateTime;
+            }
+            return base.GetUIDataType(index);
+        }
+
+
         /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
         public override DataType GetDataType(int index)
         {
@@ -374,7 +383,18 @@ namespace Gurux.DLMS.Objects
                     Token = (byte[])e.Value;
                     break;
                 case 3:
-                    Time = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
+                    if (e.Value is byte[])
+                    {
+                        Time = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings != null && settings.UseUtc2NormalTime);
+                    }
+                    else if (e.Value is string)
+                    {
+                        Time = new GXDateTime((string)e.Value);
+                    }
+                    else
+                    {
+                        Time = (GXDateTime) e.Value;
+                    }
                     break;
                 case 4:
                     Descriptions.Clear();
@@ -390,8 +410,16 @@ namespace Gurux.DLMS.Objects
                     DeliveryMethod = (TokenDelivery)Convert.ToByte(e.Value);
                     break;
                 case 6:
-                    StatusCode = (TokenStatusCode)Convert.ToInt32(((List<object>)e.Value)[0]);
-                    DataValue = Convert.ToString(((List<object>)e.Value)[1]);
+                    if (e.Value != null)
+                    {
+                        StatusCode = (TokenStatusCode)Convert.ToInt32(((List<object>)e.Value)[0]);
+                        DataValue = Convert.ToString(((List<object>)e.Value)[1]);
+                    }
+                    else
+                    {
+                        StatusCode = TokenStatusCode.FormatOk;
+                        DataValue = "";
+                    }
                     break;
                 default:
                     e.Error = ErrorCode.ReadWriteDenied;

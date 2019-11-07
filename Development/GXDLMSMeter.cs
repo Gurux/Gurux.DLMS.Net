@@ -66,7 +66,7 @@ namespace Gurux.DLMS
             set;
         }
 
-        
+
         /// <summary>
         /// Maximum used baud rate.
         /// </summary>
@@ -78,9 +78,10 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Used authentication.
+        /// Authentication Level.
         /// </summary>
         [DefaultValue(Authentication.None)]
+        [Description("Authentication Level.")]
         public Authentication Authentication
         {
             get;
@@ -131,6 +132,7 @@ namespace Gurux.DLMS
         /// System Title.
         /// </summary>
         [DefaultValue(null)]
+        [Description("Client system title.")]
         public string SystemTitle
         {
             get;
@@ -171,7 +173,8 @@ namespace Gurux.DLMS
         /// Block cipher key.
         /// </summary>
         [DefaultValue(null)]
-        public string BlockCipherKey
+        [Description("Block cipher key.")]
+        public virtual string BlockCipherKey
         {
             get;
             set;
@@ -181,7 +184,7 @@ namespace Gurux.DLMS
         /// Authentication key.
         /// </summary>
         [DefaultValue(null)]
-        public string AuthenticationKey
+        public virtual string AuthenticationKey
         {
             get;
             set;
@@ -223,8 +226,8 @@ namespace Gurux.DLMS
         /// <remarks>
         /// Server HDLC Address (Logical + Physical address)  might be 1,2 or 4 bytes long.
         /// </remarks>
-        [DefaultValue(null)]
-        public object PhysicalAddress
+        [DefaultValue(1)]
+        virtual public int PhysicalAddress
         {
             get;
             set;
@@ -245,6 +248,7 @@ namespace Gurux.DLMS
         /// If meter is configured to use UTC time (UTC to normal time) set this to true.
         /// </summary>
         [DefaultValue(false)]
+        [Description("Use UTC time zone.")]
         public bool UtcTimeZone
         {
             get;
@@ -255,9 +259,10 @@ namespace Gurux.DLMS
         /// USed logical client ID.
         /// </summary>
         /// <remarks>
-        /// Client ID is always 1 byte long.
+        /// Client ID is always 1 byte long in HDLC and 2 bytes long when WRAPPER is used.
         /// </remarks>
         [DefaultValue(0x10)]
+        [Description("Client address.")]
         public int ClientAddress
         {
             get;
@@ -287,7 +292,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Used interface type.
         /// </summary>
-        [Browsable(false)]
+        [Description("Interface type.")]
         [DefaultValue(InterfaceType.HDLC)]
         public InterfaceType InterfaceType
         {
@@ -450,6 +455,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Name of the meter.
         /// </summary>
+        [Description("Device Name.")]
         public string Name
         {
             get;
@@ -467,14 +473,15 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Used Conformance.
+        /// Proposed Conformance.
         /// </summary>
+        [Description("Proposed Conformance.")]
         public int Conformance
         {
             get;
             set;
         }
-      
+
         /// <summary>
         /// Name of the manufacturer.
         /// </summary>
@@ -544,12 +551,83 @@ namespace Gurux.DLMS
             set;
         }
 
+        private GXDLMSObjectCollection objects;
+
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
         [XmlArray("Objects2")]
-        public GXDLMSObjectCollection Objects
+        public virtual GXDLMSObjectCollection Objects
         {
-            get;
-            set;
+            get
+            {
+                return objects;
+            }
+            set
+            {
+                if (objects != null)
+                {
+                    objects.Parent = null;
+                }
+                objects = value;
+                if (objects != null)
+                {
+                    objects.Parent = this;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Copy meter settings.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="source"></param>
+        public static void Copy(GXDLMSMeter target, GXDLMSMeter source)
+        {
+            target.WaitTime = source.WaitTime;
+            target.ResendCount = source.ResendCount;
+            target.MaximumBaudRate = source.MaximumBaudRate;
+            target.Authentication = source.Authentication;
+            target.Standard = source.Standard;
+            target.Password = source.Password;
+            target.HexPassword = source.HexPassword;
+            target.Security = source.Security;
+            target.SystemTitle = source.SystemTitle;
+            target.ServerSystemTitle = source.ServerSystemTitle;
+            target.DedicatedKey = source.DedicatedKey;
+            target.PreEstablished = source.PreEstablished;
+            target.BlockCipherKey = source.BlockCipherKey;
+            target.AuthenticationKey = source.AuthenticationKey;
+            target.InvocationCounter = source.InvocationCounter;
+            target.FrameCounter = source.FrameCounter;
+            target.Challenge = source.Challenge;
+            target.PhysicalAddress = source.PhysicalAddress;
+            target.LogicalAddress = source.LogicalAddress;
+            target.UtcTimeZone = source.UtcTimeZone;
+            target.ClientAddress = source.ClientAddress;
+            target.StartProtocol = source.StartProtocol;
+            target.UseRemoteSerial = source.UseRemoteSerial;
+            target.InterfaceType = source.InterfaceType;
+            target.UseFrameSize = source.UseFrameSize;
+            target.MaxInfoTX = source.MaxInfoTX;
+            target.MaxInfoRX = source.MaxInfoRX;
+            target.WindowSizeTX = source.WindowSizeTX;
+            target.WindowSizeRX = source.WindowSizeRX;
+            target.PduSize = source.PduSize;
+            target.UserId = source.UserId;
+            target.NetworkId = source.NetworkId;
+            target.PhysicalDeviceAddress = source.PhysicalDeviceAddress;
+            target.InactivityTimeout = source.InactivityTimeout;
+            target.ServiceClass = source.ServiceClass;
+            target.Priority = source.Priority;
+            target.ServerAddressSize = source.ServerAddressSize;
+            target.Name = source.Name;
+            target.Verbose = source.Verbose;
+            target.Conformance = source.Conformance;
+            target.Manufacturer = source.Manufacturer;
+            target.HDLCAddressing = source.HDLCAddressing;
+            target.MediaType = source.MediaType;
+            target.MediaSettings = source.MediaSettings;
+            target.UseLogicalNameReferencing = source.UseLogicalNameReferencing;
+            target.Objects = source.Objects;
         }
     }
 }

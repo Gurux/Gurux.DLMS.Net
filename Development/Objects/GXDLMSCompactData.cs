@@ -396,7 +396,7 @@ namespace Gurux.DLMS.Objects
                     break;
                 case 3:
                     SetCaptureObjects(settings, CaptureObjects, (List<object>)e.Value);
-                    if (settings.IsServer)
+                    if (settings != null && settings.IsServer)
                     {
                         UpdateTemplateDescription();
                     }

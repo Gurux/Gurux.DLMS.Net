@@ -232,6 +232,16 @@ namespace Gurux.DLMS.Objects
             return false;
         }
 
+        public override DataType GetUIDataType(int index)
+        {
+            if (index == 10)
+            {
+                return DataType.DateTime;
+            }
+            return base.GetUIDataType(index);
+        }
+
+
         /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
         public override DataType GetDataType(int index)
         {

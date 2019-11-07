@@ -549,7 +549,7 @@ namespace Gurux.DLMS.Objects
                 {
                     if (e.Value is byte[])
                     {
-                        e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
+                        e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings != null && settings.UseUtc2NormalTime);
                     }
                     else if (e.Value is string)
                     {
@@ -630,7 +630,7 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 8)
             {
                 Enabled = Convert.ToBoolean(e.Value);
-                if (settings.IsServer)
+                if (settings != null && settings.IsServer)
                 {
                     if (Enabled)
                     {

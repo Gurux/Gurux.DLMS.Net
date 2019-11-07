@@ -1079,7 +1079,7 @@ namespace Gurux.DLMS.Objects
             {
                 //Any write access to one of the attributes will automatically call a reset
                 //and this call will propagate to all other profiles capturing this profile.
-                if (settings.IsServer)
+                if (settings != null && settings.IsServer)
                 {
                     Reset();
                 }
@@ -1089,7 +1089,7 @@ namespace Gurux.DLMS.Objects
             {
                 //Any write access to one of the attributes will automatically call a reset
                 //and this call will propagate to all other profiles capturing this profile.
-                if (settings.IsServer)
+                if (settings != null && settings.IsServer)
                 {
                     Reset();
                 }
@@ -1099,7 +1099,7 @@ namespace Gurux.DLMS.Objects
             {
                 //Any write access to one of the attributes will automatically call a reset
                 //and this call will propagate to all other profiles capturing this profile.
-                if (settings.IsServer)
+                if (settings != null && settings.IsServer)
                 {
                     Reset();
                 }
@@ -1143,7 +1143,7 @@ namespace Gurux.DLMS.Objects
             {
                 //Any write access to one of the attributes will automatically call a reset
                 //and this call will propagate to all other profiles capturing this profile.
-                if (settings.IsServer)
+                if (settings != null && settings.IsServer)
                 {
                     Reset();
                 }

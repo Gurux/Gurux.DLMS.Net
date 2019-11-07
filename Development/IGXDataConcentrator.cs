@@ -35,6 +35,9 @@
 using Gurux.DLMS.Objects;
 using System;
 using System.Collections.Generic;
+#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0
+using System.Windows.Forms;
+#endif// !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0
 
 namespace Gurux.DLMS
 {
@@ -63,9 +66,9 @@ namespace Gurux.DLMS
     /// User actions
     /// </summary>
     [Flags]
-    public enum Actions
+    public enum Actions : int
     {
-        All = 0x0,
+        All = -1,
         Add = 0x1,
         Edit = 0x2,
         Remove = 0x4
@@ -75,13 +78,52 @@ namespace Gurux.DLMS
     /// User functionality
     /// </summary>
     [Flags]
-    public enum Functionality
+    public enum Functionality : int
     {
         All = -1,
         None = 0x0,
         DeviceSettings = 0x1,
         MediaSettings = 0x2,
         SecuritySettings = 0x4
+    }
+
+    /// <summary>
+    /// Action parameter.
+    /// </summary>
+    public class GXActionParameter
+    {
+        /// <summary>
+        /// Action target.
+        /// </summary>
+        public GXDLMSObject Target
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Action index.
+        /// </summary>
+        public int Index
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Action data.
+        /// </summary>
+        public object Data
+        {
+            get;
+            set;
+        }
+
+    }
+
+    public interface IGXDataConcentratorView
+    {
+        void Initialize();
     }
 
     /// <summary>
@@ -123,16 +165,6 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Start data concentrator.
-        /// </summary>
-        void Start();
-
-        /// <summary>
-        /// Stop data concentrator.
-        /// </summary>
-        void Stop();
-
-        /// <summary>
         /// Get devices from the DC.
         /// </summary>
         /// <param name="name"></param>
@@ -143,7 +175,29 @@ namespace Gurux.DLMS
         /// Add new device(s) to DC.
         /// </summary>
         /// <param name="devices">Devices to add.</param>
-        void AddDevices(GXDLMSMeter[] devices);
+        GXDLMSMeter[] AddDevices(GXDLMSMeter[] devices);
+
+#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0
+        /// <summary>
+        /// Add a new device.
+        /// </summary>
+        /// <returns>Returns new device.</returns>
+        GXDLMSMeter AddDevice(IWin32Window owner);
+
+        /// <summary>
+        /// Edit device.
+        /// </summary>
+        /// <param name="devices">Device to edit.</param>
+        /// <returns>Returns true if device is edit.</returns>
+        bool EditDevice(IWin32Window owner, GXDLMSMeter devices);
+
+        /// <summary>
+        /// Add target to the schedule.
+        /// </summary>
+        /// <param name="target">Item to add to the schedule.</param>
+        void AddToSchedule(IWin32Window owner, object target);
+
+#endif// !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0
 
         /// <summary>
         /// Remove devices(s) from the DC.
@@ -162,11 +216,6 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="objects">Devices to search.</param>
         List<KeyValuePair<GXDLMSMeter, string[]>> GetErrors(GXDLMSMeter[] devices);
-
-        /// <summary>
-        /// Get system errors.
-        /// </summary>
-        string[] GetSystemErrors();
 
         /// <summary>
         /// Add new objects(s) to DC.
@@ -201,8 +250,38 @@ namespace Gurux.DLMS
         /// <summary>
         /// Call methods of selected objects.
         /// </summary>
-        /// <param name="objects">Objects and attribute index to call.</param>
-        void MethodObjects(GXDLMSMeter[] devices, List<KeyValuePair<GXDLMSObject, byte>> objects);
+        /// <param name="actions">Actions.</param>
+        void MethodObjects(GXDLMSMeter[] devices, List<GXActionParameter> actions);
+
+        /// <summary>
+        /// Add new device templates to DC.
+        /// </summary>
+        /// <param name="devices">Devices to add as device template.</param>
+        void AddDeviceTemplates(GXDLMSMeter[] devices);
+
+        /// <summary>
+        /// Get values for selected objects.
+        /// </summary>
+        /// <param name="devices">List of devices.</param>
+        /// <param name="objects">Objects and attribute index to read.</param>
+        /// <param name="readAll">All objects are read from the meter.</param>
+        void GetValues(GXDLMSMeter[] devices, List<KeyValuePair<GXDLMSObject, byte>> objects, bool readAll);
+
+        /// <summary>
+        /// Get rows by range.
+        /// </summary>
+        /// <param name="pg">Profile generic object to read.</param>
+        /// <param name="start">Start time.</param>
+        /// <param name="end">End time.</param>
+        void GetRowsByRange(GXDLMSMeter device, GXDLMSProfileGeneric pg, DateTime start, DateTime end);
+
+        /// <summary>
+        /// Get rows by entry.
+        /// </summary>
+        /// <param name="pg">Profile generic object to read.</param>
+        /// <param name="index">One based start index.</param>
+        /// <param name="count">Rows count to read.</param>
+        void GetRowsByEntry(GXDLMSMeter device, GXDLMSProfileGeneric pg, UInt64 index, UInt64 count);
 
         /// <summary>
         /// Returns custom pages for selected object.

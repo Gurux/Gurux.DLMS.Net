@@ -190,7 +190,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, CurrentAverageValue, LastAverageValue, "Scaler: " + Scaler + " Unit: " + Unit,
+            return new object[] { LogicalName, CurrentAverageValue, LastAverageValue, new object[] { Scaler, Unit },
                               Status, CaptureTime, StartTimeCurrent, Period, NumberOfPeriods
                             };
         }
@@ -273,6 +273,15 @@ namespace Gurux.DLMS.Objects
         int IGXDLMSBase.GetMethodCount()
         {
             return 2;
+        }
+
+        public override DataType GetUIDataType(int index)
+        {
+            if (index == 6)
+            {
+                return DataType.DateTime;
+            }
+            return base.GetUIDataType(index);
         }
 
         /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>

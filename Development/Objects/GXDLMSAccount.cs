@@ -875,8 +875,16 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                     LogicalName = GXCommon.ToLogicalName(e.Value);
                     break;
                 case 2:
-                    AccountStatus = (AccountStatus)Convert.ToByte(((List<object>)e.Value)[0]);
-                    PaymentMode = (PaymentMode)Convert.ToByte(((List<object>)e.Value)[1]);
+                    if (e.Value != null)
+                    {
+                        AccountStatus = (AccountStatus)Convert.ToByte(((List<object>)e.Value)[0]);
+                        PaymentMode = (PaymentMode)Convert.ToByte(((List<object>)e.Value)[1]);
+                    }
+                    else
+                    {
+                        AccountStatus = AccountStatus.NewInactiveAccount;
+                        PaymentMode = PaymentMode.Credit;
+                    }
                     break;
                 case 3:
                     CurrentCreditInUse = (byte)e.Value;
@@ -986,10 +994,19 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                     }
                     break;
                 case 15:
-                    List<object> tmp = (List<object>)e.Value;
-                    Currency.Name = (string)tmp[0];
-                    Currency.Scale = (sbyte)tmp[1];
-                    Currency.Unit = (Currency)Convert.ToByte(tmp[2]);
+                    if (e.Value != null)
+                    {
+                        List<object> tmp = (List<object>)e.Value;
+                        Currency.Name = (string)tmp[0];
+                        Currency.Scale = (sbyte)tmp[1];
+                        Currency.Unit = (Currency)Convert.ToByte(tmp[2]);
+                    }
+                    else
+                    {
+                        Currency.Name = null;
+                        Currency.Scale = 0;
+                        Currency.Unit = 0;
+                    }
                     break;
                 case 16:
                     LowCreditThreshold = (int)e.Value;

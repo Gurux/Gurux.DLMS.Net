@@ -1470,7 +1470,7 @@ namespace Gurux.DLMS
         private void GenerateDisconnectRequest()
         {
             //Return error if connection is not established.
-            if ((Settings.Connected & ConnectionState.Dlms) == 0)
+            if ((Settings.Connected & ConnectionState.Hdlc) == 0)
             {
                 replyData.Add(GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
                               ServiceError.Service, (byte)Service.Unsupported));
