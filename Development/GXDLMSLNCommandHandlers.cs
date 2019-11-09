@@ -1136,11 +1136,13 @@ namespace Gurux.DLMS
         internal static void HandleEventNotification(GXDLMSSettings settings, GXReplyData reply, List<KeyValuePair<GXDLMSObject, int>> list)
         {
             reply.Time = DateTime.MinValue;
+            //Check is there date-time.
             int len = reply.Data.GetUInt8();
             byte[] tmp = null;
             // If date time is given.
             if (len != 0)
             {
+                len = reply.Data.GetUInt8();
                 tmp = new byte[len];
                 reply.Data.Get(tmp);
                 reply.Time = (GXDateTime)GXDLMSClient.ChangeType(tmp, DataType.DateTime, settings.UseUtc2NormalTime);

@@ -806,10 +806,13 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        // Data is send in octet string. Remove data type.
+                        // Data is send in octet string. Remove data type except from Event Notification.
                         int pos = reply.Size;
                         GXCommon.SetData(p.settings, reply, DataType.OctetString, p.time);
-                        reply.Move(pos + 1, pos, reply.Size - pos - 1);
+                        if (p.command != Command.EventNotification)
+                        {
+                            reply.Move(pos + 1, pos, reply.Size - pos - 1);
+                        }
                     }
                     MultipleBlocks(p, reply, ciphering);
                 }
