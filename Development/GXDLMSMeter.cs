@@ -501,6 +501,15 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// If protected release is used release is including a ciphered xDLMS Initiate request.
+        /// </summary>
+        public bool UseProtectedRelease
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         public GXDLMSMeter()
@@ -628,6 +637,7 @@ namespace Gurux.DLMS
             target.MediaSettings = source.MediaSettings;
             target.UseLogicalNameReferencing = source.UseLogicalNameReferencing;
             target.Objects = source.Objects;
+            target.UseProtectedRelease = source.UseProtectedRelease;
         }
     }
 }
