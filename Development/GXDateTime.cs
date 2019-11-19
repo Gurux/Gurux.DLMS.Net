@@ -1022,12 +1022,12 @@ namespace Gurux.DLMS
 
         int IConvertible.ToInt32(IFormatProvider provider)
         {
-            throw new NotImplementedException();
+            return (int)GXDateTime.ToUnixTime(this.Value.DateTime);
         }
 
         long IConvertible.ToInt64(IFormatProvider provider)
         {
-            throw new NotImplementedException();
+            return (long)GXDateTime.ToUnixTime(this.Value.DateTime);
         }
 
         sbyte IConvertible.ToSByte(IFormatProvider provider)

@@ -910,6 +910,16 @@ namespace Gurux.DLMS
             }
         }
 
+
+        /// <summary>
+        /// If protected release is used release is including a ciphered xDLMS Initiate request.
+        /// </summary>
+        public bool UseProtectedRelease
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// Generates a release request.
         /// </summary>
@@ -923,18 +933,28 @@ namespace Gurux.DLMS
                 return null;
             }
             GXByteBuffer buff = new GXByteBuffer();
-            //Length.
-            buff.SetUInt8(0);
-            buff.SetUInt8(0x80);
-            buff.SetUInt8(01);
-            buff.SetUInt8(00);
-            //Increase IC.
-            if (Settings.Cipher != null && Settings.Cipher.IsCiphered())
+            if (!UseProtectedRelease)
             {
-                ++Settings.Cipher.InvocationCounter;
+                buff.SetUInt8(3);
+                buff.SetUInt8(0x80);
+                buff.SetUInt8(1);
+                buff.SetUInt8(0);
             }
-            GXAPDU.GenerateUserInformation(Settings, Settings.Cipher, null, buff);
-            buff.SetUInt8(0, (byte)(buff.Size - 1));
+            else
+            {
+                //Length.
+                buff.SetUInt8(0);
+                buff.SetUInt8(0x80);
+                buff.SetUInt8(01);
+                buff.SetUInt8(00);
+                //Increase IC.
+                if (Settings.Cipher != null && Settings.Cipher.IsCiphered())
+                {
+                    ++Settings.Cipher.InvocationCounter;
+                }
+                GXAPDU.GenerateUserInformation(Settings, Settings.Cipher, null, buff);
+                buff.SetUInt8(0, (byte)(buff.Size - 1));
+            }
             byte[][] reply;
             if (UseLogicalNameReferencing)
             {
@@ -968,19 +988,16 @@ namespace Gurux.DLMS
                 return null;
             }
             byte[] ret = null;
-            //Reset to max PDU size when connection is closed.
-            Settings.MaxPduSize = 0xFFFF;
             if (Settings.InterfaceType == InterfaceType.HDLC)
             {
                 ret = GXDLMS.GetHdlcFrame(Settings, (byte)Command.DisconnectRequest, null);
             }
             else if (force || Settings.Connected == ConnectionState.Dlms)
             {
-                GXByteBuffer bb = new GXByteBuffer(2);
-                bb.SetUInt8((byte)Command.ReleaseRequest);
-                bb.SetUInt8(0x0);
-                ret = GXDLMS.GetWrapperFrame(Settings, bb);
+                ret = ReleaseRequest()[0];
             }
+            //Reset to max PDU size when connection is closed.
+            Settings.MaxPduSize = 0xFFFF;
             Settings.Connected = ConnectionState.None;
             Settings.ResetFrameSequence();
             return ret;
