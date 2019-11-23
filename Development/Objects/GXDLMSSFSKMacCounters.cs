@@ -349,8 +349,17 @@ namespace Gurux.DLMS.Objects
                 SynchronizationRegister.Clear();
                 if (e.Value != null)
                 {
-                    foreach (List<object> it in (List<object>)e.Value)
+                    foreach (object tmp in (IEnumerable<object>)e.Value)
                     {
+                        List<object> it;
+                        if (tmp is List<object>)
+                        {
+                            it = (List<object>)tmp;
+                        }
+                        else
+                        {
+                            it = new List<object>((object[])tmp);
+                        }
                         SynchronizationRegister.Add(new KeyValuePair<UInt16, UInt32>((UInt16)it[0], (UInt32)it[1]));
                     }
                 }
@@ -359,7 +368,15 @@ namespace Gurux.DLMS.Objects
             {
                 if (e.Value != null)
                 {
-                    List<object> tmp = (List<object>)e.Value;
+                    List<object> tmp;
+                    if (e.Value is List<object>)
+                    {
+                        tmp = (List<object>)e.Value;
+                    }
+                    else
+                    {
+                        tmp = new List<object>((object[])e.Value);
+                    }
                     PhysicalLayerDesynchronization = (UInt32)tmp[0];
                     TimeOutNotAddressedDesynchronization = (UInt32)tmp[1];
                     TimeOutFrameNotOkDesynchronization = (UInt32)tmp[2];
@@ -380,7 +397,7 @@ namespace Gurux.DLMS.Objects
                 BroadcastFramesCounter.Clear();
                 if (e.Value != null)
                 {
-                    foreach (List<object> it in (List<object>)e.Value)
+                    foreach (List<object> it in (IEnumerable<object>)e.Value)
                     {
                         BroadcastFramesCounter.Add(new KeyValuePair<UInt16, UInt32>((UInt16)it[0], (UInt32)it[1]));
                     }

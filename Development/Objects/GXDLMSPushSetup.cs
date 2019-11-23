@@ -362,10 +362,27 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 2)
             {
                 PushObjectList.Clear();
+                List<object> it, arr = null;
                 if (e.Value is List<object>)
                 {
-                    foreach (List<object> it in (List<object>)e.Value)
+                    arr = (List<object>)e.Value;
+                }
+                else if (e.Value != null)
+                {
+                    arr = new List<object>((object[])e.Value);
+                }
+                if (arr != null)
+                {
+                    foreach (object t in arr)
                     {
+                        if (t is List<object>)
+                        {
+                            it = (List<object>)t;
+                        }
+                        else
+                        {
+                            it = new List<object>((object[])t);
+                        }
                         ObjectType type = (ObjectType)Convert.ToUInt16(it[0]);
                         String ln = GXCommon.ToLogicalName(it[1]);
                         GXDLMSObject obj = settings.Objects.FindByLN(type, ln);
@@ -381,11 +398,19 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 3)
             {
-                List<object> tmp = e.Value as List<object>;
+                List<object> tmp = null;
+                if (e.Value is List<object>)
+                {
+                    tmp = (List<object>)e.Value;
+                }
+                else
+                {
+                    tmp = new List<object>((object[])e.Value);
+                }
                 if (tmp != null)
                 {
                     Service = (ServiceType)Convert.ToInt32(tmp[0]);
-                    //LN can be used with HDLC 
+                    //LN can be used with HDLC
                     if (((byte[])tmp[1]).Length == 6 && ((byte[])tmp[1])[5] == 0xFF)
                     {
                         Destination = GXCommon.ToLogicalName((byte[])tmp[1]);

@@ -493,8 +493,17 @@ namespace Gurux.DLMS.Objects
             List<GXDLMSImageActivateInfo> list = new List<GXDLMSImageActivateInfo>();
             if (value != null)
             {
-                foreach (List<object> it in (List<object>)value)
+                foreach (object tmp in (IEnumerable<object>)value)
                 {
+                    List<object> it;
+                    if (tmp is List<object>)
+                    {
+                        it = (List<object>)tmp;
+                    }
+                    else
+                    {
+                        it = new List<object>((object[])tmp);
+                    }
                     GXDLMSImageActivateInfo item = new GXDLMSImageActivateInfo();
                     item.Size = Convert.ToUInt32(it[0]);
                     item.Identification = (byte[])it[1];

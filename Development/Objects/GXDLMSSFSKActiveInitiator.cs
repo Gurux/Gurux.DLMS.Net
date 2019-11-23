@@ -189,7 +189,15 @@ namespace Gurux.DLMS.Objects
             {
                 if (e.Value != null)
                 {
-                    List<object> tmp = (List<object>)e.Value;
+                    List<object> tmp;
+                    if (e.Value is List<object>)
+                    {
+                        tmp = (List<object>)e.Value;
+                    }
+                    else
+                    {
+                        tmp = new List<object>((object[])e.Value);
+                    }
                     SystemTitle = (byte[])tmp[0];
                     MacAddress = (UInt16)tmp[1];
                     LSapSelector = (byte)tmp[2];

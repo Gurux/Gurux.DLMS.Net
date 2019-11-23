@@ -99,7 +99,7 @@ namespace Gurux.DLMS.Objects
         /// <remarks>
         /// </remarks>
         /// <returns>
-        ///  If a special day with the same index or with the same date as an already defined day is inserted, 
+        ///  If a special day with the same index or with the same date as an already defined day is inserted,
         ///  the old entry will be overwritten.
         /// </returns>
         public byte[][] Insert(GXDLMSClient client, GXDLMSSpecialDay entry)
@@ -232,8 +232,17 @@ namespace Gurux.DLMS.Objects
                 if (e.Value != null)
                 {
                     List<GXDLMSSpecialDay> items = new List<GXDLMSSpecialDay>();
-                    foreach (List<object> item in (List<object>)e.Value)
+                    foreach (object tmp in (IEnumerable<object>)e.Value)
                     {
+                        List<object> item;
+                        if (tmp is List<object>)
+                        {
+                            item = (List<object>)tmp;
+                        }
+                        else
+                        {
+                            item = new List<object>((object[])tmp);
+                        }
                         GXDLMSSpecialDay it = new GXDLMSSpecialDay();
                         it.Index = Convert.ToUInt16(item[0]);
                         if (item[1] is GXDate)

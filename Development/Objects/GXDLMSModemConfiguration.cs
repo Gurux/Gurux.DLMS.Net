@@ -254,8 +254,17 @@ namespace Gurux.DLMS.Objects
                 if (e.Value != null)
                 {
                     List<GXDLMSModemInitialisation> items = new List<GXDLMSModemInitialisation>();
-                    foreach (List<object> it in (List<object>)e.Value)
+                    foreach (object tmp in (IEnumerable<object>)e.Value)
                     {
+                        List<object> it;
+                        if (tmp is List<object>)
+                        {
+                            it = (List<object>)tmp;
+                        }
+                        else
+                        {
+                            it = new List<object>((object[])tmp);
+                        }
                         GXDLMSModemInitialisation item = new GXDLMSModemInitialisation();
                         item.Request = ASCIIEncoding.ASCII.GetString((byte[])it[0]);
                         item.Response = ASCIIEncoding.ASCII.GetString((byte[])it[1]);
@@ -274,7 +283,7 @@ namespace Gurux.DLMS.Objects
                 if (e.Value != null)
                 {
                     List<string> items = new List<string>();
-                    foreach (object it in (List<object>)e.Value)
+                    foreach (object it in (IEnumerable<object>)e.Value)
                     {
                         items.Add(GXDLMSClient.ChangeType((byte[])it, DataType.String, false).ToString().Trim());
                     }

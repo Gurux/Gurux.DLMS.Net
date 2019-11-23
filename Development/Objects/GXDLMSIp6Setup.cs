@@ -423,7 +423,7 @@ namespace Gurux.DLMS.Objects
                 List<IPAddress> data = new List<IPAddress>();
                 if (e.Value != null)
                 {
-                    foreach (object it in (List<object>)e.Value)
+                    foreach (object it in (IEnumerable<object>)e.Value)
                     {
                         data.Add(new IPAddress((byte[])it));
                     }
@@ -435,7 +435,7 @@ namespace Gurux.DLMS.Objects
                 List<IPAddress> data = new List<IPAddress>();
                 if (e.Value != null)
                 {
-                    foreach (object it in (List<object>)e.Value)
+                    foreach (object it in (IEnumerable<object>)e.Value)
                     {
                         data.Add(new IPAddress((byte[])it));
                     }
@@ -447,7 +447,7 @@ namespace Gurux.DLMS.Objects
                 List<IPAddress> data = new List<IPAddress>();
                 if (e.Value != null)
                 {
-                    foreach (object it in (List<object>)e.Value)
+                    foreach (object it in (IEnumerable<object>)e.Value)
                     {
                         data.Add(new IPAddress((byte[])it));
                     }
@@ -485,8 +485,17 @@ namespace Gurux.DLMS.Objects
                 List<GXNeighborDiscoverySetup> data = new List<GXNeighborDiscoverySetup>();
                 if (e.Value != null)
                 {
-                    foreach (List<object> it in (List<object>)e.Value)
+                    foreach (object tmp in (IEnumerable<object>)e.Value)
                     {
+                        List<object> it;
+                        if (tmp is List<object>)
+                        {
+                            it = (List<object>)tmp;
+                        }
+                        else
+                        {
+                            it = new List<object>((object[])tmp);
+                        }
                         GXNeighborDiscoverySetup v = new GXNeighborDiscoverySetup();
                         v.MaxRetry = Convert.ToByte(it[0]);
                         v.RetryWaitTime = Convert.ToUInt16(it[1]);

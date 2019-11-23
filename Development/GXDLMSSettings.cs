@@ -650,6 +650,15 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// The version can be used for backward compatibility.
+        /// </summary>
+        public int Version
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Is Logical Name Referencing used.
         /// </summary>
         public bool UseLogicalNameReferencing

@@ -54,9 +54,8 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSScriptTable()
-        : base(ObjectType.ScriptTable)
+        : this(null, 0)
         {
-            Scripts = new List<GXDLMSScript>();
         }
 
         /// <summary>
@@ -64,7 +63,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSScriptTable(string ln)
-        : base(ObjectType.ScriptTable, ln, 0)
+        : this(ln, 0)
         {
             Scripts = new List<GXDLMSScript>();
         }
@@ -244,17 +243,51 @@ namespace Gurux.DLMS.Objects
                 Scripts.Clear();
                 //Fix Xemex bug here.
                 //Xemex meters do not return array as they shoul be according standard.
-                if (e.Value is List<object> && ((List<object>)e.Value).Count != 0)
+                if (e.Value is IEnumerable<object>)
                 {
-                    if (((List<object>)e.Value)[0] is List<object>)
+                    List<object> arr, arr1, arr2;
+                    if (e.Value is List<object>)
                     {
-                        foreach (List<object> item in (List<object>)e.Value)
+                        arr1 = (List<object>)e.Value;
+                    }
+                    else
+                    {
+                        arr1 = new List<object>((object[])e.Value);
+                    }
+                    if (arr1[0] is IEnumerable<object>)
+                    {
+                        foreach (object tmp in (IEnumerable<object>)e.Value)
                         {
+                            List<object> item;
+                            if (tmp is List<object>)
+                            {
+                                item = (List<object>)tmp;
+                            }
+                            else
+                            {
+                                item = new List<object>((object[])tmp);
+                            }
                             GXDLMSScript script = new GXDLMSScript();
                             script.Id = Convert.ToInt32(item[0]);
                             Scripts.Add(script);
-                            foreach (List<object> arr in (List<object>)item[1])
+                            if (item[1] is List<object>)
                             {
+                                arr2 = (List<object>)item[1];
+                            }
+                            else
+                            {
+                                arr2 = new List<object>((object[])item[1]);
+                            }
+                            foreach (object tmp2 in arr2)
+                            {
+                                if (tmp2 is List<object>)
+                                {
+                                    arr = (List<object>)tmp2;
+                                }
+                                else
+                                {
+                                    arr = new List<object>((object[])tmp2);
+                                }
                                 GXDLMSScriptAction it = new GXDLMSScriptAction();
                                 it.Type = (ScriptActionType)Convert.ToInt32(arr[0]);
                                 ObjectType ot = (ObjectType)Convert.ToInt32(arr[1]);
@@ -281,9 +314,25 @@ namespace Gurux.DLMS.Objects
                     else //Read Xemex meter here.
                     {
                         GXDLMSScript script = new GXDLMSScript();
-                        script.Id = Convert.ToInt32(((List<object>)e.Value)[0]);
+                        if (e.Value is List<object>)
+                        {
+                            arr1 = (List<object>)e.Value;
+                        }
+                        else
+                        {
+                            arr1 = new List<object>((object[])e.Value);
+                        }
+
+                        script.Id = Convert.ToInt32(arr1[0]);
                         Scripts.Add(script);
-                        List<object> arr = (List<object>)((List<object>)e.Value)[1];
+                        if (arr1[1] is List<object>)
+                        {
+                            arr = (List<object>)arr1[1];
+                        }
+                        else
+                        {
+                            arr = new List<object>((object[])arr1[1]);
+                        }
                         GXDLMSScriptAction it = new GXDLMSScriptAction();
                         it.Type = (ScriptActionType)Convert.ToInt32(arr[0]);
                         ObjectType ot = (ObjectType)Convert.ToInt32(arr[1]);
@@ -379,7 +428,7 @@ namespace Gurux.DLMS.Objects
                             writer.WriteElementString("ParameterDataType", (int)a.ParameterDataType);
                             if (a.Parameter is byte[])
                             {
-                                writer.WriteElementString("Parameter", GXCommon.ToHex((byte[]) a.Parameter, false));
+                                writer.WriteElementString("Parameter", GXCommon.ToHex((byte[])a.Parameter, false));
                             }
                             else
                             {

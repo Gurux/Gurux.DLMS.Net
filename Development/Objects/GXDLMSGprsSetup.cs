@@ -290,14 +290,36 @@ namespace Gurux.DLMS.Objects
                 RequestedQualityOfService.Precedence = RequestedQualityOfService.Delay = RequestedQualityOfService.Reliability = RequestedQualityOfService.PeakThroughput = RequestedQualityOfService.MeanThroughput = 0;
                 if (e.Value != null)
                 {
-                    List<object> tmp = (List<object>)e.Value;
-                    List<object> t = (List<object>)tmp[0] as List<object>;
+                    List<object> tmp, t;
+                    if (e.Value is List<object>)
+                    {
+                        tmp = (List<object>)e.Value;
+                    }
+                    else
+                    {
+                        tmp = new List<object>((object[])e.Value);
+                    }
+                    if (tmp[0] is List<object>)
+                    {
+                        t = (List<object>)tmp[0];
+                    }
+                    else
+                    {
+                        t = new List<object>((object[])tmp[0]);
+                    }
                     DefaultQualityOfService.Precedence = Convert.ToByte(t[0]);
                     DefaultQualityOfService.Delay = Convert.ToByte(t[1]);
                     DefaultQualityOfService.Reliability = Convert.ToByte(t[2]);
                     DefaultQualityOfService.PeakThroughput = Convert.ToByte(t[3]);
                     DefaultQualityOfService.MeanThroughput = Convert.ToByte(t[4]);
-                    t = (List<object>)tmp[1] as List<object>;
+                    if (tmp[1] is List<object>)
+                    {
+                        t = (List<object>)tmp[1];
+                    }
+                    else
+                    {
+                        t = new List<object>((object[])tmp[1]);
+                    }
                     RequestedQualityOfService.Precedence = Convert.ToByte(t[0]);
                     RequestedQualityOfService.Delay = Convert.ToByte(t[1]);
                     RequestedQualityOfService.Reliability = Convert.ToByte(t[2]);

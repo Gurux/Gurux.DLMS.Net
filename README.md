@@ -17,6 +17,10 @@ You do not nesessary need to use Gurux.Serial or Gurux.Net.
 You can use any connection library you want to.
 Gurux.DLMS classes only parse the data.
 
+Note! 
+Starting from version 9.0 array and structured are saves as GXStructure and GXArray lists. Before data was saved to object array.
+If you want to get data in old format you need to set GXDLMSClient Version property to 8.
+This change was made to improve XML serialization support in writing.
 
 Simple example
 =========================== 

@@ -664,19 +664,48 @@ namespace Gurux.DLMS.Objects
         {
             if (value != null)
             {
-                List<object> tmp = (List<object>)value;
-                List<object> tmp2 = (List<object>)tmp[0];
+                List<object> tmp, tmp2, it;
+                if (value is List<object>)
+                {
+                    tmp = (List<object>)value;
+                }
+                else
+                {
+                    tmp = new List<object>((object[])value);
+                }
+                if (tmp[0] is List<object>)
+                {
+                    tmp2 = (List<object>)tmp[0];
+                }
+                else
+                {
+                    tmp2 = new List<object>((object[])tmp[0]);
+                }
                 charge.ChargePerUnitScaling.CommodityScale = (sbyte)tmp2[0];
                 charge.ChargePerUnitScaling.PriceScale = (sbyte)tmp2[1];
-                tmp2 = (List<object>)tmp[1];
+                if (tmp[1] is List<object>)
+                {
+                    tmp2 = (List<object>)tmp[1];
+                }
+                else
+                {
+                    tmp2 = new List<object>((object[])tmp[1]);
+                }
                 ObjectType ot = (ObjectType)Convert.ToInt32(tmp2[0]);
                 string ln = GXCommon.ToLogicalName(tmp2[1]);
                 charge.Commodity.Target = Parent.FindByLN(ot, ln);
                 charge.Commodity.Index = (sbyte)tmp2[2];
                 List<GXChargeTable> list = new List<GXChargeTable>();
-                tmp2 = (List<object>)tmp[2];
-                foreach (List<object> it in tmp2)
+                foreach (object tmp3 in (IEnumerable<object>) tmp[2])
                 {
+                    if (tmp3 is List<object>)
+                    {
+                        it = (List<object>)tmp3;
+                    }
+                    else
+                    {
+                        it = new List<object>((object[])tmp3);
+                    }
                     GXChargeTable item = new GXChargeTable();
                     item.Index = ASCIIEncoding.ASCII.GetString((byte[])it[0]);
                     item.ChargePerUnit = (Int16)it[1];

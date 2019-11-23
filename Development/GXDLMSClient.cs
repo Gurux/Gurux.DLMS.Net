@@ -910,6 +910,20 @@ namespace Gurux.DLMS
             }
         }
 
+        /// <summary>
+        /// The version can be used for backward compatibility.
+        /// </summary>
+        public int Version
+        {
+            get
+            {
+                return Settings.Version;
+            }
+            set
+            {
+                Settings.Version = value;
+            }
+        }
 
         /// <summary>
         /// If protected release is used release is including a ciphered xDLMS Initiate request.
@@ -1066,7 +1080,16 @@ namespace Gurux.DLMS
                 {
                     break;
                 }
-                List<object> objects = (List<object>)GXCommon.GetData(Settings, buff, info);
+                object tmp = GXCommon.GetData(Settings, buff, info);
+                List<object> objects;
+                if (tmp is List<object>)
+                {
+                    objects = (List<object>)tmp;
+                }
+                else
+                {
+                    objects = new List<object>((object[])tmp);
+                }
                 info.Clear();
                 if (objects.Count != 4)
                 {
@@ -1298,7 +1321,16 @@ namespace Gurux.DLMS
             while (buff.Position != buff.Size && cnt != objectCnt)
             {
                 info.Clear();
-                List<object> objects = (List<object>)GXCommon.GetData(Settings, buff, info);
+                object tmp = GXCommon.GetData(Settings, buff, info);
+                List<object> objects;
+                if (tmp is List<object>)
+                {
+                    objects = (List<object>)tmp;
+                }
+                else
+                {
+                    objects = new List<object>((object[])tmp);
+                }
                 if (objects.Count != 4)
                 {
                     throw new GXDLMSException("Invalid structure format.");

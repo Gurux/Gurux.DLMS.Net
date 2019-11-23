@@ -400,7 +400,7 @@ namespace Gurux.DLMS.Objects
                     Descriptions.Clear();
                     if (e.Value != null)
                     {
-                        foreach (object it in (List<object>)e.Value)
+                        foreach (object it in (IEnumerable<object>)e.Value)
                         {
                             Descriptions.Add(ASCIIEncoding.ASCII.GetString((byte[])it));
                         }
@@ -412,8 +412,17 @@ namespace Gurux.DLMS.Objects
                 case 6:
                     if (e.Value != null)
                     {
-                        StatusCode = (TokenStatusCode)Convert.ToInt32(((List<object>)e.Value)[0]);
-                        DataValue = Convert.ToString(((List<object>)e.Value)[1]);
+                        List<object> arr;
+                        if (e.Value is List<object>)
+                        {
+                            arr = (List<object>)e.Value;
+                        }
+                        else
+                        {
+                            arr = new List<object>((object[])e.Value);
+                        }
+                        StatusCode = (TokenStatusCode)Convert.ToInt32(arr[0]);
+                        DataValue = Convert.ToString(arr[1]);
                     }
                     else
                     {

@@ -75,7 +75,18 @@ namespace GuruxDLMSServerExample
                         server = new GXDLMSServerSN();
                         Console.WriteLine("Short Name DLMS Server in serial port {0}.", settings.serial);
                     }
-                    server.Initialize(settings.serial, settings.trace);
+                    try
+                    {
+                        server.Initialize(settings.serial, settings.trace);
+                    }
+                    catch (System.IO.IOException ex)
+                    {
+                        Console.WriteLine("----------------------------------------------------------");
+                        Console.WriteLine(ex.Message);
+                        Console.WriteLine("Available ports:");
+                        Console.WriteLine(string.Join(" ", Gurux.Serial.GXSerial.GetPortNames()));
+                        return 1;
+                    }
                     Console.WriteLine("----------------------------------------------------------");
                     ConsoleKey k;
                     while ((k = Console.ReadKey().Key) != ConsoleKey.Escape)

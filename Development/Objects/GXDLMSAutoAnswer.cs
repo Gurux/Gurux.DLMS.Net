@@ -289,8 +289,17 @@ namespace Gurux.DLMS.Objects
                 ListeningWindow.Clear();
                 if (e.Value != null)
                 {
-                    foreach (List<object> item in (List<object>)e.Value)
+                    foreach (object tmp in (IEnumerable<object>)e.Value)
                     {
+                        List<object> item;
+                        if (tmp is List<object>)
+                        {
+                            item = (List<object>)tmp;
+                        }
+                        else
+                        {
+                            item = new List<object>((object[])tmp);
+                        }
                         GXDateTime start = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[0], DataType.DateTime, settings.UseUtc2NormalTime);
                         GXDateTime end = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime, settings.UseUtc2NormalTime);
                         ListeningWindow.Add(new KeyValuePair<GXDateTime, GXDateTime>(start, end));
@@ -310,8 +319,17 @@ namespace Gurux.DLMS.Objects
                 NumberOfRingsInListeningWindow = NumberOfRingsOutListeningWindow = 0;
                 if (e.Value != null)
                 {
-                    NumberOfRingsInListeningWindow = Convert.ToInt32(((List<object>)e.Value)[0]);
-                    NumberOfRingsOutListeningWindow = Convert.ToInt32(((List<object>)e.Value)[1]);
+                    List<object> arr;
+                    if (e.Value is List<object>)
+                    {
+                        arr = (List<object>)e.Value;
+                    }
+                    else
+                    {
+                        arr = new List<object>((object[])e.Value);
+                    }
+                    NumberOfRingsInListeningWindow = Convert.ToInt32(arr[0]);
+                    NumberOfRingsOutListeningWindow = Convert.ToInt32(arr[1]);
                 }
             }
             else

@@ -622,26 +622,59 @@ namespace Gurux.DLMS.Objects
         {
             if (buff.Count != 0)
             {
-                foreach (List<object> attributeAccess in (List<object>)buff[0])
+                List<object> arr, it;
+                if (buff[0] is List<object>)
                 {
-                    int id = Convert.ToInt32(attributeAccess[0]);
-                    int mode = Convert.ToInt32(attributeAccess[1]);
+                    arr = (List<object>)buff[0];
+                }
+                else
+                {
+                    arr = new List<object>((object[])buff[0]);
+                }
+                foreach (object tmp in arr)
+                {
+                    if (tmp is List<object>)
+                    {
+                        it = (List<object>)tmp;
+                    }
+                    else
+                    {
+                        it = new List<object>((object[])tmp);
+                    }
+                    int id = Convert.ToInt32(it[0]);
+                    int mode = Convert.ToInt32(it[1]);
                     obj.SetAccess(id, (AccessMode)mode);
                 }
-                foreach (List<object> methodAccess in (List<object>)buff[1])
+                if (buff[1] is List<object>)
                 {
-                    int id = Convert.ToInt32(methodAccess[0]);
-                    int tmp;
-                    //If version is 0.
-                    if (methodAccess[1] is Boolean)
+                    arr = (List<object>)buff[1];
+                }
+                else
+                {
+                    arr = new List<object>((object[])buff[1]);
+                }
+                foreach (object tmp in arr)
+                {
+                    if (tmp is List<object>)
                     {
-                        tmp = ((Boolean)methodAccess[1]) ? 1 : 0;
+                        it = (List<object>)tmp;
+                    }
+                    else
+                    {
+                        it = new List<object>((object[])tmp);
+                    }
+                    int id = Convert.ToInt32(it[0]);
+                    int tmp2;
+                    //If version is 0.
+                    if (it[1] is Boolean)
+                    {
+                        tmp2 = ((Boolean)it[1]) ? 1 : 0;
                     }
                     else//If version is 1.
                     {
-                        tmp = Convert.ToInt32(methodAccess[1]);
+                        tmp2 = Convert.ToInt32(it[1]);
                     }
-                    obj.SetMethodAccess(id, (MethodAccessMode)tmp);
+                    obj.SetMethodAccess(id, (MethodAccessMode)tmp2);
                 }
             }
         }
@@ -859,7 +892,16 @@ namespace Gurux.DLMS.Objects
             }
             if (obj is IGXDLMSBase && item[3] != null)
             {
-                UpdateAccessRights(obj, (List<object>)item[3]);
+                List<object> arr;
+                if (item[3] is List<object>)
+                {
+                    arr = (List<object>)item[3];
+                }
+                else
+                {
+                    arr = new List<object>((object[])item[3]);
+                }
+                UpdateAccessRights(obj, arr);
             }
             return obj;
         }
@@ -875,8 +917,26 @@ namespace Gurux.DLMS.Objects
                 ObjectList.Clear();
                 if (e.Value != null)
                 {
-                    foreach (List<object> item in (List<object>)e.Value)
+                    List<object> arr = null;
+                    if (e.Value is List<object>)
                     {
+                        arr = (List<object>)e.Value;
+                    }
+                    else if (e.Value != null)
+                    {
+                        arr = new List<object>((object[])e.Value);
+                    }
+                    foreach (object tmp in arr)
+                    {
+                        List<object> item = null;
+                        if (tmp is List<object>)
+                        {
+                            item = (List<object>)tmp;
+                        }
+                        else if (tmp != null)
+                        {
+                            item = new List<object>((object[])tmp);
+                        }
                         GXDLMSObject obj = GetObject(settings, item);
                         //Unknown objects are not shown.
                         if (obj is IGXDLMSBase)
@@ -890,8 +950,17 @@ namespace Gurux.DLMS.Objects
             {
                 if (e.Value != null)
                 {
-                    ClientSAP = Convert.ToByte(((List<object>)e.Value)[0]);
-                    ServerSAP = Convert.ToUInt16(((List<object>)e.Value)[1]);
+                    List<object> arr;
+                    if (e.Value is List<object>)
+                    {
+                        arr = (List<object>)e.Value;
+                    }
+                    else
+                    {
+                        arr = new List<object>((object[])e.Value);
+                    }
+                    ClientSAP = Convert.ToByte(arr[0]);
+                    ServerSAP = Convert.ToUInt16(arr[1]);
                 }
             }
             else if (e.Index == 4)
@@ -963,7 +1032,15 @@ namespace Gurux.DLMS.Objects
                 }
                 else if (e.Value != null)
                 {
-                    List<object> arr = (List<object>)e.Value;
+                    List<object> arr;
+                    if (e.Value is List<object>)
+                    {
+                        arr = (List<object>)e.Value;
+                    }
+                    else
+                    {
+                        arr = new List<object>((object[])e.Value);
+                    }
                     ApplicationContextName.JointIsoCtt = Convert.ToByte(arr[0]);
                     ApplicationContextName.Country = Convert.ToByte(arr[1]);
                     ApplicationContextName.CountryName = Convert.ToUInt16(arr[2]);
@@ -977,7 +1054,15 @@ namespace Gurux.DLMS.Objects
             {
                 if (e.Value != null)
                 {
-                    List<object> arr = (List<object>)e.Value;
+                    List<object> arr;
+                    if (e.Value is List<object>)
+                    {
+                        arr = (List<object>)e.Value;
+                    }
+                    else
+                    {
+                        arr = new List<object>((object[])e.Value);
+                    }
                     XDLMSContextInfo.Conformance = (Conformance)Convert.ToUInt32(arr[0]);
                     XDLMSContextInfo.MaxReceivePduSize = Convert.ToUInt16(arr[1]);
                     XDLMSContextInfo.MaxSendPduSize = Convert.ToUInt16(arr[2]);
@@ -1055,7 +1140,15 @@ namespace Gurux.DLMS.Objects
                 }
                 else if (e.Value != null)
                 {
-                    List<object> arr = (List<object>)e.Value;
+                    List<object> arr;
+                    if (e.Value is List<object>)
+                    {
+                        arr = (List<object>)e.Value;
+                    }
+                    else
+                    {
+                        arr = new List<object>((object[])e.Value);
+                    }
                     AuthenticationMechanismName.JointIsoCtt = Convert.ToByte(arr[0]);
                     AuthenticationMechanismName.Country = Convert.ToByte(arr[1]);
                     AuthenticationMechanismName.CountryName = Convert.ToUInt16(arr[2]);
@@ -1089,8 +1182,25 @@ namespace Gurux.DLMS.Objects
                 UserList.Clear();
                 if (e.Value != null)
                 {
-                    foreach (List<object> item in (List<object>)e.Value)
+                    List<object> arr, item;
+                    if (e.Value is List<object>)
                     {
+                        arr = (List<object>)e.Value;
+                    }
+                    else
+                    {
+                        arr = new List<object>((object[])e.Value);
+                    }
+                    foreach (object tmp in arr)
+                    {
+                        if (tmp is List<object>)
+                        {
+                            item = (List<object>)tmp;
+                        }
+                        else
+                        {
+                            item = new List<object>((object[])tmp);
+                        }
                         UserList.Add(new KeyValuePair<byte, string>(Convert.ToByte(item[0]), Convert.ToString(item[1])));
                     }
                 }
@@ -1099,14 +1209,22 @@ namespace Gurux.DLMS.Objects
             {
                 if (e.Value != null)
                 {
-                    List<object> tmp = (List<object>)e.Value;
-                    if (tmp.Count == 1)
+                    List<object> arr;
+                    if (e.Value is List<object>)
                     {
-                        CurrentUser = new KeyValuePair<byte, string>(Convert.ToByte(tmp[0]), null);
+                        arr = (List<object>)e.Value;
                     }
                     else
                     {
-                        CurrentUser = new KeyValuePair<byte, string>(Convert.ToByte(tmp[0]), Convert.ToString(tmp[1]));
+                        arr = new List<object>((object[])e.Value);
+                    }
+                    if (arr.Count == 1)
+                    {
+                        CurrentUser = new KeyValuePair<byte, string>(Convert.ToByte(arr[0]), null);
+                    }
+                    else
+                    {
+                        CurrentUser = new KeyValuePair<byte, string>(Convert.ToByte(arr[0]), Convert.ToString(arr[1]));
                     }
                 }
                 else

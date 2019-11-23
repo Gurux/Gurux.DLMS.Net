@@ -575,6 +575,10 @@ namespace Gurux.DLMS.Internal
                 info.xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)info.Type);
             }
             info.Index = pos;
+            if (settings.Version == 8)
+            {
+                return arr.ToArray();
+            }
             return arr;
         }
 

@@ -877,8 +877,17 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                 case 2:
                     if (e.Value != null)
                     {
-                        AccountStatus = (AccountStatus)Convert.ToByte(((List<object>)e.Value)[0]);
-                        PaymentMode = (PaymentMode)Convert.ToByte(((List<object>)e.Value)[1]);
+                        List<object> arr;
+                        if (e.Value is List<object>)
+                        {
+                            arr = (List<object>)e.Value;
+                        }
+                        else
+                        {
+                            arr = new List<object>((object[])e.Value);
+                        }
+                        AccountStatus = (AccountStatus)Convert.ToByte(arr[0]);
+                        PaymentMode = (PaymentMode)Convert.ToByte(arr[1]);
                     }
                     else
                     {
@@ -908,7 +917,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                     CreditReferences.Clear();
                     if (e.Value != null)
                     {
-                        foreach (object it in (List<object>)e.Value)
+                        foreach (object it in (IEnumerable<object>)e.Value)
                         {
                             CreditReferences.Add(GXCommon.ToLogicalName(it));
                         }
@@ -918,7 +927,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                     ChargeReferences.Clear();
                     if (e.Value != null)
                     {
-                        foreach (object it in (List<object>)e.Value)
+                        foreach (object it in (IEnumerable<object>)e.Value)
                         {
                             ChargeReferences.Add(GXCommon.ToLogicalName(it));
                         }
@@ -928,8 +937,17 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                     CreditChargeConfigurations.Clear();
                     if (e.Value != null)
                     {
-                        foreach (List<object> it in (List<object>)e.Value)
+                        foreach (object tmp in (IEnumerable<object>)e.Value)
                         {
+                            List<object> it;
+                            if (tmp is List<object>)
+                            {
+                                it = (List<object>)tmp;
+                            }
+                            else
+                            {
+                                it = new List<object>((object[])tmp);
+                            }
                             GXCreditChargeConfiguration item = new GXCreditChargeConfiguration();
                             item.CreditReference = GXCommon.ToLogicalName(it[0]);
                             item.ChargeReference = GXCommon.ToLogicalName(it[1]);
@@ -942,8 +960,17 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                     TokenGatewayConfigurations.Clear();
                     if (e.Value != null)
                     {
-                        foreach (List<object> it in (List<object>)e.Value)
+                        foreach (object tmp in (IEnumerable<object>)e.Value)
                         {
+                            List<object> it;
+                            if (tmp is List<object>)
+                            {
+                                it = (List<object>)tmp;
+                            }
+                            else
+                            {
+                                it = new List<object>((object[])tmp);
+                            }
                             GXTokenGatewayConfiguration item = new GXTokenGatewayConfiguration();
                             item.CreditReference = GXCommon.ToLogicalName(it[0]);
                             item.TokenProportion = (byte)it[1];
@@ -996,7 +1023,15 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                 case 15:
                     if (e.Value != null)
                     {
-                        List<object> tmp = (List<object>)e.Value;
+                        List<object> tmp;
+                        if (e.Value is List<object>)
+                        {
+                            tmp = (List<object>)e.Value;
+                        }
+                        else
+                        {
+                            tmp = new List<object>((object[])e.Value);
+                        }
                         Currency.Name = (string)tmp[0];
                         Currency.Scale = (sbyte)tmp[1];
                         Currency.Unit = (Currency)Convert.ToByte(tmp[2]);

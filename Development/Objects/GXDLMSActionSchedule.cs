@@ -280,13 +280,23 @@ namespace Gurux.DLMS.Objects
             {
                 if (e.Value != null)
                 {
-                    String ln = GXCommon.ToLogicalName(((List<object>)e.Value)[0]);
+                    List<object> arr;
+                    if (e.Value is List<object>)
+                    {
+                        arr = (List<object>)e.Value;
+                    }
+                    else
+                    {
+                        arr = new List<object>((object[])e.Value);
+                    }
+
+                    String ln = GXCommon.ToLogicalName(arr[0]);
                     Target = (GXDLMSScriptTable)settings.Objects.FindByLN(ObjectType.ScriptTable, ln);
                     if (Target == null)
                     {
                         Target = new GXDLMSScriptTable(ln);
                     }
-                    ExecutedScriptSelector = Convert.ToUInt16(((List<object>)e.Value)[1]);
+                    ExecutedScriptSelector = Convert.ToUInt16(arr[1]);
                 }
                 else
                 {
@@ -304,8 +314,25 @@ namespace Gurux.DLMS.Objects
                 if (e.Value != null)
                 {
                     List<GXDateTime> items = new List<GXDateTime>();
-                    foreach (List<object> it in (List<object>)e.Value)
+                    List<object> arr, it;
+                    if (e.Value is List<object>)
                     {
+                        arr = (List<object>)e.Value;
+                    }
+                    else
+                    {
+                        arr = new List<object>((object[])e.Value);
+                    }
+                    foreach (object tmp2 in arr)
+                    {
+                        if (tmp2 is List<object>)
+                        {
+                            it = (List<object>)tmp2;
+                        }
+                        else
+                        {
+                            it = new List<object>((object[])tmp2);
+                        }
                         GXDateTime time;
                         if (it[0] is byte[])
                         {

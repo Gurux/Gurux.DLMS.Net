@@ -626,13 +626,22 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        private void UpdateSertificates(List<object> list)
+        private void UpdateSertificates(IEnumerable<object> list)
         {
             Certificates.Clear();
             if (list != null)
             {
-                foreach (List<object> it in list)
+                foreach (object tmp in list)
                 {
+                    List<object> it;
+                    if (tmp is List<object>)
+                    {
+                        it = (List<object>)tmp;
+                    }
+                    else
+                    {
+                        it = new List<object>((object[])tmp);
+                    }
                     GXDLMSCertificateInfo info = new GXDLMSCertificateInfo();
                     info.Entity = (CertificateEntity)Convert.ToInt32(it[0]);
                     info.Type = (CertificateType)Convert.ToInt32(it[1]);
@@ -676,7 +685,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 6)
             {
-                UpdateSertificates((List<object>)e.Value);
+                UpdateSertificates((IEnumerable<object>)e.Value);
             }
             else
             {

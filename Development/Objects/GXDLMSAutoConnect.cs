@@ -323,8 +323,26 @@ namespace Gurux.DLMS.Objects
                 CallingWindow.Clear();
                 if (e.Value != null)
                 {
-                    foreach (List<object> item in (List<object>)e.Value)
+                    List<object> arr, item;
+                    if (e.Value is List<object>)
                     {
+                        arr = (List<object>)e.Value;
+                    }
+                    else
+                    {
+                        arr = new List<object>((object[])e.Value);
+                    }
+
+                    foreach (object tmp in arr)
+                    {
+                        if (tmp is List<object>)
+                        {
+                            item = (List<object>)tmp;
+                        }
+                        else
+                        {
+                            item = new List<object>((object[])tmp);
+                        }
                         GXDateTime start = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[0], DataType.DateTime, settings.UseUtc2NormalTime);
                         GXDateTime end = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime, settings.UseUtc2NormalTime);
                         CallingWindow.Add(new KeyValuePair<GXDateTime, GXDateTime>(start, end));
@@ -336,8 +354,17 @@ namespace Gurux.DLMS.Objects
                 Destinations = null;
                 if (e.Value != null)
                 {
+                    List<object> arr;
+                    if (e.Value is List<object>)
+                    {
+                        arr = (List<object>)e.Value;
+                    }
+                    else
+                    {
+                        arr = new List<object>((object[])e.Value);
+                    }
                     List<string> items = new List<string>();
-                    foreach (object item in (List<object>)e.Value)
+                    foreach (object item in arr)
                     {
                         string it;
                         if (item is byte[])

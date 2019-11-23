@@ -140,8 +140,8 @@ namespace Gurux.DLMS.Objects
             bb.SetUInt8(2);
             GXCommon.SetData(null, bb, DataType.OctetString, name);
             bb.SetUInt8(DataType.Array);
-            bb.SetUInt8((byte) indexes.Length);
-            foreach(byte it in indexes)
+            bb.SetUInt8((byte)indexes.Length);
+            foreach (byte it in indexes)
             {
                 GXCommon.SetData(null, bb, DataType.UInt8, it);
             }
@@ -303,8 +303,17 @@ namespace Gurux.DLMS.Objects
                 List<GXDLMSObjectDefinition> items = new List<GXDLMSObjectDefinition>();
                 if (e.Value != null)
                 {
-                    foreach (List<object> it in (List<object>)e.Value)
+                    foreach (object tmp in (IEnumerable<object>)e.Value)
                     {
+                        List<object> it;
+                        if (tmp is List<object>)
+                        {
+                            it = (List<object>)tmp;
+                        }
+                        else
+                        {
+                            it = new List<object>((object[])tmp);
+                        }
                         GXDLMSObjectDefinition item = new GXDLMSObjectDefinition();
                         item.ObjectType = (ObjectType)Convert.ToInt32(it[0]);
                         item.LogicalName = GXCommon.ToLogicalName((byte[])it[1]);
@@ -318,10 +327,19 @@ namespace Gurux.DLMS.Objects
                 MaskList.Clear();
                 if (e.Value != null)
                 {
-                    foreach (List<object> it in (List<object>)e.Value)
+                    foreach (object tmp in (IEnumerable<object>)e.Value)
                     {
+                        List<object> it;
+                        if (tmp is List<object>)
+                        {
+                            it = (List<object>)tmp;
+                        }
+                        else
+                        {
+                            it = new List<object>((object[])tmp);
+                        }
                         List<byte> index_list = new List<byte>();
-                        foreach (byte b in (List<object>)it[1])
+                        foreach (byte b in (IEnumerable<object>)it[1])
                         {
                             index_list.Add(b);
                         }

@@ -323,7 +323,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        private static void SetCaptureObjects(GXDLMSSettings settings, List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> list, List<object> array)
+        private static void SetCaptureObjects(GXDLMSSettings settings, List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> list, IEnumerable<object> array)
         {
             GXDLMSConverter c = null;
             list.Clear();
@@ -331,8 +331,17 @@ namespace Gurux.DLMS.Objects
             {
                 if (array != null)
                 {
-                    foreach (List<object> it in array)
+                    foreach (object tmp in array)
                     {
+                        List<object> it;
+                        if (tmp is List<object>)
+                        {
+                            it = (List<object>)tmp;
+                        }
+                        else
+                        {
+                            it = new List<object>((object[])tmp);
+                        }
                         if (it.Count != 4)
                         {
                             throw new GXDLMSException("Invalid structure format.");
@@ -395,7 +404,7 @@ namespace Gurux.DLMS.Objects
                     }
                     break;
                 case 3:
-                    SetCaptureObjects(settings, CaptureObjects, (List<object>)e.Value);
+                    SetCaptureObjects(settings, CaptureObjects, (IEnumerable<object>)e.Value);
                     if (settings != null && settings.IsServer)
                     {
                         UpdateTemplateDescription();

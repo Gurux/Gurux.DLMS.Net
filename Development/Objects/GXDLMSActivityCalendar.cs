@@ -482,8 +482,25 @@ namespace Gurux.DLMS.Objects
             if (value != null)
             {
                 List<GXDLMSSeasonProfile> items = new List<GXDLMSSeasonProfile>();
-                foreach (List<object> item in (List<object>)value)
+                List<object> arr, item;
+                if (value is List<object>)
                 {
+                    arr = (List<object>)value;
+                }
+                else
+                {
+                    arr = new List<object>((object[])value);
+                }
+                foreach (object tmp in arr)
+                {
+                    if (tmp is List<object>)
+                    {
+                        item = (List<object>)tmp;
+                    }
+                    else
+                    {
+                        item = new List<object>((object[])tmp);
+                    }
                     GXDLMSSeasonProfile it = new GXDLMSSeasonProfile();
                     it.Name = (byte[])item[0];
                     if (item[1] is byte[])
@@ -511,8 +528,25 @@ namespace Gurux.DLMS.Objects
             if (value != null)
             {
                 List<GXDLMSWeekProfile> items = new List<GXDLMSWeekProfile>();
-                foreach (List<object> item in (List<object>)value)
+                List<object> arr, item;
+                if (value is List<object>)
                 {
+                    arr = (List<object>)value;
+                }
+                else
+                {
+                    arr = new List<object>((object[])value);
+                }
+                foreach (object tmp in arr)
+                {
+                    if (tmp is List<object>)
+                    {
+                        item = (List<object>)tmp;
+                    }
+                    else
+                    {
+                        item = new List<object>((object[])tmp);
+                    }
                     GXDLMSWeekProfile it = new GXDLMSWeekProfile();
                     it.Name = (byte[])item[0];
                     it.Monday = Convert.ToInt32(item[1]);
@@ -533,14 +567,47 @@ namespace Gurux.DLMS.Objects
         {
             if (value != null)
             {
-                List<GXDLMSDayProfile> items = new List<GXDLMSDayProfile>();
-                foreach (List<object> item in (List<object>)value)
+                List<object> arr, item, it2;
+                if (value is List<object>)
                 {
+                    arr = (List<object>)value;
+                }
+                else
+                {
+                    arr = new List<object>((object[])value);
+                }
+                List<GXDLMSDayProfile> items = new List<GXDLMSDayProfile>();
+                foreach (object tmp in arr)
+                {
+                    if (tmp is List<object>)
+                    {
+                        item = (List<object>)tmp;
+                    }
+                    else
+                    {
+                        item = new List<object>((object[])tmp);
+                    }
                     GXDLMSDayProfile it = new GXDLMSDayProfile();
                     it.DayId = Convert.ToInt32(item[0]);
                     List<GXDLMSDayProfileAction> actions = new List<GXDLMSDayProfileAction>();
-                    foreach (List<object> it2 in (List<object>)item[1])
+                    if (item[1] is List<object>)
                     {
+                        item = (List<object>)item[1];
+                    }
+                    else
+                    {
+                        item = new List<object>((object[])item[1]);
+                    }
+                    foreach (object tmp2 in item)
+                    {
+                        if (tmp2 is List<object>)
+                        {
+                            it2 = (List<object>)tmp2;
+                        }
+                        else
+                        {
+                            it2 = new List<object>((object[])tmp2);
+                        }
                         GXDLMSDayProfileAction ac = new GXDLMSDayProfileAction();
                         if (it2[0] is GXTime)
                         {

@@ -461,8 +461,17 @@ namespace Gurux.DLMS.Objects
                 CaptureDefinition.Clear();
                 if (e.Value != null)
                 {
-                    foreach (List<object> it in (List<object>)e.Value)
+                    foreach (object tmp in (IEnumerable<object>)e.Value)
                     {
+                        List<object> it;
+                        if (tmp is List<object>)
+                        {
+                            it = (List<object>)tmp;
+                        }
+                        else
+                        {
+                            it = new List<object>((object[])tmp);
+                        }
                         CaptureDefinition.Add(new KeyValuePair<string, string>(GXDLMSClient.ChangeType((byte[])it[0], DataType.OctetString, settings.UseUtc2NormalTime).ToString(),
                                               GXDLMSClient.ChangeType((byte[])it[1], DataType.OctetString, settings.UseUtc2NormalTime).ToString()));
                     }

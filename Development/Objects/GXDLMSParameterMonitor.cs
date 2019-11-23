@@ -177,12 +177,12 @@ namespace Gurux.DLMS.Objects
                 else if (e.Index == 2)
                 {
                     List<object> tmp = (List<object>)e.Parameters;
-                    ObjectType ot = (ObjectType) Convert.ToUInt16(tmp[0]);
+                    ObjectType ot = (ObjectType)Convert.ToUInt16(tmp[0]);
                     string ln = GXCommon.ToLogicalName((byte[])tmp[1]);
                     byte index = Convert.ToByte(tmp[2]);
                     foreach (GXDLMSTarget item in Parameters)
                     {
-                        if (item.Target.ObjectType == ot && item.Target.LogicalName == ln && item.AttributeIndex == index )
+                        if (item.Target.ObjectType == ot && item.Target.LogicalName == ln && item.AttributeIndex == index)
                         {
                             Parameters.Remove(item);
                             break;
@@ -264,7 +264,7 @@ namespace Gurux.DLMS.Objects
                         GXByteBuffer data = new GXByteBuffer();
                         data.SetUInt8((byte)DataType.Structure);
                         data.SetUInt8(4);
-                        if (ChangedParameter == null)
+                        if (ChangedParameter == null || ChangedParameter.Target == null)
                         {
                             GXCommon.SetData(settings, data, DataType.UInt16, 0);
                             GXCommon.SetData(settings, data, DataType.OctetString, new byte[] { 0, 0, 0, 0, 0, 0 });
@@ -321,9 +321,17 @@ namespace Gurux.DLMS.Objects
                 case 2:
                     {
                         ChangedParameter = new GXDLMSTarget();
+                        List<object> tmp = null;
                         if (e.Value is List<object>)
                         {
-                            List<object> tmp = (List<object>)e.Value;
+                            tmp = (List<object>)e.Value;
+                        }
+                        else if (e.Value is object[])
+                        {
+                            tmp = new List<object>((object[])e.Value);
+                        }
+                        if (tmp != null)
+                        {
                             if (tmp.Count != 4)
                             {
                                 throw new GXDLMSException("Invalid structure format.");
@@ -388,8 +396,17 @@ namespace Gurux.DLMS.Objects
                         Parameters.Clear();
                         if (e.Value != null)
                         {
-                            foreach (List<object> tmp in (e.Value as List<object>))
+                            foreach (object it in e.Value as IEnumerable<object>)
                             {
+                                List<object> tmp;
+                                if (it is List<object>)
+                                {
+                                    tmp = (List<object>)it;
+                                }
+                                else
+                                {
+                                    tmp = new List<object>((object[])it);
+                                }
                                 if (tmp.Count != 3)
                                 {
                                     throw new GXDLMSException("Invalid structure format.");
@@ -429,7 +446,7 @@ namespace Gurux.DLMS.Objects
                     ChangedParameter.Target = GXDLMSClient.CreateObject(ot);
                     ChangedParameter.Target.LogicalName = ln;
                 }
-                ChangedParameter.AttributeIndex = (byte) reader.ReadElementContentAsInt("Index");
+                ChangedParameter.AttributeIndex = (byte)reader.ReadElementContentAsInt("Index");
                 ChangedParameter.Value = reader.ReadElementContentAsObject("Value", null);
                 reader.ReadEndElement("ChangedParameter");
             }

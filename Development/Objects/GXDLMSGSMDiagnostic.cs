@@ -367,7 +367,15 @@ namespace Gurux.DLMS.Objects
                 case 6:
                     if (e.Value != null)
                     {
-                        List<object> tmp = (List<object>)e.Value;
+                        List<object> tmp;
+                        if (e.Value is List<object>)
+                        {
+                            tmp = (List<object>)e.Value;
+                        }
+                        else
+                        {
+                            tmp = new List<object>((object[])e.Value);
+                        }
                         CellInfo.CellId = Convert.ToUInt32(tmp[0]);
                         CellInfo.LocationId = (UInt16)tmp[1];
                         CellInfo.SignalQuality = (byte)tmp[2];
@@ -384,8 +392,17 @@ namespace Gurux.DLMS.Objects
                     AdjacentCells.Clear();
                     if (e.Value != null)
                     {
-                        foreach (List<object> it in (List<object>)e.Value)
+                        foreach (object tmp in (IEnumerable<object>)e.Value)
                         {
+                            List<object> it;
+                            if (tmp is List<object>)
+                            {
+                                it = (List<object>)tmp;
+                            }
+                            else
+                            {
+                                it = new List<object>((object[])tmp);
+                            }
                             AdjacentCell ac = new Objects.AdjacentCell();
                             ac.CellId = Convert.ToUInt32(it[0]);
                             ac.SignalQuality = (byte)it[1];
@@ -430,7 +447,7 @@ namespace Gurux.DLMS.Objects
                 while (reader.IsStartElement("Item", true))
                 {
                     AdjacentCell it = new Objects.AdjacentCell();
-                    it.CellId = (UInt32) reader.ReadElementContentAsInt("CellId");
+                    it.CellId = (UInt32)reader.ReadElementContentAsInt("CellId");
                     it.SignalQuality = (byte)reader.ReadElementContentAsInt("SignalQuality");
                     AdjacentCells.Add(it);
                 }

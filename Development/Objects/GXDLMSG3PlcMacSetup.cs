@@ -133,7 +133,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// This attribute holds GMK keys required for MAC layer ciphering. 
+        /// This attribute holds GMK keys required for MAC layer ciphering.
         /// </summary>
         /// /// <remarks>
         /// PIB attribute 0x71.
@@ -172,7 +172,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Maximum time to live of tone map parameters entry in the neighbour table in minutes. 
+        /// Maximum time to live of tone map parameters entry in the neighbour table in minutes.
         /// </summary>
         /// <remarks>
         /// PIB attribute 0x10D.
@@ -185,7 +185,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Maximum number of retransmissions. 
+        /// Maximum number of retransmissions.
         /// </summary>
         /// <remarks>
         /// PIB attribute 0x59.
@@ -201,7 +201,7 @@ namespace Gurux.DLMS.Objects
         /// Maximum time to live for an entry in the neighbour table in minutes
         /// </summary>
         /// <remarks>
-        /// PIB attribute 0x10E. 
+        /// PIB attribute 0x10E.
         /// </remarks>
         [XmlIgnore()]
         public byte NeighbourTableEntryTtl
@@ -214,7 +214,7 @@ namespace Gurux.DLMS.Objects
         /// The neighbour table contains information about all the devices within the POS of the device
         /// </summary>
         /// <remarks>
-        /// PIB attribute 0x010A. 
+        /// PIB attribute 0x010A.
         /// </remarks>
         [XmlIgnore()]
         public GXDLMSNeighbourTable[] NeighbourTable
@@ -263,7 +263,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// This parameter controls the adaptive CW linear decrease. 
+        /// This parameter controls the adaptive CW linear decrease.
         /// </summary>
         /// <remarks>
         /// PIB attribute 0x0112.
@@ -276,7 +276,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Rate adaptation factor for channel access fairness limit. 
+        /// Rate adaptation factor for channel access fairness limit.
         /// </summary>
         /// <remarks>
         ///PIB attribute 0x113.
@@ -289,7 +289,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Number of consecutive attempts while using minimum CW. 
+        /// Number of consecutive attempts while using minimum CW.
         /// </summary>
         /// <remarks>
         /// PIB attribute 0x114.
@@ -315,7 +315,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// This read only attribute indicates the capability of the node. 
+        /// This read only attribute indicates the capability of the node.
         /// </summary>
         /// <remarks>
         /// PIB attribute 0x116.
@@ -486,7 +486,7 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(20);
             }
-            //MacMaxCsmaBackoffs, 
+            //MacMaxCsmaBackoffs,
             if (all || CanRead(21))
             {
                 attributes.Add(21);
@@ -792,9 +792,18 @@ namespace Gurux.DLMS.Objects
                 KeyTable.Clear();
                 if (e.Value != null)
                 {
-                    foreach (List<object> v in (List<object>)e.Value)
+                    foreach (object tmp in (IEnumerable<object>)e.Value)
                     {
-                        KeyTable.Add(new GXKeyValuePair<byte, byte[]>(Convert.ToByte(v[0]), (byte[])v[1]));
+                        List<object> arr;
+                        if (tmp is List<object>)
+                        {
+                            arr = (List<object>)tmp;
+                        }
+                        else
+                        {
+                            arr = new List<object>((object[])tmp);
+                        }
+                        KeyTable.Add(new GXKeyValuePair<byte, byte[]>(Convert.ToByte(arr[0]), (byte[])arr[1]));
                     }
                 }
             }
@@ -823,20 +832,29 @@ namespace Gurux.DLMS.Objects
                 List<GXDLMSNeighbourTable> list = new List<GXDLMSNeighbourTable>();
                 if (e.Value != null)
                 {
-                    foreach (List<object> v in (List<object>)e.Value)
+                    foreach (object tmp in (IEnumerable<object>)e.Value)
                     {
+                        List<object> arr;
+                        if (tmp is List<object>)
+                        {
+                            arr = (List<object>)tmp;
+                        }
+                        else
+                        {
+                            arr = new List<object>((object[])tmp);
+                        }
                         GXDLMSNeighbourTable it = new GXDLMSNeighbourTable();
-                        it.ShortAddress = Convert.ToUInt16(v[0]);
-                        it.Enabled = Convert.ToBoolean(v[1]);
-                        it.ToneMap = Convert.ToString(v[2]);
-                        it.Modulation = (Modulation)Convert.ToInt32(v[3]);
-                        it.TxGain = Convert.ToSByte(v[4]);
-                        it.TxRes = (GainResolution)Convert.ToInt32(v[5]);
-                        it.TxCoeff = Convert.ToString(v[6]);
-                        it.Lqi = Convert.ToByte(v[7]);
-                        it.PhaseDifferential = Convert.ToSByte(v[8]);
-                        it.TMRValidTime = Convert.ToByte(v[9]);
-                        it.NeighbourValidTime = Convert.ToByte(v[10]);
+                        it.ShortAddress = Convert.ToUInt16(arr[0]);
+                        it.Enabled = Convert.ToBoolean(arr[1]);
+                        it.ToneMap = Convert.ToString(arr[2]);
+                        it.Modulation = (Modulation)Convert.ToInt32(arr[3]);
+                        it.TxGain = Convert.ToSByte(arr[4]);
+                        it.TxRes = (GainResolution)Convert.ToInt32(arr[5]);
+                        it.TxCoeff = Convert.ToString(arr[6]);
+                        it.Lqi = Convert.ToByte(arr[7]);
+                        it.PhaseDifferential = Convert.ToSByte(arr[8]);
+                        it.TMRValidTime = Convert.ToByte(arr[9]);
+                        it.NeighbourValidTime = Convert.ToByte(arr[10]);
                         list.Add(it);
                     }
                 }

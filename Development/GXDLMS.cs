@@ -1112,7 +1112,6 @@ namespace Gurux.DLMS
                     else if (p.settings.InterfaceType == Enums.InterfaceType.PDU)
                     {
                         messages.Add(reply.Array());
-                        frame = 0;
                         break;
                     }
                     else
@@ -1176,6 +1175,7 @@ namespace Gurux.DLMS
                     {
                         throw new ArgumentOutOfRangeException("InterfaceType");
                     }
+                    frame = 0;
                 }
                 reply.Clear();
             } while (p.data != null && p.data.Position != p.data.Size);
@@ -3377,6 +3377,7 @@ namespace Gurux.DLMS
                         }
                         break;
                     case Command.DataNotification:
+
                         HandleDataNotification(settings, data);
                         //Client handles this.
                         break;
@@ -3812,6 +3813,29 @@ namespace Gurux.DLMS
                 return true;
             }
             GetPdu(settings, data, client);
+            if (notify != null && !isNotify)
+            {
+                //Check command to make sure it's not notify message.
+                switch (data.Command)
+                {
+                    case Command.DataNotification:
+                    case Command.GloEventNotificationRequest:
+                    case Command.InformationReport:
+                    case Command.EventNotification:
+                    case Command.DedInformationReportRequest:
+                    case Command.DedEventNotificationRequest:
+                        isNotify = true;
+                        notify.Command = data.Command;
+                        data.Command = Command.None;
+                        notify.Time = data.Time;
+                        data.Time = DateTime.MinValue;
+                        notify.Data.Set(data.Data);
+                        data.Data.Trim();
+                        break;
+                    default:
+                        break;
+                }
+            }
             if (isNotify)
             {
                 return false;

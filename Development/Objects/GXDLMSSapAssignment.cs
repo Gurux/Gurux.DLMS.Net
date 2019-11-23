@@ -217,8 +217,17 @@ namespace Gurux.DLMS.Objects
                 SapAssignmentList.Clear();
                 if (e.Value != null)
                 {
-                    foreach (List<object> item in (List<object>)e.Value)
+                    foreach (object tmp in (IEnumerable<object>)e.Value)
                     {
+                        List<object> item;
+                        if (tmp is List<object>)
+                        {
+                            item = (List<object>)tmp;
+                        }
+                        else
+                        {
+                            item = new List<object>((object[])tmp);
+                        }
                         string str;
                         if (item[1] is byte[])
                         {

@@ -308,10 +308,18 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    List<object> arr = (List<object>)e.Value;
+                    List<object> arr;
+                    if (e.Value is List<object>)
+                    {
+                        arr = (List<object>)e.Value;
+                    }
+                    else
+                    {
+                        arr = new List<object>((object[])e.Value);
+                    }
                     if (arr.Count != 2)
                     {
-                        throw new Exception("setValue failed. Invalid scaler unit value.");
+                        throw new Exception("SetValue failed. Invalid scaler unit value.");
                     }
                     scaler = Convert.ToInt32(arr[0]);
                     Unit = (Unit)(Convert.ToInt32(arr[1]) & 0xFF);

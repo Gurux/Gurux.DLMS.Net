@@ -237,7 +237,16 @@ namespace Gurux.DLMS.Objects
             {
                 if (e.Value != null)
                 {
-                    Thresholds = ((List<object>)e.Value).ToArray();
+                    List<object> arr;
+                    if (e.Value is List<object>)
+                    {
+                        arr = (List<object>)e.Value;
+                    }
+                    else
+                    {
+                        arr = new List<object>((object[])e.Value);
+                    }
+                    Thresholds = arr.ToArray();
                 }
                 else
                 {
@@ -252,9 +261,18 @@ namespace Gurux.DLMS.Objects
                 }
                 if (e.Value != null)
                 {
-                    MonitoredValue.ObjectType = (ObjectType)Convert.ToInt32(((List<object>)e.Value)[0]);
-                    MonitoredValue.LogicalName = GXCommon.ToLogicalName(((List<object>)e.Value)[1]);
-                    MonitoredValue.AttributeIndex = Convert.ToInt32(((List<object>)e.Value)[2]);
+                    List<object> arr;
+                    if (e.Value is List<object>)
+                    {
+                        arr = (List<object>)e.Value;
+                    }
+                    else
+                    {
+                        arr = new List<object>((object[])e.Value);
+                    }
+                    MonitoredValue.ObjectType = (ObjectType)Convert.ToInt32(arr[0]);
+                    MonitoredValue.LogicalName = GXCommon.ToLogicalName(arr[1]);
+                    MonitoredValue.AttributeIndex = Convert.ToInt32(arr[2]);
                 }
                 else
                 {
@@ -269,13 +287,46 @@ namespace Gurux.DLMS.Objects
                 if (e.Value != null)
                 {
                     List<GXDLMSActionSet> items = new List<GXDLMSActionSet>();
-                    foreach (List<object> action_set in (List<object>)e.Value)
+                    List<object> arr, action_set, it;
+                    if (e.Value is List<object>)
                     {
+                        arr = (List<object>)e.Value;
+                    }
+                    else
+                    {
+                        arr = new List<object>((object[])e.Value);
+                    }
+                    foreach (object tmp in arr)
+                    {
+                        if (tmp is List<object>)
+                        {
+                            action_set = (List<object>)tmp;
+                        }
+                        else
+                        {
+                            action_set = new List<object>((object[])tmp);
+                        }
+                        if (action_set[0] is List<object>)
+                        {
+                            it = (List<object>)action_set[0];
+                        }
+                        else
+                        {
+                            it = new List<object>((object[])action_set[0]);
+                        }
                         GXDLMSActionSet set = new GXDLMSActionSet();
-                        set.ActionUp.LogicalName = GXCommon.ToLogicalName(((List<object>)action_set[0])[0]);
-                        set.ActionUp.ScriptSelector = Convert.ToUInt16(((List<object>)action_set[0])[1]);
-                        set.ActionDown.LogicalName = GXCommon.ToLogicalName(((List<object>)action_set[1])[0]);
-                        set.ActionDown.ScriptSelector = Convert.ToUInt16(((List<object>)action_set[1])[1]);
+                        set.ActionUp.LogicalName = GXCommon.ToLogicalName(it[0]);
+                        set.ActionUp.ScriptSelector = Convert.ToUInt16(it[1]);
+                        if (action_set[1] is List<object>)
+                        {
+                            it = (List<object>)action_set[1];
+                        }
+                        else
+                        {
+                            it = new List<object>((object[])action_set[1]);
+                        }
+                        set.ActionDown.LogicalName = GXCommon.ToLogicalName(it[0]);
+                        set.ActionDown.ScriptSelector = Convert.ToUInt16(it[1]);
                         items.Add(set);
                     }
                     Actions = items.ToArray();
