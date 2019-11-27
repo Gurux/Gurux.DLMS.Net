@@ -306,7 +306,14 @@ namespace Gurux.DLMS.Objects
                 {
                     foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in CaptureObjects)
                     {
-                        values[pos] = it.Key.GetValues()[it.Value.AttributeIndex - 1];
+                        if (it.Value.AttributeIndex == 0)
+                        {
+                            values[pos] = it.Key.GetValues();
+                        }
+                        else
+                        {
+                            values[pos] = it.Key.GetValues()[it.Value.AttributeIndex - 1];
+                        }
                         ++pos;
                     }
                     lock (Buffer)
@@ -461,7 +468,14 @@ namespace Gurux.DLMS.Objects
             DataType[] types = new DataType[cols.Count];
             foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in cols)
             {
-                types[pos] = it.Key.GetDataType(it.Value.AttributeIndex);
+                if (it.Value.AttributeIndex == 0)
+                {
+                    types[pos] = DataType.Structure;
+                }
+                else
+                {
+                    types[pos] = it.Key.GetDataType(it.Value.AttributeIndex);
+                }
                 ++pos;
             }
             UInt16 columnStart = 1, columnEnd = 0;
@@ -528,7 +542,14 @@ namespace Gurux.DLMS.Objects
                         {
                             tp = DataType.None;
                         }
-                        GXCommon.SetData(settings, data, tp, value);
+                        if (value is GXDLMSObject)
+                        {
+                            GXCommon.SetData(settings, data, tp, (value as GXDLMSObject).GetValues());
+                        }
+                        else
+                        {
+                            GXCommon.SetData(settings, data, tp, value);
+                        }
                     }
                     ++pos;
                 }
@@ -904,46 +925,14 @@ namespace Gurux.DLMS.Objects
             {
                 cols = CaptureObjects;
             }
-            List<object> arr = null;
-            if (e.Value is List<object>)
-            {
-                arr = (List<object>)e.Value;
-            }
-            else if (e.Value != null)
-            {
-                arr = new List<object>((object[])e.Value);
-            }
-            if (arr != null && arr.Count != 0)
+            if (e.Value != null)
             {
                 int index2 = 0;
                 DateTime lastDate = DateTime.MinValue;
-                foreach (object tmp in arr)
+                foreach (object tmp in (IEnumerable<object>) e.Value)
                 {
-                    List<object> t;
-                    if (tmp is List<object>)
-                    {
-                        t = (List<object>)tmp;
-                    }
-                    else
-                    {
-                        t = new List<object>((object[])tmp);
-                    }
                     List<object> row = new List<object>();
-                    foreach (object it in t)
-                    {
-                        if (it is GXStructure)
-                        {
-                            row.Add((List<object>)it);
-                        }
-                        else if (it is GXArray)
-                        {
-                            row.AddRange((List<object>)it);
-                        }
-                        else
-                        {
-                            row.Add(it);
-                        }
-                    }
+                    row.AddRange((IEnumerable<object>) tmp);
                     if (cols.Count != 0)
                     {
                         if (row.Count != cols.Count)
@@ -1080,7 +1069,7 @@ namespace Gurux.DLMS.Objects
             return list;
         }
 
-        private static void SetCaptureObjects(GXDLMSProfileGeneric parent, GXDLMSSettings settings, List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> list, List<object> array)
+        private static void SetCaptureObjects(GXDLMSProfileGeneric parent, GXDLMSSettings settings, List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> list, IEnumerable<object> array)
         {
             GXDLMSConverter c = null;
             try
@@ -1157,16 +1146,7 @@ namespace Gurux.DLMS.Objects
                 CaptureObjects.Clear();
                 if (e.Value != null)
                 {
-                    List<object> arr;
-                    if (e.Value is List<object>)
-                    {
-                        arr = (List<object>)e.Value;
-                    }
-                    else
-                    {
-                        arr = new List<object>((object[])e.Value);
-                    }
-                    SetCaptureObjects(this, settings, CaptureObjects, arr);
+                    SetCaptureObjects(this, settings, CaptureObjects, (IEnumerable<object>)e.Value);
                 }
             }
             else if (e.Index == 4)

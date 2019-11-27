@@ -675,9 +675,47 @@ namespace Gurux.DLMS.Internal
                 int year = buff.GetUInt16();
                 // Get month
                 int month = buff.GetUInt8();
+                DateTimeExtraInfo extra = DateTimeExtraInfo.None;
+                DateTimeSkips skip = DateTimeSkips.None;
+                if (month == 0 || month == 0xFF)
+                {
+                    month = 1;
+                    skip |= DateTimeSkips.Month;
+                }
+                else if (month == 0xFE)
+                {
+                    //Daylight savings begin.
+                    month = 1;
+                    extra |= DateTimeExtraInfo.DstBegin;
+                }
+                else if (month == 0xFD)
+                {
+                    // Daylight savings end.
+                    month = 1;
+                    extra |= DateTimeExtraInfo.DstEnd;
+                }
                 // Get day
                 int day = buff.GetUInt8();
+                if (day == 0xFD)
+                {
+                    // 2nd last day of month.
+                    day = 1;
+                    extra |= DateTimeExtraInfo.LastDay2;
+                }
+                else if (day == 0xFE)
+                {
+                    //Last day of month
+                    day = 1;
+                    extra |= DateTimeExtraInfo.LastDay;
+                }
+                else if (day < 1 || day == 0xFF)
+                {
+                    day = 1;
+                    skip |= DateTimeSkips.Day;
+                }
                 value = new GXDate(year, month, day);
+                value.Extra = extra;
+                value.Skip = skip;
                 // Skip week day
                 if (buff.GetUInt8() == 0xFF)
                 {
@@ -757,34 +795,33 @@ namespace Gurux.DLMS.Internal
                 {
                     //Daylight savings begin.
                     month = 1;
-                    dt.Skip |= DateTimeSkips.Month;
                     dt.Extra |= DateTimeExtraInfo.DstBegin;
                 }
                 else if (month == 0xFD)
                 {
                     // Daylight savings end.
                     month = 1;
-                    dt.Skip |= DateTimeSkips.Month;
                     dt.Extra |= DateTimeExtraInfo.DstEnd;
                 }
                 int day = buff.GetUInt8();
-                if (day < 1 || day == 0xFF)
-                {
-                    day = 1;
-                    dt.Skip |= DateTimeSkips.Day;
-                }
-                else if (day == 0xFD)
+                if (day == 0xFD)
                 {
                     // 2nd last day of month.
                     day = 1;
-                    dt.Skip |= DateTimeSkips.Day;
+                    dt.Extra |= DateTimeExtraInfo.LastDay2;
                 }
                 else if (day == 0xFE)
                 {
                     //Last day of month
                     day = 1;
+                    dt.Extra |= DateTimeExtraInfo.LastDay;
+                }
+                else if (day < 1 || day == 0xFF)
+                {
+                    day = 1;
                     dt.Skip |= DateTimeSkips.Day;
                 }
+
                 //Skip week day.
                 byte wd = buff.GetUInt8();
                 if (wd == 0xFF)
@@ -2230,7 +2267,18 @@ namespace Gurux.DLMS.Internal
             }
             else
             {
-                buff.SetUInt8((byte)dt.Value.Day);
+                if ((dt.Extra & DateTimeExtraInfo.LastDay) != 0)
+                {
+                    buff.SetUInt8(0xFE);
+                }
+                else if ((dt.Extra & DateTimeExtraInfo.LastDay2) != 0)
+                {
+                    buff.SetUInt8(0xFD);
+                }
+                else
+                {
+                    buff.SetUInt8((byte)dt.Value.Day);
+                }
             }
             // Add week day
             if ((dt.Skip & DateTimeSkips.DayOfWeek) != 0)
@@ -2318,7 +2366,18 @@ namespace Gurux.DLMS.Internal
             }
             if ((dt.Skip & DateTimeSkips.Day) == 0)
             {
-                buff.SetUInt8((byte)tm.Day);
+                if ((dt.Extra & DateTimeExtraInfo.LastDay) != 0)
+                {
+                    buff.SetUInt8(0xFE);
+                }
+                else if ((dt.Extra & DateTimeExtraInfo.LastDay2) != 0)
+                {
+                    buff.SetUInt8(0xFD);
+                }
+                else
+                {
+                    buff.SetUInt8((byte)tm.Day);
+                }
             }
             else
             {
@@ -2785,7 +2844,7 @@ namespace Gurux.DLMS.Internal
             {
                 return DataType.Array;
             }
-            else if (type == typeof(GXEnum))
+            else if (type == typeof(GXEnum) || type.IsEnum)
             {
                 return DataType.Enum;
             }

@@ -330,7 +330,18 @@ namespace Gurux.DLMS
                 Skip |= DateTimeSkips.Month;
                 month = 1;
             }
-            if (day < 1 || day > 31)
+
+            if (day == 0xFE)
+            {
+                Extra |= DateTimeExtraInfo.LastDay;
+                day = 1;
+            }
+            else if (day == 0xFD)
+            {
+                Extra |= DateTimeExtraInfo.LastDay2;
+                day = 1;
+            }
+            else if (day < 1 || day > 31)
             {
                 Skip |= DateTimeSkips.Day;
                 day = 1;

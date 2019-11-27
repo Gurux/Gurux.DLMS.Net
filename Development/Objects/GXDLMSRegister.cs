@@ -218,7 +218,7 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 3)
             {
-                return DataType.Array;
+                return DataType.Structure;
             }
             if (index == 4 && this is GXDLMSExtendedRegister)
             {

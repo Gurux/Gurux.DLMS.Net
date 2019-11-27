@@ -3978,37 +3978,49 @@ namespace Gurux.DLMS
             }
         }
 
-        internal static UInt16 RowsToPdu(GXDLMSSettings settings, GXDLMSProfileGeneric pg)
+        internal static int GetAttributeSize(GXDLMSObject obj, int attributeIndex)
         {
-            //Count how many rows we can fit to one PDU.
-            DataType dt;
+            DataType dt, udt;
             int rowsize = 0;
-            foreach (var it in pg.CaptureObjects)
+            if (attributeIndex == 0)
             {
-                dt = it.Key.GetDataType(it.Value.AttributeIndex);
+                for (int pos = 1; pos < (obj as IGXDLMSBase).GetAttributeCount(); ++pos)
+                {
+                    rowsize += GetAttributeSize(obj, pos);
+                }
+            }
+            else
+            {
+                dt = obj.GetDataType(attributeIndex);
                 if (dt == DataType.OctetString)
                 {
-                    if (it.Key.GetUIDataType(it.Value.AttributeIndex) == DataType.DateTime)
+                    udt = obj.GetUIDataType(attributeIndex);
+                    if (udt == DataType.DateTime ||
+                        udt == DataType.Date ||
+                        udt == DataType.Time)
                     {
-                        rowsize += GXCommon.GetDataTypeSize(DataType.DateTime);
-                    }
-                    else if (it.Key.GetUIDataType(it.Value.AttributeIndex) == DataType.Date)
-                    {
-                        rowsize += GXCommon.GetDataTypeSize(DataType.Date);
-                    }
-                    else if (it.Key.GetUIDataType(it.Value.AttributeIndex) == DataType.Time)
-                    {
-                        rowsize += GXCommon.GetDataTypeSize(DataType.Time);
+                        rowsize = GXCommon.GetDataTypeSize(udt);
                     }
                 }
                 else if (dt == DataType.None)
                 {
-                    rowsize += 2;
+                    rowsize = 2;
                 }
                 else
                 {
-                    rowsize += GXCommon.GetDataTypeSize(dt);
+                    rowsize = GXCommon.GetDataTypeSize(dt);
                 }
+            }
+            return rowsize;
+        }
+
+        internal static UInt16 RowsToPdu(GXDLMSSettings settings, GXDLMSProfileGeneric pg)
+        {
+            //Count how many rows we can fit to one PDU.
+            int rowsize = 0;
+            foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in pg.CaptureObjects)
+            {
+                rowsize += GetAttributeSize(it.Key, it.Value.AttributeIndex);
             }
             if (rowsize != 0)
             {

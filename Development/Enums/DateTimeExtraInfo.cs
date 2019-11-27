@@ -38,7 +38,7 @@ using System.Xml.Serialization;
 namespace Gurux.DLMS.Enums
 {
     /// <summary>
-    /// DataType extra info.
+    /// Date time extra info.
     /// </summary>
     [Flags]
     public enum DateTimeExtraInfo

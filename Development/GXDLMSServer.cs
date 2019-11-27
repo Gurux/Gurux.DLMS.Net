@@ -672,7 +672,7 @@ namespace Gurux.DLMS
                     GXDLMSProfileGeneric pg = it as GXDLMSProfileGeneric;
                     foreach (var obj in pg.CaptureObjects)
                     {
-                        if (obj.Value.AttributeIndex < 1)
+                        if (obj.Value.AttributeIndex < 0)
                         {
                             throw new Exception("Invalid attribute index. SelectedAttributeIndex is not set for " + obj.Key.Name);
                         }
