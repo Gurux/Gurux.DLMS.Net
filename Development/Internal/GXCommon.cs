@@ -715,7 +715,7 @@ namespace Gurux.DLMS.Internal
                 }
                 value = new GXDate(year, month, day);
                 value.Extra = extra;
-                value.Skip = skip;
+                value.Skip |= skip;
                 // Skip week day
                 if (buff.GetUInt8() == 0xFF)
                 {

@@ -314,16 +314,8 @@ namespace Gurux.DLMS.Objects
                 if (e.Value != null)
                 {
                     List<GXDateTime> items = new List<GXDateTime>();
-                    List<object> arr, it;
-                    if (e.Value is List<object>)
-                    {
-                        arr = (List<object>)e.Value;
-                    }
-                    else
-                    {
-                        arr = new List<object>((object[])e.Value);
-                    }
-                    foreach (object tmp2 in arr)
+                    List<object> it;
+                    foreach (object tmp2 in (IEnumerable<object>)e.Value)
                     {
                         if (tmp2 is List<object>)
                         {

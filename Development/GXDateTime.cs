@@ -58,6 +58,18 @@ namespace Gurux.DLMS
         /// <summary>
         /// Constructor.
         /// </summary>
+        public GXDateTime(GXDateTime value) : this(value, null)
+        {
+            if (value != null)
+            {
+                Skip = value.Skip;
+                Extra = value.Extra;
+            }
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         public GXDateTime(DateTime value) : this(value, null)
         {
         }
@@ -139,7 +151,28 @@ namespace Gurux.DLMS
                 StringBuilder format = new StringBuilder();
                 format.Append(GetDateTimeFormat(culture));
                 Remove(format, culture);
+                if (value.IndexOf("BEGIN") != -1)
+                {
+                    Extra |= DateTimeExtraInfo.DstBegin;
+                    value = value.Replace("BEGIN", "01");
+                }
+                if (value.IndexOf("END") != -1)
+                {
+                    Extra |= DateTimeExtraInfo.DstEnd;
+                    value = value.Replace("END", "01");
+                }
+                if (value.IndexOf("-1") != -1)
+                {
+                    Extra |= DateTimeExtraInfo.LastDay;
+                    value = value.Replace("-1", "01");
+                }
+                if (value.IndexOf("-2") != -1)
+                {
+                    Extra |= DateTimeExtraInfo.LastDay2;
+                    value = value.Replace("-2", "01");
+                }
                 String v = value;
+
                 if (value.IndexOf('*') != -1)
                 {
                     //Day of week is not supported when date time is give as a string.
@@ -445,10 +478,32 @@ namespace Gurux.DLMS
         public string ToFormatString(CultureInfo culture)
         {
             StringBuilder format = new StringBuilder();
-            if (Skip != DateTimeSkips.None)
+            if (Skip != DateTimeSkips.None || Extra != DateTimeExtraInfo.None)
             {
                 format.Append(GetDateTimeFormat(culture));
                 Remove(format, culture);
+                if ((Extra & DateTimeExtraInfo.DstBegin) != 0)
+                {
+                    format.Replace("MMM", "BEGIN");
+                    format.Replace("MM", "BEGIN");
+                    format.Replace("M", "BEGIN");
+                }
+                else if ((Extra & DateTimeExtraInfo.DstEnd) != 0)
+                {
+                    format.Replace("MMM", "END");
+                    format.Replace("MM", "END");
+                    format.Replace("M", "END");
+                }
+                else if ((Extra & DateTimeExtraInfo.LastDay) != 0)
+                {
+                    format.Replace("dd", "-1");
+                    format.Replace("d", "-1");
+                }
+                else if ((Extra & DateTimeExtraInfo.LastDay2) != 0)
+                {
+                    format.Replace("dd", "-2");
+                    format.Replace("d", "-2");
+                }
                 if ((Skip & DateTimeSkips.Year) != 0)
                 {
                     Replace(format, "yyyy");

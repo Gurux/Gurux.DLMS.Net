@@ -36,12 +36,12 @@ using System;
 using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Enums
-{   
+{
     /// <summary>
     /// Enumerates skipped fields from date time.
     /// </summary>
     [Flags]
-    public enum DateTimeSkips
+    public enum DateTimeSkips : int
     {
         /// <summary>
         /// Nothing is skipped from date time.
