@@ -819,7 +819,8 @@ namespace Gurux.DLMS.Objects
                 {
                     writer.WriteStartElement("Item");
                     writer.WriteElementString("Name", GXDLMSTranslator.ToHex(it.Name));
-                    writer.WriteElementString("Start", it.Start.ToFormatString(CultureInfo.InvariantCulture));
+                    //Some meters are returning time here, not date-time.
+                    writer.WriteElementString("Start", new GXDateTime(it.Start).ToFormatString(CultureInfo.InvariantCulture));
                     writer.WriteElementString("WeekName", GXDLMSTranslator.ToHex(it.WeekName));
                     writer.WriteEndElement();
                 }

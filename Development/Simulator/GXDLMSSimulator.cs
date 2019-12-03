@@ -267,7 +267,8 @@ namespace Gurux.DLMS.Simulator
                                     if ("other-reason".Equals(it) ||
                                         "read-write-denied".Equals(it) ||
                                             "scope-of-access-violated".Equals(it) ||
-                                            "object-unavailable".Equals(it))
+                                            "object-unavailable".Equals(it) ||
+                                             "object-class-inconsistent".Equals(it))
                                     {
                                         ValueEventArgs ve = targets[pos];
                                         ve.Target.SetAccess(ve.Index, AccessMode.NoAccess);

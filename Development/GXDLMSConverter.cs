@@ -838,6 +838,10 @@ namespace Gurux.DLMS
                     ret = new GXEnum((byte)Convert.ChangeType(value, typeof(byte)));
                 }
             }
+            else if (type == DataType.Structure || type == DataType.Array)
+            {
+                ret = GXDLMSTranslator.XmlToValue((string) value);
+            }
             else
             {
                 ret = Convert.ChangeType(value, GXDLMSConverter.GetDataType(type));

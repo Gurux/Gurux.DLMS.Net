@@ -266,13 +266,10 @@ namespace Gurux.DLMS
                 {
                     try
                     {
-                        if ((Skip & DateTimeSkips.Second) == 0)
+                        //Append seconds if not in the format.
+                        if ((Skip & DateTimeSkips.Second) == 0 && format.ToString().IndexOf("ss") == -1)
                         {
-#if !WINDOWS_UWP
-                            format.Replace("mm", "mm" + culture.DateTimeFormat.TimeSeparator + "ss");
-#else
-                            format.Replace("mm", "mm" + ":" + "ss");
-#endif //!WINDOWS_UWP
+                            format.Replace("mm", "mm.ss");
                         }
                         Value = DateTime.ParseExact(v, format.ToString().Trim(), culture);
                         Skip |= DateTimeSkips.Ms;
@@ -281,7 +278,8 @@ namespace Gurux.DLMS
                     {
                         try
                         {
-                            if ((Skip & DateTimeSkips.Ms) == 0)
+                            //Append ms if not in the format.
+                            if ((Skip & DateTimeSkips.Ms) == 0 && format.ToString().IndexOf("fff") == -1)
                             {
                                 format.Replace("ss", "ss.fff");
                             }
@@ -543,9 +541,9 @@ namespace Gurux.DLMS
                 else if (format.ToString().IndexOf("ss") == -1)
                 {
 #if !WINDOWS_UWP
-                    format.Replace("mm", "mm" + culture.DateTimeFormat.TimeSeparator + "ss");
+                    format.Replace("mm", "mm.ss");
 #else
-                    format.Replace("mm", "mm" + ":" + "ss");
+                    format.Replace("mm", "mm.ss");
 #endif //!WINDOWS_UWP
                 }
                 if ((Skip & DateTimeSkips.Minute) != 0)

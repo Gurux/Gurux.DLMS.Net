@@ -323,17 +323,8 @@ namespace Gurux.DLMS.Objects
                 CallingWindow.Clear();
                 if (e.Value != null)
                 {
-                    List<object> arr, item;
-                    if (e.Value is List<object>)
-                    {
-                        arr = (List<object>)e.Value;
-                    }
-                    else
-                    {
-                        arr = new List<object>((object[])e.Value);
-                    }
-
-                    foreach (object tmp in arr)
+                    List<object> item;
+                    foreach (object tmp in (IEnumerable<object>)e.Value)
                     {
                         if (tmp is List<object>)
                         {
@@ -438,8 +429,9 @@ namespace Gurux.DLMS.Objects
                 foreach (KeyValuePair<GXDateTime, GXDateTime> it in CallingWindow)
                 {
                     writer.WriteStartElement("Item");
-                    writer.WriteElementString("Start", it.Key.ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
-                    writer.WriteElementString("End", it.Value.ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
+                    //Some meters are returning time here, not date-time.
+                    writer.WriteElementString("Start", new GXDateTime(it.Key).ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
+                    writer.WriteElementString("End", new GXDateTime(it.Value).ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();
