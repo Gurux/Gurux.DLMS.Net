@@ -696,7 +696,7 @@ namespace Gurux.DLMS.Objects
                 charge.Commodity.Target = Parent.FindByLN(ot, ln);
                 charge.Commodity.Index = (sbyte)tmp2[2];
                 List<GXChargeTable> list = new List<GXChargeTable>();
-                foreach (object tmp3 in (IEnumerable<object>) tmp[2])
+                foreach (object tmp3 in (IEnumerable<object>)tmp[2])
                 {
                     if (tmp3 is List<object>)
                     {
@@ -750,9 +750,17 @@ namespace Gurux.DLMS.Objects
                     {
                         UnitChargeActivationTime = (GXDateTime)e.Value;
                     }
-                    else
+                    else if (e.Value is byte[])
                     {
                         UnitChargeActivationTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings != null && settings.UseUtc2NormalTime);
+                    }
+                    else if (e.Value is string)
+                    {
+                        UnitChargeActivationTime = new GXDateTime((string)e.Value);
+                    }
+                    else
+                    {
+                        UnitChargeActivationTime = null;
                     }
                     break;
                 case 8:

@@ -277,7 +277,7 @@ namespace Gurux.DLMS.Objects
 
         public override DataType GetUIDataType(int index)
         {
-            if (index == 6)
+            if (index == 6 || index == 7)
             {
                 return DataType.DateTime;
             }
