@@ -844,7 +844,7 @@ namespace Gurux.DLMS
             }
             else
             {
-                ret = Convert.ChangeType(value, GXDLMSConverter.GetDataType(type));
+                ret = Convert.ChangeType(value, GXDLMSConverter.GetDataType(type), cultureInfo);
             }
             return ret;
         }

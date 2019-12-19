@@ -1272,8 +1272,17 @@ namespace Gurux.DLMS
             if (data != null)
             {
                 GXDLMSConverter c = new GXDLMSConverter(Standard);
-                foreach (List<object> it in (List<object>)data)
+                foreach (object tmp in data)
                 {
+                    List<object> it;
+                    if (tmp is List<object>)
+                    {
+                        it = (List<object>) tmp;
+                    }
+                    else
+                    {
+                        it = new List<object>((object[])tmp);
+                    }
                     int classID = ((UInt16)(it[0])) & 0xFFFF;
                     if (classID > 0)
                     {
