@@ -2054,23 +2054,23 @@ namespace Gurux.DLMS.Internal
                     }
                     else
                     {
-                        buff.SetUInt32((UInt32)Convert.ToInt32(value));
+                        buff.SetUInt32(Convert.ToUInt32(value));
                     }
                     break;
                 case DataType.UInt32:
                     buff.SetUInt32(Convert.ToUInt32(value));
                     break;
                 case DataType.Int64:
-                    buff.SetUInt64((UInt64)Convert.ToInt64(value));
+                    buff.SetUInt64(Convert.ToUInt64(value));
                     break;
                 case DataType.UInt64:
                     buff.SetUInt64(Convert.ToUInt64(value));
                     break;
                 case DataType.Float32:
-                    buff.SetFloat((float)value);
+                    buff.SetFloat(Convert.ToSingle(value));
                     break;
                 case DataType.Float64:
-                    buff.SetDouble((double)value);
+                    buff.SetDouble(Convert.ToDouble(value));
                     break;
                 case DataType.BitString:
                     SetBitString(buff, value, true);

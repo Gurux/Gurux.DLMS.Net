@@ -273,7 +273,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// Xml template can be used to visualize complex data.
         /// </remarks>
         [DefaultValue(null)]
-#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0
+#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0 && !NETCOREAPP3_0 && !NETCOREAPP3_1
         [Editor(typeof(UIXmlTypeEditor), typeof(System.Drawing.Design.UITypeEditor))]
 #endif
         public string Xml

@@ -1544,7 +1544,7 @@ namespace Gurux.DLMS
             {
                 len = frameSize;
                 // More data to left.
-                bb.SetUInt8((byte)(0xA8 | (len >> 8) & 0x7));
+                bb.SetUInt8((byte)(0xA8 | ((7 + primaryAddress.Length + secondaryAddress.Length + len) >> 8) & 0x7));
             }
             //Frame len.
             if (len == 0)

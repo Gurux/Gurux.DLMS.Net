@@ -142,6 +142,36 @@ namespace GuruxDLMSServerExample
             Init();
         }
 
+        //Add Logical Device Name. 123456 is meter serial number.
+        GXDLMSData AddLogicalDeviceName()
+        {
+            GXDLMSData ldn = new GXDLMSData("0.0.42.0.0.255");
+            ldn.Value = "Gurux123456";
+            //Value is get as Octet String.
+            ldn.SetDataType(2, DataType.OctetString);
+            ldn.SetUIDataType(2, DataType.String);
+            Items.Add(ldn);
+            return ldn;
+        }
+
+        void AddFirmwareVersion()
+        {
+            GXDLMSData fw = new GXDLMSData("1.0.0.2.0.255");
+            fw.Value = "Gurux FW 0.0.1";
+            Items.Add(fw);
+        }
+
+        /// <summary>
+        /// Add invocation counter.
+        /// </summary>
+        void AddInvocationCounter()
+        {
+            GXDLMSData d = new GXDLMSData("0.0.43.1.0.255");
+            d.Value = 0;
+            d.SetDataType(2, DataType.UInt32);
+            Items.Add(d);
+        }
+
         void Init()
         {
             //If pre-established connections are used.
@@ -156,16 +186,12 @@ namespace GuruxDLMSServerExample
             Media.Open();
             ///////////////////////////////////////////////////////////////////////
             //Add Logical Device Name. 123456 is meter serial number.
-            GXDLMSData ldn = new GXDLMSData("0.0.42.0.0.255");
-            ldn.Value = "Gurux123456";
-            //Value is get as Octet String.
-            ldn.SetDataType(2, DataType.OctetString);
-            ldn.SetUIDataType(2, DataType.String);
-            Items.Add(ldn);
+            GXDLMSData ldn = AddLogicalDeviceName();
             //Add firmware version.
-            GXDLMSData fw = new GXDLMSData("1.0.0.2.0.255");
-            fw.Value = "Gurux FW 0.0.1";
-            Items.Add(fw);
+            AddFirmwareVersion();
+            //Add invocation counter.
+            AddInvocationCounter();
+
             //Add Last average.
             GXDLMSRegister r = new GXDLMSRegister("1.1.21.25.0.255");
             //Set access right. Client can't change average value.

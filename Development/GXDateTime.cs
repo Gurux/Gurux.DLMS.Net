@@ -161,15 +161,15 @@ namespace Gurux.DLMS
                     Extra |= DateTimeExtraInfo.DstEnd;
                     value = value.Replace("END", "01");
                 }
-                if (value.IndexOf("-1") != -1)
+                if (value.IndexOf("LASTDAY") != -1)
                 {
                     Extra |= DateTimeExtraInfo.LastDay;
-                    value = value.Replace("-1", "01");
+                    value = value.Replace("LASTDAY", "01");
                 }
-                if (value.IndexOf("-2") != -1)
+                if (value.IndexOf("LASTDAY2") != -1)
                 {
                     Extra |= DateTimeExtraInfo.LastDay2;
-                    value = value.Replace("-2", "01");
+                    value = value.Replace("LASTDAY2", "01");
                 }
                 String v = value;
 
@@ -494,13 +494,13 @@ namespace Gurux.DLMS
                 }
                 else if ((Extra & DateTimeExtraInfo.LastDay) != 0)
                 {
-                    format.Replace("dd", "-1");
-                    format.Replace("d", "-1");
+                    format.Replace("dd", "LASTDAY");
+                    format.Replace("d", "LASTDAY");
                 }
                 else if ((Extra & DateTimeExtraInfo.LastDay2) != 0)
                 {
-                    format.Replace("dd", "-2");
-                    format.Replace("d", "-2");
+                    format.Replace("dd", "LASTDAY2");
+                    format.Replace("d", "LASTDAY2");
                 }
                 if ((Skip & DateTimeSkips.Year) != 0)
                 {

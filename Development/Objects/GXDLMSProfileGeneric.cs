@@ -219,7 +219,7 @@ namespace Gurux.DLMS.Objects
         /// Entries (rows) in Use.
         /// </summary>
         [XmlIgnore()]
-        public int EntriesInUse
+        public UInt32 EntriesInUse
         {
             get;
             set;
@@ -1041,7 +1041,7 @@ namespace Gurux.DLMS.Objects
                     }
                     Buffer.Add(row.ToArray());
                 }
-                EntriesInUse = Buffer.Count;
+                EntriesInUse = (UInt32) Buffer.Count;
             }
         }
 
@@ -1219,7 +1219,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 7)
             {
-                EntriesInUse = Convert.ToInt32(e.Value);
+                EntriesInUse = Convert.ToUInt32(e.Value);
             }
             else if (e.Index == 8)
             {
@@ -1283,7 +1283,7 @@ namespace Gurux.DLMS.Objects
                 SortObject = reader.Objects.FindByLN(ot, ln);
                 reader.ReadEndElement("SortObject");
             }
-            EntriesInUse = reader.ReadElementContentAsInt("EntriesInUse");
+            EntriesInUse = (UInt32)reader.ReadElementContentAsInt("EntriesInUse");
             ProfileEntries = (UInt32)reader.ReadElementContentAsLong("ProfileEntries");
         }
 

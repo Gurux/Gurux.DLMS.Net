@@ -42,6 +42,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Ports;
 using System.Text;
 using System.Threading;
 using System.Xml.Serialization;
@@ -51,9 +52,9 @@ namespace Gurux.DLMS.Reader
     public class GXDLMSReader
     {
         /// <summary>
-        /// Wait time.
+        /// Wait time in ms.
         /// </summary>
-        public int WaitTime = 500000;
+        public int WaitTime = 5000;
         /// <summary>
         /// Retry count.
         /// </summary>
@@ -61,17 +62,25 @@ namespace Gurux.DLMS.Reader
         IGXMedia Media;
         TraceLevel Trace;
         GXDLMSSecureClient Client;
+        bool UseOpticalHead;
+        // Invocation counter (frame counter).
+        string InvocationCounter = null;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="client">DLMS Client.</param>
         /// <param name="media">Media.</param>
-        public GXDLMSReader(GXDLMSSecureClient client, IGXMedia media, TraceLevel trace)
+        /// <param name="trace">Trace level.</param>
+        /// <param name="invocationCounter">Logical name of invocation counter.</param>
+        /// <param name="iec">Is optical head used.</param>
+        public GXDLMSReader(GXDLMSSecureClient client, IGXMedia media, TraceLevel trace, string invocationCounter, bool useOpticalHead)
         {
             Trace = trace;
             Media = media;
             Client = client;
+            InvocationCounter = invocationCounter;
+            UseOpticalHead = useOpticalHead;
         }
 
         /// <summary>
@@ -164,10 +173,270 @@ namespace Gurux.DLMS.Reader
         }
 
         /// <summary>
+        /// Read Invocation counter (frame counter) from the meter and update it.
+        /// </summary>
+        private void UpdateFrameCounter()
+        {
+            //Read frame counter if GeneralProtection is used.
+            if (!string.IsNullOrEmpty(InvocationCounter) && Client.Ciphering != null && Client.Ciphering.Security != Security.None)
+            {
+                InitializeOpticalHead();
+                byte[] data;
+                GXReplyData reply = new GXReplyData();
+                Client.ProposedConformance |= Conformance.GeneralProtection;
+                int add = Client.ClientAddress;
+                Authentication auth = Client.Authentication;
+                Security security = Client.Ciphering.Security;
+                byte[] challenge = Client.CtoSChallenge;
+                try
+                {
+                    Client.ClientAddress = 16;
+                    Client.Authentication = Authentication.None;
+                    Client.Ciphering.Security = Security.None;
+                    data = Client.SNRMRequest();
+                    if (data != null)
+                    {
+                        if (Trace > TraceLevel.Info)
+                        {
+                            Console.WriteLine("Send SNRM request." + GXCommon.ToHex(data, true));
+                        }
+                        ReadDataBlock(data, reply);
+                        if (Trace == TraceLevel.Verbose)
+                        {
+                            Console.WriteLine("Parsing UA reply." + reply.ToString());
+                        }
+                        //Has server accepted client.
+                        Client.ParseUAResponse(reply.Data);
+                        if (Trace > TraceLevel.Info)
+                        {
+                            Console.WriteLine("Parsing UA reply succeeded.");
+                        }
+                    }
+                    //Generate AARQ request.
+                    //Split requests to multiple packets if needed.
+                    //If password is used all data might not fit to one packet.
+                    foreach (byte[] it in Client.AARQRequest())
+                    {
+                        if (Trace > TraceLevel.Info)
+                        {
+                            Console.WriteLine("Send AARQ request", GXCommon.ToHex(it, true));
+                        }
+                        reply.Clear();
+                        ReadDataBlock(it, reply);
+                    }
+                    if (Trace > TraceLevel.Info)
+                    {
+                        Console.WriteLine("Parsing AARE reply" + reply.ToString());
+                    }
+                    try
+                    {
+                        //Parse reply.
+                        Client.ParseAAREResponse(reply.Data);
+                        reply.Clear();
+                        GXDLMSData d = new GXDLMSData(InvocationCounter);
+                        Read(d, 2);
+                        Console.WriteLine("Invocation counter: " + Convert.ToString(d.Value));
+                        Client.Ciphering.InvocationCounter = 1 + Convert.ToUInt32(d.Value);
+                        reply.Clear();
+                        Disconnect();
+                    }
+                    catch (Exception Ex)
+                    {
+                        Disconnect();
+                        throw Ex;
+                    }
+                }
+                finally
+                {
+                    Client.ClientAddress = add;
+                    Client.Authentication = auth;
+                    Client.Ciphering.Security = security;
+                    Client.CtoSChallenge = challenge;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Send IEC disconnect message.
+        /// </summary>
+        void DiscIEC()
+        {
+            ReceiveParameters<string> p = new ReceiveParameters<string>()
+            {
+                AllData = false,
+                Eop = (byte)0x0A,
+                WaitTime = WaitTime * 1000
+            };
+            string data = (char)0x01 + "B0" + (char)0x03 + "\r\n";
+            Media.Send(data, null);
+            p.Count = 1;
+            Media.Receive(p);
+        }
+
+        void InitializeOpticalHead()
+        {
+            if (!UseOpticalHead)
+            {
+                return;
+            }
+            GXSerial serial = Media as GXSerial;
+            byte Terminator = (byte)0x0A;
+            Media.Open();
+            //Some meters need a little break.
+            Thread.Sleep(1000);
+            //Query device information.
+            string data = "/?!\r\n";
+            if (Trace > TraceLevel.Info)
+            {
+                Console.WriteLine("IEC Sending:" + data);
+            }
+            ReceiveParameters<string> p = new ReceiveParameters<string>()
+            {
+                AllData = false,
+                Eop = Terminator,
+                WaitTime = WaitTime * 1000
+            };
+            lock (Media.Synchronous)
+            {
+                Media.Send(data, null);
+                if (!Media.Receive(p))
+                {
+                    //Try to move away from mode E.
+                    try
+                    {
+                        Disconnect();
+                    }
+                    catch (Exception)
+                    {
+                    }
+                    DiscIEC();
+                    string str = "Failed to receive reply from the device in given time.";
+                    if (Trace > TraceLevel.Info)
+                    {
+                        Console.WriteLine(str);
+                    }
+                    Media.Send(data, null);
+                    if (!Media.Receive(p))
+                    {
+                        throw new Exception(str);
+                    }
+                }
+                //If echo is used.
+                if (p.Reply == data)
+                {
+                    p.Reply = null;
+                    if (!Media.Receive(p))
+                    {
+                        //Try to move away from mode E.
+                        GXReplyData reply = new GXReplyData();
+                        Disconnect();
+                        if (serial != null)
+                        {
+                            DiscIEC();
+                            serial.DtrEnable = serial.RtsEnable = false;
+                            serial.BaudRate = 9600;
+                            serial.DtrEnable = serial.RtsEnable = true;
+                            DiscIEC();
+                        }
+                        data = "Failed to receive reply from the device in given time.";
+                        if (Trace > TraceLevel.Info)
+                        {
+                            Console.WriteLine(data);
+                        }
+                        throw new Exception(data);
+                    }
+                }
+            }
+            if (Trace > TraceLevel.Info)
+            {
+                Console.WriteLine("HDLC received: " + p.Reply);
+            }
+            if (p.Reply[0] != '/')
+            {
+                p.WaitTime = 100;
+                Media.Receive(p);
+                throw new Exception("Invalid responce.");
+            }
+            string manufactureID = p.Reply.Substring(1, 3);
+            char baudrate = p.Reply[4];
+            int BaudRate = 0;
+            switch (baudrate)
+            {
+                case '0':
+                    BaudRate = 300;
+                    break;
+                case '1':
+                    BaudRate = 600;
+                    break;
+                case '2':
+                    BaudRate = 1200;
+                    break;
+                case '3':
+                    BaudRate = 2400;
+                    break;
+                case '4':
+                    BaudRate = 4800;
+                    break;
+                case '5':
+                    BaudRate = 9600;
+                    break;
+                case '6':
+                    BaudRate = 19200;
+                    break;
+                default:
+                    throw new Exception("Unknown baud rate.");
+            }
+            if (Trace > TraceLevel.Info)
+            {
+                Console.WriteLine("BaudRate is : " + BaudRate.ToString());
+            }
+            //Send ACK
+            //Send Protocol control character
+            // "2" HDLC protocol procedure (Mode E)
+            byte controlCharacter = (byte)'2';
+            //Send Baud rate character
+            //Mode control character
+            byte ModeControlCharacter = (byte)'2';
+            //"2" //(HDLC protocol procedure) (Binary mode)
+            //Set mode E.
+            byte[] arr = new byte[] { 0x06, controlCharacter, (byte)baudrate, ModeControlCharacter, 13, 10 };
+            if (Trace > TraceLevel.Info)
+            {
+                Console.WriteLine("Moving to mode E.", arr);
+            }
+            lock (Media.Synchronous)
+            {
+                p.Reply = null;
+                Media.Send(arr, null);
+                p.WaitTime = 2000;
+                //Note! All meters do not echo this.
+                Media.Receive(p);
+                if (p.Reply != null)
+                {
+                    if (Trace > TraceLevel.Info)
+                    {
+                        Console.WriteLine("Received: " + p.Reply);
+                    }
+                }
+                Media.Close();
+                serial.BaudRate = BaudRate;
+                serial.DataBits = 8;
+                serial.Parity = Parity.None;
+                serial.StopBits = StopBits.One;
+                Media.Open();
+                //Some meters need this sleep. Do not remove.
+                Thread.Sleep(1000);
+            }
+        }
+
+
+        /// <summary>
         /// Initialize connection to the meter.
         /// </summary>
         public void InitializeConnection()
         {
+            UpdateFrameCounter();
+            InitializeOpticalHead();
             GXReplyData reply = new GXReplyData();
             byte[] data;
             data = Client.SNRMRequest();
@@ -326,6 +595,30 @@ namespace Gurux.DLMS.Reader
             GXReplyData reply = new GXReplyData();
             ReadDataBlock(Client.GetObjectsRequest(), reply);
             Client.ParseObjects(reply.Data, true);
+            //Access rights must read differently when short Name referencing is used.
+            if (!Client.UseLogicalNameReferencing)
+            {
+                GXDLMSAssociationShortName sn = (GXDLMSAssociationShortName)Client.Objects.FindBySN(0xFA00);
+                if (sn.Version > 0)
+                {
+                    Read(sn, 3);
+                }
+                else
+                {
+                    //LGZ is using "0.0.127.0.0.0" to mark inactive object that might cause problems.
+                    //Skip them.
+                    int cnt = Client.Objects.Count;
+                    for (int pos = 0; pos < cnt; ++pos)
+                    {
+                        if (Client.Objects[pos].LogicalName == "0.0.127.0.0.0")
+                        {
+                            Client.Objects.RemoveAt(pos);
+                            --pos;
+                            --cnt;
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -355,10 +648,17 @@ namespace Gurux.DLMS.Reader
                 }
                 if (list.Count != 0)
                 {
-                    ReadList(list);
+                    try
+                    {
+                        ReadList(list);
+                    }
+                    catch (Exception)
+                    {
+                        Client.NegotiatedConformance &= ~Gurux.DLMS.Enums.Conformance.MultipleReferences;
+                    }
                 }
             }
-            else
+            if ((Client.NegotiatedConformance & Gurux.DLMS.Enums.Conformance.MultipleReferences) == 0)
             {
                 //Read values one by one.
                 foreach (GXDLMSObject it in objs)
@@ -880,13 +1180,13 @@ namespace Gurux.DLMS.Reader
             {
                 ReadDataBlock(it, reply);
                 //Value is null if data is send in multiple frames.
-                if (reply.Value is object[])
+                if (reply.Value is IEnumerable<object>)
                 {
-                    values.AddRange((object[])reply.Value);
+                    values.AddRange((IEnumerable<object>)reply.Value);
                 }
-                else if (reply.Value is List<object>)
+                else
                 {
-                    values.AddRange((List<object>)reply.Value);
+                    values.Add(reply.Value);
                 }
                 reply.Clear();
             }
@@ -961,6 +1261,29 @@ namespace Gurux.DLMS.Reader
             }
         }
 
+        /// <summary>
+        /// Disconnect.
+        /// </summary>
+        public void Release()
+        {
+            if (Media != null && Client != null)
+            {
+                try
+                {
+                    if (Trace > TraceLevel.Info)
+                    {
+                        Console.WriteLine("Release from the meter.");
+                    }
+                    GXReplyData reply = new GXReplyData();
+                    ReadDataBlock(Client.ReleaseRequest(), reply);
+                }
+                catch (Exception ex)
+                {
+                    //All meters don't support Release.
+                    Console.WriteLine("Release failed. " + ex.Message);
+                }
+            }
+        }
 
         /// <summary>
         /// Close connection to the meter.

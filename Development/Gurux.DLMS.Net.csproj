@@ -8,20 +8,21 @@
     <AssemblyName>Gurux.DLMS</AssemblyName>
     <Company>Gurux Ltd</Company>
     <Authors>Gurux Ltd</Authors>
-    <Copyright>Copyright (c) 1998-2019 Gurux Ltd. All rights reserved.</Copyright>
+    <Copyright>Copyright (c) 1998-2020 Gurux Ltd. All rights reserved.</Copyright>
     <PackageProjectUrl>https://www.gurux.fi</PackageProjectUrl>
     <PackageLicenseUrl></PackageLicenseUrl>
     <Description>Gurux DLMS library for C#</Description>
   <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">0.0.1-local</Version>
     <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <TargetFrameworks>net40;net45;net35;netcoreapp2.0;netcoreapp2.1;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net40;net45;net35;netcoreapp3.1;netcoreapp2.0;netcoreapp2.1;netstandard2.0</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/gurux/gurux.dlms.net</RepositoryUrl>
     <PackageTags>DLMS AMR, AMI IOT</PackageTags>
     <PackageId>Gurux.DLMS</PackageId>
-    <PackageIconUrl>https://www.gurux.org/gurux.ico</PackageIconUrl>
+    <PackageIcon>Gurux.DLMS.png</PackageIcon>
     <PackageLicenseExpression>GPL-2.0-only</PackageLicenseExpression>
+    <ApplicationIcon>Gurux.DLMS.ico</ApplicationIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -83,5 +84,7 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
-
+  <ItemGroup>
+    <None Include="..\Gurux.DLMS.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
 </Project>

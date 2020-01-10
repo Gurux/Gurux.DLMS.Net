@@ -30,7 +30,7 @@
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
-#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0
+#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0 && !NETCOREAPP3_0 && !NETCOREAPP3_1
 
 namespace Gurux.DLMS.ManufacturerSettings
 {
@@ -54,7 +54,7 @@ namespace Gurux.DLMS.ManufacturerSettings
             base.Dispose(disposing);
         }
 
-        #region Windows Form Designer generated code
+#region Windows Form Designer generated code
 
         /// <summary>
         /// Required method for Designer support - do not modify
@@ -124,7 +124,7 @@ namespace Gurux.DLMS.ManufacturerSettings
 
         }
 
-        #endregion
+#endregion
 
         private System.Windows.Forms.Button OKBtn;
         private System.Windows.Forms.Button CancelBtn;

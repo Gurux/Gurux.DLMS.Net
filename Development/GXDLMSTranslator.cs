@@ -1372,6 +1372,7 @@ namespace Gurux.DLMS
                     {
                         throw new Exception("Invalid command.");
                     }
+                    --value.Position;
                     xml.AppendLine("<Data=\"" + GXCommon.ToHex(value.Data, false, value.Position, value.Size - value.Position) + "\" />");
                     break;
             }

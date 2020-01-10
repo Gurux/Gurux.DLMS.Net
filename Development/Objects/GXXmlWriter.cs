@@ -83,7 +83,7 @@ namespace Gurux.DLMS.Objects
             {
                 Indent = true,
                 IndentChars = "  ",
-                NewLineOnAttributes = true
+                NewLineOnAttributes = false
             };
             if (File.Exists(filename))
             {
@@ -106,9 +106,9 @@ namespace Gurux.DLMS.Objects
             {
                 Indent = true,
                 IndentChars = "  ",
-                NewLineOnAttributes = true
+                NewLineOnAttributes = false
             };
-            writer = XmlWriter.Create(s);
+            writer = XmlWriter.Create(s, settings);
         }
 
         public void WriteStartDocument()
@@ -281,11 +281,11 @@ namespace Gurux.DLMS.Objects
                 {
                     if (value is GXDateTime)
                     {
-                        writer.WriteString(((GXDateTime)value).ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
+                        writer.WriteString(((GXDateTime)value).ToFormatString(CultureInfo.InvariantCulture));
                     }
                     else if (value is DateTime)
                     {
-                        writer.WriteString(((DateTime)value).ToString(System.Globalization.CultureInfo.InvariantCulture));
+                        writer.WriteString(((DateTime)value).ToString(CultureInfo.InvariantCulture));
                     }
                     else if (value is byte[])
                     {
@@ -293,7 +293,7 @@ namespace Gurux.DLMS.Objects
                     }
                     else
                     {
-                        writer.WriteString(Convert.ToString(value));
+                        writer.WriteString(Convert.ToString(value, CultureInfo.InvariantCulture));
                     }
                 }
                 writer.WriteEndElement();

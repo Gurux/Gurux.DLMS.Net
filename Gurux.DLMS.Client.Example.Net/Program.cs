@@ -52,6 +52,8 @@ namespace Gurux.DLMS.Client.Example
         public TraceLevel trace = TraceLevel.Info;
         public bool iec = false;
         public GXDLMSSecureClient client = new GXDLMSSecureClient(true);
+        // Invocation counter (frame counter).
+        public string invocationCounter = null;
         //Objects to read.
         public List<KeyValuePair<string, int>> readObjects = new List<KeyValuePair<string, int>>();
     }
@@ -99,7 +101,7 @@ namespace Gurux.DLMS.Client.Example
                     throw new Exception("Unknown media type.");
                 }
                 ////////////////////////////////////////
-                reader = new Reader.GXDLMSReader(settings.client, settings.media, settings.trace);
+                reader = new Reader.GXDLMSReader(settings.client, settings.media, settings.trace, settings.invocationCounter, settings.iec);
                 settings.media.Open();
                 //Some meters need a break here.
                 Thread.Sleep(1000);
@@ -146,7 +148,7 @@ namespace Gurux.DLMS.Client.Example
         static int GetParameters(string[] args, Settings settings)
         {
             string[] tmp;
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:it:a:wP:g:S:C:n:");
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:it:a:wP:g:S:C:n:v:");
             GXNet net = null;
             foreach (GXCmdParameter it in parameters)
             {
@@ -204,6 +206,10 @@ namespace Gurux.DLMS.Client.Example
                     case 'i':
                         //IEC.
                         settings.iec = true;
+                        break;
+                    case 'v':
+                        settings.invocationCounter = it.Value.Trim();
+                        Objects.GXDLMSObject.ValidateLogicalName(settings.invocationCounter);
                         break;
                     case 'g':
                         //Get (read) selected objects.
@@ -322,6 +328,8 @@ namespace Gurux.DLMS.Client.Example
                                 throw new ArgumentException("Missing mandatory OBIS code option.");
                             case 'C':
                                 throw new ArgumentException("Missing mandatory Ciphering option.");
+                            case 'v':
+                                throw new ArgumentException("Missing mandatory invocation counter logical name option.");
                             default:
                                 ShowHelp();
                                 return 1;
@@ -357,6 +365,7 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine(" -t [Error, Warning, Info, Verbose] Trace messages.");
             Console.WriteLine(" -g \"0.0.1.0.0.255:1; 0.0.1.0.0.255:2\" Get selected object(s) with given attribute index.");
             Console.WriteLine(" -C \t Security Level. (None, Authentication, Encrypted, AuthenticationEncryption)");
+            Console.WriteLine(" -v \t Invocation counter data object Logical Name. Ex. 0.0.43.1.1.255");
             Console.WriteLine("Example:");
             Console.WriteLine("Read LG device using TCP/IP connection.");
             Console.WriteLine("GuruxDlmsSample -r SN -c 16 -s 1 -h [Meter IP Address] -p [Meter Port No]");

@@ -2033,7 +2033,7 @@ namespace Gurux.DLMS
         /// <param name="index">One based start index.</param>
         /// <param name="count">Rows count to read.</param>
         /// <returns>Read message as byte array.</returns>
-        public byte[][] ReadRowsByEntry(GXDLMSProfileGeneric pg, int index, int count)
+        public byte[][] ReadRowsByEntry(GXDLMSProfileGeneric pg, UInt32 index, UInt32 count)
         {
             return ReadRowsByEntry(pg, index, count, null);
         }
@@ -2049,7 +2049,7 @@ namespace Gurux.DLMS
         /// <param name="count">Rows count to read.</param>
         /// <param name="columns">Columns to read.</param>
         /// <returns>Read message as byte array.</returns>
-        public byte[][] ReadRowsByEntry(GXDLMSProfileGeneric pg, int index, int count,
+        public byte[][] ReadRowsByEntry(GXDLMSProfileGeneric pg, UInt32 index, UInt32 count,
                                         List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
         {
             int columnIndex = 1;
@@ -2106,7 +2106,7 @@ namespace Gurux.DLMS
         /// <param name="columnStart">One based column start index.</param>
         /// <param name="columnEnd">Column end index.</param>
         /// <returns>Read message as byte array.</returns>
-        public byte[][] ReadRowsByEntry(GXDLMSProfileGeneric pg, int index, int count, int columnStart, int columnEnd)
+        public byte[][] ReadRowsByEntry(GXDLMSProfileGeneric pg, UInt32 index, UInt32 count, int columnStart, int columnEnd)
         {
             if (index < 0)
             {
