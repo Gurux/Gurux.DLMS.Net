@@ -161,15 +161,15 @@ namespace Gurux.DLMS
                     Extra |= DateTimeExtraInfo.DstEnd;
                     value = value.Replace("END", "01");
                 }
-                if (value.IndexOf("LASTDAY") != -1)
-                {
-                    Extra |= DateTimeExtraInfo.LastDay;
-                    value = value.Replace("LASTDAY", "01");
-                }
                 if (value.IndexOf("LASTDAY2") != -1)
                 {
                     Extra |= DateTimeExtraInfo.LastDay2;
                     value = value.Replace("LASTDAY2", "01");
+                }
+                if (value.IndexOf("LASTDAY") != -1)
+                {
+                    Extra |= DateTimeExtraInfo.LastDay;
+                    value = value.Replace("LASTDAY", "01");
                 }
                 String v = value;
 
