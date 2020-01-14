@@ -235,8 +235,8 @@ namespace Gurux.DLMS.Reader
                         reply.Clear();
                         GXDLMSData d = new GXDLMSData(InvocationCounter);
                         Read(d, 2);
-                        Console.WriteLine("Invocation counter: " + Convert.ToString(d.Value));
                         Client.Ciphering.InvocationCounter = 1 + Convert.ToUInt32(d.Value);
+                        Console.WriteLine("Invocation counter: " + Convert.ToString(Client.Ciphering.InvocationCounter));
                         reply.Clear();
                         Disconnect();
                     }
@@ -1218,7 +1218,7 @@ namespace Gurux.DLMS.Reader
         /// <summary>
         /// Read Profile Generic Columns by entry.
         /// </summary>
-        public object[] ReadRowsByEntry(GXDLMSProfileGeneric it, int index, int count)
+        public object[] ReadRowsByEntry(GXDLMSProfileGeneric it, UInt32 index, UInt32 count)
         {
             GXReplyData reply = new GXReplyData();
             ReadDataBlock(Client.ReadRowsByEntry(it, index, count), reply);
@@ -1250,19 +1250,16 @@ namespace Gurux.DLMS.Reader
                     }
                     GXReplyData reply = new GXReplyData();
                     ReadDLMSPacket(Client.DisconnectRequest(), reply);
-                    Media.Close();
                 }
                 catch
                 {
 
                 }
-                Media = null;
-                Client = null;
             }
         }
 
         /// <summary>
-        /// Disconnect.
+        /// Release.
         /// </summary>
         public void Release()
         {
