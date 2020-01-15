@@ -746,10 +746,11 @@ namespace Gurux.DLMS
                 }
             }
             AesGcmParameter s = new AesGcmParameter(cmd, cipher.Security,
-                ++cipher.InvocationCounter, cipher.SystemTitle, key,
+                cipher.InvocationCounter, cipher.SystemTitle, key,
                 cipher.AuthenticationKey);
             s.IgnoreSystemTitle = p.settings.Standard == Standard.Italy;
             byte[] tmp = GXCiphering.Encrypt(s, data);
+            ++cipher.InvocationCounter;
             return tmp;
         }
 
@@ -2009,7 +2010,9 @@ namespace Gurux.DLMS
                     return false;
                 }
                 // Check that server addresses match.
-                if (settings.ServerAddress != source)
+                if (settings.ServerAddress != source &&
+                    // If All-station (Broadcast).
+                    settings.ServerAddress != 0x7F && settings.ServerAddress != 0x3FFF)
                 {
                     //Check logical and physical address separately.
                     //This is done because some meters might send four bytes
@@ -3461,6 +3464,8 @@ namespace Gurux.DLMS
                         case Command.GloGetResponse:
                         case Command.GloSetResponse:
                         case Command.GloMethodResponse:
+                        case Command.DedReadResponse:
+                        case Command.DedWriteResponse:
                         case Command.DedGetResponse:
                         case Command.DedSetResponse:
                         case Command.DedMethodResponse:

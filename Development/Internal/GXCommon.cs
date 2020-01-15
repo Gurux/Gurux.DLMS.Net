@@ -304,6 +304,42 @@ namespace Gurux.DLMS.Internal
         }
 
         /// <summary>
+        /// Insert item count to the begin of the buffer.
+        /// </summary>
+        /// <param name="count"></param>
+        /// <param name="buff"></param>
+        internal static void InsertObjectCount(int count, GXByteBuffer buff, int index)
+        {
+            if (count < 0x80)
+            {
+                buff.Move(index, index + 1, buff.Size);
+                buff.Size -= index;
+                buff.SetUInt8(index, (byte)count);
+            }
+            else if (count < 0x100)
+            {
+                buff.Move(index, index + 2, buff.Size);
+                buff.Size -= index;
+                buff.SetUInt8(index, 0x81);
+                buff.SetUInt8(index + 1, (byte)count);
+            }
+            else if (count < 0x10000)
+            {
+                buff.Move(index, index + 4, buff.Size);
+                buff.Size -= index;
+                buff.SetUInt8(index, 0x82);
+                buff.SetUInt16(index + 1, (UInt16)count);
+            }
+            else
+            {
+                buff.Move(index, index + 5, buff.Size);
+                buff.Size -= index;
+                buff.SetUInt8(index, 0x84);
+                buff.SetUInt32(index + 1, (UInt32)count);
+            }
+        }
+
+        /// <summary>
         /// Get object count. If first byte is 0x80 or higger it will tell bytes count.
         /// </summary>
         /// <param name="data">Received data.</param>

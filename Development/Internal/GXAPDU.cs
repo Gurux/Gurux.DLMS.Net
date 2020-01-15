@@ -1510,7 +1510,9 @@ namespace Gurux.DLMS.Internal
                 AesGcmParameter p = new AesGcmParameter(cmd, cipher.Security,
                      cipher.InvocationCounter, cipher.SystemTitle,
                      cipher.BlockCipherKey, cipher.AuthenticationKey);
-                return GXCiphering.Encrypt(p, data.Array());
+                byte[] tmp = GXCiphering.Encrypt(p, data.Array());
+                ++cipher.InvocationCounter;
+                return tmp;
             }
             return data.Array();
         }
@@ -1523,10 +1525,8 @@ namespace Gurux.DLMS.Internal
                                           GXByteBuffer errorData, GXByteBuffer encryptedData)
         {
             int offset = data.Size;
-            // Set AARE tag and length
+            // Set AARE tag.
             data.SetUInt8(((byte)BerType.Application | (byte)BerType.Constructed | (byte)PduType.ApplicationContextName)); //0x61
-                                                                                                                           // Length is updated later.
-            data.SetUInt8(0);
             GenerateApplicationContextName(settings, data, cipher);
             //Result
             data.SetUInt8((byte)BerType.Context | (byte)BerType.Constructed | (byte)BerType.Integer);//0xA2
@@ -1632,7 +1632,8 @@ namespace Gurux.DLMS.Internal
                 data.SetUInt8((byte)tmp.Length);
                 data.Set(tmp);
             }
-            data.SetUInt8((UInt16)(offset + 1), (byte)(data.Size - offset - 2));
+            // Set AARE length
+            GXCommon.InsertObjectCount(data.Size - offset - 1, data, offset + 1);
         }
     }
 }

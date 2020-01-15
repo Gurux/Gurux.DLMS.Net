@@ -1277,7 +1277,7 @@ namespace Gurux.DLMS
                     List<object> it;
                     if (tmp is List<object>)
                     {
-                        it = (List<object>) tmp;
+                        it = (List<object>)tmp;
                     }
                     else
                     {
@@ -1928,6 +1928,10 @@ namespace Gurux.DLMS
         /// <returns>Read List request as byte array.</returns>
         public byte[][] ReadList(List<KeyValuePair<GXDLMSObject, int>> list)
         {
+            if ((NegotiatedConformance & Conformance.MultipleReferences) == 0)
+            {
+                throw new ArgumentOutOfRangeException("Meter doesn't support multiple objects reading with one request.");
+            }
             if (list == null || list.Count == 0)
             {
                 throw new ArgumentOutOfRangeException("Invalid parameter.");

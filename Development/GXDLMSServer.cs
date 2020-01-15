@@ -1062,7 +1062,7 @@ namespace Gurux.DLMS
                     GenerateDisconnectRequest();
                     if (Settings.Connected > ConnectionState.None)
                     {
-                        if (Settings.Connected == ConnectionState.Dlms)
+                        if ((Settings.Connected & ConnectionState.Dlms) != 0)
                         {
                             Disconnected(sr.ConnectionInfo);
                         }

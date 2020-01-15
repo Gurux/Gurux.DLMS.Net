@@ -169,6 +169,8 @@ namespace GuruxDLMSServerExample
             GXDLMSData d = new GXDLMSData("0.0.43.1.0.255");
             d.Value = 0;
             d.SetDataType(2, DataType.UInt32);
+            //Set initial value for invocation counter.
+            d.Value = (UInt32)100;
             Items.Add(d);
         }
 

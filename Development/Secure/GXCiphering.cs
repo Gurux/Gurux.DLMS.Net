@@ -133,7 +133,7 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
-        /// Invocation counter.
+        /// Invocation counter for sending.
         /// </summary>
         public UInt32 InvocationCounter
         {
@@ -225,7 +225,6 @@ namespace Gurux.DLMS.Secure
             if (p.Security != Gurux.DLMS.Enums.Security.None)
             {
                 byte[] tmp = GXDLMSChippering.EncryptAesGcm(p, data);
-                ++p.InvocationCounter;
                 return tmp;
             }
             return data;
