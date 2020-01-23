@@ -50,7 +50,8 @@ namespace GuruxDLMSServerExample
                 int port = 4059;
                 GXNet media = new GXNet(NetworkType.Tcp, "localhost", port);
                 GXDLMSSecureNotify notify = new GXDLMSSecureNotify(true, 16, 1, InterfaceType.WRAPPER);
-                notify.Ciphering.Security = Security.None;
+                // Un-comment this if you want to send encrypted push messages.
+                // notify.Ciphering.Security = Security.AuthenticationEncryption;
                 GXDLMSPushSetup p = new GXDLMSPushSetup();
                 GXDLMSClock clock = new GXDLMSClock();
                 p.PushObjectList.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(p, new GXDLMSCaptureObject(2, 0)));
