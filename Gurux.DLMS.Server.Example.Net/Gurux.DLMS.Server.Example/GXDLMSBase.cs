@@ -79,8 +79,12 @@ namespace GuruxDLMSServerExample
             MaxReceivePDUSize = 1024;
             //Default secret.
             ln.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
+            //Add security setup object.
+            ln.SecuritySetupReference = "0.0.43.0.0.255";
+            GXDLMSSecuritySetup s = new GXDLMSSecuritySetup("0.0.43.0.0.255");
+            s.ServerSystemTitle = this.Ciphering.SystemTitle;
+            Items.Add(s);
         }
-
 
         /// <summary>
         /// Constructor.
@@ -93,6 +97,11 @@ namespace GuruxDLMSServerExample
             MaxReceivePDUSize = 1024;
             //Default secret.
             sn.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
+            //Add security setup object.
+            sn.SecuritySetupReference = "0.0.43.0.0.255";
+            GXDLMSSecuritySetup s = new GXDLMSSecuritySetup("0.0.43.0.0.255");
+            s.ServerSystemTitle = this.Ciphering.SystemTitle;
+            Items.Add(s);
         }
 
         /// <summary>
@@ -106,6 +115,11 @@ namespace GuruxDLMSServerExample
             MaxReceivePDUSize = 1024;
             //Default secret.
             ln.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
+            //Add security setup object.
+            ln.SecuritySetupReference = "0.0.43.0.0.255";
+            GXDLMSSecuritySetup s = new GXDLMSSecuritySetup("0.0.43.0.0.255");
+            s.ServerSystemTitle = this.Ciphering.SystemTitle;
+            Items.Add(s);
         }
 
 
@@ -120,6 +134,11 @@ namespace GuruxDLMSServerExample
             MaxReceivePDUSize = 1024;
             //Default secret.
             sn.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
+            //Add security setup object.
+            sn.SecuritySetupReference = "0.0.43.0.0.255";
+            GXDLMSSecuritySetup s = new GXDLMSSecuritySetup("0.0.43.0.0.255");
+            s.ServerSystemTitle = this.Ciphering.SystemTitle;
+            Items.Add(s);
         }
 
         Gurux.Common.IGXMedia Media = null;
@@ -176,6 +195,9 @@ namespace GuruxDLMSServerExample
 
         void Init()
         {
+            //KEK is used when authentication keys are updated.
+            Kek = ASCIIEncoding.ASCII.GetBytes("1111111111111111");
+
             //If pre-established connections are used.
             ClientSystemTitle = ASCIIEncoding.ASCII.GetBytes("ABCDEFGH");
             Ciphering.Security = Security.AuthenticationEncryption;
@@ -419,8 +441,6 @@ namespace GuruxDLMSServerExample
             Items.Add(new GXDLMSG3Plc6LoWPan());
             Items.Add(new GXDLMSG3PlcMacLayerCounters());
             Items.Add(new GXDLMSG3PlcMacSetup());
-            //Add security setup object
-            Items.Add(new GXDLMSSecuritySetup());
 
             Items.Add(new GXDLMSAccount());
             Items.Add(new GXDLMSCredit());
@@ -1122,6 +1142,16 @@ namespace GuruxDLMSServerExample
                     {
                         HandleProfileGenericActions(it);
                     }
+                }
+                if (it.Target is GXDLMSSecuritySetup && it.Index == 2)
+                {
+                    Console.WriteLine("----------------------------------------------------------");
+                    Console.WriteLine("Updated keys:");
+                    Console.WriteLine("Server System title: {0}", GXDLMSTranslator.ToHex(Ciphering.SystemTitle));
+                    Console.WriteLine("Authentication key: {0}", GXDLMSTranslator.ToHex(Ciphering.AuthenticationKey));
+                    Console.WriteLine("Block cipher key: {0}", GXDLMSTranslator.ToHex(Ciphering.BlockCipherKey));
+                    Console.WriteLine("Client System title: {0}", GXDLMSTranslator.ToHex(ClientSystemTitle));
+                    Console.WriteLine("Master key (KEK) title: {0}", GXDLMSTranslator.ToHex(Kek));
                 }
             }
         }

@@ -32,6 +32,7 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using Gurux.DLMS;
 using System;
 using System.Threading;
 
@@ -122,6 +123,14 @@ namespace GuruxDLMSServerExample
                     Console.WriteLine("Logical Name DLMS Server with IEC 62056-47 in port {0}.", settings.port + 3);
                     Console.WriteLine("Example connection settings:");
                     Console.WriteLine("Gurux.DLMS.Client.Example.Net -h localhost -p {0} -w", settings.port + 3);
+                    Console.WriteLine("----------------------------------------------------------");
+                    Console.WriteLine("Server System title: {0}", GXDLMSTranslator.ToHex(LNServer.Ciphering.SystemTitle));
+                    Console.WriteLine("Authentication key: {0}", GXDLMSTranslator.ToHex(LNServer.Ciphering.AuthenticationKey));
+                    Console.WriteLine("Block cipher key: {0}", GXDLMSTranslator.ToHex(LNServer.Ciphering.BlockCipherKey));
+                    Console.WriteLine("Client System title: {0}", GXDLMSTranslator.ToHex(LNServer.ClientSystemTitle));
+                    Console.WriteLine("Master key (KEK) title: {0}", GXDLMSTranslator.ToHex(LNServer.Kek));
+                    Console.WriteLine("----------------------------------------------------------");
+
                     Thread t = new Thread(() => DoWork(SNServer));
                     t.Start();
                     t = new Thread(() => DoWork(LNServer));

@@ -1,9 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">0.0.0-local</Version>
-    <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
-
     <RootNamespace>Gurux.DLMS</RootNamespace>
     <AssemblyName>Gurux.DLMS</AssemblyName>
     <Company>Gurux Ltd</Company>
@@ -12,10 +9,10 @@
     <PackageProjectUrl>https://www.gurux.fi</PackageProjectUrl>
     <PackageLicenseUrl></PackageLicenseUrl>
     <Description>Gurux DLMS library for C#</Description>
-  <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">0.0.1-local</Version>
+    <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">0.0.1-local</Version>
     <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <TargetFrameworks>net40;net45;net35;netcoreapp3.1;netcoreapp2.0;netcoreapp2.1;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net46;net40;net45;net35;netstandard2.0;netcoreapp3.1;netcoreapp2.0;netcoreapp2.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/gurux/gurux.dlms.net</RepositoryUrl>
     <PackageTags>DLMS AMR, AMI IOT</PackageTags>
@@ -51,11 +48,13 @@
   </ItemGroup>
 
  <ItemGroup>
+	<Reference Condition="'$(TargetFramework)' == 'net46'" Include="System.Windows.Forms" />
 	<Reference Condition="'$(TargetFramework)' == 'net45'" Include="System.Windows.Forms" />
 	<Reference Condition="'$(TargetFramework)' == 'net40'" Include="System.Windows.Forms" />
 	<Reference Condition="'$(TargetFramework)' == 'net35'" Include="System.Windows.Forms" />
    </ItemGroup>
 <ItemGroup>
+	<Reference Condition="'$(TargetFramework)' == 'net46'" Include="System.Drawing.Design" />
 	<Reference Condition="'$(TargetFramework)' == 'net45'" Include="System.Drawing.Design" />
 	<Reference Condition="'$(TargetFramework)' == 'net40'" Include="System.Drawing.Design" />
 	<Reference Condition="'$(TargetFramework)' == 'net35'" Include="System.Drawing.Design" />

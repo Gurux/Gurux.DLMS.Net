@@ -160,7 +160,7 @@ namespace Gurux.DLMS.Objects
         /// <returns>Integer value of security level.</returns>
         private static int GetSecurityValue(Gurux.DLMS.Enums.Security security)
         {
-            int value = 0;
+            int value;
             switch (security)
             {
                 case Gurux.DLMS.Enums.Security.None:
@@ -418,31 +418,38 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 2)
             {
-                foreach (List<object> item in e.Parameters as List<object>)
+                try
                 {
-                    GlobalKeyType type = (GlobalKeyType)Convert.ToInt32(item[0]);
-                    byte[] data = (byte[])item[1];
-                    switch (type)
+                    foreach (List<object> item in e.Parameters as List<object>)
                     {
-                        case GlobalKeyType.UnicastEncryption:
-                            settings.Cipher.BlockCipherKey = GXDLMSSecureClient.Decrypt(settings.Kek, data);
-                            break;
-                        case GlobalKeyType.BroadcastEncryption:
-                            //Invalid type
-                            e.Error = ErrorCode.ReadWriteDenied;
-                            break;
-                        case GlobalKeyType.Authentication:
-                            //if settings.Cipher is null non secure server is used.
-                            settings.Cipher.AuthenticationKey = GXDLMSSecureClient.Decrypt(settings.Kek, data);
-                            break;
-                        case GlobalKeyType.Kek:
-                            settings.Kek = GXDLMSSecureClient.Decrypt(settings.Kek, data);
-                            break;
-                        default:
-                            //Invalid type
-                            e.Error = ErrorCode.ReadWriteDenied;
-                            break;
+                        GlobalKeyType type = (GlobalKeyType)Convert.ToInt32(item[0]);
+                        byte[] data = (byte[])item[1];
+                        switch (type)
+                        {
+                            case GlobalKeyType.UnicastEncryption:
+                                settings.Cipher.BlockCipherKey = GXDLMSSecureClient.Decrypt(settings.Kek, data);
+                                break;
+                            case GlobalKeyType.BroadcastEncryption:
+                                //Invalid type
+                                e.Error = ErrorCode.ReadWriteDenied;
+                                break;
+                            case GlobalKeyType.Authentication:
+                                //if settings.Cipher is null non secure server is used.
+                                settings.Cipher.AuthenticationKey = GXDLMSSecureClient.Decrypt(settings.Kek, data);
+                                break;
+                            case GlobalKeyType.Kek:
+                                settings.Kek = GXDLMSSecureClient.Decrypt(settings.Kek, data);
+                                break;
+                            default:
+                                //Invalid type
+                                e.Error = ErrorCode.ReadWriteDenied;
+                                break;
+                        }
                     }
+                }
+                catch(Exception)
+                {
+                    e.Error = ErrorCode.ReadWriteDenied;
                 }
             }
             else
