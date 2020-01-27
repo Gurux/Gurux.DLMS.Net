@@ -631,6 +631,16 @@ namespace Gurux.DLMS
             Objects = new GXDLMSObjectCollection(this);
         }
 
+        /// <summary>
+        /// Copy meter settings.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="source"></param>
+        public void Copy(GXDLMSMeter target, GXDLMSMeter source)
+        {
+            GXDLMSMeterBase.Copy(target, source);
+            target.Objects = source.Objects;
+        }
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
         [XmlArray("Objects2")]

@@ -46,21 +46,21 @@ namespace Gurux.DLMS
     /// </summary>
     /// <param name="sender">Sender DC.</param>
     /// <param name="meter">Added meter(s).</param>
-    public delegate void MeterAddEventHandler(object sender, GXDLMSMeter[] meter);
+    public delegate void MeterAddEventHandler(object sender, GXDLMSMeterBase[] meter);
 
     /// <summary>
     /// DC notifies that meter is removed.
     /// </summary>
     /// <param name="sender">Sender DC.</param>
     /// <param name="meter">Removed meter(s).</param>
-    public delegate void MeterRemoveEventHandler(object sender, GXDLMSMeter[] meter);
+    public delegate void MeterRemoveEventHandler(object sender, GXDLMSMeterBase[] meter);
 
     /// <summary>
     /// DC notifies that meter is modified.
     /// </summary>
     /// <param name="sender">Sender DC.</param>
     /// <param name="meter">Modified meter(s).</param>
-    public delegate void MeterEditEventHandler(object sender, GXDLMSMeter[] meter);
+    public delegate void MeterEditEventHandler(object sender, GXDLMSMeterBase[] meter);
 
     /// <summary>
     /// User actions
@@ -169,27 +169,27 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="name"></param>
         /// <returns>List of devices.</returns>
-        GXDLMSMeter[] GetDevices(string name);
+        GXDLMSMeterBase[] GetDevices(string name);
 
         /// <summary>
         /// Add new device(s) to DC.
         /// </summary>
         /// <param name="devices">Devices to add.</param>
-        GXDLMSMeter[] AddDevices(GXDLMSMeter[] devices);
+        GXDLMSMeterBase[] AddDevices(GXDLMSMeterBase[] devices);
 
 #if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0 && !NETCOREAPP3_0 && !NETCOREAPP3_1
         /// <summary>
         /// Add a new device.
         /// </summary>
         /// <returns>Returns new device.</returns>
-        GXDLMSMeter AddDevice(IWin32Window owner);
+        GXDLMSMeterBase AddDevice(IWin32Window owner);
 
         /// <summary>
         /// Edit device.
         /// </summary>
         /// <param name="devices">Device to edit.</param>
         /// <returns>Returns true if device is edit.</returns>
-        bool EditDevice(IWin32Window owner, GXDLMSMeter devices);
+        bool EditDevice(IWin32Window owner, GXDLMSMeterBase devices);
 
         /// <summary>
         /// Add target to the schedule.
@@ -203,61 +203,61 @@ namespace Gurux.DLMS
         /// Remove devices(s) from the DC.
         /// </summary>
         /// <param name="devices">Devices to remove.</param>
-        void RemoveDevices(GXDLMSMeter[] devices);
+        void RemoveDevices(GXDLMSMeterBase[] devices);
 
         /// <summary>
         /// Modify selected devices.
         /// </summary>
         /// <param name="devices">Devices to edit.</param>
-        void EditDevices(GXDLMSMeter[] devices);
+        void EditDevices(GXDLMSMeterBase[] devices);
 
         /// <summary>
         /// Get errors from selected devices.
         /// </summary>
         /// <param name="objects">Devices to search.</param>
-        List<KeyValuePair<GXDLMSMeter, string[]>> GetErrors(GXDLMSMeter[] devices);
+        List<KeyValuePair<GXDLMSMeterBase, string[]>> GetErrors(GXDLMSMeterBase[] devices);
 
         /// <summary>
         /// Add new objects(s) to DC.
         /// </summary>
         /// <param name="objects">Objects to add.</param>
-        void AddObjects(GXDLMSMeter[] devices, GXDLMSObject[] objects);
+        void AddObjects(GXDLMSMeterBase[] devices, GXDLMSObject[] objects);
 
         /// <summary>
         /// Remove objects(s) from the DC.
         /// </summary>
         /// <param name="objects">Objects to remove.</param>
-        void RemoveObjects(GXDLMSMeter[] devices, GXDLMSObject[] objects);
+        void RemoveObjects(GXDLMSMeterBase[] devices, GXDLMSObject[] objects);
 
         /// <summary>
         /// Modify selected objects.
         /// </summary>
         /// <param name="objects">Objects to edit.</param>
-        void EditObjects(GXDLMSMeter[] devices, GXDLMSObject[] objects);
+        void EditObjects(GXDLMSMeterBase[] devices, GXDLMSObject[] objects);
 
         /// <summary>
         /// Read selected objects.
         /// </summary>
         /// <param name="objects">Objects and attribute index to read.</param>
-        void ReadObjects(GXDLMSMeter[] devices, List<KeyValuePair<GXDLMSObject, byte>> objects);
+        void ReadObjects(GXDLMSMeterBase[] devices, List<KeyValuePair<GXDLMSObject, byte>> objects);
 
         /// <summary>
         /// Write selected objects.
         /// </summary>
         /// <param name="objects">Objects and attribute index to write.</param>
-        void WriteObjects(GXDLMSMeter[] devices, List<KeyValuePair<GXDLMSObject, byte>> objects);
+        void WriteObjects(GXDLMSMeterBase[] devices, List<KeyValuePair<GXDLMSObject, byte>> objects);
 
         /// <summary>
         /// Call methods of selected objects.
         /// </summary>
         /// <param name="actions">Actions.</param>
-        void MethodObjects(GXDLMSMeter[] devices, List<GXActionParameter> actions);
+        void MethodObjects(GXDLMSMeterBase[] devices, List<GXActionParameter> actions);
 
         /// <summary>
         /// Add new device templates to DC.
         /// </summary>
         /// <param name="devices">Devices to add as device template.</param>
-        void AddDeviceTemplates(GXDLMSMeter[] devices);
+        void AddDeviceTemplates(GXDLMSMeterBase[] devices);
 
         /// <summary>
         /// Get values for selected objects.
@@ -265,7 +265,7 @@ namespace Gurux.DLMS
         /// <param name="devices">List of devices.</param>
         /// <param name="objects">Objects and attribute index to read.</param>
         /// <param name="readAll">All objects are read from the meter.</param>
-        void GetValues(GXDLMSMeter[] devices, List<KeyValuePair<GXDLMSObject, byte>> objects, bool readAll);
+        void GetValues(GXDLMSMeterBase[] devices, List<KeyValuePair<GXDLMSObject, byte>> objects, bool readAll);
 
         /// <summary>
         /// Get rows by range.
@@ -273,7 +273,7 @@ namespace Gurux.DLMS
         /// <param name="pg">Profile generic object to read.</param>
         /// <param name="start">Start time.</param>
         /// <param name="end">End time.</param>
-        void GetRowsByRange(GXDLMSMeter device, GXDLMSProfileGeneric pg, DateTime start, DateTime end);
+        void GetRowsByRange(GXDLMSMeterBase device, GXDLMSProfileGeneric pg, DateTime start, DateTime end);
 
         /// <summary>
         /// Get rows by entry.
@@ -281,7 +281,7 @@ namespace Gurux.DLMS
         /// <param name="pg">Profile generic object to read.</param>
         /// <param name="index">One based start index.</param>
         /// <param name="count">Rows count to read.</param>
-        void GetRowsByEntry(GXDLMSMeter device, GXDLMSProfileGeneric pg, UInt64 index, UInt64 count);
+        void GetRowsByEntry(GXDLMSMeterBase device, GXDLMSProfileGeneric pg, UInt64 index, UInt64 count);
 
         /// <summary>
         /// Returns custom pages for selected object.
