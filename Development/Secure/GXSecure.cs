@@ -109,18 +109,6 @@ namespace Gurux.DLMS.Secure
             else if (settings.Authentication == Authentication.HighSHA256)
             {
                 challenge.Set(secret);
-                challenge.Set(settings.Cipher.SystemTitle);
-                challenge.Set(settings.SourceSystemTitle);
-                if (settings.IsServer)
-                {
-                    challenge.Set(settings.CtoSChallenge);
-                    challenge.Set(settings.StoCChallenge);
-                }
-                else
-                {
-                    challenge.Set(settings.StoCChallenge);
-                    challenge.Set(settings.CtoSChallenge);
-                }
             }
             else
             {

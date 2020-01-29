@@ -847,6 +847,16 @@ namespace Gurux.DLMS
             {
                 pw = Settings.Cipher.SystemTitle;
             }
+            else if (Settings.Authentication == Enums.Authentication.HighSHA256)
+            {
+                GXByteBuffer tmp = new GXByteBuffer();
+                tmp.Set(Settings.Password);
+                tmp.Set(Settings.Cipher.SystemTitle);
+                tmp.Set(Settings.SourceSystemTitle);
+                tmp.Set(Settings.StoCChallenge);
+                tmp.Set(Settings.CtoSChallenge);
+                pw = tmp.Array();
+            }
             else
             {
                 pw = Settings.Password;
@@ -892,6 +902,16 @@ namespace Gurux.DLMS
                     GXByteBuffer bb = new GXByteBuffer(value);
                     bb.GetUInt8();
                     ic = bb.GetUInt32();
+                }
+                else if (Settings.Authentication == Enums.Authentication.HighSHA256)
+                {
+                    GXByteBuffer tmp2 = new GXByteBuffer();
+                    tmp2.Set(Settings.Password);
+                    tmp2.Set(Settings.SourceSystemTitle);
+                    tmp2.Set(Settings.Cipher.SystemTitle);
+                    tmp2.Set(Settings.CtoSChallenge);
+                    tmp2.Set(Settings.StoCChallenge);
+                    secret = tmp2.Array();
                 }
                 else
                 {

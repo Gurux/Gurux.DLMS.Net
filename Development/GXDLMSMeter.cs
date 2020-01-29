@@ -631,6 +631,22 @@ namespace Gurux.DLMS
             Objects = new GXDLMSObjectCollection(this);
         }
 
+
+        /// <summary>
+        /// Gets or sets the object that contains data about the control.
+        /// </summary>
+#if !WINDOWS_UWP
+        [ReadOnly(true)]
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#endif
+        [System.Xml.Serialization.XmlIgnore()]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public object Tag
+        {
+            get;
+            internal set;
+        }
+
         /// <summary>
         /// Copy meter settings.
         /// </summary>
@@ -640,6 +656,7 @@ namespace Gurux.DLMS
         {
             GXDLMSMeterBase.Copy(target, source);
             target.Objects = source.Objects;
+            target.Tag = source.Tag;
         }
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]

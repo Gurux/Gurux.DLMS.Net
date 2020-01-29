@@ -283,29 +283,38 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    server.NotifyAction(new ValueEventArgs[] { e });
-                    byte[] actionReply;
-                    if (e.Handled)
+                    try
                     {
-                        actionReply = (byte[])e.Value;
+                        server.NotifyAction(new ValueEventArgs[] { e });
+                        byte[] actionReply;
+                        if (e.Handled)
+                        {
+                            actionReply = (byte[])e.Value;
+                        }
+                        else
+                        {
+                            actionReply = (obj as IGXDLMSBase).Invoke(settings, e);
+                            server.NotifyPostAction(new ValueEventArgs[] { e });
+                        }
+                        //Set default action reply if not given.
+                        if (actionReply != null && e.Error == 0)
+                        {
+                            //Add return parameters
+                            bb.SetUInt8(1);
+                            //Add parameters error code.
+                            bb.SetUInt8(0);
+                            GXCommon.SetData(settings, bb, GXDLMSConverter.GetDLMSDataType(actionReply), actionReply);
+                        }
+                        else
+                        {
+                            error = e.Error;
+                            //Add return parameters
+                            bb.SetUInt8(0);
+                        }
                     }
-                    else
+                    catch(Exception)
                     {
-                        actionReply = (obj as IGXDLMSBase).Invoke(settings, e);
-                        server.NotifyPostAction(new ValueEventArgs[] { e });
-                    }
-                    //Set default action reply if not given.
-                    if (actionReply != null && e.Error == 0)
-                    {
-                        //Add return parameters
-                        bb.SetUInt8(1);
-                        //Add parameters error code.
-                        bb.SetUInt8(0);
-                        GXCommon.SetData(settings, bb, GXDLMSConverter.GetDLMSDataType(actionReply), actionReply);
-                    }
-                    else
-                    {
-                        error = e.Error;
+                        error = ErrorCode.ReadWriteDenied;
                         //Add return parameters
                         bb.SetUInt8(0);
                     }

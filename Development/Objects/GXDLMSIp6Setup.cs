@@ -43,11 +43,32 @@ using System.Net;
 namespace Gurux.DLMS.Objects
 {
     /// <summary>
+    /// Address type to add.
+    /// </summary>
+    public enum IPv6AddressType : byte
+    {
+        /// <summary>
+        /// Unicast address.
+        /// </summary>
+        Unicast,
+        /// <summary>
+        /// Multicast address.
+        /// </summary>
+        Multicast,
+        /// <summary>
+        /// Gateway address.
+        /// </summary>
+        Gateway
+    }
+
+    /// <summary>
     /// Online help:
     /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSIp6Setup
     /// </summary>
     public class GXDLMSIp6Setup : GXDLMSObject, IGXDLMSBase
     {
+
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -139,6 +160,40 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// Adds IP v6 address to the meter.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="type">Address type.</param>
+        /// <param name="address">IP v6 Address to add.</param>
+        /// <returns></returns>
+        public byte[][] AddAddress(GXDLMSClient client, IPv6AddressType type, IPAddress address)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetUInt8(DataType.Structure);
+            bb.SetUInt8(2);
+            GXCommon.SetData(null, bb, DataType.Enum, type);
+            GXCommon.SetData(null, bb, DataType.OctetString, address.GetAddressBytes());
+            return client.Method(this, 1, bb.Array(), DataType.Structure);
+        }
+
+        /// <summary>
+        /// Removes IP v6 address from the meter.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="type">Address type.</param>
+        /// <param name="address">IP v6 Address to remove.</param>
+        /// <returns></returns>
+        public byte[][] RemoveAddress(GXDLMSClient client, IPv6AddressType type, IPAddress address)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetUInt8(DataType.Structure);
+            bb.SetUInt8(2);
+            GXCommon.SetData(null, bb, DataType.Enum, type);
+            GXCommon.SetData(null, bb, DataType.OctetString, address.GetAddressBytes());
+            return client.Method(this, 2, bb.Array(), DataType.Structure);
+        }
+
 
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
@@ -150,10 +205,92 @@ namespace Gurux.DLMS.Objects
         }
         #region IGXDLMSBase Members
 
+        /// <summary>
+        /// Remove address from the list.
+        /// </summary>
+        private void Remove(List<IPAddress> list, IPAddress address)
+        {
+            foreach(IPAddress it in list)
+            {
+                if (it.ToString() == address.ToString())
+                {
+                    list.Remove(it);
+                    return;
+                }
+            }
+            throw new Exception("IP address not found.");
+        }
 
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
-            e.Error = ErrorCode.ReadWriteDenied;
+            GXStructure val = (GXStructure)e.Parameters;
+            IPv6AddressType type = (IPv6AddressType)Convert.ToByte(val[0]);
+            IPAddress address = new IPAddress((byte[])val[1]);
+            List<IPAddress> list;
+            if (e.Index == 1)
+            {
+                switch (type)
+                {
+                    case IPv6AddressType.Unicast:
+                        list = new List<IPAddress>();
+                        if (UnicastIPAddress != null)
+                        {
+                            list.AddRange(UnicastIPAddress);
+                        }
+                        list.Add(address);
+                        UnicastIPAddress = list.ToArray();
+                        break;
+                    case IPv6AddressType.Multicast:
+                        list = new List<IPAddress>();
+                        if (MulticastIPAddress != null)
+                        {
+                            list.AddRange(MulticastIPAddress);
+                        }
+                        list.Add(address);
+                        MulticastIPAddress = list.ToArray();
+                        break;
+                    case IPv6AddressType.Gateway:
+                        list = new List<IPAddress>();
+                        if (GatewayIPAddress != null)
+                        {
+                            list.AddRange(GatewayIPAddress);
+                        }
+                        list.Add(address);
+                        GatewayIPAddress = list.ToArray();
+                        break;
+                    default:
+                        e.Error = ErrorCode.ReadWriteDenied;
+                        break;
+                }
+            }
+            else if (e.Index == 2)
+            {
+                switch (type)
+                {
+                    case IPv6AddressType.Unicast:
+                        list = new List<IPAddress>(UnicastIPAddress);
+                        Remove(list, address);
+                        UnicastIPAddress = list.ToArray();
+                        break;
+                    case IPv6AddressType.Multicast:
+                        list = new List<IPAddress>(MulticastIPAddress);
+                        Remove(list, address);
+                        MulticastIPAddress = list.ToArray();
+                        break;
+                    case IPv6AddressType.Gateway:
+                        list = new List<IPAddress>(GatewayIPAddress);
+                        Remove(list, address);
+                        GatewayIPAddress = list.ToArray();
+                        break;
+                    default:
+                        e.Error = ErrorCode.ReadWriteDenied;
+                        break;
+                }
+            }
+            else
+            {
+                e.Error = ErrorCode.ReadWriteDenied;
+            }
             return null;
         }
 

@@ -292,6 +292,16 @@ namespace Gurux.DLMS.Objects
                     bb.GetUInt8();
                     ic = bb.GetUInt32();
                 }
+                else if (settings.Authentication == Authentication.HighSHA256)
+                {
+                    GXByteBuffer tmp = new GXByteBuffer();
+                    tmp.Set(Secret);
+                    tmp.Set(settings.SourceSystemTitle);
+                    tmp.Set(settings.Cipher.SystemTitle);
+                    tmp.Set(settings.StoCChallenge);
+                    tmp.Set(settings.CtoSChallenge);
+                    secret = tmp.Array();
+                }
                 else
                 {
                     secret = Secret;
@@ -310,6 +320,16 @@ namespace Gurux.DLMS.Objects
                         secret = Secret;
                     }
                     AssociationStatus = AssociationStatus.Associated;
+                    if (settings.Authentication == Authentication.HighSHA256)
+                    {
+                        GXByteBuffer tmp = new GXByteBuffer();
+                        tmp.Set(Secret);
+                        tmp.Set(settings.Cipher.SystemTitle);
+                        tmp.Set(settings.SourceSystemTitle);
+                        tmp.Set(settings.CtoSChallenge);
+                        tmp.Set(settings.StoCChallenge);
+                        secret = tmp.Array();
+                    }
                     return GXSecure.Secure(settings, settings.Cipher, ic, settings.CtoSChallenge, secret);
                 }
                 else //If the password does not match.

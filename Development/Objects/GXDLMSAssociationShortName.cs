@@ -119,6 +119,16 @@ namespace Gurux.DLMS.Objects
                     bb.GetUInt8();
                     ic = bb.GetUInt32();
                 }
+                else if (settings.Authentication == Authentication.HighSHA256)
+                {
+                    GXByteBuffer tmp = new GXByteBuffer();
+                    tmp.Set(Secret);
+                    tmp.Set(settings.SourceSystemTitle);
+                    tmp.Set(settings.Cipher.SystemTitle);
+                    tmp.Set(settings.StoCChallenge);
+                    tmp.Set(settings.CtoSChallenge);
+                    secret = tmp.Array();
+                }
                 else
                 {
                     secret = Secret;
@@ -137,6 +147,16 @@ namespace Gurux.DLMS.Objects
                         secret = Secret;
                     }
                     settings.Connected |= ConnectionState.Dlms;
+                    if (settings.Authentication == Authentication.HighSHA256)
+                    {
+                        GXByteBuffer tmp = new GXByteBuffer();
+                        tmp.Set(Secret);
+                        tmp.Set(settings.Cipher.SystemTitle);
+                        tmp.Set(settings.SourceSystemTitle);
+                        tmp.Set(settings.CtoSChallenge);
+                        tmp.Set(settings.StoCChallenge);
+                        secret = tmp.Array();
+                    }
                     return GXSecure.Secure(settings, settings.Cipher, ic, settings.CtoSChallenge, secret);
                 }
                 else
@@ -182,7 +202,7 @@ namespace Gurux.DLMS.Objects
                 if (Version > 2)
                 {
                     //user_list
-                    // current_user 
+                    // current_user
                 }
             }
             return attributes.ToArray();

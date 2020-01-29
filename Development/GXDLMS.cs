@@ -3083,8 +3083,7 @@ namespace Gurux.DLMS
                 }
                 // Get data if all data is read or we want to peek data.
                 if (data.Data.Position != data.Data.Size
-                        && (data.Command == Command.ReadResponse
-                            || data.Command == Command.GetResponse)
+                        && (data.Command == Command.ReadResponse || data.Command == Command.GetResponse)
                         && (data.MoreData == RequestTypes.None
                             || data.Peek))
                 {
@@ -3783,7 +3782,10 @@ namespace Gurux.DLMS
             {
                 if (!GetTcpData(settings, reply, data, notify))
                 {
-                    data = notify;
+                    if (notify != null)
+                    {
+                        data = notify;
+                    }
                     isNotify = true;
                 }
             }
@@ -3800,16 +3802,14 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentException("Invalid Interface type.");
             }
-            bool moreData;
             // If all data is not read yet.
             if (!data.IsComplete)
             {
                 return false;
             }
             GetDataFromFrame(reply, data, settings.InterfaceType == InterfaceType.HDLC);
-            moreData = data.IsMoreData;
             // If keepalive or get next frame request.
-            if (data.Xml != null || ((frame != 0x13 || moreData) && (frame & 0x1) != 0))
+            if (data.Xml != null || ((frame != 0x13 || data.IsMoreData) && (frame & 0x1) != 0))
             {
                 if (settings.InterfaceType == InterfaceType.HDLC && (data.Error == (int)ErrorCode.Rejected || data.Data.Size != 0))
                 {

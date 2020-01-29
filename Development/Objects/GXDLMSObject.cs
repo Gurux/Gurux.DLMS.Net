@@ -218,6 +218,21 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
+        /// Gets or sets the object that contains data about the control.
+        /// </summary>
+#if !WINDOWS_UWP
+        [ReadOnly(true)]
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#endif
+        [System.Xml.Serialization.XmlIgnore()]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public object Tag
+        {
+            get;
+            internal set;
+        }
+
+        /// <summary>
         /// DLMS version number.
         /// </summary>
 #if !WINDOWS_UWP

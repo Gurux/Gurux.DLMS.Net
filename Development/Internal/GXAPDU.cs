@@ -143,7 +143,8 @@ namespace Gurux.DLMS.Internal
                 data.SetUInt8((byte) (ciphered ? 4 : 2));
             }
             //Add system title if cipher or GMAC authentication is used..
-            if (!settings.IsServer && (ciphered || settings.Authentication == Authentication.HighGMAC))
+            if (!settings.IsServer && (ciphered || settings.Authentication == Authentication.HighGMAC ||
+                settings.Authentication == Authentication.HighSHA256))
             {
                 if (cipher.SystemTitle == null || cipher.SystemTitle.Length == 0)
                 {
@@ -1553,7 +1554,8 @@ namespace Gurux.DLMS.Internal
             data.SetUInt8(Convert.ToByte(diagnostic));
 
             //SystemTitle
-            if (cipher != null && (cipher.IsCiphered() || settings.Authentication == Authentication.HighGMAC))
+            if (cipher != null && (cipher.IsCiphered() || settings.Authentication == Authentication.HighGMAC ||
+                settings.Authentication == Authentication.HighSHA256))
             {
                 data.SetUInt8((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CalledApInvocationId);
                 data.SetUInt8((byte)(2 + cipher.SystemTitle.Length));
