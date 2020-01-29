@@ -229,7 +229,7 @@ namespace Gurux.DLMS.Objects
         public object Tag
         {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>

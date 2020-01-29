@@ -132,6 +132,9 @@ namespace Gurux.DLMS.Objects
             internal set;
         }
 
+        /// <summary>
+        /// Gets or sets the object that contains data about the control.
+        /// </summary>
         public object Tag
         {
             get;
