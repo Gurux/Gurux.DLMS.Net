@@ -199,7 +199,7 @@ namespace Gurux.DLMS
         internal ValueEventArgs(GXDLMSServer server, GXDLMSObject target, int index, int selector, object parameters)
         {
             Server = server;
-            Settings = server.Settings;
+            Settings = server == null ? null : server.Settings;
             Target = target;
             Index = index;
             Selector = selector;

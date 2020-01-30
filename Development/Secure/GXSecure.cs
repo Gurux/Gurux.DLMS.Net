@@ -155,7 +155,7 @@ namespace Gurux.DLMS.Secure
                 p.Type = CountType.Tag;
                 challenge.Clear();
                 challenge.SetUInt8((byte)Enums.Security.Authentication);
-                challenge.SetUInt32((UInt32)p.InvocationCounter);
+                challenge.SetUInt32((UInt32)p.InvocationCounter++);
                 challenge.Set(GXDLMSChippering.EncryptAesGcm(p, tmp));
                 tmp = challenge.Array();
                 return tmp;

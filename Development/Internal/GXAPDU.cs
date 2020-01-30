@@ -263,7 +263,7 @@ namespace Gurux.DLMS.Internal
                     GetInitiateRequest(settings, cipher, tmp);
                     byte cmd = (byte)Command.GloInitiateRequest;
                     AesGcmParameter p = new AesGcmParameter(cmd, cipher.Security,
-                        cipher.InvocationCounter, cipher.SystemTitle,
+                        cipher.InvocationCounter++, cipher.SystemTitle,
                         cipher.BlockCipherKey,
                         cipher.AuthenticationKey);
                     byte[] crypted = GXCiphering.Encrypt(p, tmp.Array());
@@ -1505,10 +1505,9 @@ namespace Gurux.DLMS.Internal
                     cmd = (byte)Command.GloInitiateResponse;
                 }
                 AesGcmParameter p = new AesGcmParameter(cmd, cipher.Security,
-                     cipher.InvocationCounter, cipher.SystemTitle,
+                     cipher.InvocationCounter++, cipher.SystemTitle,
                      cipher.BlockCipherKey, cipher.AuthenticationKey);
                 byte[] tmp = GXCiphering.Encrypt(p, data.Array());
-                ++cipher.InvocationCounter;
                 return tmp;
             }
             return data.Array();

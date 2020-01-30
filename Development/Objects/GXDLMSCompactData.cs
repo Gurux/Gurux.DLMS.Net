@@ -538,20 +538,32 @@ namespace Gurux.DLMS.Objects
         /// Copies the values of the objects to capture
         /// into the buffer by reading capture objects.
         /// </summary>
-        public void Capture(GXDLMSServer server)
+        public void Capture()
+        {
+            Capture(null);
+        }
+
+        /// <summary>
+        /// Copies the values of the objects to capture
+        /// into the buffer by reading capture objects.
+        /// </summary>
+        internal void Capture(GXDLMSServer server)
         {
             lock (this)
             {
                 GXByteBuffer bb = new GXByteBuffer();
                 ValueEventArgs[] args = new ValueEventArgs[] { new ValueEventArgs(server, this, 2, 0, null) };
                 Buffer = null;
-                server.PreGet(args);
+                if (server != null)
+                {
+                    server.PreGet(args);
+                }
                 if (!args[0].Handled)
                 {
                     foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in CaptureObjects)
                     {
                         ValueEventArgs e = new ValueEventArgs(server, it.Key, it.Value.AttributeIndex, 0, null);
-                        object value = (it.Key as IGXDLMSBase).GetValue(server.Settings, e);
+                        object value = (it.Key as IGXDLMSBase).GetValue(server == null ? null : server.Settings, e);
                         DataType dt = (it.Key as IGXDLMSBase).GetDataType(it.Value.AttributeIndex);
                         if ((value is byte[] || value is GXByteBuffer[]) && (dt == DataType.Structure || dt == DataType.Array))
                         {
@@ -569,7 +581,7 @@ namespace Gurux.DLMS.Objects
                         else
                         {
                             GXByteBuffer tmp = new GXByteBuffer();
-                            GXCommon.SetData(server.Settings, tmp, dt, value);
+                            GXCommon.SetData(server == null ? null : server.Settings, tmp, dt, value);
                             //If data is empty.
                             if (tmp.Size == 1)
                             {
@@ -584,9 +596,12 @@ namespace Gurux.DLMS.Objects
                     }
                     Buffer = bb.Array();
                 }
-                server.PostGet(args);
-                server.NotifyAction(args);
-                server.NotifyPostAction(args);
+                if (server != null)
+                {
+                    server.PostGet(args);
+                    server.NotifyAction(args);
+                    server.NotifyPostAction(args);
+                }
             }
         }
 

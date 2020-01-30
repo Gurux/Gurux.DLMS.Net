@@ -140,7 +140,7 @@ namespace Gurux.DLMS.Objects
                     if (settings.Authentication == Authentication.HighGMAC)
                     {
                         secret = settings.Cipher.SystemTitle;
-                        ic = settings.Cipher.InvocationCounter;
+                        ic = settings.Cipher.InvocationCounter++;
                     }
                     else
                     {

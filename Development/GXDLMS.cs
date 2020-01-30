@@ -746,11 +746,10 @@ namespace Gurux.DLMS
                 }
             }
             AesGcmParameter s = new AesGcmParameter(cmd, cipher.Security,
-                cipher.InvocationCounter, cipher.SystemTitle, key,
+                cipher.InvocationCounter++, cipher.SystemTitle, key,
                 cipher.AuthenticationKey);
             s.IgnoreSystemTitle = p.settings.Standard == Standard.Italy;
             byte[] tmp = GXCiphering.Encrypt(s, data);
-            ++cipher.InvocationCounter;
             return tmp;
         }
 
@@ -1368,7 +1367,7 @@ namespace Gurux.DLMS
                 GXICipher cipher = p.settings.Cipher;
                 AesGcmParameter s = new AesGcmParameter(
                     GetGloMessage(p.command), cipher.Security,
-                    cipher.InvocationCounter, cipher.SystemTitle,
+                    cipher.InvocationCounter++, cipher.SystemTitle,
                     cipher.BlockCipherKey, cipher.AuthenticationKey);
                 byte[] tmp = GXCiphering.Encrypt(s, reply.Array());
                 System.Diagnostics.Debug.Assert(!(p.settings.MaxPduSize < tmp.Length));
