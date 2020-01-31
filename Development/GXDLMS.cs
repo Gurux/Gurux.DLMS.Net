@@ -1818,7 +1818,11 @@ namespace Gurux.DLMS
                 {
                     return GetHdlcData(server, settings, reply, data, notify);
                 }
-                throw new Exception("Wrong CRC.");
+                if (data.Xml == null)
+                {
+                    throw new Exception("Invalid header checksum.");
+                }
+                data.Xml.AppendComment("Invalid header checksum.");
             }
             // Check that packet CRC match only if there is a data part.
             if (reply.Position != packetStartID + frameLen + 1)
@@ -1828,7 +1832,11 @@ namespace Gurux.DLMS
                 crcRead = reply.GetUInt16(packetStartID + frameLen - 1);
                 if (crc != crcRead)
                 {
-                    throw new Exception("Wrong CRC.");
+                    if (data.Xml == null)
+                    {
+                        throw new Exception("Invalid data checksum.");
+                    }
+                    data.Xml.AppendComment("Invalid data checksum.");
                 }
                 // Remove CRC and EOP from packet length.
                 if (isNotify)
