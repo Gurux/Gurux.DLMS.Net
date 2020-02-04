@@ -133,7 +133,7 @@ namespace Gurux.DLMS
                 availableObjectTypes.Add(ObjectType.ExtendedRegister, typeof(GXDLMSExtendedRegister));
                 availableObjectTypes.Add(ObjectType.GprsSetup, typeof(GXDLMSGprsSetup));
                 availableObjectTypes.Add(ObjectType.IecHdlcSetup, typeof(GXDLMSHdlcSetup));
-                availableObjectTypes.Add(ObjectType.IecLocalPortSetup, typeof(GXDLMSIECOpticalPortSetup));
+                availableObjectTypes.Add(ObjectType.IecLocalPortSetup, typeof(GXDLMSIECLocalPortSetup));
                 availableObjectTypes.Add(ObjectType.Ip4Setup, typeof(GXDLMSIp4Setup));
                 availableObjectTypes.Add(ObjectType.ModemConfiguration, typeof(GXDLMSModemConfiguration));
                 availableObjectTypes.Add(ObjectType.PppSetup, typeof(GXDLMSPppSetup));
@@ -1136,13 +1136,10 @@ namespace Gurux.DLMS
             GXByteBuffer reply = new GXByteBuffer();
             List<byte[]> messages = new List<byte[]>();
             byte frame = 0x0;
-            if (p.command == Command.InformationReport)
+            if (p.command == Command.InformationReport ||
+                p.command == Command.DataNotification)
             {
                 frame = 0x13;
-            }
-            else if (p.command == Command.None)
-            {
-                frame = p.settings.NextSend(true);
             }
             do
             {
@@ -1175,9 +1172,9 @@ namespace Gurux.DLMS
                     {
                         throw new ArgumentOutOfRangeException("InterfaceType");
                     }
-                    frame = 0;
                 }
                 reply.Clear();
+                frame = 0;
             } while (p.data != null && p.data.Position != p.data.Size);
             return messages.ToArray();
         }
@@ -3411,6 +3408,7 @@ namespace Gurux.DLMS
                         GetPdu(settings, data, null);
                         break;
                     default:
+                        data.Command = Command.None;
                         throw new ArgumentException("Invalid Command.");
                 }
             }
@@ -3638,7 +3636,11 @@ namespace Gurux.DLMS
             // If all frames are read.
             if ((data.MoreData & RequestTypes.Frame) == 0)
             {
-                int origPos = data.Xml.GetXmlLength();
+                int origPos = 0;
+                if (data.Xml != null)
+                {
+                    origPos = data.Xml.GetXmlLength();
+                }
                 --data.Data.Position;
                 AesGcmParameter p = new AesGcmParameter(settings.SourceSystemTitle,
                         settings.Cipher.BlockCipherKey,

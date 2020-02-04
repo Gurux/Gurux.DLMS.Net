@@ -159,11 +159,67 @@ namespace Gurux.DLMS.Objects
             return client.Method(this, 3, name);
         }
 
+        private int GetMaskIndex(byte[] maskName)
+        {
+            int index = 0;
+            foreach (KeyValuePair<byte[], byte[]> it in MaskList)
+            {
+                if (it.Key == maskName)
+                {
+                    return index;
+                }
+                ++index;
+            }
+            return -1;
+        }
+
         #region IGXDLMSBase Members
 
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
-            e.Error = ErrorCode.ReadWriteDenied;
+            if (e.Index == 1)
+            {
+                List<GXDLMSObjectDefinition> items = new List<GXDLMSObjectDefinition>();
+                if (RegisterAssignment != null)
+                {
+                    items.AddRange(RegisterAssignment);
+                }
+                GXDLMSObjectDefinition item = new GXDLMSObjectDefinition();
+                item.ObjectType = (ObjectType)Convert.ToInt32(((GXStructure)e.Parameters)[0]);
+                item.LogicalName = GXCommon.ToLogicalName((byte[])((GXStructure)e.Parameters)[1]);
+                items.Add(item);
+                RegisterAssignment = items.ToArray();
+            }
+            else if (e.Index == 2)
+            {
+                int index = GetMaskIndex((byte[])((GXStructure)e.Parameters)[0]);
+                List<byte> index_list = new List<byte>();
+                foreach (byte b in (IEnumerable<object>)((GXStructure)e.Parameters)[1])
+                {
+                    index_list.Add(b);
+                }
+                if (index == -1)
+                {
+                    MaskList.Add(new KeyValuePair<byte[], byte[]>((byte[])((GXStructure)e.Parameters)[0], index_list.ToArray()));
+                }
+                else
+                {
+                    MaskList.RemoveAt(index);
+                    MaskList.Insert(index, new KeyValuePair<byte[], byte[]>((byte[])((GXStructure)e.Parameters)[0], index_list.ToArray()));
+                }
+            }
+            else if (e.Index == 3)
+            {
+                int index = GetMaskIndex((byte[])e.Parameters);
+                if (index != -1)
+                {
+                    MaskList.RemoveAt(index);
+                }
+            }
+            else
+            {
+                e.Error = ErrorCode.ReadWriteDenied;
+            }
             return null;
         }
 

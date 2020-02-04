@@ -32,32 +32,33 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+
 namespace Gurux.DLMS.Internal
 {
     /// <summary>
     /// Enumerates Set request types.
     /// </summary>
-    enum SetRequestType
+    enum SetCommandType
     {
         /// <summary>
-        /// Normal Set.
+        /// Normal Get.
         /// </summary>
         Normal = 1,
         /// <summary>
-        /// Set with first data block.
+        /// First data block.
         /// </summary>
-        FirstDataBlock = 2,
+        FirstBlock = 2,
         /// <summary>
-        /// Set with data block.
+        /// With data block.
         /// </summary>
-        WithDataBlock = 3,
+        WIthDataBlock = 3,
         /// <summary>
-        /// Set with list.
+        /// Get request with list.
         /// </summary>
         WithList = 4,
         /// <summary>
-        /// Set with list and first data block.
+        /// Get request with list and first data block.
         /// </summary>
-        WithListAndWithFirstDatablock = 5
+        FirstBlockWithList = 5
     }
 }

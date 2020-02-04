@@ -76,6 +76,7 @@ namespace Gurux.DLMS.Objects
         : base(ObjectType.AutoConnect, ln, sn)
         {
             CallingWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
+            Version = 2;
         }
 
         /// <summary>

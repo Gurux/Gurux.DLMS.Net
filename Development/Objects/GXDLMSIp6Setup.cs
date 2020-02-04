@@ -212,7 +212,7 @@ namespace Gurux.DLMS.Objects
         {
             foreach(IPAddress it in list)
             {
-                if (it.ToString() == address.ToString())
+                if (it.Equals(address))
                 {
                     list.Remove(it);
                     return;

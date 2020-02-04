@@ -277,6 +277,14 @@ namespace Gurux.DLMS
         /// <summary>
         /// Constructor.
         /// </summary>
+        public GXDLMSTranslator():
+            this(TranslatorOutputType.SimpleXml)
+        {
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         /// <param name="type">Translator output type.</param>
         public GXDLMSTranslator(TranslatorOutputType type)
         {
@@ -573,9 +581,9 @@ namespace Gurux.DLMS
             return MessageToXml(new GXByteBuffer(value));
         }
 
-        private void GetCiphering(GXDLMSSettings settings)
+        private void GetCiphering(GXDLMSSettings settings, bool force)
         {
-            if (this.Security != Enums.Security.None)
+            if (force || this.Security != Enums.Security.None)
             {
                 GXCiphering c = new Secure.GXCiphering(this.SystemTitle);
                 c.Security = Security;
@@ -751,7 +759,7 @@ namespace Gurux.DLMS
                 //If HDLC framing.
                 int offset = value.Position;
                 GXDLMSSettings settings = new GXDLMSSettings(true);
-                GetCiphering(settings);
+                GetCiphering(settings, true);
                 if (value.GetUInt8(value.Position) == 0x7e)
                 {
                     settings.InterfaceType = Enums.InterfaceType.HDLC;
@@ -1050,7 +1058,7 @@ namespace Gurux.DLMS
         internal string PduToXml(GXDLMSTranslatorStructure xml, GXByteBuffer value, bool omitDeclaration, bool omitNameSpace, bool allowUnknownCommand)
         {
             GXDLMSSettings settings = new GXDLMSSettings(true);
-            GetCiphering(settings);
+            GetCiphering(settings, false);
             settings.Standard = Standard;
             GXReplyData data = new GXReplyData();
             byte cmd = value.GetUInt8();
@@ -1077,7 +1085,7 @@ namespace Gurux.DLMS
                 case (byte)Command.InitiateResponse:
                     value.Position = 0;
                     settings = new GXDLMSSettings(false);
-                    GetCiphering(settings);
+                    GetCiphering(settings, true);
                     GXAPDU.ParseInitiate(true, settings, settings.Cipher, value,
                             xml);
                     break;
@@ -1088,7 +1096,7 @@ namespace Gurux.DLMS
                 case (byte)Command.Aare:
                     value.Position = 0;
                     settings = new GXDLMSSettings(false);
-                    GetCiphering(settings);
+                    GetCiphering(settings, true);
                     GXAPDU.ParsePDU(settings, settings.Cipher, value, xml);
                     break;
                 case (byte)Command.GetRequest:

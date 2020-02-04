@@ -241,7 +241,7 @@ namespace Gurux.DLMS.Objects
         {
             data.SetUInt8((byte)DataType.Structure);
             data.SetUInt8((byte)3);
-            GXCommon.SetData(settings, data, DataType.UInt16, item.ShortName);
+            GXCommon.SetData(settings, data, DataType.Int16, item.ShortName);
 
             int cnt = (item as IGXDLMSBase).GetAttributeCount();
             data.SetUInt8((byte)DataType.Array);
@@ -410,7 +410,7 @@ namespace Gurux.DLMS.Objects
         {
             foreach (List<object> access in buff)
             {
-                ushort sn = Convert.ToUInt16(access[0]);
+                ushort sn = (ushort)((short)access[0] & 0xFFFF);
                 GXDLMSObject obj = ObjectList.FindBySN(sn);
                 if (obj != null)
                 {

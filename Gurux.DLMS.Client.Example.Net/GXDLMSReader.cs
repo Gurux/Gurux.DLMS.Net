@@ -272,7 +272,9 @@ namespace Gurux.DLMS.Reader
             p.Count = 1;
             Media.Receive(p);
         }
-
+        /// <summary>
+        /// Initialize optical head.
+        /// </summary>
         void InitializeOpticalHead()
         {
             if (!UseOpticalHead)
@@ -1036,7 +1038,7 @@ namespace Gurux.DLMS.Reader
                                 continue;
                             }
                         }
-                        else if (p.Eop == null)
+                        if (p.Eop == null)
                         {
                             p.Count = Client.GetFrameSize(rd);
                         }
@@ -1195,6 +1197,20 @@ namespace Gurux.DLMS.Reader
                 throw new Exception("Invalid reply. Read items count do not match.");
             }
             Client.UpdateValues(list, values);
+        }
+
+        /// <summary>
+        /// Write list of attributes.
+        /// </summary>
+        public void WriteList(List<KeyValuePair<GXDLMSObject, int>> list)
+        {
+            byte[][] data = Client.WriteList(list);
+            GXReplyData reply = new GXReplyData();
+            foreach (byte[] it in data)
+            {
+                ReadDataBlock(it, reply);
+                reply.Clear();
+            }
         }
 
         /// <summary>

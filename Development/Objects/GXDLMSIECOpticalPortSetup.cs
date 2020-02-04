@@ -43,16 +43,24 @@ using Gurux.DLMS.Internal;
 namespace Gurux.DLMS.Objects
 {
     /// <summary>
-    /// Online help:
-    /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSIECOpticalPortSetup
+    /// This class is Obsolete. Use GXDLMSIECLocalPortSetup instead.
     /// </summary>
-    public class GXDLMSIECOpticalPortSetup : GXDLMSObject, IGXDLMSBase
+    [ObsoleteAttribute]
+    public class GXDLMSIECOpticalPortSetup : GXDLMSIECLocalPortSetup
+    {
+    }
+
+    /// <summary>
+    /// Online help:
+    /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSIECLocalPortSetup
+    /// </summary>
+    public class GXDLMSIECLocalPortSetup : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXDLMSIECOpticalPortSetup()
-        : base(ObjectType.IecLocalPortSetup, "0.0.20.0.0.255", 0)
+        public GXDLMSIECLocalPortSetup()
+        : this("0.0.20.0.0.255", 0)
         {
         }
 
@@ -60,8 +68,8 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
-        public GXDLMSIECOpticalPortSetup(string ln)
-        : base(ObjectType.IecLocalPortSetup, ln, 0)
+        public GXDLMSIECLocalPortSetup(string ln)
+        : this(ln, 0)
         {
         }
 
@@ -70,9 +78,10 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
-        public GXDLMSIECOpticalPortSetup(string ln, ushort sn)
+        public GXDLMSIECLocalPortSetup(string ln, ushort sn)
         : base(ObjectType.IecLocalPortSetup, ln, sn)
         {
+            Version = 1;
         }
 
         /// <summary>

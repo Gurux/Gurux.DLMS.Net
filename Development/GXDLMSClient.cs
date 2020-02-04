@@ -2031,6 +2031,104 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Write list of COSEM objects.
+        /// </summary>
+        /// <param name="list">List of COSEM object and attribute index to read.</param>
+        /// <returns>Write List request as byte array.</returns>
+        public byte[][] WriteList(List<KeyValuePair<GXDLMSObject, int>> list)
+        {
+            if ((NegotiatedConformance & Conformance.MultipleReferences) == 0)
+            {
+                throw new ArgumentOutOfRangeException("Meter doesn't support multiple objects writing with one request.");
+            }
+            if (list == null || list.Count == 0)
+            {
+                throw new ArgumentOutOfRangeException("Invalid parameter.");
+            }
+            Settings.ResetBlockIndex();
+            if (AutoIncreaseInvokeID)
+            {
+                Settings.InvokeID = (byte)((Settings.InvokeID + 1) & 0xF);
+            }
+            List<byte[]> messages = new List<byte[]>();
+            GXByteBuffer data = new GXByteBuffer();
+            if (this.UseLogicalNameReferencing)
+            {
+                GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, Command.SetRequest, (byte)SetCommandType.WithList, null, data, 0xff, Command.None);
+                // Add length.
+                GXCommon.SetObjectCount(list.Count, data);
+                foreach (KeyValuePair<GXDLMSObject, int> it in list)
+                {
+                    // CI.
+                    data.SetUInt16((UInt16)it.Key.ObjectType);
+                    data.Set(GXCommon.LogicalNameToBytes(it.Key.LogicalName));
+                    // Attribute ID.
+                    data.SetUInt8((byte)it.Value);
+                    // Attribute selector is not used.
+                    data.SetUInt8(0);
+                }
+                // Add length.
+                GXCommon.SetObjectCount(list.Count, data);
+                foreach (KeyValuePair<GXDLMSObject, int> it in list)
+                {
+                    Object value = (it.Key as IGXDLMSBase).GetValue(Settings, new ValueEventArgs(Settings, it.Key, it.Value, 0, null));
+                    DataType type = it.Key.GetDataType(it.Value);
+                    if (type == DataType.None)
+                    {
+                        type = GXDLMSConverter.GetDLMSDataType(value);
+                    }
+                    //If values is show as string, but send as byte array.
+                    if (value is string && type == DataType.OctetString)
+                    {
+                        DataType tp = it.Key.GetUIDataType(it.Value);
+                        if (tp == DataType.String)
+                        {
+                            value = ASCIIEncoding.ASCII.GetBytes((string)value);
+                        }
+                    }
+                    GXCommon.SetData(Settings, data, type, value);
+                }
+                messages.AddRange(GXDLMS.GetLnMessages(p));
+            }
+            else
+            {
+                GXDLMSSNParameters p = new GXDLMSSNParameters(Settings, Command.WriteRequest, list.Count, 0xFF, null, data);
+                foreach (KeyValuePair<GXDLMSObject, int> it in list)
+                {
+                    // Add variable type.
+                    data.SetUInt8(VariableAccessSpecification.VariableName);
+                    int sn = it.Key.ShortName;
+                    sn += (it.Value - 1) * 8;
+                    data.SetUInt16((UInt16)sn);
+                }
+                // Add length.
+                GXCommon.SetObjectCount(list.Count, data);
+                p.count = list.Count;
+                foreach (KeyValuePair<GXDLMSObject, int> it in list)
+                {
+                    Object value = (it.Key as IGXDLMSBase).GetValue(Settings, new ValueEventArgs(Settings, it.Key, it.Value, 0, null));
+                    DataType type = it.Key.GetDataType(it.Value);
+                    if (type == DataType.None)
+                    {
+                        type = GXDLMSConverter.GetDLMSDataType(value);
+                    }
+                    //If values is show as string, but send as byte array.
+                    if (value is string && type == DataType.OctetString)
+                    {
+                        DataType tp = it.Key.GetUIDataType(it.Value);
+                        if (tp == DataType.String)
+                        {
+                            value = ASCIIEncoding.ASCII.GetBytes((string)value);
+                        }
+                    }
+                    GXCommon.SetData(Settings, data, type, value);
+                }
+                messages.AddRange(GXDLMS.GetSnMessages(p));
+            }
+            return messages.ToArray();
+        }
+
+        /// <summary>
         /// Generates the keep alive message.
         /// </summary>
         /// <remarks>

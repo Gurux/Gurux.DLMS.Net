@@ -362,18 +362,10 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 2)
             {
                 PushObjectList.Clear();
-                List<object> it, arr = null;
-                if (e.Value is List<object>)
+                List<object> it;
+                if (e.Value != null)
                 {
-                    arr = (List<object>)e.Value;
-                }
-                else if (e.Value != null)
-                {
-                    arr = new List<object>((object[])e.Value);
-                }
-                if (arr != null)
-                {
-                    foreach (object t in arr)
+                    foreach (object t in (IEnumerable<object>) e.Value)
                     {
                         if (t is List<object>)
                         {
@@ -411,7 +403,7 @@ namespace Gurux.DLMS.Objects
                 {
                     Service = (ServiceType)Convert.ToInt32(tmp[0]);
                     //LN can be used with HDLC
-                    if (((byte[])tmp[1]).Length == 6 && ((byte[])tmp[1])[5] == 0xFF)
+                    if (Service == ServiceType.Hdlc && ((byte[])tmp[1]).Length == 6 && ((byte[])tmp[1])[5] == 0xFF)
                     {
                         Destination = GXCommon.ToLogicalName((byte[])tmp[1]);
                     }

@@ -79,7 +79,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Provides reference to an �M-Bus master port setup� object, used to configure
+        /// Provides reference to an M-Bus master port setup object, used to configure
         /// an M-Bus port, each interface allowing to exchange data with one or more
         /// M-Bus slave devices
         /// </summary>
@@ -181,9 +181,16 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, MBusPortReference, CaptureDefinition, CapturePeriod,
+            if (Version == 0)
+            {
+                return new object[] { LogicalName, MBusPortReference, CaptureDefinition, CapturePeriod,
                               PrimaryAddress, IdentificationNumber, ManufacturerID, DataHeaderVersion, DeviceType, AccessNumber,
                               Status, Alarm
+                            };
+            }
+            return new object[] { LogicalName, MBusPortReference, CaptureDefinition, CapturePeriod,
+                              PrimaryAddress, IdentificationNumber, ManufacturerID, DataHeaderVersion, DeviceType, AccessNumber,
+                              Status, Alarm, Configuration, EncryptionKeyStatus
                             };
         }
 
@@ -555,6 +562,14 @@ namespace Gurux.DLMS.Objects
             DataHeaderVersion = reader.ReadElementContentAsInt("DataHeaderVersion");
             DeviceType = reader.ReadElementContentAsInt("DeviceType");
             AccessNumber = reader.ReadElementContentAsInt("AccessNumber");
+
+            Status = reader.ReadElementContentAsInt("Status");
+            Alarm = reader.ReadElementContentAsInt("Alarm");
+            if (Version > 0)
+            {
+                Configuration = (UInt16)reader.ReadElementContentAsInt("Configuration");
+                EncryptionKeyStatus = (MBusEncryptionKeyStatus)reader.ReadElementContentAsInt("EncryptionKeyStatus");
+            }
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
@@ -579,6 +594,13 @@ namespace Gurux.DLMS.Objects
             writer.WriteElementString("DataHeaderVersion", DataHeaderVersion);
             writer.WriteElementString("DeviceType", DeviceType);
             writer.WriteElementString("AccessNumber", AccessNumber);
+            writer.WriteElementString("Status", Status);
+            writer.WriteElementString("Alarm", Alarm);
+            if (Version > 0)
+            {
+                writer.WriteElementString("Configuration", Configuration);
+                writer.WriteElementString("EncryptionKeyStatus", (int)EncryptionKeyStatus);
+            }
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
