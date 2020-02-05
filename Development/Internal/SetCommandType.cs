@@ -53,11 +53,11 @@ namespace Gurux.DLMS.Internal
         /// </summary>
         WIthDataBlock = 3,
         /// <summary>
-        /// Get request with list.
+        /// Set request with list.
         /// </summary>
         WithList = 4,
         /// <summary>
-        /// Get request with list and first data block.
+        /// Set request with list and first data block.
         /// </summary>
         FirstBlockWithList = 5
     }

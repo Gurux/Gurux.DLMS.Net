@@ -1202,16 +1202,8 @@ namespace Gurux.DLMS.Objects
                 UserList.Clear();
                 if (e.Value != null)
                 {
-                    List<object> arr, item;
-                    if (e.Value is List<object>)
-                    {
-                        arr = (List<object>)e.Value;
-                    }
-                    else
-                    {
-                        arr = new List<object>((object[])e.Value);
-                    }
-                    foreach (object tmp in arr)
+                    List<object> item;
+                    foreach (object tmp in (IEnumerable<object>)e.Value)
                     {
                         if (tmp is List<object>)
                         {

@@ -174,7 +174,11 @@ namespace Gurux.DLMS
             lock (availableObjectTypes)
             {
                 GetCosemObjects(availableObjectTypes);
-                return availableObjectTypes.Values.ToArray();
+                List<Type> types = new List<Type>();
+                types.AddRange(availableObjectTypes.Values);
+                //This is removed later.
+                types.Add(typeof(GXDLMSIECOpticalPortSetup));
+                return types.ToArray();
             }
         }
 
