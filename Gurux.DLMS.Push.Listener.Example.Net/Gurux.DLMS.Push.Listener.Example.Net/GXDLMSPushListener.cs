@@ -124,7 +124,7 @@ namespace GuruxDLMSServerExample
                 Console.WriteLine(sb + "{");
                 ++offset;
                 // Print received data.
-                foreach (List<object> it in (List<object>)value)
+                foreach (object it in (List<object>)value)
                 {
                     PrintData(it, offset);
                 }
