@@ -1110,7 +1110,7 @@ namespace Gurux.DLMS.Objects
                         obj = GXDLMSClient.CreateDLMSObject((int)type, null, 0, ln, 0);
                         if (c == null)
                         {
-                            c = new GXDLMSConverter();
+                            c = new GXDLMSConverter(settings == null ? Standard.DLMS : settings.Standard);
                         }
                         c.UpdateOBISCodeInformation(obj);
                     }

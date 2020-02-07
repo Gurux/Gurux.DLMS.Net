@@ -197,13 +197,22 @@ namespace Gurux.DLMS.Simulator
             return list;
         }
 
-
         /// <summary>
         /// Import server settings and COSEM objects from GXDLMSDirector trace.
         /// </summary>
         /// <param name="server">Server where settings are updated.</param>
         /// <param name="data">GXDLMSDirector trace in byte array.</param>
         public static void Import(GXDLMSServer server, byte[] data)
+        {
+            Import(server, data, Standard.DLMS);
+        }
+
+        /// <summary>
+        /// Import server settings and COSEM objects from GXDLMSDirector trace.
+        /// </summary>
+        /// <param name="server">Server where settings are updated.</param>
+        /// <param name="data">GXDLMSDirector trace in byte array.</param>
+        public static void Import(GXDLMSServer server, byte[] data, Standard standard)
         {
             GXDLMSTranslator translator = new GXDLMSTranslator(TranslatorOutputType.StandardXml);
             translator.CompletePdu = true;
@@ -217,6 +226,7 @@ namespace Gurux.DLMS.Simulator
             server.InterfaceType = GXDLMSTranslator.GetDlmsFraming(bb);
             bool lastBlock = true;
             GXByteBuffer val = new DLMS.GXByteBuffer();
+            GXDLMSConverter converter = new GXDLMSConverter(standard);
             while (translator.FindNextFrame(bb, pdu, server.InterfaceType))
             {
                 String xml = translator.MessageToXml(bb);
@@ -289,7 +299,6 @@ namespace Gurux.DLMS.Simulator
                                                 c.UseLogicalNameReferencing = server.UseLogicalNameReferencing;
                                                 settings.Objects = c.ParseObjects(val, true);
                                                 //Update OBIS code description.
-                                                GXDLMSConverter converter = new GXDLMSConverter();
                                                 converter.UpdateOBISCodeInformation(settings.Objects);
                                             }
                                             else

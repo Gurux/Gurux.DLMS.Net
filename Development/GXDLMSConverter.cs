@@ -56,7 +56,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXDLMSConverter()
+        public GXDLMSConverter() : this(Standard.DLMS)
         {
 
         }
@@ -840,7 +840,7 @@ namespace Gurux.DLMS
             }
             else if (type == DataType.Structure || type == DataType.Array)
             {
-                ret = GXDLMSTranslator.XmlToValue((string) value);
+                ret = GXDLMSTranslator.XmlToValue((string)value);
             }
             else
             {
