@@ -51,14 +51,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Gurux.Common, Version=8.1.1811.1101, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gurux.Common.8.1.1811.1101\lib\net40\Gurux.Common.dll</HintPath>
+    <Reference Include="Gurux.Common, Version=8.1.2001.2404, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Gurux.Common.8.1.2001.2404\lib\net40\Gurux.Common.dll</HintPath>
     </Reference>
-    <Reference Include="Gurux.Net, Version=8.1.1903.601, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gurux.Net.8.1.1903.601\lib\net40\Gurux.Net.dll</HintPath>
+    <Reference Include="Gurux.Net, Version=8.1.2002.1001, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Gurux.Net.8.1.2002.1001\lib\net40\Gurux.Net.dll</HintPath>
     </Reference>
-    <Reference Include="Gurux.Serial, Version=8.1.1811.1101, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gurux.Serial.8.1.1811.1101\lib\net40\Gurux.Serial.dll</HintPath>
+    <Reference Include="Gurux.Serial, Version=8.1.2001.2703, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Gurux.Serial.8.1.2001.2703\lib\net40\Gurux.Serial.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">

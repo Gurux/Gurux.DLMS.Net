@@ -128,6 +128,18 @@ namespace Gurux.DLMS.ManufacturerSettings
             set;
         }
 
+        /// <summary>
+        /// Standard says that Time zone is from normal time to UTC in minutes.
+        /// If meter is configured to use UTC time (UTC to normal time) set this to true.
+        /// Example. Italy, Saudi Arabia and India standards are using UTC time zone, not DLMS standard time zone.
+        /// </summary>
+        [DefaultValue(false)]
+        public bool UtcTimeZone
+        {
+            get;
+            set;
+        }
+
 
         /// <summary>
         /// Is IEC 62056-21 skipped when using serial port connection.
