@@ -21,7 +21,10 @@
     <PackageLicenseExpression>GPL-2.0-only</PackageLicenseExpression>
     <ApplicationIcon>Gurux.DLMS.ico</ApplicationIcon>
   </PropertyGroup>
-
+  <PropertyGroup>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <OutputPath>bin\Debug\</OutputPath>
   </PropertyGroup>
