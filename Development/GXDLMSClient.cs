@@ -1737,15 +1737,6 @@ namespace Gurux.DLMS
             }
             else
             {
-                byte requestType;
-                if (type == DataType.None)
-                {
-                    requestType = (byte)VariableAccessSpecification.VariableName;
-                }
-                else
-                {
-                    requestType = (byte)VariableAccessSpecification.ParameterisedAccess;
-                }
                 int ind, count;
                 GXDLMS.GetActionInfo(objectType, out ind, out count);
                 if (index > count)
@@ -1762,8 +1753,7 @@ namespace Gurux.DLMS
                 {
                     attributeDescriptor.SetUInt8(1);
                 }
-
-                return GXDLMS.GetSnMessages(new GXDLMSSNParameters(Settings, Command.ReadRequest, 1, requestType, attributeDescriptor, data));
+                return GXDLMS.GetSnMessages(new GXDLMSSNParameters(Settings, Command.WriteRequest, 1, (byte) VariableAccessSpecification.VariableName, attributeDescriptor, data));
             }
         }
 
@@ -2504,11 +2494,11 @@ namespace Gurux.DLMS
             {
                 ret = GXDLMS.GetData(Settings, reply, data, notify, this);
             }
-            catch (Exception ex)
+            catch
             {
                 if (translator == null || throwExceptions)
                 {
-                    throw ex;
+                    throw;
                 }
                 ret = true;
             }

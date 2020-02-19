@@ -99,3 +99,8 @@
 71;0.0.17.0.0.255;0;Load Limit Threshold (kW)
 71;0.0.17.0.0.255;0;Load Limit Value (kW)
 3;0.0.94.91.8.255;0;Cumulative power — OFF duration in min
+64;0.0.25.9.1.255;0;Periodic Push (SM to HES)
+64;0.0.25.9.2.255;0;Utility Message (HES to IHD)
+64;0.0.25.9.3.255;0;Consumer Message (IHD to HES)
+64;0.0.25.9.4.255;0;Periodic Push (SM to IHD)
+64;0.0.25.9.5.255;0;EventPush (SM to HES)

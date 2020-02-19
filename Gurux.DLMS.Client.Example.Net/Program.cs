@@ -43,6 +43,7 @@ using System.Threading;
 using Gurux.DLMS.Secure;
 using System.Diagnostics;
 using System.IO.Ports;
+using Gurux.DLMS.Objects;
 
 namespace Gurux.DLMS.Client.Example
 {
@@ -360,7 +361,7 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine(" -c \t Client address. (Default: 16)");
             Console.WriteLine(" -s \t Server address. (Default: 1)");
             Console.WriteLine(" -n \t Server address as serial number.");
-            Console.WriteLine(" -r [sn, sn]\t Short name or Logican Name (default) referencing is used.");
+            Console.WriteLine(" -r [sn, ln]\t Short name or Logical Name (default) referencing is used.");
             Console.WriteLine(" -w WRAPPER profile is used. HDLC is default.");
             Console.WriteLine(" -t [Error, Warning, Info, Verbose] Trace messages.");
             Console.WriteLine(" -g \"0.0.1.0.0.255:1; 0.0.1.0.0.255:2\" Get selected object(s) with given attribute index.");
