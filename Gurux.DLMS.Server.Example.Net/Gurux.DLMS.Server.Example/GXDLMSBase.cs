@@ -294,8 +294,8 @@ namespace GuruxDLMSServerExample
             activity.Time = new GXDateTime(DateTime.Now);
             Items.Add(activity);
             ///////////////////////////////////////////////////////////////////////
-            //Add Optical Port Setup object.
-            GXDLMSIECOpticalPortSetup optical = new GXDLMSIECOpticalPortSetup();
+            //Add local port setup object.
+            GXDLMSIECLocalPortSetup optical = new GXDLMSIECLocalPortSetup();
             optical.DefaultMode = OpticalProtocolMode.Default;
             optical.ProposedBaudrate = BaudRate.Baudrate9600;
             optical.DefaultBaudrate = BaudRate.Baudrate300;

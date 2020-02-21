@@ -569,8 +569,14 @@ namespace Gurux.DLMS
         [DefaultValue(false)]
         public bool AutoIncreaseInvokeID
         {
-            get;
-            set;
+            get
+            {
+                return Settings.AutoIncreaseInvokeID;
+            }
+            set
+            {
+                Settings.AutoIncreaseInvokeID = value;
+            }
         }
 
         /// <summary>
@@ -1704,10 +1710,6 @@ namespace Gurux.DLMS
                 throw new ArgumentOutOfRangeException("Invalid parameter");
             }
             Settings.ResetBlockIndex();
-            if (AutoIncreaseInvokeID)
-            {
-                Settings.InvokeID = (byte)((Settings.InvokeID + 1) & 0xF);
-            }
             if (type == DataType.None && value != null)
             {
                 type = GXDLMSConverter.GetDLMSDataType(value);
@@ -1807,10 +1809,6 @@ namespace Gurux.DLMS
         private byte[][] Write2(object name, object value, DataType type, ObjectType objectType, int index)
         {
             Settings.ResetBlockIndex();
-            if (AutoIncreaseInvokeID)
-            {
-                Settings.InvokeID = (byte)((Settings.InvokeID + 1) & 0xF);
-            }
             if (type == DataType.None && value != null)
             {
                 type = GXDLMSConverter.GetDLMSDataType(value);
@@ -1873,10 +1871,6 @@ namespace Gurux.DLMS
                 throw new ArgumentException("Invalid parameter");
             }
             Settings.ResetBlockIndex();
-            if (AutoIncreaseInvokeID)
-            {
-                Settings.InvokeID = (byte)((Settings.InvokeID + 1) & 0xF);
-            }
             GXByteBuffer attributeDescriptor = new GXByteBuffer();
             byte[][] reply;
             if (UseLogicalNameReferencing)
@@ -2037,10 +2031,6 @@ namespace Gurux.DLMS
                 throw new ArgumentOutOfRangeException("Invalid parameter.");
             }
             Settings.ResetBlockIndex();
-            if (AutoIncreaseInvokeID)
-            {
-                Settings.InvokeID = (byte)((Settings.InvokeID + 1) & 0xF);
-            }
             List<byte[]> messages = new List<byte[]>();
             GXByteBuffer data = new GXByteBuffer();
             if (this.UseLogicalNameReferencing)

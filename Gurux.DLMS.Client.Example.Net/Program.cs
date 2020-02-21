@@ -43,7 +43,6 @@ using System.Threading;
 using Gurux.DLMS.Secure;
 using System.Diagnostics;
 using System.IO.Ports;
-using Gurux.DLMS.Objects;
 
 namespace Gurux.DLMS.Client.Example
 {
@@ -149,7 +148,7 @@ namespace Gurux.DLMS.Client.Example
         static int GetParameters(string[] args, Settings settings)
         {
             string[] tmp;
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:it:a:wP:g:S:C:n:v:");
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:it:a:wP:g:S:C:n:v:I");
             GXNet net = null;
             foreach (GXCmdParameter it in parameters)
             {
@@ -207,6 +206,10 @@ namespace Gurux.DLMS.Client.Example
                     case 'i':
                         //IEC.
                         settings.iec = true;
+                        break;
+                    case 'I':
+                        //AutoIncreaseInvokeID.
+                        settings.client.AutoIncreaseInvokeID = true;
                         break;
                     case 'v':
                         settings.invocationCounter = it.Value.Trim();
@@ -367,6 +370,7 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine(" -g \"0.0.1.0.0.255:1; 0.0.1.0.0.255:2\" Get selected object(s) with given attribute index.");
             Console.WriteLine(" -C \t Security Level. (None, Authentication, Encrypted, AuthenticationEncryption)");
             Console.WriteLine(" -v \t Invocation counter data object Logical Name. Ex. 0.0.43.1.1.255");
+            Console.WriteLine(" -I \t Auto increase invoke ID");
             Console.WriteLine("Example:");
             Console.WriteLine("Read LG device using TCP/IP connection.");
             Console.WriteLine("GuruxDlmsSample -r SN -c 16 -s 1 -h [Meter IP Address] -p [Meter Port No]");

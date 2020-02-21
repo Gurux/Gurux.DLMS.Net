@@ -34,6 +34,7 @@
 
 using Gurux.DLMS.Enums;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -193,20 +194,25 @@ namespace Gurux.DLMS.Objects
 
         void WriteArray(object data)
         {
-            if (data is Array)
+            if (data is List<object>)
             {
-                Array arr = (Array)data;
-                for (int pos = 0; pos != arr.Length; ++pos)
+                foreach(object tmp in (List<object>)data)
                 {
-                    object tmp = arr.GetValue(pos);
                     if (tmp is byte[])
                     {
                         WriteElementObject("Item", tmp, false);
                     }
-                    else if (tmp is Array)
+                    else if (tmp is GXArray)
                     {
                         writer.WriteStartElement("Item");
                         writer.WriteAttributeString("Type", ((int)DataType.Array).ToString());
+                        WriteArray(tmp);
+                        writer.WriteEndElement();
+                    }
+                    else if (tmp is GXStructure)
+                    {
+                        writer.WriteStartElement("Item");
+                        writer.WriteAttributeString("Type", ((int)DataType.Structure).ToString());
                         WriteArray(tmp);
                         writer.WriteEndElement();
                     }
@@ -267,13 +273,9 @@ namespace Gurux.DLMS.Objects
                 }
 
                 DataType dt = GXDLMSConverter.GetDLMSDataType(value);
-                if (value is GXArray || value is GXStructure)
-                {
-                    value = GXDLMSTranslator.ValueToXml(value);
-                }
                 writer.WriteStartElement(name);
                 writer.WriteAttributeString("Type", ((int)dt).ToString());
-                if (dt == DataType.Array)
+                if (dt == DataType.Array || dt == DataType.Structure)
                 {
                     WriteArray(value);
                 }

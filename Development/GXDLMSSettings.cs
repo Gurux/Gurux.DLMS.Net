@@ -717,6 +717,14 @@ namespace Gurux.DLMS
                 invokeID = value;
             }
         }
+        /// <summary>
+        /// Auto increase Invoke ID.
+        /// </summary>
+        public bool AutoIncreaseInvokeID
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Update invoke ID and priority.

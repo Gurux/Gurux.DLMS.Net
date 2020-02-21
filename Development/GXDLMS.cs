@@ -56,8 +56,9 @@ namespace Gurux.DLMS
         /// Generates Invoke ID and priority.
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
+        /// <param name="increase">Is invoke ID increased.</param>
         /// <returns>Invoke ID and priority.</returns>
-        static byte GetInvokeIDPriority(GXDLMSSettings settings)
+        static byte GetInvokeIDPriority(GXDLMSSettings settings, bool increase)
         {
             byte value = 0;
             if (settings.Priority == Priority.High)
@@ -67,6 +68,10 @@ namespace Gurux.DLMS
             if (settings.ServiceClass == ServiceClass.Confirmed)
             {
                 value |= 0x40;
+            }
+            if (increase)
+            {
+                settings.InvokeID = (byte)((settings.InvokeID + 1) & 0xF);
             }
             value |= (byte)(settings.InvokeID & 0xF);
             return value;
@@ -864,7 +869,7 @@ namespace Gurux.DLMS
                         }
                         else
                         {
-                            reply.SetUInt8(GetInvokeIDPriority(p.settings));
+                            reply.SetUInt8(GetInvokeIDPriority(p.settings, p.settings.AutoIncreaseInvokeID));
                         }
                     }
                 }
@@ -2577,14 +2582,15 @@ namespace Gurux.DLMS
             // Get type.
             ActionResponseType type = (ActionResponseType)data.Data.GetUInt8();
             // Get invoke ID and priority.
-            byte invoke = data.Data.GetUInt8();
+            data.InvokeId = data.Data.GetUInt8();
+            VerifyInvokeId(settings, data);
             if (data.Xml != null)
             {
                 data.Xml.AppendStartTag(Command.MethodResponse);
                 data.Xml.AppendStartTag(Command.MethodResponse, type);
                 //InvokeIdAndPriority
                 data.Xml.AppendLine(TranslatorTags.InvokeId, "Value",
-                                        data.Xml.IntegerToHex(invoke, 2));
+                                        data.Xml.IntegerToHex(data.InvokeId, 2));
             }
             //Action-Response-Normal
             if (type == ActionResponseType.Normal)
@@ -2621,13 +2627,14 @@ namespace Gurux.DLMS
         {
             SetResponseType type = (SetResponseType)data.Data.GetUInt8();
             //Invoke ID and priority.
-            byte invokeId = data.Data.GetUInt8();
+            data.InvokeId = data.Data.GetUInt8();
+            VerifyInvokeId(settings, data);
             if (data.Xml != null)
             {
                 data.Xml.AppendStartTag(Command.SetResponse);
                 data.Xml.AppendStartTag(Command.SetResponse, type);
                 //InvokeIdAndPriority
-                data.Xml.AppendLine(TranslatorTags.InvokeId, "Value", data.Xml.IntegerToHex(invokeId, 2));
+                data.Xml.AppendLine(TranslatorTags.InvokeId, "Value", data.Xml.IntegerToHex(data.InvokeId, 2));
             }
 
             //SetResponseNormal
@@ -2789,6 +2796,14 @@ namespace Gurux.DLMS
             reply.Value = values;
         }
 
+        private static void VerifyInvokeId(GXDLMSSettings settings, GXReplyData reply)
+        {
+            if (reply.Xml == null && reply.InvokeId != GetInvokeIDPriority(settings, false))
+            {
+                throw new Exception(string.Format("Invalid invoke ID. Expected: {0} Actual: {1}", GetInvokeIDPriority(settings, false).ToString("X"), reply.InvokeId.ToString("X")));
+            }
+        }
+
         /// <summary>
         /// Handle get response and get data from block and/or update error status.
         /// </summary>
@@ -2808,7 +2823,7 @@ namespace Gurux.DLMS
             reply.CommandType = (byte)type;
             // Get invoke ID and priority.
             reply.InvokeId = data.GetUInt8();
-
+            VerifyInvokeId(settings, reply);
             if (reply.Xml != null)
             {
                 reply.Xml.AppendStartTag(Command.GetResponse);
