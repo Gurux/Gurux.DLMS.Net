@@ -263,7 +263,7 @@ namespace Gurux.DLMS
                               ServiceError.Service, (byte)Service.Unsupported));
                 return;
             }
-
+            ValueEventArgs e = null;
             if (obj == null)
             {
                 obj = server.NotifyFindObject(ci, 0, GXCommon.ToLogicalName(ln));
@@ -275,7 +275,7 @@ namespace Gurux.DLMS
             }
             else
             {
-                ValueEventArgs e = new ValueEventArgs(server, obj, id, 0, parameters);
+                e = new ValueEventArgs(server, obj, id, 0, parameters);
                 e.InvokeId = invokeId;
                 if (server.NotifyGetMethodAccess(e) == MethodAccessMode.NoAccess)
                 {
@@ -325,7 +325,7 @@ namespace Gurux.DLMS
             GXDLMSLNParameters p = new GXDLMSLNParameters(null, settings, invokeId, Command.MethodResponse, 1, null, bb, (byte)error, cipheredCommand);
             GXDLMS.GetLNPdu(p, replyData);
             //If High level authentication fails.
-            if (obj is GXDLMSAssociationLogicalName && id == 1)
+            if (error == 0 && obj is GXDLMSAssociationLogicalName && id == 1)
             {
                 if ((obj as GXDLMSAssociationLogicalName).AssociationStatus == Objects.Enums.AssociationStatus.Associated)
                 {
@@ -338,9 +338,14 @@ namespace Gurux.DLMS
                     settings.Connected &= ~ConnectionState.Dlms;
                 }
             }
+            //Start to use new keys.
+            if (e != null && error == 0 && obj is GXDLMSSecuritySetup && id == 2)
+            {
+                ((GXDLMSSecuritySetup)obj).ApplyKeys(settings, e);
+            }
         }
 
-        private static void AppendAttributeDescriptor(GXDLMSTranslatorStructure xml, int ci, byte[] ln, byte attributeIndex)
+            private static void AppendAttributeDescriptor(GXDLMSTranslatorStructure xml, int ci, byte[] ln, byte attributeIndex)
         {
             xml.AppendStartTag(TranslatorTags.AttributeDescriptor);
             if (xml.Comments)

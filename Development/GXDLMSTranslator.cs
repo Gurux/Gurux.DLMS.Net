@@ -277,7 +277,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXDLMSTranslator():
+        public GXDLMSTranslator() :
             this(TranslatorOutputType.SimpleXml)
         {
         }
@@ -1055,13 +1055,43 @@ namespace Gurux.DLMS
             return PduToXml(xml, value, omitDeclaration, omitNameSpace, true);
         }
 
+        private static bool IsCiphered(byte cmd)
+        {
+            switch ((Command)cmd)
+            {
+                case Command.GloReadRequest:
+                case Command.GloWriteRequest:
+                case Command.GloGetRequest:
+                case Command.GloSetRequest:
+                case Command.GloReadResponse:
+                case Command.GloWriteResponse:
+                case Command.GloGetResponse:
+                case Command.GloSetResponse:
+                case Command.GloMethodRequest:
+                case Command.GloMethodResponse:
+                case Command.DedGetRequest:
+                case Command.DedSetRequest:
+                case Command.DedReadResponse:
+                case Command.DedGetResponse:
+                case Command.DedSetResponse:
+                case Command.DedMethodRequest:
+                case Command.DedMethodResponse:
+                case Command.GeneralGloCiphering:
+                case Command.GeneralDedCiphering:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+
         internal string PduToXml(GXDLMSTranslatorStructure xml, GXByteBuffer value, bool omitDeclaration, bool omitNameSpace, bool allowUnknownCommand)
         {
             GXDLMSSettings settings = new GXDLMSSettings(true);
-            GetCiphering(settings, false);
-            settings.Standard = Standard;
             GXReplyData data = new GXReplyData();
             byte cmd = value.GetUInt8();
+            GetCiphering(settings, IsCiphered(cmd));
+            settings.Standard = Standard;
             string str;
             int len;
             byte[] tmp;
@@ -1747,8 +1777,7 @@ namespace Gurux.DLMS
                     // Get PW
                     if (s.settings.Authentication == Authentication.Low)
                     {
-                        s.settings
-                        .Password = GXCommon.HexToBytes(GetValue(node, s));
+                        s.settings.Password = GXCommon.HexToBytes(GetValue(node, s));
                     }
                     else
                     {
@@ -1771,8 +1800,7 @@ namespace Gurux.DLMS
                     .StoCChallenge = GXCommon.HexToBytes(GetValue(node, s));
                     break;
                 case (int)TranslatorTags.Result:
-                    s.result = (AssociationResult)
-                               int.Parse(GetValue(node, s));
+                    s.result = (AssociationResult)int.Parse(GetValue(node, s));
                     break;
                 case (int)Command.ConfirmedServiceError:
                     if (s.command == Command.None)
@@ -2371,7 +2399,14 @@ namespace Gurux.DLMS
                     case (int)TranslatorTags.Parameter:
                         break;
                     case (int)TranslatorTags.LastBlock:
-                        s.data.SetUInt8((byte)s.ParseShort(GetValue(node, s)));
+                        if (s.OutputType == TranslatorOutputType.SimpleXml)
+                        {
+                            s.data.SetUInt8((byte)s.ParseShort(GetValue(node, s)));
+                        }
+                        else
+                        {
+                            s.data.SetUInt8((byte)(bool.Parse(GetValue(node, s)) ? 1 : 0));
+                        }
                         break;
                     case (int)TranslatorTags.BlockNumber:
                         //BlockNumber

@@ -51,6 +51,9 @@ namespace Gurux.DLMS
             private set;
         }
 
+        /// <summary>
+        /// Name space is omit.
+        /// </summary>
         public bool OmitNameSpace
         {
             get;
@@ -165,7 +168,7 @@ namespace Gurux.DLMS
             }
         }
 
-        private String GetTag(int tag)
+        private string GetTag(int tag)
         {
             if (OutputType == TranslatorOutputType.SimpleXml || OmitNameSpace)
             {
@@ -413,7 +416,7 @@ namespace Gurux.DLMS
             sb.Append("</");
             sb.Append(GetTag(tag));
             sb.Append(">");
-            AppendLine("");
+            sb.AppendLine("");
         }
 
         public void AppendEmptyTag(int tag)

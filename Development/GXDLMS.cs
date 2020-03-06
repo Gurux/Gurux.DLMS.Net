@@ -2798,7 +2798,7 @@ namespace Gurux.DLMS
 
         private static void VerifyInvokeId(GXDLMSSettings settings, GXReplyData reply)
         {
-            if (reply.Xml == null && reply.InvokeId != GetInvokeIDPriority(settings, false))
+            if (reply.Xml == null && settings.AutoIncreaseInvokeID && reply.InvokeId != GetInvokeIDPriority(settings, false))
             {
                 throw new Exception(string.Format("Invalid invoke ID. Expected: {0} Actual: {1}", GetInvokeIDPriority(settings, false).ToString("X"), reply.InvokeId.ToString("X")));
             }

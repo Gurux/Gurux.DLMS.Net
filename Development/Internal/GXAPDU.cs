@@ -714,7 +714,7 @@ namespace Gurux.DLMS.Internal
             }
             if (xml != null && xml.OutputType == TranslatorOutputType.StandardXml)
             {
-                xml.AppendLine(Command.InitiateRequest, null, GXCommon
+                xml.AppendLine(TranslatorGeneralTags.UserInformation, null, GXCommon
                                .ToHex(data.Data, false, data.Position, len));
                 data.Position = data.Position + len;
                 return;

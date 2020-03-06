@@ -230,7 +230,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, Command.SetResponse, "set-response");
             list.Add((int)Command.SetResponse << 8 | (int)SetResponseType.Normal, "set-response-normal");
             list.Add((int)Command.SetResponse << 8 | (int)SetResponseType.DataBlock,
-                     "set-response-data-block");
+                     "set-response-datablock");
             list.Add((int)Command.SetResponse << 8 | (int)SetResponseType.LastDataBlock,
                      "set-response-with-last-data-block");
             list.Add((int)Command.SetResponse << 8 | (int)SetResponseType.WithList,

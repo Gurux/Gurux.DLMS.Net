@@ -56,6 +56,8 @@ namespace Gurux.DLMS.Client.Example
         public string invocationCounter = null;
         //Objects to read.
         public List<KeyValuePair<string, int>> readObjects = new List<KeyValuePair<string, int>>();
+        //Cache file.
+        public string outputFile = null;
     }
 
     class Program
@@ -148,7 +150,7 @@ namespace Gurux.DLMS.Client.Example
         static int GetParameters(string[] args, Settings settings)
         {
             string[] tmp;
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:it:a:wP:g:S:C:n:v:I");
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:iIt:a:wP:g:S:C:n:v:o:");
             GXNet net = null;
             foreach (GXCmdParameter it in parameters)
             {
@@ -299,6 +301,7 @@ namespace Gurux.DLMS.Client.Example
                         }
                         break;
                     case 'o':
+                        settings.outputFile = it.Value;
                         break;
                     case 'c':
                         settings.client.ClientAddress = int.Parse(it.Value);
@@ -371,6 +374,7 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine(" -C \t Security Level. (None, Authentication, Encrypted, AuthenticationEncryption)");
             Console.WriteLine(" -v \t Invocation counter data object Logical Name. Ex. 0.0.43.1.1.255");
             Console.WriteLine(" -I \t Auto increase invoke ID");
+            Console.WriteLine(" -o \t Cache association view to make reading faster. Ex. -o C:\\device.xml");
             Console.WriteLine("Example:");
             Console.WriteLine("Read LG device using TCP/IP connection.");
             Console.WriteLine("GuruxDlmsSample -r SN -c 16 -s 1 -h [Meter IP Address] -p [Meter Port No]");

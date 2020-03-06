@@ -424,21 +424,22 @@ namespace Gurux.DLMS.Objects
                     {
                         GlobalKeyType type = (GlobalKeyType)Convert.ToInt32(item[0]);
                         byte[] data = (byte[])item[1];
+                        //if settings.Cipher is null non secure server is used.
+                        //Keys are take in action after reply is generated.
                         switch (type)
                         {
                             case GlobalKeyType.UnicastEncryption:
-                                settings.Cipher.BlockCipherKey = GXDLMSSecureClient.Decrypt(settings.Kek, data);
+                                GXDLMSSecureClient.Decrypt(settings.Kek, data);
                                 break;
                             case GlobalKeyType.BroadcastEncryption:
                                 //Invalid type
                                 e.Error = ErrorCode.ReadWriteDenied;
                                 break;
                             case GlobalKeyType.Authentication:
-                                //if settings.Cipher is null non secure server is used.
-                                settings.Cipher.AuthenticationKey = GXDLMSSecureClient.Decrypt(settings.Kek, data);
+                                GXDLMSSecureClient.Decrypt(settings.Kek, data);
                                 break;
                             case GlobalKeyType.Kek:
-                                settings.Kek = GXDLMSSecureClient.Decrypt(settings.Kek, data);
+                                GXDLMSSecureClient.Decrypt(settings.Kek, data);
                                 break;
                             default:
                                 //Invalid type
@@ -458,6 +459,48 @@ namespace Gurux.DLMS.Objects
             }
             //Return standard reply.
             return null;
+        }
+
+        /// <summary>
+        /// Start to use new keys after reply is generated.
+        /// </summary>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="e"></param>
+        internal void ApplyKeys(GXDLMSSettings settings, ValueEventArgs e)
+        {
+            try
+            {
+                foreach (List<object> item in e.Parameters as List<object>)
+                {
+                    GlobalKeyType type = (GlobalKeyType)Convert.ToInt32(item[0]);
+                    byte[] data = (byte[])item[1];
+                    switch (type)
+                    {
+                        case GlobalKeyType.UnicastEncryption:
+                            settings.Cipher.BlockCipherKey = GXDLMSSecureClient.Decrypt(settings.Kek, data);
+                            break;
+                        case GlobalKeyType.BroadcastEncryption:
+                            //Invalid type
+                            e.Error = ErrorCode.ReadWriteDenied;
+                            break;
+                        case GlobalKeyType.Authentication:
+                            //if settings.Cipher is null non secure server is used.
+                            settings.Cipher.AuthenticationKey = GXDLMSSecureClient.Decrypt(settings.Kek, data);
+                            break;
+                        case GlobalKeyType.Kek:
+                            settings.Kek = GXDLMSSecureClient.Decrypt(settings.Kek, data);
+                            break;
+                        default:
+                            //Invalid type
+                            e.Error = ErrorCode.ReadWriteDenied;
+                            break;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                e.Error = ErrorCode.ReadWriteDenied;
+            }
         }
 
         int[] IGXDLMSBase.GetAttributeIndexToRead(bool all)

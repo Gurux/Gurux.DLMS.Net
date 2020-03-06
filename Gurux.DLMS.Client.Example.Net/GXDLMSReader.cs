@@ -441,25 +441,7 @@ namespace Gurux.DLMS.Reader
             InitializeOpticalHead();
             GXReplyData reply = new GXReplyData();
             byte[] data;
-            data = Client.SNRMRequest();
-            if (data != null)
-            {
-                if (Trace > TraceLevel.Info)
-                {
-                    Console.WriteLine("Send SNRM request." + GXCommon.ToHex(data, true));
-                }
-                ReadDataBlock(data, reply);
-                if (Trace == TraceLevel.Verbose)
-                {
-                    Console.WriteLine("Parsing UA reply." + reply.ToString());
-                }
-                //Has server accepted client.
-                Client.ParseUAResponse(reply.Data);
-                if (Trace > TraceLevel.Info)
-                {
-                    Console.WriteLine("Parsing UA reply succeeded.");
-                }
-            }
+            SNRMRequest();
             //Generate AARQ request.
             //Split requests to multiple packets if needed.
             //If password is used all data might not fit to one packet.
