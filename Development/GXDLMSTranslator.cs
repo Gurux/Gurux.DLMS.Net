@@ -1078,6 +1078,8 @@ namespace Gurux.DLMS
                 case Command.DedMethodResponse:
                 case Command.GeneralGloCiphering:
                 case Command.GeneralDedCiphering:
+                case Command.Aare:
+                case Command.Aarq:
                     return true;
                 default:
                     return false;
@@ -1527,12 +1529,12 @@ namespace Gurux.DLMS
                 case (byte)Command.GloMethodResponse:
                 case (byte)Command.GloReadResponse:
                 case (byte)Command.GloWriteResponse:
-                case (byte)Command.GloEventNotificationRequest:
+                case (byte)Command.GloEventNotification:
                 case (byte)Command.DedInitiateResponse:
                 case (byte)Command.DedGetResponse:
                 case (byte)Command.DedSetResponse:
                 case (byte)Command.DedMethodResponse:
-                case (byte)Command.DedEventNotificationRequest:
+                case (byte)Command.DedEventNotification:
                     tmp = GXCommon.HexToBytes(GetValue(node, s));
                     s.settings.Cipher.Security = (Enums.Security)tmp[0];
                     s.data.Set(tmp);
@@ -3083,7 +3085,7 @@ namespace Gurux.DLMS
                     GXCommon.SetObjectCount(s.data.Size, bb);
                     bb.Set(s.data);
                     break;
-                case Command.GloEventNotificationRequest:
+                case Command.GloEventNotification:
                     break;
                 default:
                 case Command.None:

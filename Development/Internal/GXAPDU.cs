@@ -508,7 +508,20 @@ namespace Gurux.DLMS.Internal
             if (!response)
             {
                 //Proposed max PDU size.
-                settings.MaxPduSize = data.GetUInt16();
+                UInt16 maxPdu = 0;
+                try
+                {
+                    maxPdu = data.GetUInt16();
+                    settings.MaxPduSize = maxPdu;
+                }
+                catch(Exception ex)
+                {
+                    if (xml == null)
+                    {
+                        throw;
+                    }
+                    xml.AppendComment("ERROR! Invalid max PDU Size: " + maxPdu);
+                }
                 if (xml != null)
                 {
                     // ProposedConformance closing

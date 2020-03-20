@@ -224,7 +224,7 @@ namespace Gurux.DLMS.Secure
                 case Command.GloSetResponse:
                 case Command.GloMethodRequest:
                 case Command.GloMethodResponse:
-                case Command.GloEventNotificationRequest:
+                case Command.GloEventNotification:
                 case Command.DedInitiateRequest:
                 case Command.DedInitiateResponse:
                 case Command.DedGetRequest:
@@ -233,7 +233,7 @@ namespace Gurux.DLMS.Secure
                 case Command.DedSetResponse:
                 case Command.DedMethodRequest:
                 case Command.DedMethodResponse:
-                case Command.DedEventNotificationRequest:
+                case Command.DedEventNotification:
                 case Command.DedReadRequest:
                 case Command.DedReadResponse:
                 case Command.DedWriteRequest:

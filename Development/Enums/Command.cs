@@ -207,9 +207,9 @@ namespace Gurux.DLMS
         GloSetResponse = 0xCD,
 
         /// <summary>
-        /// Glo event notification request.
+        /// Glo event notification.
         /// </summary>
-        GloEventNotificationRequest = 0xCA,
+        GloEventNotification = 0xCA,
 
         /// <summary>
         /// Glo method request.
@@ -309,9 +309,9 @@ namespace Gurux.DLMS
         /// </summary>
         DedUnconfirmedWriteRequest = 86,
         /// <summary>
-        /// Ded information report request.
+        /// Ded information report.
         /// </summary>
-        DedInformationReportRequest = 88,
+        DedInformationReport = 88,
 
         /// <summary>
         /// Ded get request.
@@ -334,9 +334,9 @@ namespace Gurux.DLMS
         DedSetResponse = 0xD5,
 
         /// <summary>
-        /// Ded event notification request.
+        /// Ded event notification.
         /// </summary>
-        DedEventNotificationRequest = 0xD2,
+        DedEventNotification = 0xD2,
 
         /// <summary>
         /// Ded method request.

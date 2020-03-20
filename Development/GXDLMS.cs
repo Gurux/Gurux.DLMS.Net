@@ -706,7 +706,7 @@ namespace Gurux.DLMS
                 if ((p.settings.ProposedConformance & Conformance.GeneralProtection) == 0
                     && (p.settings.NegotiatedConformance & Conformance.GeneralProtection) == 0)
                 {
-                    if (cipher.DedicatedKey != null && (p.settings.Connected & ConnectionState.Dlms) != 0)
+                    if (cipher.DedicatedKey != null && (!p.settings.IsServer || (p.settings.Connected & ConnectionState.Dlms) != 0))
                     {
                         cmd = (byte)GetDedMessage(p.command);
                         key = cipher.DedicatedKey;
@@ -755,7 +755,7 @@ namespace Gurux.DLMS
                 }
             }
             AesGcmParameter s = new AesGcmParameter(cmd, cipher.Security,
-                cipher.InvocationCounter++, cipher.SystemTitle, key,
+                ++cipher.InvocationCounter, cipher.SystemTitle, key,
                 cipher.AuthenticationKey);
             s.IgnoreSystemTitle = p.settings.Standard == Standard.Italy;
             byte[] tmp = GXCiphering.Encrypt(s, data);
@@ -3252,7 +3252,7 @@ namespace Gurux.DLMS
                     AesGcmParameter p;
                     GXICipher cipher = settings.Cipher;
                     if (cipher.DedicatedKey != null
-                            && (settings.Connected & ConnectionState.Dlms) != 0)
+                            && (!settings.IsServer || (settings.Connected & ConnectionState.Dlms) != 0))
                     {
                         p = new AesGcmParameter(settings.SourceSystemTitle,
                                 cipher.DedicatedKey,
@@ -3383,11 +3383,11 @@ namespace Gurux.DLMS
                     case Command.GloGetResponse:
                     case Command.GloSetResponse:
                     case Command.GloMethodResponse:
-                    case Command.GloEventNotificationRequest:
+                    case Command.GloEventNotification:
                     case Command.DedGetResponse:
                     case Command.DedSetResponse:
                     case Command.DedMethodResponse:
-                    case Command.DedEventNotificationRequest:
+                    case Command.DedEventNotification:
                         HandledGloDedResponse(settings, data, index, client);
                         break;
                     case Command.GeneralGloCiphering:
@@ -3852,11 +3852,11 @@ namespace Gurux.DLMS
                 switch (data.Command)
                 {
                     case Command.DataNotification:
-                    case Command.GloEventNotificationRequest:
+                    case Command.GloEventNotification:
                     case Command.InformationReport:
                     case Command.EventNotification:
-                    case Command.DedInformationReportRequest:
-                    case Command.DedEventNotificationRequest:
+                    case Command.DedInformationReport:
+                    case Command.DedEventNotification:
                         isNotify = true;
                         notify.Command = data.Command;
                         data.Command = Command.None;

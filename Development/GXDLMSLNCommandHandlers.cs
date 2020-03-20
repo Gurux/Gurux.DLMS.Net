@@ -345,7 +345,7 @@ namespace Gurux.DLMS
             }
         }
 
-            private static void AppendAttributeDescriptor(GXDLMSTranslatorStructure xml, int ci, byte[] ln, byte attributeIndex)
+        private static void AppendAttributeDescriptor(GXDLMSTranslatorStructure xml, int ci, byte[] ln, byte attributeIndex)
         {
             xml.AppendStartTag(TranslatorTags.AttributeDescriptor);
             if (xml.Comments)

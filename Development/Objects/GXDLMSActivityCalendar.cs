@@ -482,16 +482,8 @@ namespace Gurux.DLMS.Objects
             if (value != null)
             {
                 List<GXDLMSSeasonProfile> items = new List<GXDLMSSeasonProfile>();
-                List<object> arr, item;
-                if (value is List<object>)
-                {
-                    arr = (List<object>)value;
-                }
-                else
-                {
-                    arr = new List<object>((object[])value);
-                }
-                foreach (object tmp in arr)
+                List<object> item;
+                foreach (object tmp in (IEnumerable<object>) value)
                 {
                     if (tmp is List<object>)
                     {

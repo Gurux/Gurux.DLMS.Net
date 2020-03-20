@@ -929,10 +929,10 @@ namespace Gurux.DLMS.Objects
             {
                 int index2 = 0;
                 DateTime lastDate = DateTime.MinValue;
-                foreach (object tmp in (IEnumerable<object>) e.Value)
+                foreach (object tmp in (IEnumerable<object>)e.Value)
                 {
                     List<object> row = new List<object>();
-                    row.AddRange((IEnumerable<object>) tmp);
+                    row.AddRange((IEnumerable<object>)tmp);
                     if (cols.Count != 0)
                     {
                         if (row.Count != cols.Count)
@@ -1041,7 +1041,10 @@ namespace Gurux.DLMS.Objects
                     }
                     Buffer.Add(row.ToArray());
                 }
-                EntriesInUse = (UInt32) Buffer.Count;
+                if (settings.IsServer)
+                {
+                    EntriesInUse = (UInt32)Buffer.Count;
+                }
             }
         }
 
@@ -1135,7 +1138,10 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 3)
             {
-                Reset();
+                if (settings != null && settings.IsServer)
+                {
+                    Reset();
+                }
                 //Clear file
                 if (e.Server != null)
                 {
@@ -1194,22 +1200,31 @@ namespace Gurux.DLMS.Objects
                         throw new GXDLMSException("Invalid structure format.");
                     }
                     ObjectType type = (ObjectType)Convert.ToInt16(tmp[0]);
-                    string ln = GXCommon.ToLogicalName((byte[])tmp[1]);
-                    SortAttributeIndex = Convert.ToInt16(tmp[2]);
-                    SortDataIndex = Convert.ToInt16(tmp[3]);
-                    SortObject = null;
-                    foreach (var it in CaptureObjects)
+                    if (type != ObjectType.None)
                     {
-                        if (it.Key.ObjectType == type && it.Key.LogicalName == ln)
+                        string ln = GXCommon.ToLogicalName((byte[])tmp[1]);
+                        SortAttributeIndex = Convert.ToInt16(tmp[2]);
+                        SortDataIndex = Convert.ToInt16(tmp[3]);
+                        SortObject = null;
+                        foreach (var it in CaptureObjects)
                         {
-                            SortObject = it.Key;
-                            break;
+                            if (it.Key.ObjectType == type && it.Key.LogicalName == ln)
+                            {
+                                SortObject = it.Key;
+                                break;
+                            }
+                        }
+                        if (SortObject == null)
+                        {
+                            SortObject = GXDLMSClient.CreateObject(type);
+                            SortObject.LogicalName = ln;
                         }
                     }
-                    if (SortObject == null)
+                    else
                     {
-                        SortObject = GXDLMSClient.CreateObject(type);
-                        SortObject.LogicalName = ln;
+                        SortObject = null;
+                        SortAttributeIndex = 0;
+                        SortDataIndex = 0;
                     }
                 }
                 else

@@ -86,16 +86,27 @@ namespace Gurux.DLMS.Reader
         /// <summary>
         /// Read all data from the meter.
         /// </summary>
-        public void ReadAll(bool useCache)
+        public void ReadAll(string outputFile)
         {
             try
             {
                 InitializeConnection();
-                GetAssociationView(useCache);
+                GetAssociationView(outputFile);
                 GetScalersAndUnits();
                 GetProfileGenericColumns();
                 GetReadOut();
                 GetProfileGenerics();
+                if (outputFile != null)
+                {
+                    try
+                    {
+                        Client.Objects.Save(outputFile, new GXXmlWriterSettings() { IgnoreDefaultValues = false });
+                    }
+                    catch (Exception)
+                    {
+                        //It's OK if this fails.
+                    }
+                }
             }
             finally
             {
@@ -437,10 +448,20 @@ namespace Gurux.DLMS.Reader
         /// </summary>
         public void InitializeConnection()
         {
+            if (Client.Ciphering.Security != Security.None)
+            {
+                Console.WriteLine("Security: " + Client.Ciphering.Security);
+                Console.WriteLine("System title: " + GXCommon.ToHex(Client.Ciphering.SystemTitle, true));
+                Console.WriteLine("Authentication key: " + GXCommon.ToHex(Client.Ciphering.AuthenticationKey, true));
+                Console.WriteLine("Block cipher key " + GXCommon.ToHex(Client.Ciphering.BlockCipherKey, true));
+                if (Client.Ciphering.DedicatedKey != null)
+                {
+                    Console.WriteLine("Dedicated key: " + GXCommon.ToHex(Client.Ciphering.DedicatedKey, true));
+                }
+            }
             UpdateFrameCounter();
             InitializeOpticalHead();
             GXReplyData reply = new GXReplyData();
-            byte[] data;
             SNRMRequest();
             //Generate AARQ request.
             //Split requests to multiple packets if needed.
@@ -543,36 +564,25 @@ namespace Gurux.DLMS.Reader
         /// <summary>
         /// Read association view.
         /// </summary>
-        public void GetAssociationView(bool useCache)
+        public void GetAssociationView(string outputFile)
         {
-            if (useCache)
+            if (outputFile != null)
             {
-                string path = GetCacheName();
-                List<Type> extraTypes = new List<Type>(Gurux.DLMS.GXDLMSClient.GetObjectTypes());
-                extraTypes.Add(typeof(GXDLMSAttributeSettings));
-                extraTypes.Add(typeof(GXDLMSAttribute));
-                XmlSerializer x = new XmlSerializer(typeof(GXDLMSObjectCollection), extraTypes.ToArray());
-                //You can save association view, but make sure that it is not change.
                 //Save Association view to the cache so it is not needed to retrieve every time.
-                if (File.Exists(path))
+                if (File.Exists(outputFile))
                 {
                     try
                     {
-                        using (Stream stream = File.Open(path, FileMode.Open))
-                        {
-                            Console.WriteLine("Get available objects from the cache.");
-                            Client.Objects.AddRange(x.Deserialize(stream) as GXDLMSObjectCollection);
-                            stream.Close();
-                        }
+                        Client.Objects.Clear();
+                        Client.Objects.AddRange(GXDLMSObjectCollection.Load(outputFile));
                         return;
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        if (File.Exists(path))
+                        if (File.Exists(outputFile))
                         {
-                            File.Delete(path);
+                            File.Delete(outputFile);
                         }
-                        throw ex;
                     }
                 }
             }
@@ -601,6 +611,17 @@ namespace Gurux.DLMS.Reader
                             --cnt;
                         }
                     }
+                }
+            }
+            if (outputFile != null)
+            {
+                try
+                {
+                    Client.Objects.Save(outputFile, new GXXmlWriterSettings() { Values = false });
+                }
+                catch (Exception)
+                {
+                    //It's OK if this fails.
                 }
             }
         }
@@ -667,10 +688,6 @@ namespace Gurux.DLMS.Reader
                 }
             }
         }
-        public string GetCacheName()
-        {
-            return Media.ToString().Replace(":", "") + ".xml";
-        }
 
         /// <summary>
         /// Read profile generic columns.
@@ -712,29 +729,6 @@ namespace Gurux.DLMS.Reader
                 {
                     //Continue reading.
                 }
-            }
-            string path = GetCacheName();
-            try
-            {
-                List<Type> extraTypes = new List<Type>(Gurux.DLMS.GXDLMSClient.GetObjectTypes());
-                extraTypes.Add(typeof(GXDLMSAttributeSettings));
-                extraTypes.Add(typeof(GXDLMSAttribute));
-                XmlSerializer x = new XmlSerializer(typeof(GXDLMSObjectCollection), extraTypes.ToArray());
-                using (Stream stream = File.Open(path, FileMode.Create))
-                {
-                    TextWriter writer = new StreamWriter(stream);
-                    x.Serialize(writer, Client.Objects);
-                    writer.Close();
-                    stream.Close();
-                }
-            }
-            catch (Exception ex)
-            {
-                if (File.Exists(path))
-                {
-                    File.Delete(path);
-                }
-                throw ex;
             }
         }
 

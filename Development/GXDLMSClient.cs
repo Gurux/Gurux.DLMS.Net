@@ -1408,7 +1408,7 @@ namespace Gurux.DLMS
             List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
         {
             //Update data type if value is readable.
-            if (value != null)
+            if (value != null && target.GetDataType(attributeIndex) == DataType.None)
             {
                 try
                 {
@@ -1755,7 +1755,7 @@ namespace Gurux.DLMS
                 {
                     attributeDescriptor.SetUInt8(1);
                 }
-                return GXDLMS.GetSnMessages(new GXDLMSSNParameters(Settings, Command.WriteRequest, 1, (byte) VariableAccessSpecification.VariableName, attributeDescriptor, data));
+                return GXDLMS.GetSnMessages(new GXDLMSSNParameters(Settings, Command.WriteRequest, 1, (byte)VariableAccessSpecification.VariableName, attributeDescriptor, data));
             }
         }
 
@@ -1946,7 +1946,7 @@ namespace Gurux.DLMS
             GXByteBuffer data = new GXByteBuffer();
             if (this.UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, Command.GetRequest, (byte)GetCommandType.WithList, null, data, 0xff, Command.None);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, Command.GetRequest, (byte)GetCommandType.WithList, data, null, 0xff, Command.None);
                 //Request service primitive shall always fit in a single APDU.
                 int pos = 0, count = (Settings.MaxPduSize - 12) / 10;
                 if (list.Count < count)
@@ -1996,7 +1996,7 @@ namespace Gurux.DLMS
             }
             else
             {
-                GXDLMSSNParameters p = new GXDLMSSNParameters(Settings, Command.ReadRequest, list.Count, 0xFF, null, data);
+                GXDLMSSNParameters p = new GXDLMSSNParameters(Settings, Command.ReadRequest, list.Count, 0xFF, data, null);
                 foreach (KeyValuePair<GXDLMSObject, int> it in list)
                 {
                     // Add variable type.
@@ -2227,7 +2227,7 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentOutOfRangeException("columnEnd");
             }
-            pg.Reset();
+            pg.Buffer.Clear();
             Settings.ResetBlockIndex();
             GXByteBuffer buff = new GXByteBuffer(19);
             // Add AccessSelector value
@@ -2322,7 +2322,7 @@ namespace Gurux.DLMS
         public byte[][] ReadRowsByRange(GXDLMSProfileGeneric pg, GXDateTime start, GXDateTime end,
                                         List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
         {
-            pg.Reset();
+            pg.Buffer.Clear();
             Settings.ResetBlockIndex();
             string ln = "0.0.1.0.0.255";
             ObjectType type = ObjectType.Clock;

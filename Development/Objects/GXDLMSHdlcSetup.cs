@@ -381,40 +381,15 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            if (CommunicationSpeed != BaudRate.Baudrate9600)
-            {
-                writer.WriteElementString("Speed", (int)CommunicationSpeed);
-            }
-            if (WindowSizeTransmit != 1)
-            {
-                writer.WriteElementString("WindowSizeTx", WindowSizeTransmit);
-            }
-            if (WindowSizeReceive != 1)
-            {
-                writer.WriteElementString("WindowSizeRx", WindowSizeReceive);
-            }
-            if (MaximumInfoLengthTransmit != 0x80)
-            {
-                writer.WriteElementString("MaximumInfoLengthTx", MaximumInfoLengthTransmit);
-            }
-            if (MaximumInfoLengthReceive != 0x80)
-            {
-                writer.WriteElementString("MaximumInfoLengthRx", MaximumInfoLengthReceive);
-            }
-            if (InterCharachterTimeout != 30)
-            {
-                writer.WriteElementString("InterCharachterTimeout", InterCharachterTimeout);
-            }
-            if (InactivityTimeout != 120)
-            {
-                writer.WriteElementString("InactivityTimeout", InactivityTimeout);
-            }
-            if (DeviceAddress != 0)
-            {
-                writer.WriteElementString("DeviceAddress", DeviceAddress);
-            }
+            writer.WriteElementString("Speed", (int)CommunicationSpeed, (int)BaudRate.Baudrate9600);
+            writer.WriteElementString("WindowSizeTx", WindowSizeTransmit, 1);
+            writer.WriteElementString("WindowSizeRx", WindowSizeReceive, 1);
+            writer.WriteElementString("MaximumInfoLengthTx", MaximumInfoLengthTransmit, 0x80);
+            writer.WriteElementString("MaximumInfoLengthRx", MaximumInfoLengthReceive, 0x80);
+            writer.WriteElementString("InterCharachterTimeout", InterCharachterTimeout, 30);
+            writer.WriteElementString("InactivityTimeout", InactivityTimeout, 120);
+            writer.WriteElementString("DeviceAddress", DeviceAddress, 0);
         }
-
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

@@ -222,8 +222,8 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Load(GXXmlReader reader)
         {
-            TableId = (UInt16)reader.ReadElementContentAsInt("Value", 0);
-            Buffer = GXCommon.HexToBytes(reader.ReadElementContentAsString("Value", null));
+            TableId = (UInt16)reader.ReadElementContentAsInt("Id", 0);
+            Buffer = GXCommon.HexToBytes(reader.ReadElementContentAsString("Buffer", null));
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)

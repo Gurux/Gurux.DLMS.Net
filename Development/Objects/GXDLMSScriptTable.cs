@@ -245,7 +245,7 @@ namespace Gurux.DLMS.Objects
                 //Xemex meters do not return array as they shoul be according standard.
                 if (e.Value is IEnumerable<object>)
                 {
-                    List<object> arr, arr1, arr2;
+                    List<object> arr, arr1;
                     if (e.Value is List<object>)
                     {
                         arr1 = (List<object>)e.Value;
@@ -270,15 +270,7 @@ namespace Gurux.DLMS.Objects
                             GXDLMSScript script = new GXDLMSScript();
                             script.Id = Convert.ToInt32(item[0]);
                             Scripts.Add(script);
-                            if (item[1] is List<object>)
-                            {
-                                arr2 = (List<object>)item[1];
-                            }
-                            else
-                            {
-                                arr2 = new List<object>((object[])item[1]);
-                            }
-                            foreach (object tmp2 in arr2)
+                            foreach (object tmp2 in (IEnumerable<object>)item[1])
                             {
                                 if (tmp2 is List<object>)
                                 {
@@ -295,12 +287,9 @@ namespace Gurux.DLMS.Objects
                                 it.Target = settings.Objects.FindByLN(ot, ln);
                                 if (it.Target == null)
                                 {
-#pragma warning disable CS0618
-                                    it.ObjectType = ot;
-                                    it.LogicalName = ln;
-#pragma warning restore CS0618
+                                    it.Target = GXDLMSClient.CreateObject(ot);
+                                    it.Target.LogicalName = ln;
                                 }
-
                                 it.Index = Convert.ToInt32(arr[3]);
                                 it.Parameter = arr[4];
                                 if (it.Parameter != null)

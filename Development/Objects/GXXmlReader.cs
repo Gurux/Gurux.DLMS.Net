@@ -233,6 +233,10 @@ namespace Gurux.DLMS.Objects
             {
                 object ret;
                 DataType tp = (DataType)Enum.Parse(typeof(DataType), reader.GetAttribute(0));
+                if (reader.AttributeCount > 1)
+                {
+                    tp = (DataType)Enum.Parse(typeof(DataType), reader.GetAttribute(1));
+                }
                 if (tp == DataType.Array || tp == DataType.Structure)
                 {
                     reader.Read();

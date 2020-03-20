@@ -196,7 +196,7 @@ namespace Gurux.DLMS.Objects
         {
             if (data is List<object>)
             {
-                foreach(object tmp in (List<object>)data)
+                foreach (object tmp in (List<object>)data)
                 {
                     if (tmp is byte[])
                     {
@@ -230,7 +230,7 @@ namespace Gurux.DLMS.Objects
 
         public void WriteElementObject(string name, object value)
         {
-            WriteElementObject(name, value, true);
+            WriteElementObject(name, value, skipDefaults);
         }
 
         public void WriteElementObject(string name, object value, DataType type, DataType uiType)
@@ -254,7 +254,27 @@ namespace Gurux.DLMS.Objects
                     value = Convert.ChangeType(value, newType);
                 }
             }
-            WriteElementObject(name, value, true);
+            if (uiType == DataType.None || uiType == DataType.String)
+            {
+                if (value is float)
+                {
+                    uiType = DataType.Float32;
+                }
+                else if (value is double)
+                {
+                    uiType = DataType.Float64;
+                }
+            }
+            WriteElementObject(name, value, skipDefaults, type, uiType);
+        }
+
+        public void WriteElementObject(string name, object value, bool skipDefaultValue)
+        {
+            if (value != null || !skipDefaultValue)
+            {
+                DataType dt = GXDLMSConverter.GetDLMSDataType(value);
+                WriteElementObject(name, value, skipDefaultValue, dt, DataType.None);
+            }
         }
 
         /// <summary>
@@ -263,7 +283,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="name">Object name.</param>
         /// <param name="value">Object value.</param>
         /// <param name="skipDefaultValue">Is default value serialized.</param>
-        public void WriteElementObject(string name, object value, bool skipDefaultValue)
+        public void WriteElementObject(string name, object value, bool skipDefaultValue, DataType dt, DataType uiType)
         {
             if (value != null)
             {
@@ -272,9 +292,12 @@ namespace Gurux.DLMS.Objects
                     return;
                 }
 
-                DataType dt = GXDLMSConverter.GetDLMSDataType(value);
                 writer.WriteStartElement(name);
                 writer.WriteAttributeString("Type", ((int)dt).ToString());
+                if (uiType != DataType.String && uiType != DataType.None)
+                {
+                    writer.WriteAttributeString("UIType", ((int)uiType).ToString());
+                }
                 if (dt == DataType.Array || dt == DataType.Structure)
                 {
                     WriteArray(value);
