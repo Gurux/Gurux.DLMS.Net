@@ -334,7 +334,7 @@ namespace Gurux.DLMS.Objects
         {
             Unit = (Unit)reader.ReadElementContentAsInt("Unit", 0);
             Scaler = reader.ReadElementContentAsDouble("Scaler", 1);
-            Value = reader.ReadElementContentAsObject("Value", null);
+            Value = reader.ReadElementContentAsObject("Value", null, this, 2);
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)

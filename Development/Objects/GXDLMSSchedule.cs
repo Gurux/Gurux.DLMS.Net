@@ -239,12 +239,12 @@ namespace Gurux.DLMS.Objects
                     it.Enable = reader.ReadElementContentAsInt("Enable") != 0;
                     it.LogicalName = reader.ReadElementContentAsString("LogicalName");
                     it.ScriptSelector = (byte)reader.ReadElementContentAsInt("ScriptSelector");
-                    it.SwitchTime = (GXDateTime)reader.ReadElementContentAsObject("SwitchTime", new GXDateTime());
+                    it.SwitchTime = (GXDateTime)reader.ReadElementContentAsObject("SwitchTime", new GXDateTime(), null, 0);
                     it.ValidityWindow = (byte)reader.ReadElementContentAsInt("ValidityWindow");
                     it.ExecWeekdays = reader.ReadElementContentAsString("ExecWeekdays");
                     it.ExecSpecDays = reader.ReadElementContentAsString("ExecSpecDays");
-                    it.BeginDate = (GXDateTime)reader.ReadElementContentAsObject("BeginDate", new GXDateTime());
-                    it.EndDate = (GXDateTime)reader.ReadElementContentAsObject("EndDate", new GXDateTime());
+                    it.BeginDate = (GXDateTime)reader.ReadElementContentAsObject("BeginDate", new GXDateTime(), null, 0);
+                    it.EndDate = (GXDateTime)reader.ReadElementContentAsObject("EndDate", new GXDateTime(), null, 0);
                     Entries.Add(it);
                 }
                 reader.ReadEndElement("Entries");

@@ -221,23 +221,36 @@ namespace Gurux.DLMS.Objects
             List<object> list = new List<object>();
             while (IsStartElement("Item", false))
             {
-                list.Add(ReadElementContentAsObject("Item", null));
+                list.Add(ReadElementContentAsObject("Item", null, null, 0));
             }
             return list.ToArray();
         }
 
-        public object ReadElementContentAsObject(string name, object defaultValue)
+        public object ReadElementContentAsObject(string name, object defaultValue, GXDLMSObject obj, byte index)
         {
             GetNext();
             if (string.Compare(name, reader.Name, true) == 0)
             {
                 object ret;
-                DataType tp = (DataType)Enum.Parse(typeof(DataType), reader.GetAttribute(0));
+                DataType uiType;
+                DataType dt = (DataType)Enum.Parse(typeof(DataType), reader.GetAttribute(0));
+                if (obj != null)
+                {
+                    obj.SetDataType(index, dt);
+                }
                 if (reader.AttributeCount > 1)
                 {
-                    tp = (DataType)Enum.Parse(typeof(DataType), reader.GetAttribute(1));
+                    uiType = (DataType)Enum.Parse(typeof(DataType), reader.GetAttribute(1));
+                    if (obj != null)
+                    {
+                        obj.SetUIDataType(index, uiType);
+                    }
                 }
-                if (tp == DataType.Array || tp == DataType.Structure)
+                else
+                {
+                    uiType = dt;
+                }
+                if (dt == DataType.Array || dt == DataType.Structure)
                 {
                     reader.Read();
                     GetNext();
@@ -248,7 +261,7 @@ namespace Gurux.DLMS.Objects
                 else
                 {
                     string str = reader.ReadElementContentAsString();
-                    ret = GXDLMSConverter.ChangeType(str, tp, CultureInfo.InvariantCulture);
+                    ret = GXDLMSConverter.ChangeType(str, uiType, CultureInfo.InvariantCulture);
                 }
                 while (!(reader.NodeType == XmlNodeType.Element || reader.NodeType == XmlNodeType.EndElement))
                 {
@@ -274,6 +287,18 @@ namespace Gurux.DLMS.Objects
                 return ret;
             }
             return defaultValue;
+        }
+
+        public GXDateTime ReadElementContentAsDateTime(string name)
+        {
+            GetNext();
+            if (string.Compare(name, reader.Name, true) == 0)
+            {
+                string ret = reader.ReadElementContentAsString();
+                GetNext();
+                return new GXDateTime(ret, CultureInfo.InvariantCulture);
+            }
+            return null;
         }
 
         public override string ToString()

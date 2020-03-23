@@ -992,7 +992,7 @@ namespace Gurux.DLMS.Objects
             {
                 while (reader.IsStartElement("Value", false))
                 {
-                    list.Add(reader.ReadElementContentAsObject("Value", null));
+                    list.Add(reader.ReadElementContentAsObject("Value", null, null, 0));
                 }
                 reader.ReadEndElement("PrefixTable");
             }

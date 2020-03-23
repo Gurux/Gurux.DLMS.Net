@@ -570,11 +570,11 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Load(GXXmlReader reader)
         {
-            CurrentAverageValue = reader.ReadElementContentAsObject("CurrentAverageValue", null);
-            LastAverageValue = reader.ReadElementContentAsObject("LastAverageValue", null);
+            CurrentAverageValue = reader.ReadElementContentAsObject("CurrentAverageValue", null, this, 2);
+            LastAverageValue = reader.ReadElementContentAsObject("LastAverageValue", null, this, 3);
             Scaler = reader.ReadElementContentAsDouble("Scaler", 1);
             Unit = (Unit)reader.ReadElementContentAsInt("Unit");
-            Status = reader.ReadElementContentAsObject("Status", null);
+            Status = reader.ReadElementContentAsObject("Status", null, this, 5);
             string str = reader.ReadElementContentAsString("CaptureTime");
             if (str == null)
             {

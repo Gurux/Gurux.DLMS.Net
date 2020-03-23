@@ -351,7 +351,7 @@ namespace Gurux.DLMS.Objects
             {
                 while (reader.IsStartElement("Value", false))
                 {
-                    object it = reader.ReadElementContentAsObject("Value", null);
+                    object it = reader.ReadElementContentAsObject("Value", null, null, 0);
                     thresholds.Add(it);
                 }
                 reader.ReadEndElement("Thresholds");

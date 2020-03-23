@@ -447,7 +447,7 @@ namespace Gurux.DLMS.Objects
                     ChangedParameter.Target.LogicalName = ln;
                 }
                 ChangedParameter.AttributeIndex = (byte)reader.ReadElementContentAsInt("Index");
-                ChangedParameter.Value = reader.ReadElementContentAsObject("Value", null);
+                ChangedParameter.Value = reader.ReadElementContentAsObject("Value", null, null, 0);
                 reader.ReadEndElement("ChangedParameter");
             }
             if (string.Compare("Time", reader.Name, true) == 0)

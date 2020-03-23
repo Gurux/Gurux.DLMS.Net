@@ -1262,7 +1262,7 @@ namespace Gurux.DLMS.Objects
                     List<object> row = new List<object>();
                     while (reader.IsStartElement("Cell", false))
                     {
-                        row.Add(reader.ReadElementContentAsObject("Cell", null));
+                        row.Add(reader.ReadElementContentAsObject("Cell", null, null, 0));
                     }
                     Buffer.Add(row.ToArray());
                 }
@@ -1334,16 +1334,16 @@ namespace Gurux.DLMS.Objects
                                 else if (lastdt != null)
                                 {
                                     lastdt = new GXDateTime(lastdt.Value.AddMinutes(add));
-                                    writer.WriteElementObject("Cell", lastdt, false);
+                                    writer.WriteElementObject("Cell", lastdt);
                                     continue;
                                 }
                                 else
                                 {
-                                    writer.WriteElementObject("Cell", DateTime.MinValue, false);
+                                    writer.WriteElementObject("Cell", DateTime.MinValue);
                                 }
                             }
                         }
-                        writer.WriteElementObject("Cell", it, false);
+                        writer.WriteElementObject("Cell", it);
                     }
                     writer.WriteEndElement();
                 }

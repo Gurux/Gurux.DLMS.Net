@@ -331,18 +331,26 @@ namespace Gurux.DLMS.Objects
         {
             Unit = (Unit)reader.ReadElementContentAsInt("Unit", 0);
             Scaler = reader.ReadElementContentAsDouble("Scaler", 1);
-            Value = reader.ReadElementContentAsObject("Value", null);
-            Status = reader.ReadElementContentAsObject("Status", null);
-            CaptureTime = (GXDateTime)reader.ReadElementContentAsObject("CaptureTime", null);
+            Value = reader.ReadElementContentAsObject("Value", null, this, 2);
+            Status = reader.ReadElementContentAsObject("Status", null, this, 4);
+            GXDateTime dt = reader.ReadElementContentAsDateTime("CaptureTime");
+            if (dt == null)
+            {
+                CaptureTime = DateTime.MinValue;
+            }
+            else
+            {
+                CaptureTime = dt.Value.ToLocalTime().LocalDateTime;
+            }
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
             writer.WriteElementString("Unit", (int)Unit);
             writer.WriteElementString("Scaler", Scaler, 1);
-            writer.WriteElementObject("Value", Value);
+            writer.WriteElementObject("Value", Value, GetDataType(2), GetUIDataType(2));
             writer.WriteElementObject("Status", Status);
-            writer.WriteElementObject("CaptureTime", CaptureTime);
+            writer.WriteElementString("CaptureTime", CaptureTime);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

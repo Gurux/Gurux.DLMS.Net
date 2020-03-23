@@ -377,7 +377,7 @@ namespace Gurux.DLMS.Objects
                     GXDLMSPppSetupLcpOption it = new GXDLMSPppSetupLcpOption();
                     it.Type = (PppSetupLcpOptionType)reader.ReadElementContentAsInt("Type");
                     it.Length = (byte)reader.ReadElementContentAsInt("Length");
-                    it.Data = reader.ReadElementContentAsObject("Data", null);
+                    it.Data = reader.ReadElementContentAsObject("Data", null, null, 0);
                 }
                 reader.ReadEndElement("LCPOptions");
             }
@@ -391,7 +391,7 @@ namespace Gurux.DLMS.Objects
                     GXDLMSPppSetupIPCPOption it = new GXDLMSPppSetupIPCPOption();
                     it.Type = (PppSetupIPCPOptionType)reader.ReadElementContentAsInt("Type");
                     it.Length = (byte)reader.ReadElementContentAsInt("Length");
-                    it.Data = reader.ReadElementContentAsObject("Data", null);
+                    it.Data = reader.ReadElementContentAsObject("Data", null, null, 0);
                 }
                 reader.ReadEndElement("IPCPOptions");
             }

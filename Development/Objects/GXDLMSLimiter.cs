@@ -587,15 +587,15 @@ namespace Gurux.DLMS.Objects
                 }
                 reader.ReadEndElement("MonitoredValue");
             }
-            ThresholdActive = reader.ReadElementContentAsObject("ThresholdActive", null);
-            ThresholdNormal = reader.ReadElementContentAsObject("ThresholdNormal", null);
-            ThresholdEmergency = reader.ReadElementContentAsObject("ThresholdEmergency", null);
+            ThresholdActive = reader.ReadElementContentAsObject("ThresholdActive", null, this, 3);
+            ThresholdNormal = reader.ReadElementContentAsObject("ThresholdNormal", null, this, 4);
+            ThresholdEmergency = reader.ReadElementContentAsObject("ThresholdEmergency", null, this, 5);
             MinOverThresholdDuration = (UInt16)reader.ReadElementContentAsInt("MinOverThresholdDuration");
             MinUnderThresholdDuration = (UInt16)reader.ReadElementContentAsInt("MinUnderThresholdDuration");
             if (reader.IsStartElement("EmergencyProfile", true))
             {
                 EmergencyProfile.ID = (UInt16)reader.ReadElementContentAsInt("ID");
-                EmergencyProfile.ActivationTime = (GXDateTime)reader.ReadElementContentAsObject("Time", new GXDateTime());
+                EmergencyProfile.ActivationTime = reader.ReadElementContentAsDateTime("Time");
                 EmergencyProfile.Duration = (UInt16)reader.ReadElementContentAsInt("Duration");
                 reader.ReadEndElement("EmergencyProfile");
             }
@@ -643,7 +643,7 @@ namespace Gurux.DLMS.Objects
             {
                 writer.WriteStartElement("EmergencyProfile");
                 writer.WriteElementString("ID", EmergencyProfile.ID);
-                writer.WriteElementObject("Time", EmergencyProfile.ActivationTime);
+                writer.WriteElementString("Time", EmergencyProfile.ActivationTime);
                 writer.WriteElementString("Duration", EmergencyProfile.Duration);
                 writer.WriteEndElement();
             }
