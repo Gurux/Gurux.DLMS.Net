@@ -1088,7 +1088,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Reserved for internal use.
         /// </summary>
-        GXDLMSObjectCollection ParseSNObjects(GXByteBuffer buff, bool onlyKnownObjects)
+        GXDLMSObjectCollection ParseSNObjects(GXByteBuffer buff, bool onlyKnownObjects, bool ignoreInactiveObjects)
         {
             //Get array tag.
             byte size = buff.GetUInt8();
@@ -1131,7 +1131,18 @@ namespace Gurux.DLMS
                         GXDLMSObject comp = CreateDLMSObject(ot, objects[2], baseName, objects[3], null);
                         if (comp != null)
                         {
-                            items.Add(comp);
+                            if (!ignoreInactiveObjects || comp.LogicalName != "0.0.127.0.0.0")
+                            {
+                                items.Add(comp);
+                            }
+                            else
+                            {
+                                System.Diagnostics.Debug.WriteLine(string.Format("Inactive object : {0} {1}", ot, baseName));
+                            }
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine(string.Format("Unknown object : {0} {1}", ot, baseName));
                         }
                     }
                 }
@@ -1249,10 +1260,26 @@ namespace Gurux.DLMS
         /// Parses the COSEM objects of the received data.
         /// </summary>
         /// <param name="data">Received data, from the device, as byte array. </param>
+        /// <param name="onlyKnownObjects">Parse only DLMS standard objects. Manufacture specific objects are ignored.</param>
         /// <returns>Collection of COSEM objects.</returns>
         public GXDLMSObjectCollection ParseObjects(
         GXByteBuffer data,
         bool onlyKnownObjects)
+        {
+            return ParseObjects(data, onlyKnownObjects, true);
+        }
+
+        /// <summary>
+        /// Parses the COSEM objects of the received data.
+        /// </summary>
+        /// <param name="data">Received data, from the device, as byte array. </param>
+        /// <param name="onlyKnownObjects">Parse only DLMS standard objects. Manufacture specific objects are ignored.</param>
+        /// <param name="ignoreInactiveObjects">Inactive objects are ignored.</param>
+        /// <returns>Collection of COSEM objects.</returns>
+        public GXDLMSObjectCollection ParseObjects(
+        GXByteBuffer data,
+        bool onlyKnownObjects,
+        bool ignoreInactiveObjects)
         {
             if (data == null || data.Size == 0)
             {
@@ -1261,11 +1288,11 @@ namespace Gurux.DLMS
             GXDLMSObjectCollection objects = null;
             if (UseLogicalNameReferencing)
             {
-                objects = ParseLNObjects(data, onlyKnownObjects);
+                objects = ParseLNObjects(data, onlyKnownObjects, ignoreInactiveObjects);
             }
             else
             {
-                objects = ParseSNObjects(data, onlyKnownObjects);
+                objects = ParseSNObjects(data, onlyKnownObjects, ignoreInactiveObjects);
             }
             if (CustomObisCodes != null)
             {
@@ -1340,7 +1367,8 @@ namespace Gurux.DLMS
         /// </summary>
         GXDLMSObjectCollection ParseLNObjects(
         GXByteBuffer buff,
-        bool onlyKnownObjects)
+        bool onlyKnownObjects,
+        bool ignoreInactiveObjects)
         {
             byte size = buff.GetUInt8();
             //Check that data is in the array.
@@ -1376,7 +1404,17 @@ namespace Gurux.DLMS
                 if (!onlyKnownObjects || AvailableObjectTypes.ContainsKey((ObjectType)ot))
                 {
                     GXDLMSObject comp = CreateDLMSObject(ot, objects[1], 0, objects[2], objects[3]);
-                    items.Add(comp);
+                    if (comp != null)
+                    {
+                        if ((!ignoreInactiveObjects || comp.LogicalName != "0.0.127.0.0.0"))
+                        {
+                            items.Add(comp);
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine(string.Format("Inactive object : {0} {1}", ot, comp.LogicalName));
+                        }
+                    }
                 }
                 else
                 {
@@ -1576,6 +1614,14 @@ namespace Gurux.DLMS
             {
                 return BitConverter.ToString(value.Data, value.Position, value.Size - value.Position).Replace('-', ' ');
             }
+            if (type == DataType.OctetString)
+            {
+                return value;
+            }
+            if (type == DataType.String && !value.IsAsciiString())
+            {
+                return value;
+            }
             if (value.Size == 0
                     && (type == DataType.String || type == DataType.OctetString))
             {
@@ -1602,29 +1648,6 @@ namespace Gurux.DLMS
             if (!info.Complete)
             {
                 throw new OutOfMemoryException();
-            }
-            if (type == DataType.OctetString && ret is byte[])
-            {
-                String str;
-                byte[] arr = (byte[])ret;
-                if (arr.Length == 0)
-                {
-                    str = "";
-                }
-                else
-                {
-                    StringBuilder bcd = new StringBuilder(arr.Length * 4);
-                    foreach (int it in arr)
-                    {
-                        if (bcd.Length != 0)
-                        {
-                            bcd.Append(".");
-                        }
-                        bcd.Append(it.ToString());
-                    }
-                    str = bcd.ToString();
-                }
-                return str;
             }
             return ret;
         }
@@ -2324,13 +2347,23 @@ namespace Gurux.DLMS
         {
             pg.Buffer.Clear();
             Settings.ResetBlockIndex();
+            GXDLMSObject sort = pg.SortObject;
+            if (sort == null && pg.CaptureObjects.Count != 0)
+            {
+                sort = pg.CaptureObjects[0].Key;
+            }
+            // If sort object is not found or it is not clock object read all.
+            if (sort == null || !(sort.ObjectType == ObjectType.Clock || (sort.ObjectType == ObjectType.Data && sort.LogicalName == "0.0.1.1.0.255")))
+            {
+                return Read(pg, 2);
+            }
             string ln = "0.0.1.0.0.255";
             ObjectType type = ObjectType.Clock;
             int index = 2;
             bool unixTime = false;
             //If Unix time is used.
-            if (pg.CaptureObjects.Count != 0 && pg.CaptureObjects[0].Key is GXDLMSData &&
-                pg.CaptureObjects[0].Key.LogicalName == "0.0.1.1.0.255")
+            if (sort is GXDLMSData &&
+                sort.LogicalName == "0.0.1.1.0.255")
             {
                 unixTime = true;
                 ln = "0.0.1.1.0.255";

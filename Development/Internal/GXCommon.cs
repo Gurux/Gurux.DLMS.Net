@@ -2888,6 +2888,10 @@ namespace Gurux.DLMS.Internal
             {
                 return DataType.BitString;
             }
+            else if (type == typeof(GXByteBuffer))
+            {
+                return DataType.OctetString;
+            }
             else
             {
                 throw new Exception("Failed to convert data type to DLMS data type. Unknown data type.");

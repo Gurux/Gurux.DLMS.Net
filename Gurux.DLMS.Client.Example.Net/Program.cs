@@ -120,6 +120,17 @@ namespace Gurux.DLMS.Client.Example
                         object val = reader.Read(settings.client.Objects.FindByLN(ObjectType.None, it.Key), it.Value);
                         reader.ShowValue(val, it.Value);
                     }
+                    if (settings.outputFile != null)
+                    {
+                        try
+                        {
+                            settings.client.Objects.Save(settings.outputFile, new GXXmlWriterSettings() { IgnoreDefaultValues = false });
+                        }
+                        catch (Exception)
+                        {
+                            //It's OK if this fails.
+                        }
+                    }
                 }
                 else
                 {

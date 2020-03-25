@@ -714,13 +714,24 @@ namespace Gurux.DLMS
             {
                 foreach (byte it in value)
                 {
-                    if ((it < 32 || it > 127) && it != '\r' && it != '\n' && it != 0)
+                    if ((it < 32 || it > 127) && it != '\r' && it != '\n' && it != '\t'  && it != 0)
                     {
                         return false;
                     }
                 }
             }
             return true;
+        }
+
+        /// <summary>
+        /// Check is byte buffer ASCII string.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        [DebuggerStepThrough]
+        public bool IsAsciiString()
+        {
+            return IsAsciiString(Data);
         }
 
         /// <summary>

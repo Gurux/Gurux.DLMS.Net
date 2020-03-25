@@ -448,6 +448,7 @@ namespace Gurux.DLMS.Reader
         /// </summary>
         public void InitializeConnection()
         {
+            Console.WriteLine("Standard: " + Client.Standard);
             if (Client.Ciphering.Security != Security.None)
             {
                 Console.WriteLine("Security: " + Client.Ciphering.Security);
@@ -593,24 +594,9 @@ namespace Gurux.DLMS.Reader
             if (!Client.UseLogicalNameReferencing)
             {
                 GXDLMSAssociationShortName sn = (GXDLMSAssociationShortName)Client.Objects.FindBySN(0xFA00);
-                if (sn.Version > 0)
+                if (sn != null && sn.Version > 0)
                 {
                     Read(sn, 3);
-                }
-                else
-                {
-                    //LGZ is using "0.0.127.0.0.0" to mark inactive object that might cause problems.
-                    //Skip them.
-                    int cnt = Client.Objects.Count;
-                    for (int pos = 0; pos < cnt; ++pos)
-                    {
-                        if (Client.Objects[pos].LogicalName == "0.0.127.0.0.0")
-                        {
-                            Client.Objects.RemoveAt(pos);
-                            --pos;
-                            --cnt;
-                        }
-                    }
                 }
             }
             if (outputFile != null)
@@ -642,7 +628,7 @@ namespace Gurux.DLMS.Reader
                 List<KeyValuePair<GXDLMSObject, int>> list = new List<KeyValuePair<GXDLMSObject, int>>();
                 foreach (GXDLMSObject it in objs)
                 {
-                    if (it is GXDLMSRegister)
+                    if (it is GXDLMSRegister || it is GXDLMSExtendedRegister)
                     {
                         list.Add(new KeyValuePair<GXDLMSObject, int>(it, 3));
                     }
@@ -853,6 +839,7 @@ namespace Gurux.DLMS.Reader
                     try
                     {
                         //Read last day from Profile Generic.
+
                         object[] rows = ReadRowsByRange(it as GXDLMSProfileGeneric, DateTime.Now.Date, DateTime.MaxValue);
                         //If trace is info.
                         if (Trace > TraceLevel.Warning)
@@ -1162,7 +1149,7 @@ namespace Gurux.DLMS.Reader
                 {
                     values.AddRange((IEnumerable<object>)reply.Value);
                 }
-                else
+                else if (reply.Value != null)
                 {
                     values.Add(reply.Value);
                 }

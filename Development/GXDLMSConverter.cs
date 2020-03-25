@@ -238,7 +238,8 @@ namespace Gurux.DLMS
                     {
                         Interfaces = ((int)it.ObjectType).ToString(),
                         OBIS = it.LogicalName.Split(new char[] { '.' }),
-                        Description = it.Description
+                        Description = it.Description,
+                        UIDataType = it.UIDataType
                     };
                     codes.Add(tmp);
                 }
@@ -264,7 +265,8 @@ namespace Gurux.DLMS
 
         private static void UpdateOBISCodeInfo(GXStandardObisCodeCollection codes, GXDLMSObject it, Standard standard)
         {
-            GXStandardObisCode code = codes.Find(it.LogicalName, it.ObjectType, standard)[0];
+            GXStandardObisCode[] list = codes.Find(it.LogicalName, it.ObjectType, standard);
+            GXStandardObisCode code = list[0];
             if (string.IsNullOrEmpty(it.Description))
             {
                 it.Description = code.Description;
@@ -273,70 +275,78 @@ namespace Gurux.DLMS
                     it.Description = it.Description.Replace("U(", "V(");
                 }
             }
+            //Update data type from DLMS standard.
+            if (standard != Standard.DLMS)
+            {
+                GXStandardObisCode d = list[list.Length - 1];
+                code.DataType = d.DataType;
+            }
             //If string is used
             string datatype = code.DataType;
             if (datatype == null)
             {
                 datatype = "";
             }
-            if (datatype.Contains("10"))
+            if (string.IsNullOrEmpty(code.UIDataType))
             {
-                code.UIDataType = "10";
-            }
-            //If date time is used.
-            else if (datatype.Contains("25") || datatype.Contains("26"))
-            {
-                code.UIDataType = code.DataType = "25";
-            }
-            //Time stamps of the billing periods objects (first scheme if there are two)
-            else if (datatype.Contains("9"))
-            {
-                if ((GXStandardObisCodeCollection.EqualsMask("0.0-64.96.7.10-14.255", it.LogicalName) ||
-                        //Time stamps of the billing periods objects (second scheme)
-                        GXStandardObisCodeCollection.EqualsMask("0.0-64.0.1.5.0-99,255", it.LogicalName) ||
-                        //Time of power failure
-                        GXStandardObisCodeCollection.EqualsMask("0.0-64.0.1.2.0-99,255", it.LogicalName) ||
-                        //Time stamps of the billing periods objects (first scheme if there are two)
-                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.1.2.0-99,255", it.LogicalName) ||
-                        //Time stamps of the billing periods objects (second scheme)
-                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.1.5.0-99,255", it.LogicalName) ||
-                        //Time expired since last end of billing period
-                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.0.255", it.LogicalName) ||
-                        //Time of last reset
-                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.6.255", it.LogicalName) ||
-                        //Date of last reset
-                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.7.255", it.LogicalName) ||
-                        //Time expired since last end of billing period (Second billing period scheme)
-                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.13.255", it.LogicalName) ||
-                        //Time of last reset (Second billing period scheme)
-                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.14.255", it.LogicalName) ||
-                        //Date of last reset (Second billing period scheme)
-                        GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.15.255", it.LogicalName)))
-                {
-                    code.UIDataType = "25";
-                }
-                //Local time
-                else if (GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.1.255", it.LogicalName))
-                {
-                    code.UIDataType = "27";
-                }
-                //Local date
-                else if (GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.2.255", it.LogicalName))
-                {
-                    code.UIDataType = "26";
-                }
-                //Active firmware identifier
-                else if (GXStandardObisCodeCollection.EqualsMask("1.0.0.2.0.255", it.LogicalName))
+                if (datatype.Contains("10"))
                 {
                     code.UIDataType = "10";
                 }
+                //If date time is used.
+                else if (datatype.Contains("25") || datatype.Contains("26"))
+                {
+                    code.UIDataType = "25";
+                }
+                //Time stamps of the billing periods objects (first scheme if there are two)
+                else if (datatype.Contains("9"))
+                {
+                    if ((GXStandardObisCodeCollection.EqualsMask("0.0-64.96.7.10-14.255", it.LogicalName) ||
+                            //Time stamps of the billing periods objects (second scheme)
+                            GXStandardObisCodeCollection.EqualsMask("0.0-64.0.1.5.0-99,255", it.LogicalName) ||
+                            //Time of power failure
+                            GXStandardObisCodeCollection.EqualsMask("0.0-64.0.1.2.0-99,255", it.LogicalName) ||
+                            //Time stamps of the billing periods objects (first scheme if there are two)
+                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.1.2.0-99,255", it.LogicalName) ||
+                            //Time stamps of the billing periods objects (second scheme)
+                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.1.5.0-99,255", it.LogicalName) ||
+                            //Time expired since last end of billing period
+                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.0.255", it.LogicalName) ||
+                            //Time of last reset
+                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.6.255", it.LogicalName) ||
+                            //Date of last reset
+                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.7.255", it.LogicalName) ||
+                            //Time expired since last end of billing period (Second billing period scheme)
+                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.13.255", it.LogicalName) ||
+                            //Time of last reset (Second billing period scheme)
+                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.14.255", it.LogicalName) ||
+                            //Date of last reset (Second billing period scheme)
+                            GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.15.255", it.LogicalName)))
+                    {
+                        code.UIDataType = "25";
+                    }
+                    //Local time
+                    else if (GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.1.255", it.LogicalName))
+                    {
+                        code.UIDataType = "27";
+                    }
+                    //Local date
+                    else if (GXStandardObisCodeCollection.EqualsMask("1.0-64.0.9.2.255", it.LogicalName))
+                    {
+                        code.UIDataType = "26";
+                    }
+                    //Active firmware identifier
+                    else if (GXStandardObisCodeCollection.EqualsMask("1.0.0.2.0.255", it.LogicalName))
+                    {
+                        code.UIDataType = "10";
+                    }
+                }
+                //Unix time
+                else if (it.ObjectType == ObjectType.Data && GXStandardObisCodeCollection.EqualsMask("0.0.1.1.0.255", it.LogicalName))
+                {
+                    code.UIDataType = "25";
+                }
             }
-            //Unix time
-            else if (it.ObjectType == ObjectType.Data && GXStandardObisCodeCollection.EqualsMask("0.0.1.1.0.255", it.LogicalName))
-            {
-                code.UIDataType = "25";
-            }
-
             if (code.DataType != "*" && !string.IsNullOrEmpty(code.DataType) && !code.DataType.Contains(","))
             {
                 DataType type = (DataType)int.Parse(code.DataType);
@@ -751,6 +761,10 @@ namespace Gurux.DLMS
                     int version = int.Parse(items[2]);
                     string desc = items[3];
                     GXObisCode code = new GXObisCode(ln, ot, desc);
+                    if (items.Length > 4)
+                    {
+                        code.UIDataType = items[4];
+                    }
                     code.Version = version;
                     codes.Add(code);
                 }

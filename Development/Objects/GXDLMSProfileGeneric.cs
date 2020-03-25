@@ -408,9 +408,6 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(4);
             }
-            //Buffer
-            attributes.Add(2);
-
             //SortMethod
             if (all || !base.IsRead(5))
             {
@@ -421,6 +418,8 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(6);
             }
+            //Buffer
+            attributes.Add(2);
             //EntriesInUse
             attributes.Add(7);
             //ProfileEntries
@@ -959,11 +958,7 @@ namespace Gurux.DLMS.Objects
                             {
                                 type = DataType.None;
                             }
-                            if (row[pos] is GXEnum)
-                            {
-                                row[pos] = Convert.ToByte(row[pos]);
-                            }
-                            else if (row[pos] is byte[])
+                            if (row[pos] is byte[])
                             {
                                 if (type != DataType.None && row[pos] is byte[])
                                 {
@@ -1313,6 +1308,22 @@ namespace Gurux.DLMS.Objects
                 if (add == 0)
                 {
                     add = 60;
+                }
+                //Get data types.
+                List<DataType> list = new List<DataType>();
+                if (CaptureObjects != null && CaptureObjects.Count != 0)
+                {
+                    foreach(var it in CaptureObjects)
+                    {
+                        if (it.Value.AttributeIndex == 0)
+                        {
+                            list.Add(it.Key.GetDataType(it.Value.AttributeIndex));
+                        }
+                        else
+                        {
+                            list.Add(DataType.None);
+                        }
+                    }
                 }
                 foreach (object[] row in Buffer)
                 {

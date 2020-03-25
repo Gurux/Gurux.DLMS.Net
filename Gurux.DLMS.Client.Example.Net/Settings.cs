@@ -62,7 +62,7 @@ namespace Gurux.DLMS.Client.Example
         public static int GetParameters(string[] args, Settings settings)
         {
             string[] tmp;
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:iIt:a:wP:g:S:C:n:v:o:T:A:B:D:");
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:iIt:a:wP:g:S:C:n:v:o:T:A:B:D:d:");
             GXNet net = null;
             foreach (GXCmdParameter it in parameters)
             {
@@ -227,6 +227,16 @@ namespace Gurux.DLMS.Client.Example
                     case 'o':
                         settings.outputFile = it.Value;
                         break;
+                    case 'd':
+                        try
+                        {
+                            settings.client.Standard = (Standard)Enum.Parse(typeof(Standard), it.Value);
+                        }
+                        catch (Exception)
+                        {
+                            throw new ArgumentException("Invalid DLMS standard option '" + it.Value + "'. (DLMS, India, Italy, SaudiArabia, IDIS)");
+                        }
+                        break;
                     case 'c':
                         settings.client.ClientAddress = int.Parse(it.Value);
                         break;
@@ -269,6 +279,8 @@ namespace Gurux.DLMS.Client.Example
                                 throw new ArgumentException("Missing mandatory block cipher key option.");
                             case 'D':
                                 throw new ArgumentException("Missing mandatory dedicated key option.");
+                            case 'd':
+                                throw new ArgumentException("Missing mandatory DLMS standard option.");
                             default:
                                 ShowHelp();
                                 return 1;
@@ -311,6 +323,7 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine(" -A \t Authentication key that is used with chiphering. Ex -D D0D1D2D3D4D5D6D7D8D9DADBDCDDDEDF");
             Console.WriteLine(" -B \t Block cipher key that is used with chiphering. Ex -D 000102030405060708090A0B0C0D0E0F");
             Console.WriteLine(" -D \t Dedicated key that is used with chiphering. Ex -D 00112233445566778899AABBCCDDEEFF");
+            Console.WriteLine(" -d \t Used DLMS standard. Ex -d India (DLMS, India, Italy, SaudiArabia, IDIS)");
             Console.WriteLine("Example:");
             Console.WriteLine("Read LG device using TCP/IP connection.");
             Console.WriteLine("GuruxDlmsSample -r SN -c 16 -s 1 -h [Meter IP Address] -p [Meter Port No]");

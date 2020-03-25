@@ -1865,7 +1865,6 @@ namespace Gurux.DLMS
                     data.PacketLength = reply.Position + 1;
                 }
             }
-
             if (frame != 0x13 && (frame & (byte)HdlcFrameType.Uframe) == (byte)HdlcFrameType.Uframe)
             {
                 //Get Eop if there is no data.
@@ -2333,7 +2332,7 @@ namespace Gurux.DLMS
         {
             int pos, cnt = reply.TotalCount;
             // If we are reading value first time or block is handed.
-            bool first = reply.TotalCount == 0 || reply.CommandType == (byte)SingleReadResponse.DataBlockResult;
+            bool first = cnt == 0 || reply.CommandType == (byte)SingleReadResponse.DataBlockResult;
             if (first)
             {
                 cnt = GXCommon.GetObjectCount(reply.Data);
@@ -2343,6 +2342,12 @@ namespace Gurux.DLMS
             List<Object> values = null;
             if (cnt != 1)
             {
+                //Parse data after all data is received when readlist is used.
+                if (reply.IsMoreData)
+                {
+                    GetDataFromBlock(reply.Data, 0);
+                    return false;
+                }
                 values = new List<object>();
                 if (reply.Value is List<object>)
                 {
@@ -2357,17 +2362,6 @@ namespace Gurux.DLMS
             bool standardXml = reply.Xml != null && reply.Xml.OutputType == TranslatorOutputType.StandardXml;
             for (pos = 0; pos != cnt; ++pos)
             {
-                if (reply.Data.Available == 0)
-                {
-                    reply.TotalCount = cnt;
-                    if (cnt != 1)
-                    {
-                        GetDataFromBlock(reply.Data, 0);
-                        reply.Value = values.ToArray();
-                        reply.ReadPosition = reply.Data.Position;
-                    }
-                    return false;
-                }
                 // Get status code. Status code is begin of each PDU.
                 if (first)
                 {
@@ -2406,21 +2400,6 @@ namespace Gurux.DLMS
                         {
                             reply.ReadPosition = reply.Data.Position;
                             GetValueFromData(settings, reply);
-                            if (reply.Data.Position == reply.ReadPosition)
-                            {
-                                //If multiple values remove command.
-                                if (cnt != 1 && reply.TotalCount == 0)
-                                {
-                                    ++index;
-                                }
-                                reply.TotalCount = 0;
-                                reply.Data.Position = index;
-                                GetDataFromBlock(reply.Data, 0);
-                                reply.Value = null;
-                                //Ask that data is parsed after last block is received.
-                                reply.CommandType = (byte)SingleReadResponse.DataBlockResult;
-                                return false;
-                            }
                             reply.Data.Position = reply.ReadPosition;
                             values.Add(reply.Value);
                             reply.Value = null;
@@ -3500,6 +3479,13 @@ namespace Gurux.DLMS
                             break;
                         default:
                             break;
+                    }
+                    if (cmd == Command.ReadResponse && data.TotalCount > 1)
+                    {
+                        if (!HandleReadResponse(settings, data, 0))
+                        {
+                            return;
+                        }
                     }
                 }
             }

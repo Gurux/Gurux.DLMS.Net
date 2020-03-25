@@ -123,7 +123,14 @@ namespace Gurux.DLMS.ManufacturerSettings
             set;
         }
 
-
+        /// <summary>
+        /// UI data type.
+        /// </summary>
+        public string UIDataType
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Interface type. Opsolite. Use ObjectType instead.

@@ -454,6 +454,7 @@ namespace Gurux.DLMS
                 if (EqualsInterface(it, IC) && EqualsObisCode(it.OBIS, obisCode))
                 {
                     tmp = new GXStandardObisCode(it.OBIS, it.Description, it.Interfaces, it.DataType);
+                    tmp.UIDataType = it.UIDataType;
                     list.Add(tmp);
                     string[] tmp2 = it.Description.Split(new char[] { ';' });
                     if (tmp2.Length > 1)
