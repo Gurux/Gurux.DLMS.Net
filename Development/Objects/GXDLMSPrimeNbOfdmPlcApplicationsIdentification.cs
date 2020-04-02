@@ -34,8 +34,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Xml.Serialization;
-using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Internal;
 
@@ -43,27 +43,25 @@ namespace Gurux.DLMS.Objects
 {
     /// <summary>
     /// Online help:
-    /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSMBusMasterPortSetup
+    /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSPrimeNbOfdmPlcApplicationsIdentification
     /// </summary>
-    public class GXDLMSMBusMasterPortSetup : GXDLMSObject, IGXDLMSBase
+    public class GXDLMSPrimeNbOfdmPlcApplicationsIdentification : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXDLMSMBusMasterPortSetup()
-        : base(ObjectType.MBusMasterPortSetup)
+        public GXDLMSPrimeNbOfdmPlcApplicationsIdentification()
+        : this("0.0.28.7.0.255", 0)
         {
-            CommSpeed = BaudRate.Baudrate2400;
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
-        public GXDLMSMBusMasterPortSetup(string ln)
-        : base(ObjectType.MBusMasterPortSetup, ln, 0)
+        public GXDLMSPrimeNbOfdmPlcApplicationsIdentification(string ln)
+        : this(ln, 0)
         {
-            CommSpeed = BaudRate.Baudrate2400;
         }
 
         /// <summary>
@@ -71,17 +69,36 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
-        public GXDLMSMBusMasterPortSetup(string ln, ushort sn)
-        : base(ObjectType.MBusMasterPortSetup, ln, sn)
+        public GXDLMSPrimeNbOfdmPlcApplicationsIdentification(string ln, ushort sn)
+        : base(ObjectType.PrimeNbOfdmPlcApplicationsIdentification, ln, sn)
         {
-            CommSpeed = BaudRate.Baudrate2400;
         }
 
         /// <summary>
-        /// The communication speed supported by the port.
+        ///Textual description of the firmware version running on the device.
         /// </summary>
         [XmlIgnore()]
-        public BaudRate CommSpeed
+        public string FirmwareVersion
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Unique vendor identifier assigned by PRIME Alliance.
+        /// </summary>
+        [XmlIgnore()]
+        public UInt16 VendorId
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Vendor assigned unique identifier for specific product.
+        /// </summary>
+        [XmlIgnore()]
+        public UInt16 ProductId
         {
             get;
             set;
@@ -90,7 +107,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, CommSpeed };
+            return new object[] { LogicalName, FirmwareVersion, VendorId, ProductId };
         }
 
         #region IGXDLMSBase Members
@@ -109,10 +126,20 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(1);
             }
-            //CommSpeed
+            //FirmwareVersion
             if (all || CanRead(2))
             {
                 attributes.Add(2);
+            }
+            //VendorId
+            if (all || CanRead(3))
+            {
+                attributes.Add(3);
+            }
+            //ProductId
+            if (all || CanRead(4))
+            {
+                attributes.Add(4);
             }
             return attributes.ToArray();
         }
@@ -120,12 +147,12 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Comm Speed" };
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "FirmwareVersion", "VendorId", "ProductId" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
         {
-            return 2;
+            return 4;
         }
 
         int IGXDLMSBase.GetMethodCount()
@@ -136,62 +163,80 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
         public override DataType GetDataType(int index)
         {
-            if (index == 1)
+            switch (index)
             {
-                return DataType.OctetString;
+                case 1:
+                case 2:
+                    return DataType.OctetString;
+                case 3:
+                case 4:
+                    return DataType.UInt16;
+                default:
+                    throw new ArgumentException("GetDataType failed. Invalid attribute index.");
             }
-            //CommSpeed
-            if (index == 2)
-            {
-                return DataType.Enum;
-            }
-            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            switch (e.Index)
             {
-                return GXCommon.LogicalNameToBytes(LogicalName);
+                case 1:
+                    return GXCommon.LogicalNameToBytes(LogicalName);
+                case 2:
+                    if (FirmwareVersion != null)
+                    {
+                        return ASCIIEncoding.ASCII.GetBytes(FirmwareVersion);
+                    }
+                    break;
+                case 3:
+                    return VendorId;
+                case 4:
+                    return ProductId;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
             }
-            if (e.Index == 2)
-            {
-                return CommSpeed;
-            }
-            e.Error = ErrorCode.ReadWriteDenied;
             return null;
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            switch (e.Index)
             {
-                LogicalName = GXCommon.ToLogicalName(e.Value);
-            }
-            else if (e.Index == 2)
-            {
-                CommSpeed = (BaudRate)Convert.ToInt32(e.Value);
-            }
-            else
-            {
-                e.Error = ErrorCode.ReadWriteDenied;
+                case 1:
+                    LogicalName = GXCommon.ToLogicalName(e.Value);
+                    break;
+                case 2:
+                    FirmwareVersion = ASCIIEncoding.ASCII.GetString((byte[])e.Value);
+                    break;
+                case 3:
+                    VendorId = Convert.ToUInt16(e.Value);
+                    break;
+                case 4:
+                    ProductId = Convert.ToUInt16(e.Value);
+                    break;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
             }
         }
 
         void IGXDLMSBase.Load(GXXmlReader reader)
         {
-            CommSpeed = (BaudRate)reader.ReadElementContentAsInt("CommSpeed");
+            FirmwareVersion = reader.ReadElementContentAsString("FirmwareVersion");
+            VendorId = (UInt16)reader.ReadElementContentAsInt("VendorId");
+            ProductId = (UInt16)reader.ReadElementContentAsInt("ProductId");
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("CommSpeed", ((int)CommSpeed), (int)BaudRate.Baudrate2400);
+            writer.WriteElementString("FirmwareVersion", FirmwareVersion);
+            writer.WriteElementString("VendorId", VendorId);
+            writer.WriteElementString("ProductId", ProductId);
         }
-
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {
         }
-
         #endregion
     }
 }

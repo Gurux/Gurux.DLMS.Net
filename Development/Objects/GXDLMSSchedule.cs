@@ -263,12 +263,12 @@ namespace Gurux.DLMS.Objects
                     writer.WriteElementString("Enable", it.Enable);
                     writer.WriteElementString("LogicalName", it.LogicalName);
                     writer.WriteElementString("ScriptSelector", it.ScriptSelector);
-                    writer.WriteElementObject("SwitchTime", it.SwitchTime);
+                    writer.WriteElementString("SwitchTime", it.SwitchTime);
                     writer.WriteElementString("ValidityWindow", it.ValidityWindow);
                     writer.WriteElementString("ExecWeekdays", it.ExecWeekdays);
                     writer.WriteElementString("ExecSpecDays", it.ExecSpecDays);
-                    writer.WriteElementObject("BeginDate", it.BeginDate);
-                    writer.WriteElementObject("EndDate", it.EndDate);
+                    writer.WriteElementString("BeginDate", it.BeginDate);
+                    writer.WriteElementString("EndDate", it.EndDate);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();//Entries

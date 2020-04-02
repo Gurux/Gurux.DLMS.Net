@@ -162,6 +162,13 @@ namespace Gurux.DLMS
                 availableObjectTypes.Add(ObjectType.CompactData, typeof(GXDLMSCompactData));
                 availableObjectTypes.Add(ObjectType.WirelessModeQchannel, typeof(GXDLMSWirelessModeQchannel));
                 availableObjectTypes.Add(ObjectType.UtilityTables, typeof(GXDLMSUtilityTables));
+                availableObjectTypes.Add(ObjectType.LlcSscsSetup, typeof(GXDLMSLlcSscsSetup));
+                availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcPhysicalLayerCounters, typeof(GXDLMSPrimeNbOfdmPlcPhysicalLayerCounters));
+                availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcMacSetup, typeof(GXDLMSPrimeNbOfdmPlcMacSetup));
+                availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcMacFunctionalParameters, typeof(GXDLMSPrimeNbOfdmPlcMacFunctionalParameters));
+                availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcMacCounters, typeof(GXDLMSPrimeNbOfdmPlcMacCounters));
+                availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcMacNetworkAdministrationData, typeof(GXDLMSPrimeNbOfdmPlcMacNetworkAdministrationData));
+                availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcApplicationsIdentification, typeof(GXDLMSPrimeNbOfdmPlcApplicationsIdentification));
                 //Italian standard uses this.
                 availableObjectTypes.Add(ObjectType.TariffPlan, typeof(GXDLMSTariffPlan));
             }
@@ -2348,6 +2355,11 @@ namespace Gurux.DLMS
                     GetDataFromBlock(reply.Data, 0);
                     return false;
                 }
+                if (!first)
+                {
+                    reply.Data.Position = 0;
+                    first = true;
+                }
                 values = new List<object>();
                 if (reply.Value is List<object>)
                 {
@@ -2362,7 +2374,7 @@ namespace Gurux.DLMS
             bool standardXml = reply.Xml != null && reply.Xml.OutputType == TranslatorOutputType.StandardXml;
             for (pos = 0; pos != cnt; ++pos)
             {
-                // Get status code. Status code is begin of each PDU.
+                // Get response type code.
                 if (first)
                 {
                     type = (SingleReadResponse)reply.Data.GetUInt8();
@@ -3011,13 +3023,26 @@ namespace Gurux.DLMS
             //GBT Window size.
             byte windowSize = (byte)(bc & 0x3F);
             //Block number.
-            data.BlockNumber = data.Data.GetUInt16();
+            UInt16 bn = data.Data.GetUInt16();
             //Block number acknowledged.
-            data.BlockNumberAck = data.Data.GetUInt16();
-            if (data.Xml == null && data.BlockNumberAck != settings.BlockIndex - 1)
+            UInt16 bna = data.Data.GetUInt16();
+            if (data.Xml == null)
             {
-                System.Diagnostics.Debug.Write("Invalid GBT ACK.");
+                // Remove existing data when first block is received.
+                if (bn == 1)
+                {
+                    index = 0;
+                }
+                else if (bna != settings.BlockIndex - 1)
+                {
+                    // If this block is already received.
+                    data.Data.Size = index;
+                    data.Command = Command.None;
+                    return;
+                }
             }
+            data.BlockNumber = bn;
+            data.BlockNumberAck = bna;
             settings.BlockNumberAck = data.BlockNumber;
             data.Command = Command.None;
             int len = GXCommon.GetObjectCount(data.Data);
@@ -3855,11 +3880,7 @@ namespace Gurux.DLMS
                         break;
                 }
             }
-            if (isNotify)
-            {
-                return false;
-            }
-            return true;
+            return !isNotify;
         }
 
         /// <summary>

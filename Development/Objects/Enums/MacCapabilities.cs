@@ -32,58 +32,63 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-namespace Gurux.DLMS.Objects
+using System;
+
+namespace Gurux.DLMS.Objects.Enums
 {
     /// <summary>
-    /// XML write settings.
+    /// Present functional state of the node.
     /// </summary>
-    public class GXXmlWriterSettings
+    [Flags]
+    public enum MacCapabilities : UInt16
     {
         /// <summary>
-        /// Constructor.
+        /// Switch capable.
         /// </summary>
-        public GXXmlWriterSettings()
-        {
-            Values = true;
-            IgnoreDefaultValues = true;
-            IgnoreDescription = false;
-        }
-
+        SwitchCapable = 1,
         /// <summary>
-        /// Are attribute values also serialized.
+        /// Packet aggregation.
         /// </summary>
-        public bool Values
-        {
-            get;
-            set;
-        }
-
+        PacketAggregation = 2,
         /// <summary>
-        /// Are default values serialized.
+        /// Contention free period.
         /// </summary>
-        public bool IgnoreDefaultValues
-        {
-            get;
-            set;
-        }
-
+        ContentionFreePeriod = 4,
         /// <summary>
-        /// Are serialized in old format.
+        /// Direct connection.
         /// </summary>
-        public bool Old
-        {
-            get;
-            set;
-        }
-
+        DirectConnection = 8,
         /// <summary>
-        /// Is Description serialized.
+        /// Multicast.
         /// </summary>
-        public bool IgnoreDescription
-        {
-            get;
-            set;
-        }
-
+        Multicast = 0x10,
+        /// <summary>
+        ///  PHY Robustness Management.
+        /// </summary>
+        PhyRobustnessManagement = 0x20,
+        /// <summary>
+        /// ARQ.
+        /// </summary>
+        Arq = 0x40,
+        /// <summary>
+        /// Reserved for future use.
+        /// </summary>
+        ReservedForFutureUse = 0x80,
+        /// <summary>
+        ///  Direct Connection Switching.
+        /// </summary>
+        DirectConnectionSwitching = 0x100,
+        /// <summary>
+        /// Multicast Switching Capability.
+        /// </summary>
+        MulticastSwitchingCapability = 0x200,
+        /// <summary>
+        /// PHY Robustness Management Switching Capability.
+        /// </summary>
+        PhyRobustnessManagementSwitchingCapability = 0x400,
+        /// <summary>
+        /// ARQ Buffering Switching Capability.
+        /// </summary>
+        ArqBufferingSwitchingCapability = 0x800
     }
 }

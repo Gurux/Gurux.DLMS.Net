@@ -484,7 +484,7 @@ namespace Gurux.DLMS.Objects
                 }
                 writer.WriteEndElement();
             }
-            writer.WriteElementObject("CaptureTime", CaptureTime);
+            writer.WriteElementString("CaptureTime", CaptureTime);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

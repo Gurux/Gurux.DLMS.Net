@@ -32,54 +32,91 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace Gurux.DLMS.Objects
 {
     /// <summary>
-    /// XML write settings.
+    /// MAC PHY communication parameters.
     /// </summary>
-    public class GXXmlWriterSettings
+    public class GXMacPhyCommunication
     {
         /// <summary>
-        /// Constructor.
+        /// EUI is the EUI-48 of the other device.
         /// </summary>
-        public GXXmlWriterSettings()
-        {
-            Values = true;
-            IgnoreDefaultValues = true;
-            IgnoreDescription = false;
-        }
-
-        /// <summary>
-        /// Are attribute values also serialized.
-        /// </summary>
-        public bool Values
+        public byte[] Eui
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Are default values serialized.
+        /// The tx power of GPDU packets sent to the device
         /// </summary>
-        public bool IgnoreDefaultValues
+        public Int16 TxPower
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Are serialized in old format.
+        /// The Tx coding of GPDU packets sent to the device;
         /// </summary>
-        public bool Old
+        public Int16 TxCoding
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Is Description serialized.
+        /// The Rx coding of GPDU packets received from the device
         /// </summary>
-        public bool IgnoreDescription
+        public Int16 RxCoding
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// The Rx power level of GPDU packets received from the device.
+        /// </summary>
+        public Int16 RxLvl
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// SNR of GPDU packets received from the device.
+        /// </summary>
+        public Int16 Snr
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// The number of times the Tx power was modified.
+        /// </summary>
+        public Int16 TxPowerModified
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// The number of times the Tx coding was modified.
+        /// </summary>
+        public Int16 TxCodingModified
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// The number of times the Rx coding was modified.
+        /// </summary>
+        public Int16 RxCodingModified
         {
             get;
             set;

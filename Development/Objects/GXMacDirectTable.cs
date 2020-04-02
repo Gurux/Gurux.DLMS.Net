@@ -32,58 +32,76 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace Gurux.DLMS.Objects
 {
     /// <summary>
-    /// XML write settings.
+    /// MAC direct table element.
     /// </summary>
-    public class GXXmlWriterSettings
+    public class GXMacDirectTable
     {
         /// <summary>
-        /// Constructor.
+        /// SID of switch through which the source service node is connected.
         /// </summary>
-        public GXXmlWriterSettings()
-        {
-            Values = true;
-            IgnoreDefaultValues = true;
-            IgnoreDescription = false;
-        }
-
-        /// <summary>
-        /// Are attribute values also serialized.
-        /// </summary>
-        public bool Values
+        public Int16 SourceSId
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Are default values serialized.
+        ///NID allocated to the source service node.
         /// </summary>
-        public bool IgnoreDefaultValues
+        public Int16 SourceLnId
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Are serialized in old format.
+        /// LCID allocated to this connection at the source.
         /// </summary>
-        public bool Old
+        public Int16 SourceLcId
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Is Description serialized.
+        /// SID of the switch through which the destination service node is connected.
         /// </summary>
-        public bool IgnoreDescription
+        public Int16 DestinationSId
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// NID allocated to the destination service node.
+        /// </summary>
+        public Int16 DestinationLnId
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// LCID allocated to this connection at the destination.
+        /// </summary>
+        public Int16 DestinationLcId
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Entry DID is the EUI-48 of the direct switch
+        /// </summary>
+        public byte[] Did
+        {
+            get;
+            set;
+        }
     }
 }

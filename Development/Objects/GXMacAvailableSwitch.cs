@@ -32,58 +32,58 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace Gurux.DLMS.Objects
 {
     /// <summary>
-    /// XML write settings.
+    /// MAC available switch.
     /// </summary>
-    public class GXXmlWriterSettings
+    public class GXMacAvailableSwitch
     {
         /// <summary>
-        /// Constructor.
+        /// EUI-48 of the subnetwork.
         /// </summary>
-        public GXXmlWriterSettings()
-        {
-            Values = true;
-            IgnoreDefaultValues = true;
-            IgnoreDescription = false;
-        }
-
-        /// <summary>
-        /// Are attribute values also serialized.
-        /// </summary>
-        public bool Values
+        public byte[] Sna
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Are default values serialized.
+        /// SID of this switch.
         /// </summary>
-        public bool IgnoreDefaultValues
+        public Int32 LsId
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Are serialized in old format.
+        /// Level of this switch in subnetwork hierarchy.
         /// </summary>
-        public bool Old
+        public Int16 Level
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Is Description serialized.
+        /// The received signal level for this switch;
         /// </summary>
-        public bool IgnoreDescription
+        public Int16 RxLevel
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// The signal to noise ratio for this switch.
+        /// </summary>
+        public Int16 RxSnr
+        {
+            get;
+            set;
+        }
     }
 }

@@ -35,7 +35,6 @@
 using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
-using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Internal;
 
@@ -43,27 +42,25 @@ namespace Gurux.DLMS.Objects
 {
     /// <summary>
     /// Online help:
-    /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSMBusMasterPortSetup
+    /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSLlcSscsSetup
     /// </summary>
-    public class GXDLMSMBusMasterPortSetup : GXDLMSObject, IGXDLMSBase
+    public class GXDLMSLlcSscsSetup : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXDLMSMBusMasterPortSetup()
-        : base(ObjectType.MBusMasterPortSetup)
+        public GXDLMSLlcSscsSetup()
+        : this("0.0.28.0.0.255", 0)
         {
-            CommSpeed = BaudRate.Baudrate2400;
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
-        public GXDLMSMBusMasterPortSetup(string ln)
-        : base(ObjectType.MBusMasterPortSetup, ln, 0)
+        public GXDLMSLlcSscsSetup(string ln)
+        : this(ln, 0)
         {
-            CommSpeed = BaudRate.Baudrate2400;
         }
 
         /// <summary>
@@ -71,17 +68,26 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
-        public GXDLMSMBusMasterPortSetup(string ln, ushort sn)
-        : base(ObjectType.MBusMasterPortSetup, ln, sn)
+        public GXDLMSLlcSscsSetup(string ln, ushort sn)
+        : base(ObjectType.LlcSscsSetup, ln, sn)
         {
-            CommSpeed = BaudRate.Baudrate2400;
         }
 
         /// <summary>
-        /// The communication speed supported by the port.
+        /// Address assigned to the service node during its registration by the base node.
         /// </summary>
         [XmlIgnore()]
-        public BaudRate CommSpeed
+        public UInt16 ServiceNodeAddress
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Base node address to which the service node is registered.
+        /// </summary>
+        [XmlIgnore()]
+        public UInt16 BaseNodeAddress
         {
             get;
             set;
@@ -90,14 +96,33 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, CommSpeed };
+            return new object[] { LogicalName, ServiceNodeAddress, BaseNodeAddress };
+        }
+
+        /// <summary>
+        /// Deallocating the service node address.
+        /// The value of the ServiceNodeAddress becomes NEW and the value of the BaseNodeAddress becomes 0.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] Reset(GXDLMSClient client)
+        {
+            return client.Method(this, 1, (sbyte)0);
         }
 
         #region IGXDLMSBase Members
 
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
-            e.Error = ErrorCode.ReadWriteDenied;
+            if (e.Index == 1)
+            {
+                ServiceNodeAddress = 0xFFE;
+                BaseNodeAddress = 0;
+            }
+            else
+            {
+                e.Error = ErrorCode.ReadWriteDenied;
+            }
             return null;
         }
 
@@ -109,10 +134,15 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(1);
             }
-            //CommSpeed
+            //ServiceNodeAddress
             if (all || CanRead(2))
             {
                 attributes.Add(2);
+            }
+            //BaseNodeAddress
+            if (all || CanRead(3))
+            {
+                attributes.Add(3);
             }
             return attributes.ToArray();
         }
@@ -120,78 +150,85 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Comm Speed" };
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "ServiceNodeAddress", "BaseNodeAddress" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
         {
-            return 2;
+            return 3;
         }
 
         int IGXDLMSBase.GetMethodCount()
         {
-            return 0;
+            return 1;
         }
 
         /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
         public override DataType GetDataType(int index)
         {
-            if (index == 1)
+            switch (index)
             {
-                return DataType.OctetString;
+                case 1:
+                    return DataType.OctetString;
+                case 2:
+                    return DataType.UInt16;
+                case 3:
+                    return DataType.UInt16;
+                default:
+                    throw new ArgumentException("GetDataType failed. Invalid attribute index.");
             }
-            //CommSpeed
-            if (index == 2)
-            {
-                return DataType.Enum;
-            }
-            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            switch (e.Index)
             {
-                return GXCommon.LogicalNameToBytes(LogicalName);
+                case 1:
+                    return GXCommon.LogicalNameToBytes(LogicalName);
+                case 2:
+                    return ServiceNodeAddress;
+                case 3:
+                    return BaseNodeAddress;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
             }
-            if (e.Index == 2)
-            {
-                return CommSpeed;
-            }
-            e.Error = ErrorCode.ReadWriteDenied;
             return null;
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            switch (e.Index)
             {
-                LogicalName = GXCommon.ToLogicalName(e.Value);
-            }
-            else if (e.Index == 2)
-            {
-                CommSpeed = (BaudRate)Convert.ToInt32(e.Value);
-            }
-            else
-            {
-                e.Error = ErrorCode.ReadWriteDenied;
+                case 1:
+                    LogicalName = GXCommon.ToLogicalName(e.Value);
+                    break;
+                case 2:
+                    ServiceNodeAddress = Convert.ToUInt16(e.Value);
+                    break;
+                case 3:
+                    BaseNodeAddress = Convert.ToUInt16(e.Value);
+                    break;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
             }
         }
 
         void IGXDLMSBase.Load(GXXmlReader reader)
         {
-            CommSpeed = (BaudRate)reader.ReadElementContentAsInt("CommSpeed");
+            ServiceNodeAddress = (UInt16)reader.ReadElementContentAsInt("ServiceNodeAddress");
+            BaseNodeAddress = (UInt16)reader.ReadElementContentAsInt("BaseNodeAddress");
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("CommSpeed", ((int)CommSpeed), (int)BaudRate.Baudrate2400);
+            writer.WriteElementString("ServiceNodeAddress", ServiceNodeAddress);
+            writer.WriteElementString("BaseNodeAddress", BaseNodeAddress);
         }
-
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {
         }
-
         #endregion
     }
 }

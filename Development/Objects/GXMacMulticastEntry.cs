@@ -32,58 +32,27 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace Gurux.DLMS.Objects
 {
-    /// <summary>
-    /// XML write settings.
-    /// </summary>
-    public class GXXmlWriterSettings
+    public class GXMacMulticastEntry
     {
         /// <summary>
-        /// Constructor.
+        /// LCID of multicast group
         /// </summary>
-        public GXXmlWriterSettings()
-        {
-            Values = true;
-            IgnoreDefaultValues = true;
-            IgnoreDescription = false;
-        }
-
-        /// <summary>
-        /// Are attribute values also serialized.
-        /// </summary>
-        public bool Values
+        public sbyte Id
         {
             get;
             set;
         }
-
         /// <summary>
-        /// Are default values serialized.
+        /// Number of child nodes.
         /// </summary>
-        public bool IgnoreDefaultValues
+        public Int16 Members
         {
             get;
             set;
         }
-
-        /// <summary>
-        /// Are serialized in old format.
-        /// </summary>
-        public bool Old
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Is Description serialized.
-        /// </summary>
-        public bool IgnoreDescription
-        {
-            get;
-            set;
-        }
-
     }
 }

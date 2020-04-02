@@ -298,6 +298,49 @@ namespace Gurux.DLMS.Enums
         [XmlEnum("74")]
         MBusMasterPortSetup = 74,
 
+        /// <summary>
+        /// Addresses that are provided by the base node during the opening of the
+        /// convergence layer.
+        /// </summary>
+        [XmlEnum("80")]
+        LlcSscsSetup = 80,
+
+        /// <summary>
+        /// Counters related to the physical layers exchanges.
+        /// </summary>
+        [XmlEnum("81")]
+        PrimeNbOfdmPlcPhysicalLayerCounters = 81,
+
+        /// <summary>
+        /// A necessary parameters to set up and manage the PRIME NB OFDM PLC MAC layer.
+        /// </summary>
+        [XmlEnum("82")]
+        PrimeNbOfdmPlcMacSetup = 82,
+
+        /// <summary>
+        ///Functional behaviour of MAC.
+        /// </summary>
+        [XmlEnum("83")]
+        PrimeNbOfdmPlcMacFunctionalParameters = 83,
+
+        /// <summary>
+        /// Statistical information on the operation of the MAC layer for management purposes.
+        /// </summary>
+        [XmlEnum("84")]
+        PrimeNbOfdmPlcMacCounters = 84,
+
+        /// <summary>
+        ///  Parameters related to the management of the devices connected to the network.
+        /// </summary>
+        [XmlEnum("85")]
+        PrimeNbOfdmPlcMacNetworkAdministrationData = 85,
+
+        /// <summary>
+        /// Identification information related to administration and maintenance of PRIME NB OFDM PLC devices.
+        /// </summary>
+        [XmlEnum("86")]
+        PrimeNbOfdmPlcApplicationsIdentification = 86,
+
         ///<summary>
         ///RegisterTable stores identical attributes of objects, in a selected
         ///collection of objects. All the objects in the collection need to be of

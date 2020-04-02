@@ -1126,24 +1126,21 @@ namespace Gurux.DLMS
                 int baseName = Convert.ToInt32(objects[0]) & 0xFFFF;
                 if (!onlyKnownObjects || AvailableObjectTypes.ContainsKey((ObjectType)ot))
                 {
-                    if (baseName > 0)
+                    GXDLMSObject comp = CreateDLMSObject(ot, objects[2], baseName, objects[3], null);
+                    if (comp != null)
                     {
-                        GXDLMSObject comp = CreateDLMSObject(ot, objects[2], baseName, objects[3], null);
-                        if (comp != null)
+                        if (!ignoreInactiveObjects || comp.LogicalName != "0.0.127.0.0.0")
                         {
-                            if (!ignoreInactiveObjects || comp.LogicalName != "0.0.127.0.0.0")
-                            {
-                                items.Add(comp);
-                            }
-                            else
-                            {
-                                System.Diagnostics.Debug.WriteLine(string.Format("Inactive object : {0} {1}", ot, baseName));
-                            }
+                            items.Add(comp);
                         }
                         else
                         {
-                            System.Diagnostics.Debug.WriteLine(string.Format("Unknown object : {0} {1}", ot, baseName));
+                            System.Diagnostics.Debug.WriteLine(string.Format("Inactive object : {0} {1}", ot, baseName));
                         }
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine(string.Format("Unknown object : {0} {1}", ot, baseName));
                     }
                 }
                 else

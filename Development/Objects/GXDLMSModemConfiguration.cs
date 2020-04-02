@@ -321,13 +321,10 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            if (CommunicationSpeed != BaudRate.Baudrate300)
-            {
-                writer.WriteElementString("CommunicationSpeed", ((int)CommunicationSpeed).ToString());
-            }
+            writer.WriteElementString("CommunicationSpeed", ((int)CommunicationSpeed), (int)BaudRate.Baudrate300);
+            writer.WriteStartElement("InitialisationStrings");
             if (InitialisationStrings != null)
             {
-                writer.WriteStartElement("InitialisationStrings");
                 foreach (GXDLMSModemInitialisation it in InitialisationStrings)
                 {
                     writer.WriteStartElement("Initialisation");
@@ -336,12 +333,14 @@ namespace Gurux.DLMS.Objects
                     writer.WriteElementString("Delay", it.Delay);
                     writer.WriteEndElement();
                 }
-                writer.WriteEndElement();
             }
+            writer.WriteEndElement();
+            string str = null;
             if (ModemProfile != null)
             {
-                writer.WriteElementString("ModemProfile", string.Join(";", ModemProfile));
+                str = string.Join(";", ModemProfile);
             }
+            writer.WriteElementString("ModemProfile", str);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

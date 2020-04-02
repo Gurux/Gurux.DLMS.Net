@@ -455,6 +455,11 @@ namespace Gurux.DLMS.Objects
         /// <param name="settings">XML write settings.</param>
         public void Save(string filename, GXXmlWriterSettings settings)
         {
+            bool ignoreDescription = false;
+            if (settings != null)
+            {
+                ignoreDescription = settings.IgnoreDescription;
+            }
             using (GXXmlWriter writer = new GXXmlWriter(filename, settings != null ? settings.IgnoreDefaultValues : true))
             {
                 writer.WriteStartDocument();
@@ -478,7 +483,7 @@ namespace Gurux.DLMS.Objects
                     // Add LN
                     writer.WriteElementString("LN", it.LogicalName);
                     // Add description if given.
-                    if (!string.IsNullOrEmpty(it.Description))
+                    if (!ignoreDescription && !string.IsNullOrEmpty(it.Description))
                     {
                         writer.WriteElementString("Description", it.Description);
                     }

@@ -32,58 +32,28 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-namespace Gurux.DLMS.Objects
+namespace Gurux.DLMS.Objects.Enums
 {
     /// <summary>
-    /// XML write settings.
+    /// Present functional state of the node.
     /// </summary>
-    public class GXXmlWriterSettings
+    public enum MacState
     {
         /// <summary>
-        /// Constructor.
+        /// Disconnected.
         /// </summary>
-        public GXXmlWriterSettings()
-        {
-            Values = true;
-            IgnoreDefaultValues = true;
-            IgnoreDescription = false;
-        }
-
+        Disconnected = 0,
         /// <summary>
-        /// Are attribute values also serialized.
+        /// Terminal.
         /// </summary>
-        public bool Values
-        {
-            get;
-            set;
-        }
-
+        Terminal = 1,
         /// <summary>
-        /// Are default values serialized.
+        /// Switch.
         /// </summary>
-        public bool IgnoreDefaultValues
-        {
-            get;
-            set;
-        }
-
+        Switch = 2,
         /// <summary>
-        /// Are serialized in old format.
+        /// Base.
         /// </summary>
-        public bool Old
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Is Description serialized.
-        /// </summary>
-        public bool IgnoreDescription
-        {
-            get;
-            set;
-        }
-
+        Base = 3
     }
 }
