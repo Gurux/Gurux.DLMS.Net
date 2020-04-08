@@ -365,7 +365,7 @@ namespace Gurux.DLMS.Objects
             item.ScriptSelector = Convert.ToUInt16(it[3]);
             item.SwitchTime = (GXTime)GXDLMSClient.ChangeType((byte[])it[4], DataType.Time, settings.UseUtc2NormalTime);
             item.ValidityWindow = Convert.ToUInt16(it[5]);
-            item.ExecWeekdays = (WeekDays)Convert.ToByte(it[6]);
+            item.ExecWeekdays = (Weekdays)Convert.ToByte(it[6]);
             item.ExecSpecDays = Convert.ToString(it[7]);
             item.BeginDate = (GXDate)GXDLMSClient.ChangeType((byte[])it[8], DataType.Date, settings.UseUtc2NormalTime);
             item.EndDate = (GXDate)GXDLMSClient.ChangeType((byte[])it[9], DataType.Date, settings.UseUtc2NormalTime);
@@ -414,7 +414,7 @@ namespace Gurux.DLMS.Objects
                     it.ScriptSelector = (byte)reader.ReadElementContentAsInt("ScriptSelector");
                     it.SwitchTime = reader.ReadElementContentAsTime("SwitchTime");
                     it.ValidityWindow = (byte)reader.ReadElementContentAsInt("ValidityWindow");
-                    it.ExecWeekdays = (WeekDays)reader.ReadElementContentAsInt("ExecWeekdays");
+                    it.ExecWeekdays = (Weekdays)reader.ReadElementContentAsInt("ExecWeekdays");
                     it.ExecSpecDays = reader.ReadElementContentAsString("ExecSpecDays");
                     it.BeginDate = reader.ReadElementContentAsDate("BeginDate");
                     it.EndDate = reader.ReadElementContentAsDate("EndDate");
