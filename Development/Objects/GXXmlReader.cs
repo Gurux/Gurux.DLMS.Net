@@ -301,6 +301,30 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
+        public GXDate ReadElementContentAsDate(string name)
+        {
+            GetNext();
+            if (string.Compare(name, reader.Name, true) == 0)
+            {
+                string ret = reader.ReadElementContentAsString();
+                GetNext();
+                return new GXDate(ret, CultureInfo.InvariantCulture);
+            }
+            return null;
+        }
+
+        public GXTime ReadElementContentAsTime(string name)
+        {
+            GetNext();
+            if (string.Compare(name, reader.Name, true) == 0)
+            {
+                string ret = reader.ReadElementContentAsString();
+                GetNext();
+                return new GXTime(ret, CultureInfo.InvariantCulture);
+            }
+            return null;
+        }
+
         public override string ToString()
         {
             if (reader != null)

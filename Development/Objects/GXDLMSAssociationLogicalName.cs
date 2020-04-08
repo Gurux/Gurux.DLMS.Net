@@ -197,7 +197,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="client">DLMS client.</param>
         /// <param name="obj">COSEM object.</param>
-        /// <returns></returns>
+        /// <returns>Action bytes.</returns>
         public byte[][] AddObject(GXDLMSClient client, GXDLMSObject obj)
         {
             GXByteBuffer data = new GXByteBuffer();
@@ -220,7 +220,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="client">DLMS client.</param>
         /// <param name="obj">COSEM object.</param>
-        /// <returns></returns>
+        /// <returns>Action bytes.</returns>
         public byte[][] RemoveObject(GXDLMSClient client, GXDLMSObject obj)
         {
             GXByteBuffer data = new GXByteBuffer();
@@ -245,7 +245,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="client">DLMS client.</param>
         /// <param name="id">User ID.</param>
         /// <param name="name">User name.</param>
-        /// <returns></returns>
+        /// <returns>Action bytes.</returns>
         public byte[][] AddUser(GXDLMSClient client, byte id, string name)
         {
             GXByteBuffer data = new GXByteBuffer();
@@ -263,7 +263,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="client">DLMS client.</param>
         /// <param name="id">User ID.</param>
         /// <param name="name">User name.</param>
-        /// <returns></returns>
+        /// <returns>Action bytes.</returns>
         public byte[][] RemoveUser(GXDLMSClient client, byte id, string name)
         {
             GXByteBuffer data = new GXByteBuffer();

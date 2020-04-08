@@ -37,6 +37,7 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
 {
@@ -90,11 +91,151 @@ namespace Gurux.DLMS.Objects
             return new object[] { LogicalName, Entries };
         }
 
+
+
+
+        /// <summary>
+        /// Add entry to entries list.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="entry">Schedule entry.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] Insert(GXDLMSClient client, GXScheduleEntry entry)
+        {
+            GXByteBuffer data = new GXByteBuffer();
+            AddEntry(client.Settings, entry, data);
+            return client.Method(this, 2, data.Array(), DataType.Structure);
+        }
+
+        /// <summary>
+        /// Remove entry from entries list.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="entry">Schedule entry.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] Delete(GXDLMSClient client, GXScheduleEntry entry)
+        {
+            GXByteBuffer data = new GXByteBuffer();
+            data.SetUInt8((byte)DataType.Structure);
+            //Add structure size.
+            data.SetUInt8(2);
+            //firstIndex
+            GXCommon.SetData(null, data, DataType.UInt16, entry.Index);
+            //lastIndex
+            GXCommon.SetData(null, data, DataType.UInt16, entry.Index);
+            return client.Method(this, 3, data.Array(), DataType.Structure);
+        }
+
+        /// <summary>
+        /// Enable entry from entries list.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="entry">Schedule entries.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] Enable(GXDLMSClient client, GXScheduleEntry entry)
+        {
+            GXByteBuffer data = new GXByteBuffer();
+            data.SetUInt8((byte)DataType.Structure);
+            //Add structure size.
+            data.SetUInt8(4);
+            //firstIndex
+            GXCommon.SetData(null, data, DataType.UInt16, entry.Index);
+            //lastIndex
+            GXCommon.SetData(null, data, DataType.UInt16, entry.Index);
+            GXCommon.SetData(null, data, DataType.UInt16, 0);
+            GXCommon.SetData(null, data, DataType.UInt16, 0);
+            return client.Method(this, 1, data.Array(), DataType.Structure);
+        }
+
+        /// <summary>
+        /// Disable entry from entries list.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="entry">Schedule entries.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] Disable(GXDLMSClient client, GXScheduleEntry entry)
+        {
+            GXByteBuffer data = new GXByteBuffer();
+            data.SetUInt8((byte)DataType.Structure);
+            //Add structure size.
+            data.SetUInt8(4);
+            //firstIndex
+            GXCommon.SetData(null, data, DataType.UInt16, 0);
+            GXCommon.SetData(null, data, DataType.UInt16, 0);
+            GXCommon.SetData(null, data, DataType.UInt16, entry.Index);
+            //lastIndex
+            GXCommon.SetData(null, data, DataType.UInt16, entry.Index);
+            return client.Method(this, 1, data.Array(), DataType.Structure);
+        }
+
         #region IGXDLMSBase Members
+
+        private void RemoveEntry(UInt16 index)
+        {
+            foreach (GXScheduleEntry it in Entries)
+            {
+                if (it.Index == index)
+                {
+                    Entries.Remove(it);
+                    break;
+                }
+            }
+        }
 
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
-            e.Error = ErrorCode.ReadWriteDenied;
+            switch (e.Index)
+            {
+                //Enable/disable entry
+                case 1:
+                    {
+                        List<object> tmp = (List<object>)e.Parameters;
+                        //Enable
+                        for (int index = (UInt16)tmp[0]; index <= (UInt16)tmp[1]; ++index)
+                        {
+                            foreach (GXScheduleEntry it in Entries)
+                            {
+                                if (it.Index == index)
+                                {
+                                    it.Enable = true;
+                                    break;
+                                }
+                            }
+                        }
+                        //Disable
+                        for (int index = (UInt16)tmp[2]; index <= (UInt16)tmp[3]; ++index)
+                        {
+                            foreach (GXScheduleEntry it in Entries)
+                            {
+                                if (it.Index == index)
+                                {
+                                    it.Enable = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                //Insert entry
+                case 2:
+                    GXScheduleEntry entry = CreateEntry(settings, (List<object>)e.Parameters);
+                    RemoveEntry(entry.Index);
+                    Entries.Add(entry);
+                    break;
+                //Delete entry
+                case 3:
+                    {
+                        List<object> tmp = (List<object>)e.Parameters;
+                        for (UInt16 index = (UInt16)tmp[0]; index <= (UInt16)tmp[1]; ++index)
+                        {
+                            RemoveEntry(index);
+                        }
+                    }
+                    break;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
+            }
             return null;
         }
 
@@ -144,6 +285,45 @@ namespace Gurux.DLMS.Objects
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
+        private void AddEntry(GXDLMSSettings settings, GXScheduleEntry it, GXByteBuffer data)
+        {
+            data.SetUInt8((byte)DataType.Structure);
+            data.SetUInt8(10);
+            //Add index.
+            data.SetUInt8((byte)DataType.UInt16);
+            data.SetUInt16(it.Index);
+            //Add enable.
+            data.SetUInt8((byte)DataType.Boolean);
+            data.SetUInt8((byte)(it.Enable ? 1 : 0));
+            //Add logical Name.
+            data.SetUInt8((byte)DataType.OctetString);
+            data.SetUInt8(6);
+            if (it.Script == null)
+            {
+                data.Set(new byte[] { 0, 0, 0, 0, 0, 0 });
+            }
+            else
+            {
+                data.Set(GXCommon.LogicalNameToBytes(it.Script.LogicalName));
+            }
+            //Add script selector.
+            data.SetUInt8((byte)DataType.UInt16);
+            data.SetUInt16(it.ScriptSelector);
+            //Add switch time.
+            GXCommon.SetData(settings, data, DataType.OctetString, it.SwitchTime);
+            //Add validity window.
+            data.SetUInt8((byte)DataType.UInt16);
+            data.SetUInt16(it.ValidityWindow);
+            //Add exec week days.
+            GXCommon.SetData(settings, data, DataType.BitString, (byte) it.ExecWeekdays);
+            //Add exec spec days.
+            GXCommon.SetData(settings, data, DataType.BitString, it.ExecSpecDays);
+            //Add begin date.
+            GXCommon.SetData(settings, data, DataType.OctetString, it.BeginDate);
+            //Add end date.
+            GXCommon.SetData(settings, data, DataType.OctetString, it.EndDate);
+        }
+
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
@@ -157,39 +337,39 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8((byte)Entries.Count);
                 foreach (GXScheduleEntry it in Entries)
                 {
-                    data.SetUInt8((byte)DataType.Structure);
-                    data.SetUInt8(10);
-                    //Add index.
-                    data.SetUInt8((byte)DataType.UInt16);
-                    data.SetUInt16(it.Index);
-                    //Add enable.
-                    data.SetUInt8((byte)DataType.Boolean);
-                    data.SetUInt8((byte) (it.Enable ? 1 : 0));
-                    //Add logical Name.
-                    data.SetUInt8((byte)DataType.OctetString);
-                    data.SetUInt8((byte) it.LogicalName.Length);
-                    data.Set(GXCommon.LogicalNameToBytes(it.LogicalName));
-                    //Add script selector.
-                    data.SetUInt8((byte)DataType.UInt16);
-                    data.SetUInt16(it.ScriptSelector);
-                    //Add switch time.
-                    GXCommon.SetData(settings, data, DataType.OctetString, it.SwitchTime);
-                    //Add validity window.
-                    data.SetUInt8((byte)DataType.UInt16);
-                    data.SetUInt16(it.ValidityWindow);
-                    //Add exec week days.
-                    GXCommon.SetData(settings, data, DataType.BitString, it.ExecWeekdays);
-                    //Add exec spec days.
-                    GXCommon.SetData(settings, data, DataType.BitString, it.ExecSpecDays);
-                    //Add begin date.
-                    GXCommon.SetData(settings, data, DataType.OctetString, it.BeginDate);
-                    //Add end date.
-                    GXCommon.SetData(settings, data, DataType.OctetString, it.EndDate);
+                    AddEntry(settings, it, data);
                 }
                 return data.Array();
             }
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
+        }
+
+        /// <summary>
+        /// Create a new entry.
+        /// </summary>
+        private GXScheduleEntry CreateEntry(GXDLMSSettings settings, List<object> it)
+        {
+            GXScheduleEntry item = new GXScheduleEntry();
+            item.Index = Convert.ToUInt16(it[0]);
+            item.Enable = (bool)it[1];
+            string ln = GXCommon.ToLogicalName(it[2]);
+            if (settings != null && ln != "0.0.0.0.0.0")
+            {
+                item.Script = (GXDLMSScriptTable)settings.Objects.FindByLN(ObjectType.ScriptTable, ln);
+            }
+            if (item.Script == null)
+            {
+                item.Script = new GXDLMSScriptTable(ln);
+            }
+            item.ScriptSelector = Convert.ToUInt16(it[3]);
+            item.SwitchTime = (GXTime)GXDLMSClient.ChangeType((byte[])it[4], DataType.Time, settings.UseUtc2NormalTime);
+            item.ValidityWindow = Convert.ToUInt16(it[5]);
+            item.ExecWeekdays = (WeekDays)Convert.ToByte(it[6]);
+            item.ExecSpecDays = Convert.ToString(it[7]);
+            item.BeginDate = (GXDate)GXDLMSClient.ChangeType((byte[])it[8], DataType.Date, settings.UseUtc2NormalTime);
+            item.EndDate = (GXDate)GXDLMSClient.ChangeType((byte[])it[9], DataType.Date, settings.UseUtc2NormalTime);
+            return item;
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
@@ -206,18 +386,7 @@ namespace Gurux.DLMS.Objects
                 {
                     foreach (List<object> it in arr)
                     {
-                        GXScheduleEntry item = new GXScheduleEntry();
-                        item.Index = Convert.ToUInt16(it[0]);
-                        item.Enable = (bool)it[1];
-                        item.LogicalName = GXCommon.ToLogicalName(it[2]);
-                        item.ScriptSelector = Convert.ToUInt16(it[3]);
-                        item.SwitchTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[4], DataType.DateTime, settings.UseUtc2NormalTime);
-                        item.ValidityWindow = Convert.ToUInt16(it[5]);
-                        item.ExecWeekdays = Convert.ToString(it[6]);
-                        item.ExecSpecDays = Convert.ToString(it[7]);
-                        item.BeginDate = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[8], DataType.DateTime, settings.UseUtc2NormalTime);
-                        item.EndDate = (GXDateTime)GXDLMSClient.ChangeType((byte[])it[9], DataType.DateTime, settings.UseUtc2NormalTime);
-                        Entries.Add(item);
+                        Entries.Add(CreateEntry(settings, it));
                     }
                 }
             }
@@ -237,14 +406,18 @@ namespace Gurux.DLMS.Objects
                     GXScheduleEntry it = new GXScheduleEntry();
                     it.Index = (byte)reader.ReadElementContentAsInt("Index");
                     it.Enable = reader.ReadElementContentAsInt("Enable") != 0;
-                    it.LogicalName = reader.ReadElementContentAsString("LogicalName");
+                    string ln = reader.ReadElementContentAsString("LogicalName");
+                    if (!string.IsNullOrEmpty(ln))
+                    {
+                        it.Script = new GXDLMSScriptTable(ln);
+                    }
                     it.ScriptSelector = (byte)reader.ReadElementContentAsInt("ScriptSelector");
-                    it.SwitchTime = (GXDateTime)reader.ReadElementContentAsObject("SwitchTime", new GXDateTime(), null, 0);
+                    it.SwitchTime = reader.ReadElementContentAsTime("SwitchTime");
                     it.ValidityWindow = (byte)reader.ReadElementContentAsInt("ValidityWindow");
-                    it.ExecWeekdays = reader.ReadElementContentAsString("ExecWeekdays");
+                    it.ExecWeekdays = (WeekDays)reader.ReadElementContentAsInt("ExecWeekdays");
                     it.ExecSpecDays = reader.ReadElementContentAsString("ExecSpecDays");
-                    it.BeginDate = (GXDateTime)reader.ReadElementContentAsObject("BeginDate", new GXDateTime(), null, 0);
-                    it.EndDate = (GXDateTime)reader.ReadElementContentAsObject("EndDate", new GXDateTime(), null, 0);
+                    it.BeginDate = reader.ReadElementContentAsDate("BeginDate");
+                    it.EndDate = reader.ReadElementContentAsDate("EndDate");
                     Entries.Add(it);
                 }
                 reader.ReadEndElement("Entries");
@@ -261,11 +434,14 @@ namespace Gurux.DLMS.Objects
                     writer.WriteStartElement("Item");
                     writer.WriteElementString("Index", it.Index);
                     writer.WriteElementString("Enable", it.Enable);
-                    writer.WriteElementString("LogicalName", it.LogicalName);
+                    if (it.Script != null)
+                    {
+                        writer.WriteElementString("LogicalName", it.Script.LogicalName);
+                    }
                     writer.WriteElementString("ScriptSelector", it.ScriptSelector);
                     writer.WriteElementString("SwitchTime", it.SwitchTime);
                     writer.WriteElementString("ValidityWindow", it.ValidityWindow);
-                    writer.WriteElementString("ExecWeekdays", it.ExecWeekdays);
+                    writer.WriteElementString("ExecWeekdays", (int)it.ExecWeekdays);
                     writer.WriteElementString("ExecSpecDays", it.ExecSpecDays);
                     writer.WriteElementString("BeginDate", it.BeginDate);
                     writer.WriteElementString("EndDate", it.EndDate);
@@ -277,6 +453,18 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {
+            //Upload entries Value after load.
+            if (Entries != null)
+            {
+                foreach (GXScheduleEntry it in Entries)
+                {
+                    GXDLMSScriptTable target = (GXDLMSScriptTable)reader.Objects.FindByLN(ObjectType.ScriptTable, it.Script.LogicalName);
+                    if (target != null && target != it.Script)
+                    {
+                        it.Script = target;
+                    }
+                }
+            }
         }
 
         #endregion

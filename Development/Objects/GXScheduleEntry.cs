@@ -32,6 +32,7 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using Gurux.DLMS.Objects.Enums;
 using System;
 
 namespace Gurux.DLMS.Objects
@@ -61,9 +62,9 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Logical name of the Script table object.
+        /// Executed Script.
         /// </summary>
-        public string LogicalName
+        public GXDLMSScriptTable Script
         {
             get;
             set;
@@ -79,9 +80,9 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        ///
+        /// Switch time.
         /// </summary>
-        public GXDateTime SwitchTime
+        public GXTime SwitchTime
         {
             get;
             set;
@@ -99,15 +100,16 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Days of the week on which the entry is valid.
         /// </summary>
-        public String ExecWeekdays
+        public Weekdays ExecWeekdays
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Perform the link to the IC �Special days table�, day_id.
+        /// Perform the link to the IC "Special days table", day_id.
         /// </summary>
+        ///<seealso cref="GXDLMSSpecialDaysTable"/>
         public String ExecSpecDays
         {
             get;
@@ -117,7 +119,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Date starting period in which the entry is valid.
         /// </summary>
-        public GXDateTime BeginDate
+        public GXDate BeginDate
         {
             get;
             set;
@@ -126,7 +128,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Date starting period in which the entry is valid.
         /// </summary>
-        public GXDateTime EndDate
+        public GXDate EndDate
         {
             get;
             set;

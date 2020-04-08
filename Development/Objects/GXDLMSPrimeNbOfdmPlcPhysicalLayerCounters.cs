@@ -190,11 +190,8 @@ namespace Gurux.DLMS.Objects
                 case 1:
                     return DataType.OctetString;
                 case 2:
-                    return DataType.UInt16;
                 case 3:
-                    return DataType.UInt16;
                 case 4:
-                    return DataType.UInt16;
                 case 5:
                     return DataType.UInt16;
                 default:

@@ -50,7 +50,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXDateTime()
+        public GXDateTime() : this(DateTime.MinValue, null)
         {
 
         }
@@ -79,6 +79,7 @@ namespace Gurux.DLMS
         /// </summary>
         public GXDateTime(DateTime value, TimeZoneInfo timeZone)
         {
+            DayOfWeek = 0xFF;
             if (value == DateTime.MinValue)
             {
                 Value = DateTimeOffset.MinValue;
@@ -146,6 +147,7 @@ namespace Gurux.DLMS
         public GXDateTime(string value, CultureInfo culture)
             : base()
         {
+            DayOfWeek = 0xFF;
             if (!string.IsNullOrEmpty(value))
             {
                 StringBuilder format = new StringBuilder();
@@ -299,6 +301,7 @@ namespace Gurux.DLMS
         /// </summary>
         public GXDateTime(DateTimeOffset value)
         {
+            DayOfWeek = 0xFF;
             Value = value;
             if (value.DateTime.IsDaylightSavingTime())
             {
@@ -341,6 +344,7 @@ namespace Gurux.DLMS
         /// </summary>
         public GXDateTime(int year, int month, int day, int hour, int minute, int second, int millisecond)
         {
+            DayOfWeek = 0xFF;
             if (year < 1 || year == 0xFFFF)
             {
                 Skip |= DateTimeSkips.Year | DateTimeSkips.DayOfWeek;
@@ -450,7 +454,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Day of week.
         /// </summary>
-        [DefaultValue(0)]
+        [DefaultValue(-1)]
         public int DayOfWeek
         {
             get;
