@@ -75,7 +75,7 @@ namespace Gurux.DLMS
         public GXBitString(byte[] value)
         {
             StringBuilder sb = new StringBuilder();
-            foreach(byte it in value)
+            foreach (byte it in value)
             {
                 GXCommon.ToBitString(sb, it, 8);
             }
@@ -104,6 +104,21 @@ namespace Gurux.DLMS
                     GXCommon.ToBitString(sb, it, count);
                     count -= 8;
                 }
+            }
+            Value = sb.ToString();
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="value">byte.</param>
+        public GXBitString(byte value, int count)
+        {
+            StringBuilder sb = new StringBuilder();
+            GXCommon.ToBitString(sb, value, 8);
+            if (count != 8)
+            {
+                sb.Remove(count, 8 - count);
             }
             Value = sb.ToString();
         }

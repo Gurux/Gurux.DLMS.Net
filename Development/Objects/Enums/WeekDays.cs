@@ -49,30 +49,30 @@ namespace Gurux.DLMS.Objects.Enums
         /// <summary>
         /// Indicates Monday.
         /// </summary>
-        Monday = 0x1,
+        Monday = 0x80,
         /// <summary>
         /// Indicates Tuesday.
         /// </summary>
-        Tuesday = 0x2,
+        Tuesday = 0x40,
         /// <summary>
         /// Indicates Wednesday.
         /// </summary>
-        Wednesday = 0x4,
+        Wednesday = 0x20,
         /// <summary>
         /// Indicates Thursday.
         /// </summary>
-        Thursday = 0x8,
+        Thursday = 0x10,
         /// <summary>
         /// Indicates Friday.
         /// </summary>
-        Friday = 0x10,
+        Friday = 0x8,
         /// <summary>
         /// Indicates Saturday.
         /// </summary>
-        Saturday = 0x20,
+        Saturday = 0x4,
         /// <summary>
         /// Indicates Sunday.
         /// </summary>
-        Sunday = 0x40
+        Sunday = 0x2
     }
 }
