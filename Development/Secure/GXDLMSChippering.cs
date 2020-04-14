@@ -341,9 +341,9 @@ namespace Gurux.DLMS.Secure
             p.Security = security;
             UInt32 invocationCounter = data.GetUInt32();
             p.InvocationCounter = invocationCounter;
-            if (ss != SecuritySuite.AesGcm128)
+            if (ss == SecuritySuite.EcdhEcdsaAesGcm256Sha384)
             {
-                throw new NotImplementedException("Security Suite 1 is not implemented.");
+                throw new NotImplementedException("Security Suite 2 is not implemented.");
             }
             System.Diagnostics.Debug.WriteLine("Decrypt settings: " + p.ToString());
             System.Diagnostics.Debug.WriteLine("Encrypted: " + GXCommon.ToHex(data.Data,

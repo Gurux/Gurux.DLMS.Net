@@ -541,11 +541,58 @@ TokenGatewayConfigurations, AccountActivationTime, AccountClosureTime, Currency,
 LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeriod };
         }
 
+        /// <summary>
+        /// Activate account.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] Activate(GXDLMSClient client)
+        {
+            return client.Method(this, 1, (sbyte)0);
+        }
+
+        /// <summary>
+        /// Close account.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] Close(GXDLMSClient client)
+        {
+            return client.Method(this, 2, (sbyte)0);
+        }
+
+        /// <summary>
+        /// Reset account.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] Reset(GXDLMSClient client)
+        {
+            return client.Method(this, 3, (sbyte)0);
+        }
+
         #region IGXDLMSBase Members
 
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
-            e.Error = ErrorCode.ReadWriteDenied;
+            if (e.Index == 1)
+            {
+                AccountStatus = AccountStatus.AccountActive;
+                AccountActivationTime = DateTime.Now;
+            }
+            else if (e.Index == 2)
+            {
+                AccountStatus = AccountStatus.AccountClosed;
+                AccountClosureTime = DateTime.Now;
+            }
+            else if (e.Index == 3)
+            {
+                //Meter must handle this.
+            }
+            else
+            {
+                e.Error = ErrorCode.ReadWriteDenied;
+            }
             return null;
         }
 
@@ -747,7 +794,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                 case 3:
                     return CurrentCreditInUse;
                 case 4:
-                    return (byte) CurrentCreditStatus;
+                    return (byte)CurrentCreditStatus;
                 case 5:
                     return AvailableCredit;
                 case 6:
@@ -1084,7 +1131,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                     GXCreditChargeConfiguration it = new GXCreditChargeConfiguration();
                     it.CreditReference = reader.ReadElementContentAsString("Credit");
                     it.ChargeReference = reader.ReadElementContentAsString("Charge");
-                    it.CollectionConfiguration = (CreditCollectionConfiguration) reader.ReadElementContentAsInt("Configuration");
+                    it.CollectionConfiguration = (CreditCollectionConfiguration)reader.ReadElementContentAsInt("Configuration");
                     list.Add(it);
                 }
                 reader.ReadEndElement("CreditChargeConfigurations");
@@ -1111,7 +1158,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
             PaymentMode = (PaymentMode)reader.ReadElementContentAsInt("PaymentMode");
             AccountStatus = (AccountStatus)reader.ReadElementContentAsInt("AccountStatus");
             CurrentCreditInUse = (byte)reader.ReadElementContentAsInt("CurrentCreditInUse");
-            CurrentCreditStatus = (AccountCreditStatus) reader.ReadElementContentAsInt("CurrentCreditStatus");
+            CurrentCreditStatus = (AccountCreditStatus)reader.ReadElementContentAsInt("CurrentCreditStatus");
             AvailableCredit = reader.ReadElementContentAsInt("AvailableCredit");
             AmountToClear = reader.ReadElementContentAsInt("AmountToClear");
             ClearanceThreshold = reader.ReadElementContentAsInt("ClearanceThreshold");
@@ -1192,7 +1239,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
             writer.WriteElementString("PaymentMode", (int)PaymentMode);
             writer.WriteElementString("AccountStatus", (int)AccountStatus);
             writer.WriteElementString("CurrentCreditInUse", CurrentCreditInUse);
-            writer.WriteElementString("CurrentCreditStatus", (byte) CurrentCreditStatus);
+            writer.WriteElementString("CurrentCreditStatus", (byte)CurrentCreditStatus);
             writer.WriteElementString("AvailableCredit", AvailableCredit);
             writer.WriteElementString("AmountToClear", AmountToClear);
             writer.WriteElementString("ClearanceThreshold", ClearanceThreshold);

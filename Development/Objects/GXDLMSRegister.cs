@@ -124,7 +124,8 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Reset value.
         /// </summary>
-        /// <returns></returns>
+        /// <param name="client">DLMS client.</param>
+        /// <returns>Action bytes.</returns>
         public byte[][] Reset(GXDLMSClient client)
         {
             return client.Method(this, 1, (sbyte)0);
