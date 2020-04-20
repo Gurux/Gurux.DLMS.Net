@@ -190,3 +190,5 @@ Gurux.DLMS.Server.Example.Net/.vs/config/applicationhost.config
 *.manifest
 Gurux.DLMS.Server.Example2.Net/.vs/Gurux.DLMS.Server.Example2.Net/DesignTimeBuild/.dtbcache
 Gurux.DLMS.Client.Example.Net/DvlErrLog.txt
+Gurux.DLMS.Server.Example.Net/.vs/Gurux.DLMS.Server.Example/DesignTimeBuild/.dtbcache.v2
+Development/.vs/Gurux.DLMS.Net/DesignTimeBuild/.dtbcache.v2

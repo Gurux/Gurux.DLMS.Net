@@ -65,7 +65,6 @@ namespace Gurux.DLMS.Objects
         public GXDLMSScriptTable(string ln)
         : this(ln, 0)
         {
-            Scripts = new List<GXDLMSScript>();
         }
 
         /// <summary>

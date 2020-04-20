@@ -53,7 +53,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// The tx power of GPDU packets sent to the device
         /// </summary>
-        public Int16 TxPower
+        public sbyte TxPower
         {
             get;
             set;
@@ -62,7 +62,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// The Tx coding of GPDU packets sent to the device;
         /// </summary>
-        public Int16 TxCoding
+        public sbyte TxCoding
         {
             get;
             set;
@@ -71,7 +71,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// The Rx coding of GPDU packets received from the device
         /// </summary>
-        public Int16 RxCoding
+        public sbyte RxCoding
         {
             get;
             set;
@@ -80,7 +80,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// The Rx power level of GPDU packets received from the device.
         /// </summary>
-        public Int16 RxLvl
+        public sbyte RxLvl
         {
             get;
             set;
@@ -89,7 +89,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// SNR of GPDU packets received from the device.
         /// </summary>
-        public Int16 Snr
+        public sbyte Snr
         {
             get;
             set;
@@ -98,7 +98,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// The number of times the Tx power was modified.
         /// </summary>
-        public Int16 TxPowerModified
+        public sbyte TxPowerModified
         {
             get;
             set;
@@ -107,7 +107,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// The number of times the Tx coding was modified.
         /// </summary>
-        public Int16 TxCodingModified
+        public sbyte TxCodingModified
         {
             get;
             set;
@@ -116,7 +116,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// The number of times the Rx coding was modified.
         /// </summary>
-        public Int16 RxCodingModified
+        public sbyte RxCodingModified
         {
             get;
             set;

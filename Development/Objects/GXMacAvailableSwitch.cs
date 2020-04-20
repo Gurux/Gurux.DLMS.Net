@@ -53,7 +53,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// SID of this switch.
         /// </summary>
-        public Int32 LsId
+        public Int16 LsId
         {
             get;
             set;
@@ -62,7 +62,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Level of this switch in subnetwork hierarchy.
         /// </summary>
-        public Int16 Level
+        public sbyte Level
         {
             get;
             set;
@@ -71,7 +71,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// The received signal level for this switch;
         /// </summary>
-        public Int16 RxLevel
+        public sbyte RxLevel
         {
             get;
             set;
@@ -80,7 +80,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// The signal to noise ratio for this switch.
         /// </summary>
-        public Int16 RxSnr
+        public sbyte RxSnr
         {
             get;
             set;

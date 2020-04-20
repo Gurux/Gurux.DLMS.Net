@@ -99,6 +99,21 @@ namespace Gurux.DLMS
             }
         }
 
+        /// <summary>
+        /// Server is using push client address when sending push messages. Client address is used if PushAddress is zero.
+        /// </summary>
+        public int PushClientAddress
+        {
+            get
+            {
+                return Settings.PushClientAddress;
+            }
+            set
+            {
+                Settings.PushClientAddress = value;
+            }
+        }
+
         internal GXDLMSLongTransaction transaction;
 
         bool Initialized = false;
@@ -972,7 +987,7 @@ namespace Gurux.DLMS
                 info.Clear();
                 if (this.InterfaceType == Enums.InterfaceType.WRAPPER)
                 {
-                    sr.Reply = GXDLMS.GetWrapperFrame(Settings, replyData);
+                    sr.Reply = GXDLMS.GetWrapperFrame(Settings, info.Command, replyData);
                 }
                 else
                 {
@@ -1085,7 +1100,7 @@ namespace Gurux.DLMS
             byte[] reply;
             if (this.InterfaceType == Enums.InterfaceType.WRAPPER)
             {
-                reply = GXDLMS.GetWrapperFrame(Settings, replyData);
+                reply = GXDLMS.GetWrapperFrame(Settings, cmd, replyData);
             }
             else
             {
@@ -1226,7 +1241,7 @@ namespace Gurux.DLMS
             }
             if (this.InterfaceType == Enums.InterfaceType.WRAPPER)
             {
-                return GXDLMS.GetWrapperFrame(Settings, replyData);
+                return GXDLMS.GetWrapperFrame(Settings, cmd, replyData);
             }
             else
             {

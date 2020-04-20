@@ -76,6 +76,7 @@ namespace GuruxDLMSServerExample
         public GXDLMSBase(GXDLMSAssociationLogicalName ln, GXDLMSHdlcSetup hdlc)
         : base(ln, hdlc)
         {
+            PushClientAddress = 64;
             MaxReceivePDUSize = 1024;
             //Default secret.
             ln.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
@@ -94,6 +95,7 @@ namespace GuruxDLMSServerExample
         public GXDLMSBase(GXDLMSAssociationShortName sn, GXDLMSHdlcSetup hdlc)
         : base(sn, hdlc, "GRX", 12345678)
         {
+            PushClientAddress = 64;
             MaxReceivePDUSize = 1024;
             //Default secret.
             sn.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
@@ -112,6 +114,7 @@ namespace GuruxDLMSServerExample
         public GXDLMSBase(GXDLMSAssociationLogicalName ln, GXDLMSTcpUdpSetup wrapper)
         : base(ln, wrapper, "GRX", 12345678)
         {
+            PushClientAddress = 64;
             MaxReceivePDUSize = 1024;
             //Default secret.
             ln.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
@@ -131,6 +134,7 @@ namespace GuruxDLMSServerExample
         public GXDLMSBase(GXDLMSAssociationShortName sn, GXDLMSTcpUdpSetup wrapper)
         : base(sn, wrapper, "GRX", 12345678)
         {
+            PushClientAddress = 64;
             MaxReceivePDUSize = 1024;
             //Default secret.
             sn.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
@@ -448,6 +452,16 @@ namespace GuruxDLMSServerExample
             Items.Add(new GXDLMSTokenGateway());
             Items.Add(new GXDLMSCompactData());
             Items.Add(new GXDLMSDisconnectControl());
+
+            Items.Add(new GXDLMSLlcSscsSetup());
+            Items.Add(new GXDLMSPrimeNbOfdmPlcPhysicalLayerCounters());
+            Items.Add(new GXDLMSPrimeNbOfdmPlcMacSetup());
+            Items.Add(new GXDLMSPrimeNbOfdmPlcMacFunctionalParameters());
+            Items.Add(new GXDLMSPrimeNbOfdmPlcMacCounters());
+            Items.Add(new GXDLMSPrimeNbOfdmPlcMacNetworkAdministrationData());
+            Items.Add(new GXDLMSPrimeNbOfdmPlcApplicationsIdentification());
+
+            Items.Add(new GXDLMSSchedule());
 
             ///////////////////////////////////////////////////////////////////////
             //Server must initialize after all objects are added.
@@ -873,8 +887,7 @@ namespace GuruxDLMSServerExample
             {
                 throw new ArgumentException("Invalid destination.");
             }
-            GXDLMSNotify notify = new GXDLMSNotify(true, 1, 1, InterfaceType.WRAPPER);
-            byte[][] data = notify.GeneratePushSetupMessages(DateTime.MinValue, target);
+            byte[][] data = this.GeneratePushSetupMessages(DateTime.MinValue, target);
             string host = target.Destination.Substring(0, pos);
             int port = int.Parse(target.Destination.Substring(pos + 1));
             GXNet net = new GXNet(NetworkType.Tcp, host, port);

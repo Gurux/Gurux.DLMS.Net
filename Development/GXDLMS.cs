@@ -1115,7 +1115,7 @@ namespace Gurux.DLMS
                 {
                     if (p.settings.InterfaceType == Enums.InterfaceType.WRAPPER)
                     {
-                        messages.Add(GXDLMS.GetWrapperFrame(p.settings, reply));
+                        messages.Add(GXDLMS.GetWrapperFrame(p.settings, p.command, reply));
                     }
                     else if (p.settings.InterfaceType == Enums.InterfaceType.HDLC)
                     {
@@ -1169,7 +1169,7 @@ namespace Gurux.DLMS
                 {
                     if (p.settings.InterfaceType == Enums.InterfaceType.WRAPPER)
                     {
-                        messages.Add(GXDLMS.GetWrapperFrame(p.settings, reply));
+                        messages.Add(GXDLMS.GetWrapperFrame(p.settings, p.command, reply));
                     }
                     else if (p.settings.InterfaceType == Enums.InterfaceType.HDLC)
                     {
@@ -1457,9 +1457,10 @@ namespace Gurux.DLMS
         /// Split DLMS PDU to wrapper frames.
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
+        /// <param name="command">DLMS command.</param>
         /// <param name="data"> Wrapped data.</param>
         /// <returns>Wrapper frames</returns>
-        internal static byte[] GetWrapperFrame(GXDLMSSettings settings, GXByteBuffer data)
+        internal static byte[] GetWrapperFrame(GXDLMSSettings settings, Command command, GXByteBuffer data)
         {
             GXByteBuffer bb = new GXByteBuffer();
             // Add version.
@@ -1467,7 +1468,14 @@ namespace Gurux.DLMS
             if (settings.IsServer)
             {
                 bb.SetUInt16((UInt16)settings.ServerAddress);
-                bb.SetUInt16((UInt16)settings.ClientAddress);
+                if (settings.PushClientAddress != 0 && (command == Command.DataNotification || command == Command.EventNotification))
+                {
+                    bb.SetUInt16((UInt16)settings.PushClientAddress);
+                }
+                else
+                {
+                    bb.SetUInt16((UInt16)settings.ClientAddress);
+                }
             }
             else
             {
@@ -1516,7 +1524,14 @@ namespace Gurux.DLMS
             byte[] primaryAddress, secondaryAddress;
             if (settings.IsServer)
             {
-                primaryAddress = GetHdlcAddressBytes(settings.ClientAddress, 0);
+                if (frame == 0x13 && settings.PushClientAddress != 0)
+                {
+                    primaryAddress = GetHdlcAddressBytes(settings.PushClientAddress, 0);
+                }
+                else
+                {
+                    primaryAddress = GetHdlcAddressBytes(settings.ClientAddress, 0);
+                }
                 secondaryAddress = GetHdlcAddressBytes(settings.ServerAddress, settings.ServerAddressSize);
                 len = secondaryAddress.Length;
             }
@@ -1791,9 +1806,18 @@ namespace Gurux.DLMS
                     notify.ServerAddress = source;
                 }
             }
-
             // Is there more data available.
-            if ((frame & 0x8) != 0)
+            bool moreData = (frame & 0x8) != 0;
+            // Get frame type.
+            frame = reply.GetUInt8();
+            //If server is using same client and server address for notifications.
+            if (frame == 0x13 && !isNotify && notify != null)
+            {
+                isNotify = true;
+                notify.ClientAddress = target;
+                notify.ServerAddress = source;
+            }
+            if (moreData)
             {
                 if (isNotify)
                 {
@@ -1815,8 +1839,6 @@ namespace Gurux.DLMS
                     data.MoreData = (RequestTypes)(data.MoreData & ~RequestTypes.Frame);
                 }
             }
-            // Get frame type.
-            frame = reply.GetUInt8();
             if (data.Xml == null && !settings.CheckFrame(frame))
             {
                 reply.Position = (eopPos + 1);

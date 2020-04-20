@@ -312,10 +312,10 @@ namespace Gurux.DLMS.Objects
                     bb.SetUInt8((byte)DataType.Structure);
                     bb.SetUInt8(5);
                     GXCommon.SetData(settings, bb, DataType.OctetString, it.Sna);
-                    GXCommon.SetData(settings, bb, DataType.Int32, it.LsId);
-                    GXCommon.SetData(settings, bb, DataType.Int16, it.Level);
-                    GXCommon.SetData(settings, bb, DataType.Int16, it.RxLevel);
-                    GXCommon.SetData(settings, bb, DataType.Int16, it.RxSnr);
+                    GXCommon.SetData(settings, bb, DataType.Int16, it.LsId);
+                    GXCommon.SetData(settings, bb, DataType.Int8, it.Level);
+                    GXCommon.SetData(settings, bb, DataType.Int8, it.RxLevel);
+                    GXCommon.SetData(settings, bb, DataType.Int8, it.RxSnr);
                 }
             }
 
@@ -338,14 +338,14 @@ namespace Gurux.DLMS.Objects
                     bb.SetUInt8((byte)DataType.Structure);
                     bb.SetUInt8(9);
                     GXCommon.SetData(settings, bb, DataType.OctetString, it.Eui);
-                    GXCommon.SetData(settings, bb, DataType.Int16, it.TxPower);
-                    GXCommon.SetData(settings, bb, DataType.Int16, it.TxCoding);
-                    GXCommon.SetData(settings, bb, DataType.Int16, it.RxCoding);
-                    GXCommon.SetData(settings, bb, DataType.Int16, it.RxLvl);
-                    GXCommon.SetData(settings, bb, DataType.Int16, it.Snr);
-                    GXCommon.SetData(settings, bb, DataType.Int16, it.TxPowerModified);
-                    GXCommon.SetData(settings, bb, DataType.Int16, it.TxCodingModified);
-                    GXCommon.SetData(settings, bb, DataType.Int16, it.RxCodingModified);
+                    GXCommon.SetData(settings, bb, DataType.Int8, it.TxPower);
+                    GXCommon.SetData(settings, bb, DataType.Int8, it.TxCoding);
+                    GXCommon.SetData(settings, bb, DataType.Int8, it.RxCoding);
+                    GXCommon.SetData(settings, bb, DataType.Int8, it.RxLvl);
+                    GXCommon.SetData(settings, bb, DataType.Int8, it.Snr);
+                    GXCommon.SetData(settings, bb, DataType.Int8, it.TxPowerModified);
+                    GXCommon.SetData(settings, bb, DataType.Int8, it.TxCodingModified);
+                    GXCommon.SetData(settings, bb, DataType.Int8, it.RxCodingModified);
                 }
             }
             return bb.Array();
@@ -460,10 +460,10 @@ namespace Gurux.DLMS.Objects
                     }
                     GXMacAvailableSwitch v = new GXMacAvailableSwitch();
                     v.Sna = (byte[])it[0];
-                    v.LsId = Convert.ToInt32(it[1]);
-                    v.Level = Convert.ToInt16(it[2]);
-                    v.RxLevel = Convert.ToInt16(it[3]);
-                    v.RxSnr = Convert.ToInt16(it[4]);
+                    v.LsId = Convert.ToInt16(it[1]);
+                    v.Level = Convert.ToSByte(it[2]);
+                    v.RxLevel = Convert.ToSByte(it[3]);
+                    v.RxSnr = Convert.ToSByte(it[4]);
                     data.Add(v);
                 }
             }
@@ -593,10 +593,10 @@ namespace Gurux.DLMS.Objects
                     GXMacAvailableSwitch it = new GXMacAvailableSwitch();
                     list.Add(it);
                     it.Sna = GXCommon.HexToBytes(reader.ReadElementContentAsString("Sna"));
-                    it.LsId = reader.ReadElementContentAsInt("LsId");
-                    it.Level = (Int16)reader.ReadElementContentAsInt("Level");
-                    it.RxLevel = (Int16)reader.ReadElementContentAsInt("RxLevel");
-                    it.RxSnr = (Int16)reader.ReadElementContentAsInt("RxSnr");
+                    it.LsId = (Int16)reader.ReadElementContentAsInt("LsId");
+                    it.Level = (sbyte)reader.ReadElementContentAsInt("Level");
+                    it.RxLevel = (sbyte)reader.ReadElementContentAsInt("RxLevel");
+                    it.RxSnr = (sbyte)reader.ReadElementContentAsInt("RxSnr");
                 }
                 reader.ReadEndElement("AvailableSwitches");
             }
@@ -613,14 +613,14 @@ namespace Gurux.DLMS.Objects
                     GXMacPhyCommunication it = new GXMacPhyCommunication();
                     list.Add(it);
                     it.Eui = GXCommon.HexToBytes(reader.ReadElementContentAsString("Eui"));
-                    it.TxPower = (Int16)reader.ReadElementContentAsInt("TxPower");
-                    it.TxCoding = (Int16)reader.ReadElementContentAsInt("TxCoding");
-                    it.RxCoding = (Int16)reader.ReadElementContentAsInt("RxCoding");
-                    it.RxLvl = (Int16)reader.ReadElementContentAsInt("RxLvl");
-                    it.Snr = (Int16)reader.ReadElementContentAsInt("Snr");
-                    it.TxPowerModified = (Int16)reader.ReadElementContentAsInt("TxPowerModified");
-                    it.TxCodingModified = (Int16)reader.ReadElementContentAsInt("TxCodingModified");
-                    it.RxCodingModified = (Int16)reader.ReadElementContentAsInt("RxCodingModified");
+                    it.TxPower = (sbyte)reader.ReadElementContentAsInt("TxPower");
+                    it.TxCoding = (sbyte)reader.ReadElementContentAsInt("TxCoding");
+                    it.RxCoding = (sbyte)reader.ReadElementContentAsInt("RxCoding");
+                    it.RxLvl = (sbyte)reader.ReadElementContentAsInt("RxLvl");
+                    it.Snr = (sbyte)reader.ReadElementContentAsInt("Snr");
+                    it.TxPowerModified = (sbyte)reader.ReadElementContentAsInt("TxPowerModified");
+                    it.TxCodingModified = (sbyte)reader.ReadElementContentAsInt("TxCodingModified");
+                    it.RxCodingModified = (sbyte)reader.ReadElementContentAsInt("RxCodingModified");
                 }
                 reader.ReadEndElement("Communications");
             }

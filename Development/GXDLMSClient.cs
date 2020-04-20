@@ -2854,7 +2854,7 @@ namespace Gurux.DLMS
                     List<byte[]> messages = new List<byte[]>();
                     if (Settings.InterfaceType == Enums.InterfaceType.WRAPPER)
                     {
-                        messages.Add(GXDLMS.GetWrapperFrame(Settings, data));
+                        messages.Add(GXDLMS.GetWrapperFrame(Settings, command, data));
                     }
                     else if (Settings.InterfaceType == Enums.InterfaceType.HDLC)
                     {

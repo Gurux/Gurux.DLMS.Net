@@ -268,6 +268,7 @@ namespace Gurux.DLMS
             target.useLogicalNameReferencing = useLogicalNameReferencing;
             target.ClientAddress = ClientAddress;
             target.ServerAddress = ServerAddress;
+            target.PushClientAddress = PushClientAddress;
             target.ServerAddressSize = ServerAddressSize;
             target.Authentication = Authentication;
             target.Password = Password;
@@ -580,6 +581,16 @@ namespace Gurux.DLMS
         /// Client address.
         /// </summary>
         public int ClientAddress
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Server is using push client address when sending push messages. Client address is used if PushAddress is zero.
+        /// </summary>
+        /// <seealso cref="ClientAddress"/>
+        public int PushClientAddress
         {
             get;
             set;

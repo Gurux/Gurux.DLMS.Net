@@ -126,7 +126,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Date starting period in which the entry is valid.
+        /// Date ending period in which the entry is valid.
         /// </summary>
         public GXDate EndDate
         {
