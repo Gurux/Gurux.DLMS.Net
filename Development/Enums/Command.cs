@@ -113,7 +113,7 @@ namespace Gurux.DLMS
         /// HDLC Disconnect Mode.
         /// </summary>
         /// <remarks>
-        /// Responder for Disconnect Mode request.
+        /// Responder for Disconnect Mode request. HDLC connection is not established to the meter.
         /// </remarks>
         DisconnectMode = 0x1f,
 

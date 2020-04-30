@@ -1719,6 +1719,10 @@ namespace Gurux.DLMS
             if (reply.Size - reply.Position < 9)
             {
                 data.IsComplete = false;
+                if (notify != null)
+                {
+                    notify.IsComplete = false;
+                }
                 return 0;
             }
             data.IsComplete = true;
@@ -1799,7 +1803,7 @@ namespace Gurux.DLMS
                     reply.Position = 1 + eopPos;
                     return GetHdlcData(server, settings, reply, data, notify);
                 }
-                else if (notify != null)
+                if (notify != null)
                 {
                     isNotify = true;
                     notify.ClientAddress = target;

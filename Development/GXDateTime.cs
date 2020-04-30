@@ -255,6 +255,7 @@ namespace Gurux.DLMS
                 try
                 {
                     Value = DateTime.ParseExact(v, format.ToString(), culture);
+                    Skip |= DateTimeSkips.DayOfWeek;
                     Skip |= DateTimeSkips.Ms;
                     if ((Skip & (DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.Hour | DateTimeSkips.Minute)) == 0)
                     {

@@ -660,6 +660,7 @@ namespace Gurux.DLMS.Internal
                     if (st != null && cipher != null && xml.Comments)
                     {
                         int pos = xml.GetXmlLength();
+                        int pos2 = data.Position;
                         try
                         {
                             data.Position = originalPos - 1;
@@ -680,6 +681,7 @@ namespace Gurux.DLMS.Internal
                         {
                             // It's OK if this fails.
                             xml.SetXmlLength(pos);
+                            data.Position = pos2;
                         }
                     }
                     xml.AppendLine((Command)tag, "Value", GXCommon.ToHex(encrypted, false));

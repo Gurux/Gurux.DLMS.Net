@@ -356,11 +356,12 @@ namespace Gurux.DLMS
         /// <returns>Is new frame found.</returns>
         public bool FindNextFrame(GXByteBuffer data, GXByteBuffer pdu, InterfaceType type)
         {
+            int original = data.Position;
             GXDLMSSettings settings = new GXDLMSSettings(true);
             GXReplyData reply = new GXReplyData();
             reply.Xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
             int pos;
-            bool found;
+            bool found = false;
             try
             {
                 while (data.Position != data.Size)
@@ -403,6 +404,7 @@ namespace Gurux.DLMS
             }
             catch (Exception)
             {
+                data.Position = original;
                 throw new Exception("Invalid DLMS frame.");
             }
             if (pdu != null)
@@ -410,7 +412,12 @@ namespace Gurux.DLMS
                 pdu.Clear();
                 pdu.Set(reply.Data.Data, 0, reply.Data.Size);
             }
-            return data.Position != data.Size;
+            bool r = data.Position != data.Size;
+            if (!found)
+            {
+                data.Position = original;
+            }
+            return r;
         }
 
         /// <summary>
@@ -628,6 +635,11 @@ namespace Gurux.DLMS
                 sending = false;
                 xml.AppendComment("Disconnect Request frame.");
             }
+            else if (frame == (byte)Command.DisconnectMode)
+            {
+                sending = false;
+                xml.AppendComment("Disconnect mode.");
+            }
             //If S -frame.
             else if ((frame & (byte)HdlcFrameType.Sframe) == (byte)HdlcFrameType.Sframe)
             {
@@ -642,7 +654,7 @@ namespace Gurux.DLMS
                 {
                     ++SAck;
                 }
-                else
+                else if (SSendSequence != 0 && RSendSequence != 0)
                 {
                     byte expected = 0;
                     xml.AppendComment("Invalid I Frame: " + frame.ToString("X") + ". Expected: " + expected.ToString("X"));
@@ -753,13 +765,13 @@ namespace Gurux.DLMS
             }
             GXReplyData data = new GXReplyData();
             GXDLMSTranslatorStructure xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
+            GXDLMSSettings settings = new GXDLMSSettings(true);
+            GetCiphering(settings, true);
             data.Xml = xml;
             try
             {
                 //If HDLC framing.
                 int offset = value.Position;
-                GXDLMSSettings settings = new GXDLMSSettings(true);
-                GetCiphering(settings, true);
                 if (value.GetUInt8(value.Position) == 0x7e)
                 {
                     settings.InterfaceType = Enums.InterfaceType.HDLC;

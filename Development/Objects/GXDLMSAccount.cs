@@ -710,7 +710,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Internal.GXCommon.GetLogicalNameString(),"PaymentMode", "AccountStatus", "CurrentCreditInUse",
+            return new string[] { Internal.GXCommon.GetLogicalNameString(),"PaymentMode", "CurrentCreditInUse",
         "CurrentCreditStatus", "AvailableCredit", "AmountToClear", "ClearanceThreshold",
         "AggregatedDebt", "CreditReferences", "ChargeReferences", "CreditChargeConfigurations",
                 "TokenGatewayConfigurations", "AccountActivationTime", "AccountClosureTime", "Currency",
