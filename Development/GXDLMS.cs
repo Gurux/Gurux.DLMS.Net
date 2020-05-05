@@ -3901,6 +3901,8 @@ namespace Gurux.DLMS
                         data.Time = DateTime.MinValue;
                         notify.Data.Set(data.Data);
                         data.Data.Trim();
+                        notify.Value = data.Value;
+                        data.Value = null;
                         break;
                     default:
                         break;

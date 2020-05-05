@@ -266,6 +266,15 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Is General Ciphering used.
+        /// </summary>
+        public bool UseGeneralProtection
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Used standard.
         /// </summary>
         public Standard Standard
@@ -598,8 +607,24 @@ namespace Gurux.DLMS
                 c.BlockCipherKey = BlockCipherKey;
                 c.AuthenticationKey = AuthenticationKey;
                 c.InvocationCounter = InvocationCounter;
-                c.DedicatedKey = DedicatedKey;
-                settings.SourceSystemTitle = ServerSystemTitle;
+                if (DedicatedKey != null && DedicatedKey.Length != 0)
+                {
+                    c.DedicatedKey = DedicatedKey;
+                }
+                if (ServerSystemTitle != null && ServerSystemTitle.Length != 0)
+                {
+                    settings.SourceSystemTitle = ServerSystemTitle;
+                }
+                if (UseGeneralProtection)
+                {
+                    settings.ProposedConformance |= Conformance.GeneralProtection;
+                    settings.NegotiatedConformance |= Conformance.GeneralProtection;
+                }
+                else
+                {
+                    settings.ProposedConformance &= ~Conformance.GeneralProtection;
+                    settings.NegotiatedConformance &= ~Conformance.GeneralProtection;
+                }
                 settings.Cipher = c;
             }
             else
@@ -1514,6 +1539,10 @@ namespace Gurux.DLMS
                 case (byte)Command.DedSetRequest:
                 case (byte)Command.DedMethodRequest:
                 case (byte)Command.DedInitiateRequest:
+                    if (s.settings.Cipher == null)
+                    {
+                        throw new Exception("Security level is None.");
+                    }
                     s.settings.IsServer = false;
                     tmp = GXCommon.HexToBytes(GetValue(node, s));
                     s.settings.Cipher.Security = (Enums.Security)tmp[0];
@@ -1548,6 +1577,10 @@ namespace Gurux.DLMS
                 case (byte)Command.DedMethodResponse:
                 case (byte)Command.DedEventNotification:
                     tmp = GXCommon.HexToBytes(GetValue(node, s));
+                    if (s.settings.Cipher == null)
+                    {
+                        throw new Exception("Security level is None.");
+                    }
                     s.settings.Cipher.Security = (Enums.Security)tmp[0];
                     s.data.Set(tmp);
                     break;
@@ -2931,6 +2964,7 @@ namespace Gurux.DLMS
                 s = new GXDLMSXmlSettings(OutputType, Hex, ShowStringAsHex, tagsByName);
                 ((GXCiphering)s.settings.Cipher).TestMode = true;
                 s.settings.Standard = Standard;
+                GetCiphering(s.settings, false);
             }
             ReadAllNodes(doc, s);
             GXByteBuffer bb = new GXByteBuffer();

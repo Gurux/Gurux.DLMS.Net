@@ -656,6 +656,30 @@ namespace Gurux.DLMS
         /// <seealso cref="ParseUAResponse"/>
         public byte[] SNRMRequest()
         {
+            return SNRMRequest(false);
+        }
+
+        /// <summary>
+        /// Generates SNRM request.
+        /// </summary>
+        /// <remarks>
+        /// his method is used to generate send SNRMRequest.
+        /// Before the SNRM request can be generated, at least the following
+        /// properties must be set:
+        /// <ul>
+        /// <li>ClientAddress</li>
+        /// <li>ServerAddress</li>
+        /// </ul>
+        /// <b>Note! </b>According to IEC 62056-47: when communicating using
+        /// TCP/IP, the SNRM request is not send.
+        /// </remarks>
+        /// <param name="forceParameters">Are HDLC parameters forced. Some meters require this.</param>
+        /// <returns>SNRM request as byte array.</returns>
+        /// <seealso cref="ClientAddress"/>
+        /// <seealso cref="ServerAddress"/>
+        /// <seealso cref="ParseUAResponse"/>
+        public byte[] SNRMRequest(bool forceParameters)
+        {
             Settings.Connected = ConnectionState.None;
             IsAuthenticationRequired = false;
             // SNRM request is not used in network connections.
@@ -678,7 +702,8 @@ namespace Gurux.DLMS
             }
 
             // If custom HDLC parameters are used.
-            if (GXDLMSLimitsDefault.DefaultMaxInfoTX != maxInfoTX ||
+            if (forceParameters ||
+                GXDLMSLimitsDefault.DefaultMaxInfoTX != maxInfoTX ||
                 GXDLMSLimitsDefault.DefaultMaxInfoRX != maxInfoRX ||
                 GXDLMSLimitsDefault.DefaultWindowSizeTX != Limits.WindowSizeTX ||
                 GXDLMSLimitsDefault.DefaultWindowSizeRX != Limits.WindowSizeRX)

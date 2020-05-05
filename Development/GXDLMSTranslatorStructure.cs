@@ -45,6 +45,10 @@ namespace Gurux.DLMS
     /// </summary>
     class GXDLMSTranslatorStructure
     {
+        /// <summary>
+        /// Is comment added already. Nested comments are not allowed in a XML.
+        /// </summary>
+        int comments = 0;
         public TranslatorOutputType OutputType
         {
             get;
@@ -273,10 +277,19 @@ namespace Gurux.DLMS
         /// <param name="comment">Comment to add.</param>
         public void StartComment(string comment)
         {
+            /// Is comment added already. Nested comments are not allowed in a XML.
             if (Comments)
             {
                 AppendSpaces();
-                sb.Append("<!--");
+                if (comments == 0)
+                {
+                    sb.Append("<!-- ");
+                }
+                else
+                {
+                    sb.Append("# ");
+                }
+                ++comments;
                 sb.Append(comment);
                 sb.Append('\r');
                 sb.Append('\n');
@@ -290,9 +303,13 @@ namespace Gurux.DLMS
         {
             if (Comments)
             {
+                --comments;
                 --offset;
-                AppendSpaces();
-                sb.Append("-->");
+                if (comments == 0)
+                {
+                    AppendSpaces();
+                    sb.Append("-->");
+                }
                 sb.Append('\r');
                 sb.Append('\n');
             }
@@ -307,9 +324,17 @@ namespace Gurux.DLMS
             if (Comments)
             {
                 AppendSpaces();
-                sb.Append("<!--");
-                sb.Append(comment);
-                sb.Append("-->");
+                if (comments == 0)
+                {
+                    sb.Append("<!-- ");
+                    sb.Append(comment);
+                    sb.Append(" -->");
+                }
+                else
+                {
+                    sb.Append("# ");
+                    sb.Append(comment);
+                }
                 sb.Append('\r');
                 sb.Append('\n');
             }
