@@ -33,7 +33,6 @@ In xml you describe what you want to do. Example below makes Get (read) reguest 
 You give (Interface type, OBIS code and attribute id).
 
 <?xml version="1.0" encoding="utf-8"?>
-<!--Update new Firmware to the meter.-->
 <Messages>
   <GetRequest>
     <GetRequestNormal>

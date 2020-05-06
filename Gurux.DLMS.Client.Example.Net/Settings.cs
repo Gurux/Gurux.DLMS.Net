@@ -62,7 +62,7 @@ namespace Gurux.DLMS.Client.Example
         public static int GetParameters(string[] args, Settings settings)
         {
             string[] tmp;
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:iIt:a:wP:g:S:C:n:v:o:T:A:B:D:d:");
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:iIt:a:wP:g:S:C:n:v:o:T:A:B:D:d:l:F:");
             GXNet net = null;
             foreach (GXCmdParameter it in parameters)
             {
@@ -224,6 +224,9 @@ namespace Gurux.DLMS.Client.Example
                     case 'D':
                         settings.client.Ciphering.DedicatedKey = GXCommon.HexToBytes(it.Value);
                         break;
+                    case 'F':
+                        settings.client.Ciphering.InvocationCounter = UInt32.Parse(it.Value.Trim());
+                        break;
                     case 'o':
                         settings.outputFile = it.Value;
                         break;
@@ -241,7 +244,17 @@ namespace Gurux.DLMS.Client.Example
                         settings.client.ClientAddress = int.Parse(it.Value);
                         break;
                     case 's':
-                        settings.client.ServerAddress = int.Parse(it.Value);
+                        if (settings.client.ServerAddress != 1)
+                        {
+                            settings.client.ServerAddress = GXDLMSClient.GetServerAddress(settings.client.ServerAddress, int.Parse(it.Value));
+                        }
+                        else
+                        {
+                            settings.client.ServerAddress = int.Parse(it.Value);
+                        }
+                        break;
+                    case 'l':
+                        settings.client.ServerAddress = GXDLMSClient.GetServerAddress(int.Parse(it.Value), settings.client.ServerAddress);
                         break;
                     case 'n':
                         settings.client.ServerAddress = GXDLMSClient.GetServerAddress(int.Parse(it.Value));
@@ -279,6 +292,8 @@ namespace Gurux.DLMS.Client.Example
                                 throw new ArgumentException("Missing mandatory block cipher key option.");
                             case 'D':
                                 throw new ArgumentException("Missing mandatory dedicated key option.");
+                            case 'F':
+                                throw new ArgumentException("Missing mandatory frame counter option.");
                             case 'd':
                                 throw new ArgumentException("Missing mandatory DLMS standard option.");
                             default:
@@ -311,6 +326,7 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine(" -c \t Client address. (Default: 16)");
             Console.WriteLine(" -s \t Server address. (Default: 1)");
             Console.WriteLine(" -n \t Server address as serial number.");
+            Console.WriteLine(" -l \t Logical Server address.");
             Console.WriteLine(" -r [sn, ln]\t Short name or Logical Name (default) referencing is used.");
             Console.WriteLine(" -w WRAPPER profile is used. HDLC is default.");
             Console.WriteLine(" -t [Error, Warning, Info, Verbose] Trace messages.");
@@ -323,6 +339,7 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine(" -A \t Authentication key that is used with chiphering. Ex -D D0D1D2D3D4D5D6D7D8D9DADBDCDDDEDF");
             Console.WriteLine(" -B \t Block cipher key that is used with chiphering. Ex -D 000102030405060708090A0B0C0D0E0F");
             Console.WriteLine(" -D \t Dedicated key that is used with chiphering. Ex -D 00112233445566778899AABBCCDDEEFF");
+            Console.WriteLine(" -F \t Initial Frame Counter (Invocation counter) value.");
             Console.WriteLine(" -d \t Used DLMS standard. Ex -d India (DLMS, India, Italy, SaudiArabia, IDIS)");
             Console.WriteLine("Example:");
             Console.WriteLine("Read LG device using TCP/IP connection.");

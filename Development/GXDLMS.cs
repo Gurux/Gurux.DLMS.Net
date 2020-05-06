@@ -2098,12 +2098,16 @@ namespace Gurux.DLMS
             {
                 notify.IsComplete = false;
             }
-            while (buff.Position < buff.Size - 1)
+            while (buff.Available > 2)
             {
                 // Get version
                 value = buff.GetUInt16();
                 if (value == 1)
                 {
+                    if (buff.Available < 6)
+                    {
+                        break;
+                    }
                     // Check TCP/IP addresses.
                     if (!CheckWrapperAddress(settings, buff, notify))
                     {

@@ -266,7 +266,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Is General Ciphering used.
+        /// Is General Protection used.
         /// </summary>
         public bool UseGeneralProtection
         {

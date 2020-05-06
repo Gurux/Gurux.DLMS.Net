@@ -409,7 +409,7 @@ namespace GuruxDLMSServerExample
             {
                 if (ip.AddressFamily == AddressFamily.InterNetwork)
                 {
-                    ip4.IPAddress = ip.ToString();
+                    ip4.IPAddress = ip;
                 }
                 if (ip.AddressFamily == AddressFamily.InterNetworkV6)
                 {
