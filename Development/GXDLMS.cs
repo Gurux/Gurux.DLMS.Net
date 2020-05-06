@@ -2106,6 +2106,7 @@ namespace Gurux.DLMS
                 {
                     if (buff.Available < 6)
                     {
+                        isData = false;
                         break;
                     }
                     // Check TCP/IP addresses.
