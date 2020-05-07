@@ -46,12 +46,8 @@ namespace Gurux.DLMS.Secure
         ///<summary>
         /// Constructor.
         ///</summary>
-        ///<param name="logicalNameReferencing">
-        /// Is logical name referencing used.
-        ///</param>
-        ///<param name="type">
-        /// Interface type.
-        ///</param>
+        ///<param name="logicalNameReferencing">Is logical name referencing used.</param>
+        ///<param name="type">Interface type.</param>
         [Obsolete("Use other constructor.")]
         public GXDLMSSecureServer(bool logicalNameReferencing, InterfaceType type) :
             base(logicalNameReferencing, type)

@@ -450,6 +450,17 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Used authentication.
+        /// </summary>
+        public Authentication Authentication
+        {
+            get
+            {
+                return Settings.Authentication;
+            }
+        }
+
+        /// <summary>
         /// HDLC settings.
         /// </summary>
         public GXDLMSHdlcSetup Hdlc
