@@ -91,16 +91,18 @@ namespace Gurux.DLMS.Reader
             try
             {
                 InitializeConnection();
-                GetAssociationView(outputFile);
-                GetScalersAndUnits();
-                GetProfileGenericColumns();
+                if (GetAssociationView(outputFile))
+                {
+                    GetScalersAndUnits();
+                    GetProfileGenericColumns();
+                }
                 GetReadOut();
                 GetProfileGenerics();
                 if (outputFile != null)
                 {
                     try
                     {
-                        Client.Objects.Save(outputFile, new GXXmlWriterSettings() { IgnoreDefaultValues = false });
+                        Client.Objects.Save(outputFile, new GXXmlWriterSettings() { UseMeterTime = true, IgnoreDefaultValues = false });
                     }
                     catch (Exception)
                     {
@@ -569,7 +571,7 @@ namespace Gurux.DLMS.Reader
         /// <summary>
         /// Read association view.
         /// </summary>
-        public void GetAssociationView(string outputFile)
+        public bool GetAssociationView(string outputFile)
         {
             if (outputFile != null)
             {
@@ -580,7 +582,7 @@ namespace Gurux.DLMS.Reader
                     {
                         Client.Objects.Clear();
                         Client.Objects.AddRange(GXDLMSObjectCollection.Load(outputFile));
-                        return;
+                        return false;
                     }
                     catch (Exception)
                     {
@@ -612,8 +614,10 @@ namespace Gurux.DLMS.Reader
                 catch (Exception)
                 {
                     //It's OK if this fails.
+                    return false;
                 }
             }
+            return true;
         }
 
         /// <summary>

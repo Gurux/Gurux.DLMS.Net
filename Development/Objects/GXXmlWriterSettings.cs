@@ -85,5 +85,13 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// GXDateTime values are serialised using meter time, not local time.
+        /// </summary>
+        public bool UseMeterTime
+        {
+            get;
+            set;
+        }
     }
 }

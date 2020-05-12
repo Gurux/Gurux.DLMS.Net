@@ -124,7 +124,7 @@ namespace Gurux.DLMS.Client.Example
                     {
                         try
                         {
-                            settings.client.Objects.Save(settings.outputFile, new GXXmlWriterSettings() { IgnoreDefaultValues = false });
+                            settings.client.Objects.Save(settings.outputFile, new GXXmlWriterSettings() { UseMeterTime = true, IgnoreDefaultValues = false });
                         }
                         catch (Exception)
                         {

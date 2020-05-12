@@ -140,6 +140,25 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Check is time zone included and return index of time zone.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        private static int TimeZonePosition(string value)
+        {
+            if (value.Length > 5)
+            {
+                int pos = value.Length - 6;
+                char sep = value[pos];
+                if (sep == '-' || sep == '+')
+                {
+                    return pos;
+                }
+            }
+            return -1;
+        }
+
+        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="value">Date time value as a string.</param>
@@ -147,6 +166,7 @@ namespace Gurux.DLMS
         public GXDateTime(string value, CultureInfo culture)
             : base()
         {
+            bool addTimeZone = true;
             DayOfWeek = 0xFF;
             if (!string.IsNullOrEmpty(value))
             {
@@ -202,19 +222,23 @@ namespace Gurux.DLMS
                                 String tmp = format.ToString().Substring(lastFormatIndex + 1, cnt).Trim();
                                 if (tmp.StartsWith("y"))
                                 {
+                                    addTimeZone = false;
                                     Skip |= DateTimeSkips.Year;
                                 }
                                 else if (tmp == "M" || tmp == "MM" || tmp == "MMM")
                                 {
+                                    addTimeZone = false;
                                     Skip |= DateTimeSkips.Month;
                                 }
                                 else if (tmp.Equals("dd") || tmp.Equals("d"))
                                 {
+                                    addTimeZone = false;
                                     Skip |= DateTimeSkips.Day;
                                 }
                                 else if (tmp.Equals("h") || tmp.Equals("hh")
                                       || tmp.Equals("HH") || tmp.Equals("H"))
                                 {
+                                    addTimeZone = false;
                                     Skip |= DateTimeSkips.Hour;
                                     if (format.ToString().IndexOf("tt") != -1)
                                     {
@@ -224,10 +248,12 @@ namespace Gurux.DLMS
                                 }
                                 else if (tmp.Equals("mm") || tmp.Equals("m"))
                                 {
+                                    addTimeZone = false;
                                     Skip |= DateTimeSkips.Minute;
                                 }
                                 else if (tmp.Equals("tt"))
                                 {
+                                    addTimeZone = false;
                                     Skip |= DateTimeSkips.Hour;
                                     format.Replace("tt", "");
                                 }
@@ -254,7 +280,28 @@ namespace Gurux.DLMS
                 }
                 try
                 {
-                    Value = DateTime.ParseExact(v, format.ToString(), culture);
+                    // If time zone is used.
+                    int pos;
+                    if (addTimeZone && (pos = TimeZonePosition(value)) != -1)
+                    {
+                        format.Append("zzz");
+                        culture = null;
+                    }
+                    else if (addTimeZone && value.IndexOf('Z') != -1)
+                    {
+                        format.Append("zzz");
+                        v = v.Replace("Z", "+00:00");
+                        culture = null;
+                    }
+                    if (culture == null)
+                    {
+                        Value = DateTimeOffset.ParseExact(v, format.ToString(), culture);
+                    }
+                    else
+                    {
+                        v = v.Replace("Z", "+00:00");
+                        Value = DateTime.ParseExact(v, format.ToString(), culture);
+                    }
                     Skip |= DateTimeSkips.DayOfWeek;
                     Skip |= DateTimeSkips.Ms;
                     if ((Skip & (DateTimeSkips.Year | DateTimeSkips.Month | DateTimeSkips.Day | DateTimeSkips.Hour | DateTimeSkips.Minute)) == 0)
@@ -480,11 +527,29 @@ namespace Gurux.DLMS
 
         public string ToFormatString(CultureInfo culture)
         {
+            return ToFormatString(culture, true);
+        }
+
+        public string ToFormatMeterString()
+        {
+            return ToFormatMeterString(CultureInfo.CurrentCulture);
+        }
+        public string ToFormatMeterString(CultureInfo culture)
+        {
+            return ToFormatString(culture, false);
+        }
+
+        public string ToFormatString(CultureInfo culture, bool useLocalTime)
+        {
             StringBuilder format = new StringBuilder();
             if (Skip != DateTimeSkips.None || Extra != DateTimeExtraInfo.None)
             {
                 format.Append(GetDateTimeFormat(culture));
                 Remove(format, culture);
+                if (!useLocalTime)
+                {
+                    format.Append("zzz");
+                }
                 if ((Extra & DateTimeExtraInfo.DstBegin) != 0)
                 {
                     format.Replace("MMM", "BEGIN");
@@ -511,17 +576,20 @@ namespace Gurux.DLMS
                 {
                     Replace(format, "yyyy");
                     Replace(format, "yy");
+                    Remove(format, "zzz", null);
                 }
                 if ((Skip & DateTimeSkips.Month) != 0)
                 {
                     Replace(format, "MMM");
                     Replace(format, "MM");
                     Replace(format, "M");
+                    Remove(format, "zzz", null);
                 }
                 if ((Skip & DateTimeSkips.Day) != 0)
                 {
                     Replace(format, "dd");
                     Replace(format, "d");
+                    Remove(format, "zzz", null);
                 }
                 if ((Skip & DateTimeSkips.Hour) != 0)
                 {
@@ -530,6 +598,7 @@ namespace Gurux.DLMS
                     Replace(format, "hh");
                     Replace(format, "h");
                     Remove(format, "tt", null);
+                    Remove(format, "zzz", null);
                 }
                 if ((Skip & DateTimeSkips.Ms) != 0 || Value.LocalDateTime.Millisecond == 0)
                 {
@@ -555,10 +624,24 @@ namespace Gurux.DLMS
                 {
                     Replace(format, "mm");
                     Replace(format, "m");
+                    Remove(format, "zzz", null);
                 }
-                return Value.LocalDateTime.ToString(format.ToString().Trim(), culture);
+                if (useLocalTime)
+                {
+                    return Value.LocalDateTime.ToString(format.ToString().Trim(), culture);
+                }
+                string ret = Value.ToString(format.ToString().Trim(), culture);
+                if (Value.DateTime == Value.UtcDateTime)
+                {
+                    ret = ret.Substring(0, ret.Length - 6) + "Z";
+                }
+                return ret;
             }
-            return Value.LocalDateTime.ToString(culture);
+            if (useLocalTime)
+            {
+                return Value.LocalDateTime.ToString(culture);
+            }
+            return Value.ToString(culture);
         }
 
         private void Remove(StringBuilder value, String tag, string sep)
@@ -627,10 +710,41 @@ namespace Gurux.DLMS
         /// <returns>Date time as a string.</returns>
         public override string ToString()
         {
+            return ToString(CultureInfo.CurrentCulture, true);
+        }
+
+        /// <summary>
+        /// Date time to string.
+        /// </summary>
+        /// <returns>Date time as a string.</returns>
+        public string ToString(CultureInfo culture)
+        {
+            return ToString(culture, true);
+        }
+
+        /// <summary>
+        /// Date time to meter string.
+        /// </summary>
+        /// <returns>Date time as a string.</returns>
+        public string ToMeterString()
+        {
+            return ToString(CultureInfo.CurrentCulture, false);
+        }
+
+        /// <summary>
+        /// Date time to meter string.
+        /// </summary>
+        /// <returns>Date time as a string.</returns>
+        public string ToMeterString(CultureInfo culture)
+        {
+            return ToString(culture, false);
+        }
+
+        private string ToString(CultureInfo culture, bool useLocalTime)
+        {
             StringBuilder format = new StringBuilder();
             if (Skip != DateTimeSkips.None)
             {
-                System.Globalization.CultureInfo culture = CultureInfo.CurrentCulture;
 #if !WINDOWS_UWP && !__MOBILE__
                 string timeSeparator = culture.DateTimeFormat.TimeSeparator;
                 string dateSeparator = culture.DateTimeFormat.DateSeparator;
@@ -640,20 +754,27 @@ namespace Gurux.DLMS
 #endif //!WINDOWS_UWP && !__MOBILE__
                 format.Append(GetDateTimeFormat(culture));
                 Remove(format, culture);
+                if (!useLocalTime)
+                {
+                    format.Append("zzz");
+                }
                 if ((Skip & DateTimeSkips.Year) != 0)
                 {
                     Remove(format, "yyyy", dateSeparator);
                     Remove(format, "yy", dateSeparator);
+                    Remove(format, "zzz", null);
                 }
                 if ((Skip & DateTimeSkips.Month) != 0)
                 {
                     Remove(format, "MM", dateSeparator);
                     Remove(format, "M", dateSeparator);
+                    Remove(format, "zzz", null);
                 }
                 if ((Skip & DateTimeSkips.Day) != 0)
                 {
                     Remove(format, "dd", dateSeparator);
                     Remove(format, "d", dateSeparator);
+                    Remove(format, "zzz", null);
                 }
                 if ((Skip & DateTimeSkips.Hour) != 0)
                 {
@@ -662,6 +783,7 @@ namespace Gurux.DLMS
                     Remove(format, "hh", timeSeparator);
                     Remove(format, "h", timeSeparator);
                     Remove(format, "tt", timeSeparator);
+                    Remove(format, "zzz", null);
                 }
                 if ((Skip & DateTimeSkips.Ms) != 0)
                 {
@@ -683,6 +805,7 @@ namespace Gurux.DLMS
                 {
                     Remove(format, "mm", timeSeparator);
                     Remove(format, "m", timeSeparator);
+                    Remove(format, "zzz", null);
                 }
                 string tmp = format.ToString().Trim();
                 if (tmp == "")
@@ -721,9 +844,22 @@ namespace Gurux.DLMS
                         return Value.Millisecond.ToString();
                     }
                 }
-                return Value.LocalDateTime.ToString(tmp);
+                if (useLocalTime)
+                {
+                    return Value.LocalDateTime.ToString(tmp, culture);
+                }
+                string ret = Value.ToString(tmp, culture);
+                if (Value.DateTime == Value.UtcDateTime)
+                {
+                    ret = ret.Substring(0, ret.Length - 6) + "Z";
+                }
+                return ret;
             }
-            return Value.LocalDateTime.ToString();
+            if (useLocalTime)
+            {
+                return Value.LocalDateTime.ToString(culture);
+            }
+            return Value.ToString(culture);
         }
 
         private static int GetSeconds(DateTime start, GXDateTime value)

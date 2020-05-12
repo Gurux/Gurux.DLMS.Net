@@ -654,22 +654,11 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Load(GXXmlReader reader)
         {
-            if (string.Compare("Time", reader.Name, true) == 0)
-            {
-                Time = new GXDateTime(reader.ReadElementContentAsString("Time"), CultureInfo.InvariantCulture);
-            }
+            Time = reader.ReadElementContentAsDateTime("Time");
             TimeZone = reader.ReadElementContentAsInt("TimeZone");
             Status = (ClockStatus)reader.ReadElementContentAsInt("Status");
-            string str = reader.ReadElementContentAsString("Begin");
-            if (str != null)
-            {
-                Begin = new GXDateTime(str, CultureInfo.InvariantCulture);
-            }
-            str = reader.ReadElementContentAsString("End");
-            if (str != null)
-            {
-                End = new GXDateTime(str, CultureInfo.InvariantCulture);
-            }
+            Begin = reader.ReadElementContentAsDateTime("Begin");
+            End = reader.ReadElementContentAsDateTime("End");
             Deviation = reader.ReadElementContentAsInt("Deviation");
             Enabled = reader.ReadElementContentAsInt("Enabled") != 0;
             ClockBase = (ClockBase)reader.ReadElementContentAsInt("ClockBase");
@@ -677,20 +666,11 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            if (Time != null && Time.Value.DateTime != DateTime.MinValue)
-            {
-                writer.WriteElementString("Time", Time.ToFormatString(CultureInfo.InvariantCulture));
-            }
+            writer.WriteElementString("Time", Time);
             writer.WriteElementString("TimeZone", TimeZone);
             writer.WriteElementString("Status", ((int)Status));
-            if (Begin != null && Begin != DateTime.MinValue)
-            {
-                writer.WriteElementString("Begin", Begin.ToFormatString(CultureInfo.InvariantCulture));
-            }
-            if (End != null && End != DateTime.MinValue)
-            {
-                writer.WriteElementString("End", End.ToFormatString(CultureInfo.InvariantCulture));
-            }
+            writer.WriteElementString("Begin", Begin);
+            writer.WriteElementString("End", End);
             writer.WriteElementString("Deviation", Deviation);
             writer.WriteElementString("Enabled", Enabled);
             writer.WriteElementString("ClockBase", ((int)ClockBase));

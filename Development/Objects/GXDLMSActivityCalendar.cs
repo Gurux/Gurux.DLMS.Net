@@ -877,10 +877,7 @@ namespace Gurux.DLMS.Objects
             SaveSeasonProfile(writer, SeasonProfilePassive, "SeasonProfilePassive");
             SaveWeekProfileTable(writer, WeekProfileTablePassive, "WeekProfileTablePassive");
             SaveDayProfileTable(writer, DayProfileTablePassive, "DayProfileTablePassive");
-            if (Time != null)
-            {
-                writer.WriteElementString("Time", Time.ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
-            }
+            writer.WriteElementString("Time", Time);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

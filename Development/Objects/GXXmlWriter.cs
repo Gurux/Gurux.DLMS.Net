@@ -37,7 +37,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Text;
 using System.Xml;
 
 namespace Gurux.DLMS.Objects
@@ -49,7 +48,33 @@ namespace Gurux.DLMS.Objects
     {
         XmlWriter writer = null;
         Stream stream = null;
-        bool skipDefaults;
+        GXXmlWriterSettings Settings = null;
+
+        private bool IgnoreDefaultValues
+        {
+            get
+            {
+                if (Settings == null)
+                {
+                    return false;
+
+                }
+                return Settings.IgnoreDefaultValues;
+            }
+        }
+
+        private bool UseMeterTime
+        {
+            get
+            {
+                if (Settings == null)
+                {
+                    return false;
+                }
+                return Settings.UseMeterTime;
+            }
+        }
+
 
         public void Dispose()
         {
@@ -77,10 +102,10 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="filename">File name.</param>
         /// <param name="filename">Skip default values.</param>
-        public GXXmlWriter(string filename, bool skipDefaultValues)
+        public GXXmlWriter(string filename, GXXmlWriterSettings settings)
         {
-            skipDefaults = skipDefaultValues;
-            XmlWriterSettings settings = new XmlWriterSettings()
+            Settings = settings;
+            XmlWriterSettings s = new XmlWriterSettings()
             {
                 Indent = true,
                 IndentChars = "  ",
@@ -94,22 +119,23 @@ namespace Gurux.DLMS.Objects
             {
                 stream = File.Open(filename, FileMode.CreateNew);
             }
-            writer = XmlWriter.Create(stream, settings);
+            writer = XmlWriter.Create(stream, s);
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="s">Stream.</param>
-        public GXXmlWriter(Stream s)
+        public GXXmlWriter(Stream s, GXXmlWriterSettings settings)
         {
-            XmlWriterSettings settings = new XmlWriterSettings()
+            Settings = settings;
+            XmlWriterSettings s2 = new XmlWriterSettings()
             {
                 Indent = true,
                 IndentChars = "  ",
                 NewLineOnAttributes = false
             };
-            writer = XmlWriter.Create(s, settings);
+            writer = XmlWriter.Create(s, s2);
         }
 
         public void WriteStartDocument()
@@ -128,7 +154,7 @@ namespace Gurux.DLMS.Objects
 
         public void WriteElementString(string name, UInt64 value)
         {
-            if (!skipDefaults || value != 0)
+            if (!IgnoreDefaultValues || value != 0)
             {
                 writer.WriteElementString(name, value.ToString());
             }
@@ -141,7 +167,7 @@ namespace Gurux.DLMS.Objects
 
         public void WriteElementString(string name, double value, double defaultValue)
         {
-            if (!skipDefaults || value != defaultValue)
+            if (!IgnoreDefaultValues || value != defaultValue)
             {
                 writer.WriteElementString(name, value.ToString(CultureInfo.InvariantCulture));
             }
@@ -149,7 +175,7 @@ namespace Gurux.DLMS.Objects
 
         public void WriteElementString(string name, int value)
         {
-            if (!skipDefaults || value != 0)
+            if (!IgnoreDefaultValues || value != 0)
             {
                 writer.WriteElementString(name, value.ToString());
             }
@@ -166,7 +192,7 @@ namespace Gurux.DLMS.Objects
                 }
                 writer.WriteElementString(name, value);
             }
-            else if (!skipDefaults)
+            else if (!IgnoreDefaultValues)
             {
                 writer.WriteElementString(name, "");
             }
@@ -174,7 +200,7 @@ namespace Gurux.DLMS.Objects
 
         public void WriteElementString(string name, bool value)
         {
-            if (!skipDefaults || value)
+            if (!IgnoreDefaultValues || value)
             {
                 writer.WriteElementString(name, value ? "1" : "0");
             }
@@ -184,9 +210,18 @@ namespace Gurux.DLMS.Objects
         {
             if (value != null && value != DateTime.MinValue)
             {
-                writer.WriteElementString(name, value.ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
+                string str;
+                if (UseMeterTime)
+                {
+                    str = value.ToFormatMeterString(System.Globalization.CultureInfo.InvariantCulture);
+                }
+                else
+                {
+                    str = value.ToFormatString(System.Globalization.CultureInfo.InvariantCulture);
+                }
+                writer.WriteElementString(name, str);
             }
-            else if (!skipDefaults)
+            else if (!IgnoreDefaultValues)
             {
                 writer.WriteElementString(name, "");
             }
@@ -230,7 +265,7 @@ namespace Gurux.DLMS.Objects
 
         public void WriteElementObject(string name, object value)
         {
-            if (value != null || !skipDefaults)
+            if (value != null || !IgnoreDefaultValues)
             {
                 DataType dt = GXDLMSConverter.GetDLMSDataType(value);
                 WriteElementObject(name, value, dt, DataType.None);
@@ -247,7 +282,7 @@ namespace Gurux.DLMS.Objects
         {
             if (value != null)
             {
-                if (skipDefaults && value is DateTime && ((DateTime)value == DateTime.MinValue || (DateTime)value == DateTime.MaxValue))
+                if (IgnoreDefaultValues && value is DateTime && ((DateTime)value == DateTime.MinValue || (DateTime)value == DateTime.MaxValue))
                 {
                     return;
                 }
@@ -277,7 +312,14 @@ namespace Gurux.DLMS.Objects
                 {
                     if (value is GXDateTime)
                     {
-                        writer.WriteString(((GXDateTime)value).ToFormatString(CultureInfo.InvariantCulture));
+                        if (UseMeterTime)
+                        {
+                            writer.WriteString(((GXDateTime)value).ToFormatMeterString(CultureInfo.InvariantCulture));
+                        }
+                        else
+                        {
+                            writer.WriteString(((GXDateTime)value).ToFormatString(CultureInfo.InvariantCulture));
+                        }
                     }
                     else if (value is DateTime)
                     {
@@ -294,7 +336,7 @@ namespace Gurux.DLMS.Objects
                 }
                 writer.WriteEndElement();
             }
-            else if (!skipDefaults)
+            else if (!IgnoreDefaultValues)
             {
                 writer.WriteStartElement(name);
                 writer.WriteEndElement();

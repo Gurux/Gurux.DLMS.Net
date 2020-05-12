@@ -464,7 +464,7 @@ namespace Gurux.DLMS.Objects
             {
                 ignoreDescription = settings.IgnoreDescription;
             }
-            using (GXXmlWriter writer = new GXXmlWriter(filename, settings != null ? settings.IgnoreDefaultValues : true))
+            using (GXXmlWriter writer = new GXXmlWriter(filename, settings))
             {
                 writer.WriteStartDocument();
                 writer.WriteStartElement("Objects");
