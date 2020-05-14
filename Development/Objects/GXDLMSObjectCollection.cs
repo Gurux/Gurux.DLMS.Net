@@ -396,6 +396,7 @@ namespace Gurux.DLMS.Objects
                             reader.Read();
                             type = (ObjectType)Enum.Parse(typeof(ObjectType), str);
                             obj = GXDLMSClient.CreateObject(type);
+                            obj.Version = 0;
                         }
                         else if (string.Compare("Object", target, true) == 0)
                         {
@@ -411,6 +412,7 @@ namespace Gurux.DLMS.Objects
                             }
                             reader.Read();
                             obj = GXDLMSClient.CreateObject(type);
+                            obj.Version = 0;
                             reader.Objects.Add(obj);
                         }
                         else if (string.Compare("SN", target, true) == 0)

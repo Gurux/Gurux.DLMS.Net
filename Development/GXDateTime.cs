@@ -293,6 +293,10 @@ namespace Gurux.DLMS
                         v = v.Replace("Z", "+00:00");
                         culture = null;
                     }
+                    else
+                    {
+                        Skip |= DateTimeSkips.Deviation;
+                    }
                     if (culture == null)
                     {
                         Value = DateTimeOffset.ParseExact(v, format.ToString(), culture);
@@ -546,7 +550,7 @@ namespace Gurux.DLMS
             {
                 format.Append(GetDateTimeFormat(culture));
                 Remove(format, culture);
-                if (!useLocalTime)
+                if (!useLocalTime && (Skip & DateTimeSkips.Deviation) == 0)
                 {
                     format.Append("zzz");
                 }

@@ -32,20 +32,13 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using Gurux.DLMS.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace GXDLMS.ManufacturerSettings
 {
-    public enum DateTimeSkips
-    {
-        None = 0x0,
-        Year = 0x1,
-        Month = 0x2,
-        Day = 0x4,
-    }
-
     public class GXDateTimeConverter : TypeConverter
     {
         public override object ConvertFrom(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value)

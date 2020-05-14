@@ -487,6 +487,15 @@ namespace Gurux.DLMS.Objects
             List<GXDLMSIp4SetupIpOption> ipOptions = new List<GXDLMSIp4SetupIpOption>();
             if (reader.IsStartElement("IPOptions", true))
             {
+                while (reader.IsStartElement("IPOption", true))
+                {
+                    GXDLMSIp4SetupIpOption it = new GXDLMSIp4SetupIpOption();
+                    it.Type = (Ip4SetupIpOptionType)reader.ReadElementContentAsInt("Type");
+                    it.Length = (byte)reader.ReadElementContentAsInt("Length");
+                    it.Data = GXDLMSTranslator.HexToBytes(reader.ReadElementContentAsString("Data"));
+                    ipOptions.Add(it);
+                }
+                //OLD. This can remove in the future.
                 while (reader.IsStartElement("IPOptions", true))
                 {
                     GXDLMSIp4SetupIpOption it = new GXDLMSIp4SetupIpOption();
@@ -518,19 +527,19 @@ namespace Gurux.DLMS.Objects
                 }
                 writer.WriteEndElement();
             }
+            writer.WriteStartElement("IPOptions");
             if (IPOptions != null)
             {
-                writer.WriteStartElement("IPOptions");
                 foreach (GXDLMSIp4SetupIpOption it in IPOptions)
                 {
-                    writer.WriteStartElement("IPOptions");
+                    writer.WriteStartElement("IPOption");
                     writer.WriteElementString("Type", (int)it.Type);
                     writer.WriteElementString("Length", it.Length);
                     writer.WriteElementString("Data", GXDLMSTranslator.ToHex(it.Data));
                     writer.WriteEndElement();
                 }
-                writer.WriteEndElement();
             }
+            writer.WriteEndElement();
             writer.WriteElementString("SubnetMask", SubnetMask.ToString());
             writer.WriteElementString("GatewayIPAddress", GatewayIPAddress.ToString());
             writer.WriteElementString("UseDHCP", UseDHCP);

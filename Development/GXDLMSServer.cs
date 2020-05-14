@@ -505,6 +505,23 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Standard says that Time zone is from normal time to UTC in minutes.
+        /// If meter is configured to use UTC time (UTC to normal time) set this to true.
+        /// Example. Italy, Saudi Arabia and India standards are using UTC time zone, not DLMS standard time zone.
+        /// </summary>
+        public bool UseUtc2NormalTime
+        {
+            get
+            {
+                return Settings.UseUtc2NormalTime;
+            }
+            set
+            {
+                Settings.UseUtc2NormalTime = value;
+            }
+        }
+
+        /// <summary>
         /// Retrieves the maximum size of PDU receiver.
         /// </summary>
         /// <remarks>

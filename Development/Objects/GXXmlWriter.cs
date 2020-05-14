@@ -101,7 +101,16 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         /// <param name="filename">File name.</param>
-        /// <param name="filename">Skip default values.</param>
+        public GXXmlWriter(string filename) : this(filename, null)
+        {
+
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="filename">File name.</param>
+        /// <param name="settings">Serialization settings.</param>
         public GXXmlWriter(string filename, GXXmlWriterSettings settings)
         {
             Settings = settings;
@@ -126,6 +135,16 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         /// <param name="s">Stream.</param>
+        public GXXmlWriter(Stream s) : this(s, null)
+        {
+
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="s">Stream.</param>
+        /// <param name="settings">Serialization settings.</param>
         public GXXmlWriter(Stream s, GXXmlWriterSettings settings)
         {
             Settings = settings;

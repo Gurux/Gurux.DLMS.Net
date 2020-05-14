@@ -234,6 +234,10 @@ namespace Gurux.DLMS.Client.Example
                         try
                         {
                             settings.client.Standard = (Standard)Enum.Parse(typeof(Standard), it.Value);
+                            if (settings.client.Standard == Standard.Italy || settings.client.Standard == Standard.India || settings.client.Standard == Standard.SaudiArabia)
+                            {
+                                settings.client.UseUtc2NormalTime = true;
+                            }
                         }
                         catch (Exception)
                         {
