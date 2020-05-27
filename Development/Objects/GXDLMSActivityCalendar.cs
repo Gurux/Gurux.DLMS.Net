@@ -129,6 +129,9 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// Activate Passive Calendar Time.
+        /// </summary>
         [XmlIgnore()]
         public GXDateTime Time
         {
@@ -211,6 +214,11 @@ namespace Gurux.DLMS.Objects
                              "Active Day Profile Table", "Passive Calendar Name", "Passive Season Profile", "Passive Week Profile Table", "Passive Day Profile Table", "Time"
                             };
 
+        }
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] { "Activate passive calendar" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -483,7 +491,7 @@ namespace Gurux.DLMS.Objects
             {
                 List<GXDLMSSeasonProfile> items = new List<GXDLMSSeasonProfile>();
                 List<object> item;
-                foreach (object tmp in (IEnumerable<object>) value)
+                foreach (object tmp in (IEnumerable<object>)value)
                 {
                     if (tmp is List<object>)
                     {
@@ -501,7 +509,7 @@ namespace Gurux.DLMS.Objects
                     }
                     else if (item[1] is GXDateTime)
                     {
-                        it.Start = (GXDateTime) item[1];
+                        it.Start = (GXDateTime)item[1];
                     }
                     else
                     {
@@ -802,62 +810,62 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        private void SaveSeasonProfile(GXXmlWriter writer, GXDLMSSeasonProfile[] list, string name)
+        private void SaveSeasonProfile(GXXmlWriter writer, GXDLMSSeasonProfile[] list, string name, int index)
         {
             if (list != null)
             {
-                writer.WriteStartElement(name);
+                writer.WriteStartElement(name, index);
                 foreach (GXDLMSSeasonProfile it in list)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("Name", GXDLMSTranslator.ToHex(it.Name));
+                    writer.WriteStartElement("Item", 0);
+                    writer.WriteElementString("Name", GXDLMSTranslator.ToHex(it.Name), 0);
                     //Some meters are returning time here, not date-time.
-                    writer.WriteElementString("Start", new GXDateTime(it.Start).ToFormatString(CultureInfo.InvariantCulture));
-                    writer.WriteElementString("WeekName", GXDLMSTranslator.ToHex(it.WeekName));
+                    writer.WriteElementString("Start", new GXDateTime(it.Start), 0);
+                    writer.WriteElementString("WeekName", GXDLMSTranslator.ToHex(it.WeekName), 0);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();
             }
         }
 
-        private void SaveWeekProfileTable(GXXmlWriter writer, GXDLMSWeekProfile[] list, string name)
+        private void SaveWeekProfileTable(GXXmlWriter writer, GXDLMSWeekProfile[] list, string name, int index)
         {
             if (list != null)
             {
-                writer.WriteStartElement(name);
+                writer.WriteStartElement(name, index);
                 foreach (GXDLMSWeekProfile it in list)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("Name", GXDLMSTranslator.ToHex(it.Name));
-                    writer.WriteElementString("Monday", it.Monday);
-                    writer.WriteElementString("Tuesday", it.Tuesday);
-                    writer.WriteElementString("Wednesday", it.Wednesday);
-                    writer.WriteElementString("Thursday", it.Thursday);
-                    writer.WriteElementString("Friday", it.Friday);
-                    writer.WriteElementString("Saturday", it.Saturday);
-                    writer.WriteElementString("Sunday", it.Sunday);
+                    writer.WriteStartElement("Item", index);
+                    writer.WriteElementString("Name", GXDLMSTranslator.ToHex(it.Name), index);
+                    writer.WriteElementString("Monday", it.Monday, index);
+                    writer.WriteElementString("Tuesday", it.Tuesday, index);
+                    writer.WriteElementString("Wednesday", it.Wednesday, index);
+                    writer.WriteElementString("Thursday", it.Thursday, index);
+                    writer.WriteElementString("Friday", it.Friday, index);
+                    writer.WriteElementString("Saturday", it.Saturday, index);
+                    writer.WriteElementString("Sunday", it.Sunday, index);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();
             }
         }
 
-        private void SaveDayProfileTable(GXXmlWriter writer, GXDLMSDayProfile[] list, string name)
+        private void SaveDayProfileTable(GXXmlWriter writer, GXDLMSDayProfile[] list, string name, int index)
         {
             if (list != null)
             {
-                writer.WriteStartElement(name);
+                writer.WriteStartElement(name, index);
                 foreach (GXDLMSDayProfile it in list)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("DayId", it.DayId.ToString());
-                    writer.WriteStartElement("Actions");
+                    writer.WriteStartElement("Item", index);
+                    writer.WriteElementString("DayId", it.DayId, index);
+                    writer.WriteStartElement("Actions", index);
                     foreach (GXDLMSDayProfileAction d in it.DaySchedules)
                     {
-                        writer.WriteStartElement("Action");
-                        writer.WriteElementString("Start", d.StartTime.ToFormatString(CultureInfo.InvariantCulture));
-                        writer.WriteElementString("LN", d.ScriptLogicalName);
-                        writer.WriteElementString("Selector", d.ScriptSelector);
+                        writer.WriteStartElement("Action", index);
+                        writer.WriteElementString("Start", d.StartTime, index);
+                        writer.WriteElementString("LN", d.ScriptLogicalName, index);
+                        writer.WriteElementString("Selector", d.ScriptSelector, index);
                         writer.WriteEndElement();
                     }
                     writer.WriteEndElement();
@@ -869,15 +877,15 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("CalendarNameActive", CalendarNameActive);
-            SaveSeasonProfile(writer, SeasonProfileActive, "SeasonProfileActive");
-            SaveWeekProfileTable(writer, WeekProfileTableActive, "WeekProfileTableActive");
-            SaveDayProfileTable(writer, DayProfileTableActive, "DayProfileTableActive");
-            writer.WriteElementString("CalendarNamePassive", CalendarNamePassive);
-            SaveSeasonProfile(writer, SeasonProfilePassive, "SeasonProfilePassive");
-            SaveWeekProfileTable(writer, WeekProfileTablePassive, "WeekProfileTablePassive");
-            SaveDayProfileTable(writer, DayProfileTablePassive, "DayProfileTablePassive");
-            writer.WriteElementString("Time", Time);
+            writer.WriteElementString("CalendarNameActive", CalendarNameActive, 2);
+            SaveSeasonProfile(writer, SeasonProfileActive, "SeasonProfileActive", 3);
+            SaveWeekProfileTable(writer, WeekProfileTableActive, "WeekProfileTableActive", 4);
+            SaveDayProfileTable(writer, DayProfileTableActive, "DayProfileTableActive", 5);
+            writer.WriteElementString("CalendarNamePassive", CalendarNamePassive, 6);
+            SaveSeasonProfile(writer, SeasonProfilePassive, "SeasonProfilePassive", 7);
+            SaveWeekProfileTable(writer, WeekProfileTablePassive, "WeekProfileTablePassive", 8);
+            SaveDayProfileTable(writer, DayProfileTablePassive, "DayProfileTablePassive", 9);
+            writer.WriteElementString("Time", Time, 10);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

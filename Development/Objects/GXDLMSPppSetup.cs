@@ -195,6 +195,12 @@ namespace Gurux.DLMS.Objects
                             };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 5;
@@ -403,35 +409,35 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("PHYReference", PHYReference);
+            writer.WriteElementString("PHYReference", PHYReference, 2);
+            writer.WriteStartElement("LCPOptions", 3);
             if (LCPOptions != null)
             {
-                writer.WriteStartElement("LCPOptions");
                 foreach (GXDLMSPppSetupLcpOption it in LCPOptions)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("Type", (int)it.Type);
-                    writer.WriteElementString("Length", it.Length);
-                    writer.WriteElementObject("Data", it.Data);
+                    writer.WriteStartElement("Item", 0);
+                    writer.WriteElementString("Type", (int)it.Type, 0);
+                    writer.WriteElementString("Length", it.Length, 0);
+                    writer.WriteElementObject("Data", it.Data, 0);
                     writer.WriteEndElement();
                 }
-                writer.WriteEndElement();
             }
+            writer.WriteEndElement();
+            writer.WriteStartElement("IPCPOptions", 4);
             if (IPCPOptions != null)
             {
-                writer.WriteStartElement("IPCPOptions");
                 foreach (GXDLMSPppSetupIPCPOption it in IPCPOptions)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("Type", ((int)it.Type));
-                    writer.WriteElementString("Length", it.Length);
-                    writer.WriteElementObject("Data", it.Data);
+                    writer.WriteStartElement("Item", 0);
+                    writer.WriteElementString("Type", (int)it.Type, 0);
+                    writer.WriteElementString("Length", it.Length, 0);
+                    writer.WriteElementObject("Data", it.Data, 0);
                     writer.WriteEndElement();
                 }
-                writer.WriteEndElement();
             }
-            writer.WriteElementString("UserName", GXDLMSTranslator.ToHex(UserName));
-            writer.WriteElementString("Password", GXDLMSTranslator.ToHex(Password));
+            writer.WriteEndElement();
+            writer.WriteElementString("UserName", GXDLMSTranslator.ToHex(UserName), 5);
+            writer.WriteElementString("Password", GXDLMSTranslator.ToHex(Password), 5);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

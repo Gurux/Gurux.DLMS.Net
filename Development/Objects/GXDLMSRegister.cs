@@ -191,6 +191,11 @@ namespace Gurux.DLMS.Objects
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "Value", "Scaler and Unit" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] { "Reset" };
+        }
         int IGXDLMSBase.GetAttributeCount()
         {
             return 3;
@@ -340,9 +345,9 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Unit", (int)Unit);
-            writer.WriteElementString("Scaler", Scaler, 1);
-            writer.WriteElementObject("Value", Value, GetDataType(2), GetUIDataType(2));
+            writer.WriteElementString("Unit", (int)Unit, 2);
+            writer.WriteElementString("Scaler", Scaler, 1, 3);
+            writer.WriteElementObject("Value", Value, GetDataType(2), GetUIDataType(2), 4);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

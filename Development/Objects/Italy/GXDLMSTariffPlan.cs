@@ -160,6 +160,12 @@ namespace Gurux.DLMS.Objects.Italy
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "CalendarName", "Enabled", "Plan", "ActivationTime" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 5;
@@ -409,12 +415,9 @@ namespace Gurux.DLMS.Objects.Italy
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Name", CalendarName);
-            writer.WriteElementString("Enabled", Enabled);
-            if (ActivationTime != null && ActivationTime != DateTime.MinValue)
-            {
-                writer.WriteElementString("ActivationTime", ActivationTime.ToFormatString(CultureInfo.InvariantCulture));
-            }
+            writer.WriteElementString("Name", CalendarName, 2);
+            writer.WriteElementString("Enabled", Enabled, 3);
+            writer.WriteElementString("ActivationTime", ActivationTime, 4);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

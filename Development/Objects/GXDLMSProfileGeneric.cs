@@ -437,6 +437,12 @@ namespace Gurux.DLMS.Objects
                              "Capture Period", "Sort Method", "Sort Object", "Entries In Use", "Profile Entries"};
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] { "Reset", "Capture" };
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 8;
@@ -1299,9 +1305,9 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
+            writer.WriteStartElement("Buffer", 2);
             if (Buffer != null)
             {
-                writer.WriteStartElement("Buffer");
                 GXDateTime lastdt = null;
                 int add = CapturePeriod;
                 //Some meters are returning 0 if capture period is one hour.
@@ -1313,7 +1319,7 @@ namespace Gurux.DLMS.Objects
                 List<DataType> list = new List<DataType>();
                 if (CaptureObjects != null && CaptureObjects.Count != 0)
                 {
-                    foreach(var it in CaptureObjects)
+                    foreach (var it in CaptureObjects)
                     {
                         if (it.Value.AttributeIndex == 0)
                         {
@@ -1327,7 +1333,7 @@ namespace Gurux.DLMS.Objects
                 }
                 foreach (object[] row in Buffer)
                 {
-                    writer.WriteStartElement("Row");
+                    writer.WriteStartElement("Row", 2);
                     int pos = 0;
                     foreach (object it in row)
                     {
@@ -1345,46 +1351,46 @@ namespace Gurux.DLMS.Objects
                                 else if (lastdt != null)
                                 {
                                     lastdt = new GXDateTime(lastdt.Value.AddMinutes(add));
-                                    writer.WriteElementObject("Cell", lastdt);
+                                    writer.WriteElementObject("Cell", lastdt, 2);
                                     continue;
                                 }
                                 else
                                 {
-                                    writer.WriteElementObject("Cell", DateTime.MinValue);
+                                    writer.WriteElementObject("Cell", DateTime.MinValue, 2);
                                 }
                             }
                         }
-                        writer.WriteElementObject("Cell", it);
+                        writer.WriteElementObject("Cell", it, 2);
                     }
                     writer.WriteEndElement();
                 }
-                writer.WriteEndElement();
             }
+            writer.WriteEndElement();
+            writer.WriteStartElement("CaptureObjects", 3);
             if (CaptureObjects != null)
             {
-                writer.WriteStartElement("CaptureObjects");
                 foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in CaptureObjects)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("ObjectType", (int)it.Key.ObjectType);
-                    writer.WriteElementString("LN", it.Key.LogicalName);
-                    writer.WriteElementString("Attribute", it.Value.AttributeIndex);
-                    writer.WriteElementString("Data", it.Value.DataIndex);
+                    writer.WriteStartElement("Item", 3);
+                    writer.WriteElementString("ObjectType", (int)it.Key.ObjectType, 3);
+                    writer.WriteElementString("LN", it.Key.LogicalName, 3);
+                    writer.WriteElementString("Attribute", it.Value.AttributeIndex, 3);
+                    writer.WriteElementString("Data", it.Value.DataIndex, 3);
                     writer.WriteEndElement();
                 }
-                writer.WriteEndElement();
             }
-            writer.WriteElementString("CapturePeriod", CapturePeriod);
-            writer.WriteElementString("SortMethod", (int)SortMethod);
+            writer.WriteEndElement();
+            writer.WriteElementString("CapturePeriod", CapturePeriod, 4);
+            writer.WriteElementString("SortMethod", (int)SortMethod, 5);
+            writer.WriteStartElement("SortObject", 6);
             if (SortObject != null)
             {
-                writer.WriteStartElement("SortObject");
-                writer.WriteElementString("ObjectType", (int)SortObject.ObjectType);
-                writer.WriteElementString("LN", SortObject.LogicalName);
-                writer.WriteEndElement();//SortObject
+                writer.WriteElementString("ObjectType", (int)SortObject.ObjectType, 6);
+                writer.WriteElementString("LN", SortObject.LogicalName, 6);
             }
-            writer.WriteElementString("EntriesInUse", EntriesInUse);
-            writer.WriteElementString("ProfileEntries", ProfileEntries);
+            writer.WriteEndElement();//SortObject
+            writer.WriteElementString("EntriesInUse", EntriesInUse, 7);
+            writer.WriteElementString("ProfileEntries", ProfileEntries, 8);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

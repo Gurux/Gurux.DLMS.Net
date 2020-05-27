@@ -170,6 +170,12 @@ namespace Gurux.DLMS.Objects
                             };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 4;
@@ -409,17 +415,17 @@ namespace Gurux.DLMS.Objects
         {
             if (Target != null)
             {
-                writer.WriteElementString("ObjectType", (int)Target.ObjectType);
-                writer.WriteElementString("LN", Target.LogicalName);
+                writer.WriteElementString("ObjectType", (int)Target.ObjectType, 2);
+                writer.WriteElementString("LN", Target.LogicalName, 2);
             }
-            writer.WriteElementString("ExecutedScriptSelector", ExecutedScriptSelector);
-            writer.WriteElementString("Type", (int)Type);
+            writer.WriteElementString("ExecutedScriptSelector", ExecutedScriptSelector, 2);
+            writer.WriteElementString("Type", (int)Type, 3);
             if (ExecutionTime != null)
             {
-                writer.WriteStartElement("ExecutionTime");
+                writer.WriteStartElement("ExecutionTime", 4);
                 foreach (GXDateTime it in ExecutionTime)
                 {
-                    writer.WriteElementString("Time", it.ToFormatString(CultureInfo.InvariantCulture));
+                    writer.WriteElementString("Time", it, 0);
                 }
                 writer.WriteEndElement();
             }
@@ -431,7 +437,7 @@ namespace Gurux.DLMS.Objects
             if (Target != null)
             {
                 GXDLMSScriptTable target = (GXDLMSScriptTable)reader.Objects.FindByLN(ObjectType.ScriptTable, Target.LogicalName);
-                if (target != Target)
+                if (target != null && target != Target)
                 {
                     Target = target;
                 }

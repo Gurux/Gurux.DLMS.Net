@@ -285,6 +285,12 @@ namespace Gurux.DLMS.Objects
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "Token", "Time", "Description", "DeliveryMethod", "Status" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] { "Enter" };
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 6;
@@ -393,7 +399,7 @@ namespace Gurux.DLMS.Objects
                     }
                     else
                     {
-                        Time = (GXDateTime) e.Value;
+                        Time = (GXDateTime)e.Value;
                     }
                     break;
                 case 4:
@@ -460,23 +466,22 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Token", GXCommon.ToHex(Token, false));
-            writer.WriteElementString("Time", Time);
-
+            writer.WriteElementString("Token", GXCommon.ToHex(Token, false), 2);
+            writer.WriteElementString("Time", Time, 3);
+            writer.WriteStartElement("Descriptions", 4);
             if (Descriptions != null)
             {
-                writer.WriteStartElement("Descriptions");
                 foreach (string it in Descriptions)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("Name", it);
+                    writer.WriteStartElement("Item", 4);
+                    writer.WriteElementString("Name", it, 4);
                     writer.WriteEndElement();
                 }
-                writer.WriteEndElement();
             }
-            writer.WriteElementString("DeliveryMethod", (int)DeliveryMethod);
-            writer.WriteElementString("Status", (int)StatusCode);
-            writer.WriteElementString("Data", DataValue);
+            writer.WriteEndElement();
+            writer.WriteElementString("DeliveryMethod", (int)DeliveryMethod, 5);
+            writer.WriteElementString("Status", (int)StatusCode, 6);
+            writer.WriteElementString("Data", DataValue, 7);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

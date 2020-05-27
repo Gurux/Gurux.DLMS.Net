@@ -37,44 +37,34 @@ using System;
 namespace Gurux.DLMS.Objects.Enums
 {
     /// <summary>
-    /// Security policy Enforces authentication and/or encryption algorithm provided with security suite version 1.
+    /// Enumerated Credit configuration values.
     /// </summary>
     [Flags]
-    public enum SecurityPolicy : byte
+    public enum CreditConfiguration : byte
     {
         /// <summary>
-        /// Security is not used.
+        /// None
         /// </summary>
-        Nothing = 0,
-
+        None,
         /// <summary>
-        /// Request is authenticated.
+        /// Requires visual indication,
         /// </summary>
-        AuthenticatedRequest = 0x4,
-
+        Visual = 0x1,
         /// <summary>
-        /// Request is encrypted.
+        /// Requires confirmation before it can be selected/invoked
         /// </summary>
-        EncryptedRequest = 0x8,
-
+        Confirmation = 0x2,
         /// <summary>
-        /// Request is digitally signed.
+        /// Requires the credit amount to be paid back.
         /// </summary>
-        DigitallySignedRequest = 0x10,
-
+        PaidBack = 0x4,
         /// <summary>
-        /// Response is authenticated.
+        /// Resettable.
         /// </summary>
-        AuthenticatedResponse = 0x20,
-
+        Resettable = 0x8,
         /// <summary>
-        /// Response is encrypted.
+        /// Able to receive credit amounts from tokens.
         /// </summary>
-        EncryptedResponse = 0x40,
-
-        /// <summary>
-        /// Response is digitally signed.
-        /// </summary>
-        DigitallySignedResponse = 0x80
+        Tokens = 0x10
     }
 }

@@ -451,6 +451,10 @@ namespace Gurux.DLMS.Objects
                         reader.Read();
                     }
                 }
+                foreach (GXDLMSObject it in reader.Objects)
+                {
+                    (it as IGXDLMSBase).PostLoad(reader);
+                }
             }
         }
 
@@ -466,47 +470,87 @@ namespace Gurux.DLMS.Objects
             {
                 ignoreDescription = settings.IgnoreDescription;
             }
-            using (GXXmlWriter writer = new GXXmlWriter(filename, settings))
+            using (Stream stream = File.OpenWrite(filename))
             {
-                writer.WriteStartDocument();
-                writer.WriteStartElement("Objects");
+                Save(stream, settings);
+            }
+        }
+
+        /// <summary>
+        /// Save COSEM objects to the file.
+        /// </summary>
+        /// <param name="stream">Stream.</param>
+        /// <param name="settings">XML write settings.</param>
+        public void Save(Stream stream, GXXmlWriterSettings settings)
+        {
+            bool omitXmlDeclaration = false;
+            bool ignoreDescription = false;
+            if (settings != null)
+            {
+                ignoreDescription = settings.IgnoreDescription;
+                omitXmlDeclaration = settings.OmitXmlDeclaration;
+            }
+            int index = 0;
+            if (settings != null)
+            {
+                index = settings.Index;
+            }
+            using (GXXmlWriter writer = new GXXmlWriter(stream, settings))
+            {
+                if (!ignoreDescription)
+                {
+                    writer.WriteStartDocument();
+                }
+                writer.WriteStartElement("Objects", 0);
                 foreach (GXDLMSObject it in this)
                 {
-                    if (settings == null || !settings.Old)
+                    if (index < 2)
                     {
-                        writer.WriteStartElement("GXDLMS" + it.ObjectType.ToString());
+                        if (settings == null || !settings.Old)
+                        {
+                            writer.WriteStartElement("GXDLMS" + it.ObjectType.ToString(), 0);
+                        }
+                        else
+                        {
+                            writer.WriteStartElement("Object", 0);
+                            writer.WriteAttributeString("Type", ((int)it.ObjectType).ToString(), 0);
+                        }
                     }
-                    else
+                    if (index == 0)
                     {
-                        writer.WriteStartElement("Object");
-                        writer.WriteAttributeString("Type", ((int)it.ObjectType).ToString());
-                    }
-                    // Add SN
-                    if (it.ShortName != 0)
-                    {
-                        writer.WriteElementString("SN", it.ShortName);
-                    }
-                    // Add LN
-                    writer.WriteElementString("LN", it.LogicalName);
-                    // Add Version
-                    if (it.Version != 0)
-                    {
-                        writer.WriteElementString("Version", it.Version);
-                    }
-                    // Add description if given.
-                    if (!ignoreDescription && !string.IsNullOrEmpty(it.Description))
-                    {
-                        writer.WriteElementString("Description", it.Description);
+                        // Add SN
+                        if (it.ShortName != 0)
+                        {
+                            writer.WriteElementString("SN", it.ShortName, 0);
+                        }
+                        // Add LN
+                        writer.WriteElementString("LN", it.LogicalName, 0);
+                        // Add Version
+                        if (it.Version != 0)
+                        {
+                            writer.WriteElementString("Version", it.Version, 0);
+                        }
+                        // Add description if given.
+                        if (!ignoreDescription && !string.IsNullOrEmpty(it.Description))
+                        {
+                            writer.WriteElementString("Description", it.Description, 0);
+                        }
                     }
                     if (settings == null || settings.Values)
                     {
                         (it as IGXDLMSBase).Save(writer);
                     }
-                    // Close object.
-                    writer.WriteEndElement();
+                    if (index < 2)
+                    {
+                        // Close object.
+                        writer.WriteEndElement();
+                    }
                 }
                 writer.WriteEndElement();
-                writer.WriteEndDocument();
+                if (!ignoreDescription)
+                {
+                    writer.WriteEndDocument();
+                }
             }
         }
     }

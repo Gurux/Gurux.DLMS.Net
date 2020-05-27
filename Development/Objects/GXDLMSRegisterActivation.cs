@@ -255,6 +255,12 @@ namespace Gurux.DLMS.Objects
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "Register Assignment", "Mask List", "Active Mask" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] { "Add register", "Add mask", "Delete mask" };
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 4;
@@ -451,34 +457,33 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
+            writer.WriteStartElement("RegisterAssignment", 2);
             if (RegisterAssignment != null)
             {
-                writer.WriteStartElement("RegisterAssignment");
                 foreach (GXDLMSObjectDefinition it in RegisterAssignment)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("ObjectType", (int)it.ObjectType);
-                    writer.WriteElementString("LN", it.LogicalName);
+                    writer.WriteStartElement("Item", 2);
+                    writer.WriteElementString("ObjectType", (int)it.ObjectType, 2);
+                    writer.WriteElementString("LN", it.LogicalName, 2);
                     writer.WriteEndElement();
                 }
-                writer.WriteEndElement();
             }
-
+            writer.WriteEndElement();
+            writer.WriteStartElement("MaskList", 3);
             if (MaskList != null)
             {
-                writer.WriteStartElement("MaskList");
                 foreach (KeyValuePair<byte[], byte[]> it in MaskList)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("Mask", GXDLMSTranslator.ToHex(it.Key));
-                    writer.WriteElementString("Index", GXDLMSTranslator.ToHex(it.Value).Replace(" ", ";"));
+                    writer.WriteStartElement("Item", 3);
+                    writer.WriteElementString("Mask", GXDLMSTranslator.ToHex(it.Key), 3);
+                    writer.WriteElementString("Index", GXDLMSTranslator.ToHex(it.Value).Replace(" ", ";"), 3);
                     writer.WriteEndElement();
                 }
-                writer.WriteEndElement();
             }
+            writer.WriteEndElement();
             if (ActiveMask != null)
             {
-                writer.WriteElementString("ActiveMask", GXDLMSTranslator.ToHex(ActiveMask));
+                writer.WriteElementString("ActiveMask", GXDLMSTranslator.ToHex(ActiveMask), 4);
             }
         }
 

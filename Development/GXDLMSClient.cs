@@ -1508,7 +1508,7 @@ namespace Gurux.DLMS
                         type = DataType.Date;
                         target.SetUIDataType(attributeIndex, type);
                     }
-                    value = ChangeType((byte[])value, type, UtcTimeZone);
+                    value = ChangeType((byte[])value, type, UseUtc2NormalTime);
                 }
             }
             ValueEventArgs e = new ValueEventArgs(Settings, target, attributeIndex, 0, columns);

@@ -376,6 +376,12 @@ namespace Gurux.DLMS.Objects
                             };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 15;
@@ -676,29 +682,29 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("InitiatorElectricalPhase", (int)InitiatorElectricalPhase);
-            writer.WriteElementString("DeltaElectricalPhase", (int)DeltaElectricalPhase);
-            writer.WriteElementString("MaxReceivingGain", MaxReceivingGain);
-            writer.WriteElementString("MaxTransmittingGain", MaxTransmittingGain);
-            writer.WriteElementString("SearchInitiatorThreshold", SearchInitiatorThreshold);
-            writer.WriteElementString("MarkFrequency", MarkFrequency);
-            writer.WriteElementString("SpaceFrequency", SpaceFrequency);
-            writer.WriteElementString("MacAddress", MacAddress);
+            writer.WriteElementString("InitiatorElectricalPhase", (int)InitiatorElectricalPhase, 2);
+            writer.WriteElementString("DeltaElectricalPhase", (int)DeltaElectricalPhase, 3);
+            writer.WriteElementString("MaxReceivingGain", MaxReceivingGain, 4);
+            writer.WriteElementString("MaxTransmittingGain", MaxTransmittingGain, 5);
+            writer.WriteElementString("SearchInitiatorThreshold", SearchInitiatorThreshold, 6);
+            writer.WriteElementString("MarkFrequency", MarkFrequency, 7);
+            writer.WriteElementString("SpaceFrequency", SpaceFrequency, 8);
+            writer.WriteElementString("MacAddress", MacAddress, 9);
+            writer.WriteStartElement("MacGroupAddresses", 10);
             if (MacGroupAddresses != null)
             {
-                writer.WriteStartElement("MacGroupAddresses");
                 foreach (UInt16 it in MacGroupAddresses)
                 {
-                    writer.WriteElementString("Value", it.ToString());
+                    writer.WriteElementString("Value", it.ToString(), 10);
                 }
-                writer.WriteEndElement();
             }
-            writer.WriteElementString("Repeater", (int)Repeater);
-            writer.WriteElementString("RepeaterStatus", RepeaterStatus);
-            writer.WriteElementString("MinDeltaCredit", MinDeltaCredit);
-            writer.WriteElementString("InitiatorMacAddress", InitiatorMacAddress);
-            writer.WriteElementString("SynchronizationLocked", SynchronizationLocked);
-            writer.WriteElementString("TransmissionSpeed", (int)TransmissionSpeed);
+            writer.WriteEndElement();
+            writer.WriteElementString("Repeater", (int)Repeater, 11);
+            writer.WriteElementString("RepeaterStatus", RepeaterStatus, 12);
+            writer.WriteElementString("MinDeltaCredit", MinDeltaCredit, 13);
+            writer.WriteElementString("InitiatorMacAddress", InitiatorMacAddress, 14);
+            writer.WriteElementString("SynchronizationLocked", SynchronizationLocked, 15);
+            writer.WriteElementString("TransmissionSpeed", (int)TransmissionSpeed, 16);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

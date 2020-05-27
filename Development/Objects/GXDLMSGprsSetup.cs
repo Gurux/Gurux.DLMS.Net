@@ -165,6 +165,12 @@ namespace Gurux.DLMS.Objects
                             };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 4;
@@ -359,28 +365,28 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("APN", APN);
-            writer.WriteElementString("PINCode", PINCode);
+            writer.WriteElementString("APN", APN, 2);
+            writer.WriteElementString("PINCode", PINCode, 3);
+            writer.WriteStartElement("DefaultQualityOfService", 4);
             if (DefaultQualityOfService != null)
             {
-                writer.WriteStartElement("DefaultQualityOfService");
-                writer.WriteElementString("Precedence", DefaultQualityOfService.Precedence);
-                writer.WriteElementString("Delay", DefaultQualityOfService.Delay);
-                writer.WriteElementString("Reliability", DefaultQualityOfService.Reliability);
-                writer.WriteElementString("PeakThroughput", DefaultQualityOfService.PeakThroughput);
-                writer.WriteElementString("MeanThroughput", DefaultQualityOfService.MeanThroughput);
-                writer.WriteEndElement();
+                writer.WriteElementString("Precedence", DefaultQualityOfService.Precedence, 4);
+                writer.WriteElementString("Delay", DefaultQualityOfService.Delay, 4);
+                writer.WriteElementString("Reliability", DefaultQualityOfService.Reliability, 4);
+                writer.WriteElementString("PeakThroughput", DefaultQualityOfService.PeakThroughput, 4);
+                writer.WriteElementString("MeanThroughput", DefaultQualityOfService.MeanThroughput, 4);
             }
+            writer.WriteEndElement();
+            writer.WriteStartElement("RequestedQualityOfService", 5);
             if (RequestedQualityOfService != null)
             {
-                writer.WriteStartElement("RequestedQualityOfService");
-                writer.WriteElementString("Precedence", RequestedQualityOfService.Precedence);
-                writer.WriteElementString("Delay", RequestedQualityOfService.Delay);
-                writer.WriteElementString("Reliability", RequestedQualityOfService.Reliability);
-                writer.WriteElementString("PeakThroughput", RequestedQualityOfService.PeakThroughput);
-                writer.WriteElementString("MeanThroughput", RequestedQualityOfService.MeanThroughput);
-                writer.WriteEndElement();
+                writer.WriteElementString("Precedence", RequestedQualityOfService.Precedence, 5);
+                writer.WriteElementString("Delay", RequestedQualityOfService.Delay, 5);
+                writer.WriteElementString("Reliability", RequestedQualityOfService.Reliability, 5);
+                writer.WriteElementString("PeakThroughput", RequestedQualityOfService.PeakThroughput, 5);
+                writer.WriteElementString("MeanThroughput", RequestedQualityOfService.MeanThroughput, 5);
             }
+            writer.WriteEndElement();
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

@@ -147,6 +147,12 @@ namespace Gurux.DLMS.Objects
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "Scripts" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] { "Execute" };
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 2;
@@ -390,37 +396,37 @@ namespace Gurux.DLMS.Objects
         {
             if (Scripts != null)
             {
-                writer.WriteStartElement("Scripts");
+                writer.WriteStartElement("Scripts", 2);
                 foreach (GXDLMSScript it in Scripts)
                 {
-                    writer.WriteStartElement("Script");
-                    writer.WriteElementString("ID", it.Id.ToString());
-                    writer.WriteStartElement("Actions");
+                    writer.WriteStartElement("Script", 0);
+                    writer.WriteElementString("ID", it.Id.ToString(), 0);
+                    writer.WriteStartElement("Actions", 0);
                     foreach (GXDLMSScriptAction a in it.Actions)
                     {
-                        writer.WriteStartElement("Action");
-                        writer.WriteElementString("Type", ((int)a.Type).ToString());
+                        writer.WriteStartElement("Action", 0);
+                        writer.WriteElementString("Type", ((int)a.Type).ToString(), 0);
                         if (a.Target == null)
                         {
-                            writer.WriteElementString("ObjectType", (int)ObjectType.None);
-                            writer.WriteElementString("LN", "0.0.0.0.0.0");
-                            writer.WriteElementString("Index", "0");
-                            writer.WriteElementString("ParameterDataType", (int)DataType.None);
-                            writer.WriteElementString("Parameter", "");
+                            writer.WriteElementString("ObjectType", (int)ObjectType.None, 0);
+                            writer.WriteElementString("LN", "0.0.0.0.0.0", 0);
+                            writer.WriteElementString("Index", "0", 0);
+                            writer.WriteElementString("ParameterDataType", (int)DataType.None, 0);
+                            writer.WriteElementString("Parameter", "", 0);
                         }
                         else
                         {
-                            writer.WriteElementString("ObjectType", (int)a.Target.ObjectType);
-                            writer.WriteElementString("LN", a.Target.LogicalName);
-                            writer.WriteElementString("Index", a.Index);
-                            writer.WriteElementString("ParameterDataType", (int)a.ParameterDataType);
+                            writer.WriteElementString("ObjectType", (int)a.Target.ObjectType, 0);
+                            writer.WriteElementString("LN", a.Target.LogicalName, 0);
+                            writer.WriteElementString("Index", a.Index, 0);
+                            writer.WriteElementString("ParameterDataType", (int)a.ParameterDataType, 0);
                             if (a.Parameter is byte[])
                             {
-                                writer.WriteElementString("Parameter", GXCommon.ToHex((byte[])a.Parameter, false));
+                                writer.WriteElementString("Parameter", GXCommon.ToHex((byte[])a.Parameter, false), 0);
                             }
                             else
                             {
-                                writer.WriteElementString("Parameter", Convert.ToString(a.Parameter));
+                                writer.WriteElementString("Parameter", Convert.ToString(a.Parameter), 0);
                             }
                         }
                         writer.WriteEndElement();

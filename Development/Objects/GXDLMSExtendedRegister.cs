@@ -105,7 +105,23 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, Value, new object[] { Scaler, Unit }, Status, CaptureTime };
+            return new object[] { LogicalName, Value, new GXStructure { Scaler, Unit }, Status, CaptureTime };
+        }
+
+        byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
+        {
+            // Resets the value to the default value.
+            // The default value is an instance specific constant.
+            if (e.Index == 1)
+            {
+                Value = null;
+                CaptureTime = DateTime.Now;
+            }
+            else
+            {
+                e.Error = ErrorCode.ReadWriteDenied;
+            }
+            return null;
         }
 
         public override bool IsRead(int index)
@@ -346,11 +362,11 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Unit", (int)Unit);
-            writer.WriteElementString("Scaler", Scaler, 1);
-            writer.WriteElementObject("Value", Value, GetDataType(2), GetUIDataType(2));
-            writer.WriteElementObject("Status", Status);
-            writer.WriteElementString("CaptureTime", CaptureTime);
+            writer.WriteElementString("Unit", (int)Unit, 2);
+            writer.WriteElementString("Scaler", Scaler, 1, 2);
+            writer.WriteElementObject("Value", Value, GetDataType(2), GetUIDataType(2), 3);
+            writer.WriteElementObject("Status", Status, 4);
+            writer.WriteElementString("CaptureTime", CaptureTime, 5);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

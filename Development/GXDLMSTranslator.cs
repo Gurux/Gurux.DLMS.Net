@@ -877,7 +877,7 @@ namespace Gurux.DLMS
                                     }
                                 }
                                 // Remove \r\n.
-                                xml.sb.Length -= 2;
+                                xml.sb.Length -= Environment.NewLine.Length;
                                 if (!PduOnly)
                                 {
                                     xml.AppendLine("</PDU>");
@@ -932,7 +932,7 @@ namespace Gurux.DLMS
                             }
                             xml.AppendLine(PduToXml(data.Data));
                             //Remove \r\n.
-                            xml.sb.Length -= 2;
+                            xml.sb.Length -= Environment.NewLine.Length;
                             if (!PduOnly)
                             {
                                 xml.AppendLine("</PDU>");
@@ -990,7 +990,7 @@ namespace Gurux.DLMS
                             }
                             xml.AppendLine(PduToXml(data.Data));
                             //Remove \r\n.
-                            xml.sb.Length -= 2;
+                            xml.sb.Length -= Environment.NewLine.Length;
                             if (!PduOnly)
                             {
                                 xml.AppendLine("</PDU>");
@@ -3305,6 +3305,10 @@ namespace Gurux.DLMS
                     else if (dt == DataType.BitString)
                     {
                         values.Add(new GXBitString(node.Attributes["Value"].Value));
+                    }
+                    else if (dt == DataType.None)
+                    {
+                        values.Add(null);
                     }
                     else
                     {

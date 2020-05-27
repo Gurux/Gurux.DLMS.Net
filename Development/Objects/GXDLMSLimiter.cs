@@ -283,6 +283,12 @@ namespace Gurux.DLMS.Objects
                             };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 11;
@@ -627,52 +633,51 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
+            writer.WriteStartElement("MonitoredValue", 2);
             if (MonitoredValue != null)
             {
-                writer.WriteStartElement("MonitoredValue");
-                writer.WriteElementString("ObjectType", (int)MonitoredValue.ObjectType);
-                writer.WriteElementString("LN", MonitoredValue.LogicalName);
-                writer.WriteEndElement();
+                writer.WriteElementString("ObjectType", (int)MonitoredValue.ObjectType, 0);
+                writer.WriteElementString("LN", MonitoredValue.LogicalName, 0);
             }
-            writer.WriteElementObject("ThresholdActive", ThresholdActive);
-            writer.WriteElementObject("ThresholdNormal", ThresholdNormal);
-            writer.WriteElementObject("ThresholdEmergency", ThresholdEmergency);
-            writer.WriteElementString("MinOverThresholdDuration", MinOverThresholdDuration);
-            writer.WriteElementString("MinUnderThresholdDuration", MinUnderThresholdDuration);
+            writer.WriteEndElement();
+            writer.WriteElementObject("ThresholdActive", ThresholdActive, 3);
+            writer.WriteElementObject("ThresholdNormal", ThresholdNormal, 4);
+            writer.WriteElementObject("ThresholdEmergency", ThresholdEmergency, 5);
+            writer.WriteElementString("MinOverThresholdDuration", MinOverThresholdDuration, 6);
+            writer.WriteElementString("MinUnderThresholdDuration", MinUnderThresholdDuration, 7);
+            writer.WriteStartElement("EmergencyProfile", 8);
             if (EmergencyProfile != null)
             {
-                writer.WriteStartElement("EmergencyProfile");
-                writer.WriteElementString("ID", EmergencyProfile.ID);
-                writer.WriteElementString("Time", EmergencyProfile.ActivationTime);
-                writer.WriteElementString("Duration", EmergencyProfile.Duration);
-                writer.WriteEndElement();
+                writer.WriteElementString("ID", EmergencyProfile.ID, 0);
+                writer.WriteElementString("Time", EmergencyProfile.ActivationTime, 0);
+                writer.WriteElementString("Duration", EmergencyProfile.Duration, 0);
             }
+            writer.WriteEndElement();
+            writer.WriteStartElement("EmergencyProfileGroupIDs", 9);
             if (EmergencyProfileGroupIDs != null)
             {
-                writer.WriteStartElement("EmergencyProfileGroupIDs");
                 foreach (UInt16 it in EmergencyProfileGroupIDs)
                 {
-                    writer.WriteElementString("Value", it);
+                    writer.WriteElementString("Value", it, 0);
                 }
-                writer.WriteEndElement();
             }
-            writer.WriteElementString("Active", EmergencyProfileActive);
-
+            writer.WriteEndElement();
+            writer.WriteElementString("Active", EmergencyProfileActive, 10);
+            writer.WriteStartElement("ActionOverThreshold", 11);
             if (ActionOverThreshold != null)
             {
-                writer.WriteStartElement("ActionOverThreshold");
-                writer.WriteElementString("LN", ActionOverThreshold.LogicalName);
-                writer.WriteElementString("ScriptSelector", ActionOverThreshold.ScriptSelector);
-                writer.WriteEndElement();
+                writer.WriteElementString("LN", ActionOverThreshold.LogicalName, 0);
+                writer.WriteElementString("ScriptSelector", ActionOverThreshold.ScriptSelector, 0);
             }
+            writer.WriteEndElement();
 
+            writer.WriteStartElement("ActionUnderThreshold", 12);
             if (ActionUnderThreshold != null)
             {
-                writer.WriteStartElement("ActionUnderThreshold");
-                writer.WriteElementString("LN", ActionUnderThreshold.LogicalName);
-                writer.WriteElementString("ScriptSelector", ActionUnderThreshold.ScriptSelector);
-                writer.WriteEndElement();
+                writer.WriteElementString("LN", ActionUnderThreshold.LogicalName, 0);
+                writer.WriteElementString("ScriptSelector", ActionUnderThreshold.ScriptSelector, 0);
             }
+            writer.WriteEndElement();
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

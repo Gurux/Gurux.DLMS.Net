@@ -152,6 +152,11 @@ namespace Gurux.DLMS.Objects
         {
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "ServiceNodeAddress", "BaseNodeAddress" };
         }
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] { "Reset" };
+        }
 
         int IGXDLMSBase.GetAttributeCount()
         {
@@ -223,8 +228,8 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("ServiceNodeAddress", ServiceNodeAddress);
-            writer.WriteElementString("BaseNodeAddress", BaseNodeAddress);
+            writer.WriteElementString("ServiceNodeAddress", ServiceNodeAddress, 2);
+            writer.WriteElementString("BaseNodeAddress", BaseNodeAddress, 3);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

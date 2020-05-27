@@ -40,6 +40,7 @@ using Gurux.DLMS.Secure;
 using Gurux.DLMS.Enums;
 using System.Xml;
 using System.IO;
+using System.ComponentModel;
 
 namespace Gurux.DLMS
 {
@@ -309,6 +310,24 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Is string serialized as hex.
+        /// </summary>
+        /// <seealso cref="MessageToXml"/>
+        /// <seealso cref="PduOnly"/>
+        [DefaultValue(false)]
+        public bool ShowStringAsHex
+        {
+            get
+            {
+                return translator.ShowStringAsHex;
+            }
+            set
+            {
+                translator.ShowStringAsHex = value;
+            }
+        }
+
+        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="type">XML type.</param>
@@ -444,7 +463,7 @@ namespace Gurux.DLMS
                 {
                     if (m1.Name == "AssociationRequest")
                     {
-                        GXDLMSXmlSettings s = new GXDLMSXmlSettings(translator.OutputType, translator.Hex, translator.ShowStringAsHex, translator.tagsByName);
+                        GXDLMSXmlSettings s = new GXDLMSXmlSettings(translator.OutputType, translator.ShowStringAsHex, translator.Hex, translator.tagsByName);
                         s.settings.ClientAddress = Settings.ClientAddress;
                         s.settings.ServerAddress = Settings.ServerAddress;
                         ((GXCiphering)s.settings.Cipher).TestMode = this.Ciphering.TestMode;
@@ -540,7 +559,7 @@ namespace Gurux.DLMS
                                 }
                             }
 
-                            GXDLMSXmlSettings s = new GXDLMSXmlSettings(translator.OutputType, translator.Hex, translator.ShowStringAsHex, translator.tagsByName); ;
+                            GXDLMSXmlSettings s = new GXDLMSXmlSettings(translator.OutputType, translator.ShowStringAsHex, translator.Hex, translator.tagsByName); ;
                             s.settings.ClientAddress = Settings.ClientAddress;
                             s.settings.ServerAddress = Settings.ServerAddress;
                             byte[] reply = translator.XmlToPdu(node.OuterXml, s);

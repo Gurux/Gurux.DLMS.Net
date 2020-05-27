@@ -78,7 +78,7 @@ namespace Gurux.DLMS.Objects
         : base(ObjectType.SecuritySetup, ln, sn)
         {
             Certificates = new List<GXDLMSCertificateInfo>();
-            Version = 1;
+            Version = 0;
         }
 
         /// <summary>
@@ -448,7 +448,7 @@ namespace Gurux.DLMS.Objects
                         }
                     }
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     e.Error = ErrorCode.ReadWriteDenied;
                 }
@@ -554,6 +554,18 @@ namespace Gurux.DLMS.Objects
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "Security Policy",
                               "Security Suite", "Client System Title", "Server System Title" , "Certificates"
                             };
+        }
+
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            if (Version == 0)
+            {
+                return new string[] { "Security activate", "Key transfer" };
+            }
+            return new string[] { "Security activate", "Key transfer", "Key agreement",
+                "Generate key pair", "Generate certificate request",
+                "Import certificate", "Export certificate", "Remove certificate" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -786,23 +798,29 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("SecurityPolicy", (int)SecurityPolicy);
-            writer.WriteElementString("SecurityPolicy0", (int)SecurityPolicy0);
-            writer.WriteElementString("SecuritySuite", (int)SecuritySuite);
-            writer.WriteElementString("ClientSystemTitle", GXDLMSTranslator.ToHex(ClientSystemTitle));
-            writer.WriteElementString("ServerSystemTitle", GXDLMSTranslator.ToHex(ServerSystemTitle));
+            if (Version == 0)
+            {
+                writer.WriteElementString("SecurityPolicy", (int)SecurityPolicy, 2);
+            }
+            else
+            {
+                writer.WriteElementString("SecurityPolicy0", (int)SecurityPolicy0, 2);
+            }
+            writer.WriteElementString("SecuritySuite", (int)SecuritySuite, 3);
+            writer.WriteElementString("ClientSystemTitle", GXDLMSTranslator.ToHex(ClientSystemTitle), 4);
+            writer.WriteElementString("ServerSystemTitle", GXDLMSTranslator.ToHex(ServerSystemTitle), 5);
             if (Certificates != null)
             {
-                writer.WriteStartElement("Certificates");
+                writer.WriteStartElement("Certificates", 6);
                 foreach (GXDLMSCertificateInfo it in Certificates)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("Entity", (int)it.Entity);
-                    writer.WriteElementString("Type", (int)it.Type);
-                    writer.WriteElementString("SerialNumber", it.SerialNumber);
-                    writer.WriteElementString("Issuer", it.Issuer);
-                    writer.WriteElementString("Subject", it.Subject);
-                    writer.WriteElementString("SubjectAltName", it.SubjectAltName);
+                    writer.WriteStartElement("Item", 0);
+                    writer.WriteElementString("Entity", (int)it.Entity, 0);
+                    writer.WriteElementString("Type", (int)it.Type, 0);
+                    writer.WriteElementString("SerialNumber", it.SerialNumber, 0);
+                    writer.WriteElementString("Issuer", it.Issuer, 0);
+                    writer.WriteElementString("Subject", it.Subject, 0);
+                    writer.WriteElementString("SubjectAltName", it.SubjectAltName, 0);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();

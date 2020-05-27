@@ -183,6 +183,12 @@ namespace Gurux.DLMS.Objects
                             };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 6;
@@ -366,23 +372,23 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Mode", (int)Mode);
+            writer.WriteElementString("Mode", (int)Mode, 2);
             if (ListeningWindow != null)
             {
-                writer.WriteStartElement("ListeningWindow");
+                writer.WriteStartElement("ListeningWindow", 3);
                 foreach (KeyValuePair<GXDateTime, GXDateTime> it in ListeningWindow)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("Start", it.Key.ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
-                    writer.WriteElementString("End", it.Value.ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
+                    writer.WriteStartElement("Item", 0);
+                    writer.WriteElementString("Start", it.Key, 0);
+                    writer.WriteElementString("End", it.Value, 0);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();
             }
-            writer.WriteElementString("Status", (int)Status);
-            writer.WriteElementString("NumberOfCalls", NumberOfCalls);
-            writer.WriteElementString("NumberOfRingsInListeningWindow", NumberOfRingsInListeningWindow);
-            writer.WriteElementString("NumberOfRingsOutListeningWindow", NumberOfRingsOutListeningWindow);
+            writer.WriteElementString("Status", (int)Status, 4);
+            writer.WriteElementString("NumberOfCalls", NumberOfCalls, 5);
+            writer.WriteElementString("NumberOfRingsInListeningWindow", NumberOfRingsInListeningWindow, 6);
+            writer.WriteElementString("NumberOfRingsOutListeningWindow", NumberOfRingsOutListeningWindow, 6);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

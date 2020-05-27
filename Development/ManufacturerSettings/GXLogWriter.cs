@@ -378,7 +378,7 @@ namespace GXDLMS.ManufacturerSettings
             string str = DateTime.Now.ToLongTimeString() + " " + text;
             if (value != null)
             {
-                str += "\r\n" + BitConverter.ToString(value).Replace('-', ' ');
+                str += Environment.NewLine + BitConverter.ToString(value).Replace('-', ' ');
             }
             System.Diagnostics.Trace.WriteLine(str);
         }

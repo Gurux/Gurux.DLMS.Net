@@ -205,6 +205,12 @@ namespace Gurux.DLMS.Objects
                             };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] { "Reset" };
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 8;
@@ -464,37 +470,37 @@ namespace Gurux.DLMS.Objects
         {
             if (SynchronizationRegister != null)
             {
-                writer.WriteStartElement("SynchronizationRegisters");
+                writer.WriteStartElement("SynchronizationRegisters", 2);
                 foreach (KeyValuePair<UInt16, UInt32> it in SynchronizationRegister)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("Key", it.Key);
-                    writer.WriteElementString("Value", it.Value);
+                    writer.WriteStartElement("Item", 0);
+                    writer.WriteElementString("Key", it.Key, 0);
+                    writer.WriteElementString("Value", it.Value, 0);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();
             }
-            writer.WriteElementString("PhysicalLayerDesynchronization", PhysicalLayerDesynchronization);
-            writer.WriteElementString("TimeOutNotAddressedDesynchronization", TimeOutNotAddressedDesynchronization);
-            writer.WriteElementString("TimeOutFrameNotOkDesynchronization", TimeOutFrameNotOkDesynchronization);
-            writer.WriteElementString("WriteRequestDesynchronization", WriteRequestDesynchronization);
-            writer.WriteElementString("WrongInitiatorDesynchronization", WrongInitiatorDesynchronization);
+            writer.WriteElementString("PhysicalLayerDesynchronization", PhysicalLayerDesynchronization, 3);
+            writer.WriteElementString("TimeOutNotAddressedDesynchronization", TimeOutNotAddressedDesynchronization, 3);
+            writer.WriteElementString("TimeOutFrameNotOkDesynchronization", TimeOutFrameNotOkDesynchronization, 3);
+            writer.WriteElementString("WriteRequestDesynchronization", WriteRequestDesynchronization, 3);
+            writer.WriteElementString("WrongInitiatorDesynchronization", WrongInitiatorDesynchronization, 3);
             if (BroadcastFramesCounter != null)
             {
-                writer.WriteStartElement("BroadcastFramesCounters");
+                writer.WriteStartElement("BroadcastFramesCounters", 4);
                 foreach (KeyValuePair<UInt16, UInt32> it in BroadcastFramesCounter)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("Key", it.Key);
-                    writer.WriteElementString("Value", it.Value);
+                    writer.WriteStartElement("Item", 0);
+                    writer.WriteElementString("Key", it.Key, 0);
+                    writer.WriteElementString("Value", it.Value, 0);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();
             }
-            writer.WriteElementString("RepetitionsCounter", RepetitionsCounter);
-            writer.WriteElementString("TransmissionsCounter", TransmissionsCounter);
-            writer.WriteElementString("CrcOkFramesCounter", CrcOkFramesCounter);
-            writer.WriteElementString("CrcNOkFramesCounter", CrcNOkFramesCounter);
+            writer.WriteElementString("RepetitionsCounter", RepetitionsCounter, 5);
+            writer.WriteElementString("TransmissionsCounter", TransmissionsCounter, 6);
+            writer.WriteElementString("CrcOkFramesCounter", CrcOkFramesCounter, 7);
+            writer.WriteElementString("CrcNOkFramesCounter", CrcNOkFramesCounter, 8);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

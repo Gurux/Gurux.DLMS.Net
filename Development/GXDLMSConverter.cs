@@ -134,7 +134,7 @@ namespace Gurux.DLMS
                     list.Add("A=" + it.OBIS[0] + ", B=" + it.OBIS[1]
                             + ", C=" + it.OBIS[2] + ", D=" + it.OBIS[3]
                             + ", E=" + it.OBIS[4] + ", F=" + it.OBIS[5]
-                            + "\r\n" + it.Description);
+                            + "\n" + it.Description);
                 }
                 else
                 {
@@ -633,9 +633,9 @@ namespace Gurux.DLMS
                 case DataType.Structure:
                     return typeof(GXStructure);
                 case DataType.Bcd:
-                    return typeof(string);
+                    return typeof(byte);
                 case DataType.BitString:
-                    return typeof(string);
+                    return typeof(GXBitString);
                 case DataType.Boolean:
                     return typeof(bool);
                 case DataType.Date:
@@ -782,6 +782,38 @@ namespace Gurux.DLMS
         {
             return GXCommon.ToLogicalName(value);
         }
+
+        /// <summary>
+        /// Change value using DLMS data type.
+        /// </summary>
+        /// <param name="value">Value to convert.</param>
+        /// <param name="type">DLMS data type.</param>
+        /// <param name="isHex">Is value given as hex.</param>
+        /// <returns>Converted value.</returns>
+        public static object ChangeFromDLMSType(object value, DataType type, bool isHex)
+        {
+            Type t = GXCommon.GetDataType(type);
+            if (isHex && value is string)
+            {
+                var dict = new Dictionary<Type, Func<string, object>>
+                {
+                    { typeof(byte),   s => byte.Parse(s, NumberStyles.AllowHexSpecifier) },
+                    { typeof(sbyte),  s => sbyte.Parse(s, NumberStyles.AllowHexSpecifier) },
+                    { typeof(short),  s => short.Parse(s, NumberStyles.AllowHexSpecifier) },
+                    { typeof(ushort), s => ushort.Parse(s, NumberStyles.AllowHexSpecifier) },
+                    { typeof(int),    s => int.Parse(s, NumberStyles.AllowHexSpecifier) },
+                    { typeof(uint),   s => uint.Parse(s, NumberStyles.AllowHexSpecifier) },
+                    { typeof(long),   s => long.Parse(s, NumberStyles.AllowHexSpecifier) },
+                    { typeof(ulong),  s => ulong.Parse(s, NumberStyles.AllowHexSpecifier) },
+                };
+                if (dict.ContainsKey(t))
+                {
+                    return dict[t]((string)value);
+                }
+            }
+            return Convert.ChangeType(value, t);
+        }
+
         /// <summary>
         /// Convert logical name to byte array.
         /// </summary>

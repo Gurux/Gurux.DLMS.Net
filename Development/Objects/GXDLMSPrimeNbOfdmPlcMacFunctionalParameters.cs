@@ -309,6 +309,12 @@ namespace Gurux.DLMS.Objects
                 "NodeHierarchyLevel", "BeaconSlotCount", "BeaconRxSlot", "BeaconTxSlot", "BeaconRxFrequency" , "BeaconTxFrequency", "Capabilities" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 14;
@@ -467,19 +473,19 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("LnId", LnId);
-            writer.WriteElementString("LsId", LsId);
-            writer.WriteElementString("SId", SId);
-            writer.WriteElementString("SNa", GXCommon.ToHex(Sna, false));
-            writer.WriteElementString("State", (int)State);
-            writer.WriteElementString("ScpLength", ScpLength);
-            writer.WriteElementString("NodeHierarchyLevel", NodeHierarchyLevel);
-            writer.WriteElementString("BeaconSlotCount", BeaconSlotCount);
-            writer.WriteElementString("BeaconRxSlot", BeaconRxSlot);
-            writer.WriteElementString("BeaconTxSlot", BeaconTxSlot);
-            writer.WriteElementString("BeaconRxFrequency", BeaconRxFrequency);
-            writer.WriteElementString("BeaconTxFrequency", BeaconTxFrequency);
-            writer.WriteElementString("Capabilities", (int)Capabilities);
+            writer.WriteElementString("LnId", LnId, 2);
+            writer.WriteElementString("LsId", LsId, 3);
+            writer.WriteElementString("SId", SId, 4);
+            writer.WriteElementString("SNa", GXCommon.ToHex(Sna, false), 5);
+            writer.WriteElementString("State", (int)State, 6);
+            writer.WriteElementString("ScpLength", ScpLength, 7);
+            writer.WriteElementString("NodeHierarchyLevel", NodeHierarchyLevel, 8);
+            writer.WriteElementString("BeaconSlotCount", BeaconSlotCount, 9);
+            writer.WriteElementString("BeaconRxSlot", BeaconRxSlot, 10);
+            writer.WriteElementString("BeaconTxSlot", BeaconTxSlot, 11);
+            writer.WriteElementString("BeaconRxFrequency", BeaconRxFrequency, 12);
+            writer.WriteElementString("BeaconTxFrequency", BeaconTxFrequency, 13);
+            writer.WriteElementString("Capabilities", (int)Capabilities, 14);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

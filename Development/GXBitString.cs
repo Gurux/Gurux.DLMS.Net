@@ -63,64 +63,57 @@ namespace Gurux.DLMS
         /// Constructor.
         /// </summary>
         /// <param name="value">Bitstring value.</param>
-        public GXBitString(String value)
+        public GXBitString(string value)
         {
             Value = value;
         }
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="value">byte array.</param>
-        public GXBitString(byte[] value)
+        private static void ToBitString(StringBuilder sb, byte value, int count)
         {
-            StringBuilder sb = new StringBuilder();
-            foreach (byte it in value)
+            if (count > 8)
             {
-                GXCommon.ToBitString(sb, it, 8);
+                count = 8;
             }
-            Value = sb.ToString();
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="value">byte array.</param>
-        public GXBitString(byte[] value, int index, int count)
-        {
-            StringBuilder sb = new StringBuilder();
-            foreach (byte it in value)
+            for(int pos = 0; pos != count; ++pos)
             {
-                if (index != 0)
+                if ((value & (1 << pos)) != 0)
                 {
-                    --index;
+                    sb.Append("1");
                 }
                 else
                 {
-                    if (count < 1)
-                    {
-                        break;
-                    }
-                    GXCommon.ToBitString(sb, it, count);
-                    count -= 8;
+                    sb.Append("0");
                 }
             }
-            Value = sb.ToString();
         }
 
         /// <summary>
-        /// Constructor.
+        /// Convert integer value to BitString.
         /// </summary>
-        /// <param name="value">byte.</param>
-        public GXBitString(byte value, int count)
+        /// <param name="value">Value to convert.</param>
+        /// <param name="count">Amount of bits.</param>
+        /// <returns>Bitstring.</returns>
+        public static string ToBitString(UInt32 value, int count)
         {
             StringBuilder sb = new StringBuilder();
-            GXCommon.ToBitString(sb, value, 8);
-            if (count != 8)
+            ToBitString(sb, (byte)(value & 0xFF), count);
+            if (count > 8)
             {
-                sb.Remove(count, 8 - count);
+                ToBitString(sb, (byte)((value >> 8) & 0xFF), count - 8);
+                if (count > 16)
+                {
+                    ToBitString(sb, (byte)((value >> 16) & 0xFF), count - 16);
+                    if (count > 24)
+                    {
+                        ToBitString(sb, (byte)((value >> 24) & 0xFF), count - 24);
+                    }
+                }
             }
-            Value = sb.ToString();
+            if (sb.Length > count)
+            {
+                sb.Remove(count, sb.Length - count);
+            }
+            return sb.ToString();
         }
 
         public override string ToString()
@@ -128,21 +121,23 @@ namespace Gurux.DLMS
             return Value;
         }
 
-        private static void FillWithZeroes(GXByteBuffer bb, int size)
-        {
-            if (bb.Size < size)
-            {
-                bb.Set(0, new byte[size - bb.Size]);
-            }
-        }
-        private static GXByteBuffer GetByteBuffer(string value, int size)
-        {
-            GXByteBuffer bb = new GXByteBuffer();
-            GXCommon.SetBitString(bb, value, false);
-            FillWithZeroes(bb, size);
-            return bb;
-        }
 
+        private UInt32 ToNumeric()
+        {
+            UInt32 ret = 0;
+            int pos;
+            if (Value != null)
+            {
+                for (pos = 0; pos != Value.Length; ++pos)
+                {
+                    if (Value[pos] == '1')
+                    {
+                        ret |= (UInt32)(1 << pos);
+                    }
+                }
+            }
+            return ret;
+        }
 
         TypeCode IConvertible.GetTypeCode()
         {
@@ -166,44 +161,37 @@ namespace Gurux.DLMS
 
         byte IConvertible.ToByte(IFormatProvider provider)
         {
-            GXByteBuffer bb = GetByteBuffer(Value, 1);
-            return bb.GetUInt8();
+            return (byte)ToNumeric();
         }
 
         short IConvertible.ToInt16(IFormatProvider provider)
         {
-            GXByteBuffer bb = GetByteBuffer(Value, 2);
-            return bb.GetInt16();
+            return (Int16)ToNumeric();
         }
 
         ushort IConvertible.ToUInt16(IFormatProvider provider)
         {
-            GXByteBuffer bb = GetByteBuffer(Value, 2);
-            return bb.GetUInt16();
+            return (UInt16)ToNumeric();
         }
 
         int IConvertible.ToInt32(IFormatProvider provider)
         {
-            GXByteBuffer bb = GetByteBuffer(Value, 4);
-            return bb.GetInt32();
+            return (Int32)ToNumeric();
         }
 
         uint IConvertible.ToUInt32(IFormatProvider provider)
         {
-            GXByteBuffer bb = GetByteBuffer(Value, 4);
-            return bb.GetUInt32();
+            return (UInt32)ToNumeric();
         }
 
         long IConvertible.ToInt64(IFormatProvider provider)
         {
-            GXByteBuffer bb = GetByteBuffer(Value, 8);
-            return bb.GetInt64();
+            return (Int64)ToNumeric();
         }
 
         ulong IConvertible.ToUInt64(IFormatProvider provider)
         {
-            GXByteBuffer bb = GetByteBuffer(Value, 8);
-            return bb.GetUInt64();
+            return (UInt64)ToNumeric();
         }
 
         float IConvertible.ToSingle(IFormatProvider provider)

@@ -74,10 +74,10 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Statistic counter of successfully transmitted data packets. 
+        /// Statistic counter of successfully transmitted data packets.
         /// </summary>
         /// <remarks>
-        /// PIB attribute: 0x0101. 
+        /// PIB attribute: 0x0101.
         /// </remarks>
         [XmlIgnore()]
         public UInt32 TxDataPacketCount
@@ -90,7 +90,7 @@ namespace Gurux.DLMS.Objects
         ///Statistic counter of successfully received data packets.
         /// </summary>
         /// <remarks>
-        /// PIB attribute: 0x0102. 
+        /// PIB attribute: 0x0102.
         /// </remarks>
         [XmlIgnore()]
         public UInt32 RxDataPacketCount
@@ -103,7 +103,7 @@ namespace Gurux.DLMS.Objects
         /// Statistic counter of successfully transmitted command packets.
         /// </summary>
         /// <remarks>
-        /// PIB attribute: 0x0103. 
+        /// PIB attribute: 0x0103.
         /// </remarks>
         [XmlIgnore()]
         public UInt32 TxCmdPacketCount
@@ -116,7 +116,7 @@ namespace Gurux.DLMS.Objects
         /// Statistic counter of successfully received command packets.
         /// </summary>
         /// <remarks>
-        /// PIB attribute: 0x0104. 
+        /// PIB attribute: 0x0104.
         /// </remarks>
         [XmlIgnore()]
         public UInt32 RxCmdPacketCount
@@ -127,10 +127,10 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Counts the number of times when CSMA backoffs reach macMaxCSMABackoffs. 
+        /// Counts the number of times when CSMA backoffs reach macMaxCSMABackoffs.
         /// </summary>
         /// <remarks>
-        /// PIB attribute: 0x0105. 
+        /// PIB attribute: 0x0105.
         /// </remarks>
         [XmlIgnore()]
         public UInt32 CSMAFailCount
@@ -143,7 +143,7 @@ namespace Gurux.DLMS.Objects
         /// Counts the number of times when an ACK is not received while transmitting a unicast data frame.
         /// </summary>
         /// <remarks>
-        /// PIB attribute: 0x0106. 
+        /// PIB attribute: 0x0106.
         /// </remarks>
         [XmlIgnore()]
         public UInt32 CSMANoAckCount
@@ -156,7 +156,7 @@ namespace Gurux.DLMS.Objects
         /// Statistic counter of the number of frames received with bad CRC.
         /// </summary>
         /// <remarks>
-        /// PIB attribute: 0x0109. 
+        /// PIB attribute: 0x0109.
         /// </remarks>
         [XmlIgnore()]
         public UInt32 BadCrcCount
@@ -166,10 +166,10 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Statistic counter of the number of broadcast frames sent. 
+        /// Statistic counter of the number of broadcast frames sent.
         /// </summary>
         /// <remarks>
-        /// PIB attribute: 0x0108. 
+        /// PIB attribute: 0x0108.
         /// </remarks>
         [XmlIgnore()]
         public UInt32 TxDataBroadcastCount
@@ -182,7 +182,7 @@ namespace Gurux.DLMS.Objects
         /// Statistic counter of successfully received broadcast packets
         /// </summary>
         /// <remarks>
-        /// PIB attribute: 0x0107. 
+        /// PIB attribute: 0x0107.
         /// </remarks>
         [XmlIgnore()]
         public UInt32 RxDataBroadcastCount
@@ -274,6 +274,12 @@ namespace Gurux.DLMS.Objects
         {
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "TxDataPacketCount", "RxDataPacketCount", "TxCmdPacketCount",
            "RxCmdPacketCount", " CSMAFailCount", "CSMANoAckCount", "BadCrcCount", "TxDataBroadcastCount", " RxDataBroadcastCount" };
+        }
+
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] { "Reset" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -441,15 +447,15 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("TxDataPacketCount", TxDataPacketCount);
-            writer.WriteElementString("RxDataPacketCount", RxDataPacketCount);
-            writer.WriteElementString("TxCmdPacketCount", TxCmdPacketCount);
-            writer.WriteElementString("RxCmdPacketCount", RxCmdPacketCount);
-            writer.WriteElementString("CSMAFailCount", CSMAFailCount);
-            writer.WriteElementString("CSMANoAckCount", CSMANoAckCount);
-            writer.WriteElementString("BadCrcCount", BadCrcCount);
-            writer.WriteElementString("TxDataBroadcastCount", TxDataBroadcastCount);
-            writer.WriteElementString("RxDataBroadcastCount", RxDataBroadcastCount);
+            writer.WriteElementString("TxDataPacketCount", TxDataPacketCount, 2);
+            writer.WriteElementString("RxDataPacketCount", RxDataPacketCount, 3);
+            writer.WriteElementString("TxCmdPacketCount", TxCmdPacketCount, 4);
+            writer.WriteElementString("RxCmdPacketCount", RxCmdPacketCount, 5);
+            writer.WriteElementString("CSMAFailCount", CSMAFailCount, 6);
+            writer.WriteElementString("CSMANoAckCount", CSMANoAckCount, 7);
+            writer.WriteElementString("BadCrcCount", BadCrcCount, 8);
+            writer.WriteElementString("TxDataBroadcastCount", TxDataBroadcastCount, 9);
+            writer.WriteElementString("RxDataBroadcastCount", RxDataBroadcastCount, 10);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

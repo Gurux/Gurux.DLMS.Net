@@ -32,49 +32,32 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-
 namespace Gurux.DLMS.Objects.Enums
 {
     /// <summary>
-    /// Security policy Enforces authentication and/or encryption algorithm provided with security suite version 1.
+    /// Credit Status.
     /// </summary>
-    [Flags]
-    public enum SecurityPolicy : byte
+    public enum CreditStatus : byte
     {
         /// <summary>
-        /// Security is not used.
+        /// Enabled state.
         /// </summary>
-        Nothing = 0,
-
+        Enabled,
         /// <summary>
-        /// Request is authenticated.
+        /// Selectable state.
         /// </summary>
-        AuthenticatedRequest = 0x4,
-
+        Selectable,
         /// <summary>
-        /// Request is encrypted.
+        /// Selected/Invoked state.
         /// </summary>
-        EncryptedRequest = 0x8,
-
+        Invoked,
         /// <summary>
-        /// Request is digitally signed.
+        /// In use state.
         /// </summary>
-        DigitallySignedRequest = 0x10,
-
+        InUse,
         /// <summary>
-        /// Response is authenticated.
+        /// Consumed state.
         /// </summary>
-        AuthenticatedResponse = 0x20,
-
-        /// <summary>
-        /// Response is encrypted.
-        /// </summary>
-        EncryptedResponse = 0x40,
-
-        /// <summary>
-        /// Response is digitally signed.
-        /// </summary>
-        DigitallySignedResponse = 0x80
+        Consumed
     }
 }

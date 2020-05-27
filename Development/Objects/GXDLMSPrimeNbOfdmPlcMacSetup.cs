@@ -211,6 +211,12 @@ namespace Gurux.DLMS.Objects
                 "MacPromotionPduTxPeriod", "MacBeaconsPerFrame", "MacScpMaxTxAttempts", "MacCtlReTxTimer", "MacMaxCtlReTx" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 8;
@@ -315,13 +321,13 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("MacMinSwitchSearchTime", MacMinSwitchSearchTime);
-            writer.WriteElementString("MacMaxPromotionPdu", MacMaxPromotionPdu);
-            writer.WriteElementString("MacPromotionPduTxPeriod", MacPromotionPduTxPeriod);
-            writer.WriteElementString("MacBeaconsPerFrame", MacBeaconsPerFrame);
-            writer.WriteElementString("MacScpMaxTxAttempts", MacScpMaxTxAttempts);
-            writer.WriteElementString("MacCtlReTxTimer", MacCtlReTxTimer);
-            writer.WriteElementString("MacMaxCtlReTx", MacMaxCtlReTx);
+            writer.WriteElementString("MacMinSwitchSearchTime", MacMinSwitchSearchTime, 2);
+            writer.WriteElementString("MacMaxPromotionPdu", MacMaxPromotionPdu, 3);
+            writer.WriteElementString("MacPromotionPduTxPeriod", MacPromotionPduTxPeriod, 4);
+            writer.WriteElementString("MacBeaconsPerFrame", MacBeaconsPerFrame, 5);
+            writer.WriteElementString("MacScpMaxTxAttempts", MacScpMaxTxAttempts, 6);
+            writer.WriteElementString("MacCtlReTxTimer", MacCtlReTxTimer, 7);
+            writer.WriteElementString("MacMaxCtlReTx", MacMaxCtlReTx, 8);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

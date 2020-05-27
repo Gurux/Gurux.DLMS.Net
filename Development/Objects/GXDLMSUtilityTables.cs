@@ -144,6 +144,12 @@ namespace Gurux.DLMS.Objects
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "Table Id", "Length", "Buffer" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 4;
@@ -228,8 +234,8 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Id", TableId);
-            writer.WriteElementString("Buffer", GXCommon.ToHex(Buffer, true));
+            writer.WriteElementString("Id", TableId, 2);
+            writer.WriteElementString("Buffer", GXCommon.ToHex(Buffer, true), 3);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

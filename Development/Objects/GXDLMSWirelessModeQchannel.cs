@@ -166,6 +166,12 @@ namespace Gurux.DLMS.Objects
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "Address State", "Device Address", "Address Mask" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 4;
@@ -242,7 +248,7 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("AddressState", (int)AddressState);
+            writer.WriteElementString("AddressState", (int)AddressState, 2);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

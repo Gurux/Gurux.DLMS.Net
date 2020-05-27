@@ -114,6 +114,12 @@ namespace Gurux.DLMS.Objects
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "MAC Address" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 2;
@@ -190,7 +196,7 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("MacAddress", MacAddress);
+            writer.WriteElementString("MacAddress", MacAddress, 2);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

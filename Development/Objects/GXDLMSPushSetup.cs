@@ -231,9 +231,15 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Push Object List",
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Object List",
                               "Send Destination And Method", "Communication Window", "Randomisation Start Interval", "Number Of Retries", "Repetition Delay"
                             };
+        }
+
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] { "Push" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -365,7 +371,7 @@ namespace Gurux.DLMS.Objects
                 List<object> it;
                 if (e.Value != null)
                 {
-                    foreach (object t in (IEnumerable<object>) e.Value)
+                    foreach (object t in (IEnumerable<object>)e.Value)
                     {
                         if (t is List<object>)
                         {
@@ -492,36 +498,36 @@ namespace Gurux.DLMS.Objects
         {
             if (PushObjectList != null)
             {
-                writer.WriteStartElement("ObjectList");
+                writer.WriteStartElement("ObjectList", 2);
                 foreach (KeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in PushObjectList)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("ObjectType", (int)it.Key.ObjectType);
-                    writer.WriteElementString("LN", it.Key.LogicalName);
-                    writer.WriteElementString("AI", it.Value.AttributeIndex);
-                    writer.WriteElementString("DI", it.Value.DataIndex);
+                    writer.WriteStartElement("Item", 0);
+                    writer.WriteElementString("ObjectType", (int)it.Key.ObjectType, 0);
+                    writer.WriteElementString("LN", it.Key.LogicalName, 0);
+                    writer.WriteElementString("AI", it.Value.AttributeIndex, 0);
+                    writer.WriteElementString("DI", it.Value.DataIndex, 0);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();
             }
-            writer.WriteElementString("Service", (int)Service);
-            writer.WriteElementString("Destination", Destination);
-            writer.WriteElementString("Message", (int)Message);
+            writer.WriteElementString("Service", (int)Service, 3);
+            writer.WriteElementString("Destination", Destination, 4);
+            writer.WriteElementString("Message", (int)Message, 5);
             if (CommunicationWindow != null)
             {
-                writer.WriteStartElement("CommunicationWindow");
+                writer.WriteStartElement("CommunicationWindow", 6);
                 foreach (KeyValuePair<GXDateTime, GXDateTime> it in CommunicationWindow)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("Start", it.Key.ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
-                    writer.WriteElementString("End", it.Value.ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
+                    writer.WriteStartElement("Item", 0);
+                    writer.WriteElementString("Start", it.Key, 0);
+                    writer.WriteElementString("End", it.Value, 0);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();
             }
-            writer.WriteElementString("RandomisationStartInterval", RandomisationStartInterval);
-            writer.WriteElementString("NumberOfRetries", NumberOfRetries);
-            writer.WriteElementString("RepetitionDelay", RepetitionDelay);
+            writer.WriteElementString("RandomisationStartInterval", RandomisationStartInterval, 7);
+            writer.WriteElementString("NumberOfRetries", NumberOfRetries, 8);
+            writer.WriteElementString("RepetitionDelay", RepetitionDelay, 9);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

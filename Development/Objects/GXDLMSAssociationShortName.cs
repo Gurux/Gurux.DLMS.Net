@@ -223,6 +223,15 @@ namespace Gurux.DLMS.Objects
                             };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] { "Getlist by classid", "Getobj by logicalname",
+                "Read by logicalname", "Get attributes&services", "Change LLS secret",
+                "Change HLS secret", "Get HLS challenge", "Reply to HLS challenge",
+                "Add user", "Remove user"};
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             if (Version < 2)
@@ -513,8 +522,8 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Secret", GXDLMSTranslator.ToHex(Secret));
-            writer.WriteElementString("SecuritySetupReference", SecuritySetupReference);
+            writer.WriteElementString("Secret", GXDLMSTranslator.ToHex(Secret), 2);
+            writer.WriteElementString("SecuritySetupReference", SecuritySetupReference, 3);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

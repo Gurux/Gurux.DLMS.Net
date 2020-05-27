@@ -372,6 +372,13 @@ namespace Gurux.DLMS.Objects
                             };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] { "Image transfer initiate", "Image block transfer",
+                "Image verify", "Image activate"};
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 7;
@@ -573,24 +580,24 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("ImageBlockSize", ImageBlockSize);
-            writer.WriteElementString("ImageTransferredBlocksStatus", ImageTransferredBlocksStatus);
-            writer.WriteElementString("ImageFirstNotTransferredBlockNumber", ImageFirstNotTransferredBlockNumber);
-            writer.WriteElementString("ImageTransferEnabled", ImageTransferEnabled);
-            writer.WriteElementString("ImageTransferStatus", (int)ImageTransferStatus);
+            writer.WriteElementString("ImageBlockSize", ImageBlockSize, 2);
+            writer.WriteElementString("ImageTransferredBlocksStatus", ImageTransferredBlocksStatus, 3);
+            writer.WriteElementString("ImageFirstNotTransferredBlockNumber", ImageFirstNotTransferredBlockNumber, 4);
+            writer.WriteElementString("ImageTransferEnabled", ImageTransferEnabled, 5);
+            writer.WriteElementString("ImageTransferStatus", (int)ImageTransferStatus, 6);
+            writer.WriteStartElement("ImageActivateInfo", 7);
             if (ImageActivateInfo != null)
             {
-                writer.WriteStartElement("ImageActivateInfo");
                 foreach (GXDLMSImageActivateInfo it in ImageActivateInfo)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("Size", it.Size);
-                    writer.WriteElementString("Identification", GXCommon.ToHex(it.Identification, false));
-                    writer.WriteElementString("Signature", GXCommon.ToHex(it.Signature, false));
+                    writer.WriteStartElement("Item", 7);
+                    writer.WriteElementString("Size", it.Size, 7);
+                    writer.WriteElementString("Identification", GXCommon.ToHex(it.Identification, false), 7);
+                    writer.WriteElementString("Signature", GXCommon.ToHex(it.Signature, false), 7);
                     writer.WriteEndElement();
                 }
-                writer.WriteEndElement();
             }
+            writer.WriteEndElement();
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

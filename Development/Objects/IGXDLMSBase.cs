@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,16 +19,16 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: https://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ namespace Gurux.DLMS.Objects
         /// If attribute is static and already read or device is returned HW error it is not returned.
         /// </remarks>
         /// <param name="all">All items are returned even if they are read already.</param>
-        /// <returns>Collection of attributes to read.</returns>                
+        /// <returns>Collection of attributes to read.</returns>
         int[] GetAttributeIndexToRead(bool all);
 
         /// <summary>
@@ -73,6 +73,11 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <returns></returns>
         string[] GetNames();
+
+        /// <summary>
+        /// Returns names of method indexes.
+        /// </summary>
+        string[] GetMethodNames();
 
         /// <summary>
         /// Returns value of given attribute.

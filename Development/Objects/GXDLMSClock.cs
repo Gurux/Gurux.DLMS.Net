@@ -385,6 +385,13 @@ namespace Gurux.DLMS.Objects
                             };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] {"Adjust to quarter", "Adjust to measuring period",
+                "Adjust to minute", "Adjust to preset time", "Preset adjusting time", "Shift time" };
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 9;
@@ -666,14 +673,14 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Time", Time);
-            writer.WriteElementString("TimeZone", TimeZone);
-            writer.WriteElementString("Status", ((int)Status));
-            writer.WriteElementString("Begin", Begin);
-            writer.WriteElementString("End", End);
-            writer.WriteElementString("Deviation", Deviation);
-            writer.WriteElementString("Enabled", Enabled);
-            writer.WriteElementString("ClockBase", ((int)ClockBase));
+            writer.WriteElementString("Time", Time, 2);
+            writer.WriteElementString("TimeZone", TimeZone, 3);
+            writer.WriteElementString("Status", (int)Status, 4);
+            writer.WriteElementString("Begin", Begin, 5);
+            writer.WriteElementString("End", End, 6);
+            writer.WriteElementString("Deviation", Deviation, 7);
+            writer.WriteElementString("Enabled", Enabled, 8);
+            writer.WriteElementString("ClockBase", (int)ClockBase, 9);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

@@ -32,6 +32,8 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using System.ComponentModel;
+
 namespace Gurux.DLMS.Objects
 {
     /// <summary>
@@ -61,6 +63,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Are default values serialized.
         /// </summary>
+        [DefaultValue(true)]
         public bool IgnoreDefaultValues
         {
             get;
@@ -79,6 +82,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Is Description serialized.
         /// </summary>
+        [DefaultValue(false)]
         public bool IgnoreDescription
         {
             get;
@@ -88,7 +92,30 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// GXDateTime values are serialised using meter time, not local time.
         /// </summary>
+        [DefaultValue(false)]
         public bool UseMeterTime
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Is XML declaration skipped.
+        /// </summary>
+        public bool OmitXmlDeclaration
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Attribute index to Get.
+        /// </summary>
+        /// <remarks>
+        /// If index is given only that attribute is retreaved.
+        /// </remarks>
+        [DefaultValue(0)]
+        public int Index
         {
             get;
             set;

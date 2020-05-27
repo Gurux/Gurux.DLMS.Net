@@ -172,6 +172,12 @@ namespace Gurux.DLMS.Objects
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "CrcIncorrectCount", "CrcFailedCount", "TxDropCount", "RxDropCount" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] { "Reset" };
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 5;
@@ -255,10 +261,10 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("CrcIncorrectCount", CrcIncorrectCount);
-            writer.WriteElementString("CrcFailedCount", CrcFailedCount);
-            writer.WriteElementString("TxDropCount", TxDropCount);
-            writer.WriteElementString("RxDropCount", RxDropCount);
+            writer.WriteElementString("CrcIncorrectCount", CrcIncorrectCount, 2);
+            writer.WriteElementString("CrcFailedCount", CrcFailedCount, 3);
+            writer.WriteElementString("TxDropCount", TxDropCount, 4);
+            writer.WriteElementString("RxDropCount", RxDropCount, 5);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

@@ -149,6 +149,12 @@ namespace Gurux.DLMS.Objects
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "Sap Assignment List" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] { "Connect logical device" };
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 2;
@@ -264,7 +270,7 @@ namespace Gurux.DLMS.Objects
                 }
                 if (id == 0)
                 {
-                    foreach(var it in SapAssignmentList)
+                    foreach (var it in SapAssignmentList)
                     {
                         if (it.Value == str)
                         {
@@ -304,12 +310,12 @@ namespace Gurux.DLMS.Objects
         {
             if (SapAssignmentList != null)
             {
-                writer.WriteStartElement("SapAssignmentList");
+                writer.WriteStartElement("SapAssignmentList", 2);
                 foreach (KeyValuePair<UInt16, string> it in SapAssignmentList)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("SAP", it.Key);
-                    writer.WriteElementString("LDN", it.Value);
+                    writer.WriteStartElement("Item", 0);
+                    writer.WriteElementString("SAP", it.Key, 0);
+                    writer.WriteElementString("LDN", it.Value, 0);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();

@@ -183,6 +183,12 @@ namespace Gurux.DLMS.Objects
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "NodeId", "SubnetId", "DomainId", "SelfIdentification", "ProgramId", "UniqueNodeId" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 7;
@@ -321,11 +327,11 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("NodeId", NodeId);
-            writer.WriteElementString("SubnetId", SubnetId);
-            writer.WriteElementString("DomainId", DomainId);
-            writer.WriteElementString("ProgramId", ProgramId);
-            writer.WriteElementString("UniqueNodeId", UniqueNodeId);
+            writer.WriteElementString("NodeId", NodeId, 2);
+            writer.WriteElementString("SubnetId", SubnetId, 3);
+            writer.WriteElementString("DomainId", DomainId, 4);
+            writer.WriteElementString("ProgramId", ProgramId, 5);
+            writer.WriteElementString("UniqueNodeId", UniqueNodeId, 6);
         }
 
 

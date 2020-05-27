@@ -119,6 +119,12 @@ namespace Gurux.DLMS.Objects
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "Value" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 2;
@@ -205,7 +211,7 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementObject("Value", Value, GetDataType(2), GetUIDataType(2));
+            writer.WriteElementObject("Value", Value, GetDataType(2), GetUIDataType(2), 2);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

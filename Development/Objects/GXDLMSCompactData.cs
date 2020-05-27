@@ -206,6 +206,12 @@ namespace Gurux.DLMS.Objects
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "Buffer", "CaptureObjects", "TemplateId", "TemplateDescription", "CaptureMethod" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] {"Reset", "Capture" };
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 6;
@@ -455,24 +461,24 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Buffer", GXCommon.ToHex(Buffer, false));
+            writer.WriteElementString("Buffer", GXCommon.ToHex(Buffer, false), 2);
+            writer.WriteStartElement("CaptureObjects", 3);
             if (CaptureObjects.Count != 0)
             {
-                writer.WriteStartElement("CaptureObjects");
                 foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in CaptureObjects)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("ObjectType", (int)it.Key.ObjectType);
-                    writer.WriteElementString("LN", it.Key.LogicalName);
-                    writer.WriteElementString("Attribute", it.Value.AttributeIndex);
-                    writer.WriteElementString("Data", it.Value.DataIndex);
+                    writer.WriteStartElement("Item", 3);
+                    writer.WriteElementString("ObjectType", (int)it.Key.ObjectType, 3);
+                    writer.WriteElementString("LN", it.Key.LogicalName, 3);
+                    writer.WriteElementString("Attribute", it.Value.AttributeIndex, 3);
+                    writer.WriteElementString("Data", it.Value.DataIndex, 3);
                     writer.WriteEndElement();
                 }
-                writer.WriteEndElement();
             }
-            writer.WriteElementString("TemplateId", TemplateId);
-            writer.WriteElementString("TemplateDescription", GXCommon.ToHex(TemplateDescription, false));
-            writer.WriteElementString("CaptureMethod", (int)CaptureMethod);
+            writer.WriteEndElement();
+            writer.WriteElementString("TemplateId", TemplateId, 4);
+            writer.WriteElementString("TemplateDescription", GXCommon.ToHex(TemplateDescription, false), 5);
+            writer.WriteElementString("CaptureMethod", (int)CaptureMethod, 6);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

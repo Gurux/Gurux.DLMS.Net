@@ -227,6 +227,12 @@ namespace Gurux.DLMS.Objects
                             };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 11;
@@ -405,16 +411,16 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("PlcSignalQualityStatus", PlcSignalQualityStatus);
-            writer.WriteElementString("TransceiverState", TransceiverState);
-            writer.WriteElementString("ReceivedMessageStatus", ReceivedMessageStatus);
-            writer.WriteElementString("NoReceiveBuffer", NoReceiveBuffer);
-            writer.WriteElementString("TransmitNoData", TransmitNoData);
-            writer.WriteElementString("UnexpectedPlcCommandCount", UnexpectedPlcCommandCount);
-            writer.WriteElementString("BacklogOverflows", BacklogOverflows);
-            writer.WriteElementString("LateAck", LateAck);
-            writer.WriteElementString("FrequencyInvalid", FrequencyInvalid);
-            writer.WriteElementString("PlcTestRate", PlcTestRate);
+            writer.WriteElementString("PlcSignalQualityStatus", PlcSignalQualityStatus, 2);
+            writer.WriteElementString("TransceiverState", TransceiverState, 3);
+            writer.WriteElementString("ReceivedMessageStatus", ReceivedMessageStatus, 4);
+            writer.WriteElementString("NoReceiveBuffer", NoReceiveBuffer, 5);
+            writer.WriteElementString("TransmitNoData", TransmitNoData, 6);
+            writer.WriteElementString("UnexpectedPlcCommandCount", UnexpectedPlcCommandCount, 7);
+            writer.WriteElementString("BacklogOverflows", BacklogOverflows, 8);
+            writer.WriteElementString("LateAck", LateAck, 9);
+            writer.WriteElementString("FrequencyInvalid", FrequencyInvalid, 10);
+            writer.WriteElementString("PlcTestRate", PlcTestRate, 11);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

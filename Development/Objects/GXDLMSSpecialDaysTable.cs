@@ -152,6 +152,12 @@ namespace Gurux.DLMS.Objects
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "Entries" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] { "Insert", "Delete" };
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 2;
@@ -339,13 +345,13 @@ namespace Gurux.DLMS.Objects
         {
             if (Entries != null)
             {
-                writer.WriteStartElement("Entries");
+                writer.WriteStartElement("Entries", 2);
                 foreach (GXDLMSSpecialDay it in Entries)
                 {
-                    writer.WriteStartElement("Entry");
-                    writer.WriteElementString("Index", it.Index);
-                    writer.WriteElementString("Date", it.Date.ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
-                    writer.WriteElementString("DayId", it.DayId);
+                    writer.WriteStartElement("Entry", 0);
+                    writer.WriteElementString("Index", it.Index, 0);
+                    writer.WriteElementString("Date", it.Date, 0);
+                    writer.WriteElementString("DayId", it.DayId, 0);
                     writer.WriteEndElement();//Entry
                 }
                 writer.WriteEndElement();//Entries

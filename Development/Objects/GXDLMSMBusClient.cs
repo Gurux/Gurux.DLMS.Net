@@ -52,9 +52,8 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSMBusClient()
-        : base(ObjectType.MBusClient)
+        : this(null)
         {
-            CaptureDefinition = new List<KeyValuePair<string, string>>();
         }
 
         /// <summary>
@@ -62,7 +61,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSMBusClient(string ln)
-        : base(ObjectType.MBusClient, ln, 0)
+        : this(ln, 0)
         {
             CaptureDefinition = new List<KeyValuePair<string, string>>();
         }
@@ -296,6 +295,13 @@ namespace Gurux.DLMS.Objects
                              "Manufacturer ID", "Version", "Device Type", "Access Number", "Status", "Alarm",
                              "Configuration", "Encryption Key Status"
                             };
+        }
+
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] { "Slave install", "Slave deinstall", "Capture",
+                "Reset alarm", "Synchronize clock", "Data send", "Set encryption key", "Transfer key"};
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -574,32 +580,32 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("MBusPortReference", MBusPortReference);
+            writer.WriteElementString("MBusPortReference", MBusPortReference, 2);
+            writer.WriteStartElement("CaptureDefinition", 3);
             if (CaptureDefinition != null)
             {
-                writer.WriteStartElement("CaptureDefinition");
                 foreach (KeyValuePair<string, string> it in CaptureDefinition)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("Data", it.Key);
-                    writer.WriteElementString("Value", it.Value);
+                    writer.WriteStartElement("Item", 3);
+                    writer.WriteElementString("Data", it.Key, 3);
+                    writer.WriteElementString("Value", it.Value, 3);
                     writer.WriteEndElement();
                 }
-                writer.WriteEndElement();
             }
-            writer.WriteElementString("CapturePeriod", CapturePeriod);
-            writer.WriteElementString("PrimaryAddress", PrimaryAddress);
-            writer.WriteElementString("IdentificationNumber", IdentificationNumber);
-            writer.WriteElementString("ManufacturerID", ManufacturerID);
-            writer.WriteElementString("DataHeaderVersion", DataHeaderVersion);
-            writer.WriteElementString("DeviceType", DeviceType);
-            writer.WriteElementString("AccessNumber", AccessNumber);
-            writer.WriteElementString("Status", Status);
-            writer.WriteElementString("Alarm", Alarm);
+            writer.WriteEndElement();
+            writer.WriteElementString("CapturePeriod", CapturePeriod, 4);
+            writer.WriteElementString("PrimaryAddress", PrimaryAddress, 5);
+            writer.WriteElementString("IdentificationNumber", IdentificationNumber, 6);
+            writer.WriteElementString("ManufacturerID", ManufacturerID, 7);
+            writer.WriteElementString("DataHeaderVersion", DataHeaderVersion, 8);
+            writer.WriteElementString("DeviceType", DeviceType, 9);
+            writer.WriteElementString("AccessNumber", AccessNumber, 10);
+            writer.WriteElementString("Status", Status, 11);
+            writer.WriteElementString("Alarm", Alarm, 12);
             if (Version > 0)
             {
-                writer.WriteElementString("Configuration", Configuration);
-                writer.WriteElementString("EncryptionKeyStatus", (int)EncryptionKeyStatus);
+                writer.WriteElementString("Configuration", Configuration, 13);
+                writer.WriteElementString("EncryptionKeyStatus", (int)EncryptionKeyStatus, 14);
             }
         }
 

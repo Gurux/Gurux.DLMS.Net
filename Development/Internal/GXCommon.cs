@@ -38,6 +38,7 @@ using System.Text;
 using Gurux.DLMS.Enums;
 using System.Diagnostics;
 using System.Net;
+using Gurux.DLMS.Objects;
 
 namespace Gurux.DLMS.Internal
 {
@@ -2578,7 +2579,7 @@ namespace Gurux.DLMS.Internal
                 SetObjectCount(tmp.Length, buff);
                 buff.Set(tmp);
             }
-            else if (value is sbyte[])
+            else if (value is byte[]  || value is sbyte[])
             {
                 SetObjectCount(((byte[])value).Length, buff);
                 buff.Set((byte[])value);
@@ -2973,6 +2974,24 @@ namespace Gurux.DLMS.Internal
             {
                 xml.AppendLine(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.OctetString, null, ((IPAddress)value).GetAddressBytes());
             }
+            else if (value is GXDLMSObjectCollection)
+            {
+                xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array, null, null);
+                foreach (GXDLMSObject it in value as GXDLMSObjectCollection)
+                {
+                    DatatoXml(it, xml);
+                }
+                xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array);
+            }
+            else if (value is GXDLMSObject)
+            {
+                xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure, null, null);
+                GXDLMSObject obj = value as GXDLMSObject;
+                xml.AppendLine(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.UInt16, null, obj.ObjectType);
+                xml.AppendLine(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.UInt8, null, obj.Version);
+                xml.AppendLine(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.OctetString, null, obj.LogicalName);
+                xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure);
+            }
             else
             {
                 DataType dt = GetDLMSDataType(value.GetType());
@@ -3102,6 +3121,18 @@ namespace Gurux.DLMS.Internal
                 return IdisSystemTitleToString(st);
             }
             return DlmsSystemTitleToString(st);
+        }
+
+        // Reserved for internal use.
+        public static byte SwapBits(byte value)
+        {
+            byte ret = 0;
+            for (int pos = 0; pos != 7; ++pos)
+            {
+                ret = (byte)((ret << 1) | (value & 0x01));
+                value = (byte)(value >> 1);
+            }
+            return ret;
         }
     }
 }

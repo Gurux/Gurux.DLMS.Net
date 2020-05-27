@@ -33,48 +33,24 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace Gurux.DLMS.Objects.Enums
 {
     /// <summary>
-    /// Security policy Enforces authentication and/or encryption algorithm provided with security suite version 1.
+    /// Enumerates payment Modes.
     /// </summary>
-    [Flags]
-    public enum SecurityPolicy : byte
+    public enum PaymentMode : byte
     {
         /// <summary>
-        /// Security is not used.
+        /// Credit mode.
         /// </summary>
-        Nothing = 0,
-
+        Credit = 1,
         /// <summary>
-        /// Request is authenticated.
+        /// Prepayment mode.
         /// </summary>
-        AuthenticatedRequest = 0x4,
-
-        /// <summary>
-        /// Request is encrypted.
-        /// </summary>
-        EncryptedRequest = 0x8,
-
-        /// <summary>
-        /// Request is digitally signed.
-        /// </summary>
-        DigitallySignedRequest = 0x10,
-
-        /// <summary>
-        /// Response is authenticated.
-        /// </summary>
-        AuthenticatedResponse = 0x20,
-
-        /// <summary>
-        /// Response is encrypted.
-        /// </summary>
-        EncryptedResponse = 0x40,
-
-        /// <summary>
-        /// Response is digitally signed.
-        /// </summary>
-        DigitallySignedResponse = 0x80
+        Prepayment = 2
     }
 }

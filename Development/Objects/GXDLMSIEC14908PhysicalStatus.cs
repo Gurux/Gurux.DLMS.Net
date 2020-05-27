@@ -224,6 +224,12 @@ namespace Gurux.DLMS.Objects
                             };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 11;
@@ -401,16 +407,16 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("TransmissionErrors", TransmissionErrors);
-            writer.WriteElementString("TransmitFailure", TransmitFailure);
-            writer.WriteElementString("TransmitRetries", TransmitRetries);
-            writer.WriteElementString("ReceiveFull", ReceiveFull);
-            writer.WriteElementString("LostMessages", LostMessages);
-            writer.WriteElementString("MissedMessages", MissedMessages);
-            writer.WriteElementString("Layer2Received", Layer2Received);
-            writer.WriteElementString("Layer3Received", Layer3Received);
-            writer.WriteElementString("MessagesReceived", MessagesReceived);
-            writer.WriteElementString("MessagesValidated", MessagesValidated);
+            writer.WriteElementString("TransmissionErrors", TransmissionErrors, 2);
+            writer.WriteElementString("TransmitFailure", TransmitFailure, 3);
+            writer.WriteElementString("TransmitRetries", TransmitRetries, 4);
+            writer.WriteElementString("ReceiveFull", ReceiveFull, 5);
+            writer.WriteElementString("LostMessages", LostMessages, 6);
+            writer.WriteElementString("MissedMessages", MissedMessages, 7);
+            writer.WriteElementString("Layer2Received", Layer2Received, 8);
+            writer.WriteElementString("Layer3Received", Layer3Received, 9);
+            writer.WriteElementString("MessagesReceived", MessagesReceived, 10);
+            writer.WriteElementString("MessagesValidated", MessagesValidated, 11);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

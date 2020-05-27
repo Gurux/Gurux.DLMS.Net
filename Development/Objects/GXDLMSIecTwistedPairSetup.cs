@@ -171,6 +171,12 @@ namespace Gurux.DLMS.Objects
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "Mode", "Speed", "PrimaryAddresses", "Tabis" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 5;
@@ -319,14 +325,14 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Mode", (int)Mode);
-            writer.WriteElementString("Speed", (int)Speed);
-            writer.WriteElementString("LN", GXDLMSTranslator.ToHex(PrimaryAddresses));
+            writer.WriteElementString("Mode", (int)Mode, 2);
+            writer.WriteElementString("Speed", (int)Speed, 3);
+            writer.WriteElementString("LN", GXDLMSTranslator.ToHex(PrimaryAddresses), 4);
             if (Tabis != null)
             {
                 byte[] tmp = new byte[Tabis.Length];
                 Buffer.BlockCopy(Tabis, 0, tmp, 0, Tabis.Length);
-                writer.WriteElementString("LN", GXDLMSTranslator.ToHex(tmp));
+                writer.WriteElementString("LN", GXDLMSTranslator.ToHex(tmp), 5);
             }
         }
 

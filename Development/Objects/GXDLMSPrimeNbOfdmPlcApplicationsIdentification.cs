@@ -150,6 +150,12 @@ namespace Gurux.DLMS.Objects
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "FirmwareVersion", "VendorId", "ProductId" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 4;
@@ -230,9 +236,9 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("FirmwareVersion", FirmwareVersion);
-            writer.WriteElementString("VendorId", VendorId);
-            writer.WriteElementString("ProductId", ProductId);
+            writer.WriteElementString("FirmwareVersion", FirmwareVersion, 2);
+            writer.WriteElementString("VendorId", VendorId, 3);
+            writer.WriteElementString("ProductId", ProductId, 4);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

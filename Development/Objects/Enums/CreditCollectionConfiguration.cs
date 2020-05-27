@@ -37,44 +37,26 @@ using System;
 namespace Gurux.DLMS.Objects.Enums
 {
     /// <summary>
-    /// Security policy Enforces authentication and/or encryption algorithm provided with security suite version 1.
+    /// Defines behaviour under specific conditions
     /// </summary>
     [Flags]
-    public enum SecurityPolicy : byte
+    public enum CreditCollectionConfiguration
     {
         /// <summary>
-        /// Security is not used.
+        /// None.
         /// </summary>
-        Nothing = 0,
-
+        None = 0,
         /// <summary>
-        /// Request is authenticated.
+        /// Collect when supply disconnected.
         /// </summary>
-        AuthenticatedRequest = 0x4,
-
+        Disconnected = 0x1,
         /// <summary>
-        /// Request is encrypted.
+        /// Collect in load limiting periods.
         /// </summary>
-        EncryptedRequest = 0x8,
-
+        LoadLimiting = 0x2,
         /// <summary>
-        /// Request is digitally signed.
+        /// Collect in friendly credit periods.
         /// </summary>
-        DigitallySignedRequest = 0x10,
-
-        /// <summary>
-        /// Response is authenticated.
-        /// </summary>
-        AuthenticatedResponse = 0x20,
-
-        /// <summary>
-        /// Response is encrypted.
-        /// </summary>
-        EncryptedResponse = 0x40,
-
-        /// <summary>
-        /// Response is digitally signed.
-        /// </summary>
-        DigitallySignedResponse = 0x80
+        FriendlyCredit = 0x4
     }
 }

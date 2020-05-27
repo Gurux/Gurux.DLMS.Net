@@ -38,6 +38,7 @@ using System.Text;
 using System.Xml.Serialization;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
 {
@@ -364,7 +365,7 @@ namespace Gurux.DLMS.Objects
         ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
         /// </remarks>
         [XmlIgnore()]
-        public string ChargeConfiguration
+        public ChargeConfiguration ChargeConfiguration
         {
             get;
             set;
@@ -519,6 +520,13 @@ namespace Gurux.DLMS.Objects
     "ChargeConfiguration", "LastCollectionTime", "LastCollectionAmount", "TotalAmountRemaining", "Proportion"};
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] {"Update unit charge", "Activate passive unit charge",
+                "Collect", "Update total amount remaining", "Set total amount remaining" };
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 13;
@@ -644,7 +652,7 @@ namespace Gurux.DLMS.Objects
                 case 8:
                     return Period;
                 case 9:
-                    return ChargeConfiguration;
+                    return GXBitString.ToBitString((UInt32)ChargeConfiguration, 2);
                 case 10:
                     return LastCollectionTime;
                 case 11:
@@ -693,7 +701,22 @@ namespace Gurux.DLMS.Objects
                 }
                 ObjectType ot = (ObjectType)Convert.ToInt32(tmp2[0]);
                 string ln = GXCommon.ToLogicalName(tmp2[1]);
-                charge.Commodity.Target = Parent.FindByLN(ot, ln);
+                if (ot != ObjectType.None)
+                {
+                    if (Parent != null)
+                    {
+                        charge.Commodity.Target = Parent.FindByLN(ot, ln);
+                    }
+                    else
+                    {
+                        charge.Commodity.Target = GXDLMSClient.CreateObject(ot);
+                        charge.Commodity.Target.LogicalName = ln;
+                    }
+                }
+                else
+                {
+                    charge.Commodity.Target = null;
+                }
                 charge.Commodity.Index = (sbyte)tmp2[2];
                 List<GXChargeTable> list = new List<GXChargeTable>();
                 foreach (object tmp3 in (IEnumerable<object>)tmp[2])
@@ -767,7 +790,7 @@ namespace Gurux.DLMS.Objects
                     Period = (UInt32)e.Value;
                     break;
                 case 9:
-                    ChargeConfiguration = Convert.ToString(e.Value);
+                    ChargeConfiguration = (ChargeConfiguration)Convert.ToInt32(e.Value);
                     break;
                 case 10:
                     if (e.Value is GXDateTime)
@@ -820,7 +843,7 @@ namespace Gurux.DLMS.Objects
                 UnitChargeActivationTime = new GXDateTime(tmp, System.Globalization.CultureInfo.InvariantCulture);
             }
             Period = (UInt16)reader.ReadElementContentAsInt("Period");
-            ChargeConfiguration = reader.ReadElementContentAsString("ChargeConfiguration");
+            ChargeConfiguration = (ChargeConfiguration) reader.ReadElementContentAsInt("ChargeConfiguration");
             tmp = reader.ReadElementContentAsString("LastCollectionTime");
             if (tmp != null)
             {
@@ -831,25 +854,25 @@ namespace Gurux.DLMS.Objects
             Proportion = (UInt16)reader.ReadElementContentAsInt("Proportion");
         }
 
-        private static void SaveUnitChargeActive(GXXmlWriter writer, string name, GXUnitCharge charge)
+        private static void SaveUnitChargeActive(GXXmlWriter writer, string name, GXUnitCharge charge, int index)
         {
 
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("TotalAmountPaid", TotalAmountPaid);
-            writer.WriteElementString("ChargeType", (int)ChargeType);
-            writer.WriteElementString("Priority", Priority);
-            SaveUnitChargeActive(writer, "UnitChargeActive", UnitChargeActive);
-            SaveUnitChargeActive(writer, "UnitChargePassive", UnitChargePassive);
-            writer.WriteElementString("UnitChargeActivationTime", UnitChargeActivationTime);
-            writer.WriteElementString("Period", Period);
-            writer.WriteElementString("ChargeConfiguration", ChargeConfiguration);
-            writer.WriteElementString("LastCollectionTime", LastCollectionTime);
-            writer.WriteElementString("LastCollectionAmount", LastCollectionAmount);
-            writer.WriteElementString("TotalAmountRemaining", TotalAmountRemaining);
-            writer.WriteElementString("Proportion", Proportion);
+            writer.WriteElementString("TotalAmountPaid", TotalAmountPaid, 2);
+            writer.WriteElementString("ChargeType", (int)ChargeType, 3);
+            writer.WriteElementString("Priority", Priority, 4);
+            SaveUnitChargeActive(writer, "UnitChargeActive", UnitChargeActive, 5);
+            SaveUnitChargeActive(writer, "UnitChargePassive", UnitChargePassive, 6);
+            writer.WriteElementString("UnitChargeActivationTime", UnitChargeActivationTime, 7);
+            writer.WriteElementString("Period", Period, 8);
+            writer.WriteElementString("ChargeConfiguration", (int) ChargeConfiguration, 9);
+            writer.WriteElementString("LastCollectionTime", LastCollectionTime, 10);
+            writer.WriteElementString("LastCollectionAmount", LastCollectionAmount, 11);
+            writer.WriteElementString("TotalAmountRemaining", TotalAmountRemaining, 12);
+            writer.WriteElementString("Proportion", Proportion, 13);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

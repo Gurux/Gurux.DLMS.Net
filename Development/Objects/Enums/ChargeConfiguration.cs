@@ -37,44 +37,22 @@ using System;
 namespace Gurux.DLMS.Objects.Enums
 {
     /// <summary>
-    /// Security policy Enforces authentication and/or encryption algorithm provided with security suite version 1.
+    /// Charge configuration enumeration types.
     /// </summary>
     [Flags]
-    public enum SecurityPolicy : byte
+    public enum ChargeConfiguration : int
     {
         /// <summary>
-        /// Security is not used.
+        /// None.
         /// </summary>
-        Nothing = 0,
-
+        None = 0,
         /// <summary>
-        /// Request is authenticated.
+        /// Percentage based collection.
         /// </summary>
-        AuthenticatedRequest = 0x4,
-
+        PercentageBasedCollection = 0x1,
         /// <summary>
-        /// Request is encrypted.
+        /// Continuous collection.
         /// </summary>
-        EncryptedRequest = 0x8,
-
-        /// <summary>
-        /// Request is digitally signed.
-        /// </summary>
-        DigitallySignedRequest = 0x10,
-
-        /// <summary>
-        /// Response is authenticated.
-        /// </summary>
-        AuthenticatedResponse = 0x20,
-
-        /// <summary>
-        /// Response is encrypted.
-        /// </summary>
-        EncryptedResponse = 0x40,
-
-        /// <summary>
-        /// Response is digitally signed.
-        /// </summary>
-        DigitallySignedResponse = 0x80
+        ContinuousCollection = 0x2
     }
 }

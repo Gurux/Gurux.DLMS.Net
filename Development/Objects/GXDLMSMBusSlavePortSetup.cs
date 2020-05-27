@@ -169,6 +169,12 @@ namespace Gurux.DLMS.Objects
                             };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 5;
@@ -297,10 +303,10 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("DefaultBaud", (int)DefaultBaud);
-            writer.WriteElementString("AvailableBaud", (int)AvailableBaud);
-            writer.WriteElementString("AddressState", (int)AddressState);
-            writer.WriteElementString("BusAddress", BusAddress);
+            writer.WriteElementString("DefaultBaud", (int)DefaultBaud, 2);
+            writer.WriteElementString("AvailableBaud", (int)AvailableBaud, 3);
+            writer.WriteElementString("AddressState", (int)AddressState, 4);
+            writer.WriteElementString("BusAddress", BusAddress, 5);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

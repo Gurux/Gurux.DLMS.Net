@@ -942,7 +942,7 @@ namespace Gurux.DLMS.Reader
             reply.Error = 0;
             object eop = (byte)0x7E;
             //In network connection terminator is not used.
-            if (Client.InterfaceType == InterfaceType.WRAPPER && Media is GXNet)
+            if (Client.InterfaceType == InterfaceType.WRAPPER)
             {
                 eop = null;
             }

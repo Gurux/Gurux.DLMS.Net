@@ -190,7 +190,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, CurrentAverageValue, LastAverageValue, new object[] { Scaler, Unit },
+            return new object[] { LogicalName, CurrentAverageValue, LastAverageValue, new GXStructure{ Scaler, Unit },
                               Status, CaptureTime, StartTimeCurrent, Period, NumberOfPeriods
                             };
         }
@@ -263,6 +263,12 @@ namespace Gurux.DLMS.Objects
                              "Period",
                              "Number Of Periods"
                             };
+        }
+
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] { "Reset", "Next period" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -546,6 +552,26 @@ namespace Gurux.DLMS.Objects
             }
         }
 
+        /// <summary>
+        /// Reset value.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] Reset(GXDLMSClient client)
+        {
+            return client.Method(this, 1, (sbyte)0);
+        }
+
+        /// <summary>
+        /// Closes the current period and starts a new one.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] NextPeriod(GXDLMSClient client)
+        {
+            return client.Method(this, 2, (sbyte)0);
+        }
+
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             // Resets the value to the default value.
@@ -599,15 +625,15 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementObject("CurrentAverageValue", CurrentAverageValue);
-            writer.WriteElementObject("LastAverageValue", LastAverageValue);
-            writer.WriteElementString("Scaler", Scaler, 1);
-            writer.WriteElementString("Unit", (int)Unit);
-            writer.WriteElementObject("Status", Status);
-            writer.WriteElementString("CaptureTime", CaptureTime);
-            writer.WriteElementString("StartTimeCurrent", StartTimeCurrent);
-            writer.WriteElementString("Period", Period);
-            writer.WriteElementString("NumberOfPeriods", NumberOfPeriods);
+            writer.WriteElementObject("CurrentAverageValue", CurrentAverageValue, GetDataType(2), GetUIDataType(2), 2);
+            writer.WriteElementObject("LastAverageValue", LastAverageValue, 3);
+            writer.WriteElementString("Scaler", Scaler, 1, 4);
+            writer.WriteElementString("Unit", (int)Unit, 5);
+            writer.WriteElementObject("Status", Status, 6);
+            writer.WriteElementString("CaptureTime", CaptureTime, 7);
+            writer.WriteElementString("StartTimeCurrent", StartTimeCurrent, 8);
+            writer.WriteElementString("Period", Period, 9);
+            writer.WriteElementString("NumberOfPeriods", NumberOfPeriods, 10);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

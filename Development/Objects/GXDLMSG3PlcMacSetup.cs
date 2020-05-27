@@ -508,6 +508,12 @@ namespace Gurux.DLMS.Objects
                 "MacFCCLegacyMode", "MacMaxBe", "MacMaxCsmaBackoffs", "MacMinBe" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] { "MAC get neighbour table entry" };
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 22;
@@ -977,70 +983,70 @@ namespace Gurux.DLMS.Objects
         }
 
 
-        void SaveKeyTable(GXXmlWriter writer)
+        void SaveKeyTable(GXXmlWriter writer, int index)
         {
+            writer.WriteStartElement("KeyTable", index);
             if (KeyTable != null)
             {
-                writer.WriteStartElement("KeyTable");
                 foreach (GXKeyValuePair<byte, byte[]> it in KeyTable)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("Key", it.Key);
-                    writer.WriteElementString("Data", GXDLMSTranslator.ToHex(it.Value));
+                    writer.WriteStartElement("Item", index);
+                    writer.WriteElementString("Key", it.Key, index);
+                    writer.WriteElementString("Data", GXDLMSTranslator.ToHex(it.Value), index);
                     writer.WriteEndElement();
                 }
-                writer.WriteEndElement();//KeyTable
             }
+            writer.WriteEndElement();//KeyTable
         }
 
-        void SaveNeighbourTable(GXXmlWriter writer)
+        void SaveNeighbourTable(GXXmlWriter writer, int index)
         {
+            writer.WriteStartElement("NeighbourTable", index);
             if (NeighbourTable != null)
             {
-                writer.WriteStartElement("NeighbourTable");
                 foreach (GXDLMSNeighbourTable it in NeighbourTable)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("ShortAddress", it.ShortAddress);
-                    writer.WriteElementString("Enabled", it.Enabled);
-                    writer.WriteElementString("ToneMap", it.ToneMap);
-                    writer.WriteElementString("Modulation", (int)it.Modulation);
-                    writer.WriteElementString("TxGain", it.TxGain);
-                    writer.WriteElementString("TxRes", (int)it.TxRes);
-                    writer.WriteElementString("TxCoeff", it.TxCoeff);
-                    writer.WriteElementString("Lqi", it.Lqi);
-                    writer.WriteElementString("PhaseDifferential", it.PhaseDifferential);
-                    writer.WriteElementString("TMRValidTime", it.TMRValidTime);
-                    writer.WriteElementString("NeighbourValidTime", it.NeighbourValidTime);
+                    writer.WriteStartElement("Item", index);
+                    writer.WriteElementString("ShortAddress", it.ShortAddress, index);
+                    writer.WriteElementString("Enabled", it.Enabled, index);
+                    writer.WriteElementString("ToneMap", it.ToneMap, index);
+                    writer.WriteElementString("Modulation", (int)it.Modulation, index);
+                    writer.WriteElementString("TxGain", it.TxGain, index);
+                    writer.WriteElementString("TxRes", (int)it.TxRes, index);
+                    writer.WriteElementString("TxCoeff", it.TxCoeff, index);
+                    writer.WriteElementString("Lqi", it.Lqi, index);
+                    writer.WriteElementString("PhaseDifferential", it.PhaseDifferential, index);
+                    writer.WriteElementString("TMRValidTime", it.TMRValidTime, index);
+                    writer.WriteElementString("NeighbourValidTime", it.NeighbourValidTime, index);
                     writer.WriteEndElement();
                 }
-                writer.WriteEndElement();//NeighbourTable
             }
+            writer.WriteEndElement();//NeighbourTable
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("ShortAddress", ShortAddress);
-            writer.WriteElementString("RcCoord", RcCoord);
-            writer.WriteElementString("PANId", PANId);
-            SaveKeyTable(writer);
-            writer.WriteElementString("FrameCounter", FrameCounter);
-            writer.WriteElementString("ToneMask", ToneMask);
-            writer.WriteElementString("TmrTtl", TmrTtl);
-            writer.WriteElementString("MaxFrameRetries", MaxFrameRetries);
-            writer.WriteElementString("NeighbourTableEntryTtl", NeighbourTableEntryTtl);
-            SaveNeighbourTable(writer);
-            writer.WriteElementString("HighPriorityWindowSize", HighPriorityWindowSize);
-            writer.WriteElementString("CscmFairnessLimit", CscmFairnessLimit);
-            writer.WriteElementString("BeaconRandomizationWindowLength", BeaconRandomizationWindowLength);
-            writer.WriteElementString("A", A);
-            writer.WriteElementString("K", K);
-            writer.WriteElementString("MinCwAttempts", MinCwAttempts);
-            writer.WriteElementString("CenelecLegacyMode", CenelecLegacyMode);
-            writer.WriteElementString("FccLegacyMode", FccLegacyMode);
-            writer.WriteElementString("MaxBe", MaxBe);
-            writer.WriteElementString("MaxCsmaBackoffs", MaxCsmaBackoffs);
-            writer.WriteElementString("MinBe", MinBe);
+            writer.WriteElementString("ShortAddress", ShortAddress, 2);
+            writer.WriteElementString("RcCoord", RcCoord, 3);
+            writer.WriteElementString("PANId", PANId, 4);
+            SaveKeyTable(writer, 5);
+            writer.WriteElementString("FrameCounter", FrameCounter, 6);
+            writer.WriteElementString("ToneMask", ToneMask, 7);
+            writer.WriteElementString("TmrTtl", TmrTtl, 8);
+            writer.WriteElementString("MaxFrameRetries", MaxFrameRetries, 9);
+            writer.WriteElementString("NeighbourTableEntryTtl", NeighbourTableEntryTtl, 10);
+            SaveNeighbourTable(writer, 11);
+            writer.WriteElementString("HighPriorityWindowSize", HighPriorityWindowSize, 12);
+            writer.WriteElementString("CscmFairnessLimit", CscmFairnessLimit, 13);
+            writer.WriteElementString("BeaconRandomizationWindowLength", BeaconRandomizationWindowLength, 14);
+            writer.WriteElementString("A", A, 15);
+            writer.WriteElementString("K", K, 16);
+            writer.WriteElementString("MinCwAttempts", MinCwAttempts, 17);
+            writer.WriteElementString("CenelecLegacyMode", CenelecLegacyMode, 18);
+            writer.WriteElementString("FccLegacyMode", FccLegacyMode, 19);
+            writer.WriteElementString("MaxBe", MaxBe, 20);
+            writer.WriteElementString("MaxCsmaBackoffs", MaxCsmaBackoffs, 21);
+            writer.WriteElementString("MinBe", MinBe, 22);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

@@ -169,6 +169,7 @@ namespace Gurux.DLMS
                 availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcMacCounters, typeof(GXDLMSPrimeNbOfdmPlcMacCounters));
                 availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcMacNetworkAdministrationData, typeof(GXDLMSPrimeNbOfdmPlcMacNetworkAdministrationData));
                 availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcApplicationsIdentification, typeof(GXDLMSPrimeNbOfdmPlcApplicationsIdentification));
+                availableObjectTypes.Add(ObjectType.Arbitrator, typeof(GXDLMSArbitrator));
                 //Italian standard uses this.
                 availableObjectTypes.Add(ObjectType.TariffPlan, typeof(GXDLMSTariffPlan));
             }

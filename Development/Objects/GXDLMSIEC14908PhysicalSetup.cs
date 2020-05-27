@@ -117,6 +117,11 @@ namespace Gurux.DLMS.Objects
         {
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "PlcInactivityTimeout" };
         }
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
 
         int IGXDLMSBase.GetAttributeCount()
         {
@@ -179,7 +184,7 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("PlcInactivityTimeout", PlcInactivityTimeout);
+            writer.WriteElementString("PlcInactivityTimeout", PlcInactivityTimeout, 2);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

@@ -486,6 +486,13 @@ namespace Gurux.DLMS.Enums
         [XmlEnum("53")]
         SFSKMacCounters = 53,
 
+
+        /// <summary>
+        /// Arbitrator.
+        /// </summary>
+        [XmlEnum("68")]
+        Arbitrator = 68,
+
         /// <summary>
         ///G3-PLC MAC layer counters
         /// </summary>

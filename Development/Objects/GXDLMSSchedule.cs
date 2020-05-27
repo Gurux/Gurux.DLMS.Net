@@ -264,6 +264,12 @@ namespace Gurux.DLMS.Objects
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "Entries" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] { "Enable/disable", "Insert", "Delete" };
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 2;
@@ -318,8 +324,7 @@ namespace Gurux.DLMS.Objects
             data.SetUInt8((byte)DataType.UInt16);
             data.SetUInt16(it.ValidityWindow);
             //Add exec week days.
-            GXBitString bs = new GXBitString((byte) it.ExecWeekdays,  7);
-            GXCommon.SetData(settings, data, DataType.BitString, bs);
+            GXCommon.SetData(settings, data, DataType.BitString, GXBitString.ToBitString((byte)it.ExecWeekdays, 7));
             //Add exec spec days.
             GXCommon.SetData(settings, data, DataType.BitString, it.ExecSpecDays);
             //Add begin date.
@@ -385,7 +390,7 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 2)
             {
                 Entries.Clear();
-                List<object> arr = (List<object>)e.Value;
+                IEnumerable<object> arr = (IEnumerable<object>)e.Value;
                 if (arr != null)
                 {
                     foreach (List<object> it in arr)
@@ -432,23 +437,23 @@ namespace Gurux.DLMS.Objects
         {
             if (Entries != null)
             {
-                writer.WriteStartElement("Entries");
+                writer.WriteStartElement("Entries", 2);
                 foreach (GXScheduleEntry it in Entries)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("Index", it.Index);
-                    writer.WriteElementString("Enable", it.Enable);
+                    writer.WriteStartElement("Item", 2);
+                    writer.WriteElementString("Index", it.Index, 2);
+                    writer.WriteElementString("Enable", it.Enable, 2);
                     if (it.Script != null)
                     {
-                        writer.WriteElementString("LogicalName", it.Script.LogicalName);
+                        writer.WriteElementString("LogicalName", it.Script.LogicalName, 2);
                     }
-                    writer.WriteElementString("ScriptSelector", it.ScriptSelector);
-                    writer.WriteElementString("SwitchTime", it.SwitchTime);
-                    writer.WriteElementString("ValidityWindow", it.ValidityWindow);
-                    writer.WriteElementString("ExecWeekdays", (int)it.ExecWeekdays);
-                    writer.WriteElementString("ExecSpecDays", it.ExecSpecDays);
-                    writer.WriteElementString("BeginDate", it.BeginDate);
-                    writer.WriteElementString("EndDate", it.EndDate);
+                    writer.WriteElementString("ScriptSelector", it.ScriptSelector, 2);
+                    writer.WriteElementString("SwitchTime", it.SwitchTime, 2);
+                    writer.WriteElementString("ValidityWindow", it.ValidityWindow, 2);
+                    writer.WriteElementString("ExecWeekdays", (int)it.ExecWeekdays, 2);
+                    writer.WriteElementString("ExecSpecDays", it.ExecSpecDays, 2);
+                    writer.WriteElementString("BeginDate", it.BeginDate, 2);
+                    writer.WriteElementString("EndDate", it.EndDate, 2);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();//Entries

@@ -59,7 +59,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         public GXDLMSSFSKActiveInitiator(string ln)
-        : base(ObjectType.SFSKActiveInitiator, ln, 0)
+        : this(ln, 0)
         {
         }
 
@@ -133,6 +133,12 @@ namespace Gurux.DLMS.Objects
         string[] IGXDLMSBase.GetNames()
         {
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "Active Initiator" };
+        }
+
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[] { "Reset NEW not synchronized" };
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -224,9 +230,9 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("SystemTitle", GXDLMSTranslator.ToHex(SystemTitle));
-            writer.WriteElementString("MacAddress", MacAddress);
-            writer.WriteElementString("LSapSelector", LSapSelector);
+            writer.WriteElementString("SystemTitle", GXDLMSTranslator.ToHex(SystemTitle), 2);
+            writer.WriteElementString("MacAddress", MacAddress, 3);
+            writer.WriteElementString("LSapSelector", LSapSelector, 4);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

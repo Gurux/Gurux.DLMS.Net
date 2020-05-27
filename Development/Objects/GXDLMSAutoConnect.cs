@@ -191,6 +191,16 @@ namespace Gurux.DLMS.Objects
                             };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            if (Version == 0)
+            {
+                return new string[0];
+            }
+            return new string[] { "Connect" };
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 6;
@@ -198,6 +208,10 @@ namespace Gurux.DLMS.Objects
 
         int IGXDLMSBase.GetMethodCount()
         {
+            if (Version == 0)
+            {
+                return 0;
+            }
             return 1;
         }
 
@@ -361,7 +375,7 @@ namespace Gurux.DLMS.Objects
                         string it;
                         if (item is byte[])
                         {
-                            it = GXDLMSClient.ChangeType((byte[]) item, DataType.String, false).ToString();
+                            it = GXDLMSClient.ChangeType((byte[])item, DataType.String, false).ToString();
                         }
                         else
                         {
@@ -421,25 +435,25 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Mode", (int)Mode);
-            writer.WriteElementString("Repetitions", Repetitions);
-            writer.WriteElementString("RepetitionDelay", RepetitionDelay);
+            writer.WriteElementString("Mode", (int)Mode, 2);
+            writer.WriteElementString("Repetitions", Repetitions, 3);
+            writer.WriteElementString("RepetitionDelay", RepetitionDelay, 4);
+            writer.WriteStartElement("CallingWindow", 5);
             if (CallingWindow != null)
             {
-                writer.WriteStartElement("CallingWindow");
                 foreach (KeyValuePair<GXDateTime, GXDateTime> it in CallingWindow)
                 {
-                    writer.WriteStartElement("Item");
+                    writer.WriteStartElement("Item", 5);
                     //Some meters are returning time here, not date-time.
-                    writer.WriteElementString("Start", new GXDateTime(it.Key).ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
-                    writer.WriteElementString("End", new GXDateTime(it.Value).ToFormatString(System.Globalization.CultureInfo.InvariantCulture));
+                    writer.WriteElementString("Start", new GXDateTime(it.Key), 5);
+                    writer.WriteElementString("End", new GXDateTime(it.Value), 5);
                     writer.WriteEndElement();
                 }
-                writer.WriteEndElement();
             }
+            writer.WriteEndElement();
             if (Destinations != null)
             {
-                writer.WriteElementString("Destinations", string.Join(";", Destinations));
+                writer.WriteElementString("Destinations", string.Join(";", Destinations), 6);
             }
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

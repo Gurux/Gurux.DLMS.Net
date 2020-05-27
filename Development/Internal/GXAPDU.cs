@@ -136,11 +136,11 @@ namespace Gurux.DLMS.Internal
             data.SetUInt8(0x1);
             if (settings.UseLogicalNameReferencing)
             {
-                data.SetUInt8((byte) (ciphered ? 3 : 1));
+                data.SetUInt8((byte)(ciphered ? 3 : 1));
             }
             else
             {
-                data.SetUInt8((byte) (ciphered ? 4 : 2));
+                data.SetUInt8((byte)(ciphered ? 4 : 2));
             }
             //Add system title if cipher or GMAC authentication is used..
             if (!settings.IsServer && (ciphered || settings.Authentication == Authentication.HighGMAC ||
@@ -170,6 +170,23 @@ namespace Gurux.DLMS.Internal
                 data.SetUInt8(1);
                 data.SetUInt8((byte)settings.UserId);
             }
+        }
+
+        // Reserved for internal use.
+        private static int GetConformanceFromArray(GXByteBuffer data)
+        {
+            int ret = GXCommon.SwapBits(data.GetUInt8());
+            ret |= GXCommon.SwapBits(data.GetUInt8()) << 8;
+            ret |= GXCommon.SwapBits(data.GetUInt8()) << 16;
+            return ret;
+        }
+
+        // Reserved for internal use.
+        private static void SetConformanceToArray(int value, GXByteBuffer data)
+        {
+            data.SetUInt8(GXCommon.SwapBits((byte)(value & 0xFF)));
+            data.SetUInt8(GXCommon.SwapBits((byte)((value >> 8) & 0xFF)));
+            data.SetUInt8(GXCommon.SwapBits((byte)((value >> 16) & 0xFF)));
         }
 
         /// <summary>
@@ -215,10 +232,7 @@ namespace Gurux.DLMS.Internal
             data.SetUInt8(0x04);
             // encoding the number of unused bits in the bit string
             data.SetUInt8(0x00);
-
-            GXByteBuffer bb = new GXByteBuffer(4);
-            bb.SetUInt32((UInt32)settings.ProposedConformance);
-            data.Set(bb.SubArray(1, 3));
+            SetConformanceToArray((int)settings.ProposedConformance, data);
             data.SetUInt16(settings.MaxPduSize);
         }
 
@@ -295,7 +309,7 @@ namespace Gurux.DLMS.Internal
             data.SetUInt8(offset, (byte)(data.Size - offset - 1));
         }
 
-        private static void GetConformance(UInt32 value, GXDLMSTranslatorStructure xml)
+        private static void GetConformance(int value, GXDLMSTranslatorStructure xml)
         {
             if (xml.OutputType == TranslatorOutputType.SimpleXml)
             {
@@ -480,12 +494,7 @@ namespace Gurux.DLMS.Internal
             len = data.GetUInt8();
             //The number of unused bits in the bit string.
             tag = data.GetUInt8();
-            byte[] tmp = new byte[3];
-            GXByteBuffer bb = new GXByteBuffer(4);
-            data.Get(tmp);
-            bb.SetUInt8(0);
-            bb.Set(tmp);
-            UInt32 v = bb.GetUInt32();
+            int v = GetConformanceFromArray(data);
             if (settings.IsServer)
             {
                 settings.NegotiatedConformance = (Conformance)v & settings.ProposedConformance;
@@ -514,7 +523,7 @@ namespace Gurux.DLMS.Internal
                     maxPdu = data.GetUInt16();
                     settings.MaxPduSize = maxPdu;
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     if (xml == null)
                     {
@@ -927,7 +936,7 @@ namespace Gurux.DLMS.Internal
                     xml.Append(GXCommon.ToHex(settings.StoCChallenge, false));
                     xml.Append((int)TranslatorGeneralTags.CharString, false);
                     xml.Append(tag, false);
-                    xml.Append("\r\n");
+                    xml.Append(Environment.NewLine);
                 }
             }
         }

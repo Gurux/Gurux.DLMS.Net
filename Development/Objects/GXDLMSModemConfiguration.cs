@@ -148,6 +148,12 @@ namespace Gurux.DLMS.Objects
                             };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 4;
@@ -321,16 +327,16 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("CommunicationSpeed", ((int)CommunicationSpeed), (int)BaudRate.Baudrate300);
-            writer.WriteStartElement("InitialisationStrings");
+            writer.WriteElementString("CommunicationSpeed", ((int)CommunicationSpeed), (int)BaudRate.Baudrate300, 2);
+            writer.WriteStartElement("InitialisationStrings", 3);
             if (InitialisationStrings != null)
             {
                 foreach (GXDLMSModemInitialisation it in InitialisationStrings)
                 {
-                    writer.WriteStartElement("Initialisation");
-                    writer.WriteElementString("Request", it.Request);
-                    writer.WriteElementString("Response", it.Response);
-                    writer.WriteElementString("Delay", it.Delay);
+                    writer.WriteStartElement("Initialisation", 3);
+                    writer.WriteElementString("Request", it.Request, 3);
+                    writer.WriteElementString("Response", it.Response, 3);
+                    writer.WriteElementString("Delay", it.Delay, 3);
                     writer.WriteEndElement();
                 }
             }
@@ -340,7 +346,7 @@ namespace Gurux.DLMS.Objects
             {
                 str = string.Join(";", ModemProfile);
             }
-            writer.WriteElementString("ModemProfile", str);
+            writer.WriteElementString("ModemProfile", str, 4);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

@@ -33,48 +33,53 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace Gurux.DLMS.Objects.Enums
 {
     /// <summary>
-    /// Security policy Enforces authentication and/or encryption algorithm provided with security suite version 1.
+    /// Credit status.
     /// </summary>
     [Flags]
-    public enum SecurityPolicy : byte
+    public enum AccountCreditStatus
     {
         /// <summary>
-        /// Security is not used.
+        /// None.
         /// </summary>
-        Nothing = 0,
-
+        None = 0,
         /// <summary>
-        /// Request is authenticated.
+        /// In credit.
         /// </summary>
-        AuthenticatedRequest = 0x4,
-
+        InCredit = 0x1,
         /// <summary>
-        /// Request is encrypted.
+        /// Low credit.
         /// </summary>
-        EncryptedRequest = 0x8,
-
+        LowCredit = 0x2,
         /// <summary>
-        /// Request is digitally signed.
+        /// Next credit enabled.
         /// </summary>
-        DigitallySignedRequest = 0x10,
-
+        NextCreditEnabled = 0x4,
         /// <summary>
-        /// Response is authenticated.
+        /// Next credit selectable.
         /// </summary>
-        AuthenticatedResponse = 0x20,
-
+        NextCreditSelectable = 0x8,
         /// <summary>
-        /// Response is encrypted.
+        /// Credit reference list.
         /// </summary>
-        EncryptedResponse = 0x40,
-
+        CreditReferenceList = 0x10,
         /// <summary>
-        /// Response is digitally signed.
+        /// Selectable credit in use.
         /// </summary>
-        DigitallySignedResponse = 0x80
+        SelectableCreditInUse = 0x20,
+        /// <summary>
+        /// Out of credit.
+        /// </summary>
+        OutOfCredit = 0x40,
+        /// <summary>
+        /// Reserved.
+        /// </summary>
+        Reserved = 0x80
     }
 }

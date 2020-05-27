@@ -235,6 +235,12 @@ namespace Gurux.DLMS.Objects
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "Operator", "Status", "CircuitSwitchStatus", "PacketSwitchStatus", "CellInfo", "AdjacentCells", "CaptureTime" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 8;
@@ -458,33 +464,32 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Operator", Operator);
-            writer.WriteElementString("Status", (int)Status);
-            writer.WriteElementString("CircuitSwitchStatus", (int)CircuitSwitchStatus);
-            writer.WriteElementString("PacketSwitchStatus", (int)PacketSwitchStatus);
+            writer.WriteElementString("Operator", Operator, 2);
+            writer.WriteElementString("Status", (int)Status, 3);
+            writer.WriteElementString("CircuitSwitchStatus", (int)CircuitSwitchStatus, 4);
+            writer.WriteElementString("PacketSwitchStatus", (int)PacketSwitchStatus, 5);
+            writer.WriteStartElement("CellInfo", 6);
             if (CellInfo != null)
             {
-                writer.WriteStartElement("CellInfo");
-                writer.WriteElementString("CellId", CellInfo.CellId);
-                writer.WriteElementString("LocationId", CellInfo.LocationId);
-                writer.WriteElementString("SignalQuality", CellInfo.SignalQuality);
-                writer.WriteElementString("Ber", CellInfo.Ber);
-                writer.WriteEndElement();
+                writer.WriteElementString("CellId", CellInfo.CellId, 6);
+                writer.WriteElementString("LocationId", CellInfo.LocationId, 6);
+                writer.WriteElementString("SignalQuality", CellInfo.SignalQuality, 6);
+                writer.WriteElementString("Ber", CellInfo.Ber, 6);
             }
-
+            writer.WriteEndElement();
+            writer.WriteStartElement("AdjacentCells", 7);
             if (AdjacentCells != null)
             {
-                writer.WriteStartElement("AdjacentCells");
                 foreach (AdjacentCell it in AdjacentCells)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteElementString("CellId", it.CellId);
-                    writer.WriteElementString("SignalQuality", it.SignalQuality);
+                    writer.WriteStartElement("Item", 7);
+                    writer.WriteElementString("CellId", it.CellId, 7);
+                    writer.WriteElementString("SignalQuality", it.SignalQuality, 7);
                     writer.WriteEndElement();
                 }
-                writer.WriteEndElement();
             }
-            writer.WriteElementString("CaptureTime", CaptureTime);
+            writer.WriteEndElement();
+            writer.WriteElementString("CaptureTime", CaptureTime, 8);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

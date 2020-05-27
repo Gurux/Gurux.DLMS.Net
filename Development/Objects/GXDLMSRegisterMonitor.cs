@@ -144,6 +144,12 @@ namespace Gurux.DLMS.Objects
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "Thresholds", "Monitored Value", "Actions" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 4;
@@ -402,35 +408,35 @@ namespace Gurux.DLMS.Objects
         {
             if (Thresholds != null)
             {
-                writer.WriteStartElement("Thresholds");
+                writer.WriteStartElement("Thresholds", 2);
                 foreach (Object it in Thresholds)
                 {
-                    writer.WriteElementObject("Value", it);
+                    writer.WriteElementObject("Value", it, 0);
                 }
                 writer.WriteEndElement();
             }
             if (MonitoredValue != null)
             {
-                writer.WriteStartElement("MonitoredValue");
-                writer.WriteElementString("ObjectType", (int)MonitoredValue.ObjectType);
-                writer.WriteElementString("LN", MonitoredValue.LogicalName);
-                writer.WriteElementString("Index", MonitoredValue.AttributeIndex);
+                writer.WriteStartElement("MonitoredValue", 3);
+                writer.WriteElementString("ObjectType", (int)MonitoredValue.ObjectType, 3);
+                writer.WriteElementString("LN", MonitoredValue.LogicalName, 3);
+                writer.WriteElementString("Index", MonitoredValue.AttributeIndex, 3);
                 writer.WriteEndElement();
             }
 
             if (Actions != null)
             {
-                writer.WriteStartElement("Actions");
+                writer.WriteStartElement("Actions", 4);
                 foreach (GXDLMSActionSet it in Actions)
                 {
-                    writer.WriteStartElement("Item");
-                    writer.WriteStartElement("Up");
-                    writer.WriteElementString("LN", it.ActionUp.LogicalName);
-                    writer.WriteElementString("Selector", it.ActionUp.ScriptSelector);
+                    writer.WriteStartElement("Item", 4);
+                    writer.WriteStartElement("Up", 4);
+                    writer.WriteElementString("LN", it.ActionUp.LogicalName, 4);
+                    writer.WriteElementString("Selector", it.ActionUp.ScriptSelector, 4);
                     writer.WriteEndElement();
-                    writer.WriteStartElement("Down");
-                    writer.WriteElementString("LN", it.ActionDown.LogicalName);
-                    writer.WriteElementString("Selector", it.ActionDown.ScriptSelector);
+                    writer.WriteStartElement("Down", 4);
+                    writer.WriteElementString("LN", it.ActionDown.LogicalName, 4);
+                    writer.WriteElementString("Selector", it.ActionDown.ScriptSelector, 4);
                     writer.WriteEndElement();
                     writer.WriteEndElement();
                 }

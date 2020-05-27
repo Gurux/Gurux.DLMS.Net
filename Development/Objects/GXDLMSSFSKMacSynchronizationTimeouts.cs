@@ -164,6 +164,12 @@ namespace Gurux.DLMS.Objects
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "SearchInitiatorTimeout", "SynchronizationConfirmationTimeout", "TimeOutNotAddressed", "TimeOutFrameNotOK" };
         }
 
+        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        string[] IGXDLMSBase.GetMethodNames()
+        {
+            return new string[0];
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 5;
@@ -264,10 +270,10 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("SearchInitiatorTimeout", SearchInitiatorTimeout);
-            writer.WriteElementString("SynchronizationConfirmationTimeout", SynchronizationConfirmationTimeout);
-            writer.WriteElementString("TimeOutNotAddressed", TimeOutNotAddressed);
-            writer.WriteElementString("TimeOutFrameNotOK", TimeOutFrameNotOK);
+            writer.WriteElementString("SearchInitiatorTimeout", SearchInitiatorTimeout, 2);
+            writer.WriteElementString("SynchronizationConfirmationTimeout", SynchronizationConfirmationTimeout, 3);
+            writer.WriteElementString("TimeOutNotAddressed", TimeOutNotAddressed, 4);
+            writer.WriteElementString("TimeOutFrameNotOK", TimeOutFrameNotOK, 5);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
