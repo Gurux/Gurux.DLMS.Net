@@ -429,10 +429,7 @@ namespace Gurux.DLMS.Objects
                     {
                         e.Value = new GXDateTime((DateTime)e.Value);
                     }
-                    else
-                    {
-                        CaptureTime = (GXDateTime)e.Value;
-                    }
+                    CaptureTime = (GXDateTime)e.Value;
                     break;
                 default:
                     e.Error = ErrorCode.ReadWriteDenied;

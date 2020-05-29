@@ -797,6 +797,10 @@ namespace Gurux.DLMS.Objects
                     {
                         LastCollectionTime = (GXDateTime)e.Value;
                     }
+                    else if (e.Value is DateTime)
+                    {
+                        LastCollectionTime = (DateTime)e.Value;
+                    }
                     else if (e.Value is byte[])
                     {
                         LastCollectionTime = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings != null && settings.UseUtc2NormalTime);
