@@ -3127,7 +3127,7 @@ namespace Gurux.DLMS.Internal
         public static byte SwapBits(byte value)
         {
             byte ret = 0;
-            for (int pos = 0; pos != 7; ++pos)
+            for (int pos = 0; pos != 8; ++pos)
             {
                 ret = (byte)((ret << 1) | (value & 0x01));
                 value = (byte)(value >> 1);
