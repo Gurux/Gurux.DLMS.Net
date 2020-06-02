@@ -34,6 +34,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Gurux.DLMS
 {
@@ -45,5 +46,21 @@ namespace Gurux.DLMS
     /// </remarks>
     public class GXArray : List<object>
     {
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("{");
+            foreach (object it in this)
+            {
+                sb.Append(Convert.ToString(it));
+                sb.Append(", ");
+            }
+            if (sb.Length != 1)
+            {
+                sb.Length -= 2;
+            }
+            sb.Append("}");
+            return sb.ToString();
+        }
     }
 }

@@ -34,6 +34,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Gurux.DLMS
 {
@@ -47,7 +48,19 @@ namespace Gurux.DLMS
     {
         public override string ToString()
         {
-            return base.ToString();
+            StringBuilder sb = new StringBuilder();
+            sb.Append("[");
+            foreach (object it in this)
+            {
+                sb.Append(Convert.ToString(it));
+                sb.Append(", ");
+            }
+            if (sb.Length != 1)
+            {
+                sb.Length -= 2;
+            }
+            sb.Append("]");
+            return sb.ToString();
         }
     }
 }

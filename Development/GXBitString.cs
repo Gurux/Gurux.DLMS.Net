@@ -116,11 +116,35 @@ namespace Gurux.DLMS
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Convert byte array to bit string.
+        /// </summary>
+        /// <param name="value">byte array.</param>
+        /// <param name="index">Start index.</param>
+        /// <param name="count">Count.</param>
+        public static string ToBitString(byte[] value, int index, int count)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (byte it in value)
+            {
+                if (count < 1)
+                {
+                    break;
+                }
+                GXCommon.ToBitString(sb, it, count);
+                count -= 8;
+            }
+            if (index != 0)
+            {
+                sb.Remove(0, index);
+            }
+            return sb.ToString();
+        }
+
         public override string ToString()
         {
             return Value;
         }
-
 
         private UInt32 ToNumeric()
         {
