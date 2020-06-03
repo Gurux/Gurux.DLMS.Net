@@ -158,7 +158,7 @@ namespace Gurux.DLMS.Objects
         /// (NumberOfPeriods * Period is the denominator for the calculation of the demand).
         /// </summary>
         [XmlIgnore()]
-        public ulong Period
+        public UInt32 Period
         {
             get;
             set;
@@ -172,7 +172,7 @@ namespace Gurux.DLMS.Objects
         /// specified by the manufacturer.
         /// </summary>
         [XmlIgnore()]
-        public uint NumberOfPeriods
+        public UInt16 NumberOfPeriods
         {
             get;
             set;

@@ -1497,9 +1497,7 @@ namespace Gurux.DLMS.Internal
             data.SetUInt8(0x1F);
             data.SetUInt8(0x04);// length of the conformance block
             data.SetUInt8(0x00);// encoding the number of unused bits in the bit string
-            GXByteBuffer bb = new GXByteBuffer();
-            bb.SetUInt32((UInt32)settings.NegotiatedConformance);
-            data.Set(bb.Data, 1, 3);
+            SetConformanceToArray((int)settings.NegotiatedConformance, data);
             data.SetUInt16(settings.MaxPduSize);
             //VAA Name VAA name (0x0007 for LN referencing and 0xFA00 for SN)
             if (settings.UseLogicalNameReferencing)

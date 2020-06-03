@@ -689,7 +689,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                 case 3:
                     return CurrentCreditInUse;
                 case 4:
-                    return (byte)CurrentCreditStatus;
+                    return GXBitString.ToBitString((UInt32) CurrentCreditStatus, 8);
                 case 5:
                     return AvailableCredit;
                 case 6:
