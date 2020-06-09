@@ -210,6 +210,21 @@ namespace Gurux.DLMS
             }
         }
 
+        /// <summary>
+        /// Skipped date time fields. This value can be used if meter can't handle deviation or status.
+        /// </summary>
+        public DateTimeSkips DateTimeSkips
+        {
+            get
+            {
+                return Settings.DateTimeSkips;
+            }
+            set
+            {
+                Settings.DateTimeSkips = value;
+            }
+        }
+
 
         /// <summary>
         /// Standard says that Time zone is from normal time to UTC in minutes.

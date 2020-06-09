@@ -257,6 +257,17 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Skipped date time fields. This value can be used if meter can't handle deviation or status.
+        /// </summary>
+        [DefaultValue(DateTimeSkips.None)]
+        [Description("Skipped date time fields. This value can be used if meter can't handle deviation or status.")]
+        public DateTimeSkips DateTimeSkips
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// USed logical client ID.
         /// </summary>
         /// <remarks>

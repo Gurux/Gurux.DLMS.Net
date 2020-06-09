@@ -183,6 +183,15 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Skipped date time fields. This value can be used if meter can't handle deviation or status.
+        /// </summary>
+        public DateTimeSkips DateTimeSkips
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Force that data is always sent as blocks.
         /// </summary>
         internal bool ForceToBlocks

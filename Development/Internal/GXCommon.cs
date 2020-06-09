@@ -2124,13 +2124,13 @@ namespace Gurux.DLMS.Internal
                     {
                         //Add size
                         buff.SetUInt8(5);
-                        SetDate(buff, value);
+                        SetDate(settings, buff, value);
                     }
                     else if (value is GXTime)
                     {
                         //Add size
                         buff.SetUInt8(4);
-                        SetTime(buff, value);
+                        SetTime(settings, buff, value);
                     }
                     else if (value is GXDateTime || value is DateTime)
                     {
@@ -2156,10 +2156,10 @@ namespace Gurux.DLMS.Internal
                     SetDateTime(settings, buff, value);
                     break;
                 case DataType.Date:
-                    SetDate(buff, value);
+                    SetDate(settings, buff, value);
                     break;
                 case DataType.Time:
-                    SetTime(buff, value);
+                    SetTime(settings, buff, value);
                     break;
                 default:
                     throw new Exception("Invalid data type.");
@@ -2175,7 +2175,7 @@ namespace Gurux.DLMS.Internal
         ///<param name="value">
         ///Added value.
         ///</param>
-        private static void SetTime(GXByteBuffer buff, object value)
+        private static void SetTime(GXDLMSSettings settings, GXByteBuffer buff, object value)
         {
             GXDateTime dt;
             if (value is GXDateTime)
@@ -2197,6 +2197,11 @@ namespace Gurux.DLMS.Internal
             else
             {
                 throw new Exception("Invalid date format.");
+            }
+            //Add additional date time skips.
+            if (settings != null && settings.DateTimeSkips != DateTimeSkips.None)
+            {
+                dt.Skip |= settings.DateTimeSkips;
             }
             //Add time.
             if ((dt.Skip & DateTimeSkips.Hour) != 0)
@@ -2246,7 +2251,7 @@ namespace Gurux.DLMS.Internal
         ///<param name="value">
         ///Added value.
         ///</param>
-        private static void SetDate(GXByteBuffer buff, object value)
+        private static void SetDate(GXDLMSSettings settings, GXByteBuffer buff, object value)
         {
             GXDateTime dt;
             if (value is GXDateTime)
@@ -2268,6 +2273,11 @@ namespace Gurux.DLMS.Internal
             else
             {
                 throw new Exception("Invalid date format.");
+            }
+            //Add additional date time skips.
+            if (settings != null && settings.DateTimeSkips != DateTimeSkips.None)
+            {
+                dt.Skip |= settings.DateTimeSkips;
             }
             // Add year.
             if ((dt.Skip & DateTimeSkips.Year) != 0)
@@ -2365,6 +2375,11 @@ namespace Gurux.DLMS.Internal
             else
             {
                 throw new Exception("Invalid date format.");
+            }
+            //Add additional date time skips.
+            if (settings != null && settings.DateTimeSkips != DateTimeSkips.None)
+            {
+                dt.Skip |= settings.DateTimeSkips;
             }
             if (dt.Value.UtcDateTime == DateTime.MinValue)
             {
