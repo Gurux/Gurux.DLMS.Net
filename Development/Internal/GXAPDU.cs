@@ -199,8 +199,10 @@ namespace Gurux.DLMS.Internal
         {
             // Tag for xDLMS-Initiate request
             data.SetUInt8((byte)Command.InitiateRequest);
+            bool testMode = settings.Cipher != null && ((GXCiphering)settings.Cipher).TestMode;
             // Usage field for dedicated-key component.
-            if (settings.Cipher == null || settings.Cipher.DedicatedKey == null || settings.Cipher.Security == Security.None)
+            if ((!testMode && (settings.Cipher == null || settings.Cipher.DedicatedKey == null || settings.Cipher.Security == Security.None)) ||
+                (testMode && settings.Cipher.DedicatedKey == null))
             {
                 data.SetUInt8(0x00);
             }
