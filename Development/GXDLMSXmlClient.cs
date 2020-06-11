@@ -463,7 +463,7 @@ namespace Gurux.DLMS
                 {
                     if (m1.Name == "AssociationRequest")
                     {
-                        GXDLMSXmlSettings s = new GXDLMSXmlSettings(translator.OutputType, translator.ShowStringAsHex, translator.Hex, translator.tagsByName);
+                        GXDLMSXmlSettings s = new GXDLMSXmlSettings(translator.OutputType, translator.Hex, translator.ShowStringAsHex, translator.tagsByName);
                         s.settings.ClientAddress = Settings.ClientAddress;
                         s.settings.ServerAddress = Settings.ServerAddress;
                         ((GXCiphering)s.settings.Cipher).TestMode = this.Ciphering.TestMode;

@@ -641,15 +641,15 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 2)
             {
-                if (e.Value is byte[])
+                if (e.Value is byte[] v)
                 {
-                    if (IsSec())
+                    if (IsSec() || !GXByteBuffer.IsAsciiString(v))
                     {
-                        CalendarNameActive = GXCommon.ToHex((byte[])e.Value, false);
+                        CalendarNameActive = GXCommon.ToHex(v, false);
                     }
                     else
                     {
-                        CalendarNameActive = ASCIIEncoding.ASCII.GetString((byte[])e.Value);
+                        CalendarNameActive = ASCIIEncoding.ASCII.GetString(v);
                     }
                 }
                 else
@@ -671,15 +671,15 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 6)
             {
-                if (e.Value is byte[])
+                if (e.Value is byte[] v)
                 {
-                    if (IsSec())
+                    if (IsSec() || !GXByteBuffer.IsAsciiString(v))
                     {
-                        CalendarNamePassive = GXCommon.ToHex((byte[])e.Value, false);
+                        CalendarNamePassive = GXCommon.ToHex(v, false);
                     }
                     else
                     {
-                        CalendarNamePassive = ASCIIEncoding.ASCII.GetString((byte[])e.Value);
+                        CalendarNamePassive = ASCIIEncoding.ASCII.GetString(v);
                     }
                 }
                 else

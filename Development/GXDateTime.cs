@@ -546,106 +546,98 @@ namespace Gurux.DLMS
         public string ToFormatString(CultureInfo culture, bool useLocalTime)
         {
             StringBuilder format = new StringBuilder();
-            if (Skip != DateTimeSkips.None || Extra != DateTimeExtraInfo.None)
+            format.Append(GetDateTimeFormat(culture));
+            Remove(format, culture);
+            if (!useLocalTime && (Skip & DateTimeSkips.Deviation) == 0)
             {
-                format.Append(GetDateTimeFormat(culture));
-                Remove(format, culture);
-                if (!useLocalTime && (Skip & DateTimeSkips.Deviation) == 0)
-                {
-                    format.Append("zzz");
-                }
-                if ((Extra & DateTimeExtraInfo.DstBegin) != 0)
-                {
-                    format.Replace("MMM", "BEGIN");
-                    format.Replace("MM", "BEGIN");
-                    format.Replace("M", "BEGIN");
-                }
-                else if ((Extra & DateTimeExtraInfo.DstEnd) != 0)
-                {
-                    format.Replace("MMM", "END");
-                    format.Replace("MM", "END");
-                    format.Replace("M", "END");
-                }
-                else if ((Extra & DateTimeExtraInfo.LastDay) != 0)
-                {
-                    format.Replace("dd", "LASTDAY");
-                    format.Replace("d", "LASTDAY");
-                }
-                else if ((Extra & DateTimeExtraInfo.LastDay2) != 0)
-                {
-                    format.Replace("dd", "LASTDAY2");
-                    format.Replace("d", "LASTDAY2");
-                }
-                if ((Skip & DateTimeSkips.Year) != 0)
-                {
-                    Replace(format, "yyyy");
-                    Replace(format, "yy");
-                    Remove(format, "zzz", null);
-                }
-                if ((Skip & DateTimeSkips.Month) != 0)
-                {
-                    Replace(format, "MMM");
-                    Replace(format, "MM");
-                    Replace(format, "M");
-                    Remove(format, "zzz", null);
-                }
-                if ((Skip & DateTimeSkips.Day) != 0)
-                {
-                    Replace(format, "dd");
-                    Replace(format, "d");
-                    Remove(format, "zzz", null);
-                }
-                if ((Skip & DateTimeSkips.Hour) != 0)
-                {
-                    Replace(format, "HH");
-                    Replace(format, "H");
-                    Replace(format, "hh");
-                    Replace(format, "h");
-                    Remove(format, "tt", null);
-                    Remove(format, "zzz", null);
-                }
-                if ((Skip & DateTimeSkips.Ms) != 0 || Value.LocalDateTime.Millisecond == 0)
-                {
-                    Replace(format, ".fff");
-                }
-                else if (format.ToString().IndexOf(".fff") == -1)
-                {
-                    format.Replace("ss", "ss.fff");
-                }
-                if ((Skip & DateTimeSkips.Second) != 0)
-                {
-                    Replace(format, "ss");
-                }
-                else if (format.ToString().IndexOf("ss") == -1)
-                {
+                format.Append("zzz");
+            }
+            if ((Extra & DateTimeExtraInfo.DstBegin) != 0)
+            {
+                format.Replace("MMM", "BEGIN");
+                format.Replace("MM", "BEGIN");
+                format.Replace("M", "BEGIN");
+            }
+            else if ((Extra & DateTimeExtraInfo.DstEnd) != 0)
+            {
+                format.Replace("MMM", "END");
+                format.Replace("MM", "END");
+                format.Replace("M", "END");
+            }
+            else if ((Extra & DateTimeExtraInfo.LastDay) != 0)
+            {
+                format.Replace("dd", "LASTDAY");
+                format.Replace("d", "LASTDAY");
+            }
+            else if ((Extra & DateTimeExtraInfo.LastDay2) != 0)
+            {
+                format.Replace("dd", "LASTDAY2");
+                format.Replace("d", "LASTDAY2");
+            }
+            if ((Skip & DateTimeSkips.Year) != 0)
+            {
+                Replace(format, "yyyy");
+                Replace(format, "yy");
+                Remove(format, "zzz", null);
+            }
+            if ((Skip & DateTimeSkips.Month) != 0)
+            {
+                Replace(format, "MMM");
+                Replace(format, "MM");
+                Replace(format, "M");
+                Remove(format, "zzz", null);
+            }
+            if ((Skip & DateTimeSkips.Day) != 0)
+            {
+                Replace(format, "dd");
+                Replace(format, "d");
+                Remove(format, "zzz", null);
+            }
+            if ((Skip & DateTimeSkips.Hour) != 0)
+            {
+                Replace(format, "HH");
+                Replace(format, "H");
+                Replace(format, "hh");
+                Replace(format, "h");
+                Remove(format, "tt", null);
+                Remove(format, "zzz", null);
+            }
+            if ((Skip & DateTimeSkips.Ms) != 0 || Value.LocalDateTime.Millisecond == 0)
+            {
+                Replace(format, ".fff");
+            }
+            else if (format.ToString().IndexOf(".fff") == -1)
+            {
+                format.Replace("ss", "ss.fff");
+            }
+            if ((Skip & DateTimeSkips.Second) != 0)
+            {
+                Replace(format, "ss");
+            }
+            else if (format.ToString().IndexOf("ss") == -1)
+            {
 #if !WINDOWS_UWP
-                    format.Replace("mm", "mm.ss");
+                format.Replace("mm", "mm.ss");
 #else
                     format.Replace("mm", "mm.ss");
 #endif //!WINDOWS_UWP
-                }
-                if ((Skip & DateTimeSkips.Minute) != 0)
-                {
-                    Replace(format, "mm");
-                    Replace(format, "m");
-                    Remove(format, "zzz", null);
-                }
-                if (useLocalTime)
-                {
-                    return Value.LocalDateTime.ToString(format.ToString().Trim(), culture);
-                }
-                string ret = Value.ToString(format.ToString().Trim(), culture);
-                if (Value.DateTime == Value.UtcDateTime)
-                {
-                    ret = ret.Substring(0, ret.Length - 6) + "Z";
-                }
-                return ret;
+            }
+            if ((Skip & DateTimeSkips.Minute) != 0)
+            {
+                Replace(format, "mm");
+                Replace(format, "m");
+                Remove(format, "zzz", null);
             }
             if (useLocalTime)
             {
-                return Value.LocalDateTime.ToString(culture);
+                return Value.LocalDateTime.ToString(format.ToString().Trim(), culture);
             }
-            return Value.ToString(culture);
+            string ret = Value.ToString(format.ToString().Trim(), culture);
+            if (Value.DateTime == Value.UtcDateTime)
+            {
+                ret = ret.Substring(0, ret.Length - 6) + "Z";
+            }
+            return ret;
         }
 
         private void Remove(StringBuilder value, String tag, string sep)
