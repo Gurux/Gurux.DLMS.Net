@@ -638,7 +638,7 @@ namespace Gurux.DLMS
                     cmd = Command.ReleaseResponse;
                     break;
                 default:
-                    throw new GXDLMSException("Invalid GLO command.");
+                    throw new GXDLMSException("Invalid DED command.");
             }
             return (byte)cmd;
         }
@@ -714,7 +714,7 @@ namespace Gurux.DLMS
                 if ((p.settings.ProposedConformance & Conformance.GeneralProtection) == 0
                     && (p.settings.NegotiatedConformance & Conformance.GeneralProtection) == 0)
                 {
-                    if (cipher.DedicatedKey != null && (!p.settings.IsServer || (p.settings.Connected & ConnectionState.Dlms) != 0))
+                    if (cipher.DedicatedKey != null && (p.settings.Connected & ConnectionState.Dlms) != 0)
                     {
                         cmd = (byte)GetDedMessage(p.command);
                         key = cipher.DedicatedKey;
@@ -3262,7 +3262,7 @@ namespace Gurux.DLMS
             }
         }
 
-        private static void HandledGloDedResponse(
+        private static void HandleGloDedResponse(
             GXDLMSSettings settings,
             GXReplyData data,
             int index,
@@ -3288,7 +3288,7 @@ namespace Gurux.DLMS
                     AesGcmParameter p;
                     GXICipher cipher = settings.Cipher;
                     if (cipher.DedicatedKey != null
-                            && (!settings.IsServer || (settings.Connected & ConnectionState.Dlms) != 0))
+                            && (settings.Connected & ConnectionState.Dlms) != 0)
                     {
                         p = new AesGcmParameter(settings.SourceSystemTitle,
                                 cipher.DedicatedKey,
@@ -3424,7 +3424,7 @@ namespace Gurux.DLMS
                     case Command.DedSetResponse:
                     case Command.DedMethodResponse:
                     case Command.DedEventNotification:
-                        HandledGloDedResponse(settings, data, index, client);
+                        HandleGloDedResponse(settings, data, index, client);
                         break;
                     case Command.GeneralGloCiphering:
                     case Command.GeneralDedCiphering:
@@ -3434,7 +3434,7 @@ namespace Gurux.DLMS
                         }
                         else
                         {
-                            HandledGloDedResponse(settings, data, index, client);
+                            HandleGloDedResponse(settings, data, index, client);
                         }
                         break;
                     case Command.DataNotification:

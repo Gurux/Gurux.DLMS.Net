@@ -930,7 +930,8 @@ namespace Gurux.DLMS
             UInt32 ic = 0;
             if (Settings.Cipher != null)
             {
-                ic = Settings.Cipher.InvocationCounter++;
+                ++Settings.Cipher.InvocationCounter;
+                ic = Settings.Cipher.InvocationCounter;
             }
             byte[] challenge = GXSecure.Secure(Settings, Settings.Cipher, ic,
                                                Settings.StoCChallenge, pw);
