@@ -358,6 +358,7 @@ namespace Gurux.DLMS.Objects
             else if (!IgnoreDefaultValues)
             {
                 writer.WriteStartElement(name);
+                writer.WriteAttributeString("Type", "0");
                 writer.WriteEndElement();
             }
         }
