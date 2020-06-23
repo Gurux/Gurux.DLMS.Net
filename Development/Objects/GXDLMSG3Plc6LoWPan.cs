@@ -44,7 +44,7 @@ namespace Gurux.DLMS.Objects
     /// <summary>
     /// G3-PLC 6LoWPAN adaptation layer setup.
     /// Online help:
-    /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSExtendedRegister
+    /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSG3Plc6LoWPan
     /// </summary>
     public class GXDLMSG3Plc6LoWPan : GXDLMSObject, IGXDLMSBase
     {

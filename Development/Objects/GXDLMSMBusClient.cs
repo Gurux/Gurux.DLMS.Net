@@ -43,6 +43,7 @@ using Gurux.DLMS.Objects.Enums;
 namespace Gurux.DLMS.Objects
 {
     /// <summary>
+    /// Use this class to setup M-Bus slave devices and to exchange data with them.
     /// Online help:
     /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSMBusClient
     /// </summary>

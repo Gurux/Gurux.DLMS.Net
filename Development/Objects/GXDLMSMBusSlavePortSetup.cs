@@ -42,6 +42,7 @@ using Gurux.DLMS.Internal;
 namespace Gurux.DLMS.Objects
 {
     /// <summary>
+    /// Model and configure communication channels.
     /// Online help:
     /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSMBusSlavePortSetup
     /// </summary>
@@ -107,7 +108,7 @@ namespace Gurux.DLMS.Objects
 
 
         /// <summary>
-        /// Defines the baud rate for the opening sequence.
+        /// The currently assigned device address.
         /// </summary>
         [XmlIgnore()]
         public int BusAddress

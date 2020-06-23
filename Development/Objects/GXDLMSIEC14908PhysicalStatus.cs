@@ -40,6 +40,10 @@ using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Online help:
+    /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSIEC14908PhysicalStatus
+    /// </summary>
     public class GXDLMSIEC14908PhysicalStatus : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>

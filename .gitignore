@@ -195,3 +195,5 @@ Gurux.DLMS.Server.Example.Net/.vs/Gurux.DLMS.Server.Example/DesignTimeBuild/.dtb
 Development/.vs/Gurux.DLMS.Net/DesignTimeBuild/.dtbcache.v2
 Gurux.DLMS.XmlClient/.vs/Gurux.DLMS.XmlClient/DesignTimeBuild/.dtbcache.v2
 *.v2
+Development/.vs/Gurux.DLMS.Net/v16/Browse.VC.db-wal
+*.db-shm

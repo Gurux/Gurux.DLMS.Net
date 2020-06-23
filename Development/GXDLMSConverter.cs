@@ -887,6 +887,10 @@ namespace Gurux.DLMS
             {
                 ret = GXDLMSTranslator.XmlToValue((string)value);
             }
+            else if (type == DataType.BitString)
+            {
+                ret = new GXBitString((string)value);
+            }
             else if (type == DataType.None && value is string && string.IsNullOrEmpty((string)value))
             {
                 ret = null;

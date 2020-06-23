@@ -46,7 +46,7 @@ namespace Gurux.DLMS.Objects
     /// Script table objects contain a table of script entries. Each entry consists of a script identifier
     /// and a series of action specifications.
     /// Online help:
-    /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSSchedule
+    /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSScriptTable
     /// </summary>
     public class GXDLMSScriptTable : GXDLMSObject, IGXDLMSBase
     {

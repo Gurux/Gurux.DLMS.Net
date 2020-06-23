@@ -42,6 +42,8 @@ namespace Gurux.DLMS.Objects
 {
     /// <summary>
     /// The instance of the IEC 14908 Physical setup interface class allows the configuration of the physical link of the OSGP device.
+    /// Online help:
+    /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSIEC14908PhysicalSetup
     /// </summary>
     public class GXDLMSIEC14908PhysicalSetup : GXDLMSObject, IGXDLMSBase
     {
