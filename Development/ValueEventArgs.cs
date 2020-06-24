@@ -148,7 +148,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Is reply handled as byte array or octect string.
+        /// Is reply handled as byte array or octet string.
         /// </summary>
         public bool ByteArray
         {

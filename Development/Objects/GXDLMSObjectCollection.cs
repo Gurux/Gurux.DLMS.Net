@@ -440,6 +440,24 @@ namespace Gurux.DLMS.Objects
                         {
                             obj.Version = (UInt16)reader.ReadElementContentAsInt("Version");
                         }
+                        else if (string.Compare("Access", target, true) == 0)
+                        {
+                            int pos = 0;
+                            foreach (byte it in reader.ReadElementContentAsString("Access"))
+                            {
+                                ++pos;
+                                obj.SetAccess(pos, (AccessMode)(it - 0x30));
+                            }
+                        }
+                        else if (string.Compare("MethodAccess", target, true) == 0)
+                        {
+                            int pos = 0;
+                            foreach (byte it in reader.ReadElementContentAsString("MethodAccess"))
+                            {
+                                ++pos;
+                                obj.SetMethodAccess(pos, (MethodAccessMode)(it - 0x30));
+                            }
+                        }
                         else
                         {
                             (obj as IGXDLMSBase).Load(reader);
@@ -535,6 +553,19 @@ namespace Gurux.DLMS.Objects
                         {
                             writer.WriteElementString("Description", it.Description, 0);
                         }
+                        //Add access rights.
+                        StringBuilder sb = new StringBuilder();
+                        for (int pos = 1; pos != (it as IGXDLMSBase).GetAttributeCount() + 1; ++pos)
+                        {
+                            sb.Append(((int)it.GetAccess(pos)).ToString());
+                        }
+                        writer.WriteElementString("Access", sb.ToString(), 0);
+                        sb.Length = 0;
+                        for (int pos = 1; pos != (it as IGXDLMSBase).GetMethodCount() + 1; ++pos)
+                        {
+                            sb.Append(((int)it.GetMethodAccess(pos)).ToString());
+                        }
+                        writer.WriteElementString("MethodAccess", sb.ToString(), 0);
                     }
                     if (settings == null || settings.Values)
                     {

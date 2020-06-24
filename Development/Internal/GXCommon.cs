@@ -1683,7 +1683,7 @@ namespace Gurux.DLMS.Internal
         }
 
         ///<summary>
-        ///Get octect string value from DLMS data.
+        ///Get octet string value from DLMS data.
         ///</summary>
         ///<param name="buff">
         ///Received DLMS data.
@@ -1727,7 +1727,7 @@ namespace Gurux.DLMS.Internal
                     else
                     {
                         bool isString = true;
-                        //Try to change octect string to DateTime, Date or time.
+                        //Try to change octet string to DateTime, Date or time.
                         if (tmp.Length == 12 || tmp.Length == 5 || tmp.Length == 4)
                         {
                             try

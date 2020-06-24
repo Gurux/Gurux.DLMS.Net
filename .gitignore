@@ -24,6 +24,8 @@ Gurux.DLMS.XmlClient/packages
 Gurux.DLMS.Meter.Listener.Net/packages/
 Gurux.DLMS.Conformance.Test/
 Gurux.DLMS.Client.Example.Net/.vs/
+Gurux.DLMS.Simulator.Net/packages/
+Gurux.DLMS.Simulator.Net/.vs/
 
 # External tool builders
 .externalToolBuilders/

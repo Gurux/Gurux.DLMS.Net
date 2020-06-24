@@ -306,9 +306,9 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
         /// <param name="target">Season profile array.</param>
-        /// <param name="useOctectString">Is date time send as octect string.</param>
+        /// <param name="useOctetString">Is date time send as octet string.</param>
         /// <returns></returns>
-        static Object GetSeasonProfile(GXDLMSSettings settings, GXDLMSSeasonProfile[] target, bool useOctectString)
+        static Object GetSeasonProfile(GXDLMSSettings settings, GXDLMSSeasonProfile[] target, bool useOctetString)
         {
             GXByteBuffer data = new GXByteBuffer();
             data.SetUInt8((byte)DataType.Array);
@@ -327,7 +327,7 @@ namespace Gurux.DLMS.Objects
                     data.SetUInt8((byte)DataType.Structure);
                     data.SetUInt8(3);
                     GXCommon.SetData(settings, data, DataType.OctetString, it.Name);
-                    if (useOctectString)
+                    if (useOctetString)
                     {
                         GXCommon.SetData(settings, data, DataType.OctetString, it.Start);
                     }
@@ -436,8 +436,8 @@ namespace Gurux.DLMS.Objects
             if (e.Index == 3)
             {
                 e.ByteArray = true;
-                bool useOctectString = settings.Standard != Standard.SaudiArabia;
-                return GetSeasonProfile(settings, SeasonProfileActive, useOctectString);
+                bool useOctetString = settings.Standard != Standard.SaudiArabia;
+                return GetSeasonProfile(settings, SeasonProfileActive, useOctetString);
             }
             if (e.Index == 4)
             {
@@ -464,8 +464,8 @@ namespace Gurux.DLMS.Objects
             if (e.Index == 7)
             {
                 e.ByteArray = true;
-                bool useOctectString = settings.Standard != Standard.SaudiArabia;
-                return GetSeasonProfile(settings, SeasonProfilePassive, useOctectString);
+                bool useOctetString = settings.Standard != Standard.SaudiArabia;
+                return GetSeasonProfile(settings, SeasonProfilePassive, useOctetString);
             }
             if (e.Index == 8)
             {

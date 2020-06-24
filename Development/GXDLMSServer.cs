@@ -752,8 +752,14 @@ namespace Gurux.DLMS
                         ln.ObjectList.AddRange(this.Items);
                     }
                     association = true;
-                    ln.XDLMSContextInfo.MaxReceivePduSize = ln.XDLMSContextInfo.MaxSendPduSize = Settings.MaxServerPDUSize;
-                    ln.XDLMSContextInfo.Conformance = Settings.ProposedConformance;
+                    if (Settings.MaxServerPDUSize != 0)
+                    {
+                        ln.XDLMSContextInfo.MaxReceivePduSize = ln.XDLMSContextInfo.MaxSendPduSize = Settings.MaxServerPDUSize;
+                    }
+                    if (Settings.ProposedConformance != 0)
+                    {
+                        ln.XDLMSContextInfo.Conformance = Settings.ProposedConformance;
+                    }
                 }
                 else if (!(it is IGXDLMSBase))//Remove unsupported items.
                 {
