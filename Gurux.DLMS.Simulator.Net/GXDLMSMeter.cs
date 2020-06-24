@@ -470,25 +470,6 @@ namespace Gurux.DLMS.Server.Example2.Net
                 {
                     System.Diagnostics.Debug.WriteLine("PreAction {0}:{1}", it.Target.LogicalName, it.Index);
                 }
-                if (it.Target.ObjectType == ObjectType.DisconnectControl)
-                {
-                    GXDLMSDisconnectControl dc = (GXDLMSDisconnectControl)it.Target;
-                    if (it.Index == 1)
-                    {
-                        dc.ControlState = Objects.Enums.ControlState.Disconnected;
-                        dc.OutputState = false;
-                    }
-                    else if (it.Index == 2)
-                    {
-                        dc.ControlState = Objects.Enums.ControlState.Connected;
-                        dc.OutputState = true;
-                    }
-                    else
-                    {
-                        it.Error = ErrorCode.ReadWriteDenied;
-                    }
-                    it.Handled = true;
-                }
             }
         }
 

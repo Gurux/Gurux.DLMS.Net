@@ -114,6 +114,17 @@ namespace Gurux.DLMS
             }
         }
 
+        /// <summary>
+        /// Client connection state.
+        /// </summary>
+        public ConnectionState ConnectionState
+        {
+            get
+            {
+                return Settings.Connected;
+            }
+        }
+
         internal GXDLMSLongTransaction transaction;
 
         bool Initialized = false;
@@ -948,7 +959,12 @@ namespace Gurux.DLMS
                     receivedData.Clear();
                     if (info.Command == Command.DisconnectRequest && Settings.Connected == ConnectionState.None)
                     {
-                        sr.Reply = GXDLMS.GetHdlcFrame(Settings, (byte)Command.DisconnectMode, replyData);
+                        // Check is data send to this server.
+                        if (IsTarget(Settings.ServerAddress,
+                                      Settings.ClientAddress))
+                        {
+                            sr.Reply = GXDLMS.GetHdlcFrame(Settings, (byte)Command.DisconnectMode, replyData);
+                        }
                         info.Clear();
                         return;
                     }
@@ -961,6 +977,7 @@ namespace Gurux.DLMS
                                       Settings.ClientAddress))
                         {
                             info.Clear();
+                            Settings.ClientAddress = Settings.ServerAddress = 0;
                             return;
                         }
                     }
