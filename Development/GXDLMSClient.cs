@@ -1242,6 +1242,15 @@ namespace Gurux.DLMS
                     {
                         obj.SetAccess(id, mode);
                     }
+                    if (attributeAccess.Count > 2 && attributeAccess[2] != null)
+                    {
+                        byte value = 0;
+                        foreach (object it in (GXArray)attributeAccess[2])
+                        {
+                            value |= (byte)(1 << ((sbyte)it));
+                        }
+                        obj.SetAccessSelector(id, value);
+                    }
                 }
                 if (((List<object>)access[1]).Count != 0)
                 {
@@ -2307,6 +2316,10 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentOutOfRangeException("columnEnd");
             }
+            if (pg.CaptureObjects.Count == 0)
+            {
+                throw new Exception("Capture objects not read.");
+            }
             pg.Buffer.Clear();
             Settings.ResetBlockIndex();
             GXByteBuffer buff = new GXByteBuffer(19);
@@ -2402,17 +2415,16 @@ namespace Gurux.DLMS
         public byte[][] ReadRowsByRange(GXDLMSProfileGeneric pg, GXDateTime start, GXDateTime end,
                                         List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
         {
+            if (pg.CaptureObjects.Count == 0)
+            {
+                throw new Exception("Capture objects not read.");
+            }
             pg.Buffer.Clear();
             Settings.ResetBlockIndex();
             GXDLMSObject sort = pg.SortObject;
-            if (sort == null && pg.CaptureObjects.Count != 0)
+            if (sort == null)
             {
                 sort = pg.CaptureObjects[0].Key;
-            }
-            // If sort object is not found or it is not clock object read all.
-            if (sort == null || !(sort.ObjectType == ObjectType.Clock || (sort.ObjectType == ObjectType.Data && sort.LogicalName == "0.0.1.1.0.255")))
-            {
-                return Read(pg, 2);
             }
             string ln = "0.0.1.0.0.255";
             ObjectType type = ObjectType.Clock;

@@ -136,6 +136,8 @@ namespace Gurux.DLMS
                                     "called-AE-invocation-id");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.RespondingAeInvocationId, "responding-AE-invocation-id");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.CallingAeQualifier, "calling-Ae-qualifier");
+            GXDLMSTranslator.AddTag(list, Command.ExceptionResponse, "exception-response");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.StateError, "state-error");
         }
 
         /// <summary>
@@ -1187,6 +1189,84 @@ namespace Gurux.DLMS
                 throw new ArgumentOutOfRangeException(value);
             }
             return ret;
+        }
+
+        /// <summary>
+        /// Gets state error description.
+        /// </summary>
+        /// <param name="error">State error enumerator value.</param>
+        /// <returns>State error as an string.</returns>
+        public static string StateErrorToString(ExceptionStateError error)
+        {
+            switch (error)
+            {
+                case ExceptionStateError.ServiceNotAllowed:
+                    return "service-not-allowed";
+                case ExceptionStateError.ServiceUnknown:
+                    return "service-unknown";
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        /// <summary>
+        ///  Gets service error description.
+        /// </summary>
+        /// <param name="error">Service error enumerator value.</param>
+        /// <returns>Service error as an string.</returns>
+        public static string ExceptionServiceErrorToString(ExceptionServiceError error)
+        {
+            switch (error)
+            {
+                case ExceptionServiceError.OperationNotPossible:
+                    return "operation-not-possible";
+                case ExceptionServiceError.ServiceNotSupported:
+                    return "service-not-supported";
+                case ExceptionServiceError.OtherReason:
+                    return "other-reason";
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="value"> State error string value.</param>
+        /// <returns>State error enum value.</returns>
+        public static ExceptionStateError ValueofStateError(string value)
+        {
+            if ("service-not-allowed" == value)
+            {
+                return ExceptionStateError.ServiceNotAllowed;
+            }
+            if ("service-unknown" == value)
+            {
+                return ExceptionStateError.ServiceUnknown;
+            }
+            throw new ArgumentOutOfRangeException(value);
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="value">Service error string value.</param>
+        /// <returns>Service error enum value.</returns>
+        public static ExceptionServiceError ValueOfExceptionServiceError(string value)
+        {
+            if ("operation-not-possible" == value)
+            {
+                return ExceptionServiceError.OperationNotPossible;
+            }
+            if ("service-not-supported" == value)
+            {
+                return ExceptionServiceError.ServiceNotSupported;
+            }
+            if ("other-reason" == value)
+            {
+                return ExceptionServiceError.OtherReason;
+            }
+            throw new ArgumentOutOfRangeException(value);
         }
     }
 }

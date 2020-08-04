@@ -52,12 +52,10 @@ namespace Gurux.DLMS.Server.Example2.Net
         public bool iec = false;
         public GXDLMSSecureClient client = new GXDLMSSecureClient(true);
         public IGXMedia media = null;
-        public int serverCount = 1;
         public TraceLevel trace = TraceLevel.Info;
-        public bool useLogicalNameReferencing = true;
-        public InterfaceType interfaceType = InterfaceType.HDLC;
         //Objects to read.
         public List<KeyValuePair<string, int>> readObjects = new List<KeyValuePair<string, int>>();
+        public int serverCount = 1;
         //Simulator file.
         public string outputFile = null;
         //Simulator file.

@@ -293,43 +293,52 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
         public override DataType GetDataType(int index)
         {
-            if (index == 1)
+            DataType dt;
+            switch (index)
             {
-                return DataType.OctetString;
+                case 1:
+                    dt = DataType.OctetString;
+                    break;
+                case 2:
+                    dt = base.GetDataType(index);
+                    if (dt == DataType.None && CurrentAverageValue != null)
+                    {
+                        dt = GXCommon.GetDLMSDataType(CurrentAverageValue.GetType());
+                    }
+                    break;
+                case 3:
+                    dt = base.GetDataType(index);
+                    if (dt == DataType.None && LastAverageValue != null)
+                    {
+                        dt = GXCommon.GetDLMSDataType(LastAverageValue.GetType());
+                    }
+                    break;
+                case 4:
+                    dt = DataType.Array;
+                    break;
+                case 5:
+                    dt = base.GetDataType(index);
+                    if (dt == DataType.None && Status != null)
+                    {
+                        dt = GXCommon.GetDLMSDataType(Status.GetType());
+                    }
+                    break;
+                case 6:
+                    dt = DataType.OctetString;
+                    break;
+                case 7:
+                    dt = DataType.OctetString;
+                    break;
+                case 8:
+                    dt = DataType.UInt32;
+                    break;
+                case 9:
+                    dt = DataType.UInt16;
+                    break;
+                default:
+                    throw new ArgumentException("GetDataType failed. Invalid attribute index.");
             }
-            if (index == 2)
-            {
-                return base.GetDataType(index);
-            }
-            if (index == 3)
-            {
-                return base.GetDataType(index);
-            }
-            if (index == 4)
-            {
-                return DataType.Array;
-            }
-            if (index == 5)
-            {
-                return base.GetDataType(index);
-            }
-            if (index == 6)
-            {
-                return DataType.OctetString;
-            }
-            if (index == 7)
-            {
-                return DataType.OctetString;
-            }
-            if (index == 8)
-            {
-                return DataType.UInt32;
-            }
-            if (index == 9)
-            {
-                return DataType.UInt16;
-            }
-            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+            return dt;
         }
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)

@@ -95,6 +95,9 @@ namespace Gurux.DLMS
                 "RespondingAeInvocationId");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.CallingAeQualifier,
                 "CallingAEQualifier");
+
+            GXDLMSTranslator.AddTag(list, Command.ExceptionResponse, "ExceptionResponse");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.StateError, "StateError");
         }
 
         /// <summary>
@@ -945,6 +948,84 @@ namespace Gurux.DLMS
                 throw new ArgumentOutOfRangeException(value);
             }
             return ret;
+        }
+
+        /// <summary>
+        /// Gets state error description.
+        /// </summary>
+        /// <param name="error">State error enumerator value.</param>
+        /// <returns>State error as an string.</returns>
+        ///
+        public static string StateErrorToString(ExceptionStateError error)
+        {
+            switch (error)
+            {
+                case ExceptionStateError.ServiceNotAllowed:
+                    return "ServiceNotAllowed";
+                case ExceptionStateError.ServiceUnknown:
+                    return "ServiceUnknown";
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        /// <summary>
+        ///  Gets service error description.
+        /// </summary>
+        /// <param name="error">Service error enumerator value.</param>
+        /// <returns>Service error as an string.</returns>
+        public static string ExceptionServiceErrorToString(ExceptionServiceError error)
+        {
+            switch (error)
+            {
+                case ExceptionServiceError.OperationNotPossible:
+                    return "OperationNotPossible";
+                case ExceptionServiceError.ServiceNotSupported:
+                    return "ServiceNotSupported";
+                case ExceptionServiceError.OtherReason:
+                    return "OtherReason";
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="value"> State error string value.</param>
+        /// <returns>State error enum value.</returns>
+        public static ExceptionStateError ValueofStateError(string value)
+        {
+            if ("ServiceNotAllowed" == value)
+            {
+                return ExceptionStateError.ServiceNotAllowed;
+            }
+            if ("ServiceUnknown" == value)
+            {
+                return ExceptionStateError.ServiceUnknown;
+            }
+            throw new ArgumentOutOfRangeException(value);
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="value">Service error string value.</param>
+        /// <returns>Service error enum value.</returns>
+        public static ExceptionServiceError ValueOfExceptionServiceError(string value)
+        {
+            if ("OperationNotPossible" == value)
+            {
+                return ExceptionServiceError.OperationNotPossible;
+            }
+            if ("ServiceNotSupported" == value)
+            {
+                return ExceptionServiceError.ServiceNotSupported;
+            }
+            if ("OtherReason" == value)
+            {
+                return ExceptionServiceError.OtherReason;
+            }
+            throw new ArgumentOutOfRangeException(value);
         }
     }
 }

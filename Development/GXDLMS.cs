@@ -711,17 +711,18 @@ namespace Gurux.DLMS
             //If client.
             if (p.cipheredCommand == Command.None)
             {
-                if ((p.settings.ProposedConformance & Conformance.GeneralProtection) == 0
-                    && (p.settings.NegotiatedConformance & Conformance.GeneralProtection) == 0)
+                //General protection can be used with pre-established connections.
+                if ((p.settings.NegotiatedConformance & Conformance.GeneralProtection) == 0 &&
+                    (p.settings.PreEstablishedSystemTitle == null || p.settings.PreEstablishedSystemTitle.Length == 0 || (p.settings.ProposedConformance & Conformance.GeneralProtection) == 0))
                 {
                     if (cipher.DedicatedKey != null && (p.settings.Connected & ConnectionState.Dlms) != 0)
                     {
-                        cmd = (byte)GetDedMessage(p.command);
+                        cmd = GetDedMessage(p.command);
                         key = cipher.DedicatedKey;
                     }
                     else
                     {
-                        cmd = (byte)GetGloMessage(p.command);
+                        cmd = GetGloMessage(p.command);
                         key = cipher.BlockCipherKey;
                     }
                 }
@@ -3191,6 +3192,39 @@ namespace Gurux.DLMS
             }
         }
 
+        internal static void HandleExceptionResponse(GXReplyData data)
+        {
+            ExceptionStateError state = (ExceptionStateError)data.Data.GetUInt8();
+            ExceptionServiceError error = (ExceptionServiceError)data.Data.GetUInt8();
+            object value = null;
+            if (error == ExceptionServiceError.InvocationCounterError && data.Data.Available > 3)
+            {
+                value = data.Data.GetUInt32();
+            }
+            if (data.Xml != null)
+            {
+                data.Xml.AppendStartTag(Command.ExceptionResponse);
+                if (data.Xml.OutputType == TranslatorOutputType.StandardXml)
+                {
+                    data.Xml.AppendLine(TranslatorTags.StateError, null,
+                          TranslatorStandardTags.StateErrorToString(state));
+                    data.Xml.AppendLine(TranslatorTags.ServiceError, null,
+                            TranslatorStandardTags.ExceptionServiceErrorToString(error));
+                }
+                else
+                {
+                    data.Xml.AppendLine(TranslatorTags.StateError, null,
+                         TranslatorSimpleTags.StateErrorToString(state));
+                    data.Xml.AppendLine(TranslatorTags.ServiceError, null, TranslatorSimpleTags.ExceptionServiceErrorToString(error));
+                }
+                data.Xml.AppendEndTag(Command.ExceptionResponse);
+            }
+            else
+            {
+                throw new GXDLMSExceptionResponse(state, error, value);
+            }
+        }
+
         private static void HandleGloDedRequest(GXDLMSSettings settings,
                                               GXReplyData data, GXDLMSClient client)
         {
@@ -3389,8 +3423,8 @@ namespace Gurux.DLMS
                         HandleConfirmedServiceError(data);
                         break;
                     case Command.ExceptionResponse:
-                        throw new GXDLMSException((ExceptionStateError)data.Data.GetUInt8(),
-                                                  (ExceptionServiceError)data.Data.GetUInt8());
+                        HandleExceptionResponse(data);
+                        break;
                     case Command.GetRequest:
                     case Command.ReadRequest:
                     case Command.WriteRequest:

@@ -57,43 +57,6 @@ namespace Gurux.DLMS
         /// <summary>
         /// Constructor for AARE error.
         /// </summary>
-        internal GXDLMSException(ExceptionStateError stateError, ExceptionServiceError serviceError)
-            : base("Meter returns " + GetStateError(stateError) + " exception. " + GetServiceError(serviceError))
-        {
-            StateError = stateError;
-            ExceptionServiceError = serviceError;
-        }
-
-        private static string GetStateError(ExceptionStateError stateError)
-        {
-            switch (stateError)
-            {
-                case ExceptionStateError.ServiceNotAllowed:
-                    return "Service not allowed";
-                case ExceptionStateError.ServiceUnknown:
-                    return "Service unknown";
-            }
-            return string.Empty;
-        }
-
-        private static string GetServiceError(ExceptionServiceError serviceError)
-        {
-            switch (serviceError)
-            {
-                case ExceptionServiceError.OperationNotPossible:
-                    return "Operation not possible";
-                case ExceptionServiceError.OtherReason:
-                    return "Other reason";
-                case ExceptionServiceError.ServiceNotSupported:
-                    return "Service not supported";
-
-            }
-            return string.Empty;
-        }
-
-        /// <summary>
-        /// Constructor for AARE error.
-        /// </summary>
         internal GXDLMSException(AssociationResult result, SourceDiagnostic diagnostic)
             : base("Connection is " + GetResult(result) + ". " + GetDiagnostic(diagnostic))
         {
@@ -109,7 +72,7 @@ namespace Gurux.DLMS
             : base("Connection is " + GetResult(result) + ". " + GetDiagnostic(diagnostic))
         {
             Result = result;
-            Diagnostic = (byte) diagnostic;
+            Diagnostic = (byte)diagnostic;
         }
 
         /// <summary>
@@ -244,24 +207,6 @@ namespace Gurux.DLMS
         {
             get;
             internal set;
-        }
-
-        /// <summary>
-        /// State error.
-        /// </summary>
-        public ExceptionStateError StateError
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// Service error.
-        /// </summary>
-        public ExceptionServiceError ExceptionServiceError
-        {
-            get;
-            private set;
         }
     }
 }

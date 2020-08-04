@@ -417,7 +417,7 @@ namespace Gurux.DLMS
                 case 89:
                     return "Sum Li V2h QI+QII+QIII+QIV";
                 case 90:
-                    return "SLi current (algebraic sum of the – unsigned – value of the currents in all phases)";
+                    return "SLi current (algebraic sum of the - unsigned - value of the currents in all phases)";
                 case 91:
                     return "Lo Current (neutral)";
                 case 92:

@@ -54,7 +54,7 @@ namespace Gurux.DLMS.Server.Example2.Net
             try
             {
                 ////////////////////////////////////////
-                //Initialize connection settings.
+                //Initialise connection settings.
                 if (settings.media is GXSerial)
                 {
                     GXSerial serial = settings.media as GXSerial;
@@ -103,8 +103,8 @@ namespace Gurux.DLMS.Server.Example2.Net
         {
             if (settings.media is GXSerial)
             {
-                GXDLMSMeter server = new GXDLMSMeter(settings.useLogicalNameReferencing, Enums.InterfaceType.HDLC);
-                if (settings.useLogicalNameReferencing)
+                GXDLMSMeter server = new GXDLMSMeter(settings.client.UseLogicalNameReferencing, Enums.InterfaceType.HDLC);
+                if (settings.client.UseLogicalNameReferencing)
                 {
                     Console.WriteLine("Logical Name DLMS Server in serial port {0}.", settings.media);
                 }
@@ -112,7 +112,7 @@ namespace Gurux.DLMS.Server.Example2.Net
                 {
                     Console.WriteLine("Short Name DLMS Server in serial port {0}.", settings.media);
                 }
-                server.Initialize(settings.media, settings.trace, settings.inputFile, 1);
+                server.Initialize(settings.media, settings.trace, settings.inputFile, 1, false);
                 Console.WriteLine("----------------------------------------------------------");
                 ConsoleKey k;
                 while ((k = Console.ReadKey().Key) != ConsoleKey.Escape)
@@ -134,7 +134,7 @@ namespace Gurux.DLMS.Server.Example2.Net
                 //Create Gurux DLMS server component for Short Name and start listen events.
                 List<GXDLMSMeter> servers = new List<GXDLMSMeter>();
                 string str;
-                if (settings.interfaceType == Enums.InterfaceType.HDLC)
+                if (settings.client.InterfaceType == Enums.InterfaceType.HDLC)
                 {
                     str = "DLMS HDLC";
                 }
@@ -142,7 +142,7 @@ namespace Gurux.DLMS.Server.Example2.Net
                 {
                     str = "DLMS WRAPPER";
                 }
-                if (settings.useLogicalNameReferencing)
+                if (settings.client.UseLogicalNameReferencing)
                 {
                     str += " Logical Name ";
                 }
@@ -162,19 +162,19 @@ namespace Gurux.DLMS.Server.Example2.Net
                 }
                 for (int pos = 0; pos != settings.serverCount; ++pos)
                 {
-                    GXDLMSMeter server = new GXDLMSMeter(settings.useLogicalNameReferencing, settings.interfaceType);
+                    GXDLMSMeter server = new GXDLMSMeter(settings.client.UseLogicalNameReferencing, settings.client.InterfaceType);
                     server.Conformance = Conformance.None;
                     server.MaxReceivePDUSize = 0;
                     servers.Add(server);
                     if (settings.exclusive)
                     {
-                        server.Initialize(net, settings.trace, settings.inputFile, (UInt32) pos + 1);
+                        server.Initialize(net, settings.trace, settings.inputFile, (UInt32) pos + 1, settings.exclusive);
                     }
                     else
                     {
-                        server.Initialize(new GXNet(net.Protocol, net.Port + pos), settings.trace, settings.inputFile, (UInt32)pos + 1);
+                        server.Initialize(new GXNet(net.Protocol, net.Port + pos), settings.trace, settings.inputFile, (UInt32)pos + 1, settings.exclusive);
                     }
-                    if (pos == 0 && settings.useLogicalNameReferencing)
+                    if (pos == 0 && settings.client.UseLogicalNameReferencing)
                     {
                         Console.WriteLine("Associations:");
                         foreach (GXDLMSAssociationLogicalName it in server.Items.GetObjects(ObjectType.AssociationLogicalName))

@@ -623,7 +623,31 @@ namespace Gurux.DLMS.Objects
                 data.SetUInt8((byte)3);
                 GXCommon.SetData(settings, data, DataType.Int8, e.Index);
                 GXCommon.SetData(settings, data, DataType.Enum, m);
-                GXCommon.SetData(settings, data, DataType.None, null);
+                byte accessSelector = item.GetAccessSelector(e.Index);
+                if (accessSelector == 0)
+                {
+                    //Profile generic buffer can be read using entry and range.
+                    if (item is GXDLMSProfileGeneric && e.Index == 2)
+                    {
+                        accessSelector = 3;
+                    }
+                }
+                if (accessSelector != 0)
+                {
+                    List<object> list = new List<object>();
+                    for (sbyte index = 0; index != 8; ++index)
+                    {
+                        if ((accessSelector & (1 << index)) != 0)
+                        {
+                            list.Add(index);
+                        }
+                    }
+                    GXCommon.SetData(settings, data, DataType.Array, list);
+                }
+                else
+                {
+                    GXCommon.SetData(settings, data, DataType.None, null);
+                }
             }
             data.SetUInt8((byte)DataType.Array);
             cnt = (item as IGXDLMSBase).GetMethodCount();

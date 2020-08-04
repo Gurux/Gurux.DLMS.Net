@@ -753,5 +753,27 @@ namespace Gurux.DLMS.Objects
                 }
             }
         }
+
+        /// <summary>
+        /// Returns is Method attribute read only.
+        /// </summary>-
+        /// <param name="index">Method Attribute index.</param>
+        /// <returns>Is attribute read only.</returns>
+        public byte GetAccessSelector(int index)
+        {
+            GXDLMSAttributeSettings att = GetAttribute(index, Attributes);
+            return att.AccessSelector;
+        }
+
+        /// <summary>
+        /// Set Method attribute access.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="access"></param>
+        public void SetAccessSelector(int index, byte value)
+        {
+            GXDLMSAttributeSettings att = GetAttribute(index, Attributes);
+            att.AccessSelector = value;
+        }
     }
 }

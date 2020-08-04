@@ -317,5 +317,14 @@ namespace Gurux.DLMS.ManufacturerSettings
             get;
             set;
         }
+
+        /// <summary>
+        /// Available Access selector values.
+        /// </summary>
+        public byte AccessSelector
+        {
+            get;
+            set;
+        }
     }
 }

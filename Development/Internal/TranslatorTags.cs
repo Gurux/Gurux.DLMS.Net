@@ -124,6 +124,8 @@ namespace Gurux.DLMS
         CalledAEInvocationId,
         CallingApInvocationId,
         CalledAEQualifier,
-        ResponseAllowed
+        ResponseAllowed,
+        ExceptionResponse,
+        StateError
     }
 }

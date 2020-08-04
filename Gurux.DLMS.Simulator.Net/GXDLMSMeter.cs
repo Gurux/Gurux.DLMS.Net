@@ -49,12 +49,20 @@ namespace Gurux.DLMS.Server.Example2.Net
     /// </summary>
     class GXDLMSMeter : GXDLMSSecureServer
     {
+        //Are all meters using the same port.
+        bool Exclusive;
         string objectsFile;
         TraceLevel Trace = TraceLevel.Error;
         /// <summary>
         /// Lock settings file when used.
         /// </summary>
         private static object settingsLock = new object();
+
+        Gurux.Common.IGXMedia Media = null;
+        /// <summary>
+        /// Serial number of the meter.
+        /// </summary>
+        UInt32 serialNumber;
 
         ///<summary>
         /// Constructor.
@@ -64,16 +72,13 @@ namespace Gurux.DLMS.Server.Example2.Net
         public GXDLMSMeter(bool logicalNameReferencing, InterfaceType type) : base(logicalNameReferencing, type)
         {
         }
-
-        Gurux.Common.IGXMedia Media = null;
-        UInt32 serialNumber = 0;
-
-        public void Initialize(IGXMedia media, TraceLevel trace, string path, UInt32 sn)
+        public void Initialize(IGXMedia media, TraceLevel trace, string path, UInt32 sn, bool exclusive)
         {
             serialNumber = sn;
             objectsFile = path;
             Media = media;
             Trace = trace;
+            Exclusive = exclusive;
             Init();
         }
 
@@ -144,10 +149,6 @@ namespace Gurux.DLMS.Server.Example2.Net
             return false;
         }
 
-        /// <summary>
-        /// In this example we have only two register objects. Battery use time counter that can be reset and CPU temperature.
-        /// Battery use time counter is increased from the own thread.
-        /// </summary>
         bool Init()
         {
             //Load added objects.
@@ -192,155 +193,6 @@ namespace Gurux.DLMS.Server.Example2.Net
         {
             string name = (Media as GXNet).Port + "_" + target.LogicalName + ".csv";
             return name;
-        }
-
-        /// <summary>
-        /// Return data using start and end indexes.
-        /// </summary>
-        /// <param name="p">ProfileGeneric</param>
-        /// <param name="index">Row index.</param>
-        /// <param name="count">Row count.</param>
-        void GetProfileGenericDataByEntry(GXDLMSProfileGeneric p, UInt32 index, UInt32 count)
-        {
-            //Clear old data. It's already serialized.
-            p.Buffer.Clear();
-            string name = GetProfileGenericName(p);
-            if (count != 0)
-            {
-                lock (p)
-                {
-                    if (!File.Exists(name))
-                    {
-                        return;
-                    }
-
-                    using (var fs = File.OpenRead(name))
-                    {
-                        using (var reader = new StreamReader(fs))
-                        {
-                            while (!reader.EndOfStream)
-                            {
-                                string line = reader.ReadLine();
-                                if (line.Length != 0)
-                                {
-                                    //Skip row
-                                    if (index > 0)
-                                    {
-                                        --index;
-                                    }
-                                    else
-                                    {
-                                        string[] values = line.Split(';');
-                                        object[] list = new object[values.Length];
-                                        for (int pos = 0; pos != values.Length; ++pos)
-                                        {
-                                            DataType t = p.CaptureObjects[pos].Key.GetUIDataType(p.CaptureObjects[pos].Value.AttributeIndex);
-                                            if (t == DataType.DateTime)
-                                            {
-                                                list[pos] = new GXDateTime(values[pos]);
-                                            }
-                                            else if (t == DataType.Date)
-                                            {
-                                                list[pos] = new GXDate(values[pos]);
-                                            }
-                                            else if (t == DataType.Time)
-                                            {
-                                                list[pos] = new GXTime(values[pos]);
-                                            }
-                                            else
-                                            {
-                                                list[pos] = values[pos];
-                                            }
-                                        }
-                                        p.Buffer.Add(list);
-                                    }
-                                    if (p.Buffer.Count == count)
-                                    {
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Find start index and row count using start and end date time.
-        /// </summary>
-        /// <param name="e">Value arguments.</param>
-        void GetProfileGenericDataByRange(ValueEventArgs e)
-        {
-            GXDateTime start = (GXDateTime)GXDLMSClient.ChangeType((byte[])((object[])e.Parameters)[1], DataType.DateTime);
-            GXDateTime end = (GXDateTime)GXDLMSClient.ChangeType((byte[])((object[])e.Parameters)[2], DataType.DateTime);
-            string name = GetProfileGenericName(e.Target);
-            lock (e.Target)
-            {
-                if (!File.Exists(name))
-                {
-                    using (var fs = File.CreateText(name))
-                    {
-                        return;
-                    }
-                }
-                using (var fs = File.OpenRead(name))
-                {
-                    using (var reader = new StreamReader(fs))
-                    {
-                        while (!reader.EndOfStream)
-                        {
-                            string line = reader.ReadLine();
-                            if (line.Length != 0)
-                            {
-                                string[] values = line.Split(';');
-                                DateTime tm = new GXDateTime(values[0]);
-                                if (tm > end)
-                                {
-                                    //If all data is read.
-                                    break;
-                                }
-                                if (tm < start)
-                                {
-                                    //If we have not find first item.
-                                    ++e.RowBeginIndex;
-                                }
-                                ++e.RowEndIndex;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Get row count.
-        /// </summary>
-        /// <returns></returns>
-        UInt16 GetProfileGenericDataCount(GXDLMSProfileGeneric p)
-        {
-            string name = GetProfileGenericName(p);
-            UInt16 rows = 0;
-            lock (p)
-            {
-                if (File.Exists(name))
-                {
-                    using (var fs = File.OpenRead(name))
-                    {
-                        using (var reader = new StreamReader(fs))
-                        {
-                            while (!reader.EndOfStream)
-                            {
-                                if (reader.ReadLine().Length != 0)
-                                {
-                                    ++rows;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return rows;
         }
 
         /// <summary>
@@ -637,9 +489,8 @@ namespace Gurux.DLMS.Server.Example2.Net
         /// <param name="e"></param>
         void OnClientDisconnected(object sender, Gurux.Common.ConnectionEventArgs e)
         {
-            //Reset server settings when connection closed.
-            this.Reset();
-            if (Trace > TraceLevel.Warning)
+            //Show trace only for one meter.
+            if (Trace > TraceLevel.Warning && (!Exclusive || serialNumber == 1))
             {
                 Console.WriteLine("Client Disconnected.");
             }
@@ -652,7 +503,8 @@ namespace Gurux.DLMS.Server.Example2.Net
         /// <param name="e"></param>
         void OnClientConnected(object sender, Gurux.Common.ConnectionEventArgs e)
         {
-            if (Trace > TraceLevel.Warning)
+            //Show trace only for one meter.
+            if (Trace > TraceLevel.Warning && (!Exclusive || serialNumber == 1))
             {
                 Console.WriteLine("Client Connected.");
             }
@@ -669,7 +521,8 @@ namespace Gurux.DLMS.Server.Example2.Net
             {
                 lock (this)
                 {
-                    if (Trace > TraceLevel.Info)
+                    //Show trace only for connected meters.
+                    if (Trace > TraceLevel.Info && this.ConnectionState != ConnectionState.None)
                     {
                         Console.WriteLine("RX:\t" + Gurux.Common.GXCommon.ToHex((byte[])e.Data, true));
                     }
@@ -736,7 +589,8 @@ namespace Gurux.DLMS.Server.Example2.Net
 
         protected override void Disconnected(GXDLMSConnectionEventArgs e)
         {
-            if (Trace > TraceLevel.Warning)
+            //Show trace only for one meter.
+            if (Trace > TraceLevel.Warning && (!Exclusive || serialNumber == 1))
             {
                 Console.WriteLine("Disconnected");
             }

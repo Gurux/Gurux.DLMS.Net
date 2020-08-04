@@ -148,6 +148,11 @@ namespace Gurux.DLMS.Objects
                         if (dt == DataType.None && Value != null)
                         {
                             dt = GXCommon.GetDLMSDataType(Value.GetType());
+                            //If user has set initial value.
+                            if (dt == DataType.String)
+                            {
+                                dt = DataType.None;
+                            }
                         }
                         return dt;
                     }

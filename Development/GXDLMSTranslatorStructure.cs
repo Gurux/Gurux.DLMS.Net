@@ -507,6 +507,10 @@ namespace Gurux.DLMS
             {
                 return value.ToString("X" + desimals.ToString());
             }
+            if (desimals != 0)
+            {
+                return value.ToString("d" + desimals.ToString());
+            }
             return value.ToString();
         }
 

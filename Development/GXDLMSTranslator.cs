@@ -1444,6 +1444,11 @@ namespace Gurux.DLMS
                     PduToXml(xml, new GXByteBuffer(value.Remaining()), omitDeclaration, omitNameSpace, allowUnknownCommand);
                     xml.AppendEndTag(cmd);
                     break;
+                case (byte)Command.ExceptionResponse:
+                    data.Xml = xml;
+                    data.Data = value;
+                    GXDLMS.HandleExceptionResponse(data);
+                    break;
                 default:
                     if (!allowUnknownCommand)
                     {
@@ -1527,6 +1532,7 @@ namespace Gurux.DLMS
                 case (int)Command.AccessRequest:
                 case (int)Command.InitiateRequest:
                 case (int)Command.ConfirmedServiceError:
+                case (int)Command.ExceptionResponse:
                     s.settings.IsServer = false;
                     break;
                 case (byte)Command.GloInitiateRequest:
@@ -2770,6 +2776,26 @@ namespace Gurux.DLMS
                         s.physicalDeviceAddress = GXCommon.HexToBytes(GetValue(node, s));
                         s.command = Command.None;
                         break;
+                    case (UInt16)TranslatorTags.StateError:
+                        if (s.OutputType == TranslatorOutputType.SimpleXml)
+                        {
+                            s.attributeDescriptor.SetUInt8((byte)TranslatorSimpleTags.ValueofStateError(GetValue(node, s)));
+                        }
+                        else
+                        {
+                            s.attributeDescriptor.SetUInt8((byte)TranslatorStandardTags.ValueofStateError(GetValue(node, s)));
+                        }
+                        break;
+                    case (UInt16)TranslatorTags.ServiceError:
+                        if (s.OutputType == TranslatorOutputType.SimpleXml)
+                        {
+                            s.attributeDescriptor.SetUInt8((byte)TranslatorSimpleTags.ValueOfExceptionServiceError(GetValue(node, s)));
+                        }
+                        else
+                        {
+                            s.attributeDescriptor.SetUInt8((byte)TranslatorStandardTags.ValueOfExceptionServiceError(GetValue(node, s)));
+                        }
+                        break;
                     default:
                         throw new ArgumentException("Invalid node: " + node.Name);
                 }
@@ -3085,10 +3111,9 @@ namespace Gurux.DLMS
                     bb.SetUInt8(s.reason);
                     break;
                 case Command.ConfirmedServiceError:
+                case Command.ExceptionResponse:
                     bb.SetUInt8(s.command);
                     bb.Set(s.attributeDescriptor);
-                    break;
-                case Command.ExceptionResponse:
                     break;
                 case Command.GeneralBlockTransfer:
                     ln = new GXDLMSLNParameters(null, s.settings, 0, s.command, s.requestType,

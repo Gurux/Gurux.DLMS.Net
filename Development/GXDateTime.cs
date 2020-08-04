@@ -293,7 +293,7 @@ namespace Gurux.DLMS
                         v = v.Replace("Z", "+00:00");
                         culture = null;
                     }
-                    else
+                    else if (culture == CultureInfo.InvariantCulture)
                     {
                         Skip |= DateTimeSkips.Deviation;
                     }

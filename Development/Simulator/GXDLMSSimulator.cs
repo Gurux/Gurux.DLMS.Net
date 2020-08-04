@@ -116,11 +116,7 @@ namespace Gurux.DLMS.Simulator
             {
                 if (node.ChildNodes[1].ChildNodes[0].Name == "LastBlock")
                 {
-                    if ("0" == node.ChildNodes[1].ChildNodes[0].InnerXml)
-                    {
-                        return false;
-                    }
-                    return true;
+                    return int.Parse(node.ChildNodes[1].ChildNodes[0].InnerXml) != 0;
                 }
             }
             return true;
@@ -301,7 +297,7 @@ namespace Gurux.DLMS.Simulator
                                                 //Update OBIS code description.
                                                 converter.UpdateOBISCodeInformation(settings.Objects);
                                             }
-                                            else
+                                            else if (targets.Count != 0)
                                             {
                                                 ValueEventArgs ve = targets[pos];
                                                 GXDataInfo info = new GXDataInfo();
