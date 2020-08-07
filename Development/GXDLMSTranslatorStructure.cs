@@ -502,14 +502,9 @@ namespace Gurux.DLMS
         /// <returns>Integer value as a string.</returns>
         public string IntegerToHex(long value, int desimals, bool forceHex)
         {
-            if (showNumericsAsHex
-                    && OutputType == TranslatorOutputType.SimpleXml)
+            if (forceHex || (showNumericsAsHex && OutputType == TranslatorOutputType.SimpleXml))
             {
                 return value.ToString("X" + desimals.ToString());
-            }
-            if (desimals != 0)
-            {
-                return value.ToString("d" + desimals.ToString());
             }
             return value.ToString();
         }

@@ -470,5 +470,72 @@ namespace Gurux.DLMS
             }
             return reply;
         }
+
+
+        /// <summary>
+        /// Sends Event Notification Request.
+        /// </summary>
+        /// <param name="time">Send time.</param>
+        /// <param name="item">COSEM object and attribute index to report.</param>
+        /// <returns>Report request as byte array.</returns>
+        public byte[][] GenerateEventNotification(DateTime time, KeyValuePair<GXDLMSObject, int> item)
+        {
+            GXByteBuffer buff = new GXByteBuffer();
+            byte[][] reply;
+            if (UseLogicalNameReferencing)
+            {
+                buff.SetUInt16((ushort)item.Key.ObjectType);
+                buff.Set(GXCommon.LogicalNameToBytes(item.Key.LogicalName));
+                buff.SetUInt8((byte)item.Value);
+                AddData(item.Key, item.Value, buff);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(null, Settings, 0, Command.EventNotification, 0, null, buff, 0xff, Command.None);
+                p.time = time;
+                reply = GXDLMS.GetLnMessages(p);
+            }
+            else
+            {
+                throw new Exception("Use GenerateInformationReport when Short Name referencing is used.");
+            }
+            return reply;
+        }
+
+        /// <summary>
+        /// Sends Information Report Request.
+        /// </summary>
+        /// <param name="time">Send time.</param>
+        /// <param name="list">List of COSEM object and attribute index to report.</param>
+        /// <returns>Report request as byte array.</returns>
+        public byte[][] GenerateInformationReport(DateTime time, List<KeyValuePair<GXDLMSObject, int>> list)
+        {
+            if (list == null || list.Count == 0)
+            {
+                throw new ArgumentNullException("list");
+            }
+            GXByteBuffer buff = new GXByteBuffer();
+            byte[][] reply;
+            if (UseLogicalNameReferencing)
+            {
+                throw new Exception("Use GenerateEventNotification when Logical Name referencing is used.");
+            }
+            else
+            {
+                GXDLMSSNParameters p = new GXDLMSSNParameters(Settings, Command.InformationReport, list.Count, 0xFF, null, buff);
+                foreach (KeyValuePair<GXDLMSObject, int> it in list)
+                {
+                    // Add variable type.
+                    buff.SetUInt8(VariableAccessSpecification.VariableName);
+                    int sn = it.Key.ShortName;
+                    sn += (it.Value - 1) * 8;
+                    buff.SetUInt16((UInt16)sn);
+                }
+                GXCommon.SetObjectCount(list.Count, buff);
+                foreach (KeyValuePair<GXDLMSObject, int> it in list)
+                {
+                    AddData(it.Key, it.Value, buff);
+                }
+                reply = GXDLMS.GetSnMessages(p);
+            }
+            return reply;
+        }
     }
 }

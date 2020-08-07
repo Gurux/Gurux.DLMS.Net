@@ -196,7 +196,7 @@ namespace Gurux.DLMS.Objects
                     dt = GetUIDataType(2);
                     if (dt == DataType.DateTime && (e.Value is UInt32 || e.Value is UInt64 || e.Value is Int32 || e.Value is Int64))
                     {
-                        Value = GXDateTime.FromUnixTime(Convert.ToUInt32(e.Value));
+                        Value = GXDateTime.FromUnixTime(Convert.ToUInt32(e.Value)).Value.UtcDateTime;
                     }
                     else
                     {

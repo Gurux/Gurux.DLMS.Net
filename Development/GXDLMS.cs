@@ -2059,7 +2059,7 @@ namespace Gurux.DLMS
                 // Check that server addresses match.
                 if (settings.ServerAddress != source &&
                     // If All-station (Broadcast).
-                    settings.ServerAddress != 0x7F && settings.ServerAddress != 0x3FFF)
+                    (settings.ServerAddress & 0x7F) != 0x7F && (settings.ServerAddress & 0x3FFF) != 0x3FFF)
                 {
                     //Check logical and physical address separately.
                     //This is done because some meters might send four bytes
