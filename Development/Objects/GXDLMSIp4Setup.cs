@@ -523,13 +523,13 @@ namespace Gurux.DLMS.Objects
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
             writer.WriteElementString("DataLinkLayerReference", DataLinkLayerReference, 2);
-            writer.WriteElementString("IPAddress", IPAddress.ToString(), 3);
+            writer.WriteElementString("IPAddress", Convert.ToString(IPAddress), 3);
             writer.WriteStartElement("MulticastIPAddress", 4);
             if (MulticastIPAddress != null)
             {
                 foreach (IPAddress it in MulticastIPAddress)
                 {
-                    writer.WriteElementString("Value", it.ToString(), 4);
+                    writer.WriteElementString("Value", Convert.ToString(it), 4);
                 }
             }
             writer.WriteEndElement();
@@ -546,11 +546,11 @@ namespace Gurux.DLMS.Objects
                 }
             }
             writer.WriteEndElement();
-            writer.WriteElementString("SubnetMask", SubnetMask.ToString(), 6);
-            writer.WriteElementString("GatewayIPAddress", GatewayIPAddress.ToString(), 7);
+            writer.WriteElementString("SubnetMask", Convert.ToString(SubnetMask), 6);
+            writer.WriteElementString("GatewayIPAddress", Convert.ToString(GatewayIPAddress), 7);
             writer.WriteElementString("UseDHCP", UseDHCP, 8);
-            writer.WriteElementString("PrimaryDNSAddress", PrimaryDNSAddress.ToString(), 9);
-            writer.WriteElementString("SecondaryDNSAddress", SecondaryDNSAddress.ToString(), 10);
+            writer.WriteElementString("PrimaryDNSAddress", Convert.ToString(PrimaryDNSAddress), 9);
+            writer.WriteElementString("SecondaryDNSAddress", Convert.ToString(SecondaryDNSAddress), 10);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
