@@ -1,0 +1,54 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Gurux.DLMS.Simulator.Net</RootNamespace>
+    <AssemblyName>Gurux.DLMS.Simulator.Net</AssemblyName>
+    <Company>Gurux Ltd</Company>
+    <Authors>Gurux Ltd</Authors>
+    <Copyright>Copyright (c) 1998-2020 Gurux Ltd. All rights reserved.</Copyright>
+    <PackageProjectUrl>www.gurux.fi/Gurux.DLMS.Simulator</PackageProjectUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
+    <Description>Purpose of Gurux.DLMS.Simulator is help you make testing environment without the huge number of real meter.</Description>
+    <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">0.0.1-local</Version>
+    <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RepositoryUrl>https://github.com/gurux/Gurux.DLMS.Net</RepositoryUrl>
+    <PackageTags>Gurux Device Framework Network DLMS AMI</PackageTags>
+    <PackageId>Gurux.DLMS.Simulator.Net</PackageId>
+    <IsPackable>false</IsPackable>
+    <StartupObject>Gurux.DLMS.Simulator.Net.Program</StartupObject>
+    <PackageLicenseExpression>GPL-2.0-only</PackageLicenseExpression>
+    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Remove="Properties\launchSettings.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Gurux.Common" Version="8.1.2002.1903" />
+    <PackageReference Include="Gurux.DLMS" Version="9.0.2008.701" />
+    <PackageReference Include="Gurux.Net" Version="8.1.2002.1902" />
+    <PackageReference Include="Gurux.Serial" Version="8.1.2002.1901" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <TypeScriptTarget>ES5</TypeScriptTarget>
+    <TypeScriptJSXEmit>React</TypeScriptJSXEmit>
+    <TypeScriptModuleKind />
+    <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
+    <TypeScriptNoImplicitAny>False</TypeScriptNoImplicitAny>
+    <TypeScriptRemoveComments>False</TypeScriptRemoveComments>
+    <TypeScriptOutFile />
+    <TypeScriptOutDir />
+    <TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
+    <TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>
+    <TypeScriptSourceMap>True</TypeScriptSourceMap>
+    <TypeScriptMapRoot />
+    <TypeScriptSourceRoot />
+  </PropertyGroup>
+</Project>

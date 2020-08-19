@@ -43,7 +43,7 @@ using System.Diagnostics;
 using System.IO.Ports;
 using System.Text;
 
-namespace Gurux.DLMS.Server.Example2.Net
+namespace Gurux.DLMS.Simulator.Net
 {
     class Settings
     {

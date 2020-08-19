@@ -539,7 +539,7 @@ namespace Gurux.DLMS.Reader
             {
                 while (!succeeded && pos != 3)
                 {
-                    WriteTrace("<- " + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(data, true));
+                    WriteTrace("TX:\t" + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(data, true));
                     Media.Send(data, null);
                     succeeded = Media.Receive(p);
                     if (!succeeded)
@@ -587,11 +587,11 @@ namespace Gurux.DLMS.Reader
                 }
                 catch (Exception ex)
                 {
-                    WriteTrace("-> " + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(p.Reply, true));
+                    WriteTrace("RX:\t" + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(p.Reply, true));
                     throw ex;
                 }
             }
-            WriteTrace("-> " + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(p.Reply, true));
+            WriteTrace("RX:\t" + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(p.Reply, true));
             if (reply.Error != 0)
             {
                 if (reply.Error == (short)ErrorCode.Rejected)

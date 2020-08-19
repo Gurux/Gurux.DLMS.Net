@@ -41,7 +41,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
-namespace Gurux.DLMS.Server.Example2.Net
+namespace Gurux.DLMS.Simulator.Net
 {
     class Program
     {
