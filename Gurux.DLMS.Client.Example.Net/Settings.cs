@@ -205,7 +205,7 @@ namespace Gurux.DLMS.Client.Example
                     case 'C':
                         try
                         {
-                            settings.client.Ciphering.Security = (Security)Enum.Parse(typeof(Security), it.Value);
+                            settings.client.Ciphering.Security = (byte)Enum.Parse(typeof(Security), it.Value);
                         }
                         catch (Exception)
                         {

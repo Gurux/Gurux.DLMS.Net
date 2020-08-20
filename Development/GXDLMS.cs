@@ -764,8 +764,9 @@ namespace Gurux.DLMS
                 }
             }
             AesGcmParameter s = new AesGcmParameter(cmd, cipher.Security,
-                ++cipher.InvocationCounter, cipher.SystemTitle, key,
+                cipher.InvocationCounter, cipher.SystemTitle, key,
                 cipher.AuthenticationKey);
+            ++cipher.InvocationCounter;
             s.IgnoreSystemTitle = p.settings.Standard == Standard.Italy;
             byte[] tmp = GXCiphering.Encrypt(s, data);
             return tmp;
@@ -779,7 +780,7 @@ namespace Gurux.DLMS
         internal static void GetLNPdu(GXDLMSLNParameters p, GXByteBuffer reply)
         {
             bool ciphering = p.command != Command.Aarq && p.command != Command.Aare && p.settings.Cipher != null &&
-                (p.settings.Cipher.Security != Gurux.DLMS.Enums.Security.None || p.cipheredCommand != Command.None);
+                (p.settings.Cipher.Security != (byte) Security.None || p.cipheredCommand != Command.None);
             int len = 0;
             if (p.command == Command.Aarq)
             {
@@ -1199,7 +1200,7 @@ namespace Gurux.DLMS
 
         static int AppendMultipleSNBlocks(GXDLMSSNParameters p, GXByteBuffer reply)
         {
-            bool ciphering = p.settings.Cipher != null && p.settings.Cipher.Security != Gurux.DLMS.Enums.Security.None;
+            bool ciphering = p.settings.Cipher != null && p.settings.Cipher.Security != (byte)Security.None;
             int hSize = reply.Size + 3;
             //Add LLC bytes.
             if (p.command == Command.WriteRequest ||
@@ -1251,7 +1252,7 @@ namespace Gurux.DLMS
         /// <param name="reply"></param>
         internal static void GetSNPdu(GXDLMSSNParameters p, GXByteBuffer reply)
         {
-            bool ciphering = p.command != Command.Aarq && p.command != Command.Aare && p.settings.Cipher != null && p.settings.Cipher.Security != Gurux.DLMS.Enums.Security.None;
+            bool ciphering = p.command != Command.Aarq && p.command != Command.Aare && p.settings.Cipher != null && p.settings.Cipher.Security != (byte)Security.None;
             if (!ciphering && p.settings.InterfaceType == InterfaceType.HDLC)
             {
                 if (p.settings.IsServer)
@@ -1382,8 +1383,9 @@ namespace Gurux.DLMS
                 GXICipher cipher = p.settings.Cipher;
                 AesGcmParameter s = new AesGcmParameter(
                     GetGloMessage(p.command), cipher.Security,
-                    cipher.InvocationCounter++, cipher.SystemTitle,
+                    cipher.InvocationCounter, cipher.SystemTitle,
                     cipher.BlockCipherKey, cipher.AuthenticationKey);
+                ++cipher.InvocationCounter;
                 byte[] tmp = GXCiphering.Encrypt(s, reply.Array());
                 System.Diagnostics.Debug.Assert(!(p.settings.MaxPduSize < tmp.Length));
                 reply.Size = 0;
@@ -2595,6 +2597,39 @@ namespace Gurux.DLMS
             }
         }
 
+        internal static void AddInvokeId(GXDLMSTranslatorStructure xml, Command command, Enum type, UInt32 invokeId)
+        {
+            if (xml != null)
+            {
+                xml.AppendStartTag(command);
+                xml.AppendStartTag(command, type);
+                //InvokeIdAndPriority
+                if (xml.Comments)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    if ((invokeId & 0x80) != 0)
+                    {
+                        sb.Append("Priority: High, ");
+                    }
+                    else
+                    {
+                        sb.Append("Priority: Normal, ");
+                    }
+                    if ((invokeId & 0x40) != 0)
+                    {
+                        sb.Append("ServiceClass: Confirmed, ");
+                    }
+                    else
+                    {
+                        sb.Append("ServiceClass: UnConfirmed, ");
+                    }
+                    sb.Append("ID: " + (invokeId & 0xF).ToString());
+                    xml.AppendComment(sb.ToString());
+                }
+                xml.AppendLine(TranslatorTags.InvokeId, null, xml.IntegerToHex(invokeId, 2));
+            }
+        }
+
         /// <summary>
         /// Handle method response and get data from block and/or update error status.
         /// </summary>
@@ -2608,14 +2643,7 @@ namespace Gurux.DLMS
             // Get invoke ID and priority.
             data.InvokeId = data.Data.GetUInt8();
             VerifyInvokeId(settings, data);
-            if (data.Xml != null)
-            {
-                data.Xml.AppendStartTag(Command.MethodResponse);
-                data.Xml.AppendStartTag(Command.MethodResponse, type);
-                //InvokeIdAndPriority
-                data.Xml.AppendLine(TranslatorTags.InvokeId, "Value",
-                                        data.Xml.IntegerToHex(data.InvokeId, 2));
-            }
+            AddInvokeId(data.Xml, Command.MethodResponse, type, data.InvokeId);
             //Action-Response-Normal
             if (type == ActionResponseType.Normal)
             {
@@ -2653,14 +2681,7 @@ namespace Gurux.DLMS
             //Invoke ID and priority.
             data.InvokeId = data.Data.GetUInt8();
             VerifyInvokeId(settings, data);
-            if (data.Xml != null)
-            {
-                data.Xml.AppendStartTag(Command.SetResponse);
-                data.Xml.AppendStartTag(Command.SetResponse, type);
-                //InvokeIdAndPriority
-                data.Xml.AppendLine(TranslatorTags.InvokeId, "Value", data.Xml.IntegerToHex(data.InvokeId, 2));
-            }
-
+            AddInvokeId(data.Xml, Command.SetResponse, type, data.InvokeId);
             //SetResponseNormal
             if (type == SetResponseType.Normal)
             {
@@ -2848,13 +2869,7 @@ namespace Gurux.DLMS
             // Get invoke ID and priority.
             reply.InvokeId = data.GetUInt8();
             VerifyInvokeId(settings, reply);
-            if (reply.Xml != null)
-            {
-                reply.Xml.AppendStartTag(Command.GetResponse);
-                reply.Xml.AppendStartTag(Command.GetResponse, type);
-                //InvokeIdAndPriority
-                reply.Xml.AppendLine(TranslatorTags.InvokeId, "Value", reply.Xml.IntegerToHex(reply.InvokeId, 2));
-            }
+            AddInvokeId(reply.Xml, Command.GetResponse, type, reply.InvokeId);
             // Response normal
             if (type == GetCommandType.Normal)
             {
@@ -3344,6 +3359,19 @@ namespace Gurux.DLMS
                         }
                     }
                     byte[] tmp = GXCiphering.Decrypt(p, bb);
+                    //If target is sending data ciphered using different security policy.
+                    if (settings.Cipher.Security != p.Security)
+                    {
+                        throw new GXDLMSCipherException(string.Format("Data is ciphered using different security level. Actual: {0}. Expected: {1}", p.Security, settings.Cipher.Security));
+                    }
+                    if (settings.ExpectedInvocationCounter != 0)
+                    {
+                        if (p.InvocationCounter < settings.ExpectedInvocationCounter)
+                        {
+                            throw new GXDLMSCipherException(string.Format("Data is ciphered using invalid invocation counter value. Actual: {0}. Expected: {1}", p.InvocationCounter, settings.ExpectedInvocationCounter));
+                        }
+                        settings.ExpectedInvocationCounter = p.InvocationCounter;
+                    }
                     if (client != null && client.pdu != null)
                     {
                         client.pdu(client, tmp);
@@ -3748,7 +3776,7 @@ namespace Gurux.DLMS
                     data.Data.Set(tmp);
                     data.CipheredCommand = Command.GeneralCiphering;
                     data.Command = Command.None;
-                    if (p.Security != Enums.Security.None)
+                    if (p.Security != (byte)Security.None)
                     {
                         GetPdu(settings, data, null);
                     }

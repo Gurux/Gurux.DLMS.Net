@@ -46,7 +46,11 @@ namespace Gurux.DLMS.Secure
             get;
             set;
         }
-        public Gurux.DLMS.Enums.Security Security
+
+        /// <summary>
+        /// Enumerated security policy.
+        /// </summary>
+        public byte Security
         {
             get;
             set;
@@ -183,7 +187,7 @@ namespace Gurux.DLMS.Secure
         /// <param name="authenticationKey"></param>
         public AesGcmParameter(
             byte tag,
-            Gurux.DLMS.Enums.Security security,
+            byte security,
             UInt32 invocationCounter,
             byte[] systemTitle,
             byte[] blockCipherKey,
@@ -196,7 +200,7 @@ namespace Gurux.DLMS.Secure
             BlockCipherKey = blockCipherKey;
             AuthenticationKey = authenticationKey;
             Type = CountType.Packet;
-            SecuritySuite = SecuritySuite.AesGcm128;
+            SecuritySuite = SecuritySuite.Version0;
         }
 
         /// <summary>
@@ -214,7 +218,7 @@ namespace Gurux.DLMS.Secure
             BlockCipherKey = blockCipherKey;
             AuthenticationKey = authenticationKey;
             Type = CountType.Packet;
-            SecuritySuite = SecuritySuite.AesGcm128;
+            SecuritySuite = SecuritySuite.Version0;
         }
 
         public override string ToString()

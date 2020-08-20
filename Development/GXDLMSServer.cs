@@ -533,6 +533,40 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Expected Invocation (Frame) counter value.
+        /// </summary>
+        /// <remarks>
+        /// If this value is set ciphered PDUs that are using smaller invocation counter values are rejected.
+        /// Invocation counter value is not validate if value is zero.
+        /// </remarks>
+        public UInt64 ExpectedInvocationCounter
+        {
+            get
+            {
+                return Settings.ExpectedInvocationCounter;
+            }
+            set
+            {
+                Settings.ExpectedInvocationCounter = value;
+            }
+        }
+
+        /// <summary>
+        /// Some meters expect that Invocation Counter is increased for Authentication when connection is established.
+        /// </summary>
+        public bool IncreaseInvocationCounterForAuthentication
+        {
+            get
+            {
+                return Settings.IncreaseInvocationCounterForGMacAuthentication;
+            }
+            set
+            {
+                Settings.IncreaseInvocationCounterForGMacAuthentication = value;
+            }
+        }
+
+        /// <summary>
         /// Skipped date time fields. This value can be used if meter can't handle deviation or status.
         /// </summary>
         public DateTimeSkips DateTimeSkips
@@ -885,7 +919,7 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    Settings.Cipher.Security = Gurux.DLMS.Enums.Security.None;
+                    Settings.Cipher.Security = (byte)Security.None;
                 }
             }
             dataReceived = DateTime.MinValue;
@@ -1343,6 +1377,21 @@ namespace Gurux.DLMS
             try
             {
                 ret = GXAPDU.ParsePDU(Settings, Settings.Cipher, data, null);
+                if (ret is ExceptionServiceError e)
+                {
+                    if (Settings.InterfaceType == Enums.InterfaceType.HDLC)
+                    {
+                        replyData.Set(GXCommon.LLCReplyBytes);
+                    }
+                    replyData.SetUInt8(Command.ExceptionResponse);
+                    replyData.SetUInt8(ExceptionStateError.ServiceUnknown);
+                    replyData.SetUInt8(e);
+                    if (e == ExceptionServiceError.InvocationCounterError)
+                    {
+                        replyData.SetUInt32((UInt32)Settings.ExpectedInvocationCounter);
+                    }
+                    return;
+                }
                 if (!(ret is AcseServiceProvider))
                 {
                     if (Settings.NegotiatedConformance == Conformance.None)
@@ -1401,7 +1450,7 @@ namespace Gurux.DLMS
                                 GXDLMSAssociationLogicalName ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
                                 if (ln != null)
                                 {
-                                    if (Settings.Cipher == null || Settings.Cipher.Security == Enums.Security.None)
+                                    if (Settings.Cipher == null || Settings.Cipher.Security == (byte)Security.None)
                                     {
                                         ln.ApplicationContextName.ContextId = ApplicationContextName.LogicalName;
                                     }
@@ -1421,7 +1470,7 @@ namespace Gurux.DLMS
                                 GXDLMSAssociationLogicalName ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
                                 if (ln != null)
                                 {
-                                    if (Settings.Cipher == null || Settings.Cipher.Security == Enums.Security.None)
+                                    if (Settings.Cipher == null || Settings.Cipher.Security == (byte)Security.None)
                                     {
                                         ln.ApplicationContextName.ContextId = ApplicationContextName.LogicalName;
                                     }

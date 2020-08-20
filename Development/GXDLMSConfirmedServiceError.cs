@@ -61,7 +61,7 @@ namespace Gurux.DLMS
         /// Constructor for Confirmed ServiceError. GetStateError(ExceptionStateError
         /// </summary>
         internal GXDLMSExceptionResponse(ExceptionStateError error, ExceptionServiceError type, object value)
-            : base("ExceptionError " + GetStateError(error) + " exception. " + GetServiceError(type))
+            : base("ExceptionError " + GetStateError(error) + " exception. " + GetServiceError(type, value))
         {
             ExceptionStateError = error;
             ExceptionServiceError = type;
@@ -80,7 +80,7 @@ namespace Gurux.DLMS
             return string.Empty;
         }
 
-        private static string GetServiceError(ExceptionServiceError serviceError)
+        private static string GetServiceError(ExceptionServiceError serviceError, object value)
         {
             switch (serviceError)
             {
@@ -95,7 +95,7 @@ namespace Gurux.DLMS
                 case ExceptionServiceError.DecipheringError:
                     return "Ciphering failed";
                 case ExceptionServiceError.InvocationCounterError:
-                    return "Invocation counter is invalid.";
+                    return "Invocation counter is invalid. Expected value is " + Convert.ToString(value);
             }
             return string.Empty;
         }

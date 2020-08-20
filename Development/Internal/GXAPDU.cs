@@ -57,7 +57,7 @@ namespace Gurux.DLMS.Internal
         {
             //If authentication is used.
             if (settings.Authentication != Authentication.None ||
-                (!ignoreAcse && settings.Cipher != null && settings.Cipher.Security != Security.None))
+                (!ignoreAcse && settings.Cipher != null && settings.Cipher.Security != (byte)Security.None))
             {
                 //Add sender ACSE-requirements field component.
                 data.SetUInt8((byte)BerType.Context | (byte)PduType.SenderAcseRequirements);
@@ -201,7 +201,7 @@ namespace Gurux.DLMS.Internal
             data.SetUInt8((byte)Command.InitiateRequest);
             bool testMode = settings.Cipher != null && ((GXCiphering)settings.Cipher).TestMode;
             // Usage field for dedicated-key component.
-            if ((!testMode && (settings.Cipher == null || settings.Cipher.DedicatedKey == null || settings.Cipher.Security == Security.None)) ||
+            if ((!testMode && (settings.Cipher == null || settings.Cipher.DedicatedKey == null || settings.Cipher.Security == (byte)Security.None)) ||
                 (testMode && settings.Cipher.DedicatedKey == null))
             {
                 data.SetUInt8(0x00);
@@ -279,9 +279,10 @@ namespace Gurux.DLMS.Internal
                     GetInitiateRequest(settings, cipher, tmp);
                     byte cmd = (byte)Command.GloInitiateRequest;
                     AesGcmParameter p = new AesGcmParameter(cmd, cipher.Security,
-                        cipher.InvocationCounter++, cipher.SystemTitle,
+                        cipher.InvocationCounter, cipher.SystemTitle,
                         cipher.BlockCipherKey,
                         cipher.AuthenticationKey);
+                    ++cipher.InvocationCounter;
                     byte[] crypted = GXCiphering.Encrypt(p, tmp.Array());
                     //Length for AARQ user field
                     data.SetUInt8((byte)(2 + crypted.Length));
@@ -632,13 +633,13 @@ namespace Gurux.DLMS.Internal
             }
         }
 
-        internal static void ParseInitiate(bool initiateRequest,
+        internal static ExceptionServiceError ParseInitiate(bool initiateRequest,
             GXDLMSSettings settings, GXICipher cipher,
             GXByteBuffer data, GXDLMSTranslatorStructure xml)
         {
+            int originalPos;
             //Tag for xDLMS-Initate.response
             int tag = data.GetUInt8();
-            int originalPos = 0;
             byte[] tmp;
             byte[] encrypted;
             AesGcmParameter p;
@@ -696,23 +697,32 @@ namespace Gurux.DLMS.Internal
                         }
                     }
                     xml.AppendLine((Command)tag, "Value", GXCommon.ToHex(encrypted, false));
-                    return;
+                    return ExceptionServiceError.None;
                 }
                 --data.Position;
                 p = new AesGcmParameter(settings.SourceSystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
                 tmp = GXDLMSChippering.DecryptAesGcm(p, data);
+                if (p.Xml == null && settings.ExpectedInvocationCounter != 0)
+                {
+                    if (p.InvocationCounter < settings.ExpectedInvocationCounter)
+                    {
+                        return ExceptionServiceError.InvocationCounterError;
+                    }
+                    settings.ExpectedInvocationCounter = 1 + p.InvocationCounter;
+                }
                 data.Clear();
                 data.Set(tmp);
                 cipher.Security = p.Security;
                 tag = data.GetUInt8();
             }
             Parse(initiateRequest, settings, cipher, data, xml, tag);
+            return ExceptionServiceError.None;
         }
 
         /// <summary>
         /// Parse User Information from PDU.
         /// </summary>
-        public static void ParseUserInformation(GXDLMSSettings settings, GXICipher cipher, GXByteBuffer data, GXDLMSTranslatorStructure xml)
+        public static ExceptionServiceError ParseUserInformation(GXDLMSSettings settings, GXICipher cipher, GXByteBuffer data, GXDLMSTranslatorStructure xml)
         {
             byte len = data.GetUInt8();
             if (data.Size - data.Position < len)
@@ -743,9 +753,9 @@ namespace Gurux.DLMS.Internal
                 xml.AppendLine(TranslatorGeneralTags.UserInformation, null, GXCommon
                                .ToHex(data.Data, false, data.Position, len));
                 data.Position = data.Position + len;
-                return;
+                return ExceptionServiceError.None;
             }
-            ParseInitiate(false, settings, cipher, data, xml);
+            return ParseInitiate(false, settings, cipher, data, xml);
         }
 
         /// <summary>
@@ -767,7 +777,7 @@ namespace Gurux.DLMS.Internal
             }
             if (settings.IsServer && settings.Cipher != null)
             {
-                settings.Cipher.Security = Gurux.DLMS.Enums.Security.None;
+                settings.Cipher.Security = (byte)Security.None;
             }
             //Object ID length.
             len = buff.GetUInt8();
@@ -1357,7 +1367,10 @@ namespace Gurux.DLMS.Internal
                         //0xBE
                         try
                         {
-                            ParseUserInformation(settings, cipher, buff, xml);
+                            if (ParseUserInformation(settings, cipher, buff, xml) == ExceptionServiceError.InvocationCounterError)
+                            {
+                                return ExceptionServiceError.InvocationCounterError;
+                            }
                         }
                         catch (GXDLMSConfirmedServiceError ex)
                         {
@@ -1529,9 +1542,13 @@ namespace Gurux.DLMS.Internal
                     cmd = (byte)Command.GloInitiateResponse;
                 }
                 AesGcmParameter p = new AesGcmParameter(cmd, cipher.Security,
-                     cipher.InvocationCounter++, cipher.SystemTitle,
+                     cipher.InvocationCounter, cipher.SystemTitle,
                      cipher.BlockCipherKey, cipher.AuthenticationKey);
                 byte[] tmp = GXCiphering.Encrypt(p, data.Array());
+                if (settings.IncreaseInvocationCounterForGMacAuthentication)
+                {
+                    ++cipher.InvocationCounter;
+                }
                 return tmp;
             }
             return data.Array();
@@ -1621,7 +1638,7 @@ namespace Gurux.DLMS.Internal
                 data.SetUInt8((byte)settings.StoCChallenge.Length);
                 data.Set(settings.StoCChallenge);
             }
-            if (result == AssociationResult.Accepted || cipher == null || cipher.Security == Gurux.DLMS.Enums.Security.None)
+            if (result == AssociationResult.Accepted || cipher == null || cipher.Security == (byte)Security.None)
             {
                 byte[] tmp;
                 //Add User Information

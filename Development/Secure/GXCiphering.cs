@@ -70,7 +70,7 @@ namespace Gurux.DLMS.Secure
         /// <param name="title">System title.</param>
         public GXCiphering(byte[] title)
         {
-            Security = Gurux.DLMS.Enums.Security.None;
+            Security = (byte)Enums.Security.None;
             SystemTitle = title;
             BlockCipherKey = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F };
             AuthenticationKey = new byte[] { 0xD0, 0xD1, 0xD2, 0xD3, 0xD4, 0xD5, 0xD6, 0xD7, 0xD8, 0xD9, 0xDA, 0xDB, 0xDC, 0xDD, 0xDE, 0xDF };
@@ -88,7 +88,7 @@ namespace Gurux.DLMS.Secure
         /// <param name="authenticationKey"></param>
         public GXCiphering(UInt32 invocationCounter, byte[] title, byte[] blockCipherKey, byte[] authenticationKey)
         {
-            Security = Gurux.DLMS.Enums.Security.None;
+            Security = (byte)Enums.Security.None;
             InvocationCounter = invocationCounter;
             SystemTitle = title;
             BlockCipherKey = blockCipherKey;
@@ -115,9 +115,9 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
-        /// Used security.
+        /// Used security policy.
         /// </summary>
-        public Gurux.DLMS.Enums.Security Security
+        public byte Security
         {
             get;
             set;
@@ -222,7 +222,7 @@ namespace Gurux.DLMS.Secure
 
         internal static byte[] Encrypt(AesGcmParameter p, byte[] data)
         {
-            if (p.Security != Gurux.DLMS.Enums.Security.None)
+            if (p.Security != (byte)Enums.Security.None)
             {
                 byte[] tmp = GXDLMSChippering.EncryptAesGcm(p, data);
                 return tmp;
@@ -240,13 +240,13 @@ namespace Gurux.DLMS.Secure
 
         public void Reset()
         {
-            Security = Gurux.DLMS.Enums.Security.None;
+            Security = 0;
             InvocationCounter = 0;
         }
 
         bool GXICipher.IsCiphered()
         {
-            return Security != Gurux.DLMS.Enums.Security.None;
+            return Security != 0;
         }
 
         /// <summary>
@@ -256,7 +256,7 @@ namespace Gurux.DLMS.Secure
         /// <returns></returns>
         public byte[] GenerateGmacPassword(byte[] challenge)
         {
-            AesGcmParameter p = new AesGcmParameter(0x10, Gurux.DLMS.Enums.Security.Authentication, InvocationCounter,
+            AesGcmParameter p = new AesGcmParameter(0x10, (byte)Enums.Security.Authentication, InvocationCounter,
                                                        systemTitle, BlockCipherKey, AuthenticationKey);
             GXByteBuffer bb = new GXByteBuffer();
             GXDLMSChippering.EncryptAesGcm(p, challenge);

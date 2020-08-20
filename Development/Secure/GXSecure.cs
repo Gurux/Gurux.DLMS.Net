@@ -150,7 +150,7 @@ namespace Gurux.DLMS.Secure
             else if (settings.Authentication == Authentication.HighGMAC)
             {
                 //SC is always Security.Authentication.
-                AesGcmParameter p = new AesGcmParameter(0, Enums.Security.Authentication, ic,
+                AesGcmParameter p = new AesGcmParameter(0, (byte)Security.Authentication, ic,
                     secret, cipher.BlockCipherKey, cipher.AuthenticationKey);
                 p.Type = CountType.Tag;
                 challenge.Clear();

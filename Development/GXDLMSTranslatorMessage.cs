@@ -31,29 +31,56 @@
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
-
-namespace Gurux.DLMS.Enums
+namespace Gurux.DLMS
 {
     /// <summary>
-    /// Enumerates security policy for version 0.
+    /// XML translator message detailed data.
     /// </summary>
-    public enum Security
+    public class GXDLMSTranslatorMessage
     {
         /// <summary>
-        /// Transport security is not used.
+        /// Message to convert to XML.
         /// </summary>
-        None = 0,
+        public GXByteBuffer Message
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Authentication security is used.
+        /// Converted XML.
         /// </summary>
-        Authentication = 0x10,
+        public string Xml
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Encryption security is used.
+        /// Executed Command.
         /// </summary>
-        Encryption = 0x20,
+        public Command Command
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Authentication and Encryption security are used.
+        /// System title from AARQ or AARE messages.
         /// </summary>
-        AuthenticationEncryption = 0x30
+        public byte[] SystemTitle
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Dedicated key from AARQ messages.
+        /// </summary>
+        public byte[] DedicatedKey
+        {
+            get;
+            set;
+        }
     }
 }

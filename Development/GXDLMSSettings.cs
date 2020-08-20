@@ -183,6 +183,15 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Some meters expect that Invocation Counter is increased for Authentication when connection is established.
+        /// </summary>
+        public bool IncreaseInvocationCounterForGMacAuthentication
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Skipped date time fields. This value can be used if meter can't handle deviation or status.
         /// </summary>
         public DateTimeSkips DateTimeSkips
@@ -227,6 +236,17 @@ namespace Gurux.DLMS
             set;
         }
 
+        /// <summary>
+        /// Expected Invocation (Frame) counter value.
+        /// </summary>
+        /// <remarks>
+        /// Expected Invocation counter is not check if value is zero.
+        /// </remarks>
+        public UInt64 ExpectedInvocationCounter
+        {
+            get;
+            set;
+        }
 
         ///<summary>
         ///Constructor.

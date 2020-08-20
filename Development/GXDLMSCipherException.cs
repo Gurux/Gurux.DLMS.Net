@@ -32,28 +32,27 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-namespace Gurux.DLMS.Enums
+using System;
+
+namespace Gurux.DLMS
 {
     /// <summary>
-    /// Enumerates security policy for version 0.
+    /// DLMS Ciphering exception.
     /// </summary>
-    public enum Security
+    public class GXDLMSCipherException : Exception
     {
-        /// <summary>
-        /// Transport security is not used.
-        /// </summary>
-        None = 0,
-        /// <summary>
-        /// Authentication security is used.
-        /// </summary>
-        Authentication = 0x10,
-        /// <summary>
-        /// Encryption security is used.
-        /// </summary>
-        Encryption = 0x20,
-        /// <summary>
-        /// Authentication and Encryption security are used.
-        /// </summary>
-        AuthenticationEncryption = 0x30
+        public GXDLMSCipherException(string message)
+            : base(message)
+        {
+
+        }
+
+        public GXDLMSCipherException()
+        {
+        }
+
+        public GXDLMSCipherException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
     }
 }

@@ -45,6 +45,10 @@ namespace Gurux.DLMS.Enums
     public enum ExceptionServiceError
     {
         /// <summary>
+        /// No exception has occurred.
+        /// </summary>
+        None = 0,
+        /// <summary>
         /// Operation not possible.
         /// </summary>
         OperationNotPossible = 1,

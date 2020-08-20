@@ -191,7 +191,7 @@ namespace Gurux.DLMS.Reader
         private void UpdateFrameCounter()
         {
             //Read frame counter if GeneralProtection is used.
-            if (!string.IsNullOrEmpty(InvocationCounter) && Client.Ciphering != null && Client.Ciphering.Security != Security.None)
+            if (!string.IsNullOrEmpty(InvocationCounter) && Client.Ciphering != null && Client.Ciphering.Security != (byte) Security.None)
             {
                 InitializeOpticalHead();
                 byte[] data;
@@ -199,13 +199,13 @@ namespace Gurux.DLMS.Reader
                 Client.ProposedConformance |= Conformance.GeneralProtection;
                 int add = Client.ClientAddress;
                 Authentication auth = Client.Authentication;
-                Security security = Client.Ciphering.Security;
+                byte security = Client.Ciphering.Security;
                 byte[] challenge = Client.CtoSChallenge;
                 try
                 {
                     Client.ClientAddress = 16;
                     Client.Authentication = Authentication.None;
-                    Client.Ciphering.Security = Security.None;
+                    Client.Ciphering.Security = (byte)Security.None;
                     data = Client.SNRMRequest();
                     if (data != null)
                     {
@@ -455,7 +455,7 @@ namespace Gurux.DLMS.Reader
         public void InitializeConnection()
         {
             Console.WriteLine("Standard: " + Client.Standard);
-            if (Client.Ciphering.Security != Security.None)
+            if (Client.Ciphering.Security != (byte)Security.None)
             {
                 Console.WriteLine("Security: " + Client.Ciphering.Security);
                 Console.WriteLine("System title: " + GXCommon.ToHex(Client.Ciphering.SystemTitle, true));
@@ -1235,7 +1235,7 @@ namespace Gurux.DLMS.Reader
                         //Release is call only for secured connections.
                         //All meters are not supporting Release and it's causing problems.
                         if (Client.InterfaceType == InterfaceType.WRAPPER ||
-                            (Client.InterfaceType == InterfaceType.HDLC && Client.Ciphering.Security != Security.None))
+                            (Client.InterfaceType == InterfaceType.HDLC && Client.Ciphering.Security != (byte)Security.None))
                         {
                             ReadDataBlock(Client.ReleaseRequest(), reply);
                         }

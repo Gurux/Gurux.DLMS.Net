@@ -631,7 +631,7 @@ namespace Gurux.DLMS
                 GXByteBuffer reply;
                 if (Settings.InterfaceType == InterfaceType.WRAPPER)
                 {
-                    if (Ciphering.Security != Enums.Security.None)
+                    if (Ciphering.Security != (byte)Security.None)
                     {
                         GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, pdu.Command, 0x0, null, null, 0xff, Command.None);
                         reply = new GXByteBuffer(GXDLMS.Cipher0(p, pdu.Data));
@@ -643,7 +643,7 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    if (Ciphering.Security != Enums.Security.None)
+                    if (Ciphering.Security != (byte)Security.None)
                     {
                         GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, pdu.Command, 0x0, null, null, 0xff, Command.None);
                         byte[] tmp = GXDLMS.Cipher0(p, pdu.Data);

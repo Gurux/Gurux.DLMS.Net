@@ -68,16 +68,16 @@ namespace Gurux.DLMS
                     settings.UpdateInvokeId(invokeID);
                     if (xml != null)
                     {
-                        xml.AppendStartTag(Command.GetRequest);
                         if (type < 4)
                         {
-                            xml.AppendStartTag(Command.GetRequest, (GetCommandType)type);
+                            GXDLMS.AddInvokeId(xml, Command.GetRequest, (GetCommandType)type, invokeID);
                         }
                         else
                         {
+                            xml.AppendStartTag(Command.GetRequest);
                             xml.AppendComment("Unknown tag: " + type);
+                            xml.AppendLine(TranslatorTags.InvokeId, "Value", xml.IntegerToHex(invokeID, 2));
                         }
-                        xml.AppendLine(TranslatorTags.InvokeId, "Value", xml.IntegerToHex(invokeID, 2));
                     }
                 }
                 // GetRequest normal
@@ -152,17 +152,17 @@ namespace Gurux.DLMS
                 // SetRequest normal or Set Request With First Data Block
                 if (xml != null)
                 {
-                    xml.AppendStartTag(Command.SetRequest);
                     if (type < 6)
                     {
-                        xml.AppendStartTag(Command.SetRequest, (SetRequestType)type);
+                        GXDLMS.AddInvokeId(xml, Command.SetRequest, (SetRequestType)type, invoke);
                     }
                     else
                     {
+                        xml.AppendStartTag(Command.SetRequest);
                         xml.AppendComment("Unknown tag: " + type);
+                        //InvokeIdAndPriority
+                        xml.AppendLine(TranslatorTags.InvokeId, "Value", xml.IntegerToHex(invoke, 2));
                     }
-                    //InvokeIdAndPriority
-                    xml.AppendLine(TranslatorTags.InvokeId, "Value", xml.IntegerToHex(invoke, 2));
                 }
                 switch (type)
                 {
@@ -230,11 +230,9 @@ namespace Gurux.DLMS
             byte selection = data.GetUInt8();
             if (xml != null)
             {
-                xml.AppendStartTag(Command.MethodRequest);
+                GXDLMS.AddInvokeId(xml, Command.MethodRequest, type, invokeId);
                 if (type == ActionRequestType.Normal)
                 {
-                    xml.AppendStartTag(Command.MethodRequest, ActionRequestType.Normal);
-                    xml.AppendLine(TranslatorTags.InvokeId, "Value", xml.IntegerToHex(invokeId, 2));
                     AppendMethodDescriptor(xml, (int)ci, ln, id);
                     if (selection != 0)
                     {
@@ -245,8 +243,8 @@ namespace Gurux.DLMS
                         GXCommon.GetData(settings, data, di);
                         xml.AppendEndTag(TranslatorTags.MethodInvocationParameters);
                     }
-                    xml.AppendEndTag(Command.MethodRequest, ActionRequestType.Normal);
                 }
+                xml.AppendEndTag(Command.MethodRequest, type);
                 xml.AppendEndTag(Command.MethodRequest);
                 return;
             }

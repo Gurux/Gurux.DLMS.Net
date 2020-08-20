@@ -71,12 +71,12 @@ namespace Gurux.DLMS.Secure
             GXDLMSChipperingStream gcm = new GXDLMSChipperingStream(param.Security, true, param.BlockCipherKey,
                     aad, GetNonse((UInt32)param.InvocationCounter, param.SystemTitle), null);
             // Encrypt the secret message
-            if (param.Security != Gurux.DLMS.Enums.Security.Authentication)
+            if (param.Security != (byte)Security.Authentication)
             {
                 gcm.Write(plainText);
             }
             byte[] ciphertext = gcm.FlushFinalBlock();
-            if (param.Security == Gurux.DLMS.Enums.Security.Authentication)
+            if (param.Security == (byte)Security.Authentication)
             {
                 if (param.Type == CountType.Packet)
                 {
@@ -92,7 +92,7 @@ namespace Gurux.DLMS.Secure
                     data.Set(param.CountTag);
                 }
             }
-            else if (param.Security == Gurux.DLMS.Enums.Security.Encryption)
+            else if (param.Security == (byte)Security.Encryption)
             {
                 if (param.Type == CountType.Packet)
                 {
@@ -100,7 +100,7 @@ namespace Gurux.DLMS.Secure
                 }
                 data.Set(ciphertext);
             }
-            else if (param.Security == Gurux.DLMS.Enums.Security.AuthenticationEncryption)
+            else if (param.Security == (byte)Security.AuthenticationEncryption)
             {
                 if (param.Type == CountType.Packet)
                 {
@@ -149,7 +149,7 @@ namespace Gurux.DLMS.Secure
 
         private static byte[] GetAuthenticatedData(AesGcmParameter p, byte[] plainText)
         {
-            if (p.Security == Gurux.DLMS.Enums.Security.Authentication)
+            if (p.Security == (byte)Security.Authentication)
             {
                 GXByteBuffer tmp2 = new GXByteBuffer();
                 tmp2.SetUInt8((byte)p.Security);
@@ -157,11 +157,11 @@ namespace Gurux.DLMS.Secure
                 tmp2.Set(plainText);
                 return tmp2.Array();
             }
-            else if (p.Security == Gurux.DLMS.Enums.Security.Encryption)
+            else if (p.Security == (byte)Security.Encryption)
             {
                 return p.AuthenticationKey;
             }
-            else if (p.Security == Gurux.DLMS.Enums.Security.AuthenticationEncryption)
+            else if (p.Security == (byte) Security.AuthenticationEncryption)
             {
                 GXByteBuffer tmp2 = new GXByteBuffer();
                 tmp2.SetUInt8((byte)p.Security);
@@ -338,10 +338,10 @@ namespace Gurux.DLMS.Secure
             }
 
             SecuritySuite ss = (SecuritySuite)(sc & 0x3);
-            p.Security = security;
+            p.Security = (byte)security;
             UInt32 invocationCounter = data.GetUInt32();
             p.InvocationCounter = invocationCounter;
-            if (ss == SecuritySuite.EcdhEcdsaAesGcm256Sha384)
+            if (ss == SecuritySuite.Version2)
             {
                 throw new NotImplementedException("Security Suite 2 is not implemented.");
             }
@@ -392,7 +392,7 @@ namespace Gurux.DLMS.Secure
             }
             byte[] aad = GetAuthenticatedData(p, ciphertext),
                     iv = GetNonse(invocationCounter, p.SystemTitle);
-            GXDLMSChipperingStream gcm = new GXDLMSChipperingStream(security, true,
+            GXDLMSChipperingStream gcm = new GXDLMSChipperingStream((byte)security, true,
                     p.BlockCipherKey, aad, iv, tag);
             gcm.Write(ciphertext);
             if (transactionId != 0)

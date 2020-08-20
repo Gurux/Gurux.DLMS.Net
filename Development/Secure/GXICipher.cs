@@ -50,9 +50,9 @@ namespace Gurux.DLMS.Secure
         bool IsCiphered();
 
         /// <summary>
-        /// Used security.
+        /// Used security policy.
         /// </summary>
-        Gurux.DLMS.Enums.Security Security
+        byte Security
         {
             get;
             set;

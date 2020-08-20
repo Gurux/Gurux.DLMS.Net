@@ -52,6 +52,7 @@ namespace Gurux.DLMS.Objects
     /// </summary>
     public class GXDLMSSecuritySetup : GXDLMSObject, IGXDLMSBase
     {
+        byte _securityPolicy = 0;
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -82,23 +83,43 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Security policy.
+        /// Security policy for Version 1.
         /// </summary>
         [XmlIgnore()]
-        public SecurityPolicy SecurityPolicy
+        public object SecurityPolicy
         {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Security policy.
-        /// </summary>
-        [XmlIgnore()]
-        public SecurityPolicy0 SecurityPolicy0
-        {
-            get;
-            set;
+            get
+            {
+                if (Version == 0)
+                {
+                    return (SecurityPolicy0)_securityPolicy;
+                }
+                return (SecurityPolicy)_securityPolicy;
+            }
+            set
+            {
+                if (Version == 0)
+                {
+                    switch ((SecurityPolicy0)value)
+                    {
+                        case SecurityPolicy0.Nothing:
+                        case SecurityPolicy0.Authenticated:
+                        case SecurityPolicy0.Encrypted:
+                        case SecurityPolicy0.AuthenticatedEncrypted:
+                            break;
+                        default:
+                            throw new Exception(string.Format("Invalid security policy value {0} for Version 0." + value));
+                    }
+                }
+                else if (Version == 1)
+                {
+                    if ((((byte)value) & 0x3) != 0)
+                    {
+                        throw new Exception(string.Format("Invalid security policy value {0} for version 1." + value));
+                    }
+                }
+                _securityPolicy = (byte)value;
+            }
         }
 
         /// <summary>
@@ -144,11 +165,6 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            if (Version == 0)
-            {
-                return new object[] { LogicalName, SecurityPolicy0, SecuritySuite,
-                              ClientSystemTitle, ServerSystemTitle, Certificates};
-            }
             return new object[] { LogicalName, SecurityPolicy, SecuritySuite,
                               ClientSystemTitle, ServerSystemTitle, Certificates};
         }
@@ -407,14 +423,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                if (Version == 0)
-                {
-                    SecurityPolicy0 = (SecurityPolicy0)e.Parameters;
-                }
-                else
-                {
-                    SecurityPolicy = (SecurityPolicy)e.Parameters;
-                }
+                SecurityPolicy = e.Parameters;
             }
             else if (e.Index == 2)
             {
@@ -659,10 +668,6 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 2)
             {
-                if (Version == 0)
-                {
-                    return SecurityPolicy0;
-                }
                 return SecurityPolicy;
             }
             if (e.Index == 3)
@@ -724,14 +729,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 2)
             {
-                if (Version == 0)
-                {
-                    SecurityPolicy0 = (SecurityPolicy0)Convert.ToInt32(e.Value);
-                }
-                else
-                {
-                    SecurityPolicy = (SecurityPolicy)Convert.ToInt32(e.Value);
-                }
+                SecurityPolicy = Convert.ToByte(e.Value);
             }
             else if (e.Index == 3)
             {
@@ -757,8 +755,7 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Load(GXXmlReader reader)
         {
-            SecurityPolicy = (SecurityPolicy)reader.ReadElementContentAsInt("SecurityPolicy");
-            SecurityPolicy0 = (SecurityPolicy0)reader.ReadElementContentAsInt("SecurityPolicy0");
+            SecurityPolicy = reader.ReadElementContentAsInt("SecurityPolicy");
             SecuritySuite = (SecuritySuite)reader.ReadElementContentAsInt("SecuritySuite");
             string str = reader.ReadElementContentAsString("ClientSystemTitle");
             if (str == null)
@@ -798,14 +795,7 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            if (Version == 0)
-            {
-                writer.WriteElementString("SecurityPolicy", (int)SecurityPolicy, 2);
-            }
-            else
-            {
-                writer.WriteElementString("SecurityPolicy0", (int)SecurityPolicy0, 2);
-            }
+            writer.WriteElementString("SecurityPolicy", (byte)SecurityPolicy, 2);
             writer.WriteElementString("SecuritySuite", (int)SecuritySuite, 3);
             writer.WriteElementString("ClientSystemTitle", GXDLMSTranslator.ToHex(ClientSystemTitle), 4);
             writer.WriteElementString("ServerSystemTitle", GXDLMSTranslator.ToHex(ServerSystemTitle), 5);

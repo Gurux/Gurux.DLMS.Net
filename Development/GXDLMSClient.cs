@@ -211,6 +211,40 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Expected Invocation (Frame) counter value.
+        /// </summary>
+        /// <remarks>
+        /// If this value is set ciphered PDUs that are using smaller invocation counter values are rejected.
+        /// Invocation counter value is not validate if value is zero.
+        /// </remarks>
+        public UInt64 ExpectedInvocationCounter
+        {
+            get
+            {
+                return Settings.ExpectedInvocationCounter;
+            }
+            set
+            {
+                Settings.ExpectedInvocationCounter = value;
+            }
+        }
+
+        /// <summary>
+        /// Some meters expect that Invocation Counter is increased for GMAC Authentication when connection is established.
+        /// </summary>
+        public bool IncreaseInvocationCounterForGMacAuthentication
+        {
+            get
+            {
+                return Settings.IncreaseInvocationCounterForGMacAuthentication;
+            }
+            set
+            {
+                Settings.IncreaseInvocationCounterForGMacAuthentication = value;
+            }
+        }
+
+        /// <summary>
         /// Skipped date time fields. This value can be used if meter can't handle deviation or status.
         /// </summary>
         public DateTimeSkips DateTimeSkips
@@ -2642,7 +2676,7 @@ namespace Gurux.DLMS
                         data.Xml.AppendStartTag(data.Command);
                         if (data.Data.Size != 0)
                         {
-                            translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace, true);
+                            translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace, true, null);
                         }
                         data.Xml.AppendEndTag(data.Command);
                     }
@@ -2650,7 +2684,7 @@ namespace Gurux.DLMS
                     {
                         if (data.Data.Size != 0)
                         {
-                            translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace, true);
+                            translator.PduToXml(data.Xml, data.Data, translator.OmitXmlDeclaration, translator.OmitXmlNameSpace, true, null);
                         }
                         data.Data = data2;
                     }

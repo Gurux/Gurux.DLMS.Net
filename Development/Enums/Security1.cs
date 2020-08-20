@@ -32,28 +32,43 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace Gurux.DLMS.Enums
 {
     /// <summary>
-    /// Enumerates security policy for version 0.
+    /// Enumerates security policy for version 1.
     /// </summary>
-    public enum Security
+    [Flags]
+    public enum Security1
     {
         /// <summary>
         /// Transport security is not used.
         /// </summary>
         None = 0,
         /// <summary>
-        /// Authentication security is used.
+        /// Request messages are authenticated.
         /// </summary>
-        Authentication = 0x10,
+        AuthenticatedRequest = 0x4,
         /// <summary>
-        /// Encryption security is used.
+        /// Request messages are encrypted.
         /// </summary>
-        Encryption = 0x20,
+        EncryptedRequest = 0x8,
         /// <summary>
-        /// Authentication and Encryption security are used.
+        /// Request messages are digitally signed.
         /// </summary>
-        AuthenticationEncryption = 0x30
+        DigitallySignedRequest = 0x10,
+        /// <summary>
+        /// Response messages are authenticated.
+        /// </summary>
+        AuthenticatedResponse = 0x20,
+        /// <summary>
+        /// Response messages are encrypted.
+        /// </summary>
+        EncryptedResponse = 0x40,
+        /// <summary>
+        /// Response messages are digitally signed.
+        /// </summary>
+        DigitallySignedResponse = 0x80
     }
 }

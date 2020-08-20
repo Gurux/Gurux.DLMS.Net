@@ -42,7 +42,7 @@ using System.Diagnostics;
 using Gurux.Common;
 using System.Net.Sockets;
 
-namespace Gurux.DLMS.Server.Example2.Net
+namespace Gurux.DLMS.Simulator.Net
 {
     /// <summary>
     /// Simulated meter.
@@ -492,7 +492,7 @@ namespace Gurux.DLMS.Server.Example2.Net
             //Show trace only for one meter.
             if (Trace > TraceLevel.Warning && (!Exclusive || serialNumber == 1))
             {
-                Console.WriteLine("Client Disconnected.");
+                Console.WriteLine("TCP/IP connection closed.");
             }
         }
 
@@ -506,7 +506,7 @@ namespace Gurux.DLMS.Server.Example2.Net
             //Show trace only for one meter.
             if (Trace > TraceLevel.Warning && (!Exclusive || serialNumber == 1))
             {
-                Console.WriteLine("Client Connected.");
+                Console.WriteLine("TCP/IP connection established.");
             }
         }
 
@@ -583,16 +583,15 @@ namespace Gurux.DLMS.Server.Example2.Net
         {
             if (Trace > TraceLevel.Warning)
             {
-                Console.WriteLine("Connected.");
+                Console.WriteLine("Client Connected.");
             }
         }
 
         protected override void Disconnected(GXDLMSConnectionEventArgs e)
         {
-            //Show trace only for one meter.
-            if (Trace > TraceLevel.Warning && (!Exclusive || serialNumber == 1))
+            if (Trace > TraceLevel.Warning && this.ConnectionState != ConnectionState.None)
             {
-                Console.WriteLine("Disconnected");
+                Console.WriteLine("Client Disconnected");
             }
         }
     }
