@@ -238,6 +238,8 @@ namespace Gurux.DLMS.Secure
                 case Command.DedReadResponse:
                 case Command.DedWriteRequest:
                 case Command.DedWriteResponse:
+                case Command.GloConfirmedServiceError:
+                case Command.DedConfirmedServiceError:
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("cryptedData");

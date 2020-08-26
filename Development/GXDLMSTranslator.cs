@@ -1169,6 +1169,8 @@ namespace Gurux.DLMS
                 case Command.GeneralDedCiphering:
                 case Command.Aare:
                 case Command.Aarq:
+                case Command.GloConfirmedServiceError:
+                case Command.DedConfirmedServiceError:
                     return true;
                 default:
                     return false;
@@ -1368,6 +1370,8 @@ namespace Gurux.DLMS
                 case (byte)Command.DedSetResponse:
                 case (byte)Command.DedMethodRequest:
                 case (byte)Command.DedMethodResponse:
+                case (byte)Command.GloConfirmedServiceError:
+                case (byte)Command.DedConfirmedServiceError:
                     if (settings.Cipher != null && Comments)
                     {
                         int originalPosition = value.Position;

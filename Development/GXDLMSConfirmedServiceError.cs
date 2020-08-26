@@ -37,6 +37,12 @@ using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS
 {
+    /// <summary>
+    /// DLMS specific exception response.
+    /// </summary>
+    /// <remarks>
+    /// https://www.gurux.fi/Gurux.DLMS.ErrorCodes
+    /// </remarks>
     public class GXDLMSExceptionResponse : Exception
     {
         public ExceptionStateError ExceptionStateError
@@ -58,14 +64,15 @@ namespace Gurux.DLMS
 
 
         /// <summary>
-        /// Constructor for Confirmed ServiceError. GetStateError(ExceptionStateError
+        /// Constructor for Confirmed ServiceError.
         /// </summary>
         internal GXDLMSExceptionResponse(ExceptionStateError error, ExceptionServiceError type, object value)
-            : base("ExceptionError " + GetStateError(error) + " exception. " + GetServiceError(type, value))
+            : base("Exception response. \"" + GetStateError(error) + "\"-exception. " + GetServiceError(type, value))
         {
             ExceptionStateError = error;
             ExceptionServiceError = type;
             Value = value;
+            HelpLink = " https://www.gurux.fi/Gurux.DLMS.ErrorCodes";
         }
 
         private static string GetStateError(ExceptionStateError stateError)
@@ -93,7 +100,7 @@ namespace Gurux.DLMS
                 case ExceptionServiceError.PduTooLong:
                     return "PDU is too long";
                 case ExceptionServiceError.DecipheringError:
-                    return "Ciphering failed";
+                    return "Deciphering failed";
                 case ExceptionServiceError.InvocationCounterError:
                     return "Invocation counter is invalid. Expected value is " + Convert.ToString(value);
             }
@@ -104,6 +111,9 @@ namespace Gurux.DLMS
     /// <summary>
     /// DLMS specific exception class that has error description available from GetDescription method.
     /// </summary>
+    /// <remarks>
+    /// https://www.gurux.fi/Gurux.DLMS.ErrorCodes
+    /// </remarks>
     public class GXDLMSConfirmedServiceError : Exception
     {
         /// <summary>
@@ -115,6 +125,7 @@ namespace Gurux.DLMS
             ConfirmedServiceError = service;
             ServiceError = type;
             ServiceErrorValue = value;
+            HelpLink = " https://www.gurux.fi/Gurux.DLMS.ErrorCodes";
         }
 
 

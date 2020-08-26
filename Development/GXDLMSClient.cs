@@ -961,13 +961,11 @@ namespace Gurux.DLMS
             {
                 pw = Settings.Password;
             }
-            UInt32 ic = 0;
-            if (Settings.Cipher != null)
+            if (Settings.Cipher != null && Settings.IncreaseInvocationCounterForGMacAuthentication)
             {
                 ++Settings.Cipher.InvocationCounter;
-                ic = Settings.Cipher.InvocationCounter;
             }
-            byte[] challenge = GXSecure.Secure(Settings, Settings.Cipher, ic,
+            byte[] challenge = GXSecure.Secure(Settings, Settings.Cipher, Settings.Cipher.InvocationCounter,
                                                Settings.StoCChallenge, pw);
             if (UseLogicalNameReferencing)
             {

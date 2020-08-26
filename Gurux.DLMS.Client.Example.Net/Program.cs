@@ -91,7 +91,18 @@ namespace Gurux.DLMS.Client.Example
                 }
                 ////////////////////////////////////////
                 reader = new Reader.GXDLMSReader(settings.client, settings.media, settings.trace, settings.invocationCounter, settings.iec);
-                settings.media.Open();
+                try
+                {
+                    settings.media.Open();
+                }
+                catch (System.IO.IOException ex)
+                {
+                    Console.WriteLine("----------------------------------------------------------");
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine("Available ports:");
+                    Console.WriteLine(string.Join(" ", GXSerial.GetPortNames()));
+                    return 1;
+                }
                 //Some meters need a break here.
                 Thread.Sleep(1000);
                 if (settings.readObjects.Count != 0)
@@ -136,6 +147,33 @@ namespace Gurux.DLMS.Client.Example
                 {
                     reader.ReadAll(settings.outputFile);
                 }
+            }
+            catch (GXDLMSException ex)
+            {
+                Console.WriteLine(ex.Message);
+                if (System.Diagnostics.Debugger.IsAttached)
+                {
+                    Console.ReadKey();
+                }
+                return 1;
+            }
+            catch (GXDLMSExceptionResponse ex)
+            {
+                Console.WriteLine(ex.Message);
+                if (System.Diagnostics.Debugger.IsAttached)
+                {
+                    Console.ReadKey();
+                }
+                return 1;
+            }
+            catch (GXDLMSConfirmedServiceError ex)
+            {
+                Console.WriteLine(ex.Message);
+                if (System.Diagnostics.Debugger.IsAttached)
+                {
+                    Console.ReadKey();
+                }
+                return 1;
             }
             catch (Exception ex)
             {

@@ -40,6 +40,9 @@ namespace Gurux.DLMS
     /// <summary>
     /// DLMS specific exception class that has error description available from GetDescription method.
     /// </summary>
+    /// <remarks>
+    /// https://www.gurux.fi/Gurux.DLMS.ErrorCodes
+    /// </remarks>
     public class GXDLMSException : Exception
     {
         public GXDLMSException(int errCode)
@@ -62,6 +65,7 @@ namespace Gurux.DLMS
         {
             Result = result;
             Diagnostic = (byte)diagnostic;
+            HelpLink = "https://www.gurux.fi/Gurux.DLMS.ErrorCodes";
         }
 
 
@@ -73,6 +77,7 @@ namespace Gurux.DLMS
         {
             Result = result;
             Diagnostic = (byte)diagnostic;
+            HelpLink = "https://www.gurux.fi/Gurux.DLMS.ErrorCodes";
         }
 
         /// <summary>
@@ -142,7 +147,7 @@ namespace Gurux.DLMS
                     str = "Calling AP title not recognized.";
                     break;
                 case SourceDiagnostic.CallingApInvocationIdentifierNotRecognized:
-                    str = "The authentication mechanism name is not recognized.";
+                    str = "Calling AP invocation Identifier not recognized.";
                     break;
                 case SourceDiagnostic.CallingAeQualifierNotRecognized:
                     str = "Calling AE qualifier not recognized.";
@@ -151,7 +156,7 @@ namespace Gurux.DLMS
                     str = "Calling AE invocation identifier not recognized";
                     break;
                 case SourceDiagnostic.CalledApTitleNotRecognized:
-                    str = "called AP title not recognized.";
+                    str = "Called AP title not recognized.";
                     break;
                 case SourceDiagnostic.CalledApInvocationIdentifierNotRecognized:
                     str = "Called AP invocation identifier not recognized.";
@@ -162,8 +167,8 @@ namespace Gurux.DLMS
                 case SourceDiagnostic.CalledAeInvocationIdentifierNotRecognized:
                     str = "Called AE invocation identifier not recognized.";
                     break;
-                case SourceDiagnostic.AuthenticationMechanismNameNotRecognised:
-                    str = "Authentication mechanism name not recognised.";
+                case SourceDiagnostic.AuthenticationMechanismNameNotRecognized:
+                    str = "Authentication mechanism name not recognized.";
                     break;
                 case SourceDiagnostic.AuthenticationMechanismNameReguired:
                     str = "Authentication mechanism name is required.";

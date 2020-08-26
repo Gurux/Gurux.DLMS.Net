@@ -174,11 +174,19 @@ namespace Gurux.DLMS
 
         private string GetTag(int tag)
         {
-            if (OutputType == TranslatorOutputType.SimpleXml || OmitNameSpace)
+            try
             {
-                return tags[tag];
+                if (OutputType == TranslatorOutputType.SimpleXml || OmitNameSpace)
+                {
+                    return tags[tag];
+                }
+                return "x:" + tags[tag];
             }
-            return "x:" + tags[tag];
+            catch (System.Collections.Generic.KeyNotFoundException)
+            {
+                return "UNKNOWN(" + tag + ")";
+            }
+
         }
 
         public void AppendLine(Enum tag, string name, object value)
@@ -247,7 +255,7 @@ namespace Gurux.DLMS
             }
             else if (value is byte[])
             {
-                sb.Append(GXCommon.ToHex((byte[]) value, true));
+                sb.Append(GXCommon.ToHex((byte[])value, true));
             }
             else if (value is sbyte[])
             {

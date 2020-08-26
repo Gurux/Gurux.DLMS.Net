@@ -299,6 +299,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, Command.GloWriteRequest, "glo-write-request");
             GXDLMSTranslator.AddTag(list, Command.GloWriteResponse, "glo-write-response");
             GXDLMSTranslator.AddTag(list, Command.GeneralGloCiphering, "general-glo-ciphering");
+            GXDLMSTranslator.AddTag(list, Command.GloConfirmedServiceError, "glo-confirmed-service-error");
         }
 
         /// <summary>
@@ -317,6 +318,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, Command.DedMethodRequest, "ded-action-request");
             GXDLMSTranslator.AddTag(list, Command.DedMethodResponse, "ded-action-response");
             GXDLMSTranslator.AddTag(list, Command.GeneralDedCiphering, "general-ded-ciphering");
+            GXDLMSTranslator.AddTag(list, Command.DedConfirmedServiceError, "ded-confirmed-service-error");
         }
 
         /// <summary>
@@ -1224,6 +1226,12 @@ namespace Gurux.DLMS
                     return "service-not-supported";
                 case ExceptionServiceError.OtherReason:
                     return "other-reason";
+                case ExceptionServiceError.PduTooLong:
+                    return "pdu-too-long";
+                case ExceptionServiceError.DecipheringError:
+                    return "deciphering-error";
+                case ExceptionServiceError.InvocationCounterError:
+                    return "invocation-counter-error";
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -1265,6 +1273,18 @@ namespace Gurux.DLMS
             if ("other-reason" == value)
             {
                 return ExceptionServiceError.OtherReason;
+            }
+            if ("pdu-too-long" == value)
+            {
+                return ExceptionServiceError.PduTooLong;
+            }
+            if ("deciphering-error" == value)
+            {
+                return ExceptionServiceError.DecipheringError;
+            }
+            if ("invocation-counter-error" == value)
+            {
+                return ExceptionServiceError.InvocationCounterError;
             }
             throw new ArgumentOutOfRangeException(value);
         }

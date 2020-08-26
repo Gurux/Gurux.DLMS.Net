@@ -712,7 +712,8 @@ namespace Gurux.DLMS
             if (p.cipheredCommand == Command.None)
             {
                 //General protection can be used with pre-established connections.
-                if ((p.settings.NegotiatedConformance & Conformance.GeneralProtection) == 0 &&
+                if (((p.settings.Connected & ConnectionState.Dlms) == 0 ||
+                    (p.settings.NegotiatedConformance & Conformance.GeneralProtection) == 0) &&
                     (p.settings.PreEstablishedSystemTitle == null || p.settings.PreEstablishedSystemTitle.Length == 0 || (p.settings.ProposedConformance & Conformance.GeneralProtection) == 0))
                 {
                     if (cipher.DedicatedKey != null && (p.settings.Connected & ConnectionState.Dlms) != 0)
@@ -766,9 +767,9 @@ namespace Gurux.DLMS
             AesGcmParameter s = new AesGcmParameter(cmd, cipher.Security,
                 cipher.InvocationCounter, cipher.SystemTitle, key,
                 cipher.AuthenticationKey);
-            ++cipher.InvocationCounter;
             s.IgnoreSystemTitle = p.settings.Standard == Standard.Italy;
             byte[] tmp = GXCiphering.Encrypt(s, data);
+            ++cipher.InvocationCounter;
             return tmp;
         }
 
@@ -3353,6 +3354,17 @@ namespace Gurux.DLMS
                         }
                         else
                         {
+                            if (settings.SourceSystemTitle == null)
+                            {
+                                if (settings.IsServer)
+                                {
+                                    throw new Exception("Ciphered failed. Client system title is unknown.");
+                                }
+                                else
+                                {
+                                    throw new Exception("Ciphered failed. Server system title is unknown.");
+                                }
+                            }
                             p = new AesGcmParameter(settings.SourceSystemTitle,
                                     cipher.BlockCipherKey,
                                     cipher.AuthenticationKey);
@@ -3486,6 +3498,8 @@ namespace Gurux.DLMS
                     case Command.DedSetResponse:
                     case Command.DedMethodResponse:
                     case Command.DedEventNotification:
+                    case Command.GloConfirmedServiceError:
+                    case Command.DedConfirmedServiceError:
                         HandleGloDedResponse(settings, data, index, client);
                         break;
                     case Command.GeneralGloCiphering:
@@ -3500,7 +3514,6 @@ namespace Gurux.DLMS
                         }
                         break;
                     case Command.DataNotification:
-
                         HandleDataNotification(settings, data);
                         //Client handles this.
                         break;

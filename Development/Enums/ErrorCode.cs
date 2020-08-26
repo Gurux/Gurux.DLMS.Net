@@ -37,6 +37,9 @@ namespace Gurux.DLMS.Enums
     /// <summary>
     ///  Enumerated DLMS error codes.
     /// </summary>
+    /// <remarks>
+    /// https://www.gurux.fi/Gurux.DLMS.ErrorCodes
+    /// </remarks>
     public enum ErrorCode
     {
         /// <summary>

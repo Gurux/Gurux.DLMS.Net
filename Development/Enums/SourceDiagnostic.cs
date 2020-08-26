@@ -105,7 +105,7 @@ namespace Gurux.DLMS.Enums
         /// <summary>
         /// The authentication mechanism name is not recognized.
         /// </summary>
-        AuthenticationMechanismNameNotRecognised = 11,
+        AuthenticationMechanismNameNotRecognized = 11,
         /// <summary>
         /// Authentication mechanism name is required.
         /// </summary>

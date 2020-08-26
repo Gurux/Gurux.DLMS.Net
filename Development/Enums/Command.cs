@@ -252,6 +252,11 @@ namespace Gurux.DLMS
         GloWriteResponse = 45,
 
         /// <summary>
+        /// Glo confirmed service error.
+        /// </summary>
+        GloConfirmedServiceError = 46,
+
+        /// <summary>
         /// General GLO ciphering.
         /// </summary>
         GeneralGloCiphering = 0xDB,

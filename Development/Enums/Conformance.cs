@@ -43,6 +43,10 @@ namespace Gurux.DLMS.Enums
     /// <summary>
     /// Enumerates all comformance bits.
     /// </summary>
+    /// <remarks>
+    /// More information:<br/>
+    /// https://www.gurux.fi/Gurux.DLMS.Conformance
+    /// </remarks>
     [Flags]
     public enum Conformance : uint
     {
