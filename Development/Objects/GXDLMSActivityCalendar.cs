@@ -148,6 +148,16 @@ namespace Gurux.DLMS.Objects
                             };
         }
 
+        /// <summary>
+        /// This method copies all passive to the active.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] ActivatePassiveCalendar(GXDLMSClient client)
+        {
+            return client.Method(this, 1, (sbyte)0);
+        }
+
         #region IGXDLMSBase Members
 
         int[] IGXDLMSBase.GetAttributeIndexToRead(bool all)

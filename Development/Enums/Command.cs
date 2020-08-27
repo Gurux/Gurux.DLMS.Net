@@ -257,6 +257,11 @@ namespace Gurux.DLMS
         GloConfirmedServiceError = 46,
 
         /// <summary>
+        /// Glo information report.
+        /// </summary>
+        GloInformationReport = 56,
+
+        /// <summary>
         /// General GLO ciphering.
         /// </summary>
         GeneralGloCiphering = 0xDB,

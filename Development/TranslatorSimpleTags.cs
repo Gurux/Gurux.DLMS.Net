@@ -201,6 +201,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, Command.GloWriteRequest, "glo_WriteRequest");
             GXDLMSTranslator.AddTag(list, Command.GloWriteResponse, "glo_WriteResponse");
             GXDLMSTranslator.AddTag(list, Command.GeneralGloCiphering, "GeneralGloCiphering");
+            GXDLMSTranslator.AddTag(list, Command.GeneralCiphering, "GeneralCiphering");
             GXDLMSTranslator.AddTag(list, Command.GloConfirmedServiceError, "glo_GloConfirmedServiceError");
         }
 

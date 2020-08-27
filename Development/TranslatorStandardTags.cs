@@ -319,6 +319,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, Command.DedMethodResponse, "ded-action-response");
             GXDLMSTranslator.AddTag(list, Command.GeneralDedCiphering, "general-ded-ciphering");
             GXDLMSTranslator.AddTag(list, Command.DedConfirmedServiceError, "ded-confirmed-service-error");
+            GXDLMSTranslator.AddTag(list, Command.GeneralCiphering, "general-ciphering");
         }
 
         /// <summary>
