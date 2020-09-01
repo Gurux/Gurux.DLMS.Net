@@ -283,10 +283,7 @@ namespace Gurux.DLMS.Internal
                         cipher.BlockCipherKey,
                         cipher.AuthenticationKey);
                     byte[] crypted = GXCiphering.Encrypt(p, tmp.Array());
-                    if (settings.IncreaseInvocationCounterForGMacAuthentication)
-                    {
-                        ++cipher.InvocationCounter;
-                    }
+                    ++cipher.InvocationCounter;
                     //Length for AARQ user field
                     data.SetUInt8((byte)(2 + crypted.Length));
                     //Coding the choice for user-information (Octet STRING, universal)

@@ -520,14 +520,14 @@ namespace Gurux.DLMS
             {
                 Capacity = (index + ArrayCapacity);
             }
-            Data[Size + 7] = (byte)((item >> 56) & 0xFF);
-            Data[Size + 6] = (byte)((item >> 48) & 0xFF);
-            Data[Size + 5] = (byte)((item >> 40) & 0xFF);
-            Data[Size + 4] = (byte)((item >> 32) & 0xFF);
-            Data[Size + 3] = (byte)((item >> 24) & 0xFF);
-            Data[Size + 2] = (byte)((item >> 16) & 0xFF);
-            Data[Size + 1] = (byte)((item >> 8) & 0xFF);
-            Data[Size] = (byte)(item & 0xFF);
+            Data[Size] = (byte)((item >> 56) & 0xFF);
+            Data[Size + 1] = (byte)((item >> 48) & 0xFF);
+            Data[Size + 2] = (byte)((item >> 40) & 0xFF);
+            Data[Size + 3] = (byte)((item >> 32) & 0xFF);
+            Data[Size + 4] = (byte)((item >> 24) & 0xFF);
+            Data[Size + 5] = (byte)((item >> 16) & 0xFF);
+            Data[Size + 6] = (byte)((item >> 8) & 0xFF);
+            Data[Size + 7] = (byte)(item & 0xFF);
         }
 
         /// <summary>
@@ -913,6 +913,10 @@ namespace Gurux.DLMS
                 else if (value is UInt64)
                 {
                     SetUInt64((UInt64)value);
+                }
+                else if (value is sbyte)
+                {
+                    SetUInt8((byte) ((sbyte)value & 0xFF));
                 }
                 else if (value is Int16)
                 {

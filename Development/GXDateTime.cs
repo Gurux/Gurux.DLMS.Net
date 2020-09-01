@@ -38,6 +38,7 @@ using Gurux.DLMS.Enums;
 using System.ComponentModel;
 using System.Globalization;
 using System.Text;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS
 {
@@ -45,6 +46,7 @@ namespace Gurux.DLMS
     /// This class is used because in COSEM object model some fields from date time can be ignored.
     /// Default behavior of DateTime do not allow this.
     /// </summary>
+    [TypeConverter(typeof(GXDateTimeConverter))]
     public class GXDateTime : IConvertible
     {
         /// <summary>
@@ -1177,6 +1179,21 @@ namespace Gurux.DLMS
         public static long ToUnixTime(GXDateTime date)
         {
             return ToUnixTime(date.Value.DateTime);
+        }
+
+        /// <summary>
+        /// Get date time as hex string.
+        /// </summary>
+        /// <param name="addSpace">Add space between bytes.</param>
+        /// <param name="useMeterTimeZone">Date-Time values are shown using meter's time zone and it's not localized to use PC time.</param>
+        /// <returns></returns>
+        public string ToHex(bool addSpace, bool useMeterTimeZone)
+        {
+            GXByteBuffer buff = new GXByteBuffer();
+            GXDLMSSettings settings = new GXDLMSSettings() { UseUtc2NormalTime = useMeterTimeZone };
+            GXCommon.SetData(settings, buff, DataType.OctetString, this);
+            //Dont add data type or length.
+            return buff.ToHex(addSpace, 2);
         }
 
         #region IConvertible Members

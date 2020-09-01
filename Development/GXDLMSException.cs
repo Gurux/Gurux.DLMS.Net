@@ -49,6 +49,7 @@ namespace Gurux.DLMS
             : base(GXDLMS.GetDescription((ErrorCode)errCode))
         {
             ErrorCode = errCode;
+            HelpLink = "https://www.gurux.fi/Gurux.DLMS.ErrorCodes#" + ErrorCode;
         }
 
         public GXDLMSException(string message)
