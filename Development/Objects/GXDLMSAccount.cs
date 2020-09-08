@@ -682,9 +682,9 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                     bb.SetUInt8(DataType.Structure);
                     bb.SetUInt8(2);
                     bb.SetUInt8(DataType.Enum);
-                    bb.SetUInt8(AccountStatus);
-                    bb.SetUInt8(DataType.Enum);
                     bb.SetUInt8(PaymentMode);
+                    bb.SetUInt8(DataType.Enum);
+                    bb.SetUInt8(AccountStatus);
                     return bb.Array();
                 case 3:
                     return CurrentCreditInUse;
@@ -826,8 +826,8 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                         {
                             arr = new List<object>((object[])e.Value);
                         }
-                        AccountStatus = (AccountStatus)Convert.ToByte(arr[0]);
-                        PaymentMode = (PaymentMode)Convert.ToByte(arr[1]);
+                        PaymentMode = (PaymentMode)Convert.ToByte(arr[0]);
+                        AccountStatus = (AccountStatus)Convert.ToByte(arr[1]);
                     }
                     else
                     {
