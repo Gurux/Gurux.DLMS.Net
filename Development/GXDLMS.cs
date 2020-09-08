@@ -3372,7 +3372,7 @@ namespace Gurux.DLMS
                     }
                     byte[] tmp = GXCiphering.Decrypt(p, bb);
                     //If target is sending data ciphered using different security policy.
-                    if (settings.Cipher.Security != p.Security)
+                    if (settings.Cipher.Security != 0 && settings.Cipher.Security != p.Security)
                     {
                         throw new GXDLMSCipherException(string.Format("Data is ciphered using different security level. Actual: {0}. Expected: {1}", p.Security, settings.Cipher.Security));
                     }
