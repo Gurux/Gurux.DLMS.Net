@@ -547,6 +547,11 @@ namespace Gurux.DLMS
 
         public string ToFormatString(CultureInfo culture, bool useLocalTime)
         {
+            if (Value.DateTime == DateTime.MinValue ||
+                Value.DateTime == DateTime.MaxValue)
+            {
+                return "";
+            }
             StringBuilder format = new StringBuilder();
             format.Append(GetDateTimeFormat(culture));
             Remove(format, culture);
