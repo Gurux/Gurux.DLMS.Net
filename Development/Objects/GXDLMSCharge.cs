@@ -831,7 +831,29 @@ namespace Gurux.DLMS.Objects
 
         private static void LoadUnitChargeActive(GXXmlReader reader, string name, GXUnitCharge charge)
         {
-
+            if (reader.IsStartElement(name, true))
+            {
+                charge.ChargePerUnitScaling.CommodityScale = (sbyte)reader.ReadElementContentAsInt("Scale");
+                charge.ChargePerUnitScaling.PriceScale = (sbyte)reader.ReadElementContentAsInt("PriceScale");
+                ObjectType ot = (ObjectType)reader.ReadElementContentAsInt("Type");
+                string ln = reader.ReadElementContentAsString("Ln");
+                charge.Commodity.Target = reader.Objects.FindByLN(ot, ln);
+                charge.Commodity.Index = reader.ReadElementContentAsInt("Index");
+                List<GXChargeTable> list = new List<GXChargeTable>();
+                if (reader.IsStartElement("ChargeTables", true))
+                {
+                    while (reader.IsStartElement("Item", true))
+                    {
+                        GXChargeTable it = new GXChargeTable();
+                        it.Index = reader.ReadElementContentAsString("Index");
+                        it.ChargePerUnit = (short)reader.ReadElementContentAsInt("ChargePerUnit");
+                        list.Add(it);
+                    }
+                    reader.ReadEndElement("ChargeTables");
+                }
+                reader.ReadEndElement(name);
+                charge.ChargeTables = list.ToArray();
+            }
         }
 
         void IGXDLMSBase.Load(GXXmlReader reader)
@@ -847,7 +869,7 @@ namespace Gurux.DLMS.Objects
                 UnitChargeActivationTime = new GXDateTime(tmp, System.Globalization.CultureInfo.InvariantCulture);
             }
             Period = (UInt16)reader.ReadElementContentAsInt("Period");
-            ChargeConfiguration = (ChargeConfiguration) reader.ReadElementContentAsInt("ChargeConfiguration");
+            ChargeConfiguration = (ChargeConfiguration)reader.ReadElementContentAsInt("ChargeConfiguration");
             tmp = reader.ReadElementContentAsString("LastCollectionTime");
             if (tmp != null)
             {
@@ -858,9 +880,27 @@ namespace Gurux.DLMS.Objects
             Proportion = (UInt16)reader.ReadElementContentAsInt("Proportion");
         }
 
-        private static void SaveUnitChargeActive(GXXmlWriter writer, string name, GXUnitCharge charge, int index)
+        private static void SaveUnitCharge(GXXmlWriter writer, string name, GXUnitCharge charge, int index)
         {
-
+            writer.WriteStartElement(name, index);
+            writer.WriteElementString("Scale", charge.ChargePerUnitScaling.CommodityScale, index);
+            writer.WriteElementString("PriceScale", charge.ChargePerUnitScaling.PriceScale, index);
+            writer.WriteElementString("Type", (int)charge.Commodity.Target.ObjectType, index);
+            writer.WriteElementString("Ln", charge.Commodity.Target.LogicalName, index);
+            writer.WriteElementString("Index", charge.Commodity.Index, index);
+            writer.WriteStartElement("ChargeTables", 0);
+            if (charge.ChargeTables != null)
+            {
+                foreach (GXChargeTable it in charge.ChargeTables)
+                {
+                    writer.WriteStartElement("Item", 0);
+                    writer.WriteElementString("Index", it.Index, index);
+                    writer.WriteElementString("ChargePerUnit", it.ChargePerUnit, index);
+                    writer.WriteEndElement();
+                }
+            }
+            writer.WriteEndElement();
+            writer.WriteEndElement();
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
@@ -868,11 +908,11 @@ namespace Gurux.DLMS.Objects
             writer.WriteElementString("TotalAmountPaid", TotalAmountPaid, 2);
             writer.WriteElementString("ChargeType", (int)ChargeType, 3);
             writer.WriteElementString("Priority", Priority, 4);
-            SaveUnitChargeActive(writer, "UnitChargeActive", UnitChargeActive, 5);
-            SaveUnitChargeActive(writer, "UnitChargePassive", UnitChargePassive, 6);
+            SaveUnitCharge(writer, "UnitChargeActive", UnitChargeActive, 5);
+            SaveUnitCharge(writer, "UnitChargePassive", UnitChargePassive, 6);
             writer.WriteElementString("UnitChargeActivationTime", UnitChargeActivationTime, 7);
             writer.WriteElementString("Period", Period, 8);
-            writer.WriteElementString("ChargeConfiguration", (int) ChargeConfiguration, 9);
+            writer.WriteElementString("ChargeConfiguration", (int)ChargeConfiguration, 9);
             writer.WriteElementString("LastCollectionTime", LastCollectionTime, 10);
             writer.WriteElementString("LastCollectionAmount", LastCollectionAmount, 11);
             writer.WriteElementString("TotalAmountRemaining", TotalAmountRemaining, 12);

@@ -336,6 +336,7 @@ namespace Gurux.DLMS.Objects
                 else //If the password does not match.
                 {
                     AssociationStatus = AssociationStatus.NonAssociated;
+                    e.Error = ErrorCode.ReadWriteDenied;
                     return null;
                 }
             }

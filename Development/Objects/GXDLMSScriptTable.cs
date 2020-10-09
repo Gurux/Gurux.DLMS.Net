@@ -259,7 +259,7 @@ namespace Gurux.DLMS.Objects
                     {
                         arr1 = new List<object>((object[])e.Value);
                     }
-                    if (arr1[0] is IEnumerable<object>)
+                    if (arr1.Count != 0 && arr1[0] is IEnumerable<object>)
                     {
                         foreach (object tmp in (IEnumerable<object>)e.Value)
                         {

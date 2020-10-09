@@ -241,11 +241,64 @@ namespace Gurux.DLMS.Objects
             return new object[] { LogicalName, CurrentCreditAmount, Type, Priority, WarningThreshold, Limit, CreditConfiguration, Status, PresetCreditAmount, CreditAvailableThreshold, Period };
         }
 
+        /// <summary>
+        /// Adjusts the value of the current credit amount attribute.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="value">Current credit amount</param>
+        /// <returns>Action bytes.</returns>
+        /// <summary>
+        public byte[][] UpdateAmount(GXDLMSClient client, Int32 value)
+        {
+            return client.Method(this, 1, value, DataType.Int32);
+        }
+
+        /// <summary>
+        /// Sets the value of the current credit amount attribute.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="value">Current credit amount</param>
+        /// <returns>Action bytes.</returns>
+        /// <summary>
+        public byte[][] SetAmountToValue(GXDLMSClient client, Int32 value)
+        {
+            return client.Method(this, 2, value, DataType.Int32);
+        }
+
+        /// <summary>
+        /// Sets the value of the current credit amount attribute.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="value">Current credit amount</param>
+        /// <returns>Action bytes.</returns>
+        /// <summary>
+        public byte[][] InvokeCredit(GXDLMSClient client, CreditStatus value)
+        {
+            return client.Method(this, 3, (byte) value, DataType.UInt8);
+        }
+
         #region IGXDLMSBase Members
 
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
-            e.Error = ErrorCode.ReadWriteDenied;
+            switch (e.Index)
+            {
+                case 1:
+                    CurrentCreditAmount += Convert.ToInt32(e.Value);
+                    break;
+                case 2:
+                    CurrentCreditAmount = Convert.ToInt32(e.Value);
+                    break;
+                case 3:
+                    if ((CreditConfiguration & CreditConfiguration.Confirmation) != 0 &&  Status == CreditStatus.Selectable)
+                    {
+                        Status = CreditStatus.Invoked;
+                    }
+                    break;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
+            }
             return null;
         }
 

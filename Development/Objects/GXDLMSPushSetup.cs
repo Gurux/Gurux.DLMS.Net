@@ -415,7 +415,15 @@ namespace Gurux.DLMS.Objects
                     }
                     else
                     {
-                        Destination = (string)GXDLMSClient.ChangeType((byte[])tmp[1], DataType.String, settings.UseUtc2NormalTime);
+                        object str = GXDLMSClient.ChangeType((byte[])tmp[1], DataType.String, settings.UseUtc2NormalTime);
+                        if (str is string)
+                        {
+                            Destination = (string)str;
+                        }
+                        else
+                        {
+                            Destination = GXCommon.ToHex((byte[])tmp[1], true);
+                        }
                     }
                     Message = (MessageType)Convert.ToInt32(tmp[2]);
                 }
