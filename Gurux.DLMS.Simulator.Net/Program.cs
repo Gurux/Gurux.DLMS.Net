@@ -172,7 +172,14 @@ namespace Gurux.DLMS.Simulator.Net
                     }
                     else
                     {
-                        server.Initialize(new GXNet(net.Protocol, net.Port + pos), settings.trace, settings.inputFile, (UInt32)pos + 1, settings.exclusive);
+                        try
+                        {
+                            server.Initialize(new GXNet(net.Protocol, net.Port + pos), settings.trace, settings.inputFile, (UInt32)pos + 1, settings.exclusive);
+                        }
+                        catch (System.Net.Sockets.SocketException ex)
+                        {
+                            Console.WriteLine(string.Format("Port {0} already in use.", net.Port + pos));
+                        }
                     }
                     if (pos == 0 && settings.client.UseLogicalNameReferencing)
                     {
