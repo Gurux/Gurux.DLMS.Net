@@ -51,6 +51,7 @@ namespace Gurux.DLMS.Client.Example
     {
         static int Main(string[] args)
         {
+
             Settings settings = new Settings();
             Reader.GXDLMSReader reader = null;
             try
@@ -66,21 +67,6 @@ namespace Gurux.DLMS.Client.Example
                 //Initialize connection settings.
                 if (settings.media is GXSerial)
                 {
-                    GXSerial serial = settings.media as GXSerial;
-                    if (settings.iec)
-                    {
-                        serial.BaudRate = 300;
-                        serial.DataBits = 7;
-                        serial.Parity = System.IO.Ports.Parity.Even;
-                        serial.StopBits = System.IO.Ports.StopBits.One;
-                    }
-                    else
-                    {
-                        serial.BaudRate = 9600;
-                        serial.DataBits = 8;
-                        serial.Parity = System.IO.Ports.Parity.None;
-                        serial.StopBits = System.IO.Ports.StopBits.One;
-                    }
                 }
                 else if (settings.media is GXNet)
                 {
@@ -90,7 +76,7 @@ namespace Gurux.DLMS.Client.Example
                     throw new Exception("Unknown media type.");
                 }
                 ////////////////////////////////////////
-                reader = new Reader.GXDLMSReader(settings.client, settings.media, settings.trace, settings.invocationCounter, settings.iec);
+                reader = new Reader.GXDLMSReader(settings.client, settings.media, settings.trace, settings.invocationCounter);
                 try
                 {
                     settings.media.Open();

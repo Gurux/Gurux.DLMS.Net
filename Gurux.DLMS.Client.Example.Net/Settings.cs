@@ -39,10 +39,12 @@ using Gurux.Common;
 using Gurux.Serial;
 using Gurux.Net;
 using Gurux.DLMS.Enums;
-using System.Threading;
 using Gurux.DLMS.Secure;
 using System.Diagnostics;
 using System.IO.Ports;
+using Gurux.DLMS.ASN;
+using Gurux.DLMS.Objects.Enums;
+using Gurux.DLMS.Ecdsa;
 
 namespace Gurux.DLMS.Client.Example
 {
@@ -50,7 +52,6 @@ namespace Gurux.DLMS.Client.Example
     {
         public IGXMedia media = null;
         public TraceLevel trace = TraceLevel.Info;
-        public bool iec = false;
         public GXDLMSSecureClient client = new GXDLMSSecureClient(true);
         // Invocation counter (frame counter).
         public string invocationCounter = null;
@@ -58,11 +59,13 @@ namespace Gurux.DLMS.Client.Example
         public List<KeyValuePair<string, int>> readObjects = new List<KeyValuePair<string, int>>();
         //Cache file.
         public string outputFile = null;
+        public GXx509Certificate publicKey;
+        public GXPkcs8 privateKey;
 
         public static int GetParameters(string[] args, Settings settings)
         {
             string[] tmp;
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:iIt:a:wP:g:S:C:n:v:o:T:A:B:D:d:l:F:");
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:wP:g:S:C:n:v:o:T:A:B:D:d:l:F:K:k:m:");
             GXNet net = null;
             foreach (GXCmdParameter it in parameters)
             {
@@ -118,8 +121,14 @@ namespace Gurux.DLMS.Client.Example
                         settings.client.Password = ASCIIEncoding.ASCII.GetBytes(it.Value);
                         break;
                     case 'i':
-                        //IEC.
-                        settings.iec = true;
+                        try
+                        {
+                            settings.client.InterfaceType = (InterfaceType)Enum.Parse(typeof(InterfaceType), it.Value);
+                        }
+                        catch (Exception)
+                        {
+                            throw new ArgumentException("Invalid interface type option. (HDLC, WRAPPER, HdlcWithModeE, Plc, PlcHdlc)");
+                        }
                         break;
                     case 'I':
                         //AutoIncreaseInvokeID.
@@ -155,10 +164,20 @@ namespace Gurux.DLMS.Client.Example
                         }
                         else
                         {
-                            serial.BaudRate = 9600;
-                            serial.DataBits = 8;
-                            serial.Parity = Parity.None;
-                            serial.StopBits = StopBits.One;
+                            if (settings.client.InterfaceType == InterfaceType.HdlcWithModeE)
+                            {
+                                serial.BaudRate = 300;
+                                serial.DataBits = 7;
+                                serial.Parity = Parity.Even;
+                                serial.StopBits = StopBits.One;
+                            }
+                            else
+                            {
+                                serial.BaudRate = 9600;
+                                serial.DataBits = 8;
+                                serial.Parity = Parity.None;
+                                serial.StopBits = StopBits.One;
+                            }
                         }
                         break;
                     case 'a':
@@ -191,6 +210,10 @@ namespace Gurux.DLMS.Client.Example
                             else if (string.Compare("HighGMac", it.Value, true) == 0)
                             {
                                 settings.client.Authentication = Authentication.HighGMAC;
+                            }
+                            else if (string.Compare("HighECDSA", it.Value, true) == 0)
+                            {
+                                settings.client.Authentication = Authentication.HighECDSA;
                             }
                             else
                             {
@@ -227,6 +250,27 @@ namespace Gurux.DLMS.Client.Example
                     case 'F':
                         settings.client.Ciphering.InvocationCounter = UInt32.Parse(it.Value.Trim());
                         break;
+                    case 'K':
+                        GXPkcs8 cert1 = GXPkcs8.Load(it.Value);
+                        settings.client.Ciphering.SigningKeyPair = new KeyValuePair<GXPrivateKey, GXPublicKey>(cert1.PrivateKey, cert1.PublicKey);
+                        Console.WriteLine("Client Private key: " + GXDLMSTranslator.ToHex(cert1.PrivateKey.RawValue));
+                        Console.WriteLine("Client Public key: " + GXDLMSTranslator.ToHex(cert1.PublicKey.RawValue));
+                        break;
+                    case 'k':
+                        GXx509Certificate cert = GXx509Certificate.Load(it.Value);
+                        if ((cert.KeyUsage & ASN.Enums.KeyUsage.DigitalSignature) == 0)
+                        {
+                            throw new Exception("This certificate is not used for digital signature.");
+                        }
+                        settings.client.Ciphering.PublicKeys.Add(new KeyValuePair<CertificateType, GXx509Certificate>(CertificateType.DigitalSignature, cert));
+                        string[] sn = cert.Subject.Split('=');
+                        if (sn.Length != 2)
+                        {
+                            throw new ArgumentOutOfRangeException("Invalid public key subject.");
+                        }
+                        settings.client.Ciphering.SystemTitle = GXDLMSTranslator.HexToBytes(sn[1]);
+                        Console.WriteLine("Server Public key: " + GXDLMSTranslator.ToHex(cert.PublicKey.RawValue));
+                        break;
                     case 'o':
                         settings.outputFile = it.Value;
                         break;
@@ -262,6 +306,9 @@ namespace Gurux.DLMS.Client.Example
                         break;
                     case 'n':
                         settings.client.ServerAddress = GXDLMSClient.GetServerAddress(int.Parse(it.Value));
+                        break;
+                    case 'm':
+                        settings.client.Plc.MacDestinationAddress = UInt16.Parse(it.Value);
                         break;
                     case '?':
                         switch (it.Tag)
@@ -300,6 +347,14 @@ namespace Gurux.DLMS.Client.Example
                                 throw new ArgumentException("Missing mandatory frame counter option.");
                             case 'd':
                                 throw new ArgumentException("Missing mandatory DLMS standard option.");
+                            case 'K':
+                                throw new ArgumentException("Missing mandatory private key file option.");
+                            case 'k':
+                                throw new ArgumentException("Missing mandatory public key file option.");
+                            case 'l':
+                                throw new ArgumentException("Missing mandatory logical server address option.");
+                            case 'm':
+                                throw new ArgumentException("Missing mandatory MAC destination address option.");
                             default:
                                 ShowHelp();
                                 return 1;
@@ -324,7 +379,6 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine(" -h \t host name or IP address.");
             Console.WriteLine(" -p \t port number or name (Example: 1000).");
             Console.WriteLine(" -S [COM1:9600:8None1]\t serial port.");
-            Console.WriteLine(" -i IEC is a start protocol.");
             Console.WriteLine(" -a \t Authentication (None, Low, High).");
             Console.WriteLine(" -P \t Password for authentication.");
             Console.WriteLine(" -c \t Client address. (Default: 16)");
@@ -332,7 +386,6 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine(" -n \t Server address as serial number.");
             Console.WriteLine(" -l \t Logical Server address.");
             Console.WriteLine(" -r [sn, ln]\t Short name or Logical Name (default) referencing is used.");
-            Console.WriteLine(" -w WRAPPER profile is used. HDLC is default.");
             Console.WriteLine(" -t [Error, Warning, Info, Verbose] Trace messages.");
             Console.WriteLine(" -g \"0.0.1.0.0.255:1; 0.0.1.0.0.255:2\" Get selected object(s) with given attribute index.");
             Console.WriteLine(" -C \t Security Level. (None, Authentication, Encrypted, AuthenticationEncryption)");
@@ -345,11 +398,15 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine(" -D \t Dedicated key that is used with chiphering. Ex -D 00112233445566778899AABBCCDDEEFF");
             Console.WriteLine(" -F \t Initial Frame Counter (Invocation counter) value.");
             Console.WriteLine(" -d \t Used DLMS standard. Ex -d India (DLMS, India, Italy, SaudiArabia, IDIS)");
+            Console.WriteLine(" -K \t Client's private key File. Ex. -k C:\\priv.pem");
+            Console.WriteLine(" -k \t Meter's public key File. Ex. -k C:\\pub.pem");
+            Console.WriteLine(" -i \t Used communication interface. Ex. -i WRAPPER.");
+            Console.WriteLine(" -m \t Used PLC MAC address. Ex. -m 1.");
             Console.WriteLine("Example:");
             Console.WriteLine("Read LG device using TCP/IP connection.");
             Console.WriteLine("GuruxDlmsSample -r SN -c 16 -s 1 -h [Meter IP Address] -p [Meter Port No]");
             Console.WriteLine("Read LG device using serial port connection.");
-            Console.WriteLine("GuruxDlmsSample -r SN -c 16 -s 1 -sp COM1 -i");
+            Console.WriteLine("GuruxDlmsSample -r SN -c 16 -s 1 -sp COM1");
             Console.WriteLine("Read Indian device using serial port connection.");
             Console.WriteLine("GuruxDlmsSample -S COM1 -c 16 -s 1 -a Low -P [password]");
         }
