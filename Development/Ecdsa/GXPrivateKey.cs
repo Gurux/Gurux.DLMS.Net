@@ -175,5 +175,14 @@ namespace Gurux.DLMS.Ecdsa
             key.Set(tmp, tmp.Length % 32, 32);
             return GXPublicKey.FromRawBytes(key.Array());
         }
+
+        /// <summary>
+        /// Returns the private key as a hex string.
+        /// </summary>
+        /// <returns></returns>
+        public string ToHex()
+        {
+            return GXDLMSTranslator.ToHex(RawValue);
+        }
     }
 }

@@ -99,7 +99,7 @@ namespace Gurux.DLMS.ASN
                 d.Add(d1);
                 GXAsn1Sequence d2 = new GXAsn1Sequence();
                 d2.Add((sbyte)1);
-                d2.Add(PrivateKey);
+                d2.Add(PrivateKey.RawValue);
                 d.Add(d2);
                 return GXAsn1Converter.ToByteArray(d);
             }

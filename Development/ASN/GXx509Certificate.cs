@@ -253,7 +253,7 @@ namespace Gurux.DLMS.ASN
             Subject = GXAsn1Converter.GetSubject((GXAsn1Sequence)reqInfo[5]);
             // Subject public key Info
             GXAsn1Sequence subjectPKInfo = (GXAsn1Sequence)reqInfo[6];
-            PublicKey = GXPublicKey.FromRawBytes(GXAsn1Converter.ToByteArray(subjectPKInfo));
+            PublicKey = GXPublicKey.FromRawBytes(((GXAsn1BitString)subjectPKInfo[1]).Value);
             // Get Standard Extensions.
             if (reqInfo.Count > 7)
             {

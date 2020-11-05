@@ -281,21 +281,21 @@ namespace Gurux.DLMS
             {
                 //Generate RR.
                 byte id = settings.KeepAlive();
-                if (settings.InterfaceType == InterfaceType.HDLC)
+                if (settings.InterfaceType == InterfaceType.PlcHdlc)
                 {
-                    return GetHdlcFrame(settings, id, null);
+                    return GXDLMS.GetMacHdlcFrame(settings, id, 0, null);
                 }
-                return GXDLMS.GetMacHdlcFrame(settings, id, 0, null);
+                return GetHdlcFrame(settings, id, null);
             }
             // Get next frame.
             if ((reply.MoreData & RequestTypes.Frame) != 0)
             {
                 byte id = settings.ReceiverReady();
-                if (settings.InterfaceType == InterfaceType.HDLC)
+                if (settings.InterfaceType == InterfaceType.PlcHdlc)
                 {
-                    return GetHdlcFrame(settings, id, null);
+                    return GXDLMS.GetMacHdlcFrame(settings, id, 0, null);
                 }
-                return GXDLMS.GetMacHdlcFrame(settings, id, 0, null);
+                return GetHdlcFrame(settings, id, null);
             }
             Command cmd;
             if (settings.UseLogicalNameReferencing)

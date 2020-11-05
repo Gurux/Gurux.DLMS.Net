@@ -1139,7 +1139,14 @@ namespace Gurux.DLMS
             byte[] ret = null;
             if (GXDLMS.IsHdlc(Settings.InterfaceType))
             {
-                ret = GXDLMS.GetHdlcFrame(Settings, (byte)Command.DisconnectRequest, null);
+                if (Settings.InterfaceType == InterfaceType.PlcHdlc)
+                {
+                    ret = GXDLMS.GetMacHdlcFrame(Settings, (byte)Command.DisconnectRequest, 0, null);
+                }
+                else
+                {
+                    ret = GXDLMS.GetHdlcFrame(Settings, (byte)Command.DisconnectRequest, null);
+                }
             }
             else if (force || Settings.Connected == ConnectionState.Dlms)
             {

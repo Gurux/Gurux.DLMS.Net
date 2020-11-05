@@ -83,5 +83,14 @@ namespace Gurux.DLMS.Ecdsa
             }
             return value;
         }
+
+        /// <summary>
+        /// Returns the public key as a hex string.
+        /// </summary>
+        /// <returns></returns>
+        public string ToHex()
+        {
+            return GXDLMSTranslator.ToHex(RawValue);
+        }
     }
 }
