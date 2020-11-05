@@ -38,6 +38,8 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Secure;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Objects.Enums;
+using System.Security.Cryptography.X509Certificates;
+using Gurux.DLMS.Ecdsa;
 
 namespace Gurux.DLMS
 {
@@ -118,6 +120,12 @@ namespace Gurux.DLMS
         /// Long data index.
         /// </summary>
         internal UInt32 Index;
+
+        /// <summary>
+        /// Target ephemeral public key.
+        /// </summary>
+        public GXPublicKey TargetEphemeralKey;
+
 
         /// <summary>
         /// Maximum PDU size.
@@ -281,6 +289,7 @@ namespace Gurux.DLMS
             WindowSize = 1;
             UserId = -1;
             Standard = Standard.DLMS;
+            Plc = new GXDLMSPlc(this);
         }
 
         /// <summary>
@@ -598,6 +607,15 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// PLC settings.
+        /// </summary>
+        public GXDLMSPlc Plc
+        {
+            get;
+            internal set;
+        }
+
+        /// <summary>
         /// Used interface.
         /// </summary>
         public InterfaceType InterfaceType
@@ -680,13 +698,25 @@ namespace Gurux.DLMS
             }
         }
 
+        UInt16 maxServerPDUSize;
+
         /// <summary>
         /// Server maximum PDU size.
         /// </summary>
         public UInt16 MaxServerPDUSize
         {
-            get;
-            set;
+            get
+            {
+                return maxServerPDUSize;
+            }
+            set
+            {
+                if (InterfaceType == InterfaceType.Plc)
+                {
+                    value = 134;
+                }
+                maxServerPDUSize = value;
+            }
         }
 
         /// <summary>

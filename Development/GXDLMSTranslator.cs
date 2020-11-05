@@ -323,9 +323,17 @@ namespace Gurux.DLMS
                 {
                     return InterfaceType.WRAPPER;
                 }
+                if (value.GetUInt8(pos) == 0x2)
+                {
+                    return InterfaceType.Plc;
+                }
                 if (GXDLMS.IsMBusData(value))
                 {
                     return InterfaceType.WirelessMBus;
+                }
+                if (GXDLMS.IsPlcSfskData(value))
+                {
+                    return InterfaceType.PlcHdlc;
                 }
             }
             throw new ArgumentException("Invalid DLMS framing.");
@@ -368,6 +376,7 @@ namespace Gurux.DLMS
         {
             int original = data.Position;
             GXDLMSSettings settings = new GXDLMSSettings(true);
+            settings.InterfaceType = type;
             GXReplyData reply = new GXReplyData();
             reply.Xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
             int pos;
@@ -379,7 +388,6 @@ namespace Gurux.DLMS
                     if (type == InterfaceType.HDLC && data.GetUInt8(data.Position) == 0x7e)
                     {
                         pos = data.Position;
-                        settings.InterfaceType = Enums.InterfaceType.HDLC;
                         found = GXDLMS.GetData(settings, data, reply, null, null);
                         data.Position = pos;
                         if (found)
@@ -390,7 +398,6 @@ namespace Gurux.DLMS
                     else if (type == InterfaceType.WRAPPER && data.GetUInt16(data.Position) == 0x1)
                     {
                         pos = data.Position;
-                        settings.InterfaceType = Enums.InterfaceType.WRAPPER;
                         found = GXDLMS.GetData(settings, data, reply, null, null);
                         data.Position = pos;
                         if (found)
@@ -398,10 +405,29 @@ namespace Gurux.DLMS
                             break;
                         }
                     }
-                    else if (type == InterfaceType.WirelessMBus)
+                    else if (type == InterfaceType.Plc && data.GetUInt8(data.Position) == 0x2)
                     {
                         pos = data.Position;
-                        settings.InterfaceType = Enums.InterfaceType.WirelessMBus;
+                        found = GXDLMS.GetData(settings, data, reply, null, null);
+                        data.Position = pos;
+                        if (found)
+                        {
+                            break;
+                        }
+                    }
+                    else if (type == InterfaceType.PlcHdlc && GXDLMS.IsPlcSfskData(data))
+                    {
+                        pos = data.Position;
+                        found = GXDLMS.GetData(settings, data, reply, null, null);
+                        data.Position = pos;
+                        if (found)
+                        {
+                            break;
+                        }
+                    }
+                    else if (type == InterfaceType.WirelessMBus && GXDLMS.IsMBusData(data))
+                    {
+                        pos = data.Position;
                         found = GXDLMS.GetData(settings, data, reply, null, null);
                         data.Position = pos;
                         if (found)
@@ -451,7 +477,7 @@ namespace Gurux.DLMS
                 if (data.GetUInt8(data.Position) == 0x7e)
                 {
                     pos = data.Position;
-                    settings.InterfaceType = Enums.InterfaceType.HDLC;
+                    settings.InterfaceType = InterfaceType.HDLC;
                     found = GXDLMS.GetData(settings, data, reply, null, null);
                     data.Position = pos;
                     if (found)
@@ -462,7 +488,32 @@ namespace Gurux.DLMS
                 else if (data.Position + 2 < data.Size && data.GetUInt16(data.Position) == 0x1)
                 {
                     pos = data.Position;
-                    settings.InterfaceType = Enums.InterfaceType.WRAPPER;
+                    settings.InterfaceType = InterfaceType.WRAPPER;
+                    found = GXDLMS.GetData(settings, data, reply, null, null);
+                    data.Position = pos;
+                    if (found)
+                    {
+                        break;
+                    }
+                }
+                //STX for IEC 61334-4-32 LLC sublayer.
+                else if (data.GetUInt8(data.Position) == 0x2)
+                {
+                    pos = data.Position;
+                    settings.InterfaceType = InterfaceType.Plc;
+                    found = GXDLMS.GetData(settings, data, reply, null, null);
+                    data.Position = pos;
+                    if (found)
+                    {
+                        break;
+                    }
+                }
+                //If Mac HDLC Frame.
+                else if (data.Position + 2 < data.Size &&
+                    (data.GetUInt16(data.Position) == (int)PlcMacSubframes.One || data.GetUInt16(data.Position) == (int)PlcMacSubframes.Two || data.GetUInt16(data.Position) == (int)PlcMacSubframes.Three))
+                {
+                    pos = data.Position;
+                    settings.InterfaceType = InterfaceType.PlcHdlc;
                     found = GXDLMS.GetData(settings, data, reply, null, null);
                     data.Position = pos;
                     if (found)
@@ -503,6 +554,7 @@ namespace Gurux.DLMS
                 TranslatorSimpleTags.GetDedTags(type, list);
                 TranslatorSimpleTags.GetTranslatorTags(type, list);
                 TranslatorSimpleTags.GetDataTypeTags(list);
+                TranslatorSimpleTags.GetPlcTags(list);
             }
             else
             {
@@ -513,6 +565,7 @@ namespace Gurux.DLMS
                 TranslatorStandardTags.GetDedTags(type, list);
                 TranslatorStandardTags.GetTranslatorTags(type, list);
                 TranslatorStandardTags.GetDataTypeTags(list);
+                TranslatorStandardTags.GetPlcTags(list);
             }
             // Simple is not case sensitive.
             bool lowercase = type == TranslatorOutputType.SimpleXml;
@@ -986,6 +1039,164 @@ namespace Gurux.DLMS
                     msg.Xml = xml.sb.ToString();
                     return;
                 }
+                //If PLC.
+                if (msg.Message.GetUInt8(msg.Message.Position) == 2)
+                {
+                    msg.InterfaceType = settings.InterfaceType = Enums.InterfaceType.Plc;
+                    GXDLMS.GetData(settings, msg.Message, data, null, null);
+                    if (msg.Command == Command.Aarq)
+                    {
+                        msg.SystemTitle = settings.Cipher.SystemTitle;
+                    }
+                    else if (msg.Command == Command.Aare)
+                    {
+                        msg.SystemTitle = settings.SourceSystemTitle;
+                    }
+                    if (!PduOnly)
+                    {
+                        xml.AppendLine("<Plc len=\"" + (data.PacketLength - offset).ToString("X") + "\" >");
+                        if (Comments)
+                        {
+                            if (data.ClientAddress == (UInt16)PlcSourceAddress.Initiator)
+                            {
+                                xml.AppendComment("Initiator");
+                            }
+                            else if (data.ClientAddress == (UInt16)PlcSourceAddress.New)
+                            {
+                                xml.AppendComment("New");
+                            }
+                        }
+                        xml.AppendLine("<SourceAddress Value=\"" + data.ClientAddress.ToString("X") + "\" />");
+                        if (Comments && data.ServerAddress == (UInt16)PlcDestinationAddress.AllPhysical)
+                        {
+                            xml.AppendComment("AllPhysical");
+                        }
+                        xml.AppendLine("<DestinationAddress Value=\"" + data.ServerAddress.ToString("X") + "\" />");
+                    }
+                    if (data.Data.Size == 0)
+                    {
+                        xml.AppendLine("<Command Value=\"" + data.Command.ToString().ToUpper() + "\" />");
+                    }
+                    else
+                    {
+                        if (data.Data.Size == 0)
+                        {
+                            if (data.Command == Command.None)
+                            {
+                                if (!CompletePdu)
+                                {
+                                    xml.AppendLine("<Command Value=\"NextFrame\" />");
+                                }
+                                multipleFrames = true;
+                            }
+                            else
+                            {
+                                msg.Command = data.Command;
+                                xml.AppendStartTag(data.Command);
+                                xml.AppendEndTag(data.Command);
+                            }
+                        }
+                        else
+                        {
+                            if (!PduOnly)
+                            {
+                                xml.AppendLine("<PDU>");
+                            }
+                            xml.AppendLine(PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg));
+                            //Remove \r\n.
+                            xml.sb.Length -= Environment.NewLine.Length;
+                            if (!PduOnly)
+                            {
+                                xml.AppendLine("</PDU>");
+                            }
+                        }
+                    }
+                    if (!PduOnly)
+                    {
+                        xml.AppendLine("</Plc>");
+                    }
+                    msg.Xml = xml.sb.ToString();
+                    return;
+                }
+                //If PLC.
+                if (GXDLMS.IsPlcSfskData(msg.Message))
+                {
+                    msg.InterfaceType = settings.InterfaceType = Enums.InterfaceType.PlcHdlc;
+                    GXDLMS.GetData(settings, msg.Message, data, null, null);
+                    if (msg.Command == Command.Aarq)
+                    {
+                        msg.SystemTitle = settings.Cipher.SystemTitle;
+                    }
+                    else if (msg.Command == Command.Aare)
+                    {
+                        msg.SystemTitle = settings.SourceSystemTitle;
+                    }
+                    if (!PduOnly)
+                    {
+                        xml.AppendLine("<PlcSFsk len=\"" + (data.PacketLength - offset).ToString("X") + "\" >");
+                        if (Comments)
+                        {
+                            if (data.ClientAddress == (UInt16)PlcSourceAddress.Initiator)
+                            {
+                                xml.AppendComment("Initiator");
+                            }
+                            else if (data.ClientAddress == (UInt16)PlcSourceAddress.New)
+                            {
+                                xml.AppendComment("New");
+                            }
+                        }
+                        xml.AppendLine("<SourceAddress Value=\"" + data.ClientAddress.ToString("X") + "\" />");
+                        if (Comments && data.ServerAddress == (UInt16)PlcDestinationAddress.AllPhysical)
+                        {
+                            xml.AppendComment("AllPhysical");
+                        }
+                        xml.AppendLine("<DestinationAddress Value=\"" + data.ServerAddress.ToString("X") + "\" />");
+                    }
+                    if (data.Data.Size == 0)
+                    {
+                        xml.AppendLine("<Command Value=\"" + data.Command.ToString().ToUpper() + "\" />");
+                    }
+                    else
+                    {
+                        if (data.Data.Size == 0)
+                        {
+                            if (data.Command == Command.None)
+                            {
+                                if (!CompletePdu)
+                                {
+                                    xml.AppendLine("<Command Value=\"NextFrame\" />");
+                                }
+                                multipleFrames = true;
+                            }
+                            else
+                            {
+                                msg.Command = data.Command;
+                                xml.AppendStartTag(data.Command);
+                                xml.AppendEndTag(data.Command);
+                            }
+                        }
+                        else
+                        {
+                            if (!PduOnly)
+                            {
+                                xml.AppendLine("<PDU>");
+                            }
+                            xml.AppendLine(PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg));
+                            //Remove \r\n.
+                            xml.sb.Length -= Environment.NewLine.Length;
+                            if (!PduOnly)
+                            {
+                                xml.AppendLine("</PDU>");
+                            }
+                        }
+                    }
+                    if (!PduOnly)
+                    {
+                        xml.AppendLine("</PlcSFsk>");
+                    }
+                    msg.Xml = xml.sb.ToString();
+                    return;
+                }
                 //If Wireless M-Bus.
                 if (GXDLMS.IsMBusData(msg.Message))
                 {
@@ -1177,6 +1388,72 @@ namespace Gurux.DLMS
             }
         }
 
+        private void HandleDiscoverRequest(GXReplyData data)
+        {
+            byte responseProbability = data.Data.GetUInt8();
+            byte allowedTimeSlots = data.Data.GetUInt8();
+            byte discoverReportInitialCredit = data.Data.GetUInt8();
+            byte icEqualCredit = data.Data.GetUInt8();
+            data.Xml.AppendLine("<ResponseProbability Value=\"" + responseProbability.ToString() + "\" />");
+            data.Xml.AppendLine("<AllowedTimeSlots Value=\"" + allowedTimeSlots.ToString() + "\" />");
+            data.Xml.AppendLine("<DiscoverReportInitialCredit Value=\"" + discoverReportInitialCredit.ToString() + "\" />");
+            data.Xml.AppendLine("<ICEqualCredit Value=\"" + icEqualCredit.ToString() + "\" />");
+        }
+
+        private void HandleRegisterRequest(InterfaceType interfaceType, GXReplyData data)
+        {
+            //Get System title.
+            byte[] st;
+            if (interfaceType == Enums.InterfaceType.PlcHdlc)
+            {
+                st = new byte[8];
+            }
+            else
+            {
+                st = new byte[6];
+            }
+            data.Data.Get(st);
+            data.Xml.AppendLine("<ActiveInitiator Value=\"" + GXCommon.ToHex(st, true) + "\" />");
+            byte count = data.Data.GetUInt8();
+            for (int pos = 0; pos != count; ++pos)
+            {
+                //Get System title.
+                data.Data.Get(st);
+                data.Xml.AppendLine("<SystemTitle Value=\"" + GXCommon.ToHex(st, true) + "\" />");
+                //MAC address.
+                UInt16 address = data.Data.GetUInt16();
+                data.Xml.AppendLine("<MacAddress Value=\"" + address.ToString() + "\" />");
+            }
+        }
+
+        private void HandleDiscoverResponse(GXDLMSSettings settings, GXReplyData data)
+        {
+            byte count = data.Data.GetUInt8();
+            for (int pos = 0; pos != count; ++pos)
+            {
+                //Get System title.
+                byte[] st;
+                if (settings.InterfaceType == InterfaceType.Plc)
+                {
+                    st = new byte[6];
+                }
+                else
+                {
+                    st = new byte[8];
+                }
+                data.Data.Get(st);
+                data.Xml.AppendLine("<SystemTitle Value=\"" + GXCommon.ToHex(st, true) + "\" />");
+            }
+            // Alarm-Descriptor presence flag
+            if (data.Data.GetUInt8() != 0)
+            {
+                //Alarm-Descriptor
+                byte alarmDescriptor = data.Data.GetUInt8();
+                data.Xml.AppendLine("<AlarmDescriptor Value=\"" + alarmDescriptor.ToString() + "\" />");
+            }
+        }
+
+
 
         internal string PduToXml(GXDLMSTranslatorStructure xml, GXByteBuffer value, bool omitDeclaration, bool omitNameSpace, bool allowUnknownCommand, GXDLMSTranslatorMessage msg)
         {
@@ -1185,7 +1462,7 @@ namespace Gurux.DLMS
             byte cmd = value.GetUInt8();
             if (msg != null)
             {
-                msg.Command = (Command) cmd;
+                msg.Command = (Command)cmd;
             }
             GetCiphering(settings, IsCiphered(cmd));
             settings.Standard = Standard;
@@ -1311,17 +1588,21 @@ namespace Gurux.DLMS
                         {
                             str = TranslatorStandardTags.ReleaseRequestReasonToString((ReleaseRequestReason)value.GetUInt8());
                         }
-                        xml.AppendLine(TranslatorTags.Reason, "Value", str);
+                        xml.AppendLine(TranslatorTags.Reason, null, str);
                         if (value.Available != 0)
                         {
+                            int len2 = xml.GetXmlLength();
                             try
                             {
+                                xml.AppendStartTag(TranslatorGeneralTags.UserInformation);
                                 GXAPDU.ParsePDU2(settings, settings.Cipher, value,
                                         xml);
+                                xml.AppendEndTag(TranslatorGeneralTags.UserInformation);
                             }
                             catch (Exception)
                             {
                                 //This usually fails if keys are wrong.
+                                xml.SetXmlLength(len2);
                             }
                         }
                     }
@@ -1419,6 +1700,7 @@ namespace Gurux.DLMS
                         catch (Exception)
                         {
                             // It's OK if this fails. Ciphering settings are not correct.
+                            msg.Command = (Command)cmd;
                             xml.SetXmlLength(len2);
                         }
                         value.Position = originalPosition;
@@ -1483,6 +1765,7 @@ namespace Gurux.DLMS
                             catch (Exception)
                             {
                                 // It's OK if this fails. Ciphering settings are not correct.
+                                msg.Command = (Command)cmd;
                                 xml.SetXmlLength(len2);
                             }
                         }
@@ -1526,6 +1809,41 @@ namespace Gurux.DLMS
                     data.Xml = xml;
                     data.Data = value;
                     GXDLMS.HandleExceptionResponse(data);
+                    break;
+                case (byte)Command.DiscoverRequest:
+                    data.Xml = xml;
+                    data.Data = value;
+                    xml.AppendStartTag((Command)cmd);
+                    HandleDiscoverRequest(data);
+                    xml.AppendEndTag((Command)cmd);
+                    break;
+                case (byte)Command.DiscoverReport:
+                    data.Xml = xml;
+                    data.Data = value;
+                    xml.AppendStartTag((Command)cmd);
+                    HandleDiscoverResponse(settings, data);
+                    xml.AppendEndTag((Command)cmd);
+                    break;
+                case (byte)Command.RegisterRequest:
+                    data.Xml = xml;
+                    data.Data = value;
+                    xml.AppendStartTag((Command)cmd);
+                    HandleRegisterRequest(msg.InterfaceType, data);
+                    xml.AppendEndTag((Command)cmd);
+                    break;
+                case (byte)Command.PingResponse:
+                    data.Xml = xml;
+                    data.Data = value;
+                    xml.AppendStartTag((Command)cmd);
+                    GXDLMS.HandleExceptionResponse(data);
+                    xml.AppendEndTag((Command)cmd);
+                    break;
+                case (byte)Command.RepeatCallRequest:
+                    data.Xml = xml;
+                    data.Data = value;
+                    xml.AppendStartTag((Command)cmd);
+                    GXDLMS.HandleExceptionResponse(data);
+                    xml.AppendEndTag((Command)cmd);
                     break;
                 default:
                     if (!allowUnknownCommand)

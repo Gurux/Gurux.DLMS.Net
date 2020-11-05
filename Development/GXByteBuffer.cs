@@ -359,7 +359,7 @@ namespace Gurux.DLMS
         /// <param name="value">The value to be added.</param>
         public void SetUInt16(int index, UInt16 value)
         {
-            if (index + 2 >= Capacity)
+            if (index + 2 > Capacity)
             {
                 Capacity = (index + ArrayCapacity);
             }
@@ -374,7 +374,7 @@ namespace Gurux.DLMS
         /// <param name="value">The value to be added.</param>
         public void SetInt16(int index, Int16 value)
         {
-            if (index + 2 >= Capacity)
+            if (index + 2 > Capacity)
             {
                 Capacity = (index + ArrayCapacity);
             }
@@ -419,7 +419,7 @@ namespace Gurux.DLMS
         /// <param name="value"> The value to be added.</param>
         public void SetUInt32(int index, UInt32 value)
         {
-            if (index + 4 >= Capacity)
+            if (index + 4 > Capacity)
             {
                 Capacity = (index + ArrayCapacity);
             }
@@ -436,7 +436,7 @@ namespace Gurux.DLMS
         /// <param name="value"> The value to be added.</param>
         public void SetInt32(int index, Int32 value)
         {
-            if (index + 4 >= Capacity)
+            if (index + 4 > Capacity)
             {
                 Capacity = (index + ArrayCapacity);
             }
@@ -495,7 +495,7 @@ namespace Gurux.DLMS
         /// <param name="item"> The value to be added.</param>
         public void SetUInt64(int index, UInt64 item)
         {
-            if (index + 8 >= Capacity)
+            if (index + 8 > Capacity)
             {
                 Capacity = (index + ArrayCapacity);
             }
@@ -516,7 +516,7 @@ namespace Gurux.DLMS
         /// <param name="item"> The value to be added.</param>
         public void SetInt64(int index, Int64 item)
         {
-            if (index + 8 >= Capacity)
+            if (index + 8 > Capacity)
             {
                 Capacity = (index + ArrayCapacity);
             }

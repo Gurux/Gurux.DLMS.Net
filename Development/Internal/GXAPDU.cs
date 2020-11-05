@@ -144,7 +144,8 @@ namespace Gurux.DLMS.Internal
             }
             //Add system title if cipher or GMAC authentication is used..
             if (!settings.IsServer && (ciphered || settings.Authentication == Authentication.HighGMAC ||
-                settings.Authentication == Authentication.HighSHA256))
+                settings.Authentication == Authentication.HighSHA256 ||
+                settings.Authentication == Authentication.HighECDSA))
             {
                 if (cipher.SystemTitle == null || cipher.SystemTitle.Length == 0)
                 {
@@ -526,7 +527,7 @@ namespace Gurux.DLMS.Internal
                     maxPdu = data.GetUInt16();
                     settings.MaxPduSize = maxPdu;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     if (xml == null)
                     {
@@ -664,7 +665,15 @@ namespace Gurux.DLMS.Internal
                     }
                     else
                     {
-                        st = settings.SourceSystemTitle;
+                        if (tag == (byte)Command.GloInitiateRequest ||
+                        tag == (byte)Command.DedInitiateRequest)
+                        {
+                            st = settings.Cipher.SystemTitle;
+                        }
+                        else
+                        {
+                            st = settings.SourceSystemTitle;
+                        }
                     }
                     cnt = GXCommon.GetObjectCount(data);
                     encrypted = new byte[cnt];
@@ -1207,7 +1216,7 @@ namespace Gurux.DLMS.Internal
                                 //RespondingAPTitle
                                 if (xml.Comments)
                                 {
-                                    xml.AppendComment(GXCommon.SystemTitleToString(settings.Standard, settings.SourceSystemTitle));
+                                    xml.AppendComment(GXCommon.SystemTitleToString(settings.Standard, settings.SourceSystemTitle, true));
                                 }
                                 xml.AppendLine(TranslatorGeneralTags.RespondingAPTitle, "Value", GXCommon.ToHex(settings.SourceSystemTitle, false));
                             }
@@ -1595,7 +1604,8 @@ namespace Gurux.DLMS.Internal
 
             //SystemTitle
             if (cipher != null && (cipher.IsCiphered() || settings.Authentication == Authentication.HighGMAC ||
-                settings.Authentication == Authentication.HighSHA256))
+                settings.Authentication == Authentication.HighSHA256 ||
+                settings.Authentication == Authentication.HighECDSA))
             {
                 data.SetUInt8((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CalledApInvocationId);
                 data.SetUInt8((byte)(2 + cipher.SystemTitle.Length));

@@ -97,7 +97,7 @@ namespace Gurux.DLMS
         }
 
         /**
-         * Are numeric values shows as hex.
+      Are numeric values shows as hex.
          */
         private bool showNumericsAsHex;
 

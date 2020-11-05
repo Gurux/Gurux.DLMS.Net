@@ -32,8 +32,12 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using Gurux.DLMS.ASN;
+using Gurux.DLMS.Ecdsa;
 using Gurux.DLMS.Objects.Enums;
 using System;
+using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Gurux.DLMS.Secure
 {
@@ -74,6 +78,7 @@ namespace Gurux.DLMS.Secure
             SystemTitle = title;
             BlockCipherKey = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F };
             AuthenticationKey = new byte[] { 0xD0, 0xD1, 0xD2, 0xD3, 0xD4, 0xD5, 0xD6, 0xD7, 0xD8, 0xD9, 0xDA, 0xDB, 0xDC, 0xDD, 0xDE, 0xDF };
+            PublicKeys = new List<KeyValuePair<CertificateType, GXx509Certificate>>();
         }
 
         /// <summary>
@@ -93,6 +98,7 @@ namespace Gurux.DLMS.Secure
             SystemTitle = title;
             BlockCipherKey = blockCipherKey;
             AuthenticationKey = authenticationKey;
+            PublicKeys = new List<KeyValuePair<CertificateType, GXx509Certificate>>();
         }
 
         public void CopyTo(GXCiphering target)
@@ -103,6 +109,10 @@ namespace Gurux.DLMS.Secure
             target.SystemTitle = SystemTitle;
             target.BlockCipherKey = BlockCipherKey;
             target.AuthenticationKey = AuthenticationKey;
+            if (PublicKeys != null)
+            {
+                target.PublicKeys.AddRange(PublicKeys);
+            }
         }
 
         /// <summary>
@@ -136,6 +146,57 @@ namespace Gurux.DLMS.Secure
         /// Invocation counter for sending.
         /// </summary>
         public UInt32 InvocationCounter
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Target (Server or client) Public key.
+        /// </summary>
+        public List<KeyValuePair<CertificateType, GXx509Certificate>> PublicKeys
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Available certificates.
+        /// </summary>
+        public List<GXx509Certificate> Certificates
+        {
+            get;
+            set;
+        }
+
+        public byte[] SharedSecret
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Public/private key signing key pair.
+        /// </summary>
+        public KeyValuePair<GXPrivateKey, GXPublicKey> SigningKeyPair
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Ephemeral key pair.
+        /// </summary>
+        public KeyValuePair<GXPrivateKey, GXPublicKey> EphemeralKeyPair
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Public/private key key agreement key pair.
+        /// </summary>
+        public KeyValuePair<GXPrivateKey, GXPublicKey> KeyAgreementKeyPair
         {
             get;
             set;

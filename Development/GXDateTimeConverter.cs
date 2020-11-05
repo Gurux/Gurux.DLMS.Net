@@ -41,14 +41,15 @@ namespace Gurux.DLMS
     {
         public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
         {
-            return sourceType == typeof(string);
+            return sourceType == typeof(string) || sourceType == typeof(UInt32);
         }
 
         public override object ConvertFrom(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value)
         {
-            string str = value as string;
-            if (str != null)
+            if (value is string str)
                 return new GXDateTime(str);
+            if (value is UInt32 v32)
+                return GXDateTime.FromUnixTime(v32);
             return base.ConvertFrom(context, culture, value);
         }
     }

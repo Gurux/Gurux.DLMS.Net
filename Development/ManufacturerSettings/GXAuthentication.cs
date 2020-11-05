@@ -111,6 +111,26 @@ namespace Gurux.DLMS.ManufacturerSettings
         }
 
         /// <summary>
+        /// Name of authentication.
+        /// </summary>
+        [DefaultValue(null)]
+        public string Name
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Is connection pre-established.
+        /// </summary>
+        [DefaultValue(false)]
+        public bool PreEstablished
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Client address.
         /// </summary>
 #if !WINDOWS_UWP

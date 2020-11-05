@@ -196,7 +196,7 @@ namespace Gurux.DLMS.Secure
                         data.Get(p.SystemTitle);
                         if (p.Xml != null && p.Xml.Comments)
                         {
-                            p.Xml.AppendComment(GXCommon.SystemTitleToString(Standard.DLMS, p.SystemTitle));
+                            p.Xml.AppendComment(GXCommon.SystemTitleToString(Standard.DLMS, p.SystemTitle, true));
                         }
                     }
                     if (p.SystemTitle == null || p.SystemTitle.Length != 8)

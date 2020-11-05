@@ -307,14 +307,15 @@ namespace Gurux.DLMS.ManufacturerSettings
                 XmlSerializer x = new XmlSerializer(typeof(GXManufacturer), extraTypes);
                 foreach (GXManufacturer it in this)
                 {
-                    string path = Path.Combine(directory, it.Identification) + ".obx";
+                    string name = it.Identification.ToLower();
+                    string path = Path.Combine(directory, name) + ".obx";
                     if (it.Identification == "AUX")
                     {
-                        path = Path.Combine(directory, "_" + it.Identification) + ".obx";
+                        path = Path.Combine(directory, "_" + name) + ".obx";
                     }
                     else if (it.Identification == "CON")
                     {
-                        path = Path.Combine(directory, "_" + it.Identification) + ".obx";
+                        path = Path.Combine(directory, "_" + name) + ".obx";
                     }
                     if (!it.Removed)
                     {

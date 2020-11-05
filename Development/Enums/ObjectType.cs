@@ -264,6 +264,24 @@ namespace Gurux.DLMS.Enums
         RegisterMonitor = 21,
 
         /// <summary>
+        /// ISO/IEC 8802-2 LLC Type 1 setup.
+        /// </summary>
+        [XmlEnum("57")]
+        Iec8802LlcType1Setup = 57,
+
+        /// <summary>
+        /// ISO/IEC 8802-2 LLC Type 2 setup.
+        /// </summary>
+        [XmlEnum("58")]
+        Iec8802LlcType2Setup = 58,
+
+        /// <summary>
+        /// ISO/IEC 8802-2 LLC Type 3 setup.
+        /// </summary>
+        [XmlEnum("58")]
+        Iec8802LlcType3Setup = 58,
+
+        /// <summary>
         /// Instances of the Disconnect control IC manage an internal or external disconnect unit
         /// of the meter (e.g. electricity breaker, gas valve) in order to connect or disconnect
         /// – partly or entirely – the premises of the consumer to / from the supply.
@@ -486,6 +504,17 @@ namespace Gurux.DLMS.Enums
         [XmlEnum("53")]
         SFSKMacCounters = 53,
 
+        /// <summary>
+        /// IEC 61334-4-32 LLC setup
+        /// </summary>
+        [XmlEnum("55")]
+        Iec61334_4_32LlcSetup = 55,
+
+        /// <summary>
+        /// S-FSK Reporting system list.
+        /// </summary>
+        [XmlEnum("56")]
+        SFSKReportingSystemList = 56,
 
         /// <summary>
         /// Arbitrator.

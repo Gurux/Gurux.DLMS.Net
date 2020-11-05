@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,18 +19,20 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: https://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
+
+using System;
 
 namespace Gurux.DLMS
 {
@@ -82,7 +84,7 @@ namespace Gurux.DLMS
         /// <param name="index"></param>
         /// <param name="count"></param>
         /// <returns></returns>
-        internal static ushort CountFCS16(byte[] buff, int index, int count)
+        internal static UInt16 CountFCS16(byte[] buff, int index, int count)
         {
             int FCS16 = 0xFFFF;
             for (int pos = index; pos < index + count; ++pos)
@@ -91,7 +93,40 @@ namespace Gurux.DLMS
             }
             FCS16 = ~FCS16;
             FCS16 = ((FCS16 >> 8) & 0xFF) | (FCS16 << 8);
-            return (ushort)FCS16;
+            return (UInt16)FCS16;
+        }
+
+
+        /// <summary>
+        /// Reserved for internal use.
+        /// </summary>
+        /// <param name="buff"></param>
+        /// <param name="index"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        const UInt32 CRCPOLY = 0xD3B6BA00;
+        internal static UInt32 CountFCS24(byte[] buff, int index, int count)
+        {
+            byte i, j;
+            UInt32 crcreg = 0;
+            for (j = 0; j < count; ++j)
+            {
+                byte b = buff[index + j];
+                for (i = 0; i < 8; ++i)
+                {
+                    crcreg >>= 1;
+                    if ((b & 0x80) != 0)
+                    {
+                        crcreg |= 0x80000000;
+                    }
+                    if ((crcreg & 0x80) != 0)
+                    {
+                        crcreg = crcreg ^ CRCPOLY;
+                    }
+                    b <<= 1;
+                }
+            }
+            return crcreg >> 8;
         }
     }
 }

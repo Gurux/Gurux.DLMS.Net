@@ -679,6 +679,17 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Information from the connection size that server can handle.
+        /// </summary>
+        public GXDLMSPlc Plc
+        {
+            get
+            {
+                return Settings.Plc;
+            }
+        }
+
+        /// <summary>
         /// Gateway settings.
         /// </summary>
         public GXDLMSGateway Gateway
@@ -750,8 +761,13 @@ namespace Gurux.DLMS
         {
             Settings.Connected = ConnectionState.None;
             IsAuthenticationRequired = false;
-            // SNRM request is not used in network connections.
-            if (InterfaceType != InterfaceType.HDLC)
+            Settings.ResetFrameSequence();
+            // SNRM request is not used for all communication channels.
+            if (InterfaceType == InterfaceType.PlcHdlc)
+            {
+                return GXDLMS.GetMacHdlcFrame(Settings, (byte)Command.Snrm, 0, null);
+            }
+            if (InterfaceType != InterfaceType.HDLC && InterfaceType != InterfaceType.HdlcWithModeE)
             {
                 return null;
             }
@@ -770,11 +786,12 @@ namespace Gurux.DLMS
             }
 
             // If custom HDLC parameters are used.
-            if (forceParameters ||
+            if (InterfaceType != InterfaceType.PlcHdlc &&
+                (forceParameters ||
                 GXDLMSLimitsDefault.DefaultMaxInfoTX != maxInfoTX ||
                 GXDLMSLimitsDefault.DefaultMaxInfoRX != maxInfoRX ||
                 GXDLMSLimitsDefault.DefaultWindowSizeTX != Limits.WindowSizeTX ||
-                GXDLMSLimitsDefault.DefaultWindowSizeRX != Limits.WindowSizeRX)
+                GXDLMSLimitsDefault.DefaultWindowSizeRX != Limits.WindowSizeRX))
             {
                 data.SetUInt8((byte)HDLCInfo.MaxInfoTX);
                 GXDLMS.AppendHdlcParameter(data, (UInt16)maxInfoTX);
@@ -796,7 +813,6 @@ namespace Gurux.DLMS
             {
                 data = null;
             }
-            Settings.ResetFrameSequence();
             return GXDLMS.GetHdlcFrame(Settings, (byte)Command.Snrm, data);
         }
 
@@ -1080,12 +1096,12 @@ namespace Gurux.DLMS
                 buff.SetUInt8(0x80);
                 buff.SetUInt8(01);
                 buff.SetUInt8(00);
+                GXAPDU.GenerateUserInformation(Settings, Settings.Cipher, null, buff);
                 //Increase IC.
                 if (Settings.Cipher != null && Settings.Cipher.IsCiphered())
                 {
                     ++Settings.Cipher.InvocationCounter;
                 }
-                GXAPDU.GenerateUserInformation(Settings, Settings.Cipher, null, buff);
                 buff.SetUInt8(0, (byte)(buff.Size - 1));
             }
             byte[][] reply;
@@ -1121,7 +1137,7 @@ namespace Gurux.DLMS
                 return null;
             }
             byte[] ret = null;
-            if (Settings.InterfaceType == InterfaceType.HDLC)
+            if (GXDLMS.IsHdlc(Settings.InterfaceType))
             {
                 ret = GXDLMS.GetHdlcFrame(Settings, (byte)Command.DisconnectRequest, null);
             }
@@ -2460,7 +2476,6 @@ namespace Gurux.DLMS
             }
             string ln = "0.0.1.0.0.255";
             ObjectType type = ObjectType.Clock;
-            int index = 2;
             bool unixTime = false;
             //If Unix time is used.
             if (sort is GXDLMSData &&
@@ -2487,8 +2502,8 @@ namespace Gurux.DLMS
             // LN
             GXCommon.SetData(Settings, buff, DataType.OctetString, GXCommon.LogicalNameToBytes(ln));
             // Add attribute index.
-            GXCommon.SetData(Settings, buff, DataType.Int8, index);
-            // Add version.
+            GXCommon.SetData(Settings, buff, DataType.Int8, 2);
+            // Add data index.
             GXCommon.SetData(Settings, buff, DataType.UInt16, 0);
             if (unixTime)
             {
@@ -2596,7 +2611,6 @@ namespace Gurux.DLMS
         ///<returns>
         /// Is frame complete.
         ///</returns>
-        [Obsolete("Use GetData with notify parameter instead.")]
         public virtual bool GetData(GXByteBuffer reply, GXReplyData data)
         {
             return GetData(reply, data, null);
@@ -2931,7 +2945,7 @@ namespace Gurux.DLMS
         /// </remarks>
         public byte[] CustomHdlcFrameRequest(byte command, GXByteBuffer data)
         {
-            if (Settings.InterfaceType != InterfaceType.HDLC)
+            if (!GXDLMS.IsHdlc(Settings.InterfaceType))
             {
                 throw new Exception("This method can be used only to generate HDLC custom frames");
             }
@@ -2949,7 +2963,7 @@ namespace Gurux.DLMS
         /// </remarks>
         public byte[][] CustomFrameRequest(Command command, GXByteBuffer data)
         {
-            if (Settings.InterfaceType == InterfaceType.HDLC ||
+            if (GXDLMS.IsHdlc(Settings.InterfaceType) ||
                 Settings.InterfaceType == InterfaceType.WRAPPER)
             {
                 byte[][] reply;
@@ -2960,7 +2974,7 @@ namespace Gurux.DLMS
                     {
                         messages.Add(GXDLMS.GetWrapperFrame(Settings, command, data));
                     }
-                    else if (Settings.InterfaceType == Enums.InterfaceType.HDLC)
+                    else if (GXDLMS.IsHdlc(Settings.InterfaceType))
                     {
                         messages.Add(GXDLMS.GetHdlcFrame(Settings, (byte)command, data));
                     }

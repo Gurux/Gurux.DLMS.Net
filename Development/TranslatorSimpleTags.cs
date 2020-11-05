@@ -83,6 +83,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.CallingAPTitle, "CallingAPTitle");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.RespondingAPTitle, "RespondingAPTitle");
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.DedicatedKey, "DedicatedKey");
+            GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.UserInformation, "UserInformation");
             GXDLMSTranslator.AddTag(list, Command.ConfirmedServiceError, "ConfirmedServiceError");
             GXDLMSTranslator.AddTag(list, Command.InformationReport, "InformationReportRequest");
             GXDLMSTranslator.AddTag(list, Command.EventNotification, "EventNotificationRequest");
@@ -179,6 +180,20 @@ namespace Gurux.DLMS
             list.Add((int)TranslatorTags.ServiceError, "ServiceError");
             GXDLMSTranslator.AddTag(list, Command.GatewayRequest, "GatewayRequest");
             GXDLMSTranslator.AddTag(list, Command.GatewayResponse, "GatewayResponse");
+        }
+
+        /// <summary>
+        /// Get PLC tags.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="list"></param>
+        internal static void GetPlcTags(SortedList<int, string> list)
+        {
+            GXDLMSTranslator.AddTag(list, Command.DiscoverRequest, "DiscoverRequest");
+            GXDLMSTranslator.AddTag(list, Command.DiscoverReport, "DiscoverReport");
+            GXDLMSTranslator.AddTag(list, Command.RegisterRequest, "RegisterRequest");
+            GXDLMSTranslator.AddTag(list, Command.PingRequest, "PingRequest");
+            GXDLMSTranslator.AddTag(list, Command.PingResponse, "PingResponse");
         }
 
         /// <summary>

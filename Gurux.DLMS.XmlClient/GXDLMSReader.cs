@@ -885,7 +885,7 @@ namespace Gurux.DLMS.Reader
         /// </summary>
         public void Close()
         {
-            if (Media != null && Client != null)
+            if (Media != null && Client != null && Media.IsOpen)
             {
                 try
                 {

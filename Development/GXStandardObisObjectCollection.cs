@@ -273,7 +273,7 @@ namespace Gurux.DLMS
                 case 15:
                     return "Sum Li Active power (abs(QI+QIV)+abs(QII+QIII))";
                 case 16:
-                    return "Sum Li Active power        (abs(QI+QIV)-abs(QII+QIII))";
+                    return "Sum Li Active power (abs(QI+QIV)-abs(QII+QIII))";
                 case 17:
                     return "Sum Li Active power QI";
                 case 18:

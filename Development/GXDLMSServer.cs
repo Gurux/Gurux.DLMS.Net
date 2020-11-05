@@ -378,6 +378,10 @@ namespace Gurux.DLMS
             Reset();
             InterfaceType = type;
             ExecutionTimes = new Dictionary<GXDLMSObject, DateTime>();
+            if (type == InterfaceType.Plc)
+            {
+                Settings.MaxServerPDUSize = 134;
+            }
         }
 
 
@@ -447,6 +451,51 @@ namespace Gurux.DLMS
             Settings.Objects.Add(sn);
             Settings.Objects.Add(wrapper);
             Wrapper = wrapper;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="sn">Short name settings.</param>
+        /// <param name="llc">IEC 8802-2 LLC settings.</param>
+        public GXDLMSServer(GXDLMSAssociationShortName sn, GXIec8802LlcType2Setup llc) : this(false, InterfaceType.Plc)
+        {
+            Settings.Objects.Add(sn);
+            Settings.Objects.Add(llc);
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="sn">Short name settings.</param>
+        /// <param name="llc">IEC 8802-2 LLC settings.</param>
+        public GXDLMSServer(GXDLMSAssociationLogicalName ln, GXIec8802LlcType2Setup llc) : this(true, InterfaceType.Plc)
+        {
+            Settings.Objects.Add(ln);
+            Settings.Objects.Add(llc);
+        }
+
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="sn">Short name settings.</param>
+        /// <param name="mac">IEC 61334-4-512 settings.</param>
+        public GXDLMSServer(GXDLMSAssociationShortName sn, GXDLMSSFSKPhyMacSetUp mac) : this(false, InterfaceType.PlcHdlc)
+        {
+            Settings.Objects.Add(sn);
+            Settings.Objects.Add(mac);
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="sn">Short name settings.</param>
+        /// <param name="mac">IEC 61334-4-512 settings.</param>
+        public GXDLMSServer(GXDLMSAssociationLogicalName ln, GXDLMSSFSKPhyMacSetUp mac) : this(true, InterfaceType.PlcHdlc)
+        {
+            Settings.Objects.Add(ln);
+            Settings.Objects.Add(mac);
         }
 
         /// <summary>
@@ -1132,7 +1181,7 @@ namespace Gurux.DLMS
         private byte[] HandleCommand(Command cmd, GXByteBuffer data, GXServerReply sr, Command cipheredCommand)
         {
             byte frame = 0;
-            if (Settings.InterfaceType == InterfaceType.HDLC && replyData.Size != 0)
+            if (GXDLMS.IsHdlc(Settings.InterfaceType) && replyData.Size != 0)
             {
                 //Get next frame.
                 frame = Settings.NextSend(false);
@@ -1191,6 +1240,15 @@ namespace Gurux.DLMS
                         return null;
                     }
                     break;
+                case Command.DiscoverRequest:
+                    Settings.Plc.ParseDiscoverRequest(data);
+                    bool newMeter = Settings.Plc.MacSourceAddress == 0xFFE && Settings.Plc.MacDestinationAddress == 0xFFF;
+                    return Settings.Plc.DiscoverReport(Settings.Plc.SystemTitle, newMeter);
+                case Command.RegisterRequest:
+                    Settings.Plc.ParseRegisterRequest(data);
+                    return Settings.Plc.DiscoverReport(Settings.Plc.SystemTitle, false);
+                case Command.PingRequest:
+                    break;
                 case Command.None:
                     //Get next frame.
                     break;
@@ -1202,9 +1260,13 @@ namespace Gurux.DLMS
             {
                 reply = GXDLMS.GetWrapperFrame(Settings, cmd, replyData);
             }
-            else
+            else if (this.InterfaceType == Enums.InterfaceType.HDLC)
             {
                 reply = GXDLMS.GetHdlcFrame(Settings, frame, replyData);
+            }
+            else
+            {
+                reply = GXDLMS.GetMacFrame(Settings, frame, 0, replyData);
             }
             if (cmd == Command.DisconnectRequest ||
                 (InterfaceType == InterfaceType.WRAPPER && cmd == Command.ReleaseRequest))
@@ -1379,7 +1441,7 @@ namespace Gurux.DLMS
                 ret = GXAPDU.ParsePDU(Settings, Settings.Cipher, data, null);
                 if (ret is ExceptionServiceError e)
                 {
-                    if (Settings.InterfaceType == Enums.InterfaceType.HDLC)
+                    if (GXDLMS.IsHdlc(Settings.InterfaceType))
                     {
                         replyData.Set(GXCommon.LLCReplyBytes);
                     }
@@ -1502,7 +1564,7 @@ namespace Gurux.DLMS
                 // If High authentication is used.
                 Settings.StoCChallenge = GXSecure.GenerateChallenge(Settings.Authentication);
             }
-            if (Settings.InterfaceType == Enums.InterfaceType.HDLC)
+            if (GXDLMS.IsHdlc(Settings.InterfaceType))
             {
                 replyData.Set(GXCommon.LLCReplyBytes);
             }
@@ -1524,7 +1586,7 @@ namespace Gurux.DLMS
                               ServiceError.Service, (byte)Service.Unsupported));
                 return;
             }
-            if (Settings.InterfaceType == InterfaceType.HDLC)
+            if (GXDLMS.IsHdlc(Settings.InterfaceType))
             {
                 replyData.Set(0, GXCommon.LLCReplyBytes);
             }

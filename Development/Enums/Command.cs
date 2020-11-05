@@ -366,6 +366,31 @@ namespace Gurux.DLMS
         /// <summary>
         /// Response message from gateway to client.
         /// </summary>
-        GatewayResponse = 0xE7
+        GatewayResponse = 0xE7,
+
+        /// <summary>
+        /// PLC discover request.
+        /// </summary>
+        DiscoverRequest = 0x1D,
+        /// <summary>
+        /// PLC discover report.
+        /// </summary>
+        DiscoverReport = 0x1E,
+        /// <summary>
+        /// PLC register request.
+        /// </summary>
+        RegisterRequest = 0x1C,
+        /// <summary>
+        /// PLC ping request.
+        /// </summary>
+        PingRequest = 0x19,
+        /// <summary>
+        /// PLC ping response.
+        /// </summary>
+        PingResponse = 0x1A,
+        /// <summary>
+        /// PLC repeat call request.
+        /// </summary>
+        RepeatCallRequest = 0x1F
     }
 }

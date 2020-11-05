@@ -275,7 +275,7 @@ namespace Gurux.DLMS
                     it.Description = it.Description.Replace("U(", "V(");
                 }
             }
-            //Update data type from DLMS standard.
+            //Update data type from DLMecS standard.
             if (standard != Standard.DLMS)
             {
                 GXStandardObisCode d = list[list.Length - 1];
@@ -900,6 +900,17 @@ namespace Gurux.DLMS
                 ret = Convert.ChangeType(value, GXDLMSConverter.GetDataType(type), cultureInfo);
             }
             return ret;
+        }
+
+        /// <summary>
+        /// Conver system title to string.
+        /// </summary>
+        /// <param name="standard"></param>
+        /// <param name="st"></param>
+        /// <returns></returns>
+        public static string SystemTitleToString(Standard standard, byte[] st, bool addComments)
+        {
+            return GXCommon.SystemTitleToString(standard, st, addComments);
         }
     }
 }

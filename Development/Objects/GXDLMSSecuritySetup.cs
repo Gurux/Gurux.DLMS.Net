@@ -40,9 +40,11 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Secure;
-#if !WINDOWS_UWP
-using System.Security.Cryptography;
-#endif
+using System.Security.Cryptography.X509Certificates;
+using Gurux.DLMS.ASN;
+using Gurux.DLMS.ASN.Enums;
+using Gurux.DLMS.Ecdsa;
+using Gurux.DLMS.Ecdsa.Enums;
 
 namespace Gurux.DLMS.Objects
 {
@@ -100,7 +102,7 @@ namespace Gurux.DLMS.Objects
             {
                 if (Version == 0)
                 {
-                    switch ((SecurityPolicy0)value)
+                    switch ((SecurityPolicy0)Convert.ToByte(value))
                     {
                         case SecurityPolicy0.Nothing:
                         case SecurityPolicy0.Authenticated:
@@ -113,12 +115,12 @@ namespace Gurux.DLMS.Objects
                 }
                 else if (Version == 1)
                 {
-                    if ((((byte)value) & 0x3) != 0)
+                    if (((Convert.ToByte(value)) & 0x3) != 0)
                     {
                         throw new Exception(string.Format("Invalid security policy value {0} for version 1." + value));
                     }
                 }
-                _securityPolicy = (byte)value;
+                _securityPolicy = Convert.ToByte(value);
             }
         }
 
@@ -283,18 +285,16 @@ namespace Gurux.DLMS.Objects
             return client.Method(this, 5, type, DataType.Enum);
         }
 
-#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0 && !NETCOREAPP3_0 && !NETCOREAPP3_1
         /// <summary>
         ///  Imports an X.509 v3 certificate of a public key.
         /// </summary>
         /// <param name="client">DLMS client that is used to generate action.</param>
         /// <param name="key">Public key.</param>
         /// <returns>Generated action.</returns>
-        public byte[][] Import(GXDLMSClient client, CngKey key)
+        public byte[][] Import(GXDLMSClient client, GXx509Certificate certificate)
         {
-            return ImportCertificate(client, key.Export(CngKeyBlobFormat.EccPublicBlob));
+            return ImportCertificate(client, certificate.Encoded);
         }
-#endif
 
         /// <summary>
         ///  Imports an X.509 v3 certificate of a public key.
@@ -418,6 +418,93 @@ namespace Gurux.DLMS.Objects
         }
 
         #region IGXDLMSBase Members
+        /**
+        * Convert system title to subject.
+        *
+        * @param systemTitle
+        *            System title.
+        * @return Subject.
+        */
+        public static string SystemTitleToSubject(byte[] systemTitle)
+        {
+            GXByteBuffer bb = new GXByteBuffer(systemTitle);
+            return "CN=" + bb.ToString();
+        }
+
+        private static KeyUsage CertificateTypeToKeyUsage(CertificateType type)
+        {
+            KeyUsage k = KeyUsage.None;
+            switch (type)
+            {
+                case CertificateType.DigitalSignature:
+                    k = KeyUsage.DigitalSignature;
+                    break;
+                case CertificateType.KeyAgreement:
+                    k = KeyUsage.KeyAgreement;
+                    break;
+                case CertificateType.TLS:
+                    k = KeyUsage.KeyCertSign;
+                    break;
+                case CertificateType.Other:
+                    k = KeyUsage.CrlSign;
+                    break;
+                default:
+                    // At least one bit must be used.
+                    k = KeyUsage.None;
+                    break;
+            }
+            return k;
+        }
+
+        /// <summary>
+        /// Find certificate using entity information.
+        /// </summary>
+        /// <param name="settings"> DLMS Settings.</param>
+        /// <param name="entity">Certificate entity type.</param>
+        /// <param name="type">Certificate type.</param>
+        /// <param name="systemtitle">System title.</param>
+        /// <returns></returns>
+        private static GXx509Certificate FindCertificateByEntity(GXDLMSSettings settings, CertificateEntity entity, CertificateType type, byte[] systemtitle)
+        {
+            String subject = SystemTitleToSubject(systemtitle);
+            KeyUsage k = CertificateTypeToKeyUsage(type);
+            foreach (GXx509Certificate it in settings.Cipher.Certificates)
+            {
+                if ((it.KeyUsage & k) != 0 && it.Subject == subject)
+                {
+                    return it;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Find certificate using serial information.
+        /// </summary>
+        /// <param name="settings">DLMS Settings.</param>
+        /// <param name="serialNumber">Serial number.</param>
+        /// <param name="issuer">Issuer.</param>
+        /// <returns></returns>
+        private static GXx509Certificate FindCertificateBySerial(GXDLMSSettings settings, byte[] serialNumber, string issuer)
+        {
+            foreach (GXx509Certificate it in settings.Cipher.Certificates)
+            {
+                if (GXCommon.ToHex(it.SerialNumber.Value, false) == GXCommon.ToHex(serialNumber, false) && it.Issuer == issuer)
+                {
+                    return it;
+                }
+            }
+            return null;
+        }
+
+        private static Ecc GetEcc(SecuritySuite suite)
+        {
+            if (suite == SecuritySuite.Version1)
+            {
+                return Ecc.P256;
+            }
+            return Ecc.P384;
+        }
 
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
@@ -460,6 +547,180 @@ namespace Gurux.DLMS.Objects
                 catch (Exception)
                 {
                     e.Error = ErrorCode.ReadWriteDenied;
+                }
+            }
+            else if (e.Index == 3)
+            {
+                // key_agreement
+                try
+                {
+                    List<Object> tmp = (List<Object>)(e.Parameters as List<Object>)[0];
+                    byte keyId = (byte)tmp[0];
+                    if (keyId != 0)
+                    {
+                        e.Error = ErrorCode.InconsistentClass;
+                    }
+                    else
+                    {
+                        byte[] data = (byte[])tmp[0];
+                        // ephemeral public key
+                        GXByteBuffer data2 = new GXByteBuffer(65);
+                        data2.SetUInt8(keyId);
+                        data2.Set(data, 0, 64);
+                        GXByteBuffer sign = new GXByteBuffer();
+                        sign.Set(data, 64, 64);
+                        GXPublicKey pk = null;
+                        string subject = SystemTitleToSubject(settings.SourceSystemTitle);
+                        foreach (GXx509Certificate it in settings.Cipher.Certificates)
+                        {
+                            if ((it.KeyUsage & KeyUsage.DigitalSignature) != 0 && it.Subject == subject)
+                            {
+                                pk = it.PublicKey;
+                                break;
+                            }
+                        }
+                        if (pk == null) //TODO:|| !GXSecure.ValidateEphemeralPublicKeySignature(data2.Array(), sign.Array(), pk))
+                        {
+                            e.Error = ErrorCode.InconsistentClass;
+                            settings.TargetEphemeralKey = null;
+                        }
+                        else
+                        {
+                            settings.TargetEphemeralKey = GXPublicKey.FromRawBytes(data2.SubArray(1, 64));
+                            // Generate ephemeral keys.
+                            KeyValuePair<GXPrivateKey, GXPublicKey> eKpS = settings.Cipher.EphemeralKeyPair;
+                            if (eKpS.Key == null)
+                            {
+                                eKpS = GXEcdsa.GenerateKeyPair(GetEcc(SecuritySuite));
+                                settings.Cipher.EphemeralKeyPair = eKpS;
+                            }
+                            // Generate shared secret.
+                            return null;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    e.Error = ErrorCode.InconsistentClass;
+                }
+            }
+            else if (e.Index == 4)
+            {
+                // generate_key_pair
+                CertificateType key = (CertificateType)(int)e.Parameters;
+                KeyValuePair<GXPrivateKey, GXPublicKey> value = GXEcdsa.GenerateKeyPair(GetEcc(SecuritySuite));
+                switch (key)
+                {
+                    case CertificateType.DigitalSignature:
+                        settings.Cipher.SigningKeyPair = value;
+                        break;
+                    case CertificateType.KeyAgreement:
+                        settings.Cipher.KeyAgreementKeyPair = value;
+                        break;
+                    default:
+                        e.Error = ErrorCode.InconsistentClass;
+                        break;
+                }
+            }
+            else if (e.Index == 5)
+            {
+                // generate_certificate_request
+                CertificateType key = (CertificateType)(int)e.Parameters;
+                try
+                {
+                    KeyValuePair<GXPrivateKey, GXPublicKey> kp = default(KeyValuePair<GXPrivateKey, GXPublicKey>);
+                    switch (key)
+                    {
+                        case CertificateType.DigitalSignature:
+                            kp = settings.Cipher.SigningKeyPair;
+                            break;
+                        case CertificateType.KeyAgreement:
+                            kp = settings.Cipher.KeyAgreementKeyPair;
+                            break;
+                        default:
+                            break;
+                    }
+                    if (kp.Key != null)
+                    {
+                        GXPkcs10 pkc10 = GXPkcs10.CreateCertificateSigningRequest(kp, SystemTitleToSubject(settings.Cipher.SystemTitle));
+                        return pkc10.Encoded;
+                    }
+                    else
+                    {
+                        e.Error = ErrorCode.ReadWriteDenied;
+                    }
+                }
+                catch (Exception)
+                {
+                    e.Error = ErrorCode.ReadWriteDenied;
+                }
+            }
+            else if (e.Index == 6)
+            {
+                // import_certificate
+                GXx509Certificate cert = new GXx509Certificate((byte[])e.Parameters);
+                if (cert.KeyUsage == 0)
+                {
+                    // At least one bit must be used.
+                    e.Error = ErrorCode.InconsistentClass;
+                }
+                else
+                {
+                    settings.Cipher.Certificates.Add(cert);
+                }
+            }
+            else if (e.Index == 7)
+            {
+                // export_certificate
+                List<Object> tmp = (List<Object>)e.Parameters;
+                short type = (short)tmp[0];
+                GXx509Certificate cert = null;
+                lock (settings.Cipher.Certificates)
+                {
+                    if (type == 0)
+                    {
+                        tmp = (List<Object>)tmp[1];
+                        cert = FindCertificateByEntity(settings, (CertificateEntity)tmp[0], (CertificateType)tmp[1], (byte[])tmp[2]);
+                    }
+                    else if (type == 1)
+                    {
+                        tmp = (List<Object>)tmp[1];
+                        cert = FindCertificateBySerial(settings, (byte[])tmp[1], ASCIIEncoding.ASCII.GetString((byte[])tmp[2]));
+                    }
+                    if (cert == null)
+                    {
+                        e.Error = ErrorCode.InconsistentClass;
+                    }
+                    else
+                    {
+                        return cert.Encoded;
+                    }
+                }
+            }
+            else if (e.Index == 8)
+            {
+                // remove_certificate
+                List<Object> tmp = (List<Object>)((List<object>)e.Parameters)[0];
+                short type = (short)tmp[0];
+                GXx509Certificate cert = null;
+                lock (settings.Cipher.Certificates)
+                {
+                    if (type == 0)
+                    {
+                        cert = FindCertificateByEntity(settings, (CertificateEntity)tmp[1], (CertificateType)tmp[2], (byte[])tmp[3]);
+                    }
+                    else if (type == 1)
+                    {
+                        cert = FindCertificateBySerial(settings, (byte[])tmp[1], ASCIIEncoding.ASCII.GetString((byte[])tmp[2]));
+                    }
+                    if (cert == null)
+                    {
+                        e.Error = ErrorCode.InconsistentClass;
+                    }
+                    else
+                    {
+                        settings.Cipher.Certificates.Remove(cert);
+                    }
                 }
             }
             else
@@ -756,6 +1017,8 @@ namespace Gurux.DLMS.Objects
         void IGXDLMSBase.Load(GXXmlReader reader)
         {
             SecurityPolicy = reader.ReadElementContentAsInt("SecurityPolicy");
+            //This is old functionality.It can be removed in some point.
+            reader.ReadElementContentAsInt("SecurityPolicy0");
             SecuritySuite = (SecuritySuite)reader.ReadElementContentAsInt("SecuritySuite");
             string str = reader.ReadElementContentAsString("ClientSystemTitle");
             if (str == null)

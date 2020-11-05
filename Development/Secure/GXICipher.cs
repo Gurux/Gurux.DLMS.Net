@@ -32,8 +32,12 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using Gurux.DLMS.ASN;
+using Gurux.DLMS.Ecdsa;
 using Gurux.DLMS.Objects.Enums;
 using System;
+using System.Collections.Generic;
+
 namespace Gurux.DLMS.Secure
 {
     internal interface GXICipher
@@ -108,6 +112,52 @@ namespace Gurux.DLMS.Secure
         /// Frame counter. Invocation counter.
         /// </summary>
         UInt32 InvocationCounter
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Ephemeral key pair.
+        /// </summary>
+        KeyValuePair<GXPrivateKey, GXPublicKey> EphemeralKeyPair
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Client's key agreement key pair.
+        /// </summary>
+        KeyValuePair<GXPrivateKey, GXPublicKey> KeyAgreementKeyPair
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Target (Server or client) Public key.
+        /// </summary>
+        List<KeyValuePair<CertificateType, GXx509Certificate>> PublicKeys
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Available certificates.
+        /// </summary>
+        List<GXx509Certificate> Certificates
+        {
+            get;
+        }
+
+        byte[] SharedSecret
+        {
+            get;
+            set;
+        }
+
+        KeyValuePair<GXPrivateKey, GXPublicKey> SigningKeyPair
         {
             get;
             set;

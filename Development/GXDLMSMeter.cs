@@ -89,6 +89,16 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Authentication Level.
+        /// </summary>
+        [Description("Name of authentication level.")]
+        public string AuthenticationName
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Used standard.
         /// </summary>
         [DefaultValue(Standard.DLMS)]
@@ -374,6 +384,29 @@ namespace Gurux.DLMS
             set;
         }
 
+        /// <summary>
+        /// PLC MAC Source Address
+        /// </summary>
+        /// <remarks>
+        /// DefaultValue is 0xC00.
+        /// </remarks>
+        [DefaultValue(0xC00)]
+        public UInt16 MACSourceAddress
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// PLC MAC Target Address
+        /// </summary>
+        /// <remarks>
+        public UInt16 MacDestinationAddress
+        {
+            get;
+            set;
+        }
+
 
         /// <summary>
         /// Proposed maximum size of PDU.
@@ -542,6 +575,7 @@ namespace Gurux.DLMS
             ServiceClass = ServiceClass.Confirmed;
             Priority = Priority.High;
             UserId = -1;
+            MACSourceAddress = 0xC00;
         }
 
         /// <summary>

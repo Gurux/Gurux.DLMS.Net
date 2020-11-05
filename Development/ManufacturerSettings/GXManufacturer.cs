@@ -68,7 +68,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <remarks>
         /// Device returns manufacturer ID when connection to the meter is made.
         /// </remarks>
-        public String Identification
+        public string Identification
         {
             get;
             set;
@@ -77,7 +77,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// <summary>
         /// Real name of the manufacturer.
         /// </summary>
-        public String Name
+        public string Name
         {
             get;
             set;
@@ -331,6 +331,21 @@ namespace Gurux.DLMS.ManufacturerSettings
                 return this.ServerSettings[0];
             }
             return null;
+        }
+
+        public override string ToString()
+        {
+            return "["+ Identification + "] " + Name;
+        }
+
+        /// <summary>
+        /// Supported interface types.
+        /// </summary>
+        [DefaultValue(0)]
+        public UInt32 SupporterdInterfaces
+        {
+            get;
+            set;
         }
     }
 }

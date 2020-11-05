@@ -90,6 +90,9 @@ namespace Gurux.DLMS
         /// <summary>
         /// Convert integer value to BitString.
         /// </summary>
+        /// <remarks>
+        /// In DLMS bit string bit number 0 is MSB.
+        /// </remarks>
         /// <param name="value">Value to convert.</param>
         /// <param name="count">Amount of bits.</param>
         /// <returns>Bitstring.</returns>

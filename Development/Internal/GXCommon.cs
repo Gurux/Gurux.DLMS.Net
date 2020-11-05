@@ -92,6 +92,28 @@ namespace Gurux.DLMS.Internal
         }
 
         /// <summary>
+        /// Is string hex string.
+        /// </summary>
+        /// <param name="value">String value.</param>
+        /// <returns>Returns true, if string is hex string.</returns>
+        public static bool IsHexString(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return false;
+            }
+            foreach (char ch in value)
+            {
+                if (ch != ' ' && !((ch > 0x40 && ch < 'G')
+                        || (ch > 0x60 && ch < 'g') || (ch > '/' && ch < ':')))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
         ///  Convert string to byte array.
         /// </summary>
         /// <param name="value">Hex string.</param>
@@ -2594,7 +2616,7 @@ namespace Gurux.DLMS.Internal
                 SetObjectCount(tmp.Length, buff);
                 buff.Set(tmp);
             }
-            else if (value is byte[]  || value is sbyte[])
+            else if (value is byte[] || value is sbyte[])
             {
                 SetObjectCount(((byte[])value).Length, buff);
                 buff.Set((byte[])value);
@@ -3049,7 +3071,7 @@ namespace Gurux.DLMS.Internal
             return new string(new char[] { c2, c1, c });
         }
 
-        static string IdisSystemTitleToString(byte[] st)
+        static string IdisSystemTitleToString(byte[] st, bool addComments)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("");
@@ -3092,7 +3114,7 @@ namespace Gurux.DLMS.Internal
             return sb.ToString();
         }
 
-        static string DlmsSystemTitleToString(byte[] st)
+        static string DlmsSystemTitleToString(byte[] st, bool addComments)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("");
@@ -3104,16 +3126,25 @@ namespace Gurux.DLMS.Internal
             return sb.ToString();
         }
 
-        static string UNISystemTitleToString(byte[] st)
+        static string UNISystemTitleToString(byte[] st, bool addComments)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("");
-            sb.AppendLine("UNI/TS system title:");
-            sb.Append("Manufacturer: ");
-            UInt16 m = (UInt16)(st[0] << 8 | st[1]);
-            sb.AppendLine(DecryptManufacturer(m));
-            sb.Append("Serial number: ");
-            sb.AppendLine(ToHex(new byte[] { st[7], st[6], st[5], st[4], st[3], st[2] }, false));
+            if (addComments)
+            {
+                sb.AppendLine("");
+                sb.AppendLine("UNI/TS system title:");
+                sb.Append("Manufacturer: ");
+                UInt16 m = (UInt16)(st[0] << 8 | st[1]);
+                sb.AppendLine(DecryptManufacturer(m));
+                sb.Append("Serial number: ");
+                sb.AppendLine(ToHex(new byte[] { st[7], st[6], st[5], st[4], st[3], st[2] }, false));
+            }
+            else
+            {
+                UInt16 m = (UInt16)(st[0] << 8 | st[1]);
+                sb.Append(DecryptManufacturer(m));
+                sb.Append(ToHex(new byte[] { st[7], st[6], st[5], st[4], st[3], st[2] }, false));
+            }
             return sb.ToString();
         }
 
@@ -3123,19 +3154,19 @@ namespace Gurux.DLMS.Internal
         /// <param name="standard"></param>
         /// <param name="st"></param>
         /// <returns></returns>
-        public static string SystemTitleToString(Standard standard, byte[] st)
+        public static string SystemTitleToString(Standard standard, byte[] st, bool addComments)
         {
             if (standard == Standard.Italy || !Char.IsLetter((char)st[0]) || !Char.IsLetter((char)st[1]) ||
                 !Char.IsLetter((char)st[2]))
             {
-                return UNISystemTitleToString(st);
+                return UNISystemTitleToString(st, addComments);
             }
             if (standard == Standard.Idis || !Char.IsNumber((char)st[3]) || !Char.IsNumber((char)st[4]) ||
                 !Char.IsNumber((char)st[5]) || !Char.IsNumber((char)st[6]) || !Char.IsNumber((char)st[7]))
             {
-                return IdisSystemTitleToString(st);
+                return IdisSystemTitleToString(st, addComments);
             }
-            return DlmsSystemTitleToString(st);
+            return DlmsSystemTitleToString(st, addComments);
         }
 
         // Reserved for internal use.
@@ -3148,6 +3179,16 @@ namespace Gurux.DLMS.Internal
                 value = (byte)(value >> 1);
             }
             return ret;
+        }
+
+        public static byte[] FromBase64(string value)
+        {
+            return Convert.FromBase64String(value);
+        }
+
+        public static string ToBase64(byte[] value)
+        {
+            return System.Convert.ToBase64String(value);
         }
     }
 }

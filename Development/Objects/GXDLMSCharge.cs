@@ -885,8 +885,16 @@ namespace Gurux.DLMS.Objects
             writer.WriteStartElement(name, index);
             writer.WriteElementString("Scale", charge.ChargePerUnitScaling.CommodityScale, index);
             writer.WriteElementString("PriceScale", charge.ChargePerUnitScaling.PriceScale, index);
-            writer.WriteElementString("Type", (int)charge.Commodity.Target.ObjectType, index);
-            writer.WriteElementString("Ln", charge.Commodity.Target.LogicalName, index);
+            if (charge.Commodity.Target != null)
+            {
+                writer.WriteElementString("Type", (int)charge.Commodity.Target.ObjectType, index);
+                writer.WriteElementString("Ln", charge.Commodity.Target.LogicalName, index);
+            }
+            else
+            {
+                writer.WriteElementString("Type", 0, index);
+                writer.WriteElementString("Ln", "0.0.0.0.0.0", index);
+            }
             writer.WriteElementString("Index", charge.Commodity.Index, index);
             writer.WriteStartElement("ChargeTables", 0);
             if (charge.ChargeTables != null)

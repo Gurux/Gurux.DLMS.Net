@@ -37,7 +37,8 @@ using System.Security.Cryptography;
 #endif
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
-
+using System.Collections.Generic;
+using Gurux.DLMS.Ecdsa;
 
 namespace Gurux.DLMS.Secure
 {
@@ -159,6 +160,28 @@ namespace Gurux.DLMS.Secure
                 challenge.Set(GXDLMSChippering.EncryptAesGcm(p, tmp));
                 tmp = challenge.Array();
                 return tmp;
+            }
+            else if (settings.Authentication == Authentication.HighECDSA)
+            {
+                if (cipher.SigningKeyPair.Equals(new KeyValuePair<byte[], byte[]>()))
+                {
+                    throw new ArgumentNullException("SigningKeyPair is empty.");
+                }
+                GXEcdsa sig = new GXEcdsa(cipher.SigningKeyPair.Key);
+                GXByteBuffer bb = new GXByteBuffer();
+                bb.Set(settings.Cipher.SystemTitle);
+                bb.Set(settings.SourceSystemTitle);
+                if (settings.IsServer)
+                {
+                    bb.Set(settings.CtoSChallenge);
+                    bb.Set(settings.StoCChallenge);
+                }
+                else
+                {
+                    bb.Set(settings.StoCChallenge);
+                    bb.Set(settings.CtoSChallenge);
+                }
+                data = sig.Sign(bb.Array());
             }
             return data;
         }

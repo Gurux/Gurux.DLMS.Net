@@ -49,6 +49,13 @@ namespace Gurux.DLMS
     /// </summary>
     sealed class GXDLMS
     {
+        internal static bool IsHdlc(InterfaceType type)
+        {
+            return type == InterfaceType.HDLC ||
+                type == InterfaceType.HdlcWithModeE ||
+                type == InterfaceType.PlcHdlc;
+        }
+
         const byte CipheringHeaderSize = 7 + 12 + 3;
         internal const int DATA_TYPE_OFFSET = 0xFF0000;
 
@@ -274,13 +281,21 @@ namespace Gurux.DLMS
             {
                 //Generate RR.
                 byte id = settings.KeepAlive();
-                return GetHdlcFrame(settings, id, null);
+                if (settings.InterfaceType == InterfaceType.HDLC)
+                {
+                    return GetHdlcFrame(settings, id, null);
+                }
+                return GXDLMS.GetMacHdlcFrame(settings, id, 0, null);
             }
             // Get next frame.
             if ((reply.MoreData & RequestTypes.Frame) != 0)
             {
                 byte id = settings.ReceiverReady();
-                return GetHdlcFrame(settings, id, null);
+                if (settings.InterfaceType == InterfaceType.HDLC)
+                {
+                    return GetHdlcFrame(settings, id, null);
+                }
+                return GXDLMS.GetMacHdlcFrame(settings, id, 0, null);
             }
             Command cmd;
             if (settings.UseLogicalNameReferencing)
@@ -671,7 +686,7 @@ namespace Gurux.DLMS
             int len = 0;
             if (p.data != null)
             {
-                len = p.data.Size - p.data.Position;
+                len = p.data.Available;
             }
             if (p.attributeDescriptor != null)
             {
@@ -689,12 +704,12 @@ namespace Gurux.DLMS
             if (p.multipleBlocks)
             {
                 //Add command type and invoke and priority.
-                p.lastBlock = !(8 + reply.Size + len > p.settings.MaxPduSize);
+                p.lastBlock = !(8 + reply.Available + len > p.settings.MaxPduSize);
             }
             if (p.lastBlock)
             {
                 //Add command type and invoke and priority.
-                p.lastBlock = !(8 + reply.Size + len > p.settings.MaxPduSize);
+                p.lastBlock = !(8 + reply.Available + len > p.settings.MaxPduSize);
             }
         }
 
@@ -781,7 +796,7 @@ namespace Gurux.DLMS
         internal static void GetLNPdu(GXDLMSLNParameters p, GXByteBuffer reply)
         {
             bool ciphering = p.command != Command.Aarq && p.command != Command.Aare && p.settings.Cipher != null &&
-                (p.settings.Cipher.Security != (byte) Security.None || p.cipheredCommand != Command.None);
+                (p.settings.Cipher.Security != (byte)Security.None || p.cipheredCommand != Command.None);
             int len = 0;
             if (p.command == Command.Aarq)
             {
@@ -915,13 +930,13 @@ namespace Gurux.DLMS
                     //Block size.
                     if (p.data != null)
                     {
-                        len = p.data.Size - p.data.Position;
+                        len = p.data.Available;
                     }
                     else
                     {
                         len = 0;
                     }
-                    int totalLength = len + reply.Size;
+                    int totalLength = len + reply.Available;
                     if (ciphering)
                     {
                         totalLength += CipheringHeaderSize;
@@ -929,7 +944,11 @@ namespace Gurux.DLMS
 
                     if (totalLength > p.settings.MaxPduSize)
                     {
-                        len = p.settings.MaxPduSize - reply.Size;
+                        len = p.settings.MaxPduSize - reply.Available;
+                        if (len < 0)
+                        {
+                            len = p.settings.MaxPduSize;
+                        }
                         if (ciphering)
                         {
                             len -= CipheringHeaderSize;
@@ -1083,7 +1102,7 @@ namespace Gurux.DLMS
                     }
                 }
             }
-            if (p.settings.InterfaceType == InterfaceType.HDLC)
+            if (IsHdlc(p.settings.InterfaceType))
             {
                 AddLLCBytes(p.settings, reply);
             }
@@ -1132,6 +1151,16 @@ namespace Gurux.DLMS
                     else if (p.settings.InterfaceType == Enums.InterfaceType.PDU)
                     {
                         messages.Add(reply.Array());
+                        break;
+                    }
+                    else if (p.settings.InterfaceType == Enums.InterfaceType.Plc)
+                    {
+                        messages.Add(GXDLMS.GetPlcFrame(p.settings, 0x90, reply));
+                        break;
+                    }
+                    else if (p.settings.InterfaceType == Enums.InterfaceType.PlcHdlc)
+                    {
+                        messages.Add(GXDLMS.GetMacHdlcFrame(p.settings, frame, 0, reply));
                         break;
                     }
                     else
@@ -1188,6 +1217,22 @@ namespace Gurux.DLMS
                         messages.Add(reply.Array());
                         break;
                     }
+                    else if (p.settings.InterfaceType == Enums.InterfaceType.Plc)
+                    {
+                        int val;
+                        if (p.command == Command.Aarq)
+                        {
+                            val = 0x90;
+                        }
+                        else
+                        {
+                            val = p.settings.Plc.InitialCredit << 5;
+                            val |= p.settings.Plc.CurrentCredit << 2;
+                            val |= p.settings.Plc.DeltaCredit & 0x3;
+                        }
+                        messages.Add(GXDLMS.GetPlcFrame(p.settings, (byte)val, reply));
+                        break;
+                    }
                     else
                     {
                         throw new ArgumentOutOfRangeException("InterfaceType");
@@ -1213,7 +1258,7 @@ namespace Gurux.DLMS
             if (ciphering)
             {
                 maxSize -= CipheringHeaderSize;
-                if (p.settings.InterfaceType == InterfaceType.HDLC)
+                if (IsHdlc(p.settings.InterfaceType))
                 {
                     maxSize -= 3;
                 }
@@ -1254,7 +1299,7 @@ namespace Gurux.DLMS
         internal static void GetSNPdu(GXDLMSSNParameters p, GXByteBuffer reply)
         {
             bool ciphering = p.command != Command.Aarq && p.command != Command.Aare && p.settings.Cipher != null && p.settings.Cipher.Security != (byte)Security.None;
-            if (!ciphering && p.settings.InterfaceType == InterfaceType.HDLC)
+            if (!ciphering && IsHdlc(p.settings.InterfaceType))
             {
                 if (p.settings.IsServer)
                 {
@@ -1329,7 +1374,7 @@ namespace Gurux.DLMS
                     {
                         //Remove command.
                         reply.Size = 0;
-                        if (!ciphering && p.settings.InterfaceType == InterfaceType.HDLC)
+                        if (!ciphering && IsHdlc(p.settings.InterfaceType))
                         {
                             if (p.settings.IsServer)
                             {
@@ -1390,7 +1435,7 @@ namespace Gurux.DLMS
                 byte[] tmp = GXCiphering.Encrypt(s, reply.Array());
                 System.Diagnostics.Debug.Assert(!(p.settings.MaxPduSize < tmp.Length));
                 reply.Size = 0;
-                if (p.settings.InterfaceType == InterfaceType.HDLC)
+                if (IsHdlc(p.settings.InterfaceType))
                 {
                     if (p.settings.IsServer)
                     {
@@ -1627,6 +1672,166 @@ namespace Gurux.DLMS
                     }
                 }
             }
+            return bb.Array();
+        }
+
+
+        /// <summary>
+        /// Get MAC LLC frame for data.
+        /// </summary>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="frame">HDLC frame sequence number.</param>
+        /// <param name="creditFields">Credit fields.</param>
+        /// <param name="data">Data to add.</param>
+        /// <returns>MAC frame.</returns>
+        internal static byte[] GetMacFrame(GXDLMSSettings settings, byte frame, byte creditFields, GXByteBuffer data)
+        {
+            if (settings.InterfaceType == InterfaceType.Plc)
+            {
+                return GetPlcFrame(settings, creditFields, data);
+            }
+            return GetMacHdlcFrame(settings, frame, creditFields, data);
+        }
+
+        /// <summary>
+        /// Get MAC LLC frame for data.
+        /// </summary>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="data">Data to add.</param>
+        /// <returns>MAC frame.</returns>
+        private static byte[] GetPlcFrame(GXDLMSSettings settings, byte creditFields, GXByteBuffer data)
+        {
+            int frameSize = data.Available;
+            //Max frame size is 124 bytes.
+            if (frameSize > 134)
+            {
+                frameSize = 134;
+            }
+            //PAD Length.
+            int padLen = (36 - ((11 + frameSize) % 36)) % 36;
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.Capacity = 15 + frameSize + padLen;
+            //Add STX
+            bb.SetUInt8(2);
+            //Length.
+            bb.SetUInt8((byte)(11 + frameSize));
+            //Length.
+            bb.SetUInt8(0x50);
+            //Add  Credit fields.
+            bb.SetUInt8(creditFields);
+            //Add source and target MAC addresses.
+            bb.SetUInt8((byte)(settings.Plc.MacSourceAddress >> 4));
+            int val = settings.Plc.MacSourceAddress << 12;
+            val |= settings.Plc.MacDestinationAddress & 0xFFF;
+            bb.SetUInt16((UInt16)val);
+            bb.SetUInt8((byte)padLen);
+            //Control byte.
+            bb.SetUInt8(DataLinkData.Request);
+            bb.SetUInt8((byte)settings.ServerAddress);
+            bb.SetUInt8((byte)settings.ClientAddress);
+            bb.Set(data, frameSize);
+            //Add padding.
+            while (padLen != 0)
+            {
+                bb.SetUInt8(0);
+                --padLen;
+            }
+            //Checksum.
+            UInt16 crc = GXFCS16.CountFCS16(bb.Data, 0, bb.Size);
+            bb.SetUInt16(crc);
+            //Remove sent data in server side.
+            if (settings.IsServer)
+            {
+                if (data.Size == data.Position)
+                {
+                    data.Clear();
+                }
+                else
+                {
+                    data.Move(data.Position, 0, data.Size - data.Position);
+                    data.Position = 0;
+                }
+            }
+            return bb.Array();
+        }
+
+        /// <summary>
+        /// Get MAC HDLC frame for data.
+        /// </summary>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="frame">HDLC frame.</param>
+        /// <param name="creditFields">Credit fields.</param>
+        /// <param name="data">Data to add.</param>
+        /// <returns>MAC frame.</returns>
+        internal static byte[] GetMacHdlcFrame(GXDLMSSettings settings, byte frame, byte creditFields, GXByteBuffer data)
+        {
+            if (settings.Limits.MaxInfoTX > 126)
+            {
+                settings.Limits.MaxInfoTX = 86;
+            }
+            GXByteBuffer bb = new GXByteBuffer();
+            //Lenght is updated last.
+            bb.SetUInt16(0);
+            //Add  Credit fields.
+            bb.SetUInt8(creditFields);
+            //Add source and target MAC addresses.
+            bb.SetUInt8((byte)(settings.Plc.MacSourceAddress >> 4));
+            int val = settings.Plc.MacSourceAddress << 12;
+            val |= settings.Plc.MacDestinationAddress & 0xFFF;
+            bb.SetUInt16((UInt16)val);
+            byte[] tmp = GXDLMS.GetHdlcFrame(settings, frame, data);
+            int padLen = (36 - ((10 + tmp.Length) % 36)) % 36;
+            bb.SetUInt8((byte)padLen);
+            bb.Set(tmp);
+            //Add padding.
+            while (padLen != 0)
+            {
+                bb.SetUInt8(0);
+                --padLen;
+            }
+            //Checksum.
+            UInt32 crc = GXFCS16.CountFCS24(bb.Data, 2, bb.Size - 2 - padLen);
+            bb.SetUInt8((byte)(crc >> 16));
+            bb.SetUInt16((UInt16)crc);
+            //Add NC
+            val = bb.Size / 36;
+            if (bb.Size % 36 != 0)
+            {
+                ++val;
+            }
+            if (val == 1)
+            {
+                val = (int)PlcMacSubframes.One;
+            }
+            else if (val == 2)
+            {
+                val = (int)PlcMacSubframes.Two;
+            }
+            else if (val == 3)
+            {
+                val = (int)PlcMacSubframes.Three;
+            }
+            else if (val == 4)
+            {
+                val = (int)PlcMacSubframes.Four;
+            }
+            else if (val == 5)
+            {
+                val = (int)PlcMacSubframes.Five;
+            }
+            else if (val == 6)
+            {
+                val = (int)PlcMacSubframes.Six;
+            }
+            else if (val == 7)
+            {
+                val = (int)PlcMacSubframes.Seven;
+            }
+            else
+            {
+                throw new Exception("Data length is too high.");
+            }
+            bb.SetUInt16(0, (UInt16)val);
             return bb.Array();
         }
 
@@ -1924,6 +2129,12 @@ namespace Gurux.DLMS
                     data.Error = (int)ErrorCode.DisconnectMode;
                 }
                 data.Command = (Command)frame;
+                //If client want to know used server and client address.
+                if (data.ClientAddress == 0 && data.ServerAddress == 0)
+                {
+                    data.ClientAddress = target;
+                    data.ServerAddress = source;
+                }
             }
             //If S-frame
             else if (frame != 0x13 && (frame & (byte)HdlcFrameType.Sframe) == (byte)HdlcFrameType.Sframe)
@@ -2057,6 +2268,11 @@ namespace Gurux.DLMS
                     {
                         reply.Position = (index + 1);
                     }
+                    //If client wants to know used client and server address.
+                    else if (settings.ClientAddress == 0 && settings.ServerAddress == 0x7F)
+                    {
+                        return true;
+                    }
                     return false;
                 }
                 // Check that server addresses match.
@@ -2115,7 +2331,7 @@ namespace Gurux.DLMS
                         break;
                     }
                     // Check TCP/IP addresses.
-                    if (!CheckWrapperAddress(settings, buff, notify))
+                    if (!CheckWrapperAddress(settings, buff, data, notify))
                     {
                         data = notify;
                         isData = false;
@@ -2200,6 +2416,256 @@ namespace Gurux.DLMS
             }
         }
 
+        public enum SubLayer
+        {
+            /// <summary>
+            /// S-FSK PLC profile is using the IEC61334-4-32:1996 LLC sublayer.
+            /// </summary>
+            Llc,
+            /// <summary>
+            ///  S-FSK PLC profile is using the HDLC based LLC sublayer.
+            /// </summary>
+            Hdlc
+        };
+
+        /// <summary>
+        /// Get data from S-FSK PLC frame.
+        /// </summary>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="buff">Received data.</param>
+        /// <param name="data">Reply information.</param>
+        static void GetPlcData(GXDLMSSettings settings,
+                                   GXByteBuffer buff, GXReplyData data)
+        {
+            if (buff.Available < 9)
+            {
+                data.IsComplete = false;
+                return;
+            }
+            int pos;
+            int packetStartID = buff.Position;
+            // Find STX.
+            byte stx;
+            for (pos = buff.Position; pos < buff.Size; ++pos)
+            {
+                stx = buff.GetUInt8();
+                if (stx == 2)
+                {
+                    packetStartID = pos;
+                    break;
+                }
+            }
+            // Not a PLC frame.
+            if (buff.Position == buff.Size)
+            {
+                // Not enough data to parse;
+                data.IsComplete = false;
+                return;
+            }
+            int len = buff.GetUInt8();
+            int index = buff.Position;
+            if (buff.Available < len)
+            {
+                data.IsComplete = false;
+                buff.Position -= 2;
+            }
+            else
+            {
+                buff.GetUInt8();
+                //Credit fields.  IC, CC, DC
+                byte credit = buff.GetUInt8();
+                //MAC Addresses.
+                int mac = buff.GetUInt16() << 8 | buff.GetUInt8();
+                //SA.
+                short macSa = (short)(mac >> 12);
+                //DA.
+                short macDa = (short)(mac & 0xFFF);
+                //PAD length.
+                byte padLen = buff.GetUInt8();
+                if (buff.Size < len + padLen + 2)
+                {
+                    data.IsComplete = false;
+                    buff.Position -= index + 6;
+                }
+                else
+                {
+                    //DL.Data.request
+                    byte ch = buff.GetUInt8();
+                    if (ch != (int)DataLinkData.Request)
+                    {
+                        throw new Exception("Parsing MAC LLC data failed. Invalid DataLink data request.");
+                    }
+                    byte da = buff.GetUInt8();
+                    byte sa = buff.GetUInt8();
+                    if (settings.IsServer)
+                    {
+                        data.IsComplete = data.Xml != null ||
+                            ((macDa == (UInt16)PlcDestinationAddress.AllPhysical || macDa == settings.Plc.MacSourceAddress) &&
+                        (macSa == (UInt16)PlcSourceAddress.Initiator || macSa == settings.Plc.MacDestinationAddress));
+                        data.ServerAddress = macDa;
+                        data.ClientAddress = macSa;
+                    }
+                    else
+                    {
+                        // FFF (All)
+                        data.IsComplete = data.Xml != null ||
+                            (macDa == (UInt16)PlcDestinationAddress.AllPhysical || macDa == settings.Plc.MacDestinationAddress);
+                        data.ClientAddress = macSa;
+                        data.ServerAddress = macDa;
+                    }
+                    //Skip padding.
+                    if (data.IsComplete)
+                    {
+                        UInt16 crcCount = GXFCS16.CountFCS16(buff.Data, 0, len + padLen);
+                        UInt16 crc = buff.GetUInt16(len + padLen);
+                        //Check CRC.
+                        if (crc != crcCount)
+                        {
+                            if (data.Xml == null)
+                            {
+                                throw new Exception("Invalid data checksum.");
+                            }
+                            data.Xml.AppendComment("Invalid data checksum.");
+                        }
+                        data.PacketLength = len;
+                    }
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Get data from S-FSK PLC Hdlc frame.
+        /// </summary>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="buff">Received data.</param>
+        /// <param name="data">Reply information.</param>
+        static byte GetPlcHdlcData(GXDLMSSettings settings,
+                                   GXByteBuffer buff, GXReplyData data)
+        {
+            if (buff.Available < 2)
+            {
+                data.IsComplete = false;
+                return 0;
+            }
+            byte frame = 0;
+            int frameLen;
+            //SN field.
+            UInt16 ns = buff.GetUInt16();
+            if (ns == (int)PlcMacSubframes.One && buff.Available < 34)
+            {
+                data.IsComplete = false;
+            }
+            else if (ns == (int)PlcMacSubframes.Two && buff.Available < (2 * 36) - 2)
+            {
+                data.IsComplete = false;
+            }
+            else if (ns == (int)PlcMacSubframes.Three && buff.Available < (3 * 36) - 2)
+            {
+                data.IsComplete = false;
+            }
+            else if (ns == (int)PlcMacSubframes.Four && buff.Available < (4 * 36) - 2)
+            {
+                data.IsComplete = false;
+            }
+            else if (ns == (int)PlcMacSubframes.Five && buff.Available < (5 * 36) - 2)
+            {
+                data.IsComplete = false;
+            }
+            else if (ns == (int)PlcMacSubframes.Six && buff.Available < (6 * 36) - 2)
+            {
+                data.IsComplete = false;
+            }
+            else if (ns == (int)PlcMacSubframes.Seven && buff.Available < (7 * 36) - 2)
+            {
+                data.IsComplete = false;
+            }
+            else
+            {
+                if (ns == (int)PlcMacSubframes.One)
+                {
+                    frameLen = 36;
+                }
+                else if (ns == (int)PlcMacSubframes.Two)
+                {
+                    frameLen = 2 * 36;
+                }
+                else if (ns == (int)PlcMacSubframes.Three)
+                {
+                    frameLen = 3 * 36;
+                }
+                else if (ns == (int)PlcMacSubframes.Four)
+                {
+                    frameLen = 4 * 36;
+                }
+                else if (ns == (int)PlcMacSubframes.Five)
+                {
+                    frameLen = 5 * 36;
+                }
+                else if (ns == (int)PlcMacSubframes.Six)
+                {
+                    frameLen = 6 * 36;
+                }
+                else if (ns == (int)PlcMacSubframes.Seven)
+                {
+                    frameLen = 7 * 36;
+                }
+                else
+                {
+                    throw new Exception("Invalid PLC frame size.");
+                }
+                int index = buff.Position;
+                //Credit fields.  IC, CC, DC
+                byte credit = buff.GetUInt8();
+                //MAC Addresses.
+                int mac = buff.GetUInt16() << 8 | buff.GetUInt8();
+                //SA.
+                short sa = (short)(mac >> 12);
+                //DA.
+                short da = (short)(mac & 0xFFF);
+                if (settings.IsServer)
+                {
+                    data.IsComplete = data.Xml != null ||
+                        ((da == (UInt16)PlcDestinationAddress.AllPhysical || da == settings.Plc.MacSourceAddress) &&
+                    (sa == (UInt16) PlcHdlcSourceAddress.Initiator || sa == settings.Plc.MacDestinationAddress));
+                    data.ServerAddress = da;
+                    data.ClientAddress = sa;
+                }
+                else
+                {
+                    data.IsComplete = data.Xml != null ||
+                        (da == (UInt16)PlcHdlcSourceAddress.Initiator || da == settings.Plc.MacDestinationAddress);
+                    data.ClientAddress = sa;
+                    data.ServerAddress = da;
+                }
+                if (data.IsComplete)
+                {
+                    //PAD length.
+                    byte padLen = buff.GetUInt8();
+                    frame = GetHdlcData(settings.IsServer, settings, buff, data, null);
+                    GetDataFromFrame(buff, data, true);
+                    buff.Position += padLen;
+                    UInt32 crcCount = GXFCS16.CountFCS24(buff.Data, index, buff.Position - index);
+                    int crc = buff.GetUInt24(buff.Position);
+                    //Check CRC.
+                    if (crc != crcCount)
+                    {
+                        if (data.Xml == null)
+                        {
+                            throw new Exception("Invalid data checksum.");
+                        }
+                        data.Xml.AppendComment("Invalid data checksum.");
+                    }
+                    data.PacketLength = 2 + buff.Position - index;
+                }
+                else
+                {
+                    buff.Position += frameLen - index - 4;
+                }
+            }
+            return frame;
+        }
+
         /// <summary>
         /// Check is this M-Bus message.
         /// </summary>
@@ -2221,7 +2687,24 @@ namespace Gurux.DLMS
             return true;
         }
 
-        private static bool CheckWrapperAddress(GXDLMSSettings settings, GXByteBuffer buff, GXReplyData notify)
+        /// <summary>
+        /// Check is this PLC S-FSK message.
+        /// </summary>
+        /// <param name="buff">Received data.</param>
+        /// <returns>True, if this is M-Bus message.</returns>
+        internal static bool IsPlcSfskData(GXByteBuffer buff)
+        {
+            if (buff.Size - buff.Position < 2)
+            {
+                return false;
+            }
+            UInt16 len = buff.GetUInt16(buff.Position);
+            return len == (int)PlcMacSubframes.One ||
+                len == (int)PlcMacSubframes.Two ||
+                len == (int)PlcMacSubframes.Three;
+        }
+
+        private static bool CheckWrapperAddress(GXDLMSSettings settings, GXByteBuffer buff, GXReplyData data, GXReplyData notify)
         {
             bool ret = true;
             int value;
@@ -2229,7 +2712,7 @@ namespace Gurux.DLMS
             {
                 value = buff.GetUInt16();
                 // Check that client addresses match.
-                if (settings.ClientAddress != 0
+                if (data.Xml == null && settings.ClientAddress != 0
                         && settings.ClientAddress != value)
                 {
                     throw new Exception("Source addresses do not match. It is "
@@ -2243,7 +2726,7 @@ namespace Gurux.DLMS
 
                 value = buff.GetUInt16();
                 // Check that server addresses match.
-                if (settings.ServerAddress != 0
+                if (data.Xml == null && settings.ServerAddress != 0
                         && settings.ServerAddress != value)
                 {
                     throw new Exception("Destination addresses do not match. It is "
@@ -3537,6 +4020,11 @@ namespace Gurux.DLMS
                         data.Command = Command.None;
                         GetPdu(settings, data, null);
                         break;
+                    case Command.PingResponse:
+                    case Command.DiscoverReport:
+                    case Command.DiscoverRequest:
+                    case Command.RegisterRequest:
+                        break;
                     default:
                         data.Command = Command.None;
                         throw new ArgumentException("Invalid Command.");
@@ -3944,6 +4432,14 @@ namespace Gurux.DLMS
                 data.PacketLength = reply.Size;
                 data.IsComplete = reply.Size != 0;
             }
+            else if (settings.InterfaceType == InterfaceType.Plc)
+            {
+                GetPlcData(settings, reply, data);
+            }
+            else if (settings.InterfaceType == InterfaceType.PlcHdlc)
+            {
+                frame = GetPlcHdlcData(settings, reply, data);
+            }
             else
             {
                 throw new ArgumentException("Invalid Interface type.");
@@ -3953,7 +4449,10 @@ namespace Gurux.DLMS
             {
                 return false;
             }
-            GetDataFromFrame(reply, data, settings.InterfaceType == InterfaceType.HDLC);
+            if (settings.InterfaceType != InterfaceType.PlcHdlc)
+            {
+                GetDataFromFrame(reply, data, IsHdlc(settings.InterfaceType));
+            }
             // If keepalive or get next frame request.
             if (data.Xml != null || ((frame != 0x13 || data.IsMoreData) && (frame & 0x1) != 0))
             {

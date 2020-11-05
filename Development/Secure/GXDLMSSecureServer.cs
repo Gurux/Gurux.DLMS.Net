@@ -205,6 +205,129 @@ namespace Gurux.DLMS.Secure
             Settings.Cipher = Ciphering;
         }
 
+        ///<summary>
+        /// Constructor.
+        ///</summary>
+        ///<param name="ln">Logical name settings. </param>
+        /// <param name="llc">IEC 8802-2 LLC settings.</param>
+        ///<param name="flagID">Three letters FLAG ID.///</param>
+        ///<param name="serialNumber">
+        /// Meter serial number. Size of serial number is 5 bytes.
+        ///</param>
+        public GXDLMSSecureServer(GXDLMSAssociationLogicalName ln, GXIec8802LlcType2Setup llc, string flagID, UInt64 serialNumber) :
+            base(ln, llc)
+        {
+            if (flagID == null || flagID.Length != 3)
+            {
+                throw new ArgumentOutOfRangeException("Invalid FLAG ID.");
+            }
+            if (flagID == null || flagID.Length != 3)
+            {
+                throw new ArgumentOutOfRangeException("Invalid FLAG ID.");
+            }
+            ln.XDLMSContextInfo.settings = Settings;
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.Add(flagID);
+            GXByteBuffer serial = new GXByteBuffer();
+            serial.SetUInt64(serialNumber);
+            bb.Set(serial.Data, 3, 5);
+            Ciphering = new GXCiphering(bb.Array());
+            Settings.Cipher = Ciphering;
+        }
+
+        ///<summary>
+        /// Constructor.
+        ///</summary>
+        ///<param name="sn">Short name settings. </param>
+        /// <param name="llc">IEC 8802-2 LLC settings.</param>
+        /// Three letters FLAG ID.
+        ///</param>
+        ///<param name="serialNumber">
+        /// Meter serial number. Size of serial number is 5 bytes.
+        ///</param>
+        public GXDLMSSecureServer(GXDLMSAssociationShortName sn, GXIec8802LlcType2Setup llc, string flagID, UInt64 serialNumber) :
+            base(sn, llc)
+        {
+            if (flagID == null || flagID.Length != 3)
+            {
+                throw new ArgumentOutOfRangeException("Invalid FLAG ID.");
+            }
+            if (flagID == null || flagID.Length != 3)
+            {
+                throw new ArgumentOutOfRangeException("Invalid FLAG ID.");
+            }
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.Add(flagID);
+            GXByteBuffer serial = new GXByteBuffer();
+            serial.SetUInt64(serialNumber);
+            bb.Set(serial.Data, 3, 5);
+            Ciphering = new GXCiphering(bb.Array());
+            Settings.Cipher = Ciphering;
+        }
+
+        ///<summary>
+        /// Constructor.
+        ///</summary>
+        ///<param name="ln">Logical name settings. </param>
+        ///<param name="mac">IEC 61334-4-512 settings.</param>
+        ///<param name="flagID">
+        /// Three letters FLAG ID.
+        ///</param>
+        ///<param name="serialNumber">
+        /// Meter serial number. Size of serial number is 5 bytes.
+        ///</param>
+        public GXDLMSSecureServer(GXDLMSAssociationLogicalName ln, GXDLMSSFSKPhyMacSetUp mac, string flagID, UInt64 serialNumber) :
+            base(ln, mac)
+        {
+            if (flagID == null || flagID.Length != 3)
+            {
+                throw new ArgumentOutOfRangeException("Invalid FLAG ID.");
+            }
+            if (flagID == null || flagID.Length != 3)
+            {
+                throw new ArgumentOutOfRangeException("Invalid FLAG ID.");
+            }
+            ln.XDLMSContextInfo.settings = Settings;
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.Add(flagID);
+            GXByteBuffer serial = new GXByteBuffer();
+            serial.SetUInt64(serialNumber);
+            bb.Set(serial.Data, 3, 5);
+            Ciphering = new GXCiphering(bb.Array());
+            Settings.Cipher = Ciphering;
+        }
+
+        ///<summary>
+        /// Constructor.
+        ///</summary>
+        ///<param name="sn">Short name settings. </param>
+        ///<param name="mac">IEC 61334-4-512 settings.</param>
+        ///<param name="flagID">
+        /// Three letters FLAG ID.
+        ///</param>
+        ///<param name="serialNumber">
+        /// Meter serial number. Size of serial number is 5 bytes.
+        ///</param>
+        public GXDLMSSecureServer(GXDLMSAssociationShortName sn, GXDLMSSFSKPhyMacSetUp mac, string flagID, UInt64 serialNumber) :
+            base(sn, mac)
+        {
+            if (flagID == null || flagID.Length != 3)
+            {
+                throw new ArgumentOutOfRangeException("Invalid FLAG ID.");
+            }
+            if (flagID == null || flagID.Length != 3)
+            {
+                throw new ArgumentOutOfRangeException("Invalid FLAG ID.");
+            }
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.Add(flagID);
+            GXByteBuffer serial = new GXByteBuffer();
+            serial.SetUInt64(serialNumber);
+            bb.Set(serial.Data, 3, 5);
+            Ciphering = new GXCiphering(bb.Array());
+            Settings.Cipher = Ciphering;
+        }
+
         /// <summary>
         /// Ciphering settings.
         /// </summary>

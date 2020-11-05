@@ -665,7 +665,7 @@ namespace Gurux.DLMS
                     {
                         messages.Add(GXDLMS.GetWrapperFrame(Settings, pdu.Command, reply));
                     }
-                    else if (Settings.InterfaceType == Enums.InterfaceType.HDLC)
+                    else if (GXDLMS.IsHdlc(Settings.InterfaceType))
                     {
                         if (pdu.Command == Command.Aarq)
                         {

@@ -916,7 +916,6 @@ namespace Gurux.DLMS
         private static void HanleSetRequestWithList(GXDLMSSettings settings, byte invokeID, GXDLMSServer server, GXByteBuffer data,
             GXDLMSLNParameters p, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
         {
-            ValueEventArgs e;
             int cnt = GXCommon.GetObjectCount(data);
             Dictionary<int, byte> status = new Dictionary<int, byte>();
             if (xml != null)

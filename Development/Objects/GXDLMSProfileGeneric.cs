@@ -972,7 +972,7 @@ namespace Gurux.DLMS.Objects
                                     if (row[pos] is GXDateTime)
                                     {
                                         GXDateTime dt = (GXDateTime)row[pos];
-                                        lastDate = dt.Value.LocalDateTime;
+                                        lastDate = dt.Value.DateTime;
                                     }
                                 }
                             }
@@ -980,7 +980,7 @@ namespace Gurux.DLMS.Objects
                             {
                                 if (lastDate == DateTime.MinValue && Buffer.Count != 0)
                                 {
-                                    lastDate = ((GXDateTime)Buffer[Buffer.Count - 1].GetValue(pos)).Value.LocalDateTime;
+                                    lastDate = ((GXDateTime)Buffer[Buffer.Count - 1].GetValue(pos)).Value.DateTime;
                                 }
                                 if (lastDate != DateTime.MinValue)
                                 {

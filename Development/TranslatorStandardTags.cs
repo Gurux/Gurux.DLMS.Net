@@ -280,6 +280,20 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Get PLC tags.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="list"></param>
+        internal static void GetPlcTags(SortedList<int, string> list)
+        {
+            GXDLMSTranslator.AddTag(list, Command.DiscoverRequest, "discover-request");
+            GXDLMSTranslator.AddTag(list, Command.DiscoverReport, "discover-report");
+            GXDLMSTranslator.AddTag(list, Command.RegisterRequest, "register-request");
+            GXDLMSTranslator.AddTag(list, Command.PingRequest, "ping-request");
+            GXDLMSTranslator.AddTag(list, Command.PingResponse, "ping-response");
+        }
+
+        /// <summary>
         /// Get glo tags.
         /// </summary>
         /// <param name="type"></param>

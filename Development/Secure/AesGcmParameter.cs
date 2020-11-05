@@ -89,7 +89,7 @@ namespace Gurux.DLMS.Secure
         }
 
         /**
-    * Recipient system title.
+ Recipient system title.
     */
         public byte[] RecipientSystemTitle
         {
@@ -97,7 +97,7 @@ namespace Gurux.DLMS.Secure
             set;
         }
         /**
-         * Date time.
+      Date time.
          */
         public byte[] DateTime
         {
@@ -105,7 +105,7 @@ namespace Gurux.DLMS.Secure
             set;
         }
         /**
-         * Other information.
+      Other information.
          */
         public byte[] OtherInformation
         {
@@ -114,7 +114,7 @@ namespace Gurux.DLMS.Secure
         }
 
         /**
-         * Key parameters.
+      Key parameters.
          */
         public int KeyParameters
         {
@@ -123,7 +123,7 @@ namespace Gurux.DLMS.Secure
         }
 
         /**
-         * Key ciphered data.
+      Key ciphered data.
          */
         public byte[] KeyCipheredData
         {
@@ -132,7 +132,7 @@ namespace Gurux.DLMS.Secure
         }
 
         /**
-         * Ciphered content.
+      Ciphered content.
          */
         public byte[] CipheredContent
         {
@@ -141,7 +141,7 @@ namespace Gurux.DLMS.Secure
         }
 
         /**
-         * Shared secret is generated when connection is made.
+      Shared secret is generated when connection is made.
          */
         public byte[] SharedSecret
         {
@@ -150,7 +150,7 @@ namespace Gurux.DLMS.Secure
         }
 
         /**
-         * Used security suite.
+      Used security suite.
          */
         public SecuritySuite SecuritySuite
         {
