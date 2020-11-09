@@ -385,7 +385,7 @@ namespace Gurux.DLMS
             {
                 while (data.Position != data.Size)
                 {
-                    if (type == InterfaceType.HDLC && data.GetUInt8(data.Position) == 0x7e)
+                    if ((type == InterfaceType.HDLC || type == InterfaceType.HdlcWithModeE) && data.GetUInt8(data.Position) == 0x7e)
                     {
                         pos = data.Position;
                         found = GXDLMS.GetData(settings, data, reply, null, null);

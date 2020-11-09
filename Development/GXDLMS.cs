@@ -1140,7 +1140,8 @@ namespace Gurux.DLMS
                     {
                         messages.Add(GXDLMS.GetWrapperFrame(p.settings, p.command, reply));
                     }
-                    else if (p.settings.InterfaceType == Enums.InterfaceType.HDLC)
+                    else if (p.settings.InterfaceType == Enums.InterfaceType.HDLC ||
+                        p.settings.InterfaceType == Enums.InterfaceType.HdlcWithModeE)
                     {
                         messages.Add(GXDLMS.GetHdlcFrame(p.settings, frame, reply));
                         if (reply.Position != reply.Size)
@@ -1204,7 +1205,8 @@ namespace Gurux.DLMS
                     {
                         messages.Add(GXDLMS.GetWrapperFrame(p.settings, p.command, reply));
                     }
-                    else if (p.settings.InterfaceType == Enums.InterfaceType.HDLC)
+                    else if (p.settings.InterfaceType == Enums.InterfaceType.HDLC ||
+                        p.settings.InterfaceType == Enums.InterfaceType.HdlcWithModeE)
                     {
                         messages.Add(GXDLMS.GetHdlcFrame(p.settings, frame, reply));
                         if (reply.Position != reply.Size)
@@ -4457,7 +4459,8 @@ namespace Gurux.DLMS
             // If keepalive or get next frame request.
             if (data.Xml != null || ((frame != 0x13 || data.IsMoreData) && (frame & 0x1) != 0))
             {
-                if (settings.InterfaceType == InterfaceType.HDLC && (data.Error == (int)ErrorCode.Rejected || data.Data.Size != 0))
+                if ((settings.InterfaceType == InterfaceType.HDLC || settings.InterfaceType == InterfaceType.HdlcWithModeE) &&
+                    (data.Error == (int)ErrorCode.Rejected || data.Data.Size != 0))
                 {
                     System.Diagnostics.Debug.Assert(reply.GetUInt8(reply.Position - 1) == 0x7e);
                 }
