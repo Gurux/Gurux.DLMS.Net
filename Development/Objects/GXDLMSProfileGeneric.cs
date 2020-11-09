@@ -933,7 +933,7 @@ namespace Gurux.DLMS.Objects
             if (e.Value != null)
             {
                 int index2;
-                DateTimeOffset lastDate = DateTime.MinValue;
+                DateTimeOffset lastDate = DateTime.MinValue.ToLocalTime();
                 foreach (object tmp in (IEnumerable<object>)e.Value)
                 {
                     List<object> row = new List<object>();

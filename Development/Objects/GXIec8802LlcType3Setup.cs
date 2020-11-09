@@ -204,12 +204,16 @@ namespace Gurux.DLMS.Objects
             {
                 case 1:
                     return DataType.OctetString;
-                case 3:
-                    return DataType.UInt8;
                 case 2:
-                case 4:
+                case 3:
                 case 5:
+                    return DataType.UInt8;
+                case 4:
                 case 6:
+                case 7:
+                case 8:
+                case 9:
+                    return DataType.UInt16;
                 default:
                     throw new ArgumentException("GetDataType failed. Invalid attribute index.");
             }
@@ -272,7 +276,7 @@ namespace Gurux.DLMS.Objects
             MaximumTransmissions = (byte)reader.ReadElementContentAsInt("MaximumTransmissions");
             AcknowledgementTime = (UInt16)reader.ReadElementContentAsInt("AcknowledgementTime");
             ReceiveLifetime = (UInt16)reader.ReadElementContentAsInt("ReceiveLifetime");
-            TransmitLifetime = (UInt16)reader.ReadElementContentAsInt("MaTransmitLifetimeximumOctetsACnPdu");
+            TransmitLifetime = (UInt16)reader.ReadElementContentAsInt("TransmitLifetime");
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)

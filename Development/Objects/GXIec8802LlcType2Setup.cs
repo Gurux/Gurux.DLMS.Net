@@ -304,7 +304,7 @@ namespace Gurux.DLMS.Objects
         {
             TransmitWindowSizeK = (byte)reader.ReadElementContentAsInt("TransmitWindowSizeK");
             TransmitWindowSizeRW = (byte)reader.ReadElementContentAsInt("TransmitWindowSizeRW");
-            MaximumOctetsPdu = (UInt16)reader.ReadElementContentAsInt("TransmitWindowSizeRW");
+            MaximumOctetsPdu = (UInt16)reader.ReadElementContentAsInt("MaximumOctetsPdu");
             MaximumNumberTransmissions = (byte)reader.ReadElementContentAsInt("MaximumNumberTransmissions");
             AcknowledgementTimer = (UInt16)reader.ReadElementContentAsInt("AcknowledgementTimer");
             BitTimer = (UInt16)reader.ReadElementContentAsInt("BitTimer");

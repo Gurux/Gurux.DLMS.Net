@@ -50,7 +50,7 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public SFSKReportingSystemList()
-        : this(null, 0)
+        : this("0.0.26.6.0.255", 0)
         {
         }
 
@@ -69,8 +69,9 @@ namespace Gurux.DLMS.Objects
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
         public SFSKReportingSystemList(string ln, ushort sn)
-        : base(ObjectType.Data, ln, sn)
+        : base(ObjectType.SFSKReportingSystemList, ln, sn)
         {
+            ReportingSystemList = new List<byte[]>();
         }
 
         /// <summary>

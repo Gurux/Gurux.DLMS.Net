@@ -285,6 +285,7 @@ namespace Gurux.DLMS.Objects
                     GXCommon.SetObjectCount(SynchronizationRegister.Count, bb);
                     foreach (var it in SynchronizationRegister)
                     {
+                        bb.SetUInt8(DataType.Structure);
                         bb.SetUInt8(2);
                         GXCommon.SetData(settings, bb, DataType.UInt16, it.Key);
                         GXCommon.SetData(settings, bb, DataType.UInt32, it.Value);
@@ -317,6 +318,7 @@ namespace Gurux.DLMS.Objects
                     GXCommon.SetObjectCount(BroadcastFramesCounter.Count, bb);
                     foreach (var it in BroadcastFramesCounter)
                     {
+                        bb.SetUInt8(DataType.Structure);
                         bb.SetUInt8(2);
                         GXCommon.SetData(settings, bb, DataType.UInt16, it.Key);
                         GXCommon.SetData(settings, bb, DataType.UInt32, it.Value);

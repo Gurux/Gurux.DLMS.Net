@@ -279,7 +279,7 @@ namespace Gurux.DLMS.Enums
         /// ISO/IEC 8802-2 LLC Type 3 setup.
         /// </summary>
         [XmlEnum("58")]
-        Iec8802LlcType3Setup = 58,
+        Iec8802LlcType3Setup = 59,
 
         /// <summary>
         /// Instances of the Disconnect control IC manage an internal or external disconnect unit
