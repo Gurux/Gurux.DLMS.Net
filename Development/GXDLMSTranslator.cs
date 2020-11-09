@@ -1700,7 +1700,10 @@ namespace Gurux.DLMS
                         catch (Exception)
                         {
                             // It's OK if this fails. Ciphering settings are not correct.
-                            msg.Command = (Command)cmd;
+                            if (msg != null)
+                            {
+                                msg.Command = (Command)cmd;
+                            }
                             xml.SetXmlLength(len2);
                         }
                         value.Position = originalPosition;
