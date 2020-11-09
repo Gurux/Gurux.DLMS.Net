@@ -4402,7 +4402,8 @@ namespace Gurux.DLMS
             byte frame = 0;
             bool isNotify = false;
             // If DLMS frame is generated.
-            if (settings.InterfaceType == InterfaceType.HDLC)
+            if (settings.InterfaceType == InterfaceType.HDLC ||
+                settings.InterfaceType == InterfaceType.HdlcWithModeE)
             {
                 frame = GetHdlcData(settings.IsServer, settings, reply, data, notify);
                 if (notify != null && frame == 0x13)

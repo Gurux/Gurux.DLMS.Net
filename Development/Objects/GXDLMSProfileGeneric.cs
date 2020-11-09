@@ -932,8 +932,8 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Value != null)
             {
-                int index2 = 0;
-                DateTime lastDate = DateTime.MinValue;
+                int index2;
+                DateTimeOffset lastDate = DateTime.MinValue;
                 foreach (object tmp in (IEnumerable<object>)e.Value)
                 {
                     List<object> row = new List<object>();
@@ -972,7 +972,7 @@ namespace Gurux.DLMS.Objects
                                     if (row[pos] is GXDateTime)
                                     {
                                         GXDateTime dt = (GXDateTime)row[pos];
-                                        lastDate = dt.Value.DateTime;
+                                        lastDate = dt.Value;
                                     }
                                 }
                             }
@@ -980,7 +980,7 @@ namespace Gurux.DLMS.Objects
                             {
                                 if (lastDate == DateTime.MinValue && Buffer.Count != 0)
                                 {
-                                    lastDate = ((GXDateTime)Buffer[Buffer.Count - 1].GetValue(pos)).Value.DateTime;
+                                    lastDate = ((GXDateTime)Buffer[Buffer.Count - 1].GetValue(pos)).Value;
                                 }
                                 if (lastDate != DateTime.MinValue)
                                 {
