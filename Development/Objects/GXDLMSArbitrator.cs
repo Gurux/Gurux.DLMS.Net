@@ -273,11 +273,8 @@ namespace Gurux.DLMS.Objects
                 case 1:
                     return DataType.OctetString;
                 case 2:
-                    return DataType.Array;
                 case 3:
-                    return DataType.Array;
                 case 4:
-                    return DataType.Array;
                 case 5:
                     return DataType.Array;
                 case 6:

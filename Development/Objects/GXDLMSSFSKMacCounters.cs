@@ -86,7 +86,6 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
-        //desynchronization_listing
         public UInt32 PhysicalLayerDesynchronization
         {
             get;
@@ -187,13 +186,34 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(1);
             }
-            attributes.Add(2);
-            attributes.Add(3);
-            attributes.Add(4);
-            attributes.Add(5);
-            attributes.Add(6);
-            attributes.Add(7);
-            attributes.Add(8);
+            if (CanRead(2))
+            {
+                attributes.Add(2);
+            }
+            if (CanRead(3))
+            {
+                attributes.Add(3);
+            }
+            if (CanRead(4))
+            {
+                attributes.Add(4);
+            }
+            if (CanRead(5))
+            {
+                attributes.Add(5);
+            }
+            if (CanRead(6))
+            {
+                attributes.Add(6);
+            }
+            if (CanRead(7))
+            {
+                attributes.Add(7);
+            }
+            if (CanRead(8))
+            {
+                attributes.Add(8);
+            }
             return attributes.ToArray();
         }
 
@@ -224,212 +244,208 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
         public override DataType GetDataType(int index)
         {
-            if (index == 1)
+            DataType ret;
+            switch (index)
             {
-                return DataType.OctetString;
+                case 1:
+                    ret = DataType.OctetString;
+                    break;
+                case 2:
+                    ret = DataType.Array;
+                    break;
+                case 3:
+                    ret = DataType.Structure;
+                    break;
+                case 4:
+                    ret = DataType.Array;
+                    break;
+                case 5:
+                    ret = DataType.UInt32;
+                    break;
+                case 6:
+                    ret = DataType.UInt32;
+                    break;
+                case 7:
+                    ret = DataType.UInt32;
+                    break;
+                case 8:
+                    ret = DataType.UInt32;
+                    break;
+                default:
+                    throw new ArgumentException("GetDataType failed. Invalid attribute index.");
             }
-            //SynchronizationRegister
-            if (index == 2)
-            {
-                return DataType.Array;
-            }
-            //Desynchronization listing
-            if (index == 3)
-            {
-                return DataType.Structure;
-            }
-            //BroadcastFramesCounter,
-            if (index == 4)
-            {
-                return DataType.Array;
-            }
-            //RepetitionsCounter
-            if (index == 5)
-            {
-                return DataType.UInt32;
-            }
-            //TransmissionsCounter
-            if (index == 6)
-            {
-                return DataType.UInt32;
-            }
-            //CrcOkFramesCounter
-            if (index == 7)
-            {
-                return DataType.UInt32;
-            }
-            //CrcNOkFramesCounter
-            if (index == 8)
-            {
-                return DataType.UInt32;
-            }
-            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+            return ret;
         }
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            object ret;
+            switch (e.Index)
             {
-                return GXCommon.LogicalNameToBytes(LogicalName);
-            }
-            if (e.Index == 2)
-            {
-                GXByteBuffer bb = new GXByteBuffer();
-                bb.SetUInt8(DataType.Array);
-                if (SynchronizationRegister == null)
-                {
-                    bb.SetUInt8(0);
-                }
-                else
-                {
-                    GXCommon.SetObjectCount(SynchronizationRegister.Count, bb);
-                    foreach (var it in SynchronizationRegister)
+                case 1:
+                    ret = GXCommon.LogicalNameToBytes(LogicalName);
+                    break;
+                case 2:
                     {
-                        bb.SetUInt8(DataType.Structure);
-                        bb.SetUInt8(2);
-                        GXCommon.SetData(settings, bb, DataType.UInt16, it.Key);
-                        GXCommon.SetData(settings, bb, DataType.UInt32, it.Value);
+                        GXByteBuffer bb = new GXByteBuffer();
+                        bb.SetUInt8(DataType.Array);
+                        if (SynchronizationRegister == null)
+                        {
+                            bb.SetUInt8(0);
+                        }
+                        else
+                        {
+                            GXCommon.SetObjectCount(SynchronizationRegister.Count, bb);
+                            foreach (var it in SynchronizationRegister)
+                            {
+                                bb.SetUInt8(DataType.Structure);
+                                bb.SetUInt8(2);
+                                GXCommon.SetData(settings, bb, DataType.UInt16, it.Key);
+                                GXCommon.SetData(settings, bb, DataType.UInt32, it.Value);
+                            }
+                        }
+                        ret = bb.Array();
                     }
-                }
-                return bb.Array();
-            }
-            if (e.Index == 3)
-            {
-                GXByteBuffer bb = new GXByteBuffer();
-                bb.SetUInt8(DataType.Structure);
-                bb.SetUInt8(5);
-                GXCommon.SetData(settings, bb, DataType.UInt32, PhysicalLayerDesynchronization);
-                GXCommon.SetData(settings, bb, DataType.UInt32, TimeOutNotAddressedDesynchronization);
-                GXCommon.SetData(settings, bb, DataType.UInt32, TimeOutFrameNotOkDesynchronization);
-                GXCommon.SetData(settings, bb, DataType.UInt32, WriteRequestDesynchronization);
-                GXCommon.SetData(settings, bb, DataType.UInt32, WrongInitiatorDesynchronization);
-                return bb.Array();
-            }
-            if (e.Index == 4)
-            {
-                GXByteBuffer bb = new GXByteBuffer();
-                bb.SetUInt8(DataType.Array);
-                if (BroadcastFramesCounter == null)
-                {
-                    bb.SetUInt8(0);
-                }
-                else
-                {
-                    GXCommon.SetObjectCount(BroadcastFramesCounter.Count, bb);
-                    foreach (var it in BroadcastFramesCounter)
+                    break;
+                case 3:
                     {
+                        GXByteBuffer bb = new GXByteBuffer();
                         bb.SetUInt8(DataType.Structure);
-                        bb.SetUInt8(2);
-                        GXCommon.SetData(settings, bb, DataType.UInt16, it.Key);
-                        GXCommon.SetData(settings, bb, DataType.UInt32, it.Value);
+                        bb.SetUInt8(5);
+                        GXCommon.SetData(settings, bb, DataType.UInt32, PhysicalLayerDesynchronization);
+                        GXCommon.SetData(settings, bb, DataType.UInt32, TimeOutNotAddressedDesynchronization);
+                        GXCommon.SetData(settings, bb, DataType.UInt32, TimeOutFrameNotOkDesynchronization);
+                        GXCommon.SetData(settings, bb, DataType.UInt32, WriteRequestDesynchronization);
+                        GXCommon.SetData(settings, bb, DataType.UInt32, WrongInitiatorDesynchronization);
+                        ret = bb.Array();
                     }
-                }
-                return bb.Array();
+                    break;
+                case 4:
+                    {
+                        GXByteBuffer bb = new GXByteBuffer();
+                        bb.SetUInt8(DataType.Array);
+                        if (BroadcastFramesCounter == null)
+                        {
+                            bb.SetUInt8(0);
+                        }
+                        else
+                        {
+                            GXCommon.SetObjectCount(BroadcastFramesCounter.Count, bb);
+                            foreach (var it in BroadcastFramesCounter)
+                            {
+                                bb.SetUInt8(DataType.Structure);
+                                bb.SetUInt8(2);
+                                GXCommon.SetData(settings, bb, DataType.UInt16, it.Key);
+                                GXCommon.SetData(settings, bb, DataType.UInt32, it.Value);
+                            }
+                        }
+                        ret = bb.Array();
+                    }
+                    break;
+                case 5:
+                    ret = RepetitionsCounter;
+                    break;
+                case 6:
+                    ret = TransmissionsCounter;
+                    break;
+                case 7:
+                    ret = CrcOkFramesCounter;
+                    break;
+                case 8:
+                    ret = CrcNOkFramesCounter;
+                    break;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    ret = null;
+                    break;
             }
-            if (e.Index == 5)
-            {
-                return RepetitionsCounter;
-            }
-            if (e.Index == 6)
-            {
-                return TransmissionsCounter;
-            }
-            if (e.Index == 7)
-            {
-                return CrcOkFramesCounter;
-            }
-            if (e.Index == 8)
-            {
-                return CrcNOkFramesCounter;
-            }
-            e.Error = ErrorCode.ReadWriteDenied;
-            return null;
+            return ret;
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            switch (e.Index)
             {
-                LogicalName = GXCommon.ToLogicalName(e.Value);
-            }
-            else if (e.Index == 2)
-            {
-                SynchronizationRegister.Clear();
-                if (e.Value != null)
-                {
-                    foreach (object tmp in (IEnumerable<object>)e.Value)
+                case 1:
+                    LogicalName = GXCommon.ToLogicalName(e.Value);
+                    break;
+                case 2:
                     {
-                        List<object> it;
-                        if (tmp is List<object>)
+                        SynchronizationRegister.Clear();
+                        if (e.Value != null)
                         {
-                            it = (List<object>)tmp;
+                            foreach (object tmp in (IEnumerable<object>)e.Value)
+                            {
+                                List<object> it;
+                                if (tmp is List<object>)
+                                {
+                                    it = (List<object>)tmp;
+                                }
+                                else
+                                {
+                                    it = new List<object>((object[])tmp);
+                                }
+                                SynchronizationRegister.Add(new KeyValuePair<ushort, uint>((ushort)it[0], (uint)it[1]));
+                            }
+                        }
+                    }
+                    break;
+                case 3:
+                    {
+                        if (e.Value != null)
+                        {
+                            List<object> tmp;
+                            if (e.Value is List<object>)
+                            {
+                                tmp = (List<object>)e.Value;
+                            }
+                            else
+                            {
+                                tmp = new List<object>((object[])e.Value);
+                            }
+                            PhysicalLayerDesynchronization = (uint)tmp[0];
+                            TimeOutNotAddressedDesynchronization = (uint)tmp[1];
+                            TimeOutFrameNotOkDesynchronization = (uint)tmp[2];
+                            WriteRequestDesynchronization = (uint)tmp[3];
+                            WrongInitiatorDesynchronization = (uint)tmp[4];
                         }
                         else
                         {
-                            it = new List<object>((object[])tmp);
+                            PhysicalLayerDesynchronization = 0;
+                            TimeOutNotAddressedDesynchronization = 0;
+                            TimeOutFrameNotOkDesynchronization = 0;
+                            WriteRequestDesynchronization = 0;
+                            WrongInitiatorDesynchronization = 0;
                         }
-                        SynchronizationRegister.Add(new KeyValuePair<UInt16, UInt32>((UInt16)it[0], (UInt32)it[1]));
                     }
-                }
-            }
-            else if (e.Index == 3)
-            {
-                if (e.Value != null)
-                {
-                    List<object> tmp;
-                    if (e.Value is List<object>)
+                    break;
+                case 4:
                     {
-                        tmp = (List<object>)e.Value;
+                        BroadcastFramesCounter.Clear();
+                        if (e.Value != null)
+                        {
+                            foreach (List<object> it in (IEnumerable<object>)e.Value)
+                            {
+                                BroadcastFramesCounter.Add(new KeyValuePair<ushort, uint>((ushort)it[0], (uint)it[1]));
+                            }
+                        }
                     }
-                    else
-                    {
-                        tmp = new List<object>((object[])e.Value);
-                    }
-                    PhysicalLayerDesynchronization = (UInt32)tmp[0];
-                    TimeOutNotAddressedDesynchronization = (UInt32)tmp[1];
-                    TimeOutFrameNotOkDesynchronization = (UInt32)tmp[2];
-                    WriteRequestDesynchronization = (UInt32)tmp[3];
-                    WrongInitiatorDesynchronization = (UInt32)tmp[4];
-                }
-                else
-                {
-                    PhysicalLayerDesynchronization = 0;
-                    TimeOutNotAddressedDesynchronization = 0;
-                    TimeOutFrameNotOkDesynchronization = 0;
-                    WriteRequestDesynchronization = 0;
-                    WrongInitiatorDesynchronization = 0;
-                }
-            }
-            else if (e.Index == 4)
-            {
-                BroadcastFramesCounter.Clear();
-                if (e.Value != null)
-                {
-                    foreach (List<object> it in (IEnumerable<object>)e.Value)
-                    {
-                        BroadcastFramesCounter.Add(new KeyValuePair<UInt16, UInt32>((UInt16)it[0], (UInt32)it[1]));
-                    }
-                }
-            }
-            else if (e.Index == 5)
-            {
-                RepetitionsCounter = (UInt32)e.Value;
-            }
-            else if (e.Index == 6)
-            {
-                TransmissionsCounter = (UInt32)e.Value;
-            }
-            else if (e.Index == 7)
-            {
-                CrcOkFramesCounter = (UInt32)e.Value;
-            }
-            else if (e.Index == 8)
-            {
-                CrcNOkFramesCounter = (UInt32)e.Value;
-            }
-            else
-            {
-                e.Error = ErrorCode.ReadWriteDenied;
+                    break;
+                case 5:
+                    RepetitionsCounter = (uint)e.Value;
+                    break;
+                case 6:
+                    TransmissionsCounter = (uint)e.Value;
+                    break;
+                case 7:
+                    CrcOkFramesCounter = (uint)e.Value;
+                    break;
+                case 8:
+                    CrcNOkFramesCounter = (uint)e.Value;
+                    break;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
             }
         }
 

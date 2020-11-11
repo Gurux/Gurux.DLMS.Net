@@ -94,5 +94,10 @@ namespace Gurux.DLMS.Enums
         /// </summary>
         [XmlEnum("8")]
         WiSUN,
+        /// <summary>
+        /// OFDM PLC PRIME is defined in IEC 62056-8-4.
+        /// </summary>
+        [XmlEnum("9")]
+        PlcPrime,
     }
 }

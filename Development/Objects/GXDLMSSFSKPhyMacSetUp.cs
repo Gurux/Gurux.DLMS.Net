@@ -204,7 +204,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Space frequency required for S-FSK modulation.
+        /// Mac Address.
         /// </summary>
         [XmlIgnore()]
         public UInt16 MacAddress
@@ -241,7 +241,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        ///
+        /// Min delta credit.
         /// </summary>
         [XmlIgnore()]
         public byte MinDeltaCredit
@@ -395,260 +395,229 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
         public override DataType GetDataType(int index)
         {
+            DataType ret;
             //LogicalName
-            if (index == 1)
+            switch (index)
             {
-                return DataType.OctetString;
+                case 1:
+                    ret = DataType.OctetString;
+                    break;
+                case 2:
+                    ret = DataType.Enum;
+                    break;
+                case 3:
+                    ret = DataType.Enum;
+                    break;
+                case 4:
+                    ret = DataType.UInt8;
+                    break;
+                case 5:
+                    ret = DataType.UInt8;
+                    break;
+                case 6:
+                    ret = DataType.UInt8;
+                    break;
+                case 7:
+                    ret = DataType.Structure;
+                    break;
+                case 8:
+                    ret = DataType.UInt16;
+                    break;
+                case 9:
+                    ret = DataType.Array;
+                    break;
+                case 10:
+                    ret = DataType.Enum;
+                    break;
+                case 11:
+                    ret = DataType.Boolean;
+                    break;
+                case 12:
+                    ret = DataType.UInt8;
+                    break;
+                case 13:
+                    ret = DataType.UInt16;
+                    break;
+                case 14:
+                    ret = DataType.Boolean;
+                    break;
+                case 15:
+                    ret = DataType.Enum;
+                    break;
+                default:
+                    throw new ArgumentException("GetDataType failed. Invalid attribute index.");
             }
-            //InitiatorElectricalPhase
-            if (index == 2)
-            {
-                return DataType.Enum;
-            }
-            //DeltaElectricalPhase
-            if (index == 3)
-            {
-                return DataType.Enum;
-            }
-            //MaxReceivingGain
-            if (index == 4)
-            {
-                return DataType.UInt8;
-            }
-            //MaxTransmittingGain
-            if (index == 5)
-            {
-                return DataType.UInt8;
-            }
-            //SearchInitiatorThreshold
-            if (index == 6)
-            {
-                return DataType.UInt8;
-            }
-            //Frequency
-            if (index == 7)
-            {
-                return DataType.Structure;
-            }
-            //MacAddress
-            if (index == 8)
-            {
-                return DataType.UInt16;
-            }
-            //MacGroupAddresses
-            if (index == 9)
-            {
-                return DataType.Array;
-            }
-            //Repeater
-            if (index == 10)
-            {
-                return DataType.Enum;
-            }
-            //RepeaterStatus
-            if (index == 11)
-            {
-                return DataType.Boolean;
-            }
-            //MinDeltaCredit
-            if (index == 12)
-            {
-                return DataType.UInt8;
-            }
-            //InitiatorMacAddress
-            if (index == 13)
-            {
-                return DataType.UInt16;
-            }
-            //SynchronizationLocked
-            if (index == 14)
-            {
-                return DataType.Boolean;
-            }
-            //TransmissionSpeed
-            if (index == 15)
-            {
-                return DataType.Enum;
-            }
-            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+            return ret;
         }
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            object ret;
+            switch (e.Index)
             {
-                return GXCommon.LogicalNameToBytes(LogicalName);
-            }
-            else if (e.Index == 2)
-            {
-                return InitiatorElectricalPhase;
-            }
-            else if (e.Index == 3)
-            {
-                return DeltaElectricalPhase;
-            }
-            else if (e.Index == 4)
-            {
-                return MaxReceivingGain;
-            }
-            else if (e.Index == 5)
-            {
-                return MaxTransmittingGain;
-            }
-            else if (e.Index == 6)
-            {
-                return SearchInitiatorThreshold;
-            }
-            else if (e.Index == 7)
-            {
-                GXByteBuffer bb = new GXByteBuffer();
-                bb.SetUInt8(DataType.Structure);
-                bb.SetUInt8(2);
-                GXCommon.SetData(settings, bb, DataType.UInt32, MarkFrequency);
-                GXCommon.SetData(settings, bb, DataType.UInt32, SpaceFrequency);
-                return bb.Array();
-            }
-            else if (e.Index == 8)
-            {
-                return MacAddress;
-            }
-            else if (e.Index == 9)
-            {
-                GXByteBuffer bb = new GXByteBuffer();
-                bb.SetUInt8(DataType.Array);
-                if (MacGroupAddresses == null)
-                {
-                    bb.SetUInt8(0);
-                }
-                else
-                {
-                    GXCommon.SetObjectCount(MacGroupAddresses.Length, bb);
-                    foreach (UInt16 it in MacGroupAddresses)
+                case 1:
+                    ret = GXCommon.LogicalNameToBytes(LogicalName);
+                    break;
+                case 2:
+                    ret = InitiatorElectricalPhase;
+                    break;
+                case 3:
+                    ret = DeltaElectricalPhase;
+                    break;
+                case 4:
+                    ret = MaxReceivingGain;
+                    break;
+                case 5:
+                    ret = MaxTransmittingGain;
+                    break;
+                case 6:
+                    ret = SearchInitiatorThreshold;
+                    break;
+                case 7:
                     {
-                        GXCommon.SetData(settings, bb, DataType.UInt16, it);
+                        GXByteBuffer bb = new GXByteBuffer();
+                        bb.SetUInt8(DataType.Structure);
+                        bb.SetUInt8(2);
+                        GXCommon.SetData(settings, bb, DataType.UInt32, MarkFrequency);
+                        GXCommon.SetData(settings, bb, DataType.UInt32, SpaceFrequency);
+                        ret = bb.Array();
+                        break;
                     }
-                }
-                return bb.Array();
+
+                case 8:
+                    ret = MacAddress;
+                    break;
+                case 9:
+                    {
+                        GXByteBuffer bb = new GXByteBuffer();
+                        bb.SetUInt8(DataType.Array);
+                        if (MacGroupAddresses == null)
+                        {
+                            bb.SetUInt8(0);
+                        }
+                        else
+                        {
+                            GXCommon.SetObjectCount(MacGroupAddresses.Length, bb);
+                            foreach (ushort it in MacGroupAddresses)
+                            {
+                                GXCommon.SetData(settings, bb, DataType.UInt16, it);
+                            }
+                        }
+                        ret = bb.Array();
+                        break;
+                    }
+
+                case 10:
+                    ret = Repeater;
+                    break;
+                case 11:
+                    ret = RepeaterStatus;
+                    break;
+                case 12:
+                    ret = MinDeltaCredit;
+                    break;
+                case 13:
+                    ret = InitiatorMacAddress;
+                    break;
+                case 14:
+                    ret = SynchronizationLocked;
+                    break;
+                case 15:
+                    ret = TransmissionSpeed;
+                    break;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    ret = null;
+                    break;
             }
-            else if (e.Index == 10)
-            {
-                return Repeater;
-            }
-            else if (e.Index == 11)
-            {
-                return RepeaterStatus;
-            }
-            else if (e.Index == 12)
-            {
-                return MinDeltaCredit;
-            }
-            else if (e.Index == 13)
-            {
-                return InitiatorMacAddress;
-            }
-            else if (e.Index == 14)
-            {
-                return SynchronizationLocked;
-            }
-            else if (e.Index == 15)
-            {
-                return TransmissionSpeed;
-            }
-            e.Error = ErrorCode.ReadWriteDenied;
-            return null;
+            return ret;
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            switch (e.Index)
             {
-                LogicalName = GXCommon.ToLogicalName(e.Value);
-            }
-            else if (e.Index == 2)
-            {
-                InitiatorElectricalPhase = (InitiatorElectricalPhase)Convert.ToInt32(e.Value);
-            }
-            else if (e.Index == 3)
-            {
-                DeltaElectricalPhase = (DeltaElectricalPhase)Convert.ToInt32(e.Value);
-            }
-            else if (e.Index == 4)
-            {
-                MaxReceivingGain = (byte)e.Value;
-            }
-            else if (e.Index == 5)
-            {
-                MaxTransmittingGain = (byte)e.Value;
-            }
-            else if (e.Index == 6)
-            {
-                SearchInitiatorThreshold = (byte)e.Value;
-            }
-            else if (e.Index == 7)
-            {
-                if (e.Value != null)
-                {
-                    List<object> tmp;
-                    if (e.Value is List<object>)
+                case 1:
+                    LogicalName = GXCommon.ToLogicalName(e.Value);
+                    break;
+                case 2:
+                    InitiatorElectricalPhase = (InitiatorElectricalPhase)Convert.ToInt32(e.Value);
+                    break;
+                case 3:
+                    DeltaElectricalPhase = (DeltaElectricalPhase)Convert.ToInt32(e.Value);
+                    break;
+                case 4:
+                    MaxReceivingGain = (byte)e.Value;
+                    break;
+                case 5:
+                    MaxTransmittingGain = (byte)e.Value;
+                    break;
+                case 6:
+                    SearchInitiatorThreshold = (byte)e.Value;
+                    break;
+                case 7:
                     {
-                        tmp = (List<object>)e.Value;
+                        if (e.Value != null)
+                        {
+                            List<object> tmp;
+                            if (e.Value is List<object>)
+                            {
+                                tmp = (List<object>)e.Value;
+                            }
+                            else
+                            {
+                                tmp = new List<object>((object[])e.Value);
+                            }
+                            MarkFrequency = (uint)tmp[0];
+                            SpaceFrequency = (uint)tmp[1];
+                        }
+                        else
+                        {
+                            MarkFrequency = 0;
+                            SpaceFrequency = 0;
+                        }
+
+                        break;
                     }
-                    else
+
+                case 8:
+                    MacAddress = (ushort)e.Value;
+                    break;
+                case 9:
                     {
-                        tmp = new List<object>((object[])e.Value);
+                        List<ushort> list = new List<ushort>();
+                        if (e.Value != null)
+                        {
+                            foreach (object it in (IEnumerable<object>)e.Value)
+                            {
+                                list.Add((ushort)it);
+                            }
+                        }
+                        MacGroupAddresses = list.ToArray();
+                        break;
                     }
-                    MarkFrequency = (UInt32)tmp[0];
-                    SpaceFrequency = (UInt32)tmp[1];
-                }
-                else
-                {
-                    MarkFrequency = 0;
-                    SpaceFrequency = 0;
-                }
-            }
-            else if (e.Index == 8)
-            {
-                MacAddress = (UInt16)e.Value;
-            }
-            else if (e.Index == 9)
-            {
-                List<ushort> list = new List<ushort>();
-                if (e.Value != null)
-                {
-                    foreach (object it in (IEnumerable<object>)e.Value)
-                    {
-                        list.Add((ushort)it);
-                    }
-                }
-                MacGroupAddresses = list.ToArray();
-            }
-            else if (e.Index == 10)
-            {
-                Repeater = (Repeater)Convert.ToInt32(e.Value);
-            }
-            else if (e.Index == 11)
-            {
-                RepeaterStatus = (bool)e.Value;
-            }
-            else if (e.Index == 12)
-            {
-                MinDeltaCredit = (byte)e.Value;
-            }
-            else if (e.Index == 13)
-            {
-                InitiatorMacAddress = (UInt16)e.Value;
-            }
-            else if (e.Index == 14)
-            {
-                SynchronizationLocked = (bool)e.Value;
-            }
-            else if (e.Index == 15)
-            {
-                TransmissionSpeed = (BaudRate)Convert.ToInt32(e.Value);
-            }
-            else
-            {
-                e.Error = ErrorCode.ReadWriteDenied;
+
+                case 10:
+                    Repeater = (Repeater)Convert.ToInt32(e.Value);
+                    break;
+                case 11:
+                    RepeaterStatus = (bool)e.Value;
+                    break;
+                case 12:
+                    MinDeltaCredit = (byte)e.Value;
+                    break;
+                case 13:
+                    InitiatorMacAddress = (ushort)e.Value;
+                    break;
+                case 14:
+                    SynchronizationLocked = (bool)e.Value;
+                    break;
+                case 15:
+                    TransmissionSpeed = (BaudRate)Convert.ToInt32(e.Value);
+                    break;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
             }
         }
 

@@ -44,12 +44,12 @@ namespace Gurux.DLMS.Objects
     /// Online help:
     /// https://www.gurux.fi/Gurux.DLMS.Objects.SFSKReportingSystemList
     /// </summary>
-    public class SFSKReportingSystemList : GXDLMSObject, IGXDLMSBase
+    public class GXDLMSSFSKReportingSystemList : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>
         /// Constructor.
         /// </summary>
-        public SFSKReportingSystemList()
+        public GXDLMSSFSKReportingSystemList()
         : this("0.0.26.6.0.255", 0)
         {
         }
@@ -58,7 +58,7 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
-        public SFSKReportingSystemList(string ln)
+        public GXDLMSSFSKReportingSystemList(string ln)
         : this(ln, 0)
         {
         }
@@ -68,7 +68,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
-        public SFSKReportingSystemList(string ln, ushort sn)
+        public GXDLMSSFSKReportingSystemList(string ln, ushort sn)
         : base(ObjectType.SFSKReportingSystemList, ln, sn)
         {
             ReportingSystemList = new List<byte[]>();

@@ -176,10 +176,10 @@ namespace Gurux.DLMS
                 availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcMacCounters, typeof(GXDLMSPrimeNbOfdmPlcMacCounters));
                 availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcMacNetworkAdministrationData, typeof(GXDLMSPrimeNbOfdmPlcMacNetworkAdministrationData));
                 availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcApplicationsIdentification, typeof(GXDLMSPrimeNbOfdmPlcApplicationsIdentification));
-                availableObjectTypes.Add(ObjectType.Iec8802LlcType1Setup, typeof(GXIec8802LlcType1Setup));
-                availableObjectTypes.Add(ObjectType.Iec8802LlcType2Setup, typeof(GXIec8802LlcType2Setup));
-                availableObjectTypes.Add(ObjectType.Iec8802LlcType3Setup, typeof(GXIec8802LlcType3Setup));
-                availableObjectTypes.Add(ObjectType.SFSKReportingSystemList, typeof(SFSKReportingSystemList));
+                availableObjectTypes.Add(ObjectType.Iec8802LlcType1Setup, typeof(GXDLMSIec8802LlcType1Setup));
+                availableObjectTypes.Add(ObjectType.Iec8802LlcType2Setup, typeof(GXDLMSIec8802LlcType2Setup));
+                availableObjectTypes.Add(ObjectType.Iec8802LlcType3Setup, typeof(GXDLMSIec8802LlcType3Setup));
+                availableObjectTypes.Add(ObjectType.SFSKReportingSystemList, typeof(GXDLMSSFSKReportingSystemList));
                 availableObjectTypes.Add(ObjectType.Arbitrator, typeof(GXDLMSArbitrator));
                 //Italian standard uses this.
                 availableObjectTypes.Add(ObjectType.TariffPlan, typeof(GXDLMSTariffPlan));

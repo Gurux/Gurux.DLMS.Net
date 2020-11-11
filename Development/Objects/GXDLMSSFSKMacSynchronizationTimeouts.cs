@@ -183,80 +183,80 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
         public override DataType GetDataType(int index)
         {
-            if (index == 1)
+            DataType ret;
+            switch (index)
             {
-                return DataType.OctetString;
+                case 1:
+                    ret = DataType.OctetString;
+                    break;
+                case 2:
+                    ret = DataType.UInt16;
+                    break;
+                case 3:
+                    ret = DataType.UInt16;
+                    break;
+                case 4:
+                    ret = DataType.UInt16;
+                    break;
+                case 5:
+                    ret = DataType.UInt16;
+                    break;
+                default:
+                    throw new ArgumentException("GetDataType failed. Invalid attribute index.");
             }
-            if (index == 2)
-            {
-                return DataType.UInt16;
-            }
-            if (index == 3)
-            {
-                return DataType.UInt16;
-            }
-            if (index == 4)
-            {
-                return DataType.UInt16;
-            }
-            if (index == 5)
-            {
-                return DataType.UInt16;
-            }
-            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+            return ret;
         }
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            object ret;
+            switch (e.Index)
             {
-                return GXCommon.LogicalNameToBytes(LogicalName);
+                case 1:
+                    ret = GXCommon.LogicalNameToBytes(LogicalName);
+                    break;
+                case 2:
+                    ret = SearchInitiatorTimeout;
+                    break;
+                case 3:
+                    ret = SynchronizationConfirmationTimeout;
+                    break;
+                case 4:
+                    ret = TimeOutNotAddressed;
+                    break;
+                case 5:
+                    ret = TimeOutFrameNotOK;
+                    break;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    ret = null;
+                    break;
             }
-            if (e.Index == 2)
-            {
-                return SearchInitiatorTimeout;
-            }
-            if (e.Index == 3)
-            {
-                return SynchronizationConfirmationTimeout;
-            }
-            if (e.Index == 4)
-            {
-                return TimeOutNotAddressed;
-            }
-            if (e.Index == 5)
-            {
-                return TimeOutFrameNotOK;
-            }
-            e.Error = ErrorCode.ReadWriteDenied;
-            return null;
+            return ret;
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            switch (e.Index)
             {
-                LogicalName = GXCommon.ToLogicalName(e.Value);
-            }
-            else if (e.Index == 2)
-            {
-                SearchInitiatorTimeout = (UInt16)e.Value;
-            }
-            else if (e.Index == 3)
-            {
-                SynchronizationConfirmationTimeout = (UInt16)e.Value;
-            }
-            else if (e.Index == 4)
-            {
-                TimeOutNotAddressed = (UInt16)e.Value;
-            }
-            else if (e.Index == 5)
-            {
-                TimeOutFrameNotOK = (UInt16)e.Value;
-            }
-            else
-            {
-                e.Error = ErrorCode.ReadWriteDenied;
+                case 1:
+                    LogicalName = GXCommon.ToLogicalName(e.Value);
+                    break;
+                case 2:
+                    SearchInitiatorTimeout = (ushort)e.Value;
+                    break;
+                case 3:
+                    SynchronizationConfirmationTimeout = (ushort)e.Value;
+                    break;
+                case 4:
+                    TimeOutNotAddressed = (ushort)e.Value;
+                    break;
+                case 5:
+                    TimeOutFrameNotOK = (ushort)e.Value;
+                    break;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
             }
         }
 

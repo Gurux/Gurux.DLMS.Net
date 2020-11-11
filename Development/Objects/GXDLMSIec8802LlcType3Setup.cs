@@ -42,15 +42,15 @@ namespace Gurux.DLMS.Objects
 {
     /// <summary>
     /// Online help:
-    /// https://www.gurux.fi/Gurux.DLMS.Objects.GXIec8802LlcType1Setup
+    /// https://www.gurux.fi/Gurux.DLMS.Objects.GXIec8802LlcType3Setup
     /// </summary>
-    public class GXIec8802LlcType1Setup : GXDLMSObject, IGXDLMSBase
+    public class GXDLMSIec8802LlcType3Setup : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXIec8802LlcType1Setup()
-        : this("0.0.27.0.0.255", 0)
+        public GXDLMSIec8802LlcType3Setup()
+        : this("0.0.27.2.0.255", 0)
         {
         }
 
@@ -58,7 +58,7 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
-        public GXIec8802LlcType1Setup(string ln)
+        public GXDLMSIec8802LlcType3Setup(string ln)
         : this(ln, 0)
         {
         }
@@ -68,17 +68,56 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
-        public GXIec8802LlcType1Setup(string ln, ushort sn)
-        : base(ObjectType.Iec8802LlcType1Setup, ln, sn)
+        public GXDLMSIec8802LlcType3Setup(string ln, ushort sn)
+        : base(ObjectType.Iec8802LlcType3Setup, ln, sn)
         {
-            MaximumOctetsUiPdu = 128;
         }
 
         /// <summary>
-        /// Maximum number of octets in a UI PDU.
+        ///Maximum number of octets in an ACn command PDU, N3.
         /// </summary>
         [XmlIgnore()]
-        public UInt16 MaximumOctetsUiPdu
+        public UInt16 MaximumOctetsACnPdu
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        ///Maximum number of times in transmissions N4.
+        /// </summary>
+        [XmlIgnore()]
+        public byte MaximumTransmissions
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Acknowledgement time, T1
+        /// </summary>
+        [XmlIgnore()]
+        public UInt16 AcknowledgementTime
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Receive lifetime variable, T2.
+        /// </summary>
+        [XmlIgnore()]
+        public UInt16 ReceiveLifetime
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Transmit lifetime variable, T3
+        /// </summary>
+        [XmlIgnore()]
+        public UInt16 TransmitLifetime
         {
             get;
             set;
@@ -87,7 +126,8 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, MaximumOctetsUiPdu };
+            return new object[] { LogicalName, MaximumOctetsACnPdu, MaximumTransmissions, AcknowledgementTime,
+           ReceiveLifetime, TransmitLifetime };
         }
 
         #region IGXDLMSBase Members
@@ -106,10 +146,30 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(1);
             }
-            //MaximumOctetsUiPdu
+            //MaximumOctetsACnPdu
             if (all || CanRead(2))
             {
                 attributes.Add(2);
+            }
+            //MaximumTransmissions
+            if (all || CanRead(3))
+            {
+                attributes.Add(3);
+            }
+            //AcknowledgementTime
+            if (all || CanRead(4))
+            {
+                attributes.Add(4);
+            }
+            //ReceiveLifetime
+            if (all || CanRead(5))
+            {
+                attributes.Add(5);
+            }
+            //TransmitLifetime
+            if (all || CanRead(6))
+            {
+                attributes.Add(6);
             }
             return attributes.ToArray();
         }
@@ -117,7 +177,8 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Internal.GXCommon.GetLogicalNameString(), "MaximumOctetsUiPdu" };
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "MaximumOctetsACnPdu", "MaximumTransmissions", "AcknowledgementTime",
+           "ReceiveLifetime", "TransmitLifetime"};
         }
 
         /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
@@ -128,7 +189,7 @@ namespace Gurux.DLMS.Objects
 
         int IGXDLMSBase.GetAttributeCount()
         {
-            return 2;
+            return 6;
         }
 
         int IGXDLMSBase.GetMethodCount()
@@ -144,6 +205,14 @@ namespace Gurux.DLMS.Objects
                 case 1:
                     return DataType.OctetString;
                 case 2:
+                case 3:
+                case 5:
+                    return DataType.UInt8;
+                case 4:
+                case 6:
+                case 7:
+                case 8:
+                case 9:
                     return DataType.UInt16;
                 default:
                     throw new ArgumentException("GetDataType failed. Invalid attribute index.");
@@ -152,17 +221,33 @@ namespace Gurux.DLMS.Objects
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
+            object ret;
             switch (e.Index)
             {
                 case 1:
-                    return GXCommon.LogicalNameToBytes(LogicalName);
+                    ret = GXCommon.LogicalNameToBytes(LogicalName);
+                    break;
                 case 2:
-                    return MaximumOctetsUiPdu;
+                    ret = MaximumOctetsACnPdu;
+                    break;
+                case 3:
+                    ret = MaximumTransmissions;
+                    break;
+                case 4:
+                    ret = AcknowledgementTime;
+                    break;
+                case 5:
+                    ret = ReceiveLifetime;
+                    break;
+                case 6:
+                    ret = TransmitLifetime;
+                    break;
                 default:
                     e.Error = ErrorCode.ReadWriteDenied;
+                    ret = null;
                     break;
             }
-            return null;
+            return ret;
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
@@ -173,7 +258,19 @@ namespace Gurux.DLMS.Objects
                     LogicalName = GXCommon.ToLogicalName(e.Value);
                     break;
                 case 2:
-                    MaximumOctetsUiPdu = Convert.ToUInt16(e.Value);
+                    MaximumOctetsACnPdu = Convert.ToUInt16(e.Value);
+                    break;
+                case 3:
+                    MaximumTransmissions = Convert.ToByte(e.Value);
+                    break;
+                case 4:
+                    AcknowledgementTime = Convert.ToUInt16(e.Value);
+                    break;
+                case 5:
+                    ReceiveLifetime = Convert.ToUInt16(e.Value);
+                    break;
+                case 6:
+                    TransmitLifetime = Convert.ToUInt16(e.Value);
                     break;
                 default:
                     e.Error = ErrorCode.ReadWriteDenied;
@@ -183,12 +280,20 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Load(GXXmlReader reader)
         {
-            MaximumOctetsUiPdu = (UInt16)reader.ReadElementContentAsInt("MaximumOctetsUiPdu");
+            MaximumOctetsACnPdu = (UInt16)reader.ReadElementContentAsInt("MaximumOctetsACnPdu");
+            MaximumTransmissions = (byte)reader.ReadElementContentAsInt("MaximumTransmissions");
+            AcknowledgementTime = (UInt16)reader.ReadElementContentAsInt("AcknowledgementTime");
+            ReceiveLifetime = (UInt16)reader.ReadElementContentAsInt("ReceiveLifetime");
+            TransmitLifetime = (UInt16)reader.ReadElementContentAsInt("TransmitLifetime");
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("MaximumOctetsUiPdu", MaximumOctetsUiPdu, 2);
+            writer.WriteElementString("MaximumOctetsACnPdu", MaximumOctetsACnPdu, 2);
+            writer.WriteElementString("MaximumTransmissions", MaximumTransmissions, 3);
+            writer.WriteElementString("AcknowledgementTime", AcknowledgementTime, 4);
+            writer.WriteElementString("ReceiveLifetime", ReceiveLifetime, 5);
+            writer.WriteElementString("TransmitLifetime", TransmitLifetime, 6);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

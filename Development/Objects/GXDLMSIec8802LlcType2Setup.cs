@@ -44,12 +44,12 @@ namespace Gurux.DLMS.Objects
     /// Online help:
     /// https://www.gurux.fi/Gurux.DLMS.Objects.GXIec8802LlcType2Setup
     /// </summary>
-    public class GXIec8802LlcType2Setup : GXDLMSObject, IGXDLMSBase
+    public class GXDLMSIec8802LlcType2Setup : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXIec8802LlcType2Setup()
+        public GXDLMSIec8802LlcType2Setup()
         : this("0.0.27.1.0.255", 0)
         {
         }
@@ -58,7 +58,7 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
-        public GXIec8802LlcType2Setup(string ln)
+        public GXDLMSIec8802LlcType2Setup(string ln)
         : this(ln, 0)
         {
         }
@@ -68,7 +68,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
         /// <param name="sn">Short Name of the object.</param>
-        public GXIec8802LlcType2Setup(string ln, ushort sn)
+        public GXDLMSIec8802LlcType2Setup(string ln, ushort sn)
         : base(ObjectType.Iec8802LlcType2Setup, ln, sn)
         {
             TransmitWindowSizeK = 1;
@@ -180,10 +180,45 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(1);
             }
-            //Value
+            //TransmitWindowSizeK
             if (all || CanRead(2))
             {
                 attributes.Add(2);
+            }
+            //TransmitWindowSizeRW
+            if (all || CanRead(3))
+            {
+                attributes.Add(3);
+            }
+            //MaximumOctetsPdu
+            if (all || CanRead(4))
+            {
+                attributes.Add(4);
+            }
+            //MaximumNumberTransmissions
+            if (all || CanRead(5))
+            {
+                attributes.Add(5);
+            }
+            //AcknowledgementTimer
+            if (all || CanRead(6))
+            {
+                attributes.Add(6);
+            }
+            //BitTimer
+            if (all || CanRead(7))
+            {
+                attributes.Add(7);
+            }
+            //RejectTimer
+            if (all || CanRead(8))
+            {
+                attributes.Add(8);
+            }
+            //BusyStateTimer
+            if (all || CanRead(9))
+            {
+                attributes.Add(9);
             }
             return attributes.ToArray();
         }
@@ -236,31 +271,42 @@ namespace Gurux.DLMS.Objects
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
+            object ret;
             switch (e.Index)
             {
                 case 1:
-                    return GXCommon.LogicalNameToBytes(LogicalName);
+                    ret = GXCommon.LogicalNameToBytes(LogicalName);
+                    break;
                 case 2:
-                    return TransmitWindowSizeK;
+                    ret = TransmitWindowSizeK;
+                    break;
                 case 3:
-                    return TransmitWindowSizeRW;
+                    ret = TransmitWindowSizeRW;
+                    break;
                 case 4:
-                    return MaximumOctetsPdu;
+                    ret = MaximumOctetsPdu;
+                    break;
                 case 5:
-                    return MaximumNumberTransmissions;
+                    ret = MaximumNumberTransmissions;
+                    break;
                 case 6:
-                    return AcknowledgementTimer;
+                    ret = AcknowledgementTimer;
+                    break;
                 case 7:
-                    return BitTimer;
+                    ret = BitTimer;
+                    break;
                 case 8:
-                    return RejectTimer;
+                    ret = RejectTimer;
+                    break;
                 case 9:
-                    return BusyStateTimer;
+                    ret = BusyStateTimer;
+                    break;
                 default:
                     e.Error = ErrorCode.ReadWriteDenied;
+                    ret = null;
                     break;
             }
-            return null;
+            return ret;
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)

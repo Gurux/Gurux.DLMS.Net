@@ -214,7 +214,7 @@ namespace Gurux.DLMS.Secure
         ///<param name="serialNumber">
         /// Meter serial number. Size of serial number is 5 bytes.
         ///</param>
-        public GXDLMSSecureServer(GXDLMSAssociationLogicalName ln, GXIec8802LlcType2Setup llc, string flagID, UInt64 serialNumber) :
+        public GXDLMSSecureServer(GXDLMSAssociationLogicalName ln, GXDLMSIec8802LlcType2Setup llc, string flagID, UInt64 serialNumber) :
             base(ln, llc)
         {
             if (flagID == null || flagID.Length != 3)
@@ -245,7 +245,7 @@ namespace Gurux.DLMS.Secure
         ///<param name="serialNumber">
         /// Meter serial number. Size of serial number is 5 bytes.
         ///</param>
-        public GXDLMSSecureServer(GXDLMSAssociationShortName sn, GXIec8802LlcType2Setup llc, string flagID, UInt64 serialNumber) :
+        public GXDLMSSecureServer(GXDLMSAssociationShortName sn, GXDLMSIec8802LlcType2Setup llc, string flagID, UInt64 serialNumber) :
             base(sn, llc)
         {
             if (flagID == null || flagID.Length != 3)

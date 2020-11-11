@@ -458,7 +458,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="sn">Short name settings.</param>
         /// <param name="llc">IEC 8802-2 LLC settings.</param>
-        public GXDLMSServer(GXDLMSAssociationShortName sn, GXIec8802LlcType2Setup llc) : this(false, InterfaceType.Plc)
+        public GXDLMSServer(GXDLMSAssociationShortName sn, GXDLMSIec8802LlcType2Setup llc) : this(false, InterfaceType.Plc)
         {
             Settings.Objects.Add(sn);
             Settings.Objects.Add(llc);
@@ -469,7 +469,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="sn">Short name settings.</param>
         /// <param name="llc">IEC 8802-2 LLC settings.</param>
-        public GXDLMSServer(GXDLMSAssociationLogicalName ln, GXIec8802LlcType2Setup llc) : this(true, InterfaceType.Plc)
+        public GXDLMSServer(GXDLMSAssociationLogicalName ln, GXDLMSIec8802LlcType2Setup llc) : this(true, InterfaceType.Plc)
         {
             Settings.Objects.Add(ln);
             Settings.Objects.Add(llc);
