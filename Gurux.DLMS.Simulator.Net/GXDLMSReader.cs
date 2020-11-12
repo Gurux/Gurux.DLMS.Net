@@ -62,7 +62,6 @@ namespace Gurux.DLMS.Reader
         IGXMedia Media;
         TraceLevel Trace;
         GXDLMSSecureClient Client;
-        bool UseOpticalHead;
         // Invocation counter (frame counter).
         string InvocationCounter = null;
 
@@ -74,13 +73,12 @@ namespace Gurux.DLMS.Reader
         /// <param name="trace">Trace level.</param>
         /// <param name="invocationCounter">Logical name of invocation counter.</param>
         /// <param name="iec">Is optical head used.</param>
-        public GXDLMSReader(GXDLMSSecureClient client, IGXMedia media, TraceLevel trace, string invocationCounter, bool useOpticalHead)
+        public GXDLMSReader(GXDLMSSecureClient client, IGXMedia media, TraceLevel trace, string invocationCounter)
         {
             Trace = trace;
             Media = media;
             Client = client;
             InvocationCounter = invocationCounter;
-            UseOpticalHead = useOpticalHead;
         }
 
         /// <summary>
@@ -293,7 +291,7 @@ namespace Gurux.DLMS.Reader
         /// </summary>
         void InitializeOpticalHead()
         {
-            if (!UseOpticalHead)
+            if (Client.InterfaceType != InterfaceType.HdlcWithModeE)
             {
                 return;
             }

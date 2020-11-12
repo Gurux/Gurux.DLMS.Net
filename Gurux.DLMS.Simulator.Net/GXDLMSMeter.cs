@@ -197,6 +197,7 @@ namespace Gurux.DLMS.Simulator.Net
 
         /// <summary>
         /// Generic read handle for all servers.
+        /// Update dynamic values here.
         /// </summary>
         /// <param name="server"></param>
         /// <param name="e"></param>
@@ -207,6 +208,11 @@ namespace Gurux.DLMS.Simulator.Net
                 if (Trace > TraceLevel.Warning)
                 {
                     System.Diagnostics.Debug.WriteLine("PreRead {0}:{1}", it.Target.LogicalName, it.Index);
+                }
+                //Update date-time of the clock object when client asks it.
+                if ((it.Target is GXDLMSClock c) && it.Index == 2)
+                {
+                    c.Time = c.Now();
                 }
             }
         }
@@ -344,7 +350,7 @@ namespace Gurux.DLMS.Simulator.Net
             bool ret = false;
             foreach (GXDLMSAssociationLogicalName it in Items.GetObjects(ObjectType.AssociationLogicalName))
             {
-                if (it.ClientSAP == clientAddress)
+                if (it.ClientSAP == clientAddress || it.ClientSAP == 0)
                 {
                     this.MaxReceivePDUSize = it.XDLMSContextInfo.MaxSendPduSize;
                     this.Conformance = it.XDLMSContextInfo.Conformance;
@@ -380,6 +386,10 @@ namespace Gurux.DLMS.Simulator.Net
                                     ret = true;
                                     break;
                                 }
+                            }
+                            if (ret)
+                            {
+                                break;
                             }
                         }
                     }
@@ -554,10 +564,6 @@ namespace Gurux.DLMS.Simulator.Net
             }
         }
 
-        /// <summary>
-        /// Generate random value for profile generic.
-        /// </summary>
-        /// <param name="args"></param>
         public override void PreGet(ValueEventArgs[] args)
         {
 

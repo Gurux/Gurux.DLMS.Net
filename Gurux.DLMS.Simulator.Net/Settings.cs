@@ -49,7 +49,6 @@ namespace Gurux.DLMS.Simulator.Net
     {
         // Invocation counter (frame counter).
         public string invocationCounter = null;
-        public bool iec = false;
         public GXDLMSSecureClient client = new GXDLMSSecureClient(true);
         public IGXMedia media = null;
         public TraceLevel trace = TraceLevel.Info;
@@ -66,14 +65,11 @@ namespace Gurux.DLMS.Simulator.Net
         {
             string[] tmp;
             GXNet net;
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:iIt:a:wP:g:S:C:n:v:o:T:A:B:D:d:l:F:r:x:N:Xx:");
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:wP:g:S:C:n:v:o:T:A:B:D:d:l:F:r:x:N:Xx:");
             foreach (GXCmdParameter it in parameters)
             {
                 switch (it.Tag)
                 {
-                    case 'w':
-                        settings.client.InterfaceType = InterfaceType.WRAPPER;
-                        break;
                     case 'r':
                         if (string.Compare(it.Value, "sn", true) == 0)
                         {
@@ -121,8 +117,14 @@ namespace Gurux.DLMS.Simulator.Net
                         settings.client.Password = ASCIIEncoding.ASCII.GetBytes(it.Value);
                         break;
                     case 'i':
-                        //IEC.
-                        settings.iec = true;
+                        try
+                        {
+                            settings.client.InterfaceType = (InterfaceType)Enum.Parse(typeof(InterfaceType), it.Value);
+                        }
+                        catch (Exception)
+                        {
+                            throw new ArgumentException("Invalid interface type option. (HDLC, WRAPPER, HdlcWithModeE, Plc, PlcHdlc)");
+                        }
                         break;
                     case 'I':
                         //AutoIncreaseInvokeID.
@@ -158,10 +160,20 @@ namespace Gurux.DLMS.Simulator.Net
                         }
                         else
                         {
-                            serial.BaudRate = 9600;
-                            serial.DataBits = 8;
-                            serial.Parity = Parity.None;
-                            serial.StopBits = StopBits.One;
+                            if (settings.client.InterfaceType == InterfaceType.HdlcWithModeE)
+                            {
+                                serial.BaudRate = 300;
+                                serial.DataBits = 7;
+                                serial.Parity = Parity.Even;
+                                serial.StopBits = StopBits.One;
+                            }
+                            else
+                            {
+                                serial.BaudRate = 9600;
+                                serial.DataBits = 8;
+                                serial.Parity = Parity.None;
+                                serial.StopBits = StopBits.One;
+                            }
                         }
                         break;
                     case 'a':
@@ -312,6 +324,16 @@ namespace Gurux.DLMS.Simulator.Net
                                 throw new ArgumentException("Missing mandatory frame counter option.");
                             case 'd':
                                 throw new ArgumentException("Missing mandatory DLMS standard option.");
+                            case 'K':
+                                throw new ArgumentException("Missing mandatory private key file option.");
+                            case 'k':
+                                throw new ArgumentException("Missing mandatory public key file option.");
+                            case 'l':
+                                throw new ArgumentException("Missing mandatory logical server address option.");
+                            case 'm':
+                                throw new ArgumentException("Missing mandatory MAC destination address option.");
+                            case 'i':
+                                throw new ArgumentException("Invalid interface type option. (HDLC, WRAPPER, HdlcWithModeE, Plc, PlcHdlc)");
                             default:
                                 ShowHelp();
                                 return 1;
@@ -337,7 +359,7 @@ namespace Gurux.DLMS.Simulator.Net
             Console.WriteLine(" -p Start port number. Default is 4060.");
             Console.WriteLine(" -N Amount of the TCP/IP servers. Default is 1.");
             Console.WriteLine(" -X All meters are using the same port.");
-            Console.WriteLine(" -w WRAPPER profile is used. HDLC is default.");
+            Console.WriteLine(" -i \t Used communication interface. Ex. -i WRAPPER.");
             Console.WriteLine(" -S Serial port.");
             Console.WriteLine(" -x input XML file.");
             Console.WriteLine(" -r [sn, sn]\t Short name or Logican Name (default) referencing is used.");
@@ -349,7 +371,7 @@ namespace Gurux.DLMS.Simulator.Net
             Console.WriteLine(" -h \t host name or IP address.");
             Console.WriteLine(" -p \t port number or name (Example: 1000).");
             Console.WriteLine(" -S [COM1:9600:8None1]\t serial port.");
-            Console.WriteLine(" -i IEC is a start protocol.");
+            Console.WriteLine(" -i \t Used communication interface. Ex. -i WRAPPER.");
             Console.WriteLine(" -a \t Authentication (None, Low, High).");
             Console.WriteLine(" -P \t Password for authentication.");
             Console.WriteLine(" -c \t Client address. (Default: 16)");
@@ -357,7 +379,6 @@ namespace Gurux.DLMS.Simulator.Net
             Console.WriteLine(" -n \t Server address as serial number.");
             Console.WriteLine(" -l \t Logical Server address.");
             Console.WriteLine(" -r [sn, ln]\t Short name or Logical Name (default) referencing is used.");
-            Console.WriteLine(" -w WRAPPER profile is used. HDLC is default.");
             Console.WriteLine(" -t [Error, Warning, Info, Verbose] Trace messages.");
             Console.WriteLine(" -g \"0.0.1.0.0.255:1; 0.0.1.0.0.255:2\" Get selected object(s) with given attribute index.");
             Console.WriteLine(" -C \t Security Level. (None, Authentication, Encrypted, AuthenticationEncryption)");

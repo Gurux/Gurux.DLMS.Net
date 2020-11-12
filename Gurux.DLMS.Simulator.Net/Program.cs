@@ -57,21 +57,6 @@ namespace Gurux.DLMS.Simulator.Net
                 //Initialise connection settings.
                 if (settings.media is GXSerial)
                 {
-                    GXSerial serial = settings.media as GXSerial;
-                    if (settings.iec)
-                    {
-                        serial.BaudRate = 300;
-                        serial.DataBits = 7;
-                        serial.Parity = System.IO.Ports.Parity.Even;
-                        serial.StopBits = System.IO.Ports.StopBits.One;
-                    }
-                    else
-                    {
-                        serial.BaudRate = 9600;
-                        serial.DataBits = 8;
-                        serial.Parity = System.IO.Ports.Parity.None;
-                        serial.StopBits = System.IO.Ports.StopBits.One;
-                    }
                 }
                 else if (settings.media is GXNet)
                 {
@@ -81,7 +66,7 @@ namespace Gurux.DLMS.Simulator.Net
                     throw new Exception("Unknown media type.");
                 }
                 ////////////////////////////////////////
-                reader = new Reader.GXDLMSReader(settings.client, settings.media, settings.trace, settings.invocationCounter, settings.iec);
+                reader = new Reader.GXDLMSReader(settings.client, settings.media, settings.trace, settings.invocationCounter);
                 settings.media.Open();
                 //Some meters need a break here.
                 Thread.Sleep(1000);
@@ -183,9 +168,17 @@ namespace Gurux.DLMS.Simulator.Net
                     }
                     if (pos == 0 && settings.client.UseLogicalNameReferencing)
                     {
+                        str = "Client address: " + settings.client.ClientAddress.ToString();
+                        str += ", Server address: " + settings.client.ServerAddress.ToString();
+                        Console.WriteLine(str);
                         Console.WriteLine("Associations:");
                         foreach (GXDLMSAssociationLogicalName it in server.Items.GetObjects(ObjectType.AssociationLogicalName))
                         {
+                            //Overwrite the password.
+                            if (settings.client.Password != null && settings.client.Password.Length != 0)
+                            {
+                                it.Secret = settings.client.Password;
+                            }
                             if (it.AuthenticationMechanismName.MechanismId == Authentication.None)
                             {
                                 Console.WriteLine("Without authentication.");
