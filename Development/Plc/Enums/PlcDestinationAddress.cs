@@ -32,31 +32,13 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-using Gurux.DLMS;
-using System.ComponentModel;
-using System.Xml.Serialization;
-using Gurux.DLMS.ManufacturerSettings;
-using Gurux.DLMS.Objects.Enums;
-using Gurux.DLMS.Enums;
-
-namespace Gurux.DLMS.Objects.Enums
+namespace Gurux.DLMS.Plc.Enums
 {
     /// <summary>
-    /// IEC Twisted pair setup working mode.
+    /// PLC Destination address enumerations.
     /// </summary>
-    public enum IecTwistedPairSetupMode
+    public enum PlcDestinationAddress
     {
-        /// <summary>
-        /// The interface ignores all received frames.
-        /// </summary>
-        Inactive = 0,
-
-        /// <summary>
-        /// Always active
-        /// </summary>
-        Active = 1
+        AllPhysical = 0xFFF
     }
 }

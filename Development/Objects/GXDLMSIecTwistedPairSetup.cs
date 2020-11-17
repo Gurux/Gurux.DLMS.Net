@@ -50,22 +50,16 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXDLMSIecTwistedPairSetup()
-        : base(ObjectType.IecTwistedPairSetup)
+        public GXDLMSIecTwistedPairSetup() : this("0.0.23.0.0.255", 0)
         {
-            PrimaryAddresses = new byte[0];
-            Tabis = new sbyte[0];
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="ln">Logical Name of the object.</param>
-        public GXDLMSIecTwistedPairSetup(string ln)
-        : base(ObjectType.IecTwistedPairSetup, ln, 0)
+        public GXDLMSIecTwistedPairSetup(string ln) : this(ln, 0)
         {
-            PrimaryAddresses = new byte[0];
-            Tabis = new sbyte[0];
         }
 
         /// <summary>
@@ -190,126 +184,131 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
         public override DataType GetDataType(int index)
         {
-            if (index == 1)
+            DataType ret;
+            switch (index)
             {
-                return DataType.OctetString;
+                case 1:
+                    ret = DataType.OctetString;
+                    break;
+                case 2:
+                case 3:
+                    ret = DataType.Enum;
+                    break;
+                case 4:
+                case 5:
+                    ret = DataType.Array;
+                    break;
+                default:
+                    throw new ArgumentException("GetDataType failed. Invalid attribute index.");
             }
-            if (index == 2)
-            {
-                return DataType.Enum;
-            }
-            if (index == 3)
-            {
-                return DataType.Enum;
-            }
-            if (index == 4)
-            {
-                return DataType.Array;
-            }
-            if (index == 5)
-            {
-                return DataType.Array;
-            }
-            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+            return ret;
         }
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            object ret;
+            switch (e.Index)
             {
-                return GXCommon.LogicalNameToBytes(LogicalName);
-            }
-            if (e.Index == 2)
-            {
-                return (byte)Mode;
-            }
-            if (e.Index == 3)
-            {
-                return (byte)Speed;
-            }
-            if (e.Index == 4)
-            {
-                GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((byte)DataType.Array);
-                if (PrimaryAddresses == null)
-                {
-                    data.SetUInt8(0);
-                }
-                else
-                {
-                    data.SetUInt8((byte)PrimaryAddresses.Length);
-                    foreach (byte it in PrimaryAddresses)
+                case 1:
+                    ret = GXCommon.LogicalNameToBytes(LogicalName);
+                    break;
+                case 2:
+                    ret = (byte)Mode;
+                    break;
+                case 3:
+                    ret = (byte)Speed;
+                    break;
+                case 4:
                     {
-                        data.SetUInt8((byte)DataType.UInt8);
-                        data.SetUInt8(it);
+                        GXByteBuffer data = new GXByteBuffer();
+                        data.SetUInt8((byte)DataType.Array);
+                        if (PrimaryAddresses == null)
+                        {
+                            data.SetUInt8(0);
+                        }
+                        else
+                        {
+                            data.SetUInt8((byte)PrimaryAddresses.Length);
+                            foreach (byte it in PrimaryAddresses)
+                            {
+                                data.SetUInt8((byte)DataType.UInt8);
+                                data.SetUInt8(it);
+                            }
+                        }
+                        ret = data.Array();
+                        break;
                     }
-                }
-                return data.Array();
-            }
-            if (e.Index == 5)
-            {
-                GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((byte)DataType.Array);
-                if (Tabis == null)
-                {
-                    data.SetUInt8(0);
-                }
-                else
-                {
-                    data.SetUInt8((byte)Tabis.Length);
-                    foreach (sbyte it in Tabis)
+                case 5:
                     {
-                        data.SetUInt8((byte)DataType.UInt8);
-                        data.SetUInt8((byte)it);
+                        GXByteBuffer data = new GXByteBuffer();
+                        data.SetUInt8((byte)DataType.Array);
+                        if (Tabis == null)
+                        {
+                            data.SetUInt8(0);
+                        }
+                        else
+                        {
+                            data.SetUInt8((byte)Tabis.Length);
+                            foreach (sbyte it in Tabis)
+                            {
+                                data.SetUInt8((byte)DataType.Int8);
+                                data.SetUInt8((byte)it);
+                            }
+                        }
+                        ret = data.Array();
+                        break;
                     }
-                }
-                return data.Array();
+
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    ret = null;
+                    break;
             }
-            e.Error = ErrorCode.ReadWriteDenied;
-            return null;
+            return ret;
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            switch (e.Index)
             {
-                LogicalName = GXCommon.ToLogicalName(e.Value);
-            }
-            else if (e.Index == 2)
-            {
-                Mode = (IecTwistedPairSetupMode)Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 3)
-            {
-                Speed = (BaudRate)Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 4)
-            {
-                GXByteBuffer list = new GXByteBuffer();
-                if (e.Value != null)
-                {
-                    foreach (object it in (List<object>)e.Value)
+                case 1:
+                    LogicalName = GXCommon.ToLogicalName(e.Value);
+                    break;
+                case 2:
+                    Mode = (IecTwistedPairSetupMode)Convert.ToByte(e.Value);
+                    break;
+                case 3:
+                    Speed = (BaudRate)Convert.ToByte(e.Value);
+                    break;
+                case 4:
                     {
-                        list.Add((byte)it);
+                        GXByteBuffer list = new GXByteBuffer();
+                        if (e.Value != null)
+                        {
+                            foreach (object it in (List<object>)e.Value)
+                            {
+                                list.Add((byte)it);
+                            }
+                        }
+                        PrimaryAddresses = list.Array();
+                        break;
                     }
-                }
-                PrimaryAddresses = list.Array();
-            }
-            else if (e.Index == 5)
-            {
-                List<sbyte> list = new List<sbyte>();
-                if (e.Value != null)
-                {
-                    foreach (object it in (List<object>)e.Value)
+                case 5:
                     {
-                        list.Add((sbyte)it);
+                        List<sbyte> list = new List<sbyte>();
+                        if (e.Value != null)
+                        {
+                            foreach (object it in (List<object>)e.Value)
+                            {
+                                list.Add((sbyte)it);
+                            }
+                        }
+                        Tabis = list.ToArray();
+                        break;
                     }
-                }
-                Tabis = list.ToArray();
-            }
-            else
-            {
-                e.Error = ErrorCode.ReadWriteDenied;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
             }
         }
 
@@ -320,19 +319,22 @@ namespace Gurux.DLMS.Objects
             PrimaryAddresses = GXDLMSTranslator.HexToBytes(reader.ReadElementContentAsString("PrimaryAddresses"));
             byte[] tmp = GXDLMSTranslator.HexToBytes(reader.ReadElementContentAsString("Tabis"));
             Tabis = new sbyte[tmp.Length];
-            Buffer.BlockCopy(tmp, 0, Tabis, 0, tmp.Length);
+            if (tmp.Length != 0)
+            {
+                Buffer.BlockCopy(tmp, 0, Tabis, 0, tmp.Length);
+            }
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
             writer.WriteElementString("Mode", (int)Mode, 2);
             writer.WriteElementString("Speed", (int)Speed, 3);
-            writer.WriteElementString("LN", GXDLMSTranslator.ToHex(PrimaryAddresses), 4);
+            writer.WriteElementString("PrimaryAddresses", GXDLMSTranslator.ToHex(PrimaryAddresses), 4);
             if (Tabis != null)
             {
                 byte[] tmp = new byte[Tabis.Length];
                 Buffer.BlockCopy(Tabis, 0, tmp, 0, Tabis.Length);
-                writer.WriteElementString("LN", GXDLMSTranslator.ToHex(tmp), 5);
+                writer.WriteElementString("Tabis", GXDLMSTranslator.ToHex(tmp), 5);
             }
         }
 

@@ -32,14 +32,16 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-
-namespace Gurux.DLMS.Internal
+namespace Gurux.DLMS.Plc.Enums
 {
     /// <summary>
-    /// PLC data link data commands.
+    /// PLC HDLC Source address enumerations.
     /// </summary>
-    public enum DataLinkData
+    public enum PlcHdlcSourceAddress
     {
-        Request = 0x90
+        /// <summary>
+        /// Initiator.
+        /// </summary>
+        Initiator = 0xC01,
     }
 }

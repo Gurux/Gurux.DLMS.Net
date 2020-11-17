@@ -33,120 +33,17 @@
 //---------------------------------------------------------------------------
 
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.Plc;
+using Gurux.DLMS.Plc.Enums;
 using System;
 using System.Collections.Generic;
 
 namespace Gurux.DLMS
 {
     /// <summary>
-    /// PLC Source address enumerations.
+    /// PLC communication settings.
     /// </summary>
-    public enum PlcSourceAddress
-    {
-        Initiator = 0xC00,
-        New = 0xFFE
-    }
-
-    /// <summary>
-    /// PLC HDLC Source address enumerations.
-    /// </summary>
-    public enum PlcHdlcSourceAddress
-    {
-        Initiator = 0xC01,
-    }
-
-    /// <summary>
-    /// PLC Destination address enumerations.
-    /// </summary>
-    public enum PlcDestinationAddress
-    {
-        AllPhysical = 0xFFF
-    }
-
-    /// <summary>
-    /// Number of MAC subframes.
-    /// </summary>
-    enum PlcMacSubframes
-    {
-        One = 0x6C6C,
-        Two = 0x3A3A,
-        Three = 0x5656,
-        Four = 0x7171,
-        Five = 0x1D1D,
-        Six = 0x4B4B,
-        Seven = 0x2727,
-    }
-
-    public class GXDLMSPlcRegister
-    {
-        public byte ResponseProbability
-        {
-            get;
-            set;
-        }
-        public UInt16 AllowedTimeSlots
-        {
-            get;
-            set;
-        }
-        public byte DiscoverReportInitialCredit
-        {
-            get;
-            set;
-        }
-        public byte ICEqualCredit
-        {
-            get;
-            set;
-        }
-    }
-
-
-    /// <summary>
-    /// Information from the discovered PLC meter.
-    /// </summary>
-    public class GXDLMSPlcMeterInfo
-    {
-        /// <summary>
-        /// Source Address.
-        /// </summary>
-        public UInt16 SourceAddress
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Destination Address.
-        /// </summary>
-        public UInt16 DestinationAddress
-        {
-            get;
-            set;
-        }
-        /// <summary>
-        /// System title
-        /// </summary>
-        public byte[] SystemTitle
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Alarm escriptor
-        /// </summary>
-        public byte AlarmDescriptor
-        {
-            get;
-            set;
-        }
-    }
-
-    /// <summary>
-    /// PLC settings.
-    /// </summary>
-    public class GXDLMSPlc
+    public class GXPlcSettings
     {
         byte[] _systemTitle;
         private GXDLMSSettings settings;
@@ -250,7 +147,7 @@ namespace Gurux.DLMS
             set;
         }
 
-        internal GXDLMSPlc(GXDLMSSettings s)
+        internal GXPlcSettings(GXDLMSSettings s)
         {
             settings = s;
             InitialCredit = 7;
@@ -292,7 +189,6 @@ namespace Gurux.DLMS
             {
                 AllowedTimeSlots = 0x14;
             }
-            settings = s;
         }
 
         /// <summary>

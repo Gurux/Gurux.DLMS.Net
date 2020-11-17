@@ -553,16 +553,28 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Information from the connection size that server can handle.
+        /// HDLC connection settings.
         /// </summary>
-        [Obsolete("Use Hdlc to set limits.")]
+        [Obsolete("Use HdlcSettings instead.")]
         public GXDLMSLimits Limits
         {
             get
             {
-                return Settings.Limits;
+                return (GXDLMSLimits)Settings.Hdlc;
             }
         }
+
+        /// <summary>
+        /// HDLC connection settings.
+        /// </summary>
+        public GXHdlcSettings HdlcSettings
+        {
+            get
+            {
+                return Settings.Hdlc;
+            }
+        }
+
 
         /// <summary>
         /// Standard says that Time zone is from normal time to UTC in minutes.
@@ -1181,7 +1193,7 @@ namespace Gurux.DLMS
         private byte[] HandleCommand(Command cmd, GXByteBuffer data, GXServerReply sr, Command cipheredCommand)
         {
             byte frame = 0;
-            if (GXDLMS.IsHdlc(Settings.InterfaceType) && replyData.Size != 0)
+            if (GXDLMS.UseHdlc(Settings.InterfaceType) && replyData.Size != 0)
             {
                 //Get next frame.
                 frame = Settings.NextSend(false);
@@ -1441,7 +1453,7 @@ namespace Gurux.DLMS
                 ret = GXAPDU.ParsePDU(Settings, Settings.Cipher, data, null);
                 if (ret is ExceptionServiceError e)
                 {
-                    if (GXDLMS.IsHdlc(Settings.InterfaceType))
+                    if (GXDLMS.UseHdlc(Settings.InterfaceType))
                     {
                         replyData.Set(GXCommon.LLCReplyBytes);
                     }
@@ -1564,7 +1576,7 @@ namespace Gurux.DLMS
                 // If High authentication is used.
                 Settings.StoCChallenge = GXSecure.GenerateChallenge(Settings.Authentication);
             }
-            if (GXDLMS.IsHdlc(Settings.InterfaceType))
+            if (GXDLMS.UseHdlc(Settings.InterfaceType))
             {
                 replyData.Set(GXCommon.LLCReplyBytes);
             }
@@ -1586,7 +1598,7 @@ namespace Gurux.DLMS
                               ServiceError.Service, (byte)Service.Unsupported));
                 return;
             }
-            if (GXDLMS.IsHdlc(Settings.InterfaceType))
+            if (GXDLMS.UseHdlc(Settings.InterfaceType))
             {
                 replyData.Set(0, GXCommon.LLCReplyBytes);
             }
@@ -1617,39 +1629,39 @@ namespace Gurux.DLMS
             if (Hdlc != null)
             {
                 //If client wants send larger HDLC frames what meter accepts.
-                if (Settings.Limits.MaxInfoTX > Hdlc.MaximumInfoLengthReceive)
+                if (Settings.Hdlc.MaxInfoTX > Hdlc.MaximumInfoLengthReceive)
                 {
-                    Settings.Limits.MaxInfoTX = (UInt16)Hdlc.MaximumInfoLengthReceive;
+                    Settings.Hdlc.MaxInfoTX = (UInt16)Hdlc.MaximumInfoLengthReceive;
                 }
                 //If client wants receive larger HDLC frames what meter accepts.
-                if (Settings.Limits.MaxInfoRX > Hdlc.MaximumInfoLengthTransmit)
+                if (Settings.Hdlc.MaxInfoRX > Hdlc.MaximumInfoLengthTransmit)
                 {
-                    Settings.Limits.MaxInfoRX = (UInt16)Hdlc.MaximumInfoLengthTransmit;
+                    Settings.Hdlc.MaxInfoRX = (UInt16)Hdlc.MaximumInfoLengthTransmit;
                 }
                 //If client asks higher window size what meter accepts.
-                if (Settings.Limits.WindowSizeTX > Hdlc.WindowSizeReceive)
+                if (Settings.Hdlc.WindowSizeTX > Hdlc.WindowSizeReceive)
                 {
-                    Settings.Limits.WindowSizeTX = (byte)Hdlc.WindowSizeReceive;
+                    Settings.Hdlc.WindowSizeTX = (byte)Hdlc.WindowSizeReceive;
                 }
                 //If client asks higher window size what meter accepts.
-                if (Settings.Limits.WindowSizeRX > Hdlc.WindowSizeTransmit)
+                if (Settings.Hdlc.WindowSizeRX > Hdlc.WindowSizeTransmit)
                 {
-                    Settings.Limits.WindowSizeRX = (byte)Hdlc.WindowSizeTransmit;
+                    Settings.Hdlc.WindowSizeRX = (byte)Hdlc.WindowSizeTransmit;
                 }
             }
             replyData.SetUInt8(0x81); // FromatID
             replyData.SetUInt8(0x80); // GroupID
             replyData.SetUInt8(0); // Length
             replyData.SetUInt8(HDLCInfo.MaxInfoTX);
-            GXDLMS.AppendHdlcParameter(replyData, Settings.Limits.MaxInfoTX);
+            GXDLMS.AppendHdlcParameter(replyData, Settings.Hdlc.MaxInfoTX);
             replyData.SetUInt8(HDLCInfo.MaxInfoRX);
-            GXDLMS.AppendHdlcParameter(replyData, Settings.Limits.MaxInfoRX);
+            GXDLMS.AppendHdlcParameter(replyData, Settings.Hdlc.MaxInfoRX);
             replyData.SetUInt8(HDLCInfo.WindowSizeTX);
             replyData.SetUInt8(4);
-            replyData.SetUInt32(Settings.Limits.WindowSizeTX);
+            replyData.SetUInt32(Settings.Hdlc.WindowSizeTX);
             replyData.SetUInt8(HDLCInfo.WindowSizeRX);
             replyData.SetUInt8(4);
-            replyData.SetUInt32(Settings.Limits.WindowSizeRX);
+            replyData.SetUInt32(Settings.Hdlc.WindowSizeRX);
             replyData.SetUInt8(2, (byte)(replyData.Size - 3));
         }
 
@@ -1674,18 +1686,18 @@ namespace Gurux.DLMS
             replyData.SetUInt8(0); // Length
 
             replyData.SetUInt8(HDLCInfo.MaxInfoTX);
-            GXDLMS.AppendHdlcParameter(replyData, Settings.Limits.MaxInfoTX);
+            GXDLMS.AppendHdlcParameter(replyData, Settings.Hdlc.MaxInfoTX);
 
             replyData.SetUInt8(HDLCInfo.MaxInfoRX);
-            GXDLMS.AppendHdlcParameter(replyData, Settings.Limits.MaxInfoRX);
+            GXDLMS.AppendHdlcParameter(replyData, Settings.Hdlc.MaxInfoRX);
 
             replyData.SetUInt8(HDLCInfo.WindowSizeTX);
             replyData.SetUInt8(4);
-            replyData.SetUInt32(Settings.Limits.WindowSizeTX);
+            replyData.SetUInt32(Settings.Hdlc.WindowSizeTX);
 
             replyData.SetUInt8(HDLCInfo.WindowSizeRX);
             replyData.SetUInt8(4);
-            replyData.SetUInt32(Settings.Limits.WindowSizeRX);
+            replyData.SetUInt32(Settings.Hdlc.WindowSizeRX);
 
             int len = replyData.Position - 3;
             replyData.SetUInt8(2, (byte)len); // Length.

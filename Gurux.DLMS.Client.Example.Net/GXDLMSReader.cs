@@ -364,17 +364,23 @@ namespace Gurux.DLMS.Reader
             }
             if (Trace > TraceLevel.Info)
             {
-                Console.WriteLine("HDLC received: " + p.Reply);
+                Console.WriteLine("IEC received: " + p.Reply);
             }
-            if (p.Reply[0] != '/')
+            int pos = 0;
+            //With some meters there might be some extra invalid chars. Remove them.
+            while (pos < p.Reply.Length && p.Reply[pos] != '/')
+            {
+                ++pos;
+            }
+            if (p.Reply[pos] != '/')
             {
                 p.WaitTime = 100;
                 Media.Receive(p);
                 DiscIEC();
                 throw new Exception("Invalid responce.");
             }
-            string manufactureID = p.Reply.Substring(1, 3);
-            char baudrate = p.Reply[4];
+            string manufactureID = p.Reply.Substring(1 + pos, 3);
+            char baudrate = p.Reply[4 + pos];
             int BaudRate = 0;
             switch (baudrate)
             {
@@ -633,11 +639,11 @@ namespace Gurux.DLMS.Reader
                 List<KeyValuePair<GXDLMSObject, int>> list = new List<KeyValuePair<GXDLMSObject, int>>();
                 foreach (GXDLMSObject it in objs)
                 {
-                    if (it is GXDLMSRegister || it is GXDLMSExtendedRegister)
+                    if ((it is GXDLMSRegister || it is GXDLMSExtendedRegister) && (it.GetAccess(3) & AccessMode.Read) != 0)
                     {
                         list.Add(new KeyValuePair<GXDLMSObject, int>(it, 3));
                     }
-                    if (it is GXDLMSDemandRegister)
+                    if (it is GXDLMSDemandRegister && (it.GetAccess(4) & AccessMode.Read) != 0)
                     {
                         list.Add(new KeyValuePair<GXDLMSObject, int>(it, 4));
                     }
@@ -661,12 +667,12 @@ namespace Gurux.DLMS.Reader
                 {
                     try
                     {
-                        if (it is GXDLMSRegister)
+                        if (it is GXDLMSRegister && (it.GetAccess(3) & AccessMode.Read) != 0)
                         {
                             Console.WriteLine(it.Name);
                             Read(it, 3);
                         }
-                        if (it is GXDLMSDemandRegister)
+                        if (it is GXDLMSDemandRegister && (it.GetAccess(4) & AccessMode.Read) != 0)
                         {
                             Console.WriteLine(it.Name);
                             Read(it, 4);
@@ -790,8 +796,16 @@ namespace Gurux.DLMS.Reader
                 {
                     Console.WriteLine("-------- Reading " + it.GetType().Name + " " + it.Name + " " + it.Description);
                 }
-                long entriesInUse = Convert.ToInt64(Read(it, 7));
-                long entries = Convert.ToInt64(Read(it, 8));
+                long entriesInUse = -1;
+                if ((it.GetAccess(7) & AccessMode.Read) != 0)
+                {
+                    entriesInUse = Convert.ToInt64(Read(it, 7));
+                }
+                long entries = -1;
+                if ((it.GetAccess(8) & AccessMode.Read) != 0)
+                {
+                    entries = Convert.ToInt64(Read(it, 8));
+                }
                 //If trace is info.
                 if (Trace > TraceLevel.Warning)
                 {
@@ -912,8 +926,11 @@ namespace Gurux.DLMS.Reader
                 {
                     try
                     {
-                        object val = Read(it, pos);
-                        ShowValue(val, pos);
+                        if ((it.GetAccess(pos) & AccessMode.Read) != 0)
+                        {
+                            object val = Read(it, pos);
+                            ShowValue(val, pos);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -1277,7 +1294,7 @@ namespace Gurux.DLMS.Reader
                         //Release is call only for secured connections.
                         //All meters are not supporting Release and it's causing problems.
                         if (Client.InterfaceType == InterfaceType.WRAPPER ||
-                            (Client.InterfaceType == InterfaceType.HDLC && Client.Ciphering.Security != (byte) Security.None))
+                            (Client.InterfaceType == InterfaceType.HDLC && Client.Ciphering.Security != (byte)Security.None))
                         {
                             ReadDataBlock(Client.ReleaseRequest(), reply);
                         }

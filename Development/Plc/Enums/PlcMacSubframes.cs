@@ -32,31 +32,19 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-using Gurux.DLMS;
-using System.ComponentModel;
-using System.Xml.Serialization;
-using Gurux.DLMS.ManufacturerSettings;
-using Gurux.DLMS.Objects.Enums;
-using Gurux.DLMS.Enums;
-
-namespace Gurux.DLMS.Objects.Enums
+namespace Gurux.DLMS.Plc.Enums
 {
     /// <summary>
-    /// IEC Twisted pair setup working mode.
+    ///  Sequence number of MAC sub frame.
     /// </summary>
-    public enum IecTwistedPairSetupMode
+    enum PlcMacSubframes
     {
-        /// <summary>
-        /// The interface ignores all received frames.
-        /// </summary>
-        Inactive = 0,
-
-        /// <summary>
-        /// Always active
-        /// </summary>
-        Active = 1
+        One = 0x6C6C,
+        Two = 0x3A3A,
+        Three = 0x5656,
+        Four = 0x7171,
+        Five = 0x1D1D,
+        Six = 0x4B4B,
+        Seven = 0x2727,
     }
 }

@@ -41,6 +41,7 @@ using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Secure;
 using Gurux.DLMS.Objects.Italy;
+using Gurux.DLMS.Plc.Enums;
 
 namespace Gurux.DLMS
 {
@@ -49,7 +50,7 @@ namespace Gurux.DLMS
     /// </summary>
     sealed class GXDLMS
     {
-        internal static bool IsHdlc(InterfaceType type)
+        internal static bool UseHdlc(InterfaceType type)
         {
             return type == InterfaceType.HDLC ||
                 type == InterfaceType.HdlcWithModeE ||
@@ -1106,7 +1107,7 @@ namespace Gurux.DLMS
                     }
                 }
             }
-            if (IsHdlc(p.settings.InterfaceType))
+            if (UseHdlc(p.settings.InterfaceType))
             {
                 AddLLCBytes(p.settings, reply);
             }
@@ -1264,7 +1265,7 @@ namespace Gurux.DLMS
             if (ciphering)
             {
                 maxSize -= CipheringHeaderSize;
-                if (IsHdlc(p.settings.InterfaceType))
+                if (UseHdlc(p.settings.InterfaceType))
                 {
                     maxSize -= 3;
                 }
@@ -1305,7 +1306,7 @@ namespace Gurux.DLMS
         internal static void GetSNPdu(GXDLMSSNParameters p, GXByteBuffer reply)
         {
             bool ciphering = p.command != Command.Aarq && p.command != Command.Aare && p.settings.Cipher != null && p.settings.Cipher.Security != (byte)Security.None;
-            if (!ciphering && IsHdlc(p.settings.InterfaceType))
+            if (!ciphering && UseHdlc(p.settings.InterfaceType))
             {
                 if (p.settings.IsServer)
                 {
@@ -1380,7 +1381,7 @@ namespace Gurux.DLMS
                     {
                         //Remove command.
                         reply.Size = 0;
-                        if (!ciphering && IsHdlc(p.settings.InterfaceType))
+                        if (!ciphering && UseHdlc(p.settings.InterfaceType))
                         {
                             if (p.settings.IsServer)
                             {
@@ -1441,7 +1442,7 @@ namespace Gurux.DLMS
                 byte[] tmp = GXCiphering.Encrypt(s, reply.Array());
                 System.Diagnostics.Debug.Assert(!(p.settings.MaxPduSize < tmp.Length));
                 reply.Size = 0;
-                if (IsHdlc(p.settings.InterfaceType))
+                if (UseHdlc(p.settings.InterfaceType))
                 {
                     if (p.settings.IsServer)
                     {
@@ -1599,9 +1600,9 @@ namespace Gurux.DLMS
             }
             // Add BOP
             bb.SetUInt8(GXCommon.HDLCFrameStartEnd);
-            frameSize = Convert.ToInt32(settings.Limits.MaxInfoTX);
+            frameSize = Convert.ToInt32(settings.Hdlc.MaxInfoTX);
             //Remove BOP, type, len, primaryAddress, secondaryAddress, frame, header CRC, data CRC and EOP from data length.
-            if (settings.Limits.UseFrameSize)
+            if (settings.Hdlc.UseFrameSize)
             {
                 frameSize -= (10 + len);
             }
@@ -1732,7 +1733,7 @@ namespace Gurux.DLMS
             bb.SetUInt16((UInt16)val);
             bb.SetUInt8((byte)padLen);
             //Control byte.
-            bb.SetUInt8(DataLinkData.Request);
+            bb.SetUInt8(PlcDataLinkData.Request);
             bb.SetUInt8((byte)settings.ServerAddress);
             bb.SetUInt8((byte)settings.ClientAddress);
             bb.Set(data, frameSize);
@@ -1771,9 +1772,9 @@ namespace Gurux.DLMS
         /// <returns>MAC frame.</returns>
         internal static byte[] GetMacHdlcFrame(GXDLMSSettings settings, byte frame, byte creditFields, GXByteBuffer data)
         {
-            if (settings.Limits.MaxInfoTX > 126)
+            if (settings.Hdlc.MaxInfoTX > 126)
             {
-                settings.Limits.MaxInfoTX = 86;
+                settings.Hdlc.MaxInfoTX = 86;
             }
             GXByteBuffer bb = new GXByteBuffer();
             //Lenght is updated last.
@@ -2497,7 +2498,7 @@ namespace Gurux.DLMS
                 {
                     //DL.Data.request
                     byte ch = buff.GetUInt8();
-                    if (ch != (int)DataLinkData.Request)
+                    if (ch != (int)PlcDataLinkData.Request)
                     {
                         throw new Exception("Parsing MAC LLC data failed. Invalid DataLink data request.");
                     }
@@ -4458,7 +4459,7 @@ namespace Gurux.DLMS
             }
             if (settings.InterfaceType != InterfaceType.PlcHdlc)
             {
-                GetDataFromFrame(reply, data, IsHdlc(settings.InterfaceType));
+                GetDataFromFrame(reply, data, UseHdlc(settings.InterfaceType));
             }
             // If keepalive or get next frame request.
             if (data.Xml != null || ((frame != 0x13 || data.IsMoreData) && (frame & 0x1) != 0))
@@ -4696,10 +4697,10 @@ namespace Gurux.DLMS
             //If default settings are used.
             if (data.Size == 0)
             {
-                settings.Limits.MaxInfoRX = GXDLMSLimitsDefault.DefaultMaxInfoRX;
-                settings.Limits.MaxInfoTX = GXDLMSLimitsDefault.DefaultMaxInfoTX;
-                settings.Limits.WindowSizeRX = GXDLMSLimitsDefault.DefaultWindowSizeRX;
-                settings.Limits.WindowSizeTX = GXDLMSLimitsDefault.DefaultWindowSizeTX;
+                settings.Hdlc.MaxInfoRX = GXDLMSLimitsDefault.DefaultMaxInfoRX;
+                settings.Hdlc.MaxInfoTX = GXDLMSLimitsDefault.DefaultMaxInfoTX;
+                settings.Hdlc.WindowSizeRX = GXDLMSLimitsDefault.DefaultWindowSizeRX;
+                settings.Hdlc.WindowSizeTX = GXDLMSLimitsDefault.DefaultWindowSizeTX;
                 return;
             }
             data.GetUInt8(); // Skip FromatID
@@ -4729,22 +4730,22 @@ namespace Gurux.DLMS
                 switch (id)
                 {
                     case HDLCInfo.MaxInfoTX:
-                        settings.Limits.MaxInfoRX = Convert.ToUInt16(val);
+                        settings.Hdlc.MaxInfoRX = Convert.ToUInt16(val);
                         break;
                     case HDLCInfo.MaxInfoRX:
-                        settings.Limits.MaxInfoTX = Convert.ToUInt16(val);
-                        if (settings.Limits.UseFrameSize)
+                        settings.Hdlc.MaxInfoTX = Convert.ToUInt16(val);
+                        if (settings.Hdlc.UseFrameSize)
                         {
                             byte[] secondaryAddress;
                             secondaryAddress = GXDLMS.GetHdlcAddressBytes(settings.ClientAddress, 0);
-                            settings.Limits.MaxInfoTX += (UInt16)(10 + secondaryAddress.Length);
+                            settings.Hdlc.MaxInfoTX += (UInt16)(10 + secondaryAddress.Length);
                         }
                         break;
                     case HDLCInfo.WindowSizeTX:
-                        settings.Limits.WindowSizeRX = Convert.ToByte(val);
+                        settings.Hdlc.WindowSizeRX = Convert.ToByte(val);
                         break;
                     case HDLCInfo.WindowSizeRX:
-                        settings.Limits.WindowSizeTX = Convert.ToByte(val);
+                        settings.Hdlc.WindowSizeTX = Convert.ToByte(val);
                         break;
                     default:
                         throw new GXDLMSException("Invalid UA response.");

@@ -278,7 +278,7 @@ namespace Gurux.DLMS
             MaxServerPDUSize = MaxPduSize = DefaultMaxReceivePduSize;
             IsServer = server;
             Objects = new GXDLMSObjectCollection();
-            Limits = new GXDLMSLimits(this);
+            Hdlc = new GXDLMSLimits(this);
             Gateway = null;
             ProposedConformance = GXDLMSClient.GetInitialConformance(false);
             if (server)
@@ -289,7 +289,7 @@ namespace Gurux.DLMS
             WindowSize = 1;
             UserId = -1;
             Standard = Standard.DLMS;
-            Plc = new GXDLMSPlc(this);
+            Plc = new GXPlcSettings(this);
         }
 
         /// <summary>
@@ -336,10 +336,10 @@ namespace Gurux.DLMS
             target.WindowSize = WindowSize;
             target.Objects.Clear();
             target.Objects.AddRange(Objects);
-            target.Limits.MaxInfoRX = Limits.MaxInfoRX;
-            target.Limits.MaxInfoTX = Limits.MaxInfoTX;
-            target.Limits.WindowSizeRX = Limits.WindowSizeRX;
-            target.Limits.WindowSizeTX = Limits.WindowSizeTX;
+            target.Hdlc.MaxInfoRX = Hdlc.MaxInfoRX;
+            target.Hdlc.MaxInfoTX = Hdlc.MaxInfoTX;
+            target.Hdlc.WindowSizeRX = Hdlc.WindowSizeRX;
+            target.Hdlc.WindowSizeTX = Hdlc.WindowSizeTX;
             if (Gateway != null)
             {
                 target.Gateway = new GXDLMSGateway();
@@ -589,9 +589,9 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Information from the frame size that server can handle.
+        /// HDLC framing settings.
         /// </summary>
-        public GXDLMSLimits Limits
+        public GXHdlcSettings Hdlc
         {
             get;
             internal set;
@@ -609,7 +609,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// PLC settings.
         /// </summary>
-        public GXDLMSPlc Plc
+        public GXPlcSettings Plc
         {
             get;
             internal set;

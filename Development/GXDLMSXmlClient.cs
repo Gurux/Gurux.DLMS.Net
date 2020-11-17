@@ -565,17 +565,17 @@ namespace Gurux.DLMS
                             byte[] reply = translator.XmlToPdu(node.OuterXml, s);
                             if (s.command == Command.Snrm && !s.settings.IsServer)
                             {
-                                Settings.Limits.MaxInfoTX = s.settings.Limits.MaxInfoTX;
-                                Settings.Limits.MaxInfoRX = s.settings.Limits.MaxInfoRX;
-                                Settings.Limits.WindowSizeRX = s.settings.Limits.WindowSizeRX;
-                                Settings.Limits.WindowSizeTX = s.settings.Limits.WindowSizeTX;
+                                Settings.Hdlc.MaxInfoTX = s.settings.Hdlc.MaxInfoTX;
+                                Settings.Hdlc.MaxInfoRX = s.settings.Hdlc.MaxInfoRX;
+                                Settings.Hdlc.WindowSizeRX = s.settings.Hdlc.WindowSizeRX;
+                                Settings.Hdlc.WindowSizeTX = s.settings.Hdlc.WindowSizeTX;
                             }
                             else if (s.command == Command.Ua && s.settings.IsServer)
                             {
-                                Settings.Limits.MaxInfoTX = s.settings.Limits.MaxInfoTX;
-                                Settings.Limits.MaxInfoRX = s.settings.Limits.MaxInfoRX;
-                                Settings.Limits.WindowSizeRX = s.settings.Limits.WindowSizeRX;
-                                Settings.Limits.WindowSizeTX = s.settings.Limits.WindowSizeTX;
+                                Settings.Hdlc.MaxInfoTX = s.settings.Hdlc.MaxInfoTX;
+                                Settings.Hdlc.MaxInfoRX = s.settings.Hdlc.MaxInfoRX;
+                                Settings.Hdlc.WindowSizeRX = s.settings.Hdlc.WindowSizeRX;
+                                Settings.Hdlc.WindowSizeTX = s.settings.Hdlc.WindowSizeTX;
                             }
                             if (s.template)
                             {
@@ -665,7 +665,7 @@ namespace Gurux.DLMS
                     {
                         messages.Add(GXDLMS.GetWrapperFrame(Settings, pdu.Command, reply));
                     }
-                    else if (GXDLMS.IsHdlc(Settings.InterfaceType))
+                    else if (GXDLMS.UseHdlc(Settings.InterfaceType))
                     {
                         if (pdu.Command == Command.Aarq)
                         {

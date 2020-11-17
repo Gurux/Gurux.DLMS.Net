@@ -51,7 +51,6 @@ namespace Gurux.DLMS.Client.Example
     {
         static int Main(string[] args)
         {
-
             Settings settings = new Settings();
             Reader.GXDLMSReader reader = null;
             try

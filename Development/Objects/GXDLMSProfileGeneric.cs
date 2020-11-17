@@ -988,9 +988,16 @@ namespace Gurux.DLMS.Objects
                                     row[pos] = new GXDateTime(lastDate);
                                 }
                             }
-                            else if (type == DataType.DateTime && row[pos] is UInt32)
+                            else if (type == DataType.DateTime)
                             {
-                                row[pos] = GXDateTime.FromUnixTime(((UInt32)row[pos]));
+                                if (row[pos] is UInt32)
+                                {
+                                    row[pos] = GXDateTime.FromUnixTime(((UInt32)row[pos]));
+                                }
+                                else if (row[pos] is UInt64)
+                                {
+                                    row[pos] = GXDateTime.FromHighResolutionTime(((UInt64)row[pos]));
+                                }
                             }
 
                             if (cols[pos].Key is GXDLMSRegister && index2 == 2)

@@ -668,20 +668,32 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Information from the connection size that server can handle.
+        /// HDLC connection settings.
         /// </summary>
+        [Obsolete("Use HdlcSettings instead.")]
         public GXDLMSLimits Limits
         {
             get
             {
-                return Settings.Limits;
+                return (GXDLMSLimits)Settings.Hdlc;
+            }
+        }
+
+        /// <summary>
+        /// HDLC connection settings.
+        /// </summary>
+        public GXHdlcSettings HdlcSettings
+        {
+            get
+            {
+                return Settings.Hdlc;
             }
         }
 
         /// <summary>
         /// Information from the connection size that server can handle.
         /// </summary>
-        public GXDLMSPlc Plc
+        public GXPlcSettings Plc
         {
             get
             {
@@ -775,8 +787,8 @@ namespace Gurux.DLMS
             data.SetUInt8(0x81); // FromatID
             data.SetUInt8(0x80); // GroupID
             data.SetUInt8(0); // Length.
-            int maxInfoTX = Limits.MaxInfoTX, maxInfoRX = Limits.MaxInfoRX;
-            if (Limits.UseFrameSize)
+            int maxInfoTX = HdlcSettings.MaxInfoTX, maxInfoRX = HdlcSettings.MaxInfoRX;
+            if (HdlcSettings.UseFrameSize)
             {
                 byte[] primaryAddress, secondaryAddress;
                 primaryAddress = GXDLMS.GetHdlcAddressBytes(Settings.ServerAddress, Settings.ServerAddressSize);
@@ -790,8 +802,8 @@ namespace Gurux.DLMS
                 (forceParameters ||
                 GXDLMSLimitsDefault.DefaultMaxInfoTX != maxInfoTX ||
                 GXDLMSLimitsDefault.DefaultMaxInfoRX != maxInfoRX ||
-                GXDLMSLimitsDefault.DefaultWindowSizeTX != Limits.WindowSizeTX ||
-                GXDLMSLimitsDefault.DefaultWindowSizeRX != Limits.WindowSizeRX))
+                GXDLMSLimitsDefault.DefaultWindowSizeTX != HdlcSettings.WindowSizeTX ||
+                GXDLMSLimitsDefault.DefaultWindowSizeRX != HdlcSettings.WindowSizeRX))
             {
                 data.SetUInt8((byte)HDLCInfo.MaxInfoTX);
                 GXDLMS.AppendHdlcParameter(data, (UInt16)maxInfoTX);
@@ -799,10 +811,10 @@ namespace Gurux.DLMS
                 GXDLMS.AppendHdlcParameter(data, (UInt16)maxInfoRX);
                 data.SetUInt8((byte)HDLCInfo.WindowSizeTX);
                 data.SetUInt8(4);
-                data.SetUInt32(Limits.WindowSizeTX);
+                data.SetUInt32(HdlcSettings.WindowSizeTX);
                 data.SetUInt8((byte)HDLCInfo.WindowSizeRX);
                 data.SetUInt8(4);
-                data.SetUInt32(Limits.WindowSizeRX);
+                data.SetUInt32(HdlcSettings.WindowSizeRX);
             }
             // If default HDLC parameters are not used.
             if (data.Size != 3)
@@ -1137,7 +1149,7 @@ namespace Gurux.DLMS
                 return null;
             }
             byte[] ret = null;
-            if (GXDLMS.IsHdlc(Settings.InterfaceType))
+            if (GXDLMS.UseHdlc(Settings.InterfaceType))
             {
                 if (Settings.InterfaceType == InterfaceType.PlcHdlc)
                 {
@@ -2454,6 +2466,22 @@ namespace Gurux.DLMS
             return ReadRowsByRange(pg, new GXDateTime(start), new GXDateTime(end), columns);
         }
 
+        private enum ClockType
+        {
+            /// <summary>
+            /// Normal clock object.
+            /// </summary>
+            Clock,
+            /// <summary>
+            /// Unix time.
+            /// </summary>
+            Unix,
+            /// <summary>
+            /// Time in ms.
+            /// </summary>
+            HighResolution
+        };
+
         /// <summary>
         /// Read rows by range.
         /// </summary>
@@ -2470,6 +2498,7 @@ namespace Gurux.DLMS
         public byte[][] ReadRowsByRange(GXDLMSProfileGeneric pg, GXDateTime start, GXDateTime end,
                                         List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns)
         {
+
             if (pg.CaptureObjects.Count == 0)
             {
                 throw new Exception("Capture objects not read.");
@@ -2483,13 +2512,19 @@ namespace Gurux.DLMS
             }
             string ln = "0.0.1.0.0.255";
             ObjectType type = ObjectType.Clock;
-            bool unixTime = false;
+            ClockType clockType = ClockType.Clock;
             //If Unix time is used.
-            if (sort is GXDLMSData &&
-                sort.LogicalName == "0.0.1.1.0.255")
+            if (sort is GXDLMSData && sort.LogicalName == "0.0.1.1.0.255")
             {
-                unixTime = true;
+                clockType = ClockType.Unix;
                 ln = "0.0.1.1.0.255";
+                type = ObjectType.Data;
+            }
+            //If high resolution time is used.
+            else if (sort is GXDLMSData && sort.LogicalName == "0.0.1.2.0.255")
+            {
+                clockType = ClockType.HighResolution;
+                ln = "0.0.1.2.0.255";
                 type = ObjectType.Data;
             }
             GXByteBuffer buff = new GXByteBuffer(51);
@@ -2512,19 +2547,26 @@ namespace Gurux.DLMS
             GXCommon.SetData(Settings, buff, DataType.Int8, 2);
             // Add data index.
             GXCommon.SetData(Settings, buff, DataType.UInt16, 0);
-            if (unixTime)
+            if (clockType == ClockType.Clock)
+            {
+                // Add start time.
+                GXCommon.SetData(Settings, buff, DataType.OctetString, start);
+                // Add end time.
+                GXCommon.SetData(Settings, buff, DataType.OctetString, end);
+            }
+            else if (clockType == ClockType.Unix)
             {
                 // Add start time.
                 GXCommon.SetData(Settings, buff, DataType.UInt32, GXDateTime.ToUnixTime(start));
                 // Add end time.
                 GXCommon.SetData(Settings, buff, DataType.UInt32, GXDateTime.ToUnixTime(end));
             }
-            else
+            else if (clockType == ClockType.HighResolution)
             {
                 // Add start time.
-                GXCommon.SetData(Settings, buff, DataType.OctetString, start);
+                GXCommon.SetData(Settings, buff, DataType.UInt64, GXDateTime.ToHighResolutionTime(start));
                 // Add end time.
-                GXCommon.SetData(Settings, buff, DataType.OctetString, end);
+                GXCommon.SetData(Settings, buff, DataType.UInt64, GXDateTime.ToHighResolutionTime(end));
             }
 
             // Add array of read columns.
@@ -2952,7 +2994,7 @@ namespace Gurux.DLMS
         /// </remarks>
         public byte[] CustomHdlcFrameRequest(byte command, GXByteBuffer data)
         {
-            if (!GXDLMS.IsHdlc(Settings.InterfaceType))
+            if (!GXDLMS.UseHdlc(Settings.InterfaceType))
             {
                 throw new Exception("This method can be used only to generate HDLC custom frames");
             }
@@ -2970,7 +3012,7 @@ namespace Gurux.DLMS
         /// </remarks>
         public byte[][] CustomFrameRequest(Command command, GXByteBuffer data)
         {
-            if (GXDLMS.IsHdlc(Settings.InterfaceType) ||
+            if (GXDLMS.UseHdlc(Settings.InterfaceType) ||
                 Settings.InterfaceType == InterfaceType.WRAPPER)
             {
                 byte[][] reply;
@@ -2981,7 +3023,7 @@ namespace Gurux.DLMS
                     {
                         messages.Add(GXDLMS.GetWrapperFrame(Settings, command, data));
                     }
-                    else if (GXDLMS.IsHdlc(Settings.InterfaceType))
+                    else if (GXDLMS.UseHdlc(Settings.InterfaceType))
                     {
                         messages.Add(GXDLMS.GetHdlcFrame(Settings, (byte)command, data));
                     }

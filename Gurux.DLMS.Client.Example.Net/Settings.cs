@@ -65,15 +65,12 @@ namespace Gurux.DLMS.Client.Example
         public static int GetParameters(string[] args, Settings settings)
         {
             string[] tmp;
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:wP:g:S:C:n:v:o:T:A:B:D:d:l:F:K:k:m:");
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:P:g:S:C:n:v:o:T:A:B:D:d:l:F:K:k:m:");
             GXNet net = null;
             foreach (GXCmdParameter it in parameters)
             {
                 switch (it.Tag)
                 {
-                    case 'w':
-                        settings.client.InterfaceType = InterfaceType.WRAPPER;
-                        break;
                     case 'r':
                         if (string.Compare(it.Value, "sn", true) == 0)
                         {

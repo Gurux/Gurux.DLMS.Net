@@ -1153,8 +1153,22 @@ namespace Gurux.DLMS
         /// <returns>Date and time.</returns>
         public static GXDateTime FromUnixTime(long unixTime)
         {
-            DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 1, DateTimeKind.Utc);
+            DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             return new GXDateTime(epoch.AddSeconds(unixTime).ToLocalTime());
+        }
+
+        /// <summary>
+        /// Get date time from high resolution clock time.
+        /// </summary>
+        /// <remarks>
+        /// High resolution clock time is ms since 1970-01-01 00:00:00.
+        /// </remarks>
+        /// <param name="highResolution">High resolution clock time.</param>
+        /// <returns>Date and time.</returns>
+        public static GXDateTime FromHighResolutionTime(UInt64 highResolution)
+        {
+            DateTime high = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            return new GXDateTime(high.AddMilliseconds(highResolution).ToLocalTime());
         }
 
         /// <summary>
@@ -1172,7 +1186,7 @@ namespace Gurux.DLMS
             {
                 return 0xFFFFFFFF;
             }
-            DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 1, DateTimeKind.Utc);
+            DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             return Convert.ToInt64((date.ToUniversalTime() - epoch).TotalSeconds);
         }
 
@@ -1185,6 +1199,36 @@ namespace Gurux.DLMS
         {
             return ToUnixTime(date.Value.DateTime);
         }
+
+        /// <summary>
+        /// Convert date time to high resolution time.
+        /// </summary>
+        /// <param name="date">Date and time.</param>
+        /// <returns>High resolution time.</returns>
+        public static UInt64 ToHighResolutionTime(DateTime date)
+        {
+            if (date == DateTime.MinValue)
+            {
+                return 0;
+            }
+            if (date == DateTime.MaxValue)
+            {
+                return UInt64.MaxValue;
+            }
+            DateTime high = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            return (UInt64) Convert.ToInt64((date.ToUniversalTime() - high).TotalMilliseconds);
+        }
+
+        /// <summary>
+        /// Convert date time to high resolution time.
+        /// </summary>
+        /// <param name="date">Date and time.</param>
+        /// <returns>High resolution time.</returns>
+        public static UInt64 ToHighResolutionTime(GXDateTime date)
+        {
+            return ToHighResolutionTime(date.Value.DateTime);
+        }
+
 
         /// <summary>
         /// Get date time as hex string.

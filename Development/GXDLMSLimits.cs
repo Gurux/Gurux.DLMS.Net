@@ -41,104 +41,11 @@ namespace Gurux.DLMS
     /// GXDLMSLimits contains commands for retrieving and setting the limits of
     /// field length and window size, when communicating with the server.
     /// </summary>
-    public class GXDLMSLimits
+    [Obsolete("Use GXHdlcSettings instead.")]
+    public class GXDLMSLimits : GXHdlcSettings
     {
-        private GXDLMSSettings settings;
-
-        internal GXDLMSLimits(GXDLMSSettings s)
+        internal GXDLMSLimits(GXDLMSSettings s) : base(s)
         {
-            settings = s;
-            MaxInfoRX = GXDLMSLimitsDefault.DefaultMaxInfoRX;
-            MaxInfoTX = GXDLMSLimitsDefault.DefaultMaxInfoTX;
-            WindowSizeRX = GXDLMSLimitsDefault.DefaultWindowSizeRX;
-            WindowSizeTX = GXDLMSLimitsDefault.DefaultWindowSizeTX;
-        }
-
-        /// <summary>
-        /// Is Max Info TX and RX count for frame size or PDU size.
-        /// </summary>
-        public bool UseFrameSize
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// The maximum information field length in transmit.
-        /// </summary>
-        /// <remarks>
-        /// DefaultValue is 128. Minimum value is 32 and max value is 128.
-        /// </remarks>
-        public UInt16 MaxInfoTX
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// The maximum information field length in receive.
-        /// </summary>
-        /// <remarks>
-        /// DefaultValue is 128. Minimum value is 32 and max value is 128.
-        /// </remarks>
-        public UInt16 MaxInfoRX
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// The window size in transmit.
-        /// </summary>
-        /// <remarks>
-        /// DefaultValue is 1.
-        /// </remarks>
-        public byte WindowSizeTX
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// The window size in receive.
-        /// </summary>
-        /// <remarks>
-        /// DefaultValue is 1.
-        /// </remarks>
-        public byte WindowSizeRX
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        ///  HDLC sender frame sequence number.
-        /// </summary>
-        public byte SenderFrame
-        {
-            get
-            {
-                return settings.SenderFrame;
-            }
-            set
-            {
-                settings.SenderFrame = value;
-            }
-        }
-
-        /// <summary>
-        /// HDLC receiver frame sequence number.
-        /// </summary>
-        public byte ReceiverFrame
-        {
-            get
-            {
-                return settings.ReceiverFrame;
-            }
-            set
-            {
-                settings.ReceiverFrame = value;
-            }
         }
     }
 }

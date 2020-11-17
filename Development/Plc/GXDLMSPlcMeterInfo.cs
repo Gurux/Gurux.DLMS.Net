@@ -33,30 +33,47 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using Gurux.DLMS;
-using System.ComponentModel;
-using System.Xml.Serialization;
-using Gurux.DLMS.ManufacturerSettings;
-using Gurux.DLMS.Objects.Enums;
-using Gurux.DLMS.Enums;
 
-namespace Gurux.DLMS.Objects.Enums
+namespace Gurux.DLMS.Plc
 {
     /// <summary>
-    /// IEC Twisted pair setup working mode.
+    /// Information from the discovered PLC meter.
     /// </summary>
-    public enum IecTwistedPairSetupMode
+    public class GXDLMSPlcMeterInfo
     {
         /// <summary>
-        /// The interface ignores all received frames.
+        /// Source Address.
         /// </summary>
-        Inactive = 0,
+        public UInt16 SourceAddress
+        {
+            get;
+            set;
+        }
 
         /// <summary>
-        /// Always active
+        /// Destination Address.
         /// </summary>
-        Active = 1
+        public UInt16 DestinationAddress
+        {
+            get;
+            set;
+        }
+        /// <summary>
+        /// System title
+        /// </summary>
+        public byte[] SystemTitle
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Alarm descriptor
+        /// </summary>
+        public byte AlarmDescriptor
+        {
+            get;
+            set;
+        }
     }
 }

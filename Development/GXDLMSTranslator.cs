@@ -44,6 +44,7 @@ using Gurux.DLMS.Secure;
 using System.ComponentModel;
 using System.Diagnostics;
 using Gurux.DLMS.Objects;
+using Gurux.DLMS.Plc.Enums;
 
 namespace Gurux.DLMS
 {
@@ -1453,8 +1454,6 @@ namespace Gurux.DLMS
             }
         }
 
-
-
         internal string PduToXml(GXDLMSTranslatorStructure xml, GXByteBuffer value, bool omitDeclaration, bool omitNameSpace, bool allowUnknownCommand, GXDLMSTranslatorMessage msg)
         {
             GXDLMSSettings settings = new GXDLMSSettings(true);
@@ -1478,7 +1477,7 @@ namespace Gurux.DLMS
                     //Update new dedicated key.
                     if (settings.Cipher != null && settings.Cipher.DedicatedKey != null)
                     {
-                        this.DedicatedKey = settings.Cipher.DedicatedKey;
+                        DedicatedKey = settings.Cipher.DedicatedKey;
                     }
                     if (msg != null)
                     {
@@ -1768,7 +1767,10 @@ namespace Gurux.DLMS
                             catch (Exception)
                             {
                                 // It's OK if this fails. Ciphering settings are not correct.
-                                msg.Command = (Command)cmd;
+                                if (msg != null)
+                                {
+                                    msg.Command = (Command)cmd;
+                                }
                                 xml.SetXmlLength(len2);
                             }
                         }
@@ -3093,7 +3095,7 @@ namespace Gurux.DLMS
                         if ((s.command == Command.Snrm && !s.settings.IsServer) ||
                             (s.command == Command.Ua && s.settings.IsServer))
                         {
-                            s.settings.Limits.MaxInfoRX = (UInt16)value;
+                            s.settings.Hdlc.MaxInfoRX = (UInt16)value;
                         }
                         s.data.SetUInt8((byte)HDLCInfo.MaxInfoRX);
                         s.data.SetUInt8(1);
@@ -3104,7 +3106,7 @@ namespace Gurux.DLMS
                         if ((s.command == Command.Snrm && !s.settings.IsServer) ||
                             (s.command == Command.Ua && s.settings.IsServer))
                         {
-                            s.settings.Limits.MaxInfoTX = (UInt16)value;
+                            s.settings.Hdlc.MaxInfoTX = (UInt16)value;
                         }
                         s.data.SetUInt8((byte)HDLCInfo.MaxInfoTX);
                         s.data.SetUInt8(1);
@@ -3115,7 +3117,7 @@ namespace Gurux.DLMS
                         if ((s.command == Command.Snrm && !s.settings.IsServer) ||
                            (s.command == Command.Ua && s.settings.IsServer))
                         {
-                            s.settings.Limits.WindowSizeRX = (byte)value;
+                            s.settings.Hdlc.WindowSizeRX = (byte)value;
                         }
                         s.data.SetUInt8((byte)HDLCInfo.WindowSizeRX);
                         s.data.SetUInt8(4);
@@ -3126,7 +3128,7 @@ namespace Gurux.DLMS
                         if ((s.command == Command.Snrm && !s.settings.IsServer) ||
                            (s.command == Command.Ua && s.settings.IsServer))
                         {
-                            s.settings.Limits.WindowSizeTX = (byte)value;
+                            s.settings.Hdlc.WindowSizeTX = (byte)value;
                         }
                         s.data.SetUInt8((byte)HDLCInfo.WindowSizeTX);
                         s.data.SetUInt8(4);

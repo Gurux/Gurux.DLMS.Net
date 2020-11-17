@@ -100,13 +100,25 @@ namespace Gurux.DLMS
             }
         }
         /// <summary>
-        /// Information from the connection size that server can handle.
+        /// HDLC connection settings.
         /// </summary>
+        [Obsolete("Use HdlcSettings instead.")]
         public GXDLMSLimits Limits
         {
             get
             {
-                return Settings.Limits;
+                return (GXDLMSLimits)Settings.Hdlc;
+            }
+        }
+
+        /// <summary>
+        /// HDLC connection settings.
+        /// </summary>
+        public GXHdlcSettings HdlcSettings
+        {
+            get
+            {
+                return Settings.Hdlc;
             }
         }
 

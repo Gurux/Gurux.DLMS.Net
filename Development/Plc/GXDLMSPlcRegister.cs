@@ -33,30 +33,30 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using Gurux.DLMS;
-using System.ComponentModel;
-using System.Xml.Serialization;
-using Gurux.DLMS.ManufacturerSettings;
-using Gurux.DLMS.Objects.Enums;
-using Gurux.DLMS.Enums;
 
-namespace Gurux.DLMS.Objects.Enums
+namespace Gurux.DLMS.Plc
 {
-    /// <summary>
-    /// IEC Twisted pair setup working mode.
-    /// </summary>
-    public enum IecTwistedPairSetupMode
+    public class GXDLMSPlcRegister
     {
-        /// <summary>
-        /// The interface ignores all received frames.
-        /// </summary>
-        Inactive = 0,
-
-        /// <summary>
-        /// Always active
-        /// </summary>
-        Active = 1
+        public byte ResponseProbability
+        {
+            get;
+            set;
+        }
+        public UInt16 AllowedTimeSlots
+        {
+            get;
+            set;
+        }
+        public byte DiscoverReportInitialCredit
+        {
+            get;
+            set;
+        }
+        public byte ICEqualCredit
+        {
+            get;
+            set;
+        }
     }
 }
