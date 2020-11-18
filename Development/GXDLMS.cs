@@ -1141,37 +1141,30 @@ namespace Gurux.DLMS
                 }
                 while (reply.Position != reply.Size)
                 {
-                    if (p.settings.InterfaceType == Enums.InterfaceType.WRAPPER)
+                    switch (p.settings.InterfaceType)
                     {
-                        messages.Add(GXDLMS.GetWrapperFrame(p.settings, p.command, reply));
-                    }
-                    else if (p.settings.InterfaceType == Enums.InterfaceType.HDLC ||
-                        p.settings.InterfaceType == Enums.InterfaceType.HdlcWithModeE)
-                    {
-                        messages.Add(GXDLMS.GetHdlcFrame(p.settings, frame, reply));
-                        if (reply.Position != reply.Size)
-                        {
-                            frame = p.settings.NextSend(false);
-                        }
-                    }
-                    else if (p.settings.InterfaceType == Enums.InterfaceType.PDU)
-                    {
-                        messages.Add(reply.Array());
-                        break;
-                    }
-                    else if (p.settings.InterfaceType == Enums.InterfaceType.Plc)
-                    {
-                        messages.Add(GXDLMS.GetPlcFrame(p.settings, 0x90, reply));
-                        break;
-                    }
-                    else if (p.settings.InterfaceType == Enums.InterfaceType.PlcHdlc)
-                    {
-                        messages.Add(GXDLMS.GetMacHdlcFrame(p.settings, frame, 0, reply));
-                        break;
-                    }
-                    else
-                    {
-                        throw new ArgumentOutOfRangeException("InterfaceType");
+                        case InterfaceType.WRAPPER:
+                            messages.Add(GXDLMS.GetWrapperFrame(p.settings, p.command, reply));
+                            break;
+                        case InterfaceType.HDLC:
+                        case InterfaceType.HdlcWithModeE:
+                            messages.Add(GXDLMS.GetHdlcFrame(p.settings, frame, reply));
+                            if (reply.Position != reply.Size)
+                            {
+                                frame = p.settings.NextSend(false);
+                            }
+                            break;
+                        case InterfaceType.PDU:
+                            messages.Add(reply.Array());
+                            break;
+                        case InterfaceType.Plc:
+                            messages.Add(GXDLMS.GetPlcFrame(p.settings, 0x90, reply));
+                            break;
+                        case InterfaceType.PlcHdlc:
+                            messages.Add(GXDLMS.GetMacHdlcFrame(p.settings, frame, 0, reply));
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException("InterfaceType");
                     }
                 }
                 reply.Clear();
@@ -2423,18 +2416,6 @@ namespace Gurux.DLMS
             }
         }
 
-        public enum SubLayer
-        {
-            /// <summary>
-            /// S-FSK PLC profile is using the IEC61334-4-32:1996 LLC sublayer.
-            /// </summary>
-            Llc,
-            /// <summary>
-            ///  S-FSK PLC profile is using the HDLC based LLC sublayer.
-            /// </summary>
-            Hdlc
-        };
-
         /// <summary>
         /// Get data from S-FSK PLC frame.
         /// </summary>
@@ -2467,6 +2448,7 @@ namespace Gurux.DLMS
             {
                 // Not enough data to parse;
                 data.IsComplete = false;
+                buff.Position = packetStartID;
                 return;
             }
             int len = buff.GetUInt8();
@@ -2475,6 +2457,7 @@ namespace Gurux.DLMS
             {
                 data.IsComplete = false;
                 buff.Position -= 2;
+                buff.Position = packetStartID;
             }
             else
             {
@@ -2482,11 +2465,11 @@ namespace Gurux.DLMS
                 //Credit fields.  IC, CC, DC
                 byte credit = buff.GetUInt8();
                 //MAC Addresses.
-                int mac = buff.GetUInt16() << 8 | buff.GetUInt8();
+                int mac = buff.GetUInt24();
                 //SA.
-                short macSa = (short)(mac >> 12);
+                UInt16 macSa = (UInt16)(mac >> 12);
                 //DA.
-                short macDa = (short)(mac & 0xFFF);
+                UInt16 macDa = (UInt16)(mac & 0xFFF);
                 //PAD length.
                 byte padLen = buff.GetUInt8();
                 if (buff.Size < len + padLen + 2)
@@ -2516,9 +2499,11 @@ namespace Gurux.DLMS
                     {
                         // FFF (All)
                         data.IsComplete = data.Xml != null ||
-                            (macDa == (UInt16)PlcDestinationAddress.AllPhysical || macDa == settings.Plc.MacDestinationAddress);
-                        data.ClientAddress = macSa;
-                        data.ServerAddress = macDa;
+                            (macDa == (UInt16)PlcDestinationAddress.AllPhysical ||
+                            macDa == (UInt16)PlcSourceAddress.Initiator ||
+                            macDa == settings.Plc.MacDestinationAddress);
+                        data.ClientAddress = macDa;
+                        data.ServerAddress = macSa;
                     }
                     //Skip padding.
                     if (data.IsComplete)
@@ -2535,6 +2520,10 @@ namespace Gurux.DLMS
                             data.Xml.AppendComment("Invalid data checksum.");
                         }
                         data.PacketLength = len;
+                    }
+                    else
+                    {
+                        buff.Position = packetStartID;
                     }
                 }
             }
@@ -2556,76 +2545,46 @@ namespace Gurux.DLMS
                 return 0;
             }
             byte frame = 0;
-            int frameLen;
+            byte frameLen;
             //SN field.
             UInt16 ns = buff.GetUInt16();
-            if (ns == (int)PlcMacSubframes.One && buff.Available < 34)
+            switch (ns)
             {
-                data.IsComplete = false;
+                case (int)PlcMacSubframes.One:
+                    frameLen = 36;
+                    break;
+                case (int)PlcMacSubframes.Two:
+                    frameLen = 2 * 36;
+                    break;
+                case (int)PlcMacSubframes.Three:
+                    frameLen = 3 * 36;
+                    break;
+                case (int)PlcMacSubframes.Four:
+                    frameLen = 4 * 36;
+                    break;
+                case (int)PlcMacSubframes.Five:
+                    frameLen = 5 * 36;
+                    break;
+                case (int)PlcMacSubframes.Six:
+                    frameLen = 6 * 36;
+                    break;
+                case (int)PlcMacSubframes.Seven:
+                    frameLen = 7 * 36;
+                    break;
+                default:
+                    throw new Exception("Invalid PLC frame size.");
             }
-            else if (ns == (int)PlcMacSubframes.Two && buff.Available < (2 * 36) - 2)
-            {
-                data.IsComplete = false;
-            }
-            else if (ns == (int)PlcMacSubframes.Three && buff.Available < (3 * 36) - 2)
-            {
-                data.IsComplete = false;
-            }
-            else if (ns == (int)PlcMacSubframes.Four && buff.Available < (4 * 36) - 2)
-            {
-                data.IsComplete = false;
-            }
-            else if (ns == (int)PlcMacSubframes.Five && buff.Available < (5 * 36) - 2)
-            {
-                data.IsComplete = false;
-            }
-            else if (ns == (int)PlcMacSubframes.Six && buff.Available < (6 * 36) - 2)
-            {
-                data.IsComplete = false;
-            }
-            else if (ns == (int)PlcMacSubframes.Seven && buff.Available < (7 * 36) - 2)
+            if (buff.Available < frameLen - 2)
             {
                 data.IsComplete = false;
             }
             else
             {
-                if (ns == (int)PlcMacSubframes.One)
-                {
-                    frameLen = 36;
-                }
-                else if (ns == (int)PlcMacSubframes.Two)
-                {
-                    frameLen = 2 * 36;
-                }
-                else if (ns == (int)PlcMacSubframes.Three)
-                {
-                    frameLen = 3 * 36;
-                }
-                else if (ns == (int)PlcMacSubframes.Four)
-                {
-                    frameLen = 4 * 36;
-                }
-                else if (ns == (int)PlcMacSubframes.Five)
-                {
-                    frameLen = 5 * 36;
-                }
-                else if (ns == (int)PlcMacSubframes.Six)
-                {
-                    frameLen = 6 * 36;
-                }
-                else if (ns == (int)PlcMacSubframes.Seven)
-                {
-                    frameLen = 7 * 36;
-                }
-                else
-                {
-                    throw new Exception("Invalid PLC frame size.");
-                }
                 int index = buff.Position;
                 //Credit fields.  IC, CC, DC
                 byte credit = buff.GetUInt8();
                 //MAC Addresses.
-                int mac = buff.GetUInt16() << 8 | buff.GetUInt8();
+                int mac = buff.GetUInt24();
                 //SA.
                 short sa = (short)(mac >> 12);
                 //DA.
@@ -2634,7 +2593,7 @@ namespace Gurux.DLMS
                 {
                     data.IsComplete = data.Xml != null ||
                         ((da == (UInt16)PlcDestinationAddress.AllPhysical || da == settings.Plc.MacSourceAddress) &&
-                    (sa == (UInt16) PlcHdlcSourceAddress.Initiator || sa == settings.Plc.MacDestinationAddress));
+                    (sa == (UInt16)PlcHdlcSourceAddress.Initiator || sa == settings.Plc.MacDestinationAddress));
                     data.ServerAddress = da;
                     data.ClientAddress = sa;
                 }
@@ -2685,13 +2644,9 @@ namespace Gurux.DLMS
                 return false;
             }
             MBusCommand cmd = (MBusCommand)buff.GetUInt8(buff.Position + 1);
-            if (!(cmd == MBusCommand.SndNr ||
+            return cmd == MBusCommand.SndNr ||
                 cmd == MBusCommand.SndUd2 ||
-                cmd == MBusCommand.RspUd))
-            {
-                return false;
-            }
-            return true;
+                cmd == MBusCommand.RspUd;
         }
 
         /// <summary>
@@ -2706,9 +2661,19 @@ namespace Gurux.DLMS
                 return false;
             }
             UInt16 len = buff.GetUInt16(buff.Position);
-            return len == (int)PlcMacSubframes.One ||
-                len == (int)PlcMacSubframes.Two ||
-                len == (int)PlcMacSubframes.Three;
+            switch (len)
+            {
+                case (int)PlcMacSubframes.One:
+                case (int)PlcMacSubframes.Two:
+                case (int)PlcMacSubframes.Three:
+                case (int)PlcMacSubframes.Four:
+                case (int)PlcMacSubframes.Five:
+                case (int)PlcMacSubframes.Six:
+                case (int)PlcMacSubframes.Seven:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         private static bool CheckWrapperAddress(GXDLMSSettings settings, GXByteBuffer buff, GXReplyData data, GXReplyData notify)
@@ -4408,49 +4373,46 @@ namespace Gurux.DLMS
         {
             byte frame = 0;
             bool isNotify = false;
-            // If DLMS frame is generated.
-            if (settings.InterfaceType == InterfaceType.HDLC ||
-                settings.InterfaceType == InterfaceType.HdlcWithModeE)
+            switch (settings.InterfaceType)
             {
-                frame = GetHdlcData(settings.IsServer, settings, reply, data, notify);
-                if (notify != null && frame == 0x13)
-                {
-                    data = notify;
-                    isNotify = true;
-                }
-                data.FrameId = frame;
-            }
-            else if (settings.InterfaceType == InterfaceType.WRAPPER)
-            {
-                if (!GetTcpData(settings, reply, data, notify))
-                {
-                    if (notify != null)
+                // If DLMS frame is generated.
+                case InterfaceType.HDLC:
+                case InterfaceType.HdlcWithModeE:
                     {
-                        data = notify;
+                        frame = GetHdlcData(settings.IsServer, settings, reply, data, notify);
+                        if (notify != null && frame == 0x13)
+                        {
+                            data = notify;
+                            isNotify = true;
+                        }
+                        data.FrameId = frame;
                     }
-                    isNotify = true;
-                }
-            }
-            else if (settings.InterfaceType == InterfaceType.WirelessMBus)
-            {
-                GetMBusData(settings, reply, data);
-            }
-            else if (settings.InterfaceType == InterfaceType.PDU)
-            {
-                data.PacketLength = reply.Size;
-                data.IsComplete = reply.Size != 0;
-            }
-            else if (settings.InterfaceType == InterfaceType.Plc)
-            {
-                GetPlcData(settings, reply, data);
-            }
-            else if (settings.InterfaceType == InterfaceType.PlcHdlc)
-            {
-                frame = GetPlcHdlcData(settings, reply, data);
-            }
-            else
-            {
-                throw new ArgumentException("Invalid Interface type.");
+                    break;
+                case InterfaceType.WRAPPER:
+                    if (!GetTcpData(settings, reply, data, notify))
+                    {
+                        if (notify != null)
+                        {
+                            data = notify;
+                        }
+                        isNotify = true;
+                    }
+                    break;
+                case InterfaceType.WirelessMBus:
+                    GetMBusData(settings, reply, data);
+                    break;
+                case InterfaceType.PDU:
+                    data.PacketLength = reply.Size;
+                    data.IsComplete = reply.Size != 0;
+                    break;
+                case InterfaceType.Plc:
+                    GetPlcData(settings, reply, data);
+                    break;
+                case InterfaceType.PlcHdlc:
+                    frame = GetPlcHdlcData(settings, reply, data);
+                    break;
+                default:
+                    throw new ArgumentException("Invalid Interface type.");
             }
             // If all data is not read yet.
             if (!data.IsComplete)

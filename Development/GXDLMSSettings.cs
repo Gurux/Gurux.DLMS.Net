@@ -259,7 +259,7 @@ namespace Gurux.DLMS
         ///<summary>
         ///Constructor.
         ///</summary>
-        public GXDLMSSettings() : this(false)
+        public GXDLMSSettings() : this(false, InterfaceType.HDLC)
         {
 
         }
@@ -267,8 +267,9 @@ namespace Gurux.DLMS
         ///<summary>
         ///Constructor.
         ///</summary>
-        internal GXDLMSSettings(bool server)
+        internal GXDLMSSettings(bool server, InterfaceType interfaceType)
         {
+            InterfaceType = interfaceType;
             UseCustomChallenge = false;
             StartingBlockIndex = BlockIndex = 1;
             DLMSVersion = 6;
@@ -278,6 +279,7 @@ namespace Gurux.DLMS
             MaxServerPDUSize = MaxPduSize = DefaultMaxReceivePduSize;
             IsServer = server;
             Objects = new GXDLMSObjectCollection();
+            //This is removed later.
             Hdlc = new GXDLMSLimits(this);
             Gateway = null;
             ProposedConformance = GXDLMSClient.GetInitialConformance(false);

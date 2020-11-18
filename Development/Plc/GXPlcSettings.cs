@@ -147,16 +147,18 @@ namespace Gurux.DLMS
             set;
         }
 
-        internal GXPlcSettings(GXDLMSSettings s)
+        /// <summary>
+        /// Set default values.
+        /// </summary>
+        public void Reset()
         {
-            settings = s;
             InitialCredit = 7;
             CurrentCredit = 7;
             DeltaCredit = 0;
             //New device addresses are used.
-            if (s.InterfaceType == Enums.InterfaceType.Plc)
+            if (settings.InterfaceType == Enums.InterfaceType.Plc)
             {
-                if (s.IsServer)
+                if (settings.IsServer)
                 {
                     MacSourceAddress = (UInt16)PlcSourceAddress.New;
                     MacDestinationAddress = (UInt16)PlcSourceAddress.Initiator;
@@ -169,7 +171,7 @@ namespace Gurux.DLMS
             }
             else
             {
-                if (s.IsServer)
+                if (settings.IsServer)
                 {
                     MacSourceAddress = (UInt16)PlcSourceAddress.New;
                     MacDestinationAddress = (UInt16)PlcHdlcSourceAddress.Initiator;
@@ -181,7 +183,7 @@ namespace Gurux.DLMS
                 }
             }
             ResponseProbability = 100;
-            if (s.InterfaceType == Enums.InterfaceType.Plc)
+            if (settings.InterfaceType == Enums.InterfaceType.Plc)
             {
                 AllowedTimeSlots = 10;
             }
@@ -189,6 +191,12 @@ namespace Gurux.DLMS
             {
                 AllowedTimeSlots = 0x14;
             }
+        }
+
+        internal GXPlcSettings(GXDLMSSettings s)
+        {
+            settings = s;
+            Reset();
         }
 
         /// <summary>

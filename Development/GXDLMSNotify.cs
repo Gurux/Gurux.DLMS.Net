@@ -63,9 +63,8 @@ namespace Gurux.DLMS
         public GXDLMSNotify(bool useLogicalNameReferencing,
             int clientAddress, int serverAddress, InterfaceType interfaceType)
         {
-            Settings = new GXDLMSSettings(true);
+            Settings = new GXDLMSSettings(true, interfaceType);
             Settings.UseLogicalNameReferencing = useLogicalNameReferencing;
-            Settings.InterfaceType = interfaceType;
             Settings.ServerAddress = serverAddress;
             Settings.ClientAddress = clientAddress;
         }

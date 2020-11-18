@@ -216,7 +216,7 @@ namespace Gurux.DLMS.Simulator
             translator.OmitXmlNameSpace = translator.OmitXmlDeclaration = true;
             XmlDocument doc = new XmlDocument();
             List<ValueEventArgs> targets = new List<ValueEventArgs>();
-            GXDLMSSettings settings = new GXDLMSSettings(true);
+            GXDLMSSettings settings = new GXDLMSSettings(true, InterfaceType.HDLC);
             GXByteBuffer pdu = new GXByteBuffer();
             GXByteBuffer bb = new GXByteBuffer(data);
             server.InterfaceType = GXDLMSTranslator.GetDlmsFraming(bb);

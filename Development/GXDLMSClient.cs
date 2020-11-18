@@ -127,10 +127,9 @@ namespace Gurux.DLMS
                             int clientAddress, int serverAddress, Authentication authentication,
                             string password, InterfaceType interfaceType)
         {
-            Settings = new GXDLMSSettings(false);
+            Settings = new GXDLMSSettings(false, interfaceType);
             Settings.Objects.Parent = this;
             Settings.UseLogicalNameReferencing = useLogicalNameReferencing;
-            Settings.InterfaceType = interfaceType;
             Settings.Authentication = authentication;
             Settings.ServerAddress = serverAddress;
             Settings.ClientAddress = clientAddress;
@@ -138,6 +137,7 @@ namespace Gurux.DLMS
             {
                 Settings.Password = ASCIIEncoding.ASCII.GetBytes(password);
             }
+            Settings.Plc.Reset();
         }
 
         /// <summary>
@@ -1775,7 +1775,7 @@ namespace Gurux.DLMS
 
             GXDataInfo info = new GXDataInfo();
             info.Type = type;
-            GXDLMSSettings settings = new GXDLMSSettings(false);
+            GXDLMSSettings settings = new GXDLMSSettings(false, InterfaceType.HDLC);
             settings.UseUtc2NormalTime = useUtc;
             Object ret = GXCommon.GetData(settings, value, info);
             if (!info.Complete)

@@ -64,7 +64,7 @@ namespace Gurux.DLMS
         public byte[] physicalDeviceAddress = null;
         public GXByteBuffer attributeDescriptor = new GXByteBuffer();
         public GXByteBuffer data = new GXByteBuffer();
-        public GXDLMSSettings settings = new GXDLMSSettings(true);
+        public GXDLMSSettings settings = new GXDLMSSettings(true, InterfaceType.HDLC);
         public SortedList<string, int> tags = new SortedList<string, int>();
         public GXDateTime time = DateTime.MinValue;
         /// <summary>

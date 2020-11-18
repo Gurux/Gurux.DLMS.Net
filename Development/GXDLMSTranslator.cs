@@ -376,8 +376,7 @@ namespace Gurux.DLMS
         public bool FindNextFrame(GXByteBuffer data, GXByteBuffer pdu, InterfaceType type)
         {
             int original = data.Position;
-            GXDLMSSettings settings = new GXDLMSSettings(true);
-            settings.InterfaceType = type;
+            GXDLMSSettings settings = new GXDLMSSettings(true, type);
             GXReplyData reply = new GXReplyData();
             reply.Xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
             int pos;
@@ -468,7 +467,7 @@ namespace Gurux.DLMS
         /// <returns>Is new frame found.</returns>
         public bool FindNextFrame(GXByteBuffer data, GXByteBuffer pdu)
         {
-            GXDLMSSettings settings = new GXDLMSSettings(true);
+            GXDLMSSettings settings = new GXDLMSSettings(true, InterfaceType.HDLC);
             GXReplyData reply = new GXReplyData();
             reply.Xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, null);
             int pos;
@@ -604,7 +603,7 @@ namespace Gurux.DLMS
         {
             GXReplyData data = new GXReplyData();
             data.Xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
-            GXDLMSSettings settings = new GXDLMSSettings(true);
+            GXDLMSSettings settings = new GXDLMSSettings(true, InterfaceType.HDLC);
             if (value.GetUInt8(0) == 0x7e)
             {
                 settings.InterfaceType = Enums.InterfaceType.HDLC;
@@ -872,7 +871,7 @@ namespace Gurux.DLMS
             }
             GXReplyData data = new GXReplyData();
             GXDLMSTranslatorStructure xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
-            GXDLMSSettings settings = new GXDLMSSettings(true);
+            GXDLMSSettings settings = new GXDLMSSettings(true, InterfaceType.HDLC);
             GetCiphering(settings, true);
             data.Xml = xml;
             try
@@ -1456,7 +1455,7 @@ namespace Gurux.DLMS
 
         internal string PduToXml(GXDLMSTranslatorStructure xml, GXByteBuffer value, bool omitDeclaration, bool omitNameSpace, bool allowUnknownCommand, GXDLMSTranslatorMessage msg)
         {
-            GXDLMSSettings settings = new GXDLMSSettings(true);
+            GXDLMSSettings settings = new GXDLMSSettings(true, InterfaceType.HDLC);
             GXReplyData data = new GXReplyData();
             byte cmd = value.GetUInt8();
             if (msg != null)
@@ -1487,13 +1486,13 @@ namespace Gurux.DLMS
                     break;
                 case (byte)Command.InitiateRequest:
                     value.Position = 0;
-                    settings = new GXDLMSSettings(true);
+                    settings = new GXDLMSSettings(true, InterfaceType.HDLC);
                     GXAPDU.ParseInitiate(true, settings, settings.Cipher, value,
                             xml);
                     break;
                 case (byte)Command.InitiateResponse:
                     value.Position = 0;
-                    settings = new GXDLMSSettings(false);
+                    settings = new GXDLMSSettings(false, InterfaceType.HDLC);
                     GetCiphering(settings, true);
                     GXAPDU.ParseInitiate(true, settings, settings.Cipher, value,
                             xml);
@@ -1508,7 +1507,7 @@ namespace Gurux.DLMS
                     break;
                 case (byte)Command.Aare:
                     value.Position = 0;
-                    settings = new GXDLMSSettings(false);
+                    settings = new GXDLMSSettings(false, InterfaceType.HDLC);
                     GetCiphering(settings, true);
                     settings.SourceSystemTitle = null;
                     GXAPDU.ParsePDU(settings, settings.Cipher, value, xml);
@@ -3665,7 +3664,7 @@ namespace Gurux.DLMS
         public void DataToXml(GXByteBuffer data, out string xml)
         {
             GXDataInfo di = new GXDataInfo();
-            GXDLMSSettings settings = new GXDLMSSettings(false);
+            GXDLMSSettings settings = new GXDLMSSettings(false, InterfaceType.HDLC);
             di.xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
             try
             {

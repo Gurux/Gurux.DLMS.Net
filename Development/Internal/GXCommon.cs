@@ -2114,11 +2114,22 @@ namespace Gurux.DLMS.Internal
                     }
                     else
                     {
-                        buff.SetUInt32(Convert.ToUInt32(value));
+                        buff.SetInt32(Convert.ToInt32(value));
                     }
                     break;
                 case DataType.UInt32:
-                    buff.SetUInt32(Convert.ToUInt32(value));
+                    if (value is DateTime)
+                    {
+                        buff.SetUInt32((UInt32)GXDateTime.ToUnixTime((DateTime)value));
+                    }
+                    else if (value is GXDateTime)
+                    {
+                        buff.SetUInt32((UInt32)GXDateTime.ToUnixTime(((GXDateTime)value).Value.DateTime));
+                    }
+                    else
+                    {
+                        buff.SetUInt32(Convert.ToUInt32(value));
+                    }
                     break;
                 case DataType.Int64:
                     buff.SetUInt64(Convert.ToUInt64(value));

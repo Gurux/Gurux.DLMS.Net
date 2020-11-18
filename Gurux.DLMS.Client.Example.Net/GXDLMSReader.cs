@@ -956,7 +956,8 @@ namespace Gurux.DLMS.Reader
             reply.Error = 0;
             object eop = (byte)0x7E;
             //In network connection terminator is not used.
-            if (Client.InterfaceType == InterfaceType.WRAPPER)
+            if (Client.InterfaceType != InterfaceType.HDLC &&
+                Client.InterfaceType != InterfaceType.HdlcWithModeE)
             {
                 eop = null;
             }

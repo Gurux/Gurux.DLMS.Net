@@ -370,13 +370,13 @@ namespace Gurux.DLMS
         /// </summary>
         public GXDLMSServer(bool logicalNameReferencing, InterfaceType type)
         {
-            Settings = new GXDLMSSettings(true);
+            Settings = new GXDLMSSettings(true, type);
+            Settings.Plc.Reset();
             Settings.Objects.Parent = this;
             Settings.ServerAddress = 1;
             Settings.ClientAddress = 16;
             Settings.UseLogicalNameReferencing = logicalNameReferencing;
             Reset();
-            InterfaceType = type;
             ExecutionTimes = new Dictionary<GXDLMSObject, DateTime>();
             if (type == InterfaceType.Plc)
             {

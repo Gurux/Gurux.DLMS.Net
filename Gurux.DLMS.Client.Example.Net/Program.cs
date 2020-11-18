@@ -34,15 +34,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using Gurux.Common;
 using Gurux.Serial;
 using Gurux.Net;
 using Gurux.DLMS.Enums;
 using System.Threading;
-using Gurux.DLMS.Secure;
-using System.Diagnostics;
-using System.IO.Ports;
 using Gurux.DLMS.Objects;
 
 namespace Gurux.DLMS.Client.Example

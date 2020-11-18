@@ -629,6 +629,16 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Get UInt24 value from byte array.
+        /// </summary>
+        public int GetUInt24()
+        {
+            int value = GetUInt24(Position);
+            Position += 3;
+            return value;
+        }
+
+        /// <summary>
         /// Get float value from byte array from the current position and then increments the position.
         /// </summary>
         public float GetFloat()

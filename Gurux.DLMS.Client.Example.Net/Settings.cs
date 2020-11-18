@@ -121,6 +121,7 @@ namespace Gurux.DLMS.Client.Example
                         try
                         {
                             settings.client.InterfaceType = (InterfaceType)Enum.Parse(typeof(InterfaceType), it.Value);
+                            settings.client.Plc.Reset();
                         }
                         catch (Exception)
                         {
