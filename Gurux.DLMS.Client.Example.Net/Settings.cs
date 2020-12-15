@@ -64,6 +64,9 @@ namespace Gurux.DLMS.Client.Example
 
         public static int GetParameters(string[] args, Settings settings)
         {
+            GXSerial serial;
+            //Has user give the custom serial port settings or are the default values used in mode E.
+            bool modeEDefaultValues = true;
             string[] tmp;
             List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:P:g:S:C:n:v:o:T:A:B:D:d:l:F:K:k:m:");
             GXNet net = null;
@@ -122,6 +125,15 @@ namespace Gurux.DLMS.Client.Example
                         {
                             settings.client.InterfaceType = (InterfaceType)Enum.Parse(typeof(InterfaceType), it.Value);
                             settings.client.Plc.Reset();
+                            if (modeEDefaultValues && settings.client.InterfaceType == InterfaceType.HdlcWithModeE &&
+                                settings.media is GXSerial)
+                            {
+                                serial = settings.media as GXSerial;
+                                serial.BaudRate = 300;
+                                serial.DataBits = 7;
+                                serial.Parity = Parity.Even;
+                                serial.StopBits = StopBits.One;
+                            }
                         }
                         catch (Exception)
                         {
@@ -150,11 +162,12 @@ namespace Gurux.DLMS.Client.Example
                         break;
                     case 'S'://Serial Port
                         settings.media = new GXSerial();
-                        GXSerial serial = settings.media as GXSerial;
+                        serial = settings.media as GXSerial;
                         tmp = it.Value.Split(':');
                         serial.PortName = tmp[0];
                         if (tmp.Length > 1)
                         {
+                            modeEDefaultValues = false;
                             serial.BaudRate = int.Parse(tmp[1]);
                             serial.DataBits = int.Parse(tmp[2].Substring(0, 1));
                             serial.Parity = (Parity)Enum.Parse(typeof(Parity), tmp[2].Substring(1, tmp[2].Length - 2));
@@ -353,6 +366,8 @@ namespace Gurux.DLMS.Client.Example
                                 throw new ArgumentException("Missing mandatory logical server address option.");
                             case 'm':
                                 throw new ArgumentException("Missing mandatory MAC destination address option.");
+                            case 'i':
+                                throw new ArgumentException("Missing mandatory interface type option.");
                             default:
                                 ShowHelp();
                                 return 1;

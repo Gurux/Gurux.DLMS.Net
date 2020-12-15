@@ -207,7 +207,7 @@ namespace Gurux.DLMS.Objects
             }
             if (index == 5)
             {
-                return DataType.UInt16;
+                return DataType.UInt8;
             }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }

@@ -332,7 +332,7 @@ namespace Gurux.DLMS
                 {
                     return InterfaceType.WirelessMBus;
                 }
-                if (GXDLMS.IsPlcSfskData(value))
+                if (GXDLMS.GetPlcSfskFrameSize(value) != 0)
                 {
                     return InterfaceType.PlcHdlc;
                 }
@@ -415,7 +415,7 @@ namespace Gurux.DLMS
                             break;
                         }
                     }
-                    else if (type == InterfaceType.PlcHdlc && GXDLMS.IsPlcSfskData(data))
+                    else if (type == InterfaceType.PlcHdlc && GXDLMS.GetPlcSfskFrameSize(data) != 0)
                     {
                         pos = data.Position;
                         found = GXDLMS.GetData(settings, data, reply, null, null);
@@ -976,7 +976,7 @@ namespace Gurux.DLMS
                     return;
                 }
                 //If wrapper.
-                if (msg.Message.GetUInt16(msg.Message.Position) == 1)
+                else if (msg.Message.GetUInt16(msg.Message.Position) == 1)
                 {
                     settings.InterfaceType = Enums.InterfaceType.WRAPPER;
                     GXDLMS.GetData(settings, msg.Message, data, null, null);
@@ -1000,36 +1000,16 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        if (data.Data.Size == 0)
+                        if (!PduOnly)
                         {
-                            if (data.Command == Command.None)
-                            {
-                                if (!CompletePdu)
-                                {
-                                    xml.AppendLine("<Command Value=\"NextFrame\" />");
-                                }
-                                multipleFrames = true;
-                            }
-                            else
-                            {
-                                msg.Command = data.Command;
-                                xml.AppendStartTag(data.Command);
-                                xml.AppendEndTag(data.Command);
-                            }
+                            xml.AppendLine("<PDU>");
                         }
-                        else
+                        xml.AppendLine(PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg));
+                        //Remove \r\n.
+                        xml.sb.Length -= Environment.NewLine.Length;
+                        if (!PduOnly)
                         {
-                            if (!PduOnly)
-                            {
-                                xml.AppendLine("<PDU>");
-                            }
-                            xml.AppendLine(PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg));
-                            //Remove \r\n.
-                            xml.sb.Length -= Environment.NewLine.Length;
-                            if (!PduOnly)
-                            {
-                                xml.AppendLine("</PDU>");
-                            }
+                            xml.AppendLine("</PDU>");
                         }
                     }
                     if (!PduOnly)
@@ -1040,7 +1020,7 @@ namespace Gurux.DLMS
                     return;
                 }
                 //If PLC.
-                if (msg.Message.GetUInt8(msg.Message.Position) == 2)
+                else if (msg.Message.GetUInt8(msg.Message.Position) == 2)
                 {
                     msg.InterfaceType = settings.InterfaceType = Enums.InterfaceType.Plc;
                     GXDLMS.GetData(settings, msg.Message, data, null, null);
@@ -1079,36 +1059,16 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        if (data.Data.Size == 0)
+                        if (!PduOnly)
                         {
-                            if (data.Command == Command.None)
-                            {
-                                if (!CompletePdu)
-                                {
-                                    xml.AppendLine("<Command Value=\"NextFrame\" />");
-                                }
-                                multipleFrames = true;
-                            }
-                            else
-                            {
-                                msg.Command = data.Command;
-                                xml.AppendStartTag(data.Command);
-                                xml.AppendEndTag(data.Command);
-                            }
+                            xml.AppendLine("<PDU>");
                         }
-                        else
+                        xml.AppendLine(PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg));
+                        //Remove \r\n.
+                        xml.sb.Length -= Environment.NewLine.Length;
+                        if (!PduOnly)
                         {
-                            if (!PduOnly)
-                            {
-                                xml.AppendLine("<PDU>");
-                            }
-                            xml.AppendLine(PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg));
-                            //Remove \r\n.
-                            xml.sb.Length -= Environment.NewLine.Length;
-                            if (!PduOnly)
-                            {
-                                xml.AppendLine("</PDU>");
-                            }
+                            xml.AppendLine("</PDU>");
                         }
                     }
                     if (!PduOnly)
@@ -1119,7 +1079,7 @@ namespace Gurux.DLMS
                     return;
                 }
                 //If PLC.
-                if (GXDLMS.IsPlcSfskData(msg.Message))
+                else if (GXDLMS.GetPlcSfskFrameSize(msg.Message) != 0)
                 {
                     msg.InterfaceType = settings.InterfaceType = Enums.InterfaceType.PlcHdlc;
                     GXDLMS.GetData(settings, msg.Message, data, null, null);
@@ -1158,36 +1118,16 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        if (data.Data.Size == 0)
+                        if (!PduOnly)
                         {
-                            if (data.Command == Command.None)
-                            {
-                                if (!CompletePdu)
-                                {
-                                    xml.AppendLine("<Command Value=\"NextFrame\" />");
-                                }
-                                multipleFrames = true;
-                            }
-                            else
-                            {
-                                msg.Command = data.Command;
-                                xml.AppendStartTag(data.Command);
-                                xml.AppendEndTag(data.Command);
-                            }
+                            xml.AppendLine("<PDU>");
                         }
-                        else
+                        xml.AppendLine(PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg));
+                        //Remove \r\n.
+                        xml.sb.Length -= Environment.NewLine.Length;
+                        if (!PduOnly)
                         {
-                            if (!PduOnly)
-                            {
-                                xml.AppendLine("<PDU>");
-                            }
-                            xml.AppendLine(PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg));
-                            //Remove \r\n.
-                            xml.sb.Length -= Environment.NewLine.Length;
-                            if (!PduOnly)
-                            {
-                                xml.AppendLine("</PDU>");
-                            }
+                            xml.AppendLine("</PDU>");
                         }
                     }
                     if (!PduOnly)
@@ -1198,7 +1138,7 @@ namespace Gurux.DLMS
                     return;
                 }
                 //If Wireless M-Bus.
-                if (GXDLMS.IsMBusData(msg.Message))
+                else if (GXDLMS.IsMBusData(msg.Message))
                 {
                     settings.InterfaceType = Enums.InterfaceType.WirelessMBus;
                     int len = xml.GetXmlLength();
@@ -1226,36 +1166,16 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        if (data.Data.Size == 0)
+                        if (!PduOnly)
                         {
-                            if (data.Command == Command.None)
-                            {
-                                if (!CompletePdu)
-                                {
-                                    xml.AppendLine("<Command Value=\"NextFrame\" />");
-                                }
-                                multipleFrames = true;
-                            }
-                            else
-                            {
-                                msg.Command = data.Command;
-                                xml.AppendStartTag(data.Command);
-                                xml.AppendEndTag(data.Command);
-                            }
+                            xml.AppendLine("<PDU>");
                         }
-                        else
+                        xml.AppendLine(PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg));
+                        //Remove \r\n.
+                        xml.sb.Length -= Environment.NewLine.Length;
+                        if (!PduOnly)
                         {
-                            if (!PduOnly)
-                            {
-                                xml.AppendLine("<PDU>");
-                            }
-                            xml.AppendLine(PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg));
-                            //Remove \r\n.
-                            xml.sb.Length -= Environment.NewLine.Length;
-                            if (!PduOnly)
-                            {
-                                xml.AppendLine("</PDU>");
-                            }
+                            xml.AppendLine("</PDU>");
                         }
                     }
                     if (!PduOnly)

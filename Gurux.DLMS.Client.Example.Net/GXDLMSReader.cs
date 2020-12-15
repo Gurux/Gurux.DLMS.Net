@@ -167,7 +167,7 @@ namespace Gurux.DLMS.Reader
             Client.ParseAAREResponse(reply.Data);
             reply.Clear();
             //Get challenge Is HLS authentication is used.
-            if (Client.IsAuthenticationRequired)
+            if (Client.Authentication > Authentication.Low)
             {
                 foreach (byte[] it in Client.GetApplicationAssociationRequest())
                 {
@@ -963,14 +963,14 @@ namespace Gurux.DLMS.Reader
             }
             int pos = 0;
             bool succeeded = false;
+            GXByteBuffer rd = new GXByteBuffer();
             ReceiveParameters<byte[]> p = new ReceiveParameters<byte[]>()
             {
                 Eop = eop,
-                Count = eop == null ? 8 : 5,
+                Count = Client.GetFrameSize(rd),
                 AllData = true,
                 WaitTime = WaitTime,
             };
-            GXByteBuffer rd = new GXByteBuffer();
             lock (Media.Synchronous)
             {
                 while (!succeeded && pos != 3)

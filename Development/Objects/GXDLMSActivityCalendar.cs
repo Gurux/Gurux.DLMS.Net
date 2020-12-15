@@ -715,6 +715,10 @@ namespace Gurux.DLMS.Objects
                 {
                     Time = (GXDateTime)GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
                 }
+                else if (e.Value is GXDateTime)
+                {
+                    Time = (GXDateTime)e.Value;
+                }
                 else
                 {
                     Time = new GXDateTime(Convert.ToDateTime(e.Value));

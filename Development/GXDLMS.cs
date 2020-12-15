@@ -1156,6 +1156,7 @@ namespace Gurux.DLMS
                             break;
                         case InterfaceType.PDU:
                             messages.Add(reply.Array());
+                            reply.Position = reply.Size;
                             break;
                         case InterfaceType.Plc:
                             messages.Add(GXDLMS.GetPlcFrame(p.settings, 0x90, reply));
@@ -2457,7 +2458,6 @@ namespace Gurux.DLMS
             {
                 data.IsComplete = false;
                 buff.Position -= 2;
-                buff.Position = packetStartID;
             }
             else
             {
@@ -2497,7 +2497,6 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        // FFF (All)
                         data.IsComplete = data.Xml != null ||
                             (macDa == (UInt16)PlcDestinationAddress.AllPhysical ||
                             macDa == (UInt16)PlcSourceAddress.Initiator ||
@@ -2545,41 +2544,19 @@ namespace Gurux.DLMS
                 return 0;
             }
             byte frame = 0;
-            byte frameLen;
             //SN field.
-            UInt16 ns = buff.GetUInt16();
-            switch (ns)
+            byte frameLen = GetPlcSfskFrameSize(buff);
+            if (frameLen == 0)
             {
-                case (int)PlcMacSubframes.One:
-                    frameLen = 36;
-                    break;
-                case (int)PlcMacSubframes.Two:
-                    frameLen = 2 * 36;
-                    break;
-                case (int)PlcMacSubframes.Three:
-                    frameLen = 3 * 36;
-                    break;
-                case (int)PlcMacSubframes.Four:
-                    frameLen = 4 * 36;
-                    break;
-                case (int)PlcMacSubframes.Five:
-                    frameLen = 5 * 36;
-                    break;
-                case (int)PlcMacSubframes.Six:
-                    frameLen = 6 * 36;
-                    break;
-                case (int)PlcMacSubframes.Seven:
-                    frameLen = 7 * 36;
-                    break;
-                default:
-                    throw new Exception("Invalid PLC frame size.");
+                throw new Exception("Invalid PLC frame size.");
             }
-            if (buff.Available < frameLen - 2)
+            if (buff.Available < frameLen)
             {
                 data.IsComplete = false;
             }
             else
             {
+                buff.Position += 2;
                 int index = buff.Position;
                 //Credit fields.  IC, CC, DC
                 byte credit = buff.GetUInt8();
@@ -2653,27 +2630,46 @@ namespace Gurux.DLMS
         /// Check is this PLC S-FSK message.
         /// </summary>
         /// <param name="buff">Received data.</param>
-        /// <returns>True, if this is M-Bus message.</returns>
-        internal static bool IsPlcSfskData(GXByteBuffer buff)
+        /// <returns>S-FSK frame size in bytes.</returns>
+        internal static byte GetPlcSfskFrameSize(GXByteBuffer buff)
         {
+            byte ret;
             if (buff.Size - buff.Position < 2)
             {
-                return false;
+                ret = 0;
             }
-            UInt16 len = buff.GetUInt16(buff.Position);
-            switch (len)
+            else
             {
-                case (int)PlcMacSubframes.One:
-                case (int)PlcMacSubframes.Two:
-                case (int)PlcMacSubframes.Three:
-                case (int)PlcMacSubframes.Four:
-                case (int)PlcMacSubframes.Five:
-                case (int)PlcMacSubframes.Six:
-                case (int)PlcMacSubframes.Seven:
-                    return true;
-                default:
-                    return false;
+                UInt16 len = buff.GetUInt16(buff.Position);
+                switch (len)
+                {
+                    case (int)PlcMacSubframes.One:
+                        ret = 36;
+                        break;
+                    case (int)PlcMacSubframes.Two:
+                        ret = 2 * 36;
+                        break;
+                    case (int)PlcMacSubframes.Three:
+                        ret = 3 * 36;
+                        break;
+                    case (int)PlcMacSubframes.Four:
+                        ret = 4 * 36;
+                        break;
+                    case (int)PlcMacSubframes.Five:
+                        ret = 5 * 36;
+                        break;
+                    case (int)PlcMacSubframes.Six:
+                        ret = 6 * 36;
+                        break;
+                    case (int)PlcMacSubframes.Seven:
+                        ret = 7 * 36;
+                        break;
+                    default:
+                        ret = 0;
+                        break;
+                }
             }
+            return ret;
         }
 
         private static bool CheckWrapperAddress(GXDLMSSettings settings, GXByteBuffer buff, GXReplyData data, GXReplyData notify)

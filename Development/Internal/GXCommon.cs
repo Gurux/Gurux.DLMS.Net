@@ -952,7 +952,7 @@ namespace Gurux.DLMS.Internal
             {
                 if (dt != null)
                 {
-                    info.xml.AppendComment(dt.ToFormatString());
+                    info.xml.AppendComment(dt.ToFormatMeterString());
                 }
                 info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", str);
             }
@@ -1770,7 +1770,7 @@ namespace Gurux.DLMS.Internal
                                 GXDateTime dt = (GXDateTime)GXDLMSClient.ChangeType(tmp, type, settings.UseUtc2NormalTime);
                                 if (dt.Value != DateTime.MaxValue)
                                 {
-                                    info.xml.AppendComment(dt.ToString());
+                                    info.xml.AppendComment(dt.ToFormatMeterString());
                                     isString = false;
                                 }
                             }

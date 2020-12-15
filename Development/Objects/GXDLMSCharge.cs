@@ -615,7 +615,7 @@ namespace Gurux.DLMS.Objects
                 {
                     bb.SetUInt8(DataType.Structure);
                     bb.SetUInt8(2);
-                    GXCommon.SetData(settings, bb, DataType.OctetString, it.Index);
+                    GXCommon.SetData(settings, bb, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Index));
                     GXCommon.SetData(settings, bb, DataType.Int16, it.ChargePerUnit);
                 }
             }

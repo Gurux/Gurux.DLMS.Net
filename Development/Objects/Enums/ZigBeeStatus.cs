@@ -32,44 +32,35 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System.Xml.Serialization;
+using System;
 
-namespace Gurux.DLMS.Enums
+namespace Gurux.DLMS.Objects.Enums
 {
     /// <summary>
-    /// Used DLMS standard.
+    /// Defines the ZigBee status enumeration values.
     /// </summary>
-    public enum Standard
+    [Flags]
+    public enum ZigBeeStatus
     {
         /// <summary>
-        /// Meter uses default DLMS IEC 62056 standard. https://dlms.com
+        /// Authorised on PAN.
         /// </summary>
-        [XmlEnum("0")]
-        DLMS = 0,
+        Authorised = 0x1,
         /// <summary>
-        /// Meter uses India DLMS standard IS 15959-2. https://www.standardsbis.in
+        /// Actively reporting on PAN.
         /// </summary>
-        [XmlEnum("1")]
-        India,
+        Reporting = 0x2,
         /// <summary>
-        /// Meter uses Italy DLMS standard UNI/TS 11291-11-2. https://uni.com
+        /// Unauthorised on PAN but has reported
         /// </summary>
-        [XmlEnum("2")]
-        Italy,
+        Unauthorised = 0x4,
         /// <summary>
-        /// Meter uses Saudi Arabia DLMS standard.
+        /// Authorised after swap-out.
         /// </summary>
-        [XmlEnum("3")]
-        SaudiArabia,
+        AuthorisedSwapOut = 0x8,
         /// <summary>
-        /// Meter uses IDIS DLMS standard. https://www.idis-association.com/
+        /// SEP Transmitting.
         /// </summary>
-        [XmlEnum("4")]
-        Idis,
-        /// <summary>
-        /// Meter uses Spain DLMS standard.
-        /// </summary>
-        [XmlEnum("5")]
-        Spain,
+        SepTransmitting = 0x10
     }
 }

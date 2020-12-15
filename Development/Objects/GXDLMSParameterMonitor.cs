@@ -377,7 +377,7 @@ namespace Gurux.DLMS.Objects
                             {
                                 CaptureTime = (GXDateTime)e.Value;
                             }
-                            else if (e.Value is String)
+                            else if (e.Value is string)
                             {
                                 DateTime tm;
                                 if (!DateTime.TryParse((String)e.Value, out tm))

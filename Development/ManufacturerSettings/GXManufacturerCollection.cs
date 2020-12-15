@@ -60,6 +60,11 @@ namespace Gurux.DLMS.ManufacturerSettings
         }
 #if !WINDOWS_UWP
 
+        private static string GetDownloadPath()
+        {
+            return "https://www.gurux.fi/obis/files.xml" + "?random = " + new Random().Next().ToString();
+        }
+
         /// <summary>
         /// Is this first run.
         /// </summary>
@@ -112,7 +117,7 @@ namespace Gurux.DLMS.ManufacturerSettings
                 //For Net45 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
                 // Put the byte array into a stream and rewind it to the beginning
-                MemoryStream ms = new MemoryStream(client.DownloadData("https://www.gurux.fi/obis/files.xml"));
+                MemoryStream ms = new MemoryStream(client.DownloadData(GetDownloadPath()));
                 ms.Flush();
                 ms.Position = 0;
                 System.Xml.XmlDocument downloadsXml = new System.Xml.XmlDocument();
@@ -187,36 +192,39 @@ namespace Gurux.DLMS.ManufacturerSettings
             //This will fix the error: request was aborted could not create ssl/tls secure channel.
             //For Net45 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
-            byte[] files = client.DownloadData("https://www.gurux.fi/obis/files.xml");
-            System.IO.File.WriteAllBytes(Path.Combine(ObisCodesPath, "files.xml"), files);
-            Gurux.DLMS.ManufacturerSettings.GXFileInfo.UpdateFileSecurity(Path.Combine(ObisCodesPath, "files.xml"));
-            // Put the byte array into a stream and rewind it to the beginning
-            MemoryStream ms = new MemoryStream(files);
-            ms.Flush();
-            ms.Position = 0;
-            XmlDocument xml = new XmlDocument();
-            xml.Load(ms);
-            bool backup = false;
-            foreach (XmlNode it in xml.ChildNodes[1].ChildNodes)
+            byte[] files = client.DownloadData(GetDownloadPath());
+            if (files != null)
             {
-                string path = Path.Combine(ObisCodesPath, it.InnerText);
-                byte[] data = client.DownloadData("https://www.gurux.fi/obis/" + it.InnerText);
-                //Make backup if file exists or content has change.
-                if (System.IO.File.Exists(path) && GetMD5Hash(data) != GetMD5HashFromFile(path))
+                System.IO.File.WriteAllBytes(Path.Combine(ObisCodesPath, "files.xml"), files);
+                Gurux.DLMS.ManufacturerSettings.GXFileInfo.UpdateFileSecurity(Path.Combine(ObisCodesPath, "files.xml"));
+                // Put the byte array into a stream and rewind it to the beginning
+                MemoryStream ms = new MemoryStream(files);
+                ms.Flush();
+                ms.Position = 0;
+                XmlDocument xml = new XmlDocument();
+                xml.Load(ms);
+                bool backup = false;
+                foreach (XmlNode it in xml.ChildNodes[1].ChildNodes)
                 {
-                    if (!System.IO.Directory.Exists(backupPath))
+                    string path = Path.Combine(ObisCodesPath, it.InnerText);
+                    byte[] data = client.DownloadData("https://www.gurux.fi/obis/" + it.InnerText);
+                    //Make backup if file exists or content has change.
+                    if (System.IO.File.Exists(path) && GetMD5Hash(data) != GetMD5HashFromFile(path))
                     {
-                        System.IO.Directory.CreateDirectory(backupPath);
+                        if (!System.IO.Directory.Exists(backupPath))
+                        {
+                            System.IO.Directory.CreateDirectory(backupPath);
+                        }
+                        backup = true;
+                        System.IO.File.Copy(path, Path.Combine(backupPath, it.InnerText));
                     }
-                    backup = true;
-                    System.IO.File.Copy(path, Path.Combine(backupPath, it.InnerText));
+                    System.IO.File.WriteAllBytes(path, data);
+                    Gurux.DLMS.ManufacturerSettings.GXFileInfo.UpdateFileSecurity(path);
                 }
-                System.IO.File.WriteAllBytes(path, data);
-                Gurux.DLMS.ManufacturerSettings.GXFileInfo.UpdateFileSecurity(path);
-            }
-            if (backup)
-            {
-                return backupPath;
+                if (backup)
+                {
+                    return backupPath;
+                }
             }
             return null;
         }

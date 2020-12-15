@@ -1267,18 +1267,23 @@ namespace Gurux.DLMS
                 default:
                     throw new Exception("Invalid command: " + (int)cmd);
             }
-            byte[] reply;
-            if (this.InterfaceType == Enums.InterfaceType.WRAPPER)
+            byte[] reply = null;
+            switch (InterfaceType)
             {
-                reply = GXDLMS.GetWrapperFrame(Settings, cmd, replyData);
-            }
-            else if (this.InterfaceType == Enums.InterfaceType.HDLC)
-            {
-                reply = GXDLMS.GetHdlcFrame(Settings, frame, replyData);
-            }
-            else
-            {
-                reply = GXDLMS.GetMacFrame(Settings, frame, 0, replyData);
+                case InterfaceType.WRAPPER:
+                    reply = GXDLMS.GetWrapperFrame(Settings, cmd, replyData);
+                    break;
+                case InterfaceType.HDLC:
+                case InterfaceType.HdlcWithModeE:
+                    reply = GXDLMS.GetHdlcFrame(Settings, frame, replyData);
+                    break;
+                case InterfaceType.Plc:
+                case InterfaceType.PlcHdlc:
+                    reply = GXDLMS.GetMacFrame(Settings, frame, 0, replyData);
+                    break;
+                case InterfaceType.PDU:
+                    reply = replyData.Array();
+                    break;
             }
             if (cmd == Command.DisconnectRequest ||
                 (InterfaceType == InterfaceType.WRAPPER && cmd == Command.ReleaseRequest))

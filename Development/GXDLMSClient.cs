@@ -1294,6 +1294,7 @@ namespace Gurux.DLMS
             object logicalName,
             object accessRights)
         {
+            int tmp;
             obj.ObjectType = objectType;
             // Check access rights...
             if (accessRights is List<object> && ((List<object>)accessRights).Count == 2)
@@ -1303,7 +1304,8 @@ namespace Gurux.DLMS
                 foreach (List<object> attributeAccess in (List<object>)access[0])
                 {
                     int id = Convert.ToInt32(attributeAccess[0]);
-                    AccessMode mode = (AccessMode)Convert.ToInt32(attributeAccess[1]);
+                    tmp = Convert.ToInt32(attributeAccess[1]);
+                    AccessMode mode = (AccessMode)tmp;
                     //With some meters id is negative.
                     if (id > 0)
                     {
@@ -1326,7 +1328,6 @@ namespace Gurux.DLMS
                         foreach (List<object> methodAccess in (List<object>)access[1])
                         {
                             int id = Convert.ToInt32(methodAccess[0]);
-                            int tmp;
                             //If version is 0.
                             if (methodAccess[1] is Boolean)
                             {
@@ -1346,7 +1347,6 @@ namespace Gurux.DLMS
                     {
                         List<object> arr = (List<object>)access[1];
                         int id = Convert.ToInt32(arr[0]) + 1;
-                        int tmp;
                         //If version is 0.
                         if (arr[1] is Boolean)
                         {
@@ -2591,7 +2591,7 @@ namespace Gurux.DLMS
                     // Add attribute index.
                     GXCommon.SetData(Settings, buff, DataType.Int8, it.Value.AttributeIndex);
                     // Add data index.
-                    GXCommon.SetData(Settings, buff, DataType.Int16, it.Value.DataIndex);
+                    GXCommon.SetData(Settings, buff, DataType.UInt16, it.Value.DataIndex);
                 }
             }
             return Read(pg.Name, ObjectType.ProfileGeneric, 2, buff);
@@ -3053,15 +3053,80 @@ namespace Gurux.DLMS
         /// <returns>Size of received bytes on the frame.</returns>
         public int GetFrameSize(GXByteBuffer data)
         {
-            if (InterfaceType == InterfaceType.WRAPPER)
+            int ret;
+            switch (InterfaceType)
             {
-                if (data.Available < 8 || data.GetUInt16(data.Position) != 1)
-                {
-                    return 8 - data.Available;
-                }
-                return data.GetUInt16(data.Position + 6);
+                case InterfaceType.HDLC:
+                case InterfaceType.HdlcWithModeE:
+                    {
+                        ret = 0;
+                        short ch;
+                        int pos, index = data.Position;
+                        try
+                        {
+                            // If whole frame is not received yet.
+                            if (data.Available > 8)
+                            {
+                                // Find start of HDLC frame.
+                                for (pos = data.Position; pos < data.Size; ++pos)
+                                {
+                                    ch = data.GetUInt8();
+                                    if (ch == GXCommon.HDLCFrameStartEnd)
+                                    {
+                                        break;
+                                    }
+                                }
+                                byte frame = data.GetUInt8();
+                                // Check frame length.
+                                if ((frame & 0x7) != 0)
+                                {
+                                    ret = ((frame & 0x7) << 8);
+                                }
+                                ret += data.GetUInt8();
+                            }
+                        }
+                        finally
+                        {
+                            data.Position = index;
+                        }
+                    }
+                    break;
+                case InterfaceType.WRAPPER:
+                    if (data.Available < 8 || data.GetUInt16(data.Position) != 1)
+                    {
+                        ret = 8 - data.Available;
+                    }
+                    else
+                    {
+                        ret = 8 + data.GetUInt16(data.Position + 6) - data.Available;
+                    }
+                    break;
+                case InterfaceType.Plc:
+                    if (data.Available < 2 || data.GetUInt8(data.Position) != 2)
+                    {
+                        ret = 2 - data.Available;
+                    }
+                    else
+                    {
+                        ret = 2 + data.GetUInt8(data.Position + 1) - data.Available;
+                    }
+                    break;
+                case InterfaceType.PlcHdlc:
+                    ret = GXDLMS.GetPlcSfskFrameSize(data);
+                    if (ret == 0)
+                    {
+                        ret = 2;
+                    }
+                    break;
+                default:
+                    ret = 1;
+                    break;
             }
-            return 1;
+            if (ret < 1)
+            {
+                ret = 1;
+            }
+            return ret;
         }
 
         /// <summary>

@@ -204,11 +204,11 @@ namespace Gurux.DLMS.Objects
             {
                 case 1:
                     return DataType.OctetString;
-                case 2:
                 case 3:
-                case 5:
                     return DataType.UInt8;
+                case 2:
                 case 4:
+                case 5:
                 case 6:
                 case 7:
                 case 8:

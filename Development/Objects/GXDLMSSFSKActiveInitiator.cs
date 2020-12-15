@@ -167,11 +167,12 @@ namespace Gurux.DLMS.Objects
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
+            object ret;
             if (e.Index == 1)
             {
-                return GXCommon.LogicalNameToBytes(LogicalName);
+                ret = GXCommon.LogicalNameToBytes(LogicalName);
             }
-            if (e.Index == 2)
+            else if (e.Index == 2)
             {
                 GXByteBuffer bb = new GXByteBuffer();
                 bb.SetUInt8(DataType.Structure);
@@ -179,45 +180,52 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetData(settings, bb, DataType.OctetString, SystemTitle);
                 GXCommon.SetData(settings, bb, DataType.UInt16, MacAddress);
                 GXCommon.SetData(settings, bb, DataType.UInt8, LSapSelector);
-                return bb.Array();
-            }
-            e.Error = ErrorCode.ReadWriteDenied;
-            return null;
-        }
-
-        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
-        {
-            if (e.Index == 1)
-            {
-                LogicalName = GXCommon.ToLogicalName(e.Value);
-            }
-            else if (e.Index == 2)
-            {
-                if (e.Value != null)
-                {
-                    List<object> tmp;
-                    if (e.Value is List<object>)
-                    {
-                        tmp = (List<object>)e.Value;
-                    }
-                    else
-                    {
-                        tmp = new List<object>((object[])e.Value);
-                    }
-                    SystemTitle = (byte[])tmp[0];
-                    MacAddress = (UInt16)tmp[1];
-                    LSapSelector = (byte)tmp[2];
-                }
-                else
-                {
-                    SystemTitle = null;
-                    MacAddress = 0;
-                    LSapSelector = 0;
-                }
+                ret = bb.Array();
             }
             else
             {
                 e.Error = ErrorCode.ReadWriteDenied;
+                ret = null;
+            }
+            return ret;
+        }
+
+        void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
+        {
+            switch (e.Index)
+            {
+                case 1:
+                    LogicalName = GXCommon.ToLogicalName(e.Value);
+                    break;
+                case 2:
+                    {
+                        if (e.Value != null)
+                        {
+                            List<object> tmp;
+                            if (e.Value is List<object>)
+                            {
+                                tmp = (List<object>)e.Value;
+                            }
+                            else
+                            {
+                                tmp = new List<object>((object[])e.Value);
+                            }
+                            SystemTitle = (byte[])tmp[0];
+                            MacAddress = (ushort)tmp[1];
+                            LSapSelector = (byte)tmp[2];
+                        }
+                        else
+                        {
+                            SystemTitle = null;
+                            MacAddress = 0;
+                            LSapSelector = 0;
+                        }
+                        break;
+                    }
+
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
             }
         }
 
