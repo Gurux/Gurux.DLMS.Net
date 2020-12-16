@@ -252,6 +252,10 @@ namespace Gurux.DLMS.Objects
 
         public override DataType GetUIDataType(int index)
         {
+            if (index == 2 || index == 6)
+            {
+                return DataType.String;
+            }
             if (index == 10)
             {
                 return DataType.DateTime;
