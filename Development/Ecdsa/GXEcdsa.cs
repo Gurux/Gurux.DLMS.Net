@@ -55,16 +55,6 @@ namespace Gurux.DLMS.Ecdsa
         /// </summary>
         private readonly GXPrivateKey PrivateKey;
 
-        /// <summary>
-        /// Using Custom random number can be used in testing,
-        /// but don't use it otherwive because same signature is generated in sign if it is set.
-        /// </summary>
-        public GXBigInteger CustomRandomNumber
-        {
-            get;
-            set;
-        }
-
         GXCurve curve;
 
         /// <summary>
@@ -108,19 +98,12 @@ namespace Gurux.DLMS.Ecdsa
             }
             GXBigInteger pk = new GXBigInteger(PrivateKey.RawValue);
             GXEccPoint p;
-            GXBigInteger n = new GXBigInteger(10);
+            GXBigInteger n;
             GXBigInteger r;
             GXBigInteger s;
             do
             {
-                if (CustomRandomNumber != null)
-                {
-                    n = CustomRandomNumber;
-                }
-                else
-                {
-                    n = GetRandomNumber(PrivateKey.Scheme);
-                }
+                n = GetRandomNumber(PrivateKey.Scheme);
                 p = new GXEccPoint(curve.G.x, curve.G.y, new GXBigInteger(1));
                 Multiply(p, n, curve.N, curve.A, curve.P);
                 r = p.x;

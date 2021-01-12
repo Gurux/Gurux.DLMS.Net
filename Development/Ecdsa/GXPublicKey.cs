@@ -31,8 +31,14 @@
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
+using Gurux.DLMS.ASN;
+using Gurux.DLMS.ASN.Enums;
 using Gurux.DLMS.Ecdsa.Enums;
+using Gurux.DLMS.Internal;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
 
 namespace Gurux.DLMS.Ecdsa
 {
@@ -85,12 +91,137 @@ namespace Gurux.DLMS.Ecdsa
         }
 
         /// <summary>
+        /// Create the public key from DER.
+        /// </summary>
+        /// <param name="der">DER Base64 coded string.</param>
+        /// <returns>Public key.</returns>
+        public static GXPublicKey FromDer(string der)
+        {
+            GXPublicKey value = new GXPublicKey();
+            byte[] key = GXCommon.FromBase64(der);
+            GXAsn1Sequence seq = (GXAsn1Sequence)GXAsn1Converter.FromByteArray(key);
+            List<object> tmp = (List<object>)seq[0];
+            X9ObjectIdentifier id = X9ObjectIdentifierConverter.FromString(tmp[0].ToString());
+            switch (id)
+            {
+                case X9ObjectIdentifier.Prime256v1:
+                    value.Scheme = Ecc.P256;
+                    break;
+                case X9ObjectIdentifier.Secp384r1:
+                    value.Scheme = Ecc.P384;
+                    break;
+                default:
+                    if (id == X9ObjectIdentifier.None)
+                    {
+                        throw new ArgumentOutOfRangeException("Invalid public key " + tmp[0].ToString() + ".");
+                    }
+                    else
+                    {
+                        throw new ArgumentOutOfRangeException("Invalid public key " + id + " " + tmp[0].ToString() + ".");
+                    }
+            }
+            if (seq[1] is byte[])
+            {
+                value.RawValue = (byte[])seq[1];
+            }
+            else
+            {
+                //Open SSL PEM.
+                value.RawValue = ((GXAsn1BitString)seq[1]).Value;
+            }
+            return value;
+        }
+
+        /// <summary>
+        /// Create the public key from PEM.
+        /// </summary>
+        /// <param name="pem">PEM Base64 coded string.</param>
+        /// <returns>Public key.</returns>
+        public static GXPublicKey FromPem(string pem)
+        {
+            const string START = "-----BEGIN PUBLIC KEY-----\n";
+            const string END = "-----END PUBLIC KEY-----\n";
+            int start = pem.IndexOf(START);
+            if (start == -1)
+            {
+                throw new ArgumentException("Invalid PEM file.");
+            }
+            int end = pem.IndexOf(END);
+            if (end == -1)
+            {
+                throw new ArgumentException("Invalid PEM file.");
+            }
+            return FromDer(pem.Substring(start + START.Length, end - start - START.Length - 1));
+        }
+
+        /// <summary>
+        /// Create the public key from PEM file.
+        /// </summary>
+        /// <param name="path">Path to the PEM file.</param>
+        /// <returns>Private key.</returns>
+        public static GXPublicKey FromPemFile(string path)
+        {
+            return FromPem(File.ReadAllText(path));
+        }
+
+        /// <summary>
         /// Returns the public key as a hex string.
         /// </summary>
         /// <returns></returns>
         public string ToHex()
         {
             return GXDLMSTranslator.ToHex(RawValue);
+        }
+
+        public string ToDer()
+        {
+            //Subject Public Key Info.
+            GXAsn1Sequence d = new GXAsn1Sequence();
+            GXAsn1Sequence d1 = new GXAsn1Sequence();
+            d1.Add(new GXAsn1ObjectIdentifier("1.2.840.10045.2.1"));
+            if (Scheme == Ecc.P256)
+            {
+                d1.Add(new GXAsn1ObjectIdentifier("1.2.840.10045.3.1.7"));
+            }
+            else if (Scheme == Ecc.P384)
+            {
+                d1.Add(new GXAsn1ObjectIdentifier("1.3.132.0.34"));
+            }
+            else
+            {
+                throw new Exception("Invalid ECC scheme.");
+            }
+            d.Add(d1);
+            d.Add(new GXAsn1BitString(RawValue, 0));
+            return GXCommon.ToBase64(GXAsn1Converter.ToByteArray(d));
+        }
+
+        public string ToPem()
+        {
+            return "-----BEGIN EC PUBLIC KEY-----\n" + ToDer() + "-----END EC PUBLIC KEY-----";
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            if (Scheme == Ecc.P256)
+            {
+                sb.AppendLine("NIST P-256");
+            }
+            else if (Scheme == Ecc.P384)
+            {
+                sb.AppendLine("NIST P-384");
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException("Invalid scheme.");
+            }
+            GXByteBuffer pk = new GXByteBuffer(RawValue);
+            sb.Append(" public x coord: ");
+            sb.AppendLine(new GXBigInteger(pk.SubArray(1, 32)).ToString());
+            sb.Append(" public y coord: ");
+            sb.AppendLine(new GXBigInteger(pk.SubArray(33, 32)).ToString());
+            return sb.ToString();
         }
     }
 }

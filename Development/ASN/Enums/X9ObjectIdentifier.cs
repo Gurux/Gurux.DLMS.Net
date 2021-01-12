@@ -100,7 +100,8 @@ namespace Gurux.DLMS.ASN.Enums
         DHHybrid2,
         DHHybridOneFlow,
         Mqv2,
-        Mqv1
+        Mqv1,
+        Secp384r1
     }
 
     public static class X9ObjectIdentifierConverter
@@ -229,6 +230,8 @@ namespace Gurux.DLMS.ASN.Enums
                     return "1.2.840.10046.2.3.7";
                 case X9ObjectIdentifier.Mqv1:
                     return "1.2.840.10046.2.3.8";
+                case X9ObjectIdentifier.Secp384r1:
+                    return "1.3.132.0.34";
                 default:
                     throw new ArgumentOutOfRangeException("Invalid X509Name. " + value);
             }
@@ -356,6 +359,8 @@ namespace Gurux.DLMS.ASN.Enums
                 return X9ObjectIdentifier.Mqv2;
             if (value == "1.2.840.10046.2.3.8")
                 return X9ObjectIdentifier.Mqv1;
+            if (value == "1.3.132.0.34")
+                return X9ObjectIdentifier.Secp384r1;
             return X9ObjectIdentifier.None;
         }
     }

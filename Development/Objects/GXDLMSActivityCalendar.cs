@@ -149,7 +149,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// This method copies all passive to the active.
+        /// This method copies all passive parameter to the active parameter.
         /// </summary>
         /// <param name="client">DLMS client.</param>
         /// <returns>Action bytes.</returns>

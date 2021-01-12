@@ -1575,7 +1575,7 @@ namespace Gurux.DLMS
             byte[] primaryAddress, secondaryAddress;
             if (settings.IsServer)
             {
-                if (frame == 0x13 && settings.PushClientAddress != 0)
+                if ((frame == 0x13 || frame == 0x3) && settings.PushClientAddress != 0)
                 {
                     primaryAddress = GetHdlcAddressBytes(settings.PushClientAddress, 0);
                 }
@@ -2008,7 +2008,7 @@ namespace Gurux.DLMS
             if (!ret)
             {
                 //If not notify.
-                if (!(reply.Position < reply.Size && reply.GetUInt8(reply.Position) == 0x13))
+                if (!(reply.Position < reply.Size && (reply.GetUInt8(reply.Position) == 0x13 || reply.GetUInt8(reply.Position) == 0x3)))
                 {
                     //If echo.
                     reply.Position = 1 + eopPos;
@@ -2026,7 +2026,7 @@ namespace Gurux.DLMS
             // Get frame type.
             frame = reply.GetUInt8();
             //If server is using same client and server address for notifications.
-            if (frame == 0x13 && !isNotify && notify != null)
+            if ((frame == 0x13 || frame == 0x3) && !isNotify && notify != null)
             {
                 isNotify = true;
                 notify.ClientAddress = target;
@@ -2109,7 +2109,7 @@ namespace Gurux.DLMS
                     data.PacketLength = reply.Position + 1;
                 }
             }
-            if (frame != 0x13 && (frame & (byte)HdlcFrameType.Uframe) == (byte)HdlcFrameType.Uframe)
+            if (frame != 0x13 && frame != 0x3 && (frame & (byte)HdlcFrameType.Uframe) == (byte)HdlcFrameType.Uframe)
             {
                 //Get Eop if there is no data.
                 if (reply.Position == packetStartID + frameLen + 1)
@@ -2138,7 +2138,7 @@ namespace Gurux.DLMS
                 }
             }
             //If S-frame
-            else if (frame != 0x13 && (frame & (byte)HdlcFrameType.Sframe) == (byte)HdlcFrameType.Sframe)
+            else if (frame != 0x13 && frame != 0x3 && (frame & (byte)HdlcFrameType.Sframe) == (byte)HdlcFrameType.Sframe)
             {
                 //If frame is rejected.
                 int tmp = (frame >> 2) & 0x3;
@@ -4376,7 +4376,7 @@ namespace Gurux.DLMS
                 case InterfaceType.HdlcWithModeE:
                     {
                         frame = GetHdlcData(settings.IsServer, settings, reply, data, notify);
-                        if (notify != null && frame == 0x13)
+                        if (notify != null && (frame == 0x13 || frame == 0x3))
                         {
                             data = notify;
                             isNotify = true;
@@ -4420,7 +4420,7 @@ namespace Gurux.DLMS
                 GetDataFromFrame(reply, data, UseHdlc(settings.InterfaceType));
             }
             // If keepalive or get next frame request.
-            if (data.Xml != null || ((frame != 0x13 || data.IsMoreData) && (frame & 0x1) != 0))
+            if (data.Xml != null || (((frame != 0x13 && frame != 0x3) || data.IsMoreData) && (frame & 0x1) != 0))
             {
                 if ((settings.InterfaceType == InterfaceType.HDLC || settings.InterfaceType == InterfaceType.HdlcWithModeE) &&
                     (data.Error == (int)ErrorCode.Rejected || data.Data.Size != 0))

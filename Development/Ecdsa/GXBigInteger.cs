@@ -42,7 +42,17 @@ namespace Gurux.DLMS.Ecdsa
         /// <summary>
         /// List of values. Least Significated is in the first item.
         /// </summary>
-        private List<UInt32> Data = new List<UInt32>();
+        private UInt32[] Data = new UInt32[70];
+
+        /// <summary>
+        /// Items count in the data buffer.
+        /// </summary>
+        internal UInt16 Count
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// Is value changed.
         /// </summary>
@@ -131,21 +141,23 @@ namespace Gurux.DLMS.Ecdsa
         private void UpdateBooleanProperties()
         {
             int pos;
-            //Remove extra zeroes.
-            for (pos = Data.Count - 1; pos > 0; --pos)
+            if (Count != 0)
             {
-                if (Data[pos] != 0)
+                //Remove extra zeroes.
+                for (pos = Count - 1; pos > -1; --pos)
                 {
-                    break;
+                    if (Data[pos] != 0)
+                    {
+                        break;
+                    }
+                }
+                if (pos != Count - 1)
+                {
+                    Count = (UInt16)(pos + 1);
                 }
             }
-            if (pos != Data.Count - 1)
-            {
-                Data.RemoveRange(1 + pos, Data.Count - pos - 1);
-            }
-
             one = even = false;
-            if (Data.Count == 0)
+            if (Count == 0)
             {
                 zero = true;
             }
@@ -155,7 +167,7 @@ namespace Gurux.DLMS.Ecdsa
                 if (zero)
                 {
                     //Check is value zero.
-                    for (pos = 1; pos < Data.Count; ++pos)
+                    for (pos = 1; pos < Count; ++pos)
                     {
                         if (Data[pos] != 0)
                         {
@@ -172,7 +184,7 @@ namespace Gurux.DLMS.Ecdsa
                     if (one)
                     {
                         //Check is value One.
-                        for (pos = 1; pos < Data.Count; ++pos)
+                        for (pos = 1; pos < Count; ++pos)
                         {
                             if (Data[pos] != 0)
                             {
@@ -195,6 +207,32 @@ namespace Gurux.DLMS.Ecdsa
             zero = true;
         }
 
+        private void Add(UInt32 value)
+        {
+            Data[Count] = value;
+            ++Count;
+        }
+
+        private void AddRange(UInt32[] value)
+        {
+            Array.Copy(value, 0, Data, Count, value.Length);
+            Count += (UInt16) value.Length;
+        }
+
+        /// <summary>
+        /// Append data to the begin of the buffer.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="value"></param>
+        internal void InsertRange(int index, UInt32[] value)
+        {
+            //Move old data.
+            Array.Copy(Data, 0, Data, value.Length, Count);
+            Array.Copy(value, 0, Data, 0, value.Length);
+            Count += (UInt16)value.Length;
+        }
+
+
         /// <summary>
         /// Get values from byte buffer.
         /// </summary>
@@ -203,15 +241,15 @@ namespace Gurux.DLMS.Ecdsa
         {
             for (int pos = value.Size - 4; pos > -1; pos = pos - 4)
             {
-                Data.Add(value.GetUInt32(pos));
+                Add(value.GetUInt32(pos));
             }
             switch (value.Size % 4)
             {
                 case 1:
-                    Data.Add(value.GetUInt8());
+                    Add(value.GetUInt8());
                     break;
                 case 2:
-                    Data.Add(value.GetUInt16());
+                    Add(value.GetUInt16());
                     break;
                 case 3:
                     // Data.Add(value.GetUInt24());
@@ -236,21 +274,21 @@ namespace Gurux.DLMS.Ecdsa
 
         public GXBigInteger(UInt64 value) : this()
         {
-            Data.Add((UInt32)value);
+            Add((UInt32)value);
             value >>= 32;
-            Data.Add((UInt32)value);
+            Add((UInt32)value);
             changed = true;
         }
 
         public GXBigInteger(UInt32 value) : this()
         {
-            Data.Add(value);
+            Add(value);
             changed = true;
         }
 
         public GXBigInteger(int value) : this()
         {
-            Data.Add((UInt32)value);
+            Add((UInt32)value);
             changed = true;
         }
 
@@ -258,10 +296,10 @@ namespace Gurux.DLMS.Ecdsa
         /// Constructor value.
         /// </summary>
         /// <param name="values">Data in MSB format.</param>
-        public GXBigInteger(UInt32[] values) : this()
+        public GXBigInteger(UInt32[] values)
         {
-            Data.AddRange(values);
-            Data.Reverse();
+            AddRange(values);
+            Array.Reverse(Data, 0, values.Length);
             changed = true;
         }
 
@@ -269,7 +307,7 @@ namespace Gurux.DLMS.Ecdsa
         /// Constructor value.
         /// </summary>
         /// <param name="value">Byte array Data in MSB format.</param>
-        public GXBigInteger(byte[] value) : this()
+        public GXBigInteger(byte[] value)
         {
             GXByteBuffer bb = new GXByteBuffer();
             bb.Set(value);
@@ -280,14 +318,15 @@ namespace Gurux.DLMS.Ecdsa
         /// Constructor value.
         /// </summary>
         /// <param name="value">Byte array Data in MSB format.</param>
-        public GXBigInteger(GXByteBuffer value) : this()
+        public GXBigInteger(GXByteBuffer value)
         {
             FromByteBuffer(value);
         }
 
-        public GXBigInteger(GXBigInteger value) : this()
+        public GXBigInteger(GXBigInteger value)
         {
-            Data = new List<UInt32>(value.Data);
+            AddRange(value.Data);
+            Count = value.Count;
             negative = value.negative;
             changed = true;
         }
@@ -300,7 +339,7 @@ namespace Gurux.DLMS.Ecdsa
         {
             int pos;
             GXByteBuffer bb = new GXByteBuffer();
-            for (pos = 0; pos != Data.Count; ++pos)
+            for (pos = 0; pos != Count; ++pos)
             {
                 bb.SetUInt32(Data[pos]);
                 Array.Reverse(bb.Data, 4 * pos, 4);
@@ -312,11 +351,11 @@ namespace Gurux.DLMS.Ecdsa
         public void Or(GXBigInteger value)
         {
             int pos;
-            while (Data.Count < value.Data.Count)
+            while (Count < value.Count)
             {
-                Data.Add(0);
+                Add(0);
             }
-            for (pos = 0; pos < value.Data.Count; ++pos)
+            for (pos = 0; pos < value.Count; ++pos)
             {
                 Data[pos] |= value.Data[pos];
             }
@@ -339,15 +378,15 @@ namespace Gurux.DLMS.Ecdsa
             }
             else
             {
-                while (Data.Count < value.Data.Count)
+                while (Count < value.Count)
                 {
-                    Data.Add(0);
+                    Add(0);
                 }
                 UInt64 overflow = 0;
-                for (int pos = 0; pos != Data.Count; ++pos)
+                for (int pos = 0; pos != Count; ++pos)
                 {
                     UInt64 tmp = Data[pos];
-                    if (pos < value.Data.Count)
+                    if (pos < value.Count)
                     {
                         tmp += value.Data[pos];
                     }
@@ -357,7 +396,7 @@ namespace Gurux.DLMS.Ecdsa
                 }
                 if (overflow != 0)
                 {
-                    Data.Add((UInt32)overflow);
+                    Add((UInt32)overflow);
                 }
                 changed = true;
             }
@@ -379,7 +418,8 @@ namespace Gurux.DLMS.Ecdsa
                     GXBigInteger tmp = new GXBigInteger(value);
                     tmp.Sub(this);
                     Clear();
-                    Data.AddRange(tmp.Data);
+                    AddRange(tmp.Data);
+                    Count = tmp.Count;
                     negative = true;
                     changed = true;
                 }
@@ -391,17 +431,6 @@ namespace Gurux.DLMS.Ecdsa
                     try
                     {
                         Add(value);
-                        /*
-                        GXBigInteger tmp = new GXBigInteger(value);
-                      //  this.negative = false;
-                        tmp.Sub(this);
-                        //                    tmp.negative = false;
-                        Clear();
-                        Data.AddRange(tmp.Data);
-                        changed = true;
-                        //                    Add(value);
-                        //                  Sub(tmp);
-                        */
                     }
                     finally
                     {
@@ -418,18 +447,19 @@ namespace Gurux.DLMS.Ecdsa
                     {
                         negative = true;
                         Clear();
-                        Data.AddRange(value.Data);
+                        AddRange(value.Data);
+                        Count = value.Count;
                     }
                     else
                     {
-                        while (Data.Count < value.Data.Count)
+                        while (Count < value.Count)
                         {
-                            Data.Add(0);
+                            Add(0);
                         }
                         byte borrow = 0;
                         UInt64 tmp;
                         int pos;
-                        for (pos = 0; pos != value.Data.Count; ++pos)
+                        for (pos = 0; pos != value.Count; ++pos)
                         {
                             tmp = Data[pos];
                             tmp += 0x100000000;
@@ -440,7 +470,7 @@ namespace Gurux.DLMS.Ecdsa
                         }
                         if (borrow != 0)
                         {
-                            for (; pos != Data.Count; ++pos)
+                            for (; pos != Count; ++pos)
                             {
                                 tmp = Data[pos];
                                 tmp += 0x100000000;
@@ -459,10 +489,10 @@ namespace Gurux.DLMS.Ecdsa
             }
         }
 
-        private static void AddValue(List<UInt32> list, UInt32 value, int index)
+        private static void AddValue(UInt32[] list, UInt32 value, int index)
         {
             UInt64 tmp;
-            if (index < list.Count)
+            if (index < list.Length)
             {
                 tmp = list[index];
                 tmp += value;
@@ -475,21 +505,26 @@ namespace Gurux.DLMS.Ecdsa
             }
             else
             {
-                list.Add(value);
+                throw new ArgumentOutOfRangeException("Big integer value is too high.");
             }
         }
 
         public void Multiply(GXBigInteger value)
         {
-            if (!value.IsOne)
+            if (value.IsZero || IsZero)
             {
-                List<UInt32> ret = new List<UInt32>();
-                UInt32 overflow;
+                Count = 0;
+                changed = true;
+            }
+            else if (!value.IsOne)
+            {
+                UInt32[] ret = new UInt32[1 + value.Count + Count];
+                UInt32 overflow = 0;
                 int index = 0;
-                for (int i = 0; i != value.Data.Count; ++i)
+                for (int i = 0; i != value.Count; ++i)
                 {
                     overflow = 0;
-                    for (int j = 0; j != Data.Count; ++j)
+                    for (int j = 0; j != Count; ++j)
                     {
                         UInt64 result = value.Data[i];
                         result *= Data[j];
@@ -503,7 +538,16 @@ namespace Gurux.DLMS.Ecdsa
                         AddValue(ret, overflow, 1 + index);
                     }
                 }
-                Data = ret;
+                if (overflow != 0)
+                {
+                    index = ret.Length;
+                }
+                else
+                {
+                    index = ret.Length - 1;
+                }
+                Array.Copy(ret, Data, index);
+                Count = (UInt16)index;
                 changed = true;
             }
             if (value.IsNegative != IsNegative)
@@ -541,13 +585,13 @@ namespace Gurux.DLMS.Ecdsa
             }
             else
             {
-                int cntA = Data.Count - 1;
+                int cntA = Count - 1;
                 //Skip zero values.
                 while (cntA != -1 && Data[cntA] == 0)
                 {
                     --cntA;
                 }
-                int cntB = value.Data.Count - 1;
+                int cntB = value.Count - 1;
                 //Skip zero values.
                 while (cntB != -1 && value.Data[cntB] == 0)
                 {
@@ -598,7 +642,7 @@ namespace Gurux.DLMS.Ecdsa
             if (amount != 0)
             {
                 UInt32 overflow = 0;
-                for (int pos = 0; pos != Data.Count; ++pos)
+                for (int pos = 0; pos != Count; ++pos)
                 {
                     UInt64 tmp = Data[pos];
                     tmp <<= amount;
@@ -608,7 +652,7 @@ namespace Gurux.DLMS.Ecdsa
                 }
                 if (overflow != 0)
                 {
-                    Data.Add(overflow);
+                    Add(overflow);
                 }
                 changed = true;
             }
@@ -619,7 +663,7 @@ namespace Gurux.DLMS.Ecdsa
             UInt64 overflow = 0;
             UInt32 mask = 0xFFFFFFFF;
             mask = mask >> (32 - amount);
-            int cnt = Data.Count - 1;
+            int cnt = Count - 1;
             for (int pos = cnt; pos != -1; --pos)
             {
                 UInt64 tmp = Data[pos];
@@ -627,9 +671,9 @@ namespace Gurux.DLMS.Ecdsa
                 overflow = (tmp & mask) << (32 - amount);
             }
             //Remove last item if it's empty.
-            if (Data.Count != 1 && Data[cnt] == 0)
+            if (Count != 1 && Data[cnt] == 0)
             {
-                Data.RemoveAt(cnt);
+                --Count;
             }
             changed = true;
         }
@@ -639,7 +683,7 @@ namespace Gurux.DLMS.Ecdsa
         /// </summary>
         public void Clear()
         {
-            Data.Clear();
+            Count = 0;
             changed = true;
             negative = false;
         }
@@ -653,6 +697,16 @@ namespace Gurux.DLMS.Ecdsa
             negative = false;
             try
             {
+                //Shift UInt32 values to make this faster.
+                if (denom.Count < Count - 1)
+                {
+                    UInt32[] tmp2 = new UInt32[Count - denom.Count - 1];
+                    //Append UInt32 values.
+                    current.InsertRange(0, tmp2);
+                    denom.InsertRange(0, tmp2);
+                    current.changed = denom.changed = true;
+                }
+
                 // while denom < this.
                 while (denom.Compare(this) == -1)
                 {
@@ -703,16 +757,17 @@ namespace Gurux.DLMS.Ecdsa
         /// <param name="mod">Modulus.</param>
         public void Mod(GXBigInteger mod)
         {
-            /*
-            //value = value - (mod * (value / mod) )
-            GXBigInteger tmp = new GXBigInteger(this);
-            tmp.Div(mod);
-            tmp.Multiply(mod);
-            Sub(tmp);
-            changed = true;
-*/
             GXBigInteger current = new GXBigInteger(1);
             GXBigInteger denom = new GXBigInteger(mod);
+            //Shift UInt32 values to make this faster.
+            if (denom.Count < Count - 1)
+            {
+                UInt32[] tmp = new UInt32[Count - denom.Count - 1];
+                //Append UInt32 values.
+                current.InsertRange(0, tmp);
+                denom.InsertRange(0, tmp);
+                current.changed = denom.changed = true;
+            }
             bool neq = negative;
             negative = false;
             // while denom < this.
@@ -805,7 +860,7 @@ namespace Gurux.DLMS.Ecdsa
             {
                 int pos, cnt = 0;
                 GXByteBuffer bb = new GXByteBuffer();
-                for (pos = Data.Count - 1; pos != -1; --pos)
+                for (pos = Count - 1; pos != -1; --pos)
                 {
                     bb.SetUInt32(Data[pos]);
                 }

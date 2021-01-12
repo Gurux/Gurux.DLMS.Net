@@ -41,6 +41,7 @@ using Gurux.DLMS.Objects;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Secure;
 using Gurux.DLMS.Enums;
+using Gurux.DLMS.Ecdsa;
 
 namespace Gurux.DLMS
 {
@@ -985,6 +986,15 @@ namespace Gurux.DLMS
                 tmp.Set(Settings.CtoSChallenge);
                 pw = tmp.Array();
             }
+            else if (Settings.Authentication == Enums.Authentication.HighECDSA)
+            {
+                GXByteBuffer tmp = new GXByteBuffer();
+                tmp.Set(Settings.Cipher.SystemTitle);
+                tmp.Set(Settings.SourceSystemTitle);
+                tmp.Set(Settings.StoCChallenge);
+                tmp.Set(Settings.CtoSChallenge);
+                pw = tmp.Array();
+            }
             else
             {
                 pw = Settings.Password;
@@ -1023,31 +1033,58 @@ namespace Gurux.DLMS
             {
                 byte[] secret;
                 UInt32 ic = 0;
-                if (Settings.Authentication == Authentication.HighGMAC)
+                if (Settings.Authentication == Enums.Authentication.HighECDSA)
                 {
-                    secret = Settings.SourceSystemTitle;
-                    GXByteBuffer bb = new GXByteBuffer(value);
-                    bb.GetUInt8();
-                    ic = bb.GetUInt32();
-                }
-                else if (Settings.Authentication == Enums.Authentication.HighSHA256)
-                {
+                    if (Settings.Cipher.Equals(new KeyValuePair<byte[], byte[]>()))
+                    {
+                        throw new ArgumentNullException("SigningKeyPair is empty.");
+                    }
                     GXByteBuffer tmp2 = new GXByteBuffer();
                     tmp2.Set(Settings.Password);
                     tmp2.Set(Settings.SourceSystemTitle);
                     tmp2.Set(Settings.Cipher.SystemTitle);
                     tmp2.Set(Settings.CtoSChallenge);
                     tmp2.Set(Settings.StoCChallenge);
-                    secret = tmp2.Array();
+                    GXEcdsa sig = new GXEcdsa(Settings.Cipher.SigningKeyPair.Key);
+                    equals = sig.Verify(value, tmp2.Array());
                 }
                 else
                 {
-                    secret = Settings.Password;
+                    if (Settings.Authentication == Authentication.HighGMAC)
+                    {
+                        secret = Settings.SourceSystemTitle;
+                        GXByteBuffer bb = new GXByteBuffer(value);
+                        bb.GetUInt8();
+                        ic = bb.GetUInt32();
+                    }
+                    else if (Settings.Authentication == Enums.Authentication.HighSHA256)
+                    {
+                        GXByteBuffer tmp2 = new GXByteBuffer();
+                        tmp2.Set(Settings.Password);
+                        tmp2.Set(Settings.SourceSystemTitle);
+                        tmp2.Set(Settings.Cipher.SystemTitle);
+                        tmp2.Set(Settings.CtoSChallenge);
+                        tmp2.Set(Settings.StoCChallenge);
+                        secret = tmp2.Array();
+                    }
+                    else if (Settings.Authentication == Enums.Authentication.HighECDSA)
+                    {
+                        GXByteBuffer tmp2 = new GXByteBuffer();
+                        tmp2.Set(Settings.SourceSystemTitle);
+                        tmp2.Set(Settings.Cipher.SystemTitle);
+                        tmp2.Set(Settings.CtoSChallenge);
+                        tmp2.Set(Settings.StoCChallenge);
+                        secret = tmp2.Array();
+                    }
+                    else
+                    {
+                        secret = Settings.Password;
+                    }
+                    byte[] tmp = GXSecure.Secure(Settings, Settings.Cipher, ic,
+                                                 Settings.CtoSChallenge, secret);
+                    GXByteBuffer challenge = new GXByteBuffer(tmp);
+                    equals = challenge.Compare(value);
                 }
-                byte[] tmp = GXSecure.Secure(Settings, Settings.Cipher, ic,
-                                             Settings.CtoSChallenge, secret);
-                GXByteBuffer challenge = new GXByteBuffer(tmp);
-                equals = challenge.Compare(value);
                 Settings.Connected |= ConnectionState.Dlms;
             }
             if (!equals)

@@ -97,6 +97,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// List of Primary Station Addresses.
         /// </summary>
+        [XmlIgnore()]
         public byte[] PrimaryAddresses
         {
             get;
@@ -107,6 +108,7 @@ namespace Gurux.DLMS.Objects
         /// List of the TAB(i) for which the real equipment has been programmed
         /// in the case of forgotten station call.
         /// </summary>
+        [XmlIgnore()]
         public sbyte[] Tabis
         {
             get;

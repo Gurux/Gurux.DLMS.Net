@@ -67,9 +67,9 @@ namespace Gurux.DLMS.ASN.Enums
         Sha512Rsa,
         RsaSsaPss,
         Sha1withecdsa,
-        Sha256withecdsa,
-        Sha384withecdsa,
-        Sha512withecdsa,
+        Sha256WithEcdsa,
+        Sha384WithEcdsa,
+        Sha512WithEcdsa,
         SpecifiedEcdsa
     }
     public static class HashAlgorithmConverter
@@ -126,11 +126,11 @@ namespace Gurux.DLMS.ASN.Enums
                     return "1.2.840.113549.1.1.10";
                 case HashAlgorithm.Sha1withecdsa:
                     return "1.2.840.10045.4.1";
-                case HashAlgorithm.Sha256withecdsa:
+                case HashAlgorithm.Sha256WithEcdsa:
                     return "1.2.840.10045.4.3.2";
-                case HashAlgorithm.Sha384withecdsa:
+                case HashAlgorithm.Sha384WithEcdsa:
                     return "1.2.840.10045.4.3.3";
-                case HashAlgorithm.Sha512withecdsa:
+                case HashAlgorithm.Sha512WithEcdsa:
                     return "1.2.840.10045.4.3.4";
                 case HashAlgorithm.SpecifiedEcdsa:
                     return "1.2.840.10045.4.3";
@@ -192,11 +192,11 @@ namespace Gurux.DLMS.ASN.Enums
                 case "1.2.840.10045.4.1":
                     return HashAlgorithm.Sha1withecdsa;
                 case "1.2.840.10045.4.3.2":
-                    return HashAlgorithm.Sha256withecdsa;
+                    return HashAlgorithm.Sha256WithEcdsa;
                 case "1.2.840.10045.4.3.3":
-                    return HashAlgorithm.Sha384withecdsa;
+                    return HashAlgorithm.Sha384WithEcdsa;
                 case "1.2.840.10045.4.3.4":
-                    return HashAlgorithm.Sha512withecdsa;
+                    return HashAlgorithm.Sha512WithEcdsa;
                 case "1.2.840.10045.4.3":
                     return HashAlgorithm.SpecifiedEcdsa;
                 default:

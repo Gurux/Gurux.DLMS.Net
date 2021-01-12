@@ -244,7 +244,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="client"> DLMS client that is used to generate action.</param>
         /// <param name="list"> List of keys.</param>
         /// <returns>Generated action.</returns>
-        public byte[][] keyAgreement(GXDLMSClient client, List<KeyValuePair<GlobalKeyType, byte[]>> list)
+        public byte[][] KeyAgreement(GXDLMSClient client, List<KeyValuePair<GlobalKeyType, byte[]>> list)
         {
             if (list == null || list.Count == 0)
             {

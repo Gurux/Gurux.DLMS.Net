@@ -829,39 +829,37 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
         public override DataType GetDataType(int index)
         {
-            if (index == 1)
+            DataType ret;
+            switch (index)
             {
-                return DataType.OctetString;
+                case 1:
+                    ret = DataType.OctetString;
+                    break;
+                case 2:
+                    ret = DataType.Array;
+                    break;
+                case 3:
+                    ret = DataType.Array;
+                    break;
+                case 4:
+                    ret = DataType.UInt32;
+                    break;
+                case 5:
+                    ret = DataType.Enum;
+                    break;
+                case 6:
+                    ret = DataType.Structure;
+                    break;
+                case 7:
+                    ret = DataType.UInt32;
+                    break;
+                case 8:
+                    ret = DataType.UInt32;
+                    break;
+                default:
+                    throw new ArgumentException("GetDataType failed. Invalid attribute index.");
             }
-            if (index == 2)
-            {
-                return DataType.Array;
-            }
-            if (index == 3)
-            {
-                return DataType.Array;
-            }
-            if (index == 4)
-            {
-                return DataType.UInt32;
-            }
-            if (index == 5)
-            {
-                return DataType.Enum;
-            }
-            if (index == 6)
-            {
-                return DataType.Array;
-            }
-            if (index == 7)
-            {
-                return DataType.UInt32;
-            }
-            if (index == 8)
-            {
-                return DataType.UInt32;
-            }
-            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+            return ret;
         }
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)

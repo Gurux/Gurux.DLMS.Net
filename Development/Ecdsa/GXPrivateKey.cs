@@ -36,6 +36,8 @@ using Gurux.DLMS.ASN.Enums;
 using Gurux.DLMS.Ecdsa.Enums;
 using Gurux.DLMS.Internal;
 using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace Gurux.DLMS.Ecdsa
 {
@@ -61,6 +63,8 @@ namespace Gurux.DLMS.Ecdsa
             get;
             private set;
         }
+
+        private GXPublicKey publicKey;
 
         /// <summary>
         /// Create the private key from raw bytes.
@@ -96,34 +100,75 @@ namespace Gurux.DLMS.Ecdsa
         public static GXPrivateKey FromDer(string der)
         {
             byte[] key = GXCommon.FromBase64(der);
-            object[] tmp = (object[])GXAsn1Converter.FromByteArray(key);
+            GXAsn1Sequence seq = (GXAsn1Sequence)GXAsn1Converter.FromByteArray(key);
+            if ((sbyte)seq[0] > 3)
+            {
+                throw new ArgumentOutOfRangeException("Invalid private key version.");
+            }
+            List<object> tmp = (List<object>)seq[2];
             GXPrivateKey value = new GXPrivateKey();
-            //If private key is given
-            if (key.Length == 32)
+            X9ObjectIdentifier id = X9ObjectIdentifierConverter.FromString(tmp[0].ToString());
+            switch (id)
             {
-                value.Scheme = Ecc.P256;
-                value.RawValue = key;
+                case X9ObjectIdentifier.Prime256v1:
+                    value.Scheme = Ecc.P256;
+                    break;
+                case X9ObjectIdentifier.Secp384r1:
+                    value.Scheme = Ecc.P384;
+                    break;
+                default:
+                    if (id == X9ObjectIdentifier.None)
+                    {
+                        throw new ArgumentOutOfRangeException("Invalid private key " + tmp[0].ToString() + ".");
+                    }
+                    else
+                    {
+                        throw new ArgumentOutOfRangeException("Invalid private key " + id + " " + tmp[0].ToString() + ".");
+                    }
             }
-            else if (key.Length == 48)
+            value.RawValue = (byte[])seq[1];
+            if (seq[3] is byte[])
             {
-                value.Scheme = Ecc.P384;
-                value.RawValue = key;
-            }
-            else if (key.Length == 65)
-            {
-                value.Scheme = Ecc.P256;
-                value.RawValue = key;
-            }
-            else if (key.Length == 97)
-            {
-                value.Scheme = Ecc.P384;
-                value.RawValue = key;
+                value.publicKey = GXPublicKey.FromRawBytes((byte[])seq[3]);
             }
             else
             {
-                throw new ArgumentOutOfRangeException("Invalid key.");
+                //Open SSL PEM.
+                value.publicKey = GXPublicKey.FromRawBytes(((GXAsn1BitString)((List<object>)seq[3])[0]).Value);
             }
             return value;
+        }
+
+        /// <summary>
+        /// Create the private key from PEM.
+        /// </summary>
+        /// <param name="pem">PEM in Base64 coded string.</param>
+        /// <returns>Private key.</returns>
+        public static GXPrivateKey FromPem(string pem)
+        {
+            const string START = "EC PRIVATE KEY-----\n";
+            const string END = "-----END";
+            int start = pem.IndexOf(START);
+            if (start == -1)
+            {
+                throw new ArgumentException("Invalid PEM file.");
+            }
+            int end = pem.IndexOf(END);
+            if (end == -1)
+            {
+                throw new ArgumentException("Invalid PEM file.");
+            }
+            return FromDer(pem.Substring(start + START.Length, end - start - START.Length - 1));
+        }
+
+        /// <summary>
+        /// Create the private key from PEM file.
+        /// </summary>
+        /// <param name="path">Path to the PEM file.</param>
+        /// <returns>Private key.</returns>
+        public static GXPrivateKey FromPemFile(string path)
+        {
+            return FromPem(File.ReadAllText(path));
         }
 
         public string ToDer()
@@ -145,12 +190,13 @@ namespace Gurux.DLMS.Ecdsa
                 throw new Exception("Invalid ECC scheme.");
             }
             d.Add(d1);
-            d.Add(GetPublicKey().RawValue);
+            d.Add(new GXAsn1BitString(GetPublicKey().RawValue));
             return GXCommon.ToBase64(GXAsn1Converter.ToByteArray(d));
         }
+
         public string ToPem()
         {
-            return "-----BEGIN EC PRIVATE KEY-----\n" + ToDer() + "-----END EC PRIVATE KEY-----";
+            return "-----BEGIN EC PRIVATE KEY-----\n" + ToDer() + "\n-----END EC PRIVATE KEY-----";
         }
 
         /// <summary>
@@ -161,19 +207,23 @@ namespace Gurux.DLMS.Ecdsa
         /// <returns>Public key.</returns>
         public GXPublicKey GetPublicKey()
         {
-            GXBigInteger secret = new GXBigInteger(RawValue);
-            GXCurve curve = new GXCurve(Scheme);
-            GXEccPoint p = new GXEccPoint(curve.G.x, curve.G.y, new GXBigInteger(1));
-            p = GXEcdsa.JacobianMultiply(p, secret, curve.N, curve.A, curve.P);
-            GXEcdsa.FromJacobian(p, curve.P);
-            GXByteBuffer key = new GXByteBuffer(65);
-            //Public key is un-compressed format.
-            key.SetUInt8(4);
-            byte[] tmp = p.x.ToArray();
-            key.Set(tmp, tmp.Length % 32, 32);
-            tmp = p.y.ToArray();
-            key.Set(tmp, tmp.Length % 32, 32);
-            return GXPublicKey.FromRawBytes(key.Array());
+            if (publicKey == null)
+            {
+                GXBigInteger secret = new GXBigInteger(RawValue);
+                GXCurve curve = new GXCurve(Scheme);
+                GXEccPoint p = new GXEccPoint(curve.G.x, curve.G.y, new GXBigInteger(1));
+                p = GXEcdsa.JacobianMultiply(p, secret, curve.N, curve.A, curve.P);
+                GXEcdsa.FromJacobian(p, curve.P);
+                GXByteBuffer key = new GXByteBuffer(65);
+                //Public key is un-compressed format.
+                key.SetUInt8(4);
+                byte[] tmp = p.x.ToArray();
+                key.Set(tmp, tmp.Length % 32, 32);
+                tmp = p.y.ToArray();
+                key.Set(tmp, tmp.Length % 32, 32);
+                publicKey = GXPublicKey.FromRawBytes(key.Array());
+            }
+            return publicKey;
         }
 
         /// <summary>

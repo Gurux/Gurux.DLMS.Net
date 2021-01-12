@@ -1,3 +1,37 @@
+//
+// --------------------------------------------------------------------------
+//  Gurux Ltd
+//
+//
+//
+// Filename:    $HeadURL$
+//
+// Version:     $Revision$,
+//      $Date$
+//      $Author$
+//
+// Copyright (c) Gurux Ltd
+//
+//---------------------------------------------------------------------------
+//
+//  DESCRIPTION
+//
+// This file is a part of Gurux Device Framework.
+//
+// Gurux Device Framework is Open Source software; you can redistribute it
+// and/or modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; version 2 of the License.
+// Gurux Device Framework is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details.
+//
+// More information of Gurux products: https://www.gurux.org
+//
+// This code is licensed under the GNU General Public License v2.
+// Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
+//---------------------------------------------------------------------------
+
 using Gurux.DLMS.ASN.Enums;
 using Gurux.DLMS.Ecdsa;
 using Gurux.DLMS.Internal;
@@ -5,10 +39,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-
-//
-// --------------------------------------------------------------------------
-//  Gurux Ltd
 namespace Gurux.DLMS.ASN
 {
     /// <summary>
@@ -105,11 +135,21 @@ namespace Gurux.DLMS.ASN
         /// <param name="data">Base64 string. </param>
         public GXPkcs10(string data)
         {
-            string tmp = data.Replace("-----BEGIN CERTIFICATE REQUEST-----", "");
-            tmp = tmp.Replace("-----END CERTIFICATE REQUEST-----", "");
-            tmp = tmp.Replace("-----BEGIN NEW CERTIFICATE REQUEST-----", "");
-            tmp = tmp.Replace("-----END NEW CERTIFICATE REQUEST-----", "");
-            Init(Convert.FromBase64String(tmp.Trim()));
+            const string START = "CERTIFICATE REQUEST-----\n";
+            const string END = "-----END CERTIFICATE REQUEST-----";
+            data = data.Replace("\r\n", "\n");
+            int start = data.IndexOf(START);
+            if (start == -1)
+            {
+                throw new ArgumentException("Invalid PEM file.");
+            }
+            data = data.Substring(start + START.Length);
+            int end = data.IndexOf(END);
+            if (end == -1)
+            {
+                throw new ArgumentException("Invalid PEM file.");
+            }
+            Init(GXCommon.FromBase64(data.Substring(0, end)));
         }
 
         /// <summary>
@@ -150,12 +190,16 @@ namespace Gurux.DLMS.ASN
             {
                 Algorithm = X9ObjectIdentifierConverter.FromString(tmp[0].ToString());
             }
-            byte[] encodedKey = GXAsn1Converter.ToByteArray(subjectPKInfo);
-            PublicKey = GXPublicKey.FromRawBytes(encodedKey);
+
+            PublicKey = GXPublicKey.FromRawBytes(((GXAsn1BitString)subjectPKInfo[1]).Value);
             /////////////////////////////
             // signatureAlgorithm
             GXAsn1Sequence sign = (GXAsn1Sequence)seq[1];
             SignatureAlgorithm = HashAlgorithmConverter.FromString(sign[0].ToString());
+            if (SignatureAlgorithm != HashAlgorithm.Sha256WithEcdsa && SignatureAlgorithm != HashAlgorithm.Sha384WithEcdsa)
+            {
+                throw new GXDLMSCertificateException("Invalid signature algorithm. " + sign[0].ToString());
+            }
             if (sign.Count != 1)
             {
                 SignatureParameters = sign[1];
@@ -164,7 +208,7 @@ namespace Gurux.DLMS.ASN
             // signature
             Signature = ((GXAsn1BitString)seq[2]).Value;
             GXEcdsa e = new GXEcdsa(PublicKey);
-            if (!e.Verify(GXAsn1Converter.ToByteArray(reqInfo), data))
+            if (!e.Verify(Signature, GXAsn1Converter.ToByteArray(reqInfo)))
             {
                 throw new ArgumentException("Invalid Signature.");
             }
@@ -212,15 +256,17 @@ namespace Gurux.DLMS.ASN
 
         private object[] Getdata()
         {
-            object subjectPKInfo = GXAsn1Converter.FromByteArray(PublicKey.RawValue);
+            object subjectPKInfo = new GXAsn1BitString(PublicKey.RawValue, 0);
+            object[] tmp = new object[]{new GXAsn1ObjectIdentifier("1.2.840.10045.2.1"),
+                new GXAsn1ObjectIdentifier("1.2.840.10045.3.1.7") };
             object[] list;
             if (Attributes != null)
             {
-                list = new object[] { (byte)Version, GXAsn1Converter.EncodeSubject(Subject), subjectPKInfo, Attributes };
+                list = new object[] { (sbyte)Version, GXAsn1Converter.EncodeSubject(Subject), new object[] { tmp, subjectPKInfo }, Attributes };
             }
             else
             {
-                list = new object[] { (byte)Version, GXAsn1Converter.EncodeSubject(Subject), subjectPKInfo, new GXAsn1Context() };
+                list = new object[] { (sbyte)Version, GXAsn1Converter.EncodeSubject(Subject), new GXAsn1Context() };
             }
             return list;
         }
@@ -266,13 +312,13 @@ namespace Gurux.DLMS.ASN
             pkc10.Algorithm = X9ObjectIdentifier.IdECPublicKey;
             pkc10.PublicKey = kp.Value;
             pkc10.Subject = subject;
-            pkc10.Sign(kp.Key, HashAlgorithm.Sha256withecdsa);
+            pkc10.Sign(kp.Key, HashAlgorithm.Sha256WithEcdsa);
             return pkc10;
         }
 
         ///
         /// <summary>
-        /// Load public key from the PEM file.
+        /// Load Pkcs10 Certificate Signing Request from the PEM file.
         /// </summary>
         /// <param name="path">File path.</param>
         /// <returns> Created GXPkcs10 object. </returns>
@@ -283,16 +329,34 @@ namespace Gurux.DLMS.ASN
         }
 
         /// <summary>
-        /// Save public key to PEM file.
+        /// Save Pkcs10 Certificate Signing Request to PEM file.
         /// </summary>
         /// <param name="path">File path. </param>
         public virtual void Save(string path)
         {
+            File.WriteAllText(path, ToPem());
+        }
+
+        /// <summary>
+        /// Pkcs10 Certificate Signing Request in DER format.
+        /// </summary>
+        /// <returns>Public key as in PEM string.</returns>
+        public string ToPem()
+        {
             StringBuilder sb = new StringBuilder();
-            sb.Append("-----BEGIN CERTIFICATE REQUEST-----" + Environment.NewLine);
-            sb.Append(GXCommon.ToBase64(Encoded));
-            sb.Append(Environment.NewLine + "-----END CERTIFICATE REQUEST-----");
-            File.WriteAllText(path, sb.ToString());
+            sb.AppendLine("-----BEGIN CERTIFICATE REQUEST-----");
+            sb.AppendLine(ToDer());
+            sb.AppendLine("-----END CERTIFICATE REQUEST-----");
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Pkcs10 Certificate Signing Request in DER format.
+        /// </summary>
+        /// <returns>Public key as in PEM string.</returns>
+        public string ToDer()
+        {
+            return GXCommon.ToBase64(Encoded);
         }
     }
 }

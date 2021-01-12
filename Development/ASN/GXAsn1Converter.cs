@@ -37,9 +37,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using Gurux.DLMS.Internal;
-using System.Security.Cryptography.X509Certificates;
 using Gurux.DLMS.ASN.Enums;
-using Gurux.DLMS.Secure;
 using System.Xml;
 using System.Globalization;
 
@@ -157,12 +155,12 @@ namespace Gurux.DLMS.ASN
                 case ((byte)(BerType.Constructed | BerType.Context) | 1):
                 case ((byte)(BerType.Constructed | BerType.Context) | 2):
                 case ((byte)(BerType.Constructed | BerType.Context) | 3):
+                case ((byte)(BerType.Constructed | BerType.Context) | 4):
                     if (s != null)
                     {
                         s.Increase();
                     }
-                    tmp = new GXAsn1Context();
-                    ((GXAsn1Context)tmp).Index = type & 0xF;
+                    tmp = new GXAsn1Context() {Index = type & 0xF };
                     objects.Add(tmp);
                     while (bb.Position < start + len)
                     {
@@ -311,9 +309,13 @@ namespace Gurux.DLMS.ASN
                     break;
                 case (byte)BerType.Context:
                 case (byte)BerType.Context | 1:
+                case (byte)BerType.Context | 2:
+                case (byte)BerType.Context | 3:
+                    tmp = new GXAsn1Context() { Constructed = false, Index = type & 0xF };
                     tmp2 = new byte[len];
                     bb.Get(tmp2);
-                    objects.Add(tmp2);
+                    tmp.Add(tmp2);
+                    objects.Add(tmp);
                     if (s != null)
                     {
                         s.Append(GXCommon.ToHex(tmp2, false));
@@ -430,16 +432,23 @@ namespace Gurux.DLMS.ASN
             string str;
             int start = bb.Size;
             int cnt = 0;
-            if (target is GXAsn1Context)
+            if (target is GXAsn1Context a)
             {
                 tmp = new GXByteBuffer();
-                foreach (object it in ((GXAsn1Context)target))
+                foreach (object it in a)
                 {
                     cnt += GetBytes(tmp, it);
                 }
                 start = bb.Size;
-                bb.SetUInt8(BerType.Constructed | BerType.Context);
-                GXCommon.SetObjectCount(cnt, bb);
+                if (a.Constructed)
+                {
+                    bb.SetUInt8((byte)((int)BerType.Constructed | (int)BerType.Context | a.Index));
+                    GXCommon.SetObjectCount(cnt, bb);
+                }
+                else
+                {
+                    tmp.SetUInt8(0, (byte)((int)BerType.Context | a.Index));
+                }
                 cnt += bb.Size - start;
                 bb.Set(tmp);
                 return cnt;
@@ -604,7 +613,21 @@ namespace Gurux.DLMS.ASN
                     cnt += GetBytes(tmp, it);
                 }
                 start = bb.Size;
-                bb.SetUInt8(BerType.Constructed | BerType.Sequence);
+                if (target is GXAsn1Context c)
+                {
+                    if (c.Constructed)
+                    {
+                        bb.SetUInt8((byte)((byte)BerType.Constructed | (byte)BerType.Sequence | c.Index));
+                    }
+                    else
+                    {
+                        bb.SetUInt8((byte)((byte)BerType.Sequence | c.Index));
+                    }
+                }
+                else
+                {
+                    bb.SetUInt8(BerType.Constructed | BerType.Sequence);
+                }
                 GXCommon.SetObjectCount(cnt, bb);
                 cnt += bb.Size - start;
                 bb.Set(tmp);

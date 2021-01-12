@@ -35,10 +35,9 @@
 using Gurux.DLMS.ASN.Enums;
 using Gurux.DLMS.Ecdsa;
 using Gurux.DLMS.Internal;
-using Gurux.DLMS.Secure;
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace Gurux.DLMS.ASN
@@ -100,7 +99,11 @@ namespace Gurux.DLMS.ASN
                 GXAsn1Sequence d2 = new GXAsn1Sequence();
                 d2.Add((sbyte)1);
                 d2.Add(PrivateKey.RawValue);
-                d.Add(d2);
+                GXAsn1Context d3 = new GXAsn1Context();
+                d3.Index = 1;
+                d3.Add(new GXAsn1BitString(PublicKey.RawValue, 0));
+                d2.Add(d3);
+                d.Add(GXAsn1Converter.ToByteArray(d2));
                 return GXAsn1Converter.ToByteArray(d);
             }
         }
@@ -119,11 +122,21 @@ namespace Gurux.DLMS.ASN
         /// <param name="data">Base64 string. </param>
         public GXPkcs8(string data)
         {
-            string tmp = data.Replace("-----BEGIN PRIVATE KEY-----", "");
-            tmp = tmp.Replace("-----END PRIVATE KEY-----", "");
-            tmp = tmp.Replace("-----BEGIN EC PRIVATE KEY-----", "");
-            tmp = tmp.Replace("-----END EC PRIVATE KEY-----", "");
-            Init(GXCommon.FromBase64(tmp.Trim()));
+            const string START = "PRIVATE KEY-----\n";
+            const string END = "-----END";
+            data = data.Replace("\r\n", "\n");
+            int start = data.IndexOf(START);
+            if (start == -1)
+            {
+                throw new ArgumentException("Invalid PEM file.");
+            }
+            data = data.Substring(start + START.Length);
+            int end = data.IndexOf(END);
+            if (end == -1)
+            {
+                throw new ArgumentException("Invalid PEM file.");
+            }
+            Init(GXCommon.FromBase64(data.Substring(0, end)));
         }
 
         /// <summary>
@@ -154,7 +167,7 @@ namespace Gurux.DLMS.ASN
             {
                 throw new Exception("Invalid private key.");
             }
-            PublicKey = PrivateKey.GetPublicKey();
+            PublicKey = GXPublicKey.FromRawBytes(((GXAsn1BitString)((List<object>)((GXAsn1Sequence)seq[2])[2])[0]).Value);
         }
 
         public override sealed string ToString()
@@ -183,26 +196,15 @@ namespace Gurux.DLMS.ASN
             return new GXPkcs8(File.ReadAllText(path));
         }
 
-        ///
-        ///     <summary>Save private key to PEM file.
+        /// <summary>
+        /// Save private key to PEM file.
         /// </summary>
-        ///  <param name="path">
-        ///           File path. </param>
-        ///
+        /// <param name="path">
+        /// File path.
+        /// </param>
         public virtual void Save(string path)
         {
-            StringBuilder sb = new StringBuilder();
-            if (PrivateKey != null)
-            {
-                sb.Append("-----BEGIN EC PRIVATE KEY-----" + Environment.NewLine);
-                sb.Append(ToPem());
-                sb.Append(Environment.NewLine + "-----END EC PRIVATE KEY-----");
-                File.WriteAllText(path, sb.ToString());
-            }
-            else
-            {
-                throw new System.ArgumentException("Public or private key is not set.");
-            }
+            File.WriteAllText(path, ToPem());
         }
 
         /// <summary>
@@ -211,8 +213,24 @@ namespace Gurux.DLMS.ASN
         /// <returns>Private key as in PEM string.</returns>
         public string ToPem()
         {
+            StringBuilder sb = new StringBuilder();
+            if (PrivateKey == null)
+            {
+                throw new System.ArgumentException("Public or private key is not set.");
+            }
+            sb.Append("-----BEGIN PRIVATE KEY-----" + Environment.NewLine);
+            sb.Append(ToDer());
+            sb.Append(Environment.NewLine + "-----END PRIVATE KEY-----");
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Private key in DER format.
+        /// </summary>
+        /// <returns>Private key as in DER string.</returns>
+        public string ToDer()
+        {
             return GXCommon.ToBase64(Encoded);
         }
     }
-
 }

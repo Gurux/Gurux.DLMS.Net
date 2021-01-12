@@ -103,7 +103,8 @@ namespace Gurux.DLMS.Secure
             // Get server Challenge.
             GXByteBuffer challenge = new GXByteBuffer();
             // Get shared secret
-            if (settings.Authentication == Authentication.HighGMAC)
+            if (settings.Authentication == Authentication.HighGMAC ||
+                settings.Authentication == Authentication.HighECDSA)
             {
                 challenge.Set(data);
             }

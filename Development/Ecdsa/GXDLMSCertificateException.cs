@@ -32,45 +32,33 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System.Collections.Generic;
+using System;
 
-namespace Gurux.DLMS.ASN
+namespace Gurux.DLMS.Ecdsa
 {
-    public class GXAsn1Context : List<object>
+    /// <summary>
+    /// DLMS specific exception class for certificate exceptions.
+    /// </summary>
+    /// <remarks>
+    /// https://www.gurux.fi/Gurux.DLMS.Secure
+    /// </remarks>
+    [Serializable]
+    public class GXDLMSCertificateException : Exception
     {
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public GXAsn1Context()
+        public GXDLMSCertificateException(string message)
+            : base(message)
         {
-            Constructed = true;
+            HelpLink = "https://gurux.fi/Gurux.DLMS.Secure";
         }
 
-        /// <summary>
-        /// Context index.
-        /// </summary>
-        public virtual int Index
+        public GXDLMSCertificateException()
         {
-            get;
-            set;
+            HelpLink = "https://gurux.fi/Gurux.DLMS.Secure";
         }
 
-        /// <summary>
-        /// Constructed.
-        /// </summary>
-        public bool Constructed
+        public GXDLMSCertificateException(string message, Exception innerException) : base(message, innerException)
         {
-            get;
-            set;
-        }
-
-        public override string ToString()
-        {
-            if (Constructed)
-            {
-                return string.Format("[{0}] (Constructed) ({1}) elem", Index, Count);
-            }
-            return string.Format("[{0}] ({1}) elem", Index, Count);
+            HelpLink = "https://gurux.fi/Gurux.DLMS.Secure";
         }
     }
 }
