@@ -56,7 +56,7 @@ namespace Gurux.DLMS.ASN
 
         }
 
-        internal static List<KeyValuePair<object, object>> EncodeSubject(string value)
+        public static List<KeyValuePair<object, object>> EncodeSubject(string value)
         {
             X509Name name;
             object val;
@@ -843,6 +843,17 @@ namespace Gurux.DLMS.ASN
             GXAsn1Settings s = new GXAsn1Settings();
             ReadNode(doc.DocumentElement, s, list);
             return ToByteArray(list[0]);
+        }
+
+        /// <summary>
+        /// Convert system title to subject.
+        /// </summary>
+        /// <param name="systemTitle">System title</param>
+        /// <returns>Subject</returns>
+        public static string SystemTitleToSubject(byte[] systemTitle)
+        {
+            GXByteBuffer bb = new GXByteBuffer(systemTitle);
+            return "CN=" + bb.ToHex(false, 0);
         }
     }
 }

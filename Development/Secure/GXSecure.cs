@@ -164,9 +164,9 @@ namespace Gurux.DLMS.Secure
             }
             else if (settings.Authentication == Authentication.HighECDSA)
             {
-                if (cipher.SigningKeyPair.Equals(new KeyValuePair<byte[], byte[]>()))
+                if (cipher.SigningKeyPair.Key == null)
                 {
-                    throw new ArgumentNullException("SigningKeyPair is empty.");
+                    throw new ArgumentNullException("SigningKeyPair is not set.");
                 }
                 GXEcdsa sig = new GXEcdsa(cipher.SigningKeyPair.Key);
                 GXByteBuffer bb = new GXByteBuffer();

@@ -178,6 +178,9 @@ namespace Gurux.DLMS.Secure
         /// <summary>
         /// Public/private key signing key pair.
         /// </summary>
+        /// <remarks>
+        /// Private key is for the initializer and Public key is for the target.
+        /// </remarks>
         public KeyValuePair<GXPrivateKey, GXPublicKey> SigningKeyPair
         {
             get;

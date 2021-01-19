@@ -1045,7 +1045,7 @@ namespace Gurux.DLMS
                     tmp2.Set(Settings.Cipher.SystemTitle);
                     tmp2.Set(Settings.CtoSChallenge);
                     tmp2.Set(Settings.StoCChallenge);
-                    GXEcdsa sig = new GXEcdsa(Settings.Cipher.SigningKeyPair.Key);
+                    GXEcdsa sig = new GXEcdsa(Settings.Cipher.SigningKeyPair.Value);
                     equals = sig.Verify(value, tmp2.Array());
                 }
                 else
@@ -1061,15 +1061,6 @@ namespace Gurux.DLMS
                     {
                         GXByteBuffer tmp2 = new GXByteBuffer();
                         tmp2.Set(Settings.Password);
-                        tmp2.Set(Settings.SourceSystemTitle);
-                        tmp2.Set(Settings.Cipher.SystemTitle);
-                        tmp2.Set(Settings.CtoSChallenge);
-                        tmp2.Set(Settings.StoCChallenge);
-                        secret = tmp2.Array();
-                    }
-                    else if (Settings.Authentication == Enums.Authentication.HighECDSA)
-                    {
-                        GXByteBuffer tmp2 = new GXByteBuffer();
                         tmp2.Set(Settings.SourceSystemTitle);
                         tmp2.Set(Settings.Cipher.SystemTitle);
                         tmp2.Set(Settings.CtoSChallenge);

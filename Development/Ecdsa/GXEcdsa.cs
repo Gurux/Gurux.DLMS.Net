@@ -31,12 +31,9 @@
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
-using Gurux.DLMS.ASN;
 using Gurux.DLMS.Ecdsa.Enums;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
-using System.Numerics;
 using System.Security.Cryptography;
 
 namespace Gurux.DLMS.Ecdsa
@@ -182,7 +179,6 @@ namespace Gurux.DLMS.Ecdsa
             n.Multiply(inv);
             n.Mod(curve.N);
             Multiply(u2, n, curve.N, curve.A, curve.P);
-            //  add = Math.add(u1, u2, P = curve.P, A = curve.A)
             u1.z = new GXBigInteger(1);
             u2.z = new GXBigInteger(1);
             JacobianAdd(u1, u2, curve.A, curve.P);

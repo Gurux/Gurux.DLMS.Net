@@ -80,8 +80,8 @@ namespace Gurux.DLMS.Objects
         public GXDLMSSecuritySetup(string ln, ushort sn)
         : base(ObjectType.SecuritySetup, ln, sn)
         {
-            Certificates = new List<GXDLMSCertificateInfo>();
-            Version = 0;
+            Certificates = new GXDLMSCertificateCollection();
+            Version = 1;
         }
 
         /// <summary>
@@ -158,7 +158,7 @@ namespace Gurux.DLMS.Objects
         /// Available certificates.
         /// </summary>
         [XmlIgnore()]
-        public List<GXDLMSCertificateInfo> Certificates
+        public GXDLMSCertificateCollection Certificates
         {
             get;
             set;
@@ -489,7 +489,7 @@ namespace Gurux.DLMS.Objects
         {
             foreach (GXx509Certificate it in settings.Cipher.Certificates)
             {
-                if (GXCommon.ToHex(it.SerialNumber.Value, false) == GXCommon.ToHex(serialNumber, false) && it.Issuer == issuer)
+                if (GXCommon.ToHex(it.SerialNumber.ToByteArray(), false) == GXCommon.ToHex(serialNumber, false) && it.Issuer == issuer)
                 {
                     return it;
                 }

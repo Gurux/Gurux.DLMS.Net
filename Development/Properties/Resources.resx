@@ -352,4 +352,7 @@
   <data name="UnmatchedTypeTxt" xml:space="preserve">
     <value>Access Error : Device reports a unmatched type.</value>
   </data>
+  <data name="InvalidKeyUsage" xml:space="preserve">
+    <value>Invalid key usage. </value>
+  </data>
 </root>

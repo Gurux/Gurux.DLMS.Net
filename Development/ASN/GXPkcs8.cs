@@ -62,7 +62,7 @@ namespace Gurux.DLMS.ASN
         /// <summary>
         /// Algorithm.
         /// </summary>
-        private object Algorithm
+        private X9ObjectIdentifier Algorithm
         {
             get;
             set;
@@ -93,7 +93,7 @@ namespace Gurux.DLMS.ASN
                 GXAsn1Sequence d = new GXAsn1Sequence();
                 d.Add((sbyte)Version);
                 GXAsn1Sequence d1 = new GXAsn1Sequence();
-                d1.Add(new GXAsn1ObjectIdentifier(X9ObjectIdentifierConverter.GetString((X9ObjectIdentifier)Algorithm)));
+                d1.Add(new GXAsn1ObjectIdentifier(X9ObjectIdentifierConverter.GetString(Algorithm)));
                 d1.Add(new GXAsn1ObjectIdentifier("1.2.840.10045.3.1.7"));
                 d.Add(d1);
                 GXAsn1Sequence d2 = new GXAsn1Sequence();
@@ -114,12 +114,24 @@ namespace Gurux.DLMS.ASN
         public GXPkcs8()
         {
             Version = CertificateVersion.Version1;
+            Algorithm = X9ObjectIdentifier.IdECPublicKey;
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="data">Base64 string. </param>
+        /// <param name="key">Private key.</param>
+        public GXPkcs8(GXPrivateKey key): this()
+        {
+            PrivateKey = key;
+            PublicKey = key.GetPublicKey();
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="data">PEM string.</param>
+        [Obsolete("Use FromPem instead.")]
         public GXPkcs8(string data)
         {
             const string START = "PRIVATE KEY-----\n";
@@ -137,6 +149,41 @@ namespace Gurux.DLMS.ASN
                 throw new ArgumentException("Invalid PEM file.");
             }
             Init(GXCommon.FromBase64(data.Substring(0, end)));
+        }
+
+        /// <summary>
+        /// Create PKCS #8 from PEM string.
+        /// </summary>
+        /// <param name="data">PEM string.</param>
+        public static GXPkcs8 FromPem(string data)
+        {
+            const string START = "PRIVATE KEY-----\n";
+            const string END = "-----END";
+            data = data.Replace("\r\n", "\n");
+            int start = data.IndexOf(START);
+            if (start == -1)
+            {
+                throw new ArgumentException("Invalid PEM file.");
+            }
+            data = data.Substring(start + START.Length);
+            int end = data.IndexOf(END);
+            if (end == -1)
+            {
+                throw new ArgumentException("Invalid PEM file.");
+            }
+            return FromDer(data.Substring(0, end));
+        }
+
+        /// <summary>
+        /// Create PKCS #8 from DER Base64 encoded string.
+        /// </summary>
+        /// <param name="data">Base64 DER string. </param>
+        /// <returns></returns>
+        public static GXPkcs8 FromDer(string data)
+        {
+            GXPkcs8 cert = new GXPkcs8();
+            cert.Init(GXCommon.FromBase64(data));
+            return cert;
         }
 
         /// <summary>
@@ -158,10 +205,6 @@ namespace Gurux.DLMS.ASN
             Version = (CertificateVersion)seq[0];
             GXAsn1Sequence tmp = (GXAsn1Sequence)seq[1];
             Algorithm = X9ObjectIdentifierConverter.FromString(tmp[0].ToString());
-            if ((X9ObjectIdentifier)Algorithm == X9ObjectIdentifier.None)
-            {
-                Algorithm = PkcsObjectIdentifierConverter.FromString(tmp[0].ToString());
-            }
             PrivateKey = GXPrivateKey.FromRawBytes((byte[])((GXAsn1Sequence)seq[2])[1]);
             if (PrivateKey == null)
             {
@@ -173,17 +216,15 @@ namespace Gurux.DLMS.ASN
         public override sealed string ToString()
         {
             StringBuilder bb = new StringBuilder();
-            bb.Append("PKCS #8:");
-            bb.Append("\n");
+            bb.AppendLine("PKCS #8:");
             bb.Append("Version: ");
-            bb.Append(Version.ToString());
-            bb.Append("\n");
+            bb.AppendLine(Version.ToString());
             bb.Append("Algorithm: ");
-            if (Algorithm != null)
-            {
-                bb.Append(Algorithm.ToString());
-            }
-            bb.Append("\r\n");
+            bb.AppendLine(Algorithm.ToString());
+            bb.Append("PrivateKey: ");
+            bb.AppendLine(PrivateKey.ToHex());
+            bb.Append("PublicKey: ");
+            bb.AppendLine(PublicKey.ToString());
             return bb.ToString();
         }
 
@@ -193,7 +234,7 @@ namespace Gurux.DLMS.ASN
         /// <returns> Created GXPkcs8 object. </returns>
         public static GXPkcs8 Load(string path)
         {
-            return new GXPkcs8(File.ReadAllText(path));
+            return GXPkcs8.FromPem(File.ReadAllText(path));
         }
 
         /// <summary>

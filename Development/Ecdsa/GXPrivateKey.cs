@@ -146,19 +146,20 @@ namespace Gurux.DLMS.Ecdsa
         /// <returns>Private key.</returns>
         public static GXPrivateKey FromPem(string pem)
         {
-            const string START = "EC PRIVATE KEY-----\n";
+            const string START = "PRIVATE KEY-----\n";
             const string END = "-----END";
-            int start = pem.IndexOf(START);
-            if (start == -1)
+            int index = pem.IndexOf(START);
+            if (index == -1)
             {
                 throw new ArgumentException("Invalid PEM file.");
             }
-            int end = pem.IndexOf(END);
-            if (end == -1)
+            pem = pem.Substring(index + START.Length);
+            index = pem.IndexOf(END);
+            if (index == -1)
             {
                 throw new ArgumentException("Invalid PEM file.");
             }
-            return FromDer(pem.Substring(start + START.Length, end - start - START.Length - 1));
+            return FromDer(pem.Substring(0, index));
         }
 
         /// <summary>
@@ -209,18 +210,19 @@ namespace Gurux.DLMS.Ecdsa
         {
             if (publicKey == null)
             {
-                GXBigInteger secret = new GXBigInteger(RawValue);
+                GXBigInteger pk = new GXBigInteger(RawValue);
                 GXCurve curve = new GXCurve(Scheme);
                 GXEccPoint p = new GXEccPoint(curve.G.x, curve.G.y, new GXBigInteger(1));
-                p = GXEcdsa.JacobianMultiply(p, secret, curve.N, curve.A, curve.P);
+                p = GXEcdsa.JacobianMultiply(p, pk, curve.N, curve.A, curve.P);
                 GXEcdsa.FromJacobian(p, curve.P);
                 GXByteBuffer key = new GXByteBuffer(65);
                 //Public key is un-compressed format.
                 key.SetUInt8(4);
                 byte[] tmp = p.x.ToArray();
-                key.Set(tmp, tmp.Length % 32, 32);
+                int size = Scheme == Ecc.P256 ? 32 : 48;
+                key.Set(tmp, tmp.Length % size, size);
                 tmp = p.y.ToArray();
-                key.Set(tmp, tmp.Length % 32, 32);
+                key.Set(tmp, tmp.Length % size, size);
                 publicKey = GXPublicKey.FromRawBytes(key.Array());
             }
             return publicKey;

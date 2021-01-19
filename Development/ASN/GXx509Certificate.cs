@@ -38,6 +38,7 @@ using Gurux.DLMS.Internal;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Numerics;
 using System.Text;
 
 namespace Gurux.DLMS.ASN
@@ -56,7 +57,7 @@ namespace Gurux.DLMS.ASN
         public byte[] SubjectKeyIdentifier
         {
             get;
-            private set;
+            set;
         }
 
         /// <summary>
@@ -66,7 +67,7 @@ namespace Gurux.DLMS.ASN
         public byte[] AuthorityKeyIdentifier
         {
             get;
-            private set;
+            set;
         }
 
         /// <summary>
@@ -75,7 +76,7 @@ namespace Gurux.DLMS.ASN
         public bool BasicConstraints
         {
             get;
-            private set;
+            set;
         }
 
         /// <summary>
@@ -84,7 +85,7 @@ namespace Gurux.DLMS.ASN
         public HashAlgorithm SignatureAlgorithm
         {
             get;
-            private set;
+            set;
         }
 
         /// <summary>
@@ -93,7 +94,7 @@ namespace Gurux.DLMS.ASN
         public object SignatureParameters
         {
             get;
-            private set;
+            set;
         }
 
         /// <summary>
@@ -102,16 +103,16 @@ namespace Gurux.DLMS.ASN
         public GXPublicKey PublicKey
         {
             get;
-            private set;
+            set;
         }
 
         /// <summary>
         /// Public Key algorithm.
         /// </summary>
-        public HashAlgorithm PublicKeySignature
+        public X9ObjectIdentifier PublicKeyAlgorithm
         {
             get;
-            private set;
+            set;
         }
 
         /// <summary>
@@ -120,7 +121,7 @@ namespace Gurux.DLMS.ASN
         public object PublicKeyParameters
         {
             get;
-            private set;
+            set;
         }
 
         /// <summary>
@@ -129,7 +130,7 @@ namespace Gurux.DLMS.ASN
         public byte[] Signature
         {
             get;
-            private set;
+            set;
         }
 
         /// <summary>
@@ -138,7 +139,7 @@ namespace Gurux.DLMS.ASN
         public string Subject
         {
             get;
-            private set;
+            set;
         }
 
 
@@ -148,7 +149,7 @@ namespace Gurux.DLMS.ASN
         public string Issuer
         {
             get;
-            private set;
+            set;
         }
 
         /// <summary>
@@ -157,21 +158,24 @@ namespace Gurux.DLMS.ASN
         public string AuthorityCertIssuer
         {
             get;
-            private set;
+            set;
         }
 
         /// <summary>
         /// Serial number.
         /// </summary>
-        public GXAsn1Integer SerialNumber
+        public BigInteger SerialNumber
         {
             get;
-            private set;
+            set;
         }
 
         /// <summary>
         /// Version.
         /// </summary>
+        /// <remarks>
+        /// Version is read-only because DLMS supports only v3.
+        /// </remarks>
         public CertificateVersion Version
         {
             get;
@@ -184,7 +188,7 @@ namespace Gurux.DLMS.ASN
         public DateTime ValidFrom
         {
             get;
-            private set;
+            set;
         }
 
         /// <summary>
@@ -193,7 +197,7 @@ namespace Gurux.DLMS.ASN
         public DateTime ValidTo
         {
             get;
-            private set;
+            set;
         }
 
         /// <summary>
@@ -202,7 +206,7 @@ namespace Gurux.DLMS.ASN
         public KeyUsage KeyUsage
         {
             get;
-            private set;
+            set;
         }
 
         /// <summary>
@@ -212,20 +216,67 @@ namespace Gurux.DLMS.ASN
         {
             Version = CertificateVersion.Version3;
             KeyUsage = KeyUsage.None;
+            SignatureAlgorithm = HashAlgorithm.Sha256WithEcdsa;
         }
 
-        ///
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="data">Base64 string. </param>
+        /// <param name="data">PEM string.</param>
+        [Obsolete("Use FromPem instead.")]
         public GXx509Certificate(string data)
         {
-            string tmp = data.Replace("-----BEGIN EC CERTIFICATE-----", "");
-            tmp = tmp.Replace("-----END EC CERTIFICATE-----", "");
-            tmp = data.Replace("-----BEGIN CERTIFICATE-----", "");
-            tmp = tmp.Replace("-----END CERTIFICATE-----", "");
-            Init(GXCommon.FromBase64(tmp.Trim()));
+            const string START = "CERTIFICATE-----\n";
+            const string END = "-----END";
+            data = data.Replace("\r\n", "\n");
+            int start = data.IndexOf(START);
+            if (start == -1)
+            {
+                throw new ArgumentException("Invalid PEM file.");
+            }
+            data = data.Substring(start + START.Length);
+            int end = data.IndexOf(END);
+            if (end == -1)
+            {
+                throw new ArgumentException("Invalid PEM file.");
+            }
+            Init(GXCommon.FromBase64(data.Substring(0, end)));
+        }
+
+        /// <summary>
+        /// Create x509Certificate from PEM string.
+        /// </summary>
+        /// <param name="data">PEM string.</param>
+        /// <returns>x509 certificate</returns>
+        public static GXx509Certificate FromPem(string data)
+        {
+            const string START = "CERTIFICATE-----\n";
+            const string END = "-----END";
+            data = data.Replace("\r\n", "\n");
+            int start = data.IndexOf(START);
+            if (start == -1)
+            {
+                throw new ArgumentException("Invalid PEM file.");
+            }
+            data = data.Substring(start + START.Length);
+            int end = data.IndexOf(END);
+            if (end == -1)
+            {
+                throw new ArgumentException("Invalid PEM file.");
+            }
+            return FromDer(data.Substring(0, end));
+        }
+
+        /// <summary>
+        /// Create x509Certificate from DER Base64 encoded string.
+        /// </summary>
+        /// <param name="data">Base64 DER string. </param>
+        /// <returns>x509 certificate</returns>
+        public static GXx509Certificate FromDer(string data)
+        {
+            GXx509Certificate cert = new GXx509Certificate();
+            cert.Init(GXCommon.FromBase64(data));
+            return cert;
         }
 
         //  https://tools.ietf.org/html/rfc5280#section-4.1
@@ -244,11 +295,11 @@ namespace Gurux.DLMS.ASN
             Version = (CertificateVersion)((GXAsn1Context)reqInfo[0])[0];
             if (reqInfo[1] is sbyte)
             {
-                SerialNumber = new GXAsn1Integer(Convert.ToUInt64(reqInfo[1]));
+                SerialNumber = Convert.ToUInt64(reqInfo[1]);
             }
             else
             {
-                SerialNumber = (GXAsn1Integer)reqInfo[1];
+                SerialNumber = new BigInteger(((GXAsn1Integer)reqInfo[1]).Value);
             }
             string tmp = ((GXAsn1Sequence)reqInfo[2])[0].ToString();
             // Signature Algorithm
@@ -264,10 +315,15 @@ namespace Gurux.DLMS.ASN
             }
             // Issuer
             Issuer = GXAsn1Converter.GetSubject((GXAsn1Sequence)reqInfo[3]);
-            // Verify that Common Name includes system title.
+            bool basicConstraintsExists = false;
+            // Validity
+            ValidFrom = (DateTime)((GXAsn1Sequence)reqInfo[4])[0];
+            ValidTo = (DateTime)((GXAsn1Sequence)reqInfo[4])[1];
+            Subject = GXAsn1Converter.GetSubject((GXAsn1Sequence)reqInfo[5]);
+            // Verify that subject Common Name includes system title.
             bool commonNameFound = false;
             string CN = X509NameConverter.GetString(X509Name.CN);
-            foreach (KeyValuePair<object, object> it in (GXAsn1Sequence)reqInfo[3])
+            foreach (KeyValuePair<object, object> it in (GXAsn1Sequence)reqInfo[5])
             {
                 if (CN == it.Key.ToString())
                 {
@@ -284,11 +340,6 @@ namespace Gurux.DLMS.ASN
                 throw new GXDLMSCertificateException("Common name doesn't exist.");
             }
 
-            bool basicConstraintsExists = false;
-            // Validity
-            ValidFrom = (DateTime)((GXAsn1Sequence)reqInfo[4])[0];
-            ValidTo = (DateTime)((GXAsn1Sequence)reqInfo[4])[1];
-            Subject = GXAsn1Converter.GetSubject((GXAsn1Sequence)reqInfo[5]);
             // Subject public key Info
             GXAsn1Sequence subjectPKInfo = (GXAsn1Sequence)reqInfo[6];
             PublicKey = GXPublicKey.FromRawBytes(((GXAsn1BitString)subjectPKInfo[1]).Value);
@@ -314,7 +365,7 @@ namespace Gurux.DLMS.ASN
                                         {
                                             StringBuilder sb = new StringBuilder();
                                             //authorityCertIssuer
-                                            foreach (KeyValuePair<object, object> it2 in ((GXAsn1Sequence)((GXAsn1Context)((GXAsn1Context)it)[0])[0]))
+                                            foreach (KeyValuePair<object, object> it2 in ((GXAsn1Sequence)((GXAsn1Context)it[0])[0]))
                                             {
                                                 if (sb.Length != 0)
                                                 {
@@ -373,7 +424,7 @@ namespace Gurux.DLMS.ASN
             {
                 throw new Exception("Basic Constraints value not present. It's mandotory.");
             }
-            PublicKeySignature = HashAlgorithmConverter.FromString(((GXAsn1Sequence)seq[1])[0].ToString());
+            PublicKeyAlgorithm = X9ObjectIdentifierConverter.FromString(((GXAsn1Sequence)seq[1])[0].ToString());
             // Optional.
             if (((GXAsn1Sequence)seq[1]).Count > 1)
             {
@@ -394,13 +445,20 @@ namespace Gurux.DLMS.ASN
             Init(data);
         }
 
-        private object[] GetData()
+        private object[] GetDataList()
         {
+            if (string.IsNullOrEmpty(Issuer))
+            {
+                throw new ArgumentNullException("Issuer is empty.");
+            }
+            if (string.IsNullOrEmpty(Subject))
+            {
+                throw new ArgumentNullException("Subject is empty.");
+            }
             GXAsn1ObjectIdentifier a = new GXAsn1ObjectIdentifier(HashAlgorithmConverter.GetString(SignatureAlgorithm));
             GXAsn1Sequence seq;
             GXAsn1Context p = new GXAsn1Context();
             p.Add((sbyte)Version);
-            object subjectPKInfo = PublicKey.RawValue;
             GXAsn1Sequence s = new GXAsn1Sequence();
             GXAsn1Sequence s1;
             if (SubjectKeyIdentifier != null)
@@ -424,7 +482,7 @@ namespace Gurux.DLMS.ASN
                 GXAsn1Context c2 = new GXAsn1Context();
                 c2.Index = 1;
                 c1.Add(c2);
-                GXAsn1Context c3 = new GXAsn1Context() {Index = 4};
+                GXAsn1Context c3 = new GXAsn1Context() { Index = 4 };
                 c2.Add(c3);
                 c3.Add(GXAsn1Converter.EncodeSubject(AuthorityCertIssuer));
                 s2.Add(c1);
@@ -441,13 +499,12 @@ namespace Gurux.DLMS.ASN
             {
                 seq.Add(BasicConstraints);
             }
-            s1.Add(GXAsn1Converter.ToByteArray(seq));
-            s.Add(s1);
-
-            if (KeyUsage == KeyUsage.None)
+            else if (KeyUsage == KeyUsage.None)
             {
                 throw new Exception("Key usage not present.");
             }
+            s1.Add(GXAsn1Converter.ToByteArray(seq));
+            s.Add(s1);
             s1 = new GXAsn1Sequence();
             s1.Add(new GXAsn1ObjectIdentifier(X509CertificateTypeConverter.GetString(Enums.X509CertificateType.KeyUsage)));
             byte value = 0;
@@ -485,13 +542,13 @@ namespace Gurux.DLMS.ASN
             object[] p2;
             if (SignatureParameters == null)
             {
-                p2 = new object[] { a};
+                p2 = new object[] { a };
             }
             else
             {
                 p2 = new object[] { a, SignatureParameters };
             }
-            list = new object[] { p, SerialNumber, p2, GXAsn1Converter.EncodeSubject(Issuer), valid, GXAsn1Converter.EncodeSubject(Subject), tmp2, tmp4 };
+            list = new object[] { p, new GXAsn1Integer(SerialNumber.ToByteArray()), p2, GXAsn1Converter.EncodeSubject(Issuer), valid, GXAsn1Converter.EncodeSubject(Subject), tmp2, tmp4 };
             return list;
         }
 
@@ -500,46 +557,72 @@ namespace Gurux.DLMS.ASN
             get
             {
                 object tmp = new object[] { new GXAsn1ObjectIdentifier(HashAlgorithmConverter.GetString(SignatureAlgorithm)) };
-                object[] list = new object[] { GetData(), tmp, new GXAsn1BitString(Signature, 0) };
+                object[] list = new object[] { GetDataList(), tmp, new GXAsn1BitString(Signature, 0) };
                 return GXAsn1Converter.ToByteArray(list);
             }
+        }
+
+        /// <summary>
+        /// Get data as byte array.
+        /// </summary>
+        /// <returns></returns>
+        public byte[] GetData()
+        {
+            return GXAsn1Converter.ToByteArray(GetDataList());
         }
 
         public override sealed string ToString()
         {
             StringBuilder bb = new StringBuilder();
             bb.Append("Version: ");
-            bb.Append(Version.ToString());
-            bb.Append("\n");
-            bb.Append("Subject: ");
-            bb.Append(Subject);
-            bb.Append("\n");
-
+            bb.AppendLine(Version.ToString());
+            bb.Append("SerialNumber: ");
+            bb.AppendLine(SerialNumber.ToString());
             bb.Append("Signature: ");
             bb.Append(SignatureAlgorithm.ToString());
             bb.Append(", OID = ");
             bb.Append(HashAlgorithmConverter.GetString(SignatureAlgorithm));
             bb.Append("\n");
-            bb.Append("Key: ");
-            if (PublicKey != null)
-            {
-                bb.Append(PublicKey.ToString());
-            }
-            bb.Append("\n");
-            bb.Append("Validity: [From: ");
-            bb.Append(ValidFrom.ToString());
-            bb.Append(", \n");
-            bb.Append("To: ");
-            bb.Append(ValidTo.ToString());
-            bb.Append("]\n");
             bb.Append("Issuer: ");
             bb.Append(Issuer);
             bb.Append("\n");
-            bb.Append("SerialNumber: ");
-            bb.Append(SerialNumber);
+            bb.Append("Validity: [From: ");
+            bb.Append(ValidFrom.ToUniversalTime().ToString());
+            bb.Append(" GMT To: ");
+            bb.Append(ValidTo.ToUniversalTime().ToString());
+            bb.Append(" GMT]\n");
+            bb.Append("Subject: ");
+            bb.Append(Subject);
             bb.Append("\n");
-            bb.Append("Algorithm: ");
-            bb.Append(PublicKeySignature.ToString());
+            bb.Append("Public Key Algorithm: ");
+            bb.Append(PublicKeyAlgorithm.ToString());
+            bb.Append("\n");
+            bb.Append("Key: ");
+            bb.Append(PublicKey.ToHex());
+            bb.Append("\n");
+            if (PublicKey.Scheme == Ecdsa.Enums.Ecc.P256)
+            {
+                bb.Append("ASN1 OID: prime256v1\n");
+                bb.Append("NIST CURVE: P-256");
+            }
+            else if (PublicKey.Scheme == Ecdsa.Enums.Ecc.P384)
+            {
+                bb.Append("ASN1 OID: prime384v1\n");
+                bb.Append("\n");
+                bb.Append("NIST CURVE: P-384");
+            }
+            bb.Append("\n");
+            bb.Append("Basic constraints: ");
+            bb.Append(BasicConstraints);
+            bb.Append("\n");
+            bb.Append("SubjectKeyIdentifier: ");
+            bb.Append(GXCommon.ToHex(SubjectKeyIdentifier, true));
+            bb.Append("\n");
+            bb.Append("KeyUsage: ");
+            bb.Append(KeyUsage);
+            bb.Append("\n");
+            bb.Append("Signature Algorithm: ");
+            bb.Append(SignatureAlgorithm.ToString());
             bb.Append("\n");
             bb.Append("Signature: ");
             bb.Append(GXCommon.ToHex(Signature, false));
@@ -554,7 +637,7 @@ namespace Gurux.DLMS.ASN
         /// <returns> Created GXx509Certificate object. </returns>
         public static GXx509Certificate Load(string path)
         {
-            return new GXx509Certificate(File.ReadAllText(path));
+            return GXx509Certificate.FromPem(File.ReadAllText(path));
         }
 
         /// <summary>
