@@ -226,6 +226,7 @@ namespace Gurux.DLMS.ASN
         [Obsolete("Use FromPem instead.")]
         public GXx509Certificate(string data)
         {
+            data = data.Replace("\r\n", "\n");
             const string START = "CERTIFICATE-----\n";
             const string END = "-----END";
             data = data.Replace("\r\n", "\n");
@@ -250,6 +251,7 @@ namespace Gurux.DLMS.ASN
         /// <returns>x509 certificate</returns>
         public static GXx509Certificate FromPem(string data)
         {
+            data = data.Replace("\r\n", "\n");
             const string START = "CERTIFICATE-----\n";
             const string END = "-----END";
             data = data.Replace("\r\n", "\n");
@@ -270,12 +272,14 @@ namespace Gurux.DLMS.ASN
         /// <summary>
         /// Create x509Certificate from DER Base64 encoded string.
         /// </summary>
-        /// <param name="data">Base64 DER string. </param>
+        /// <param name="der">Base64 DER string.</param>
         /// <returns>x509 certificate</returns>
-        public static GXx509Certificate FromDer(string data)
+        public static GXx509Certificate FromDer(string der)
         {
+            der = der.Replace("\r\n", "");
+            der = der.Replace("\n", "");
             GXx509Certificate cert = new GXx509Certificate();
-            cert.Init(GXCommon.FromBase64(data));
+            cert.Init(GXCommon.FromBase64(der));
             return cert;
         }
 
@@ -428,7 +432,7 @@ namespace Gurux.DLMS.ASN
             // Optional.
             if (((GXAsn1Sequence)seq[1]).Count > 1)
             {
-                SignatureParameters = ((GXAsn1Sequence)seq[1])[1];
+                PublicKeyParameters = ((GXAsn1Sequence)seq[1])[1];
             }
             // signature
             Signature = ((GXAsn1BitString)seq[2]).Value;
@@ -532,9 +536,18 @@ namespace Gurux.DLMS.ASN
             GXAsn1Sequence valid = new GXAsn1Sequence();
             valid.Add(ValidFrom);
             valid.Add(ValidTo);
+            GXAsn1ObjectIdentifier alg;
+            if (PublicKey.Scheme == Ecdsa.Enums.Ecc.P256)
+            {
+                alg = new GXAsn1ObjectIdentifier("1.2.840.10045.3.1.7");
+            }
+            else
+            {
+                alg = new GXAsn1ObjectIdentifier("1.3.132.0.34");
+            }
             object[] list;
             object[] tmp3 = new object[]{new GXAsn1ObjectIdentifier("1.2.840.10045.2.1"),
-            new GXAsn1ObjectIdentifier("1.2.840.10045.3.1.7") };
+            alg };
             GXAsn1Context tmp4 = new GXAsn1Context();
             tmp4.Index = 3;
             tmp4.Add(s);
@@ -674,5 +687,23 @@ namespace Gurux.DLMS.ASN
         {
             return GXCommon.ToBase64(Encoded);
         }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is GXx509Certificate o)
+            {
+                if (SerialNumber == o.SerialNumber)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return SerialNumber.GetHashCode();
+        }
+
     }
 }

@@ -38,6 +38,7 @@ using Gurux.DLMS.Objects;
 using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Enums;
 using System.Xml.Serialization;
+using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS
 {
@@ -139,6 +140,17 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Used Security Suite.
+        /// </summary>
+        [DefaultValue(SecuritySuite.GMac)]
+        public SecuritySuite SecuritySuite
+        {
+            get;
+            set;
+        }
+
+
+        /// <summary>
         /// System Title.
         /// </summary>
         [DefaultValue(null)]
@@ -225,6 +237,46 @@ namespace Gurux.DLMS
         /// </summary>
         [DefaultValue(null)]
         public string Challenge
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Signing key of the client.
+        /// </summary>
+        [DefaultValue(null)]
+        public string ClientSigningKey
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Agreement key of the client.
+        /// </summary>
+        [DefaultValue(null)]
+        public string ClientAgreementKey
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Signing key of the server.
+        /// </summary>
+        [DefaultValue(null)]
+        public string ServerSigningKey
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Agreement key of the server.
+        /// </summary>
+        [DefaultValue(null)]
+        public string ServerAgreementKey
         {
             get;
             set;

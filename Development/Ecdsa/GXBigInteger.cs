@@ -338,8 +338,41 @@ namespace Gurux.DLMS.Ecdsa
         public byte[] ToArray()
         {
             int pos;
+            UInt32 value;
             GXByteBuffer bb = new GXByteBuffer();
+            int zeroIndex = -1;
             for (pos = 0; pos != Count; ++pos)
+            {
+                value = Data[pos];
+                if (value == 0)
+                {
+                    zeroIndex = pos;
+                }
+                else
+                {
+                    zeroIndex = -1;
+                }
+                bb.SetUInt32(value);
+                Array.Reverse(bb.Data, 4 * pos, 4);
+            }
+            //Remove leading zeroes.
+            if (zeroIndex != -1)
+            {
+                bb.Size = zeroIndex * 4;
+            }
+            Array.Reverse(bb.Data, 0, bb.Size);
+            return bb.Array();
+        }
+
+        /// <summary>
+        /// Convert value to byte array.
+        /// </summary>
+        /// <returns></returns>
+        public byte[] ToArray(int start, int count)
+        {
+            int pos;
+            GXByteBuffer bb = new GXByteBuffer();
+            for (pos = start; pos != count; ++pos)
             {
                 bb.SetUInt32(Data[pos]);
                 Array.Reverse(bb.Data, 4 * pos, 4);
@@ -814,6 +847,7 @@ namespace Gurux.DLMS.Ecdsa
                 Sub(mod);
                 negative = false;
             }
+            changed = true;
         }
 
         public void Inv(GXBigInteger value)

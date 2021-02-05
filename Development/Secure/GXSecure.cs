@@ -39,10 +39,12 @@ using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 using System.Collections.Generic;
 using Gurux.DLMS.Ecdsa;
+using Gurux.DLMS.Objects.Enums;
+using Gurux.DLMS.Ecdsa.Enums;
+using Gurux.DLMS.ASN;
 
 namespace Gurux.DLMS.Secure
 {
-
     internal class GXSecure
     {
 
@@ -75,7 +77,7 @@ namespace Gurux.DLMS.Secure
         ///<returns>
         ///Chiphered text.
         ///</returns>
-        public static byte[] Secure(GXDLMSSettings settings, GXICipher cipher, UInt32 ic, byte[] data, byte[] secret)
+        internal static byte[] Secure(GXDLMSSettings settings, GXICipher cipher, UInt32 ic, byte[] data, byte[] secret)
         {
             byte[] tmp;
             if (settings.Authentication == Authentication.High)
@@ -152,11 +154,16 @@ namespace Gurux.DLMS.Secure
             else if (settings.Authentication == Authentication.HighGMAC)
             {
                 //SC is always Security.Authentication.
-                AesGcmParameter p = new AesGcmParameter(0, (byte)Security.Authentication, ic,
-                    secret, cipher.BlockCipherKey, cipher.AuthenticationKey);
+                AesGcmParameter p = new AesGcmParameter(0, Security.Authentication,
+                    cipher.SecuritySuite,
+                    ic,
+                    secret,
+                    cipher.BlockCipherKey,
+                    cipher.AuthenticationKey);
                 p.Type = CountType.Tag;
                 challenge.Clear();
-                challenge.SetUInt8((byte)Enums.Security.Authentication);
+                //Security suite is 0.
+                challenge.SetUInt8((byte)Security.Authentication);
                 challenge.SetUInt32((UInt32)p.InvocationCounter);
                 challenge.Set(GXDLMSChippering.EncryptAesGcm(p, tmp));
                 tmp = challenge.Array();
@@ -210,6 +217,136 @@ namespace Gurux.DLMS.Secure
                 result[pos] = (byte)r.Next(0x7A);
             }
             return result;
+        }
+
+        /// <summary>
+        /// Generate KDF.
+        /// </summary>
+        /// <param name="securitySuite">Used security suite.</param>
+        /// <param name="z">Shared Secret.</param>
+        /// <param name="algorithmID">Algorithm ID.</param>
+        /// <param name="partyUInfo">Sender system title.</param>
+        /// <param name="partyVInfo">Receiver system title.</param>
+        /// <param name="suppPubInfo">Not used in DLMS.</param>
+        /// <param name="suppPrivInfo">Not used in DLMS.</param>
+        /// <returns></returns>
+        public static byte[] GenerateKDF(SecuritySuite securitySuite, byte[] z,
+                AlgorithmId algorithmID,
+                byte[] partyUInfo,
+                byte[] partyVInfo,
+                byte[] suppPubInfo,
+                byte[] suppPrivInfo)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.Set(new byte[] { 0x60, 0x85, 0x74, 0x05, 0x08, 0x03, (byte)algorithmID });
+            bb.Set(partyUInfo);
+            bb.Set(partyVInfo);
+            if (suppPubInfo != null)
+            {
+                bb.Set(suppPubInfo);
+            }
+            if (suppPrivInfo != null)
+            {
+                bb.Set(suppPrivInfo);
+            }
+            return GenerateKDF(securitySuite, z, bb.Array());
+        }
+
+        /// <summary>
+        /// Generate KDF.
+        /// </summary>
+        /// <param name="securitySuite">Security suite.</param>
+        /// <param name="z">z Shared Secret.</param>
+        /// <param name="otherInfo">Other info.</param>
+        /// <returns></returns>
+        public static byte[] GenerateKDF(SecuritySuite securitySuite, byte[] z, byte[] otherInfo)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetUInt32(1);
+            bb.Set(z);
+            bb.Set(otherInfo);
+            if (securitySuite == SecuritySuite.Ecdsa256)
+            {
+                using (SHA256 sha = new SHA256CryptoServiceProvider())
+                {
+                    return sha.ComputeHash(bb.Array());
+                }
+            }
+            else if (securitySuite == SecuritySuite.Ecdsa384)
+            {
+                using (SHA384 sha = new SHA384CryptoServiceProvider())
+                {
+                    return sha.ComputeHash(bb.Array());
+                }
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException("Invalid sevurity suite.");
+            }
+        }
+
+        /// <summary>
+        /// Get Ephemeral Public Key Signature.
+        /// </summary>
+        /// <param name="keyId">Key ID.</param>
+        /// <param name="ephemeralKey">Ephemeral key.</param>
+        /// <returns>Ephemeral Public Key Signature.</returns>
+        public static byte[] GetEphemeralPublicKeyData(int keyId,
+                GXPublicKey ephemeralKey)
+        {
+            GXAsn1BitString tmp = (GXAsn1BitString)((GXAsn1Sequence)GXAsn1Converter.FromByteArray(ephemeralKey.ToEncoded()))[1];
+            // Ephemeral public key client
+            GXByteBuffer epk = new GXByteBuffer(tmp.Value);
+            // First byte is 4 and that is not used. We can override it.
+            epk.Data[0] = (byte)keyId;
+            return epk.Array();
+        }
+
+        /// <summary>
+        ///  Get Ephemeral Public Key Signature.
+        /// </summary>
+        /// <param name="keyId">Key ID.</param>
+        /// <param name="ephemeralKey">Ephemeral key.</param>
+        /// <param name="signKey">Private Key.</param>
+        /// <returns>Ephemeral Public Key Signature.</returns>
+        public static byte[] GetEphemeralPublicKeySignature(
+            int keyId,
+                GXPublicKey ephemeralKey,
+                GXPrivateKey signKey)
+        {
+            byte[] epk = GetEphemeralPublicKeyData(keyId, ephemeralKey);
+            // Add ephemeral public key signature.
+            GXEcdsa c = new GXEcdsa(signKey);
+            byte[] sign = c.Sign(epk);
+            return sign;
+        }
+
+        /// <summary>
+        /// Validate ephemeral public key signature.
+        /// </summary>
+        /// <param name="data">Data to validate.</param>
+        /// <param name="sign">Sign</param>
+        /// <param name="publicSigningKey">Public Signing key from other party.</param>
+        /// <returns>Is verify succeeded.</returns>
+        public static bool ValidateEphemeralPublicKeySignature(
+            byte[] data,
+            byte[] sign,
+            GXPublicKey publicSigningKey)
+        {
+            GXAsn1Integer a = new GXAsn1Integer(sign, 0, 32);
+            GXAsn1Integer b = new GXAsn1Integer(sign, 32, 32);
+            GXAsn1Sequence s = new GXAsn1Sequence();
+            s.Add(a);
+            s.Add(b);
+            byte[] tmp = GXAsn1Converter.ToByteArray(s);
+            GXEcdsa c = new GXEcdsa(publicSigningKey);
+            bool ret = c.Verify(sign, data);
+            if (!ret)
+            {
+                System.Diagnostics.Debug.WriteLine("Data:" + GXCommon.ToHex(data, true));
+                System.Diagnostics.Debug.WriteLine("Sign:" + GXCommon.ToHex(sign, true));
+            }
+            return ret;
         }
     }
 }

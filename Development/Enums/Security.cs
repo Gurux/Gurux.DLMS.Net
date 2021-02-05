@@ -54,6 +54,18 @@ namespace Gurux.DLMS.Enums
         /// <summary>
         /// Authentication and Encryption security are used.
         /// </summary>
-        AuthenticationEncryption = 0x30
+        AuthenticationEncryption = 0x30,
+        /// <summary>
+        /// The Ephemeral Unified Model scheme is used.
+        /// </summary>
+        EphemeralUnifiedModel = 0x40,
+        /// <summary>
+        /// The One-Pass Diffie-Hellman scheme is used;
+        /// </summary>
+        OnePassDiffieHellman = 0x50,
+        /// <summary>
+        /// The Static Unified Model scheme is used.
+        /// </summary>
+        StaticUnifiedModel = 0x60
     }
 }

@@ -978,7 +978,7 @@ namespace Gurux.DLMS
             }
             byte[] bytes = new byte[arr.Length];
             Get(bytes);
-            bool ret = Gurux.DLMS.Internal.GXCommon.Compare(bytes, arr);
+            bool ret = Internal.GXCommon.Compare(bytes, arr);
             if (!ret)
             {
                 this.Position -= arr.Length;

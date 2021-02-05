@@ -40,6 +40,7 @@ using Gurux.DLMS.Internal;
 using Gurux.DLMS.ASN.Enums;
 using System.Xml;
 using System.Globalization;
+using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.ASN
 {
@@ -160,7 +161,7 @@ namespace Gurux.DLMS.ASN
                     {
                         s.Increase();
                     }
-                    tmp = new GXAsn1Context() {Index = type & 0xF };
+                    tmp = new GXAsn1Context() { Index = type & 0xF };
                     objects.Add(tmp);
                     while (bb.Position < start + len)
                     {
@@ -855,5 +856,36 @@ namespace Gurux.DLMS.ASN
             GXByteBuffer bb = new GXByteBuffer(systemTitle);
             return "CN=" + bb.ToHex(false, 0);
         }
+
+        /// <summary>
+        /// Convert ASN1 certificate type to DLMS key usage.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static KeyUsage CertificateTypeToKeyUsage(CertificateType type)
+        {
+            KeyUsage k;
+            switch (type)
+            {
+                case CertificateType.DigitalSignature:
+                    k = KeyUsage.DigitalSignature;
+                    break;
+                case CertificateType.KeyAgreement:
+                    k = KeyUsage.KeyAgreement;
+                    break;
+                case CertificateType.TLS:
+                    k = KeyUsage.KeyCertSign;
+                    break;
+                case CertificateType.Other:
+                    k = KeyUsage.CrlSign;
+                    break;
+                default:
+                    // At least one bit must be used.
+                    k = KeyUsage.None;
+                    break;
+            }
+            return k;
+        }
+
     }
 }

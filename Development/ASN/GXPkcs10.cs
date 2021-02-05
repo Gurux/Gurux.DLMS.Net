@@ -40,6 +40,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Net;
+using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.ASN
 {
@@ -142,6 +143,7 @@ namespace Gurux.DLMS.ASN
         [Obsolete("Use FromPem instead.")]
         public GXPkcs10(string data)
         {
+            data = data.Replace("\r\n", "\n");
             const string START = "CERTIFICATE REQUEST-----\n";
             const string END = "-----END CERTIFICATE REQUEST-----";
             data = data.Replace("\r\n", "\n");
@@ -174,6 +176,7 @@ namespace Gurux.DLMS.ASN
         /// <param name="data">PEM string.</param>
         public static GXPkcs10 FromPem(string data)
         {
+            data = data.Replace("\r\n", "\n");
             const string START = "CERTIFICATE REQUEST-----\n";
             const string END = "-----END";
             data = data.Replace("\r\n", "\n");
@@ -194,12 +197,14 @@ namespace Gurux.DLMS.ASN
         /// <summary>
         /// Create x509Certificate from DER Base64 encoded string.
         /// </summary>
-        /// <param name="data">Base64 DER string. </param>
+        /// <param name="der">Base64 DER string.</param>
         /// <returns></returns>
-        public static GXPkcs10 FromDer(string data)
+        public static GXPkcs10 FromDer(string der)
         {
+            der = der.Replace("\r\n", "");
+            der = der.Replace("\n", "");
             GXPkcs10 cert = new GXPkcs10();
-            cert.Init(GXCommon.FromBase64(data));
+            cert.Init(GXCommon.FromBase64(der));
             return cert;
         }
 
@@ -271,9 +276,10 @@ namespace Gurux.DLMS.ASN
             GXEcdsa e = new GXEcdsa(PublicKey);
             GXAsn1Sequence tmp2 = (GXAsn1Sequence)GXAsn1Converter.FromByteArray(Signature);
             GXByteBuffer bb = new GXByteBuffer();
+            int size = SignatureAlgorithm == HashAlgorithm.Sha256WithEcdsa ? 32 : 48;
             //Some implementations might add extra byte. It must removed.
-            bb.Set(((GXAsn1Integer)tmp2[0]).Value, ((GXAsn1Integer)tmp2[0]).Value.Length == 32 ? 0 : 1, 32);
-            bb.Set(((GXAsn1Integer)tmp2[1]).Value, ((GXAsn1Integer)tmp2[1]).Value.Length == 32 ? 0 : 1, 32);
+            bb.Set(((GXAsn1Integer)tmp2[0]).Value, ((GXAsn1Integer)tmp2[0]).Value.Length == size ? 0 : 1, size);
+            bb.Set(((GXAsn1Integer)tmp2[1]).Value, ((GXAsn1Integer)tmp2[1]).Value.Length == size ? 0 : 1, size);
             if (!e.Verify(bb.Array(), GXAsn1Converter.ToByteArray(reqInfo)))
             {
                 throw new ArgumentException("Invalid Signature.");
@@ -284,44 +290,53 @@ namespace Gurux.DLMS.ASN
         {
             StringBuilder bb = new StringBuilder();
             bb.Append("PKCS #10 certificate request:");
-            bb.Append("\n");
+            bb.Append(Environment.NewLine);
             bb.Append("Version: ");
             bb.Append(Version.ToString());
-            bb.Append("\n");
+            bb.Append(Environment.NewLine);
 
             bb.Append("Subject: ");
             bb.Append(Subject);
-            bb.Append("\n");
+            bb.Append(Environment.NewLine);
 
             bb.Append("Algorithm: ");
             bb.Append(Algorithm.ToString());
-            bb.Append("\n");
+            bb.Append(Environment.NewLine);
             bb.Append("Public Key: ");
             if (PublicKey != null)
             {
                 bb.Append(PublicKey.ToString());
             }
-            bb.Append("\n");
+            bb.Append(Environment.NewLine);
             bb.Append("Signature algorithm: ");
             bb.Append(SignatureAlgorithm.ToString());
-            bb.Append("\n");
-            bb.Append("Signature parameters: ");
+            bb.Append(Environment.NewLine);
             if (SignatureParameters != null)
             {
+                bb.Append("Signature parameters: ");
                 bb.Append(SignatureParameters.ToString());
+                bb.Append(Environment.NewLine);
             }
-            bb.Append("\n");
             bb.Append("Signature: ");
             bb.Append(GXCommon.ToHex(Signature, false));
-            bb.Append("\n");
+            bb.Append(Environment.NewLine);
             return bb.ToString();
         }
 
         private object[] GetData()
         {
+            GXAsn1ObjectIdentifier alg;
+            if (PublicKey.Scheme == Ecdsa.Enums.Ecc.P256)
+            {
+                alg = new GXAsn1ObjectIdentifier("1.2.840.10045.3.1.7");
+            }
+            else
+            {
+                alg = new GXAsn1ObjectIdentifier("1.3.132.0.34");
+            }
             object subjectPKInfo = new GXAsn1BitString(PublicKey.RawValue, 0);
             object[] tmp = new object[]{new GXAsn1ObjectIdentifier("1.2.840.10045.2.1"),
-                new GXAsn1ObjectIdentifier("1.2.840.10045.3.1.7") };
+                alg };
             GXAsn1Context attributes = new GXAsn1Context();
             foreach (KeyValuePair<PkcsObjectIdentifier, object[]> it in Attributes)
             {
@@ -367,7 +382,8 @@ namespace Gurux.DLMS.ASN
             SignatureAlgorithm = HashAlgorithm;
             GXByteBuffer bb = new GXByteBuffer();
             bb.Set(e.Sign(data));
-            object[] tmp = new object[] { new GXAsn1Integer(bb.SubArray(0, 32)), new GXAsn1Integer(bb.SubArray(32, 32)) };
+            int size = SignatureAlgorithm == HashAlgorithm.Sha256WithEcdsa ? 32 : 48;
+            object[] tmp = new object[] { new GXAsn1Integer(bb.SubArray(0, size)), new GXAsn1Integer(bb.SubArray(size, size)) };
             Signature = GXAsn1Converter.ToByteArray(tmp);
         }
 
@@ -383,21 +399,43 @@ namespace Gurux.DLMS.ASN
             pkc10.Algorithm = X9ObjectIdentifier.IdECPublicKey;
             pkc10.PublicKey = kp.Value;
             pkc10.Subject = subject;
-            pkc10.Sign(kp.Key, HashAlgorithm.Sha256WithEcdsa);
+            pkc10.Sign(kp.Key, kp.Key.Scheme == Ecdsa.Enums.Ecc.P256 ? HashAlgorithm.Sha256WithEcdsa : HashAlgorithm.Sha384WithEcdsa);
             return pkc10;
         }
 
         /// <summary>
-        /// Ask Gurux server to generate new certificate.
+        /// Ask Gurux certificate server to generate the new certificate.
         /// </summary>
         /// <param name="address">Certificate server address.</param>
-        /// <param name="cert">PKCS #10 certificate.</param>
-        /// <param name="usage">Certificate usage.</param>
-        /// <returns>Generated certificate.</returns>
-        public static string GetCertificate(string address, GXPkcs10 cert, KeyUsage usage)
+        /// <param name="certifications">List of certification types and PKCS #10 certificates.</param>
+        /// <returns>Generated certificate(s).</returns>
+        public static GXx509Certificate[] GetCertificate(string address, List<KeyValuePair<CertificateType, GXPkcs10>> certifications)
         {
+            StringBuilder usage = new StringBuilder();
+            foreach (KeyValuePair<CertificateType, GXPkcs10> it in certifications)
+            {
+                if (usage.Length != 0)
+                {
+                    usage.Append(", ");
+                }
+                usage.Append("{\"KeyUsage\":");
+                switch (it.Key)
+                {
+                    case CertificateType.DigitalSignature:
+                        usage.Append(Convert.ToString((int)KeyUsage.DigitalSignature));
+                        break;
+                    case CertificateType.KeyAgreement:
+                        usage.Append(Convert.ToString((int)KeyUsage.KeyAgreement));
+                        break;
+                    default:
+                        throw new Exception("Invalid type.");
+                }
+                usage.Append(", \"CSR\":\"");
+                usage.Append(it.Value.ToDer());
+                usage.Append("\"}");
+            }
             HttpWebRequest request = HttpWebRequest.Create(address) as HttpWebRequest;
-            string der = "{\"KeyUsage\":" + (int)usage + ",\"CSR\":[\"" + cert.ToDer() + "\"]}";
+            string der = "{\"Certificates\":[" + usage.ToString() +"]}";
             request.ContentType = "application/json";
             request.Method = "POST";
             using (var streamWriter = new StreamWriter(request.GetRequestStream()))
@@ -425,7 +463,20 @@ namespace Gurux.DLMS.ASN
                             throw new Exception("Certificates are missing.");
                         }
                         str = str.Substring(0, pos - 1);
-                        return str;
+                        List<GXx509Certificate> list = new List<GXx509Certificate>();
+                        string[] tmp = str.Split(new string[] { "\"", "," }, StringSplitOptions.RemoveEmptyEntries);
+                        pos = 0;
+                        foreach(string it in tmp)
+                        {
+                            GXx509Certificate x509 = GXx509Certificate.FromDer(it);
+                            if (!GXCommon.Compare(certifications[pos].Value.PublicKey.RawValue, x509.PublicKey.RawValue))
+                            {
+                                throw new Exception("Create certificate signingRequest generated wrong public key.");
+                            }
+                            ++pos;
+                            list.Add(x509);
+                        }
+                        return list.ToArray();
                     }
                 }
             }

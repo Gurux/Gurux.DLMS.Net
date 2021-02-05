@@ -39,6 +39,9 @@ using Gurux.DLMS.Enums;
 using System.Diagnostics;
 using System.Net;
 using Gurux.DLMS.Objects;
+using Gurux.DLMS.Secure;
+using Gurux.DLMS.Objects.Enums;
+using Gurux.DLMS.Ecdsa;
 
 namespace Gurux.DLMS.Internal
 {
@@ -1619,6 +1622,35 @@ namespace Gurux.DLMS.Internal
                 info.xml.AppendLine(info.xml.GetDataType(info.Type), "Value", value);
             }
             return value;
+        }
+
+        /// <summary>
+        /// Generate shared secret from Agreement Key.
+        /// </summary>
+        /// <param name="c">Cipher settings.</param>
+        /// <param name="type">Certificate type.</param>
+        /// <returns></returns>
+        internal static byte[] GetSharedSecret(GXICipher c, CertificateType type)
+        {
+            KeyValuePair<GXPrivateKey, GXPublicKey> kp;
+            if (type == CertificateType.KeyAgreement)
+            {
+                kp = c.KeyAgreementKeyPair;
+            }
+            else if (type == CertificateType.DigitalSignature)
+            {
+                kp = c.SigningKeyPair;
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException("Invalid certificate type.");
+            }
+            if (kp.Key == null)
+            {
+                throw new ArgumentOutOfRangeException("Certificate not set.");
+            }
+            GXEcdsa ka = new GXEcdsa(kp.Key);
+            return ka.GenerateSecret(kp.Value);
         }
 
         /// <summary>

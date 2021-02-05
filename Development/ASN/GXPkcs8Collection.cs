@@ -4,11 +4,11 @@
 //
 //
 //
-// Filename:        $HeadURL$
+// Filename:    $HeadURL$
 //
-// Version:         $Revision$,
-//                  $Date$
-//                  $Author$
+// Version:     $Revision$,
+//      $Date$
+//      $Author$
 //
 // Copyright (c) Gurux Ltd
 //
@@ -32,37 +32,53 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using Gurux.DLMS.ASN;
-using Gurux.DLMS.Objects.Enums;
+using Gurux.DLMS.Ecdsa;
+using System;
 using System.Collections.Generic;
+using System.IO;
 
-namespace Gurux.DLMS.Objects
+namespace Gurux.DLMS.ASN
 {
     /// <summary>
-    /// Certificate info.
+    /// List of PKCS #8 certificates.
     /// </summary>
-    public class GXDLMSCertificateCollection : List<GXDLMSCertificateInfo>
+    public class GXPkcs8Collection : List<GXPkcs8>
     {
         /// <summary>
-        /// Find certificate with given parameters.
+        /// Find private key certificate by public name.
         /// </summary>
-        /// <param name="entity">Certificate entity.</param>
-        /// <param name="type">Certificate type.</param>
-        /// <param name="systemtitle">System title.</param>
+        /// <param name="key"></param>
         /// <returns></returns>
-        public GXDLMSCertificateInfo Find(CertificateEntity entity, CertificateType type, byte[] systemtitle)
+        public GXPkcs8 Find(GXPublicKey key)
         {
-            string subject = GXAsn1Converter.SystemTitleToSubject(systemtitle);
-            foreach (GXDLMSCertificateInfo it in this)
+            foreach(GXPkcs8 it in this)
             {
-                if ((it.Entity == CertificateEntity.Server && entity == CertificateEntity.Server) ||
-                    (it.Entity == CertificateEntity.Client && entity == CertificateEntity.Client)
-                    && it.Subject == subject)
+                if (it.PublicKey.Equals(key))
                 {
                     return it;
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// Import private key certificates from the given folder.
+        /// </summary>
+        /// <param name="path"></param>
+        public void Import(string path)
+        {
+            foreach (string it in Directory.GetFiles(path, "*.pem"))
+            {
+                try
+                {
+                    GXPkcs8 cert = GXPkcs8.Load(it);
+                    Add(cert);
+                }
+                catch (Exception)
+                {
+                    System.Diagnostics.Debug.WriteLine("Failed to load PKCS #8 certificate." + it);
+                }
+            }
         }
     }
 }

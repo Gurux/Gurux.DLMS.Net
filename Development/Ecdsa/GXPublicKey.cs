@@ -83,6 +83,22 @@ namespace Gurux.DLMS.Ecdsa
                 value.Scheme = Ecc.P384;
                 value.RawValue = key;
             }
+            else if (key.Length == 64)
+            {
+                //Compression tag is not send in DLMS messages.
+                value.Scheme = Ecc.P256;
+                value.RawValue = new byte[65];
+                value.RawValue[0] = 4;
+                Array.Copy(key, 0, value.RawValue, 1, 64);
+            }
+            else if (key.Length == 96)
+            {
+                //Compression tag is not send in DLMS messages.
+                value.Scheme = Ecc.P384;
+                value.RawValue = new byte[96];
+                value.RawValue[0] = 4;
+                Array.Copy(key, 0, value.RawValue, 1, 96);
+            }
             else
             {
                 throw new ArgumentOutOfRangeException("Invalid public key.");
@@ -97,6 +113,8 @@ namespace Gurux.DLMS.Ecdsa
         /// <returns>Public key.</returns>
         public static GXPublicKey FromDer(string der)
         {
+            der = der.Replace("\r\n", "");
+            der = der.Replace("\n", "");
             GXPublicKey value = new GXPublicKey();
             byte[] key = GXCommon.FromBase64(der);
             GXAsn1Sequence seq = (GXAsn1Sequence)GXAsn1Converter.FromByteArray(key);
@@ -139,6 +157,7 @@ namespace Gurux.DLMS.Ecdsa
         /// <returns>Public key.</returns>
         public static GXPublicKey FromPem(string pem)
         {
+            pem = pem.Replace("\r\n", "\n");
             const string START = "-----BEGIN PUBLIC KEY-----\n";
             const string END = "-----END PUBLIC KEY-----\n";
             int start = pem.IndexOf(START);
@@ -159,9 +178,18 @@ namespace Gurux.DLMS.Ecdsa
         /// </summary>
         /// <param name="path">Path to the PEM file.</param>
         /// <returns>Private key.</returns>
-        public static GXPublicKey FromPemFile(string path)
+        public static GXPublicKey Load(string path)
         {
             return FromPem(File.ReadAllText(path));
+        }
+
+        /// <summary>
+        /// Save Pkcs #10 Certificate Signing Request to PEM file.
+        /// </summary>
+        /// <param name="path">File path. </param>
+        public virtual void Save(string path)
+        {
+            File.WriteAllText(path, ToPem());
         }
 
         /// <summary>
@@ -173,7 +201,20 @@ namespace Gurux.DLMS.Ecdsa
             return GXDLMSTranslator.ToHex(RawValue);
         }
 
+        /// <summary>
+        /// Get public key as DER format.
+        /// </summary>
+        /// <returns></returns>
         public string ToDer()
+        {
+            return GXCommon.ToBase64(ToEncoded());
+        }
+
+        /// <summary>
+        /// Get public key as encoded format.
+        /// </summary>
+        /// <returns></returns>
+        public byte[] ToEncoded()
         {
             //Subject Public Key Info.
             GXAsn1Sequence d = new GXAsn1Sequence();
@@ -193,7 +234,7 @@ namespace Gurux.DLMS.Ecdsa
             }
             d.Add(d1);
             d.Add(new GXAsn1BitString(RawValue, 0));
-            return GXCommon.ToBase64(GXAsn1Converter.ToByteArray(d));
+            return GXAsn1Converter.ToByteArray(d);
         }
 
         public string ToPem()
@@ -222,6 +263,20 @@ namespace Gurux.DLMS.Ecdsa
             sb.Append(" public y coord: ");
             sb.AppendLine(new GXBigInteger(pk.SubArray(33, 32)).ToString());
             return sb.ToString();
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is GXPublicKey o)
+            {
+                return GXCommon.Compare(RawValue, o.RawValue);
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return RawValue.GetHashCode();
         }
     }
 }

@@ -40,6 +40,8 @@ using Gurux.DLMS.Internal;
 using Gurux.DLMS.Objects.Enums;
 using System.Security.Cryptography.X509Certificates;
 using Gurux.DLMS.Ecdsa;
+using System.Collections.Generic;
+using Gurux.DLMS.ASN;
 
 namespace Gurux.DLMS
 {
@@ -95,10 +97,30 @@ namespace Gurux.DLMS
         /// </summary>
         internal byte ReceiverFrame;
 
+        byte[] _sourceSystemTitle;
+      
         /// <summary>
         /// Source system title.
         /// </summary>
-        internal byte[] SourceSystemTitle;
+        internal byte[] SourceSystemTitle
+        {
+            get
+            {
+                if (Cipher != null)
+                {
+                    return Cipher.RecipientSystemTitle;
+                }
+                return _sourceSystemTitle;
+            }
+            set
+            {
+                if (Cipher != null)
+                {
+                    Cipher.RecipientSystemTitle = value;
+                }
+                _sourceSystemTitle = value;
+            }
+        }
 
         /// <summary>
         /// Pre-established system title.
@@ -251,6 +273,48 @@ namespace Gurux.DLMS
         /// Expected Invocation counter is not check if value is zero.
         /// </remarks>
         public UInt64 ExpectedInvocationCounter
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Ephemeral KEK.
+        /// </summary>
+        public byte[] EphemeralKek
+        {
+            get;
+            set;
+        }
+        /// <summary>
+        /// Ephemeral Block cipher key.
+        /// </summary>
+        public byte[] EphemeralBlockCipherKey
+        {
+            get;
+            set;
+        }
+        /// <summary>
+        /// Ephemeral broadcast block cipherKey.
+        /// </summary>
+        public byte[] EphemeralBroadcastBlockCipherKey
+        {
+            get;
+            set;
+        }
+        /// <summary>
+        /// Ephemeral authentication key.
+        /// </summary>
+        public byte[] EphemeralAuthenticationKey
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// XML needs list of certificates to decrypt the data.
+        /// </summary>
+        public List<KeyValuePair<GXPkcs8, GXx509Certificate>> Keys
         {
             get;
             set;

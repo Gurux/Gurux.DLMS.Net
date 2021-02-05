@@ -85,15 +85,6 @@ namespace Gurux.DLMS.Ecdsa
             private set;
         }
 
-        private BigInteger MakeBigInteger(UInt64[] value)
-        {
-            BigInteger ret = new BigInteger(value[3]);
-            ret += new BigInteger(value[2]) << 64;
-            ret += new BigInteger(value[1]) << 128;
-            ret += new BigInteger(value[0]) << 192;
-            return ret;
-        }
-
         /// <summary>
         /// Constructor.
         /// </summary>

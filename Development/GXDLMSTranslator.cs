@@ -45,6 +45,9 @@ using System.ComponentModel;
 using System.Diagnostics;
 using Gurux.DLMS.Objects;
 using Gurux.DLMS.Plc.Enums;
+using Gurux.DLMS.Objects.Enums;
+using Gurux.DLMS.Ecdsa;
+using Gurux.DLMS.ASN;
 
 namespace Gurux.DLMS
 {
@@ -102,6 +105,11 @@ namespace Gurux.DLMS
         [DebuggerStepThrough]
         public static byte[] HexToBytes(string value)
         {
+            if (value == null)
+            {
+                throw new ArgumentNullException("Invalid hex string.");
+            }
+            value = value.Replace("\r\n", "").Replace("\n", "");
             return GXCommon.HexToBytes(value);
         }
 
@@ -206,7 +214,16 @@ namespace Gurux.DLMS
         /// <summary>
         /// Used security.
         /// </summary>
-        public byte Security
+        public Security Security
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Used security suite.
+        /// </summary>
+        public SecuritySuite SecuritySuite
         {
             get;
             set;
@@ -286,6 +303,15 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// List of private keys and certifications.
+        /// </summary>
+        public List<KeyValuePair<GXPkcs8, GXx509Certificate>> Keys
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         public GXDLMSTranslator() :
@@ -299,6 +325,7 @@ namespace Gurux.DLMS
         /// <param name="type">Translator output type.</param>
         public GXDLMSTranslator(TranslatorOutputType type)
         {
+            Keys = new List<KeyValuePair<GXPkcs8, GXx509Certificate>>();
             OutputType = type;
             GetTags(type, tags, tagsByName);
             if (type == TranslatorOutputType.SimpleXml)
@@ -653,9 +680,10 @@ namespace Gurux.DLMS
 
         private void GetCiphering(GXDLMSSettings settings, bool force)
         {
-            if (force || this.Security != (byte)Enums.Security.None)
+            if (force || Security != Security.None)
             {
                 GXCiphering c = new Secure.GXCiphering(this.SystemTitle);
+                c.SecuritySuite = SecuritySuite;
                 c.Security = Security;
                 c.SystemTitle = SystemTitle;
                 c.BlockCipherKey = BlockCipherKey;
@@ -680,6 +708,7 @@ namespace Gurux.DLMS
                     settings.NegotiatedConformance &= ~Conformance.GeneralProtection;
                 }
                 settings.Cipher = c;
+                settings.Keys = Keys;
             }
             else
             {
@@ -1202,6 +1231,7 @@ namespace Gurux.DLMS
         /// <returns>Converted xml.</returns>
         public string PduToXml(string hex)
         {
+            hex = hex.Replace("\r\n", "").Replace("\n", "");
             return PduToXml(GXCommon.HexToBytes(hex));
         }
 
@@ -1302,6 +1332,7 @@ namespace Gurux.DLMS
                 case Command.Aarq:
                 case Command.GloConfirmedServiceError:
                 case Command.DedConfirmedServiceError:
+                case Command.GeneralCiphering:
                     return true;
                 default:
                     return false;
@@ -1598,11 +1629,11 @@ namespace Gurux.DLMS
                                     cmd == (byte)Command.DedMethodRequest || cmd == (byte)Command.DedMethodResponse) &&
                                     settings.Cipher.DedicatedKey != null && settings.Cipher.DedicatedKey.Length != 0)
                                 {
-                                    p = new AesGcmParameter(st, settings.Cipher.DedicatedKey, settings.Cipher.AuthenticationKey);
+                                    p = new AesGcmParameter(settings, st, settings.Cipher.DedicatedKey, settings.Cipher.AuthenticationKey);
                                 }
                                 else
                                 {
-                                    p = new AesGcmParameter(st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                                    p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
                                 }
                                 p.Xml = xml;
                                 if (p.BlockCipherKey != null)
@@ -1649,11 +1680,11 @@ namespace Gurux.DLMS
                             AesGcmParameter p;
                             if (cmd == (byte)Command.GeneralDedCiphering && settings.Cipher.DedicatedKey != null)
                             {
-                                p = new AesGcmParameter(st, settings.Cipher.DedicatedKey, settings.Cipher.AuthenticationKey);
+                                p = new AesGcmParameter(settings, st, settings.Cipher.DedicatedKey, settings.Cipher.AuthenticationKey);
                             }
                             else
                             {
-                                p = new AesGcmParameter(st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                                p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
                             }
                             p.Xml = xml;
                             GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
@@ -1675,7 +1706,7 @@ namespace Gurux.DLMS
                                 st = settings.SourceSystemTitle;
                                 if (st != null)
                                 {
-                                    AesGcmParameter p = new AesGcmParameter(st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                                    AesGcmParameter p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
                                     GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
                                     xml.AppendComment("Invocation Counter: " + p.InvocationCounter.ToString());
                                     xml.StartComment("Decrypt data: " + data2.ToString());
@@ -1871,7 +1902,7 @@ namespace Gurux.DLMS
                     }
                     s.settings.IsServer = false;
                     tmp = GXCommon.HexToBytes(GetValue(node, s));
-                    s.settings.Cipher.Security = (byte)tmp[0];
+                    s.settings.Cipher.Security = (Security)tmp[0];
                     s.data.Set(tmp);
                     break;
                 case (byte)Command.Ua:
@@ -1907,7 +1938,7 @@ namespace Gurux.DLMS
                     {
                         throw new Exception("Security level is None.");
                     }
-                    s.settings.Cipher.Security = (byte)tmp[0];
+                    s.settings.Cipher.Security = (Security)tmp[0];
                     s.data.Set(tmp);
                     break;
                 case (byte)Command.GeneralGloCiphering:
@@ -1985,12 +2016,12 @@ namespace Gurux.DLMS
                 case (byte)Command.GloInitiateRequest:
                     s.settings.IsServer = false;
                     tmp = GXCommon.HexToBytes(GetValue(node, s));
-                    s.settings.Cipher.Security = (byte)tmp[0];
+                    s.settings.Cipher.Security = (Security)tmp[0];
                     s.data.Set(tmp);
                     break;
                 case (byte)Command.GloInitiateResponse:
                     tmp = GXCommon.HexToBytes(GetValue(node, s));
-                    s.settings.Cipher.Security = (byte)tmp[0];
+                    s.settings.Cipher.Security = (Security)tmp[0];
                     s.data.Set(tmp);
                     break;
                 case (byte)Command.InitiateRequest:

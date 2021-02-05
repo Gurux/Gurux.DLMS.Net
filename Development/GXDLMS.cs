@@ -42,6 +42,8 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Secure;
 using Gurux.DLMS.Objects.Italy;
 using Gurux.DLMS.Plc.Enums;
+using Gurux.DLMS.Objects.Enums;
+using Gurux.DLMS.Ecdsa.Enums;
 
 namespace Gurux.DLMS
 {
@@ -723,6 +725,26 @@ namespace Gurux.DLMS
             return cmd == Command.GloGetRequest || cmd == Command.GloSetRequest || cmd == Command.GloMethodRequest;
         }
 
+        private static byte[] GetBlockCipherKey(GXDLMSSettings settings)
+        {
+            if (settings.EphemeralBlockCipherKey != null)
+            {
+                return settings.EphemeralBlockCipherKey;
+            }
+            return settings.Cipher.BlockCipherKey;
+
+        }
+
+        private static byte[] GetAuthenticationKey(GXDLMSSettings settings)
+        {
+            if (settings.EphemeralAuthenticationKey != null)
+            {
+                return settings.EphemeralAuthenticationKey;
+            }
+            return settings.Cipher.AuthenticationKey;
+        }
+
+
         internal static byte[] Cipher0(GXDLMSLNParameters p, byte[] data)
         {
             byte cmd;
@@ -744,7 +766,7 @@ namespace Gurux.DLMS
                     else
                     {
                         cmd = GetGloMessage(p.command);
-                        key = cipher.BlockCipherKey;
+                        key = GetBlockCipherKey(p.settings);
                     }
                 }
                 else
@@ -757,7 +779,7 @@ namespace Gurux.DLMS
                     else
                     {
                         cmd = (byte)Command.GeneralGloCiphering;
-                        key = cipher.BlockCipherKey;
+                        key = GetBlockCipherKey(p.settings);
                     }
                 }
             }
@@ -771,12 +793,12 @@ namespace Gurux.DLMS
                 else if (p.cipheredCommand == Command.GeneralGloCiphering)
                 {
                     cmd = (byte)Command.GeneralGloCiphering;
-                    key = cipher.BlockCipherKey;
+                    key = GetBlockCipherKey(p.settings);
                 }
                 else if (IsGloMessage(p.cipheredCommand))
                 {
                     cmd = (byte)GetGloMessage(p.command);
-                    key = cipher.BlockCipherKey;
+                    key = GetBlockCipherKey(p.settings);
                 }
                 else
                 {
@@ -784,13 +806,152 @@ namespace Gurux.DLMS
                     key = cipher.DedicatedKey;
                 }
             }
-            AesGcmParameter s = new AesGcmParameter(cmd, cipher.Security,
-                cipher.InvocationCounter, cipher.SystemTitle, key,
-                cipher.AuthenticationKey);
+            AesGcmParameter s = new AesGcmParameter(cmd,
+                cipher.Security,
+                cipher.SecuritySuite,
+                cipher.InvocationCounter,
+                cipher.SystemTitle,
+                key,
+                GetAuthenticationKey(p.settings));
             s.IgnoreSystemTitle = p.settings.Standard == Standard.Italy;
             byte[] tmp = GXCiphering.Encrypt(s, data);
             ++cipher.InvocationCounter;
             return tmp;
+        }
+
+        /**
+     * Cipher using security suite 1 or 2.
+     *
+     * @param p
+     *            LN settings.
+     * @param data
+     *            Data to encrypt.
+     */
+        private static byte[] Cipher1(GXDLMSLNParameters p, byte[] data)
+        {
+            byte keyid = (byte)p.settings.Cipher.KeyAgreementScheme;
+            GXICipher c = p.settings.Cipher;
+            byte sc;
+            if (p.settings.SourceSystemTitle == null)
+            {
+                throw new ArgumentOutOfRangeException("Invalid Recipient System Title.");
+            }
+            if (c.SystemTitle == null)
+            {
+                throw new ArgumentOutOfRangeException("Invalid System Title.");
+            }
+
+            switch (c.Security)
+            {
+                case Security.Authentication:
+                    sc = 0x10;
+                    break;
+                case Security.AuthenticationEncryption:
+                    sc = 0x30;
+                    break;
+                case Security.Encryption:
+                    sc = 0x20;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("Invalid security.");
+            }
+            AlgorithmId algorithmID;
+            switch (c.SecuritySuite)
+            {
+                case SecuritySuite.Ecdsa256:
+                    algorithmID = AlgorithmId.AesGcm128;
+                    sc |= 1;
+                    break;
+                case SecuritySuite.Ecdsa384:
+                    algorithmID = AlgorithmId.AesGcm256;
+                    sc |= 2;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("Invalid security suite.");
+            }
+            GXByteBuffer tmp2 = new GXByteBuffer();
+            GXByteBuffer transactionId = new GXByteBuffer();
+            transactionId.SetUInt64(c.InvocationCounter);
+            byte[] z = null;
+            if (keyid == 1)
+            {
+                z = GXCommon.GetSharedSecret(c, CertificateType.DigitalSignature);
+            }
+            else if (keyid == 2)
+            {
+                z = GXCommon.GetSharedSecret(c, CertificateType.KeyAgreement);
+                tmp2.SetUInt8(0x8);
+                tmp2.Set(transactionId.Data, 0, 8);
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException("Invalid key-id.");
+            }
+            tmp2.Set(p.settings.SourceSystemTitle);
+            byte[] kdf = GXSecure.GenerateKDF(c.SecuritySuite, z, algorithmID, c.SystemTitle, tmp2.Array(), null, null);
+            System.Diagnostics.Debug.WriteLine("kdf: " + GXCommon.ToHex(kdf, true));
+            AesGcmParameter s = new AesGcmParameter(0xDD,
+                p.settings,
+                c.Security,
+                c.SecuritySuite, c.InvocationCounter,
+                // KDF
+                kdf,
+                // Authentication key.
+                c.AuthenticationKey,
+                // Originator system title.
+                c.SystemTitle,
+                // recipient system title.
+                p.settings.SourceSystemTitle,
+                // Date time
+                null,
+                // Other information.
+                null);
+
+            GXByteBuffer reply = new GXByteBuffer();
+            reply.SetUInt8(Command.GeneralCiphering);
+            GXCommon.SetObjectCount(transactionId.Size, reply);
+            reply.Set(transactionId);
+            GXCommon.SetObjectCount(s.SystemTitle.Length, reply);
+            reply.Set(s.SystemTitle);
+            GXCommon.SetObjectCount(s.RecipientSystemTitle.Length, reply);
+            reply.Set(s.RecipientSystemTitle);
+            // date-time not present.
+            reply.SetUInt8(0);
+            // other-information not present
+            reply.SetUInt8(0);
+            // optional flag
+            reply.SetUInt8(1);
+            // agreed-key CHOICE
+            reply.SetUInt8(2);
+            // key-parameters
+            reply.SetUInt8(1);
+            reply.SetUInt8(keyid);
+            if (keyid == 1)
+            {
+                // key-ciphered-data
+                GXCommon.SetObjectCount(0x80, reply);
+                // Ephemeral public key client.
+                reply.Set(c.EphemeralKeyPair.Value.RawValue, 1, c.EphemeralKeyPair.Value.RawValue.Length - 1);
+
+                // Ephemeral Public Key Signature.
+                reply.Set(GXSecure.GetEphemeralPublicKeySignature(keyid,
+                        c.EphemeralKeyPair.Value, c.SigningKeyPair.Key));
+            }
+            else
+            {
+                reply.SetUInt8(0);
+            }
+            // ciphered-content
+            s.Type = (CountType.Data | CountType.Tag);
+            byte[] tmp = GXCiphering.Encrypt(s, data);
+            // Len
+            GXCommon.SetObjectCount(5 + tmp.Length, reply);
+            // Add SC
+            reply.SetUInt8(sc);
+            // Add IC.
+            reply.SetUInt32(0);
+            reply.Set(tmp);
+            return reply.Array();
         }
 
         /// <summary>
@@ -801,7 +962,7 @@ namespace Gurux.DLMS
         internal static void GetLNPdu(GXDLMSLNParameters p, GXByteBuffer reply)
         {
             bool ciphering = p.command != Command.Aarq && p.command != Command.Aare && p.settings.Cipher != null &&
-                (p.settings.Cipher.Security != (byte)Security.None || p.cipheredCommand != Command.None);
+                (p.settings.Cipher.Security != Security.None || p.cipheredCommand != Command.None);
             int len = 0;
             if (p.command == Command.Aarq)
             {
@@ -1003,8 +1164,17 @@ namespace Gurux.DLMS
                             //Cipher data only once.
                             if (ciphering && p.command != Command.GeneralBlockTransfer)
                             {
+                                byte[] tmp;
                                 reply.Set(p.data);
-                                byte[] tmp = Cipher0(p, reply.Array());
+                                if (p.settings.Cipher.SecuritySuite == SecuritySuite.GMac ||
+                                    p.settings.Cipher.KeyAgreementScheme == KeyAgreementScheme.EphemeralUnifiedModel)
+                                {
+                                    tmp = Cipher0(p, reply.Array());
+                                }
+                                else
+                                {
+                                    tmp = Cipher1(p, reply.Array());
+                                }
                                 p.data.Size = 0;
                                 p.data.Set(tmp);
                                 reply.Size = 0;
@@ -1045,7 +1215,17 @@ namespace Gurux.DLMS
                 if (ciphering && reply.Size != 0 && p.command != Command.ReleaseRequest && (!p.multipleBlocks || (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0))
                 {
                     //GBT ciphering is done for all the data, not just block.
-                    byte[] tmp = Cipher0(p, reply.Array());
+                    byte[] tmp;
+                    if (p.settings.Cipher.SecuritySuite == SecuritySuite.GMac ||
+                        p.settings.Cipher.KeyAgreementScheme == KeyAgreementScheme.EphemeralUnifiedModel)
+                    {
+                        tmp = Cipher0(p, reply.Array());
+                    }
+                    else
+                    {
+                        tmp = Cipher1(p, reply.Array());
+                    }
+
                     reply.Size = 0;
                     reply.Set(tmp);
                 }
@@ -1247,7 +1427,7 @@ namespace Gurux.DLMS
 
         static int AppendMultipleSNBlocks(GXDLMSSNParameters p, GXByteBuffer reply)
         {
-            bool ciphering = p.settings.Cipher != null && p.settings.Cipher.Security != (byte)Security.None;
+            bool ciphering = p.settings.Cipher != null && p.settings.Cipher.Security != Security.None;
             int hSize = reply.Size + 3;
             //Add LLC bytes.
             if (p.command == Command.WriteRequest ||
@@ -1429,9 +1609,12 @@ namespace Gurux.DLMS
             {
                 GXICipher cipher = p.settings.Cipher;
                 AesGcmParameter s = new AesGcmParameter(
-                    GetGloMessage(p.command), cipher.Security,
+                    GetGloMessage(p.command),
+                    cipher.Security,
+                    cipher.SecuritySuite,
                     cipher.InvocationCounter, cipher.SystemTitle,
-                    cipher.BlockCipherKey, cipher.AuthenticationKey);
+                    GetBlockCipherKey(p.settings),
+                    GetAuthenticationKey(p.settings));
                 ++cipher.InvocationCounter;
                 byte[] tmp = GXCiphering.Encrypt(s, reply.Array());
                 System.Diagnostics.Debug.Assert(!(p.settings.MaxPduSize < tmp.Length));
@@ -3714,27 +3897,27 @@ namespace Gurux.DLMS
                     GXICipher cipher = settings.Cipher;
                     if (data.Command == Command.GeneralDedCiphering)
                     {
-                        p = new AesGcmParameter(settings.SourceSystemTitle,
+                        p = new AesGcmParameter(settings, settings.SourceSystemTitle,
                                 cipher.DedicatedKey,
-                                cipher.AuthenticationKey);
+                                GetAuthenticationKey(settings));
                     }
                     else if (data.Command == Command.GeneralGloCiphering)
                     {
-                        p = new AesGcmParameter(settings.SourceSystemTitle,
-                                cipher.BlockCipherKey,
-                                cipher.AuthenticationKey);
+                        p = new AesGcmParameter(settings, settings.SourceSystemTitle,
+                                GetBlockCipherKey(settings),
+                                GetAuthenticationKey(settings));
                     }
                     else if (IsGloMessage(data.Command))
                     {
-                        p = new AesGcmParameter(settings.SourceSystemTitle,
-                                cipher.BlockCipherKey,
-                                cipher.AuthenticationKey);
+                        p = new AesGcmParameter(settings, settings.SourceSystemTitle,
+                                GetBlockCipherKey(settings),
+                                GetAuthenticationKey(settings));
                     }
                     else
                     {
-                        p = new AesGcmParameter(settings.SourceSystemTitle,
+                        p = new AesGcmParameter(settings, settings.SourceSystemTitle,
                                 cipher.DedicatedKey,
-                                cipher.AuthenticationKey);
+                                GetAuthenticationKey(settings));
                     }
                     byte[] tmp = GXCiphering.Decrypt(p, data.Data);
                     cipher.SecuritySuite = p.SecuritySuite;
@@ -3791,17 +3974,19 @@ namespace Gurux.DLMS
                     if (cipher.DedicatedKey != null
                             && (settings.Connected & ConnectionState.Dlms) != 0)
                     {
-                        p = new AesGcmParameter(settings.SourceSystemTitle,
-                                cipher.DedicatedKey,
-                                cipher.AuthenticationKey);
+                        p = new AesGcmParameter(settings,
+                            settings.SourceSystemTitle,
+                            cipher.DedicatedKey,
+                            GetAuthenticationKey(settings));
                     }
                     else
                     {
                         if (settings.PreEstablishedSystemTitle != null && (settings.Connected & ConnectionState.Dlms) == 0)
                         {
-                            p = new AesGcmParameter(settings.PreEstablishedSystemTitle,
-                            cipher.BlockCipherKey,
-                            cipher.AuthenticationKey);
+                            p = new AesGcmParameter(settings,
+                            settings.PreEstablishedSystemTitle,
+                            GetBlockCipherKey(settings),
+                            GetAuthenticationKey(settings));
                         }
                         else
                         {
@@ -3816,9 +4001,10 @@ namespace Gurux.DLMS
                                     throw new Exception("Ciphered failed. Server system title is unknown.");
                                 }
                             }
-                            p = new AesGcmParameter(settings.SourceSystemTitle,
-                                    cipher.BlockCipherKey,
-                                    cipher.AuthenticationKey);
+                            p = new AesGcmParameter(settings,
+                                settings.SourceSystemTitle,
+                                GetBlockCipherKey(settings),
+                                GetAuthenticationKey(settings));
                         }
                     }
                     byte[] tmp = GXCiphering.Decrypt(p, bb);
@@ -3893,6 +4079,9 @@ namespace Gurux.DLMS
                         break;
                     case Command.MethodResponse:
                         HandleMethodResponse(settings, data);
+                        break;
+                    case Command.AccessRequest:
+                        GXDLMSLNCommandHandler.HandleAccessRequest(settings, null, data.Data, null, data.Xml, Command.None);
                         break;
                     case Command.AccessResponse:
                         HandleAccessResponse(settings, data);
@@ -4061,6 +4250,7 @@ namespace Gurux.DLMS
                         case Command.DedMethodResponse:
                         case Command.GeneralGloCiphering:
                         case Command.GeneralDedCiphering:
+                        case Command.GeneralCiphering:
                             data.Command = Command.None;
                             data.Data.Position = data.CipherIndex;
                             GetPdu(settings, data, client);
@@ -4235,9 +4425,11 @@ namespace Gurux.DLMS
                     origPos = data.Xml.GetXmlLength();
                 }
                 --data.Data.Position;
-                AesGcmParameter p = new AesGcmParameter(settings.SourceSystemTitle,
-                        settings.Cipher.BlockCipherKey,
-                        settings.Cipher.AuthenticationKey);
+                AesGcmParameter p = new AesGcmParameter(settings,
+                    settings.SourceSystemTitle,
+                    GetBlockCipherKey(settings),
+                    GetAuthenticationKey(settings));
+                p.Xml = data.Xml;
                 try
                 {
                     byte[] tmp = GXCiphering.Decrypt(p, data.Data);
@@ -4250,11 +4442,11 @@ namespace Gurux.DLMS
                         GetPdu(settings, data, null);
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     if (data.Xml == null)
                     {
-                        throw ex;
+                        throw;
                     }
                     data.Xml.SetXmlLength(origPos);
                 }

@@ -863,6 +863,11 @@ namespace Gurux.DLMS
             {
                 Settings.InvokeID = 1;
             }
+            // Reset Ephemeral keys.
+            Settings.EphemeralBlockCipherKey = null;
+            Settings.EphemeralBroadcastBlockCipherKey = null;
+            Settings.EphemeralAuthenticationKey = null;
+            Settings.EphemeralKek = null;
             //If High authentication is used.
             if (Authentication > Authentication.Low)
             {

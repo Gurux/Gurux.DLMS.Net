@@ -94,7 +94,16 @@ namespace Gurux.DLMS.ASN
                 d.Add((sbyte)Version);
                 GXAsn1Sequence d1 = new GXAsn1Sequence();
                 d1.Add(new GXAsn1ObjectIdentifier(X9ObjectIdentifierConverter.GetString(Algorithm)));
-                d1.Add(new GXAsn1ObjectIdentifier("1.2.840.10045.3.1.7"));
+                GXAsn1ObjectIdentifier alg;
+                if (PublicKey.Scheme == Ecdsa.Enums.Ecc.P256)
+                {
+                    alg = new GXAsn1ObjectIdentifier("1.2.840.10045.3.1.7");
+                }
+                else
+                {
+                    alg = new GXAsn1ObjectIdentifier("1.3.132.0.34");
+                }
+                d1.Add(alg);
                 d.Add(d1);
                 GXAsn1Sequence d2 = new GXAsn1Sequence();
                 d2.Add((sbyte)1);
@@ -121,10 +130,20 @@ namespace Gurux.DLMS.ASN
         /// Constructor.
         /// </summary>
         /// <param name="key">Private key.</param>
-        public GXPkcs8(GXPrivateKey key): this()
+        public GXPkcs8(GXPrivateKey key) : this()
         {
             PrivateKey = key;
             PublicKey = key.GetPublicKey();
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="pair">Private public key pair.</param>
+        public GXPkcs8(KeyValuePair<GXPrivateKey, GXPublicKey> pair) : this()
+        {
+            PrivateKey = pair.Key;
+            PublicKey = pair.Value;
         }
 
         /// <summary>
@@ -177,12 +196,14 @@ namespace Gurux.DLMS.ASN
         /// <summary>
         /// Create PKCS #8 from DER Base64 encoded string.
         /// </summary>
-        /// <param name="data">Base64 DER string. </param>
+        /// <param name="der">Base64 DER string.</param>
         /// <returns></returns>
-        public static GXPkcs8 FromDer(string data)
+        public static GXPkcs8 FromDer(string der)
         {
+            der = der.Replace("\r\n", "");
+            der = der.Replace("\n", "");
             GXPkcs8 cert = new GXPkcs8();
-            cert.Init(GXCommon.FromBase64(data));
+            cert.Init(GXCommon.FromBase64(der));
             return cert;
         }
 
@@ -272,6 +293,80 @@ namespace Gurux.DLMS.ASN
         public string ToDer()
         {
             return GXCommon.ToBase64(Encoded);
+        }
+
+        /// <summary>
+        /// Import certificate from string.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static GXPkcs8 Import(string value)
+        {
+            GXPrivateKey pk;
+            GXPkcs8 ret;
+            try
+            {
+                ret = GXPkcs8.FromPem(value);
+            }
+            catch (Exception)
+            {
+                try
+                {
+                    ret = GXPkcs8.FromDer(value);
+                }
+                catch (Exception)
+                {
+                    try
+                    {
+                        //If PEM.
+                        pk = GXPrivateKey.FromPem(value);
+                        ret = new GXPkcs8(pk);
+                    }
+                    catch (Exception)
+                    {
+                        try
+                        {
+                            //If DER.
+                            pk = GXPrivateKey.FromDer(value);
+                            ret = new GXPkcs8(pk);
+                        }
+                        catch (Exception)
+                        {
+                            try
+                            {
+                                //If Raw.
+                                pk = GXPrivateKey.FromRawBytes(GXDLMSTranslator.HexToBytes(value));
+                                ret = new GXPkcs8(pk);
+                            }
+                            catch (Exception)
+                            {
+                                throw new Exception("Invalid private key format.");
+                            }
+                        }
+                    }
+                }
+            }
+            return ret;
+        }
+        public override bool Equals(object obj)
+        {
+            if (obj is GXPkcs8 pk)
+            {
+                if (pk.PrivateKey.Equals(PrivateKey))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            if (PrivateKey == null)
+            {
+                return 0;
+            }
+            return PrivateKey.GetHashCode();
         }
     }
 }

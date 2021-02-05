@@ -34,7 +34,9 @@
 
 using System;
 using System.Collections.Generic;
+using Gurux.DLMS.Enums;
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Secure
 {
@@ -48,7 +50,7 @@ namespace Gurux.DLMS.Secure
         List<byte> Output = new List<byte>();
         //Consts.
         private const int BlockSize = 16;
-        byte Security;
+        Security Security;
         //Properties.
         private readonly uint[][][] M = new uint[32][][];
         private ulong totalLength;
@@ -87,7 +89,7 @@ namespace Gurux.DLMS.Secure
         /// <param name="aad"></param>
         /// <param name="iv"></param>
         /// <param name="tag"></param>
-        public GXDLMSChipperingStream(byte security, bool encrypt, byte[] blockCipherKey, byte[] aad, byte[] iv, byte[] tag)
+        public GXDLMSChipperingStream(Security security, bool encrypt, byte[] blockCipherKey, byte[] aad, byte[] iv, byte[] tag)
         {
             this.Security = security;
             const int TagSize = 0x10;
@@ -903,7 +905,7 @@ namespace Gurux.DLMS.Secure
                 gCTRBlock(tmp, BytesRemaining);
             }
             //If tag is not needed.
-            if (Security == (byte)Enums.Security.Encryption)
+            if (Security == Enums.Security.Encryption)
             {
                 Reset();
                 return this.Output.ToArray();

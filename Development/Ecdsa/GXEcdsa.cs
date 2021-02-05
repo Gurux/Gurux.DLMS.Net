@@ -31,6 +31,7 @@
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
+using Gurux.DLMS.ASN;
 using Gurux.DLMS.Ecdsa.Enums;
 using System;
 using System.Collections.Generic;
@@ -53,6 +54,16 @@ namespace Gurux.DLMS.Ecdsa
         private readonly GXPrivateKey PrivateKey;
 
         GXCurve curve;
+
+        /// <summary>
+        /// Get scheme size in bytes.
+        /// </summary>
+        /// <param name="scheme"></param>
+        /// <returns></returns>
+        private static int SchemeSize(Ecc scheme)
+        {
+            return scheme == Ecc.P256 ? 32 : 48;
+        }
 
         /// <summary>
         /// Constructor.
@@ -89,9 +100,19 @@ namespace Gurux.DLMS.Ecdsa
                 throw new ArgumentException("Invalid private key.");
             }
             GXBigInteger msg;
-            using (SHA256 sha = new SHA256CryptoServiceProvider())
+            if (PrivateKey.Scheme == Ecc.P256)
             {
-                msg = new GXBigInteger(sha.ComputeHash(data));
+                using (SHA256 sha = new SHA256CryptoServiceProvider())
+                {
+                    msg = new GXBigInteger(sha.ComputeHash(data));
+                }
+            }
+            else
+            {
+                using (SHA384 sha = new SHA384CryptoServiceProvider())
+                {
+                    msg = new GXBigInteger(sha.ComputeHash(data));
+                }
             }
             GXBigInteger pk = new GXBigInteger(PrivateKey.RawValue);
             GXEccPoint p;
@@ -134,6 +155,34 @@ namespace Gurux.DLMS.Ecdsa
         }
 
         /// <summary>
+        /// Generate shared secret from public and private key.
+        /// </summary>
+        /// <param name="publicKey">Public key.</param>
+        /// <returns>Generated secret.</returns>
+        public byte[] GenerateSecret(GXPublicKey publicKey)
+        {
+            if (PrivateKey == null)
+            {
+                throw new ArgumentNullException("Invalid private key.");
+            }
+            if (PrivateKey.Scheme != publicKey.Scheme)
+            {
+                throw new ArgumentNullException("Private key scheme is different than public key.");
+            }
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.Set(publicKey.RawValue);
+            int size = SchemeSize(PrivateKey.Scheme);
+            GXBigInteger x = new GXBigInteger(bb.SubArray(1, size));
+            GXBigInteger y = new GXBigInteger(bb.SubArray(1 + size, size));
+            GXBigInteger pk = new GXBigInteger(PrivateKey.RawValue);
+            GXCurve curve = new GXCurve(PrivateKey.Scheme);
+            GXEccPoint p = new GXEccPoint(x, y, new GXBigInteger(1));
+            p = JacobianMultiply(p, pk, curve.N, curve.A, curve.P);
+            FromJacobian(p, curve.P);
+            return p.x.ToArray();
+        }
+
+        /// <summary>
         /// Generate public and private key pair.
         /// </summary>
         /// <returns></returns>
@@ -154,23 +203,39 @@ namespace Gurux.DLMS.Ecdsa
         public bool Verify(byte[] signature, byte[] data)
         {
             GXBigInteger msg;
-            using (SHA256 sha = new SHA256CryptoServiceProvider())
-            {
-                msg = new GXBigInteger(sha.ComputeHash(data));
-            }
             if (PublicKey == null)
             {
+                if (PrivateKey == null)
+                {
+                    throw new ArgumentNullException("Invalid private key.");
+                }
                 PublicKey = PrivateKey.GetPublicKey();
+            }
+            if (PublicKey.Scheme == Ecc.P256)
+            {
+                using (SHA256 sha = new SHA256CryptoServiceProvider())
+                {
+                    msg = new GXBigInteger(sha.ComputeHash(data));
+                }
+            }
+            else
+            {
+                using (SHA384 sha = new SHA384CryptoServiceProvider())
+                {
+                    msg = new GXBigInteger(sha.ComputeHash(data));
+                }
             }
             GXByteBuffer pk = new GXByteBuffer(PublicKey.RawValue);
             GXByteBuffer bb = new GXByteBuffer(signature);
-            GXBigInteger sigR = new GXBigInteger(bb.SubArray(0, 32));
-            GXBigInteger sigS = new GXBigInteger(bb.SubArray(32, 32));
+            int size = SchemeSize(PublicKey.Scheme);
+            GXBigInteger sigR = new GXBigInteger(bb.SubArray(0, size));
+            GXBigInteger sigS = new GXBigInteger(bb.SubArray(size, size));
             GXBigInteger inv = sigS;
             inv.Inv(curve.N);
             // Calculate u1 and u2.
             GXEccPoint u1 = new GXEccPoint(curve.G.x, curve.G.y, new GXBigInteger(1));
-            GXEccPoint u2 = new GXEccPoint(new GXBigInteger(pk.SubArray(1, 32)), new GXBigInteger(pk.SubArray(33, 32)), new GXBigInteger(1));
+            GXEccPoint u2 = new GXEccPoint(new GXBigInteger(pk.SubArray(1, size)),
+                new GXBigInteger(pk.SubArray(1 + size, size)), new GXBigInteger(1));
             GXBigInteger n = msg;
             n.Multiply(inv);
             n.Mod(curve.N);
@@ -399,7 +464,7 @@ namespace Gurux.DLMS.Ecdsa
         /// <summary>
         private static GXBigInteger GetRandomNumber(Ecc schema)
         {
-            byte[] bytes = new byte[schema == Ecc.P256 ? 32 : 48];
+            byte[] bytes = new byte[SchemeSize(schema)];
             Random random = new Random();
             random.NextBytes(bytes);
             return new GXBigInteger(bytes);

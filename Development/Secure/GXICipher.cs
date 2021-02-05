@@ -34,6 +34,7 @@
 
 using Gurux.DLMS.ASN;
 using Gurux.DLMS.Ecdsa;
+using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 using System;
 using System.Collections.Generic;
@@ -54,9 +55,9 @@ namespace Gurux.DLMS.Secure
         bool IsCiphered();
 
         /// <summary>
-        /// Used security policy.
+        /// Used security level.
         /// </summary>
-        byte Security
+        Security Security
         {
             get;
             set;
@@ -71,11 +72,28 @@ namespace Gurux.DLMS.Secure
             set;
         }
 
+        /// <summary>
+        /// Used key agreement scheme.
+        /// </summary>
+        KeyAgreementScheme KeyAgreementScheme
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// System title.
         /// </summary>
         byte[] SystemTitle
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Recipient system title.
+        /// </summary>
+        byte[] RecipientSystemTitle
         {
             get;
             set;
@@ -136,25 +154,11 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
-        /// Target (Server or client) Public key.
-        /// </summary>
-        List<KeyValuePair<CertificateType, GXx509Certificate>> PublicKeys
-        {
-            get;
-        }
-
-        /// <summary>
         /// Available certificates.
         /// </summary>
         List<GXx509Certificate> Certificates
         {
             get;
-        }
-
-        byte[] SharedSecret
-        {
-            get;
-            set;
         }
 
         KeyValuePair<GXPrivateKey, GXPublicKey> SigningKeyPair

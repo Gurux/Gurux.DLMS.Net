@@ -958,6 +958,11 @@ namespace Gurux.DLMS
         public void Reset(bool connected)
         {
             Settings.protocolVersion = null;
+            // Reset Ephemeral keys.
+            Settings.EphemeralBlockCipherKey = null;
+            Settings.EphemeralBroadcastBlockCipherKey = null;
+            Settings.EphemeralAuthenticationKey = null;
+            Settings.EphemeralKek = null;
             transaction = null;
             Settings.BlockIndex = 1;
             Settings.Count = Settings.Index = 0;
@@ -1529,7 +1534,7 @@ namespace Gurux.DLMS
                                 GXDLMSAssociationLogicalName ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
                                 if (ln != null)
                                 {
-                                    if (Settings.Cipher == null || Settings.Cipher.Security == (byte)Security.None)
+                                    if (Settings.Cipher == null || Settings.Cipher.Security == Security.None)
                                     {
                                         ln.ApplicationContextName.ContextId = ApplicationContextName.LogicalName;
                                     }
@@ -1549,7 +1554,7 @@ namespace Gurux.DLMS
                                 GXDLMSAssociationLogicalName ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
                                 if (ln != null)
                                 {
-                                    if (Settings.Cipher == null || Settings.Cipher.Security == (byte)Security.None)
+                                    if (Settings.Cipher == null || Settings.Cipher.Security == Security.None)
                                     {
                                         ln.ApplicationContextName.ContextId = ApplicationContextName.LogicalName;
                                     }
@@ -1909,6 +1914,23 @@ namespace Gurux.DLMS
                 Settings.UseCustomChallenge = value != null;
                 Settings.StoCChallenge = value;
             }
+        }
+
+        /// <summary>
+        /// Is value of the object changed with action instead of write.
+        /// </summary>
+        /// <param name="objectType">Object type.</param>
+        /// <param name="methodIndex">Method index.</param>
+        /// <returns>Returns true if object is modified with action.</returns>
+        public bool IsChangedWithAction(ObjectType objectType, byte methodIndex)
+        {
+            //Password saved.
+            return (objectType == ObjectType.AssociationLogicalName && methodIndex == 2) ||
+            //SAP assignment is added or removed.
+            objectType == ObjectType.SapAssignment ||
+            //Connection state is changed.
+            objectType == ObjectType.DisconnectControl ||
+            objectType == ObjectType.RegisterActivation;
         }
     }
 }

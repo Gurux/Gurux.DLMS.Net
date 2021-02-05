@@ -99,6 +99,8 @@ namespace Gurux.DLMS.Ecdsa
         /// <returns></returns>
         public static GXPrivateKey FromDer(string der)
         {
+            der = der.Replace("\r\n", "");
+            der = der.Replace("\n", "");
             byte[] key = GXCommon.FromBase64(der);
             GXAsn1Sequence seq = (GXAsn1Sequence)GXAsn1Converter.FromByteArray(key);
             if ((sbyte)seq[0] > 3)
@@ -146,6 +148,7 @@ namespace Gurux.DLMS.Ecdsa
         /// <returns>Private key.</returns>
         public static GXPrivateKey FromPem(string pem)
         {
+            pem = pem.Replace("\r\n", "\n");
             const string START = "PRIVATE KEY-----\n";
             const string END = "-----END";
             int index = pem.IndexOf(START);
@@ -167,9 +170,18 @@ namespace Gurux.DLMS.Ecdsa
         /// </summary>
         /// <param name="path">Path to the PEM file.</param>
         /// <returns>Private key.</returns>
-        public static GXPrivateKey FromPemFile(string path)
+        public static GXPrivateKey Load(string path)
         {
             return FromPem(File.ReadAllText(path));
+        }
+
+        /// <summary>
+        /// Save private key to PEM file.
+        /// </summary>
+        /// <param name="path">File path. </param>
+        public virtual void Save(string path)
+        {
+            File.WriteAllText(path, ToPem());
         }
 
         public string ToDer()
@@ -231,10 +243,37 @@ namespace Gurux.DLMS.Ecdsa
         /// <summary>
         /// Returns the private key as a hex string.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Private key as hex string.</returns>
         public string ToHex()
         {
-            return GXDLMSTranslator.ToHex(RawValue);
+            return ToHex(true);
+        }
+
+        /// <summary>
+        /// Returns the private key as a hex string.
+        /// </summary>
+        /// <param name="addSpace">Is space added between the bytes.</param>
+        /// <returns>Private key as hex string.</returns>
+        public string ToHex(bool addSpace)
+        {
+            return GXDLMSTranslator.ToHex(RawValue, addSpace);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is GXPrivateKey pk)
+            {
+                return GXCommon.Compare(RawValue, pk.RawValue);
+            }
+            return false;
+        }
+        public override int GetHashCode()
+        {
+            if (RawValue == null)
+            {
+                return 0;
+            }
+            return RawValue.GetHashCode();
         }
     }
 }

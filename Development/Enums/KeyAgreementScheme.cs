@@ -32,37 +32,29 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using Gurux.DLMS.ASN;
-using Gurux.DLMS.Objects.Enums;
-using System.Collections.Generic;
+using System.Xml.Serialization;
 
-namespace Gurux.DLMS.Objects
+namespace Gurux.DLMS.Enums
 {
     /// <summary>
-    /// Certificate info.
+    /// Key agreement scheme.
     /// </summary>
-    public class GXDLMSCertificateCollection : List<GXDLMSCertificateInfo>
+    public enum KeyAgreementScheme
     {
         /// <summary>
-        /// Find certificate with given parameters.
+        /// The Ephemeral Unified Model scheme.
         /// </summary>
-        /// <param name="entity">Certificate entity.</param>
-        /// <param name="type">Certificate type.</param>
-        /// <param name="systemtitle">System title.</param>
-        /// <returns></returns>
-        public GXDLMSCertificateInfo Find(CertificateEntity entity, CertificateType type, byte[] systemtitle)
-        {
-            string subject = GXAsn1Converter.SystemTitleToSubject(systemtitle);
-            foreach (GXDLMSCertificateInfo it in this)
-            {
-                if ((it.Entity == CertificateEntity.Server && entity == CertificateEntity.Server) ||
-                    (it.Entity == CertificateEntity.Client && entity == CertificateEntity.Client)
-                    && it.Subject == subject)
-                {
-                    return it;
-                }
-            }
-            return null;
-        }
+        [XmlEnum("0")]
+        EphemeralUnifiedModel,
+        /// <summary>
+        /// The One-Pass Diffie-Hellman scheme;
+        /// </summary>
+        [XmlEnum("1")]
+        OnePassDiffieHellman,
+        /// <summary>
+        /// The Static Unified Model scheme.
+        /// </summary>
+        [XmlEnum("2")]
+        StaticUnifiedModel
     }
 }

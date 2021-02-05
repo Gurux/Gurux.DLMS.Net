@@ -34,6 +34,7 @@
 
 using System;
 using System.Text;
+using Gurux.DLMS.Enums;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Objects.Enums;
 
@@ -41,19 +42,40 @@ namespace Gurux.DLMS.Secure
 {
     internal class AesGcmParameter
     {
+        /// <summary>
+        /// Enumerated security level.
+        /// </summary>
+        private Security _security;
+
         public byte Tag
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Enumerated security policy.
-        /// </summary>
-        public byte Security
+        public GXDLMSSettings Settings
         {
             get;
             set;
+        }
+
+        /// <summary>
+        /// Enumerated security level.
+        /// </summary>
+        public Security Security
+        {
+            get
+            {
+                return _security;
+            }
+            set
+            {
+                if (value > Security.AuthenticationEncryption)
+                {
+                    value = Security.AuthenticationEncryption;
+                }
+                _security = value;
+            }
         }
 
         public UInt64 InvocationCounter
@@ -122,18 +144,19 @@ namespace Gurux.DLMS.Secure
             set;
         }
 
-        /**
-      Key ciphered data.
-         */
+        /// <summary>
+        /// Key ciphered data.
+        /// </summary>
         public byte[] KeyCipheredData
         {
             get;
             set;
         }
 
-        /**
-      Ciphered content.
-         */
+
+        /// <summary>
+        /// Ciphered content.
+        /// </summary>
         public byte[] CipheredContent
         {
             get;
@@ -179,15 +202,56 @@ namespace Gurux.DLMS.Secure
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="tag">Tag.</param>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="security">Security level.</param>
+        /// <param name="securitySuite">Security suite.</param>
+        /// <param name="invocationCounter">Invocation counter.</param>
+        /// <param name="kdf">KDF.</param>
+        /// <param name="authenticationKey">Authentication key.</param>
+        /// <param name="originatorSystemTitle">Originator system title.</param>
+        /// <param name="recipientSystemTitle">Recipient system title.</param>
+        /// <param name="dateTime"> Date and time.</param>
+        /// <param name="otherInformation">Other information.</param>
+        public AesGcmParameter(byte tag,
+                GXDLMSSettings settings,
+                Security security,
+                SecuritySuite securitySuite,
+                UInt64 invocationCounter,
+                byte[] kdf,
+                byte[] authenticationKey,
+                byte[] originatorSystemTitle,
+                byte[] recipientSystemTitle,
+                byte[] dateTime,
+                byte[] otherInformation)
+        {
+            Tag = tag;
+            Settings = settings;
+            Security = security;
+            InvocationCounter = invocationCounter;
+            SecuritySuite = securitySuite;
+            BlockCipherKey = kdf;
+            AuthenticationKey = authenticationKey;
+            SystemTitle = originatorSystemTitle;
+            RecipientSystemTitle = recipientSystemTitle;
+            Type = CountType.Packet;
+            DateTime = dateTime;
+            OtherInformation = otherInformation;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         /// <param name="tag">Command.</param>
-        /// <param name="security"></param>
+        /// <param name="security">Security level.</param>
         /// <param name="invocationCounter">Invocation counter.</param>
         /// <param name="systemTitle"></param>
         /// <param name="blockCipherKey"></param>
         /// <param name="authenticationKey"></param>
         public AesGcmParameter(
             byte tag,
-            byte security,
+            Security security,
+            SecuritySuite securitySuite,
             UInt32 invocationCounter,
             byte[] systemTitle,
             byte[] blockCipherKey,
@@ -200,25 +264,29 @@ namespace Gurux.DLMS.Secure
             BlockCipherKey = blockCipherKey;
             AuthenticationKey = authenticationKey;
             Type = CountType.Packet;
-            SecuritySuite = SecuritySuite.Version0;
+            SecuritySuite = securitySuite;
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="settings">DLMS settings.</param>
         /// <param name="systemTitle"></param>
         /// <param name="blockCipherKey"></param>
         /// <param name="authenticationKey"></param>
         public AesGcmParameter(
+            GXDLMSSettings settings,
             byte[] systemTitle,
             byte[] blockCipherKey,
             byte[] authenticationKey)
         {
+            Security = settings.Cipher.Security;
+            Settings = settings;
             SystemTitle = systemTitle;
             BlockCipherKey = blockCipherKey;
             AuthenticationKey = authenticationKey;
             Type = CountType.Packet;
-            SecuritySuite = SecuritySuite.Version0;
+            SecuritySuite = settings.Cipher.SecuritySuite;
         }
 
         public override string ToString()

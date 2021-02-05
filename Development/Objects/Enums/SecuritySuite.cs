@@ -32,31 +32,36 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using System.Xml.Serialization;
+
 namespace Gurux.DLMS.Objects.Enums
 {
     //Security suite Specifies authentication, encryption and key wrapping algorithm.
     public enum SecuritySuite
     {
         /// <summary>
-        /// AES-GCM-128 for authenticated encryption and AES-128 for key wrapping.
+        /// GMAC ciphering is used.
         /// </summary>
         /// <remarks>
         /// A.K.A Security Suite 0.
         /// </remarks>
-        Version0,
+        [XmlEnum("0")]
+        GMac,
         /// <summary>
-        /// ECDH-ECDSAAES-GCM-128SHA-256.
+        /// ECDSA P-256 ciphering is used.
         /// </summary>
         /// <remarks>
         /// A.K.A Security Suite 1.
         /// </remarks>
-        Version1,
+        [XmlEnum("1")]
+        Ecdsa256,
         /// <summary>
-        /// ECDH-ECDSAAES-GCM-256SHA-384.
+        /// ECDSA P-384 ciphering is used.
         /// </summary>
         /// <remarks>
         /// A.K.A Security Suite 2.
         /// </remarks>
-        Version2
+        [XmlEnum("2")]
+        Ecdsa384
     }
 }

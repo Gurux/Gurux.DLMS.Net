@@ -33,7 +33,12 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using Gurux.DLMS.ASN;
+using Gurux.DLMS.Ecdsa;
+using Gurux.DLMS.Ecdsa.Enums;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Objects.Enums;
@@ -64,19 +69,19 @@ namespace Gurux.DLMS.Secure
             GXByteBuffer data = new GXByteBuffer();
             if (param.Type == CountType.Packet)
             {
-                data.SetUInt8((byte)param.Security);
+                data.SetUInt8((byte)((byte)param.Security | (byte)param.SecuritySuite));
             }
             byte[] tmp = BitConverter.GetBytes((UInt32)param.InvocationCounter).Reverse().ToArray();
             byte[] aad = GetAuthenticatedData(param, plainText);
             GXDLMSChipperingStream gcm = new GXDLMSChipperingStream(param.Security, true, param.BlockCipherKey,
                     aad, GetNonse((UInt32)param.InvocationCounter, param.SystemTitle), null);
             // Encrypt the secret message
-            if (param.Security != (byte)Security.Authentication)
+            if (param.Security != Security.Authentication)
             {
                 gcm.Write(plainText);
             }
             byte[] ciphertext = gcm.FlushFinalBlock();
-            if (param.Security == (byte)Security.Authentication)
+            if (param.Security == Security.Authentication)
             {
                 if (param.Type == CountType.Packet)
                 {
@@ -92,7 +97,7 @@ namespace Gurux.DLMS.Secure
                     data.Set(param.CountTag);
                 }
             }
-            else if (param.Security == (byte)Security.Encryption)
+            else if (param.Security == Security.Encryption)
             {
                 if (param.Type == CountType.Packet)
                 {
@@ -100,7 +105,7 @@ namespace Gurux.DLMS.Secure
                 }
                 data.Set(ciphertext);
             }
-            else if (param.Security == (byte)Security.AuthenticationEncryption)
+            else if (param.Security == Security.AuthenticationEncryption)
             {
                 if (param.Type == CountType.Packet)
                 {
@@ -149,7 +154,14 @@ namespace Gurux.DLMS.Secure
 
         private static byte[] GetAuthenticatedData(AesGcmParameter p, byte[] plainText)
         {
-            if (p.Security == (byte)Security.Authentication)
+            if (p.Security == Security.AuthenticationEncryption)
+            {
+                GXByteBuffer tmp2 = new GXByteBuffer();
+                tmp2.SetUInt8((byte)((byte)p.Security | (byte)p.SecuritySuite));
+                tmp2.Set(p.AuthenticationKey);
+                return tmp2.Array();
+            }
+            if (p.Security == Security.Authentication)
             {
                 GXByteBuffer tmp2 = new GXByteBuffer();
                 tmp2.SetUInt8((byte)p.Security);
@@ -157,16 +169,9 @@ namespace Gurux.DLMS.Secure
                 tmp2.Set(plainText);
                 return tmp2.Array();
             }
-            else if (p.Security == (byte)Security.Encryption)
+            if (p.Security == Security.Encryption)
             {
                 return p.AuthenticationKey;
-            }
-            else if (p.Security == (byte) Security.AuthenticationEncryption)
-            {
-                GXByteBuffer tmp2 = new GXByteBuffer();
-                tmp2.SetUInt8((byte)p.Security);
-                tmp2.Set(p.AuthenticationKey);
-                return tmp2.Array();
             }
             return null;
         }
@@ -245,14 +250,15 @@ namespace Gurux.DLMS.Secure
                     throw new ArgumentOutOfRangeException("cryptedData");
             }
             int value = 0;
-            UInt64 transactionId = 0;
+            GXPrivateKey key = null;
+            GXPublicKey pub = null;
+            GXByteBuffer transactionId = null;
             if (cmd == Command.GeneralCiphering)
             {
+                transactionId = new GXByteBuffer();
                 len = GXCommon.GetObjectCount(data);
-                tmp = new byte[len];
-                data.Get(tmp);
-                GXByteBuffer t = new GXByteBuffer(tmp);
-                transactionId = t.GetUInt64();
+                GXCommon.SetObjectCount(len, transactionId);
+                transactionId.Set(data, len);
                 len = GXCommon.GetObjectCount(data);
                 if (len != 0)
                 {
@@ -275,6 +281,7 @@ namespace Gurux.DLMS.Secure
                 tmp = new byte[len];
                 data.Get(tmp);
                 p.RecipientSystemTitle = tmp;
+                p.Settings.SourceSystemTitle = tmp;
                 // Get date time.
                 len = GXCommon.GetObjectCount(data);
                 if (len != 0)
@@ -299,22 +306,75 @@ namespace Gurux.DLMS.Secure
                 len = data.GetUInt8();
                 value = data.GetUInt8();
                 p.KeyParameters = value;
-                if (value == 1)
+                if (value == (int)KeyAgreementScheme.OnePassDiffieHellman)
                 {
-                    // KeyAgreement.ONE_PASS_DIFFIE_HELLMAN
                     // key-ciphered-data
                     len = GXCommon.GetObjectCount(data);
-                    tmp = new byte[len];
-                    data.Get(tmp);
-                    p.KeyCipheredData = tmp;
+                    GXByteBuffer bb = new GXByteBuffer();
+                    bb.Set(data, len);
+                    if (p.Xml != null)
+                    {
+                        p.KeyCipheredData = bb.Array();
+                        //Find key agreement key using subject.
+                        string subject = GXAsn1Converter.SystemTitleToSubject(p.Settings.SourceSystemTitle);
+                        foreach (KeyValuePair<GXPkcs8, GXx509Certificate> it in p.Settings.Keys)
+                        {
+                            if (it.Value.KeyUsage == ASN.Enums.KeyUsage.KeyAgreement && it.Value.Subject.Contains(subject))
+                            {
+                                key = it.Key.PrivateKey;
+                                break;
+                            }
+                        }
+
+                    }
+                    else
+                    {
+                        key = p.Settings.Cipher.KeyAgreementKeyPair.Key;
+                    }
+                    if (key != null)
+                    {
+                        //Get Ephemeral public key.
+                        int keySize = len / 2;
+                        pub = GXPublicKey.FromRawBytes(bb.SubArray(0, keySize));
+                    }
                 }
-                else if (value == 2)
+                else if (value == (int)KeyAgreementScheme.StaticUnifiedModel)
                 {
-                    // KeyAgreement.STATIC_UNIFIED_MODEL
                     len = GXCommon.GetObjectCount(data);
                     if (len != 0)
                     {
                         throw new ArgumentException("Invalid key parameters");
+                    }
+                    if (p.Xml != null)
+                    {
+                        //Find key agreement key using subject.
+                        string subject = GXAsn1Converter.SystemTitleToSubject(p.SystemTitle);
+                        foreach (KeyValuePair<GXPkcs8, GXx509Certificate> it in p.Settings.Keys)
+                        {
+                            if (it.Value.KeyUsage == ASN.Enums.KeyUsage.KeyAgreement && it.Value.Subject.Contains(subject))
+                            {
+                                key = it.Key.PrivateKey;
+                                break;
+                            }
+                        }
+                        if (key != null)
+                        {
+                            //Find key agreement key using subject.
+                            subject = GXAsn1Converter.SystemTitleToSubject(p.Settings.SourceSystemTitle);
+                            foreach (KeyValuePair<GXPkcs8, GXx509Certificate> it in p.Settings.Keys)
+                            {
+                                if (it.Value.KeyUsage == ASN.Enums.KeyUsage.KeyAgreement && it.Value.Subject.Contains(subject))
+                                {
+                                    pub = it.Value.PublicKey;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        key = p.Settings.Cipher.KeyAgreementKeyPair.Key;
+                        pub = p.Settings.Cipher.KeyAgreementKeyPair.Value;
                     }
                 }
                 else
@@ -323,9 +383,14 @@ namespace Gurux.DLMS.Secure
                 }
             }
             len = GXCommon.GetObjectCount(data);
+            if (len < data.Available)
+            {
+                throw new Exception("Not enought data.");
+            }
             p.CipheredContent = data.Remaining();
-            byte sc = (byte)data.GetUInt8();
-            Enums.Security security = (Enums.Security)(sc & 0x30);
+            byte sc = data.GetUInt8();
+            p.SecuritySuite = (SecuritySuite)(sc & 0x3);
+            p.Security = (Security)(sc & 0x30);
             if ((sc & 0x80) != 0)
             {
                 System.Diagnostics.Debug.WriteLine("Compression is used.");
@@ -338,22 +403,53 @@ namespace Gurux.DLMS.Secure
             {
                 System.Diagnostics.Debug.WriteLine("Encryption is applied.");
             }
+            if (key != null)
+            {
+                if (value == (int)KeyAgreementScheme.OnePassDiffieHellman)
+                {
+                    GXEcdsa c = new GXEcdsa(key);
+                    //Get Ephemeral signing key and verify it.
+                    byte[] z = c.GenerateSecret(pub);
+                    System.Diagnostics.Debug.WriteLine("Shared secret:" + GXCommon.ToHex(z, true));
+                    GXByteBuffer kdf = new GXByteBuffer();
+                    kdf.Set(GXSecure.GenerateKDF(p.SecuritySuite, z,
+                        p.SecuritySuite == SecuritySuite.Ecdsa256 ? AlgorithmId.AesGcm128 : AlgorithmId.AesGcm256,
+                        p.SystemTitle,
+                        p.Settings.SourceSystemTitle,
+                        null, null));
+                    System.Diagnostics.Debug.WriteLine("KDF:" + kdf.ToString());
+                    p.BlockCipherKey = kdf.SubArray(0, 16);
 
-            SecuritySuite ss = (SecuritySuite)(sc & 0x3);
-            p.Security = (byte)security;
+                }
+                else if (value == (int)KeyAgreementScheme.StaticUnifiedModel)
+                {
+                    GXEcdsa c = new GXEcdsa(key);
+                    byte[] z = c.GenerateSecret(pub);
+                    System.Diagnostics.Debug.WriteLine("Shared secret:" + GXCommon.ToHex(z, true));
+                    GXByteBuffer kdf = new GXByteBuffer();
+                    kdf.Set(GXSecure.GenerateKDF(p.SecuritySuite, z,
+                        p.SecuritySuite == SecuritySuite.Ecdsa256 ? AlgorithmId.AesGcm128 : AlgorithmId.AesGcm256,
+                        p.SystemTitle,
+                        transactionId.Array(),
+                        p.Settings.SourceSystemTitle,
+                        null));
+                    System.Diagnostics.Debug.WriteLine("KDF:" + kdf.ToString());
+                    p.BlockCipherKey = kdf.SubArray(0, 16);
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException("Invalid Key-id value.");
+                }
+            }
             UInt32 invocationCounter = data.GetUInt32();
             p.InvocationCounter = invocationCounter;
-            if (ss == SecuritySuite.Version2)
-            {
-                throw new NotImplementedException("Security Suite 2 is not implemented.");
-            }
             System.Diagnostics.Debug.WriteLine("Decrypt settings: " + p.ToString());
             System.Diagnostics.Debug.WriteLine("Encrypted: " + GXCommon.ToHex(data.Data,
                     false, data.Position, data.Size - data.Position));
             byte[] tag = new byte[12];
             byte[] encryptedData;
             int length;
-            if (security == Enums.Security.Authentication)
+            if (p.Security == Security.Authentication)
             {
                 length = data.Size - data.Position - 12;
                 encryptedData = new byte[length];
@@ -363,10 +459,6 @@ namespace Gurux.DLMS.Secure
                 EncryptAesGcm(p, encryptedData);
                 if (!GXDLMSChipperingStream.TagsEquals(tag, p.CountTag))
                 {
-                    if (transactionId != 0)
-                    {
-                        p.InvocationCounter = transactionId;
-                    }
                     if (p.Xml == null)
                     {
                         throw new GXDLMSException("Decrypt failed. Invalid tag.");
@@ -379,13 +471,13 @@ namespace Gurux.DLMS.Secure
                 return encryptedData;
             }
             byte[] ciphertext = null;
-            if (security == Enums.Security.Encryption)
+            if (p.Security == Security.Encryption)
             {
                 length = data.Size - data.Position;
                 ciphertext = new byte[length];
                 data.Get(ciphertext);
             }
-            else if (security == Enums.Security.AuthenticationEncryption)
+            else if (p.Security == Security.AuthenticationEncryption)
             {
                 length = data.Size - data.Position - 12;
                 ciphertext = new byte[length];
@@ -394,13 +486,9 @@ namespace Gurux.DLMS.Secure
             }
             byte[] aad = GetAuthenticatedData(p, ciphertext),
                     iv = GetNonse(invocationCounter, p.SystemTitle);
-            GXDLMSChipperingStream gcm = new GXDLMSChipperingStream((byte)security, true,
+            GXDLMSChipperingStream gcm = new GXDLMSChipperingStream(p.Security, true,
                     p.BlockCipherKey, aad, iv, tag);
             gcm.Write(ciphertext);
-            if (transactionId != 0)
-            {
-                p.InvocationCounter = transactionId;
-            }
             return gcm.FlushFinalBlock();
         }
     }

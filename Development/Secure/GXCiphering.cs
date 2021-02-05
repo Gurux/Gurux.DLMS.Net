@@ -34,6 +34,7 @@
 
 using Gurux.DLMS.ASN;
 using Gurux.DLMS.Ecdsa;
+using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 using System;
 using System.Collections.Generic;
@@ -55,6 +56,10 @@ namespace Gurux.DLMS.Secure
         /// </summary>
         private byte[] systemTitle;
         /// <summary>
+        /// Server System title.
+        /// </summary>
+        private byte[] _serverSystemTitle;
+        /// <summary>
         /// Block ciphering key.
         /// </summary>
         private byte[] blockCipherKey;
@@ -64,6 +69,13 @@ namespace Gurux.DLMS.Secure
         /// </summary>
         private byte[] dedicatedKey;
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public GXCiphering()
+        {
+
+        }
 
         /// <summary>
         /// Constructor.
@@ -74,11 +86,10 @@ namespace Gurux.DLMS.Secure
         /// <param name="title">System title.</param>
         public GXCiphering(byte[] title)
         {
-            Security = (byte)Enums.Security.None;
+            Security = Security.None;
             SystemTitle = title;
             BlockCipherKey = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F };
             AuthenticationKey = new byte[] { 0xD0, 0xD1, 0xD2, 0xD3, 0xD4, 0xD5, 0xD6, 0xD7, 0xD8, 0xD9, 0xDA, 0xDB, 0xDC, 0xDD, 0xDE, 0xDF };
-            PublicKeys = new List<KeyValuePair<CertificateType, GXx509Certificate>>();
         }
 
         /// <summary>
@@ -93,26 +104,22 @@ namespace Gurux.DLMS.Secure
         /// <param name="authenticationKey"></param>
         public GXCiphering(UInt32 invocationCounter, byte[] title, byte[] blockCipherKey, byte[] authenticationKey)
         {
-            Security = (byte)Enums.Security.None;
+            Security = Security.None;
             InvocationCounter = invocationCounter;
             SystemTitle = title;
             BlockCipherKey = blockCipherKey;
             AuthenticationKey = authenticationKey;
-            PublicKeys = new List<KeyValuePair<CertificateType, GXx509Certificate>>();
         }
 
         public void CopyTo(GXCiphering target)
         {
             target.Security = Security;
             target.SecuritySuite = SecuritySuite;
+            target.KeyAgreementScheme = KeyAgreementScheme;
             target.InvocationCounter = InvocationCounter;
             target.SystemTitle = SystemTitle;
             target.BlockCipherKey = BlockCipherKey;
             target.AuthenticationKey = AuthenticationKey;
-            if (PublicKeys != null)
-            {
-                target.PublicKeys.AddRange(PublicKeys);
-            }
         }
 
         /// <summary>
@@ -125,9 +132,9 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
-        /// Used security policy.
+        /// Used security level.
         /// </summary>
-        public byte Security
+        public Security Security
         {
             get;
             set;
@@ -143,6 +150,15 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
+        /// Used key agreement scheme.
+        /// </summary>
+        public KeyAgreementScheme KeyAgreementScheme
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Invocation counter for sending.
         /// </summary>
         public UInt32 InvocationCounter
@@ -152,24 +168,9 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
-        /// Target (Server or client) Public key.
-        /// </summary>
-        public List<KeyValuePair<CertificateType, GXx509Certificate>> PublicKeys
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// Available certificates.
         /// </summary>
         public List<GXx509Certificate> Certificates
-        {
-            get;
-            set;
-        }
-
-        public byte[] SharedSecret
         {
             get;
             set;
@@ -224,6 +225,25 @@ namespace Gurux.DLMS.Secure
                     throw new ArgumentOutOfRangeException("Invalid System Title.");
                 }
                 systemTitle = value;
+            }
+        }
+
+        /// <summary>
+        /// Recipient system Title.
+        /// </summary>
+        public byte[] RecipientSystemTitle
+        {
+            get
+            {
+                return _serverSystemTitle;
+            }
+            set
+            {
+                if (!TestMode && value != null && value.Length != 8 && value.Length != 0)
+                {
+                    throw new ArgumentOutOfRangeException("Invalid System Title.");
+                }
+                _serverSystemTitle = value;
             }
         }
 
@@ -286,10 +306,9 @@ namespace Gurux.DLMS.Secure
 
         internal static byte[] Encrypt(AesGcmParameter p, byte[] data)
         {
-            if (p.Security != (byte)Enums.Security.None)
+            if (p.Security != Security.None)
             {
-                byte[] tmp = GXDLMSChippering.EncryptAesGcm(p, data);
-                return tmp;
+                return GXDLMSChippering.EncryptAesGcm(p, data);
             }
             return data;
         }
@@ -304,13 +323,13 @@ namespace Gurux.DLMS.Secure
 
         public void Reset()
         {
-            Security = 0;
+            Security = Security.None;
             InvocationCounter = 0;
         }
 
         bool GXICipher.IsCiphered()
         {
-            return Security != 0;
+            return Security != Security.None;
         }
 
         /// <summary>
@@ -320,8 +339,12 @@ namespace Gurux.DLMS.Secure
         /// <returns></returns>
         public byte[] GenerateGmacPassword(byte[] challenge)
         {
-            AesGcmParameter p = new AesGcmParameter(0x10, (byte)Enums.Security.Authentication, InvocationCounter,
-                                                       systemTitle, BlockCipherKey, AuthenticationKey);
+            AesGcmParameter p = new AesGcmParameter(0x10, Security.Authentication,
+                SecuritySuite,
+                InvocationCounter,
+                systemTitle,
+                BlockCipherKey,
+                AuthenticationKey);
             GXByteBuffer bb = new GXByteBuffer();
             GXDLMSChippering.EncryptAesGcm(p, challenge);
             bb.SetUInt8(0x10);

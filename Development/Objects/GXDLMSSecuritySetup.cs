@@ -40,11 +40,11 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Secure;
-using System.Security.Cryptography.X509Certificates;
 using Gurux.DLMS.ASN;
 using Gurux.DLMS.ASN.Enums;
 using Gurux.DLMS.Ecdsa;
 using Gurux.DLMS.Ecdsa.Enums;
+using System.Numerics;
 
 namespace Gurux.DLMS.Objects
 {
@@ -54,7 +54,7 @@ namespace Gurux.DLMS.Objects
     /// </summary>
     public class GXDLMSSecuritySetup : GXDLMSObject, IGXDLMSBase
     {
-        byte _securityPolicy = 0;
+        SecurityPolicy _securityPolicy = SecurityPolicy.None;
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -85,42 +85,44 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Security policy for Version 1.
+        /// Security policy.
         /// </summary>
         [XmlIgnore()]
-        public object SecurityPolicy
+        public SecurityPolicy SecurityPolicy
         {
             get
             {
-                if (Version == 0)
-                {
-                    return (SecurityPolicy0)_securityPolicy;
-                }
-                return (SecurityPolicy)_securityPolicy;
+                return _securityPolicy;
             }
             set
             {
-                if (Version == 0)
+                switch (value)
                 {
-                    switch ((SecurityPolicy0)Convert.ToByte(value))
-                    {
-                        case SecurityPolicy0.Nothing:
-                        case SecurityPolicy0.Authenticated:
-                        case SecurityPolicy0.Encrypted:
-                        case SecurityPolicy0.AuthenticatedEncrypted:
-                            break;
-                        default:
-                            throw new Exception(string.Format("Invalid security policy value {0} for Version 0." + value));
-                    }
+                    case SecurityPolicy.None:
+                        break;
+                    case SecurityPolicy.Authenticated:
+                    case SecurityPolicy.Encrypted:
+                    case SecurityPolicy.AuthenticatedEncrypted:
+                        if (Version == 1)
+                        {
+                            throw new ArgumentOutOfRangeException(string.Format("Invalid security policy value {0} for version 0.", (int)value));
+                        }
+                        break;
+                    case SecurityPolicy.AuthenticatedRequest:
+                    case SecurityPolicy.EncryptedRequest:
+                    case SecurityPolicy.DigitallySignedRequest:
+                    case SecurityPolicy.AuthenticatedResponse:
+                    case SecurityPolicy.EncryptedResponse:
+                    case SecurityPolicy.DigitallySignedResponse:
+                        if (Version == 0)
+                        {
+                            throw new ArgumentOutOfRangeException(string.Format("Invalid security policy value {0} for version 1.", value));
+                        }
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(string.Format("Invalid security policy value {0}.", value));
                 }
-                else if (Version == 1)
-                {
-                    if (((Convert.ToByte(value)) & 0x3) != 0)
-                    {
-                        throw new Exception(string.Format("Invalid security policy value {0} for version 1." + value));
-                    }
-                }
-                _securityPolicy = Convert.ToByte(value);
+                _securityPolicy = value;
             }
         }
 
@@ -176,21 +178,21 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="security">Security level.</param>
         /// <returns>Integer value of security level.</returns>
-        private static int GetSecurityValue(Gurux.DLMS.Enums.Security security)
+        private static int GetSecurityValue(Security security)
         {
             int value;
             switch (security)
             {
-                case Gurux.DLMS.Enums.Security.None:
+                case Security.None:
                     value = 0;
                     break;
-                case Gurux.DLMS.Enums.Security.Authentication:
+                case Security.Authentication:
                     value = 1;
                     break;
-                case Gurux.DLMS.Enums.Security.Encryption:
+                case Security.Encryption:
                     value = 2;
                     break;
-                case Gurux.DLMS.Enums.Security.AuthenticationEncryption:
+                case Security.AuthenticationEncryption:
                     value = 3;
                     break;
                 default:
@@ -205,7 +207,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="client">DLMS client that is used to generate action.</param>
         /// <param name="security">New security level.</param>
         /// <returns>Generated action.</returns>
-        public byte[][] Activate(GXDLMSClient client, Gurux.DLMS.Enums.Security security)
+        public byte[][] Activate(GXDLMSClient client, Security security)
         {
             return client.Method(this, 1, GetSecurityValue(security), DataType.Enum);
         }
@@ -264,6 +266,38 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
+        /// Agree on global unicast encryption key.
+        /// </summary>
+        /// <param name="client"> DLMS client that is used to generate action.</param>
+        /// <param name="key"> List of keys.</param>
+        /// <returns>Generated action.</returns>
+        public byte[][] KeyAgreement(GXDLMSSecureClient client)
+        {
+            if (Version == 0)
+            {
+                throw new ArgumentException("Public and private key isn't implemented for version 0.");
+            }
+            if (client.Ciphering.EphemeralKeyPair.Value == null)
+            {
+                throw new ArgumentException("Invalid Ephemeral key.");
+            }
+            if (client.Ciphering.SigningKeyPair.Value == null)
+            {
+                throw new ArgumentException("Invalid Signiture key.");
+            }
+            GXByteBuffer bb = new GXByteBuffer();
+            //Add Ephemeral public key.
+            bb.Set(client.Ciphering.EphemeralKeyPair.Value.RawValue, 1, client.Ciphering.EphemeralKeyPair.Value.RawValue.Length - 1);
+            //Add signature.
+            byte[] sign = GXSecure.GetEphemeralPublicKeySignature(0, client.Ciphering.EphemeralKeyPair.Value,
+                client.Ciphering.SigningKeyPair.Key);
+            bb.Set(sign);
+            List<KeyValuePair<GlobalKeyType, byte[]>> list = new List<KeyValuePair<GlobalKeyType, byte[]>>();
+            list.Add(new KeyValuePair<GlobalKeyType, byte[]>(GlobalKeyType.UnicastEncryption, bb.Array()));
+            return KeyAgreement(client, list);
+        }
+
+        /// <summary>
         ///  Generates an asymmetric key pair as required by the security suite.
         /// </summary>
         /// <param name="client">DLMS client that is used to generate action.</param>
@@ -291,7 +325,19 @@ namespace Gurux.DLMS.Objects
         /// <param name="client">DLMS client that is used to generate action.</param>
         /// <param name="key">Public key.</param>
         /// <returns>Generated action.</returns>
+        [Obsolete("Use ImportCertificate instead.")]
         public byte[][] Import(GXDLMSClient client, GXx509Certificate certificate)
+        {
+            return ImportCertificate(client, certificate.Encoded);
+        }
+
+        /// <summary>
+        ///  Imports an X.509 v3 certificate of a public key.
+        /// </summary>
+        /// <param name="client">DLMS client that is used to generate action.</param>
+        /// <param name="key">Public key.</param>
+        /// <returns>Generated action.</returns>
+        public byte[][] ImportCertificate(GXDLMSClient client, GXx509Certificate certificate)
         {
             return ImportCertificate(client, certificate.Encoded);
         }
@@ -344,7 +390,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="serialNumber">Serial number.</param>
         /// <param name="issuer">Issuer</param>
         /// <returns>Generated action.</returns>
-        public byte[][] ExportCertificateBySerial(GXDLMSClient client, byte[] serialNumber, byte[] issuer)
+        public byte[][] ExportCertificateBySerial(GXDLMSClient client, BigInteger serialNumber, byte[] issuer)
         {
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetUInt8(DataType.Structure);
@@ -356,7 +402,7 @@ namespace Gurux.DLMS.Objects
             bb.SetUInt8(DataType.Structure);
             bb.SetUInt8(2);
             //serialNumber
-            GXCommon.SetData(client.Settings, bb, DataType.OctetString, serialNumber);
+            GXCommon.SetData(client.Settings, bb, DataType.OctetString, serialNumber.ToByteArray());
             //issuer
             GXCommon.SetData(client.Settings, bb, DataType.OctetString, issuer);
             return client.Method(this, 7, bb.Array(), DataType.Structure);
@@ -417,6 +463,108 @@ namespace Gurux.DLMS.Objects
             return client.Method(this, 8, bb.Array(), DataType.Structure);
         }
 
+        /// <summary>
+        /// Update ephemeral keys.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns>List of Parsed key id and GUAK. This is for debugging purpose.</returns>
+        public List<KeyValuePair<GlobalKeyType, byte[]>> UpdateEphemeralKeys(GXDLMSSecureClient client, byte[] value)
+        {
+            return UpdateEphemeralKeys(client, new GXByteBuffer(value));
+        }
+
+        /// <summary>
+        /// Update ephemeral keys.
+        /// </summary>
+        /// <param name="client">DLMS Client.</param>
+        /// <param name="value">Received reply from the server.</param>
+        /// <returns>List of Parsed key id and GUAK. This is for debugging purpose.</returns>
+        public List<KeyValuePair<GlobalKeyType, byte[]>> UpdateEphemeralKeys(GXDLMSSecureClient client, GXByteBuffer value)
+        {
+            if (client == null)
+            {
+                throw new ArgumentNullException(nameof(client));
+            }
+            if (value.GetUInt8() != (byte)DataType.Array)
+            {
+                throw new ArgumentOutOfRangeException("Invalid tag.");
+            }
+            GXEcdsa c = new GXEcdsa(client.Ciphering.EphemeralKeyPair.Key);
+            int count = GXCommon.GetObjectCount(value);
+            List<KeyValuePair<GlobalKeyType, byte[]>> list = new List<KeyValuePair<GlobalKeyType, byte[]>>();
+            for (int pos = 0; pos != count; ++pos)
+            {
+                if (value.GetUInt8() != (byte)DataType.Structure)
+                {
+                    throw new ArgumentOutOfRangeException("Invalid tag.");
+                }
+                if (value.GetUInt8() != 2)
+                {
+                    throw new ArgumentOutOfRangeException("Invalid length.");
+                }
+                if (value.GetUInt8() != (byte) DataType.Enum)
+                {
+                    throw new ArgumentOutOfRangeException("Invalid key id data type.");
+                }
+                int keyId = value.GetUInt8();
+                if (keyId > 4)
+                {
+                    throw new ArgumentOutOfRangeException("Invalid key type.");
+                }
+                if (value.GetUInt8() != (byte)DataType.OctetString)
+                {
+                    throw new ArgumentOutOfRangeException("Invalid tag.");
+                }
+                if (GXCommon.GetObjectCount(value) != 128)
+                {
+                    throw new ArgumentOutOfRangeException("Invalid length.");
+                }
+                //Get ephemeral public key server.
+                GXByteBuffer key = new GXByteBuffer();
+                key.SetUInt8(4);
+                key.Set(value, 64);
+                GXPublicKey targetEphemeralKey = GXPublicKey.FromRawBytes(key.Array());
+                //Get ephemeral public key signature server.
+                byte[] signature = new byte[64];
+                value.Get(signature);
+                key.SetUInt8(0, (byte) keyId);
+                //Verify signature.
+                if (!GXSecure.ValidateEphemeralPublicKeySignature(key.Array(), signature, client.Ciphering.SigningKeyPair.Value))
+                {
+                    throw new GXDLMSCipherException("Invalid signature.");
+                }
+                byte[] z = c.GenerateSecret(targetEphemeralKey);
+                System.Diagnostics.Debug.WriteLine("Shared secret:" + GXCommon.ToHex(z, true));
+                GXByteBuffer kdf = new GXByteBuffer();
+                kdf.Set(GXSecure.GenerateKDF(client.SecuritySuite, z,
+                    AlgorithmId.AesGcm128,
+                    client.Ciphering.SystemTitle,
+                    client.Settings.SourceSystemTitle, null, null));
+                System.Diagnostics.Debug.WriteLine("KDF:" + kdf.ToString());
+                list.Add(new KeyValuePair<GlobalKeyType, byte[]>((GlobalKeyType)keyId, kdf.SubArray(0, 16)));
+            }
+            //Update ephemeral keys.
+            foreach (KeyValuePair<GlobalKeyType, byte[]> it in list)
+            {
+                switch (it.Key)
+                {
+                    case GlobalKeyType.UnicastEncryption:
+                        client.Settings.EphemeralBlockCipherKey = it.Value;
+                        break;
+                    case GlobalKeyType.BroadcastEncryption:
+                        client.Settings.EphemeralBroadcastBlockCipherKey = it.Value;
+                        break;
+                    case GlobalKeyType.Authentication:
+                        client.Settings.EphemeralAuthenticationKey = it.Value;
+                        break;
+                    case GlobalKeyType.Kek:
+                        client.Settings.EphemeralKek = it.Value;
+                        break;
+                }
+            }
+            return list;
+        }
+
         #region IGXDLMSBase Members
         /**
         * Convert system title to subject.
@@ -433,7 +581,7 @@ namespace Gurux.DLMS.Objects
 
         private static KeyUsage CertificateTypeToKeyUsage(CertificateType type)
         {
-            KeyUsage k = KeyUsage.None;
+            KeyUsage k;
             switch (type)
             {
                 case CertificateType.DigitalSignature:
@@ -499,7 +647,7 @@ namespace Gurux.DLMS.Objects
 
         private static Ecc GetEcc(SecuritySuite suite)
         {
-            if (suite == SecuritySuite.Version1)
+            if (suite == SecuritySuite.Ecdsa256)
             {
                 return Ecc.P256;
             }
@@ -510,7 +658,7 @@ namespace Gurux.DLMS.Objects
         {
             if (e.Index == 1)
             {
-                SecurityPolicy = e.Parameters;
+                SecurityPolicy = (SecurityPolicy)e.Parameters;
             }
             else if (e.Index == 2)
             {
@@ -913,7 +1061,7 @@ namespace Gurux.DLMS.Objects
                 bb.SetUInt8((byte)it.Entity);
                 bb.SetUInt8((byte)DataType.Enum);
                 bb.SetUInt8((byte)it.Type);
-                GXCommon.AddString(it.SerialNumber, bb);
+                GXCommon.AddString(it.SerialNumber.ToString(), bb);
                 GXCommon.AddString(it.Issuer, bb);
                 GXCommon.AddString(it.Subject, bb);
                 GXCommon.AddString(it.SubjectAltName, bb);
@@ -973,7 +1121,7 @@ namespace Gurux.DLMS.Objects
                     GXDLMSCertificateInfo info = new GXDLMSCertificateInfo();
                     info.Entity = (CertificateEntity)Convert.ToInt32(it[0]);
                     info.Type = (CertificateType)Convert.ToInt32(it[1]);
-                    info.SerialNumber = ASCIIEncoding.ASCII.GetString((byte[])it[2]);
+                    info.SerialNumber = new BigInteger((byte[])it[2]);
                     info.Issuer = ASCIIEncoding.ASCII.GetString((byte[])it[3]);
                     info.Subject = ASCIIEncoding.ASCII.GetString((byte[])it[4]);
                     info.SubjectAltName = ASCIIEncoding.ASCII.GetString((byte[])it[5]);
@@ -990,7 +1138,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 2)
             {
-                SecurityPolicy = Convert.ToByte(e.Value);
+                SecurityPolicy = (SecurityPolicy)Convert.ToByte(e.Value);
             }
             else if (e.Index == 3)
             {
@@ -1016,7 +1164,7 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Load(GXXmlReader reader)
         {
-            SecurityPolicy = reader.ReadElementContentAsInt("SecurityPolicy");
+            SecurityPolicy = (SecurityPolicy)reader.ReadElementContentAsInt("SecurityPolicy");
             //This is old functionality.It can be removed in some point.
             reader.ReadElementContentAsInt("SecurityPolicy0");
             SecuritySuite = (SecuritySuite)reader.ReadElementContentAsInt("SecuritySuite");
@@ -1047,7 +1195,7 @@ namespace Gurux.DLMS.Objects
                     Certificates.Add(it);
                     it.Entity = (CertificateEntity)reader.ReadElementContentAsInt("Entity");
                     it.Type = (CertificateType)reader.ReadElementContentAsInt("Type");
-                    it.SerialNumber = reader.ReadElementContentAsString("SerialNumber");
+                    it.SerialNumber = BigInteger.Parse(reader.ReadElementContentAsString("SerialNumber"));
                     it.Issuer = reader.ReadElementContentAsString("Issuer");
                     it.Subject = reader.ReadElementContentAsString("Subject");
                     it.SubjectAltName = reader.ReadElementContentAsString("SubjectAltName");
@@ -1070,7 +1218,7 @@ namespace Gurux.DLMS.Objects
                     writer.WriteStartElement("Item", 0);
                     writer.WriteElementString("Entity", (int)it.Entity, 0);
                     writer.WriteElementString("Type", (int)it.Type, 0);
-                    writer.WriteElementString("SerialNumber", it.SerialNumber, 0);
+                    writer.WriteElementString("SerialNumber", it.SerialNumber.ToString(), 0);
                     writer.WriteElementString("Issuer", it.Issuer, 0);
                     writer.WriteElementString("Subject", it.Subject, 0);
                     writer.WriteElementString("SubjectAltName", it.SubjectAltName, 0);
