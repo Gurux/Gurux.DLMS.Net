@@ -355,7 +355,7 @@ namespace Gurux.DLMS
                 {
                     return InterfaceType.Plc;
                 }
-                if (GXDLMS.IsMBusData(value))
+                if (GXDLMS.IsWirelessMBusData(value))
                 {
                     return InterfaceType.WirelessMBus;
                 }
@@ -452,7 +452,7 @@ namespace Gurux.DLMS
                             break;
                         }
                     }
-                    else if (type == InterfaceType.WirelessMBus && GXDLMS.IsMBusData(data))
+                    else if (type == InterfaceType.WirelessMBus && GXDLMS.IsWirelessMBusData(data))
                     {
                         pos = data.Position;
                         found = GXDLMS.GetData(settings, data, reply, null, null);
@@ -1167,7 +1167,7 @@ namespace Gurux.DLMS
                     return;
                 }
                 //If Wireless M-Bus.
-                else if (GXDLMS.IsMBusData(msg.Message))
+                else if (GXDLMS.IsWirelessMBusData(msg.Message))
                 {
                     settings.InterfaceType = Enums.InterfaceType.WirelessMBus;
                     int len = xml.GetXmlLength();
@@ -1231,8 +1231,7 @@ namespace Gurux.DLMS
         /// <returns>Converted xml.</returns>
         public string PduToXml(string hex)
         {
-            hex = hex.Replace("\r\n", "").Replace("\n", "");
-            return PduToXml(GXCommon.HexToBytes(hex));
+            return PduToXml(HexToBytes(hex));
         }
 
         /// <summary>

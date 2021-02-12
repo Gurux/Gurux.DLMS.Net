@@ -59,7 +59,7 @@ namespace Gurux.DLMS.Enums
         [XmlEnum("2")]
         PDU,
         /// <summary>
-        /// IEC 62056-7-3 Wireless M-Bus profile is used.
+        /// EN 13757-4/-5 Wireless M-Bus profile is used.
         /// </summary>
         [XmlEnum("3")]
         WirelessMBus,
@@ -99,5 +99,10 @@ namespace Gurux.DLMS.Enums
         /// </summary>
         [XmlEnum("9")]
         PlcPrime,
+        /// <summary>
+        /// EN 13757-2 wired (twisted pair based) M-Bus scheme is used.
+        /// </summary>
+        [XmlEnum("10")]
+        WiredMBus
     }
 }

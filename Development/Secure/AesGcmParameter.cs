@@ -110,34 +110,35 @@ namespace Gurux.DLMS.Secure
             set;
         }
 
-        /**
- Recipient system title.
-    */
+        /// <summary>
+        /// Recipient system title.
+        /// </summary>
         public byte[] RecipientSystemTitle
         {
             get;
             set;
         }
-        /**
-      Date time.
-         */
+
+        /// <summary>
+        /// Date time.
+        /// </summary>
         public byte[] DateTime
         {
             get;
             set;
         }
-        /**
-      Other information.
-         */
+        /// <summary>
+        /// Other information.
+        /// </summary>
         public byte[] OtherInformation
         {
             get;
             set;
         }
 
-        /**
-      Key parameters.
-         */
+        /// <summary>
+        /// Key parameters.
+        /// </summary>
         public int KeyParameters
         {
             get;

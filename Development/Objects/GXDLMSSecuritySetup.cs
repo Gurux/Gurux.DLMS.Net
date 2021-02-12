@@ -108,19 +108,12 @@ namespace Gurux.DLMS.Objects
                             throw new ArgumentOutOfRangeException(string.Format("Invalid security policy value {0} for version 0.", (int)value));
                         }
                         break;
-                    case SecurityPolicy.AuthenticatedRequest:
-                    case SecurityPolicy.EncryptedRequest:
-                    case SecurityPolicy.DigitallySignedRequest:
-                    case SecurityPolicy.AuthenticatedResponse:
-                    case SecurityPolicy.EncryptedResponse:
-                    case SecurityPolicy.DigitallySignedResponse:
+                    default:
                         if (Version == 0)
                         {
-                            throw new ArgumentOutOfRangeException(string.Format("Invalid security policy value {0} for version 1.", value));
+                            throw new ArgumentOutOfRangeException(string.Format("Invalid security policy value {0}.", value));
                         }
                         break;
-                    default:
-                        throw new ArgumentOutOfRangeException(string.Format("Invalid security policy value {0}.", value));
                 }
                 _securityPolicy = value;
             }
@@ -445,7 +438,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="serialNumber">Serial number.</param>
         /// <param name="issuer">Issuer.</param>
         /// <returns>Generated action.</returns>
-        public byte[][] RemoveCertificateBySerial(GXDLMSClient client, byte[] serialNumber, byte[] issuer)
+        public byte[][] RemoveCertificateBySerial(GXDLMSClient client, BigInteger serialNumber, byte[] issuer)
         {
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetUInt8(DataType.Structure);
@@ -457,7 +450,7 @@ namespace Gurux.DLMS.Objects
             bb.SetUInt8(DataType.Structure);
             bb.SetUInt8(2);
             //serialNumber
-            GXCommon.SetData(client.Settings, bb, DataType.OctetString, serialNumber);
+            GXCommon.SetData(client.Settings, bb, DataType.OctetString, serialNumber.ToByteArray());
             //issuer
             GXCommon.SetData(client.Settings, bb, DataType.OctetString, issuer);
             return client.Method(this, 8, bb.Array(), DataType.Structure);
@@ -502,7 +495,7 @@ namespace Gurux.DLMS.Objects
                 {
                     throw new ArgumentOutOfRangeException("Invalid length.");
                 }
-                if (value.GetUInt8() != (byte) DataType.Enum)
+                if (value.GetUInt8() != (byte)DataType.Enum)
                 {
                     throw new ArgumentOutOfRangeException("Invalid key id data type.");
                 }
@@ -527,7 +520,7 @@ namespace Gurux.DLMS.Objects
                 //Get ephemeral public key signature server.
                 byte[] signature = new byte[64];
                 value.Get(signature);
-                key.SetUInt8(0, (byte) keyId);
+                key.SetUInt8(0, (byte)keyId);
                 //Verify signature.
                 if (!GXSecure.ValidateEphemeralPublicKeySignature(key.Array(), signature, client.Ciphering.SigningKeyPair.Value))
                 {

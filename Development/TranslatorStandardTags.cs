@@ -1065,6 +1065,10 @@ namespace Gurux.DLMS
             {
                 ret = Conformance.GeneralProtection;
             }
+            else if (string.Compare("delta-value-encoding", value, true) == 0)
+            {
+                ret = Conformance.DeltaValueEncoding;
+            }
             else if (string.Compare("get", value, true) == 0)
             {
                 ret = Conformance.Get;
@@ -1092,10 +1096,6 @@ namespace Gurux.DLMS
             else if (string.Compare("reserved-seven", value, true) == 0)
             {
                 ret = Conformance.ReservedSeven;
-            }
-            else if (string.Compare("reserved-six", value, true) == 0)
-            {
-                ret = Conformance.ReservedSix;
             }
             else if (string.Compare("reserved-zero", value, true) == 0)
             {

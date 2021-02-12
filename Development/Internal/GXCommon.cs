@@ -1625,35 +1625,6 @@ namespace Gurux.DLMS.Internal
         }
 
         /// <summary>
-        /// Generate shared secret from Agreement Key.
-        /// </summary>
-        /// <param name="c">Cipher settings.</param>
-        /// <param name="type">Certificate type.</param>
-        /// <returns></returns>
-        internal static byte[] GetSharedSecret(GXICipher c, CertificateType type)
-        {
-            KeyValuePair<GXPrivateKey, GXPublicKey> kp;
-            if (type == CertificateType.KeyAgreement)
-            {
-                kp = c.KeyAgreementKeyPair;
-            }
-            else if (type == CertificateType.DigitalSignature)
-            {
-                kp = c.SigningKeyPair;
-            }
-            else
-            {
-                throw new ArgumentOutOfRangeException("Invalid certificate type.");
-            }
-            if (kp.Key == null)
-            {
-                throw new ArgumentOutOfRangeException("Certificate not set.");
-            }
-            GXEcdsa ka = new GXEcdsa(kp.Key);
-            return ka.GenerateSecret(kp.Value);
-        }
-
-        /// <summary>
         /// Reserved for internal use.
         /// </summary>
         /// <param name="value"></param>

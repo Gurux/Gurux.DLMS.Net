@@ -1087,6 +1087,7 @@ namespace Gurux.DLMS
                 xml.AppendStartTag(TranslatorTags.ListOfAccessRequestSpecification, "Qty",
                                    xml.IntegerToHex(cnt, 2));
             }
+            List<GXDLMSAccessItem> list = new List<GXDLMSAccessItem>();
             AccessServiceCommandType type;
             for (int pos = 0; pos != cnt; ++pos)
             {
@@ -1110,7 +1111,15 @@ namespace Gurux.DLMS
                     AppendAttributeDescriptor(xml, (int)ci, ln, attributeIndex);
                     xml.AppendEndTag(Command.AccessRequest, type);
                     xml.AppendEndTag(TranslatorTags.AccessRequestSpecification);
-
+                }
+                else
+                {
+                    GXDLMSObject obj = settings.Objects.FindByLN(ci, GXCommon.ToLogicalName(ln));
+                    if (obj == null)
+                    {
+                        throw new Exception("Access request failed. Unknown object.");
+                    }
+                    list.Add(new GXDLMSAccessItem(type, obj, attributeIndex));
                 }
             }
             if (xml != null)
@@ -1120,9 +1129,14 @@ namespace Gurux.DLMS
             }
             // Get data count.
             cnt = GXCommon.GetObjectCount(data);
+            GXByteBuffer bb = new GXByteBuffer();
+            // access-request-specification.
+            bb.SetUInt8(0);
+            GXCommon.SetObjectCount(cnt, bb);
+            GXByteBuffer results = new GXByteBuffer();
+            GXCommon.SetObjectCount(cnt, results);
             for (int pos = 0; pos != cnt; ++pos)
             {
-
                 GXDataInfo di = new GXDataInfo();
                 di.xml = xml;
                 if (xml != null && xml.OutputType == TranslatorOutputType.StandardXml)
@@ -1138,6 +1152,51 @@ namespace Gurux.DLMS
                 {
                     value = GXCommon.ToHex((byte[])value, false);
                 }
+                if (xml == null)
+                {
+                    GXDLMSAccessItem it = list[pos];
+                    results.SetUInt8(it.Command);
+                    ValueEventArgs e = new ValueEventArgs(settings, it.Target, it.Index, 0, value);
+                    settings.Index = 0;
+                    if (it.Command == AccessServiceCommandType.Get)
+                    {
+                        if ((server.NotifyGetAttributeAccess(e) & AccessMode.Read) == 0)
+                        {
+                            //Read Write denied.
+                            results.SetUInt8(ErrorCode.ReadWriteDenied);
+                        }
+                        else
+                        {
+                            server.NotifyRead(new ValueEventArgs[] { e });
+                            if (e.Handled)
+                            {
+                                value = e.Value;
+                            }
+                            else
+                            {
+                                value = (it.Target as IGXDLMSBase).GetValue(settings, e);
+                            }
+                            if (e.ByteArray)
+                            {
+                                bb.Set((byte[])value);
+                            }
+                            else
+                            {
+                                GXDLMS.AppendData(settings, it.Target, it.Index, bb, value);
+                            }
+                            server.NotifyPostRead(new ValueEventArgs[] { e });
+                            results.SetUInt8(ErrorCode.Ok);
+                        }
+                    }
+                    else if (it.Command == AccessServiceCommandType.Set)
+                    {
+                        results.SetUInt8(ErrorCode.Ok);
+                    }
+                    else
+                    {
+                        results.SetUInt8(ErrorCode.Ok);
+                    }
+                }
                 if (xml != null && xml
                         .OutputType == TranslatorOutputType.StandardXml)
                 {
@@ -1149,6 +1208,13 @@ namespace Gurux.DLMS
                 xml.AppendEndTag(TranslatorTags.AccessRequestListOfData);
                 xml.AppendEndTag(TranslatorTags.AccessRequestBody);
                 xml.AppendEndTag(Command.AccessRequest);
+            }
+            else
+            {
+                // Append status codes.
+                bb.Set(results);
+                GXDLMS.GetLNPdu(new GXDLMSLNParameters(null, settings, invokeId,
+                        Command.AccessResponse, 0xff, null, bb, 0xFF, cipheredCommand), reply);
             }
         }
 

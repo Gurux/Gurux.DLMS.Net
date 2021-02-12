@@ -33,10 +33,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Enums
 {
@@ -79,9 +75,9 @@ namespace Gurux.DLMS.Enums
         /// </summary>
         UnconfirmedWrite = 0x20,
         /// <summary>
-        /// Reserved six conformance bit.
+        /// Delta value encoding.
         /// </summary>
-        ReservedSix = 0x40,
+        DeltaValueEncoding = 0x40,
         /// <summary>
         /// Reserved seven conformance bit.
         /// </summary>

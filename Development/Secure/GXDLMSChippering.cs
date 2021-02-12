@@ -281,7 +281,6 @@ namespace Gurux.DLMS.Secure
                 tmp = new byte[len];
                 data.Get(tmp);
                 p.RecipientSystemTitle = tmp;
-                p.Settings.SourceSystemTitle = tmp;
                 // Get date time.
                 len = GXCommon.GetObjectCount(data);
                 if (len != 0)
@@ -316,7 +315,7 @@ namespace Gurux.DLMS.Secure
                     {
                         p.KeyCipheredData = bb.Array();
                         //Find key agreement key using subject.
-                        string subject = GXAsn1Converter.SystemTitleToSubject(p.Settings.SourceSystemTitle);
+                        string subject = GXAsn1Converter.SystemTitleToSubject(p.SystemTitle);
                         foreach (KeyValuePair<GXPkcs8, GXx509Certificate> it in p.Settings.Keys)
                         {
                             if (it.Value.KeyUsage == ASN.Enums.KeyUsage.KeyAgreement && it.Value.Subject.Contains(subject))
@@ -410,12 +409,15 @@ namespace Gurux.DLMS.Secure
                     GXEcdsa c = new GXEcdsa(key);
                     //Get Ephemeral signing key and verify it.
                     byte[] z = c.GenerateSecret(pub);
+                    System.Diagnostics.Debug.WriteLine("Originator ephemeral public key: " + pub.ToHex());
+                    System.Diagnostics.Debug.WriteLine("Recipient private agreement key: " + key.ToHex());
                     System.Diagnostics.Debug.WriteLine("Shared secret:" + GXCommon.ToHex(z, true));
+
                     GXByteBuffer kdf = new GXByteBuffer();
                     kdf.Set(GXSecure.GenerateKDF(p.SecuritySuite, z,
                         p.SecuritySuite == SecuritySuite.Ecdsa256 ? AlgorithmId.AesGcm128 : AlgorithmId.AesGcm256,
                         p.SystemTitle,
-                        p.Settings.SourceSystemTitle,
+                        p.RecipientSystemTitle,
                         null, null));
                     System.Diagnostics.Debug.WriteLine("KDF:" + kdf.ToString());
                     p.BlockCipherKey = kdf.SubArray(0, 16);
@@ -431,7 +433,7 @@ namespace Gurux.DLMS.Secure
                         p.SecuritySuite == SecuritySuite.Ecdsa256 ? AlgorithmId.AesGcm128 : AlgorithmId.AesGcm256,
                         p.SystemTitle,
                         transactionId.Array(),
-                        p.Settings.SourceSystemTitle,
+                        p.RecipientSystemTitle,
                         null));
                     System.Diagnostics.Debug.WriteLine("KDF:" + kdf.ToString());
                     p.BlockCipherKey = kdf.SubArray(0, 16);
@@ -489,7 +491,9 @@ namespace Gurux.DLMS.Secure
             GXDLMSChipperingStream gcm = new GXDLMSChipperingStream(p.Security, true,
                     p.BlockCipherKey, aad, iv, tag);
             gcm.Write(ciphertext);
-            return gcm.FlushFinalBlock();
+            byte[] decrypted = gcm.FlushFinalBlock();
+            System.Diagnostics.Debug.WriteLine("Decrypted: " + GXCommon.ToHex(decrypted, true));
+            return decrypted;
         }
     }
 }

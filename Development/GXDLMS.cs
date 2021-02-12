@@ -44,6 +44,7 @@ using Gurux.DLMS.Objects.Italy;
 using Gurux.DLMS.Plc.Enums;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Ecdsa.Enums;
+using Gurux.DLMS.Ecdsa;
 
 namespace Gurux.DLMS
 {
@@ -870,32 +871,40 @@ namespace Gurux.DLMS
                     throw new ArgumentOutOfRangeException("Invalid security suite.");
             }
             GXByteBuffer tmp2 = new GXByteBuffer();
-            GXByteBuffer transactionId = new GXByteBuffer();
-            transactionId.SetUInt64(c.InvocationCounter);
-            byte[] z = null;
+            byte[] z;
             if (keyid == 1)
             {
-                z = GXCommon.GetSharedSecret(c, CertificateType.DigitalSignature);
+                //Generate ephemeral key pair for each transaction.
+                c.EphemeralKeyPair = GXEcdsa.GenerateKeyPair(c.SecuritySuite == SecuritySuite.Ecdsa256 ? Ecc.P256 : Ecc.P384);
+                GXEcdsa ka = new GXEcdsa(c.EphemeralKeyPair.Key);
+                System.Diagnostics.Debug.WriteLine("Private ephemeral: " + c.EphemeralKeyPair.Key.ToHex());
+                System.Diagnostics.Debug.WriteLine("Public agreement key: " + c.KeyAgreementKeyPair.Value.ToHex());
+                z = ka.GenerateSecret(c.KeyAgreementKeyPair.Value);
             }
             else if (keyid == 2)
             {
-                z = GXCommon.GetSharedSecret(c, CertificateType.KeyAgreement);
+                System.Diagnostics.Debug.WriteLine("Private ephemeral: " + c.KeyAgreementKeyPair.Key.ToHex());
+                System.Diagnostics.Debug.WriteLine("Public agreement key: " + c.KeyAgreementKeyPair.Value.ToHex());
+                GXEcdsa ka = new GXEcdsa(c.KeyAgreementKeyPair.Key);
+                z = ka.GenerateSecret(c.KeyAgreementKeyPair.Value);
                 tmp2.SetUInt8(0x8);
-                tmp2.Set(transactionId.Data, 0, 8);
+                tmp2.SetUInt64(c.InvocationCounter);
             }
             else
             {
                 throw new ArgumentOutOfRangeException("Invalid key-id.");
             }
             tmp2.Set(p.settings.SourceSystemTitle);
-            byte[] kdf = GXSecure.GenerateKDF(c.SecuritySuite, z, algorithmID, c.SystemTitle, tmp2.Array(), null, null);
-            System.Diagnostics.Debug.WriteLine("kdf: " + GXCommon.ToHex(kdf, true));
-            AesGcmParameter s = new AesGcmParameter(0xDD,
+            System.Diagnostics.Debug.WriteLine("Shared secret: " + GXCommon.ToHex(z, true));
+            GXByteBuffer kdf = new GXByteBuffer();
+            kdf.Set(GXSecure.GenerateKDF(c.SecuritySuite, z, algorithmID, c.SystemTitle, tmp2.Array(), null, null));
+            System.Diagnostics.Debug.WriteLine("kdf: " + kdf.ToString());
+            AesGcmParameter s = new AesGcmParameter(0x31,
                 p.settings,
                 c.Security,
-                c.SecuritySuite, c.InvocationCounter,
+                c.SecuritySuite, 0,
                 // KDF
-                kdf,
+                kdf.SubArray(0, 16),
                 // Authentication key.
                 c.AuthenticationKey,
                 // Originator system title.
@@ -909,8 +918,8 @@ namespace Gurux.DLMS
 
             GXByteBuffer reply = new GXByteBuffer();
             reply.SetUInt8(Command.GeneralCiphering);
-            GXCommon.SetObjectCount(transactionId.Size, reply);
-            reply.Set(transactionId);
+            GXCommon.SetObjectCount(8, reply);
+            reply.SetUInt64(c.InvocationCounter);
             GXCommon.SetObjectCount(s.SystemTitle.Length, reply);
             reply.Set(s.SystemTitle);
             GXCommon.SetObjectCount(s.RecipientSystemTitle.Length, reply);
@@ -943,6 +952,7 @@ namespace Gurux.DLMS
             }
             // ciphered-content
             s.Type = (CountType.Data | CountType.Tag);
+            System.Diagnostics.Debug.WriteLine("Data: " + GXDLMSTranslator.ToHex(data));
             byte[] tmp = GXCiphering.Encrypt(s, data);
             // Len
             GXCommon.SetObjectCount(5 + tmp.Length, reply);
@@ -951,6 +961,7 @@ namespace Gurux.DLMS
             // Add IC.
             reply.SetUInt32(0);
             reply.Set(tmp);
+            System.Diagnostics.Debug.WriteLine("Encrypted:" + reply.ToString());
             return reply.Array();
         }
 
@@ -1305,7 +1316,15 @@ namespace Gurux.DLMS
             byte frame = 0;
             if (p.command == Command.DataNotification || p.command == Command.EventNotification)
             {
-                frame = 0x13;
+                if ((p.settings.Connected & ConnectionState.Dlms) != 0)
+                {
+                    //If connection is established.
+                    frame = 0x13;
+                }
+                else
+                {
+                    frame = 0x3;
+                }
             }
             do
             {
@@ -1368,7 +1387,15 @@ namespace Gurux.DLMS
             if (p.command == Command.InformationReport ||
                 p.command == Command.DataNotification)
             {
-                frame = 0x13;
+                if ((p.settings.Connected & ConnectionState.Dlms) != 0)
+                {
+                    //If connection is established.
+                    frame = 0x13;
+                }
+                else
+                {
+                    frame = 0x3;
+                }
             }
             do
             {
@@ -2797,7 +2824,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="buff">Received data.</param>
         /// <returns>True, if this is M-Bus message.</returns>
-        internal static bool IsMBusData(GXByteBuffer buff)
+        internal static bool IsWirelessMBusData(GXByteBuffer buff)
         {
             if (buff.Size - buff.Position < 2)
             {
@@ -4081,10 +4108,17 @@ namespace Gurux.DLMS
                         HandleMethodResponse(settings, data);
                         break;
                     case Command.AccessRequest:
-                        GXDLMSLNCommandHandler.HandleAccessRequest(settings, null, data.Data, null, data.Xml, Command.None);
+                        if (data.Xml != null || (!settings.IsServer && (data.MoreData & RequestTypes.Frame) == 0))
+                        {
+                            GXDLMSLNCommandHandler.HandleAccessRequest(settings, null, data.Data, null, data.Xml, Command.None);
+                        }
+
                         break;
                     case Command.AccessResponse:
-                        HandleAccessResponse(settings, data);
+                        if (data.Xml != null || (!settings.IsServer && (data.MoreData & RequestTypes.Frame) == 0))
+                        {
+                            HandleAccessResponse(settings, data);
+                        }
                         break;
                     case Command.GeneralBlockTransfer:
                         if (data.Xml != null || (!settings.IsServer && (data.MoreData & RequestTypes.Frame) == 0))
@@ -4251,6 +4285,7 @@ namespace Gurux.DLMS
                         case Command.GeneralGloCiphering:
                         case Command.GeneralDedCiphering:
                         case Command.GeneralCiphering:
+                        case Command.AccessResponse:
                             data.Command = Command.None;
                             data.Data.Position = data.CipherIndex;
                             GetPdu(settings, data, client);

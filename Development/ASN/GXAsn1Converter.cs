@@ -849,12 +849,27 @@ namespace Gurux.DLMS.ASN
         /// <summary>
         /// Convert system title to subject.
         /// </summary>
-        /// <param name="systemTitle">System title</param>
-        /// <returns>Subject</returns>
+        /// <param name="systemTitle">System title.</param>
+        /// <returns>Subject.</returns>
         public static string SystemTitleToSubject(byte[] systemTitle)
         {
             GXByteBuffer bb = new GXByteBuffer(systemTitle);
             return "CN=" + bb.ToHex(false, 0);
+        }
+
+        /// <summary>
+        /// Get system title from the subject.
+        /// </summary>
+        /// <param name="subject">Subject.</param>
+        /// <returns>System title.</returns>
+        public static byte[] SystemTitleFromSubject(string subject)
+        {
+            int index = subject.IndexOf("CN=");
+            if (index == -1)
+            {
+                throw new Exception("System title not found from the subject.");
+            }
+            return GXDLMSTranslator.HexToBytes(subject.Substring(index + 3, 16));
         }
 
         /// <summary>

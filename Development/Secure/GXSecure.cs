@@ -303,7 +303,7 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
-        ///  Get Ephemeral Public Key Signature.
+        /// Get Ephemeral Public Key Signature.
         /// </summary>
         /// <param name="keyId">Key ID.</param>
         /// <param name="ephemeralKey">Ephemeral key.</param>
