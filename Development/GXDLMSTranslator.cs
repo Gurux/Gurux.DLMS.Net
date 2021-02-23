@@ -355,6 +355,10 @@ namespace Gurux.DLMS
                 {
                     return InterfaceType.Plc;
                 }
+                if (value.GetUInt8(pos) == 0x68)
+                {
+                    return InterfaceType.WiredMBus;
+                }
                 if (GXDLMS.IsWirelessMBusData(value))
                 {
                     return InterfaceType.WirelessMBus;
@@ -453,6 +457,16 @@ namespace Gurux.DLMS
                         }
                     }
                     else if (type == InterfaceType.WirelessMBus && GXDLMS.IsWirelessMBusData(data))
+                    {
+                        pos = data.Position;
+                        found = GXDLMS.GetData(settings, data, reply, null, null);
+                        data.Position = pos;
+                        if (found)
+                        {
+                            break;
+                        }
+                    }
+                    else if (type == InterfaceType.WiredMBus && GXDLMS.IsWiredMBusData(data))
                     {
                         pos = data.Position;
                         found = GXDLMS.GetData(settings, data, reply, null, null);
@@ -1162,6 +1176,54 @@ namespace Gurux.DLMS
                     if (!PduOnly)
                     {
                         xml.AppendLine("</PlcSFsk>");
+                    }
+                    msg.Xml = xml.sb.ToString();
+                    return;
+                }
+                //If Wired M-Bus.
+                else if (GXDLMS.IsWiredMBusData(msg.Message))
+                {
+                    settings.InterfaceType = Enums.InterfaceType.WiredMBus;
+                    int len = xml.GetXmlLength();
+                    GXDLMS.GetData(settings, msg.Message, data, null, null);
+                    if (msg.Command == Command.Aarq)
+                    {
+                        msg.SystemTitle = settings.Cipher.SystemTitle;
+                    }
+                    else if (msg.Command == Command.Aare)
+                    {
+                        msg.SystemTitle = settings.SourceSystemTitle;
+                    }
+                    string tmp = xml.ToString().Substring(len);
+                    xml.SetXmlLength(len);
+                    if (!PduOnly)
+                    {
+                        xml.AppendLine("<WiredMBus len=\"" + (data.PacketLength - offset).ToString("X") + "\" >");
+                        xml.AppendLine("<TargetAddress Value=\"" + settings.ServerAddress.ToString("X") + "\" />");
+                        xml.AppendLine("<SourceAddress Value=\"" + settings.ClientAddress.ToString("X") + "\" />");
+                        xml.Append(tmp);
+                    }
+                    if (data.Data.Size == 0)
+                    {
+                        xml.AppendLine("<Command Value=\"" + data.Command.ToString().ToUpper() + "\" />");
+                    }
+                    else
+                    {
+                        if (!PduOnly)
+                        {
+                            xml.AppendLine("<PDU>");
+                        }
+                        xml.AppendLine(PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg));
+                        //Remove \r\n.
+                        xml.sb.Length -= Environment.NewLine.Length;
+                        if (!PduOnly)
+                        {
+                            xml.AppendLine("</PDU>");
+                        }
+                    }
+                    if (!PduOnly)
+                    {
+                        xml.AppendLine("</WirelessMBus>");
                     }
                     msg.Xml = xml.sb.ToString();
                     return;

@@ -259,6 +259,7 @@ namespace Gurux.DLMS.Secure
                 len = GXCommon.GetObjectCount(data);
                 GXCommon.SetObjectCount(len, transactionId);
                 transactionId.Set(data, len);
+                p.TransactionId = transactionId.GetUInt64(1);
                 len = GXCommon.GetObjectCount(data);
                 if (len != 0)
                 {
@@ -318,19 +319,41 @@ namespace Gurux.DLMS.Secure
                         string subject = GXAsn1Converter.SystemTitleToSubject(p.SystemTitle);
                         foreach (KeyValuePair<GXPkcs8, GXx509Certificate> it in p.Settings.Keys)
                         {
-                            if (it.Value.KeyUsage == ASN.Enums.KeyUsage.KeyAgreement && it.Value.Subject.Contains(subject))
+                            if (it.Key != null && it.Value.KeyUsage == ASN.Enums.KeyUsage.KeyAgreement && it.Value.Subject.Contains(subject))
                             {
                                 key = it.Key.PrivateKey;
+                                //Get recipient Ephemeral public key.
+                                subject = GXAsn1Converter.SystemTitleToSubject(p.RecipientSystemTitle);
+                                foreach (KeyValuePair<GXPkcs8, GXx509Certificate> it2 in p.Settings.Keys)
+                                {
+                                    if (it2.Value != null && it2.Value.KeyUsage == ASN.Enums.KeyUsage.KeyAgreement && it2.Value.Subject.Contains(subject))
+                                    {
+                                        pub = it2.Value.PublicKey;
+                                        break;
+                                    }
+                                }
                                 break;
                             }
                         }
-
+                        if (key == null)
+                        {
+                            //Find key agreement key using subject.
+                            subject = GXAsn1Converter.SystemTitleToSubject(p.RecipientSystemTitle);
+                            foreach (KeyValuePair<GXPkcs8, GXx509Certificate> it in p.Settings.Keys)
+                            {
+                                if (it.Key != null && it.Value.KeyUsage == ASN.Enums.KeyUsage.KeyAgreement && it.Value.Subject.Contains(subject))
+                                {
+                                    key = it.Key.PrivateKey;
+                                    break;
+                                }
+                            }
+                        }
                     }
                     else
                     {
                         key = p.Settings.Cipher.KeyAgreementKeyPair.Key;
                     }
-                    if (key != null)
+                    if (key != null && pub == null)
                     {
                         //Get Ephemeral public key.
                         int keySize = len / 2;
@@ -347,7 +370,7 @@ namespace Gurux.DLMS.Secure
                     if (p.Xml != null)
                     {
                         //Find key agreement key using subject.
-                        string subject = GXAsn1Converter.SystemTitleToSubject(p.SystemTitle);
+                        string subject = GXAsn1Converter.SystemTitleToSubject(p.RecipientSystemTitle);
                         foreach (KeyValuePair<GXPkcs8, GXx509Certificate> it in p.Settings.Keys)
                         {
                             if (it.Value.KeyUsage == ASN.Enums.KeyUsage.KeyAgreement && it.Value.Subject.Contains(subject))
@@ -382,7 +405,7 @@ namespace Gurux.DLMS.Secure
                 }
             }
             len = GXCommon.GetObjectCount(data);
-            if (len < data.Available)
+            if (len > data.Available)
             {
                 throw new Exception("Not enought data.");
             }
@@ -493,6 +516,17 @@ namespace Gurux.DLMS.Secure
             gcm.Write(ciphertext);
             byte[] decrypted = gcm.FlushFinalBlock();
             System.Diagnostics.Debug.WriteLine("Decrypted: " + GXCommon.ToHex(decrypted, true));
+            if (p.Security != Security.Encryption)
+            {
+                if (!GXCommon.Compare(gcm.GetTag(), tag))
+                {
+                    if (p.Xml == null)
+                    {
+                        throw new Exception("Decrypt failed. Invalid authentication tag.");
+                    }
+                    p.Xml.AppendComment("Decrypt failed. Invalid authentication tag.");
+                }
+            }
             return decrypted;
         }
     }

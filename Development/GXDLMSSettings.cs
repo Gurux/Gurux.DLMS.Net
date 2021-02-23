@@ -37,8 +37,6 @@ using Gurux.DLMS.Objects;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Secure;
 using Gurux.DLMS.Internal;
-using Gurux.DLMS.Objects.Enums;
-using System.Security.Cryptography.X509Certificates;
 using Gurux.DLMS.Ecdsa;
 using System.Collections.Generic;
 using Gurux.DLMS.ASN;
@@ -98,7 +96,7 @@ namespace Gurux.DLMS
         internal byte ReceiverFrame;
 
         byte[] _sourceSystemTitle;
-      
+
         /// <summary>
         /// Source system title.
         /// </summary>
@@ -159,11 +157,22 @@ namespace Gurux.DLMS
         /// </summary>
         internal string protocolVersion = null;
 
+        Conformance mikko;
         /// <summary>
         /// When connection is made client tells what kind of services it want's to use.
         /// </summary>
-        internal Conformance ProposedConformance = (Conformance)0;
-
+        //internal Conformance ProposedConformance = (Conformance)0;
+        internal Conformance ProposedConformance
+        {
+            get
+            {
+                return mikko;
+            }
+            set
+            {
+                mikko = value;
+            }
+        }
         /// <summary>
         /// Server tells what functionality is available and client will know it.
         /// </summary>
@@ -356,6 +365,8 @@ namespace Gurux.DLMS
             UserId = -1;
             Standard = Standard.DLMS;
             Plc = new GXPlcSettings(this);
+            MBus = new GXMBusSettings();
+            Pdu = new GXPduSettings();
         }
 
         /// <summary>
@@ -680,6 +691,25 @@ namespace Gurux.DLMS
             get;
             internal set;
         }
+
+        /// <summary>
+        /// M-Bus settings.
+        /// </summary>
+        public GXMBusSettings MBus
+        {
+            get;
+            internal set;
+        }
+
+        /// <summary>
+        /// PDU settings.
+        /// </summary>
+        public GXPduSettings Pdu
+        {
+            get;
+            internal set;
+        }
+
 
         /// <summary>
         /// Used interface.

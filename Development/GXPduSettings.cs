@@ -32,28 +32,34 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-namespace Gurux.DLMS.Enums
+using System;
+using Gurux.DLMS.Internal;
+
+namespace Gurux.DLMS
 {
     /// <summary>
-    /// Enumerates security policy for version 0.
+    /// PDU settings contains settings for PDU without framing.
     /// </summary>
-    public enum Security
+    public class GXPduSettings
     {
         /// <summary>
-        /// Transport security is not used.
+        /// Constructor.
         /// </summary>
-        None = 0,
+        public GXPduSettings()
+        {
+            WaitTime = 100;
+        }
+
         /// <summary>
-        /// Authentication security is used.
+        /// Time to wait in ms for PDU to fully received.
         /// </summary>
-        Authentication = 0x10,
-        /// <summary>
-        /// Encryption security is used.
-        /// </summary>
-        Encryption = 0x20,
-        /// <summary>
-        /// Authentication and Encryption security are used.
-        /// </summary>
-        AuthenticationEncryption = 0x30
+        /// <remarks>
+        /// Because there is no end of the packet or data length app must wait given time to expect PDU to fully received.
+        /// </remarks>
+        public UInt16 WaitTime
+        {
+            get;
+            set;
+        }
     }
 }

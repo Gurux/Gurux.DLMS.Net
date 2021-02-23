@@ -2569,12 +2569,102 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Get data from wired M-Bus frame.
+        /// </summary>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="buff">Received data.</param>
+        /// <param name="data">Reply information.</param>
+        static void GetWiredMBusData(GXDLMSSettings settings,
+                               GXByteBuffer buff, GXReplyData data)
+        {
+            if (buff.GetUInt8() != 0x68 || buff.Available < 5)
+            {
+                data.IsComplete = false;
+                --buff.Position;
+            }
+            else
+            {
+                int packetStartID = buff.Position;
+                //L-field.
+                int len = buff.GetUInt8();
+                //L-field.
+                len = buff.GetUInt8();
+                if (buff.GetUInt8() != 0x68)
+                {
+                    data.IsComplete = false;
+                    buff.Position = packetStartID;
+                }
+                else
+                {
+                    UInt16 crcRead = buff.GetUInt16(buff.Size - 2);
+                    UInt16 crc = GXFCS16.CountFCS16(buff.Data, buff.Position, buff.Size - buff.Position - 2);
+                    //Some meters are using end of the packet instead CRC.
+                    if (crc != crcRead && buff.GetUInt8(buff.Size - 1) != 0x16)
+                    {
+                        data.IsComplete = false;
+                        buff.Position = packetStartID;
+                    }
+                    else
+                    {
+                        data.IsComplete = true;
+                        int index = data.Data.Position;
+                        //Control field (C-Field)
+                        byte tmp = buff.GetUInt8();
+                        MBusCommand cmd = (MBusCommand)(tmp & 0xF);
+                        //Address (A-field)
+                        byte id = buff.GetUInt8();
+                        // The Control Information Field (CI-field)
+                        byte ci = buff.GetUInt8();
+                        //If M-Bus data header is present
+                        if (ci != 0)
+                        {
+
+                        }
+                        if ((tmp & 0x40) != 0)
+                        {
+                            //Message from primary(initiating) station
+                            //Destination Transport Service Access Point
+                            settings.ClientAddress = buff.GetUInt8();
+                            //Source Transport Service Access Point
+                            settings.ServerAddress = buff.GetUInt8();
+                        }
+                        else
+                        {
+                            //Message from secondary (responding) station.
+                            //Source Transport Service Access Point
+                            settings.ServerAddress = buff.GetUInt8();
+                            //Destination Transport Service Access Point
+                            settings.ClientAddress = buff.GetUInt8();
+                        }
+                        data.PacketLength = buff.Position - index + buff.Available;
+                        if (data.Xml != null && data.Xml.Comments)
+                        {
+                            data.Xml.AppendComment("Command: " + cmd);
+                            data.Xml.AppendComment("A-Field: " + id);
+                            data.Xml.AppendComment("CI-Field: " + ci);
+                            if ((tmp & 0x40) != 0)
+                            {
+                                data.Xml.AppendComment("Primary station: " + settings.ServerAddress);
+                                data.Xml.AppendComment("Secondary station: " + settings.ClientAddress);
+                            }
+                            else
+                            {
+                                data.Xml.AppendComment("Primary station: " + settings.ClientAddress);
+                                data.Xml.AppendComment("Secondary station: " + settings.ServerAddress);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Get data from Wireless M-Bus frame.
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
         /// <param name="buff">Received data.</param>
         /// <param name="data">Reply information.</param>
-        static void GetMBusData(GXDLMSSettings settings,
+        static void GetWirelessMBusData(GXDLMSSettings settings,
                                GXByteBuffer buff, GXReplyData data)
         {
             //L-field.
@@ -2595,7 +2685,7 @@ namespace Gurux.DLMS
                 data.PacketLength = len;
                 data.IsComplete = true;
                 //C-field.
-                MBusCommand cmd = (MBusCommand)buff.GetUInt8();
+                MBusCommand cmd = (MBusCommand)(buff.GetUInt8() & 0x4);
                 //M-Field.
                 UInt16 manufacturerID = buff.GetUInt16();
                 string man = GXCommon.DecryptManufacturer(manufacturerID);
@@ -2623,6 +2713,12 @@ namespace Gurux.DLMS
                     data.Xml.AppendComment("Meter Type: " + type);
                     data.Xml.AppendComment("Control Info: " + ci);
                     data.Xml.AppendComment("Encryption: " + encryption);
+                }
+                else if (settings.MBus != null)
+                {
+                    settings.MBus.ManufacturerId = GXCommon.DecryptManufacturer(manufacturerID);
+                    settings.MBus.Version = meterVersion;
+                    settings.MBus.MeterType = type;
                 }
             }
         }
@@ -2820,20 +2916,34 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Check is this M-Bus message.
+        /// Check is this wireless M-Bus message.
         /// </summary>
         /// <param name="buff">Received data.</param>
-        /// <returns>True, if this is M-Bus message.</returns>
+        /// <returns>True, if this is wireless M-Bus message.</returns>
         internal static bool IsWirelessMBusData(GXByteBuffer buff)
         {
             if (buff.Size - buff.Position < 2)
             {
                 return false;
             }
-            MBusCommand cmd = (MBusCommand)buff.GetUInt8(buff.Position + 1);
-            return cmd == MBusCommand.SndNr ||
-                cmd == MBusCommand.SndUd2 ||
-                cmd == MBusCommand.RspUd;
+            byte cmd = buff.GetUInt8(buff.Position + 1);
+            return (cmd & (byte)MBusCommand.SndNr) != 0 ||
+                (cmd & (byte)MBusCommand.SndUd) != 0 ||
+                (cmd & (byte)MBusCommand.RspUd) != 0;
+        }
+
+        /// <summary>
+        /// Check is this wired M-Bus message.
+        /// </summary>
+        /// <param name="buff">Received data.</param>
+        /// <returns>True, if this is wired M-Bus message.</returns>
+        internal static bool IsWiredMBusData(GXByteBuffer buff)
+        {
+            if (buff.Size - buff.Position < 1)
+            {
+                return false;
+            }
+            return buff.GetUInt8(buff.Position) == 0x68;
         }
 
         /// <summary>
@@ -4017,7 +4127,7 @@ namespace Gurux.DLMS
                         }
                         else
                         {
-                            if (settings.SourceSystemTitle == null)
+                            if (settings.SourceSystemTitle == null && (settings.Connected & ConnectionState.Dlms) != 0)
                             {
                                 if (settings.IsServer)
                                 {
@@ -4420,6 +4530,16 @@ namespace Gurux.DLMS
             if (reply.Xml != null)
             {
                 reply.Xml.AppendStartTag(Command.DataNotification);
+                if ((invokeId & 0x80000000) != 0)
+                {
+                    reply.Xml.AppendComment("High priority.");
+                }
+                if ((invokeId & 0x40000000) != 0)
+                {
+                    reply.Xml.AppendComment("Confirmed service.");
+                }
+                reply.Xml.AppendComment("Invoke ID: " + (invokeId & 0x3FFFFFFF));
+
                 reply.Xml.AppendLine(TranslatorTags.LongInvokeId, null,
                                      reply.Xml.IntegerToHex(invokeId, 8));
                 if (reply.Time != null)
@@ -4489,7 +4609,7 @@ namespace Gurux.DLMS
                 {
                     data.Xml.AppendStartTag(Command.GeneralCiphering);
                     data.Xml.AppendLine(TranslatorTags.TransactionId, null,
-                            data.Xml.IntegerToHex(p.InvocationCounter, 16, true));
+                            data.Xml.IntegerToHex(p.TransactionId, 16, true));
                     data.Xml.AppendLine(TranslatorTags.OriginatorSystemTitle,
                             null, GXCommon.ToHex(p.SystemTitle, false));
                     data.Xml.AppendLine(TranslatorTags.RecipientSystemTitle,
@@ -4622,7 +4742,7 @@ namespace Gurux.DLMS
                     }
                     break;
                 case InterfaceType.WirelessMBus:
-                    GetMBusData(settings, reply, data);
+                    GetWirelessMBusData(settings, reply, data);
                     break;
                 case InterfaceType.PDU:
                     data.PacketLength = reply.Size;
@@ -4633,6 +4753,9 @@ namespace Gurux.DLMS
                     break;
                 case InterfaceType.PlcHdlc:
                     frame = GetPlcHdlcData(settings, reply, data);
+                    break;
+                case InterfaceType.WiredMBus:
+                    GetWiredMBusData(settings, reply, data);
                     break;
                 default:
                     throw new ArgumentException("Invalid Interface type.");

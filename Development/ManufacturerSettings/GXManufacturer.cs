@@ -225,6 +225,20 @@ namespace Gurux.DLMS.ManufacturerSettings
         }
 
         /// <summary>
+        /// Used Key agreement scheme.
+        /// </summary>
+#if !WINDOWS_UWP
+        [Browsable(false)]
+#endif
+        [DefaultValue(KeyAgreementScheme.EphemeralUnifiedModel)]
+        public KeyAgreementScheme KeyAgreementScheme
+        {
+            get;
+            set;
+        }
+
+
+        /// <summary>
         /// System Title.
         /// </summary>
 #if !WINDOWS_UWP

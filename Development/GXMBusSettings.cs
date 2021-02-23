@@ -33,42 +33,52 @@
 //---------------------------------------------------------------------------
 
 using System;
+using Gurux.DLMS.Internal;
 
-namespace Gurux.DLMS.Enums
+namespace Gurux.DLMS
 {
     /// <summary>
-    /// Enumerates security policy for version 1.
+    /// HDLC settings contains commands for retrieving and setting the limits of
+    /// field length and window size, when communicating with the server.
     /// </summary>
-    [Flags]
-    public enum Security1
+    public class GXMBusSettings
     {
+        private GXDLMSSettings settings;
+
         /// <summary>
-        /// Transport security is not used.
+        /// Device identification number.
         /// </summary>
-        None = 0,
+        public UInt32 Id
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Request messages are authenticated.
+        /// Manufacturer Id.
         /// </summary>
-        AuthenticatedRequest = 0x4,
+        public string ManufacturerId
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Request messages are encrypted.
+        /// Version.
         /// </summary>
-        EncryptedRequest = 0x8,
+        public byte Version
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Request messages are digitally signed.
+        /// Device type.
         /// </summary>
-        DigitallySignedRequest = 0x10,
-        /// <summary>
-        /// Response messages are authenticated.
-        /// </summary>
-        AuthenticatedResponse = 0x20,
-        /// <summary>
-        /// Response messages are encrypted.
-        /// </summary>
-        EncryptedResponse = 0x40,
-        /// <summary>
-        /// Response messages are digitally signed.
-        /// </summary>
-        DigitallySignedResponse = 0x80
+        public MBusMeterType MeterType
+        {
+            get;
+            set;
+        }
     }
 }

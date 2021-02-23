@@ -258,10 +258,11 @@ namespace Gurux.DLMS.Ecdsa
                 throw new ArgumentOutOfRangeException("Invalid scheme.");
             }
             GXByteBuffer pk = new GXByteBuffer(RawValue);
+            int size = pk.Size / 2;
             sb.Append(" public x coord: ");
-            sb.AppendLine(new GXBigInteger(pk.SubArray(1, 32)).ToString());
+            sb.AppendLine(new GXBigInteger(pk.SubArray(1, size)).ToString());
             sb.Append(" public y coord: ");
-            sb.AppendLine(new GXBigInteger(pk.SubArray(33, 32)).ToString());
+            sb.AppendLine(new GXBigInteger(pk.SubArray(1 + size, size)).ToString());
             return sb.ToString();
         }
 

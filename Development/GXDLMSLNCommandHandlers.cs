@@ -1114,12 +1114,7 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    GXDLMSObject obj = settings.Objects.FindByLN(ci, GXCommon.ToLogicalName(ln));
-                    if (obj == null)
-                    {
-                        throw new Exception("Access request failed. Unknown object.");
-                    }
-                    list.Add(new GXDLMSAccessItem(type, obj, attributeIndex));
+                    list.Add(new GXDLMSAccessItem(type, settings.Objects.FindByLN(ci, GXCommon.ToLogicalName(ln)), attributeIndex));
                 }
             }
             if (xml != null)
@@ -1156,45 +1151,64 @@ namespace Gurux.DLMS
                 {
                     GXDLMSAccessItem it = list[pos];
                     results.SetUInt8(it.Command);
-                    ValueEventArgs e = new ValueEventArgs(settings, it.Target, it.Index, 0, value);
-                    settings.Index = 0;
-                    if (it.Command == AccessServiceCommandType.Get)
+                    if (it.Target == null)
                     {
-                        if ((server.NotifyGetAttributeAccess(e) & AccessMode.Read) == 0)
-                        {
-                            //Read Write denied.
-                            results.SetUInt8(ErrorCode.ReadWriteDenied);
-                        }
-                        else
-                        {
-                            server.NotifyRead(new ValueEventArgs[] { e });
-                            if (e.Handled)
-                            {
-                                value = e.Value;
-                            }
-                            else
-                            {
-                                value = (it.Target as IGXDLMSBase).GetValue(settings, e);
-                            }
-                            if (e.ByteArray)
-                            {
-                                bb.Set((byte[])value);
-                            }
-                            else
-                            {
-                                GXDLMS.AppendData(settings, it.Target, it.Index, bb, value);
-                            }
-                            server.NotifyPostRead(new ValueEventArgs[] { e });
-                            results.SetUInt8(ErrorCode.Ok);
-                        }
-                    }
-                    else if (it.Command == AccessServiceCommandType.Set)
-                    {
-                        results.SetUInt8(ErrorCode.Ok);
+                        //If target is unknown.
+                        bb.SetUInt8(0);
+                        results.SetUInt8(ErrorCode.UnavailableObject);
                     }
                     else
                     {
-                        results.SetUInt8(ErrorCode.Ok);
+                        ValueEventArgs e = new ValueEventArgs(settings, it.Target, it.Index, 0, value);
+                        if (it.Command == AccessServiceCommandType.Get)
+                        {
+                            if ((server.NotifyGetAttributeAccess(e) & AccessMode.Read) == 0)
+                            {
+                                //Read Write denied.
+                                bb.SetUInt8(0);
+                                results.SetUInt8(ErrorCode.ReadWriteDenied);
+                            }
+                            else
+                            {
+                                server.NotifyRead(new ValueEventArgs[] { e });
+                                if (e.Handled)
+                                {
+                                    value = e.Value;
+                                }
+                                else
+                                {
+                                    value = (it.Target as IGXDLMSBase).GetValue(settings, e);
+                                }
+                                //If all data is not fit to PDU and GBT is not used.
+                                if (settings.Index != settings.Count)
+                                {
+                                    settings.Count = settings.Index = 0;
+                                    bb.SetUInt8(0);
+                                    results.SetUInt8(ErrorCode.ReadWriteDenied);
+                                }
+                                else
+                                {
+                                    if (e.ByteArray)
+                                    {
+                                        bb.Set((byte[])value);
+                                    }
+                                    else
+                                    {
+                                        GXDLMS.AppendData(settings, it.Target, it.Index, bb, value);
+                                    }
+                                    server.NotifyPostRead(new ValueEventArgs[] { e });
+                                    results.SetUInt8(ErrorCode.Ok);
+                                }
+                            }
+                        }
+                        else if (it.Command == AccessServiceCommandType.Set)
+                        {
+                            results.SetUInt8(ErrorCode.Ok);
+                        }
+                        else
+                        {
+                            results.SetUInt8(ErrorCode.Ok);
+                        }
                     }
                 }
                 if (xml != null && xml

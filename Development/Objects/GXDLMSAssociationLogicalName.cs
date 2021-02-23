@@ -828,10 +828,12 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 2)
             {
+                e.ByteArray = true;
                 return GetObjects(settings, e).Array();
             }
             if (e.Index == 3)
             {
+                e.ByteArray = true;
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
                 //Add count
@@ -844,6 +846,7 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 4)
             {
+                e.ByteArray = true;
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
                 //Add count
@@ -859,6 +862,7 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 5)
             {
+                e.ByteArray = true;
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8(6);
@@ -872,6 +876,7 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 6)
             {
+                e.ByteArray = true;
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
                 //Add count
@@ -903,6 +908,7 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 11)
             {
+                e.ByteArray = true;
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
                 //Add structure size.

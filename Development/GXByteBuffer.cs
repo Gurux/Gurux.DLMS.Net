@@ -466,25 +466,34 @@ namespace Gurux.DLMS
             Size += 8;
         }
 
-
         /// <summary>
         /// Get UInt64 value from byte array from the current position and then increments the position.
         /// </summary>
         public UInt64 GetUInt64()
         {
-            if (Position + 8 > Size)
+            UInt64 value = GetUInt64(Position);
+            Position += 8;
+            return value;
+        }
+
+        /// <summary>
+        /// Get UInt64 value from byte array.
+        /// </summary>
+        /// <param name="index">Byte index.</param>
+        public UInt64 GetUInt64(int index)
+        {
+            if (index + 8 > Size)
             {
                 throw new System.OutOfMemoryException();
             }
-            UInt64 value = (((UInt64)Data[Position] & 0xFF) << 56) |
-                          (((UInt64)Data[Position + 1] & 0xFF) << 48) |
-                          (((UInt64)Data[Position + 2] & 0xFF) << 40) |
-                          (((UInt64)Data[Position + 3] & 0xFF) << 32) |
-                          (((UInt64)Data[Position + 4] & 0xFF) << 24) |
-                          (((UInt64)Data[Position + 5] & 0xFF) << 16) |
-                           (((UInt64)Data[Position + 6] & 0xFF) << 8) |
-                          (((UInt64)Data[Position + 7] & 0xFF));
-            Position += 8;
+            UInt64 value = (((UInt64)Data[index] & 0xFF) << 56) |
+                          (((UInt64)Data[index + 1] & 0xFF) << 48) |
+                          (((UInt64)Data[index + 2] & 0xFF) << 40) |
+                          (((UInt64)Data[index + 3] & 0xFF) << 32) |
+                          (((UInt64)Data[index + 4] & 0xFF) << 24) |
+                          (((UInt64)Data[index + 5] & 0xFF) << 16) |
+                           (((UInt64)Data[index + 6] & 0xFF) << 8) |
+                          (((UInt64)Data[index + 7] & 0xFF));
             return value;
         }
 
@@ -724,7 +733,7 @@ namespace Gurux.DLMS
             {
                 foreach (byte it in value)
                 {
-                    if ((it < 32 || it > 127) && it != '\r' && it != '\n' && it != '\t'  && it != 0)
+                    if ((it < 32 || it > 127) && it != '\r' && it != '\n' && it != '\t' && it != 0)
                     {
                         return false;
                     }
@@ -926,7 +935,7 @@ namespace Gurux.DLMS
                 }
                 else if (value is sbyte)
                 {
-                    SetUInt8((byte) ((sbyte)value & 0xFF));
+                    SetUInt8((byte)((sbyte)value & 0xFF));
                 }
                 else if (value is Int16)
                 {

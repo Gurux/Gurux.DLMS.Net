@@ -692,7 +692,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Information from the connection size that server can handle.
+        /// PLC settings.
         /// </summary>
         public GXPlcSettings Plc
         {
@@ -701,6 +701,29 @@ namespace Gurux.DLMS
                 return Settings.Plc;
             }
         }
+
+        /// <summary>
+        /// M-Bus settings.
+        /// </summary>
+        public GXMBusSettings MBus
+        {
+            get
+            {
+                return Settings.MBus;
+            }
+        }
+
+        /// <summary>
+        /// PDU settings.
+        /// </summary>
+        public GXPduSettings Pdu
+        {
+            get
+            {
+                return Settings.Pdu;
+            }
+        }
+
 
         /// <summary>
         /// Gateway settings.
@@ -1665,13 +1688,11 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="list">Collection of access items.</param>
         /// <param name="data">Received data from the meter.</param>
-        /// <returns>Collection of received data and status codes.</returns>
         /// <seealso cref="AccessRequest"/>
-        public List<KeyValuePair<object, ErrorCode>> ParseAccessResponse(
+        public void ParseAccessResponse(
             List<GXDLMSAccessItem> list,
             GXByteBuffer data)
         {
-            int pos;
             //Get count
             GXDataInfo info = new GXDataInfo();
             int cnt = GXCommon.GetObjectCount(data);
@@ -1679,39 +1700,28 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentOutOfRangeException("List size and values size do not match.");
             }
-            List<object> values = new List<object>(cnt);
-            List<KeyValuePair<object, ErrorCode>> reply = new List<KeyValuePair<object, ErrorCode>>(cnt);
-            for (pos = 0; pos != cnt; ++pos)
+            foreach (GXDLMSAccessItem it in list)
             {
                 info.Clear();
-                Object value = GXCommon.GetData(Settings, data, info);
-                values.Add(value);
+                it.Value = GXCommon.GetData(Settings, data, info);
             }
             //Get status codes.
             cnt = GXCommon.GetObjectCount(data);
-            if (values.Count != cnt)
+            if (list.Count != cnt)
             {
                 throw new ArgumentOutOfRangeException("List size and values size do not match.");
             }
-            foreach (object it in values)
+            foreach (GXDLMSAccessItem it in list)
             {
                 //Get access type.
                 data.GetUInt8();
                 //Get status.
-                reply.Add(new KeyValuePair<object, ErrorCode>(it, (ErrorCode)data.GetUInt8()));
-            }
-            pos = 0;
-            foreach (GXDLMSAccessItem it in list)
-            {
-                if (it.Command == AccessServiceCommandType.Get && reply[pos].Value == ErrorCode.Ok)
+                it.Error = (ErrorCode)data.GetUInt8();
+                if (it.Command == AccessServiceCommandType.Get && it.Error == ErrorCode.Ok)
                 {
-                    ValueEventArgs ve = new ValueEventArgs(Settings, it.Target, it.Index, 0, null);
-                    ve.Value = values[pos];
-                    (it.Target as IGXDLMSBase).SetValue(Settings, ve);
+                    UpdateValue(it.Target, it.Index, it.Value);
                 }
-                ++pos;
             }
-            return reply;
         }
 
         public static GXDLMSAttributeSettings GetAttributeInfo(
@@ -2950,7 +2960,8 @@ namespace Gurux.DLMS
                 {
                     bb.SetUInt8(0);
                 }
-                else
+                else if (it.Command == AccessServiceCommandType.Set ||
+                    it.Command == AccessServiceCommandType.Action)
                 {
                     object value = (it.Target as IGXDLMSBase).GetValue(Settings, new ValueEventArgs(it.Target, it.Index, 0, null));
                     DataType type = it.Target.GetDataType(it.Index);
@@ -2960,8 +2971,11 @@ namespace Gurux.DLMS
                     }
                     GXCommon.SetData(Settings, bb, type, value);
                 }
+                else
+                {
+                    throw new ArgumentOutOfRangeException("Invalid command.");
+                }
             }
-
             GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, Command.AccessRequest, 0xFF, null, bb, 0xff, Command.None);
             p.time = new GXDateTime(time);
             return GXDLMS.GetLnMessages(p);
@@ -2981,7 +2995,7 @@ namespace Gurux.DLMS
                            Conformance.BlockTransferWithGetOrRead |
                            Conformance.Set | Conformance.SelectiveAccess |
                            Conformance.Action | Conformance.MultipleReferences |
-                           Conformance.Get;
+                           Conformance.Get | Conformance.Access;
             }
             return Conformance.InformationReport |
                         Conformance.Read | Conformance.UnconfirmedWrite |

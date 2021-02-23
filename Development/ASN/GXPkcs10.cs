@@ -258,6 +258,7 @@ namespace Gurux.DLMS.ASN
                 throw new Exception("Invalid PKCS #10 certificate algorithm. " + algorithm);
             }
             PublicKey = GXPublicKey.FromRawBytes(((GXAsn1BitString)subjectPKInfo[1]).Value);
+            GXEcdsa.Validate(PublicKey);
             /////////////////////////////
             // signatureAlgorithm
             GXAsn1Sequence sign = (GXAsn1Sequence)seq[1];

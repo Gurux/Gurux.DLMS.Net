@@ -266,6 +266,7 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 3)
             {
+                e.ByteArray = true;
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8(2);

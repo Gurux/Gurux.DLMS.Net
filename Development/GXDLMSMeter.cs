@@ -149,6 +149,14 @@ namespace Gurux.DLMS
             set;
         }
 
+        /// <summary>
+        /// Used Key agreement scheme.
+        /// </summary>
+        public KeyAgreementScheme KeyAgreementScheme
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// System Title.
@@ -727,6 +735,7 @@ namespace Gurux.DLMS
         public GXDLMSMeter() : base()
         {
             Objects = new GXDLMSObjectCollection(this);
+            PduWaitTime = 100;
         }
 
 
@@ -755,6 +764,7 @@ namespace Gurux.DLMS
             GXDLMSMeterBase.Copy(target, source);
             target.Objects = source.Objects;
             target.Tag = source.Tag;
+            target.PduWaitTime = source.PduWaitTime;
         }
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
@@ -778,5 +788,16 @@ namespace Gurux.DLMS
                 }
             }
         }
+
+        /// <summary>
+        /// Define how long reply is waited in seconds.
+        /// </summary>
+        [DefaultValue(100)]
+        public int PduWaitTime
+        {
+            get;
+            set;
+        }
+
     }
 }

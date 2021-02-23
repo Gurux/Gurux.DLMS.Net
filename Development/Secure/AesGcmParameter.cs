@@ -53,6 +53,16 @@ namespace Gurux.DLMS.Secure
             set;
         }
 
+        /// <summary>
+        /// Used transaction ID.
+        /// </summary>
+        public UInt64 TransactionId
+        {
+            get;
+            set;
+        }
+
+
         public GXDLMSSettings Settings
         {
             get;

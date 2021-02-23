@@ -1069,8 +1069,9 @@ namespace Gurux.DLMS
                         return;
                     }
 
-                    if (first || info.Command == Command.Snrm ||
-                        (Settings.InterfaceType == InterfaceType.WRAPPER && info.Command == Command.Aarq))
+                    if ((first || info.Command == Command.Snrm ||
+                        (Settings.InterfaceType == InterfaceType.WRAPPER && info.Command == Command.Aarq)) &&
+                        Settings.InterfaceType != InterfaceType.PDU)
                     {
                         // Check is data send to this server.
                         if (!IsTarget(Settings.ServerAddress,
@@ -1452,8 +1453,9 @@ namespace Gurux.DLMS
             {
                 Settings.StoCChallenge = null;
             }
-            // Reset settings for wrapper.
-            if (Settings.InterfaceType == InterfaceType.WRAPPER)
+            // Reset settings for wrapper and raw PDU.
+            if (Settings.InterfaceType == InterfaceType.WRAPPER ||
+                Settings.InterfaceType == InterfaceType.PDU)
             {
                 Reset(true);
             }

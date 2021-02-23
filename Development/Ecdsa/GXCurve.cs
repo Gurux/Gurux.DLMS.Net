@@ -108,6 +108,8 @@ namespace Gurux.DLMS.Ecdsa
                     0xFFFFFFFF, 0xBCE6FAAD, 0xA7179E84, 0xF3B9CAC2, 0xFC632551 });
                 P = new GXBigInteger(new UInt32[] { 0xFFFFFFFF, 0x00000001, 0x00000000,
                     0x00000000, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF });
+                B = new GXBigInteger(new UInt32[] {0x5AC635D8, 0xAA3A93E7, 0xB3EBBD55, 0x769886BC,
+                    0x651D06B0 , 0xCC53B0F6 , 0x3BCE3C3E , 0x27D2604B});
             }
             else if (scheme == Ecc.P384)
             {
@@ -127,6 +129,8 @@ namespace Gurux.DLMS.Ecdsa
                 P = new GXBigInteger(new UInt32[] { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
                     0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFE,
                     0xFFFFFFFF, 0x00000000, 0x00000000, 0xFFFFFFFF });
+                B = new GXBigInteger(new UInt32[] {0xB3312FA7, 0xE23EE7E4, 0x988E056B, 0xE3F82D19, 0x181D9C6E,
+                    0xFE814112, 0x0314088F, 0x5013875A, 0xC656398D, 0x8A2ED19D, 0x2A85C8ED, 0xD3EC2AEF});
             }
             else
             {

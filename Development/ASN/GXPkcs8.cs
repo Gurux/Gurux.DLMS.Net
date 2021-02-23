@@ -232,6 +232,7 @@ namespace Gurux.DLMS.ASN
                 throw new Exception("Invalid private key.");
             }
             PublicKey = GXPublicKey.FromRawBytes(((GXAsn1BitString)((List<object>)((GXAsn1Sequence)seq[2])[2])[0]).Value);
+            GXEcdsa.Validate(PublicKey);
         }
 
         public override sealed string ToString()

@@ -36,7 +36,9 @@ using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Objects.Enums
 {
-    //Security suite Specifies authentication, encryption and key wrapping algorithm.
+    /// <summary>
+    /// Security suite Specifies authentication, encryption and key wrapping algorithm.
+    /// </summary>
     public enum SecuritySuite
     {
         /// <summary>

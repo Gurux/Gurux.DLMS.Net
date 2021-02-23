@@ -31,11 +31,11 @@
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
-using Gurux.DLMS.ASN;
 using Gurux.DLMS.Ecdsa.Enums;
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace Gurux.DLMS.Ecdsa
 {
@@ -134,20 +134,6 @@ namespace Gurux.DLMS.Ecdsa
                 s.Multiply(n);
                 s.Mod(curve.N);
             } while (r.IsZero || s.IsZero);
-
-            byte recoveryId;
-            if (p.y.IsOne)
-            {
-                recoveryId = 1;
-            }
-            else
-            {
-                recoveryId = 0;
-            }
-            if (p.y.Compare(curve.N) == 1)
-            {
-                recoveryId += 2;
-            }
             GXByteBuffer signature = new GXByteBuffer();
             signature.Set(r.ToArray());
             signature.Set(s.ToArray());
@@ -468,6 +454,40 @@ namespace Gurux.DLMS.Ecdsa
             Random random = new Random();
             random.NextBytes(bytes);
             return new GXBigInteger(bytes);
+        }
+
+        /// <summary>
+        /// Check that this is correct public key.
+        /// </summary>
+        /// <remarks>
+        /// This method can be used to verify that public and private key are on the curve.
+        /// </remarks>
+        public static void Validate(GXPublicKey publicKey)
+        {
+            if (publicKey == null)
+            {
+                throw new ArgumentNullException("Invalid public key.");
+            }
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.Set(publicKey.RawValue);
+            int size = SchemeSize(publicKey.Scheme);
+            GXBigInteger x = new GXBigInteger(bb.SubArray(1, size));
+            GXBigInteger y = new GXBigInteger(bb.SubArray(1 + size, size));
+            GXCurve curve = new GXCurve(publicKey.Scheme);
+            y.Multiply(y);
+            y.Mod(curve.P);
+
+            GXBigInteger tmpX = new GXBigInteger(x);
+            tmpX.Multiply(x);
+            tmpX.Mod(curve.P);
+            tmpX.Add(curve.A);
+            tmpX.Multiply(x);
+            tmpX.Add(curve.B);
+            tmpX.Mod(curve.P);
+            if (y.Compare(tmpX) != 0)
+            {
+                throw new ArgumentException("Public key validate failed. Public key is not valid ECDSA public key.");
+            }
         }
     }
 }
