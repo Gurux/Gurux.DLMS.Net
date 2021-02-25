@@ -894,6 +894,20 @@ namespace Gurux.DLMS
             return msg.Xml;
         }
 
+        private static void GetLogicalAndPhysicalAddress(int value, out int logical, out int physical)
+        {
+            if (value > 0x3FFF)
+            {
+                logical = value >> 14;
+                physical = value & 0x3FFF;
+            }
+            else
+            {
+                logical = value >> 7;
+                physical = value & 0x7F;
+            }
+        }
+
         /// <summary>
         /// Convert message to xml.
         /// </summary>
@@ -929,8 +943,19 @@ namespace Gurux.DLMS
                         //settings.SourceSystemTitle
                         if (!PduOnly)
                         {
+                            int logical, physical;
                             xml.AppendLine("<HDLC len=\"" + (data.PacketLength - offset).ToString("X") + "\" >");
+                            GetLogicalAndPhysicalAddress(settings.ServerAddress, out logical, out physical);
+                            if (logical != 0)
+                            {
+                                xml.AppendComment("Logical address:" + logical.ToString() + ", Physical address:" + physical.ToString());
+                            }
                             xml.AppendLine("<TargetAddress Value=\"" + settings.ServerAddress.ToString("X") + "\" />");
+                            GetLogicalAndPhysicalAddress(settings.ClientAddress, out logical, out physical);
+                            if (logical != 0)
+                            {
+                                xml.AppendComment("Logical address:" + logical.ToString() + ", Physical address:" + physical.ToString());
+                            }
                             xml.AppendLine("<SourceAddress Value=\"" + settings.ClientAddress.ToString("X") + "\" />");
                             //Check frame.
                             CheckFrame(data.FrameId, xml);
@@ -1468,311 +1493,246 @@ namespace Gurux.DLMS
         internal string PduToXml(GXDLMSTranslatorStructure xml, GXByteBuffer value, bool omitDeclaration, bool omitNameSpace, bool allowUnknownCommand, GXDLMSTranslatorMessage msg)
         {
             GXDLMSSettings settings = new GXDLMSSettings(true, InterfaceType.HDLC);
-            GXReplyData data = new GXReplyData();
-            byte cmd = value.GetUInt8();
-            if (msg != null)
+            try
             {
-                msg.Command = (Command)cmd;
-            }
-            GetCiphering(settings, IsCiphered(cmd));
-            settings.Standard = Standard;
-            string str;
-            int len;
-            byte[] tmp;
-            switch (cmd)
-            {
-                case (byte)Command.Aarq:
-                    value.Position = 0;
-                    settings.SourceSystemTitle = null;
-                    GXAPDU.ParsePDU(settings, settings.Cipher, value, xml);
-                    //Update new dedicated key.
-                    if (settings.Cipher != null && settings.Cipher.DedicatedKey != null)
-                    {
-                        DedicatedKey = settings.Cipher.DedicatedKey;
-                    }
-                    if (msg != null)
-                    {
-                        msg.SystemTitle = settings.SourceSystemTitle;
-                        msg.DedicatedKey = settings.Cipher.DedicatedKey;
-                    }
-                    break;
-                case (byte)Command.InitiateRequest:
-                    value.Position = 0;
-                    settings = new GXDLMSSettings(true, InterfaceType.HDLC);
-                    GXAPDU.ParseInitiate(true, settings, settings.Cipher, value,
-                            xml);
-                    break;
-                case (byte)Command.InitiateResponse:
-                    value.Position = 0;
-                    settings = new GXDLMSSettings(false, InterfaceType.HDLC);
-                    GetCiphering(settings, true);
-                    GXAPDU.ParseInitiate(true, settings, settings.Cipher, value,
-                            xml);
-                    break;
-                case 0x81://Ua
-                    if (msg != null)
-                    {
-                        msg.Command = Command.Ua;
-                    }
-                    value.Position = 0;
-                    GetUa(value, xml);
-                    break;
-                case (byte)Command.Aare:
-                    value.Position = 0;
-                    settings = new GXDLMSSettings(false, InterfaceType.HDLC);
-                    GetCiphering(settings, true);
-                    settings.SourceSystemTitle = null;
-                    GXAPDU.ParsePDU(settings, settings.Cipher, value, xml);
-                    if (msg != null)
-                    {
-                        msg.SystemTitle = settings.SourceSystemTitle;
-                    }
-                    break;
-                case (byte)Command.GetRequest:
-                    GXDLMSLNCommandHandler.HandleGetRequest(settings, null, value, null, xml, Command.None);
-                    break;
-                case (byte)Command.SetRequest:
-                    GXDLMSLNCommandHandler.HandleSetRequest(settings, null, value, null, xml, Command.None);
-                    break;
-                case (byte)Command.ReadRequest:
-                    GXDLMSSNCommandHandler.HandleReadRequest(settings, null, value, null, xml, Command.None);
-                    break;
-                case (byte)Command.MethodRequest:
-                    GXDLMSLNCommandHandler.HandleMethodRequest(settings, null, value, null, null, xml, Command.None);
-                    break;
-                case (byte)Command.WriteRequest:
-                    GXDLMSSNCommandHandler.HandleWriteRequest(settings, null, value, null, xml, Command.None);
-                    break;
-                case (byte)Command.AccessRequest:
-                    GXDLMSLNCommandHandler.HandleAccessRequest(settings, null, value, null, xml, Command.None);
-                    break;
-                case (byte)Command.DataNotification:
-                    data.Xml = xml;
-                    data.Data = value;
-                    value.Position = 0;
-                    GXDLMS.GetPdu(settings, data, null);
-                    break;
-                case (byte)Command.InformationReport:
-                    data.Xml = xml;
-                    data.Data = value;
-                    GXDLMSSNCommandHandler.HandleInformationReport(settings, data, null);
-                    break;
-                case (byte)Command.EventNotification:
-                    data.Xml = xml;
-                    data.Data = value;
-                    GXDLMSLNCommandHandler.HandleEventNotification(settings, data, null);
-                    break;
-                case (byte)Command.ReadResponse:
-                case (byte)Command.WriteResponse:
-                case (byte)Command.GetResponse:
-                case (byte)Command.SetResponse:
-                case (byte)Command.MethodResponse:
-                case (byte)Command.AccessResponse:
-                case (byte)Command.GeneralBlockTransfer:
-                    data.Xml = xml;
-                    data.Data = value;
-                    value.Position = 0;
-                    GXDLMS.GetPdu(settings, data, null);
-                    break;
-                case (byte)Command.GeneralCiphering:
-                    data.Xml = xml;
-                    data.Data = value;
-                    value.Position = 0;
-                    GXDLMS.GetPdu(settings, data, null);
-                    break;
-                case (byte)Command.ReleaseRequest:
-                    xml.AppendStartTag((Command)cmd);
-                    value.GetUInt8();
-                    // Len.
-                    if (value.Available != 0)
-                    {
-                        // BerType
+                GXReplyData data = new GXReplyData();
+                byte cmd = value.GetUInt8();
+                if (msg != null)
+                {
+                    msg.Command = (Command)cmd;
+                }
+                GetCiphering(settings, IsCiphered(cmd));
+                ((GXCiphering)settings.Cipher).TestMode = true;
+                settings.Standard = Standard;
+                string str;
+                int len;
+                byte[] tmp;
+                switch (cmd)
+                {
+                    case (byte)Command.Aarq:
+                        value.Position = 0;
+                        settings.SourceSystemTitle = null;
+                        GXAPDU.ParsePDU(settings, settings.Cipher, value, xml);
+                        //Update new dedicated key.
+                        if (settings.Cipher != null && settings.Cipher.DedicatedKey != null)
+                        {
+                            DedicatedKey = settings.Cipher.DedicatedKey;
+                        }
+                        if (msg != null)
+                        {
+                            msg.SystemTitle = settings.SourceSystemTitle;
+                            msg.DedicatedKey = settings.Cipher.DedicatedKey;
+                        }
+                        break;
+                    case (byte)Command.InitiateRequest:
+                        value.Position = 0;
+                        settings = new GXDLMSSettings(true, InterfaceType.HDLC);
+                        GXAPDU.ParseInitiate(true, settings, settings.Cipher, value,
+                                xml);
+                        break;
+                    case (byte)Command.InitiateResponse:
+                        value.Position = 0;
+                        settings = new GXDLMSSettings(false, InterfaceType.HDLC);
+                        GetCiphering(settings, true);
+                        GXAPDU.ParseInitiate(true, settings, settings.Cipher, value,
+                                xml);
+                        break;
+                    case 0x81://Ua
+                        if (msg != null)
+                        {
+                            msg.Command = Command.Ua;
+                        }
+                        value.Position = 0;
+                        GetUa(value, xml);
+                        break;
+                    case (byte)Command.Aare:
+                        value.Position = 0;
+                        settings = new GXDLMSSettings(false, InterfaceType.HDLC);
+                        GetCiphering(settings, true);
+                        settings.SourceSystemTitle = null;
+                        GXAPDU.ParsePDU(settings, settings.Cipher, value, xml);
+                        if (msg != null)
+                        {
+                            msg.SystemTitle = settings.SourceSystemTitle;
+                        }
+                        break;
+                    case (byte)Command.GetRequest:
+                        GXDLMSLNCommandHandler.HandleGetRequest(settings, null, value, null, xml, Command.None);
+                        break;
+                    case (byte)Command.SetRequest:
+                        GXDLMSLNCommandHandler.HandleSetRequest(settings, null, value, null, xml, Command.None);
+                        break;
+                    case (byte)Command.ReadRequest:
+                        GXDLMSSNCommandHandler.HandleReadRequest(settings, null, value, null, xml, Command.None);
+                        break;
+                    case (byte)Command.MethodRequest:
+                        GXDLMSLNCommandHandler.HandleMethodRequest(settings, null, value, null, null, xml, Command.None);
+                        break;
+                    case (byte)Command.WriteRequest:
+                        GXDLMSSNCommandHandler.HandleWriteRequest(settings, null, value, null, xml, Command.None);
+                        break;
+                    case (byte)Command.AccessRequest:
+                        GXDLMSLNCommandHandler.HandleAccessRequest(settings, null, value, null, xml, Command.None);
+                        break;
+                    case (byte)Command.DataNotification:
+                        data.Xml = xml;
+                        data.Data = value;
+                        value.Position = 0;
+                        GXDLMS.GetPdu(settings, data, null);
+                        break;
+                    case (byte)Command.InformationReport:
+                        data.Xml = xml;
+                        data.Data = value;
+                        GXDLMSSNCommandHandler.HandleInformationReport(settings, data, null);
+                        break;
+                    case (byte)Command.EventNotification:
+                        data.Xml = xml;
+                        data.Data = value;
+                        GXDLMSLNCommandHandler.HandleEventNotification(settings, data, null);
+                        break;
+                    case (byte)Command.ReadResponse:
+                    case (byte)Command.WriteResponse:
+                    case (byte)Command.GetResponse:
+                    case (byte)Command.SetResponse:
+                    case (byte)Command.MethodResponse:
+                    case (byte)Command.AccessResponse:
+                    case (byte)Command.GeneralBlockTransfer:
+                        data.Xml = xml;
+                        data.Data = value;
+                        value.Position = 0;
+                        GXDLMS.GetPdu(settings, data, null);
+                        break;
+                    case (byte)Command.GeneralCiphering:
+                        data.Xml = xml;
+                        data.Data = value;
+                        value.Position = 0;
+                        GXDLMS.GetPdu(settings, data, null);
+                        break;
+                    case (byte)Command.ReleaseRequest:
+                        xml.AppendStartTag((Command)cmd);
                         value.GetUInt8();
                         // Len.
-                        value.GetUInt8();
-                        if (xml.OutputType == TranslatorOutputType.SimpleXml)
-                        {
-                            str = TranslatorSimpleTags.ReleaseRequestReasonToString((ReleaseRequestReason)value.GetUInt8());
-                        }
-                        else
-                        {
-                            str = TranslatorStandardTags.ReleaseRequestReasonToString((ReleaseRequestReason)value.GetUInt8());
-                        }
-                        xml.AppendLine(TranslatorTags.Reason, null, str);
                         if (value.Available != 0)
                         {
+                            // BerType
+                            value.GetUInt8();
+                            // Len.
+                            value.GetUInt8();
+                            if (xml.OutputType == TranslatorOutputType.SimpleXml)
+                            {
+                                str = TranslatorSimpleTags.ReleaseRequestReasonToString((ReleaseRequestReason)value.GetUInt8());
+                            }
+                            else
+                            {
+                                str = TranslatorStandardTags.ReleaseRequestReasonToString((ReleaseRequestReason)value.GetUInt8());
+                            }
+                            xml.AppendLine(TranslatorTags.Reason, null, str);
+                            if (value.Available != 0)
+                            {
+                                int len2 = xml.GetXmlLength();
+                                try
+                                {
+                                    xml.AppendStartTag(TranslatorGeneralTags.UserInformation);
+                                    GXAPDU.ParsePDU2(settings, settings.Cipher, value,
+                                            xml);
+                                    xml.AppendEndTag(TranslatorGeneralTags.UserInformation);
+                                }
+                                catch (Exception)
+                                {
+                                    //This usually fails if keys are wrong.
+                                    xml.SetXmlLength(len2);
+                                }
+                            }
+                        }
+                        xml.AppendEndTag(cmd);
+                        break;
+                    case (byte)Command.ReleaseResponse:
+                        xml.AppendStartTag((Command)cmd);
+                        if (value.GetUInt8() != 0)
+                        {
+                            //BerType
+                            value.GetUInt8();
+                            //Len.
+                            value.GetUInt8();
+                            if (xml.OutputType == TranslatorOutputType.SimpleXml)
+                            {
+                                str = TranslatorSimpleTags.ReleaseResponseReasonToString((ReleaseResponseReason)value.GetUInt8());
+                            }
+                            else
+                            {
+                                str = TranslatorStandardTags.ReleaseResponseReasonToString((ReleaseResponseReason)value.GetUInt8());
+                            }
+
+                            xml.AppendLine(TranslatorTags.Reason, "Value", str);
+                            if (value.Available != 0)
+                            {
+                                GXAPDU.ParsePDU2(settings, settings.Cipher, value, xml);
+                            }
+                        }
+                        xml.AppendEndTag((Command)cmd);
+                        break;
+                    case (byte)Command.GloReadRequest:
+                    case (byte)Command.GloWriteRequest:
+                    case (byte)Command.GloGetRequest:
+                    case (byte)Command.GloSetRequest:
+                    case (byte)Command.GloReadResponse:
+                    case (byte)Command.GloWriteResponse:
+                    case (byte)Command.GloGetResponse:
+                    case (byte)Command.GloSetResponse:
+                    case (byte)Command.GloMethodRequest:
+                    case (byte)Command.GloMethodResponse:
+                    case (byte)Command.DedGetRequest:
+                    case (byte)Command.DedSetRequest:
+                    case (byte)Command.DedReadResponse:
+                    case (byte)Command.DedWriteResponse:
+                    case (byte)Command.DedGetResponse:
+                    case (byte)Command.DedSetResponse:
+                    case (byte)Command.DedMethodRequest:
+                    case (byte)Command.DedMethodResponse:
+                    case (byte)Command.GloConfirmedServiceError:
+                    case (byte)Command.DedConfirmedServiceError:
+                        if (settings.Cipher != null && Comments)
+                        {
+                            int originalPosition = value.Position;
                             int len2 = xml.GetXmlLength();
                             try
                             {
-                                xml.AppendStartTag(TranslatorGeneralTags.UserInformation);
-                                GXAPDU.ParsePDU2(settings, settings.Cipher, value,
-                                        xml);
-                                xml.AppendEndTag(TranslatorGeneralTags.UserInformation);
-                            }
-                            catch (Exception)
-                            {
-                                //This usually fails if keys are wrong.
-                                xml.SetXmlLength(len2);
-                            }
-                        }
-                    }
-                    xml.AppendEndTag(cmd);
-                    break;
-                case (byte)Command.ReleaseResponse:
-                    xml.AppendStartTag((Command)cmd);
-                    if (value.GetUInt8() != 0)
-                    {
-                        //BerType
-                        value.GetUInt8();
-                        //Len.
-                        value.GetUInt8();
-                        if (xml.OutputType == TranslatorOutputType.SimpleXml)
-                        {
-                            str = TranslatorSimpleTags.ReleaseResponseReasonToString((ReleaseResponseReason)value.GetUInt8());
-                        }
-                        else
-                        {
-                            str = TranslatorStandardTags.ReleaseResponseReasonToString((ReleaseResponseReason)value.GetUInt8());
-                        }
-
-                        xml.AppendLine(TranslatorTags.Reason, "Value", str);
-                        if (value.Available != 0)
-                        {
-                            GXAPDU.ParsePDU2(settings, settings.Cipher, value, xml);
-                        }
-                    }
-                    xml.AppendEndTag((Command)cmd);
-                    break;
-                case (byte)Command.GloReadRequest:
-                case (byte)Command.GloWriteRequest:
-                case (byte)Command.GloGetRequest:
-                case (byte)Command.GloSetRequest:
-                case (byte)Command.GloReadResponse:
-                case (byte)Command.GloWriteResponse:
-                case (byte)Command.GloGetResponse:
-                case (byte)Command.GloSetResponse:
-                case (byte)Command.GloMethodRequest:
-                case (byte)Command.GloMethodResponse:
-                case (byte)Command.DedGetRequest:
-                case (byte)Command.DedSetRequest:
-                case (byte)Command.DedReadResponse:
-                case (byte)Command.DedWriteResponse:
-                case (byte)Command.DedGetResponse:
-                case (byte)Command.DedSetResponse:
-                case (byte)Command.DedMethodRequest:
-                case (byte)Command.DedMethodResponse:
-                case (byte)Command.GloConfirmedServiceError:
-                case (byte)Command.DedConfirmedServiceError:
-                    if (settings.Cipher != null && Comments)
-                    {
-                        int originalPosition = value.Position;
-                        int len2 = xml.GetXmlLength();
-                        try
-                        {
-                            --value.Position;
-                            Command c = (Command)cmd;
-                            byte[] st;
-                            if (c == Command.GloReadRequest || c == Command.GloWriteRequest || c == Command.GloGetRequest || c == Command.GloSetRequest || c == Command.GloMethodRequest ||
-                                c == Command.DedGetRequest || c == Command.DedSetRequest || c == Command.DedMethodRequest)
-                            {
-                                st = settings.Cipher.SystemTitle;
-                            }
-                            else
-                            {
-                                st = settings.SourceSystemTitle;
-                            }
-                            if (st != null)
-                            {
-                                AesGcmParameter p;
-                                if ((cmd == (byte)Command.DedGetRequest || cmd == (byte)Command.DedSetRequest ||
-                                    cmd == (byte)Command.DedReadResponse || cmd == (byte)Command.DedWriteResponse ||
-                                    cmd == (byte)Command.DedGetResponse || cmd == (byte)Command.DedSetResponse ||
-                                    cmd == (byte)Command.DedMethodRequest || cmd == (byte)Command.DedMethodResponse) &&
-                                    settings.Cipher.DedicatedKey != null && settings.Cipher.DedicatedKey.Length != 0)
+                                --value.Position;
+                                Command c = (Command)cmd;
+                                byte[] st;
+                                if (c == Command.GloReadRequest || c == Command.GloWriteRequest || c == Command.GloGetRequest || c == Command.GloSetRequest || c == Command.GloMethodRequest ||
+                                    c == Command.DedGetRequest || c == Command.DedSetRequest || c == Command.DedMethodRequest)
                                 {
-                                    p = new AesGcmParameter(settings, st, settings.Cipher.DedicatedKey, settings.Cipher.AuthenticationKey);
+                                    st = settings.Cipher.SystemTitle;
                                 }
                                 else
                                 {
-                                    p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                                    st = settings.SourceSystemTitle;
                                 }
-                                p.Xml = xml;
-                                if (p.BlockCipherKey != null)
-                                {
-                                    GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
-                                    xml.AppendComment("Invocation Counter: " + p.InvocationCounter.ToString());
-                                    xml.StartComment("Decrypt data: " + data2.ToString());
-                                    PduToXml(xml, data2, omitDeclaration, omitNameSpace, false, msg);
-                                    xml.EndComment();
-                                }
-                            }
-                        }
-                        catch (Exception)
-                        {
-                            // It's OK if this fails. Ciphering settings are not correct.
-                            if (msg != null)
-                            {
-                                msg.Command = (Command)cmd;
-                            }
-                            xml.SetXmlLength(len2);
-                        }
-                        value.Position = originalPosition;
-                    }
-
-                    int cnt = GXCommon.GetObjectCount(value);
-                    if (cnt != value.Size - value.Position)
-                    {
-                        xml.AppendComment("Invalid length: " + cnt + ". It should be: " + (value.Size - value.Position));
-                    }
-                    xml.AppendLine(cmd, "Value", GXCommon.ToHex(value.Data, false, value.Position, value.Size - value.Position));
-                    break;
-                case (byte)Command.GeneralGloCiphering:
-                case (byte)Command.GeneralDedCiphering:
-                    if (settings.Cipher != null && Comments)
-                    {
-                        int len2 = xml.GetXmlLength();
-                        int originalPosition = value.Position;
-                        --value.Position;
-                        //Check is this client msg.
-                        try
-                        {
-                            byte[] st;
-                            st = settings.Cipher.SystemTitle;
-                            AesGcmParameter p;
-                            if (cmd == (byte)Command.GeneralDedCiphering && settings.Cipher.DedicatedKey != null)
-                            {
-                                p = new AesGcmParameter(settings, st, settings.Cipher.DedicatedKey, settings.Cipher.AuthenticationKey);
-                            }
-                            else
-                            {
-                                p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
-                            }
-                            p.Xml = xml;
-                            GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
-                            len2 = xml.GetXmlLength();
-                            xml.AppendComment("Invocation Counter: " + p.InvocationCounter.ToString());
-                            xml.StartComment("Decrypt data: " + data2.ToString());
-                            PduToXml(xml, data2, omitDeclaration, omitNameSpace, false, msg);
-                            xml.EndComment();
-                        }
-                        catch (Exception)
-                        {
-                            xml.SetXmlLength(len2);
-                            value.Position = originalPosition;
-                            --value.Position;
-                            //Check is this server msg.
-                            try
-                            {
-                                byte[] st;
-                                st = settings.SourceSystemTitle;
                                 if (st != null)
                                 {
-                                    AesGcmParameter p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
-                                    GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
-                                    xml.AppendComment("Invocation Counter: " + p.InvocationCounter.ToString());
-                                    xml.StartComment("Decrypt data: " + data2.ToString());
-                                    PduToXml(xml, data2, omitDeclaration, omitNameSpace, false, msg);
-                                    xml.EndComment();
+                                    AesGcmParameter p;
+                                    if ((cmd == (byte)Command.DedGetRequest || cmd == (byte)Command.DedSetRequest ||
+                                        cmd == (byte)Command.DedReadResponse || cmd == (byte)Command.DedWriteResponse ||
+                                        cmd == (byte)Command.DedGetResponse || cmd == (byte)Command.DedSetResponse ||
+                                        cmd == (byte)Command.DedMethodRequest || cmd == (byte)Command.DedMethodResponse) &&
+                                        settings.Cipher.DedicatedKey != null && settings.Cipher.DedicatedKey.Length != 0)
+                                    {
+                                        p = new AesGcmParameter(settings, st, settings.Cipher.DedicatedKey, settings.Cipher.AuthenticationKey);
+                                    }
+                                    else
+                                    {
+                                        p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                                    }
+                                    p.Xml = xml;
+                                    if (p.BlockCipherKey != null)
+                                    {
+                                        GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
+                                        xml.AppendComment("Invocation Counter: " + p.InvocationCounter.ToString());
+                                        xml.StartComment("Decrypt data: " + data2.ToString());
+                                        PduToXml(xml, data2, omitDeclaration, omitNameSpace, false, msg);
+                                        xml.EndComment();
+                                    }
                                 }
                             }
                             catch (Exception)
@@ -1784,127 +1744,200 @@ namespace Gurux.DLMS
                                 }
                                 xml.SetXmlLength(len2);
                             }
+                            value.Position = originalPosition;
                         }
-                        value.Position = originalPosition;
-                    }
-                    len = GXCommon.GetObjectCount(value);
-                    tmp = new byte[len];
-                    value.Get(tmp);
-                    xml.AppendStartTag((Command)cmd);
-                    xml.AppendLine(TranslatorTags.SystemTitle, null,
-                            GXCommon.ToHex(tmp, false, 0, len));
-                    len = GXCommon.GetObjectCount(value);
-                    tmp = new byte[len];
-                    value.Get(tmp);
-                    xml.AppendLine(TranslatorTags.CipheredService, null,
-                            GXCommon.ToHex(tmp, false, 0, len));
-                    xml.AppendEndTag(cmd);
-                    break;
-                case (byte)Command.ConfirmedServiceError:
-                    data.Xml = xml;
-                    data.Data = value;
-                    GXDLMS.HandleConfirmedServiceError(data);
-                    break;
-                case (byte)Command.GatewayRequest:
-                case (byte)Command.GatewayResponse:
-                    data.Xml = xml;
-                    data.Data = value;
-                    //Get Network ID.
-                    byte id = value.GetUInt8();
-                    //Get Physical device address.
-                    len = GXCommon.GetObjectCount(value);
-                    tmp = new byte[len];
-                    value.Get(tmp);
-                    xml.AppendStartTag((Command)cmd);
-                    xml.AppendLine(TranslatorTags.NetworkId, null, id.ToString());
-                    xml.AppendLine(TranslatorTags.PhysicalDeviceAddress, null, GXCommon.ToHex(tmp, false, 0, len));
-                    PduToXml(xml, new GXByteBuffer(value.Remaining()), omitDeclaration, omitNameSpace, allowUnknownCommand, msg);
-                    xml.AppendEndTag(cmd);
-                    break;
-                case (byte)Command.ExceptionResponse:
-                    data.Xml = xml;
-                    data.Data = value;
-                    GXDLMS.HandleExceptionResponse(data);
-                    break;
-                case (byte)Command.DiscoverRequest:
-                    data.Xml = xml;
-                    data.Data = value;
-                    xml.AppendStartTag((Command)cmd);
-                    HandleDiscoverRequest(data);
-                    xml.AppendEndTag((Command)cmd);
-                    break;
-                case (byte)Command.DiscoverReport:
-                    data.Xml = xml;
-                    data.Data = value;
-                    xml.AppendStartTag((Command)cmd);
-                    HandleDiscoverResponse(settings, data);
-                    xml.AppendEndTag((Command)cmd);
-                    break;
-                case (byte)Command.RegisterRequest:
-                    data.Xml = xml;
-                    data.Data = value;
-                    xml.AppendStartTag((Command)cmd);
-                    HandleRegisterRequest(msg.InterfaceType, data);
-                    xml.AppendEndTag((Command)cmd);
-                    break;
-                case (byte)Command.PingResponse:
-                    data.Xml = xml;
-                    data.Data = value;
-                    xml.AppendStartTag((Command)cmd);
-                    GXDLMS.HandleExceptionResponse(data);
-                    xml.AppendEndTag((Command)cmd);
-                    break;
-                case (byte)Command.RepeatCallRequest:
-                    data.Xml = xml;
-                    data.Data = value;
-                    xml.AppendStartTag((Command)cmd);
-                    GXDLMS.HandleExceptionResponse(data);
-                    xml.AppendEndTag((Command)cmd);
-                    break;
-                default:
-                    if (!allowUnknownCommand)
+
+                        int cnt = GXCommon.GetObjectCount(value);
+                        if (cnt != value.Size - value.Position)
+                        {
+                            xml.AppendComment("Invalid length: " + cnt + ". It should be: " + (value.Size - value.Position));
+                        }
+                        xml.AppendLine(cmd, "Value", GXCommon.ToHex(value.Data, false, value.Position, value.Size - value.Position));
+                        break;
+                    case (byte)Command.GeneralGloCiphering:
+                    case (byte)Command.GeneralDedCiphering:
+                        if (settings.Cipher != null && Comments)
+                        {
+                            int len2 = xml.GetXmlLength();
+                            int originalPosition = value.Position;
+                            --value.Position;
+                            //Check is this client msg.
+                            try
+                            {
+                                byte[] st;
+                                st = settings.Cipher.SystemTitle;
+                                AesGcmParameter p;
+                                if (cmd == (byte)Command.GeneralDedCiphering && settings.Cipher.DedicatedKey != null)
+                                {
+                                    p = new AesGcmParameter(settings, st, settings.Cipher.DedicatedKey, settings.Cipher.AuthenticationKey);
+                                }
+                                else
+                                {
+                                    p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                                }
+                                p.Xml = xml;
+                                GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
+                                len2 = xml.GetXmlLength();
+                                xml.AppendComment("Invocation Counter: " + p.InvocationCounter.ToString());
+                                xml.StartComment("Decrypt data: " + data2.ToString());
+                                PduToXml(xml, data2, omitDeclaration, omitNameSpace, false, msg);
+                                xml.EndComment();
+                            }
+                            catch (Exception)
+                            {
+                                xml.SetXmlLength(len2);
+                                value.Position = originalPosition;
+                                --value.Position;
+                                //Check is this server msg.
+                                try
+                                {
+                                    byte[] st;
+                                    st = settings.SourceSystemTitle;
+                                    if (st != null)
+                                    {
+                                        AesGcmParameter p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                                        GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
+                                        xml.AppendComment("Invocation Counter: " + p.InvocationCounter.ToString());
+                                        xml.StartComment("Decrypt data: " + data2.ToString());
+                                        PduToXml(xml, data2, omitDeclaration, omitNameSpace, false, msg);
+                                        xml.EndComment();
+                                    }
+                                }
+                                catch (Exception)
+                                {
+                                    // It's OK if this fails. Ciphering settings are not correct.
+                                    if (msg != null)
+                                    {
+                                        msg.Command = (Command)cmd;
+                                    }
+                                    xml.SetXmlLength(len2);
+                                }
+                            }
+                            value.Position = originalPosition;
+                        }
+                        len = GXCommon.GetObjectCount(value);
+                        tmp = new byte[len];
+                        value.Get(tmp);
+                        xml.AppendStartTag((Command)cmd);
+                        xml.AppendLine(TranslatorTags.SystemTitle, null,
+                                GXCommon.ToHex(tmp, false, 0, len));
+                        len = GXCommon.GetObjectCount(value);
+                        tmp = new byte[len];
+                        value.Get(tmp);
+                        xml.AppendLine(TranslatorTags.CipheredService, null,
+                                GXCommon.ToHex(tmp, false, 0, len));
+                        xml.AppendEndTag(cmd);
+                        break;
+                    case (byte)Command.ConfirmedServiceError:
+                        data.Xml = xml;
+                        data.Data = value;
+                        GXDLMS.HandleConfirmedServiceError(data);
+                        break;
+                    case (byte)Command.GatewayRequest:
+                    case (byte)Command.GatewayResponse:
+                        data.Xml = xml;
+                        data.Data = value;
+                        //Get Network ID.
+                        byte id = value.GetUInt8();
+                        //Get Physical device address.
+                        len = GXCommon.GetObjectCount(value);
+                        tmp = new byte[len];
+                        value.Get(tmp);
+                        xml.AppendStartTag((Command)cmd);
+                        xml.AppendLine(TranslatorTags.NetworkId, null, id.ToString());
+                        xml.AppendLine(TranslatorTags.PhysicalDeviceAddress, null, GXCommon.ToHex(tmp, false, 0, len));
+                        PduToXml(xml, new GXByteBuffer(value.Remaining()), omitDeclaration, omitNameSpace, allowUnknownCommand, msg);
+                        xml.AppendEndTag(cmd);
+                        break;
+                    case (byte)Command.ExceptionResponse:
+                        data.Xml = xml;
+                        data.Data = value;
+                        GXDLMS.HandleExceptionResponse(data);
+                        break;
+                    case (byte)Command.DiscoverRequest:
+                        data.Xml = xml;
+                        data.Data = value;
+                        xml.AppendStartTag((Command)cmd);
+                        HandleDiscoverRequest(data);
+                        xml.AppendEndTag((Command)cmd);
+                        break;
+                    case (byte)Command.DiscoverReport:
+                        data.Xml = xml;
+                        data.Data = value;
+                        xml.AppendStartTag((Command)cmd);
+                        HandleDiscoverResponse(settings, data);
+                        xml.AppendEndTag((Command)cmd);
+                        break;
+                    case (byte)Command.RegisterRequest:
+                        data.Xml = xml;
+                        data.Data = value;
+                        xml.AppendStartTag((Command)cmd);
+                        HandleRegisterRequest(msg.InterfaceType, data);
+                        xml.AppendEndTag((Command)cmd);
+                        break;
+                    case (byte)Command.PingResponse:
+                        data.Xml = xml;
+                        data.Data = value;
+                        xml.AppendStartTag((Command)cmd);
+                        GXDLMS.HandleExceptionResponse(data);
+                        xml.AppendEndTag((Command)cmd);
+                        break;
+                    case (byte)Command.RepeatCallRequest:
+                        data.Xml = xml;
+                        data.Data = value;
+                        xml.AppendStartTag((Command)cmd);
+                        GXDLMS.HandleExceptionResponse(data);
+                        xml.AppendEndTag((Command)cmd);
+                        break;
+                    default:
+                        if (!allowUnknownCommand)
+                        {
+                            throw new Exception("Invalid command.");
+                        }
+                        --value.Position;
+                        xml.AppendLine("<Data=\"" + GXCommon.ToHex(value.Data, false, value.Position, value.Size - value.Position) + "\" />");
+                        break;
+                }
+                if (OutputType == TranslatorOutputType.StandardXml)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    if (!omitDeclaration)
                     {
-                        throw new Exception("Invalid command.");
+                        sb.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
                     }
-                    --value.Position;
-                    xml.AppendLine("<Data=\"" + GXCommon.ToHex(value.Data, false, value.Position, value.Size - value.Position) + "\" />");
-                    break;
+                    if (!omitNameSpace)
+                    {
+                        if (cmd != (byte)Command.Aare && cmd != (byte)Command.Aarq)
+                        {
+                            sb.AppendLine(
+                                "<x:xDLMS-APDU xmlns:x=\"http://www.dlms.com/COSEMpdu\">");
+                        }
+                        else
+                        {
+                            sb.AppendLine(
+                                "<x:aCSE-APDU xmlns:x=\"http://www.dlms.com/COSEMpdu\">");
+                        }
+                    }
+                    sb.Append(xml.ToString());
+                    if (!omitNameSpace)
+                    {
+                        if (cmd != (byte)Command.Aare && cmd != (byte)Command.Aarq)
+                        {
+                            sb.AppendLine("</x:xDLMS-APDU>");
+                        }
+                        else
+                        {
+                            sb.AppendLine("</x:aCSE-APDU>");
+                        }
+                    }
+                    return sb.ToString();
+                }
+                return xml.ToString();
             }
-            if (OutputType == TranslatorOutputType.StandardXml)
+            finally
             {
-                StringBuilder sb = new StringBuilder();
-                if (!omitDeclaration)
-                {
-                    sb.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
-                }
-                if (!omitNameSpace)
-                {
-                    if (cmd != (byte)Command.Aare && cmd != (byte)Command.Aarq)
-                    {
-                        sb.AppendLine(
-                            "<x:xDLMS-APDU xmlns:x=\"http://www.dlms.com/COSEMpdu\">");
-                    }
-                    else
-                    {
-                        sb.AppendLine(
-                            "<x:aCSE-APDU xmlns:x=\"http://www.dlms.com/COSEMpdu\">");
-                    }
-                }
-                sb.Append(xml.ToString());
-                if (!omitNameSpace)
-                {
-                    if (cmd != (byte)Command.Aare && cmd != (byte)Command.Aarq)
-                    {
-                        sb.AppendLine("</x:xDLMS-APDU>");
-                    }
-                    else
-                    {
-                        sb.AppendLine("</x:aCSE-APDU>");
-                    }
-                }
-                return sb.ToString();
+                ((GXCiphering)settings.Cipher).TestMode = false;
             }
-            return xml.ToString();
         }
 
         private static void ReadAllNodes(XmlDocument doc, GXDLMSXmlSettings s)

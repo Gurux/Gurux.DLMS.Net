@@ -67,11 +67,11 @@ namespace Gurux.DLMS.ASN.Enums
         ///</summary>
         KeyAgreement = 0x10,
         ///<summary>
-        ///Key cert sign.
+        ///Used with CA certificates when the subject public key is used to verify a signature on certificates.
         ///</summary>
         KeyCertSign = 0x20,
         ///<summary>
-        ///cRL sign.
+        ///Used when the subject public key is to verify a signature.
         ///</summary>
         CrlSign = 0x40,
         ///<summary>

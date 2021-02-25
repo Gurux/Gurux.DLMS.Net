@@ -140,38 +140,60 @@ namespace Gurux.DLMS.ASN
                 }
                 return (8 * Value.Length) - PadBits;
             }
-		}
+        }
 
-    public override sealed string ToString()
-    {
-        if (Value == null)
+        public override sealed string ToString()
         {
-            return "";
+            if (Value == null)
+            {
+                return "";
+            }
+            StringBuilder sb = new StringBuilder(8 * Value.Length);
+            foreach (byte it in Value)
+            {
+                GXCommon.ToBitString(sb, it, 8);
+            }
+            sb.Length = sb.Length - PadBits;
+            return Convert.ToString((8 * Value.Length) - PadBits) + " bit " + sb.ToString();
         }
-        StringBuilder sb = new StringBuilder(8 * Value.Length);
-        foreach (byte it in Value)
+
+        public string asString()
         {
-            GXCommon.ToBitString(sb, it, 8);
+            if (Value == null)
+            {
+                return "";
+            }
+            StringBuilder sb = new StringBuilder(8 * Value.Length);
+            foreach (byte it in Value)
+            {
+                GXCommon.ToBitString(sb, it, 8);
+            }
+            sb.Length = sb.Length - PadBits;
+            return sb.ToString();
         }
-        sb.Length = sb.Length - PadBits;
-        return Convert.ToString((8 * Value.Length) - PadBits) + " bit " + sb.ToString();
+
+        private UInt32 ToNumeric()
+        {
+            UInt32 ret = 0;
+            if (Value != null)
+            {
+                UInt16 bytePos = 0;
+                if (Value != null)
+                {
+                    foreach (byte it in Value)
+                    {
+                        ret |= (UInt32) (GXCommon.SwapBits(it) << bytePos);
+                        bytePos += 8;
+                    }
+                }
+            }
+            return ret;
+        }
+
+        public int ToInteger()
+        {
+            return (int) ToNumeric();
+        }
     }
-
-    public string asString()
-    {
-        if (Value == null)
-        {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder(8 * Value.Length);
-        foreach (byte it in Value)
-        {
-            GXCommon.ToBitString(sb, it, 8);
-        }
-        sb.Length = sb.Length - PadBits;
-        return sb.ToString();
-    }
-
-}
 
 }

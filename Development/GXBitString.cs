@@ -33,7 +33,6 @@
 //---------------------------------------------------------------------------
 using System;
 using System.Text;
-using System.Diagnostics;
 using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS

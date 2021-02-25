@@ -396,12 +396,12 @@ namespace Gurux.DLMS.ASN
                             if (value is GXAsn1BitString)
                             {
                                 // critical is optional. BOOLEAN DEFAULT FALSE,
-                                KeyUsage = (KeyUsage)((GXAsn1BitString)value).Value[0];
+                                KeyUsage = (KeyUsage)((GXAsn1BitString)value).ToInteger();
                             }
                             else if (value is bool?)
                             {
                                 value = s[2];
-                                KeyUsage = (KeyUsage)((GXAsn1BitString)value).Value[0];
+                                KeyUsage = (KeyUsage)((GXAsn1BitString)value).ToInteger();
                             }
                             else
                             {
@@ -514,9 +514,10 @@ namespace Gurux.DLMS.ASN
             s1.Add(new GXAsn1ObjectIdentifier(X509CertificateTypeConverter.GetString(Enums.X509CertificateType.KeyUsage)));
             byte value = 0;
             int min = 255;
+            byte keyUsage = GXCommon.SwapBits((byte)KeyUsage);
             foreach (KeyUsage it in Enum.GetValues(typeof(KeyUsage)))
             {
-                if ((it & KeyUsage) != 0)
+                if ((((byte)it) & keyUsage) != 0)
                 {
                     byte val = (byte)it;
                     value |= val;

@@ -1085,21 +1085,7 @@ namespace Gurux.DLMS.Internal
                                 throw new Exception("Invalid tag.");
                             }
                             len = buff.GetUInt8();
-                            try
-                            {
-                                if (xml != null)
-                                {
-                                    ((GXCiphering)settings.Cipher).TestMode = true;
-                                }
-                                settings.SourceSystemTitle = new byte[len];
-                            }
-                            finally
-                            {
-                                if (xml != null)
-                                {
-                                    ((GXCiphering)settings.Cipher).TestMode = false;
-                                }
-                            }
+                            settings.SourceSystemTitle = new byte[len];
                             buff.Get(settings.SourceSystemTitle);
                             if (xml != null)
                             {
