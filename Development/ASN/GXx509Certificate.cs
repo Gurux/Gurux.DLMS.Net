@@ -324,26 +324,7 @@ namespace Gurux.DLMS.ASN
             ValidFrom = (DateTime)((GXAsn1Sequence)reqInfo[4])[0];
             ValidTo = (DateTime)((GXAsn1Sequence)reqInfo[4])[1];
             Subject = GXAsn1Converter.GetSubject((GXAsn1Sequence)reqInfo[5]);
-            // Verify that subject Common Name includes system title.
-            bool commonNameFound = false;
             string CN = X509NameConverter.GetString(X509Name.CN);
-            foreach (KeyValuePair<object, object> it in (GXAsn1Sequence)reqInfo[5])
-            {
-                if (CN == it.Key.ToString())
-                {
-                    if (Convert.ToString(it.Value).Length != 16)
-                    {
-                        throw new GXDLMSCertificateException("System title is not included in Common Name.");
-                    }
-                    commonNameFound = true;
-                    break;
-                }
-            }
-            if (!commonNameFound)
-            {
-                throw new GXDLMSCertificateException("Common name doesn't exist.");
-            }
-
             // Subject public key Info
             GXAsn1Sequence subjectPKInfo = (GXAsn1Sequence)reqInfo[6];
             PublicKey = GXPublicKey.FromRawBytes(((GXAsn1BitString)subjectPKInfo[1]).Value);
@@ -421,6 +402,28 @@ namespace Gurux.DLMS.ASN
                     }
                 }
             }
+            if (!basicConstraintsExists)
+            {
+                // Verify that subject Common Name includes system title.
+                bool commonNameFound = false;
+                foreach (KeyValuePair<object, object> it in (GXAsn1Sequence)reqInfo[5])
+                {
+                    if (CN == it.Key.ToString())
+                    {
+                        if (Convert.ToString(it.Value).Length != 16)
+                        {
+                            throw new GXDLMSCertificateException("System title is not included in Common Name.");
+                        }
+                        commonNameFound = true;
+                        break;
+                    }
+                }
+                if (!commonNameFound)
+                {
+                    throw new GXDLMSCertificateException("Common name doesn't exist.");
+                }
+            }
+
             if (KeyUsage == KeyUsage.None)
             {
                 throw new Exception("Key usage not present. It's mandotory.");
