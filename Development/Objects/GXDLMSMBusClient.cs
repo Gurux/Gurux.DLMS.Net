@@ -286,7 +286,52 @@ namespace Gurux.DLMS.Objects
                 bb.Set(it.ValueInformation);
                 GXCommon.SetData(client.Settings, bb, GXDLMSConverter.GetDLMSDataType(it.Data), it.Data);
             }
-            return client.Method(this, 5, bb.Array(), DataType.Array);
+            return client.Method(this, 6, bb.Array(), DataType.Array);
+        }
+
+        /// <summary>
+        /// Sets the encryption key in the M-Bus client and enables encrypted communication
+        /// with the M-Bus slave device.
+        /// </summary>
+        /// <param name="client">DLMS client settings.</param>
+        /// <param name="encryptionKey">encryption key</param>
+        /// <returns>Generated DLMS data.</returns>
+        public byte[][] SetEncryptionKey(GXDLMSClient client, byte[] encryptionKey)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetUInt8(DataType.OctetString);
+            if (encryptionKey == null)
+            {
+                bb.SetUInt8(0);
+            }
+            else
+            {
+                GXCommon.SetObjectCount(encryptionKey.Length, bb);
+                bb.Set(encryptionKey);
+            }
+            return client.Method(this, 7, bb.Array(), DataType.Array);
+        }
+
+        /// <summary>
+        /// Transfers an encryption key to the M-Bus slave device.
+        /// </summary>
+        /// <param name="client">DLMS client settings.</param>
+        /// <param name="encryptionKey">encryption key</param>
+        /// <returns>Generated DLMS data.</returns>
+        public byte[][] TransferKey(GXDLMSClient client, byte[] encryptionKey)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetUInt8(DataType.OctetString);
+            if (encryptionKey == null)
+            {
+                bb.SetUInt8(0);
+            }
+            else
+            {
+                GXCommon.SetObjectCount(encryptionKey.Length, bb);
+                bb.Set(encryptionKey);
+            }
+            return client.Method(this, 8, bb.Array(), DataType.Array);
         }
 
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
