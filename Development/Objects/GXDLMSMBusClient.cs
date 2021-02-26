@@ -43,6 +43,39 @@ using Gurux.DLMS.Objects.Enums;
 namespace Gurux.DLMS.Objects
 {
     /// <summary>
+    /// M-Bus data definition element.
+    /// </summary>
+    public class GXMBusClientData
+    {
+        /// <summary>
+        /// Data information block.
+        /// </summary>
+        public byte[] DataInformation
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Value information block.
+        /// </summary>
+        public byte[] ValueInformation
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Data.
+        /// </summary>
+        public object Data
+        {
+            get;
+            set;
+        }
+    }
+
+    /// <summary>
     /// Use this class to setup M-Bus slave devices and to exchange data with them.
     /// Online help:
     /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSMBusClient
@@ -176,6 +209,84 @@ namespace Gurux.DLMS.Objects
         {
             get;
             set;
+        }
+
+        /// <summary>
+        /// Installs a slave device.
+        /// </summary>
+        /// <param name="client">DLMS client settings.</param>
+        /// <param name="primaryAddress">Primary address.</param>
+        /// <returns>Generated DLMS data.</returns>
+        public byte[][] SlaveInstall(GXDLMSClient client, byte primaryAddress)
+        {
+            return client.Method(this, 1, primaryAddress, DataType.Int8);
+        }
+
+        /// <summary>
+        /// Installs a slave device.
+        /// </summary>
+        /// <param name="client">DLMS client settings.</param>
+        /// <returns>Generated DLMS data.</returns>
+        public byte[][] SlaveDeInstall(GXDLMSClient client)
+        {
+            return client.Method(this, 2, 0, DataType.Int8);
+        }
+
+        /// <summary>
+        /// Captures values.
+        /// </summary>
+        /// <param name="client">DLMS client settings.</param>
+        /// <returns>Generated DLMS data.</returns>
+        public byte[][] Capture(GXDLMSClient client)
+        {
+            return client.Method(this, 3, 0, DataType.Int8);
+        }
+
+        /// <summary>
+        /// Resets alarm state of the M-Bus slave device.
+        /// </summary>
+        /// <param name="client">DLMS client settings.</param>
+        /// <returns>Generated DLMS data.</returns>
+        public byte[][] ResetAlarm(GXDLMSClient client)
+        {
+            return client.Method(this, 4, 0, DataType.Int8);
+        }
+
+        /// <summary>
+        /// Synchronize the clock.
+        /// </summary>
+        /// <param name="client">DLMS client settings.</param>
+        /// <returns>Generated DLMS data.</returns>
+        public byte[][] SynchronizeClock(GXDLMSClient client)
+        {
+            return client.Method(this, 5, 0, DataType.Int8);
+        }
+
+        /// <summary>
+        /// Sends data to the M-Bus slave device.
+        /// </summary>
+        /// <param name="client">DLMS client settings.</param>
+        /// <param name="data">data to send</param>
+        /// <returns>Generated DLMS data.</returns>
+        public byte[][] SendData(GXDLMSClient client, GXMBusClientData[] data)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetUInt8(DataType.Array);
+            bb.SetUInt8(DataType.Structure);
+            GXCommon.SetObjectCount(data.Length, bb);
+            foreach (GXMBusClientData it in data)
+            {
+                bb.SetUInt8(DataType.Structure);
+                bb.SetUInt8(3);
+                bb.SetUInt8(DataType.OctetString);
+                GXCommon.SetObjectCount(it.DataInformation.Length, bb);
+                bb.Set(it.DataInformation);
+                bb.SetUInt8(DataType.OctetString);
+                GXCommon.SetObjectCount(it.ValueInformation.Length, bb);
+                bb.Set(it.ValueInformation);
+                GXCommon.SetData(client.Settings, bb, GXDLMSConverter.GetDLMSDataType(it.Data), it.Data);
+            }
+            return client.Method(this, 5, bb.Array(), DataType.Array);
         }
 
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>

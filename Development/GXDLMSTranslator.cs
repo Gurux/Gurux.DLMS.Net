@@ -1502,7 +1502,10 @@ namespace Gurux.DLMS
                     msg.Command = (Command)cmd;
                 }
                 GetCiphering(settings, IsCiphered(cmd));
-                ((GXCiphering)settings.Cipher).TestMode = true;
+                if (settings != null && settings.Cipher != null)
+                {
+                    ((GXCiphering)settings.Cipher).TestMode = true;
+                }
                 settings.Standard = Standard;
                 string str;
                 int len;
@@ -1936,7 +1939,10 @@ namespace Gurux.DLMS
             }
             finally
             {
-                ((GXCiphering)settings.Cipher).TestMode = false;
+                if (settings != null && settings.Cipher != null)
+                {
+                    ((GXCiphering)settings.Cipher).TestMode = false;
+                }
             }
         }
 
