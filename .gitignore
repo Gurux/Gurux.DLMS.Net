@@ -199,3 +199,4 @@ Gurux.DLMS.XmlClient/.vs/Gurux.DLMS.XmlClient/DesignTimeBuild/.dtbcache.v2
 *.v2
 Development/.vs/Gurux.DLMS.Net/v16/Browse.VC.db-wal
 *.db-shm
+Gurux.DLMS.Simulator.Net/Properties/launchSettings.json

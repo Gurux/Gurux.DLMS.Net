@@ -538,6 +538,21 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Gateway settings.
+        /// </summary>
+        public GXDLMSGateway Gateway
+        {
+            get
+            {
+                return Settings.Gateway;
+            }
+            set
+            {
+                Settings.Gateway = value;
+            }
+        }
+
+        /// <summary>
         /// GBT window size.
         /// </summary>
         public byte WindowSize
@@ -1019,6 +1034,31 @@ namespace Gurux.DLMS
             return sr.Reply;
         }
 
+        private byte[] AddPduToFrame(Command cmd, byte frame, GXByteBuffer data)
+        {
+            byte[] reply;
+            switch (InterfaceType)
+            {
+                case InterfaceType.WRAPPER:
+                    reply = GXDLMS.GetWrapperFrame(Settings, cmd, data);
+                    break;
+                case InterfaceType.HDLC:
+                case InterfaceType.HdlcWithModeE:
+                    reply = GXDLMS.GetHdlcFrame(Settings, frame, data);
+                    break;
+                case InterfaceType.Plc:
+                case InterfaceType.PlcHdlc:
+                    reply = GXDLMS.GetMacFrame(Settings, frame, 0, data);
+                    break;
+                case InterfaceType.PDU:
+                    reply = data.Array();
+                    break;
+                default:
+                    throw new Exception("Unknown interface type " + InterfaceType);
+            }
+            return reply;
+        }
+
         ///<summary>
         /// Handles client request.
         /// </summary>
@@ -1048,7 +1088,9 @@ namespace Gurux.DLMS
                     {
                         dataReceived = DateTime.Now;
                         receivedData.Size = 0;
-                        sr.Reply = GXDLMS.GetHdlcFrame(Settings, (byte)Command.UnacceptableFrame, replyData);
+                        sr.Reply = ReportError(info.Command, ErrorCode.HardwareFault);
+                        info.Clear();
+                        //                        sr.Reply = GXDLMS.GetHdlcFrame(Settings, (byte)Command.UnacceptableFrame, replyData);
                         return;
                     }
                     //If all data is not received yet.
@@ -1057,6 +1099,7 @@ namespace Gurux.DLMS
                         return;
                     }
                     receivedData.Clear();
+                    sr.Command = info.Command;
                     if (info.Command == Command.DisconnectRequest && Settings.Connected == ConnectionState.None)
                     {
                         // Check is data send to this server.
@@ -1068,7 +1111,15 @@ namespace Gurux.DLMS
                         info.Clear();
                         return;
                     }
-
+                    //If data is send using GW.
+                    if (info.Gateway != null)
+                    {
+                        sr.Gateway = info.Gateway;
+                        sr.Data = info.Data.Array();
+                        info.Command = Command.None;
+                        info.Data.Clear();
+                        return;
+                    }
                     if ((first || info.Command == Command.Snrm ||
                         (Settings.InterfaceType == InterfaceType.WRAPPER && info.Command == Command.Aarq)) &&
                         Settings.InterfaceType != InterfaceType.PDU)
@@ -1142,7 +1193,10 @@ namespace Gurux.DLMS
                 catch (Exception)
                 {
                     receivedData.Size = 0;
-                    sr.Reply = GXDLMS.GetHdlcFrame(Settings, (byte)Command.UnacceptableFrame, replyData);
+                    if (InterfaceType == InterfaceType.HDLC || InterfaceType == InterfaceType.HdlcWithModeE)
+                    {
+                        sr.Reply = GXDLMS.GetHdlcFrame(Settings, (byte)Command.UnacceptableFrame, replyData);
+                    }
                 }
                 info.Clear();
                 dataReceived = DateTime.Now;
@@ -1150,16 +1204,10 @@ namespace Gurux.DLMS
             catch (GXDLMSConfirmedServiceError e)
             {
                 Debug.WriteLine(e.ToString());
+                replyData.Clear();
                 replyData.Set(GenerateConfirmedServiceError(e.ConfirmedServiceError, e.ServiceError, e.ServiceErrorValue));
                 info.Clear();
-                if (this.InterfaceType == Enums.InterfaceType.WRAPPER)
-                {
-                    sr.Reply = GXDLMS.GetWrapperFrame(Settings, info.Command, replyData);
-                }
-                else
-                {
-                    sr.Reply = GXDLMS.GetHdlcFrame(Settings, 0, replyData);
-                }
+                sr.Reply = AddPduToFrame(info.Command, 0, replyData);
             }
             catch (Exception ex)
             {
@@ -1273,30 +1321,28 @@ namespace Gurux.DLMS
                 default:
                     throw new Exception("Invalid command: " + (int)cmd);
             }
-            byte[] reply = null;
-            switch (InterfaceType)
-            {
-                case InterfaceType.WRAPPER:
-                    reply = GXDLMS.GetWrapperFrame(Settings, cmd, replyData);
-                    break;
-                case InterfaceType.HDLC:
-                case InterfaceType.HdlcWithModeE:
-                    reply = GXDLMS.GetHdlcFrame(Settings, frame, replyData);
-                    break;
-                case InterfaceType.Plc:
-                case InterfaceType.PlcHdlc:
-                    reply = GXDLMS.GetMacFrame(Settings, frame, 0, replyData);
-                    break;
-                case InterfaceType.PDU:
-                    reply = replyData.Array();
-                    break;
-            }
+            byte[] reply = AddPduToFrame(cmd, frame, replyData);
             if (cmd == Command.DisconnectRequest ||
                 (InterfaceType == InterfaceType.WRAPPER && cmd == Command.ReleaseRequest))
             {
                 Reset();
             }
             return reply;
+        }
+
+        public byte[] CustomFrameRequest(Command command, GXByteBuffer data)
+        {
+            GXByteBuffer tmp = new GXByteBuffer();
+            //If gateway is used.
+            if (Settings.Gateway != null)
+            {
+                tmp.SetUInt8(Command.GatewayResponse);
+                tmp.SetUInt8(Settings.Gateway.NetworkId);
+                tmp.SetUInt8((byte)Settings.Gateway.PhysicalDeviceAddress.Length);
+                tmp.Set(Settings.Gateway.PhysicalDeviceAddress);
+            }
+            tmp.Set(data);
+            return AddPduToFrame(command, 0, tmp);
         }
 
         private bool HandleGeneralBlockTransfer(GXByteBuffer data, GXServerReply sr, Command cipheredCommand)
@@ -1390,7 +1436,7 @@ namespace Gurux.DLMS
             return true;
         }
 
-        private byte[] ReportError(Command cmd, ErrorCode error)
+        protected byte[] ReportError(Command cmd, ErrorCode error)
         {
             switch (cmd)
             {
@@ -1424,14 +1470,7 @@ namespace Gurux.DLMS
                 GXDLMSSNParameters p = new GXDLMSSNParameters(Settings, cmd, 1, (byte)error, null, bb);
                 GXDLMS.GetSNPdu(p, replyData);
             }
-            if (this.InterfaceType == Enums.InterfaceType.WRAPPER)
-            {
-                return GXDLMS.GetWrapperFrame(Settings, cmd, replyData);
-            }
-            else
-            {
-                return GXDLMS.GetHdlcFrame(Settings, 0, replyData);
-            }
+            return AddPduToFrame(cmd, 0, replyData);
         }
 
         ///<summary>
@@ -1615,6 +1654,14 @@ namespace Gurux.DLMS
                 replyData.Set(0, GXCommon.LLCReplyBytes);
             }
             byte[] tmp = GXAPDU.GetUserInformation(Settings, Settings.Cipher);
+            if (Settings.Gateway != null && Settings.Gateway.PhysicalDeviceAddress != null)
+            {
+                replyData.SetUInt8(Command.GatewayResponse);
+                replyData.SetUInt8(Settings.Gateway.NetworkId);
+                replyData.SetUInt8((byte)Settings.Gateway.PhysicalDeviceAddress.Length);
+                replyData.Set(Settings.Gateway.PhysicalDeviceAddress);
+            }
+
             replyData.SetUInt8(0x63);
             //Len.
             replyData.SetUInt8((byte)(tmp.Length + 3));

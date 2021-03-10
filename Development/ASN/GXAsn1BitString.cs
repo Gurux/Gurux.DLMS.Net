@@ -178,13 +178,10 @@ namespace Gurux.DLMS.ASN
             if (Value != null)
             {
                 UInt16 bytePos = 0;
-                if (Value != null)
+                foreach (byte it in Value)
                 {
-                    foreach (byte it in Value)
-                    {
-                        ret |= (UInt32) (GXCommon.SwapBits(it) << bytePos);
-                        bytePos += 8;
-                    }
+                    ret |= (UInt32)(GXCommon.SwapBits(it) << bytePos);
+                    bytePos += 8;
                 }
             }
             return ret;
@@ -192,8 +189,7 @@ namespace Gurux.DLMS.ASN
 
         public int ToInteger()
         {
-            return (int) ToNumeric();
+            return (int)ToNumeric();
         }
     }
-
 }

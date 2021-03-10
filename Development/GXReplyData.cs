@@ -110,6 +110,16 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
+        /// PDU is not parsed and it's returned as it is.
+        ///</summary>
+        public bool RawPdu
+        {
+            get;
+            set;
+        }
+
+
+        ///<summary>
         /// Received command.
         ///</summary>
         public Command Command

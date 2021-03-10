@@ -396,6 +396,52 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Get HDLC sender and receiver address information.
+        /// </summary>
+        /// <param name="reply">Received data.</param>
+        /// <param name="target">target (primary) address</param>
+        /// <param name="source">Source (secondary) address.</param>
+        public static void GetWrapperAddressInfo(GXByteBuffer reply, out int target, out int source)
+        {
+            int pos = reply.Position;
+            try
+            {
+                if (reply.Available > 2 && reply.GetUInt16() == 1)
+                {
+                    GXDLMSSettings settings = new GXDLMSSettings(true, InterfaceType.WRAPPER);
+                    GXDLMS.CheckWrapperAddress(settings, reply, new GXReplyData(), null);
+                    target = settings.ServerAddress;
+                    source = settings.ClientAddress;
+                }
+                else
+                {
+                    target = source = 0;
+                }
+            }
+            finally
+            {
+                reply.Position = pos;
+            }
+        }
+
+        public static void GetAddressInfo(InterfaceType type, GXByteBuffer reply, out int target, out int source)
+        {
+            target = source = 0;
+            switch (type)
+            {
+                case InterfaceType.HDLC:
+                    GetHdlcAddressInfo(reply, out target, out source);
+                    break;
+                case InterfaceType.WRAPPER:
+                    GetWrapperAddressInfo(reply, out target, out source);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("Invalid interface type.");
+            }
+        }
+
+
+        /// <summary>
         /// Find next frame from the string.
         /// </summary>
         /// <remarks>

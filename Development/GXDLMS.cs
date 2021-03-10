@@ -1082,15 +1082,18 @@ namespace Gurux.DLMS
                 //If multiple blocks.
                 if (p.multipleBlocks && (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0)
                 {
-                    // Is last block.
-                    if (p.lastBlock)
+                    if (p.command != Command.SetResponse)
                     {
-                        reply.SetUInt8(1);
-                        p.settings.Count = p.settings.Index = 0;
-                    }
-                    else
-                    {
-                        reply.SetUInt8(0);
+                        // Is last block.
+                        if (p.lastBlock)
+                        {
+                            reply.SetUInt8(1);
+                            p.settings.Count = p.settings.Index = 0;
+                        }
+                        else
+                        {
+                            reply.SetUInt8(0);
+                        }
                     }
                     // Block index.
                     reply.SetUInt32(p.blockIndex);
@@ -1159,7 +1162,16 @@ namespace Gurux.DLMS
                             }
                             GXByteBuffer tmp = new GXByteBuffer(reply);
                             reply.Size = 0;
-                            reply.SetUInt8(Command.GatewayRequest);
+
+                            if (p.settings.IsServer && p.command != Command.DataNotification &&
+                                p.command != Command.EventNotification && p.command != Command.InformationReport)
+                            {
+                                reply.SetUInt8(Command.GatewayResponse);
+                            }
+                            else
+                            {
+                                reply.SetUInt8(Command.GatewayRequest);
+                            }
                             reply.SetUInt8(p.settings.Gateway.NetworkId);
                             reply.SetUInt8((byte)p.settings.Gateway.PhysicalDeviceAddress.Length);
                             reply.Set(p.settings.Gateway.PhysicalDeviceAddress);
@@ -2992,7 +3004,7 @@ namespace Gurux.DLMS
             return ret;
         }
 
-        private static bool CheckWrapperAddress(GXDLMSSettings settings, GXByteBuffer buff, GXReplyData data, GXReplyData notify)
+        internal static bool CheckWrapperAddress(GXDLMSSettings settings, GXByteBuffer buff, GXReplyData data, GXReplyData notify)
         {
             bool ret = true;
             int value;
@@ -4715,6 +4727,7 @@ namespace Gurux.DLMS
                                    GXByteBuffer reply, GXReplyData data, GXReplyData notify, GXDLMSClient client)
         {
             byte frame = 0;
+            bool isLast = true;
             bool isNotify = false;
             switch (settings.InterfaceType)
             {
@@ -4723,6 +4736,7 @@ namespace Gurux.DLMS
                 case InterfaceType.HdlcWithModeE:
                     {
                         frame = GetHdlcData(settings.IsServer, settings, reply, data, notify);
+                        isLast = (frame & 0x10) != 0;
                         if (notify != null && (frame == 0x13 || frame == 0x3))
                         {
                             data = notify;
@@ -4779,6 +4793,11 @@ namespace Gurux.DLMS
                 }
                 return true;
             }
+            if (data.RawPdu)
+            {
+                data.Data.Position = 0;
+                return !isNotify;
+            }
             GetPdu(settings, data, client);
             if (notify != null && !isNotify)
             {
@@ -4804,6 +4823,10 @@ namespace Gurux.DLMS
                     default:
                         break;
                 }
+            }
+            if (!isLast)
+            {
+                return GetData(settings, reply, data, notify, client);
             }
             return !isNotify;
         }

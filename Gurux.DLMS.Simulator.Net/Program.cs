@@ -67,6 +67,10 @@ namespace Gurux.DLMS.Simulator.Net
                 }
                 ////////////////////////////////////////
                 reader = new Reader.GXDLMSReader(settings.client, settings.media, settings.trace, settings.invocationCounter);
+                if (settings.gatewaySettings != null)
+                {
+                    settings.client.Gateway.NetworkId = Convert.ToByte(settings.gatewaySettings);
+                }
                 settings.media.Open();
                 //Some meters need a break here.
                 Thread.Sleep(1000);
@@ -127,6 +131,10 @@ namespace Gurux.DLMS.Simulator.Net
                 {
                     str = "DLMS WRAPPER";
                 }
+                if (settings.gatewaySettings != null)
+                {
+                    str += " Gateway for " + settings.gatewaySettings + " meters.";
+                }
                 if (settings.client.UseLogicalNameReferencing)
                 {
                     str += " Logical Name ";
@@ -140,6 +148,20 @@ namespace Gurux.DLMS.Simulator.Net
                 if (settings.exclusive)
                 {
                     Console.WriteLine(str + "simulator start in port {0} implementing {1} meters.", net.Port, settings.serverCount);
+                    if (settings.gatewaySettings != null)
+                    {
+                        net.OnReceived += new Gurux.Common.ReceivedEventHandler(GXDLMSMeter.OnGatewayReceived);
+                        GXDLMSMeter.GatewayServer = new GXDLMSMeter(settings.client.UseLogicalNameReferencing, settings.client.InterfaceType);
+                        GXDLMSMeter.GatewayServer.Initialize();
+                        settings.client.InterfaceType = (InterfaceType)settings.gatewaySettings;
+                    }
+                    else
+                    {
+                        net.OnReceived += new Gurux.Common.ReceivedEventHandler(GXDLMSMeter.OnExclusiveReceived);
+                    }
+                    net.OnClientConnected += new Gurux.Common.ClientConnectedEventHandler(GXDLMSMeter.OnClientConnected);
+                    net.OnClientDisconnected += new Gurux.Common.ClientDisconnectedEventHandler(GXDLMSMeter.OnClientDisconnected);
+                    net.OnError += new Gurux.Common.ErrorEventHandler(GXDLMSMeter.OnError);
                 }
                 else
                 {
@@ -148,12 +170,11 @@ namespace Gurux.DLMS.Simulator.Net
                 for (int pos = 0; pos != settings.serverCount; ++pos)
                 {
                     GXDLMSMeter server = new GXDLMSMeter(settings.client.UseLogicalNameReferencing, settings.client.InterfaceType);
-                    server.Conformance = Conformance.None;
-                    server.MaxReceivePDUSize = 0;
                     servers.Add(server);
                     if (settings.exclusive)
                     {
-                        server.Initialize(net, settings.trace, settings.inputFile, (UInt32) pos + 1, settings.exclusive);
+                        server.Initialize(net, settings.trace, settings.inputFile, (UInt32)pos + 1, settings.exclusive);
+                        GXDLMSMeter.meters.Add(pos + 1, server);
                     }
                     else
                     {

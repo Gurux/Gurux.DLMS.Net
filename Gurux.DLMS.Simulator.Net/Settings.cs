@@ -61,11 +61,14 @@ namespace Gurux.DLMS.Simulator.Net
         public string inputFile = null;
         //All meters are using the same port number.
         public bool exclusive = false;
+        //Gateway settings.
+        public object gatewaySettings = null;
+
         static public int GetParameters(string[] args, Settings settings)
         {
             string[] tmp;
             GXNet net;
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:wP:g:S:C:n:v:o:T:A:B:D:d:l:F:r:x:N:Xx:");
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:wP:g:S:C:n:v:o:T:A:B:D:d:l:F:r:x:N:Xx:G:");
             foreach (GXCmdParameter it in parameters)
             {
                 switch (it.Tag)
@@ -123,7 +126,7 @@ namespace Gurux.DLMS.Simulator.Net
                         }
                         catch (Exception)
                         {
-                            throw new ArgumentException("Invalid interface type option. (HDLC, WRAPPER, HdlcWithModeE, Plc, PlcHdlc)");
+                            throw new ArgumentException("Invalid interface type option. (HDLC, WRAPPER, HdlcWithModeE, Plc, PlcHdlc, PDU)");
                         }
                         break;
                     case 'I':
@@ -220,7 +223,7 @@ namespace Gurux.DLMS.Simulator.Net
                     case 'C':
                         try
                         {
-                            settings.client.Ciphering.Security = Convert.ToByte(Enum.Parse(typeof(Security), it.Value));
+                            settings.client.Ciphering.Security = (Security)Enum.Parse(typeof(Security), it.Value);
                         }
                         catch (Exception)
                         {
@@ -286,6 +289,10 @@ namespace Gurux.DLMS.Simulator.Net
                         break;
                     case 'n':
                         settings.client.ServerAddress = GXDLMSClient.GetServerAddress(int.Parse(it.Value));
+                        break;
+                    case 'G':
+                        settings.gatewaySettings = Enum.Parse(typeof(InterfaceType), it.Value);
+                        settings.exclusive = true;
                         break;
                     case '?':
                         switch (it.Tag)
@@ -385,12 +392,13 @@ namespace Gurux.DLMS.Simulator.Net
             Console.WriteLine(" -v \t Invocation counter data object Logical Name. Ex. 0.0.43.1.1.255");
             Console.WriteLine(" -I \t Auto increase invoke ID");
             Console.WriteLine(" -o \t Cache association view to make reading faster. Ex. -o C:\\device.xml");
-            Console.WriteLine(" -T \t System title that is used with chiphering. Ex -T 4775727578313233");
-            Console.WriteLine(" -A \t Authentication key that is used with chiphering. Ex -A D0D1D2D3D4D5D6D7D8D9DADBDCDDDEDF");
-            Console.WriteLine(" -B \t Block cipher key that is used with chiphering. Ex -B 000102030405060708090A0B0C0D0E0F");
-            Console.WriteLine(" -D \t Dedicated key that is used with chiphering. Ex -D 00112233445566778899AABBCCDDEEFF");
+            Console.WriteLine(" -T \t System title that is used with chiphering. Ex. -T 4775727578313233");
+            Console.WriteLine(" -A \t Authentication key that is used with chiphering. Ex. -A D0D1D2D3D4D5D6D7D8D9DADBDCDDDEDF");
+            Console.WriteLine(" -B \t Block cipher key that is used with chiphering. Ex. -B 000102030405060708090A0B0C0D0E0F");
+            Console.WriteLine(" -D \t Dedicated key that is used with chiphering. Ex. -D 00112233445566778899AABBCCDDEEFF");
             Console.WriteLine(" -F \t Initial Frame Counter (Invocation counter) value.");
-            Console.WriteLine(" -d \t Used DLMS standard. Ex -d India (DLMS, India, Italy, SaudiArabia, IDIS)");
+            Console.WriteLine(" -d \t Used DLMS standard. Ex. -d India (DLMS, India, Italy, SaudiArabia, IDIS)");
+            Console.WriteLine(" -G \t Simulator is acting like a gateway for the meters that are using different interface than GW. Ex. -G HDLC");
             Console.WriteLine("Example:");
             Console.WriteLine("Read DLMS device using TCP/IP connection.");
             Console.WriteLine("Gurux.Dlms.Simulator.Net -c 16 -s 1 -h [Meter IP Address] -p [Meter Port No] -o meter-template.xml");

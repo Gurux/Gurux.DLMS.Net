@@ -2899,10 +2899,12 @@ namespace Gurux.DLMS
         /// </remarks>
         /// <param name="serialNumber">Meter serial number.</param>
         /// <returns>Server address.</returns>
+        [Obsolete("Use GetServerAddressFromSerialNumber instead")]
         public static int GetServerAddress(int serialNumber)
         {
             return GetServerAddress(serialNumber, null);
         }
+
         /// <summary>
         /// Converts meter serial number to server address.
         /// </summary>
@@ -2912,6 +2914,7 @@ namespace Gurux.DLMS
         /// <remarks>
         /// All meters do not use standard formula or support serial number addressing at all.
         /// </remarks>
+        [Obsolete("Use GetServerAddressFromSerialNumber instead")]
         public static int GetServerAddress(int serialNumber, string formula)
         {
             //If formula is not given use default formula.
@@ -2921,6 +2924,45 @@ namespace Gurux.DLMS
                 formula = "SN % 10000 + 1000";
             }
             return 0x4000 | SerialnumberCounter.Count(serialNumber, formula);
+        }
+
+        /// <summary>
+        /// Converts meter serial number to server address.
+        /// Default formula is used.
+        /// </summary>
+        /// <remarks>
+        /// All meters do not use standard formula or support serial number addressing at all.
+        /// </remarks>
+        /// <param name="serialNumber">Meter serial number.</param>
+        /// <returns>Server address.</returns>
+        public static int GetServerAddressFromSerialNumber(int serialNumber, int logicalAddress)
+        {
+            return GetServerAddressFromSerialNumber(serialNumber, logicalAddress, null);
+        }
+
+        /// <summary>
+        /// Converts meter serial number to server address.
+        /// </summary>
+        /// <param name="serialNumber">Meter serial number.</param>
+        /// <param name="logicalAddress">Server logical address.</param>
+        /// <param name="formula">Formula used to convert serial number to server address.</param>
+        /// <returns>Server address.</returns>
+        /// <remarks>
+        /// All meters do not use standard formula or support serial number addressing at all.
+        /// </remarks>
+        public static int GetServerAddressFromSerialNumber(int serialNumber, int logicalAddress, string formula)
+        {
+            //If formula is not given use default formula.
+            //This formula is defined in DLMS specification.
+            if (String.IsNullOrEmpty(formula))
+            {
+                formula = "SN % 10000 + 1000";
+            }
+            if (logicalAddress == 0)
+            {
+                return SerialnumberCounter.Count(serialNumber, formula);
+            }
+            return logicalAddress << 14 | SerialnumberCounter.Count(serialNumber, formula);
         }
 
         /// <summary>
@@ -3049,7 +3091,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Generates a invalid HDLC frame.
+        /// Generates a custom HDLC frame.
         /// </summary>
         /// <param name="command">HDLC command.</param>
         /// <param name="data">data</param>

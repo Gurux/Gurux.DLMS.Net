@@ -49,10 +49,29 @@ namespace Gurux.DLMS.Simulator.Net
     /// </summary>
     class GXDLMSMeter : GXDLMSSecureServer
     {
+        /// <summary>
+        /// Server that is used to parse Gateway messages.
+        /// </summary>
+        public static GXDLMSMeter GatewayServer = null;
+
+        static Dictionary<object, GXByteBuffer> buffers = new Dictionary<object, GXByteBuffer>();
+
+        /// <summary>
+        /// List of simulated meters.
+        /// </summary>
+        public static Dictionary<int, GXDLMSMeter> meters = new Dictionary<int, GXDLMSMeter>();
+
+        /// <summary>
+        /// List of gateway clients.
+        /// </summary>
+        public static Dictionary<int, GXDLMSClient> clients = new Dictionary<int, GXDLMSClient>();
+
+        static InterfaceType interfaceType;
+
         //Are all meters using the same port.
         bool Exclusive;
         string objectsFile;
-        TraceLevel Trace = TraceLevel.Error;
+        static TraceLevel Trace = TraceLevel.Error;
         /// <summary>
         /// Lock settings file when used.
         /// </summary>
@@ -71,6 +90,7 @@ namespace Gurux.DLMS.Simulator.Net
         ///<param name="type">Interface type.</param>
         public GXDLMSMeter(bool logicalNameReferencing, InterfaceType type) : base(logicalNameReferencing, type)
         {
+            interfaceType = type;
         }
         public void Initialize(IGXMedia media, TraceLevel trace, string path, UInt32 sn, bool exclusive)
         {
@@ -79,7 +99,7 @@ namespace Gurux.DLMS.Simulator.Net
             Media = media;
             Trace = trace;
             Exclusive = exclusive;
-            Init();
+            Init(exclusive);
         }
 
         /// <summary>
@@ -149,17 +169,231 @@ namespace Gurux.DLMS.Simulator.Net
             return false;
         }
 
-        bool Init()
+        /// <summary>
+        /// Client has send data for for the gateway.
+        /// </summary>
+        /// <remarks>
+        /// GW finds the correct client and sends data for it.
+        /// </remarks>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public static void OnGatewayReceived(object sender, Gurux.Common.ReceiveEventArgs e)
+        {
+            try
+            {
+                lock (buffers)
+                {
+                    GXByteBuffer bb;
+                    if (!buffers.ContainsKey(e.SenderInfo))
+                    {
+                        bb = new GXByteBuffer();
+                        buffers[e.SenderInfo] = bb;
+                    }
+                    else
+                    {
+                        bb = buffers[e.SenderInfo];
+                    }
+                    bb.Set((byte[])e.Data);
+                    GXServerReply sr = new GXServerReply(bb.Data);
+                    GatewayServer.Reset();
+                    try
+                    {
+                        GatewayServer.HandleRequest(sr);
+                        if (sr.Reply != null)
+                        {
+                            if (Trace > TraceLevel.Info)
+                            {
+                                Console.WriteLine("TX:\t" + Gurux.Common.GXCommon.ToHex(sr.Reply, true));
+                            }
+                            ((IGXMedia)sender).Send(sr.Reply, e.SenderInfo);
+                            return;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        //Return error.
+                        sr.Reply = GatewayServer.ReportError(sr.Command, ErrorCode.HardwareFault);
+                    }
+                    if (sr.Gateway != null && sr.Data != null)
+                    {
+                        GXByteBuffer pdu = new GXByteBuffer(sr.Data);
+                        InterfaceType type = (InterfaceType)sr.Gateway.NetworkId;
+                        GXByteBuffer address = new GXByteBuffer();
+                        address.Set(sr.Gateway.PhysicalDeviceAddress);
+                        int addr = address.GetUInt8();
+                        //Find correct meter using GW information.
+                        if (meters.ContainsKey(addr))
+                        {
+                            //Find client for the server or create a new one.
+                            GXDLMSClient cl;
+                            if (!clients.ContainsKey(addr))
+                            {
+                                //Set client address if data is send without framing.
+                                if (GatewayServer.Settings.ClientAddress == 0)
+                                {
+                                    GatewayServer.Settings.ClientAddress = 0x10;
+                                }
+                                cl = new GXDLMSClient(true, GatewayServer.Settings.ClientAddress, addr, GatewayServer.Authentication, null, type);
+                                clients.Add(addr, cl);
+                            }
+                            else
+                            {
+                                cl = clients[addr];
+                            }
+                            GXReplyData data = new GXReplyData();
+                            GXReplyData notify = new GXReplyData();
+                            GXDLMSMeter m = meters[addr];
+                            //Send SNRM if needed.
+                            if (sr.Command == Command.Aarq && (type == InterfaceType.HDLC || type == InterfaceType.HdlcWithModeE))
+                            {
+                                GXServerReply sr2 = new GXServerReply(cl.SNRMRequest());
+                                m.HandleRequest(sr2);
+                                if (cl.GetData(sr2.Reply, data, notify))
+                                {
+                                    data.Clear();
+                                    notify.Clear();
+                                }
+                                else
+                                {
+                                    //If the meter doesn't reply.
+                                    bb.Clear();
+                                    return;
+                                }
+                            }
+                            byte[][] frames = cl.CustomFrameRequest(Command.None, pdu);
+                            foreach (byte[] it in frames)
+                            {
+                                sr.Data = it;
+                                m.HandleRequest(sr);
+                                if (Trace > TraceLevel.Info)
+                                {
+                                    Console.WriteLine("RX:\t" + Gurux.Common.GXCommon.ToHex(sr.Reply, true));
+                                }
+                                data.RawPdu = true;
+                                if (cl.GetData(sr.Reply, data, notify))
+                                {
+                                    while (data.IsMoreData)
+                                    {
+                                        sr.Data = cl.ReceiverReady(data);
+                                        m.HandleRequest(sr);
+                                        if (Trace > TraceLevel.Info)
+                                        {
+                                            Console.WriteLine("RX:\t" + Gurux.Common.GXCommon.ToHex(sr.Reply, true));
+                                        }
+                                        cl.GetData(sr.Reply, data, notify);
+                                    }
+                                    byte[] reply = sr.Reply;
+                                    try
+                                    {
+                                        GXByteBuffer tmp = new GXByteBuffer();
+                                        tmp.Set(data.Data);
+                                        GatewayServer.Gateway = sr.Gateway;
+                                        reply = GatewayServer.CustomFrameRequest(Command.None, tmp);
+                                    }
+                                    finally
+                                    {
+                                        GatewayServer.Gateway = null;
+                                    }
+                                    if (Trace > TraceLevel.Info)
+                                    {
+                                        Console.WriteLine("TX:\t" + Gurux.Common.GXCommon.ToHex(reply, true));
+                                    }
+                                    ((IGXMedia)sender).Send(reply, e.SenderInfo);
+                                }
+                            }
+                        }
+                        bb.Clear();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (!(ex is SocketException))
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+        }
+
+
+
+        /// <summary>
+        /// Client has send data for the meters that are using the same port.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public static void OnExclusiveReceived(object sender, Gurux.Common.ReceiveEventArgs e)
+        {
+            try
+            {
+                lock (buffers)
+                {
+                    GXByteBuffer bb;
+                    if (!buffers.ContainsKey(e.SenderInfo))
+                    {
+                        bb = new GXByteBuffer();
+                        buffers[e.SenderInfo] = bb;
+                    }
+                    else
+                    {
+                        bb = buffers[e.SenderInfo];
+                    }
+                    bb.Set((byte[])e.Data);
+                    int target, source;
+                    //All simulated meters are using the same interface type.
+                    GXDLMSTranslator.GetAddressInfo(interfaceType, bb, out target, out source);
+                    if (target != 0 && meters.ContainsKey(target))
+                    {
+                        GXDLMSMeter m = meters[target];
+                        if (Trace > TraceLevel.Info)
+                        {
+                            Console.WriteLine("RX:\t" + Gurux.Common.GXCommon.ToHex((byte[])e.Data, true));
+                        }
+                        GXServerReply sr = new GXServerReply(bb.Data);
+                        do
+                        {
+                            m.HandleRequest(sr);
+                            //Reply is null if we do not want to send any data to the client.
+                            //This is done if client try to make connection with wrong device ID.
+                            if (sr.Reply != null)
+                            {
+                                if (Trace > TraceLevel.Info)
+                                {
+                                    Console.WriteLine("TX:\t" + Gurux.Common.GXCommon.ToHex(sr.Reply, true));
+                                }
+                                bb.Clear();
+                                m.Media.Send(sr.Reply, e.SenderInfo);
+                                sr.Data = null;
+                            }
+                        }
+                        while (sr.IsStreaming);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (!(ex is SocketException))
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+        }
+
+        bool Init(bool exclusive)
         {
             //Load added objects.
             if (!LoadSettings())
             {
                 throw new Exception(string.Format("Invalid device template file {0}", objectsFile));
             }
-            Media.OnReceived += new Gurux.Common.ReceivedEventHandler(OnReceived);
-            Media.OnClientConnected += new Gurux.Common.ClientConnectedEventHandler(OnClientConnected);
-            Media.OnClientDisconnected += new Gurux.Common.ClientDisconnectedEventHandler(OnClientDisconnected);
-            Media.OnError += new Gurux.Common.ErrorEventHandler(OnError);
+            //Own listener isn't created if there are multiple meters in the same port.
+            if (!exclusive)
+            {
+                Media.OnReceived += new Gurux.Common.ReceivedEventHandler(OnReceived);
+                Media.OnClientConnected += new Gurux.Common.ClientConnectedEventHandler(OnClientConnected);
+                Media.OnClientDisconnected += new Gurux.Common.ClientDisconnectedEventHandler(OnClientDisconnected);
+                Media.OnError += new Gurux.Common.ErrorEventHandler(OnError);
+            }
             if (!Media.IsOpen)
             {
                 Media.Open();
@@ -179,7 +413,7 @@ namespace Gurux.DLMS.Simulator.Net
             }
         }
 
-        void OnError(object sender, Exception ex)
+        public static void OnError(object sender, Exception ex)
         {
             System.Diagnostics.Debug.WriteLine(ex.Message);
         }
@@ -395,7 +629,8 @@ namespace Gurux.DLMS.Simulator.Net
                     }
                     else
                     {
-                        ret = serverAddress == 1;
+                        //Accept all server addresses if there is no SAP table available.
+                        ret = true;
                     }
                 }
             }
@@ -497,12 +732,17 @@ namespace Gurux.DLMS.Simulator.Net
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void OnClientDisconnected(object sender, Gurux.Common.ConnectionEventArgs e)
+        public static void OnClientDisconnected(object sender, Gurux.Common.ConnectionEventArgs e)
         {
             //Show trace only for one meter.
-            if (Trace > TraceLevel.Warning && (!Exclusive || serialNumber == 1))
+            if (Trace > TraceLevel.Warning)
             {
                 Console.WriteLine("TCP/IP connection closed.");
+            }
+            //Clear the buffer.
+            if (buffers.ContainsKey(e.Info))
+            {
+                buffers[e.Info].Clear();
             }
         }
 
@@ -511,12 +751,17 @@ namespace Gurux.DLMS.Simulator.Net
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void OnClientConnected(object sender, Gurux.Common.ConnectionEventArgs e)
+        public static void OnClientConnected(object sender, Gurux.Common.ConnectionEventArgs e)
         {
             //Show trace only for one meter.
-            if (Trace > TraceLevel.Warning && (!Exclusive || serialNumber == 1))
+            if (Trace > TraceLevel.Warning)
             {
                 Console.WriteLine("TCP/IP connection established.");
+            }
+            //Clear the buffer.
+            if (buffers.ContainsKey(e.Info))
+            {
+                buffers[e.Info].Clear();
             }
         }
 

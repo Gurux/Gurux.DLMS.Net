@@ -1690,6 +1690,15 @@ namespace Gurux.DLMS.Internal
             }
             // Set AARE length
             GXCommon.InsertObjectCount(data.Size - offset - 1, data, offset + 1);
+            if (settings.Gateway != null && settings.Gateway.PhysicalDeviceAddress != null)
+            {
+                GXByteBuffer tmp = new GXByteBuffer();
+                tmp.SetUInt8(Command.GatewayResponse);
+                tmp.SetUInt8(settings.Gateway.NetworkId);
+                tmp.SetUInt8((byte)settings.Gateway.PhysicalDeviceAddress.Length);
+                tmp.Set(settings.Gateway.PhysicalDeviceAddress);
+                data.Set(0, tmp.Array());
+            }
         }
     }
 }

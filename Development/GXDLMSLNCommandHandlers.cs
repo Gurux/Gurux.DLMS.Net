@@ -148,7 +148,7 @@ namespace Gurux.DLMS
                 // Get invoke ID and priority.
                 byte invoke = data.GetUInt8();
                 settings.UpdateInvokeId(invoke);
-                p = new GXDLMSLNParameters(null, settings, invoke, Command.SetResponse, (byte)type, null, null, 0, cipheredCommand);
+                p = new GXDLMSLNParameters(null, settings, invoke, Command.SetResponse, (byte)type, null, null, 0xFF, cipheredCommand);
                 // SetRequest normal or Set Request With First Data Block
                 if (xml != null)
                 {
@@ -168,6 +168,10 @@ namespace Gurux.DLMS
                 {
                     case (byte)SetRequestType.Normal:
                     case (byte)SetRequestType.FirstDataBlock:
+                        if (type == (byte)SetRequestType.Normal)
+                        {
+                            p.status = 0;
+                        }
                         HandleSetRequestNormal(settings, server, data, (byte)type, p, replyData, xml);
                         break;
                     case (byte)SetRequestType.WithDataBlock:
@@ -754,7 +758,6 @@ namespace Gurux.DLMS
                     xml.AppendLine(TranslatorTags.RawData, "Value", data.RemainingHexString(false));
                     xml.AppendEndTag(TranslatorTags.DataBlock);
                 }
-                return;
             }
             if (xml != null)
             {

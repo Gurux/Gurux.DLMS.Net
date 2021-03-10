@@ -547,6 +547,11 @@ namespace Gurux.DLMS
                     ReceiverFrame = frame;
                     return true;
                 }
+                if (frame == (expected & ~0x10))
+                {
+                    ReceiverFrame = IncreaseSendSequence(ReceiverFrame);
+                    return true;
+                }
             }
             //If answer for RR.
             else
