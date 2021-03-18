@@ -196,7 +196,7 @@ namespace Gurux.DLMS.Reader
                 Client.ProposedConformance |= Conformance.GeneralProtection;
                 int add = Client.ClientAddress;
                 Authentication auth = Client.Authentication;
-                byte security = Client.Ciphering.Security;
+                Security security = Client.Ciphering.Security;
                 byte[] challenge = Client.CtoSChallenge;
                 try
                 {

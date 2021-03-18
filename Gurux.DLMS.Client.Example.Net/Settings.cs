@@ -42,9 +42,6 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Secure;
 using System.Diagnostics;
 using System.IO.Ports;
-using Gurux.DLMS.ASN;
-using Gurux.DLMS.Objects.Enums;
-using Gurux.DLMS.Ecdsa;
 
 namespace Gurux.DLMS.Client.Example
 {
@@ -59,8 +56,6 @@ namespace Gurux.DLMS.Client.Example
         public List<KeyValuePair<string, int>> readObjects = new List<KeyValuePair<string, int>>();
         //Cache file.
         public string outputFile = null;
-        public GXx509Certificate publicKey;
-        public GXPkcs8 privateKey;
 
         public static int GetParameters(string[] args, Settings settings)
         {
@@ -68,7 +63,7 @@ namespace Gurux.DLMS.Client.Example
             //Has user give the custom serial port settings or are the default values used in mode E.
             bool modeEDefaultValues = true;
             string[] tmp;
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:P:g:S:C:n:v:o:T:A:B:D:d:l:F:K:k:m:");
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:P:g:S:C:n:v:o:T:A:B:D:d:l:F:m:");
             GXNet net = null;
             foreach (GXCmdParameter it in parameters)
             {
@@ -239,7 +234,7 @@ namespace Gurux.DLMS.Client.Example
                     case 'C':
                         try
                         {
-                            settings.client.Ciphering.Security = Convert.ToByte(Enum.Parse(typeof(Security), it.Value));
+                            settings.client.Ciphering.Security = (Security)Enum.Parse(typeof(Security), it.Value);
                         }
                         catch (Exception)
                         {
@@ -260,27 +255,6 @@ namespace Gurux.DLMS.Client.Example
                         break;
                     case 'F':
                         settings.client.Ciphering.InvocationCounter = UInt32.Parse(it.Value.Trim());
-                        break;
-                    case 'K':
-                        GXPkcs8 cert1 = GXPkcs8.Load(it.Value);
-                        settings.client.Ciphering.SigningKeyPair = new KeyValuePair<GXPrivateKey, GXPublicKey>(cert1.PrivateKey, cert1.PublicKey);
-                        Console.WriteLine("Client Private key: " + GXDLMSTranslator.ToHex(cert1.PrivateKey.RawValue));
-                        Console.WriteLine("Client Public key: " + GXDLMSTranslator.ToHex(cert1.PublicKey.RawValue));
-                        break;
-                    case 'k':
-                        GXx509Certificate cert = GXx509Certificate.Load(it.Value);
-                        if ((cert.KeyUsage & ASN.Enums.KeyUsage.DigitalSignature) == 0)
-                        {
-                            throw new Exception("This certificate is not used for digital signature.");
-                        }
-                        settings.client.Ciphering.PublicKeys.Add(new KeyValuePair<CertificateType, GXx509Certificate>(CertificateType.DigitalSignature, cert));
-                        string[] sn = cert.Subject.Split('=');
-                        if (sn.Length != 2)
-                        {
-                            throw new ArgumentOutOfRangeException("Invalid public key subject.");
-                        }
-                        settings.client.Ciphering.SystemTitle = GXDLMSTranslator.HexToBytes(sn[1]);
-                        Console.WriteLine("Server Public key: " + GXDLMSTranslator.ToHex(cert.PublicKey.RawValue));
                         break;
                     case 'o':
                         settings.outputFile = it.Value;
@@ -316,7 +290,7 @@ namespace Gurux.DLMS.Client.Example
                         settings.client.ServerAddress = GXDLMSClient.GetServerAddress(int.Parse(it.Value), settings.client.ServerAddress);
                         break;
                     case 'n':
-                        settings.client.ServerAddress = GXDLMSClient.GetServerAddress(int.Parse(it.Value));
+                        settings.client.ServerAddress = GXDLMSClient.GetServerAddressFromSerialNumber(int.Parse(it.Value), 1);
                         break;
                     case 'm':
                         settings.client.Plc.MacDestinationAddress = UInt16.Parse(it.Value);
@@ -411,8 +385,6 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine(" -D \t Dedicated key that is used with chiphering. Ex -D 00112233445566778899AABBCCDDEEFF");
             Console.WriteLine(" -F \t Initial Frame Counter (Invocation counter) value.");
             Console.WriteLine(" -d \t Used DLMS standard. Ex -d India (DLMS, India, Italy, SaudiArabia, IDIS)");
-            Console.WriteLine(" -K \t Client's private key File. Ex. -k C:\\priv.pem");
-            Console.WriteLine(" -k \t Meter's public key File. Ex. -k C:\\pub.pem");
             Console.WriteLine(" -i \t Used communication interface. Ex. -i WRAPPER.");
             Console.WriteLine(" -m \t Used PLC MAC address. Ex. -m 1.");
             Console.WriteLine("Example:");
