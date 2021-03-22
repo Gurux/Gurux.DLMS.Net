@@ -448,7 +448,7 @@ namespace Gurux.DLMS.ASN
             {
                 throw new Exception("Key usage not present. It's mandotory.");
             }
-            if (!basicConstraintsExists)
+            if ((KeyUsage & (KeyUsage.KeyCertSign | KeyUsage.CrlSign)) != 0 && !basicConstraintsExists)
             {
                 throw new Exception("Basic Constraints value not present. It's mandotory.");
             }

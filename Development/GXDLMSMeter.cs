@@ -667,6 +667,15 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// IEC serial number can be used with HDLC framing.
+        /// </summary>
+        public string IecSerialNumber
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Copy meter settings.
         /// </summary>
         /// <param name="target"></param>
