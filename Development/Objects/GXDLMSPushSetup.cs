@@ -158,6 +158,32 @@ namespace Gurux.DLMS.Objects
                             };
         }
 
+        /// <summary>
+        /// Get received objects from push message.
+        /// </summary>
+        /// <param name="values">Received values.</param>
+        /// <returns>Clone of captured COSEM objects.</returns>
+        public List<KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> GetPushValues(
+            GXDLMSClient client,
+            List<object> values)
+        {
+            if (values.Count != PushObjectList.Count)
+            {
+                throw new Exception("Size of the push object list is different than values.");
+            }
+            int pos = 0;
+            List<KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> objects = new List<KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
+            foreach (KeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in PushObjectList)
+            {
+                GXDLMSObject obj = it.Key.Clone();
+                objects.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj,
+                    new GXDLMSCaptureObject(it.Value.AttributeIndex, it.Value.DataIndex)));
+                client.UpdateValue(obj, it.Value.AttributeIndex, values[pos]);
+                ++pos;
+            }
+            return objects;
+        }
+
         #region IGXDLMSBase Members
 
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)

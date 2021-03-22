@@ -52,6 +52,11 @@ namespace Gurux.DLMS.ASN
     public class GXx509Certificate
     {
         /// <summary>
+        /// Loaded x509Certificate
+        /// </summary>
+        private byte[] certificate;
+
+        /// <summary>
         /// This extension identifies the public key being certified.
         /// </summary>
         public byte[] SubjectKeyIdentifier
@@ -69,6 +74,16 @@ namespace Gurux.DLMS.ASN
             get;
             set;
         }
+
+        /// <summary>
+        /// Authority certification serial number.
+        /// </summary>
+        public byte[] AuthorityCertificationSerialNumber
+        {
+            get;
+            set;
+        }
+
 
         /// <summary>
         /// Indicates if the Subject may act as a CA.
@@ -286,6 +301,7 @@ namespace Gurux.DLMS.ASN
         //  https://tools.ietf.org/html/rfc5280#section-4.1
         private void Init(byte[] data)
         {
+            certificate = data;
             GXAsn1Sequence seq = (GXAsn1Sequence)GXAsn1Converter.FromByteArray(data);
             if (seq.Count != 3)
             {
@@ -347,6 +363,10 @@ namespace Gurux.DLMS.ASN
                             {
                                 switch (it.Index)
                                 {
+                                    case 0:
+                                        //Authority Key Identifier.
+                                        AuthorityKeyIdentifier = (byte[])it[0];
+                                        break;
                                     case 1:
                                         {
                                             StringBuilder sb = new StringBuilder();
@@ -365,8 +385,8 @@ namespace Gurux.DLMS.ASN
                                         }
                                         break;
                                     case 2:
-                                        //Authority Key Identifier.
-                                        AuthorityKeyIdentifier = (byte[])it[0];
+                                        //Authority cert serial number .
+                                        AuthorityCertificationSerialNumber = (byte[])it[0];
                                         break;
                                     default:
                                         throw new ArgumentOutOfRangeException("Invalid context." + it.Index);
@@ -480,24 +500,37 @@ namespace Gurux.DLMS.ASN
                 s1.Add(bb.Array());
                 s.Add(s1);
             }
-            if (AuthorityKeyIdentifier != null)
+            if (AuthorityKeyIdentifier != null || AuthorityCertIssuer != null || AuthorityCertificationSerialNumber != null)
             {
                 s1 = new GXAsn1Sequence();
                 s1.Add(new GXAsn1ObjectIdentifier(X509CertificateTypeConverter.GetString(Enums.X509CertificateType.AuthorityKeyIdentifier)));
                 s.Add(s1);
                 GXAsn1Context s2 = new GXAsn1Context() { Index = 3 };
                 GXAsn1Sequence c1 = new GXAsn1Sequence();
-                GXAsn1Context c2 = new GXAsn1Context();
-                c2.Index = 1;
-                c1.Add(c2);
-                GXAsn1Context c3 = new GXAsn1Context() { Index = 4 };
-                c2.Add(c3);
-                c3.Add(GXAsn1Converter.EncodeSubject(AuthorityCertIssuer));
-                s2.Add(c1);
-                GXAsn1Context c4 = new GXAsn1Context() { Constructed = false, Index = 2 };
-                c4.Add(AuthorityKeyIdentifier);
-                c1.Add(c4);
-                s1.Add(GXAsn1Converter.ToByteArray(c1));
+                if (AuthorityKeyIdentifier != null)
+                {
+                    GXAsn1Context c4 = new GXAsn1Context() { Constructed = false, Index = 0 };
+                    c4.Add(AuthorityKeyIdentifier);
+                    c1.Add(c4);
+                    s1.Add(GXAsn1Converter.ToByteArray(c1));
+                }
+                if (AuthorityCertIssuer != null)
+                {
+                    GXAsn1Context c2 = new GXAsn1Context();
+                    c2.Index = 1;
+                    c1.Add(c2);
+                    GXAsn1Context c3 = new GXAsn1Context() { Index = 4 };
+                    c2.Add(c3);
+                    c3.Add(GXAsn1Converter.EncodeSubject(AuthorityCertIssuer));
+                    s2.Add(c1);
+                }
+                if (AuthorityCertificationSerialNumber != null)
+                {
+                    GXAsn1Context c4 = new GXAsn1Context() { Constructed = false, Index = 2 };
+                    c4.Add(AuthorityCertificationSerialNumber);
+                    c1.Add(c4);
+                    s1.Add(GXAsn1Converter.ToByteArray(c1));
+                }
             }
             // BasicConstraints
             s1 = new GXAsn1Sequence();
@@ -574,9 +607,14 @@ namespace Gurux.DLMS.ASN
         {
             get
             {
+                if (certificate != null)
+                {
+                    return certificate;
+                }
                 object tmp = new object[] { new GXAsn1ObjectIdentifier(HashAlgorithmConverter.GetString(SignatureAlgorithm)) };
                 object[] list = new object[] { GetDataList(), tmp, new GXAsn1BitString(Signature, 0) };
-                return GXAsn1Converter.ToByteArray(list);
+                certificate = GXAsn1Converter.ToByteArray(list);
+                return certificate;
             }
         }
 

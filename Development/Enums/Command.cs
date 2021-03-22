@@ -277,6 +277,11 @@ namespace Gurux.DLMS
         GeneralCiphering = 0xDD,
 
         /// <summary>
+        /// General signing.
+        /// </summary>
+        GeneralSigning = 0xDF,
+
+        /// <summary>
         /// Information Report request.
         /// </summary>
         InformationReport = 0x18,

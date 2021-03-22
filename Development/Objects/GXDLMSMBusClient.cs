@@ -223,7 +223,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Installs a slave device.
+        /// De-installs a slave device.
         /// </summary>
         /// <param name="client">DLMS client settings.</param>
         /// <returns>Generated DLMS data.</returns>

@@ -2934,6 +2934,7 @@ namespace Gurux.DLMS
         /// All meters do not use standard formula or support serial number addressing at all.
         /// </remarks>
         /// <param name="serialNumber">Meter serial number.</param>
+        /// <param name="logicalAddress">Used logical address.</param>
         /// <returns>Server address.</returns>
         public static int GetServerAddressFromSerialNumber(int serialNumber, int logicalAddress)
         {
