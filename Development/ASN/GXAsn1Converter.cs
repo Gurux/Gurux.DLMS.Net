@@ -110,7 +110,7 @@ namespace Gurux.DLMS.ASN
             return sb.ToString();
         }
 
-        private static void GetValue(GXByteBuffer bb, IList<object> objects, GXAsn1Settings s)
+        private static void GetValue(GXByteBuffer bb, IList<object> objects, GXAsn1Settings s, bool getNext)
         {
             int len;
             short type;
@@ -165,7 +165,7 @@ namespace Gurux.DLMS.ASN
                     objects.Add(tmp);
                     while (bb.Position < start + len)
                     {
-                        GetValue(bb, tmp, s);
+                        GetValue(bb, tmp, s, false);
                     }
                     if (s != null)
                     {
@@ -183,7 +183,11 @@ namespace Gurux.DLMS.ASN
                     while (bb.Position < start + len)
                     {
                         ++cnt;
-                        GetValue(bb, tmp, s);
+                        GetValue(bb, tmp, s, false);
+                        if (getNext)
+                        {
+                            break;
+                        }
                     }
                     if (s != null)
                     {
@@ -198,7 +202,7 @@ namespace Gurux.DLMS.ASN
                         s.Increase();
                     }
                     tmp = new List<object>();
-                    GetValue(bb, tmp, s);
+                    GetValue(bb, tmp, s, false);
                     if (tmp[0] is GXAsn1Sequence)
                     {
                         tmp = (GXAsn1Sequence)tmp[0];
@@ -332,7 +336,7 @@ namespace Gurux.DLMS.ASN
                             {
                                 s.Increase();
                             }
-                            GetValue(bb, objects, s);
+                            GetValue(bb, objects, s, false);
                             if (s != null)
                             {
                                 s.Decrease();
@@ -416,10 +420,23 @@ namespace Gurux.DLMS.ASN
             IList<object> objects = new List<object>();
             while (bb.Position != bb.Size)
             {
-                GetValue(bb, objects, null);
+                GetValue(bb, objects, null, false);
             }
             return objects[0];
         }
+
+        /// <summary>
+        /// Get next ASN1 value from the byte buffer.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static object GetNext(GXByteBuffer data)
+        {
+            IList<object> objects = new List<object>();
+            GetValue(data, objects, null, true);
+            return objects[0];
+        }
+
 
         /// <summary>
         /// Add ASN1 object to byte buffer.
@@ -715,7 +732,7 @@ namespace Gurux.DLMS.ASN
             IList<object> objects = new List<object>();
             while (value.Position != value.Size)
             {
-                GetValue(value, objects, s);
+                GetValue(value, objects, s, false);
             }
             return s.ToString();
         }

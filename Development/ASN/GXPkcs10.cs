@@ -53,6 +53,11 @@ namespace Gurux.DLMS.ASN
     public class GXPkcs10
     {
         /// <summary>
+        /// Loaded PKCS #10 certificate as a raw data.
+        /// </summary>
+        private byte[] rawData;
+
+        /// <summary>
         /// Certificate version.
         /// </summary>
         public CertificateVersion Version
@@ -210,6 +215,7 @@ namespace Gurux.DLMS.ASN
 
         private void Init(byte[] data)
         {
+            rawData = data;
             Attributes = new List<KeyValuePair<PkcsObjectIdentifier, object[]>>();
             GXAsn1Sequence seq = (GXAsn1Sequence)GXAsn1Converter.FromByteArray(data);
             if (seq.Count < 3)
@@ -273,15 +279,23 @@ namespace Gurux.DLMS.ASN
             }
             /////////////////////////////
             // signature
+            //Get raw data
+            GXByteBuffer tmp2 = new GXByteBuffer();
+            tmp2.Set(data);
+            GXAsn1Converter.GetNext(tmp2);
+            tmp2.Size = tmp2.Position;
+            tmp2.Position = 1;
+            GXCommon.GetObjectCount(tmp2);
+            //Get signature.
             Signature = ((GXAsn1BitString)seq[2]).Value;
             GXEcdsa e = new GXEcdsa(PublicKey);
-            GXAsn1Sequence tmp2 = (GXAsn1Sequence)GXAsn1Converter.FromByteArray(Signature);
+            GXAsn1Sequence tmp3 = (GXAsn1Sequence)GXAsn1Converter.FromByteArray(Signature);
             GXByteBuffer bb = new GXByteBuffer();
             int size = SignatureAlgorithm == HashAlgorithm.Sha256WithEcdsa ? 32 : 48;
             //Some implementations might add extra byte. It must removed.
-            bb.Set(((GXAsn1Integer)tmp2[0]).Value, ((GXAsn1Integer)tmp2[0]).Value.Length == size ? 0 : 1, size);
-            bb.Set(((GXAsn1Integer)tmp2[1]).Value, ((GXAsn1Integer)tmp2[1]).Value.Length == size ? 0 : 1, size);
-            if (!e.Verify(bb.Array(), GXAsn1Converter.ToByteArray(reqInfo)))
+            bb.Set(((GXAsn1Integer)tmp3[0]).Value, ((GXAsn1Integer)tmp3[0]).Value.Length == size ? 0 : 1, size);
+            bb.Set(((GXAsn1Integer)tmp3[1]).Value, ((GXAsn1Integer)tmp3[1]).Value.Length == size ? 0 : 1, size);
+            if (!e.Verify(bb.Array(), tmp2.SubArray(tmp2.Position, tmp2.Available)))
             {
                 throw new ArgumentException("Invalid Signature.");
             }
@@ -359,6 +373,10 @@ namespace Gurux.DLMS.ASN
         {
             get
             {
+                if (rawData != null)
+                {
+                    return rawData;
+                }
                 if (Signature == null)
                 {
                     throw new System.ArgumentException("Sign first.");
@@ -436,7 +454,7 @@ namespace Gurux.DLMS.ASN
                 usage.Append("\"}");
             }
             HttpWebRequest request = HttpWebRequest.Create(address) as HttpWebRequest;
-            string der = "{\"Certificates\":[" + usage.ToString() +"]}";
+            string der = "{\"Certificates\":[" + usage.ToString() + "]}";
             request.ContentType = "application/json";
             request.Method = "POST";
             using (var streamWriter = new StreamWriter(request.GetRequestStream()))
@@ -467,7 +485,7 @@ namespace Gurux.DLMS.ASN
                         List<GXx509Certificate> list = new List<GXx509Certificate>();
                         string[] tmp = str.Split(new string[] { "\"", "," }, StringSplitOptions.RemoveEmptyEntries);
                         pos = 0;
-                        foreach(string it in tmp)
+                        foreach (string it in tmp)
                         {
                             GXx509Certificate x509 = GXx509Certificate.FromDer(it);
                             if (!GXCommon.Compare(certifications[pos].Value.PublicKey.RawValue, x509.PublicKey.RawValue))

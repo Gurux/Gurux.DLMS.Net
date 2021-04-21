@@ -619,6 +619,10 @@ namespace Gurux.DLMS.Internal
                 object tmp = GetData(settings, buff, info2);
                 if (!info2.Complete)
                 {
+                    if (info.xml != null)
+                    {
+                        info.xml.AppendComment(string.Format("Error: Not enough data. {0} rows are missing.", info.Count - pos));
+                    }
                     buff.Position = startIndex;
                     info.Complete = false;
                     break;

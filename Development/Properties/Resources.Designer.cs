@@ -266,7 +266,15 @@ namespace Gurux.DLMS.Properties {
                 return ResourceManager.GetString("SaudiArabia", resourceCulture);
             }
         }
-        
+
+        internal static string Spain
+        {
+            get
+            {
+                return ResourceManager.GetString("Spain", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Access Error : Device reports a temporary failure..
         /// </summary>

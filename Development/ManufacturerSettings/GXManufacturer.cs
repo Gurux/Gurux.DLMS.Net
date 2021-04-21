@@ -140,6 +140,17 @@ namespace Gurux.DLMS.ManufacturerSettings
             set;
         }
 
+        /// <summary>
+        /// Some meters are expecting that IEC address is send gefore communication is start with HDLC.
+        /// </summary>
+        [DefaultValue(null)]
+        public string IecAddress
+        {
+            get;
+            set;
+        }
+
+
 
         /// <summary>
         /// Is IEC 62056-21 skipped when using serial port connection.

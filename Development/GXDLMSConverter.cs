@@ -729,6 +729,10 @@ namespace Gurux.DLMS
             {
                 rows = Resources.SaudiArabia.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             }
+            else if (standard == Standard.Spain)
+            {
+                rows = Resources.Spain.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            }
             else
             {
                 return new GXObisCode[0];
@@ -745,6 +749,10 @@ namespace Gurux.DLMS
             else if (standard == Standard.SaudiArabia)
             {
                 rows = Gurux.DLMS.Properties.Resources.SaudiArabia.Split(new string[] { Environment.NewLine, "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            }
+            else if (standard == Standard.Spain)
+            {
+                rows = Gurux.DLMS.Properties.Resources.Spain.Split(new string[] { Environment.NewLine, "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
             }
             else
             {

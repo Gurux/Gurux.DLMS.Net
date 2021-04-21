@@ -52,9 +52,9 @@ namespace Gurux.DLMS.ASN
     public class GXx509Certificate
     {
         /// <summary>
-        /// Loaded x509Certificate
+        /// Loaded x509Certificate as raw data.
         /// </summary>
-        private byte[] certificate;
+        private byte[] rawData;
 
         /// <summary>
         /// This extension identifies the public key being certified.
@@ -301,7 +301,7 @@ namespace Gurux.DLMS.ASN
         //  https://tools.ietf.org/html/rfc5280#section-4.1
         private void Init(byte[] data)
         {
-            certificate = data;
+            rawData = data;
             GXAsn1Sequence seq = (GXAsn1Sequence)GXAsn1Converter.FromByteArray(data);
             if (seq.Count != 3)
             {
@@ -607,14 +607,14 @@ namespace Gurux.DLMS.ASN
         {
             get
             {
-                if (certificate != null)
+                if (rawData != null)
                 {
-                    return certificate;
+                    return rawData;
                 }
                 object tmp = new object[] { new GXAsn1ObjectIdentifier(HashAlgorithmConverter.GetString(SignatureAlgorithm)) };
                 object[] list = new object[] { GetDataList(), tmp, new GXAsn1BitString(Signature, 0) };
-                certificate = GXAsn1Converter.ToByteArray(list);
-                return certificate;
+                rawData = GXAsn1Converter.ToByteArray(list);
+                return rawData;
             }
         }
 
