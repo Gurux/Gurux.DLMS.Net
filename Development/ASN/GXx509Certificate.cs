@@ -34,6 +34,7 @@
 
 using Gurux.DLMS.ASN.Enums;
 using Gurux.DLMS.Ecdsa;
+using Gurux.DLMS.Ecdsa.Enums;
 using Gurux.DLMS.Internal;
 using System;
 using System.Collections.Generic;
@@ -124,7 +125,7 @@ namespace Gurux.DLMS.ASN
         /// <summary>
         /// Public Key algorithm.
         /// </summary>
-        public X9ObjectIdentifier PublicKeyAlgorithm
+        public HashAlgorithm PublicKeyAlgorithm
         {
             get;
             set;
@@ -260,6 +261,18 @@ namespace Gurux.DLMS.ASN
         }
 
         /// <summary>
+        /// Create x509Certificate from hex string.
+        /// </summary>
+        /// <param name="data">Hex string.</param>
+        /// <returns>x509 certificate</returns>
+        public static GXx509Certificate FromHexString(string data)
+        {
+            GXx509Certificate cert = new GXx509Certificate();
+            cert.Init(GXCommon.HexToBytes(data));
+            return cert;
+        }
+
+        /// <summary>
         /// Create x509Certificate from PEM string.
         /// </summary>
         /// <param name="data">PEM string.</param>
@@ -307,10 +320,22 @@ namespace Gurux.DLMS.ASN
             {
                 throw new GXDLMSCertificateException("Invalid Certificate Version. Wrong number of elements in sequence.");
             }
-            GXAsn1Sequence reqInfo = (GXAsn1Sequence)seq[0];
-            if (!(reqInfo[0] is GXAsn1Context))
+            if (!(seq[0] is GXAsn1Sequence))
             {
+                PkcsType type = GXAsn1Converter.GetCertificateType(data, seq);
+                switch (type)
+                {
+                    case PkcsType.Pkcs8:
+                        throw new GXDLMSCertificateException("Invalid Certificate. This is PKCS 8 private key, not x509 certificate.");
+                    case PkcsType.Pkcs10:
+                        throw new GXDLMSCertificateException("Invalid Certificate. This is PKCS 10 certification requests, not x509 certificate.");
+                }
                 throw new GXDLMSCertificateException("Invalid Certificate Version.");
+            }
+            GXAsn1Sequence reqInfo = (GXAsn1Sequence)seq[0];
+            if ((reqInfo[0] is GXAsn1Integer))
+            {
+                throw new GXDLMSCertificateException("Invalid Certificate. DLMS certificate version number must be 3.");
             }
             Version = (CertificateVersion)((GXAsn1Context)reqInfo[0])[0];
             if (reqInfo[1] is sbyte)
@@ -411,9 +436,20 @@ namespace Gurux.DLMS.ASN
                             break;
                         case X509CertificateType.BasicConstraints:
                             basicConstraintsExists = true;
-                            if (((GXAsn1Sequence)value).Count != 0)
+                            if (value is GXAsn1Sequence)
                             {
-                                BasicConstraints = (bool)((GXAsn1Sequence)value)[0];
+                                if (((GXAsn1Sequence)value).Count != 0)
+                                {
+                                    BasicConstraints = (bool)((GXAsn1Sequence)value)[0];
+                                }
+                            }
+                            else if (value is bool?)
+                            {
+                                BasicConstraints = (bool)value;
+                            }
+                            else
+                            {
+                                throw new ArgumentException("Invalid key usage.");
                             }
                             break;
                         default:
@@ -452,13 +488,18 @@ namespace Gurux.DLMS.ASN
             {
                 throw new Exception("Basic Constraints value not present. It's mandotory.");
             }
-            PublicKeyAlgorithm = X9ObjectIdentifierConverter.FromString(((GXAsn1Sequence)seq[1])[0].ToString());
+            PublicKeyAlgorithm = HashAlgorithmConverter.FromString(((GXAsn1Sequence)seq[1])[0].ToString());
+            if (PublicKeyAlgorithm != HashAlgorithm.Sha256WithEcdsa)
+            {
+                throw new Exception("DLMS certificate must be signed with ecdsa-with-SHA256.");
+            }
             // Optional.
             if (((GXAsn1Sequence)seq[1]).Count > 1)
             {
                 PublicKeyParameters = ((GXAsn1Sequence)seq[1])[1];
             }
-            // signature
+            /////////////////////////////
+            //Get signature.
             Signature = ((GXAsn1BitString)seq[2]).Value;
         }
 
@@ -538,7 +579,8 @@ namespace Gurux.DLMS.ASN
             seq = new GXAsn1Sequence();
             if (BasicConstraints)
             {
-                seq.Add(BasicConstraints);
+                //BasicConstraints is critical if it exists.
+                s1.Add(BasicConstraints);
             }
             else if (KeyUsage == KeyUsage.None)
             {
@@ -748,5 +790,32 @@ namespace Gurux.DLMS.ASN
             return SerialNumber.GetHashCode();
         }
 
+        /// <summary>
+        /// Test is x509 file certified by the certifier.
+        /// </summary>
+        /// <param name="certifier">Public key of the certifier.</param>
+        /// <returns>True, if certifier has certified the certificate.</returns>
+        public bool IsCertified(GXPublicKey certifier)
+        {
+            if (certifier == null)
+            {
+                throw new ArgumentNullException(nameof(certifier));
+            }
+            //Get raw data
+            GXByteBuffer tmp2 = new GXByteBuffer();
+            tmp2.Set(Encoded);
+            GXAsn1Converter.GetNext(tmp2);
+            tmp2.Size = tmp2.Position;
+            tmp2.Position = 1;
+            GXCommon.GetObjectCount(tmp2);
+            GXEcdsa e = new GXEcdsa(certifier);
+            GXAsn1Sequence tmp3 = (GXAsn1Sequence)GXAsn1Converter.FromByteArray(Signature);
+            GXByteBuffer bb = new GXByteBuffer();
+            int size = SignatureAlgorithm == HashAlgorithm.Sha256WithEcdsa ? 32 : 48;
+            //Some implementations might add extra byte. It must removed.
+            bb.Set(((GXAsn1Integer)tmp3[0]).Value, ((GXAsn1Integer)tmp3[0]).Value.Length == size ? 0 : 1, size);
+            bb.Set(((GXAsn1Integer)tmp3[1]).Value, ((GXAsn1Integer)tmp3[1]).Value.Length == size ? 0 : 1, size);
+            return e.Verify(bb.Array(), tmp2.SubArray(tmp2.Position, tmp2.Available));
+        }
     }
 }

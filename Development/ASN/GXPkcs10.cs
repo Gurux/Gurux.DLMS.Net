@@ -41,6 +41,7 @@ using System.IO;
 using System.Text;
 using System.Net;
 using Gurux.DLMS.Objects.Enums;
+using Gurux.DLMS.Ecdsa.Enums;
 
 namespace Gurux.DLMS.ASN
 {
@@ -176,6 +177,18 @@ namespace Gurux.DLMS.ASN
         }
 
         /// <summary>
+        /// Create PKCS 10 from hex string.
+        /// </summary>
+        /// <param name="data">Hex string.</param>
+        /// <returns>PKCS 10</returns>
+        public static GXPkcs10 FromHexString(string data)
+        {
+            GXPkcs10 cert = new GXPkcs10();
+            cert.Init(GXCommon.HexToBytes(data));
+            return cert;
+        }
+
+        /// <summary>
         /// Create x509Certificate from PEM string.
         /// </summary>
         /// <param name="data">PEM string.</param>
@@ -221,6 +234,18 @@ namespace Gurux.DLMS.ASN
             if (seq.Count < 3)
             {
                 throw new System.ArgumentException("Wrong number of elements in sequence.");
+            }
+            if (!(seq[0] is GXAsn1Sequence))
+            {
+                PkcsType type = GXAsn1Converter.GetCertificateType(data, seq);
+                switch (type)
+                {
+                    case PkcsType.Pkcs8:
+                        throw new GXDLMSCertificateException("Invalid Certificate. This is PKCS 8, not PKCS 10.");
+                    case PkcsType.x509Certificate:
+                        throw new GXDLMSCertificateException("Invalid Certificate. This is PKCS x509 certificate, not PKCS 10.");
+                }
+                throw new GXDLMSCertificateException("Invalid Certificate Version.");
             }
             /////////////////////////////
             // CertificationRequestInfo ::= SEQUENCE {

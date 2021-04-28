@@ -34,6 +34,7 @@
 
 using Gurux.DLMS.ASN.Enums;
 using Gurux.DLMS.Ecdsa;
+using Gurux.DLMS.Ecdsa.Enums;
 using Gurux.DLMS.Internal;
 using System;
 using System.Collections.Generic;
@@ -194,6 +195,18 @@ namespace Gurux.DLMS.ASN
         }
 
         /// <summary>
+        /// Create PKCS 8 from hex string.
+        /// </summary>
+        /// <param name="data">Hex string.</param>
+        /// <returns>PKCS 8</returns>
+        public static GXPkcs8 FromHexString(string data)
+        {
+            GXPkcs8 cert = new GXPkcs8();
+            cert.Init(GXCommon.HexToBytes(data));
+            return cert;
+        }
+
+        /// <summary>
         /// Create PKCS #8 from DER Base64 encoded string.
         /// </summary>
         /// <param name="der">Base64 DER string.</param>
@@ -222,6 +235,18 @@ namespace Gurux.DLMS.ASN
             if (seq.Count < 3)
             {
                 throw new System.ArgumentException("Wrong number of elements in sequence.");
+            }
+            if (!(seq[0] is sbyte))
+            {
+                PkcsType type = GXAsn1Converter.GetCertificateType(data, seq);
+                switch (type)
+                {
+                    case PkcsType.Pkcs10:
+                        throw new GXDLMSCertificateException("Invalid Certificate. This is PKCS 10 certification requests, not PKCS 8.");
+                    case PkcsType.x509Certificate:
+                        throw new GXDLMSCertificateException("Invalid Certificate. This is PKCS x509 certificate, not PKCS 8.");
+                }
+                throw new GXDLMSCertificateException("Invalid Certificate Version.");
             }
             Version = (CertificateVersion)seq[0];
             GXAsn1Sequence tmp = (GXAsn1Sequence)seq[1];

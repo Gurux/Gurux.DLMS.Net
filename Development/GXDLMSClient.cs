@@ -1143,9 +1143,18 @@ namespace Gurux.DLMS
         /// <returns>Release request, as byte array.</returns>
         public byte[][] ReleaseRequest()
         {
+            return ReleaseRequest(false);
+        }
+
+        /// <summary>
+        /// Generates a release request.
+        /// </summary>
+        /// <returns>Release request, as byte array.</returns>
+        public byte[][] ReleaseRequest(bool force)
+        {
             // If connection is not established, there is no need to send
             // DisconnectRequest.
-            if ((Settings.Connected & ConnectionState.Dlms) == 0)
+            if (!force && (Settings.Connected & ConnectionState.Dlms) == 0)
             {
                 return null;
             }
@@ -1218,7 +1227,7 @@ namespace Gurux.DLMS
             }
             else if (force || Settings.Connected == ConnectionState.Dlms)
             {
-                ret = ReleaseRequest()[0];
+                ret = ReleaseRequest(force)[0];
             }
             //Reset to max PDU size when connection is closed.
             Settings.MaxPduSize = 0xFFFF;

@@ -72,7 +72,7 @@ namespace Gurux.DLMS
             ExceptionStateError = error;
             ExceptionServiceError = type;
             Value = value;
-            HelpLink = " https://www.gurux.fi/Gurux.DLMS.ErrorCodes";
+            HelpLink = "https://www.gurux.fi/Gurux.DLMS.ErrorCodes";
         }
 
         private static string GetStateError(ExceptionStateError stateError)

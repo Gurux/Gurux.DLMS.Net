@@ -919,5 +919,75 @@ namespace Gurux.DLMS.ASN
             return k;
         }
 
+        /// <summary>
+        /// Get certificate type from byte array.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static PkcsType GetCertificateType(byte[] data)
+        {
+            return GetCertificateType(data, null);
+        }
+
+        /// <summary>
+        /// Get certificate type from byte array.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        internal static PkcsType GetCertificateType(byte[] data, GXAsn1Sequence seq)
+        {
+            if (seq == null)
+            {
+                seq = (GXAsn1Sequence)GXAsn1Converter.FromByteArray(data);
+            }
+            if (seq[0] is GXAsn1Sequence)
+            {
+                try
+                {
+                    new GXx509Certificate(data);
+                    return PkcsType.x509Certificate;
+                }
+                catch (Exception)
+                {
+                    //It's ok if this fails.
+                }
+            }
+            if (seq[0] is GXAsn1Sequence)
+            {
+                try
+                {
+                    new GXPkcs10(data);
+                    return PkcsType.Pkcs10;
+                }
+                catch (Exception)
+                {
+                    //It's ok if this fails.
+
+                }
+            }
+            if (seq[0] is sbyte)
+            {
+                try
+                {
+                    new GXPkcs8(data);
+                    return PkcsType.Pkcs8;
+                }
+                catch (Exception)
+                {
+                    //It's ok if this fails.
+                }
+            }
+            return PkcsType.None;
+        }
+
+        /// <summary>
+        /// Get certificate type from DER string.
+        /// </summary>
+        /// <param name="der">DER string</param>
+        /// <returns></returns>
+        public static PkcsType GetCertificateType(string der)
+        {
+            return GetCertificateType(Convert.FromBase64String(der));
+        }
     }
 }
