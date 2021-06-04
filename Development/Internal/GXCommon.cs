@@ -947,11 +947,11 @@ namespace Gurux.DLMS.Internal
                     dt.Value = new DateTimeOffset(tmp);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 if (info.xml == null)
                 {
-                    throw ex;
+                    throw;
                 }
                 dt = null;
             }
@@ -3092,55 +3092,104 @@ namespace Gurux.DLMS.Internal
         static string IdisSystemTitleToString(byte[] st, bool addComments)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("");
-            sb.AppendLine("IDIS system title:");
-            sb.Append("Manufacturer Code: ");
-            sb.AppendLine(new string(new char[] { (char)st[0], (char)st[1], (char)st[2] }));
-            sb.Append("Function type: ");
-            int ft = st[4] >> 4;
-            bool add = false;
-            if ((ft & 0x1) != 0)
+            if (addComments)
             {
-                sb.Append("Disconnector extension");
-                add = true;
-            }
-            if ((ft & 0x2) != 0)
-            {
-                if (add)
+                sb.AppendLine("IDIS system title:");
+                sb.Append("Manufacturer Code: ");
+                sb.AppendLine(new string(new char[] { (char)st[0], (char)st[1], (char)st[2] }));
+                sb.Append("Device type: ");
+                switch(st[3])
                 {
-                    sb.Append(", ");
+                    case 99:
+                        sb.Append("DC");
+                        break;
+                    case 100:
+                        sb.Append("IDIS package1 PLC single phase meter");
+                        break;
+                    case 101:
+                        sb.Append("IDIS package1 PLC polyphase meter");
+                        break;
+                    case 102:
+                        sb.Append("IDIS package2 IP single phase meter");
+                        break;
+                    case 103:
+                        sb.Append("IDIS package2 IP polyphase meter");
+                        break;
                 }
-                add = true;
-                sb.Append("Load Management extension");
-            }
-            if ((ft & 0x4) != 0)
-            {
-                if (add)
+                sb.AppendLine("");
+                sb.Append("Function type: ");
+                int ft = st[4] >> 4;
+                bool add = false;
+                if ((ft & 0x1) != 0)
                 {
-                    sb.Append(", ");
+                    sb.Append("Disconnector");
+                    add = true;
                 }
-                sb.Append("Multi Utility extension");
+                if ((ft & 0x2) != 0)
+                {
+                    if (add)
+                    {
+                        sb.Append(", ");
+                    }
+                    add = true;
+                    sb.Append("Load Management");
+                }
+                if ((ft & 0x4) != 0)
+                {
+                    if (add)
+                    {
+                        sb.Append(", ");
+                    }
+                    sb.Append("Multi Utility");
+                }
+                //Serial number;
+                int sn = (st[4] & 0xF) << 24;
+                sn |= (st[5] << 16);
+                sn |= (st[6] << 8);
+                sn |= (st[7]);
+                sb.AppendLine("");
+                sb.Append("Serial number: ");
+                sb.AppendLine(sn.ToString());
             }
-            //Serial number;
-            int sn = (st[4] & 0xF) << 24;
-            sn |= (st[5] << 16);
-            sn |= (st[6] << 8);
-            sn |= (st[7]);
-            sb.AppendLine("");
-            sb.Append("Serial number: ");
-            sb.AppendLine(sn.ToString());
+            else
+            {
+                sb.Append(new string(new char[] { (char)st[0], (char)st[1], (char)st[2] }));
+                sb.Append(" ");
+                //Serial number;
+                int sn = (st[4] & 0xF) << 24;
+                sn |= (st[5] << 16);
+                sn |= (st[6] << 8);
+                sn |= (st[7]);
+                sb.Append(sn.ToString());
+            }
             return sb.ToString();
         }
 
         static string DlmsSystemTitleToString(byte[] st, bool addComments)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("");
-            sb.AppendLine("IDIS system title:");
-            sb.Append("Manufacturer Code: ");
-            sb.AppendLine(new string(new char[] { (char)st[0], (char)st[1], (char)st[2] }));
-            sb.Append("Serial number: ");
-            sb.AppendLine(new string(new char[] { (char)st[3], (char)st[4], (char)st[5], (char)st[6], (char)st[7] }));
+            if (addComments)
+            {
+                sb.AppendLine("DLMS system title:");
+                sb.Append("Manufacturer Code: ");
+                sb.AppendLine(new string(new char[] { (char)st[0], (char)st[1], (char)st[2] }));
+                sb.Append("Serial number: ");
+                //Serial number;
+                int sn = (st[5] << 16);
+                sn |= (st[6] << 8);
+                sn |= (st[7]);
+                sb.AppendLine(sn.ToString());
+            }
+            else
+            {
+                sb.Append(new string(new char[] { (char)st[0], (char)st[1], (char)st[2] }));
+                sb.Append(" ");
+                //Serial number;
+                int sn = (st[5] << 16);
+                sn |= (st[6] << 8);
+                sn |= (st[7]);
+                sb.AppendLine(sn.ToString());
+            }
             return sb.ToString();
         }
 
@@ -3149,7 +3198,6 @@ namespace Gurux.DLMS.Internal
             StringBuilder sb = new StringBuilder();
             if (addComments)
             {
-                sb.AppendLine("");
                 sb.AppendLine("UNI/TS system title:");
                 sb.Append("Manufacturer: ");
                 UInt16 m = (UInt16)(st[0] << 8 | st[1]);
@@ -3166,21 +3214,35 @@ namespace Gurux.DLMS.Internal
             return sb.ToString();
         }
 
+        private static bool IsT1(byte value)
+        {
+            return value > 98 && value < 104;
+        }
+
+        private static bool IsT2(byte value)
+        {
+            return (value & 0xf0) != 0;
+        }
+
         /// <summary>
-        /// Conver system title to string.
+        /// Convert system title to string.
         /// </summary>
-        /// <param name="standard"></param>
-        /// <param name="st"></param>
-        /// <returns></returns>
+        /// <param name="standard">Used standard.</param>
+        /// <param name="st">System title.</param>
+        /// <param name="addComments">Are comments added.</param>
+        /// <returns>System title in string format.</returns>
         public static string SystemTitleToString(Standard standard, byte[] st, bool addComments)
         {
+            if (st == null || st.Length != 8)
+            {
+                return "";
+            }
             if (standard == Standard.Italy || !Char.IsLetter((char)st[0]) || !Char.IsLetter((char)st[1]) ||
                 !Char.IsLetter((char)st[2]))
             {
                 return UNISystemTitleToString(st, addComments);
             }
-            if (standard == Standard.Idis || !Char.IsNumber((char)st[3]) || !Char.IsNumber((char)st[4]) ||
-                !Char.IsNumber((char)st[5]) || !Char.IsNumber((char)st[6]) || !Char.IsNumber((char)st[7]))
+            if (standard == Standard.Idis || (IsT1(st[3]) && IsT2(st[4])))
             {
                 return IdisSystemTitleToString(st, addComments);
             }

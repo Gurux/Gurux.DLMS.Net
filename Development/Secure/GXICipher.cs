@@ -64,6 +64,15 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
+        /// Used security policy.
+        /// </summary>
+        SecurityPolicy1 SecurityPolicy
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Used security suite.
         /// </summary>
         SecuritySuite SecuritySuite
@@ -109,6 +118,15 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
+        /// Broadcast block cipher key.
+        /// </summary>
+        byte[] BroadcastBlockCipherKey
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Authentication key.
         /// </summary>
         byte[] AuthenticationKey
@@ -138,7 +156,7 @@ namespace Gurux.DLMS.Secure
         /// <summary>
         /// Ephemeral key pair.
         /// </summary>
-        KeyValuePair<GXPrivateKey, GXPublicKey> EphemeralKeyPair
+        KeyValuePair<GXPublicKey, GXPrivateKey> EphemeralKeyPair
         {
             get;
             set;
@@ -147,7 +165,7 @@ namespace Gurux.DLMS.Secure
         /// <summary>
         /// Client's key agreement key pair.
         /// </summary>
-        KeyValuePair<GXPrivateKey, GXPublicKey> KeyAgreementKeyPair
+        KeyValuePair<GXPublicKey, GXPrivateKey> KeyAgreementKeyPair
         {
             get;
             set;
@@ -161,7 +179,16 @@ namespace Gurux.DLMS.Secure
             get;
         }
 
-        KeyValuePair<GXPrivateKey, GXPublicKey> SigningKeyPair
+        KeyValuePair<GXPublicKey, GXPrivateKey> SigningKeyPair
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// TLS signing key pair.
+        /// </summary>
+        KeyValuePair<GXPublicKey, GXPrivateKey> TlsKeyPair
         {
             get;
             set;

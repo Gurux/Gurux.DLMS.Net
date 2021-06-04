@@ -40,6 +40,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace Gurux.DLMS.ASN
@@ -52,6 +53,48 @@ namespace Gurux.DLMS.ASN
     /// </remarks>
     public class GXx509Certificate
     {
+        /// <summary>
+        /// Return default file path.
+        /// </summary>
+        /// <returns></returns>
+        public static string GetFilePath(GXx509Certificate cert)
+        {
+            string path;
+            switch (cert.KeyUsage)
+            {
+                case KeyUsage.DigitalSignature:
+                    path = "D";
+                    break;
+                case KeyUsage.KeyAgreement:
+                    path = "A";
+                    break;
+                case KeyUsage.DigitalSignature | KeyUsage.KeyAgreement:
+                    path = "T";
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("Unknown certificate type.");
+            }
+            path += GXAsn1Converter.HexSystemTitleFromSubject(cert.Subject).Trim() + ".pem";
+            if (cert.PublicKey.Scheme == Ecc.P256)
+            {
+                path = Path.Combine("Certificates", path);
+            }
+            else
+            {
+                path = Path.Combine("Certificates384", path);
+            }
+            return path;
+        }
+
+        /// <summary>
+        /// Description is extra metadata that is saved to PEM file. 
+        /// </summary>
+        public string Description
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// Loaded x509Certificate as raw data.
         /// </summary>
@@ -79,7 +122,7 @@ namespace Gurux.DLMS.ASN
         /// <summary>
         /// Authority certification serial number.
         /// </summary>
-        public byte[] AuthorityCertificationSerialNumber
+        public BigInteger AuthorityCertificationSerialNumber
         {
             get;
             set;
@@ -90,6 +133,15 @@ namespace Gurux.DLMS.ASN
         /// Indicates if the Subject may act as a CA.
         /// </summary>
         public bool BasicConstraints
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Indicates that a certificate can be used as an TLS server or client certificate.
+        /// </summary>
+        public ExtendedKeyUsage ExtendedKeyUsage
         {
             get;
             set;
@@ -272,6 +324,13 @@ namespace Gurux.DLMS.ASN
             return cert;
         }
 
+        public static GXx509Certificate FromCertificate(X509Certificate2 cert)
+        {
+            GXx509Certificate tmp = new GXx509Certificate();
+            tmp.Init(cert.RawData);
+            return tmp;
+        }
+
         /// <summary>
         /// Create x509Certificate from PEM string.
         /// </summary>
@@ -288,13 +347,34 @@ namespace Gurux.DLMS.ASN
             {
                 throw new ArgumentException("Invalid PEM file.");
             }
+            string desc = null;
+            if (start != 11)
+            {
+                desc = data.Substring(0, start);
+                const string DESCRIPTION = "#Description";
+                //Check if there is a description metadata.
+                int descStart = desc.LastIndexOf(DESCRIPTION);
+                if (descStart != -1)
+                {
+                    int descEnd = desc.IndexOf("\n", descStart, start);
+                    desc = desc.Substring(descStart + DESCRIPTION.Length, descEnd - DESCRIPTION.Length);
+                    desc = desc.Trim();
+                }
+                else
+                {
+                    desc = null;
+                }
+            }
+
             data = data.Substring(start + START.Length);
             int end = data.IndexOf(END);
             if (end == -1)
             {
                 throw new ArgumentException("Invalid PEM file.");
             }
-            return FromDer(data.Substring(0, end));
+            GXx509Certificate cert = FromDer(data.Substring(0, end));
+            cert.Description = desc;
+            return cert;
         }
 
         /// <summary>
@@ -344,14 +424,15 @@ namespace Gurux.DLMS.ASN
             }
             else
             {
-                SerialNumber = new BigInteger(((GXAsn1Integer)reqInfo[1]).Value);
+                SerialNumber = ((GXAsn1Integer)reqInfo[1]).ToBigInteger();
             }
             string tmp = ((GXAsn1Sequence)reqInfo[2])[0].ToString();
             // Signature Algorithm
             SignatureAlgorithm = HashAlgorithmConverter.FromString(tmp);
-            if (SignatureAlgorithm != HashAlgorithm.Sha256WithEcdsa)
+            if (SignatureAlgorithm != HashAlgorithm.Sha256WithEcdsa &&
+                SignatureAlgorithm != HashAlgorithm.Sha384WithEcdsa)
             {
-                throw new Exception("DLMS certificate must be signed with ecdsa-with-SHA256.");
+                throw new Exception("DLMS certificate must be signed with ECDSA with SHA256 or SHA384.");
             }
             // Optional.
             if (((GXAsn1Sequence)reqInfo[2]).Count > 1)
@@ -411,7 +492,7 @@ namespace Gurux.DLMS.ASN
                                         break;
                                     case 2:
                                         //Authority cert serial number .
-                                        AuthorityCertificationSerialNumber = (byte[])it[0];
+                                        AuthorityCertificationSerialNumber = new BigInteger((byte[])it[0]);
                                         break;
                                     default:
                                         throw new ArgumentOutOfRangeException("Invalid context." + it.Index);
@@ -432,6 +513,30 @@ namespace Gurux.DLMS.ASN
                             else
                             {
                                 throw new ArgumentException("Invalid key usage.");
+                            }
+                            break;
+                        case X509CertificateType.ExtendedKeyUsage:
+                            if (value is GXAsn1Sequence ext)
+                            {
+                                foreach (GXAsn1ObjectIdentifier it in ext)
+                                {
+                                    if (it.ObjectIdentifier == "1.3.6.1.5.5.7.3.1")
+                                    {
+                                        ExtendedKeyUsage |= ExtendedKeyUsage.ServerAuth;
+                                    }
+                                    else if (it.ObjectIdentifier == "1.3.6.1.5.5.7.3.2")
+                                    {
+                                        ExtendedKeyUsage |= ExtendedKeyUsage.ClientAuth;
+                                    }
+                                    else
+                                    {
+                                        throw new ArgumentException("Invalid extended key usage.");
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                throw new ArgumentException("Invalid extended key usage.");
                             }
                             break;
                         case X509CertificateType.BasicConstraints:
@@ -488,10 +593,19 @@ namespace Gurux.DLMS.ASN
             {
                 throw new Exception("Basic Constraints value not present. It's mandotory.");
             }
-            PublicKeyAlgorithm = HashAlgorithmConverter.FromString(((GXAsn1Sequence)seq[1])[0].ToString());
-            if (PublicKeyAlgorithm != HashAlgorithm.Sha256WithEcdsa)
+            if (KeyUsage == (KeyUsage.DigitalSignature | KeyUsage.KeyAgreement) && ExtendedKeyUsage == ExtendedKeyUsage.None)
             {
-                throw new Exception("DLMS certificate must be signed with ecdsa-with-SHA256.");
+                throw new Exception("Extended key usage not present. It's mandotory for TLS.");
+            }
+            if (ExtendedKeyUsage != ExtendedKeyUsage.None && KeyUsage != (KeyUsage.DigitalSignature | KeyUsage.KeyAgreement))
+            {
+                throw new Exception("Extended key usage present. It's used only for TLS.");
+            }
+            PublicKeyAlgorithm = HashAlgorithmConverter.FromString(((GXAsn1Sequence)seq[1])[0].ToString());
+            if (PublicKeyAlgorithm != HashAlgorithm.Sha256WithEcdsa &&
+               PublicKeyAlgorithm != HashAlgorithm.Sha384WithEcdsa)
+            {
+                throw new Exception("DLMS certificate must be signed with ECDSA with SHA256 or SHA384.");
             }
             // Optional.
             if (((GXAsn1Sequence)seq[1]).Count > 1)
@@ -568,7 +682,9 @@ namespace Gurux.DLMS.ASN
                 if (AuthorityCertificationSerialNumber != null)
                 {
                     GXAsn1Context c4 = new GXAsn1Context() { Constructed = false, Index = 2 };
-                    c4.Add(AuthorityCertificationSerialNumber);
+                    byte[] tmp5 = AuthorityCertificationSerialNumber.ToByteArray();
+                    Array.Reverse(tmp5);
+                    c4.Add(tmp5);
                     c1.Add(c4);
                     s1.Add(GXAsn1Converter.ToByteArray(c1));
                 }
@@ -588,8 +704,9 @@ namespace Gurux.DLMS.ASN
             }
             s1.Add(GXAsn1Converter.ToByteArray(seq));
             s.Add(s1);
+            //KeyUsage
             s1 = new GXAsn1Sequence();
-            s1.Add(new GXAsn1ObjectIdentifier(X509CertificateTypeConverter.GetString(Enums.X509CertificateType.KeyUsage)));
+            s1.Add(new GXAsn1ObjectIdentifier(X509CertificateTypeConverter.GetString(X509CertificateType.KeyUsage)));
             byte value = 0;
             int min = 255;
             byte keyUsage = GXCommon.SwapBits((byte)KeyUsage);
@@ -613,6 +730,24 @@ namespace Gurux.DLMS.ASN
             byte[] tmp = GXAsn1Converter.ToByteArray(new GXAsn1BitString(new byte[] { (byte)(ignore % 8), value }));
             s1.Add(tmp);
             s.Add(s1);
+            //extKeyUsage
+            if (ExtendedKeyUsage != ExtendedKeyUsage.None)
+            {
+                s1 = new GXAsn1Sequence();
+                s1.Add(new GXAsn1ObjectIdentifier(X509CertificateTypeConverter.GetString(X509CertificateType.ExtendedKeyUsage)));
+                GXAsn1Sequence s2 = new GXAsn1Sequence();
+                if ((ExtendedKeyUsage & ExtendedKeyUsage.ServerAuth) != 0)
+                {
+                    s2.Add(new GXAsn1ObjectIdentifier("1.3.6.1.5.5.7.3.1"));
+                }
+                if ((ExtendedKeyUsage & ExtendedKeyUsage.ClientAuth) != 0)
+                {
+                    s2.Add(new GXAsn1ObjectIdentifier("1.3.6.1.5.5.7.3.2"));
+                }
+                tmp = GXAsn1Converter.ToByteArray(s2);
+                s1.Add(tmp);
+                s.Add(s1);
+            }
             GXAsn1Sequence valid = new GXAsn1Sequence();
             valid.Add(ValidFrom);
             valid.Add(ValidTo);
@@ -641,7 +776,7 @@ namespace Gurux.DLMS.ASN
             {
                 p2 = new object[] { a, SignatureParameters };
             }
-            list = new object[] { p, new GXAsn1Integer(SerialNumber.ToByteArray()), p2, GXAsn1Converter.EncodeSubject(Issuer), valid, GXAsn1Converter.EncodeSubject(Subject), tmp2, tmp4 };
+            list = new object[] { p, new GXAsn1Integer(SerialNumber), p2, GXAsn1Converter.EncodeSubject(Issuer), valid, GXAsn1Converter.EncodeSubject(Subject), tmp2, tmp4 };
             return list;
         }
 
@@ -732,17 +867,17 @@ namespace Gurux.DLMS.ASN
         /// Load x509 certificate from the PEM file.
         /// </summary>
         /// <param name="path">File path. </param>
-        /// <returns> Created GXx509Certificate object. </returns>
+        /// <returns>Created GXx509Certificate object. </returns>
         public static GXx509Certificate Load(string path)
         {
-            return GXx509Certificate.FromPem(File.ReadAllText(path));
+            return FromPem(File.ReadAllText(path));
         }
 
         /// <summary>
         /// x509 certificate to PEM file.
         /// </summary>
         /// <param name="path">File path.</param>
-        public virtual void Save(string path)
+        public void Save(string path)
         {
             File.WriteAllText(path, ToPem());
         }
@@ -757,6 +892,11 @@ namespace Gurux.DLMS.ASN
             if (PublicKey == null)
             {
                 throw new System.ArgumentException("Public or private key is not set.");
+            }
+            if (!string.IsNullOrEmpty(Description))
+            {
+                sb.Append("#Description");
+                sb.AppendLine(Description);
             }
             sb.AppendLine("-----BEGIN CERTIFICATE-----");
             sb.AppendLine(ToDer());
@@ -817,5 +957,31 @@ namespace Gurux.DLMS.ASN
             bb.Set(((GXAsn1Integer)tmp3[1]).Value, ((GXAsn1Integer)tmp3[1]).Value.Length == size ? 0 : 1, size);
             return e.Verify(bb.Array(), tmp2.SubArray(tmp2.Position, tmp2.Available));
         }
+
+        /// <summary>Search x509 Certificate from the PEM file in given folder.
+        /// </summary>
+        /// <param name="folder">Folder to search. </param>
+        /// <returns> Created GXPkcs8 object.</returns>
+        public static GXx509Certificate Search(string path, byte[] systemtitle)
+        {
+            string subject = GXAsn1Converter.SystemTitleToSubject(systemtitle);
+            foreach (string it in Directory.GetFiles(path, "*.pem"))
+            {
+                try
+                {
+                    GXx509Certificate cert = FromPem(File.ReadAllText(it));
+                    if (cert.Subject.Contains(subject))
+                    {
+                        return cert;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(ex.Message);
+                }
+            }
+            return null;
+        }
+
     }
 }

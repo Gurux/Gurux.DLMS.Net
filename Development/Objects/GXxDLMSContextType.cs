@@ -39,11 +39,6 @@ namespace Gurux.DLMS.Objects
 {
     public class GXxDLMSContextType
     {
-        Conformance conformance;
-        UInt16 maxReceivePduSize;
-        UInt16 maxSendPpuSize;
-        internal GXDLMSSettings settings = null;
-
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -57,60 +52,18 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         public Conformance Conformance
         {
-            get
-            {
-                if (settings != null)
-                {
-                    return settings.ProposedConformance;
-                }
-                return conformance;
-            }
-            set
-            {
-                if (settings != null)
-                {
-                    settings.ProposedConformance = value;
-                }
-                conformance = value;
-            }
+            get;
+            set;
         }
         public UInt16 MaxReceivePduSize
         {
-            get
-            {
-                if (settings != null)
-                {
-                    return settings.MaxServerPDUSize;
-                }
-                return maxReceivePduSize;
-            }
-            set
-            {
-                if (settings != null)
-                {
-                    settings.MaxServerPDUSize = value;
-                }
-                maxReceivePduSize = value;
-            }
+            get;
+            set;
         }
         public UInt16 MaxSendPduSize
         {
-            get
-            {
-                if (settings != null)
-                {
-                    return settings.MaxServerPDUSize;
-                }
-                return maxSendPpuSize;
-            }
-            set
-            {
-                if (settings != null)
-                {
-                    settings.MaxServerPDUSize = value;
-                }
-                maxSendPpuSize = value;
-            }
+            get;
+            set;
         }
 
         /// <summary>
@@ -138,7 +91,7 @@ namespace Gurux.DLMS.Objects
         {
             return Conformance + " " + MaxReceivePduSize.ToString() + " " + MaxSendPduSize.ToString()
                  + " " + DlmsVersionNumber.ToString() + " " + QualityOfService.ToString() + " " +
-                 Gurux.DLMS.Internal.GXCommon.ToHex(CypheringInfo, true);
+                 Internal.GXCommon.ToHex(CypheringInfo, true);
         }
     };
 }

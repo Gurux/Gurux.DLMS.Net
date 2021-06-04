@@ -109,6 +109,7 @@ namespace Gurux.DLMS.Objects
         : base(ObjectType.MBusClient, ln, sn)
         {
             CaptureDefinition = new List<KeyValuePair<string, string>>();
+            Version = 1;
         }
 
         /// <summary>
@@ -459,6 +460,11 @@ namespace Gurux.DLMS.Objects
         {
             return new string[] { "Slave install", "Slave deinstall", "Capture",
                 "Reset alarm", "Synchronize clock", "Data send", "Set encryption key", "Transfer key"};
+        }
+
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 1;
         }
 
         int IGXDLMSBase.GetAttributeCount()

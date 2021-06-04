@@ -379,6 +379,11 @@ namespace Gurux.DLMS.Objects
                 "Image verify", "Image activate"};
         }
 
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 0;
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 7;

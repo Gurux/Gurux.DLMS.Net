@@ -97,7 +97,7 @@ namespace Gurux.DLMS.Ecdsa
                 value.Scheme = Ecc.P384;
                 value.RawValue = new byte[96];
                 value.RawValue[0] = 4;
-                Array.Copy(key, 0, value.RawValue, 1, 96);
+                Array.Copy(key, 0, value.RawValue, 1, 95);
             }
             else
             {

@@ -155,6 +155,11 @@ namespace Gurux.DLMS.Objects
             return new string[] { "Connect logical device" };
         }
 
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 0;
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 2;

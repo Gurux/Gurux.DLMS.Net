@@ -42,6 +42,7 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Secure;
 using System.Diagnostics;
 using System.IO.Ports;
+using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Client.Example
 {
@@ -56,6 +57,11 @@ namespace Gurux.DLMS.Client.Example
         public List<KeyValuePair<string, int>> readObjects = new List<KeyValuePair<string, int>>();
         //Cache file.
         public string outputFile = null;
+        //Client and server certificates are exported from the meter.
+        public string ExportSecuritySetupLN = null;
+
+        //Generate new client and server certificates and import them to the server.
+        public string GenerateSecuritySetupLN = null;
 
         public static int GetParameters(string[] args, Settings settings)
         {
@@ -63,8 +69,8 @@ namespace Gurux.DLMS.Client.Example
             //Has user give the custom serial port settings or are the default values used in mode E.
             bool modeEDefaultValues = true;
             string[] tmp;
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:P:g:S:C:n:v:o:T:A:B:D:d:l:F:m:");
-            GXNet net = null;
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:P:g:S:C:n:v:o:T:A:B:D:d:l:F:m:E:V:G:M:K:N:");
+            GXNet net;
             foreach (GXCmdParameter it in parameters)
             {
                 switch (it.Tag)
@@ -234,15 +240,61 @@ namespace Gurux.DLMS.Client.Example
                     case 'C':
                         try
                         {
-                            settings.client.Ciphering.Security = (Security)Enum.Parse(typeof(Security), it.Value);
+                            if (string.Compare("None", it.Value, true) == 0)
+                            {
+                                settings.client.Ciphering.Security = Security.None;
+                            }
+                            else if (string.Compare("Authentication", it.Value, true) == 0)
+                            {
+                                settings.client.Ciphering.Security = Security.Authentication;
+                            }
+                            else if (string.Compare("Encryption", it.Value, true) == 0)
+                            {
+                                settings.client.Ciphering.Security = Security.Encryption;
+                            }
+                            else if (string.Compare("AuthenticationEncryption", it.Value, true) == 0)
+                            {
+                                settings.client.Ciphering.Security = Security.AuthenticationEncryption;
+                            }
+                            else if (string.Compare("DigitallySigned", it.Value, true) == 0)
+                            {
+                                settings.client.Ciphering.Security = Security.DigitallySigned;
+                            }
+                            else
+                            {
+                                throw new ArgumentException("Invalid Ciphering option '" + it.Value + "'. (None, Authentication, Encryption, AuthenticationEncryption, DigitallySigned)");
+                            }
                         }
                         catch (Exception)
                         {
-                            throw new ArgumentException("Invalid Ciphering option '" + it.Value + "'. (None, Authentication, Encryption, AuthenticationEncryption)");
+                            throw new ArgumentException("Invalid Ciphering option '" + it.Value + "'. (None, Authentication, Encryption, AuthenticationEncryption, DigitallySigned)");
+                        }
+                        break;
+                    case 'V':
+                        try
+                        {
+                            settings.client.Ciphering.SecuritySuite = (SecuritySuite)Enum.Parse(typeof(SecuritySuite), it.Value);
+                        }
+                        catch (Exception)
+                        {
+                            throw new ArgumentException("Invalid security suite option '" + it.Value + "'. (Suite0, Suite1, Suite2)");
+                        }
+                        break;
+                    case 'K':
+                        try
+                        {
+                            settings.client.Ciphering.KeyAgreementScheme = (KeyAgreementScheme)Enum.Parse(typeof(KeyAgreementScheme), it.Value);
+                        }
+                        catch (Exception)
+                        {
+                            throw new ArgumentException("Invalid security suite option '" + it.Value + "'. (OnePassDiffieHellman, StaticUnifiedModel)");
                         }
                         break;
                     case 'T':
                         settings.client.Ciphering.SystemTitle = GXCommon.HexToBytes(it.Value);
+                        break;
+                    case 'M':
+                        settings.client.ServerSystemTitle = GXCommon.HexToBytes(it.Value);
                         break;
                     case 'A':
                         settings.client.Ciphering.AuthenticationKey = GXCommon.HexToBytes(it.Value);
@@ -255,6 +307,12 @@ namespace Gurux.DLMS.Client.Example
                         break;
                     case 'F':
                         settings.client.Ciphering.InvocationCounter = UInt32.Parse(it.Value.Trim());
+                        break;
+                    case 'N':
+                        settings.GenerateSecuritySetupLN = it.Value.Trim();
+                        break;
+                    case 'E':
+                        settings.ExportSecuritySetupLN = it.Value.Trim();
                         break;
                     case 'o':
                         settings.outputFile = it.Value;
@@ -295,6 +353,19 @@ namespace Gurux.DLMS.Client.Example
                     case 'm':
                         settings.client.Plc.MacDestinationAddress = UInt16.Parse(it.Value);
                         break;
+                    case 'G':
+                        tmp = it.Value.Split(':');
+                        settings.client.Gateway = new GXDLMSGateway();
+                        settings.client.Gateway.NetworkId = byte.Parse(tmp[0]);
+                        if (tmp[1].StartsWith("0x"))
+                        {
+                            settings.client.Gateway.PhysicalDeviceAddress = GXDLMSTranslator.HexToBytes(tmp[1]);
+                        }
+                        else
+                        {
+                            settings.client.Gateway.PhysicalDeviceAddress = ASCIIEncoding.ASCII.GetBytes(tmp[1]);
+                        }
+                        break;
                     case '?':
                         switch (it.Tag)
                         {
@@ -333,15 +404,15 @@ namespace Gurux.DLMS.Client.Example
                             case 'd':
                                 throw new ArgumentException("Missing mandatory DLMS standard option.");
                             case 'K':
-                                throw new ArgumentException("Missing mandatory private key file option.");
-                            case 'k':
-                                throw new ArgumentException("Missing mandatory public key file option.");
+                                throw new ArgumentException("Missing mandatory key agreement scheme option.");
                             case 'l':
                                 throw new ArgumentException("Missing mandatory logical server address option.");
                             case 'm':
                                 throw new ArgumentException("Missing mandatory MAC destination address option.");
                             case 'i':
                                 throw new ArgumentException("Missing mandatory interface type option.");
+                            case 'R':
+                                throw new ArgumentException("Missing mandatory logical name of security setup object.");
                             default:
                                 ShowHelp();
                                 return 1;
@@ -375,18 +446,25 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine(" -r [sn, ln]\t Short name or Logical Name (default) referencing is used.");
             Console.WriteLine(" -t [Error, Warning, Info, Verbose] Trace messages.");
             Console.WriteLine(" -g \"0.0.1.0.0.255:1; 0.0.1.0.0.255:2\" Get selected object(s) with given attribute index.");
-            Console.WriteLine(" -C \t Security Level. (None, Authentication, Encrypted, AuthenticationEncryption)");
+            Console.WriteLine(" -C \t Security Level. (None, Authentication, Encrypted, AuthenticationEncryption or DigitallySigned)");
+            Console.WriteLine(" -V \t Security Suite version. (Default: Suite0). (Suite0, Suite1 or Suite2)");
+            Console.WriteLine(" -K \t Used Key agreement scheme (OnePassDiffieHellman or StaticUnifiedModel).");
             Console.WriteLine(" -v \t Invocation counter data object Logical Name. Ex. 0.0.43.1.1.255");
             Console.WriteLine(" -I \t Auto increase invoke ID");
             Console.WriteLine(" -o \t Cache association view to make reading faster. Ex. -o C:\\device.xml");
             Console.WriteLine(" -T \t System title that is used with chiphering. Ex -T 4775727578313233");
+            Console.WriteLine(" -M \t Meter system title that is used with chiphering. Ex -T 4775727578313233");
             Console.WriteLine(" -A \t Authentication key that is used with chiphering. Ex -A D0D1D2D3D4D5D6D7D8D9DADBDCDDDEDF");
             Console.WriteLine(" -B \t Block cipher key that is used with chiphering. Ex -B 000102030405060708090A0B0C0D0E0F");
             Console.WriteLine(" -D \t Dedicated key that is used with chiphering. Ex -D 00112233445566778899AABBCCDDEEFF");
             Console.WriteLine(" -F \t Initial Frame Counter (Invocation counter) value.");
             Console.WriteLine(" -d \t Used DLMS standard. Ex -d India (DLMS, India, Italy, SaudiArabia, IDIS)");
+            Console.WriteLine(" -E \t Export client and server certificates from the meter. Ex. -E 0.0.43.0.0.255.");
+            Console.WriteLine(" -N \t Generate new client and server certificates and import them to the server. Ex. -R 0.0.43.0.0.255.");
+            Console.WriteLine(" -G \t Use Gateway with given NetworkId and PhysicalDeviceAddress. Ex -G 0:1.");
             Console.WriteLine(" -i \t Used communication interface. Ex. -i WRAPPER.");
             Console.WriteLine(" -m \t Used PLC MAC address. Ex. -m 1.");
+            Console.WriteLine(" -G \t Gateway settings NetworkId:PhysicalDeviceAddress. Ex -G 1:12345678");
             Console.WriteLine("Example:");
             Console.WriteLine("Read LG device using TCP/IP connection.");
             Console.WriteLine("GuruxDlmsSample -r SN -c 16 -s 1 -h [Meter IP Address] -p [Meter Port No]");

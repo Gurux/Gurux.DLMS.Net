@@ -35,7 +35,7 @@
 namespace Gurux.DLMS.Enums
 {
     /// <summary>
-    /// Enumerates security policy for version 0.
+    /// Enumerates used security.
     /// </summary>
     public enum Security
     {
@@ -54,6 +54,10 @@ namespace Gurux.DLMS.Enums
         /// <summary>
         /// Authentication and Encryption security are used.
         /// </summary>
-        AuthenticationEncryption = 0x30
+        AuthenticationEncryption = 0x30,
+        /// <summary>
+        /// Messages are digitally signed.
+        /// </summary>
+        DigitallySigned = 0x40
     }
 }

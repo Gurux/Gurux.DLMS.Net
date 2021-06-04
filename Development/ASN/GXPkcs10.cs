@@ -41,7 +41,6 @@ using System.IO;
 using System.Text;
 using System.Net;
 using Gurux.DLMS.Objects.Enums;
-using Gurux.DLMS.Ecdsa.Enums;
 
 namespace Gurux.DLMS.ASN
 {
@@ -130,7 +129,6 @@ namespace Gurux.DLMS.ASN
             get;
             private set;
         }
-
 
         /// <summary>
         /// Constructor.
@@ -437,13 +435,17 @@ namespace Gurux.DLMS.ASN
         /// <param name="kp">KeyPair </param>
         /// <param name="subject">Subject.</param>
         /// <returns> Created GXPkcs10.</returns>
-        public static GXPkcs10 CreateCertificateSigningRequest(KeyValuePair<GXPrivateKey, GXPublicKey> kp, string subject)
+        public static GXPkcs10 CreateCertificateSigningRequest(KeyValuePair<GXPublicKey, GXPrivateKey> kp, string subject)
         {
+            if (subject == null || !subject.Contains("CN="))
+            {
+                throw new ArgumentException(nameof(subject));
+            }
             GXPkcs10 pkc10 = new GXPkcs10();
             pkc10.Algorithm = X9ObjectIdentifier.IdECPublicKey;
-            pkc10.PublicKey = kp.Value;
+            pkc10.PublicKey = kp.Key;
             pkc10.Subject = subject;
-            pkc10.Sign(kp.Key, kp.Key.Scheme == Ecdsa.Enums.Ecc.P256 ? HashAlgorithm.Sha256WithEcdsa : HashAlgorithm.Sha384WithEcdsa);
+            pkc10.Sign(kp.Value, kp.Key.Scheme == Ecdsa.Enums.Ecc.P256 ? HashAlgorithm.Sha256WithEcdsa : HashAlgorithm.Sha384WithEcdsa);
             return pkc10;
         }
 
@@ -451,19 +453,19 @@ namespace Gurux.DLMS.ASN
         /// Ask Gurux certificate server to generate the new certificate.
         /// </summary>
         /// <param name="address">Certificate server address.</param>
-        /// <param name="certifications">List of certification types and PKCS #10 certificates.</param>
+        /// <param name="certifications">List of certification requests.</param>
         /// <returns>Generated certificate(s).</returns>
-        public static GXx509Certificate[] GetCertificate(string address, List<KeyValuePair<CertificateType, GXPkcs10>> certifications)
+        public static GXx509Certificate[] GetCertificate(string address, List<GXCertificateRequest> certifications)
         {
             StringBuilder usage = new StringBuilder();
-            foreach (KeyValuePair<CertificateType, GXPkcs10> it in certifications)
+            foreach (GXCertificateRequest it in certifications)
             {
                 if (usage.Length != 0)
                 {
                     usage.Append(", ");
                 }
                 usage.Append("{\"KeyUsage\":");
-                switch (it.Key)
+                switch (it.CertificateType)
                 {
                     case CertificateType.DigitalSignature:
                         usage.Append(Convert.ToString((int)KeyUsage.DigitalSignature));
@@ -471,11 +473,19 @@ namespace Gurux.DLMS.ASN
                     case CertificateType.KeyAgreement:
                         usage.Append(Convert.ToString((int)KeyUsage.KeyAgreement));
                         break;
+                    case CertificateType.TLS:
+                        usage.Append(Convert.ToString((int)KeyUsage.DigitalSignature | (int)KeyUsage.KeyAgreement));
+                        break;
                     default:
                         throw new Exception("Invalid type.");
                 }
+                if (it.ExtendedKeyUsage != ExtendedKeyUsage.None)
+                {
+                    usage.Append(", \"ExtendedKeyUsage\":");
+                    usage.Append(Convert.ToString((int)it.ExtendedKeyUsage));
+                }
                 usage.Append(", \"CSR\":\"");
-                usage.Append(it.Value.ToDer());
+                usage.Append(it.Certificate.ToDer());
                 usage.Append("\"}");
             }
             HttpWebRequest request = HttpWebRequest.Create(address) as HttpWebRequest;
@@ -513,7 +523,7 @@ namespace Gurux.DLMS.ASN
                         foreach (string it in tmp)
                         {
                             GXx509Certificate x509 = GXx509Certificate.FromDer(it);
-                            if (!GXCommon.Compare(certifications[pos].Value.PublicKey.RawValue, x509.PublicKey.RawValue))
+                            if (!GXCommon.Compare(certifications[pos].Certificate.PublicKey.RawValue, x509.PublicKey.RawValue))
                             {
                                 throw new Exception("Create certificate signingRequest generated wrong public key.");
                             }
@@ -538,7 +548,7 @@ namespace Gurux.DLMS.ASN
         ///
         public static GXPkcs10 Load(string path)
         {
-            return GXPkcs10.FromPem(File.ReadAllText(path));
+            return FromPem(File.ReadAllText(path));
         }
 
         /// <summary>

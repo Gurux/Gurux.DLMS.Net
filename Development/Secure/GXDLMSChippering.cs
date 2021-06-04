@@ -164,7 +164,7 @@ namespace Gurux.DLMS.Secure
             if (p.Security == Security.Authentication)
             {
                 GXByteBuffer tmp2 = new GXByteBuffer();
-                tmp2.SetUInt8((byte)p.Security);
+                tmp2.SetUInt8((byte)((byte)p.Security | (byte)p.SecuritySuite));
                 tmp2.Set(p.AuthenticationKey);
                 tmp2.Set(plainText);
                 return tmp2.Array();
@@ -174,6 +174,73 @@ namespace Gurux.DLMS.Secure
                 return p.AuthenticationKey;
             }
             return null;
+        }
+        /// <summary>
+        /// Find public and private keys.
+        /// </summary>
+        /// <param name="p"></param>
+        private static KeyValuePair<GXPublicKey, GXPrivateKey> FindKeys(AesGcmParameter p, byte[] originator, byte[] recipient)
+        {
+            GXPrivateKey key = null;
+            GXPublicKey pub = null;
+            //Find key agreement key using subject.
+            string subject = GXAsn1Converter.SystemTitleToSubject(originator);
+            foreach (KeyValuePair<GXPkcs8, GXx509Certificate> it in p.Settings.Keys)
+            {
+                if (it.Key != null && it.Value.KeyUsage == ASN.Enums.KeyUsage.KeyAgreement && it.Value.Subject.Contains(subject))
+                {
+                    key = it.Key.PrivateKey;
+                    break;
+                }
+            }
+            if (key == null && p.CryptoNotifier != null && p.CryptoNotifier.keys != null)
+            {
+                GXCryptoKeyParameter args = new GXCryptoKeyParameter();
+                args.Encrypt = true;
+                args.CertificateType = CertificateType.KeyAgreement;
+                args.SystemTitle = originator;
+                args.SecuritySuite = p.SecuritySuite;
+                try
+                {
+                    p.CryptoNotifier.keys(p.CryptoNotifier, args);
+                    key = args.PrivateKey;
+                }
+                catch (Exception)
+                {
+                    key = null;
+                }
+            }
+            if (key != null)
+            {
+                //Find key agreement key using subject.
+                subject = GXAsn1Converter.SystemTitleToSubject(recipient);
+                foreach (KeyValuePair<GXPkcs8, GXx509Certificate> it in p.Settings.Keys)
+                {
+                    if (it.Value.KeyUsage == ASN.Enums.KeyUsage.KeyAgreement && it.Value.Subject.Contains(subject))
+                    {
+                        pub = it.Value.PublicKey;
+                        break;
+                    }
+                }
+                if (pub == null && p.CryptoNotifier != null && p.CryptoNotifier.keys != null)
+                {
+                    GXCryptoKeyParameter args = new GXCryptoKeyParameter();
+                    args.SecuritySuite = p.SecuritySuite;
+                    args.CertificateType = CertificateType.KeyAgreement;
+                    args.SystemTitle = recipient;
+                    args.SecuritySuite = p.SecuritySuite;
+                    try
+                    {
+                        p.CryptoNotifier.keys(p.CryptoNotifier, args);
+                        pub = args.PublicKey;
+                    }
+                    catch (Exception)
+                    {
+                        pub = null;
+                    }
+                }
+            }
+            return new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
         }
 
         /// <summary>
@@ -250,6 +317,7 @@ namespace Gurux.DLMS.Secure
                     throw new ArgumentOutOfRangeException("cryptedData");
             }
             int value = 0;
+            KeyValuePair<GXPublicKey, GXPrivateKey> kp = new KeyValuePair<GXPublicKey, GXPrivateKey>(null, null);
             GXPrivateKey key = null;
             GXPublicKey pub = null;
             GXByteBuffer transactionId = null;
@@ -299,15 +367,18 @@ namespace Gurux.DLMS.Secure
                     p.OtherInformation = tmp;
                 }
                 // KeyInfo OPTIONAL
-                len = data.GetUInt8();
+                data.GetUInt8();
                 // AgreedKey CHOICE tag.
                 data.GetUInt8();
                 // key-parameters
-                len = data.GetUInt8();
+                data.GetUInt8();
                 value = data.GetUInt8();
                 p.KeyParameters = value;
                 if (value == (int)KeyAgreementScheme.OnePassDiffieHellman)
                 {
+                    //Update security because server needs it and client when push message is received.
+                    p.Settings.Cipher.Security = Security.DigitallySigned;
+                    p.Settings.Cipher.KeyAgreementScheme = KeyAgreementScheme.OnePassDiffieHellman;
                     // key-ciphered-data
                     len = GXCommon.GetObjectCount(data);
                     GXByteBuffer bb = new GXByteBuffer();
@@ -316,52 +387,37 @@ namespace Gurux.DLMS.Secure
                     {
                         p.KeyCipheredData = bb.Array();
                         //Find key agreement key using subject.
-                        string subject = GXAsn1Converter.SystemTitleToSubject(p.SystemTitle);
-                        foreach (KeyValuePair<GXPkcs8, GXx509Certificate> it in p.Settings.Keys)
+                        kp = FindKeys(p, p.RecipientSystemTitle, p.SystemTitle);
+                        //If private key is not found.
+                        if (kp.Key == null)
                         {
-                            if (it.Key != null && it.Value.KeyUsage == ASN.Enums.KeyUsage.KeyAgreement && it.Value.Subject.Contains(subject))
-                            {
-                                key = it.Key.PrivateKey;
-                                //Get recipient Ephemeral public key.
-                                subject = GXAsn1Converter.SystemTitleToSubject(p.RecipientSystemTitle);
-                                foreach (KeyValuePair<GXPkcs8, GXx509Certificate> it2 in p.Settings.Keys)
-                                {
-                                    if (it2.Value != null && it2.Value.KeyUsage == ASN.Enums.KeyUsage.KeyAgreement && it2.Value.Subject.Contains(subject))
-                                    {
-                                        pub = it2.Value.PublicKey;
-                                        break;
-                                    }
-                                }
-                                break;
-                            }
-                        }
-                        if (key == null)
-                        {
-                            //Find key agreement key using subject.
-                            subject = GXAsn1Converter.SystemTitleToSubject(p.RecipientSystemTitle);
-                            foreach (KeyValuePair<GXPkcs8, GXx509Certificate> it in p.Settings.Keys)
-                            {
-                                if (it.Key != null && it.Value.KeyUsage == ASN.Enums.KeyUsage.KeyAgreement && it.Value.Subject.Contains(subject))
-                                {
-                                    key = it.Key.PrivateKey;
-                                    break;
-                                }
-                            }
+                            kp = FindKeys(p, p.SystemTitle, p.RecipientSystemTitle);
                         }
                     }
                     else
                     {
-                        key = p.Settings.Cipher.KeyAgreementKeyPair.Key;
+                        kp = p.Settings.Cipher.KeyAgreementKeyPair;
+                        if (kp.Key == null)
+                        {
+                            pub = (GXPublicKey)GXDLMS.GetKey(p.CryptoNotifier, p.SecuritySuite, CertificateType.KeyAgreement, p.SystemTitle, false);
+                        }
+                        if (kp.Value == null)
+                        {
+                            key = (GXPrivateKey)GXDLMS.GetKey(p.CryptoNotifier, p.SecuritySuite, CertificateType.KeyAgreement, p.SystemTitle, true);
+                        }
                     }
-                    if (key != null && pub == null)
+                    if (kp.Key != null)
                     {
                         //Get Ephemeral public key.
                         int keySize = len / 2;
-                        pub = GXPublicKey.FromRawBytes(bb.SubArray(0, keySize));
+                        kp = new KeyValuePair<GXPublicKey, GXPrivateKey>(GXPublicKey.FromRawBytes(bb.SubArray(0, keySize)), kp.Value);
                     }
                 }
                 else if (value == (int)KeyAgreementScheme.StaticUnifiedModel)
                 {
+                    //Update security because server needs it and client when push message is received.
+                    p.Settings.Cipher.Security = Security.DigitallySigned;
+                    p.Settings.Cipher.KeyAgreementScheme = KeyAgreementScheme.StaticUnifiedModel;
                     len = GXCommon.GetObjectCount(data);
                     if (len != 0)
                     {
@@ -369,39 +425,29 @@ namespace Gurux.DLMS.Secure
                     }
                     if (p.Xml != null)
                     {
-                        //Find key agreement key using subject.
-                        string subject = GXAsn1Converter.SystemTitleToSubject(p.RecipientSystemTitle);
-                        foreach (KeyValuePair<GXPkcs8, GXx509Certificate> it in p.Settings.Keys)
+                        kp = FindKeys(p, p.SystemTitle, p.RecipientSystemTitle);
+                        //If private key is not found.
+                        if (kp.Key == null)
                         {
-                            if (it.Value.KeyUsage == ASN.Enums.KeyUsage.KeyAgreement && it.Value.Subject.Contains(subject))
-                            {
-                                key = it.Key.PrivateKey;
-                                break;
-                            }
-                        }
-                        if (key != null)
-                        {
-                            //Find key agreement key using subject.
-                            subject = GXAsn1Converter.SystemTitleToSubject(p.Settings.SourceSystemTitle);
-                            foreach (KeyValuePair<GXPkcs8, GXx509Certificate> it in p.Settings.Keys)
-                            {
-                                if (it.Value.KeyUsage == ASN.Enums.KeyUsage.KeyAgreement && it.Value.Subject.Contains(subject))
-                                {
-                                    pub = it.Value.PublicKey;
-                                    break;
-                                }
-                            }
+                            kp = FindKeys(p, p.RecipientSystemTitle, p.SystemTitle);
                         }
                     }
                     else
                     {
-                        key = p.Settings.Cipher.KeyAgreementKeyPair.Key;
-                        pub = p.Settings.Cipher.KeyAgreementKeyPair.Value;
+                        kp = p.Settings.Cipher.KeyAgreementKeyPair;
+                        if (kp.Key == null)
+                        {
+                            pub = (GXPublicKey)GXDLMS.GetKey(p.CryptoNotifier, p.SecuritySuite, CertificateType.KeyAgreement, p.SystemTitle, false);
+                        }
+                        if (kp.Value == null)
+                        {
+                            key = (GXPrivateKey)GXDLMS.GetKey(p.CryptoNotifier, p.SecuritySuite, CertificateType.KeyAgreement, p.RecipientSystemTitle, true);
+                        }
+                        if (kp.Key == null || kp.Value == null)
+                        {
+                            kp = p.Settings.Cipher.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
+                        }
                     }
-                }
-                else
-                {
-                    throw new ArgumentException("key-parameters");
                 }
             }
             len = GXCommon.GetObjectCount(data);
@@ -419,54 +465,68 @@ namespace Gurux.DLMS.Secure
             }
             if ((sc & 0x40) != 0)
             {
-                System.Diagnostics.Debug.WriteLine("Error: Key_Set is used.");
+                throw new GXDLMSCipherException("Key_Set is used.");
             }
             if ((sc & 0x20) != 0)
             {
                 System.Diagnostics.Debug.WriteLine("Encryption is applied.");
             }
-            if (key != null)
+            if (value != 0 && p.Xml != null && kp.Key == null)
             {
-                if (value == (int)KeyAgreementScheme.OnePassDiffieHellman)
-                {
-                    GXEcdsa c = new GXEcdsa(key);
-                    //Get Ephemeral signing key and verify it.
-                    byte[] z = c.GenerateSecret(pub);
-                    System.Diagnostics.Debug.WriteLine("Originator ephemeral public key: " + pub.ToHex());
-                    System.Diagnostics.Debug.WriteLine("Recipient private agreement key: " + key.ToHex());
-                    System.Diagnostics.Debug.WriteLine("Shared secret:" + GXCommon.ToHex(z, true));
+                return p.CipheredContent;
+            }
+            if (value == (int)KeyAgreementScheme.OnePassDiffieHellman)
+            {
+                GXEcdsa c = new GXEcdsa(kp.Value);
+                //Get Ephemeral signing key and verify it.
+                byte[] z = c.GenerateSecret(kp.Key);
+                System.Diagnostics.Debug.WriteLine("Private agreement key: " + kp.Value.ToHex());
+                System.Diagnostics.Debug.WriteLine("Public ephemeral key: " + kp.Key.ToHex());
+                System.Diagnostics.Debug.WriteLine("Shared secret:" + GXCommon.ToHex(z, true));
+                GXByteBuffer kdf = new GXByteBuffer();
+                kdf.Set(GXSecure.GenerateKDF(p.SecuritySuite, z,
+                    p.SecuritySuite == SecuritySuite.Suite1 ? AlgorithmId.AesGcm128 : AlgorithmId.AesGcm256,
+                    p.SystemTitle,
+                    p.RecipientSystemTitle,
+                    null, null));
+                System.Diagnostics.Debug.WriteLine("KDF:" + kdf.ToString());
+                p.BlockCipherKey = kdf.SubArray(0, 16);
 
-                    GXByteBuffer kdf = new GXByteBuffer();
-                    kdf.Set(GXSecure.GenerateKDF(p.SecuritySuite, z,
-                        p.SecuritySuite == SecuritySuite.Ecdsa256 ? AlgorithmId.AesGcm128 : AlgorithmId.AesGcm256,
-                        p.SystemTitle,
-                        p.RecipientSystemTitle,
-                        null, null));
-                    System.Diagnostics.Debug.WriteLine("KDF:" + kdf.ToString());
-                    p.BlockCipherKey = kdf.SubArray(0, 16);
-
-                }
-                else if (value == (int)KeyAgreementScheme.StaticUnifiedModel)
-                {
-                    GXEcdsa c = new GXEcdsa(key);
-                    byte[] z = c.GenerateSecret(pub);
-                    System.Diagnostics.Debug.WriteLine("Shared secret:" + GXCommon.ToHex(z, true));
-                    GXByteBuffer kdf = new GXByteBuffer();
-                    kdf.Set(GXSecure.GenerateKDF(p.SecuritySuite, z,
-                        p.SecuritySuite == SecuritySuite.Ecdsa256 ? AlgorithmId.AesGcm128 : AlgorithmId.AesGcm256,
-                        p.SystemTitle,
-                        transactionId.Array(),
-                        p.RecipientSystemTitle,
-                        null));
-                    System.Diagnostics.Debug.WriteLine("KDF:" + kdf.ToString());
-                    p.BlockCipherKey = kdf.SubArray(0, 16);
-                }
-                else
-                {
-                    throw new ArgumentOutOfRangeException("Invalid Key-id value.");
-                }
+            }
+            else if (value == (int)KeyAgreementScheme.StaticUnifiedModel)
+            {
+                GXEcdsa c = new GXEcdsa(kp.Value);
+                byte[] z = c.GenerateSecret(kp.Key);
+                System.Diagnostics.Debug.WriteLine("Private agreement key: " + kp.Value.ToHex());
+                System.Diagnostics.Debug.WriteLine("Public agreement key: " + kp.Key.ToHex());
+                System.Diagnostics.Debug.WriteLine("Shared secret:" + GXCommon.ToHex(z, true));
+                GXByteBuffer kdf = new GXByteBuffer();
+                kdf.Set(GXSecure.GenerateKDF(p.SecuritySuite, z,
+                    p.SecuritySuite == SecuritySuite.Suite1 ? AlgorithmId.AesGcm128 : AlgorithmId.AesGcm256,
+                    p.SystemTitle,
+                    transactionId.Array(),
+                    p.RecipientSystemTitle,
+                    null));
+                System.Diagnostics.Debug.WriteLine("KDF: " + kdf.ToString());
+                System.Diagnostics.Debug.WriteLine("Authentication key: " + GXCommon.ToHex(p.AuthenticationKey, true));
+                p.BlockCipherKey = kdf.SubArray(0, 16);
+            }
+            if (p.Xml == null && value != 0 && kp.Key == null)
+            {
+                throw new ArgumentOutOfRangeException("Invalid Key-id value.");
             }
             UInt32 invocationCounter = data.GetUInt32();
+            if (p.Settings.InvocationCounter != null && p.Settings.InvocationCounter.Value is UInt32)
+            {
+                if (invocationCounter < Convert.ToUInt32(p.Settings.InvocationCounter.Value))
+                {
+                    throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
+                            ExceptionServiceError.InvocationCounterError, p.Settings.InvocationCounter.Value);
+                }
+                // Update IC value.
+                p.Settings.InvocationCounter.Value = invocationCounter;
+            }
+
             p.InvocationCounter = invocationCounter;
             System.Diagnostics.Debug.WriteLine("Decrypt settings: " + p.ToString());
             System.Diagnostics.Debug.WriteLine("Encrypted: " + GXCommon.ToHex(data.Data,
@@ -486,11 +546,11 @@ namespace Gurux.DLMS.Secure
                 {
                     if (p.Xml == null)
                     {
-                        throw new GXDLMSException("Decrypt failed. Invalid tag.");
+                        throw new GXDLMSCipherException("Decrypt failed. Invalid authentication tag.");
                     }
                     else
                     {
-                        p.Xml.AppendComment("Decrypt failed. Invalid tag.");
+                        p.Xml.AppendComment("Decrypt failed. Invalid authentication tag.");
                     }
                 }
                 return encryptedData;
@@ -522,7 +582,7 @@ namespace Gurux.DLMS.Secure
                 {
                     if (p.Xml == null)
                     {
-                        throw new Exception("Decrypt failed. Invalid authentication tag.");
+                        throw new GXDLMSCipherException("Decrypt failed. Invalid authentication tag.");
                     }
                     p.Xml.AppendComment("Decrypt failed. Invalid authentication tag.");
                 }

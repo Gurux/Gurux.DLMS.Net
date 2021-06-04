@@ -488,7 +488,7 @@ namespace Gurux.DLMS.Objects
             {
                 ignoreDescription = settings.IgnoreDescription;
             }
-            using (Stream stream = File.OpenWrite(filename))
+            using (Stream stream = File.Create(filename))
             {
                 Save(stream, settings);
             }
@@ -522,59 +522,62 @@ namespace Gurux.DLMS.Objects
                 writer.WriteStartElement("Objects", 0);
                 foreach (GXDLMSObject it in this)
                 {
-                    if (index < 2)
+                    if (it is IGXDLMSBase)
                     {
-                        if (settings == null || !settings.Old)
+                        if (index < 2)
                         {
-                            writer.WriteStartElement("GXDLMS" + it.ObjectType.ToString(), 0);
+                            if (settings == null || !settings.Old)
+                            {
+                                writer.WriteStartElement("GXDLMS" + it.ObjectType.ToString(), 0);
+                            }
+                            else
+                            {
+                                writer.WriteStartElement("Object", 0);
+                                writer.WriteAttributeString("Type", ((int)it.ObjectType).ToString(), 0);
+                            }
                         }
-                        else
+                        if (index == 0)
                         {
-                            writer.WriteStartElement("Object", 0);
-                            writer.WriteAttributeString("Type", ((int)it.ObjectType).ToString(), 0);
+                            // Add SN
+                            if (it.ShortName != 0)
+                            {
+                                writer.WriteElementString("SN", it.ShortName, 0);
+                            }
+                            // Add LN
+                            writer.WriteElementString("LN", it.LogicalName, 0);
+                            // Add Version
+                            if (it.Version != 0)
+                            {
+                                writer.WriteElementString("Version", it.Version, 0);
+                            }
+                            // Add description if given.
+                            if (!ignoreDescription && !string.IsNullOrEmpty(it.Description))
+                            {
+                                writer.WriteElementString("Description", it.Description, 0);
+                            }
+                            //Add access rights.
+                            StringBuilder sb = new StringBuilder();
+                            for (int pos = 1; pos != (it as IGXDLMSBase).GetAttributeCount() + 1; ++pos)
+                            {
+                                sb.Append(((int)it.GetAccess(pos)).ToString());
+                            }
+                            writer.WriteElementString("Access", sb.ToString(), 0);
+                            sb.Length = 0;
+                            for (int pos = 1; pos != (it as IGXDLMSBase).GetMethodCount() + 1; ++pos)
+                            {
+                                sb.Append(((int)it.GetMethodAccess(pos)).ToString());
+                            }
+                            writer.WriteElementString("MethodAccess", sb.ToString(), 0);
                         }
-                    }
-                    if (index == 0)
-                    {
-                        // Add SN
-                        if (it.ShortName != 0)
+                        if (settings == null || settings.Values)
                         {
-                            writer.WriteElementString("SN", it.ShortName, 0);
+                            (it as IGXDLMSBase).Save(writer);
                         }
-                        // Add LN
-                        writer.WriteElementString("LN", it.LogicalName, 0);
-                        // Add Version
-                        if (it.Version != 0)
+                        if (index < 2)
                         {
-                            writer.WriteElementString("Version", it.Version, 0);
+                            // Close object.
+                            writer.WriteEndElement();
                         }
-                        // Add description if given.
-                        if (!ignoreDescription && !string.IsNullOrEmpty(it.Description))
-                        {
-                            writer.WriteElementString("Description", it.Description, 0);
-                        }
-                        //Add access rights.
-                        StringBuilder sb = new StringBuilder();
-                        for (int pos = 1; pos != (it as IGXDLMSBase).GetAttributeCount() + 1; ++pos)
-                        {
-                            sb.Append(((int)it.GetAccess(pos)).ToString());
-                        }
-                        writer.WriteElementString("Access", sb.ToString(), 0);
-                        sb.Length = 0;
-                        for (int pos = 1; pos != (it as IGXDLMSBase).GetMethodCount() + 1; ++pos)
-                        {
-                            sb.Append(((int)it.GetMethodAccess(pos)).ToString());
-                        }
-                        writer.WriteElementString("MethodAccess", sb.ToString(), 0);
-                    }
-                    if (settings == null || settings.Values)
-                    {
-                        (it as IGXDLMSBase).Save(writer);
-                    }
-                    if (index < 2)
-                    {
-                        // Close object.
-                        writer.WriteEndElement();
                     }
                 }
                 writer.WriteEndElement();

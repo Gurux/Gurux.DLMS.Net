@@ -163,7 +163,7 @@ namespace Gurux.DLMS.Secure
                 p.Type = CountType.Tag;
                 challenge.Clear();
                 //Security suite is 0.
-                challenge.SetUInt8((byte)Security.Authentication);
+                challenge.SetUInt8((byte) ((int)Security.Authentication | (int) settings.Cipher.SecuritySuite));
                 challenge.SetUInt32((UInt32)p.InvocationCounter);
                 challenge.Set(GXDLMSChippering.EncryptAesGcm(p, tmp));
                 tmp = challenge.Array();
@@ -222,6 +222,9 @@ namespace Gurux.DLMS.Secure
         /// <summary>
         /// Generate KDF.
         /// </summary>
+        /// <remarks>
+        /// GB: Table 18 – Cryptographic algorithm ID-s 
+        /// </remarks>
         /// <param name="securitySuite">Used security suite.</param>
         /// <param name="z">Shared Secret.</param>
         /// <param name="algorithmID">Algorithm ID.</param>
@@ -230,7 +233,9 @@ namespace Gurux.DLMS.Secure
         /// <param name="suppPubInfo">Not used in DLMS.</param>
         /// <param name="suppPrivInfo">Not used in DLMS.</param>
         /// <returns></returns>
-        public static byte[] GenerateKDF(SecuritySuite securitySuite, byte[] z,
+        public static byte[] GenerateKDF(
+                SecuritySuite securitySuite, 
+                byte[] z,
                 AlgorithmId algorithmID,
                 byte[] partyUInfo,
                 byte[] partyVInfo,
@@ -265,14 +270,14 @@ namespace Gurux.DLMS.Secure
             bb.SetUInt32(1);
             bb.Set(z);
             bb.Set(otherInfo);
-            if (securitySuite == SecuritySuite.Ecdsa256)
+            if (securitySuite == SecuritySuite.Suite1)
             {
                 using (SHA256 sha = new SHA256CryptoServiceProvider())
                 {
                     return sha.ComputeHash(bb.Array());
                 }
             }
-            else if (securitySuite == SecuritySuite.Ecdsa384)
+            else if (securitySuite == SecuritySuite.Suite2)
             {
                 using (SHA384 sha = new SHA384CryptoServiceProvider())
                 {

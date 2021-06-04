@@ -184,6 +184,11 @@ namespace Gurux.DLMS.Objects
             return new string[] { "Remote disconnect", "Remote reconnect" };
         }
 
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 0;
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 4;

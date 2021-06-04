@@ -59,7 +59,7 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
-        /// xml settings. This is used only on xml parser.
+        /// XML settings. This is used only on xml parser.
         ///</summary>
         internal GXDLMSTranslatorStructure Xml
         {

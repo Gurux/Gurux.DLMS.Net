@@ -40,7 +40,6 @@ namespace Gurux.DLMS.Enums
     /// <summary>
     /// The MethodAccessMode enumerates the method access modes.
     /// </summary>
-    [Flags]
     public enum MethodAccessMode
     {
         /// <summary>
@@ -57,36 +56,6 @@ namespace Gurux.DLMS.Enums
         /// Authenticated access is allowed.
         /// </summary>
         [XmlEnum("2")]
-        AuthenticatedAccess = 0x2,
-        /// <summary>
-        /// Authenticated request is allowed.
-        /// </summary>
-        [XmlEnum("4")]
-        AuthenticatedRequest = 0x4,
-        /// <summary>
-        /// Encrypted request is allowed.
-        /// </summary>
-        [XmlEnum("8")]
-        EncryptedRequest = 0x8,
-        /// <summary>
-        /// Digitally signed request is allowed.
-        /// </summary>
-        [XmlEnum("16")]
-        DigitallySignedRequest = 0x10,
-        /// <summary>
-        /// Authenticated response is allowed.
-        /// </summary>
-        [XmlEnum("32")]
-        AuthenticatedResponse = 0x20,
-        /// <summary>
-        /// Encrypted response is allowed.
-        /// </summary>
-        [XmlEnum("64")]
-        EncryptedResponse = 0x40,
-        /// <summary>
-        /// Digitally signed response is allowed.
-        /// </summary>
-        [XmlEnum("128")]
-        DigitallySignedResponse = 0x80
+        AuthenticatedAccess = 0x2
     }
 }

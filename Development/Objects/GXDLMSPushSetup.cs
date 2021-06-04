@@ -268,6 +268,11 @@ namespace Gurux.DLMS.Objects
             return new string[] { "Push" };
         }
 
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 0;
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 7;

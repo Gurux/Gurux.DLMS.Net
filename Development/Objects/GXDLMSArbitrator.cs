@@ -255,6 +255,11 @@ namespace Gurux.DLMS.Objects
         }
 
 
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 0;
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 6;

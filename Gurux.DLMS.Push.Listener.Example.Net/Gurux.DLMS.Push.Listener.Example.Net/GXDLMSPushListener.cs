@@ -52,7 +52,7 @@ namespace GuruxDLMSServerExample
         /// <summary>
         /// Are messages traced.
         /// </summary>
-        private bool trace = false;
+        private bool trace = true;
 
 
         /// <summary>
@@ -72,7 +72,9 @@ namespace GuruxDLMSServerExample
         /// <summary>
         /// Client used to parse received data.
         /// </summary>
-        private GXDLMSSecureClient client = new GXDLMSSecureClient(true, -1, -1, Authentication.None, null, InterfaceType.WRAPPER);
+        private GXDLMSSecureClient client = new GXDLMSSecureClient(true, -1, -1, Authentication.None, null, InterfaceType.HDLC);
+
+        GXDLMSPushSetup push = new GXDLMSPushSetup();
 
         /// <summary>
         /// Constructor.
@@ -88,6 +90,7 @@ namespace GuruxDLMSServerExample
             media.OnClientDisconnected += new Gurux.Common.ClientDisconnectedEventHandler(OnClientDisconnected);
             media.OnError += new Gurux.Common.ErrorEventHandler(OnError);
             media.Open();
+            push.PushObjectList.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(new GXDLMSClock(), new GXDLMSCaptureObject(2, 0)));
         }
 
         void OnError(object sender, Exception ex)
@@ -165,6 +168,11 @@ namespace GuruxDLMSServerExample
                     // If all data is received.
                     if (notify.IsComplete && !notify.IsMoreData)
                     {
+                        foreach (KeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in push.GetPushValues(client, (List<object>)notify.Value))
+                        {
+                            int index = it.Value.AttributeIndex - 1;
+                            Console.WriteLine(((IGXDLMSBase)it.Key).GetNames()[index] + ": " + it.Key.GetValues()[index]);
+                        }
                         try
                         {
                             //Show data as XML.

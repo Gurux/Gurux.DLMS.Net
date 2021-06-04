@@ -612,6 +612,12 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
             return new string[] { "Activate account" , "Close account", "Reset account"};
         }
 
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 0;
+        }
+
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 19;

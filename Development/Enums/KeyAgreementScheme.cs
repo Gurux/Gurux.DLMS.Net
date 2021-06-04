@@ -55,6 +55,6 @@ namespace Gurux.DLMS.Enums
         /// The Static Unified Model scheme.
         /// </summary>
         [XmlEnum("2")]
-        StaticUnifiedModel
+        StaticUnifiedModel      
     }
 }

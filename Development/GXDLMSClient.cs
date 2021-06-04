@@ -44,26 +44,62 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Ecdsa;
 
 namespace Gurux.DLMS
-{
-    public delegate void PduEventHandler(object sender, byte[] data);
-
+{  
     /// <summary>
     /// GXDLMS implements methods to communicate with DLMS/COSEM metering devices.
     /// </summary>
-    public class GXDLMSClient
+    public class GXDLMSClient : IGXCryptoNotifier
     {
         protected GXDLMSTranslator translator;
-        internal PduEventHandler pdu;
-
+        internal GXCryptoNotifier cryptoNotifier = new GXCryptoNotifier();
+        /// <summary>
+        /// Notify generated PDU.
+        /// </summary>
         public event PduEventHandler OnPdu
         {
             add
             {
-                pdu += value;
+                cryptoNotifier.pdu += value;
             }
             remove
             {
-                pdu -= value;
+                cryptoNotifier.pdu -= value;
+            }
+        }
+
+        /// <summary>
+        /// Get ciphering keys as needed.
+        /// </summary>
+        /// <remarks>
+        /// Keys are not saved and they are asked when needed to improve the security.
+        /// </remarks>
+        public event KeyEventHandler OnKeys
+        {
+            add
+            {
+                cryptoNotifier.keys += value;
+            }
+            remove
+            {
+                cryptoNotifier.keys -= value;
+            }
+        }
+
+        /// <summary>
+        /// Encrypt or decrypt data when needed.
+        /// </summary>
+        /// <remarks>
+        /// Hardware Security Module can be used to improve the security.
+        /// </remarks>
+        public event CryptoEventHandler OnCrypto
+        {
+            add
+            {
+                cryptoNotifier.crypto += value;
+            }
+            remove
+            {
+                cryptoNotifier.crypto -= value;
             }
         }
 
@@ -81,11 +117,7 @@ namespace Gurux.DLMS
             private set;
         }
 
-        private static Dictionary<ObjectType, Type> AvailableObjectTypes = new Dictionary<ObjectType, Type>();
-        /// <summary>
-        /// Standard OBIS code
-        /// </summary>
-        private static GXStandardObisCodeCollection codes = new GXStandardObisCodeCollection();
+        private static Dictionary<UInt32, Type> AvailableObjectTypes = new Dictionary<UInt32, Type>();
 
         /// <summary>
         /// Static Constructor. This is called only once. Get available COSEM objects.
@@ -861,8 +893,13 @@ namespace Gurux.DLMS
         /// <seealso cref="ParseUAResponse"/>
         public void ParseUAResponse(GXByteBuffer data)
         {
-            GXDLMS.ParseSnrmUaResponse(data, Settings);
-            Settings.Connected = ConnectionState.Hdlc;
+            if (Settings.InterfaceType == InterfaceType.HDLC ||
+                Settings.InterfaceType == InterfaceType.HdlcWithModeE ||
+                Settings.InterfaceType == InterfaceType.PlcHdlc)
+            {
+                GXDLMS.ParseSnrmUaResponse(data, Settings);
+                Settings.Connected = ConnectionState.Hdlc;
+            }
         }
 
         /// <summary>
@@ -907,7 +944,7 @@ namespace Gurux.DLMS
             byte[][] reply;
             if (UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, Command.Aarq, 0, buff, null, 0xff, Command.None);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(cryptoNotifier, Settings, 0, Command.Aarq, 0, buff, null, 0xff, Command.None);
                 reply = GXDLMS.GetLnMessages(p);
             }
             else
@@ -1184,7 +1221,7 @@ namespace Gurux.DLMS
             byte[][] reply;
             if (UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, Command.ReleaseRequest, 0, buff, null, 0xff, Command.None);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(cryptoNotifier, Settings, 0, Command.ReleaseRequest, 0, buff, null, 0xff, Command.None);
                 reply = GXDLMS.GetLnMessages(p);
             }
             else
@@ -1249,13 +1286,13 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Returns object types.
+        /// Returns object types and version numbers.
         /// </summary>
         /// <returns></returns>
         /// <remarks>
         /// This can be used with serialization.
         /// </remarks>
-        public static ObjectType[] GetObjectTypes2()
+        public static KeyValuePair<ObjectType, int>[] GetObjectTypes2()
         {
             return GXDLMS.GetObjectTypes2(AvailableObjectTypes);
         }
@@ -1269,11 +1306,11 @@ namespace Gurux.DLMS
         /// <param name="LN"></param>
         /// <param name="AccessRights"></param>
         /// <returns></returns>
-        internal static GXDLMSObject CreateDLMSObject(int ClassID, object Version, int BaseName, object LN, object AccessRights)
+        internal static GXDLMSObject CreateDLMSObject(int ClassID, object Version, int BaseName, object LN, object AccessRights, int lnVersion)
         {
             ObjectType type = (ObjectType)ClassID;
-            GXDLMSObject obj = GXDLMS.CreateObject(type, AvailableObjectTypes);
-            UpdateObjectData(obj, type, Version, BaseName, LN, AccessRights);
+            GXDLMSObject obj = GXDLMS.CreateObject(type, Convert.ToByte(Version), AvailableObjectTypes);
+            UpdateObjectData(obj, type, Version, BaseName, LN, AccessRights, lnVersion);
             return obj;
         }
 
@@ -1316,9 +1353,10 @@ namespace Gurux.DLMS
                 }
                 int ot = Convert.ToUInt16(objects[1]);
                 int baseName = Convert.ToInt32(objects[0]) & 0xFFFF;
-                if (!onlyKnownObjects || AvailableObjectTypes.ContainsKey((ObjectType)ot))
+                int version = Convert.ToByte(objects[2]);
+                if (!onlyKnownObjects || AvailableObjectTypes.ContainsKey((UInt32)(version << 16 | ot)))
                 {
-                    GXDLMSObject comp = CreateDLMSObject(ot, objects[2], baseName, objects[3], null);
+                    GXDLMSObject comp = CreateDLMSObject(ot, objects[2], baseName, objects[3], null, 2);
                     if (comp != null)
                     {
                         if (!ignoreInactiveObjects || comp.LogicalName != "0.0.127.0.0.0")
@@ -1351,13 +1389,15 @@ namespace Gurux.DLMS
         /// <param name="baseName"></param>
         /// <param name="logicalName"></param>
         /// <param name="accessRights"></param>
+        /// <param name="lnVersion"></param>
         internal static void UpdateObjectData(
             GXDLMSObject obj,
             ObjectType objectType,
             object version,
             object baseName,
             object logicalName,
-            object accessRights)
+            object accessRights,
+            int lnVersion)
         {
             int tmp;
             obj.ObjectType = objectType;
@@ -1370,11 +1410,17 @@ namespace Gurux.DLMS
                 {
                     int id = Convert.ToInt32(attributeAccess[0]);
                     tmp = Convert.ToInt32(attributeAccess[1]);
-                    AccessMode mode = (AccessMode)tmp;
                     //With some meters id is negative.
                     if (id > 0)
                     {
-                        obj.SetAccess(id, mode);
+                        if (lnVersion < 3)
+                        {
+                            obj.SetAccess(id, (AccessMode)tmp);
+                        }
+                        else
+                        {
+                            obj.SetAccess3(id, (AccessMode3)tmp);
+                        }
                     }
                     if (attributeAccess.Count > 2 && attributeAccess[2] != null)
                     {
@@ -1417,11 +1463,18 @@ namespace Gurux.DLMS
                         {
                             tmp = ((Boolean)arr[1]) ? 1 : 0;
                         }
-                        else//If version is 1.
+                        else //If version is 1.
                         {
                             tmp = Convert.ToInt32(arr[1]);
                         }
-                        obj.SetMethodAccess(id, (MethodAccessMode)tmp);
+                        if (lnVersion < 3)
+                        {
+                            obj.SetMethodAccess(id, (MethodAccessMode)tmp);
+                        }
+                        else
+                        {
+                            obj.SetMethodAccess3(id, (MethodAccessMode3)tmp);
+                        }
                     }
                 }
             }
@@ -1542,7 +1595,7 @@ namespace Gurux.DLMS
                         comp = this.Objects.FindByLN((ObjectType)classID, GXCommon.ToLogicalName(it[1] as byte[]));
                         if (comp == null)
                         {
-                            comp = GXDLMSClient.CreateDLMSObject(classID, 0, 0, it[1], null);
+                            comp = GXDLMSClient.CreateDLMSObject(classID, 0, 0, it[1], null, 2);
                             c.UpdateOBISCodeInformation(comp);
                         }
                         if ((comp is IGXDLMSBase))
@@ -1579,6 +1632,7 @@ namespace Gurux.DLMS
             int objectCnt = 0;
             GXDLMSObjectCollection items = new GXDLMSObjectCollection(this);
             GXDataInfo info = new GXDataInfo();
+            int lnVersion = 2;
             //Some meters give wrong item count.
             while (buff.Position != buff.Size && cnt != objectCnt)
             {
@@ -1599,9 +1653,15 @@ namespace Gurux.DLMS
                 }
                 ++objectCnt;
                 int ot = Convert.ToInt16(objects[0]);
-                if (!onlyKnownObjects || AvailableObjectTypes.ContainsKey((ObjectType)ot))
+                int version = Convert.ToByte(objects[1]);
+                if (!onlyKnownObjects || AvailableObjectTypes.ContainsKey((UInt32)(version << 16 | ot)))
                 {
-                    GXDLMSObject comp = CreateDLMSObject(ot, objects[1], 0, objects[2], objects[3]);
+                    //Save LN association version.
+                    if (ot == (int)ObjectType.AssociationLogicalName)
+                    {
+                        lnVersion = Convert.ToInt32(objects[1]);
+                    }
+                    GXDLMSObject comp = CreateDLMSObject(ot, objects[1], 0, objects[2], objects[3], lnVersion);
                     if (comp != null)
                     {
                         if ((!ignoreInactiveObjects || comp.LogicalName != "0.0.127.0.0.0"))
@@ -1844,7 +1904,7 @@ namespace Gurux.DLMS
         /// This method is used to get all registers in the device.
         /// </remarks>
         /// <returns>Read request, as byte array.</returns>
-        public byte[] GetObjectsRequest()
+        public byte[][] GetObjectsRequest()
         {
             return GetObjectsRequest(null);
         }
@@ -1856,7 +1916,7 @@ namespace Gurux.DLMS
         /// This method is used to get all registers in the device.
         /// </remarks>
         /// <returns>Read request, as byte array.</returns>
-        public byte[] GetObjectsRequest(string ln)
+        public byte[][] GetObjectsRequest(string ln)
         {
             object name;
             Settings.ResetBlockIndex();
@@ -1875,7 +1935,7 @@ namespace Gurux.DLMS
             {
                 name = (ushort)0xFA00;
             }
-            return Read(name, ObjectType.AssociationLogicalName, 2)[0];
+            return Read(name, ObjectType.AssociationLogicalName, 2);
         }
 
         /// <summary>
@@ -1942,7 +2002,7 @@ namespace Gurux.DLMS
                 {
                     attributeDescriptor.SetUInt8(1);
                 }
-                GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, Command.MethodRequest, (byte)ActionRequestType.Normal, attributeDescriptor, data, 0xff, Command.None);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(cryptoNotifier, Settings, 0, Command.MethodRequest, (byte)ActionRequestType.Normal, attributeDescriptor, data, 0xff, Command.None);
                 return GXDLMS.GetLnMessages(p);
             }
             else
@@ -2039,7 +2099,7 @@ namespace Gurux.DLMS
                 attributeDescriptor.SetUInt8((byte)index);
                 // Access selection is not used.
                 attributeDescriptor.SetUInt8(0);
-                GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, Command.SetRequest, (byte)SetRequestType.Normal, attributeDescriptor, data, 0xff, Command.None);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(cryptoNotifier, Settings, 0, Command.SetRequest, (byte)SetRequestType.Normal, attributeDescriptor, data, 0xff, Command.None);
                 p.blockIndex = Settings.BlockIndex;
                 p.blockNumberAck = Settings.BlockNumberAck;
                 p.Streaming = false;
@@ -2099,7 +2159,7 @@ namespace Gurux.DLMS
                     // Access selection is used.
                     attributeDescriptor.SetUInt8(1);
                 }
-                GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, Command.GetRequest, (byte)GetCommandType.Normal, attributeDescriptor, data, 0xff, Command.None);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(cryptoNotifier, Settings, 0, Command.GetRequest, (byte)GetCommandType.Normal, attributeDescriptor, data, 0xff, Command.None);
                 reply = GXDLMS.GetLnMessages(p);
             }
             else
@@ -2154,7 +2214,7 @@ namespace Gurux.DLMS
             GXByteBuffer data = new GXByteBuffer();
             if (this.UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, Command.GetRequest, (byte)GetCommandType.WithList, data, null, 0xff, Command.None);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(cryptoNotifier, Settings, 0, Command.GetRequest, (byte)GetCommandType.WithList, data, null, 0xff, Command.None);
                 //Request service primitive shall always fit in a single APDU.
                 int pos = 0, count = (Settings.MaxPduSize - 12) / 10;
                 if (list.Count < count)
@@ -2243,7 +2303,7 @@ namespace Gurux.DLMS
             GXByteBuffer data = new GXByteBuffer();
             if (this.UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, Command.SetRequest, (byte)SetCommandType.WithList, null, data, 0xff, Command.None);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(cryptoNotifier, Settings, 0, Command.SetRequest, (byte)SetCommandType.WithList, null, data, 0xff, Command.None);
                 // Add length.
                 GXCommon.SetObjectCount(list.Count, data);
                 foreach (KeyValuePair<GXDLMSObject, int> it in list)
@@ -2652,11 +2712,22 @@ namespace Gurux.DLMS
         /// <summary>
         /// Create given type of COSEM object.
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
+        /// <param name="type">Object type.</param>
+        /// <returns>COSEM object.</returns>
         public static GXDLMSObject CreateObject(ObjectType type)
         {
-            return GXDLMS.CreateObject(type, AvailableObjectTypes);
+            return GXDLMS.CreateObject(type, 0, AvailableObjectTypes);
+        }
+
+        /// <summary>
+        /// Create given type of COSEM object.
+        /// </summary>
+        /// <param name="type">Object type.</param>
+        /// <param name="version">Object version number.</param>
+        /// <returns>COSEM object.</returns>
+        public static GXDLMSObject CreateObject(ObjectType type, byte version)
+        {
+            return GXDLMS.CreateObject(type, version, AvailableObjectTypes);
         }
 
         /// <summary>
@@ -2727,11 +2798,10 @@ namespace Gurux.DLMS
         public virtual bool GetData(GXByteBuffer reply, GXReplyData data, GXReplyData notify)
         {
             data.Xml = null;
-            bool ret = false;
-            Command cmd = data.Command;
+            bool ret;
             try
             {
-                ret = GXDLMS.GetData(Settings, reply, data, notify, this);
+                ret = GXDLMS.GetData(Settings, reply, data, notify, cryptoNotifier);
             }
             catch
             {
@@ -3028,7 +3098,7 @@ namespace Gurux.DLMS
                     throw new ArgumentOutOfRangeException("Invalid command.");
                 }
             }
-            GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, Command.AccessRequest, 0xFF, null, bb, 0xff, Command.None);
+            GXDLMSLNParameters p = new GXDLMSLNParameters(cryptoNotifier, Settings, 0, Command.AccessRequest, 0xFF, null, bb, 0xff, Command.None);
             p.time = new GXDateTime(time);
             return GXDLMS.GetLnMessages(p);
         }
@@ -3130,7 +3200,7 @@ namespace Gurux.DLMS
                 }
                 else if (UseLogicalNameReferencing)
                 {
-                    GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, command, 0, data, null, 0xff, Command.None);
+                    GXDLMSLNParameters p = new GXDLMSLNParameters(cryptoNotifier, Settings, 0, command, 0, data, null, 0xff, Command.None);
                     reply = GXDLMS.GetLnMessages(p);
                 }
                 else

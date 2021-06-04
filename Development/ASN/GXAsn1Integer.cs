@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 
 //
 // --------------------------------------------------------------------------
@@ -74,6 +75,20 @@ namespace Gurux.DLMS.ASN
         /// <summary>
         /// Constructor
         /// </summary>
+        /// <param name="data">Integer. </param>
+        public GXAsn1Integer(BigInteger data)
+        {
+            if (data == null)
+            {
+                throw new ArgumentException("data");
+            }
+            Value = data.ToByteArray();
+            Array.Reverse(Value);
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
         ///  <param name="data">Data.</param>
         ///  <param name="index">Index.</param>
         ///  <param name="count">Count.</param>
@@ -111,6 +126,16 @@ namespace Gurux.DLMS.ASN
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetUInt64(data);
             Value = bb.Array();
+        }
+
+        /// <returns>
+        /// Get integer value as int.
+        /// </returns>
+        public BigInteger ToBigInteger()
+        {
+            byte[] tmp = (byte[])Value.Clone();
+            Array.Reverse(tmp);
+            return new BigInteger(tmp);
         }
 
         /// <returns>

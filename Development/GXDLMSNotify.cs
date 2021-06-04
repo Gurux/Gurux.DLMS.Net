@@ -397,7 +397,7 @@ namespace Gurux.DLMS
                         comp = this.Objects.FindByLN((ObjectType)classID, GXCommon.ToLogicalName(it[1] as byte[]));
                         if (comp == null)
                         {
-                            comp = GXDLMSClient.CreateDLMSObject(classID, 0, 0, it[1], null);
+                            comp = GXDLMSClient.CreateDLMSObject(classID, 0, 0, it[1], null, 2);
                             c.UpdateOBISCodeInformation(comp);
                             objects.Add(comp);
                         }

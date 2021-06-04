@@ -443,6 +443,11 @@ namespace Gurux.DLMS.Objects
             return new string[] { "Reset", "Capture" };
         }
 
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 1;
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 8;
@@ -1116,7 +1121,7 @@ namespace Gurux.DLMS.Objects
                     //Create a new instance to avoid circular references.
                     if (obj == null || obj == parent)
                     {
-                        obj = GXDLMSClient.CreateDLMSObject((int)type, null, 0, ln, 0);
+                        obj = GXDLMSClient.CreateDLMSObject((int)type, null, 0, ln, 0, 2);
                         if (c == null)
                         {
                             c = new GXDLMSConverter(settings == null ? Standard.DLMS : settings.Standard);

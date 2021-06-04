@@ -387,6 +387,11 @@ namespace Gurux.DLMS.Objects
             return new string[] { "Update amount", "Set amount to value", "Invoke credit" };
         }
 
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 0;
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 11;

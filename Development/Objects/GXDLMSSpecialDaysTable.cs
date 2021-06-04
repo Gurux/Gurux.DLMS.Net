@@ -158,6 +158,11 @@ namespace Gurux.DLMS.Objects
             return new string[] { "Insert", "Delete" };
         }
 
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 0;
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 2;

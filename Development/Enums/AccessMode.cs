@@ -64,16 +64,25 @@ namespace Gurux.DLMS.Enums
         /// <summary>
         /// Authenticated read is used.
         /// </summary>
+        /// <remarks>
+        /// This is used in version 2.
+        /// </remarks>
         [XmlEnum("4")]
         AuthenticatedRead = 4,
         /// <summary>
         /// Authenticated write is used.
         /// </summary>
+        /// <remarks>
+        /// This is used in version 2.
+        /// </remarks>
         [XmlEnum("5")]
         AuthenticatedWrite = 5,
         /// <summary>
         /// Authenticated Read Write is used.
         /// </summary>
+        /// <remarks>
+        /// This is used in version 2.
+        /// </remarks>
         [XmlEnum("6")]
         AuthenticatedReadWrite = 6
     }

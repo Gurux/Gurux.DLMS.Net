@@ -124,5 +124,11 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="reader">XML reader.</param>
         void PostLoad(GXXmlReader reader);
+
+        /// <summary>
+        /// Returns maximum supported version.
+        /// </summary>
+        /// <returns></returns>
+        int GetMaxSupportedVersion();
     }
 }

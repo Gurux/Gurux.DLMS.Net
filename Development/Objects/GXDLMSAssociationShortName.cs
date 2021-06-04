@@ -233,6 +233,11 @@ namespace Gurux.DLMS.Objects
                 "Add user", "Remove user"};
         }
 
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 2;
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             if (Version < 2)

@@ -43,10 +43,8 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Secure;
 using System.ComponentModel;
 using System.Diagnostics;
-using Gurux.DLMS.Objects;
 using Gurux.DLMS.Plc.Enums;
 using Gurux.DLMS.Objects.Enums;
-using Gurux.DLMS.Ecdsa;
 using Gurux.DLMS.ASN;
 
 namespace Gurux.DLMS
@@ -57,6 +55,7 @@ namespace Gurux.DLMS
     ///</summary>
     public class GXDLMSTranslator
     {
+        GXCryptoNotifier cryptoNotifier = new GXCryptoNotifier();
         UInt16 SAck = 0, RAck = 0;
         bool sending = false;
         byte SSendSequence = 0;
@@ -75,6 +74,42 @@ namespace Gurux.DLMS
         /// If only PDUs are shown and PDU is received on parts.
         /// </summary>
         private GXByteBuffer pduFrames = new GXByteBuffer();
+
+        /// <summary>
+        /// Get ciphering keys as needed.
+        /// </summary>
+        /// <remarks>
+        /// Keys are not saved and they are asked when needed to improve the security.
+        /// </remarks>
+        public event KeyEventHandler OnKeys
+        {
+            add
+            {
+                cryptoNotifier.keys += value;
+            }
+            remove
+            {
+                cryptoNotifier.keys -= value;
+            }
+        }
+
+        /// <summary>
+        /// Encrypt or decrypt data when needed.
+        /// </summary>
+        /// <remarks>
+        /// Hardware Security Module can be used to improve the security.
+        /// </remarks>
+        public event CryptoEventHandler OnCrypto
+        {
+            add
+            {
+                cryptoNotifier.crypto += value;
+            }
+            remove
+            {
+                cryptoNotifier.crypto -= value;
+            }
+        }
 
         /// <summary>
         /// Are comments added.
@@ -753,10 +788,6 @@ namespace Gurux.DLMS
                 {
                     c.DedicatedKey = DedicatedKey;
                 }
-                if (ServerSystemTitle != null && ServerSystemTitle.Length != 0)
-                {
-                    settings.SourceSystemTitle = ServerSystemTitle;
-                }
                 if (UseGeneralProtection)
                 {
                     settings.ProposedConformance |= Conformance.GeneralProtection;
@@ -769,6 +800,10 @@ namespace Gurux.DLMS
                 }
                 settings.Cipher = c;
                 settings.Keys = Keys;
+                if (ServerSystemTitle != null && ServerSystemTitle.Length != 0)
+                {
+                    settings.SourceSystemTitle = ServerSystemTitle;
+                }
             }
             else
             {
@@ -954,6 +989,97 @@ namespace Gurux.DLMS
             }
         }
 
+        private static void UpdateAddress(GXDLMSSettings settings, GXDLMSTranslatorMessage msg)
+        {
+            bool reply = false;
+            switch (msg.Command)
+            {
+                case Command.ReadRequest:
+                case Command.WriteRequest:
+                case Command.GetRequest:
+                case Command.SetRequest:
+                case Command.MethodRequest:
+                case Command.Snrm:
+                case Command.Aarq:
+                case Command.DisconnectRequest:
+                case Command.ReleaseRequest:
+                case Command.AccessRequest:
+                case Command.GloGetRequest:
+                case Command.GloSetRequest:
+                case Command.GloMethodRequest:
+                case Command.GloInitiateRequest:
+                case Command.GloReadRequest:
+                case Command.GloWriteRequest:
+                case Command.DedInitiateRequest:
+                case Command.DedReadRequest:
+                case Command.DedWriteRequest:
+                case Command.DedGetRequest:
+                case Command.DedSetRequest:
+                case Command.DedMethodRequest:
+                case Command.GatewayRequest:
+                case Command.DiscoverRequest:
+                case Command.RegisterRequest:
+                case Command.PingRequest:
+                    reply = false;
+                    break;
+                case Command.ReadResponse:
+                case Command.WriteResponse:
+                case Command.GetResponse:
+                case Command.SetResponse:
+                case Command.MethodResponse:
+                case Command.DisconnectMode:
+                case Command.UnacceptableFrame:
+                case Command.Ua:
+                case Command.Aare:
+                case Command.ReleaseResponse:
+                case Command.ConfirmedServiceError:
+                case Command.ExceptionResponse:
+                //                case Command.GeneralBlockTransfer:
+                case Command.AccessResponse:
+                case Command.DataNotification:
+                case Command.GloGetResponse:
+                case Command.GloSetResponse:
+                case Command.GloEventNotification:
+                case Command.GloMethodResponse:
+                case Command.GloInitiateResponse:
+                case Command.GloReadResponse:
+                case Command.GloWriteResponse:
+                case Command.GloConfirmedServiceError:
+                case Command.GloInformationReport:
+                //                case Command.GeneralGloCiphering:
+                //              case Command.GeneralDedCiphering:
+                //                case Command.GeneralCiphering:
+                //              case Command.GeneralSigning:
+                case Command.InformationReport:
+                case Command.EventNotification:
+                case Command.DedInitiateResponse:
+                case Command.DedReadResponse:
+                case Command.DedWriteResponse:
+                case Command.DedConfirmedServiceError:
+                case Command.DedUnconfirmedWriteRequest:
+                case Command.DedInformationReport:
+                case Command.DedGetResponse:
+                case Command.DedSetResponse:
+                case Command.DedEventNotification:
+                case Command.DedMethodResponse:
+                case Command.GatewayResponse:
+                case Command.DiscoverReport:
+                case Command.PingResponse:
+                    reply = true;
+                    break;
+            }
+            if (reply)
+            {
+                msg.ServerAddress = settings.ClientAddress;
+                msg.ClientAddress = settings.ServerAddress;
+            }
+            else
+            {
+                msg.ClientAddress = settings.ClientAddress;
+                msg.ServerAddress = settings.ServerAddress;
+            }
+        }
+
         /// <summary>
         /// Convert message to xml.
         /// </summary>
@@ -1086,14 +1212,16 @@ namespace Gurux.DLMS
                             xml.AppendLine("</HDLC>");
                         }
                     }
+                    UpdateAddress(settings, msg);
                     msg.Xml = xml.sb.ToString();
                     return;
                 }
                 //If wrapper.
                 else if (msg.Message.GetUInt16(msg.Message.Position) == 1)
                 {
-                    settings.InterfaceType = Enums.InterfaceType.WRAPPER;
+                    msg.InterfaceType = settings.InterfaceType = Enums.InterfaceType.WRAPPER;
                     GXDLMS.GetData(settings, msg.Message, data, null, null);
+                    string pdu = PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg);
                     if (msg.Command == Command.Aarq)
                     {
                         msg.SystemTitle = settings.Cipher.SystemTitle;
@@ -1118,7 +1246,7 @@ namespace Gurux.DLMS
                         {
                             xml.AppendLine("<PDU>");
                         }
-                        xml.AppendLine(PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg));
+                        xml.AppendLine(pdu);
                         //Remove \r\n.
                         xml.sb.Length -= Environment.NewLine.Length;
                         if (!PduOnly)
@@ -1130,6 +1258,7 @@ namespace Gurux.DLMS
                     {
                         xml.AppendLine("</WRAPPER>");
                     }
+                    UpdateAddress(settings, msg);
                     msg.Xml = xml.sb.ToString();
                     return;
                 }
@@ -1189,6 +1318,7 @@ namespace Gurux.DLMS
                     {
                         xml.AppendLine("</Plc>");
                     }
+                    UpdateAddress(settings, msg);
                     msg.Xml = xml.sb.ToString();
                     return;
                 }
@@ -1248,6 +1378,7 @@ namespace Gurux.DLMS
                     {
                         xml.AppendLine("</PlcSFsk>");
                     }
+                    UpdateAddress(settings, msg);
                     msg.Xml = xml.sb.ToString();
                     return;
                 }
@@ -1280,22 +1411,56 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        if (!PduOnly)
+                        if (multipleFrames || (data.MoreData & Enums.RequestTypes.Frame) != 0)
                         {
-                            xml.AppendLine("<PDU>");
+                            if (CompletePdu)
+                            {
+                                pduFrames.Set(data.Data.Data);
+                                if (data.MoreData == RequestTypes.None)
+                                {
+                                    xml.AppendLine(PduToXml(pduFrames, true, true, msg));
+                                    pduFrames.Clear();
+                                }
+                            }
+                            else
+                            {
+                                xml.AppendLine("<NextFrame Value=\"" + GXCommon.ToHex(data.Data.Data, false, data.Data.Position, data.Data.Size - data.Data.Position) + "\" />");
+                            }
+                            if ((data.MoreData & RequestTypes.Frame) != 0)
+                            {
+                                multipleFrames = true;
+                            }
+                            if (data.MoreData == RequestTypes.DataBlock)
+                            {
+                                multipleFrames = false;
+                            }
                         }
-                        xml.AppendLine(PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg));
-                        //Remove \r\n.
-                        xml.sb.Length -= Environment.NewLine.Length;
-                        if (!PduOnly)
+                        else
                         {
-                            xml.AppendLine("</PDU>");
+                            if (!PduOnly)
+                            {
+                                xml.AppendLine("<PDU>");
+                            }
+                            if (pduFrames.Size != 0)
+                            {
+                                pduFrames.Set(data.Data);
+                                data.Data.Clear();
+                                data.Data.Set(pduFrames);
+                            }
+                            xml.AppendLine(PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg));
+                            //Remove \r\n.
+                            xml.sb.Length -= Environment.NewLine.Length;
+                            if (!PduOnly)
+                            {
+                                xml.AppendLine("</PDU>");
+                            }
                         }
                     }
                     if (!PduOnly)
                     {
-                        xml.AppendLine("</WirelessMBus>");
+                        xml.AppendLine("</WiredMBus>");
                     }
+                    UpdateAddress(settings, msg);
                     msg.Xml = xml.sb.ToString();
                     return;
                 }
@@ -1344,6 +1509,7 @@ namespace Gurux.DLMS
                     {
                         xml.AppendLine("</WirelessMBus>");
                     }
+                    UpdateAddress(settings, msg);
                     msg.Xml = xml.sb.ToString();
                     return;
                 }
@@ -1465,6 +1631,7 @@ namespace Gurux.DLMS
                 case Command.GloConfirmedServiceError:
                 case Command.DedConfirmedServiceError:
                 case Command.GeneralCiphering:
+                case Command.ReleaseRequest:
                     return true;
                 default:
                     return false;
@@ -1627,7 +1794,7 @@ namespace Gurux.DLMS
                         data.Xml = xml;
                         data.Data = value;
                         value.Position = 0;
-                        GXDLMS.GetPdu(settings, data, null);
+                        GXDLMS.GetPdu(settings, data, cryptoNotifier);
                         break;
                     case (byte)Command.InformationReport:
                         data.Xml = xml;
@@ -1649,13 +1816,13 @@ namespace Gurux.DLMS
                         data.Xml = xml;
                         data.Data = value;
                         value.Position = 0;
-                        GXDLMS.GetPdu(settings, data, null);
+                        GXDLMS.GetPdu(settings, data, cryptoNotifier);
                         break;
                     case (byte)Command.GeneralCiphering:
                         data.Xml = xml;
                         data.Data = value;
                         value.Position = 0;
-                        GXDLMS.GetPdu(settings, data, null);
+                        GXDLMS.GetPdu(settings, data, cryptoNotifier);
                         break;
                     case (byte)Command.ReleaseRequest:
                         xml.AppendStartTag((Command)cmd);

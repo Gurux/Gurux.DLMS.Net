@@ -64,6 +64,11 @@ namespace Gurux.DLMS.Secure
         private byte[] blockCipherKey;
 
         /// <summary>
+        /// Broadcast block ciphering key.
+        /// </summary>
+        private byte[] broadcastBlockCipherKey;        
+
+        /// <summary>
         /// Dedicated key.
         /// </summary>
         private byte[] dedicatedKey;
@@ -140,6 +145,15 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
+        /// Used security policy.
+        /// </summary>
+        public SecurityPolicy1 SecurityPolicy
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Used security suite.
         /// </summary>
         public SecuritySuite SecuritySuite
@@ -181,7 +195,19 @@ namespace Gurux.DLMS.Secure
         /// <remarks>
         /// Private key is for the initializer and Public key is for the target.
         /// </remarks>
-        public KeyValuePair<GXPrivateKey, GXPublicKey> SigningKeyPair
+        public KeyValuePair<GXPublicKey, GXPrivateKey> SigningKeyPair
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Public/private key TLS key pair.
+        /// </summary>
+        /// <remarks>
+        /// Private key is for the initializer and Public key is for the target.
+        /// </remarks>
+        public KeyValuePair<GXPublicKey, GXPrivateKey> TlsKeyPair
         {
             get;
             set;
@@ -190,7 +216,7 @@ namespace Gurux.DLMS.Secure
         /// <summary>
         /// Ephemeral key pair.
         /// </summary>
-        public KeyValuePair<GXPrivateKey, GXPublicKey> EphemeralKeyPair
+        public KeyValuePair<GXPublicKey, GXPrivateKey> EphemeralKeyPair
         {
             get;
             set;
@@ -199,7 +225,7 @@ namespace Gurux.DLMS.Secure
         /// <summary>
         /// Public/private key key agreement key pair.
         /// </summary>
-        public KeyValuePair<GXPrivateKey, GXPublicKey> KeyAgreementKeyPair
+        public KeyValuePair<GXPublicKey, GXPrivateKey> KeyAgreementKeyPair
         {
             get;
             set;
@@ -259,9 +285,28 @@ namespace Gurux.DLMS.Secure
             {
                 if (!TestMode && value != null && value.Length != 16 && value.Length != 0)
                 {
-                    throw new ArgumentOutOfRangeException("Invalid Block Cipher Key.");
+                    throw new ArgumentOutOfRangeException("Invalid block cipher key.");
                 }
                 blockCipherKey = value;
+            }
+        }
+
+        /// <summary>
+        /// Each broadcast block is ciphered with this key.
+        /// </summary>
+        public byte[] BroadcastBlockCipherKey
+        {
+            get
+            {
+                return broadcastBlockCipherKey;
+            }
+            set
+            {
+                if (!TestMode && value != null && value.Length != 16 && value.Length != 0)
+                {
+                    throw new ArgumentOutOfRangeException("Invalid broadcast block cipher Key.");
+                }
+                broadcastBlockCipherKey = value;
             }
         }
 
@@ -284,7 +329,7 @@ namespace Gurux.DLMS.Secure
             }
         }
         /// <summary>
-        /// Authentication Key is 16 bytes value.
+        /// Dedicated Key is 16 bytes value.
         /// </summary>
         public byte[] DedicatedKey
         {
@@ -302,6 +347,23 @@ namespace Gurux.DLMS.Secure
             }
         }
 
+        /// <summary>
+        /// Ephemeral private key of the client.
+        /// </summary>
+        public GXPkcs8 ClientEphemeralPrivateKey
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Ephemeral private key of the server.
+        /// </summary>
+        public GXPkcs8 ServerEphemeralPrivateKey
+        {
+            get;
+            set;
+        }
 
         internal static byte[] Encrypt(AesGcmParameter p, byte[] data)
         {

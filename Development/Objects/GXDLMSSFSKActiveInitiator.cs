@@ -141,6 +141,11 @@ namespace Gurux.DLMS.Objects
             return new string[] { "Reset NEW not synchronized" };
         }
 
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 0;
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 2;

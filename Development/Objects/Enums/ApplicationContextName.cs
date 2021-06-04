@@ -39,6 +39,10 @@ namespace Gurux.DLMS.Objects.Enums
     public enum ApplicationContextName
     {
         /// <summary>
+        /// Invalid application context name.
+        /// </summary>
+        Unknown = 0,
+        /// <summary>
         /// Logical name.
         /// </summary>
         LogicalName = 1,

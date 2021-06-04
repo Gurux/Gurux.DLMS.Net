@@ -39,6 +39,8 @@ using Gurux.DLMS.Objects;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.ManufacturerSettings;
 using System.Globalization;
+using Gurux.DLMS.ASN.Enums;
+using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS
 {
@@ -146,6 +148,40 @@ namespace Gurux.DLMS
                     {
                         list.Add(it.Description);
                     }
+                }
+            }
+            return list.ToArray();
+        }
+
+        /// <summary>
+        /// Get allowed data types for given OBIS code.
+        /// </summary>
+        /// <remarks>
+        /// Value is empty if data type is not defined for the COSEM object.
+        /// </remarks>
+        /// <param name="logicalName">Logical name (OBIS code).</param>
+        /// <param name="type">Object type.</param>
+        /// <returns>Array of data types that match given OBIS code.</returns>
+        public DataType[] GetAllowedDataTypes(String logicalName, ObjectType type)
+        {
+            lock (codes)
+            {
+                if (codes.Count == 0)
+                {
+                    ReadStandardObisInfo(Standard, codes);
+                }
+            }
+            if (string.IsNullOrEmpty(logicalName))
+            {
+                throw new Exception("Invalid logical name.");
+            }
+            List<DataType> list = new List<DataType>();
+            foreach (GXStandardObisCode it in codes.Find(logicalName, type, Standard))
+            {
+                string[] types = it.DataType.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var dt in types)
+                {
+                    list.Add((DataType)Enum.Parse(typeof(DataType), dt));
                 }
             }
             return list.ToArray();
@@ -842,6 +878,10 @@ namespace Gurux.DLMS
                 {
                     ret = value;
                 }
+                else if (value == null)
+                {
+                    ret = null;
+                }
                 else
                 {
                     ret = GXDLMSTranslator.HexToBytes((string)value);
@@ -911,15 +951,54 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Conver system title to string.
+        /// Convert system title to string.
         /// </summary>
-        /// <param name="standard"></param>
-        /// <param name="st"></param>
-        /// <returns></returns>
+        /// <param name="standard">Used standard.</param>
+        /// <param name="st">System title.</param>
+        /// <param name="addComments">Are comments added.</param>
+        /// <returns>System title in string format.</returns>
         public static string SystemTitleToString(Standard standard, byte[] st, bool addComments)
         {
             return GXCommon.SystemTitleToString(standard, st, addComments);
         }
+
+        /// <summary>
+        /// Convert key usage to certificate type.
+        /// </summary>
+        /// <param name="value">Key usage</param>
+        /// <returns>Certificate type.</returns>
+        public static CertificateType KeyUsageToCertificateType(KeyUsage value)
+        {
+            switch (value)
+            {
+                case KeyUsage.DigitalSignature:
+                    return CertificateType.DigitalSignature;
+                case KeyUsage.KeyAgreement:
+                    return CertificateType.KeyAgreement;
+                case KeyUsage.DigitalSignature | KeyUsage.KeyAgreement:
+                    return CertificateType.TLS;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        /// <summary>
+        /// Convert key usage to certificate type.
+        /// </summary>
+        /// <param name="value">Key usage</param>
+        /// <returns>Certificate type.</returns>
+        public static KeyUsage CertificateTypeToKeyUsage(CertificateType value)
+        {
+            switch (value)
+            {
+                case CertificateType.DigitalSignature:
+                    return KeyUsage.DigitalSignature;
+                case CertificateType.KeyAgreement:
+                    return KeyUsage.KeyAgreement;
+                case CertificateType.TLS:
+                    return KeyUsage.DigitalSignature | KeyUsage.KeyAgreement;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
     }
 }
-

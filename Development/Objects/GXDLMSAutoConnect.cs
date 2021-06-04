@@ -201,6 +201,11 @@ namespace Gurux.DLMS.Objects
             return new string[] { "Connect" };
         }
 
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 2;
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 6;

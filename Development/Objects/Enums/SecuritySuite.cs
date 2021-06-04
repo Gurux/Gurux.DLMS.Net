@@ -42,13 +42,13 @@ namespace Gurux.DLMS.Objects.Enums
     public enum SecuritySuite
     {
         /// <summary>
-        /// GMAC ciphering is used.
+        /// GMAC ciphering is used with security setup version 0.
         /// </summary>
         /// <remarks>
         /// A.K.A Security Suite 0.
         /// </remarks>
         [XmlEnum("0")]
-        GMac,
+        Suite0,
         /// <summary>
         /// ECDSA P-256 ciphering is used.
         /// </summary>
@@ -56,7 +56,7 @@ namespace Gurux.DLMS.Objects.Enums
         /// A.K.A Security Suite 1.
         /// </remarks>
         [XmlEnum("1")]
-        Ecdsa256,
+        Suite1,
         /// <summary>
         /// ECDSA P-384 ciphering is used.
         /// </summary>
@@ -64,6 +64,6 @@ namespace Gurux.DLMS.Objects.Enums
         /// A.K.A Security Suite 2.
         /// </remarks>
         [XmlEnum("2")]
-        Ecdsa384
+        Suite2
     }
 }

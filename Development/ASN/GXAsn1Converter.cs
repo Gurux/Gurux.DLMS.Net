@@ -41,6 +41,8 @@ using Gurux.DLMS.ASN.Enums;
 using System.Xml;
 using System.Globalization;
 using Gurux.DLMS.Objects.Enums;
+using Gurux.DLMS.Ecdsa.Enums;
+using System.IO;
 
 namespace Gurux.DLMS.ASN
 {
@@ -55,6 +57,42 @@ namespace Gurux.DLMS.ASN
         private GXAsn1Converter()
         {
 
+        }
+
+        /// <summary>
+        /// Returns default file path.
+        /// </summary>
+        /// <param name="scheme">Used scheme.</param>
+        /// <param name="certificateType">Certificate type.</param>
+        /// <param name="systemTitle"> System title.</param>
+        /// <returns>File path.</returns>
+        public static string GetFilePath(Ecc scheme, CertificateType certificateType, byte[] systemTitle)
+        {
+            string path;
+            switch (certificateType)
+            {
+                case CertificateType.DigitalSignature:
+                    path = "D";
+                    break;
+                case CertificateType.KeyAgreement:
+                    path = "A";
+                    break;
+                case CertificateType.TLS:
+                    path = "T";
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("Unknown certificate type.");
+            }
+            path += GXDLMSTranslator.ToHex(systemTitle, false) + ".pem";
+            if (scheme == Ecc.P256)
+            {
+                path = Path.Combine("Keys", path);
+            }
+            else
+            {
+                path = Path.Combine("Keys384", path);
+            }
+            return path;
         }
 
         public static List<KeyValuePair<object, object>> EncodeSubject(string value)
@@ -157,6 +195,7 @@ namespace Gurux.DLMS.ASN
                 case ((byte)(BerType.Constructed | BerType.Context) | 2):
                 case ((byte)(BerType.Constructed | BerType.Context) | 3):
                 case ((byte)(BerType.Constructed | BerType.Context) | 4):
+                case ((byte)(BerType.Constructed | BerType.Context) | 5):
                     if (s != null)
                     {
                         s.Increase();
@@ -240,6 +279,14 @@ namespace Gurux.DLMS.ASN
                     }
 
                     break;
+                case (byte)BerType.BmpString:
+                    objects.Add(bb.GetStringUnicode(len));
+                    if (s != null)
+                    {
+                        s.Append(Convert.ToString(objects[objects.Count - 1]));
+                    }
+
+                    break;
                 case (byte)BerType.Utf8StringTag:
                     objects.Add(new GXAsn1Utf8String(bb.GetString(bb.Position, len)));
                     bb.Position = bb.Position + len;
@@ -316,6 +363,9 @@ namespace Gurux.DLMS.ASN
                 case (byte)BerType.Context | 1:
                 case (byte)BerType.Context | 2:
                 case (byte)BerType.Context | 3:
+                case (byte)BerType.Context | 4:
+                case (byte)BerType.Context | 5:
+                case (byte)BerType.Context | 6:
                     tmp = new GXAsn1Context() { Constructed = false, Index = type & 0xF };
                     tmp2 = new byte[len];
                     bb.Get(tmp2);
@@ -881,12 +931,22 @@ namespace Gurux.DLMS.ASN
         /// <returns>System title.</returns>
         public static byte[] SystemTitleFromSubject(string subject)
         {
+            return GXDLMSTranslator.HexToBytes(HexSystemTitleFromSubject(subject));
+        }
+
+        /// <summary>
+        /// Get system title in hex string from the subject.
+        /// </summary>
+        /// <param name="subject">Subject.</param>
+        /// <returns>System title.</returns>
+        public static string HexSystemTitleFromSubject(string subject)
+        {
             int index = subject.IndexOf("CN=");
             if (index == -1)
             {
                 throw new Exception("System title not found from the subject.");
             }
-            return GXDLMSTranslator.HexToBytes(subject.Substring(index + 3, 16));
+            return subject.Substring(index + 3, 16);
         }
 
         /// <summary>

@@ -61,8 +61,16 @@ namespace Gurux.DLMS
         /// <summary>
         /// Constructor for AARE error.
         /// </summary>
-        internal GXDLMSException(AssociationResult result, SourceDiagnostic diagnostic)
-            : base("Connection is " + GetResult(result) + ". " + GetDiagnostic(diagnostic))
+        internal GXDLMSException(AssociationResult result, SourceDiagnostic diagnostic) : this(result, diagnostic, null)
+        {
+
+        }
+
+        /// <summary>
+        /// Constructor for AARE error.
+        /// </summary>
+        internal GXDLMSException(AssociationResult result, SourceDiagnostic diagnostic, string extra)
+            : base("Connection is " + GetResult(result) + ". " + GetDiagnostic(diagnostic) + extra)
         {
             Result = result;
             Diagnostic = (byte)diagnostic;

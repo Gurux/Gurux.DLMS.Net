@@ -819,6 +819,40 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Get UNICODE String value from byte array.
+        /// </summary>
+        /// <param name="count">Byte count.</param>
+        public string GetStringUnicode(int count)
+        {
+            if (count == 0)
+            {
+                return string.Empty;
+            }
+            byte[] tmp = new byte[count];
+            Get(tmp);
+            return Encoding.Unicode.GetString(tmp);
+            // return ASCIIEncoding.Unicode.GetString(tmp);
+        }
+
+        /// <summary>
+        /// Get UNICODE String value from byte array.
+        /// </summary>
+        /// <param name="index">Byte index.</param>
+        /// <param name="count">Byte count.</param>
+        public string GetStringUnicode(int index, int count)
+        {
+            if (index < 0)
+            {
+                throw new ArgumentOutOfRangeException("index");
+            }
+            if (count < 0)
+            {
+                throw new ArgumentOutOfRangeException("count");
+            }
+            return Encoding.Unicode.GetString(Data, index, count);
+        }
+
+        /// <summary>
         /// Push the given byte array into this buffer at the current position, and then increments the position.
         /// </summary>
         /// <param name="value"> The value to be added.</param>

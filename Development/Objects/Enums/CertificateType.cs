@@ -49,20 +49,14 @@ namespace Gurux.DLMS.Objects.Enums
         /// <summary>
         /// Certificate type is key agreement.
         /// </summary>
-        /// <Remarks>
-        /// </Remarks>
         KeyAgreement = 1,
         /// <summary>
         /// Certificate type is TLS.
         /// </summary>
-        /// <Remarks>
-        /// </Remarks>
         TLS = 2,
         /// <summary>
         /// Certificate type is other.
         /// </summary>
-        /// <Remarks>
-        /// </Remarks>
         Other = 3
     }
 }

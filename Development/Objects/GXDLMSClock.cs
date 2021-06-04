@@ -392,6 +392,11 @@ namespace Gurux.DLMS.Objects
                 "Adjust to minute", "Adjust to preset time", "Preset adjusting time", "Shift time" };
         }
 
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 0;
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 9;

@@ -228,6 +228,11 @@ namespace Gurux.DLMS.Objects
             return new string[] { "Add mc IP address", "Delete mc IP address", "Get nbof mc IP addresses" };
         }
 
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 0;
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 10;

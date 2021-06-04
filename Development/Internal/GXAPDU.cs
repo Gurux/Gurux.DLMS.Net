@@ -563,7 +563,7 @@ namespace Gurux.DLMS.Internal
             else
             {
                 //Max PDU size.
-                settings.maxReceivePDUSize = data.GetUInt16();
+                settings.MaxPduSize = data.GetUInt16();
                 if (xml != null)
                 {
                     // NegotiatedConformance closing
@@ -577,6 +577,11 @@ namespace Gurux.DLMS.Internal
                     }
                     // NegotiatedMaxPduSize
                     xml.AppendLine(TranslatorGeneralTags.NegotiatedMaxPduSize, "Value", xml.IntegerToHex(settings.MaxPduSize, 4));
+                }
+                // If client asks too high PDU.
+                if (settings.MaxPduSize > settings.MaxServerPDUSize)
+                {
+                    settings.MaxPduSize = settings.MaxServerPDUSize;
                 }
             }
             if (response)
@@ -726,7 +731,11 @@ namespace Gurux.DLMS.Internal
                 }
                 data.Clear();
                 data.Set(tmp);
-                cipher.Security = p.Security;
+                // Update used security to server.
+                if (settings.IsServer)
+                {
+                    cipher.Security = p.Security;
+                }
                 tag = data.GetUInt8();
             }
             Parse(initiateRequest, settings, cipher, data, xml, tag);
@@ -777,7 +786,7 @@ namespace Gurux.DLMS.Internal
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
         /// <param name="buff">Received data.</param>
-        private static bool ParseApplicationContextName(GXDLMSSettings settings, GXByteBuffer buff, GXDLMSTranslatorStructure xml)
+        private static ApplicationContextName ParseApplicationContextName(GXDLMSSettings settings, GXByteBuffer buff, GXDLMSTranslatorStructure xml)
         {
             //Get length.
             int len = buff.GetUInt8();
@@ -807,7 +816,7 @@ namespace Gurux.DLMS.Internal
                 if (xml != null)
                 {
                     xml.AppendLine(TranslatorGeneralTags.ApplicationContextName, "Value", "UNKNOWN");
-                    return true;
+                    return ApplicationContextName.Unknown;
                 }
                 throw new Exception("Encoding failed. Invalid Application context name.");
             }
@@ -887,25 +896,43 @@ namespace Gurux.DLMS.Internal
                             TranslatorGeneralTags.ApplicationContextName,
                             null, "5");
                     }
-                    return false;
                 }
-                return true;
+                return ApplicationContextName.Unknown;
             }
+            if (settings.AssignedAssociation != null)
+            {
+                if ((byte)settings.AssignedAssociation.ApplicationContextName.ContextId == name)
+                {
+                    return ApplicationContextName.Unknown;
+                }
+                return settings.AssignedAssociation.ApplicationContextName.ContextId;
+            }
+
             if (settings.UseLogicalNameReferencing)
             {
-                if (name == 1)
+                if (name == (byte)ApplicationContextName.LogicalName && (settings.Cipher == null || settings.Cipher.Security == Security.None))
                 {
-                    return true;
+                    return ApplicationContextName.Unknown;
                 }
                 // If ciphering is used.
-                return name == 3;
+                if (name == (byte)ApplicationContextName.LogicalNameWithCiphering && (settings.Cipher != null && settings.Cipher.Security != Security.None))
+                {
+                    return ApplicationContextName.Unknown;
+                }
             }
-            if (name == 2)
+            else
             {
-                return true;
+                if (name == (byte)ApplicationContextName.ShortName && (settings.Cipher == null || settings.Cipher.Security == Security.None))
+                {
+                    return ApplicationContextName.Unknown;
+                }
+                // If ciphering is used.
+                if (name == (byte)ApplicationContextName.ShortNameWithCiphering && (settings.Cipher != null && settings.Cipher.Security != Security.None))
+                {
+                    return ApplicationContextName.Unknown;
+                }
             }
-            // If ciphering is used.
-            return name == 4;
+            return (ApplicationContextName)name;
         }
 
         private static void UpdateAuthentication(GXDLMSSettings settings,
@@ -1060,15 +1087,39 @@ namespace Gurux.DLMS.Internal
             byte tag;
             AssociationResult resultComponent = AssociationResult.Accepted;
             object ret = 0;
+            string msg;
+            ApplicationContextName name;
             while (buff.Position < buff.Size)
             {
                 tag = buff.GetUInt8();
                 switch (tag)
                 {
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.ApplicationContextName://0xA1
-                        if (!ParseApplicationContextName(settings, buff, xml))
+                        if ((name = ParseApplicationContextName(settings, buff, xml)) != ApplicationContextName.Unknown)
                         {
-                            throw new GXDLMSException(AssociationResult.PermanentRejected, SourceDiagnostic.ApplicationContextNameNotSupported);
+                            if (settings.IsServer)
+                            {
+                                return name;
+                            }
+                            switch (name)
+                            {
+                                case ApplicationContextName.LogicalName:
+                                    msg = Environment.NewLine + "Meter expects Logical Name referencing.";
+                                    break;
+                                case ApplicationContextName.ShortName:
+                                    msg = Environment.NewLine + "Meter expects Short Name referencing.";
+                                    break;
+                                case ApplicationContextName.LogicalNameWithCiphering:
+                                    msg = Environment.NewLine + "Meter expects Logical Name referencing with secured connection.";
+                                    break;
+                                case ApplicationContextName.ShortNameWithCiphering:
+                                    msg = Environment.NewLine + "Meter expects Short Name referencing with secured connection.";
+                                    break;
+                                default:
+                                    msg = null;
+                                    break;
+                            }
+                            throw new GXDLMSException(AssociationResult.PermanentRejected, SourceDiagnostic.ApplicationContextNameNotSupported, msg);
                         }
                         break;
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CalledApTitle://0xA2

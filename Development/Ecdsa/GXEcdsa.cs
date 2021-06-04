@@ -172,12 +172,12 @@ namespace Gurux.DLMS.Ecdsa
         /// Generate public and private key pair.
         /// </summary>
         /// <returns></returns>
-        public static KeyValuePair<GXPrivateKey, GXPublicKey> GenerateKeyPair(Ecc scheme)
+        public static KeyValuePair<GXPublicKey, GXPrivateKey> GenerateKeyPair(Ecc scheme)
         {
             byte[] raw = GetRandomNumber(scheme).ToArray();
             GXPrivateKey pk = GXPrivateKey.FromRawBytes(raw);
             GXPublicKey pub = pk.GetPublicKey();
-            return new KeyValuePair<GXPrivateKey, GXPublicKey>(pk, pub);
+            return new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, pk);
         }
 
         /// <summary>

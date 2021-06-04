@@ -366,6 +366,11 @@ namespace Gurux.DLMS.Objects
             return new string[] { "Add IP v6 address", "Remove IP v6 address" };
         }
 
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 0;
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 10;

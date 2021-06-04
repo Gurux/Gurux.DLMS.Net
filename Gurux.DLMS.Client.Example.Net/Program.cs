@@ -85,7 +85,17 @@ namespace Gurux.DLMS.Client.Example
                 }
                 //Some meters need a break here.
                 Thread.Sleep(1000);
-                if (settings.readObjects.Count != 0)
+                //Export client and server certificates from the meter.
+                if (!string.IsNullOrEmpty(settings.ExportSecuritySetupLN))
+                {
+                    reader.ExportMeterCertificates(settings.ExportSecuritySetupLN);
+                }
+                //Generate new client and server certificates and import them to the server.
+                else if (!string.IsNullOrEmpty(settings.GenerateSecuritySetupLN))
+                {
+                    reader.GenerateCertificates(settings.GenerateSecuritySetupLN);
+                }
+                else if (settings.readObjects.Count != 0)
                 {
                     bool read = false;
                     if (settings.outputFile != null)

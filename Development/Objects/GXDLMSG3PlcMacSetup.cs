@@ -514,6 +514,11 @@ namespace Gurux.DLMS.Objects
             return new string[] { "MAC get neighbour table entry" };
         }
 
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 0;
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 22;

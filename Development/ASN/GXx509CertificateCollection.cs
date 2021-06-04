@@ -31,10 +31,11 @@
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
-
+using Gurux.DLMS.ASN.Enums;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Numerics;
 
 namespace Gurux.DLMS.ASN
 {
@@ -44,7 +45,7 @@ namespace Gurux.DLMS.ASN
     public class GXx509CertificateCollection : List<GXx509Certificate>
     {
         /// <summary>
-        /// Find public key certificate by public name.
+        /// Find public key certificate by public key.
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -61,25 +62,54 @@ namespace Gurux.DLMS.ASN
         }
 
         /// <summary>
+        /// Find public key certificate by serial number.
+        /// </summary>
+        /// <param name="serialNumber">Serial number.</param>
+        /// <param name="issuer">Issuer.</param>
+        /// <returns>Found certificate or null if certificate is not found.</returns>
+        public GXx509Certificate FindBySerial(BigInteger serialNumber, string issuer)
+        {
+            foreach (GXx509Certificate it in this)
+            {
+                if (it.SerialNumber == serialNumber && it.Issuer == issuer)
+                {
+                    return it;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Find public key certificate by system title.
         /// </summary>
         /// <param name="systemTitle">System title.</param>
+        /// <param name="usage">Key usage.</param>
         /// <returns>Found certificate or null if certificate is not found.</returns>
-        public GXx509Certificate FindBySystemTitle(byte[] systemTitle)
+        public GXx509Certificate FindBySystemTitle(byte[] systemTitle, KeyUsage usage)
         {
-            return FindByCommonName(GXAsn1Converter.SystemTitleToSubject(systemTitle));
+            string commonName;
+            if (systemTitle == null || systemTitle.Length == 0)
+            {
+                commonName = null;
+            }
+            else
+            {
+                commonName = GXAsn1Converter.SystemTitleToSubject(systemTitle);
+            }
+            return FindByCommonName(commonName, usage);
         }
 
         /// <summary>
         /// Find public key certificate by common name (CN).
         /// </summary>
         /// <param name="commonName">Common name.</param>
+        /// <param name="usage">Key usage.</param>
         /// <returns>Found certificate or null if certificate is not found.</returns>
-        public GXx509Certificate FindByCommonName(string commonName)
+        public GXx509Certificate FindByCommonName(string commonName, KeyUsage usage)
         {
             foreach (GXx509Certificate it in this)
             {
-                if (it.Subject.Contains(commonName))
+                if ((usage == KeyUsage.None || it.KeyUsage == usage) && it.Subject.Contains(commonName))
                 {
                     return it;
                 }

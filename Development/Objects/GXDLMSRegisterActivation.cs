@@ -261,6 +261,11 @@ namespace Gurux.DLMS.Objects
             return new string[] { "Add register", "Add mask", "Delete mask" };
         }
 
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 0;
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 4;

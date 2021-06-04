@@ -231,6 +231,10 @@ namespace Gurux.DLMS.Objects
             return new string[] { "Add parameter", "Delete parameter" };
         }
 
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 0;
+        }
 
         int IGXDLMSBase.GetAttributeCount()
         {

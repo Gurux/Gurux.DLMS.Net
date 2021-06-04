@@ -166,6 +166,11 @@ namespace Gurux.DLMS.Objects.Italy
             return new string[0];
         }
 
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 0;
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 5;

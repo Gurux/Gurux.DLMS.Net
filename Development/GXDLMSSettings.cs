@@ -32,14 +32,16 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-using Gurux.DLMS.Objects;
-using Gurux.DLMS.Enums;
-using Gurux.DLMS.Secure;
-using Gurux.DLMS.Internal;
-using Gurux.DLMS.Ecdsa;
-using System.Collections.Generic;
 using Gurux.DLMS.ASN;
+using Gurux.DLMS.ASN.Enums;
+using Gurux.DLMS.Ecdsa;
+using Gurux.DLMS.Enums;
+using Gurux.DLMS.Internal;
+using Gurux.DLMS.Objects;
+using Gurux.DLMS.Objects.Enums;
+using Gurux.DLMS.Secure;
+using System;
+using System.Collections.Generic;
 
 namespace Gurux.DLMS
 {
@@ -48,6 +50,11 @@ namespace Gurux.DLMS
     /// </summary>
     public class GXDLMSSettings
     {
+        /// <summary>
+        /// Assigned association for the server.
+        /// </summary>
+        private GXDLMSAssociationLogicalName assignedAssociation;
+
         private bool useLogicalNameReferencing;
 
         ///<summary>
@@ -148,7 +155,7 @@ namespace Gurux.DLMS
 
 
         /// <summary>
-        /// Maximum PDU size.
+        /// Maximum PDU size that other party can receive.
         /// </summary>
         internal UInt16 maxReceivePDUSize;
 
@@ -317,6 +324,15 @@ namespace Gurux.DLMS
         /// XML needs list of certificates to decrypt the data.
         /// </summary>
         public List<KeyValuePair<GXPkcs8, GXx509Certificate>> Keys
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Are all associations using the same certifications.
+        /// </summary>
+        public bool AssociationsShareCertificates
         {
             get;
             set;
@@ -864,6 +880,15 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Assigned association for the server.
+        /// </summary>
+        internal GXDLMSAssociationLogicalName AssignedAssociation
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Invoke ID.
         /// </summary>
         public byte InvokeID
@@ -932,6 +957,137 @@ namespace Gurux.DLMS
         {
             get;
             set;
+        }
+
+        public GXDLMSData InvocationCounter
+        {
+            get;
+            private set;
+        }
+
+        void UpdateSecuritySettings(byte[] systemTitle)
+        {
+            if (assignedAssociation != null)
+            {
+                // Update security settings.
+                if (assignedAssociation.SecuritySetupReference != null &&
+                    assignedAssociation.ApplicationContextName.ContextId == ApplicationContextName.LogicalNameWithCiphering)
+                {
+                    GXDLMSSecuritySetup ss = (GXDLMSSecuritySetup)assignedAssociation.ObjectList.FindByLN(ObjectType.SecuritySetup, assignedAssociation.SecuritySetupReference);
+                    if (ss != null)
+                    {
+                        if (ss is GXDLMSSecuritySetup1)
+                        {
+                            Cipher.SecurityPolicy = ((GXDLMSSecuritySetup1)ss).SecurityPolicy;
+                        }
+                        else
+                        {
+                            switch (ss.SecurityPolicy)
+                            {
+                                case SecurityPolicy.None:
+                                    Cipher.SecurityPolicy = SecurityPolicy1.None;
+                                    break;
+                                case SecurityPolicy.Authenticated:
+                                    Cipher.SecurityPolicy = SecurityPolicy1.AuthenticatedRequest | SecurityPolicy1.AuthenticatedResponse;
+                                    break;
+                                case SecurityPolicy.Encrypted:
+                                    Cipher.SecurityPolicy = SecurityPolicy1.EncryptedRequest | SecurityPolicy1.EncryptedResponse;
+                                    break;
+                                case SecurityPolicy.AuthenticatedEncrypted:
+                                    Cipher.SecurityPolicy = SecurityPolicy1.AuthenticatedRequest | SecurityPolicy1.AuthenticatedResponse |
+                                        SecurityPolicy1.EncryptedRequest | SecurityPolicy1.EncryptedResponse;
+                                    break;
+                            }
+                        }
+                        EphemeralBlockCipherKey = ss.Guek;
+                        EphemeralBroadcastBlockCipherKey = ss.Gbek;
+                        EphemeralAuthenticationKey = ss.Gak;
+                        Kek = ss.Kek;
+                        // Update certificates for pre-established connections.
+                        byte[] st;
+                        if (systemTitle == null)
+                        {
+                            st = ss.ClientSystemTitle;
+                        }
+                        else
+                        {
+                            st = systemTitle;
+                        }
+                        if (st != null)
+                        {
+                            if (ss is GXDLMSSecuritySetup1 ss2)
+                            {
+                                GXx509Certificate cert = ss2.ServerCertificates.FindBySystemTitle(st, KeyUsage.DigitalSignature);
+                                if (cert != null)
+                                {
+                                    Cipher.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(cert.PublicKey, ss2.SigningKey.Value.Value);
+                                }
+                                cert = ss2.ServerCertificates.FindBySystemTitle(st, KeyUsage.KeyAgreement);
+                                if (cert != null)
+                                {
+                                    Cipher.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(cert.PublicKey, ss2.KeyAgreementKey.Value.Value);
+                                }
+                                SourceSystemTitle = st;
+                            }
+                        }
+                        Cipher.SecuritySuite = ss.SecuritySuite;
+                        Cipher.SystemTitle = ss.ServerSystemTitle;
+                        // Find Invocation counter and use it if it exists.
+                        String ln = "0.0.43.1." + ss.LogicalName.Split(new char[] { '.' })[4] + ".255";
+                        InvocationCounter = (GXDLMSData)Objects.FindByLN(ObjectType.Data, ln);
+                        if (InvocationCounter != null && InvocationCounter.Value == null)
+                        {
+                            if (InvocationCounter.GetDataType(2) == DataType.None)
+                            {
+                                InvocationCounter.SetDataType(2, DataType.UInt32);
+                            }
+                            InvocationCounter.Value = 0;
+                        }
+                    }
+                    else
+                    {
+                        assignedAssociation.ApplicationContextName.ContextId = ApplicationContextName.LogicalName;
+                    }
+                }
+                else
+                {
+                    // Update server system title if security setup is set.
+                    GXDLMSSecuritySetup ss = (GXDLMSSecuritySetup)assignedAssociation.ObjectList.FindByLN(ObjectType.SecuritySetup,
+                        assignedAssociation.SecuritySetupReference);
+                    if (ss != null)
+                    {
+                        Cipher.SystemTitle = ss.ServerSystemTitle;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Set Current association of the server.
+        /// </summary>
+        /// <param name="value"></param>
+        public void SetAssignedAssociation(GXDLMSAssociationLogicalName value)
+        {
+            if (assignedAssociation != null)
+            {
+                assignedAssociation.AssociationStatus = AssociationStatus.NonAssociated;
+                assignedAssociation.XDLMSContextInfo.CypheringInfo = null;
+                InvocationCounter = null;
+                Cipher.SecurityPolicy = SecurityPolicy1.None;
+                EphemeralBlockCipherKey = null;
+                EphemeralBroadcastBlockCipherKey = null;
+                EphemeralAuthenticationKey = null;
+                Cipher.SecuritySuite = SecuritySuite.Suite0;
+            }
+
+            assignedAssociation = value;
+            if (assignedAssociation != null)
+            {
+                ProposedConformance = assignedAssociation.XDLMSContextInfo.Conformance;
+                MaxServerPDUSize = assignedAssociation.XDLMSContextInfo.MaxReceivePduSize;
+                Authentication = assignedAssociation.AuthenticationMechanismName.MechanismId;
+                UpdateSecuritySettings(null);
+            }
         }
     }
 }

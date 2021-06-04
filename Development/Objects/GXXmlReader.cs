@@ -134,10 +134,15 @@ namespace Gurux.DLMS.Objects
             bool ret = reader.IsStartElement(name);
             if (getNext && (ret || (reader.NodeType == XmlNodeType.EndElement && string.Compare(name, reader.Name, true) == 0)))
             {
+                bool isEmpty = reader.IsEmptyElement;
                 reader.Read();
                 if (!ret)
                 {
                     ret = IsStartElement(name, getNext);
+                }
+                else if (isEmpty)
+                {
+                    ret = false;
                 }
             }
             GetNext();

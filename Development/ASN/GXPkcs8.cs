@@ -36,6 +36,7 @@ using Gurux.DLMS.ASN.Enums;
 using Gurux.DLMS.Ecdsa;
 using Gurux.DLMS.Ecdsa.Enums;
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.Objects.Enums;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -51,6 +52,15 @@ namespace Gurux.DLMS.ASN
     /// </remarks>
     public class GXPkcs8
     {
+        /// <summary>
+        /// Description is extra metadata that is saved to PEM file. 
+        /// </summary>
+        public string Description
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// Private key version.
         /// </summary>
@@ -85,6 +95,41 @@ namespace Gurux.DLMS.ASN
         {
             get;
             private set;
+        }
+
+        /// <summary>
+        /// Returns default file path.
+        /// </summary>
+        /// <param name="scheme">Used scheme.</param>
+        /// <param name="certificateType">Certificate type.</param>
+        /// <returns></returns>
+        public string GetFilePath(Ecc scheme, CertificateType certificateType)
+        {
+            string path;
+            switch (certificateType)
+            {
+                case CertificateType.DigitalSignature:
+                    path = "D";
+                    break;
+                case CertificateType.KeyAgreement:
+                    path = "A";
+                    break;
+                case CertificateType.TLS:
+                    path = "T";
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("Unknown certificate type.");
+            }
+            path += PrivateKey.ToString().Substring(1) + ".pem";
+            if (scheme == Ecc.P256)
+            {
+                path = Path.Combine("Certificates", path);
+            }
+            else
+            {
+                path = Path.Combine("Certificates384", path);
+            }
+            return path;
         }
 
         public byte[] Encoded
@@ -141,10 +186,10 @@ namespace Gurux.DLMS.ASN
         /// Constructor.
         /// </summary>
         /// <param name="pair">Private public key pair.</param>
-        public GXPkcs8(KeyValuePair<GXPrivateKey, GXPublicKey> pair) : this()
+        public GXPkcs8(KeyValuePair<GXPublicKey, GXPrivateKey> pair) : this()
         {
-            PrivateKey = pair.Key;
-            PublicKey = pair.Value;
+            PrivateKey = pair.Value;
+            PublicKey = pair.Key;
         }
 
         /// <summary>
@@ -185,13 +230,34 @@ namespace Gurux.DLMS.ASN
             {
                 throw new ArgumentException("Invalid PEM file.");
             }
+            string desc = null;
+            if (start != START.Length)
+            {
+                desc = data.Substring(0, start);
+                const string DESCRIPTION = "#Description";
+                //Check if there is a description metadata.
+                int descStart = desc.LastIndexOf(DESCRIPTION);
+                if (descStart != -1)
+                {
+                    int descEnd = desc.IndexOf("\n", descStart, start);
+                    desc = desc.Substring(descStart + DESCRIPTION.Length, descEnd - DESCRIPTION.Length);
+                    desc = desc.Trim();
+                }
+                else
+                {
+                    desc = null;
+                }
+            }
+
             data = data.Substring(start + START.Length);
             int end = data.IndexOf(END);
             if (end == -1)
             {
                 throw new ArgumentException("Invalid PEM file.");
             }
-            return FromDer(data.Substring(0, end));
+            GXPkcs8 cert = FromDer(data.Substring(0, end));
+            cert.Description = desc;
+            return cert;
         }
 
         /// <summary>
@@ -249,6 +315,10 @@ namespace Gurux.DLMS.ASN
                 throw new GXDLMSCertificateException("Invalid Certificate Version.");
             }
             Version = (CertificateVersion)seq[0];
+            if (seq[1] is byte[])
+            {
+                throw new GXDLMSCertificateException("Invalid Certificate. This looks more like private key, not PKCS 8.");
+            }
             GXAsn1Sequence tmp = (GXAsn1Sequence)seq[1];
             Algorithm = X9ObjectIdentifierConverter.FromString(tmp[0].ToString());
             PrivateKey = GXPrivateKey.FromRawBytes((byte[])((GXAsn1Sequence)seq[2])[1]);
@@ -281,7 +351,7 @@ namespace Gurux.DLMS.ASN
         /// <returns> Created GXPkcs8 object. </returns>
         public static GXPkcs8 Load(string path)
         {
-            return GXPkcs8.FromPem(File.ReadAllText(path));
+            return FromPem(File.ReadAllText(path));
         }
 
         /// <summary>
@@ -305,6 +375,11 @@ namespace Gurux.DLMS.ASN
             if (PrivateKey == null)
             {
                 throw new System.ArgumentException("Public or private key is not set.");
+            }
+            if (!string.IsNullOrEmpty(Description))
+            {
+                sb.Append("#Description");
+                sb.AppendLine(Description);
             }
             sb.Append("-----BEGIN PRIVATE KEY-----" + Environment.NewLine);
             sb.Append(ToDer());

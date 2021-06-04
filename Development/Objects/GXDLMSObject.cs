@@ -570,8 +570,35 @@ namespace Gurux.DLMS.Objects
         /// <param name="access"></param>
         public void SetAccess(int index, AccessMode access)
         {
+            if (access > AccessMode.AuthenticatedReadWrite)
+            {
+                throw new ArgumentOutOfRangeException(nameof(access));
+            }
+
             GXDLMSAttributeSettings att = GetAttribute(index, Attributes);
             att.Access = access;
+        }
+
+        /// <summary>
+        /// Returns is attribute read only.
+        /// </summary>-
+        /// <param name="index">Attribute index.</param>
+        /// <returns>Is attribute read only.</returns>
+        public AccessMode3 GetAccess3(int index)
+        {
+            GXDLMSAttributeSettings att = GetAttribute(index, null);
+            return att.Access3;
+        }
+
+        /// <summary>
+        /// Set attribute access.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="access"></param>
+        public void SetAccess3(int index, AccessMode3 access)
+        {
+            GXDLMSAttributeSettings att = GetAttribute(index, Attributes);
+            att.Access3 = access;
         }
 
         /// <summary>
@@ -596,6 +623,10 @@ namespace Gurux.DLMS.Objects
         /// <param name="access"></param>
         public void SetMethodAccess(int index, MethodAccessMode access)
         {
+            if (access > MethodAccessMode.AuthenticatedAccess)
+            {
+                throw new ArgumentOutOfRangeException(nameof(access));
+            }
             GXDLMSAttributeSettings att = MethodAttributes.Find(index);
             if (att == null)
             {
@@ -603,6 +634,37 @@ namespace Gurux.DLMS.Objects
                 MethodAttributes.Add(att);
             }
             att.MethodAccess = access;
+        }
+
+        /// <summary>
+        /// Returns is Method attribute read only.
+        /// </summary>-
+        /// <param name="index">Method Attribute index.</param>
+        /// <returns>Is attribute read only.</returns>
+        public MethodAccessMode3 GetMethodAccess3(int index)
+        {
+            GXDLMSAttributeSettings att = MethodAttributes.Find(index);
+            if (att != null)
+            {
+                return att.MethodAccess3;
+            }
+            return MethodAccessMode3.Access;
+        }
+
+        /// <summary>
+        /// Set Method attribute access.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="access"></param>
+        public void SetMethodAccess3(int index, MethodAccessMode3 access)
+        {
+            GXDLMSAttributeSettings att = MethodAttributes.Find(index);
+            if (att == null)
+            {
+                att = new GXDLMSAttributeSettings(index);
+                MethodAttributes.Add(att);
+            }
+            att.MethodAccess3 = access;
         }
 
         /// <summary>
@@ -775,5 +837,6 @@ namespace Gurux.DLMS.Objects
             GXDLMSAttributeSettings att = GetAttribute(index, Attributes);
             att.AccessSelector = value;
         }
+
     }
 }

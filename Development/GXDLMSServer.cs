@@ -732,6 +732,21 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Assigned association for the server.
+        /// </summary>
+        internal GXDLMSAssociationLogicalName AssignedAssociation
+        {
+            get
+            {
+                return Settings.AssignedAssociation;
+            }
+            set
+            {
+                Settings.AssignedAssociation = value;
+            }
+        }
+
+        /// <summary>
         /// Set starting packet index. Default is One based, but some meters use Zero based value. Usually this is not used.
         /// </summary>
         public UInt32 StartingBlockIndex
@@ -1499,6 +1514,7 @@ namespace Gurux.DLMS
                 Reset(true);
             }
             object ret;
+            byte name = 0;
             try
             {
                 ret = GXAPDU.ParsePDU(Settings, Settings.Cipher, data, null);
@@ -1519,7 +1535,13 @@ namespace Gurux.DLMS
                 }
                 if (!(ret is AcseServiceProvider))
                 {
-                    if (Settings.NegotiatedConformance == Conformance.None)
+                    if (ret is ApplicationContextName)
+                    {
+                        name = (byte)ret;
+                        result = AssociationResult.PermanentRejected;
+                        ret = SourceDiagnostic.ApplicationContextNameNotSupported;
+                    }
+                    else if (Settings.NegotiatedConformance == Conformance.None)
                     {
                         result = AssociationResult.PermanentRejected;
                         ret = SourceDiagnostic.NoReasonGiven;
@@ -1973,10 +1995,16 @@ namespace Gurux.DLMS
         /// <returns>Returns true if object is modified with action.</returns>
         public bool IsChangedWithAction(ObjectType objectType, byte methodIndex)
         {
-            //Password saved.
-            return (objectType == ObjectType.AssociationLogicalName && methodIndex == 2) ||
+            if (objectType == ObjectType.AssociationLogicalName && methodIndex != 1)
+            {
+                return true;
+            }
+            if (objectType == ObjectType.SecuritySetup && (methodIndex == 4 || methodIndex == 6 || methodIndex == 7 || methodIndex == 8))
+            {
+                return true;
+            }
             //SAP assignment is added or removed.
-            objectType == ObjectType.SapAssignment ||
+            return objectType == ObjectType.SapAssignment ||
             //Connection state is changed.
             objectType == ObjectType.DisconnectControl ||
             objectType == ObjectType.RegisterActivation;

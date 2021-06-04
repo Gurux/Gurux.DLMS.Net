@@ -32,6 +32,7 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using Gurux.DLMS.Internal;
 using System;
 
 namespace Gurux.DLMS
@@ -105,7 +106,7 @@ namespace Gurux.DLMS
         ///</summary>
         public bool Streaming;
 
-        public GXDLMSClient Owner
+        public GXCryptoNotifier CryptoNotifier
         {
             get;
             private set;
@@ -120,10 +121,17 @@ namespace Gurux.DLMS
         /// <param name="forCommandType">Command type.</param>
         /// <param name="forAttributeDescriptor">Attribute descriptor,</param>
         /// <param name="forData">Data,</param>
-        public GXDLMSLNParameters(GXDLMSClient owner, GXDLMSSettings forSettings, UInt32 invokeId, Command forCommand, byte forCommandType,
-           GXByteBuffer forAttributeDescriptor, GXByteBuffer forData, byte forStatus, Command forCipheredCommand)
+        public GXDLMSLNParameters(GXCryptoNotifier owner, 
+            GXDLMSSettings forSettings, 
+            UInt32 invokeId, 
+            Command forCommand, 
+            byte forCommandType,
+            GXByteBuffer forAttributeDescriptor, 
+            GXByteBuffer forData, 
+            byte forStatus, 
+            Command forCipheredCommand)
         {
-            Owner = owner;
+            CryptoNotifier = owner;
             settings = forSettings;
             InvokeId = invokeId;
             blockIndex = settings.BlockIndex;

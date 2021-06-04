@@ -85,12 +85,31 @@ namespace Gurux.DLMS
             set;
         }
 
-        //Interface type.
+        /// <summary>
+        /// Interface type.
+        /// </summary>
         public InterfaceType InterfaceType
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// Client address.
+        /// </summary>
+        public int ClientAddress
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Server address.
+        /// </summary>
+        public int ServerAddress
+        {
+            get;
+            set;
+        }        
     }
 }

@@ -231,6 +231,11 @@ namespace Gurux.DLMS.Objects
             return new string[] { "Reset" };
         }
 
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 0;
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             return 8;

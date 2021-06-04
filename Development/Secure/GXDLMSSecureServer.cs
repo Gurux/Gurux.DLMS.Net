@@ -95,7 +95,6 @@ namespace Gurux.DLMS.Secure
             {
                 throw new ArgumentOutOfRangeException("Invalid FLAG ID.");
             }
-            ln.XDLMSContextInfo.settings = Settings;
             GXByteBuffer bb = new GXByteBuffer();
             bb.Add(flagID);
             GXByteBuffer serial = new GXByteBuffer();
@@ -162,7 +161,6 @@ namespace Gurux.DLMS.Secure
             {
                 throw new ArgumentOutOfRangeException("Invalid FLAG ID.");
             }
-            ln.XDLMSContextInfo.settings = Settings;
             GXByteBuffer bb = new GXByteBuffer();
             bb.Add(flagID);
             GXByteBuffer serial = new GXByteBuffer();
@@ -225,7 +223,6 @@ namespace Gurux.DLMS.Secure
             {
                 throw new ArgumentOutOfRangeException("Invalid FLAG ID.");
             }
-            ln.XDLMSContextInfo.settings = Settings;
             GXByteBuffer bb = new GXByteBuffer();
             bb.Add(flagID);
             GXByteBuffer serial = new GXByteBuffer();
@@ -287,7 +284,6 @@ namespace Gurux.DLMS.Secure
             {
                 throw new ArgumentOutOfRangeException("Invalid FLAG ID.");
             }
-            ln.XDLMSContextInfo.settings = Settings;
             GXByteBuffer bb = new GXByteBuffer();
             bb.Add(flagID);
             GXByteBuffer serial = new GXByteBuffer();

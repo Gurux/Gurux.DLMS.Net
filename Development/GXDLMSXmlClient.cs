@@ -634,7 +634,7 @@ namespace Gurux.DLMS
                 {
                     if (Ciphering.Security != Security.None)
                     {
-                        GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, pdu.Command, 0x0, null, null, 0xff, Command.None);
+                        GXDLMSLNParameters p = new GXDLMSLNParameters(cryptoNotifier, Settings, 0, pdu.Command, 0x0, null, null, 0xff, Command.None);
                         reply = new GXByteBuffer(GXDLMS.Cipher0(p, pdu.Data));
                     }
                     else
@@ -646,7 +646,7 @@ namespace Gurux.DLMS
                 {
                     if (Ciphering.Security != Security.None)
                     {
-                        GXDLMSLNParameters p = new GXDLMSLNParameters(this, Settings, 0, pdu.Command, 0x0, null, null, 0xff, Command.None);
+                        GXDLMSLNParameters p = new GXDLMSLNParameters(cryptoNotifier, Settings, 0, pdu.Command, 0x0, null, null, 0xff, Command.None);
                         byte[] tmp = GXDLMS.Cipher0(p, pdu.Data);
                         reply = new GXByteBuffer((UInt16)(3 + tmp.Length));
                         reply.Set(GXCommon.LLCSendBytes);

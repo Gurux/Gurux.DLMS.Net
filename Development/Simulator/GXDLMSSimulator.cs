@@ -83,7 +83,7 @@ namespace Gurux.DLMS.Simulator
                     GXDLMSObject t = objects.FindByLN(ot, instanceId);
                     if (t == null)
                     {
-                        t = GXDLMSClient.CreateDLMSObject((int)ot, 0, 0, instanceId, null);
+                        t = GXDLMSClient.CreateDLMSObject((int)ot, 0, 0, instanceId, null, 2);
                     }
                     ValueEventArgs ve = new ValueEventArgs(t, attributeId, 0, null);
                     targets.Add(ve);
@@ -170,7 +170,7 @@ namespace Gurux.DLMS.Simulator
                 {
                     list.Add(short.Parse(node.ChildNodes[0].InnerText));
                 }
-                else
+                else if (node.ChildNodes.Count != 0)
                 {
                     //Read with parameters.
                     list.Add(short.Parse(node.ChildNodes[0].ChildNodes[0].InnerText));
@@ -210,6 +210,28 @@ namespace Gurux.DLMS.Simulator
         /// <param name="data">GXDLMSDirector trace in byte array.</param>
         public static void Import(GXDLMSServer server, byte[] data, Standard standard)
         {
+            GXByteBuffer bb = new GXByteBuffer(data);
+            Import(server, bb, standard);
+        }
+
+
+        /// <summary>
+        /// Import server settings and COSEM objects from GXDLMSDirector trace.
+        /// </summary>
+        /// <param name="server">Server where settings are updated.</param>
+        /// <param name="data">GXDLMSDirector trace in byte array.</param>
+        public static void Import(GXDLMSServer server, GXByteBuffer data)
+        {
+            Import(server, data, Standard.DLMS);
+        }
+
+        /// <summary>
+        /// Import server settings and COSEM objects from GXDLMSDirector trace.
+        /// </summary>
+        /// <param name="server">Server where settings are updated.</param>
+        /// <param name="data">GXDLMSDirector trace in byte array.</param>
+        public static void Import(GXDLMSServer server, GXByteBuffer data, Standard standard)
+        {
             GXDLMSTranslator translator = new GXDLMSTranslator(TranslatorOutputType.StandardXml);
             translator.CompletePdu = true;
             translator.PduOnly = true;
@@ -218,124 +240,142 @@ namespace Gurux.DLMS.Simulator
             List<ValueEventArgs> targets = new List<ValueEventArgs>();
             GXDLMSSettings settings = new GXDLMSSettings(true, InterfaceType.HDLC);
             GXByteBuffer pdu = new GXByteBuffer();
-            GXByteBuffer bb = new GXByteBuffer(data);
-            server.InterfaceType = GXDLMSTranslator.GetDlmsFraming(bb);
+            server.InterfaceType = GXDLMSTranslator.GetDlmsFraming(data);
             bool lastBlock = true;
             GXByteBuffer val = new DLMS.GXByteBuffer();
             GXDLMSConverter converter = new GXDLMSConverter(standard);
-            while (translator.FindNextFrame(bb, pdu, server.InterfaceType))
+            bool newMeter = false;
+            while (translator.FindNextFrame(data, pdu, server.InterfaceType))
             {
-                String xml = translator.MessageToXml(bb);
-                if (xml != "")
+                if (newMeter)
                 {
-                    doc.LoadXml(xml.Replace("&", "&amp;"));
-                    foreach (XmlNode node in doc.ChildNodes[doc.ChildNodes.Count - 1].ChildNodes)
+                    break;
+                }
+                try
+                {
+                    String xml = translator.MessageToXml(data);
+                    if (xml != "")
                     {
-                        string name = doc.ChildNodes[doc.ChildNodes.Count - 1].Name;
-                        if (name == "Ua" || name == "aarq" || name == "aare")
+                        doc.LoadXml(xml.Replace("&", "&amp;"));
+                        foreach (XmlNode node in doc.ChildNodes[doc.ChildNodes.Count - 1].ChildNodes)
                         {
-                            break;
-                        }
-                        else if (name == "get-request")
-                        {
-                            server.UseLogicalNameReferencing = true;
-                            GetLN(settings.Objects, targets, node.ChildNodes);
-                        }
-                        else if (name == "readRequest")
-                        {
-                            List<short> items = GetSN(node.ChildNodes);
-
-                            server.UseLogicalNameReferencing = false;
-                            foreach (short it in items)
+                            string name = doc.ChildNodes[doc.ChildNodes.Count - 1].Name;
+                            if (name == "Ua" || name == "aarq" || name == "aare")
                             {
-                                GXSNInfo i = GXDLMSSNCommandHandler.FindSNObject(settings.Objects, Convert.ToUInt16((it) & 0xFFFF));
-                                targets.Add(new ValueEventArgs(i.Item, i.Index, 0, null));
+                                break;
                             }
-                        }
-                        else if (name == "readResponse" ||
-                                 name == "get-response")
-                        {
-                            if (targets != null)
+                            else if (name == "get-request")
                             {
-                                List<string> items;
-                                if (server.UseLogicalNameReferencing)
-                                {
-                                    items = GetLNValues(doc.ChildNodes[doc.ChildNodes.Count - 1].ChildNodes);
-                                }
-                                else
-                                {
-                                    items = GetSNValues(doc.ChildNodes[doc.ChildNodes.Count - 1].ChildNodes);
-                                }
+                                server.UseLogicalNameReferencing = true;
+                                GetLN(settings.Objects, targets, node.ChildNodes);
+                            }
+                            else if (name == "readRequest")
+                            {
+                                List<short> items = GetSN(node.ChildNodes);
 
-                                int pos = 0;
-                                foreach (string it in items)
+                                server.UseLogicalNameReferencing = false;
+                                foreach (short it in items)
                                 {
-                                    if ("other-reason".Equals(it) ||
-                                        "read-write-denied".Equals(it) ||
-                                            "scope-of-access-violated".Equals(it) ||
-                                            "object-unavailable".Equals(it) ||
-                                             "object-class-inconsistent".Equals(it))
+                                    GXSNInfo i = GXDLMSSNCommandHandler.FindSNObject(settings.Objects, Convert.ToUInt16((it) & 0xFFFF));
+                                    targets.Add(new ValueEventArgs(i.Item, i.Index, 0, null));
+                                }
+                            }
+                            else if (name == "readResponse" ||
+                                     name == "get-response")
+                            {
+                                if (targets != null)
+                                {
+                                    List<string> items;
+                                    if (server.UseLogicalNameReferencing)
                                     {
-                                        ValueEventArgs ve = targets[pos];
-                                        ve.Target.SetAccess(ve.Index, AccessMode.NoAccess);
-                                        continue;
+                                        items = GetLNValues(doc.ChildNodes[doc.ChildNodes.Count - 1].ChildNodes);
                                     }
-                                    try
+                                    else
                                     {
-                                        if (server.UseLogicalNameReferencing)
+                                        items = GetSNValues(doc.ChildNodes[doc.ChildNodes.Count - 1].ChildNodes);
+                                    }
+
+                                    int pos = 0;
+                                    foreach (string it in items)
+                                    {
+                                        if ("other-reason".Equals(it) ||
+                                            "read-write-denied".Equals(it) ||
+                                                "scope-of-access-violated".Equals(it) ||
+                                                "object-unavailable".Equals(it) ||
+                                                 "object-class-inconsistent".Equals(it))
                                         {
-                                            lastBlock = IsLastBlock(doc.ChildNodes[doc.ChildNodes.Count - 1].ChildNodes);
+                                            ValueEventArgs ve = targets[pos];
+                                            ve.Target.SetAccess(ve.Index, AccessMode.NoAccess);
+                                            continue;
                                         }
-                                        val.Set(translator.XmlToData(it));
-                                        if (lastBlock)
+                                        try
                                         {
-                                            if (settings.Objects.Count == 0)
+                                            if (server.UseLogicalNameReferencing)
                                             {
-                                                GXDLMSClient c = new GXDLMSClient();
-                                                c.UseLogicalNameReferencing = server.UseLogicalNameReferencing;
-                                                settings.Objects = c.ParseObjects(val, true);
-                                                //Update OBIS code description.
-                                                converter.UpdateOBISCodeInformation(settings.Objects);
+                                                lastBlock = IsLastBlock(doc.ChildNodes[doc.ChildNodes.Count - 1].ChildNodes);
                                             }
-                                            else if (targets.Count != 0)
+                                            val.Set(translator.XmlToData(it));
+                                            if (lastBlock)
                                             {
-                                                ValueEventArgs ve = targets[pos];
-                                                GXDataInfo info = new GXDataInfo();
-                                                ve.Value = GXCommon.GetData(server.Settings, val, info);
-                                                if (ve.Value is byte[] && ve.Target != null)
+                                                if (settings.Objects.Count == 0)
                                                 {
-                                                    DataType tp = ve.Target.GetUIDataType(ve.Index);
-                                                    if (tp != DataType.None)
+                                                    GXDLMSClient c = new GXDLMSClient();
+                                                    c.UseLogicalNameReferencing = server.UseLogicalNameReferencing;
+                                                    settings.Objects = c.ParseObjects(val, true);
+                                                    //Update OBIS code description.
+                                                    converter.UpdateOBISCodeInformation(settings.Objects);
+                                                }
+                                                else if (targets.Count != 0)
+                                                {
+                                                    ValueEventArgs ve = targets[pos];
+                                                    GXDataInfo info = new GXDataInfo();
+                                                    ve.Value = GXCommon.GetData(server.Settings, val, info);
+                                                    if (ve.Value is byte[] && ve.Target != null)
                                                     {
-                                                        ve.Value = GXDLMSClient.ChangeType((byte[])ve.Value, tp, false);
-                                                        ve.Target.SetDataType(ve.Index, DataType.OctetString);
+                                                        DataType tp = ve.Target.GetUIDataType(ve.Index);
+                                                        if (tp != DataType.None)
+                                                        {
+                                                            ve.Value = GXDLMSClient.ChangeType((byte[])ve.Value, tp, false);
+                                                            ve.Target.SetDataType(ve.Index, DataType.OctetString);
+                                                        }
+                                                    }
+                                                    if (ve.Target is IGXDLMSBase)
+                                                    {
+                                                        ((IGXDLMSBase)ve.Target).SetValue(settings, ve);
                                                     }
                                                 }
-                                                if (ve.Target is IGXDLMSBase)
-                                                {
-                                                    ((IGXDLMSBase)ve.Target).SetValue(settings, ve);
-                                                }
+                                                val.Clear();
                                             }
-                                            val.Clear();
                                         }
+                                        catch (Exception)
+                                        {
+                                            ValueEventArgs ve = targets[pos];
+                                            if (ve.Target != null)
+                                            {
+                                                ve.Target.SetAccess(ve.Index, AccessMode.NoAccess);
+                                            }
+                                        }
+                                        ++pos;
                                     }
-                                    catch (Exception)
+                                    if (lastBlock)
                                     {
-                                        ValueEventArgs ve = targets[pos];
-                                        ve.Target.SetAccess(ve.Index, AccessMode.NoAccess);
-
+                                        targets.Clear();
+                                        break;
                                     }
-                                    ++pos;
-                                }
-                                if (lastBlock)
-                                {
-                                    targets.Clear();
-                                    break;
                                 }
                             }
-
+                            else if (name == "rlre")
+                            {
+                                newMeter = true;
+                                break;
+                            }
                         }
                     }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(ex.Message);
+                    continue;
                 }
             }
             server.Items.Clear();

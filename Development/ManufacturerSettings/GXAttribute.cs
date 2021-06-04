@@ -119,6 +119,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// </summary>
         public GXDLMSAttributeSettings()
         {
+            Access3 = AccessMode3.Read | AccessMode3.Write;
             Access = AccessMode.ReadWrite;
             Values = new GXObisValueItemCollection();
             UIType = DataType.None;
@@ -227,15 +228,53 @@ namespace Gurux.DLMS.ManufacturerSettings
             set;
         }
 
-#if !WINDOWS_UWP
-        [Browsable(false)]
-#endif
+        [DefaultValue(AccessMode3.Read | AccessMode3.Write)]
+        public AccessMode3 Access3
+        {
+            get;
+            set;
+        }
+
+        public string AccessModeAsString
+        {
+            get
+            {
+                if (Access != AccessMode.ReadWrite)
+                {
+                    return Access.ToString();
+                }
+                return Access3.ToString();
+            }
+        }
+
+
         [DefaultValue(MethodAccessMode.NoAccess)]
         public MethodAccessMode MethodAccess
         {
             get;
             set;
         }
+
+        [DefaultValue(MethodAccessMode3.NoAccess)]
+        public MethodAccessMode3 MethodAccess3
+        {
+            get;
+            set;
+        }
+
+        [XmlIgnore]
+        public string MethodAccessAsString
+        {
+            get
+            {
+                if (MethodAccess != MethodAccessMode.NoAccess)
+                {
+                    return MethodAccess.ToString();
+                }
+                return MethodAccess3.ToString();
+            }
+        }
+
 
         [DefaultValue(false)]
         public bool Static

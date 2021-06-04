@@ -35,6 +35,7 @@ using Gurux.DLMS.ASN;
 using Gurux.DLMS.ASN.Enums;
 using Gurux.DLMS.Ecdsa.Enums;
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.Objects.Enums;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -133,6 +134,10 @@ namespace Gurux.DLMS.Ecdsa
             {
                 value.publicKey = GXPublicKey.FromRawBytes((byte[])seq[3]);
             }
+            else if (seq[3] is GXAsn1BitString)
+            {
+                value.publicKey = GXPublicKey.FromRawBytes(((GXAsn1BitString)seq[3]).Value);
+            }            
             else
             {
                 //Open SSL PEM.
@@ -203,7 +208,9 @@ namespace Gurux.DLMS.Ecdsa
                 throw new Exception("Invalid ECC scheme.");
             }
             d.Add(d1);
-            d.Add(new GXAsn1BitString(GetPublicKey().RawValue));
+            GXAsn1Context d2 = new GXAsn1Context() {Index = 1 };
+            d2.Add(new GXAsn1BitString(GetPublicKey().RawValue, 0));
+            d.Add(d2);
             return GXCommon.ToBase64(GXAsn1Converter.ToByteArray(d));
         }
 
@@ -274,6 +281,11 @@ namespace Gurux.DLMS.Ecdsa
                 return 0;
             }
             return RawValue.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return ToHex(true);
         }
     }
 }

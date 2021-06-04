@@ -527,6 +527,10 @@ namespace Gurux.DLMS.Objects
                 "Collect", "Update total amount remaining", "Set total amount remaining" };
         }
 
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 0;
+        }
         int IGXDLMSBase.GetAttributeCount()
         {
             return 13;

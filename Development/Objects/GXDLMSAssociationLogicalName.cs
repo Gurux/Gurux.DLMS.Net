@@ -39,7 +39,7 @@ using Gurux.DLMS.Internal;
 using Gurux.DLMS.Secure;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
-
+using System.Text;
 
 namespace Gurux.DLMS.Objects
 {
@@ -71,6 +71,7 @@ namespace Gurux.DLMS.Objects
             AuthenticationMechanismName = new GXAuthenticationMechanismName();
             UserList = new List<KeyValuePair<byte, string>>();
         }
+
 
         [XmlIgnore()]
         public GXDLMSObjectCollection ObjectList
@@ -281,138 +282,158 @@ namespace Gurux.DLMS.Objects
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
             //Check reply_to_HLS_authentication
-            if (e.Index == 1)
+            switch (e.Index)
             {
-                UInt32 ic = 0;
-                byte[] secret;
+                case 1:
+                    return ReplyToHlsAuthentication(settings, e);
+                case 2:
+                    ChangeHlsSecret(e);
+                    break;
+                case 3:
+                    AddObject(settings, e);
+                    break;
+                case 4:
+                    RemoveObject(settings, e);
+                    break;
+                case 5:
+                    AddUser(e);
+                    break;
+                case 6:
+                    RemoveUser(e);
+                    break;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
+            }
+            return null;
+        }
+
+        private byte[] ReplyToHlsAuthentication(GXDLMSSettings settings, ValueEventArgs e)
+        {
+            uint ic = 0;
+            byte[] secret;
+            if (settings.Authentication == Authentication.HighGMAC)
+            {
+                secret = settings.SourceSystemTitle;
+                GXByteBuffer bb = new GXByteBuffer(e.Parameters as byte[]);
+                bb.GetUInt8();
+                ic = bb.GetUInt32();
+            }
+            else if (settings.Authentication == Authentication.HighSHA256)
+            {
+                GXByteBuffer tmp = new GXByteBuffer();
+                tmp.Set(Secret);
+                tmp.Set(settings.SourceSystemTitle);
+                tmp.Set(settings.Cipher.SystemTitle);
+                tmp.Set(settings.StoCChallenge);
+                tmp.Set(settings.CtoSChallenge);
+                secret = tmp.Array();
+            }
+            else
+            {
+                secret = Secret;
+            }
+            byte[] serverChallenge = GXSecure.Secure(settings, settings.Cipher, ic, settings.StoCChallenge, secret);
+            byte[] clientChallenge = (byte[])e.Parameters;
+            if (serverChallenge != null && clientChallenge != null && GXCommon.Compare(serverChallenge, clientChallenge))
+            {
                 if (settings.Authentication == Authentication.HighGMAC)
                 {
-                    secret = settings.SourceSystemTitle;
-                    GXByteBuffer bb = new GXByteBuffer(e.Parameters as byte[]);
-                    bb.GetUInt8();
-                    ic = bb.GetUInt32();
-                }
-                else if (settings.Authentication == Authentication.HighSHA256)
-                {
-                    GXByteBuffer tmp = new GXByteBuffer();
-                    tmp.Set(Secret);
-                    tmp.Set(settings.SourceSystemTitle);
-                    tmp.Set(settings.Cipher.SystemTitle);
-                    tmp.Set(settings.StoCChallenge);
-                    tmp.Set(settings.CtoSChallenge);
-                    secret = tmp.Array();
+                    secret = settings.Cipher.SystemTitle;
+                    ic = settings.Cipher.InvocationCounter;
+                    ++settings.Cipher.InvocationCounter;
                 }
                 else
                 {
                     secret = Secret;
                 }
-                byte[] serverChallenge = GXSecure.Secure(settings, settings.Cipher, ic, settings.StoCChallenge, secret);
-                byte[] clientChallenge = (byte[])e.Parameters;
-                if (serverChallenge != null && clientChallenge != null && GXCommon.Compare(serverChallenge, clientChallenge))
+                AssociationStatus = AssociationStatus.Associated;
+                if (settings.Authentication == Authentication.HighSHA256)
                 {
-                    if (settings.Authentication == Authentication.HighGMAC)
-                    {
-                        secret = settings.Cipher.SystemTitle;
-                        ic = settings.Cipher.InvocationCounter;
-                        ++settings.Cipher.InvocationCounter;
-                    }
-                    else
-                    {
-                        secret = Secret;
-                    }
-                    AssociationStatus = AssociationStatus.Associated;
-                    if (settings.Authentication == Authentication.HighSHA256)
-                    {
-                        GXByteBuffer tmp = new GXByteBuffer();
-                        tmp.Set(Secret);
-                        tmp.Set(settings.Cipher.SystemTitle);
-                        tmp.Set(settings.SourceSystemTitle);
-                        tmp.Set(settings.CtoSChallenge);
-                        tmp.Set(settings.StoCChallenge);
-                        secret = tmp.Array();
-                    }
-                    return GXSecure.Secure(settings, settings.Cipher, ic, settings.CtoSChallenge, secret);
+                    GXByteBuffer tmp = new GXByteBuffer();
+                    tmp.Set(Secret);
+                    tmp.Set(settings.Cipher.SystemTitle);
+                    tmp.Set(settings.SourceSystemTitle);
+                    tmp.Set(settings.CtoSChallenge);
+                    tmp.Set(settings.StoCChallenge);
+                    secret = tmp.Array();
                 }
-                else //If the password does not match.
-                {
-                    AssociationStatus = AssociationStatus.NonAssociated;
-                    e.Error = ErrorCode.ReadWriteDenied;
-                    return null;
-                }
+                return GXSecure.Secure(settings, settings.Cipher, ic, settings.CtoSChallenge, secret);
             }
-            else if (e.Index == 2)
+            else //If the password does not match.
             {
-                byte[] tmp = e.Parameters as byte[];
-                if (tmp == null || tmp.Length == 0)
-                {
-                    e.Error = ErrorCode.ReadWriteDenied;
-                }
-                else
-                {
-                    Secret = tmp;
-                }
+                AssociationStatus = AssociationStatus.NonAssociated;
+                e.Error = ErrorCode.ReadWriteDenied;
+                return null;
             }
-            else if (e.Index == 3)
-            {
-                //Add COSEM object.
-                GXDLMSObject obj = GetObject(settings, e.Parameters as List<object>);
-                //Unknown objects are not add.
-                if (obj is IGXDLMSBase)
-                {
-                    if (ObjectList.FindByLN(obj.ObjectType, obj.LogicalName) == null)
-                    {
-                        ObjectList.Add(obj);
-                    }
-                    if (settings.Objects.FindByLN(obj.ObjectType, obj.LogicalName) == null)
-                    {
-                        settings.Objects.Add(obj);
-                    }
-                }
-            }
-            else if (e.Index == 4)
-            {
-                //Remove COSEM object.
-                GXDLMSObject obj = GetObject(settings, e.Parameters as List<object>);
-                //Unknown objects are not removed.
-                if (obj is IGXDLMSBase)
-                {
-                    GXDLMSObject t = ObjectList.FindByLN(obj.ObjectType, obj.LogicalName);
-                    if (t != null)
-                    {
-                        ObjectList.Remove(t);
-                    }
-                    //Item is not removed from all objects. It might be that use wants remove object only from association view.
-                }
-            }
-            else if (e.Index == 5)
-            {
-                List<object> tmp = e.Parameters as List<object>;
-                if (tmp == null || tmp.Count != 2)
-                {
-                    e.Error = ErrorCode.ReadWriteDenied;
-                }
-                else
-                {
-                    UserList.Add(new KeyValuePair<byte, string>(Convert.ToByte(tmp[0]), Convert.ToString(tmp[1])));
-                }
-            }
-            else if (e.Index == 6)
-            {
-                List<object> tmp = e.Parameters as List<object>;
-                if (tmp == null || tmp.Count != 2)
-                {
-                    e.Error = ErrorCode.ReadWriteDenied;
-                }
-                else
-                {
-                    UserList.Remove(new KeyValuePair<byte, string>(Convert.ToByte(tmp[0]), Convert.ToString(tmp[1])));
-                }
-            }
-            else
+        }
+
+        private void RemoveUser(ValueEventArgs e)
+        {
+            List<object> tmp = e.Parameters as List<object>;
+            if (tmp == null || tmp.Count != 2)
             {
                 e.Error = ErrorCode.ReadWriteDenied;
             }
-            return null;
+            else
+            {
+                UserList.Remove(new KeyValuePair<byte, string>(Convert.ToByte(tmp[0]), Convert.ToString(tmp[1])));
+            }
+        }
+
+        private void AddUser(ValueEventArgs e)
+        {
+            List<object> tmp = e.Parameters as List<object>;
+            if (tmp == null || tmp.Count != 2)
+            {
+                e.Error = ErrorCode.ReadWriteDenied;
+            }
+            else
+            {
+                UserList.Add(new KeyValuePair<byte, string>(Convert.ToByte(tmp[0]), Convert.ToString(tmp[1])));
+            }
+        }
+
+        private void RemoveObject(GXDLMSSettings settings, ValueEventArgs e)
+        {
+            //Remove COSEM object.
+            GXDLMSObject obj = GetObject(settings, e.Parameters as List<object>, false);
+            //Unknown objects are not removed.
+            if (obj is IGXDLMSBase)
+            {
+                GXDLMSObject t = ObjectList.FindByLN(obj.ObjectType, obj.LogicalName);
+                if (t != null)
+                {
+                    ObjectList.Remove(t);
+                }
+            }
+        }
+
+        private void AddObject(GXDLMSSettings settings, ValueEventArgs e)
+        {
+            //Add COSEM object.
+            GXDLMSObject obj = GetObject(settings, e.Parameters as List<object>, true);
+            //Unknown objects are not add.
+            if (obj is IGXDLMSBase)
+            {
+                if (ObjectList.FindByLN(obj.ObjectType, obj.LogicalName) == null)
+                {
+                    ObjectList.Add(obj);
+                }
+            }
+        }
+
+        private void ChangeHlsSecret(ValueEventArgs e)
+        {
+            byte[] tmp = e.Parameters as byte[];
+            if (tmp == null || tmp.Length == 0)
+            {
+                e.Error = ErrorCode.ReadWriteDenied;
+            }
+            else
+            {
+                Secret = tmp;
+            }
         }
 
         int[] IGXDLMSBase.GetAttributeIndexToRead(bool all)
@@ -535,6 +556,11 @@ namespace Gurux.DLMS.Objects
                 "Add object", "Remove object"};
         }
 
+        int IGXDLMSBase.GetMaxSupportedVersion()
+        {
+            return 3;
+        }
+
         int IGXDLMSBase.GetAttributeCount()
         {
             if (Version > 1)
@@ -618,7 +644,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    m = AccessMode.ReadWrite;
+                    m = item.GetAccess(e.Index);
                 }
                 //attribute_access_item
                 data.SetUInt8((byte)DataType.Structure);
@@ -664,7 +690,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
-                    m = MethodAccessMode.Access;
+                    m = item.GetMethodAccess(e.Index);
                 }
                 //attribute_access_item
                 data.SetUInt8((byte)DataType.Structure);
@@ -699,7 +725,14 @@ namespace Gurux.DLMS.Objects
                     }
                     int id = Convert.ToInt32(it[0]);
                     int mode = Convert.ToInt32(it[1]);
-                    obj.SetAccess(id, (AccessMode)mode);
+                    if (Version < 3)
+                    {
+                        obj.SetAccess(id, (AccessMode)mode);
+                    }
+                    else
+                    {
+                        obj.SetAccess3(id, (AccessMode3)mode);
+                    }
                 }
                 if (buff[1] is List<object>)
                 {
@@ -730,7 +763,14 @@ namespace Gurux.DLMS.Objects
                     {
                         tmp2 = Convert.ToInt32(it[1]);
                     }
-                    obj.SetMethodAccess(id, (MethodAccessMode)tmp2);
+                    if (Version < 3)
+                    {
+                        obj.SetMethodAccess(id, (MethodAccessMode)tmp2);
+                    }
+                    else
+                    {
+                        obj.SetMethodAccess3(id, (MethodAccessMode3)tmp2);
+                    }
                 }
             }
         }
@@ -922,23 +962,16 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Add new object.
+        /// Get object.
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
-        /// <param name="item">received data.</param>
-        private GXDLMSObject GetObject(GXDLMSSettings settings, List<object> item)
+        /// <param name="item">Received data.</param>
+        /// <param name="add">Is data added to settings object list.</param>
+        private GXDLMSObject GetObject(GXDLMSSettings settings, List<object> item, bool add)
         {
             ObjectType type = (ObjectType)Convert.ToInt32(item[0]);
             int version = Convert.ToInt32(item[1]);
-            String ln;
-            if (item[2] is byte[])
-            {
-                ln = GXCommon.ToLogicalName((byte[])item[2]);
-            }
-            else
-            {
-                ln = (string)item[2];
-            }
+            string ln = GXCommon.ToLogicalName((byte[])item[2]);
             GXDLMSObject obj = null;
             if (settings != null && settings.Objects != null)
             {
@@ -946,11 +979,15 @@ namespace Gurux.DLMS.Objects
             }
             if (obj == null)
             {
-                obj = Gurux.DLMS.GXDLMSClient.CreateObject(type);
+                obj = GXDLMSClient.CreateObject(type);
                 obj.LogicalName = ln;
                 obj.Version = version;
+                if (add && settings.IsServer)
+                {
+                    settings.Objects.Add(obj);
+                }
             }
-            if (obj is IGXDLMSBase && item[3] != null)
+            if (add && obj is IGXDLMSBase && item[3] != null)
             {
                 List<object> arr;
                 if (item[3] is List<object>)
@@ -974,37 +1011,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 2)
             {
-                ObjectList.Clear();
-                if (e.Value != null)
-                {
-                    List<object> arr = null;
-                    if (e.Value is List<object>)
-                    {
-                        arr = (List<object>)e.Value;
-                    }
-                    else if (e.Value != null)
-                    {
-                        arr = new List<object>((object[])e.Value);
-                    }
-                    foreach (object tmp in arr)
-                    {
-                        List<object> item = null;
-                        if (tmp is List<object>)
-                        {
-                            item = (List<object>)tmp;
-                        }
-                        else if (tmp != null)
-                        {
-                            item = new List<object>((object[])tmp);
-                        }
-                        GXDLMSObject obj = GetObject(settings, item);
-                        //Unknown objects are not shown.
-                        if (obj is IGXDLMSBase)
-                        {
-                            ObjectList.Add(obj);
-                        }
-                    }
-                }
+                UpdateObjectList(settings, e);
             }
             else if (e.Index == 3)
             {
@@ -1031,9 +1038,14 @@ namespace Gurux.DLMS.Objects
                     GXByteBuffer arr = new GXByteBuffer(e.Value as byte[]);
                     if (arr.GetUInt8(0) == 0x60)
                     {
-                        ApplicationContextName.JointIsoCtt = arr.GetUInt8();
-                        ApplicationContextName.Country = arr.GetUInt8();
-                        ApplicationContextName.CountryName = arr.GetUInt8();
+                        //BB 11.4.
+                        byte val = arr.GetUInt8();
+                        ApplicationContextName.JointIsoCtt = (byte)((val - 16) / 40);
+                        ApplicationContextName.Country = 16;
+                        int tmp = arr.GetUInt16();
+                        tmp = ((tmp & 0x7F00) >> 1) | (tmp & 0x7F);
+                        ApplicationContextName.CountryName = (UInt16)tmp;
+                        ApplicationContextName.CountryName = (UInt16)tmp;
                         ApplicationContextName.IdentifiedOrganization = arr.GetUInt8();
                         ApplicationContextName.DlmsUA = arr.GetUInt8();
                         ApplicationContextName.ApplicationContext = arr.GetUInt8();
@@ -1139,9 +1151,13 @@ namespace Gurux.DLMS.Objects
                     GXByteBuffer arr = new GXByteBuffer(e.Value as byte[]);
                     if (arr.GetUInt8(0) == 0x60)
                     {
-                        AuthenticationMechanismName.JointIsoCtt = arr.GetUInt8();
-                        AuthenticationMechanismName.Country = arr.GetUInt8();
-                        AuthenticationMechanismName.CountryName = arr.GetUInt8();
+                        //BB 11.4.
+                        byte val = arr.GetUInt8();
+                        AuthenticationMechanismName.JointIsoCtt = (byte)((val - 16) / 40);
+                        AuthenticationMechanismName.Country = 16;
+                        int tmp = arr.GetUInt16();
+                        tmp = ((tmp & 0x7F00) >> 1) | (tmp & 0x7F);
+                        AuthenticationMechanismName.CountryName = (UInt16)tmp;
                         AuthenticationMechanismName.IdentifiedOrganization = arr.GetUInt8();
                         AuthenticationMechanismName.DlmsUA = arr.GetUInt8();
                         AuthenticationMechanismName.AuthenticationMechanismName = arr.GetUInt8();
@@ -1290,8 +1306,83 @@ namespace Gurux.DLMS.Objects
             }
         }
 
+        private void UpdateObjectList(GXDLMSSettings settings, ValueEventArgs e)
+        {
+            ObjectList.Clear();
+            if (e.Value != null)
+            {
+                List<object> arr = null;
+                if (e.Value is List<object>)
+                {
+                    arr = (List<object>)e.Value;
+                }
+                else if (e.Value != null)
+                {
+                    arr = new List<object>((object[])e.Value);
+                }
+                foreach (object tmp in arr)
+                {
+                    List<object> item = null;
+                    if (tmp is List<object>)
+                    {
+                        item = (List<object>)tmp;
+                    }
+                    else if (tmp != null)
+                    {
+                        item = new List<object>((object[])tmp);
+                    }
+                    GXDLMSObject obj = GetObject(settings, item, true);
+                    //Unknown objects are not shown.
+                    if (obj is IGXDLMSBase)
+                    {
+                        ObjectList.Add(obj);
+                    }
+                }
+            }
+        }
+
         void IGXDLMSBase.Load(GXXmlReader reader)
         {
+            string str;
+            //Load objects.
+            ObjectList.Clear();
+            if (reader.IsStartElement("ObjectList", true))
+            {
+                string target;
+                GXDLMSObject obj;
+                while (!reader.EOF)
+                {
+                    obj = null;
+                    if (reader.IsStartElement())
+                    {
+                        target = reader.Name;
+                        if (target.StartsWith("GXDLMS"))
+                        {
+                            str = target.Substring(6);
+                            reader.Read();
+                            ObjectType type = (ObjectType)Enum.Parse(typeof(ObjectType), str);
+                            string ln = reader.ReadElementContentAsString("LN");
+                            obj = reader.Objects.FindByLN(type, ln);
+                            if (obj == null)
+                            {
+                                obj = GXDLMSClient.CreateObject(type);
+                                obj.LogicalName = ln;
+                                reader.Objects.Add(obj);
+                            }
+                            ObjectList.Add(obj);
+                        }
+                    }
+                    else
+                    {
+                        if (reader.Name == "ObjectList")
+                        {
+                            break;
+                        }
+                        reader.Read();
+                    }
+                }
+                reader.ReadEndElement("ObjectList");
+            }
             ClientSAP = (byte)reader.ReadElementContentAsInt("ClientSAP");
             ServerSAP = (byte)reader.ReadElementContentAsInt("ServerSAP");
             if (reader.IsStartElement("ApplicationContextName", true))
@@ -1313,7 +1404,11 @@ namespace Gurux.DLMS.Objects
                 XDLMSContextInfo.MaxSendPduSize = (UInt16)reader.ReadElementContentAsInt("MaxSendPduSize");
                 XDLMSContextInfo.DlmsVersionNumber = (byte)reader.ReadElementContentAsInt("DlmsVersionNumber");
                 XDLMSContextInfo.QualityOfService = (sbyte)reader.ReadElementContentAsInt("QualityOfService");
-                XDLMSContextInfo.CypheringInfo = GXDLMSTranslator.HexToBytes(reader.ReadElementContentAsString("CypheringInfo"));
+                str = reader.ReadElementContentAsString("CypheringInfo");
+                if (str != null)
+                {
+                    XDLMSContextInfo.CypheringInfo = GXDLMSTranslator.HexToBytes(str);
+                }
                 reader.ReadEndElement("XDLMSContextInfo");
             }
             if (reader.IsStartElement("AuthenticationMechanismName", true) ||
@@ -1329,7 +1424,7 @@ namespace Gurux.DLMS.Objects
                 reader.ReadEndElement("AuthenticationMechanismName");
                 reader.ReadEndElement("XDLMSContextInfo");
             }
-            string str = reader.ReadElementContentAsString("Secret");
+            str = reader.ReadElementContentAsString("Secret");
             if (str == null)
             {
                 Secret = null;
@@ -1340,11 +1435,39 @@ namespace Gurux.DLMS.Objects
             }
             AssociationStatus = (AssociationStatus)reader.ReadElementContentAsInt("AssociationStatus");
             SecuritySetupReference = reader.ReadElementContentAsString("SecuritySetupReference");
+            //Load users.
+            UserList.Clear();
+            if (reader.IsStartElement("Users", true))
+            {
+                while (reader.IsStartElement("Item", true))
+                {
+                    byte id = (byte)reader.ReadElementContentAsInt("Id");
+                    string name = reader.ReadElementContentAsString("Name");
+                    UserList.Add(new KeyValuePair<byte, string>(id, name));
+                }
+                reader.ReadEndElement("Users");
+            }
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("ClientSAP", ClientSAP, 2);
+            //Save objects.
+            if (ObjectList != null)
+            {
+                writer.WriteStartElement("ObjectList", 2);
+                foreach (GXDLMSObject it in ObjectList)
+                {
+                    if (it.ObjectType != ObjectType.AssociationLogicalName)
+                    {
+                        writer.WriteStartElement("GXDLMS" + it.ObjectType.ToString(), 0);
+                        // Add LN
+                        writer.WriteElementString("LN", it.LogicalName, 0);
+                        writer.WriteEndElement();
+                    }
+                }
+                writer.WriteEndElement();
+            }
+            writer.WriteElementString("ClientSAP", ClientSAP, 3);
             writer.WriteElementString("ServerSAP", ServerSAP, 3);
             writer.WriteStartElement("ApplicationContextName", 4);
             if (ApplicationContextName != null)
@@ -1391,10 +1514,34 @@ namespace Gurux.DLMS.Objects
             {
                 writer.WriteElementString("SecuritySetupReference", SecuritySetupReference, 9);
             }
+            //Save users.
+            if (UserList != null)
+            {
+                writer.WriteStartElement("Users", 10);
+                foreach (KeyValuePair<byte, string> it in UserList)
+                {
+                    writer.WriteStartElement("User", 10);
+                    writer.WriteElementString("Id", it.Key, 10);
+                    writer.WriteElementString("Name", it.Value, 10);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {
+            //Copy objects from the object collection to the association object list.
+            for (int pos = 0; pos != ObjectList.Count; ++pos)
+            {
+                GXDLMSObject obj = ObjectList[pos];
+                GXDLMSObject tmp = reader.Objects.FindByLN(obj.ObjectType, obj.LogicalName);
+                if (tmp != null)
+                {
+                    ObjectList.Remove(obj);
+                    ObjectList.Add(tmp);
+                }
+            }
         }
         #endregion
     }

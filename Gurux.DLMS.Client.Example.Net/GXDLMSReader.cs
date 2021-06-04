@@ -32,11 +32,13 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 using Gurux.Common;
+using Gurux.DLMS.ASN;
+using Gurux.DLMS.Ecdsa;
+using Gurux.DLMS.Ecdsa.Enums;
 using Gurux.DLMS.Enums;
-using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Objects;
+using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Secure;
-using Gurux.Net;
 using Gurux.Serial;
 using System;
 using System.Collections.Generic;
@@ -45,7 +47,6 @@ using System.IO;
 using System.IO.Ports;
 using System.Text;
 using System.Threading;
-using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Reader
 {
@@ -77,7 +78,291 @@ namespace Gurux.DLMS.Reader
             Trace = trace;
             Media = media;
             Client = client;
+            //Get ECDSA keys when needed.
+            Client.OnKeys += Client_OnKeys;
             InvocationCounter = invocationCounter;
+        }
+
+        /// <summary>
+        /// Find ciphering keys.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        private void Client_OnKeys(object sender, GXCryptoKeyParameter args)
+        {
+            if (args.Encrypt)
+            {
+                //Find private key.
+                string path = GetPath(args.SecuritySuite, args.CertificateType, "Keys", args.SystemTitle);
+                args.PrivateKey = GXPkcs8.Load(path).PrivateKey;
+            }
+            else
+            {
+                //Find public key.
+                string path = GetPath(args.SecuritySuite, args.CertificateType, "Certificates", null);
+                args.PublicKey = GXx509Certificate.Search(path, args.SystemTitle).PublicKey;
+            }
+        }
+
+        /// <summary>
+        /// Return correct path.
+        /// </summary>
+        /// <param name="securitySuite">Security Suite.</param>
+        /// <param name="type">Certificate type.</param>
+        /// <param name="path">Folder.</param>
+        /// <param name="systemTitle">System title.</param>
+        /// <returns>Path to the certificate file or folder if system title is not given.</returns>
+        private static string GetPath(SecuritySuite securitySuite, CertificateType type, string path, byte[] systemTitle)
+        {
+            string pre;
+            if (securitySuite == SecuritySuite.Suite2)
+            {
+                path = Path.Combine(path, "384");
+            }
+            if (systemTitle == null)
+            {
+                return path;
+            }
+            switch (type)
+            {
+                case CertificateType.DigitalSignature:
+                    pre = "D";
+                    break;
+                case CertificateType.KeyAgreement:
+                    pre = "A";
+                    break;
+                default:
+                    throw new Exception("Invalid type.");
+            }
+            return Path.Combine(path, pre + GXDLMSTranslator.ToHex(systemTitle, false) + ".pem");
+        }
+
+        /// <summary>
+        /// Generates a new server and client public/private keys and register them and import certificates to the meter.
+        /// </summary>
+        /// <param name="logicalName">Logical name of the security setup object.</param>
+        public void GenerateCertificates(string logicalName)
+        {
+            if (!Directory.Exists("Keys"))
+            {
+                Directory.CreateDirectory("Keys");
+            }
+            if (!Directory.Exists("Certificates"))
+            {
+                Directory.CreateDirectory("Certificates");
+            }
+            if (!Directory.Exists("Keys384"))
+            {
+                Directory.CreateDirectory("Keys384");
+            }
+            if (!Directory.Exists("Certificates384"))
+            {
+                Directory.CreateDirectory("Certificates384");
+            }
+            string address = "https://certificates.gurux.fi/api/CertificateGenerator";
+            GXx509Certificate[] certs;
+            if (Client.Authentication < Authentication.Low)
+            {
+                throw new Exception("High authentication must be used to change the certificate keys.");
+            }
+            GXReplyData reply = new GXReplyData();
+            InitializeConnection();
+            GXDLMSSecuritySetup1 ss = new GXDLMSSecuritySetup1(logicalName);
+            List<GXCertificateRequest> certifications = new List<GXCertificateRequest>();
+            //Read used security suite.
+            Read(ss, 3);
+            //Read server system title.
+            Read(ss, 5);
+            //Get client subject.
+            string subject = GXAsn1Converter.SystemTitleToSubject(Client.Ciphering.SystemTitle);
+            //Generate new digital signature for the client. In this example P-256 keys are used.
+            KeyValuePair<GXPublicKey, GXPrivateKey> kp = GXEcdsa.GenerateKeyPair(Ecc.P256);
+            //Save private key in PKCS #8 format.
+            GXPkcs8 key = new GXPkcs8(kp);
+            key.Save(GXAsn1Converter.GetFilePath(Ecc.P256, CertificateType.DigitalSignature, Client.Ciphering.SystemTitle));
+            //Generate x509 certificates.
+            GXPkcs10 pkc10 = GXPkcs10.CreateCertificateSigningRequest(kp, subject);
+            //All certigicates are generated with one request.
+            certifications.Add(new GXCertificateRequest(CertificateType.DigitalSignature, pkc10));
+
+            //Generate new key agreement for the client. In this example P-256 keys are used.
+            kp = GXEcdsa.GenerateKeyPair(Ecc.P256);
+            //Save private key in PKCS #8 format.
+            key = new GXPkcs8(kp);
+            key.Save(GXAsn1Converter.GetFilePath(Ecc.P256, CertificateType.KeyAgreement, Client.Ciphering.SystemTitle));
+            //Generate x509 certificates.
+            pkc10 = GXPkcs10.CreateCertificateSigningRequest(kp, subject);
+            //All certigicates are generated with one request.
+            certifications.Add(new GXCertificateRequest(CertificateType.KeyAgreement, pkc10));
+
+            //Generate public/private key for digital signature.
+            if (!ReadDataBlock(ss.GenerateKeyPair(Client, CertificateType.DigitalSignature), reply))
+            {
+                throw new GXDLMSException(reply.Error);
+            }
+            reply.Clear();
+            //Generate public/private key for key agreement.
+            if (!ReadDataBlock(ss.GenerateKeyPair(Client, CertificateType.KeyAgreement), reply))
+            {
+                throw new GXDLMSException(reply.Error);
+            }
+            reply.Clear();
+            //Generate certification request.
+            if (!ReadDataBlock(ss.GenerateCertificate(Client, CertificateType.DigitalSignature), reply))
+            {
+                throw new GXDLMSException(reply.Error);
+            }
+            //Generate server certification.
+            pkc10 = new GXPkcs10((byte[])reply.Value);
+            subject = GXAsn1Converter.SystemTitleToSubject(ss.ServerSystemTitle);
+            //Validate subject.
+            if (!pkc10.Subject.Contains(subject))
+            {
+                throw new Exception(string.Format("Server system title '{0}' is not the same as in the generated certificate request '{1}'.",
+                   GXDLMSTranslator.ToHex(ss.ServerSystemTitle),
+                   GXAsn1Converter.HexSystemTitleFromSubject(pkc10.Subject)));
+            }
+            certifications.Add(new GXCertificateRequest(CertificateType.DigitalSignature, pkc10));
+            reply.Clear();
+
+            //Generate certification request for key agreement.
+            if (!ReadDataBlock(ss.GenerateCertificate(Client, CertificateType.KeyAgreement), reply))
+            {
+                throw new GXDLMSException(reply.Error);
+            }
+            //Generate server certification.
+            pkc10 = new GXPkcs10((byte[])reply.Value);
+            //Validate subject.
+            if (!pkc10.Subject.Contains(subject))
+            {
+                throw new Exception(string.Format("Server system title '{0}' is not the same as in the generated certificate request '{1}'.",
+                   GXDLMSTranslator.ToHex(ss.ServerSystemTitle),
+                   GXAsn1Converter.HexSystemTitleFromSubject(pkc10.Subject)));
+            }
+            certifications.Add(new GXCertificateRequest(CertificateType.KeyAgreement, pkc10));
+            reply.Clear();
+
+            //Note! There is a limit how many request you can do in a day.
+            certs = GXPkcs10.GetCertificate(address, certifications);
+            //Save server certificates.
+            foreach (GXx509Certificate it in certs)
+            {
+                it.Save(GXx509Certificate.GetFilePath(it));
+            }
+            reply.Clear();
+            //Import server certificates.
+            foreach (GXx509Certificate it in certs)
+            {
+                if (!ReadDataBlock(ss.ImportCertificate(Client, it), reply))
+                {
+                    throw new GXDLMSException(reply.Error);
+                }
+                reply.Clear();
+            }
+            //Export server certificates and verify it.
+            foreach (GXx509Certificate it in certs)
+            {
+                CertificateEntity entity;
+                byte[] st;
+                if (it.Subject.Contains(GXAsn1Converter.SystemTitleToSubject(ss.ServerSystemTitle)))
+                {
+                    st = ss.ServerSystemTitle;
+                    entity = CertificateEntity.Server;
+                }
+                else if (it.Subject.Contains(GXAsn1Converter.SystemTitleToSubject(Client.Ciphering.SystemTitle)))
+                {
+                    st = Client.Ciphering.SystemTitle;
+                    entity = CertificateEntity.Client;
+                }
+                else
+                {
+                    //This is another certificate.
+                    continue;
+                }
+                if (!ReadDataBlock(ss.ExportCertificateByEntity(Client, entity,
+                    GXDLMSConverter.KeyUsageToCertificateType(it.KeyUsage), st), reply))
+                {
+                    throw new GXDLMSException(reply.Error);
+                }
+                //Verify certificate.
+                GXx509Certificate exported = new GXx509Certificate((byte[])reply.Value);
+                if (!exported.Equals(it))
+                {
+                    throw new ArgumentOutOfRangeException("Invalid server certificate.");
+                }
+                reply.Clear();
+            }
+            //Export server certificates using serial number and verify it.
+            foreach (GXx509Certificate it in certs)
+            {
+                if (!ReadDataBlock(ss.ExportCertificateBySerial(Client, it.SerialNumber,
+                    ASCIIEncoding.ASCII.GetBytes(it.Issuer)), reply))
+                {
+                    throw new GXDLMSException(reply.Error);
+                }
+                //Verify certificate.
+                GXx509Certificate exported = new GXx509Certificate((byte[])reply.Value);
+                if (!exported.Equals(it))
+                {
+                    throw new ArgumentOutOfRangeException("Invalid server certificate.");
+                }
+                reply.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Export client and server certificates from the meter.
+        /// </summary>
+        /// <param name="logicalName">Logical name of the security setup object.</param>
+        public void ExportMeterCertificates(string logicalName)
+        {
+            try
+            {
+                InitializeConnection();
+                GXDLMSSecuritySetup1 ss = new GXDLMSSecuritySetup1(logicalName);
+                //Read used security suite.
+                Read(ss, 3);
+                //Client private keys are saved to this directory.
+                //Client might be different system title for each meter.
+                if (!Directory.Exists("Keys"))
+                {
+                    Directory.CreateDirectory("Keys");
+                }
+                if (!Directory.Exists("Certificates"))
+                {
+                    Directory.CreateDirectory("Certificates");
+                }
+                if (!Directory.Exists("Keys384"))
+                {
+                    Directory.CreateDirectory("Keys384");
+                }
+                if (!Directory.Exists("Certificates384"))
+                {
+                    Directory.CreateDirectory("Certificates384");
+                }
+                //Read server system title.
+                Read(ss, 5);
+                //Read certificates.
+                Read(ss, 6);
+                //Export meter certificates and save them.
+                GXReplyData reply = new GXReplyData();
+                foreach (GXDLMSCertificateInfo it in ss.Certificates)
+                {
+                    reply.Clear();
+                    //Export certification and verify it.
+                    if (!ReadDataBlock(ss.ExportCertificateBySerial(Client, it.SerialNumber, ASCIIEncoding.ASCII.GetBytes(it.Issuer)), reply))
+                    {
+                        throw new GXDLMSException(reply.Error);
+                    }
+                    GXx509Certificate cert = new GXx509Certificate((byte[])reply.Value);
+                    string path = GXAsn1Converter.GetFilePath(cert.PublicKey.Scheme, it.Type, GXAsn1Converter.SystemTitleFromSubject(it.Subject));
+                    cert.Save(path);
+                }
+            }
+            finally
+            {
+                Close();
+            }
         }
 
         /// <summary>
@@ -188,7 +473,7 @@ namespace Gurux.DLMS.Reader
         private void UpdateFrameCounter()
         {
             //Read frame counter if GeneralProtection is used.
-            if (!string.IsNullOrEmpty(InvocationCounter) && Client.Ciphering != null && Client.Ciphering.Security != (byte)Security.None)
+            if (!string.IsNullOrEmpty(InvocationCounter) && Client.Ciphering != null && Client.Ciphering.Security != Security.None)
             {
                 InitializeOpticalHead();
                 byte[] data;
@@ -202,7 +487,7 @@ namespace Gurux.DLMS.Reader
                 {
                     Client.ClientAddress = 16;
                     Client.Authentication = Authentication.None;
-                    Client.Ciphering.Security = (byte)Security.None;
+                    Client.Ciphering.Security = Security.None;
                     data = Client.SNRMRequest();
                     if (data != null)
                     {
@@ -458,7 +743,7 @@ namespace Gurux.DLMS.Reader
         public void InitializeConnection()
         {
             Console.WriteLine("Standard: " + Client.Standard);
-            if (Client.Ciphering.Security != (byte)Security.None)
+            if (Client.Ciphering.Security != Security.None)
             {
                 Console.WriteLine("Security: " + Client.Ciphering.Security);
                 Console.WriteLine("System title: " + GXCommon.ToHex(Client.Ciphering.SystemTitle, true));
@@ -634,7 +919,23 @@ namespace Gurux.DLMS.Reader
             {
                 Console.WriteLine("Read scalers and units from the device.");
             }
-            if ((Client.NegotiatedConformance & Gurux.DLMS.Enums.Conformance.MultipleReferences) != 0)
+            if ((Client.NegotiatedConformance & Conformance.Access) != 0)
+            {
+                List<GXDLMSAccessItem> list = new List<GXDLMSAccessItem>();
+                foreach (GXDLMSObject it in objs)
+                {
+                    if ((it is GXDLMSRegister || it is GXDLMSExtendedRegister) && (it.GetAccess(3) & AccessMode.Read) != 0)
+                    {
+                        list.Add(new GXDLMSAccessItem(AccessServiceCommandType.Get, it, 3));
+                    }
+                    else if (it is GXDLMSDemandRegister && (it.GetAccess(4) & AccessMode.Read) != 0)
+                    {
+                        list.Add(new GXDLMSAccessItem(AccessServiceCommandType.Get, it, 4));
+                    }
+                }
+                ReadByAccess(list);
+            }
+            else if ((Client.NegotiatedConformance & Gurux.DLMS.Enums.Conformance.MultipleReferences) != 0)
             {
                 List<KeyValuePair<GXDLMSObject, int>> list = new List<KeyValuePair<GXDLMSObject, int>>();
                 foreach (GXDLMSObject it in objs)
@@ -1295,7 +1596,7 @@ namespace Gurux.DLMS.Reader
                         //Release is call only for secured connections.
                         //All meters are not supporting Release and it's causing problems.
                         if (Client.InterfaceType == InterfaceType.WRAPPER ||
-                            (Client.InterfaceType == InterfaceType.HDLC && Client.Ciphering.Security != (byte)Security.None))
+                            (Client.Ciphering.Security != Security.None))
                         {
                             ReadDataBlock(Client.ReleaseRequest(), reply);
                         }
@@ -1334,6 +1635,21 @@ namespace Gurux.DLMS.Reader
                 {
                     writer.WriteLine(line);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Read values using Access request.
+        /// </summary>
+        /// <param name="list">Object to read.</param>
+        void ReadByAccess(List<GXDLMSAccessItem> list)
+        {
+            if (list.Count != 0)
+            {
+                GXReplyData reply = new GXReplyData();
+                byte[][] data = Client.AccessRequest(DateTime.MinValue, list);
+                ReadDataBlock(data, reply);
+                Client.ParseAccessResponse(list, reply.Data);
             }
         }
     }

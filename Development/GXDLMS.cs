@@ -113,80 +113,84 @@ namespace Gurux.DLMS
         /// Get all COSEM objects.
         /// </summary>
         /// <param name="availableObjectTypes">List of available COSEM objects.</param>
-        private static void GetCosemObjects(Dictionary<ObjectType, Type> availableObjectTypes)
+        private static void GetCosemObjects(Dictionary<UInt32, Type> availableObjectTypes)
         {
             if (availableObjectTypes.Count == 0)
             {
-                availableObjectTypes.Add(ObjectType.G3PlcMacLayerCounters, typeof(GXDLMSG3PlcMacLayerCounters));
-                availableObjectTypes.Add(ObjectType.G3Plc6LoWPan, typeof(GXDLMSG3Plc6LoWPan));
-                availableObjectTypes.Add(ObjectType.G3PlcMacSetup, typeof(GXDLMSG3PlcMacSetup));
-                availableObjectTypes.Add(ObjectType.IEC14908Diagnostic, typeof(GXDLMSIEC14908Diagnostic));
-                availableObjectTypes.Add(ObjectType.IEC14908PhysicalStatus, typeof(GXDLMSIEC14908PhysicalStatus));
-                availableObjectTypes.Add(ObjectType.IEC14908PhysicalSetup, typeof(GXDLMSIEC14908PhysicalSetup));
-                availableObjectTypes.Add(ObjectType.IEC14908Identification, typeof(GXDLMSIEC14908Identification));
-                availableObjectTypes.Add(ObjectType.Ip6Setup, typeof(GXDLMSIp6Setup));
-                availableObjectTypes.Add(ObjectType.SFSKMacCounters, typeof(GXDLMSSFSKMacCounters));
-                availableObjectTypes.Add(ObjectType.SFSKMacSynchronizationTimeouts, typeof(GXDLMSSFSKMacSynchronizationTimeouts));
-                availableObjectTypes.Add(ObjectType.SFSKActiveInitiator, typeof(GXDLMSSFSKActiveInitiator));
-                availableObjectTypes.Add(ObjectType.SFSKPhyMacSetUp, typeof(GXDLMSSFSKPhyMacSetUp));
-                availableObjectTypes.Add(ObjectType.IecTwistedPairSetup, typeof(GXDLMSIecTwistedPairSetup));
-                availableObjectTypes.Add(ObjectType.DisconnectControl, typeof(GXDLMSDisconnectControl));
-                availableObjectTypes.Add(ObjectType.ImageTransfer, typeof(GXDLMSImageTransfer));
-                availableObjectTypes.Add(ObjectType.Limiter, typeof(GXDLMSLimiter));
-                availableObjectTypes.Add(ObjectType.MBusClient, typeof(GXDLMSMBusClient));
-                availableObjectTypes.Add(ObjectType.MBusMasterPortSetup, typeof(GXDLMSMBusMasterPortSetup));
-                availableObjectTypes.Add(ObjectType.MBusSlavePortSetup, typeof(GXDLMSMBusSlavePortSetup));
-                availableObjectTypes.Add(ObjectType.MacAddressSetup, typeof(GXDLMSMacAddressSetup));
-                availableObjectTypes.Add(ObjectType.AssociationLogicalName, typeof(GXDLMSAssociationLogicalName));
-                availableObjectTypes.Add(ObjectType.AssociationShortName, typeof(GXDLMSAssociationShortName));
-                availableObjectTypes.Add(ObjectType.AutoAnswer, typeof(GXDLMSAutoAnswer));
-                availableObjectTypes.Add(ObjectType.DemandRegister, typeof(GXDLMSDemandRegister));
-                availableObjectTypes.Add(ObjectType.ActionSchedule, typeof(GXDLMSActionSchedule));
-                availableObjectTypes.Add(ObjectType.ActivityCalendar, typeof(GXDLMSActivityCalendar));
-                availableObjectTypes.Add(ObjectType.AutoConnect, typeof(GXDLMSAutoConnect));
-                availableObjectTypes.Add(ObjectType.Clock, typeof(GXDLMSClock));
-                availableObjectTypes.Add(ObjectType.Data, typeof(GXDLMSData));
-                availableObjectTypes.Add(ObjectType.ExtendedRegister, typeof(GXDLMSExtendedRegister));
-                availableObjectTypes.Add(ObjectType.GprsSetup, typeof(GXDLMSGprsSetup));
-                availableObjectTypes.Add(ObjectType.IecHdlcSetup, typeof(GXDLMSHdlcSetup));
-                availableObjectTypes.Add(ObjectType.IecLocalPortSetup, typeof(GXDLMSIECLocalPortSetup));
-                availableObjectTypes.Add(ObjectType.Ip4Setup, typeof(GXDLMSIp4Setup));
-                availableObjectTypes.Add(ObjectType.ModemConfiguration, typeof(GXDLMSModemConfiguration));
-                availableObjectTypes.Add(ObjectType.PppSetup, typeof(GXDLMSPppSetup));
-                availableObjectTypes.Add(ObjectType.ProfileGeneric, typeof(GXDLMSProfileGeneric));
-                availableObjectTypes.Add(ObjectType.PushSetup, typeof(GXDLMSPushSetup));
-                availableObjectTypes.Add(ObjectType.Register, typeof(GXDLMSRegister));
-                availableObjectTypes.Add(ObjectType.RegisterActivation, typeof(GXDLMSRegisterActivation));
-                availableObjectTypes.Add(ObjectType.RegisterMonitor, typeof(GXDLMSRegisterMonitor));
-                availableObjectTypes.Add(ObjectType.SapAssignment, typeof(GXDLMSSapAssignment));
-                availableObjectTypes.Add(ObjectType.Schedule, typeof(GXDLMSSchedule));
-                availableObjectTypes.Add(ObjectType.ScriptTable, typeof(GXDLMSScriptTable));
-                availableObjectTypes.Add(ObjectType.SecuritySetup, typeof(GXDLMSSecuritySetup));
-                availableObjectTypes.Add(ObjectType.SpecialDaysTable, typeof(GXDLMSSpecialDaysTable));
-                availableObjectTypes.Add(ObjectType.TcpUdpSetup, typeof(GXDLMSTcpUdpSetup));
-                availableObjectTypes.Add(ObjectType.GSMDiagnostic, typeof(GXDLMSGSMDiagnostic));
-                availableObjectTypes.Add(ObjectType.Account, typeof(GXDLMSAccount));
-                availableObjectTypes.Add(ObjectType.Credit, typeof(GXDLMSCredit));
-                availableObjectTypes.Add(ObjectType.Charge, typeof(GXDLMSCharge));
-                availableObjectTypes.Add(ObjectType.TokenGateway, typeof(GXDLMSTokenGateway));
-                availableObjectTypes.Add(ObjectType.ParameterMonitor, typeof(GXDLMSParameterMonitor));
-                availableObjectTypes.Add(ObjectType.CompactData, typeof(GXDLMSCompactData));
-                availableObjectTypes.Add(ObjectType.WirelessModeQchannel, typeof(GXDLMSWirelessModeQchannel));
-                availableObjectTypes.Add(ObjectType.UtilityTables, typeof(GXDLMSUtilityTables));
-                availableObjectTypes.Add(ObjectType.LlcSscsSetup, typeof(GXDLMSLlcSscsSetup));
-                availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcPhysicalLayerCounters, typeof(GXDLMSPrimeNbOfdmPlcPhysicalLayerCounters));
-                availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcMacSetup, typeof(GXDLMSPrimeNbOfdmPlcMacSetup));
-                availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcMacFunctionalParameters, typeof(GXDLMSPrimeNbOfdmPlcMacFunctionalParameters));
-                availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcMacCounters, typeof(GXDLMSPrimeNbOfdmPlcMacCounters));
-                availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcMacNetworkAdministrationData, typeof(GXDLMSPrimeNbOfdmPlcMacNetworkAdministrationData));
-                availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcApplicationsIdentification, typeof(GXDLMSPrimeNbOfdmPlcApplicationsIdentification));
-                availableObjectTypes.Add(ObjectType.Iec8802LlcType1Setup, typeof(GXDLMSIec8802LlcType1Setup));
-                availableObjectTypes.Add(ObjectType.Iec8802LlcType2Setup, typeof(GXDLMSIec8802LlcType2Setup));
-                availableObjectTypes.Add(ObjectType.Iec8802LlcType3Setup, typeof(GXDLMSIec8802LlcType3Setup));
-                availableObjectTypes.Add(ObjectType.SFSKReportingSystemList, typeof(GXDLMSSFSKReportingSystemList));
-                availableObjectTypes.Add(ObjectType.Arbitrator, typeof(GXDLMSArbitrator));
+                availableObjectTypes.Add((UInt32)(UInt32)ObjectType.G3PlcMacLayerCounters, typeof(GXDLMSG3PlcMacLayerCounters));
+                availableObjectTypes.Add((UInt32)ObjectType.G3Plc6LoWPan, typeof(GXDLMSG3Plc6LoWPan));
+                availableObjectTypes.Add((UInt32)ObjectType.G3PlcMacSetup, typeof(GXDLMSG3PlcMacSetup));
+                availableObjectTypes.Add((UInt32)ObjectType.IEC14908Diagnostic, typeof(GXDLMSIEC14908Diagnostic));
+                availableObjectTypes.Add((UInt32)ObjectType.IEC14908PhysicalStatus, typeof(GXDLMSIEC14908PhysicalStatus));
+                availableObjectTypes.Add((UInt32)ObjectType.IEC14908PhysicalSetup, typeof(GXDLMSIEC14908PhysicalSetup));
+                availableObjectTypes.Add((UInt32)ObjectType.IEC14908Identification, typeof(GXDLMSIEC14908Identification));
+                availableObjectTypes.Add((UInt32)ObjectType.Ip6Setup, typeof(GXDLMSIp6Setup));
+                availableObjectTypes.Add((UInt32)ObjectType.SFSKMacCounters, typeof(GXDLMSSFSKMacCounters));
+                availableObjectTypes.Add((UInt32)ObjectType.SFSKMacSynchronizationTimeouts, typeof(GXDLMSSFSKMacSynchronizationTimeouts));
+                availableObjectTypes.Add((UInt32)ObjectType.SFSKActiveInitiator, typeof(GXDLMSSFSKActiveInitiator));
+                availableObjectTypes.Add((UInt32)ObjectType.SFSKPhyMacSetUp, typeof(GXDLMSSFSKPhyMacSetUp));
+                availableObjectTypes.Add((UInt32)ObjectType.IecTwistedPairSetup, typeof(GXDLMSIecTwistedPairSetup));
+                availableObjectTypes.Add((UInt32)ObjectType.DisconnectControl, typeof(GXDLMSDisconnectControl));
+                availableObjectTypes.Add((UInt32)ObjectType.ImageTransfer, typeof(GXDLMSImageTransfer));
+                availableObjectTypes.Add((UInt32)ObjectType.Limiter, typeof(GXDLMSLimiter));
+                availableObjectTypes.Add((UInt32)ObjectType.MBusClient, typeof(GXDLMSMBusClient));
+                availableObjectTypes.Add((UInt32)ObjectType.MBusMasterPortSetup, typeof(GXDLMSMBusMasterPortSetup));
+                availableObjectTypes.Add((UInt32)ObjectType.MBusSlavePortSetup, typeof(GXDLMSMBusSlavePortSetup));
+                availableObjectTypes.Add((UInt32)ObjectType.MacAddressSetup, typeof(GXDLMSMacAddressSetup));
+                availableObjectTypes.Add((UInt32)ObjectType.AssociationLogicalName, typeof(GXDLMSAssociationLogicalName));
+                availableObjectTypes.Add(1 << 16 | (UInt32)ObjectType.AssociationLogicalName, typeof(GXDLMSAssociationLogicalName));
+                availableObjectTypes.Add(2 << 16 | (UInt32)ObjectType.AssociationLogicalName, typeof(GXDLMSAssociationLogicalName));
+                availableObjectTypes.Add(3 << 16 | (UInt32)ObjectType.AssociationLogicalName, typeof(GXDLMSAssociationLogicalName));
+                availableObjectTypes.Add((UInt32)ObjectType.AssociationShortName, typeof(GXDLMSAssociationShortName));
+                availableObjectTypes.Add((UInt32)ObjectType.AutoAnswer, typeof(GXDLMSAutoAnswer));
+                availableObjectTypes.Add((UInt32)ObjectType.DemandRegister, typeof(GXDLMSDemandRegister));
+                availableObjectTypes.Add((UInt32)ObjectType.ActionSchedule, typeof(GXDLMSActionSchedule));
+                availableObjectTypes.Add((UInt32)ObjectType.ActivityCalendar, typeof(GXDLMSActivityCalendar));
+                availableObjectTypes.Add((UInt32)ObjectType.AutoConnect, typeof(GXDLMSAutoConnect));
+                availableObjectTypes.Add((UInt32)ObjectType.Clock, typeof(GXDLMSClock));
+                availableObjectTypes.Add((UInt32)ObjectType.Data, typeof(GXDLMSData));
+                availableObjectTypes.Add((UInt32)ObjectType.ExtendedRegister, typeof(GXDLMSExtendedRegister));
+                availableObjectTypes.Add((UInt32)ObjectType.GprsSetup, typeof(GXDLMSGprsSetup));
+                availableObjectTypes.Add((UInt32)ObjectType.IecHdlcSetup, typeof(GXDLMSHdlcSetup));
+                availableObjectTypes.Add((UInt32)ObjectType.IecLocalPortSetup, typeof(GXDLMSIECLocalPortSetup));
+                availableObjectTypes.Add((UInt32)ObjectType.Ip4Setup, typeof(GXDLMSIp4Setup));
+                availableObjectTypes.Add((UInt32)ObjectType.ModemConfiguration, typeof(GXDLMSModemConfiguration));
+                availableObjectTypes.Add((UInt32)ObjectType.PppSetup, typeof(GXDLMSPppSetup));
+                availableObjectTypes.Add((UInt32)ObjectType.ProfileGeneric, typeof(GXDLMSProfileGeneric));
+                availableObjectTypes.Add((UInt32)ObjectType.PushSetup, typeof(GXDLMSPushSetup));
+                availableObjectTypes.Add((UInt32)ObjectType.Register, typeof(GXDLMSRegister));
+                availableObjectTypes.Add((UInt32)ObjectType.RegisterActivation, typeof(GXDLMSRegisterActivation));
+                availableObjectTypes.Add((UInt32)ObjectType.RegisterMonitor, typeof(GXDLMSRegisterMonitor));
+                availableObjectTypes.Add((UInt32)ObjectType.SapAssignment, typeof(GXDLMSSapAssignment));
+                availableObjectTypes.Add((UInt32)ObjectType.Schedule, typeof(GXDLMSSchedule));
+                availableObjectTypes.Add((UInt32)ObjectType.ScriptTable, typeof(GXDLMSScriptTable));
+                availableObjectTypes.Add((UInt32)ObjectType.SecuritySetup, typeof(GXDLMSSecuritySetup));
+                availableObjectTypes.Add(1 << 16 | (UInt32)ObjectType.SecuritySetup, typeof(GXDLMSSecuritySetup1));
+                availableObjectTypes.Add((UInt32)ObjectType.SpecialDaysTable, typeof(GXDLMSSpecialDaysTable));
+                availableObjectTypes.Add((UInt32)ObjectType.TcpUdpSetup, typeof(GXDLMSTcpUdpSetup));
+                availableObjectTypes.Add((UInt32)ObjectType.GSMDiagnostic, typeof(GXDLMSGSMDiagnostic));
+                availableObjectTypes.Add((UInt32)ObjectType.Account, typeof(GXDLMSAccount));
+                availableObjectTypes.Add((UInt32)ObjectType.Credit, typeof(GXDLMSCredit));
+                availableObjectTypes.Add((UInt32)ObjectType.Charge, typeof(GXDLMSCharge));
+                availableObjectTypes.Add((UInt32)ObjectType.TokenGateway, typeof(GXDLMSTokenGateway));
+                availableObjectTypes.Add((UInt32)ObjectType.ParameterMonitor, typeof(GXDLMSParameterMonitor));
+                availableObjectTypes.Add((UInt32)ObjectType.CompactData, typeof(GXDLMSCompactData));
+                availableObjectTypes.Add((UInt32)ObjectType.WirelessModeQchannel, typeof(GXDLMSWirelessModeQchannel));
+                availableObjectTypes.Add((UInt32)ObjectType.UtilityTables, typeof(GXDLMSUtilityTables));
+                availableObjectTypes.Add((UInt32)ObjectType.LlcSscsSetup, typeof(GXDLMSLlcSscsSetup));
+                availableObjectTypes.Add((UInt32)ObjectType.PrimeNbOfdmPlcPhysicalLayerCounters, typeof(GXDLMSPrimeNbOfdmPlcPhysicalLayerCounters));
+                availableObjectTypes.Add((UInt32)ObjectType.PrimeNbOfdmPlcMacSetup, typeof(GXDLMSPrimeNbOfdmPlcMacSetup));
+                availableObjectTypes.Add((UInt32)ObjectType.PrimeNbOfdmPlcMacFunctionalParameters, typeof(GXDLMSPrimeNbOfdmPlcMacFunctionalParameters));
+                availableObjectTypes.Add((UInt32)ObjectType.PrimeNbOfdmPlcMacCounters, typeof(GXDLMSPrimeNbOfdmPlcMacCounters));
+                availableObjectTypes.Add((UInt32)ObjectType.PrimeNbOfdmPlcMacNetworkAdministrationData, typeof(GXDLMSPrimeNbOfdmPlcMacNetworkAdministrationData));
+                availableObjectTypes.Add((UInt32)ObjectType.PrimeNbOfdmPlcApplicationsIdentification, typeof(GXDLMSPrimeNbOfdmPlcApplicationsIdentification));
+                availableObjectTypes.Add((UInt32)ObjectType.Iec8802LlcType1Setup, typeof(GXDLMSIec8802LlcType1Setup));
+                availableObjectTypes.Add((UInt32)ObjectType.Iec8802LlcType2Setup, typeof(GXDLMSIec8802LlcType2Setup));
+                availableObjectTypes.Add((UInt32)ObjectType.Iec8802LlcType3Setup, typeof(GXDLMSIec8802LlcType3Setup));
+                availableObjectTypes.Add((UInt32)ObjectType.SFSKReportingSystemList, typeof(GXDLMSSFSKReportingSystemList));
+                availableObjectTypes.Add((UInt32)ObjectType.Arbitrator, typeof(GXDLMSArbitrator));
                 //Italian standard uses this.
-                availableObjectTypes.Add(ObjectType.TariffPlan, typeof(GXDLMSTariffPlan));
+                availableObjectTypes.Add((UInt32)ObjectType.TariffPlan, typeof(GXDLMSTariffPlan));
             }
         }
 
@@ -197,7 +201,7 @@ namespace Gurux.DLMS
         /// <remarks>
         /// This can be used with serialization.
         /// </remarks>
-        public static Type[] GetObjectTypes(Dictionary<ObjectType, Type> availableObjectTypes)
+        public static Type[] GetObjectTypes(Dictionary<UInt32, Type> availableObjectTypes)
         {
             lock (availableObjectTypes)
             {
@@ -217,12 +221,19 @@ namespace Gurux.DLMS
         /// <remarks>
         /// This can be used with serialization.
         /// </remarks>
-        public static ObjectType[] GetObjectTypes2(Dictionary<ObjectType, Type> availableObjectTypes)
+        public static KeyValuePair<ObjectType, int>[] GetObjectTypes2(Dictionary<UInt32, Type> availableObjectTypes)
         {
             lock (availableObjectTypes)
             {
                 GetCosemObjects(availableObjectTypes);
-                return availableObjectTypes.Keys.ToArray();
+                KeyValuePair<ObjectType, int>[] types = new KeyValuePair<ObjectType, int>[availableObjectTypes.Count];
+                int pos = 0;
+                foreach (UInt32 it in availableObjectTypes.Keys)
+                {
+                    types[pos] = new KeyValuePair<ObjectType, int>((ObjectType)(it & 0xFFFF), (int)(it >> 16));
+                    ++pos;
+                }
+                return types;
             }
         }
 
@@ -231,7 +242,7 @@ namespace Gurux.DLMS
         /// Get available COSEM objects.
         /// </summary>
         /// <param name="availableObjectTypes"></param>
-        internal static void GetAvailableObjects(Dictionary<ObjectType, Type> availableObjectTypes)
+        internal static void GetAvailableObjects(Dictionary<UInt32, Type> availableObjectTypes)
         {
             lock (availableObjectTypes)
             {
@@ -239,22 +250,26 @@ namespace Gurux.DLMS
             }
         }
 
-        internal static GXDLMSObject CreateObject(ObjectType type, Dictionary<ObjectType, Type> availableObjectTypes)
+        internal static GXDLMSObject CreateObject(ObjectType type, byte version, Dictionary<UInt32, Type> availableObjectTypes)
         {
             lock (availableObjectTypes)
             {
+                UInt32 value = version;
+                value <<= 16;
+                value |= (UInt32)type;
                 //Update objects.
                 if (availableObjectTypes.Count == 0)
                 {
                     GetObjectTypes(availableObjectTypes);
                 }
-                if (availableObjectTypes.ContainsKey(type))
+                if (availableObjectTypes.ContainsKey(value))
                 {
-                    return Activator.CreateInstance(availableObjectTypes[type]) as GXDLMSObject;
+                    return Activator.CreateInstance(availableObjectTypes[value]) as GXDLMSObject;
                 }
             }
             GXDLMSObject obj = new GXDLMSObject();
             obj.ObjectType = type;
+            obj.Version = version;
             return obj;
         }
 
@@ -820,20 +835,55 @@ namespace Gurux.DLMS
             return tmp;
         }
 
-        /**
-     * Cipher using security suite 1 or 2.
-     *
-     * @param p
-     *            LN settings.
-     * @param data
-     *            Data to encrypt.
-     */
+
+        internal static object GetKey(GXCryptoNotifier cryptoNotifier,
+            SecuritySuite securitySuite,
+            CertificateType certificateType,
+            byte[] systemTitle,
+            bool encrypt)
+        {
+            if (cryptoNotifier == null)
+            {
+                throw new Exception("Failed to get the certificate.");
+            }
+            GXCryptoKeyParameter args = new GXCryptoKeyParameter();
+            args.Encrypt = encrypt;
+            args.SecuritySuite = securitySuite;
+            args.CertificateType = certificateType;
+            args.SystemTitle = systemTitle;
+            GXPrivateKey key = null;
+            GXPublicKey pub = null;
+            cryptoNotifier.keys(cryptoNotifier, args);
+            if (encrypt)
+            {
+                key = args.PrivateKey;
+            }
+            else
+            {
+                pub = args.PublicKey;
+            }
+            if (encrypt)
+            {
+                return key;
+            }
+            else
+            {
+                return pub;
+            }
+        }
+
+        /// <summary>
+        /// Cipher using security suite 1 or 2.
+        /// </summary>
+        /// <param name="p">LN settings.</param>
+        /// <param name="data">Data to encrypt</param>
+        /// <returns></returns>
         private static byte[] Cipher1(GXDLMSLNParameters p, byte[] data)
         {
             byte keyid = (byte)p.settings.Cipher.KeyAgreementScheme;
             GXICipher c = p.settings.Cipher;
             byte sc;
-            if (p.settings.SourceSystemTitle == null)
+            if (p.settings.SourceSystemTitle == null && p.settings.PreEstablishedSystemTitle == null)
             {
                 throw new ArgumentOutOfRangeException("Invalid Recipient System Title.");
             }
@@ -841,12 +891,12 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentOutOfRangeException("Invalid System Title.");
             }
-
             switch (c.Security)
             {
                 case Security.Authentication:
                     sc = 0x10;
                     break;
+                case Security.DigitallySigned:
                 case Security.AuthenticationEncryption:
                     sc = 0x30;
                     break;
@@ -859,11 +909,11 @@ namespace Gurux.DLMS
             AlgorithmId algorithmID;
             switch (c.SecuritySuite)
             {
-                case SecuritySuite.Ecdsa256:
+                case SecuritySuite.Suite1:
                     algorithmID = AlgorithmId.AesGcm128;
                     sc |= 1;
                     break;
-                case SecuritySuite.Ecdsa384:
+                case SecuritySuite.Suite2:
                     algorithmID = AlgorithmId.AesGcm256;
                     sc |= 2;
                     break;
@@ -871,22 +921,36 @@ namespace Gurux.DLMS
                     throw new ArgumentOutOfRangeException("Invalid security suite.");
             }
             GXByteBuffer tmp2 = new GXByteBuffer();
-            byte[] z;
+            byte[] z = null;
+            GXPrivateKey key = c.KeyAgreementKeyPair.Value;
+            GXPublicKey pub = c.KeyAgreementKeyPair.Key;
+            if (key == null)
+            {
+                key = (GXPrivateKey)GetKey(p.CryptoNotifier, p.settings.Cipher.SecuritySuite, CertificateType.KeyAgreement, p.settings.Cipher.SystemTitle, true);
+                c.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
+            }
+            if (pub == null)
+            {
+                pub = (GXPublicKey)GetKey(p.CryptoNotifier, p.settings.Cipher.SecuritySuite, CertificateType.KeyAgreement, p.settings.SourceSystemTitle, false);
+                c.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
+            }
             if (keyid == 1)
             {
                 //Generate ephemeral key pair for each transaction.
-                c.EphemeralKeyPair = GXEcdsa.GenerateKeyPair(c.SecuritySuite == SecuritySuite.Ecdsa256 ? Ecc.P256 : Ecc.P384);
-                GXEcdsa ka = new GXEcdsa(c.EphemeralKeyPair.Key);
-                System.Diagnostics.Debug.WriteLine("Private ephemeral: " + c.EphemeralKeyPair.Key.ToHex());
-                System.Diagnostics.Debug.WriteLine("Public agreement key: " + c.KeyAgreementKeyPair.Value.ToHex());
-                z = ka.GenerateSecret(c.KeyAgreementKeyPair.Value);
+                c.EphemeralKeyPair = GXEcdsa.GenerateKeyPair(c.SecuritySuite == SecuritySuite.Suite1 ? Ecc.P256 : Ecc.P384);
+                GXEcdsa ka = new GXEcdsa(c.EphemeralKeyPair.Value);
+                System.Diagnostics.Debug.WriteLine("Private ephemeral: " + c.EphemeralKeyPair.Value.ToHex());
+                System.Diagnostics.Debug.WriteLine("Public ephemeral: " + c.EphemeralKeyPair.Key.ToHex());
+                System.Diagnostics.Debug.WriteLine("Public agreement key: " + c.KeyAgreementKeyPair.Key.ToHex());
+                z = ka.GenerateSecret(c.KeyAgreementKeyPair.Key);
             }
             else if (keyid == 2)
             {
-                System.Diagnostics.Debug.WriteLine("Private ephemeral: " + c.KeyAgreementKeyPair.Key.ToHex());
-                System.Diagnostics.Debug.WriteLine("Public agreement key: " + c.KeyAgreementKeyPair.Value.ToHex());
-                GXEcdsa ka = new GXEcdsa(c.KeyAgreementKeyPair.Key);
-                z = ka.GenerateSecret(c.KeyAgreementKeyPair.Value);
+                System.Diagnostics.Debug.WriteLine("Private agreement key: " + key.ToHex());
+                System.Diagnostics.Debug.WriteLine("Public agreement key: " + pub.ToHex());
+                System.Diagnostics.Debug.WriteLine("Authentication key: " + GXDLMSTranslator.ToHex(c.AuthenticationKey));
+                GXEcdsa ka = new GXEcdsa(key);
+                z = ka.GenerateSecret(pub);
                 tmp2.SetUInt8(0x8);
                 tmp2.SetUInt64(c.InvocationCounter);
             }
@@ -895,7 +959,10 @@ namespace Gurux.DLMS
                 throw new ArgumentOutOfRangeException("Invalid key-id.");
             }
             tmp2.Set(p.settings.SourceSystemTitle);
-            System.Diagnostics.Debug.WriteLine("Shared secret: " + GXCommon.ToHex(z, true));
+            if (z != null)
+            {
+                System.Diagnostics.Debug.WriteLine("Shared secret: " + GXCommon.ToHex(z, true));
+            }
             GXByteBuffer kdf = new GXByteBuffer();
             kdf.Set(GXSecure.GenerateKDF(c.SecuritySuite, z, algorithmID, c.SystemTitle, tmp2.Array(), null, null));
             System.Diagnostics.Debug.WriteLine("kdf: " + kdf.ToString());
@@ -920,6 +987,7 @@ namespace Gurux.DLMS
             reply.SetUInt8(Command.GeneralCiphering);
             GXCommon.SetObjectCount(8, reply);
             reply.SetUInt64(c.InvocationCounter);
+            ++c.InvocationCounter;
             GXCommon.SetObjectCount(s.SystemTitle.Length, reply);
             reply.Set(s.SystemTitle);
             GXCommon.SetObjectCount(s.RecipientSystemTitle.Length, reply);
@@ -937,14 +1005,26 @@ namespace Gurux.DLMS
             reply.SetUInt8(keyid);
             if (keyid == 1)
             {
+                key = c.SigningKeyPair.Value;
+                pub = c.SigningKeyPair.Key;
+                if (key == null)
+                {
+                    key = (GXPrivateKey)GetKey(p.CryptoNotifier, p.settings.Cipher.SecuritySuite, CertificateType.DigitalSignature, p.settings.Cipher.SystemTitle, true);
+                    c.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
+                }
+                if (pub == null)
+                {
+                    pub = (GXPublicKey)GetKey(p.CryptoNotifier, p.settings.Cipher.SecuritySuite, CertificateType.DigitalSignature, p.settings.SourceSystemTitle, false);
+                    c.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
+                }
                 // key-ciphered-data
                 GXCommon.SetObjectCount(0x80, reply);
                 // Ephemeral public key client.
-                reply.Set(c.EphemeralKeyPair.Value.RawValue, 1, c.EphemeralKeyPair.Value.RawValue.Length - 1);
+                reply.Set(c.EphemeralKeyPair.Key.RawValue, 1, c.EphemeralKeyPair.Key.RawValue.Length - 1);
 
                 // Ephemeral Public Key Signature.
                 reply.Set(GXSecure.GetEphemeralPublicKeySignature(keyid,
-                        c.EphemeralKeyPair.Value, c.SigningKeyPair.Key));
+                        c.EphemeralKeyPair.Key, c.SigningKeyPair.Value));
             }
             else
             {
@@ -1189,8 +1269,9 @@ namespace Gurux.DLMS
                             {
                                 byte[] tmp;
                                 reply.Set(p.data);
-                                if (p.settings.Cipher.SecuritySuite == SecuritySuite.GMac ||
-                                    p.settings.Cipher.KeyAgreementScheme == KeyAgreementScheme.EphemeralUnifiedModel)
+                                if ((p.settings.Connected & ConnectionState.Dlms) == 0 ||
+                                   !(p.settings.Cipher.Security == Security.DigitallySigned &&
+                                   p.settings.Cipher.KeyAgreementScheme != KeyAgreementScheme.EphemeralUnifiedModel))
                                 {
                                     tmp = Cipher0(p, reply.Array());
                                 }
@@ -1231,16 +1312,17 @@ namespace Gurux.DLMS
                         reply.Set(tmp);
                     }
                 }
-                if (reply.Size != 0 && p.command != Command.GeneralBlockTransfer && p.Owner != null && p.Owner.pdu != null)
+                if (reply.Size != 0 && p.command != Command.GeneralBlockTransfer && p.CryptoNotifier != null && p.CryptoNotifier.pdu != null)
                 {
-                    p.Owner.pdu(p.Owner, reply.Array());
+                    p.CryptoNotifier.pdu(p.CryptoNotifier, reply.Array());
                 }
                 if (ciphering && reply.Size != 0 && p.command != Command.ReleaseRequest && (!p.multipleBlocks || (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0))
                 {
                     //GBT ciphering is done for all the data, not just block.
                     byte[] tmp;
-                    if (p.settings.Cipher.SecuritySuite == SecuritySuite.GMac ||
-                        p.settings.Cipher.KeyAgreementScheme == KeyAgreementScheme.EphemeralUnifiedModel)
+                    if ((p.settings.Connected & ConnectionState.Dlms) == 0 ||
+                        !(p.settings.Cipher.Security == Security.DigitallySigned &&
+                        p.settings.Cipher.KeyAgreementScheme != KeyAgreementScheme.EphemeralUnifiedModel))
                     {
                         tmp = Cipher0(p, reply.Array());
                     }
@@ -1328,15 +1410,7 @@ namespace Gurux.DLMS
             byte frame = 0;
             if (p.command == Command.DataNotification || p.command == Command.EventNotification)
             {
-                if ((p.settings.Connected & ConnectionState.Dlms) != 0)
-                {
-                    //If connection is established.
-                    frame = 0x13;
-                }
-                else
-                {
-                    frame = 0x3;
-                }
+                frame = 0x13;
             }
             do
             {
@@ -2581,6 +2655,22 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Validate M-Bus checksum
+        /// </summary>
+        /// <param name="bb"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        private static bool ValidateCheckSum(GXByteBuffer bb, int count)
+        {
+            byte value = 0;
+            for (int pos = 0; pos != count; ++pos)
+            {
+                value += bb.GetUInt8(bb.Position + pos);
+            }
+            return value == bb.GetUInt8(bb.Position + count);
+        }
+
+        /// <summary>
         /// Get data from wired M-Bus frame.
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
@@ -2589,6 +2679,7 @@ namespace Gurux.DLMS
         static void GetWiredMBusData(GXDLMSSettings settings,
                                GXByteBuffer buff, GXReplyData data)
         {
+            int packetStartID = buff.Position;
             if (buff.GetUInt8() != 0x68 || buff.Available < 5)
             {
                 data.IsComplete = false;
@@ -2596,28 +2687,38 @@ namespace Gurux.DLMS
             }
             else
             {
-                int packetStartID = buff.Position;
                 //L-field.
                 int len = buff.GetUInt8();
                 //L-field.
-                len = buff.GetUInt8();
-                if (buff.GetUInt8() != 0x68)
+                if (buff.GetUInt8() != len ||
+                    buff.Available < 3 + len ||
+                    buff.GetUInt8() != 0x68)
                 {
                     data.IsComplete = false;
                     buff.Position = packetStartID;
                 }
                 else
                 {
-                    UInt16 crcRead = buff.GetUInt16(buff.Size - 2);
-                    UInt16 crc = GXFCS16.CountFCS16(buff.Data, buff.Position, buff.Size - buff.Position - 2);
-                    //Some meters are using end of the packet instead CRC.
-                    if (crc != crcRead && buff.GetUInt8(buff.Size - 1) != 0x16)
+                    bool crc = ValidateCheckSum(buff, len);
+                    if (!crc && data.Xml == null)
                     {
                         data.IsComplete = false;
                         buff.Position = packetStartID;
                     }
                     else
                     {
+                        if (!crc)
+                        {
+                            data.Xml.AppendComment("Invalid checksum.");
+                        }
+                        //Check EOP.
+                        if (buff.GetUInt8(buff.Position + len + 1) != 0x16)
+                        {
+                            data.IsComplete = false;
+                            buff.Position = packetStartID;
+                            return;
+                        }
+                        data.PacketLength = buff.Position + len;
                         data.IsComplete = true;
                         int index = data.Data.Position;
                         //Control field (C-Field)
@@ -2627,6 +2728,15 @@ namespace Gurux.DLMS
                         byte id = buff.GetUInt8();
                         // The Control Information Field (CI-field)
                         byte ci = buff.GetUInt8();
+                        if (ci == 0x0)
+                        {
+                            data.MoreData |= RequestTypes.Frame;
+                        }
+                        else if ((ci >> 4) == (ci & 0xf))
+                        {
+                            //If this is the last telegram.
+                            data.MoreData &= ~RequestTypes.Frame;
+                        }
                         //If M-Bus data header is present
                         if (ci != 0)
                         {
@@ -2648,7 +2758,6 @@ namespace Gurux.DLMS
                             //Destination Transport Service Access Point
                             settings.ClientAddress = buff.GetUInt8();
                         }
-                        data.PacketLength = buff.Position - index + buff.Available;
                         if (data.Xml != null && data.Xml.Comments)
                         {
                             data.Xml.AppendComment("Command: " + cmd);
@@ -3844,7 +3953,10 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
         /// <param name="data"></param>
-        internal static void HandleGbt(GXDLMSSettings settings, GXReplyData data)
+        internal static void HandleGbt(
+            GXDLMSSettings settings,
+            GXReplyData data,
+            GXCryptoNotifier cryptoNotifier)
         {
             int index = data.Data.Position - 1;
             data.WindowSize = settings.WindowSize;
@@ -3888,7 +4000,7 @@ namespace Gurux.DLMS
                 if ((data.Data.Size - data.Data.Position) != len)
                 {
                     data.Xml.AppendComment("Data length is " + len
-                                    + "and there are " + (data.Data.Size - data.Data.Position)
+                                    + " and there are " + (data.Data.Size - data.Data.Position)
                                     + " bytes.");
                 }
                 data.Xml.AppendStartTag(Command.GeneralBlockTransfer);
@@ -3912,7 +4024,7 @@ namespace Gurux.DLMS
                         reply.Data = data.Data;
                         reply.Xml = data.Xml;
                         reply.Xml.StartComment("");
-                        GetPdu(settings, reply, null);
+                        GetPdu(settings, reply, cryptoNotifier);
                         reply.Xml.EndComment();
                     }
                     catch (Exception)
@@ -3938,7 +4050,7 @@ namespace Gurux.DLMS
                 if (data.Data.Size != 0)
                 {
                     data.Data.Position = 0;
-                    GetPdu(settings, data, null);
+                    GetPdu(settings, data, cryptoNotifier);
                 }
                 // Get data if all data is read or we want to peek data.
                 if (data.Data.Position != data.Data.Size
@@ -4025,9 +4137,10 @@ namespace Gurux.DLMS
         }
 
         private static void HandleGloDedRequest(GXDLMSSettings settings,
-                                              GXReplyData data, GXDLMSClient client)
+                                              GXReplyData data,
+                                              GXCryptoNotifier cryptoNotifier)
         {
-            if (data.Xml != null)
+            if (data.Xml != null && !data.Xml.Comments)
             {
                 --data.Data.Position;
             }
@@ -4068,24 +4181,35 @@ namespace Gurux.DLMS
                                 cipher.DedicatedKey,
                                 GetAuthenticationKey(settings));
                     }
+                    int pos = data.Data.Position;
+                    //Return copy from data because ciphering is changing it.
+                    byte[] encrypted = data.Data.SubArray(0, data.Data.Size);
                     byte[] tmp = GXCiphering.Decrypt(p, data.Data);
                     cipher.SecuritySuite = p.SecuritySuite;
                     cipher.Security = p.Security;
-                    if (client != null && client.pdu != null && data.IsComplete && (data.MoreData & RequestTypes.Frame) == 0)
+                    if (cryptoNotifier != null && cryptoNotifier.pdu != null && data.IsComplete && (data.MoreData & RequestTypes.Frame) == 0)
                     {
-                        client.pdu(client, tmp);
+                        cryptoNotifier.pdu(cryptoNotifier, tmp);
                     }
                     data.Data.Clear();
                     data.Data.Set(tmp);
                     // Get command.
                     data.CipheredCommand = data.Command;
                     data.Command = (Command)data.Data.GetUInt8();
+                    //Validate command. Command is not valid is block cipher key is wrong.
+                    if (!Enum.IsDefined(typeof(Command), data.Command))
+                    {
+                        data.Data.Clear();
+                        data.Data.Set(encrypted);
+                        data.Data.Position = pos;
+                        throw new Exception("Failed to decrypt the data.");
+                    }
                     if (data.Command == Command.DataNotification
                         || data.Command == Command.InformationReport)
                     {
                         data.Command = Command.None;
                         --data.Data.Position;
-                        GetPdu(settings, data, client);
+                        GetPdu(settings, data, cryptoNotifier);
                     }
                 }
                 else
@@ -4099,9 +4223,9 @@ namespace Gurux.DLMS
             GXDLMSSettings settings,
             GXReplyData data,
             int index,
-            GXDLMSClient client)
+            GXCryptoNotifier cryptoNotifier)
         {
-            if (data.Xml != null)
+            if (data.Xml != null && !data.Xml.Comments)
             {
                 --data.Data.Position;
             }
@@ -4158,7 +4282,9 @@ namespace Gurux.DLMS
                     }
                     byte[] tmp = GXCiphering.Decrypt(p, bb);
                     //If target is sending data ciphered using different security policy.
-                    if (settings.Cipher.Security != 0 && settings.Cipher.Security != p.Security)
+                    if ((settings.Connected & ConnectionState.Dlms) != 0 &&
+                        settings.Cipher.Security != Security.None && settings.Cipher.Security != Security.DigitallySigned &&
+                        settings.Cipher.Security != p.Security)
                     {
                         throw new GXDLMSCipherException(string.Format("Data is ciphered using different security level. Actual: {0}. Expected: {1}", p.Security, settings.Cipher.Security));
                     }
@@ -4170,14 +4296,14 @@ namespace Gurux.DLMS
                         }
                         settings.ExpectedInvocationCounter = p.InvocationCounter;
                     }
-                    if (client != null && client.pdu != null)
+                    if (cryptoNotifier != null && cryptoNotifier.pdu != null)
                     {
-                        client.pdu(client, tmp);
+                        cryptoNotifier.pdu(cryptoNotifier, tmp);
                     }
                     data.Data.Set(tmp);
                     data.CipheredCommand = data.Command;
                     data.Command = Command.None;
-                    GetPdu(settings, data, client);
+                    GetPdu(settings, data, cryptoNotifier);
                     data.CipherIndex = data.Data.Size;
                 }
             }
@@ -4188,8 +4314,10 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
         /// <param name="data">received data.</param>
-        public static void GetPdu(GXDLMSSettings settings,
-                                  GXReplyData data, GXDLMSClient client)
+        public static void GetPdu(
+            GXDLMSSettings settings,
+            GXReplyData data,
+            GXCryptoNotifier cryptoNotifier)
         {
             short ch;
             Command cmd = data.Command;
@@ -4245,7 +4373,7 @@ namespace Gurux.DLMS
                     case Command.GeneralBlockTransfer:
                         if (data.Xml != null || (!settings.IsServer && (data.MoreData & RequestTypes.Frame) == 0))
                         {
-                            HandleGbt(settings, data);
+                            HandleGbt(settings, data, cryptoNotifier);
                         }
                         break;
                     case Command.Aarq:
@@ -4262,10 +4390,35 @@ namespace Gurux.DLMS
                         HandleExceptionResponse(data);
                         break;
                     case Command.GetRequest:
+                        if (data.Xml != null || (!settings.IsServer && (data.MoreData & RequestTypes.Frame) == 0))
+                        {
+                            GXDLMSLNCommandHandler.HandleGetRequest(settings, null, data.Data, null, data.Xml, Command.None);
+                        }
+                        break;
                     case Command.ReadRequest:
+                        if (data.Xml != null || (!settings.IsServer && (data.MoreData & RequestTypes.Frame) == 0))
+                        {
+                            GXDLMSSNCommandHandler.HandleReadRequest(settings, null, data.Data, null, data.Xml, Command.None);
+                        }
+                        break;
                     case Command.WriteRequest:
+                        if (data.Xml != null || (!settings.IsServer && (data.MoreData & RequestTypes.Frame) == 0))
+                        {
+                            GXDLMSSNCommandHandler.HandleWriteRequest(settings, null, data.Data, null, data.Xml, Command.None);
+                        }
+                        break;
                     case Command.SetRequest:
+                        if (data.Xml != null || (!settings.IsServer && (data.MoreData & RequestTypes.Frame) == 0))
+                        {
+                            GXDLMSLNCommandHandler.HandleSetRequest(settings, null, data.Data, null, data.Xml, Command.None);
+                        }
+                        break;
                     case Command.MethodRequest:
+                        if (data.Xml != null || (!settings.IsServer && (data.MoreData & RequestTypes.Frame) == 0))
+                        {
+                            GXDLMSLNCommandHandler.HandleMethodRequest(settings, null, data.Data, null, null, data.Xml, Command.None);
+                        }
+                        break;
                     case Command.ReleaseRequest:
                         // Server handles this.
                         if ((data.MoreData & RequestTypes.Frame) != 0)
@@ -4281,7 +4434,7 @@ namespace Gurux.DLMS
                     case Command.DedGetRequest:
                     case Command.DedSetRequest:
                     case Command.DedMethodRequest:
-                        HandleGloDedRequest(settings, data, client);
+                        HandleGloDedRequest(settings, data, cryptoNotifier);
                         // Server handles this.
                         break;
                     case Command.GloReadResponse:
@@ -4296,17 +4449,17 @@ namespace Gurux.DLMS
                     case Command.DedEventNotification:
                     case Command.GloConfirmedServiceError:
                     case Command.DedConfirmedServiceError:
-                        HandleGloDedResponse(settings, data, index, client);
+                        HandleGloDedResponse(settings, data, index, cryptoNotifier);
                         break;
                     case Command.GeneralGloCiphering:
                     case Command.GeneralDedCiphering:
                         if (settings.IsServer)
                         {
-                            HandleGloDedRequest(settings, data, client);
+                            HandleGloDedRequest(settings, data, cryptoNotifier);
                         }
                         else
                         {
-                            HandleGloDedResponse(settings, data, index, client);
+                            HandleGloDedResponse(settings, data, index, cryptoNotifier);
                         }
                         break;
                     case Command.DataNotification:
@@ -4320,7 +4473,7 @@ namespace Gurux.DLMS
                         //Client handles this.
                         break;
                     case Command.GeneralCiphering:
-                        HandleGeneralCiphering(settings, data);
+                        HandleGeneralCiphering(settings, data, cryptoNotifier);
                         break;
                     case Command.GatewayRequest:
                     case Command.GatewayResponse:
@@ -4331,7 +4484,7 @@ namespace Gurux.DLMS
                         data.Data.Get(data.Gateway.PhysicalDeviceAddress);
                         GetDataFromBlock(data.Data, index);
                         data.Command = Command.None;
-                        GetPdu(settings, data, null);
+                        GetPdu(settings, data, cryptoNotifier);
                         break;
                     case Command.PingResponse:
                     case Command.DiscoverReport:
@@ -4361,7 +4514,7 @@ namespace Gurux.DLMS
                 if (cmd == Command.GeneralBlockTransfer)
                 {
                     data.Data.Position = data.CipherIndex + 1;
-                    HandleGbt(settings, data);
+                    HandleGbt(settings, data, cryptoNotifier);
                     data.CipherIndex = data.Data.Size;
                     data.Command = Command.None;
                 }
@@ -4378,7 +4531,7 @@ namespace Gurux.DLMS
                         case Command.GloMethodRequest:
                             data.Command = Command.None;
                             data.Data.Position = data.CipherIndex;
-                            GetPdu(settings, data, client);
+                            GetPdu(settings, data, cryptoNotifier);
                             break;
                         default:
                             break;
@@ -4410,7 +4563,7 @@ namespace Gurux.DLMS
                         case Command.AccessResponse:
                             data.Command = Command.None;
                             data.Data.Position = data.CipherIndex;
-                            GetPdu(settings, data, client);
+                            GetPdu(settings, data, cryptoNotifier);
                             break;
                         default:
                             break;
@@ -4501,9 +4654,7 @@ namespace Gurux.DLMS
                     {
                         err = reply.Data.GetUInt8();
                     }
-                    reply.Xml.AppendStartTag(
-                        TranslatorTags.AccessResponseSpecification);
-
+                    reply.Xml.AppendStartTag(TranslatorTags.AccessResponseSpecification);
                     reply.Xml.AppendStartTag(Command.AccessResponse, type);
                     reply.Xml.AppendLine(TranslatorTags.Result, null,
                                          GXDLMSTranslator.ErrorCodeToString(reply.Xml.OutputType,
@@ -4576,7 +4727,10 @@ namespace Gurux.DLMS
             }
         }
 
-        private static void HandleGeneralCiphering(GXDLMSSettings settings, GXReplyData data)
+        private static void HandleGeneralCiphering(
+            GXDLMSSettings settings,
+            GXReplyData data,
+            GXCryptoNotifier cryptoNotifier)
         {
             if (settings.Cipher == null)
             {
@@ -4597,6 +4751,7 @@ namespace Gurux.DLMS
                     GetBlockCipherKey(settings),
                     GetAuthenticationKey(settings));
                 p.Xml = data.Xml;
+                p.CryptoNotifier = cryptoNotifier;
                 try
                 {
                     byte[] tmp = GXCiphering.Decrypt(p, data.Data);
@@ -4606,7 +4761,40 @@ namespace Gurux.DLMS
                     data.Command = Command.None;
                     if (p.Security != (byte)Security.None)
                     {
-                        GetPdu(settings, data, null);
+                        if (data.Xml != null && p != null && p.Xml.Comments)
+                        {
+                            data.Xml.AppendStartTag(Command.GeneralCiphering);
+                            data.Xml.AppendLine(TranslatorTags.TransactionId, null,
+                                    data.Xml.IntegerToHex(p.TransactionId, 16, true));
+                            data.Xml.AppendLine(TranslatorTags.OriginatorSystemTitle,
+                                    null, GXCommon.ToHex(p.SystemTitle, false));
+                            data.Xml.AppendLine(TranslatorTags.RecipientSystemTitle,
+                                    null,
+                                    GXCommon.ToHex(p.RecipientSystemTitle, false));
+                            data.Xml.AppendLine(TranslatorTags.DateTime, null,
+                                    GXCommon.ToHex(p.DateTime, false));
+                            data.Xml.AppendLine(TranslatorTags.OtherInformation, null,
+                                    GXCommon.ToHex(p.OtherInformation, false));
+
+                            data.Xml.AppendStartTag(TranslatorTags.KeyInfo);
+                            data.Xml.AppendStartTag(TranslatorTags.AgreedKey);
+                            data.Xml.AppendLine(TranslatorTags.KeyParameters, null,
+                                    data.Xml.IntegerToHex(p.KeyParameters, 2,
+                                            true));
+                            data.Xml.AppendLine(TranslatorTags.KeyCipheredData, null,
+                                    GXCommon.ToHex(p.KeyCipheredData, false));
+                            data.Xml.AppendEndTag(TranslatorTags.AgreedKey);
+                            data.Xml.AppendEndTag(TranslatorTags.KeyInfo);
+                            p.Xml.StartComment("");
+                        }
+                        GetPdu(settings, data, cryptoNotifier);
+                        if (data.Xml != null && p != null && p.Xml.Comments)
+                        {
+                            p.Xml.EndComment();
+                            data.Xml.AppendLine(TranslatorTags.CipheredContent, null,
+                            GXCommon.ToHex(p.CipheredContent, false));
+                            data.Xml.AppendEndTag(Command.GeneralCiphering);
+                        }
                     }
                 }
                 catch (Exception)
@@ -4616,35 +4804,35 @@ namespace Gurux.DLMS
                         throw;
                     }
                     data.Xml.SetXmlLength(origPos);
-                }
-                if (data.Xml != null && p != null)
-                {
-                    data.Xml.AppendStartTag(Command.GeneralCiphering);
-                    data.Xml.AppendLine(TranslatorTags.TransactionId, null,
-                            data.Xml.IntegerToHex(p.TransactionId, 16, true));
-                    data.Xml.AppendLine(TranslatorTags.OriginatorSystemTitle,
-                            null, GXCommon.ToHex(p.SystemTitle, false));
-                    data.Xml.AppendLine(TranslatorTags.RecipientSystemTitle,
-                            null,
-                            GXCommon.ToHex(p.RecipientSystemTitle, false));
-                    data.Xml.AppendLine(TranslatorTags.DateTime, null,
-                            GXCommon.ToHex(p.DateTime, false));
-                    data.Xml.AppendLine(TranslatorTags.OtherInformation, null,
-                            GXCommon.ToHex(p.OtherInformation, false));
+                    if (data.Xml != null && p != null && p.Xml.Comments)
+                    {
+                        data.Xml.AppendStartTag(Command.GeneralCiphering);
+                        data.Xml.AppendLine(TranslatorTags.TransactionId, null,
+                                data.Xml.IntegerToHex(p.TransactionId, 16, true));
+                        data.Xml.AppendLine(TranslatorTags.OriginatorSystemTitle,
+                                null, GXCommon.ToHex(p.SystemTitle, false));
+                        data.Xml.AppendLine(TranslatorTags.RecipientSystemTitle,
+                                null,
+                                GXCommon.ToHex(p.RecipientSystemTitle, false));
+                        data.Xml.AppendLine(TranslatorTags.DateTime, null,
+                                GXCommon.ToHex(p.DateTime, false));
+                        data.Xml.AppendLine(TranslatorTags.OtherInformation, null,
+                                GXCommon.ToHex(p.OtherInformation, false));
 
-                    data.Xml.AppendStartTag(TranslatorTags.KeyInfo);
-                    data.Xml.AppendStartTag(TranslatorTags.AgreedKey);
-                    data.Xml.AppendLine(TranslatorTags.KeyParameters, null,
-                            data.Xml.IntegerToHex(p.KeyParameters, 2,
-                                    true));
-                    data.Xml.AppendLine(TranslatorTags.KeyCipheredData, null,
-                            GXCommon.ToHex(p.KeyCipheredData, false));
-                    data.Xml.AppendEndTag(TranslatorTags.AgreedKey);
-                    data.Xml.AppendEndTag(TranslatorTags.KeyInfo);
+                        data.Xml.AppendStartTag(TranslatorTags.KeyInfo);
+                        data.Xml.AppendStartTag(TranslatorTags.AgreedKey);
+                        data.Xml.AppendLine(TranslatorTags.KeyParameters, null,
+                                data.Xml.IntegerToHex(p.KeyParameters, 2,
+                                        true));
+                        data.Xml.AppendLine(TranslatorTags.KeyCipheredData, null,
+                                GXCommon.ToHex(p.KeyCipheredData, false));
+                        data.Xml.AppendEndTag(TranslatorTags.AgreedKey);
+                        data.Xml.AppendEndTag(TranslatorTags.KeyInfo);
 
-                    data.Xml.AppendLine(TranslatorTags.CipheredContent, null,
-                            GXCommon.ToHex(p.CipheredContent, false));
-                    data.Xml.AppendEndTag(Command.GeneralCiphering);
+                        data.Xml.AppendLine(TranslatorTags.CipheredContent, null,
+                                GXCommon.ToHex(p.CipheredContent, false));
+                        data.Xml.AppendEndTag(Command.GeneralCiphering);
+                    }
                 }
             }
         }
@@ -4723,8 +4911,12 @@ namespace Gurux.DLMS
             }
         }
 
-        public static bool GetData(GXDLMSSettings settings,
-                                   GXByteBuffer reply, GXReplyData data, GXReplyData notify, GXDLMSClient client)
+        public static bool GetData(
+            GXDLMSSettings settings,
+            GXByteBuffer reply,
+            GXReplyData data,
+            GXReplyData notify,
+            GXCryptoNotifier cryptoNotifier)
         {
             byte frame = 0;
             bool isLast = true;
@@ -4798,7 +4990,7 @@ namespace Gurux.DLMS
                 data.Data.Position = 0;
                 return !isNotify;
             }
-            GetPdu(settings, data, client);
+            GetPdu(settings, data, cryptoNotifier);
             if (notify != null && !isNotify)
             {
                 //Check command to make sure it's not notify message.
@@ -4826,7 +5018,7 @@ namespace Gurux.DLMS
             }
             if (!isLast)
             {
-                return GetData(settings, reply, data, notify, client);
+                return GetData(settings, reply, data, notify, cryptoNotifier);
             }
             return !isNotify;
         }
