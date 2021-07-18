@@ -201,7 +201,7 @@ namespace Gurux.DLMS
             Server = server;
             Settings = server == null ? null : server.Settings;
             Target = target;
-            Index = index;
+            Index = (byte)index;
             Selector = selector;
             Parameters = parameters;
         }
@@ -214,7 +214,7 @@ namespace Gurux.DLMS
         {
             Settings = settings;
             Target = target;
-            Index = index;
+            Index = (byte)index;
             Selector = selector;
             Parameters = parameters;
         }
@@ -225,7 +225,7 @@ namespace Gurux.DLMS
         public ValueEventArgs(GXDLMSObject target, int index, int selector, object parameters)
         {
             Target = target;
-            Index = index;
+            Index = (byte)index;
             Selector = selector;
             Parameters = parameters;
         }

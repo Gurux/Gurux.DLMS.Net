@@ -175,6 +175,10 @@ namespace Gurux.DLMS.Objects
             internal set;
         }
 
+        /// <summary>
+        /// Creates and returns a copy of this object.
+        /// </summary>
+        /// <returns>Cloned object.</returns>
         public GXDLMSObject Clone()
         {
             List<Type> types = new List<Type>(GXDLMSClient.GetObjectTypes());
@@ -186,6 +190,37 @@ namespace Gurux.DLMS.Objects
                 x.Serialize(stream, this);
                 stream.Seek(0, SeekOrigin.Begin);
                 return x.Deserialize(stream) as GXDLMSObject;
+            }
+        }
+
+        /// <summary>
+        ///  Check are content of the objects equal.
+        /// </summary>
+        /// <param name="obj1">Object 1</param>
+        /// <param name="obj2">Object 2</param>
+        /// <returns> True, if content of the objects is equal.</returns>
+        public static bool Equals(GXDLMSObject obj1, GXDLMSObject obj2)
+        {
+            List<Type> types = new List<Type>(GXDLMSClient.GetObjectTypes());
+            types.Add(typeof(GXDLMSAttributeSettings));
+            types.Add(typeof(GXDLMSAttribute));
+            using (Stream stream = new MemoryStream())
+            {
+                string expected;
+                XmlSerializer x = new XmlSerializer(obj1.GetType(), types.ToArray());
+                x.Serialize(stream, obj1);
+                stream.Seek(0, SeekOrigin.Begin);
+                using (StreamReader sr = new StreamReader(stream))
+                {
+                    expected = sr.ReadToEnd();
+                }
+                stream.Seek(0, SeekOrigin.Begin);
+                x.Serialize(stream, obj2);
+                using (StreamReader sr = new StreamReader(stream))
+                {
+                    string actual = sr.ReadToEnd();
+                    return expected == actual;
+                }
             }
         }
 

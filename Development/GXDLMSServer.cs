@@ -734,7 +734,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Assigned association for the server.
         /// </summary>
-        internal GXDLMSAssociationLogicalName AssignedAssociation
+        protected GXDLMSAssociationLogicalName AssignedAssociation
         {
             get
             {
@@ -1993,7 +1993,7 @@ namespace Gurux.DLMS
         /// <param name="objectType">Object type.</param>
         /// <param name="methodIndex">Method index.</param>
         /// <returns>Returns true if object is modified with action.</returns>
-        public bool IsChangedWithAction(ObjectType objectType, byte methodIndex)
+        public bool IsChangedWithAction(ObjectType objectType, int methodIndex)
         {
             if (objectType == ObjectType.AssociationLogicalName && methodIndex != 1)
             {

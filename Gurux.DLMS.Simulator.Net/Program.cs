@@ -208,7 +208,7 @@ namespace Gurux.DLMS.Simulator.Net
                             {
                                 Console.WriteLine("{0} authentication, password {1}",
                                     it.AuthenticationMechanismName.MechanismId,
-                                    ASCIIEncoding.ASCII.GetString(it.Secret));
+                                    it.Secret != null ? ASCIIEncoding.ASCII.GetString(it.Secret) : "");
                             }
                         }
                     }

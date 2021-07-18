@@ -204,7 +204,7 @@ namespace GuruxDLMSServerExample
 
             //If pre-established connections are used.
             ClientSystemTitle = ASCIIEncoding.ASCII.GetBytes("ABCDEFGH");
-            Ciphering.Security = (byte)Security.AuthenticationEncryption;
+            Ciphering.Security = Security.AuthenticationEncryption;
             this.Conformance |= Conformance.GeneralBlockTransfer;
 
             Media.OnReceived += new Gurux.Common.ReceivedEventHandler(OnReceived);

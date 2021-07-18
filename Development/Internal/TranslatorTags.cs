@@ -126,6 +126,7 @@ namespace Gurux.DLMS
         CalledAEQualifier,
         ResponseAllowed,
         ExceptionResponse,
-        StateError
+        StateError,
+        Pblock
     }
 }

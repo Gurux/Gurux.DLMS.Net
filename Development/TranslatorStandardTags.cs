@@ -212,17 +212,25 @@ namespace Gurux.DLMS
             list.Add((int)Command.MethodRequest << 8 | (int)ActionRequestType.Normal,
                      "action-request-normal");
             list.Add((int)Command.MethodRequest << 8 | (int)ActionRequestType.NextBlock,
-                     "ActionRequestForNextDataBlock");
+                     "action-request-next-pblock");
             list.Add((int)Command.MethodRequest << 8 | (int)ActionRequestType.WithList,
                      "action-request-with-list");
+            list.Add((int)Command.MethodRequest << 8 | (int)ActionRequestType.WithFirstBlock,
+                     "action-request-with-first-block");
+            list.Add((int)Command.MethodRequest << 8 | (int)ActionRequestType.WithListAndFirstBlock,
+                     "action-request-with-list-and-first-block");
+            list.Add((int)Command.MethodRequest << 8 | (int)ActionRequestType.WithBlock,
+                     "action-request-with-list-and-block");           
             GXDLMSTranslator.AddTag(list, Command.MethodResponse,
                                     "action-response");
             list.Add((int)Command.MethodResponse << 8 | (int)ActionResponseType.Normal,
                      "action-response-normal");
             list.Add((int)Command.MethodResponse << 8 | (int)ActionResponseType.WithFirstBlock,
-                     "action-response-with-first-block");
+                     "action-response-with-pblock");
             list.Add((int)Command.MethodResponse << 8 | (int)ActionResponseType.WithList,
                      "action-response-with-list");
+            list.Add((int)Command.MethodResponse << 8 | (int)ActionResponseType.WithList,
+                     "action-response-next-pblock");
             list.Add((int)TranslatorTags.SingleResponse, "single-response");
             list.Add((int)Command.DataNotification, "data-notification");
             list.Add((int)Command.GetResponse, "get-response");
@@ -371,14 +379,15 @@ namespace Gurux.DLMS
                                     "method-invocation-parameters");
             GXDLMSTranslator.AddTag(list, TranslatorTags.Selector, "selector");
             GXDLMSTranslator.AddTag(list, TranslatorTags.Parameter, "parameter");
-            GXDLMSTranslator.AddTag(list, TranslatorTags.LastBlock, "LastBlock");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.LastBlock, "last-block");
             GXDLMSTranslator.AddTag(list, TranslatorTags.BlockNumber,
                                     "block-number");
-            GXDLMSTranslator.AddTag(list, TranslatorTags.RawData, "RawData");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.RawData, "raw-data");
             GXDLMSTranslator.AddTag(list, TranslatorTags.MethodDescriptor,
                                     "cosem-method-descriptor");
             GXDLMSTranslator.AddTag(list, TranslatorTags.MethodId, "method-id");
             GXDLMSTranslator.AddTag(list, TranslatorTags.Result, "result");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.Pblock, "pblock");
             GXDLMSTranslator.AddTag(list, TranslatorTags.ReturnParameters,
                                     "return-parameters");
             GXDLMSTranslator.AddTag(list, TranslatorTags.AccessSelection,

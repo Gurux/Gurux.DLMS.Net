@@ -202,7 +202,6 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "Port", "IP Reference",
                               "Maximum Segment Size", "Maximum Simultaneous Connections", "Inactivity Timeout"
                             };

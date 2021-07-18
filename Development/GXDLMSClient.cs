@@ -117,7 +117,7 @@ namespace Gurux.DLMS
             private set;
         }
 
-        private static Dictionary<UInt32, Type> AvailableObjectTypes = new Dictionary<UInt32, Type>();
+        private static Dictionary<ObjectType, Type> AvailableObjectTypes = new Dictionary<ObjectType, Type>();
 
         /// <summary>
         /// Static Constructor. This is called only once. Get available COSEM objects.
@@ -1053,6 +1053,12 @@ namespace Gurux.DLMS
             }
             else if (Settings.Authentication == Enums.Authentication.HighECDSA)
             {
+                if (Settings.Cipher.SigningKeyPair.Value == null)
+                {
+                    Settings.Cipher.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(Settings.Cipher.SigningKeyPair.Key, 
+                        (GXPrivateKey) GXDLMS.GetKey(cryptoNotifier, Settings.Cipher.SecuritySuite, DLMS.Objects.Enums.CertificateType.DigitalSignature,
+                    Settings.Cipher.SystemTitle, true));
+                }
                 GXByteBuffer tmp = new GXByteBuffer();
                 tmp.Set(Settings.Cipher.SystemTitle);
                 tmp.Set(Settings.SourceSystemTitle);
@@ -1354,7 +1360,7 @@ namespace Gurux.DLMS
                 int ot = Convert.ToUInt16(objects[1]);
                 int baseName = Convert.ToInt32(objects[0]) & 0xFFFF;
                 int version = Convert.ToByte(objects[2]);
-                if (!onlyKnownObjects || AvailableObjectTypes.ContainsKey((UInt32)(version << 16 | ot)))
+                if (!onlyKnownObjects || AvailableObjectTypes.ContainsKey((ObjectType)ot))
                 {
                     GXDLMSObject comp = CreateDLMSObject(ot, objects[2], baseName, objects[3], null, 2);
                     if (comp != null)
@@ -1654,7 +1660,7 @@ namespace Gurux.DLMS
                 ++objectCnt;
                 int ot = Convert.ToInt16(objects[0]);
                 int version = Convert.ToByte(objects[1]);
-                if (!onlyKnownObjects || AvailableObjectTypes.ContainsKey((UInt32)(version << 16 | ot)))
+                if (!onlyKnownObjects || AvailableObjectTypes.ContainsKey((ObjectType)ot))
                 {
                     //Save LN association version.
                     if (ot == (int)ObjectType.AssociationLogicalName)

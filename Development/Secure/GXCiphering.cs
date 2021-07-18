@@ -145,9 +145,18 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
+        /// Security level can't be changed during the connection.
+        /// </summary>
+        public bool SecurityChangeCheck
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Used security policy.
         /// </summary>
-        public SecurityPolicy1 SecurityPolicy
+        public SecurityPolicy SecurityPolicy
         {
             get;
             set;

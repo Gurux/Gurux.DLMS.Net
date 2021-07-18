@@ -2887,14 +2887,18 @@ namespace Gurux.DLMS
                    (s.command == Command.EventNotification && s.attributeDescriptor.Size == 0))
                 {
                     preData = UpdateDateTime(node, s, preData);
-                    if (preData == null
-                           && s.command == Command.GeneralCiphering)
+                    if (preData == null && s.command == Command.GeneralCiphering)
                     {
                         s.data.SetUInt8(0);
                     }
                 }
                 else
                 {
+                    if (s.command == Command.MethodResponse)
+                    {
+                        //Add Data-Access-Result.
+                        s.attributeDescriptor.SetUInt8(0);
+                    }
                     preData = UpdateDataType(node, s, tag);
                 }
             }
@@ -2977,7 +2981,10 @@ namespace Gurux.DLMS
                     case (byte)(int)(Command.MethodRequest) << 8 | (byte)ActionRequestType.WithList:
                         s.requestType = (byte)(tag & 0xFF);
                         break;
-                    case (byte)(int)(Command.MethodResponse) << 8 | (byte)ActionRequestType.Normal:
+                    case (byte)(int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.Normal:
+                    case (byte)(int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.WithFirstBlock:
+                    case (byte)(int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.WithList:
+                    case (byte)(int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.WithBlock:
                         //MethodResponseNormal
                         s.requestType = (byte)(tag & 0xFF);
                         break;
@@ -3116,14 +3123,7 @@ namespace Gurux.DLMS
                     case (int)TranslatorTags.Parameter:
                         break;
                     case (int)TranslatorTags.LastBlock:
-                        if (s.OutputType == TranslatorOutputType.SimpleXml)
-                        {
-                            s.data.SetUInt8((byte)s.ParseShort(GetValue(node, s)));
-                        }
-                        else
-                        {
-                            s.data.SetUInt8((byte)(bool.Parse(GetValue(node, s)) ? 1 : 0));
-                        }
+                        s.data.SetUInt8((byte)s.ParseShort(GetValue(node, s)));
                         break;
                     case (int)TranslatorTags.BlockNumber:
                         //BlockNumber
@@ -3140,7 +3140,7 @@ namespace Gurux.DLMS
                         break;
                     case (int)TranslatorTags.RawData:
                         //RawData
-                        if (s.command == Command.GetResponse)
+                        if (s.command == Command.GetResponse || s.command == Command.MethodResponse)
                         {
                             s.data.SetUInt8(0);
                         }
@@ -3156,13 +3156,15 @@ namespace Gurux.DLMS
                         s.attributeDescriptor.SetUInt8(0);
                         break;
                     case (int)TranslatorTags.Result:
+                    case (int)TranslatorTags.Pblock:
                     case (int)TranslatorGeneralTags.AssociationResult:
                         //Result.
                         if (s.command == Command.GetRequest || s.requestType == 3)
                         {
                             GXCommon.SetObjectCount(node.ChildNodes.Count, s.attributeDescriptor);
                         }
-                        else if (s.command == Command.MethodResponse || s.command == Command.SetResponse)
+                        else if (s.command == Command.SetResponse ||
+                            s.command == Command.MethodResponse)
                         {
                             if (s.requestType == (byte)SetResponseType.WithList)
                             {
@@ -3171,7 +3173,7 @@ namespace Gurux.DLMS
                             else
                             {
                                 str = GetValue(node, s);
-                                if (str != "")
+                                if (!string.IsNullOrEmpty(str))
                                 {
                                     s.attributeDescriptor.SetUInt8((byte)ValueOfErrorCode(s.OutputType, str));
                                 }

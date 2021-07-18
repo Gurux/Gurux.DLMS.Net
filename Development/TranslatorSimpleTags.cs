@@ -144,12 +144,16 @@ namespace Gurux.DLMS
             list.Add((int)(Command.SetRequest) << 8 | (byte)SetRequestType.WithList, "SetRequestWithList");
             GXDLMSTranslator.AddTag(list, Command.MethodRequest, "ActionRequest");
             list.Add((int)(Command.MethodRequest) << 8 | (byte)ActionRequestType.Normal, "ActionRequestNormal");
-            list.Add((int)(Command.MethodRequest) << 8 | (byte)ActionRequestType.NextBlock, "ActionRequestForNextDataBlock");
+            list.Add((int)(Command.MethodRequest) << 8 | (byte)ActionRequestType.NextBlock, "ActionRequestForNextPBlock");
             list.Add((int)(Command.MethodRequest) << 8 | (byte)ActionRequestType.WithList, "ActionRequestWithList");
+            list.Add((int)Command.MethodRequest << 8 | (int)ActionRequestType.WithFirstBlock, "ActionRequestWithFirstBlock");
+            list.Add((int)Command.MethodRequest << 8 | (int)ActionRequestType.WithListAndFirstBlock, "ActionRequestWithListAndFirstBlock");
+            list.Add((int)Command.MethodRequest << 8 | (int)ActionRequestType.WithBlock, "ActionRequestWithBlock");
             GXDLMSTranslator.AddTag(list, Command.MethodResponse, "ActionResponse");
-            list.Add((int)(Command.MethodResponse) << 8 | (byte)ActionRequestType.Normal, "ActionResponseNormal");
-            list.Add((int)(Command.MethodResponse) << 8 | (byte)ActionRequestType.WithFirstBlock, "ActionResponseWithFirstBlock");
-            list.Add((int)(Command.MethodResponse) << 8 | (byte)ActionRequestType.WithList, "ActionResponseWithList");
+            list.Add((int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.Normal, "ActionResponseNormal");
+            list.Add((int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.WithFirstBlock, "ActionResponseWithPBlock");
+            list.Add((int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.WithList, "ActionResponseWithList");
+            list.Add((int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.WithBlock, "ActionResponseWithBlock");
             list.Add((int)Command.DataNotification, "DataNotification");
             list.Add((int)Command.GetResponse, "GetResponse");
             list.Add((int)Command.GetResponse << 8 | (byte)GetCommandType.Normal, "GetResponseNormal");
@@ -268,6 +272,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorTags.MethodDescriptor, "MethodDescriptor");
             GXDLMSTranslator.AddTag(list, TranslatorTags.MethodId, "MethodId");
             GXDLMSTranslator.AddTag(list, TranslatorTags.Result, "Result");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.Pblock, "PBlock");
             GXDLMSTranslator.AddTag(list, TranslatorTags.ReturnParameters, "ReturnParameters");
             GXDLMSTranslator.AddTag(list, TranslatorTags.AccessSelection, "AccessSelection");
             GXDLMSTranslator.AddTag(list, TranslatorTags.Value, "Value");

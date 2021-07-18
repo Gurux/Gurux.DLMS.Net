@@ -637,6 +637,15 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Security level can't be changed during the connection.
+        /// </summary>
+        public bool SecurityChangeCheck
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         public GXDLMSMeterBase()

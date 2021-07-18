@@ -61,7 +61,7 @@ namespace Gurux.DLMS.Internal
         /// </summary>
         WithListAndFirstBlock = 5,
         /// <summary>
-        /// Action with block.
+        /// Action with list and next block.
         /// </summary>
         WithBlock = 6
     }

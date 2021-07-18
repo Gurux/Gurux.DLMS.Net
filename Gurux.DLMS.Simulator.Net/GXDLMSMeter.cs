@@ -382,7 +382,7 @@ namespace Gurux.DLMS.Simulator.Net
         bool Init(bool exclusive)
         {
             //Load added objects.
-            if (!LoadSettings())
+            if (!LoadObjects(objectsFile, Items))
             {
                 throw new Exception(string.Format("Invalid device template file {0}", objectsFile));
             }
@@ -473,81 +473,20 @@ namespace Gurux.DLMS.Simulator.Net
             }
         }
 
-        /// <summary>
-        /// Load meter settings.
-        /// </summary>
-        private bool LoadSettings()
-        {
-            return LoadObjects(objectsFile, Items);
-        }
-
-        /// <summary>
-        /// Save meter settings.
-        /// </summary>
-        private void SaveSettings()
-        {
-            SaveObjects(objectsFile);
-        }
-
-        private void UpdateAssociationView(GXDLMSObjectCollection collection)
-        {
-            //Add new items.
-            bool newItems = false;
-            foreach (GXDLMSObject it in collection)
-            {
-                if (!Items.Contains(it))
-                {
-                    Items.Add(it);
-                    newItems = true;
-                }
-            }
-            //Remove old items.
-            List<GXDLMSObject> removed = new List<GXDLMSObject>();
-            foreach (GXDLMSObject it in Items)
-            {
-                if (!collection.Contains(it))
-                {
-                    removed.Add(it);
-                }
-            }
-            foreach (GXDLMSObject it in removed)
-            {
-                Items.Remove(it);
-            }
-            //Update short names if new items are added.
-            if (newItems && !UseLogicalNameReferencing)
-            {
-                UpdateShortNames();
-            }
-
-            //Save added objects.
-            SaveSettings();
-        }
-
         protected override void PostWrite(ValueEventArgs[] args)
         {
-            foreach (ValueEventArgs e in args)
+            GXXmlWriterSettings settings = new GXXmlWriterSettings();
+            foreach (ValueEventArgs it in args)
             {
-                //If association is updated.
-                if (e.Target is GXDLMSAssociationLogicalName && e.Index == 2)
+                if (it.Error != ErrorCode.Ok)
                 {
-                    //Update new items to object list.
-                    GXDLMSAssociationLogicalName a = (GXDLMSAssociationLogicalName)e.Target;
-                    UpdateAssociationView(a.ObjectList);
+                    // Load default values if user has try to save invalid data.
+                    Items.Clear();
+                    Items.AddRange(GXDLMSObjectCollection.Load(objectsFile));
+                    return;
                 }
-                //If association is updated.
-                else if (e.Target is GXDLMSAssociationShortName && e.Index == 2)
-                {
-                    //Update new items to object list.
-                    GXDLMSAssociationShortName a = (GXDLMSAssociationShortName)e.Target;
-                    UpdateAssociationView(a.ObjectList);
-                }
-                else
-                {
-                    SaveSettings();
-                }
-                System.Diagnostics.Debug.WriteLine("Writing " + e.Target.LogicalName);
             }
+            Items.Save(objectsFile, settings);
         }
 
         protected override void InvalidConnection(GXDLMSConnectionEventArgs e)
@@ -569,9 +508,28 @@ namespace Gurux.DLMS.Simulator.Net
         {
             foreach (ValueEventArgs it in args)
             {
-                if (Trace > TraceLevel.Warning)
+                if (it.Error != ErrorCode.Ok)
                 {
-                    System.Diagnostics.Debug.WriteLine("PostAction {0}:{1}", it.Target.LogicalName, it.Index);
+                    // Load default values if user has try to save invalid data.
+                    Items.Clear();
+                    Items.AddRange(GXDLMSObjectCollection.Load(objectsFile));
+                    return;
+                }
+                // Save value if it's updated with action.
+                if (IsChangedWithAction(it.Target.ObjectType, it.Index))
+                {
+                    GXXmlWriterSettings settings = new GXXmlWriterSettings();
+                    Items.Save(objectsFile, settings);
+                }
+                if (it.Target is GXDLMSSecuritySetup && it.Index == 2)
+                {
+                    Debug.WriteLine("----------------------------------------------------------");
+                    Debug.WriteLine("Updated keys:");
+                    Debug.WriteLine("Server System title: " + GXDLMSTranslator.ToHex(Ciphering.SystemTitle));
+                    Debug.WriteLine("Authentication key: " + GXDLMSTranslator.ToHex(Ciphering.AuthenticationKey));
+                    Debug.WriteLine("Block cipher key: " + GXDLMSTranslator.ToHex(Ciphering.BlockCipherKey));
+                    Debug.WriteLine("Client System title: " + GXDLMSTranslator.ToHex(ClientSystemTitle));
+                    Debug.WriteLine("Master key (KEK) title: " + GXDLMSTranslator.ToHex(Kek));
                 }
             }
         }
@@ -582,17 +540,16 @@ namespace Gurux.DLMS.Simulator.Net
         protected override bool IsTarget(int serverAddress, int clientAddress)
         {
             bool ret = false;
+            AssignedAssociation = null;
             foreach (GXDLMSAssociationLogicalName it in Items.GetObjects(ObjectType.AssociationLogicalName))
             {
-                if (it.ClientSAP == clientAddress || it.ClientSAP == 0)
+                if (it.ClientSAP == clientAddress)
                 {
-                    this.MaxReceivePDUSize = it.XDLMSContextInfo.MaxSendPduSize;
-                    this.Conformance = it.XDLMSContextInfo.Conformance;
-                    ret = true;
+                    AssignedAssociation = it;
                     break;
                 }
             }
-            if (ret)
+            if (AssignedAssociation != null)
             {
                 // Check server address using serial number.
                 if (!(serverAddress == 0x3FFF || serverAddress == 0x7F ||
@@ -602,10 +559,12 @@ namespace Gurux.DLMS.Simulator.Net
                     GXDLMSObjectCollection saps = Items.GetObjects(ObjectType.SapAssignment);
                     if (saps.Count != 0)
                     {
-                        ret = false;
-                        foreach (GXDLMSObject it in saps)
+                        foreach (GXDLMSSapAssignment sap in saps)
                         {
-                            GXDLMSSapAssignment sap = (GXDLMSSapAssignment)it;
+                            if (sap.SapAssignmentList.Count == 0)
+                            {
+                                return true;
+                            }
                             foreach (KeyValuePair<UInt16, string> e in sap.SapAssignmentList)
                             {
                                 // Check server address with two bytes.
@@ -639,17 +598,7 @@ namespace Gurux.DLMS.Simulator.Net
 
         protected override AccessMode GetAttributeAccess(ValueEventArgs arg)
         {
-            if (this.UseLogicalNameReferencing)
-            {
-                foreach (GXDLMSAssociationLogicalName it in Items.GetObjects(ObjectType.AssociationLogicalName))
-                {
-                    if (it.AuthenticationMechanismName.MechanismId == Authentication)
-                    {
-                        return it.ObjectList.FindByLN(arg.Target.ObjectType, arg.Target.LogicalName).GetAccess(arg.Index);
-                    }
-                }
-            }
-            return AccessMode.NoAccess;
+            return AssignedAssociation.GetAccess(arg.Target, arg.Index);
         }
 
         /// <summary>
@@ -659,43 +608,32 @@ namespace Gurux.DLMS.Simulator.Net
         /// <returns>Method access mode</returns>
         protected override MethodAccessMode GetMethodAccess(ValueEventArgs arg)
         {
-            if (this.UseLogicalNameReferencing)
-            {
-                foreach (GXDLMSAssociationLogicalName it in Items.GetObjects(ObjectType.AssociationLogicalName))
-                {
-                    if (it.AuthenticationMechanismName.MechanismId == Authentication)
-                    {
-                        return it.ObjectList.FindByLN(arg.Target.ObjectType, arg.Target.LogicalName).GetMethodAccess(arg.Index);
-                    }
-                }
-            }
-            return MethodAccessMode.NoAccess;
-        }
+            return AssignedAssociation.GetMethodAccess(arg.Target, arg.Index);
+        }      
 
         /// <summary>
         /// Check authentication.
         /// </summary>
         protected override SourceDiagnostic ValidateAuthentication(Authentication authentication, byte[] password)
         {
-            if (this.UseLogicalNameReferencing)
+            if (UseLogicalNameReferencing)
             {
-                GXDLMSAssociationLogicalName target = null;
-                foreach (GXDLMSAssociationLogicalName it in Items.GetObjects(ObjectType.AssociationLogicalName))
+                if (AssignedAssociation != null)
                 {
-                    if (it.AuthenticationMechanismName.MechanismId == authentication)
+                    if (AssignedAssociation.AuthenticationMechanismName.MechanismId != authentication)
                     {
-                        target = it;
-                        break;
+                        if (authentication == Authentication.None)
+                        {
+                            return SourceDiagnostic.AuthenticationRequired;
+                        }
+                        return SourceDiagnostic.AuthenticationFailure;
                     }
-                }
-                if (target != null)
-                {
                     if (authentication != Authentication.Low)
                     {
-                        //Other authentication levels are check later.
+                        // Other authentication levels are check later.
                         return SourceDiagnostic.None;
                     }
-                    if (GXCommon.EqualBytes(target.Secret, password))
+                    if (GXCommon.EqualBytes(AssignedAssociation.Secret, password))
                     {
                         return SourceDiagnostic.None;
                     }
@@ -715,13 +653,24 @@ namespace Gurux.DLMS.Simulator.Net
         {
             if (objectType == ObjectType.AssociationLogicalName)
             {
-                foreach (GXDLMSAssociationLogicalName it in Items.GetObjects(ObjectType.AssociationLogicalName))
+                foreach (GXDLMSObject it in Items)
                 {
-                    if (it.AuthenticationMechanismName.MechanismId == Authentication)
+                    if (it.ObjectType == ObjectType.AssociationLogicalName)
                     {
-                        return it;
+                        GXDLMSAssociationLogicalName a = (GXDLMSAssociationLogicalName)it;
+                        if (a.ClientSAP == Settings.ClientAddress
+                                && a.AuthenticationMechanismName.MechanismId == Settings.Authentication
+                                && (ln == a.LogicalName || ln == "0.0.40.0.0.255"))
+                        {
+                            return it;
+                        }
                     }
                 }
+            }
+            // Find object from the active association view.
+            else if (AssignedAssociation != null)
+            {
+                return AssignedAssociation.ObjectList.FindByLN(objectType, ln);
             }
             return null;
         }
@@ -777,7 +726,7 @@ namespace Gurux.DLMS.Simulator.Net
                 lock (this)
                 {
                     //Show trace only for connected meters.
-                    if (Trace > TraceLevel.Info && this.ConnectionState != ConnectionState.None)
+//                    if (Trace > TraceLevel.Info && this.ConnectionState != ConnectionState.None)
                     {
                         Console.WriteLine("RX:\t" + Gurux.Common.GXCommon.ToHex((byte[])e.Data, true));
                     }

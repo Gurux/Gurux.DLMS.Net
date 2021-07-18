@@ -35,18 +35,20 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Gurux.Common, Version=8.1.1711.2301, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.Common.8.1.1711.2301\lib\portable-win+net40\Gurux.Common.dll</HintPath>
+    <Reference Include="Gurux.Common, Version=8.1.2106.1701, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Gurux.Common.8.1.2106.1701\lib\net46\Gurux.Common.dll</HintPath>
     </Reference>
-    <Reference Include="Gurux.Net, Version=8.1.1711.2301, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.Net.8.1.1711.2301\lib\portable-win+net40\Gurux.Net.dll</HintPath>
+    <Reference Include="Gurux.Net, Version=8.1.2106.1701, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Gurux.Net.8.1.2106.1701\lib\net46\Gurux.Net.dll</HintPath>
     </Reference>
-    <Reference Include="Gurux.Serial, Version=8.1.1711.2301, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.Serial.8.1.1711.2301\lib\portable-win+net40\Gurux.Serial.dll</HintPath>
+    <Reference Include="Gurux.Serial, Version=8.1.2106.1701, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Gurux.Serial.8.1.2106.1701\lib\net46\Gurux.Serial.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.Linq" />
     <Reference Include="System.Management" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />

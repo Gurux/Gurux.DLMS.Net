@@ -171,11 +171,11 @@ namespace Gurux.DLMS.Secure
             }
             else if (settings.Authentication == Authentication.HighECDSA)
             {
-                if (cipher.SigningKeyPair.Key == null)
+                if (cipher.SigningKeyPair.Value == null)
                 {
-                    throw new ArgumentNullException("SigningKeyPair is not set.");
+                    throw new ArgumentNullException("Signing key is not set.");
                 }
-                GXEcdsa sig = new GXEcdsa(cipher.SigningKeyPair.Key);
+                GXEcdsa sig = new GXEcdsa(cipher.SigningKeyPair.Value);
                 GXByteBuffer bb = new GXByteBuffer();
                 bb.Set(settings.Cipher.SystemTitle);
                 bb.Set(settings.SourceSystemTitle);

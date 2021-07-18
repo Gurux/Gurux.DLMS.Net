@@ -3269,6 +3269,18 @@ namespace Gurux.DLMS.Internal
         public static string ToBase64(byte[] value)
         {
             return System.Convert.ToBase64String(value);
+        }       
+    }
+
+    static class GXHelpers2
+    {
+        public static T[] Fill<T>(this T[] arr, T value)
+        {
+            for (int i = 0; i < arr.Length; ++i)
+            {
+                arr[i] = value;
+            }
+            return arr;
         }
     }
 }

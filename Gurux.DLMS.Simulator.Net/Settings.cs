@@ -288,7 +288,7 @@ namespace Gurux.DLMS.Simulator.Net
                         settings.client.ServerAddress = GXDLMSClient.GetServerAddress(int.Parse(it.Value), settings.client.ServerAddress);
                         break;
                     case 'n':
-                        settings.client.ServerAddress = GXDLMSClient.GetServerAddress(int.Parse(it.Value));
+                        settings.client.ServerAddress = GXDLMSClient.GetServerAddressFromSerialNumber(int.Parse(it.Value), 0);
                         break;
                     case 'G':
                         settings.gatewaySettings = Enum.Parse(typeof(InterfaceType), it.Value);

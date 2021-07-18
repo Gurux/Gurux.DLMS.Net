@@ -90,6 +90,7 @@ namespace GuruxDLMSServerExample
             media.OnClientDisconnected += new Gurux.Common.ClientDisconnectedEventHandler(OnClientDisconnected);
             media.OnError += new Gurux.Common.ErrorEventHandler(OnError);
             media.Open();
+            //Comment this if the meter describes the content of the push message for the client in the received data.
             push.PushObjectList.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(new GXDLMSClock(), new GXDLMSCaptureObject(2, 0)));
         }
 
@@ -166,50 +167,60 @@ namespace GuruxDLMSServerExample
                     GXReplyData data = new GXReplyData();
                     client.GetData(reply, data, notify);
                     // If all data is received.
-                    if (notify.IsComplete && !notify.IsMoreData)
+                    if (notify.IsComplete)
                     {
-                        foreach (KeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in push.GetPushValues(client, (List<object>)notify.Value))
+                        reply.Clear();
+                        if (!notify.IsMoreData)
                         {
-                            int index = it.Value.AttributeIndex - 1;
-                            Console.WriteLine(((IGXDLMSBase)it.Key).GetNames()[index] + ": " + it.Key.GetValues()[index]);
-                        }
-                        try
-                        {
-                            //Show data as XML.
-                            string xml;
-                            GXDLMSTranslator t = new GXDLMSTranslator(TranslatorOutputType.SimpleXml);
-                            t.DataToXml(notify.Data, out xml);
-                            Console.WriteLine(xml);
-
-                            // Print received data.
-                            PrintData(notify.Value, 0);
-
-                            //Example is sending list of push messages in first parameter.
-                            if (notify.Value is List<object>)
+                            // Make clone so we don't replace current values.
+                            GXDLMSPushSetup clone = (GXDLMSPushSetup)push.Clone();
+                            clone.GetPushValues(client, (List<object>)notify.Value);
+                            //Comment this if the meter describes the content of the push message for the client in the received data.
+                            foreach (KeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in clone.PushObjectList)
                             {
-                                List<object> tmp = notify.Value as List<object>;
-                                List<KeyValuePair<GXDLMSObject, int>> objects = client.ParsePushObjects((List<object>)tmp[0]);
-                                //Remove first item because it's not needed anymore.
-                                objects.RemoveAt(0);
-                                //Update clock.
-                                int Valueindex = 1;
-                                foreach (KeyValuePair<GXDLMSObject, int> it in objects)
-                                {
-                                    client.UpdateValue(it.Key, it.Value, tmp[Valueindex]);
-                                    ++Valueindex;
-                                    //Print value
-                                    Console.WriteLine(it.Key.ObjectType + " " + it.Key.LogicalName + " " + it.Value + ":" + it.Key.GetValues()[it.Value - 1]);
-                                }
+                                int index = it.Value.AttributeIndex - 1;
+                                Console.WriteLine(((IGXDLMSBase)it.Key).GetNames()[index] + ": " + it.Key.GetValues()[index]);
                             }
-                            Console.WriteLine("Server address:" + notify.ServerAddress + " Client Address:" + notify.ClientAddress);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex.Message);
-                        }
-                        finally
-                        {
-                            notify.Clear();
+                            try
+                            {
+                                //Show data as XML.
+                                string xml;
+                                GXDLMSTranslator t = new GXDLMSTranslator(TranslatorOutputType.SimpleXml);
+                                t.DataToXml(notify.Data, out xml);
+                                Console.WriteLine(xml);
+
+                                // Print received data.
+                                PrintData(notify.Value, 0);
+
+                                //Un-comment this if the meter describes the content of the push message for the client in the received data.
+                                /*
+                                if (notify.Value is List<object>)
+                                {
+                                    List<object> tmp = notify.Value as List<object>;
+                                    List<KeyValuePair<GXDLMSObject, int>> objects = client.ParsePushObjects((List<object>)tmp[0]);
+                                    //Remove first item because it's not needed anymore.
+                                    objects.RemoveAt(0);
+                                    //Update clock.
+                                    int Valueindex = 1;
+                                    foreach (KeyValuePair<GXDLMSObject, int> it in objects)
+                                    {
+                                        client.UpdateValue(it.Key, it.Value, tmp[Valueindex]);
+                                        ++Valueindex;
+                                        //Print value
+                                        Console.WriteLine(it.Key.ObjectType + " " + it.Key.LogicalName + " " + it.Value + ":" + it.Key.GetValues()[it.Value - 1]);
+                                    }
+                                }
+                                */
+                                Console.WriteLine("Server address:" + notify.ServerAddress + " Client Address:" + notify.ClientAddress);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                            }
+                            finally
+                            {
+                                notify.Clear();
+                            }
                         }
                     }
                 }

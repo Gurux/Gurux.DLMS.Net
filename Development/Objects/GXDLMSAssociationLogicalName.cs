@@ -40,15 +40,21 @@ using Gurux.DLMS.Secure;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 using System.Text;
+using System.Globalization;
+using Gurux.DLMS.ManufacturerSettings;
 
 namespace Gurux.DLMS.Objects
 {
+
     /// <summary>
     /// Online help:
     /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAssociationLogicalName
     /// </summary>
     public class GXDLMSAssociationLogicalName : GXDLMSObject, IGXDLMSBase
     {
+        private Dictionary<GXDLMSObject, int[]> accessRights = new Dictionary<GXDLMSObject, int[]>();
+        private Dictionary<GXDLMSObject, int[]> methodAccessRights = new Dictionary<GXDLMSObject, int[]>();
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -72,6 +78,15 @@ namespace Gurux.DLMS.Objects
             UserList = new List<KeyValuePair<byte, string>>();
         }
 
+        /// <summary>
+        /// Is this association including other association views.
+        /// </summary>
+        [XmlIgnore()]
+        public bool MultipleAssociationViews
+        {
+            get;
+            set;
+        }
 
         [XmlIgnore()]
         public GXDLMSObjectCollection ObjectList
@@ -419,6 +434,58 @@ namespace Gurux.DLMS.Objects
                 if (ObjectList.FindByLN(obj.ObjectType, obj.LogicalName) == null)
                 {
                     ObjectList.Add(obj);
+                }
+                if (settings.IsServer)
+                {
+                    // Set default values from this LN.
+                    if (obj is GXDLMSAssociationLogicalName ln)
+                    {
+                        if (obj.LogicalName == "0.0.40.0.0.255")
+                        {
+                            e.Error = ErrorCode.UndefinedObject;
+                            return;
+                        }
+                        ln.XDLMSContextInfo.Conformance = XDLMSContextInfo.Conformance;
+                        ln.XDLMSContextInfo.MaxReceivePduSize = XDLMSContextInfo.MaxReceivePduSize;
+                        ln.XDLMSContextInfo.MaxSendPduSize = XDLMSContextInfo.MaxSendPduSize;
+                        // Use the same access right as parent is using.
+                        int count = ((IGXDLMSBase)this).GetAttributeCount();
+                        int[] list = new int[count];
+                        for (int pos = 0; pos != count; ++pos)
+                        {
+                            list[pos] = (int)GetAccess(1 + pos);
+                        }
+                        accessRights[obj] = list;
+                        count = ((IGXDLMSBase)this).GetMethodCount();
+                        list = new int[count];
+                        for (int pos = 0; pos != count; ++pos)
+                        {
+                            list[pos] = (int)GetMethodAccess(1 + pos);
+                        }
+                        methodAccessRights[obj] = list;
+                    }
+                    else
+                    {
+                        int count = ((IGXDLMSBase)obj).GetAttributeCount();
+                        int[] list = new int[count];
+                        for (int pos = 0; pos != count; ++pos)
+                        {
+                            list[pos] = (int)obj.GetAccess(1 + pos);
+                        }
+                        accessRights[obj] = list;
+                        count = ((IGXDLMSBase)obj).GetMethodCount();
+                        list = new int[count];
+                        for (int pos = 0; pos != count; ++pos)
+                        {
+                            list[pos] = (int)obj.GetMethodAccess(1 + pos);
+                        }
+                        methodAccessRights[obj] = list;
+                        if (obj is GXDLMSSecuritySetup ss)
+                        {
+                            // Update server system title.
+                            ss.ServerSystemTitle = settings.Cipher.SystemTitle;
+                        }
+                    }
                 }
             }
         }
@@ -1344,6 +1411,7 @@ namespace Gurux.DLMS.Objects
         void IGXDLMSBase.Load(GXXmlReader reader)
         {
             string str;
+            int[] buff;
             //Load objects.
             ObjectList.Clear();
             if (reader.IsStartElement("ObjectList", true))
@@ -1366,10 +1434,58 @@ namespace Gurux.DLMS.Objects
                             if (obj == null)
                             {
                                 obj = GXDLMSClient.CreateObject(type);
+                                obj.Version = 0;
                                 obj.LogicalName = ln;
                                 reader.Objects.Add(obj);
                             }
                             ObjectList.Add(obj);
+                            // methodAccessRights
+                            string access = reader.ReadElementContentAsString("Access");
+                            int pos = 0;
+                            if (!string.IsNullOrEmpty(access))
+                            {
+                                buff = new int[access.Length];
+                                foreach (byte it in access)
+                                {
+                                    buff[pos] = (it - 0x30);
+                                    ++pos;
+                                }
+                                accessRights[obj] = buff;
+                                pos = 0;
+                            }
+                            access = reader.ReadElementContentAsString("Access3");
+                            if (!string.IsNullOrEmpty(access))
+                            {
+                                buff = new int[access.Length / 4];
+                                for (pos = 0; pos != buff.Length; ++pos)
+                                {
+                                    buff[pos] = int.Parse(access.Substring(4 * pos, 4 * pos + 4), NumberStyles.HexNumber) & ~0x8000;
+                                }
+                                accessRights[obj] = buff;
+                                pos = 0;
+                            }
+                            access = reader.ReadElementContentAsString("MethodAccess");
+                            if (!string.IsNullOrEmpty(access))
+                            {
+                                buff = new int[access.Length];
+                                foreach (byte it in access)
+                                {
+                                    buff[pos] = (it - 0x30);
+                                    ++pos;
+                                }
+                                methodAccessRights[obj] = buff;
+                                pos = 0;
+                            }
+                            access = reader.ReadElementContentAsString("MethodAccess3");
+                            if (!string.IsNullOrEmpty(access))
+                            {
+                                buff = new int[access.Length / 4];
+                                for (pos = 0; pos != buff.Length; ++pos)
+                                {
+                                    buff[pos] = int.Parse(access.Substring(4 * pos, 4 * pos + 4), NumberStyles.HexNumber) & ~0x8000;
+                                }
+                                methodAccessRights[obj] = buff;
+                            }
                         }
                     }
                     else
@@ -1447,6 +1563,7 @@ namespace Gurux.DLMS.Objects
                 }
                 reader.ReadEndElement("Users");
             }
+            MultipleAssociationViews = reader.ReadElementContentAsInt("MultipleAssociationViews") != 0;
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
@@ -1455,17 +1572,73 @@ namespace Gurux.DLMS.Objects
             if (ObjectList != null)
             {
                 writer.WriteStartElement("ObjectList", 2);
+                StringBuilder sb = new StringBuilder();
                 foreach (GXDLMSObject it in ObjectList)
                 {
-                    if (it.ObjectType != ObjectType.AssociationLogicalName)
+                    // Default association view is not saved.
+                    if (!(it.ObjectType == ObjectType.AssociationLogicalName
+                            && (it == this || it.LogicalName == "0.0.40.0.0.255")))
                     {
-                        writer.WriteStartElement("GXDLMS" + it.ObjectType.ToString(), 0);
-                        // Add LN
-                        writer.WriteElementString("LN", it.LogicalName, 0);
-                        writer.WriteEndElement();
+                        if (MultipleAssociationViews || it.ObjectType != ObjectType.AssociationLogicalName)
+                        {
+                            writer.WriteStartElement("GXDLMS" + it.ObjectType.ToString(), 0);
+                            // Add LN
+                            writer.WriteElementString("LN", it.LogicalName, 0);
+                            // Add access rights if set.
+                            if (accessRights.ContainsKey(it))
+                            {
+                                int[] buff = accessRights[it];
+                                sb.Length = 0;
+                                for (int pos = 0; pos != buff.Length; ++pos)
+                                {
+                                    if (Version < 3)
+                                    {
+                                        sb.Append(Convert.ToString(buff[pos]));
+                                    }
+                                    else
+                                    {
+                                        // Set highest bit so value is write with two byte.
+                                        sb.Append((0x8000 | buff[pos]).ToString("X"));
+                                    }
+                                }
+                                if (Version < 3)
+                                {
+                                    writer.WriteElementString("Access", sb.ToString(), 0);
+                                }
+                                else
+                                {
+                                    writer.WriteElementString("Access3", sb.ToString(), 0);
+                                }
+                            }
+                            if (methodAccessRights.ContainsKey(it))
+                            {
+                                int[] buff = methodAccessRights[it];
+                                sb.Length = 0;
+                                for (int pos = 0; pos != buff.Length; ++pos)
+                                {
+                                    if (Version < 3)
+                                    {
+                                        sb.Append(Convert.ToString(buff[pos]));
+                                    }
+                                    else
+                                    {
+                                        // Set highest bit so value is write with two byte.
+                                        sb.Append((0x8000 | buff[pos]).ToString("X"));
+                                    }
+                                }
+                                if (Version < 3)
+                                {
+                                    writer.WriteElementString("MethodAccess", sb.ToString(), 0);
+                                }
+                                else
+                                {
+                                    writer.WriteElementString("MethodAccess3", sb.ToString(), 0);
+                                }
+                            }
+                            writer.WriteEndElement();
+                        }
                     }
                 }
-                writer.WriteEndElement();
             }
             writer.WriteElementString("ClientSAP", ClientSAP, 3);
             writer.WriteElementString("ServerSAP", ServerSAP, 3);
@@ -1527,6 +1700,7 @@ namespace Gurux.DLMS.Objects
                 }
                 writer.WriteEndElement();
             }
+            writer.WriteElementString("MultipleAssociationViews", MultipleAssociationViews, 0);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
@@ -1544,5 +1718,440 @@ namespace Gurux.DLMS.Objects
             }
         }
         #endregion
+
+        /**
+	 * Returns default attribute access mode for the selected object.
+	 * 
+	 * @param target         target object.
+	 * @param attributeIndex Attribute index.
+	 * @return Returns Default access mode.
+	 */
+        private static int GetAttributeAccess(GXDLMSObject target, int attributeIndex)
+        {
+            if (attributeIndex == 1)
+            {
+                return (int)AccessMode.Read;
+            }
+            GXDLMSAttributeSettings att = target.Attributes.Find(attributeIndex);
+            if (att != null)
+            {
+                return (int)att.Access;
+            }
+            switch (target.ObjectType)
+            {
+                case ObjectType.None:
+                    break;
+                case ObjectType.ActionSchedule:
+                    break;
+                case ObjectType.ActivityCalendar:
+                    break;
+                case ObjectType.AssociationLogicalName:
+                    // Association Status
+                    if (attributeIndex == 8)
+                    {
+                        return (int)AccessMode.Read;
+                    }
+                    break;
+                case ObjectType.AssociationShortName:
+                    break;
+                case ObjectType.AutoAnswer:
+                    break;
+                case ObjectType.AutoConnect:
+                    break;
+                case ObjectType.Clock:
+                    break;
+                case ObjectType.Data:
+                    break;
+                case ObjectType.DemandRegister:
+                    break;
+                case ObjectType.MacAddressSetup:
+                    break;
+                case ObjectType.ExtendedRegister:
+                    break;
+                case ObjectType.GprsSetup:
+                    break;
+                case ObjectType.IecHdlcSetup:
+                    break;
+                case ObjectType.IecLocalPortSetup:
+                    break;
+                case ObjectType.IecTwistedPairSetup:
+                    break;
+                case ObjectType.Ip4Setup:
+                    break;
+                case ObjectType.GSMDiagnostic:
+                    break;
+                case ObjectType.Ip6Setup:
+                    break;
+                case ObjectType.MBusSlavePortSetup:
+                    break;
+                case ObjectType.ModemConfiguration:
+                    break;
+                case ObjectType.PushSetup:
+                    break;
+                case ObjectType.PppSetup:
+                    break;
+                case ObjectType.ProfileGeneric:
+                    break;
+                case ObjectType.Register:
+                    break;
+                case ObjectType.RegisterActivation:
+                    break;
+                case ObjectType.RegisterMonitor:
+                    break;
+                case ObjectType.Iec8802LlcType1Setup:
+                    break;
+                case ObjectType.Iec8802LlcType2Setup:
+                    break;
+                case ObjectType.Iec8802LlcType3Setup:
+                    break;
+                case ObjectType.DisconnectControl:
+                    break;
+                case ObjectType.Limiter:
+                    break;
+                case ObjectType.MBusClient:
+                    break;
+                case ObjectType.CompactData:
+                    break;
+                case ObjectType.ParameterMonitor:
+                    break;
+                case ObjectType.WirelessModeQchannel:
+                    break;
+                case ObjectType.MBusMasterPortSetup:
+                    break;
+                case ObjectType.LlcSscsSetup:
+                    break;
+                case ObjectType.PrimeNbOfdmPlcPhysicalLayerCounters:
+                    break;
+                case ObjectType.PrimeNbOfdmPlcMacSetup:
+                    break;
+                case ObjectType.PrimeNbOfdmPlcMacFunctionalParameters:
+                    break;
+                case ObjectType.PrimeNbOfdmPlcMacCounters:
+                    break;
+                case ObjectType.PrimeNbOfdmPlcMacNetworkAdministrationData:
+                    break;
+                case ObjectType.PrimeNbOfdmPlcApplicationsIdentification:
+                    break;
+                case ObjectType.RegisterTable:
+                    break;
+                case ObjectType.ZigBeeSasStartup:
+                    break;
+                case ObjectType.ZigBeeSasJoin:
+                    break;
+                case ObjectType.ZigBeeSasApsFragmentation:
+                    break;
+                case ObjectType.ZigBeeNetworkControl:
+                    break;
+                case ObjectType.DataProtection:
+                    break;
+                case ObjectType.Account:
+                    break;
+                case ObjectType.Credit:
+                    break;
+                case ObjectType.Charge:
+                    break;
+                case ObjectType.TokenGateway:
+                    break;
+                case ObjectType.SapAssignment:
+                    break;
+                case ObjectType.ImageTransfer:
+                    break;
+                case ObjectType.Schedule:
+                    break;
+                case ObjectType.ScriptTable:
+                    break;
+                case ObjectType.SmtpSetup:
+                    break;
+                case ObjectType.SpecialDaysTable:
+                    break;
+                case ObjectType.StatusMapping:
+                    break;
+                case ObjectType.SecuritySetup:
+                    break;
+                case ObjectType.TcpUdpSetup:
+                    break;
+                case ObjectType.UtilityTables:
+                    break;
+                case ObjectType.SFSKPhyMacSetUp:
+                    break;
+                case ObjectType.SFSKActiveInitiator:
+                    break;
+                case ObjectType.SFSKMacSynchronizationTimeouts:
+                    break;
+                case ObjectType.SFSKMacCounters:
+                    break;
+                case ObjectType.Iec61334_4_32LlcSetup:
+                    break;
+                case ObjectType.SFSKReportingSystemList:
+                    break;
+                case ObjectType.Arbitrator:
+                    break;
+                case ObjectType.G3PlcMacLayerCounters:
+                    break;
+                case ObjectType.G3PlcMacSetup:
+                    break;
+                case ObjectType.G3Plc6LoWPan:
+                    break;
+                case ObjectType.IEC14908Identification:
+                    break;
+                case ObjectType.IEC14908PhysicalSetup:
+                    break;
+                case ObjectType.IEC14908PhysicalStatus:
+                    break;
+                case ObjectType.IEC14908Diagnostic:
+                    break;
+                case ObjectType.TariffPlan:
+                    break;
+            }
+            return (int)AccessMode.ReadWrite;
+        }
+
+        /// <summary>
+        /// Returns access mode for given object.
+        /// </summary>
+        /// <param name="target">COSEM object.</param>
+        /// <param name="index">Attribute index.</param>
+        /// <returns>Access mode.</returns>
+        public AccessMode GetAccess(GXDLMSObject target, int index)
+        {
+            if (target == this || (target is GXDLMSAssociationLogicalName
+                && target.LogicalName == "0.0.40.0.0.255"))
+            {
+                return GetAccess(index);
+            }
+            int[] tmp = accessRights[target];
+            if (tmp == null)
+            {
+                return(AccessMode) GetAttributeAccess(target, index);
+            }
+            return (AccessMode)tmp[index - 1];
+        }
+
+        /// <summary>
+        /// Sets access mode for given object.
+        /// </summary>
+        /// <param name="target">COSEM object.</param>
+        /// <param name="index">Attribute index.</param>
+        /// <param name="access">Access mode.</param>
+        public void SetAccess(GXDLMSObject target, int index, AccessMode access)
+        {
+            if (accessRights.ContainsKey(target))
+            {
+                accessRights[target][index - 1] = (int)access;
+            }
+            else
+            {
+                int[] list = new int[((IGXDLMSBase)target).GetAttributeCount()].Fill(3);
+                list[index - 1] = (int)access;
+                accessRights[target] = list;
+            }
+        }
+
+        /// <summary>
+        /// Sets access mode for given object.
+        /// </summary>
+        /// <param name="target">COSEM object.</param>
+        /// <param name="access">Access modes.</param>
+        public void SetAccess(GXDLMSObject target, AccessMode[] access)
+        {
+            int count = ((IGXDLMSBase)target).GetAttributeCount();
+            if (count < access.Length)
+            {
+                throw new Exception("Invalid access buffer.");
+            }
+            int[] buff = new int[count].Fill(3);
+            for (int pos = 0; pos != access.Length; ++pos)
+            {
+                buff[pos] = (int)access[pos];
+            }
+            accessRights[target] = buff;
+        }
+
+        /// <summary>
+        /// Returns method access mode for given object.
+        /// </summary>
+        /// <param name="target">COSEM object.</param>
+        /// <param name="index">Attribute index.</param>
+        /// <returns>Method access mode.</returns>
+        public MethodAccessMode GetMethodAccess(GXDLMSObject target, int index)
+        {
+            if (target == this ||
+                (target is GXDLMSAssociationLogicalName && target.LogicalName == "0.0.40.0.0.255")
+                || methodAccessRights[target] == null)
+            {
+                return this.GetMethodAccess(index);
+            }
+            return (MethodAccessMode)methodAccessRights[target][index - 1];
+        }
+
+        /// <summary>
+        /// Sets method access mode for given object.
+        /// </summary>
+        /// <param name="target">COSEM object.</param>
+        /// <param name="index"> Attribute index.</param>
+        /// <param name="access">Method access mode.</param>
+        public void SetMethodAccess(GXDLMSObject target, int index, MethodAccessMode access)
+        {
+            if (methodAccessRights.ContainsKey(target))
+            {
+                methodAccessRights[target][index - 1] = (int)access;
+            }
+            else
+            {
+                int[] list = new int[((IGXDLMSBase)target).GetMethodCount()].Fill(1);
+                list[index - 1] = (int)access;
+                methodAccessRights[target] = list;
+            }
+        }
+
+        /// <summary>
+        /// Sets method access mode for given object.
+        /// </summary>
+        /// <param name="target">COSEM object.</param>
+        /// <param name="access">Method access modes.</param>
+        public void SetMethodAccess(GXDLMSObject target, MethodAccessMode[] access)
+        {
+            int count = ((IGXDLMSBase)target).GetMethodCount();
+            if (count < access.Length)
+            {
+                throw new Exception("Invalid access buffer.");
+            }
+            int[] buff = new int[count].Fill(1);
+            for (int pos = 0; pos != access.Length; ++pos)
+            {
+                buff[pos] = (int)access[pos];
+            }
+            methodAccessRights[target] = buff;
+        }
+
+        /// <summary>
+        /// Logical or Short Name of DLMS object.
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            string str = base.ToString();
+            str += " " + AuthenticationMechanismName.MechanismId;
+            return str;
+        }
+
+        /// <summary>
+        /// Returns access mode for given object.
+        /// </summary>
+        /// <param name="target">COSEM object.</param>
+        /// <param name="index">Attribute index.</param>
+        /// <returns>Access mode.</returns>
+        public AccessMode3 GetAccess3(GXDLMSObject target, int index)
+        {
+            if (target == this || (target is GXDLMSAssociationLogicalName
+                && target.LogicalName == "0.0.40.0.0.255"))
+            {
+                return GetAccess3(index);
+            }
+            int[] tmp = accessRights[target];
+            if (tmp == null)
+            {
+                return (AccessMode3)GetAttributeAccess(target, index);
+            }
+            return (AccessMode3)tmp[index - 1];
+        }
+
+        /// <summary>
+        /// Sets access mode for given object.
+        /// </summary>
+        /// <param name="target">COSEM object.</param>
+        /// <param name="index">Attribute index.</param>
+        /// <param name="access">Access mode.</param>
+        public void SetAccess3(GXDLMSObject target, int index, AccessMode3 access)
+        {
+            if (accessRights.ContainsKey(target))
+            {
+                accessRights[target][index - 1] = (int)access;
+            }
+            else
+            {
+                int[] list = new int[((IGXDLMSBase)target).GetAttributeCount()].Fill(3);
+                list[index - 1] = (int)access;
+                accessRights[target] = list;
+            }
+        }
+
+        /// <summary>
+        /// Sets access mode for given object.
+        /// </summary>
+        /// <param name="target">COSEM object.</param>
+        /// <param name="access">Access modes.</param>
+        public void SetAccess3(GXDLMSObject target, AccessMode3[] access)
+        {
+            int count = ((IGXDLMSBase)target).GetAttributeCount();
+            if (count < access.Length)
+            {
+                throw new Exception("Invalid access buffer.");
+            }
+            int[] buff = new int[count].Fill(3);
+            for (int pos = 0; pos != access.Length; ++pos)
+            {
+                buff[pos] = (int)access[pos];
+            }
+            accessRights[target] = buff;
+        }
+
+        /// <summary>
+        /// Returns method access mode for given object.
+        /// </summary>
+        /// <param name="target">COSEM object.</param>
+        /// <param name="index">Attribute index.</param>
+        /// <returns>Method access mode.</returns>
+        public MethodAccessMode3 GetMethodAccess3(GXDLMSObject target, int index)
+        {
+            if (target == this ||
+                (target is GXDLMSAssociationLogicalName && target.LogicalName == "0.0.40.0.0.255")
+                || methodAccessRights[target] == null)
+            {
+                return (MethodAccessMode3)GetMethodAccess3(index);
+            }
+            return (MethodAccessMode3)methodAccessRights[target][index - 1];
+        }
+
+        /// <summary>
+        /// Sets method access mode for given object.
+        /// </summary>
+        /// <param name="target">COSEM object.</param>
+        /// <param name="index"> Attribute index.</param>
+        /// <param name="access">Method access mode.</param>
+        public void SetMethodAccess3(GXDLMSObject target, int index, MethodAccessMode3 access)
+        {
+            if (methodAccessRights.ContainsKey(target))
+            {
+                methodAccessRights[target][index - 1] = (int)access;
+            }
+            else
+            {
+                int[] list = new int[((IGXDLMSBase)target).GetMethodCount()].Fill(1);
+                list[index - 1] = (int)access;
+                methodAccessRights[target] = list;
+            }
+        }
+
+        /// <summary>
+        /// Sets method access mode for given object.
+        /// </summary>
+        /// <param name="target">COSEM object.</param>
+        /// <param name="access">Method access modes.</param>
+        public void SetMethodAccess3(GXDLMSObject target, MethodAccessMode3[] access)
+        {
+            int count = ((IGXDLMSBase)target).GetMethodCount();
+            if (count < access.Length)
+            {
+                throw new Exception("Invalid access buffer.");
+            }
+            int[] buff = new int[count].Fill(1);
+            for (int pos = 0; pos != access.Length; ++pos)
+            {
+                buff[pos] = (int)access[pos];
+            }
+            methodAccessRights[target] = buff;
+        }
+
     }
 }

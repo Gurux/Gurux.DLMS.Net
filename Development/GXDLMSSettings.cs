@@ -976,29 +976,7 @@ namespace Gurux.DLMS
                     GXDLMSSecuritySetup ss = (GXDLMSSecuritySetup)assignedAssociation.ObjectList.FindByLN(ObjectType.SecuritySetup, assignedAssociation.SecuritySetupReference);
                     if (ss != null)
                     {
-                        if (ss is GXDLMSSecuritySetup1)
-                        {
-                            Cipher.SecurityPolicy = ((GXDLMSSecuritySetup1)ss).SecurityPolicy;
-                        }
-                        else
-                        {
-                            switch (ss.SecurityPolicy)
-                            {
-                                case SecurityPolicy.None:
-                                    Cipher.SecurityPolicy = SecurityPolicy1.None;
-                                    break;
-                                case SecurityPolicy.Authenticated:
-                                    Cipher.SecurityPolicy = SecurityPolicy1.AuthenticatedRequest | SecurityPolicy1.AuthenticatedResponse;
-                                    break;
-                                case SecurityPolicy.Encrypted:
-                                    Cipher.SecurityPolicy = SecurityPolicy1.EncryptedRequest | SecurityPolicy1.EncryptedResponse;
-                                    break;
-                                case SecurityPolicy.AuthenticatedEncrypted:
-                                    Cipher.SecurityPolicy = SecurityPolicy1.AuthenticatedRequest | SecurityPolicy1.AuthenticatedResponse |
-                                        SecurityPolicy1.EncryptedRequest | SecurityPolicy1.EncryptedResponse;
-                                    break;
-                            }
-                        }
+                        Cipher.SecurityPolicy = ((GXDLMSSecuritySetup)ss).SecurityPolicy;
                         EphemeralBlockCipherKey = ss.Guek;
                         EphemeralBroadcastBlockCipherKey = ss.Gbek;
                         EphemeralAuthenticationKey = ss.Gak;
@@ -1015,20 +993,17 @@ namespace Gurux.DLMS
                         }
                         if (st != null)
                         {
-                            if (ss is GXDLMSSecuritySetup1 ss2)
+                            GXx509Certificate cert = ss.ServerCertificates.FindBySystemTitle(st, KeyUsage.DigitalSignature);
+                            if (cert != null)
                             {
-                                GXx509Certificate cert = ss2.ServerCertificates.FindBySystemTitle(st, KeyUsage.DigitalSignature);
-                                if (cert != null)
-                                {
-                                    Cipher.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(cert.PublicKey, ss2.SigningKey.Value.Value);
-                                }
-                                cert = ss2.ServerCertificates.FindBySystemTitle(st, KeyUsage.KeyAgreement);
-                                if (cert != null)
-                                {
-                                    Cipher.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(cert.PublicKey, ss2.KeyAgreementKey.Value.Value);
-                                }
-                                SourceSystemTitle = st;
+                                Cipher.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(cert.PublicKey, ss.SigningKey.Value.Value);
                             }
+                            cert = ss.ServerCertificates.FindBySystemTitle(st, KeyUsage.KeyAgreement);
+                            if (cert != null)
+                            {
+                                Cipher.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(cert.PublicKey, ss.KeyAgreementKey.Value.Value);
+                            }
+                            SourceSystemTitle = st;
                         }
                         Cipher.SecuritySuite = ss.SecuritySuite;
                         Cipher.SystemTitle = ss.ServerSystemTitle;
@@ -1073,7 +1048,7 @@ namespace Gurux.DLMS
                 assignedAssociation.AssociationStatus = AssociationStatus.NonAssociated;
                 assignedAssociation.XDLMSContextInfo.CypheringInfo = null;
                 InvocationCounter = null;
-                Cipher.SecurityPolicy = SecurityPolicy1.None;
+                Cipher.SecurityPolicy = SecurityPolicy.None;
                 EphemeralBlockCipherKey = null;
                 EphemeralBroadcastBlockCipherKey = null;
                 EphemeralAuthenticationKey = null;

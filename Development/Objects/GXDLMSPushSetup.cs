@@ -163,7 +163,7 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="values">Received values.</param>
         /// <returns>Clone of captured COSEM objects.</returns>
-        public List<KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> GetPushValues(
+        public void GetPushValues(
             GXDLMSClient client,
             List<object> values)
         {
@@ -175,13 +175,11 @@ namespace Gurux.DLMS.Objects
             List<KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> objects = new List<KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
             foreach (KeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in PushObjectList)
             {
-                GXDLMSObject obj = it.Key.Clone();
-                objects.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj,
+                objects.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(it.Key,
                     new GXDLMSCaptureObject(it.Value.AttributeIndex, it.Value.DataIndex)));
-                client.UpdateValue(obj, it.Value.AttributeIndex, values[pos]);
+                client.UpdateValue(it.Key, it.Value.AttributeIndex, values[pos]);
                 ++pos;
             }
-            return objects;
         }
 
         #region IGXDLMSBase Members

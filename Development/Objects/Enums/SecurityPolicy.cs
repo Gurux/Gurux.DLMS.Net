@@ -33,6 +33,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Objects.Enums
 {
@@ -45,18 +46,73 @@ namespace Gurux.DLMS.Objects.Enums
         /// <summary>
         /// Security is not used.
         /// </summary>
+        [XmlEnum("0")]
         None = 0,
         /// <summary>
         /// All messages are authenticated using Security Suite 0.
         /// </summary>
+        [XmlEnum("1")]
         Authenticated = 0x1,
         /// <summary>
         /// All messages are encrypted using Security Suite 0.
         /// </summary>
+        [XmlEnum("2")]
         Encrypted = 0x2,
         /// <summary>
         /// All messages are authenticated and encrypted using Security Suite 0.
         /// </summary>
-        AuthenticatedEncrypted = 0x3
+        [XmlEnum("3")]
+        AuthenticatedEncrypted = 0x3,
+        /// <summary>
+        /// Request is authenticated.
+        /// </summary>
+        /// <remarks>
+        /// This is used in Security Suite 1.
+        /// </remarks>
+        [XmlEnum("4")]
+        AuthenticatedRequest = 0x4,
+        /// <summary>
+        /// Request is encrypted.
+        /// </summary>
+        /// <remarks>
+        /// This is used in Security Suite 1.
+        /// </remarks>
+        [XmlEnum("8")]
+        EncryptedRequest = 0x8,
+        /// <summary>
+        /// Request is digitally signed.
+        /// </summary>
+        /// <remarks>
+        /// This is used in Security Suite 1.
+        /// </remarks>
+        [XmlEnum("16")]
+        DigitallySignedRequest = 0x10,
+
+        /// <summary>
+        /// Response is authenticated.
+        /// </summary>
+        /// <remarks>
+        /// This is used in Security Suite 1.
+        /// </remarks>
+        [XmlEnum("32")]
+        AuthenticatedResponse = 0x20,
+
+        /// <summary>
+        /// Response is encrypted.
+        /// </summary>
+        /// <remarks>
+        /// This is used in Security Suite 1.
+        /// </remarks>
+        [XmlEnum("64")]
+        EncryptedResponse = 0x40,
+
+        /// <summary>
+        /// Response is digitally signed.
+        /// </summary>
+        /// <remarks>
+        /// This is used in Security Suite 1.
+        /// </remarks>
+        [XmlEnum("128")]
+        DigitallySignedResponse = 0x80
     }
 }

@@ -113,111 +113,80 @@ namespace Gurux.DLMS
         /// Get all COSEM objects.
         /// </summary>
         /// <param name="availableObjectTypes">List of available COSEM objects.</param>
-        private static void GetCosemObjects(Dictionary<UInt32, Type> availableObjectTypes)
+        private static void GetCosemObjects(Dictionary<ObjectType, Type> availableObjectTypes)
         {
             if (availableObjectTypes.Count == 0)
             {
-                availableObjectTypes.Add(1 << 16 | (UInt32)(UInt32)ObjectType.G3PlcMacLayerCounters, typeof(GXDLMSG3PlcMacLayerCounters));
-                availableObjectTypes.Add((UInt32)(UInt32)ObjectType.G3PlcMacLayerCounters, typeof(GXDLMSG3PlcMacLayerCounters));
-                availableObjectTypes.Add((UInt32)ObjectType.G3Plc6LoWPan, typeof(GXDLMSG3Plc6LoWPan));
-                availableObjectTypes.Add(1 << 16 | (UInt32)ObjectType.G3Plc6LoWPan, typeof(GXDLMSG3Plc6LoWPan));
-                availableObjectTypes.Add(2 << 16 | (UInt32)ObjectType.G3Plc6LoWPan, typeof(GXDLMSG3Plc6LoWPan));
-                availableObjectTypes.Add((UInt32)ObjectType.G3PlcMacSetup, typeof(GXDLMSG3PlcMacSetup));
-                availableObjectTypes.Add(1 << 16 | (UInt32)ObjectType.G3PlcMacSetup, typeof(GXDLMSG3PlcMacSetup));
-                availableObjectTypes.Add(2 << 16 | (UInt32)ObjectType.G3PlcMacSetup, typeof(GXDLMSG3PlcMacSetup));
-                availableObjectTypes.Add((UInt32)ObjectType.IEC14908Diagnostic, typeof(GXDLMSIEC14908Diagnostic));
-                availableObjectTypes.Add((UInt32)ObjectType.IEC14908PhysicalStatus, typeof(GXDLMSIEC14908PhysicalStatus));
-                availableObjectTypes.Add((UInt32)ObjectType.IEC14908PhysicalSetup, typeof(GXDLMSIEC14908PhysicalSetup));
-                availableObjectTypes.Add((UInt32)ObjectType.IEC14908Identification, typeof(GXDLMSIEC14908Identification));
-                availableObjectTypes.Add((UInt32)ObjectType.Ip6Setup, typeof(GXDLMSIp6Setup));
-                availableObjectTypes.Add((UInt32)ObjectType.SFSKMacCounters, typeof(GXDLMSSFSKMacCounters));
-                availableObjectTypes.Add((UInt32)ObjectType.SFSKMacSynchronizationTimeouts, typeof(GXDLMSSFSKMacSynchronizationTimeouts));
-                availableObjectTypes.Add((UInt32)ObjectType.SFSKActiveInitiator, typeof(GXDLMSSFSKActiveInitiator));
-                availableObjectTypes.Add((UInt32)ObjectType.SFSKPhyMacSetUp, typeof(GXDLMSSFSKPhyMacSetUp));
-                availableObjectTypes.Add(1 << 16 | (UInt32)ObjectType.SFSKPhyMacSetUp, typeof(GXDLMSSFSKPhyMacSetUp));
-                availableObjectTypes.Add((UInt32)ObjectType.IecTwistedPairSetup, typeof(GXDLMSIecTwistedPairSetup));
-                availableObjectTypes.Add(1 << 16 | (UInt32)ObjectType.IecTwistedPairSetup, typeof(GXDLMSIecTwistedPairSetup));
-                availableObjectTypes.Add((UInt32)ObjectType.DisconnectControl, typeof(GXDLMSDisconnectControl));
-                availableObjectTypes.Add((UInt32)ObjectType.ImageTransfer, typeof(GXDLMSImageTransfer));
-                availableObjectTypes.Add((UInt32)ObjectType.Limiter, typeof(GXDLMSLimiter));
-                availableObjectTypes.Add((UInt32)ObjectType.MBusClient, typeof(GXDLMSMBusClient));
-                availableObjectTypes.Add(1 << 16 | (UInt32)ObjectType.MBusClient, typeof(GXDLMSMBusClient));
-                availableObjectTypes.Add((UInt32)ObjectType.MBusMasterPortSetup, typeof(GXDLMSMBusMasterPortSetup));
-                availableObjectTypes.Add((UInt32)ObjectType.MBusSlavePortSetup, typeof(GXDLMSMBusSlavePortSetup));
-                availableObjectTypes.Add((UInt32)ObjectType.MacAddressSetup, typeof(GXDLMSMacAddressSetup));
-                availableObjectTypes.Add((UInt32)ObjectType.AssociationLogicalName, typeof(GXDLMSAssociationLogicalName));
-                availableObjectTypes.Add(1 << 16 | (UInt32)ObjectType.AssociationLogicalName, typeof(GXDLMSAssociationLogicalName));
-                availableObjectTypes.Add(2 << 16 | (UInt32)ObjectType.AssociationLogicalName, typeof(GXDLMSAssociationLogicalName));
-                availableObjectTypes.Add(3 << 16 | (UInt32)ObjectType.AssociationLogicalName, typeof(GXDLMSAssociationLogicalName));
-                availableObjectTypes.Add((UInt32)ObjectType.AssociationShortName, typeof(GXDLMSAssociationShortName));
-                availableObjectTypes.Add(1 << 16 | (UInt32)ObjectType.AssociationShortName, typeof(GXDLMSAssociationShortName));
-                availableObjectTypes.Add(2 << 16 | (UInt32)ObjectType.AssociationShortName, typeof(GXDLMSAssociationShortName));
-                availableObjectTypes.Add(3 << 16 | (UInt32)ObjectType.AssociationShortName, typeof(GXDLMSAssociationShortName));
-                availableObjectTypes.Add((UInt32)ObjectType.AutoAnswer, typeof(GXDLMSAutoAnswer));
-                availableObjectTypes.Add(1 << 16 | (UInt32)ObjectType.AutoAnswer, typeof(GXDLMSAutoAnswer));
-                availableObjectTypes.Add(2 << 16 | (UInt32)ObjectType.AutoAnswer, typeof(GXDLMSAutoAnswer));
-                availableObjectTypes.Add((UInt32)ObjectType.DemandRegister, typeof(GXDLMSDemandRegister));
-                availableObjectTypes.Add((UInt32)ObjectType.ActionSchedule, typeof(GXDLMSActionSchedule));
-                availableObjectTypes.Add((UInt32)ObjectType.ActivityCalendar, typeof(GXDLMSActivityCalendar));
-                availableObjectTypes.Add((UInt32)ObjectType.AutoConnect, typeof(GXDLMSAutoConnect));
-                availableObjectTypes.Add(1 << 16 | (UInt32)ObjectType.AutoConnect, typeof(GXDLMSAutoConnect));
-                availableObjectTypes.Add(2 << 16 | (UInt32)ObjectType.AutoConnect, typeof(GXDLMSAutoConnect));
-                availableObjectTypes.Add((UInt32)ObjectType.Clock, typeof(GXDLMSClock));
-                availableObjectTypes.Add((UInt32)ObjectType.Data, typeof(GXDLMSData));
-                availableObjectTypes.Add((UInt32)ObjectType.ExtendedRegister, typeof(GXDLMSExtendedRegister));
-                availableObjectTypes.Add((UInt32)ObjectType.GprsSetup, typeof(GXDLMSGprsSetup));
-                availableObjectTypes.Add((UInt32)ObjectType.IecHdlcSetup, typeof(GXDLMSHdlcSetup));
-                availableObjectTypes.Add(1 << 16 | (UInt32)ObjectType.IecHdlcSetup, typeof(GXDLMSHdlcSetup));
-                availableObjectTypes.Add((UInt32)ObjectType.IecLocalPortSetup, typeof(GXDLMSIECLocalPortSetup));
-                availableObjectTypes.Add(1 << 16 | (UInt32)ObjectType.IecLocalPortSetup, typeof(GXDLMSIECLocalPortSetup));
-                availableObjectTypes.Add((UInt32)ObjectType.Ip4Setup, typeof(GXDLMSIp4Setup));
-                availableObjectTypes.Add((UInt32)ObjectType.ModemConfiguration, typeof(GXDLMSModemConfiguration));
-                availableObjectTypes.Add(1 << 16 | (UInt32)ObjectType.ModemConfiguration, typeof(GXDLMSModemConfiguration));
-                availableObjectTypes.Add((UInt32)ObjectType.PppSetup, typeof(GXDLMSPppSetup));
-                availableObjectTypes.Add((UInt32)ObjectType.ProfileGeneric, typeof(GXDLMSProfileGeneric));
-                availableObjectTypes.Add(1 << 16 | (UInt32)ObjectType.ProfileGeneric, typeof(GXDLMSProfileGeneric));
-                availableObjectTypes.Add((UInt32)ObjectType.PushSetup, typeof(GXDLMSPushSetup));
-                availableObjectTypes.Add(1 << 16 | (UInt32)ObjectType.PushSetup, typeof(GXDLMSPushSetup));
-                availableObjectTypes.Add(2 << 16 | (UInt32)ObjectType.PushSetup, typeof(GXDLMSPushSetup));
-                availableObjectTypes.Add((UInt32)ObjectType.Register, typeof(GXDLMSRegister));
-                availableObjectTypes.Add((UInt32)ObjectType.RegisterActivation, typeof(GXDLMSRegisterActivation));
-                availableObjectTypes.Add((UInt32)ObjectType.RegisterMonitor, typeof(GXDLMSRegisterMonitor));
-                availableObjectTypes.Add((UInt32)ObjectType.SapAssignment, typeof(GXDLMSSapAssignment));
-                availableObjectTypes.Add((UInt32)ObjectType.Schedule, typeof(GXDLMSSchedule));
-                availableObjectTypes.Add((UInt32)ObjectType.ScriptTable, typeof(GXDLMSScriptTable));
-                availableObjectTypes.Add((UInt32)ObjectType.SecuritySetup, typeof(GXDLMSSecuritySetup));
-                availableObjectTypes.Add(1 << 16 | (UInt32)ObjectType.SecuritySetup, typeof(GXDLMSSecuritySetup1));
-                availableObjectTypes.Add((UInt32)ObjectType.SpecialDaysTable, typeof(GXDLMSSpecialDaysTable));
-                availableObjectTypes.Add((UInt32)ObjectType.TcpUdpSetup, typeof(GXDLMSTcpUdpSetup));
-                availableObjectTypes.Add((UInt32)ObjectType.GSMDiagnostic, typeof(GXDLMSGSMDiagnostic));
-                availableObjectTypes.Add(1 << 16 | (UInt32)ObjectType.GSMDiagnostic, typeof(GXDLMSGSMDiagnostic));
-                availableObjectTypes.Add(2 << 16 | (UInt32)ObjectType.GSMDiagnostic, typeof(GXDLMSGSMDiagnostic));
-                availableObjectTypes.Add((UInt32)ObjectType.Account, typeof(GXDLMSAccount));
-                availableObjectTypes.Add((UInt32)ObjectType.Credit, typeof(GXDLMSCredit));
-                availableObjectTypes.Add((UInt32)ObjectType.Charge, typeof(GXDLMSCharge));
-                availableObjectTypes.Add((UInt32)ObjectType.TokenGateway, typeof(GXDLMSTokenGateway));
-                availableObjectTypes.Add((UInt32)ObjectType.ParameterMonitor, typeof(GXDLMSParameterMonitor));
-                availableObjectTypes.Add(1 << 16 | (UInt32)ObjectType.ParameterMonitor, typeof(GXDLMSParameterMonitor));
-                availableObjectTypes.Add((UInt32)ObjectType.CompactData, typeof(GXDLMSCompactData));
-                availableObjectTypes.Add(1 << 16 | (UInt32)ObjectType.CompactData, typeof(GXDLMSCompactData));
-                availableObjectTypes.Add((UInt32)ObjectType.WirelessModeQchannel, typeof(GXDLMSWirelessModeQchannel));
-                availableObjectTypes.Add(1 << 16 | (UInt32)ObjectType.WirelessModeQchannel, typeof(GXDLMSWirelessModeQchannel));
-                availableObjectTypes.Add((UInt32)ObjectType.UtilityTables, typeof(GXDLMSUtilityTables));
-                availableObjectTypes.Add((UInt32)ObjectType.LlcSscsSetup, typeof(GXDLMSLlcSscsSetup));
-                availableObjectTypes.Add(1 << 16 | (UInt32)ObjectType.LlcSscsSetup, typeof(GXDLMSLlcSscsSetup));
-                availableObjectTypes.Add((UInt32)ObjectType.PrimeNbOfdmPlcPhysicalLayerCounters, typeof(GXDLMSPrimeNbOfdmPlcPhysicalLayerCounters));
-                availableObjectTypes.Add((UInt32)ObjectType.PrimeNbOfdmPlcMacSetup, typeof(GXDLMSPrimeNbOfdmPlcMacSetup));
-                availableObjectTypes.Add((UInt32)ObjectType.PrimeNbOfdmPlcMacFunctionalParameters, typeof(GXDLMSPrimeNbOfdmPlcMacFunctionalParameters));
-                availableObjectTypes.Add((UInt32)ObjectType.PrimeNbOfdmPlcMacCounters, typeof(GXDLMSPrimeNbOfdmPlcMacCounters));
-                availableObjectTypes.Add((UInt32)ObjectType.PrimeNbOfdmPlcMacNetworkAdministrationData, typeof(GXDLMSPrimeNbOfdmPlcMacNetworkAdministrationData));
-                availableObjectTypes.Add((UInt32)ObjectType.PrimeNbOfdmPlcApplicationsIdentification, typeof(GXDLMSPrimeNbOfdmPlcApplicationsIdentification));
-                availableObjectTypes.Add((UInt32)ObjectType.Iec8802LlcType1Setup, typeof(GXDLMSIec8802LlcType1Setup));
-                availableObjectTypes.Add((UInt32)ObjectType.Iec8802LlcType2Setup, typeof(GXDLMSIec8802LlcType2Setup));
-                availableObjectTypes.Add((UInt32)ObjectType.Iec8802LlcType3Setup, typeof(GXDLMSIec8802LlcType3Setup));
-                availableObjectTypes.Add((UInt32)ObjectType.SFSKReportingSystemList, typeof(GXDLMSSFSKReportingSystemList));
-                availableObjectTypes.Add((UInt32)ObjectType.Arbitrator, typeof(GXDLMSArbitrator));
+                availableObjectTypes.Add(ObjectType.G3PlcMacLayerCounters, typeof(GXDLMSG3PlcMacLayerCounters));
+                availableObjectTypes.Add(ObjectType.G3Plc6LoWPan, typeof(GXDLMSG3Plc6LoWPan));
+                availableObjectTypes.Add(ObjectType.G3PlcMacSetup, typeof(GXDLMSG3PlcMacSetup));
+                availableObjectTypes.Add(ObjectType.IEC14908Diagnostic, typeof(GXDLMSIEC14908Diagnostic));
+                availableObjectTypes.Add(ObjectType.IEC14908PhysicalStatus, typeof(GXDLMSIEC14908PhysicalStatus));
+                availableObjectTypes.Add(ObjectType.IEC14908PhysicalSetup, typeof(GXDLMSIEC14908PhysicalSetup));
+                availableObjectTypes.Add(ObjectType.IEC14908Identification, typeof(GXDLMSIEC14908Identification));
+                availableObjectTypes.Add(ObjectType.Ip6Setup, typeof(GXDLMSIp6Setup));
+                availableObjectTypes.Add(ObjectType.SFSKMacCounters, typeof(GXDLMSSFSKMacCounters));
+                availableObjectTypes.Add(ObjectType.SFSKMacSynchronizationTimeouts, typeof(GXDLMSSFSKMacSynchronizationTimeouts));
+                availableObjectTypes.Add(ObjectType.SFSKActiveInitiator, typeof(GXDLMSSFSKActiveInitiator));
+                availableObjectTypes.Add(ObjectType.SFSKPhyMacSetUp, typeof(GXDLMSSFSKPhyMacSetUp));
+                availableObjectTypes.Add(ObjectType.IecTwistedPairSetup, typeof(GXDLMSIecTwistedPairSetup));
+                availableObjectTypes.Add(ObjectType.DisconnectControl, typeof(GXDLMSDisconnectControl));
+                availableObjectTypes.Add(ObjectType.ImageTransfer, typeof(GXDLMSImageTransfer));
+                availableObjectTypes.Add(ObjectType.Limiter, typeof(GXDLMSLimiter));
+                availableObjectTypes.Add(ObjectType.MBusClient, typeof(GXDLMSMBusClient));
+                availableObjectTypes.Add(ObjectType.MBusMasterPortSetup, typeof(GXDLMSMBusMasterPortSetup));
+                availableObjectTypes.Add(ObjectType.MBusSlavePortSetup, typeof(GXDLMSMBusSlavePortSetup));
+                availableObjectTypes.Add(ObjectType.MacAddressSetup, typeof(GXDLMSMacAddressSetup));
+                availableObjectTypes.Add(ObjectType.AssociationLogicalName, typeof(GXDLMSAssociationLogicalName));
+                availableObjectTypes.Add(ObjectType.AssociationShortName, typeof(GXDLMSAssociationShortName));
+                availableObjectTypes.Add(ObjectType.AutoAnswer, typeof(GXDLMSAutoAnswer));
+                availableObjectTypes.Add(ObjectType.DemandRegister, typeof(GXDLMSDemandRegister));
+                availableObjectTypes.Add(ObjectType.ActionSchedule, typeof(GXDLMSActionSchedule));
+                availableObjectTypes.Add(ObjectType.ActivityCalendar, typeof(GXDLMSActivityCalendar));
+                availableObjectTypes.Add(ObjectType.AutoConnect, typeof(GXDLMSAutoConnect));
+                availableObjectTypes.Add(ObjectType.Clock, typeof(GXDLMSClock));
+                availableObjectTypes.Add(ObjectType.Data, typeof(GXDLMSData));
+                availableObjectTypes.Add(ObjectType.ExtendedRegister, typeof(GXDLMSExtendedRegister));
+                availableObjectTypes.Add(ObjectType.GprsSetup, typeof(GXDLMSGprsSetup));
+                availableObjectTypes.Add(ObjectType.IecHdlcSetup, typeof(GXDLMSHdlcSetup));
+                availableObjectTypes.Add(ObjectType.IecLocalPortSetup, typeof(GXDLMSIECLocalPortSetup));
+                availableObjectTypes.Add(ObjectType.Ip4Setup, typeof(GXDLMSIp4Setup));
+                availableObjectTypes.Add(ObjectType.ModemConfiguration, typeof(GXDLMSModemConfiguration));
+                availableObjectTypes.Add(ObjectType.PppSetup, typeof(GXDLMSPppSetup));
+                availableObjectTypes.Add(ObjectType.ProfileGeneric, typeof(GXDLMSProfileGeneric));
+                availableObjectTypes.Add(ObjectType.PushSetup, typeof(GXDLMSPushSetup));
+                availableObjectTypes.Add(ObjectType.Register, typeof(GXDLMSRegister));
+                availableObjectTypes.Add(ObjectType.RegisterActivation, typeof(GXDLMSRegisterActivation));
+                availableObjectTypes.Add(ObjectType.RegisterMonitor, typeof(GXDLMSRegisterMonitor));
+                availableObjectTypes.Add(ObjectType.SapAssignment, typeof(GXDLMSSapAssignment));
+                availableObjectTypes.Add(ObjectType.Schedule, typeof(GXDLMSSchedule));
+                availableObjectTypes.Add(ObjectType.ScriptTable, typeof(GXDLMSScriptTable));
+                availableObjectTypes.Add(ObjectType.SecuritySetup, typeof(GXDLMSSecuritySetup));
+                availableObjectTypes.Add(ObjectType.SpecialDaysTable, typeof(GXDLMSSpecialDaysTable));
+                availableObjectTypes.Add(ObjectType.TcpUdpSetup, typeof(GXDLMSTcpUdpSetup));
+                availableObjectTypes.Add(ObjectType.GSMDiagnostic, typeof(GXDLMSGSMDiagnostic));
+                availableObjectTypes.Add(ObjectType.Account, typeof(GXDLMSAccount));
+                availableObjectTypes.Add(ObjectType.Credit, typeof(GXDLMSCredit));
+                availableObjectTypes.Add(ObjectType.Charge, typeof(GXDLMSCharge));
+                availableObjectTypes.Add(ObjectType.TokenGateway, typeof(GXDLMSTokenGateway));
+                availableObjectTypes.Add(ObjectType.ParameterMonitor, typeof(GXDLMSParameterMonitor));
+                availableObjectTypes.Add(ObjectType.CompactData, typeof(GXDLMSCompactData));
+                availableObjectTypes.Add(ObjectType.WirelessModeQchannel, typeof(GXDLMSWirelessModeQchannel));
+                availableObjectTypes.Add(ObjectType.UtilityTables, typeof(GXDLMSUtilityTables));
+                availableObjectTypes.Add(ObjectType.LlcSscsSetup, typeof(GXDLMSLlcSscsSetup));
+                availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcPhysicalLayerCounters, typeof(GXDLMSPrimeNbOfdmPlcPhysicalLayerCounters));
+                availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcMacSetup, typeof(GXDLMSPrimeNbOfdmPlcMacSetup));
+                availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcMacFunctionalParameters, typeof(GXDLMSPrimeNbOfdmPlcMacFunctionalParameters));
+                availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcMacCounters, typeof(GXDLMSPrimeNbOfdmPlcMacCounters));
+                availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcMacNetworkAdministrationData, typeof(GXDLMSPrimeNbOfdmPlcMacNetworkAdministrationData));
+                availableObjectTypes.Add(ObjectType.PrimeNbOfdmPlcApplicationsIdentification, typeof(GXDLMSPrimeNbOfdmPlcApplicationsIdentification));
+                availableObjectTypes.Add(ObjectType.Iec8802LlcType1Setup, typeof(GXDLMSIec8802LlcType1Setup));
+                availableObjectTypes.Add(ObjectType.Iec8802LlcType2Setup, typeof(GXDLMSIec8802LlcType2Setup));
+                availableObjectTypes.Add(ObjectType.Iec8802LlcType3Setup, typeof(GXDLMSIec8802LlcType3Setup));
+                availableObjectTypes.Add(ObjectType.SFSKReportingSystemList, typeof(GXDLMSSFSKReportingSystemList));
+                availableObjectTypes.Add(ObjectType.Arbitrator, typeof(GXDLMSArbitrator));
                 //Italian standard uses this.
-                availableObjectTypes.Add((UInt32)ObjectType.TariffPlan, typeof(GXDLMSTariffPlan));
+                availableObjectTypes.Add(ObjectType.TariffPlan, typeof(GXDLMSTariffPlan));
             }
         }
 
@@ -228,7 +197,7 @@ namespace Gurux.DLMS
         /// <remarks>
         /// This can be used with serialization.
         /// </remarks>
-        public static Type[] GetObjectTypes(Dictionary<UInt32, Type> availableObjectTypes)
+        public static Type[] GetObjectTypes(Dictionary<ObjectType, Type> availableObjectTypes)
         {
             lock (availableObjectTypes)
             {
@@ -248,7 +217,7 @@ namespace Gurux.DLMS
         /// <remarks>
         /// This can be used with serialization.
         /// </remarks>
-        public static KeyValuePair<ObjectType, int>[] GetObjectTypes2(Dictionary<UInt32, Type> availableObjectTypes)
+        public static KeyValuePair<ObjectType, int>[] GetObjectTypes2(Dictionary<ObjectType, Type> availableObjectTypes)
         {
             lock (availableObjectTypes)
             {
@@ -269,7 +238,7 @@ namespace Gurux.DLMS
         /// Get available COSEM objects.
         /// </summary>
         /// <param name="availableObjectTypes"></param>
-        internal static void GetAvailableObjects(Dictionary<UInt32, Type> availableObjectTypes)
+        internal static void GetAvailableObjects(Dictionary<ObjectType, Type> availableObjectTypes)
         {
             lock (availableObjectTypes)
             {
@@ -277,21 +246,18 @@ namespace Gurux.DLMS
             }
         }
 
-        internal static GXDLMSObject CreateObject(ObjectType type, byte version, Dictionary<UInt32, Type> availableObjectTypes)
+        internal static GXDLMSObject CreateObject(ObjectType type, byte version, Dictionary<ObjectType, Type> availableObjectTypes)
         {
             lock (availableObjectTypes)
             {
-                UInt32 value = version;
-                value <<= 16;
-                value |= (UInt32)type;
                 //Update objects.
                 if (availableObjectTypes.Count == 0)
                 {
                     GetObjectTypes(availableObjectTypes);
                 }
-                if (availableObjectTypes.ContainsKey(value))
+                if (availableObjectTypes.ContainsKey(type))
                 {
-                    return Activator.CreateInstance(availableObjectTypes[value]) as GXDLMSObject;
+                    return Activator.CreateInstance(availableObjectTypes[type]) as GXDLMSObject;
                 }
             }
             GXDLMSObject obj = new GXDLMSObject();
@@ -878,24 +844,17 @@ namespace Gurux.DLMS
             args.SecuritySuite = securitySuite;
             args.CertificateType = certificateType;
             args.SystemTitle = systemTitle;
-            GXPrivateKey key = null;
-            GXPublicKey pub = null;
-            cryptoNotifier.keys(cryptoNotifier, args);
-            if (encrypt)
+            if (cryptoNotifier.keys != null)
             {
-                key = args.PrivateKey;
-            }
-            else
-            {
-                pub = args.PublicKey;
+                cryptoNotifier.keys(cryptoNotifier, args);
             }
             if (encrypt)
             {
-                return key;
+                return args.PrivateKey;
             }
             else
             {
-                return pub;
+                return args.PublicKey;
             }
         }
 
@@ -1148,18 +1107,35 @@ namespace Gurux.DLMS
                     {
                         if (p.multipleBlocks && (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0)
                         {
-                            if (p.requestType == 1)
+                            if (p.requestType == (byte)SetRequestType.Normal)
                             {
-                                p.requestType = 2;
+                                p.requestType = (byte)SetRequestType.FirstDataBlock;
                             }
-                            else if (p.requestType == 2)
+                            else if (p.requestType == (byte)SetRequestType.FirstDataBlock)
                             {
-                                p.requestType = 3;
+                                p.requestType = (byte)SetRequestType.WithDataBlock;
+                            }
+                        }
+                    }
+                    //Change Request type if action request and multiple blocks is needed.
+                    else if (p.command == Command.MethodRequest)
+                    {
+                        if (p.multipleBlocks && (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0)
+                        {
+                            if (p.requestType == (byte) ActionRequestType.Normal)
+                            {
+                                //Remove Method Invocation Parameters tag.
+                                --p.attributeDescriptor.Size;
+                                p.requestType = (byte)ActionRequestType.WithFirstBlock;
+                            }
+                            else if (p.requestType == (byte)ActionRequestType.WithFirstBlock)
+                            {
+                                p.requestType = (byte)ActionRequestType.NextBlock;
                             }
                         }
                     }
                     //Change request type If get response and multiple blocks is needed.
-                    if (p.command == Command.GetResponse)
+                    else if (p.command == Command.GetResponse)
                     {
                         if (p.multipleBlocks && (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0)
                         {
@@ -1189,7 +1165,7 @@ namespace Gurux.DLMS
                 //If multiple blocks.
                 if (p.multipleBlocks && (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0)
                 {
-                    if (p.command != Command.SetResponse)
+                    if (p.command != Command.SetResponse && p.command != Command.MethodResponse)
                     {
                         // Is last block.
                         if (p.lastBlock)
@@ -3499,13 +3475,13 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        data.Xml.AppendStartTag(Command.ReadResponse,
-                                                SingleReadResponse.Data);
+                        data.Xml.AppendStartTag(Command.MethodResponse,
+                                                ActionResponseType.Normal);
                         GXDataInfo di = new GXDataInfo();
                         di.xml = data.Xml;
                         GXCommon.GetData(settings, data.Data, di);
-                        data.Xml.AppendEndTag(Command.ReadResponse,
-                                              SingleReadResponse.Data);
+                        data.Xml.AppendEndTag(Command.MethodResponse,
+                                              ActionResponseType.Normal);
                     }
                     data.Xml.AppendEndTag(TranslatorTags.ReturnParameters);
 
@@ -3543,11 +3519,137 @@ namespace Gurux.DLMS
                     {
                         sb.Append("ServiceClass: UnConfirmed, ");
                     }
-                    sb.Append("ID: " + (invokeId & 0xF).ToString());
+                    sb.Append("Invoke ID: " + (invokeId & 0xF).ToString());
                     xml.AppendComment(sb.ToString());
                 }
                 xml.AppendLine(TranslatorTags.InvokeId, null, xml.IntegerToHex(invokeId, 2));
             }
+        }
+
+        private static bool HandleActionResponseFirstBlock(
+           GXDLMSSettings settings,
+           GXReplyData reply,
+           int index)
+        {
+            bool ret = true;
+            short ch;
+            long number;
+            ch = reply.Data.GetUInt8();
+            if (reply.Xml != null)
+            {
+                //Result start tag.
+                reply.Xml.AppendStartTag(TranslatorTags.Pblock);
+                //LastBlock
+                reply.Xml.AppendLine(TranslatorTags.LastBlock, "Value", reply.Xml.IntegerToHex(ch, 2));
+            }
+            if (ch == 0)
+            {
+                reply.MoreData = (RequestTypes)(reply.MoreData | RequestTypes.DataBlock);
+            }
+            else
+            {
+                reply.MoreData = (RequestTypes)(reply.MoreData & ~RequestTypes.DataBlock);
+            }
+            // Get Block number.
+            number = reply.Data.GetUInt32();
+            if (reply.Xml != null)
+            {
+                //BlockNumber
+                reply.Xml.AppendLine(TranslatorTags.BlockNumber, "Value", reply.Xml.IntegerToHex(number, 8));
+            }
+            else
+            {
+                //If meter's block index is zero based.
+                if (number != 1 && settings.BlockIndex == 1)
+                {
+                    settings.BlockIndex = (uint)number;
+                }
+                if (number != settings.BlockIndex)
+                {
+                    throw new ArgumentException(
+                        "Invalid Block number. It is " + number
+                        + " and it should be " + settings.BlockIndex + ".");
+                }
+            }
+            // Get status.
+            ch = reply.Data.GetUInt8();
+            if (ch != 0)
+            {
+                reply.Error = reply.Data.GetUInt8();
+            }
+            if (reply.Xml != null)
+            {
+                if (reply.Error != 0)
+                {
+                    reply.Xml.AppendLine(TranslatorTags.DataAccessResult, "Value",
+                        GXDLMSTranslator.ErrorCodeToString(reply.Xml.OutputType, (ErrorCode)reply.Error));
+                }
+                else if (reply.Data.Available != 0)
+                {
+                    // Get data size.
+                    int blockLength = GXCommon.GetObjectCount(reply.Data);
+                    // if whole block is read.
+                    if ((reply.MoreData & RequestTypes.Frame) == 0)
+                    {
+                        // Check Block length.
+                        if (blockLength > reply.Data.Size - reply.Data.Position)
+                        {
+                            reply.Xml.AppendComment("Block is not complete." + (reply.Data.Size - reply.Data.Position).ToString() + "/" + blockLength + ".");
+                        }
+                    }
+                    reply.Xml.AppendLine(TranslatorTags.RawData, "Value",
+                                         GXCommon.ToHex(reply.Data.Data, false, reply.Data.Position, reply.Data.Available));
+                }
+                reply.Xml.AppendEndTag(TranslatorTags.Pblock);
+            }
+            else if (reply.Data.Available != 0)
+            {
+                // Get data size.
+                int blockLength = GXCommon.GetObjectCount(reply.Data);
+                // if whole block is read.
+                if ((reply.MoreData & RequestTypes.Frame) == 0)
+                {
+                    // Check Block length.
+                    if (blockLength > reply.Data.Available)
+                    {
+                        throw new OutOfMemoryException();
+                    }
+                    //Keep command if this is last block for XML Client.
+                    if ((reply.MoreData & RequestTypes.DataBlock) != 0)
+                    {
+                        reply.Command = Command.None;
+                    }
+                }
+                if (blockLength == 0)
+                {
+                    //If meter sends empty data block.
+                    reply.Data.Size = index;
+                }
+                else
+                {
+                    GetDataFromBlock(reply.Data, index);
+                }
+                // If last packet and data is not try to peek.
+                if (reply.MoreData == RequestTypes.None)
+                {
+                    if (!reply.Peek)
+                    {
+                        reply.Data.Position = 0;
+                    }
+                    settings.ResetBlockIndex();
+                }
+            }
+            else if (reply.Data.Position == reply.Data.Size)
+            {
+                //Empty block. Conformance tests uses this.
+                reply.EmptyResponses |= RequestTypes.DataBlock;
+            }
+            if (reply.MoreData == RequestTypes.None && settings != null && settings.Command == Command.MethodRequest &&
+                settings.CommandType == (byte)ActionResponseType.WithList)
+            {
+                throw new NotImplementedException("Action with list is not implemented.");
+            }
+            return ret;
         }
 
         /// <summary>
@@ -3556,7 +3658,8 @@ namespace Gurux.DLMS
         /// <param name="settings">DLMS settings.</param>
         /// <param name="data">Received data from the client.</param>
         static void HandleMethodResponse(GXDLMSSettings settings,
-                                         GXReplyData data)
+                                         GXReplyData data,
+                                         int index)
         {
             // Get type.
             ActionResponseType type = (ActionResponseType)data.Data.GetUInt8();
@@ -3564,29 +3667,20 @@ namespace Gurux.DLMS
             data.InvokeId = data.Data.GetUInt8();
             VerifyInvokeId(settings, data);
             AddInvokeId(data.Xml, Command.MethodResponse, type, data.InvokeId);
-            //Action-Response-Normal
-            if (type == ActionResponseType.Normal)
+            switch (type)
             {
-                HandleActionResponseNormal(settings, data);
-            }
-            //Action-Response-With-Pblock
-            else if (type == ActionResponseType.WithFirstBlock)
-            {
-                throw new ArgumentException("Invalid Command.");
-            }
-            // Action-Response-With-List.
-            else if (type == ActionResponseType.WithList)
-            {
-                throw new ArgumentException("Invalid Command.");
-            }
-            //Action-Response-Next-Pblock
-            else if (type == ActionResponseType.WithBlock)
-            {
-                throw new ArgumentException("Invalid Command.");
-            }
-            else
-            {
-                throw new ArgumentException("Invalid Command.");
+                case ActionResponseType.Normal:
+                    HandleActionResponseNormal(settings, data);
+                    break;
+                case ActionResponseType.WithFirstBlock:
+                    HandleActionResponseFirstBlock(settings, data, index);
+                    break;
+                case ActionResponseType.WithList:
+                    throw new ArgumentException("Invalid Command.");
+                case ActionResponseType.WithBlock:
+                    throw new ArgumentException("Invalid Command.");
+                default:
+                    throw new ArgumentException("Invalid Command.");
             }
             if (data.Xml != null)
             {
@@ -3779,8 +3873,6 @@ namespace Gurux.DLMS
                                       GXReplyData reply, int index)
         {
             bool ret = true;
-            long number;
-            short ch = 0;
             GXByteBuffer data = reply.Data;
             bool empty = false;
             // Get type.
@@ -3790,178 +3882,21 @@ namespace Gurux.DLMS
             reply.InvokeId = data.GetUInt8();
             VerifyInvokeId(settings, reply);
             AddInvokeId(reply.Xml, Command.GetResponse, type, reply.InvokeId);
-            // Response normal
-            if (type == GetCommandType.Normal)
+            switch (type)
             {
-                if (data.Available == 0)
-                {
-                    empty = true;
-                    GetDataFromBlock(data, 0);
-                }
-                else
-                {
-                    // Result
-                    ch = data.GetUInt8();
-                    if (ch != 0)
-                    {
-                        reply.Error = data.GetUInt8();
-                    }
-                    if (reply.Xml != null)
-                    {
-                        // Result start tag.
-                        reply.Xml.AppendStartTag(TranslatorTags.Result);
-                        if (reply.Error != 0)
-                        {
-                            reply.Xml.AppendLine(TranslatorTags.DataAccessError,
-                                                 "Value",
-                                                 GXDLMSTranslator.ErrorCodeToString(
-                                                     reply.Xml.OutputType, (ErrorCode)reply.Error));
-                        }
-                        else
-                        {
-                            reply.Xml.AppendStartTag(TranslatorTags.Data);
-                            GXDataInfo di = new GXDataInfo();
-                            di.xml = reply.Xml;
-                            GXCommon.GetData(settings, reply.Data, di);
-                            reply.Xml.AppendEndTag(TranslatorTags.Data);
-                        }
-                    }
-                    else
-                    {
-                        GetDataFromBlock(data, 0);
-                    }
-                }
-            }
-            else if (type == GetCommandType.NextDataBlock)
-            {
-                // Is Last block.
-                ch = data.GetUInt8();
-                if (reply.Xml != null)
-                {
-                    //Result start tag.
-                    reply.Xml.AppendStartTag(TranslatorTags.Result);
-                    //LastBlock
-                    reply.Xml.AppendLine(TranslatorTags.LastBlock, "Value", reply.Xml.IntegerToHex(ch, 2));
-                }
-                if (ch == 0)
-                {
-                    reply.MoreData = (RequestTypes)(reply.MoreData | RequestTypes.DataBlock);
-                }
-                else
-                {
-                    reply.MoreData = (RequestTypes)(reply.MoreData & ~RequestTypes.DataBlock);
-                }
-                // Get Block number.
-                number = data.GetUInt32();
-                if (reply.Xml != null)
-                {
-                    //BlockNumber
-                    reply.Xml.AppendLine(TranslatorTags.BlockNumber, "Value", reply.Xml.IntegerToHex(number, 8));
-                }
-                else
-                {
-                    //If meter's block index is zero based.
-                    if (number != 1 && settings.BlockIndex == 1)
-                    {
-                        settings.BlockIndex = (uint)number;
-                    }
-                    if (number != settings.BlockIndex)
-                    {
-                        throw new ArgumentException(
-                            "Invalid Block number. It is " + number
-                            + " and it should be " + settings.BlockIndex + ".");
-                    }
-                }
-                // Get status.
-                ch = data.GetUInt8();
-                if (ch != 0)
-                {
-                    reply.Error = data.GetUInt8();
-                }
-                if (reply.Xml != null)
-                {
-                    //Result
-                    reply.Xml.AppendStartTag(TranslatorTags.Result);
-                    if (reply.Error != 0)
-                    {
-                        reply.Xml.AppendLine(TranslatorTags.DataAccessResult, "Value",
-                            GXDLMSTranslator.ErrorCodeToString(reply.Xml.OutputType, (ErrorCode)reply.Error));
-                    }
-                    else if (reply.Data.Available != 0)
-                    {
-                        // Get data size.
-                        int blockLength = GXCommon.GetObjectCount(data);
-                        // if whole block is read.
-                        if ((reply.MoreData & RequestTypes.Frame) == 0)
-                        {
-                            // Check Block length.
-                            if (blockLength > data.Size - data.Position)
-                            {
-                                reply.Xml.AppendComment("Block is not complete." + (data.Size - data.Position).ToString() + "/" + blockLength + ".");
-                            }
-                        }
-                        reply.Xml.AppendLine(TranslatorTags.RawData, "Value",
-                                             GXCommon.ToHex(reply.Data.Data, false, data.Position, reply.Data.Available));
-                    }
-                    reply.Xml.AppendEndTag(TranslatorTags.Result);
-                }
-                else if (reply.Data.Available != 0)
-                {
-                    // Get data size.
-                    int blockLength = GXCommon.GetObjectCount(data);
-                    // if whole block is read.
-                    if ((reply.MoreData & RequestTypes.Frame) == 0)
-                    {
-                        // Check Block length.
-                        if (blockLength > data.Size - data.Position)
-                        {
-                            throw new OutOfMemoryException();
-                        }
-                        //Keep command if this is last block for XML Client.
-                        if ((reply.MoreData & RequestTypes.DataBlock) != 0)
-                        {
-                            reply.Command = Command.None;
-                        }
-                    }
-                    if (blockLength == 0)
-                    {
-                        //If meter sends empty data block.
-                        data.Size = index;
-                    }
-                    else
-                    {
-                        GetDataFromBlock(data, index);
-                    }
-                    // If last packet and data is not try to peek.
-                    if (reply.MoreData == RequestTypes.None)
-                    {
-                        if (!reply.Peek)
-                        {
-                            data.Position = 0;
-                        }
-                        settings.ResetBlockIndex();
-                    }
-                }
-                else if (data.Position == data.Size)
-                {
-                    //Empty block. Conformance tests uses this.
-                    reply.EmptyResponses |= RequestTypes.DataBlock;
-                }
-                if (reply.MoreData == RequestTypes.None && settings != null && settings.Command == Command.GetRequest &&
-                    settings.CommandType == (byte)GetCommandType.WithList)
-                {
+                case GetCommandType.Normal:
+                    empty = HandleGetResponseNormal(settings, reply, data);
+                    break;
+                case GetCommandType.NextDataBlock:
+                    // Is Last block.
+                    ret = HandleGetResponseNextDataBlock(settings, reply, index, data);
+                    break;
+                case GetCommandType.WithList:
                     HandleGetResponseWithList(settings, reply);
                     ret = false;
-                }
-            }
-            else if (type == GetCommandType.WithList)
-            {
-                HandleGetResponseWithList(settings, reply);
-                ret = false;
-            }
-            else
-            {
-                throw new ArgumentException("Invalid Get response.");
+                    break;
+                default:
+                    throw new ArgumentException("Invalid Get response.");
             }
             if (reply.Xml != null)
             {
@@ -3973,6 +3908,181 @@ namespace Gurux.DLMS
                 reply.Xml.AppendEndTag(Command.GetResponse);
             }
             return ret;
+        }
+
+        private static bool HandleGetResponseNextDataBlock(
+            GXDLMSSettings settings, 
+            GXReplyData reply, 
+            int index, 
+            GXByteBuffer data)
+        {
+            bool ret = true;
+            short ch;
+            long number;
+            ch = data.GetUInt8();
+            if (reply.Xml != null)
+            {
+                //Result start tag.
+                reply.Xml.AppendStartTag(TranslatorTags.Result);
+                //LastBlock
+                reply.Xml.AppendLine(TranslatorTags.LastBlock, "Value", reply.Xml.IntegerToHex(ch, 2));
+            }
+            if (ch == 0)
+            {
+                reply.MoreData = (RequestTypes)(reply.MoreData | RequestTypes.DataBlock);
+            }
+            else
+            {
+                reply.MoreData = (RequestTypes)(reply.MoreData & ~RequestTypes.DataBlock);
+            }
+            // Get Block number.
+            number = data.GetUInt32();
+            if (reply.Xml != null)
+            {
+                //BlockNumber
+                reply.Xml.AppendLine(TranslatorTags.BlockNumber, "Value", reply.Xml.IntegerToHex(number, 8));
+            }
+            else
+            {
+                //If meter's block index is zero based.
+                if (number != 1 && settings.BlockIndex == 1)
+                {
+                    settings.BlockIndex = (uint)number;
+                }
+                if (number != settings.BlockIndex)
+                {
+                    throw new ArgumentException(
+                        "Invalid Block number. It is " + number
+                        + " and it should be " + settings.BlockIndex + ".");
+                }
+            }
+            // Get status.
+            ch = data.GetUInt8();
+            if (ch != 0)
+            {
+                reply.Error = data.GetUInt8();
+            }
+            if (reply.Xml != null)
+            {
+                //Result
+                reply.Xml.AppendStartTag(TranslatorTags.Result);
+                if (reply.Error != 0)
+                {
+                    reply.Xml.AppendLine(TranslatorTags.DataAccessResult, "Value",
+                        GXDLMSTranslator.ErrorCodeToString(reply.Xml.OutputType, (ErrorCode)reply.Error));
+                }
+                else if (reply.Data.Available != 0)
+                {
+                    // Get data size.
+                    int blockLength = GXCommon.GetObjectCount(data);
+                    // if whole block is read.
+                    if ((reply.MoreData & RequestTypes.Frame) == 0)
+                    {
+                        // Check Block length.
+                        if (blockLength > data.Size - data.Position)
+                        {
+                            reply.Xml.AppendComment("Block is not complete." + (data.Size - data.Position).ToString() + "/" + blockLength + ".");
+                        }
+                    }
+                    reply.Xml.AppendLine(TranslatorTags.RawData, "Value",
+                                         GXCommon.ToHex(reply.Data.Data, false, data.Position, reply.Data.Available));
+                }
+                reply.Xml.AppendEndTag(TranslatorTags.Result);
+            }
+            else if (reply.Data.Available != 0)
+            {
+                // Get data size.
+                int blockLength = GXCommon.GetObjectCount(data);
+                // if whole block is read.
+                if ((reply.MoreData & RequestTypes.Frame) == 0)
+                {
+                    // Check Block length.
+                    if (blockLength > data.Size - data.Position)
+                    {
+                        throw new OutOfMemoryException();
+                    }
+                    //Keep command if this is last block for XML Client.
+                    if ((reply.MoreData & RequestTypes.DataBlock) != 0)
+                    {
+                        reply.Command = Command.None;
+                    }
+                }
+                if (blockLength == 0)
+                {
+                    //If meter sends empty data block.
+                    data.Size = index;
+                }
+                else
+                {
+                    GetDataFromBlock(data, index);
+                }
+                // If last packet and data is not try to peek.
+                if (reply.MoreData == RequestTypes.None)
+                {
+                    if (!reply.Peek)
+                    {
+                        data.Position = 0;
+                    }
+                    settings.ResetBlockIndex();
+                }
+            }
+            else if (data.Position == data.Size)
+            {
+                //Empty block. Conformance tests uses this.
+                reply.EmptyResponses |= RequestTypes.DataBlock;
+            }
+            if (reply.MoreData == RequestTypes.None && settings != null && settings.Command == Command.GetRequest &&
+                settings.CommandType == (byte)GetCommandType.WithList)
+            {
+                HandleGetResponseWithList(settings, reply);
+                ret = false;
+            }
+
+            return ret;
+        }
+
+        private static bool HandleGetResponseNormal(GXDLMSSettings settings, GXReplyData reply, GXByteBuffer data)
+        {
+            bool empty = false;
+            if (data.Available == 0)
+            {
+                empty = true;
+                GetDataFromBlock(data, 0);
+            }
+            else
+            {
+                // Result
+                short ch = data.GetUInt8();
+                if (ch != 0)
+                {
+                    reply.Error = data.GetUInt8();
+                }
+                if (reply.Xml != null)
+                {
+                    // Result start tag.
+                    reply.Xml.AppendStartTag(TranslatorTags.Result);
+                    if (reply.Error != 0)
+                    {
+                        reply.Xml.AppendLine(TranslatorTags.DataAccessError,
+                                             "Value",
+                                             GXDLMSTranslator.ErrorCodeToString(
+                                                 reply.Xml.OutputType, (ErrorCode)reply.Error));
+                    }
+                    else
+                    {
+                        reply.Xml.AppendStartTag(TranslatorTags.Data);
+                        GXDataInfo di = new GXDataInfo();
+                        di.xml = reply.Xml;
+                        GXCommon.GetData(settings, reply.Data, di);
+                        reply.Xml.AppendEndTag(TranslatorTags.Data);
+                    }
+                }
+                else
+                {
+                    GetDataFromBlock(data, 0);
+                }
+            }
+            return empty;
         }
 
         /// <summary>
@@ -4309,7 +4419,7 @@ namespace Gurux.DLMS
                     }
                     byte[] tmp = GXCiphering.Decrypt(p, bb);
                     //If target is sending data ciphered using different security policy.
-                    if ((settings.Connected & ConnectionState.Dlms) != 0 &&
+                    if (!settings.Cipher.SecurityChangeCheck && (settings.Connected & ConnectionState.Dlms) != 0 &&
                         settings.Cipher.Security != Security.None && settings.Cipher.Security != Security.DigitallySigned &&
                         settings.Cipher.Security != p.Security)
                     {
@@ -4382,7 +4492,7 @@ namespace Gurux.DLMS
                         HandleWriteResponse(data);
                         break;
                     case Command.MethodResponse:
-                        HandleMethodResponse(settings, data);
+                        HandleMethodResponse(settings, data, index);
                         break;
                     case Command.AccessRequest:
                         if (data.Xml != null || (!settings.IsServer && (data.MoreData & RequestTypes.Frame) == 0))
@@ -5010,6 +5120,11 @@ namespace Gurux.DLMS
                 {
                     System.Diagnostics.Debug.Assert(reply.GetUInt8(reply.Position - 1) == 0x7e);
                 }
+                if (frame == 0x3 && data.IsMoreData)
+                {
+                    data.Data.Position = 0;
+                    return GetData(settings, reply, data, notify, cryptoNotifier);
+                }
                 return true;
             }
             if (data.RawPdu)
@@ -5017,7 +5132,24 @@ namespace Gurux.DLMS
                 data.Data.Position = 0;
                 return !isNotify;
             }
-            GetPdu(settings, data, cryptoNotifier);
+            if (frame == 0x13 && !data.IsMoreData)
+            {
+                data.Data.Position = 0;
+            }
+            try
+            {
+                GetPdu(settings, data, cryptoNotifier);
+            }
+            catch (Exception)
+            {
+                //Ignore received data if meter is sending invalid push message while data is read from the meter.
+                if (!isNotify)
+                {
+                    throw;
+                }
+                isLast = false;
+                data.Command = Command.None;
+            }
             if (notify != null && !isNotify)
             {
                 //Check command to make sure it's not notify message.
@@ -5030,6 +5162,8 @@ namespace Gurux.DLMS
                     case Command.DedInformationReport:
                     case Command.DedEventNotification:
                         isNotify = true;
+                        notify.IsComplete = data.IsComplete;
+                        notify.MoreData = data.MoreData;
                         notify.Command = data.Command;
                         data.Command = Command.None;
                         notify.Time = data.Time;
