@@ -1640,6 +1640,7 @@ namespace Gurux.DLMS.Objects
                     }
                 }
             }
+            writer.WriteEndElement();
             writer.WriteElementString("ClientSAP", ClientSAP, 3);
             writer.WriteElementString("ServerSAP", ServerSAP, 3);
             writer.WriteStartElement("ApplicationContextName", 4);

@@ -36,7 +36,7 @@ namespace Gurux.DLMS.Objects.Enums
     /// <summary>
     /// Application context name.
     /// </summary>
-    public enum ApplicationContextName
+    public enum ApplicationContextName : byte
     {
         /// <summary>
         /// Invalid application context name.
