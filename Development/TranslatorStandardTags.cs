@@ -229,7 +229,7 @@ namespace Gurux.DLMS
                      "action-response-with-pblock");
             list.Add((int)Command.MethodResponse << 8 | (int)ActionResponseType.WithList,
                      "action-response-with-list");
-            list.Add((int)Command.MethodResponse << 8 | (int)ActionResponseType.WithList,
+            list.Add((int)Command.MethodResponse << 8 | (int)ActionResponseType.WithBlock,
                      "action-response-next-pblock");
             list.Add((int)TranslatorTags.SingleResponse, "single-response");
             list.Add((int)Command.DataNotification, "data-notification");
@@ -342,6 +342,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, Command.GeneralDedCiphering, "general-ded-ciphering");
             GXDLMSTranslator.AddTag(list, Command.DedConfirmedServiceError, "ded-confirmed-service-error");
             GXDLMSTranslator.AddTag(list, Command.GeneralCiphering, "general-ciphering");
+            GXDLMSTranslator.AddTag(list, Command.GeneralSigning, "general-signing");
         }
 
         /// <summary>
@@ -388,6 +389,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorTags.MethodId, "method-id");
             GXDLMSTranslator.AddTag(list, TranslatorTags.Result, "result");
             GXDLMSTranslator.AddTag(list, TranslatorTags.Pblock, "pblock");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.Signature, "signature");
             GXDLMSTranslator.AddTag(list, TranslatorTags.ReturnParameters,
                                     "return-parameters");
             GXDLMSTranslator.AddTag(list, TranslatorTags.AccessSelection,
@@ -501,6 +503,12 @@ namespace Gurux.DLMS
                      "long64-unsigned");
             list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.UInt8,
                      "unsigned");
+            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaInt8, "integer-delta");
+            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaInt16, "long-integer-delta");
+            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaInt32, "double-long-integer-delta");
+            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaUInt8, "unsigned-delta");
+            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaUInt16, "long-unsigned-delta");
+            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaUInt32, "double-long-unsigned-delta");
         }
 
         public static String ErrorCodeToString(ErrorCode value)

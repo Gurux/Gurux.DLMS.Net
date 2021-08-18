@@ -100,6 +100,24 @@ namespace Gurux.DLMS.ASN
         }
 
         /// <summary>
+        /// Find certificate using key usage.
+        /// </summary>
+        /// <param name="usage">Key usage.</param>
+        /// <returns>x509Certificate</returns>
+        public List<GXx509Certificate> GetCertificates(KeyUsage usage)
+        {
+            List<GXx509Certificate> list = new List<GXx509Certificate>();
+            foreach (GXx509Certificate it in this)
+            {
+                if (it.KeyUsage == usage)
+                {
+                    list.Add(it);
+                }
+            }
+            return list;
+        }
+
+        /// <summary>
         /// Find public key certificate by common name (CN).
         /// </summary>
         /// <param name="commonName">Common name.</param>

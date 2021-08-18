@@ -189,8 +189,7 @@ namespace Gurux.DLMS.Simulator.Net
                     }
                     if (pos == 0 && settings.client.UseLogicalNameReferencing)
                     {
-                        str = "Client address: " + settings.client.ClientAddress.ToString();
-                        str += ", Server address: " + settings.client.ServerAddress.ToString();
+                        str = "Server address: " + settings.client.ServerAddress.ToString();
                         Console.WriteLine(str);
                         Console.WriteLine("Associations:");
                         foreach (GXDLMSAssociationLogicalName it in server.Items.GetObjects(ObjectType.AssociationLogicalName))
@@ -200,16 +199,18 @@ namespace Gurux.DLMS.Simulator.Net
                             {
                                 it.Secret = settings.client.Password;
                             }
+                            str = "Client address: " + it.ClientSAP.ToString();
                             if (it.AuthenticationMechanismName.MechanismId == Authentication.None)
                             {
-                                Console.WriteLine("Without authentication.");
+                                str += " Without authentication.";
                             }
                             else
                             {
-                                Console.WriteLine("{0} authentication, password {1}",
+                                str += string.Format(" {0} authentication, password {1}",
                                     it.AuthenticationMechanismName.MechanismId,
                                     it.Secret != null ? ASCIIEncoding.ASCII.GetString(it.Secret) : "");
                             }
+                            Console.WriteLine(str);
                         }
                     }
 

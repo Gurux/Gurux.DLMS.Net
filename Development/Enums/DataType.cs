@@ -188,6 +188,49 @@ namespace Gurux.DLMS.Enums
         ///</remarks>
         Time = 0x1b,
         ///<summary>
+        ///Data type is delta integer.
+        ///</summary>
+        ///<remarks>
+        /// DLMS/COSEM type is: delta-integer.
+        ///</remarks>
+        DeltaInt8 = 28,
+        ///<summary>
+        ///Data type is delta long.
+        ///</summary>
+        ///<remarks>
+        /// DLMS/COSEM type is: delta-long.
+        ///</remarks>
+        DeltaInt16 = 29,
+        ///<summary>
+        ///Data type is delta double long.
+        ///</summary>
+        ///<remarks>
+        /// DLMS/COSEM type is: delta-double-long.
+        ///</remarks>
+        DeltaInt32 = 30,
+
+        ///<summary>
+        ///Data type is delta unsigned.
+        ///</summary>
+        ///<remarks>
+        /// DLMS/COSEM type is: delta-unsigned.
+        ///</remarks>
+        DeltaUInt8 = 31,
+        ///<summary>
+        ///Data type is delta long.
+        ///</summary>
+        ///<remarks>
+        /// DLMS/COSEM type is: delta-long-unsigned.
+        ///</remarks>
+        DeltaUInt16 = 32,
+        ///<summary>
+        ///Data type is delta double long.
+        ///</summary>
+        ///<remarks>
+        /// DLMS/COSEM type is: delta-double-long-unsigned.
+        ///</remarks>
+        DeltaUInt32 = 33,
+        ///<summary>
         ///Data type is UInt16.
         ///</summary>
         ///<remarks>

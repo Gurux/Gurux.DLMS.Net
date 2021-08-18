@@ -626,6 +626,10 @@ namespace Gurux.DLMS
                 case Command.ReleaseResponse:
                     cmd = Command.ReleaseResponse;
                     break;
+                case Command.AccessRequest:
+                case Command.AccessResponse:
+                    cmd = Command.GeneralCiphering;
+                    break;
                 default:
                     throw new GXDLMSException("Invalid GLO command.");
             }
@@ -908,41 +912,66 @@ namespace Gurux.DLMS
             }
             GXByteBuffer tmp2 = new GXByteBuffer();
             byte[] z = null;
-            GXPrivateKey key = c.KeyAgreementKeyPair.Value;
-            GXPublicKey pub = c.KeyAgreementKeyPair.Key;
-            if (key == null)
+            GXPrivateKey key;
+            GXPublicKey pub;
+            if (p.settings.Cipher.KeyAgreementScheme != KeyAgreementScheme.GeneralSigning)
             {
-                key = (GXPrivateKey)GetKey(p.CryptoNotifier, p.settings.Cipher.SecuritySuite, CertificateType.KeyAgreement, p.settings.Cipher.SystemTitle, true);
-                c.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
-            }
-            if (pub == null)
-            {
-                pub = (GXPublicKey)GetKey(p.CryptoNotifier, p.settings.Cipher.SecuritySuite, CertificateType.KeyAgreement, p.settings.SourceSystemTitle, false);
-                c.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
-            }
-            if (keyid == 1)
-            {
-                //Generate ephemeral key pair for each transaction.
-                c.EphemeralKeyPair = GXEcdsa.GenerateKeyPair(c.SecuritySuite == SecuritySuite.Suite1 ? Ecc.P256 : Ecc.P384);
-                GXEcdsa ka = new GXEcdsa(c.EphemeralKeyPair.Value);
-                System.Diagnostics.Debug.WriteLine("Private ephemeral: " + c.EphemeralKeyPair.Value.ToHex());
-                System.Diagnostics.Debug.WriteLine("Public ephemeral: " + c.EphemeralKeyPair.Key.ToHex());
-                System.Diagnostics.Debug.WriteLine("Public agreement key: " + c.KeyAgreementKeyPair.Key.ToHex());
-                z = ka.GenerateSecret(c.KeyAgreementKeyPair.Key);
-            }
-            else if (keyid == 2)
-            {
-                System.Diagnostics.Debug.WriteLine("Private agreement key: " + key.ToHex());
-                System.Diagnostics.Debug.WriteLine("Public agreement key: " + pub.ToHex());
-                System.Diagnostics.Debug.WriteLine("Authentication key: " + GXDLMSTranslator.ToHex(c.AuthenticationKey));
-                GXEcdsa ka = new GXEcdsa(key);
-                z = ka.GenerateSecret(pub);
-                tmp2.SetUInt8(0x8);
-                tmp2.SetUInt64(c.InvocationCounter);
+                key = c.KeyAgreementKeyPair.Value;
+                pub = c.KeyAgreementKeyPair.Key;
+                if (key == null)
+                {
+                    key = (GXPrivateKey)GetKey(p.CryptoNotifier, p.settings.Cipher.SecuritySuite, CertificateType.KeyAgreement, p.settings.Cipher.SystemTitle, true);
+                    c.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
+                }
+                if (pub == null)
+                {
+                    pub = (GXPublicKey)GetKey(p.CryptoNotifier, p.settings.Cipher.SecuritySuite, CertificateType.KeyAgreement, p.settings.SourceSystemTitle, false);
+                    c.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
+                }
+                if (keyid == 1)
+                {
+                    //Generate ephemeral key pair for each transaction.
+                    c.EphemeralKeyPair = GXEcdsa.GenerateKeyPair(c.SecuritySuite == SecuritySuite.Suite1 ? Ecc.P256 : Ecc.P384);
+                    GXEcdsa ka = new GXEcdsa(c.EphemeralKeyPair.Value);
+                    System.Diagnostics.Debug.WriteLine("Private ephemeral: " + c.EphemeralKeyPair.Value.ToHex());
+                    System.Diagnostics.Debug.WriteLine("Public ephemeral: " + c.EphemeralKeyPair.Key.ToHex());
+                    System.Diagnostics.Debug.WriteLine("Public agreement key: " + c.KeyAgreementKeyPair.Key.ToHex());
+                    z = ka.GenerateSecret(c.KeyAgreementKeyPair.Key);
+                }
+                else if (keyid == 2)
+                {
+                    System.Diagnostics.Debug.WriteLine("Private agreement key: " + key.ToHex());
+                    System.Diagnostics.Debug.WriteLine("Public agreement key: " + pub.ToHex());
+                    System.Diagnostics.Debug.WriteLine("Authentication key: " + GXDLMSTranslator.ToHex(c.AuthenticationKey));
+                    GXEcdsa ka = new GXEcdsa(key);
+                    z = ka.GenerateSecret(pub);
+                    tmp2.SetUInt8(0x8);
+                    tmp2.SetUInt64(c.InvocationCounter);
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException("Invalid key-id.");
+                }
             }
             else
             {
-                throw new ArgumentOutOfRangeException("Invalid key-id.");
+                key = c.SigningKeyPair.Value;
+                pub = c.SigningKeyPair.Key;
+                if (key == null)
+                {
+                    key = (GXPrivateKey)GetKey(p.CryptoNotifier, p.settings.Cipher.SecuritySuite, CertificateType.DigitalSignature, p.settings.Cipher.SystemTitle, true);
+                    c.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
+                }
+                if (pub == null)
+                {
+                    pub = (GXPublicKey)GetKey(p.CryptoNotifier, p.settings.Cipher.SecuritySuite, CertificateType.DigitalSignature, p.settings.SourceSystemTitle, false);
+                    c.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
+                }
+                GXEcdsa ka = new GXEcdsa(key);
+                z = ka.GenerateSecret(pub);
+                System.Diagnostics.Debug.WriteLine("Private signing key: " + key.ToHex());
+                System.Diagnostics.Debug.WriteLine("Public signing key: " + pub.ToHex());
+                System.Diagnostics.Debug.WriteLine("Shared secret:" + GXCommon.ToHex(z, true));
             }
             tmp2.Set(p.settings.SourceSystemTitle);
             if (z != null)
@@ -970,7 +999,14 @@ namespace Gurux.DLMS
                 null);
 
             GXByteBuffer reply = new GXByteBuffer();
-            reply.SetUInt8(Command.GeneralCiphering);
+            if (p.settings.Cipher.KeyAgreementScheme == KeyAgreementScheme.GeneralSigning)
+            {
+                reply.SetUInt8(Command.GeneralSigning);
+            }
+            else
+            {
+                reply.SetUInt8(Command.GeneralCiphering);
+            }
             GXCommon.SetObjectCount(8, reply);
             reply.SetUInt64(c.InvocationCounter);
             ++c.InvocationCounter;
@@ -982,13 +1018,16 @@ namespace Gurux.DLMS
             reply.SetUInt8(0);
             // other-information not present
             reply.SetUInt8(0);
-            // optional flag
-            reply.SetUInt8(1);
-            // agreed-key CHOICE
-            reply.SetUInt8(2);
-            // key-parameters
-            reply.SetUInt8(1);
-            reply.SetUInt8(keyid);
+            if (p.settings.Cipher.KeyAgreementScheme != KeyAgreementScheme.GeneralSigning)
+            {
+                // optional flag
+                reply.SetUInt8(1);
+                // agreed-key CHOICE
+                reply.SetUInt8(2);
+                // key-parameters
+                reply.SetUInt8(1);
+                reply.SetUInt8(keyid);
+            }
             if (keyid == 1)
             {
                 key = c.SigningKeyPair.Value;
@@ -1012,7 +1051,7 @@ namespace Gurux.DLMS
                 reply.Set(GXSecure.GetEphemeralPublicKeySignature(keyid,
                         c.EphemeralKeyPair.Key, c.SigningKeyPair.Value));
             }
-            else
+            else if (p.settings.Cipher.KeyAgreementScheme != KeyAgreementScheme.GeneralSigning)
             {
                 reply.SetUInt8(0);
             }
@@ -1022,11 +1061,36 @@ namespace Gurux.DLMS
             byte[] tmp = GXCiphering.Encrypt(s, data);
             // Len
             GXCommon.SetObjectCount(5 + tmp.Length, reply);
+            int contentStart = reply.Size;
             // Add SC
             reply.SetUInt8(sc);
             // Add IC.
             reply.SetUInt32(0);
             reply.Set(tmp);
+
+            if (p.settings.Cipher.KeyAgreementScheme == KeyAgreementScheme.GeneralSigning)
+            {
+                key = c.SigningKeyPair.Value;
+                pub = c.SigningKeyPair.Key;
+                if (key == null)
+                {
+                    key = (GXPrivateKey)GetKey(p.CryptoNotifier, p.settings.Cipher.SecuritySuite, CertificateType.DigitalSignature, p.settings.Cipher.SystemTitle, true);
+                    c.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
+                }
+                if (pub == null)
+                {
+                    pub = (GXPublicKey)GetKey(p.CryptoNotifier, p.settings.Cipher.SecuritySuite, CertificateType.DigitalSignature, p.settings.SourceSystemTitle, false);
+                    c.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
+                }
+                // Signature
+                GXEcdsa ecdsa = new GXEcdsa(key);
+                tmp = reply.SubArray(contentStart, reply.Size - contentStart);
+                System.Diagnostics.Debug.WriteLine("Counting signature:" + reply.ToHex(true, contentStart, reply.Size - contentStart));
+                byte[] signature = ecdsa.Sign(tmp);
+                GXCommon.SetObjectCount(signature.Length, reply);
+                reply.Set(signature);
+            }
+
             System.Diagnostics.Debug.WriteLine("Encrypted:" + reply.ToString());
             return reply.Array();
         }
@@ -1122,7 +1186,7 @@ namespace Gurux.DLMS
                     {
                         if (p.multipleBlocks && (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0)
                         {
-                            if (p.requestType == (byte) ActionRequestType.Normal)
+                            if (p.requestType == (byte)ActionRequestType.Normal)
                             {
                                 //Remove Method Invocation Parameters tag.
                                 --p.attributeDescriptor.Size;
@@ -3911,9 +3975,9 @@ namespace Gurux.DLMS
         }
 
         private static bool HandleGetResponseNextDataBlock(
-            GXDLMSSettings settings, 
-            GXReplyData reply, 
-            int index, 
+            GXDLMSSettings settings,
+            GXReplyData reply,
+            int index,
             GXByteBuffer data)
         {
             bool ret = true;
@@ -4323,7 +4387,6 @@ namespace Gurux.DLMS
                     byte[] encrypted = data.Data.SubArray(0, data.Data.Size);
                     byte[] tmp = GXCiphering.Decrypt(p, data.Data);
                     cipher.SecuritySuite = p.SecuritySuite;
-                    cipher.Security = p.Security;
                     if (cryptoNotifier != null && cryptoNotifier.pdu != null && data.IsComplete && (data.MoreData & RequestTypes.Frame) == 0)
                     {
                         cryptoNotifier.pdu(cryptoNotifier, tmp);
@@ -4599,6 +4662,16 @@ namespace Gurux.DLMS
                             HandleGloDedResponse(settings, data, index, cryptoNotifier);
                         }
                         break;
+                    case Command.GeneralSigning:
+                        if (settings.IsServer)
+                        {
+                            HandleGloDedRequest(settings, data, cryptoNotifier);
+                        }
+                        else
+                        {
+                            HandleGloDedResponse(settings, data, index, cryptoNotifier);
+                        }
+                        break;
                     case Command.DataNotification:
                         HandleDataNotification(settings, data);
                         //Client handles this.
@@ -4666,6 +4739,7 @@ namespace Gurux.DLMS
                         case Command.GloGetRequest:
                         case Command.GloSetRequest:
                         case Command.GloMethodRequest:
+                        case Command.GeneralSigning:
                             data.Command = Command.None;
                             data.Data.Position = data.CipherIndex;
                             GetPdu(settings, data, cryptoNotifier);
@@ -4698,6 +4772,7 @@ namespace Gurux.DLMS
                         case Command.GeneralDedCiphering:
                         case Command.GeneralCiphering:
                         case Command.AccessResponse:
+                        case Command.GeneralSigning:
                             data.Command = Command.None;
                             data.Data.Position = data.CipherIndex;
                             GetPdu(settings, data, cryptoNotifier);
@@ -5122,8 +5197,9 @@ namespace Gurux.DLMS
                 }
                 if (frame == 0x3 && data.IsMoreData)
                 {
+                    bool tmp = GetData(settings, reply, data, notify, cryptoNotifier);
                     data.Data.Position = 0;
-                    return GetData(settings, reply, data, notify, cryptoNotifier);
+                    return tmp;
                 }
                 return true;
             }

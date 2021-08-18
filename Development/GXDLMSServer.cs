@@ -1328,6 +1328,8 @@ namespace Gurux.DLMS
                 case Command.RegisterRequest:
                     Settings.Plc.ParseRegisterRequest(data);
                     return Settings.Plc.DiscoverReport(Settings.Plc.SystemTitle, false);
+                case Command.GeneralSigning:
+                    break;
                 case Command.PingRequest:
                     break;
                 case Command.None:
@@ -1594,18 +1596,17 @@ namespace Gurux.DLMS
                             ret = SourceDiagnostic.AuthenticationRequired;
                             if (UseLogicalNameReferencing)
                             {
-                                GXDLMSAssociationLogicalName ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
+                                GXDLMSAssociationLogicalName ln = AssignedAssociation;
+                                if (ln == null)
+                                {
+                                    ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
+                                    if (ln == null)
+                                    {
+                                        ln = (GXDLMSAssociationLogicalName)NotifyFindObject(ObjectType.AssociationLogicalName, 0, "0.0.40.0.0.255");
+                                    }
+                                }
                                 if (ln != null)
                                 {
-                                    if (Settings.Cipher == null || Settings.Cipher.Security == Security.None)
-                                    {
-                                        ln.ApplicationContextName.ContextId = ApplicationContextName.LogicalName;
-                                    }
-                                    else
-                                    {
-                                        ln.ApplicationContextName.ContextId = ApplicationContextName.LogicalNameWithCiphering;
-                                    }
-                                    ln.AuthenticationMechanismName.MechanismId = Settings.Authentication;
                                     ln.AssociationStatus = AssociationStatus.AssociationPending;
                                 }
                             }
@@ -1614,18 +1615,17 @@ namespace Gurux.DLMS
                         {
                             if (UseLogicalNameReferencing)
                             {
-                                GXDLMSAssociationLogicalName ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
+                                GXDLMSAssociationLogicalName ln = AssignedAssociation;
+                                if (ln == null)
+                                {
+                                    ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
+                                    if (ln == null)
+                                    {
+                                        ln = (GXDLMSAssociationLogicalName)NotifyFindObject(ObjectType.AssociationLogicalName, 0, "0.0.40.0.0.255");
+                                    }
+                                }
                                 if (ln != null)
                                 {
-                                    if (Settings.Cipher == null || Settings.Cipher.Security == Security.None)
-                                    {
-                                        ln.ApplicationContextName.ContextId = ApplicationContextName.LogicalName;
-                                    }
-                                    else
-                                    {
-                                        ln.ApplicationContextName.ContextId = ApplicationContextName.LogicalNameWithCiphering;
-                                    }
-                                    ln.AuthenticationMechanismName.MechanismId = Settings.Authentication;
                                     ln.AssociationStatus = AssociationStatus.Associated;
                                 }
                             }

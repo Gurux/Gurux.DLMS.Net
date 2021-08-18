@@ -286,7 +286,7 @@ namespace Gurux.DLMS.Objects
         /// <returns>Generated action.</returns>
         public byte[][] Activate(GXDLMSClient client, SecurityPolicy policy)
         {
-            return client.Method(this, 1, (byte) policy, DataType.Enum);
+            return client.Method(this, 1, (byte)policy, DataType.Enum);
         }
 
         /// <summary>
@@ -647,7 +647,7 @@ namespace Gurux.DLMS.Objects
         }
 
         #region IGXDLMSBase Members
-             
+
         private static KeyUsage CertificateTypeToKeyUsage(CertificateType type)
         {
             KeyUsage k;
@@ -676,16 +676,16 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Find certificate using entity information.
         /// </summary>
-        /// <param name="settings"> DLMS Settings.</param>
+        /// <param name="certificates">Certificate collection.</param>
         /// <param name="entity">Certificate entity type.</param>
         /// <param name="type">Certificate type.</param>
         /// <param name="systemtitle">System title.</param>
         /// <returns></returns>
-        private static GXx509Certificate FindCertificateByEntity(GXDLMSSettings settings, CertificateEntity entity, CertificateType type, byte[] systemtitle)
+        private static GXx509Certificate FindCertificateByEntity(GXx509CertificateCollection certificates, CertificateEntity entity, CertificateType type, byte[] systemtitle)
         {
             String subject = GXAsn1Converter.SystemTitleToSubject(systemtitle);
             KeyUsage k = CertificateTypeToKeyUsage(type);
-            foreach (GXx509Certificate it in settings.Cipher.Certificates)
+            foreach (GXx509Certificate it in certificates)
             {
                 if ((it.KeyUsage & k) != 0 && it.Subject == subject)
                 {
@@ -698,13 +698,13 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Find certificate using serial information.
         /// </summary>
-        /// <param name="settings">DLMS Settings.</param>
+        /// <param name="certificates">Certificate collection.</param>
         /// <param name="serialNumber">Serial number.</param>
         /// <param name="issuer">Issuer.</param>
         /// <returns></returns>
-        private static GXx509Certificate FindCertificateBySerial(GXDLMSSettings settings, byte[] serialNumber, string issuer)
+        private static GXx509Certificate FindCertificateBySerial(GXx509CertificateCollection certificates, byte[] serialNumber, string issuer)
         {
-            foreach (GXx509Certificate it in settings.Cipher.Certificates)
+            foreach (GXx509Certificate it in certificates)
             {
                 if (GXCommon.ToHex(it.SerialNumber.ToByteArray(), false) == GXCommon.ToHex(serialNumber, false) && it.Issuer == issuer)
                 {
@@ -773,62 +773,81 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        private static void RemoveCertificate(GXDLMSSettings settings, ValueEventArgs e)
+        private void RemoveCertificate(GXDLMSSettings settings, ValueEventArgs e)
         {
             List<Object> tmp = (List<Object>)((List<object>)e.Parameters)[0];
             short type = (short)tmp[0];
+            tmp = (List<Object>)tmp[1];
             GXx509Certificate cert = null;
-            lock (settings.Cipher.Certificates)
+            if (type == 0)
             {
-                if (type == 0)
-                {
-                    cert = FindCertificateByEntity(settings, (CertificateEntity)tmp[1], (CertificateType)tmp[2], (byte[])tmp[3]);
-                }
-                else if (type == 1)
-                {
-                    cert = FindCertificateBySerial(settings, (byte[])tmp[1], ASCIIEncoding.ASCII.GetString((byte[])tmp[2]));
-                }
-                if (cert == null)
-                {
-                    e.Error = ErrorCode.InconsistentClass;
-                }
-                else
-                {
-                    settings.Cipher.Certificates.Remove(cert);
-                }
+                cert = FindCertificateByEntity(ServerCertificates, (CertificateEntity)tmp[1], (CertificateType)tmp[2], (byte[])tmp[3]);
+            }
+            else if (type == 1)
+            {
+                Array.Reverse((byte[])tmp[0]);
+                cert = ServerCertificates.FindBySerial(new BigInteger((byte[])tmp[0]), ASCIIEncoding.ASCII.GetString((byte[])tmp[1]));
+            }
+            if (cert == null)
+            {
+                e.Error = ErrorCode.InconsistentClass;
+            }
+            else
+            {
+                ServerCertificates.Remove(cert);
             }
         }
 
-        private static void ImportCertificate(GXDLMSSettings settings, ValueEventArgs e)
+        private void ImportCertificate(GXDLMSSettings settings, ValueEventArgs e)
         {
             GXx509Certificate cert = new GXx509Certificate((byte[])e.Parameters);
-            if (cert.KeyUsage == 0)
+            byte[] st = ServerSystemTitle;
+            if (st == null)
+            {
+                st = settings.Cipher.SystemTitle;
+            }
+            String serverSubject = GXAsn1Converter.SystemTitleToSubject(st);
+            // If server certification is added.
+            bool isServerCert = cert.Subject.Contains(serverSubject);
+            if (cert.KeyUsage != KeyUsage.KeyAgreement && cert.KeyUsage != KeyUsage.DigitalSignature
+                    && cert.KeyUsage != (KeyUsage.KeyAgreement | KeyUsage.DigitalSignature))
             {
                 // At least one bit must be used.
                 e.Error = ErrorCode.InconsistentClass;
             }
             else
             {
-                settings.Cipher.Certificates.Add(cert);
+                // Remove old certificate if it exists.
+                List<GXx509Certificate> list = ServerCertificates.GetCertificates(cert.KeyUsage);
+                foreach (GXx509Certificate it in list)
+                {
+                    bool isServer = it.Subject.Contains(serverSubject);
+                    if (isServer == isServerCert)
+                    {
+                        ServerCertificates.Remove(it);
+                    }
+                }
             }
+            ServerCertificates.Add(cert);
+            System.Diagnostics.Debug.WriteLine("New certificate imported: " + cert.SerialNumber);
         }
 
-        private static byte[] ExportCertificate(GXDLMSSettings settings, ValueEventArgs e)
+        private byte[] ExportCertificate(GXDLMSSettings settings, ValueEventArgs e)
         {
             List<Object> tmp = (List<Object>)e.Parameters;
-            short type = (short)tmp[0];
+            byte type = Convert.ToByte(tmp[0]);
             GXx509Certificate cert = null;
-            lock (settings.Cipher.Certificates)
+            tmp = (List<Object>)tmp[1];
+            lock (ServerCertificates)
             {
                 if (type == 0)
                 {
-                    tmp = (List<Object>)tmp[1];
-                    cert = FindCertificateByEntity(settings, (CertificateEntity)tmp[0], (CertificateType)tmp[1], (byte[])tmp[2]);
+                    cert = FindCertificateByEntity(ServerCertificates, (CertificateEntity)tmp[0], (CertificateType)tmp[1], (byte[])tmp[2]);
                 }
                 else if (type == 1)
                 {
-                    tmp = (List<Object>)tmp[1];
-                    cert = FindCertificateBySerial(settings, (byte[])tmp[1], ASCIIEncoding.ASCII.GetString((byte[])tmp[2]));
+                    Array.Reverse((byte[])tmp[0]);
+                    cert = ServerCertificates.FindBySerial(new BigInteger((byte[])tmp[0]), ASCIIEncoding.ASCII.GetString((byte[])tmp[1]));
                 }
                 if (cert == null)
                 {
@@ -836,6 +855,7 @@ namespace Gurux.DLMS.Objects
                 }
                 else
                 {
+                    System.Diagnostics.Debug.WriteLine("Export certificate: " + cert.SerialNumber);
                     return cert.Encoded;
                 }
             }
@@ -844,40 +864,64 @@ namespace Gurux.DLMS.Objects
 
         private void GenerateKeyPair(GXDLMSSettings settings, ValueEventArgs e)
         {
-            CertificateType key = (CertificateType)(int)e.Parameters;
+            CertificateType key = (CertificateType)Convert.ToInt32(e.Parameters);
             KeyValuePair<GXPublicKey, GXPrivateKey> value = GXEcdsa.GenerateKeyPair(GetEcc(SecuritySuite));
             switch (key)
             {
                 case CertificateType.DigitalSignature:
-                    settings.Cipher.SigningKeyPair = value;
+                    SigningKey = value;
+                    // If all associations are using same certifications.
+                    if (settings.AssociationsShareCertificates)
+                    {
+                        settings.Cipher.SigningKeyPair = value;
+                    }
                     break;
                 case CertificateType.KeyAgreement:
-                    settings.Cipher.KeyAgreementKeyPair = value;
+                    KeyAgreementKey = value;
+                    // If all associations are using same certifications.
+                    if (settings.AssociationsShareCertificates)
+                    {
+                        settings.Cipher.KeyAgreementKeyPair = value;
+                    }
                     break;
                 default:
-                    e.Error = ErrorCode.InconsistentClass;
+                    TlsKey = value;
+                    // If all associations are using same certifications.
+                    if (settings.AssociationsShareCertificates)
+                    {
+                        settings.Cipher.TlsKeyPair = value;
+                    }
                     break;
             }
         }
 
         private byte[] GenerateCertificateRequest(GXDLMSSettings settings, ValueEventArgs e)
         {
-            CertificateType key = (CertificateType)(int)e.Parameters;
+            CertificateType key = (CertificateType)Convert.ToInt32(e.Parameters);
             KeyValuePair<GXPublicKey, GXPrivateKey> kp = default(KeyValuePair<GXPublicKey, GXPrivateKey>);
+            byte[] st = ServerSystemTitle;
+            if (st == null)
+            {
+                st = settings.Cipher.SystemTitle;
+            }
+
             switch (key)
             {
                 case CertificateType.DigitalSignature:
-                    kp = settings.Cipher.SigningKeyPair;
+                    kp = SigningKey.Value;
                     break;
                 case CertificateType.KeyAgreement:
-                    kp = settings.Cipher.KeyAgreementKeyPair;
+                    kp = KeyAgreementKey.Value;
+                    break;
+                case CertificateType.TLS:
+                    kp = TlsKey.Value;
                     break;
                 default:
                     break;
             }
             if (kp.Key != null)
             {
-                GXPkcs10 pkc10 = GXPkcs10.CreateCertificateSigningRequest(kp, GXAsn1Converter.SystemTitleToSubject(settings.Cipher.SystemTitle));
+                GXPkcs10 pkc10 = GXPkcs10.CreateCertificateSigningRequest(kp, GXAsn1Converter.SystemTitleToSubject(st));
                 return pkc10.Encoded;
             }
             else
@@ -1035,10 +1079,13 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(5);
             }
-            //Certificates
-            if (all || CanRead(6))
+            if (Version > 0)
             {
-                attributes.Add(6);
+                //Certificates
+                if (all || CanRead(6))
+                {
+                    attributes.Add(6);
+                }
             }
             return attributes.ToArray();
         }
@@ -1046,17 +1093,35 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Security Policy",
-                              "Security Suite", "Client System Title", "Server System Title" , "Certificates"
-                            };
+            List<string> list = new List<string>();
+            list.Add(Internal.GXCommon.GetLogicalNameString());
+            list.Add("Security Policy");
+            list.Add("Security Suite");
+            list.Add("Client System Title");
+            list.Add("Server System Title");
+            if (Version > 0)
+            {
+                list.Add("Certificates");
+            }
+            return list.ToArray();
         }
 
         /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
         string[] IGXDLMSBase.GetMethodNames()
         {
-            return new string[] { "Security activate", "Key transfer", "Key agreement",
-                "Generate key pair", "Generate certificate request",
-                "Import certificate", "Export certificate", "Remove certificate" };
+            List<string> list = new List<string>();
+            list.Add("Security activate");
+            list.Add("Key transfer");
+            if (Version > 0)
+            {
+                list.Add("Key agreement");
+                list.Add("Generate key pair");
+                list.Add("Generate certificate request");
+                list.Add("Import certificate");
+                list.Add("Export certificate");
+                list.Add("Remove certificate");
+            }
+            return list.ToArray();
         }
 
         int IGXDLMSBase.GetMaxSupportedVersion()
@@ -1066,11 +1131,19 @@ namespace Gurux.DLMS.Objects
 
         int IGXDLMSBase.GetAttributeCount()
         {
+            if (Version == 0)
+            {
+                return 5;
+            }
             return 6;
         }
 
         int IGXDLMSBase.GetMethodCount()
         {
+            if (Version == 0)
+            {
+                return 2;
+            }
             return 8;
         }
 
@@ -1111,23 +1184,53 @@ namespace Gurux.DLMS.Objects
         /// Get sertificates as byte buffer.
         /// </summary>
         /// <returns></returns>
-        private byte[] GetSertificates()
+        private byte[] GetSertificates(GXDLMSSettings settings)
         {
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetUInt8((byte)DataType.Array);
-            GXCommon.SetObjectCount(Certificates.Count, bb);
-            foreach (GXDLMSCertificateInfo it in Certificates)
+            GXCommon.SetObjectCount(ServerCertificates.Count, bb);
+            foreach (GXx509Certificate it in ServerCertificates)
             {
-                bb.SetUInt8((byte)DataType.Structure);
+                bb.SetUInt8(DataType.Structure);
                 GXCommon.SetObjectCount(6, bb);
-                bb.SetUInt8((byte)DataType.Enum);
-                bb.SetUInt8((byte)it.Entity);
-                bb.SetUInt8((byte)DataType.Enum);
-                bb.SetUInt8((byte)it.Type);
-                GXCommon.AddString(it.SerialNumber.ToString(), bb);
+                bb.SetUInt8(DataType.Enum);
+                if (it.BasicConstraints)
+                {
+                    bb.SetUInt8(CertificateEntity.CertificationAuthority);
+                }
+                else if (it.Subject.Contains(GXAsn1Converter.SystemTitleToSubject(ServerSystemTitle)))
+                {
+                    bb.SetUInt8(CertificateEntity.Server);
+                }
+                else
+                {
+                    bb.SetUInt8(CertificateEntity.Client);
+                }
+                bb.SetUInt8(DataType.Enum);
+                if (it.KeyUsage == (KeyUsage.DigitalSignature | KeyUsage.KeyAgreement))
+                {
+                    bb.SetUInt8(CertificateType.TLS);
+                }
+                else if (it.KeyUsage == KeyUsage.DigitalSignature)
+                {
+                    bb.SetUInt8(CertificateType.DigitalSignature);
+                }
+                else if (it.KeyUsage == KeyUsage.KeyAgreement)
+                {
+                    bb.SetUInt8(CertificateType.KeyAgreement);
+                }
+                else
+                {
+                    bb.SetUInt8(CertificateType.Other);
+                }
+                bb.SetUInt8(DataType.OctetString);
+                byte[] tmp = it.SerialNumber.ToByteArray();
+                Array.Reverse(tmp);
+                bb.SetUInt8((byte)tmp.Length);
+                bb.Set(tmp);
                 GXCommon.AddString(it.Issuer, bb);
                 GXCommon.AddString(it.Subject, bb);
-                GXCommon.AddString(it.SubjectAltName, bb);
+                GXCommon.AddString("", bb);
             }
             return bb.Array();
         }
@@ -1156,7 +1259,7 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 6)
             {
-                return GetSertificates();
+                return GetSertificates(settings);
             }
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
@@ -1269,6 +1372,8 @@ namespace Gurux.DLMS.Objects
             {
                 GXPkcs8 pk = GXPkcs8.FromDer(str);
                 SigningKey = new KeyValuePair<GXPublicKey, GXPrivateKey>(pk.PublicKey, pk.PrivateKey);
+                System.Diagnostics.Debug.WriteLine("Signing Private Key: " + pk.PrivateKey.ToHex());
+                System.Diagnostics.Debug.WriteLine("Signing Public Key: " + pk.PublicKey.ToHex());
             }
             str = reader.ReadElementContentAsString("KeyAgreement");
             if (str == null)

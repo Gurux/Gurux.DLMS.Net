@@ -563,6 +563,25 @@ namespace Gurux.DLMS.Internal
                 case DataType.Time:
                     value = GetTime(data, info);
                     break;
+                case DataType.DeltaInt8:
+                    value = new GXDeltaInt8(GetInt8(data, info));
+                    break;
+                case DataType.DeltaInt16:
+                    value = new GXDeltaInt16(GetInt16(data, info));
+                    break;
+                case DataType.DeltaInt32:
+                    value = new GXDeltaInt32(GetInt32(data, info));
+                    break;
+                case DataType.DeltaUInt8:
+                    value = new GXDeltaUInt8(GetUInt8(data, info));
+                    break;
+                case DataType.DeltaUInt16:
+                    value = new GXDeltaUInt16(GetUInt16(data, info));
+                    break;
+                case DataType.DeltaUInt32:
+                    value = new GXDeltaUInt32(GetUInt32(data, info));
+                    break;
+
                 default:
                     throw new Exception("Invalid data type.");
             }
@@ -1131,13 +1150,13 @@ namespace Gurux.DLMS.Internal
         ///<returns>
         ///Parsed UInt16 value.
         ///</returns>
-        private static object GetUInt16(GXByteBuffer buff, GXDataInfo info)
+        private static UInt16 GetUInt16(GXByteBuffer buff, GXDataInfo info)
         {
             // If there is not enough data available.
             if (buff.Size - buff.Position < 2)
             {
                 info.Complete = false;
-                return null;
+                return 0;
             }
             UInt16 value = buff.GetUInt16();
             if (info.xml != null)
@@ -1482,13 +1501,13 @@ namespace Gurux.DLMS.Internal
         ///<returns>
         ///Parsed UInt8 value.
         ///</returns>
-        private static object GetUInt8(GXByteBuffer buff, GXDataInfo info)
+        private static byte GetUInt8(GXByteBuffer buff, GXDataInfo info)
         {
             // If there is not enough data available.
             if (buff.Size - buff.Position < 1)
             {
                 info.Complete = false;
-                return null;
+                return 0;
             }
             byte value = buff.GetUInt8();
             if (info.xml != null)
@@ -1510,13 +1529,13 @@ namespace Gurux.DLMS.Internal
         ///<returns>
         ///Parsed Int16 value.
         ///</returns>
-        private static object GetInt16(GXByteBuffer buff, GXDataInfo info)
+        private static Int16 GetInt16(GXByteBuffer buff, GXDataInfo info)
         {
             // If there is not enough data available.
             if (buff.Size - buff.Position < 2)
             {
                 info.Complete = false;
-                return null;
+                return 0;
             }
             Int16 value = buff.GetInt16();
             if (info.xml != null)
@@ -1538,13 +1557,13 @@ namespace Gurux.DLMS.Internal
         ///<returns>
         ///Parsed Int8 value.
         ///</returns>
-        private static object GetInt8(GXByteBuffer buff, GXDataInfo info)
+        private static sbyte GetInt8(GXByteBuffer buff, GXDataInfo info)
         {
             // If there is not enough data available.
             if (buff.Size - buff.Position < 1)
             {
                 info.Complete = false;
-                return null;
+                return 0;
             }
             sbyte value = buff.GetInt8();
             if (info.xml != null)
@@ -1872,13 +1891,13 @@ namespace Gurux.DLMS.Internal
         ///<returns>
         ///Parsed UInt32 value.
         /// </returns>
-        private static object GetUInt32(GXByteBuffer buff, GXDataInfo info)
+        private static UInt32 GetUInt32(GXByteBuffer buff, GXDataInfo info)
         {
             // If there is not enough data available.
             if (buff.Size - buff.Position < 4)
             {
                 info.Complete = false;
-                return null;
+                return 0;
             }
             UInt32 value = buff.GetUInt32();
             if (info.xml != null)
@@ -1900,13 +1919,13 @@ namespace Gurux.DLMS.Internal
         ///<returns>
         ///Parsed Int32 value.
         ///</returns>
-        private static object GetInt32(GXByteBuffer buff, GXDataInfo info)
+        private static Int32 GetInt32(GXByteBuffer buff, GXDataInfo info)
         {
             // If there is not enough data available.
             if (buff.Size - buff.Position < 4)
             {
                 info.Complete = false;
-                return null;
+                return 0;
             }
             Int32 value = buff.GetInt32();
             if (info.xml != null)

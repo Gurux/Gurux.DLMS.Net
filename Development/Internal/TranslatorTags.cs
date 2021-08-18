@@ -127,6 +127,7 @@ namespace Gurux.DLMS
         ResponseAllowed,
         ExceptionResponse,
         StateError,
-        Pblock
+        Pblock,
+        Signature
     }
 }

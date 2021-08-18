@@ -429,6 +429,8 @@ namespace Gurux.DLMS.Objects
                             }
                             else
                             {
+                                //Version must be update because component might be added to the association view.
+                                tmp.Version = obj.Version;
                                 obj = tmp;
                             }
                         }

@@ -1637,6 +1637,23 @@ namespace Gurux.DLMS.Objects
                             writer.WriteStartElement("GXDLMS" + it.ObjectType.ToString(), 0);
                             // Add LN
                             writer.WriteElementString("LN", it.LogicalName, 0);
+                            if (!accessRights.ContainsKey(it))
+                            {
+                                if (Version < 3)
+                                {
+                                    for (int pos = 1; pos != ((IGXDLMSBase)it).GetAttributeCount() + 1; ++pos)
+                                    {
+                                        SetAccess(it, pos, it.GetAccess(pos));
+                                    }
+                                }
+                                else
+                                {
+                                    for (int pos = 1; pos != ((IGXDLMSBase)it).GetAttributeCount() + 1; ++pos)
+                                    {
+                                        SetAccess3(it, pos, it.GetAccess3(pos));
+                                    }
+                                }
+                            }
                             // Add access rights if set.
                             if (accessRights.ContainsKey(it))
                             {
@@ -1661,6 +1678,23 @@ namespace Gurux.DLMS.Objects
                                 else
                                 {
                                     writer.WriteElementString("Access3", sb.ToString(), 0);
+                                }
+                            }
+                            if (!methodAccessRights.ContainsKey(it))
+                            {
+                                if (Version < 3)
+                                {
+                                    for (int pos = 1; pos != ((IGXDLMSBase)it).GetMethodCount() + 1; ++pos)
+                                    {
+                                        SetMethodAccess(it, pos, it.GetMethodAccess(pos));
+                                    }
+                                }
+                                else
+                                {
+                                    for (int pos = 1; pos != ((IGXDLMSBase)it).GetMethodCount() + 1; ++pos)
+                                    {
+                                        SetMethodAccess3(it, pos, it.GetMethodAccess3(pos));
+                                    }
                                 }
                             }
                             if (methodAccessRights.ContainsKey(it))

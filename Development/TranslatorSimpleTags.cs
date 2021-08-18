@@ -221,6 +221,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, Command.GloWriteResponse, "glo_WriteResponse");
             GXDLMSTranslator.AddTag(list, Command.GeneralGloCiphering, "GeneralGloCiphering");
             GXDLMSTranslator.AddTag(list, Command.GeneralCiphering, "GeneralCiphering");
+            GXDLMSTranslator.AddTag(list, Command.GeneralSigning, "GeneralSigning");
             GXDLMSTranslator.AddTag(list, Command.GloConfirmedServiceError, "glo_GloConfirmedServiceError");
         }
 
@@ -273,6 +274,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorTags.MethodId, "MethodId");
             GXDLMSTranslator.AddTag(list, TranslatorTags.Result, "Result");
             GXDLMSTranslator.AddTag(list, TranslatorTags.Pblock, "PBlock");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.Signature, "Signature");
             GXDLMSTranslator.AddTag(list, TranslatorTags.ReturnParameters, "ReturnParameters");
             GXDLMSTranslator.AddTag(list, TranslatorTags.AccessSelection, "AccessSelection");
             GXDLMSTranslator.AddTag(list, TranslatorTags.Value, "Value");
@@ -364,6 +366,13 @@ namespace Gurux.DLMS
             list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.UInt64,
                      "UInt64");
             list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.UInt8, "UInt8");
+
+            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaInt8, "Delta-Int8");
+            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaInt16, "Delta-Int16");
+            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaInt32, "Delta-Int32");
+            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaUInt8, "Delta-UInt8");
+            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaUInt16, "Delta-UInt16");
+            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaUInt32, "Delta-UInt32");
         }
 
         public static String ErrorCodeToString(ErrorCode value)

@@ -1632,6 +1632,7 @@ namespace Gurux.DLMS
                 case Command.DedConfirmedServiceError:
                 case Command.GeneralCiphering:
                 case Command.ReleaseRequest:
+                case Command.GeneralSigning:
                     return true;
                 default:
                     return false;
@@ -1972,77 +1973,186 @@ namespace Gurux.DLMS
                         break;
                     case (byte)Command.GeneralGloCiphering:
                     case (byte)Command.GeneralDedCiphering:
-                        if (settings.Cipher != null && Comments)
                         {
-                            int len2 = xml.GetXmlLength();
-                            int originalPosition = value.Position;
-                            --value.Position;
-                            //Check is this client msg.
-                            try
+                            AesGcmParameter p = null;
+                            if (settings.Cipher != null && Comments)
                             {
-                                byte[] st;
-                                st = settings.Cipher.SystemTitle;
-                                AesGcmParameter p;
-                                if (cmd == (byte)Command.GeneralDedCiphering && settings.Cipher.DedicatedKey != null)
-                                {
-                                    p = new AesGcmParameter(settings, st, settings.Cipher.DedicatedKey, settings.Cipher.AuthenticationKey);
-                                }
-                                else
-                                {
-                                    p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
-                                }
-                                p.Xml = xml;
-                                GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
-                                len2 = xml.GetXmlLength();
-                                xml.AppendComment("Invocation Counter: " + p.InvocationCounter.ToString());
-                                xml.StartComment("Decrypt data: " + data2.ToString());
-                                PduToXml(xml, data2, omitDeclaration, omitNameSpace, false, msg);
-                                xml.EndComment();
-                            }
-                            catch (Exception)
-                            {
-                                xml.SetXmlLength(len2);
-                                value.Position = originalPosition;
+                                int len2 = xml.GetXmlLength();
+                                int originalPosition = value.Position;
                                 --value.Position;
-                                //Check is this server msg.
+                                //Check is this client msg.
                                 try
                                 {
                                     byte[] st;
-                                    st = settings.SourceSystemTitle;
-                                    if (st != null)
+                                    st = settings.Cipher.SystemTitle;
+                                    if (cmd == (byte)Command.GeneralDedCiphering && settings.Cipher.DedicatedKey != null)
                                     {
-                                        AesGcmParameter p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
-                                        GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
-                                        xml.AppendComment("Invocation Counter: " + p.InvocationCounter.ToString());
-                                        xml.StartComment("Decrypt data: " + data2.ToString());
-                                        PduToXml(xml, data2, omitDeclaration, omitNameSpace, false, msg);
-                                        xml.EndComment();
+                                        p = new AesGcmParameter(settings, st, settings.Cipher.DedicatedKey, settings.Cipher.AuthenticationKey);
                                     }
+                                    else
+                                    {
+                                        p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                                    }
+                                    p.Xml = xml;
+                                    GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
+                                    len2 = xml.GetXmlLength();
+                                    xml.AppendComment("Invocation Counter: " + p.InvocationCounter.ToString());
+                                    xml.StartComment("Decrypt data: " + data2.ToString());
+                                    PduToXml(xml, data2, omitDeclaration, omitNameSpace, false, msg);
+                                    xml.EndComment();
                                 }
                                 catch (Exception)
                                 {
-                                    // It's OK if this fails. Ciphering settings are not correct.
-                                    if (msg != null)
-                                    {
-                                        msg.Command = (Command)cmd;
-                                    }
                                     xml.SetXmlLength(len2);
+                                    value.Position = originalPosition;
+                                    --value.Position;
+                                    //Check is this server msg.
+                                    try
+                                    {
+                                        byte[] st;
+                                        st = settings.SourceSystemTitle;
+                                        if (st != null)
+                                        {
+                                            p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                                            GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
+                                            xml.AppendComment("Invocation Counter: " + p.InvocationCounter.ToString());
+                                            xml.StartComment("Decrypt data: " + data2.ToString());
+                                            PduToXml(xml, data2, omitDeclaration, omitNameSpace, false, msg);
+                                            xml.EndComment();
+                                        }
+                                    }
+                                    catch (Exception)
+                                    {
+                                        // It's OK if this fails. Ciphering settings are not correct.
+                                        if (msg != null)
+                                        {
+                                            msg.Command = (Command)cmd;
+                                        }
+                                        xml.SetXmlLength(len2);
+                                    }
+                                }
+                                value.Position = originalPosition;
+                            }
+                            len = GXCommon.GetObjectCount(value);
+                            tmp = new byte[len];
+                            value.Get(tmp);
+                            xml.AppendStartTag((Command)cmd);
+                            xml.AppendLine(TranslatorTags.SystemTitle, null,
+                                    GXCommon.ToHex(tmp, false, 0, len));
+                            len = GXCommon.GetObjectCount(value);
+                            tmp = new byte[len];
+                            value.Get(tmp);
+                            xml.AppendLine(TranslatorTags.CipheredService, null,
+                                    GXCommon.ToHex(tmp, false, 0, len));
+                            xml.AppendEndTag(cmd);
+                        }
+                        break;
+                    case (byte)Command.GeneralSigning:
+                        {
+                            xml.AppendStartTag((Command)cmd);
+                            AesGcmParameter p = null;
+                            int originalPosition = value.Position;
+                            if (settings.Cipher != null && Comments)
+                            {
+                                int len2 = xml.GetXmlLength();
+                                --value.Position;
+                                //Check is this client msg.
+                                try
+                                {
+                                    byte[] st;
+                                    st = settings.Cipher.SystemTitle;
+                                    if (cmd == (byte)Command.GeneralDedCiphering && settings.Cipher.DedicatedKey != null)
+                                    {
+                                        p = new AesGcmParameter(settings, st, settings.Cipher.DedicatedKey, settings.Cipher.AuthenticationKey);
+                                    }
+                                    else
+                                    {
+                                        p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                                    }
+                                    p.Xml = xml;
+                                    GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
+                                    len2 = xml.GetXmlLength();
+                                    xml.StartComment("Decrypt data: " + data2.ToString());
+                                    PduToXml(xml, data2, omitDeclaration, omitNameSpace, false, msg);
+                                    xml.AppendComment("Security : " + p.Security);
+                                    xml.AppendComment("Security Suite: " + p.SecuritySuite);
+                                    xml.AppendComment("Invocation Counter: " + p.InvocationCounter.ToString());
+                                    xml.EndComment();
+                                    p.Xml.AppendLine(TranslatorTags.CipheredContent, null, GXCommon.ToHex(p.CipheredContent, false));
+                                    p.Xml.AppendLine(TranslatorTags.Signature, null, GXCommon.ToHex(p.Signature, false));
+                                }
+                                catch (Exception)
+                                {
+                                    xml.SetXmlLength(len2);
+                                    value.Position = originalPosition;
+                                    --value.Position;
+                                    //Check is this server msg.
+                                    try
+                                    {
+                                        byte[] st;
+                                        st = settings.SourceSystemTitle;
+                                        if (st != null)
+                                        {
+                                            p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                                            GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
+                                            xml.StartComment("Decrypt data: " + data2.ToString());
+                                            PduToXml(xml, data2, omitDeclaration, omitNameSpace, false, msg);
+                                            xml.AppendComment("Security : " + p.Security);
+                                            xml.AppendComment("Security Suite: " + p.SecuritySuite);
+                                            xml.AppendComment("Invocation Counter: " + p.InvocationCounter.ToString());
+                                            xml.EndComment();
+                                            p.Xml.AppendLine(TranslatorTags.CipheredContent, null, GXCommon.ToHex(p.CipheredContent, false));
+                                            p.Xml.AppendLine(TranslatorTags.Signature, null, GXCommon.ToHex(p.Signature, false));
+                                        }
+                                    }
+                                    catch (Exception)
+                                    {
+                                        // It's OK if this fails. Ciphering settings are not correct.
+                                        if (msg != null)
+                                        {
+                                            msg.Command = (Command)cmd;
+                                        }
+                                        xml.SetXmlLength(len2);
+                                    }
                                 }
                             }
+                            else
+                            {
+                                GXByteBuffer transactionId = new GXByteBuffer();
+                                len = GXCommon.GetObjectCount(value);
+                                GXCommon.SetObjectCount(len, transactionId);
+                                transactionId.Set(value, len);
+                                xml.AppendLine(TranslatorTags.TransactionId, null, xml.IntegerToHex(transactionId.GetUInt64(1), 16, true));
+                                len = GXCommon.GetObjectCount(value);
+                                tmp = new byte[len];
+                                value.Get(tmp);
+                                xml.AppendLine(TranslatorTags.OriginatorSystemTitle, null, GXCommon.ToHex(tmp, false));
+                                len = GXCommon.GetObjectCount(value);
+                                tmp = new byte[len];
+                                value.Get(tmp);
+                                xml.AppendLine(TranslatorTags.RecipientSystemTitle, null, GXCommon.ToHex(tmp, false));
+                                // Get date time.
+                                len = GXCommon.GetObjectCount(value);
+                                tmp = new byte[len];
+                                value.Get(tmp);
+                                xml.AppendLine(TranslatorTags.DateTime, null, GXCommon.ToHex(tmp, false));
+                                // other-information
+                                len = value.GetUInt8();
+                                tmp = new byte[len];
+                                value.Get(tmp);
+                                xml.AppendLine(TranslatorTags.OtherInformation, null, GXCommon.ToHex(tmp, false));
+                                len = GXCommon.GetObjectCount(value);
+                                tmp = new byte[len];
+                                value.Get(tmp);
+                                xml.AppendLine(TranslatorTags.CipheredContent, null, GXCommon.ToHex(tmp, false));
+                                len = GXCommon.GetObjectCount(value);
+                                tmp = new byte[len];
+                                value.Get(tmp);
+                                xml.AppendLine(TranslatorTags.Signature, null, GXCommon.ToHex(tmp, false));
+                            }
                             value.Position = originalPosition;
+                            xml.AppendEndTag(cmd);
                         }
-                        len = GXCommon.GetObjectCount(value);
-                        tmp = new byte[len];
-                        value.Get(tmp);
-                        xml.AppendStartTag((Command)cmd);
-                        xml.AppendLine(TranslatorTags.SystemTitle, null,
-                                GXCommon.ToHex(tmp, false, 0, len));
-                        len = GXCommon.GetObjectCount(value);
-                        tmp = new byte[len];
-                        value.Get(tmp);
-                        xml.AppendLine(TranslatorTags.CipheredService, null,
-                                GXCommon.ToHex(tmp, false, 0, len));
-                        xml.AppendEndTag(cmd);
                         break;
                     case (byte)Command.ConfirmedServiceError:
                         data.Xml = xml;

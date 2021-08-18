@@ -167,7 +167,7 @@ namespace Gurux.DLMS.Reader
             }
             GXReplyData reply = new GXReplyData();
             InitializeConnection();
-            GXDLMSSecuritySetup1 ss = new GXDLMSSecuritySetup1(logicalName);
+            GXDLMSSecuritySetup ss = new GXDLMSSecuritySetup(logicalName);
             List<GXCertificateRequest> certifications = new List<GXCertificateRequest>();
             //Read used security suite.
             Read(ss, 3);
@@ -319,7 +319,7 @@ namespace Gurux.DLMS.Reader
             try
             {
                 InitializeConnection();
-                GXDLMSSecuritySetup1 ss = new GXDLMSSecuritySetup1(logicalName);
+                GXDLMSSecuritySetup ss = new GXDLMSSecuritySetup(logicalName);
                 //Read used security suite.
                 Read(ss, 3);
                 //Client private keys are saved to this directory.

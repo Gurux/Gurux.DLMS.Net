@@ -637,6 +637,8 @@ namespace Gurux.DLMS.Simulator.Net
                     {
                         return SourceDiagnostic.None;
                     }
+                    Debug.WriteLine("Invalid password. Expected: " + GXCommon.ToHex(AssignedAssociation.Secret) + 
+                        " Actual: " + GXCommon.ToHex(password));
                 }
             }
             return SourceDiagnostic.AuthenticationFailure;

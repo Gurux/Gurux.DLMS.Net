@@ -884,8 +884,33 @@ namespace Gurux.DLMS
         /// </summary>
         internal GXDLMSAssociationLogicalName AssignedAssociation
         {
-            get;
-            set;
+            get
+            {
+                return assignedAssociation;
+            }
+            set
+            {
+                if (assignedAssociation != null)
+                {
+                    assignedAssociation.AssociationStatus = AssociationStatus.NonAssociated;
+                    assignedAssociation.XDLMSContextInfo.CypheringInfo = null;
+                    InvocationCounter = null;
+                    Cipher.SecurityPolicy = SecurityPolicy.None;
+                    EphemeralBlockCipherKey = null;
+                    EphemeralBroadcastBlockCipherKey = null;
+                    EphemeralAuthenticationKey = null;
+                    Cipher.SecuritySuite = SecuritySuite.Suite0;
+                }
+
+                assignedAssociation = value;
+                if (assignedAssociation != null)
+                {
+                    ProposedConformance = assignedAssociation.XDLMSContextInfo.Conformance;
+                    MaxServerPDUSize = assignedAssociation.XDLMSContextInfo.MaxReceivePduSize;
+                    Authentication = assignedAssociation.AuthenticationMechanismName.MechanismId;
+                    UpdateSecuritySettings(null);
+                }
+            }
         }
 
         /// <summary>
@@ -976,10 +1001,10 @@ namespace Gurux.DLMS
                     GXDLMSSecuritySetup ss = (GXDLMSSecuritySetup)assignedAssociation.ObjectList.FindByLN(ObjectType.SecuritySetup, assignedAssociation.SecuritySetupReference);
                     if (ss != null)
                     {
-                        Cipher.SecurityPolicy = ((GXDLMSSecuritySetup)ss).SecurityPolicy;
-                        EphemeralBlockCipherKey = ss.Guek;
-                        EphemeralBroadcastBlockCipherKey = ss.Gbek;
-                        EphemeralAuthenticationKey = ss.Gak;
+                        Cipher.SecurityPolicy = ss.SecurityPolicy;
+                        Cipher.BlockCipherKey = EphemeralBlockCipherKey = ss.Guek;
+                        Cipher.BroadcastBlockCipherKey = EphemeralBroadcastBlockCipherKey = ss.Gbek;
+                        Cipher.AuthenticationKey = EphemeralAuthenticationKey = ss.Gak;
                         Kek = ss.Kek;
                         // Update certificates for pre-established connections.
                         byte[] st;
@@ -1035,34 +1060,6 @@ namespace Gurux.DLMS
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Set Current association of the server.
-        /// </summary>
-        /// <param name="value"></param>
-        public void SetAssignedAssociation(GXDLMSAssociationLogicalName value)
-        {
-            if (assignedAssociation != null)
-            {
-                assignedAssociation.AssociationStatus = AssociationStatus.NonAssociated;
-                assignedAssociation.XDLMSContextInfo.CypheringInfo = null;
-                InvocationCounter = null;
-                Cipher.SecurityPolicy = SecurityPolicy.None;
-                EphemeralBlockCipherKey = null;
-                EphemeralBroadcastBlockCipherKey = null;
-                EphemeralAuthenticationKey = null;
-                Cipher.SecuritySuite = SecuritySuite.Suite0;
-            }
-
-            assignedAssociation = value;
-            if (assignedAssociation != null)
-            {
-                ProposedConformance = assignedAssociation.XDLMSContextInfo.Conformance;
-                MaxServerPDUSize = assignedAssociation.XDLMSContextInfo.MaxReceivePduSize;
-                Authentication = assignedAssociation.AuthenticationMechanismName.MechanismId;
-                UpdateSecuritySettings(null);
-            }
-        }
+        }      
     }
 }

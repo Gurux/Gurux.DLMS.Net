@@ -286,7 +286,7 @@ namespace Gurux.DLMS.Secure
             }
             else
             {
-                throw new ArgumentOutOfRangeException("Invalid sevurity suite.");
+                throw new ArgumentOutOfRangeException("Invalid security suite.");
             }
         }
 
