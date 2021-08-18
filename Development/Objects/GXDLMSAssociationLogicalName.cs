@@ -650,13 +650,57 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         private GXByteBuffer GetObjects(GXDLMSSettings settings, ValueEventArgs e)
         {
+            bool found = false;
             GXByteBuffer data = new GXByteBuffer();
             //Add count only for first time.
             if (settings.Index == 0)
             {
-                settings.Count = (UInt16)ObjectList.Count;
+                UInt16 count = (UInt16)ObjectList.Count;
+                // Find current association and add it if's not found.
+                if (AssociationStatus == AssociationStatus.Associated)
+                {
+                    foreach (GXDLMSObject it in ObjectList)
+                    {
+                        if (it != this && it.ObjectType == ObjectType.AssociationLogicalName)
+                        {
+                            if (it.LogicalName == "0.0.40.0.0.255")
+                            {
+                                found = true;
+                            }
+                            else if (!MultipleAssociationViews)
+                            {
+                                // Remove extra association view.
+                                --count;
+                            }
+                        }
+                    }
+                    if (!found)
+                    {
+                        ++count;
+                    }
+                }
+                else
+                {
+                    found = true;
+                }
+                settings.Count = count;
                 data.SetUInt8((byte)DataType.Array);
                 GXCommon.SetObjectCount(ObjectList.Count, data);
+                // If default association view is not found.
+                if (!found)
+                {
+                    data.SetUInt8(DataType.Structure);
+                    // Count
+                    data.SetUInt8(4);
+                    // ClassID
+                    GXCommon.SetData(settings, data, DataType.UInt16, ObjectType);
+                    // Version
+                    GXCommon.SetData(settings, data, DataType.UInt8, Version);
+                    // LN
+                    GXCommon.SetData(settings, data, DataType.OctetString, GXCommon.LogicalNameToBytes("0.0.40.0.0.255"));
+                    // Access rights.
+                    GetAccessRights(settings, this, e.Server, data);
+                }
             }
             ushort pos = 0;
             foreach (GXDLMSObject it in ObjectList)
@@ -664,6 +708,15 @@ namespace Gurux.DLMS.Objects
                 ++pos;
                 if (!(pos <= settings.Index))
                 {
+                    if (it.ObjectType == ObjectType.AssociationLogicalName)
+                    {
+                        if (!MultipleAssociationViews
+                                && !(it == this || it.LogicalName == "0.0.40.0.0.255"))
+                        {
+                            ++settings.Index;
+                            continue;
+                        }
+                    }
                     data.SetUInt8((byte)DataType.Structure);
                     data.SetUInt8((byte)4); //Count
                     GXCommon.SetData(settings, data, DataType.UInt16, it.ObjectType); //ClassID
@@ -1920,10 +1973,14 @@ namespace Gurux.DLMS.Objects
             {
                 return GetAccess(index);
             }
+            if (!accessRights.ContainsKey(target))
+            {
+                return AccessMode.ReadWrite;
+            }
             int[] tmp = accessRights[target];
             if (tmp == null)
             {
-                return(AccessMode) GetAttributeAccess(target, index);
+                return (AccessMode)GetAttributeAccess(target, index);
             }
             return (AccessMode)tmp[index - 1];
         }
@@ -1976,6 +2033,10 @@ namespace Gurux.DLMS.Objects
         /// <returns>Method access mode.</returns>
         public MethodAccessMode GetMethodAccess(GXDLMSObject target, int index)
         {
+            if (!methodAccessRights.ContainsKey(target))
+            {
+                return MethodAccessMode.Access;
+            }
             if (target == this ||
                 (target is GXDLMSAssociationLogicalName && target.LogicalName == "0.0.40.0.0.255")
                 || methodAccessRights[target] == null)
