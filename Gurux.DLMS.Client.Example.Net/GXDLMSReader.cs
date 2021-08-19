@@ -90,17 +90,37 @@ namespace Gurux.DLMS.Reader
         /// <param name="args"></param>
         private void Client_OnKeys(object sender, GXCryptoKeyParameter args)
         {
-            if (args.Encrypt)
+            try
             {
-                //Find private key.
-                string path = GetPath(args.SecuritySuite, args.CertificateType, "Keys", args.SystemTitle);
-                args.PrivateKey = GXPkcs8.Load(path).PrivateKey;
+                if (args.Encrypt)
+                {
+                    //Find private key.
+                    string path = GetPath(args.SecuritySuite, args.CertificateType, "Keys", args.SystemTitle);
+                    args.PrivateKey = GXPkcs8.Load(path).PrivateKey;
+                    Console.WriteLine("Client Private key:" + args.PrivateKey.ToHex());
+                }
+                else
+                {
+                    //Find public key.
+                    if (args.SystemTitle == null)
+                    {
+                        string path = GetPath(args.SecuritySuite, args.CertificateType, "Certificates", args.SystemTitle);
+                        GXx509Certificate pk = GXx509Certificate.Search(path, args.SystemTitle);
+                        args.PublicKey = pk.PublicKey;
+                        Console.WriteLine("Server Public key:" + pk.SerialNumber);
+                    }
+                    else
+                    {
+                        string path = GetPath(args.SecuritySuite, args.CertificateType, "Certificates", args.SystemTitle);
+                        GXx509Certificate pk = GXx509Certificate.Load(path);
+                        args.PublicKey = pk.PublicKey;
+                        Console.WriteLine("Server Public key:" + pk.SerialNumber);
+                    }
+                }
             }
-            else
+            catch(Exception ex)
             {
-                //Find public key.
-                string path = GetPath(args.SecuritySuite, args.CertificateType, "Certificates", null);
-                args.PublicKey = GXx509Certificate.Search(path, args.SystemTitle).PublicKey;
+                Console.WriteLine(ex.Message);
             }
         }
 
@@ -171,15 +191,22 @@ namespace Gurux.DLMS.Reader
             List<GXCertificateRequest> certifications = new List<GXCertificateRequest>();
             //Read used security suite.
             Read(ss, 3);
+            //Read client system title.
+            Read(ss, 4);
             //Read server system title.
             Read(ss, 5);
+            byte[] clientST = ss.ClientSystemTitle;
+            if (clientST == null || clientST.Length != 8) 
+            {
+                clientST = Client.Ciphering.SystemTitle;
+            }
             //Get client subject.
-            string subject = GXAsn1Converter.SystemTitleToSubject(Client.Ciphering.SystemTitle);
+            string subject = GXAsn1Converter.SystemTitleToSubject(clientST);
             //Generate new digital signature for the client. In this example P-256 keys are used.
             KeyValuePair<GXPublicKey, GXPrivateKey> kp = GXEcdsa.GenerateKeyPair(Ecc.P256);
             //Save private key in PKCS #8 format.
             GXPkcs8 key = new GXPkcs8(kp);
-            key.Save(GXAsn1Converter.GetFilePath(Ecc.P256, CertificateType.DigitalSignature, Client.Ciphering.SystemTitle));
+            key.Save(GXAsn1Converter.GetFilePath(Ecc.P256, CertificateType.DigitalSignature, clientST));
             //Generate x509 certificates.
             GXPkcs10 pkc10 = GXPkcs10.CreateCertificateSigningRequest(kp, subject);
             //All certigicates are generated with one request.
@@ -189,7 +216,7 @@ namespace Gurux.DLMS.Reader
             kp = GXEcdsa.GenerateKeyPair(Ecc.P256);
             //Save private key in PKCS #8 format.
             key = new GXPkcs8(kp);
-            key.Save(GXAsn1Converter.GetFilePath(Ecc.P256, CertificateType.KeyAgreement, Client.Ciphering.SystemTitle));
+            key.Save(GXAsn1Converter.GetFilePath(Ecc.P256, CertificateType.KeyAgreement, clientST));
             //Generate x509 certificates.
             pkc10 = GXPkcs10.CreateCertificateSigningRequest(kp, subject);
             //All certigicates are generated with one request.
@@ -269,9 +296,9 @@ namespace Gurux.DLMS.Reader
                     st = ss.ServerSystemTitle;
                     entity = CertificateEntity.Server;
                 }
-                else if (it.Subject.Contains(GXAsn1Converter.SystemTitleToSubject(Client.Ciphering.SystemTitle)))
+                else if (it.Subject.Contains(GXAsn1Converter.SystemTitleToSubject(clientST)))
                 {
-                    st = Client.Ciphering.SystemTitle;
+                    st = clientST;
                     entity = CertificateEntity.Client;
                 }
                 else

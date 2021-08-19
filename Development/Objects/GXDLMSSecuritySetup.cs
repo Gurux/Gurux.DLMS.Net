@@ -842,7 +842,7 @@ namespace Gurux.DLMS.Objects
             {
                 if (type == 0)
                 {
-                    cert = FindCertificateByEntity(ServerCertificates, (CertificateEntity)tmp[0], (CertificateType)tmp[1], (byte[])tmp[2]);
+                    cert = FindCertificateByEntity(ServerCertificates, (CertificateEntity)Convert.ToByte(tmp[0]), (CertificateType)Convert.ToByte(tmp[1]), (byte[])tmp[2]);
                 }
                 else if (type == 1)
                 {
