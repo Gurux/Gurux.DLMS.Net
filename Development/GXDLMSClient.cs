@@ -48,61 +48,10 @@ namespace Gurux.DLMS
     /// <summary>
     /// GXDLMS implements methods to communicate with DLMS/COSEM metering devices.
     /// </summary>
-    public class GXDLMSClient : IGXCryptoNotifier
+    public class GXDLMSClient
     {
         protected GXDLMSTranslator translator;
-        internal GXCryptoNotifier cryptoNotifier = new GXCryptoNotifier();
-        /// <summary>
-        /// Notify generated PDU.
-        /// </summary>
-        public event PduEventHandler OnPdu
-        {
-            add
-            {
-                cryptoNotifier.pdu += value;
-            }
-            remove
-            {
-                cryptoNotifier.pdu -= value;
-            }
-        }
-
-        /// <summary>
-        /// Get ciphering keys as needed.
-        /// </summary>
-        /// <remarks>
-        /// Keys are not saved and they are asked when needed to improve the security.
-        /// </remarks>
-        public event KeyEventHandler OnKeys
-        {
-            add
-            {
-                cryptoNotifier.keys += value;
-            }
-            remove
-            {
-                cryptoNotifier.keys -= value;
-            }
-        }
-
-        /// <summary>
-        /// Encrypt or decrypt data when needed.
-        /// </summary>
-        /// <remarks>
-        /// Hardware Security Module can be used to improve the security.
-        /// </remarks>
-        public event CryptoEventHandler OnCrypto
-        {
-            add
-            {
-                cryptoNotifier.crypto += value;
-            }
-            remove
-            {
-                cryptoNotifier.crypto -= value;
-            }
-        }
-
+       
         /// <summary>
         /// XML client don't throw exceptions. It serializes them as a default. Set value to true, if exceptions are thrown.
         /// </summary>
@@ -171,7 +120,24 @@ namespace Gurux.DLMS
                 Settings.Password = ASCIIEncoding.ASCII.GetBytes(password);
             }
             Settings.Plc.Reset();
+            Settings.CryptoNotifier = new GXCryptoNotifier();
         }
+
+        /// <summary>
+        /// Notify generated PDU.
+        /// </summary>
+        public event PduEventHandler OnPdu
+        {
+            add
+            {
+                Settings.CryptoNotifier.pdu += value;
+            }
+            remove
+            {
+                Settings.CryptoNotifier.pdu -= value;
+            }
+        }
+
 
         /// <summary>
         /// Copy client settings.
@@ -944,7 +910,7 @@ namespace Gurux.DLMS
             byte[][] reply;
             if (UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(cryptoNotifier, Settings, 0, Command.Aarq, 0, buff, null, 0xff, Command.None);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.Aarq, 0, buff, null, 0xff, Command.None);
                 reply = GXDLMS.GetLnMessages(p);
             }
             else
@@ -1053,10 +1019,17 @@ namespace Gurux.DLMS
             }
             else if (Settings.Authentication == Enums.Authentication.HighECDSA)
             {
+                if (Settings.Cipher.SigningKeyPair.Key == null)
+                {
+                    Settings.Cipher.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(
+                        (GXPublicKey)Settings.GetKey(DLMS.Objects.Enums.CertificateType.DigitalSignature,
+                    Settings.SourceSystemTitle, false),
+                        Settings.Cipher.SigningKeyPair.Value);
+                }
                 if (Settings.Cipher.SigningKeyPair.Value == null)
                 {
-                    Settings.Cipher.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(Settings.Cipher.SigningKeyPair.Key, 
-                        (GXPrivateKey) GXDLMS.GetKey(cryptoNotifier, Settings.Cipher.SecuritySuite, DLMS.Objects.Enums.CertificateType.DigitalSignature,
+                    Settings.Cipher.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(Settings.Cipher.SigningKeyPair.Key,
+                        (GXPrivateKey)Settings.GetKey(DLMS.Objects.Enums.CertificateType.DigitalSignature,
                     Settings.Cipher.SystemTitle, true));
                 }
                 GXByteBuffer tmp = new GXByteBuffer();
@@ -1111,12 +1084,11 @@ namespace Gurux.DLMS
                         throw new ArgumentNullException("SigningKeyPair is empty.");
                     }
                     GXByteBuffer tmp2 = new GXByteBuffer();
-                    tmp2.Set(Settings.Password);
                     tmp2.Set(Settings.SourceSystemTitle);
                     tmp2.Set(Settings.Cipher.SystemTitle);
                     tmp2.Set(Settings.CtoSChallenge);
                     tmp2.Set(Settings.StoCChallenge);
-                    GXEcdsa sig = new GXEcdsa(Settings.Cipher.SigningKeyPair.Value);
+                    GXEcdsa sig = new GXEcdsa(Settings.Cipher.SigningKeyPair.Key);
                     equals = sig.Verify(value, tmp2.Array());
                 }
                 else
@@ -1227,7 +1199,7 @@ namespace Gurux.DLMS
             byte[][] reply;
             if (UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(cryptoNotifier, Settings, 0, Command.ReleaseRequest, 0, buff, null, 0xff, Command.None);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.ReleaseRequest, 0, buff, null, 0xff, Command.None);
                 reply = GXDLMS.GetLnMessages(p);
             }
             else
@@ -2008,7 +1980,7 @@ namespace Gurux.DLMS
                 {
                     attributeDescriptor.SetUInt8(1);
                 }
-                GXDLMSLNParameters p = new GXDLMSLNParameters(cryptoNotifier, Settings, 0, Command.MethodRequest, (byte)ActionRequestType.Normal, attributeDescriptor, data, 0xff, Command.None);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.MethodRequest, (byte)ActionRequestType.Normal, attributeDescriptor, data, 0xff, Command.None);
                 return GXDLMS.GetLnMessages(p);
             }
             else
@@ -2105,7 +2077,7 @@ namespace Gurux.DLMS
                 attributeDescriptor.SetUInt8((byte)index);
                 // Access selection is not used.
                 attributeDescriptor.SetUInt8(0);
-                GXDLMSLNParameters p = new GXDLMSLNParameters(cryptoNotifier, Settings, 0, Command.SetRequest, (byte)SetRequestType.Normal, attributeDescriptor, data, 0xff, Command.None);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.SetRequest, (byte)SetRequestType.Normal, attributeDescriptor, data, 0xff, Command.None);
                 p.blockIndex = Settings.BlockIndex;
                 p.blockNumberAck = Settings.BlockNumberAck;
                 p.Streaming = false;
@@ -2165,7 +2137,7 @@ namespace Gurux.DLMS
                     // Access selection is used.
                     attributeDescriptor.SetUInt8(1);
                 }
-                GXDLMSLNParameters p = new GXDLMSLNParameters(cryptoNotifier, Settings, 0, Command.GetRequest, (byte)GetCommandType.Normal, attributeDescriptor, data, 0xff, Command.None);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.GetRequest, (byte)GetCommandType.Normal, attributeDescriptor, data, 0xff, Command.None);
                 reply = GXDLMS.GetLnMessages(p);
             }
             else
@@ -2220,7 +2192,7 @@ namespace Gurux.DLMS
             GXByteBuffer data = new GXByteBuffer();
             if (this.UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(cryptoNotifier, Settings, 0, Command.GetRequest, (byte)GetCommandType.WithList, data, null, 0xff, Command.None);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.GetRequest, (byte)GetCommandType.WithList, data, null, 0xff, Command.None);
                 //Request service primitive shall always fit in a single APDU.
                 int pos = 0, count = (Settings.MaxPduSize - 12) / 10;
                 if (list.Count < count)
@@ -2309,7 +2281,7 @@ namespace Gurux.DLMS
             GXByteBuffer data = new GXByteBuffer();
             if (this.UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(cryptoNotifier, Settings, 0, Command.SetRequest, (byte)SetCommandType.WithList, null, data, 0xff, Command.None);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.SetRequest, (byte)SetCommandType.WithList, null, data, 0xff, Command.None);
                 // Add length.
                 GXCommon.SetObjectCount(list.Count, data);
                 foreach (KeyValuePair<GXDLMSObject, int> it in list)
@@ -2807,7 +2779,7 @@ namespace Gurux.DLMS
             bool ret;
             try
             {
-                ret = GXDLMS.GetData(Settings, reply, data, notify, cryptoNotifier);
+                ret = GXDLMS.GetData(Settings, reply, data, notify);
             }
             catch
             {
@@ -3104,7 +3076,7 @@ namespace Gurux.DLMS
                     throw new ArgumentOutOfRangeException("Invalid command.");
                 }
             }
-            GXDLMSLNParameters p = new GXDLMSLNParameters(cryptoNotifier, Settings, 0, Command.AccessRequest, 0xFF, null, bb, 0xff, Command.None);
+            GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.AccessRequest, 0xFF, null, bb, 0xff, Command.None);
             p.time = new GXDateTime(time);
             return GXDLMS.GetLnMessages(p);
         }
@@ -3206,7 +3178,7 @@ namespace Gurux.DLMS
                 }
                 else if (UseLogicalNameReferencing)
                 {
-                    GXDLMSLNParameters p = new GXDLMSLNParameters(cryptoNotifier, Settings, 0, command, 0, data, null, 0xff, Command.None);
+                    GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, command, 0, data, null, 0xff, Command.None);
                     reply = GXDLMS.GetLnMessages(p);
                 }
                 else

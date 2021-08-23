@@ -128,6 +128,7 @@ namespace Gurux.DLMS
         ExceptionResponse,
         StateError,
         Pblock,
+        Content,
         Signature
     }
 }

@@ -97,7 +97,7 @@ namespace Gurux.DLMS.Reader
                     //Find private key.
                     string path = GetPath(args.SecuritySuite, args.CertificateType, "Keys", args.SystemTitle);
                     args.PrivateKey = GXPkcs8.Load(path).PrivateKey;
-                    Console.WriteLine("Client Private key:" + args.PrivateKey.ToHex());
+                    Console.WriteLine("Client private key:" + args.PrivateKey.ToHex());
                 }
                 else
                 {
@@ -107,14 +107,14 @@ namespace Gurux.DLMS.Reader
                         string path = GetPath(args.SecuritySuite, args.CertificateType, "Certificates", args.SystemTitle);
                         GXx509Certificate pk = GXx509Certificate.Search(path, args.SystemTitle);
                         args.PublicKey = pk.PublicKey;
-                        Console.WriteLine("Server Public key:" + pk.SerialNumber);
+                        Console.WriteLine("Server public key:" + pk.SerialNumber);
                     }
                     else
                     {
                         string path = GetPath(args.SecuritySuite, args.CertificateType, "Certificates", args.SystemTitle);
                         GXx509Certificate pk = GXx509Certificate.Load(path);
                         args.PublicKey = pk.PublicKey;
-                        Console.WriteLine("Server Public key:" + pk.SerialNumber);
+                        Console.WriteLine("Server public key:" + pk.SerialNumber);
                     }
                 }
             }

@@ -62,21 +62,11 @@ namespace Gurux.DLMS.Secure
         ///<param name="settings">
         ///DLMS settings.
         ///</param>
-        ///<param name="cipher">
-        ///Cipher.
-        ///</param>
-        ///<param name="ic">
-        ///Invocation counter.
-        ///</param>
-        ///<param name="data">
-        ///Text to chipher.
-        ///</param>
-        ///<param name="secret">
-        ///Secret.
-        ///</param>
-        ///<returns>
-        ///Chiphered text.
-        ///</returns>
+        ///<param name="cipher">Cipher.</param>
+        ///<param name="ic">Invocation counter.</param>
+        ///<param name="data">Text to chipher.</param>
+        ///<param name="secret">Secret.</param>
+        ///<returns>Chiphered text.</returns>
         internal static byte[] Secure(GXDLMSSettings settings, GXICipher cipher, UInt32 ic, byte[] data, byte[] secret)
         {
             byte[] tmp;
@@ -105,8 +95,7 @@ namespace Gurux.DLMS.Secure
             // Get server Challenge.
             GXByteBuffer challenge = new GXByteBuffer();
             // Get shared secret
-            if (settings.Authentication == Authentication.HighGMAC ||
-                settings.Authentication == Authentication.HighECDSA)
+            if (settings.Authentication == Authentication.HighGMAC)
             {
                 challenge.Set(data);
             }
@@ -163,7 +152,7 @@ namespace Gurux.DLMS.Secure
                 p.Type = CountType.Tag;
                 challenge.Clear();
                 //Security suite is 0.
-                challenge.SetUInt8((byte) ((int)Security.Authentication | (int) settings.Cipher.SecuritySuite));
+                challenge.SetUInt8((byte)((int)Security.Authentication | (int)settings.Cipher.SecuritySuite));
                 challenge.SetUInt32((UInt32)p.InvocationCounter);
                 challenge.Set(GXDLMSChippering.EncryptAesGcm(p, tmp));
                 tmp = challenge.Array();
@@ -171,25 +160,26 @@ namespace Gurux.DLMS.Secure
             }
             else if (settings.Authentication == Authentication.HighECDSA)
             {
-                if (cipher.SigningKeyPair.Value == null)
+                GXPrivateKey key = settings.Cipher.SigningKeyPair.Value;
+                GXPublicKey pub = settings.Cipher.SigningKeyPair.Key;
+                if (key == null)
+                {
+                    key = (GXPrivateKey)settings.GetKey(CertificateType.DigitalSignature, settings.Cipher.SystemTitle, true);
+                    settings.Cipher.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
+                }
+                if (pub == null)
+                {
+                    pub = (GXPublicKey)settings.GetKey(CertificateType.DigitalSignature, settings.SourceSystemTitle, false);
+                    settings.Cipher.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
+                }
+                if (key == null)
                 {
                     throw new ArgumentNullException("Signing key is not set.");
                 }
-                GXEcdsa sig = new GXEcdsa(cipher.SigningKeyPair.Value);
-                GXByteBuffer bb = new GXByteBuffer();
-                bb.Set(settings.Cipher.SystemTitle);
-                bb.Set(settings.SourceSystemTitle);
-                if (settings.IsServer)
-                {
-                    bb.Set(settings.CtoSChallenge);
-                    bb.Set(settings.StoCChallenge);
-                }
-                else
-                {
-                    bb.Set(settings.StoCChallenge);
-                    bb.Set(settings.CtoSChallenge);
-                }
-                data = sig.Sign(bb.Array());
+                System.Diagnostics.Debug.WriteLine("Private signed key: " + key.ToHex());
+                System.Diagnostics.Debug.WriteLine("Public signed key: " + key.GetPublicKey().ToHex());
+                GXEcdsa sig = new GXEcdsa(key);
+                data = sig.Sign(secret);
             }
             return data;
         }
@@ -234,7 +224,7 @@ namespace Gurux.DLMS.Secure
         /// <param name="suppPrivInfo">Not used in DLMS.</param>
         /// <returns></returns>
         public static byte[] GenerateKDF(
-                SecuritySuite securitySuite, 
+                SecuritySuite securitySuite,
                 byte[] z,
                 AlgorithmId algorithmID,
                 byte[] partyUInfo,

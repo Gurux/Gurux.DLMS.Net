@@ -37,6 +37,7 @@ using System.Text;
 using Gurux.DLMS.Enums;
 using System;
 using Gurux.DLMS.Objects.Enums;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Secure
 {
@@ -77,6 +78,42 @@ namespace Gurux.DLMS.Secure
         {
             Ciphering = new GXCiphering(ASCIIEncoding.ASCII.GetBytes("ABCDEFGH"));
             Settings.Cipher = Ciphering;
+        }
+
+        /// <summary>
+        /// Get ciphering keys as needed.
+        /// </summary>
+        /// <remarks>
+        /// Keys are not saved and they are asked when needed to improve the security.
+        /// </remarks>
+        public event KeyEventHandler OnKeys
+        {
+            add
+            {
+                Settings.CryptoNotifier.keys += value;
+            }
+            remove
+            {
+                Settings.CryptoNotifier.keys -= value;
+            }
+        }
+
+        /// <summary>
+        /// Encrypt or decrypt data when needed.
+        /// </summary>
+        /// <remarks>
+        /// Hardware Security Module can be used to improve the security.
+        /// </remarks>
+        public event CryptoEventHandler OnCrypto
+        {
+            add
+            {
+                Settings.CryptoNotifier.crypto += value;
+            }
+            remove
+            {
+                Settings.CryptoNotifier.crypto -= value;
+            }
         }
 
         /// <summary>

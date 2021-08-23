@@ -101,7 +101,7 @@ namespace Gurux.DLMS
                     settings.ResetBlockIndex();
                     type = GetCommandType.Normal;
                     data.Clear();
-                    GXDLMS.GetLNPdu(new GXDLMSLNParameters(null, settings, invokeID, Command.GetResponse, (byte)type, null, null, (byte)ErrorCode.ReadWriteDenied, cipheredCommand), replyData);
+                    GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, invokeID, Command.GetResponse, (byte)type, null, null, (byte)ErrorCode.ReadWriteDenied, cipheredCommand), replyData);
                 }
                 if (xml != null)
                 {
@@ -121,7 +121,7 @@ namespace Gurux.DLMS
                 Debug.WriteLine("HandleGetRequest failed. " + ex.Message);
                 settings.ResetBlockIndex();
                 data.Clear();
-                GXDLMS.GetLNPdu(new GXDLMSLNParameters(null, settings, invokeID, Command.GetResponse, (byte)type, null, null, (byte)ErrorCode.ReadWriteDenied, cipheredCommand), replyData);
+                GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, invokeID, Command.GetResponse, (byte)type, null, null, (byte)ErrorCode.ReadWriteDenied, cipheredCommand), replyData);
             }
         }
 
@@ -148,7 +148,7 @@ namespace Gurux.DLMS
                 // Get invoke ID and priority.
                 byte invoke = data.GetUInt8();
                 settings.UpdateInvokeId(invoke);
-                p = new GXDLMSLNParameters(null, settings, invoke, Command.SetResponse, (byte)type, null, null, 0xFF, cipheredCommand);
+                p = new GXDLMSLNParameters(settings, invoke, Command.SetResponse, (byte)type, null, null, 0xFF, cipheredCommand);
                 // SetRequest normal or Set Request With First Data Block
                 if (xml != null)
                 {
@@ -231,7 +231,7 @@ namespace Gurux.DLMS
             // Attribute Id
             byte id = data.GetUInt8();
             object parameters = null;
-            GXDLMSLNParameters p = new GXDLMSLNParameters(null, settings, invokeId, Command.MethodResponse,
+            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeId, Command.MethodResponse,
                 (byte)ActionResponseType.Normal,
                 null, bb, (byte)error, cipheredCommand);
             if (type == ActionRequestType.Normal)
@@ -418,13 +418,13 @@ namespace Gurux.DLMS
                 if (xml == null && blockNumber != settings.BlockIndex)
                 {
                     Debug.WriteLine("MethodRequestNextBlock failed. Invalid block number. " + settings.BlockIndex + "/" + blockNumber);
-                    GXDLMS.GetLNPdu(new GXDLMSLNParameters(null, settings, 0, Command.MethodResponse,
+                    GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, 0, Command.MethodResponse,
                         (byte)ActionResponseType.Normal, null, bb, (byte)ErrorCode.DataBlockNumberInvalid, cipheredCommand), replyData);
                     return;
                 }
             }
             settings.IncreaseBlockIndex();
-            GXDLMSLNParameters p = new GXDLMSLNParameters(null, settings, 0, streaming ? Command.GeneralBlockTransfer : Command.MethodResponse,
+            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, streaming ? Command.GeneralBlockTransfer : Command.MethodResponse,
                 (byte)ActionResponseType.Normal, null, bb, (byte)ErrorCode.Ok, cipheredCommand);
             p.multipleBlocks = lastBlock == 0;
             p.Streaming = streaming;
@@ -536,7 +536,7 @@ namespace Gurux.DLMS
                         settings.ResetBlockIndex();
                         type = ActionRequestType.Normal;
                         data.Clear();
-                        GXDLMS.GetLNPdu(new GXDLMSLNParameters(null, settings, invokeID, Command.MethodResponse, (byte)type, null, null, (byte)ErrorCode.ReadWriteDenied, cipheredCommand), replyData);
+                        GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, invokeID, Command.MethodResponse, (byte)type, null, null, (byte)ErrorCode.ReadWriteDenied, cipheredCommand), replyData);
                     }
                     break;
             }
@@ -686,7 +686,7 @@ namespace Gurux.DLMS
                     status = e.Error;
                 }
             }
-            GXDLMSLNParameters p = new GXDLMSLNParameters(null, settings, e.InvokeId, Command.GetResponse, 1, null, bb, (byte)status, cipheredCommand);
+            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, e.InvokeId, Command.GetResponse, 1, null, bb, (byte)status, cipheredCommand);
             GXDLMS.GetLNPdu(p, replyData);
             if (settings.Count != settings.Index || bb.Size != bb.Position)
             {
@@ -714,12 +714,12 @@ namespace Gurux.DLMS
                 if (index != settings.BlockIndex)
                 {
                     Debug.WriteLine("handleGetRequest failed. Invalid block number. " + settings.BlockIndex + "/" + index);
-                    GXDLMS.GetLNPdu(new GXDLMSLNParameters(null, settings, 0, Command.GetResponse, 2, null, bb, (byte)ErrorCode.DataBlockNumberInvalid, cipheredCommand), replyData);
+                    GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, 0, Command.GetResponse, 2, null, bb, (byte)ErrorCode.DataBlockNumberInvalid, cipheredCommand), replyData);
                     return;
                 }
             }
             settings.IncreaseBlockIndex();
-            GXDLMSLNParameters p = new GXDLMSLNParameters(null, settings, invokeID, streaming ? Command.GeneralBlockTransfer : Command.GetResponse, 2, null, bb, (byte)ErrorCode.Ok, cipheredCommand);
+            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeID, streaming ? Command.GeneralBlockTransfer : Command.GetResponse, 2, null, bb, (byte)ErrorCode.Ok, cipheredCommand);
             p.Streaming = streaming;
             p.WindowSize = settings.WindowSize;
             //If transaction is not in progress.
@@ -904,7 +904,7 @@ namespace Gurux.DLMS
                 ++pos;
             }
             server.NotifyPostRead(list.ToArray());
-            GXDLMSLNParameters p = new GXDLMSLNParameters(null, settings, invokeID, Command.GetResponse, 3, null, bb, 0xFF, cipheredCommand);
+            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeID, Command.GetResponse, 3, null, bb, 0xFF, cipheredCommand);
             GXDLMS.GetLNPdu(p, replyData);
         }
 
@@ -1433,7 +1433,7 @@ namespace Gurux.DLMS
             {
                 // Append status codes.
                 bb.Set(results);
-                GXDLMS.GetLNPdu(new GXDLMSLNParameters(null, settings, invokeId,
+                GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, invokeId,
                         Command.AccessResponse, 0xff, null, bb, 0xFF, cipheredCommand), reply);
             }
         }

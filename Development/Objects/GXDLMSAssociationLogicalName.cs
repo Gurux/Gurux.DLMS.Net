@@ -42,6 +42,7 @@ using Gurux.DLMS.Objects.Enums;
 using System.Text;
 using System.Globalization;
 using Gurux.DLMS.ManufacturerSettings;
+using Gurux.DLMS.Ecdsa;
 
 namespace Gurux.DLMS.Objects
 {
@@ -327,6 +328,8 @@ namespace Gurux.DLMS.Objects
         {
             uint ic = 0;
             byte[] secret;
+            bool equals = false;
+            byte[] clientChallenge = (byte[])e.Parameters;
             if (settings.Authentication == Authentication.HighGMAC)
             {
                 secret = settings.SourceSystemTitle;
@@ -344,13 +347,45 @@ namespace Gurux.DLMS.Objects
                 tmp.Set(settings.CtoSChallenge);
                 secret = tmp.Array();
             }
+            else if (settings.Authentication == Authentication.HighECDSA)
+            {
+                secret = null;
+                GXByteBuffer tmp = new GXByteBuffer();
+                tmp.Set(Secret);
+                tmp.Set(settings.SourceSystemTitle);
+                tmp.Set(settings.Cipher.SystemTitle);
+                tmp.Set(settings.StoCChallenge);
+                tmp.Set(settings.CtoSChallenge);
+                GXPrivateKey key = settings.Cipher.SigningKeyPair.Value;
+                GXPublicKey pub = settings.Cipher.SigningKeyPair.Key;
+                if (key == null)
+                {
+                    key = (GXPrivateKey)settings.GetKey(CertificateType.DigitalSignature, settings.Cipher.SystemTitle, true);
+                    settings.Cipher.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
+                }
+                if (pub == null)
+                {
+                    pub = (GXPublicKey)settings.GetKey(CertificateType.DigitalSignature, settings.SourceSystemTitle, false);
+                    settings.Cipher.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
+                }
+                if (key == null)
+                {
+                    throw new ArgumentNullException("Signing key is not set.");
+                }
+                System.Diagnostics.Debug.WriteLine("Public signed key: " + pub.ToHex());
+                GXEcdsa sig = new GXEcdsa(pub);
+                equals = sig.Verify(clientChallenge, tmp.Array());
+            }
             else
             {
                 secret = Secret;
             }
-            byte[] serverChallenge = GXSecure.Secure(settings, settings.Cipher, ic, settings.StoCChallenge, secret);
-            byte[] clientChallenge = (byte[])e.Parameters;
-            if (serverChallenge != null && clientChallenge != null && GXCommon.Compare(serverChallenge, clientChallenge))
+            if (settings.Authentication != Authentication.HighECDSA)
+            {
+                byte[] serverChallenge = GXSecure.Secure(settings, settings.Cipher, ic, settings.StoCChallenge, secret);
+                equals = serverChallenge != null && clientChallenge != null && GXCommon.Compare(serverChallenge, clientChallenge);
+            }
+            if (equals)
             {
                 if (settings.Authentication == Authentication.HighGMAC)
                 {
@@ -363,10 +398,14 @@ namespace Gurux.DLMS.Objects
                     secret = Secret;
                 }
                 AssociationStatus = AssociationStatus.Associated;
-                if (settings.Authentication == Authentication.HighSHA256)
+                if (settings.Authentication == Authentication.HighSHA256 ||
+                    settings.Authentication == Authentication.HighECDSA)
                 {
                     GXByteBuffer tmp = new GXByteBuffer();
-                    tmp.Set(Secret);
+                    if (settings.Authentication == Authentication.HighSHA256)
+                    {
+                        tmp.Set(Secret);
+                    }
                     tmp.Set(settings.Cipher.SystemTitle);
                     tmp.Set(settings.SourceSystemTitle);
                     tmp.Set(settings.CtoSChallenge);

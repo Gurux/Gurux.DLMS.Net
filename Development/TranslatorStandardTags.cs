@@ -220,7 +220,7 @@ namespace Gurux.DLMS
             list.Add((int)Command.MethodRequest << 8 | (int)ActionRequestType.WithListAndFirstBlock,
                      "action-request-with-list-and-first-block");
             list.Add((int)Command.MethodRequest << 8 | (int)ActionRequestType.WithBlock,
-                     "action-request-with-list-and-block");           
+                     "action-request-with-list-and-block");
             GXDLMSTranslator.AddTag(list, Command.MethodResponse,
                                     "action-response");
             list.Add((int)Command.MethodResponse << 8 | (int)ActionResponseType.Normal,
@@ -389,6 +389,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorTags.MethodId, "method-id");
             GXDLMSTranslator.AddTag(list, TranslatorTags.Result, "result");
             GXDLMSTranslator.AddTag(list, TranslatorTags.Pblock, "pblock");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.Content, "content");
             GXDLMSTranslator.AddTag(list, TranslatorTags.Signature, "signature");
             GXDLMSTranslator.AddTag(list, TranslatorTags.ReturnParameters,
                                     "return-parameters");

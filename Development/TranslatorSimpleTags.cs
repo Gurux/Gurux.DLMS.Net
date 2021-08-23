@@ -274,6 +274,7 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorTags.MethodId, "MethodId");
             GXDLMSTranslator.AddTag(list, TranslatorTags.Result, "Result");
             GXDLMSTranslator.AddTag(list, TranslatorTags.Pblock, "PBlock");
+            GXDLMSTranslator.AddTag(list, TranslatorTags.Content, "Content");
             GXDLMSTranslator.AddTag(list, TranslatorTags.Signature, "Signature");
             GXDLMSTranslator.AddTag(list, TranslatorTags.ReturnParameters, "ReturnParameters");
             GXDLMSTranslator.AddTag(list, TranslatorTags.AccessSelection, "AccessSelection");

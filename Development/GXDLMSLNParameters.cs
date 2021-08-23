@@ -106,12 +106,6 @@ namespace Gurux.DLMS
         ///</summary>
         public bool Streaming;
 
-        public GXCryptoNotifier CryptoNotifier
-        {
-            get;
-            private set;
-        }
-
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -121,8 +115,7 @@ namespace Gurux.DLMS
         /// <param name="forCommandType">Command type.</param>
         /// <param name="forAttributeDescriptor">Attribute descriptor,</param>
         /// <param name="forData">Data,</param>
-        public GXDLMSLNParameters(GXCryptoNotifier owner, 
-            GXDLMSSettings forSettings, 
+        public GXDLMSLNParameters(GXDLMSSettings forSettings, 
             UInt32 invokeId, 
             Command forCommand, 
             byte forCommandType,
@@ -131,7 +124,6 @@ namespace Gurux.DLMS
             byte forStatus, 
             Command forCipheredCommand)
         {
-            CryptoNotifier = owner;
             settings = forSettings;
             InvokeId = invokeId;
             blockIndex = settings.BlockIndex;

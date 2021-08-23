@@ -38,6 +38,7 @@ using System.Security.Cryptography;
 #endif
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Secure
 {

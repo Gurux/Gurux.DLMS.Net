@@ -193,7 +193,7 @@ namespace Gurux.DLMS.Secure
                     break;
                 }
             }
-            if (key == null && p.CryptoNotifier != null && p.CryptoNotifier.keys != null)
+            if (key == null && p.Settings.CryptoNotifier != null && p.Settings.CryptoNotifier.keys != null)
             {
                 GXCryptoKeyParameter args = new GXCryptoKeyParameter();
                 args.Encrypt = true;
@@ -209,7 +209,7 @@ namespace Gurux.DLMS.Secure
                 args.SecuritySuite = p.SecuritySuite;
                 try
                 {
-                    p.CryptoNotifier.keys(p.CryptoNotifier, args);
+                    p.Settings.CryptoNotifier.keys(p.Settings.CryptoNotifier, args);
                     key = args.PrivateKey;
                 }
                 catch (Exception)
@@ -229,7 +229,7 @@ namespace Gurux.DLMS.Secure
                         break;
                     }
                 }
-                if (pub == null && p.CryptoNotifier != null && p.CryptoNotifier.keys != null)
+                if (pub == null && p.Settings.CryptoNotifier != null && p.Settings.CryptoNotifier.keys != null)
                 {
                     GXCryptoKeyParameter args = new GXCryptoKeyParameter();
                     args.SecuritySuite = p.SecuritySuite;
@@ -245,7 +245,7 @@ namespace Gurux.DLMS.Secure
                     args.SecuritySuite = p.SecuritySuite;
                     try
                     {
-                        p.CryptoNotifier.keys(p.CryptoNotifier, args);
+                        p.Settings.CryptoNotifier.keys(p.Settings.CryptoNotifier, args);
                         pub = args.PublicKey;
                     }
                     catch (Exception)
@@ -416,11 +416,11 @@ namespace Gurux.DLMS.Secure
                             kp = p.Settings.Cipher.KeyAgreementKeyPair;
                             if (kp.Key == null)
                             {
-                                pub = (GXPublicKey)GXDLMS.GetKey(p.CryptoNotifier, p.SecuritySuite, CertificateType.KeyAgreement, p.SystemTitle, false);
+                                pub = (GXPublicKey)p.Settings.GetKey(CertificateType.KeyAgreement, p.SystemTitle, false);
                             }
                             if (kp.Value == null)
                             {
-                                key = (GXPrivateKey)GXDLMS.GetKey(p.CryptoNotifier, p.SecuritySuite, CertificateType.KeyAgreement, p.SystemTitle, true);
+                                key = (GXPrivateKey)p.Settings.GetKey(CertificateType.KeyAgreement, p.SystemTitle, true);
                             }
                         }
                         if (kp.Key != null)
@@ -454,11 +454,11 @@ namespace Gurux.DLMS.Secure
                             kp = p.Settings.Cipher.KeyAgreementKeyPair;
                             if (kp.Key == null)
                             {
-                                pub = (GXPublicKey)GXDLMS.GetKey(p.CryptoNotifier, p.SecuritySuite, CertificateType.KeyAgreement, p.SystemTitle, false);
+                                pub = (GXPublicKey)p.Settings.GetKey(CertificateType.KeyAgreement, p.SystemTitle, false);
                             }
                             if (kp.Value == null)
                             {
-                                key = (GXPrivateKey)GXDLMS.GetKey(p.CryptoNotifier, p.SecuritySuite, CertificateType.KeyAgreement, p.RecipientSystemTitle, true);
+                                key = (GXPrivateKey)p.Settings.GetKey(CertificateType.KeyAgreement, p.RecipientSystemTitle, true);
                             }
                             if (kp.Key == null || kp.Value == null)
                             {
@@ -489,11 +489,13 @@ namespace Gurux.DLMS.Secure
                         {
                             if (kp.Key == null)
                             {
-                                pub = (GXPublicKey)GXDLMS.GetKey(p.CryptoNotifier, p.SecuritySuite, CertificateType.DigitalSignature, p.SystemTitle, false);
+                                pub = (GXPublicKey)p.Settings.GetKey(CertificateType.DigitalSignature, p.SystemTitle, false);
+                                kp = p.Settings.Cipher.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
                             }
                             if (kp.Value == null)
                             {
-                                key = (GXPrivateKey)GXDLMS.GetKey(p.CryptoNotifier, p.SecuritySuite, CertificateType.DigitalSignature, p.SystemTitle, true);
+                                key = (GXPrivateKey)p.Settings.GetKey(CertificateType.DigitalSignature, p.RecipientSystemTitle, true);
+                                kp = p.Settings.Cipher.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
                             }
                         }
                     }
@@ -540,11 +542,11 @@ namespace Gurux.DLMS.Secure
                         kp = p.Settings.Cipher.KeyAgreementKeyPair;
                         if (kp.Key == null)
                         {
-                            pub = (GXPublicKey)GXDLMS.GetKey(p.CryptoNotifier, p.SecuritySuite, CertificateType.KeyAgreement, p.SystemTitle, false);
+                            pub = (GXPublicKey)p.Settings.GetKey(CertificateType.KeyAgreement, p.SystemTitle, false);
                         }
                         if (kp.Value == null)
                         {
-                            key = (GXPrivateKey)GXDLMS.GetKey(p.CryptoNotifier, p.SecuritySuite, CertificateType.KeyAgreement, p.SystemTitle, true);
+                            key = (GXPrivateKey)p.Settings.GetKey(CertificateType.KeyAgreement, p.SystemTitle, true);
                         }
                     }
                     if (kp.Key != null)
@@ -578,11 +580,11 @@ namespace Gurux.DLMS.Secure
                         kp = p.Settings.Cipher.KeyAgreementKeyPair;
                         if (kp.Key == null)
                         {
-                            pub = (GXPublicKey)GXDLMS.GetKey(p.CryptoNotifier, p.SecuritySuite, CertificateType.KeyAgreement, p.SystemTitle, false);
+                            pub = (GXPublicKey)p.Settings.GetKey(CertificateType.KeyAgreement, p.SystemTitle, false);
                         }
                         if (kp.Value == null)
                         {
-                            key = (GXPrivateKey)GXDLMS.GetKey(p.CryptoNotifier, p.SecuritySuite, CertificateType.KeyAgreement, p.RecipientSystemTitle, true);
+                            key = (GXPrivateKey)p.Settings.GetKey(CertificateType.KeyAgreement, p.RecipientSystemTitle, true);
                         }
                         if (kp.Key == null || kp.Value == null)
                         {

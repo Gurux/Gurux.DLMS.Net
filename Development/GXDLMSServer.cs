@@ -382,6 +382,7 @@ namespace Gurux.DLMS
             {
                 Settings.MaxServerPDUSize = 134;
             }
+            Settings.CryptoNotifier = new GXCryptoNotifier();
         }
 
 
@@ -1097,7 +1098,7 @@ namespace Gurux.DLMS
                     bool first = Settings.ServerAddress == 0 && Settings.ClientAddress == 0;
                     try
                     {
-                        GXDLMS.GetData(Settings, receivedData, info, null, null);
+                        GXDLMS.GetData(Settings, receivedData, info, null);
                     }
                     catch (Exception)
                     {
@@ -1105,7 +1106,6 @@ namespace Gurux.DLMS
                         receivedData.Size = 0;
                         sr.Reply = ReportError(info.Command, ErrorCode.HardwareFault);
                         info.Clear();
-                        //                        sr.Reply = GXDLMS.GetHdlcFrame(Settings, (byte)Command.UnacceptableFrame, replyData);
                         return;
                     }
                     //If all data is not received yet.
@@ -1478,7 +1478,7 @@ namespace Gurux.DLMS
             }
             if (Settings.UseLogicalNameReferencing)
             {
-                GXDLMS.GetLNPdu(new GXDLMSLNParameters(null, Settings, 0, cmd, 1, null, null, (byte)error, info.CipheredCommand), replyData);
+                GXDLMS.GetLNPdu(new GXDLMSLNParameters(Settings, 0, cmd, 1, null, null, (byte)error, info.CipheredCommand), replyData);
             }
             else
             {
@@ -1835,7 +1835,7 @@ namespace Gurux.DLMS
             byte[][] reply;
             if (UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(null, Settings, 0, Command.DataNotification, 0, null, new GXByteBuffer(data), 0xff, Command.None);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.DataNotification, 0, null, new GXByteBuffer(data), 0xff, Command.None);
                 p.time = time;
                 reply = GXDLMS.GetLnMessages(p);
             }
@@ -1862,7 +1862,7 @@ namespace Gurux.DLMS
             byte[][] reply;
             if (UseLogicalNameReferencing)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(null, Settings, 0, Command.DataNotification, 0, null, data, 0xff, Command.None);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.DataNotification, 0, null, data, 0xff, Command.None);
                 p.time = time;
                 p.time.Skip |= DateTimeSkips.Ms;
                 reply = GXDLMS.GetLnMessages(p);

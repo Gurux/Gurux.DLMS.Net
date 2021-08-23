@@ -996,7 +996,8 @@ namespace Gurux.DLMS
             {
                 // Update security settings.
                 if (assignedAssociation.SecuritySetupReference != null &&
-                    assignedAssociation.ApplicationContextName.ContextId == ApplicationContextName.LogicalNameWithCiphering)
+                   (assignedAssociation.ApplicationContextName.ContextId == ApplicationContextName.LogicalNameWithCiphering ||
+                   assignedAssociation.AuthenticationMechanismName.MechanismId == Authentication.HighECDSA))
                 {
                     GXDLMSSecuritySetup ss = (GXDLMSSecuritySetup)assignedAssociation.ObjectList.FindByLN(ObjectType.SecuritySetup, assignedAssociation.SecuritySetupReference);
                     if (ss != null)
@@ -1060,6 +1061,67 @@ namespace Gurux.DLMS
                     }
                 }
             }
-        }      
+        }
+
+        internal GXCryptoNotifier CryptoNotifier
+        {
+            get;
+            set;
+        }
+
+        internal object GetKey(CertificateType certificateType,
+          byte[] systemTitle,
+          bool encrypt)
+        {
+            if (CryptoNotifier == null)
+            {
+                throw new Exception("Failed to get the certificate.");
+            }
+            if (certificateType == CertificateType.DigitalSignature)
+            {
+                if (encrypt)
+                {
+                    if (Cipher.SigningKeyPair.Value != null)
+                    {
+                        return Cipher.SigningKeyPair.Value;
+                    }
+                }
+                else if (Cipher.SigningKeyPair.Key != null)
+                {
+                    return Cipher.SigningKeyPair.Key;
+                }
+            }
+            else if (certificateType == CertificateType.KeyAgreement)
+            {
+                if (encrypt)
+                {
+                    if (Cipher.KeyAgreementKeyPair.Value != null)
+                    {
+                        return Cipher.KeyAgreementKeyPair.Value;
+                    }
+                }
+                else if (Cipher.KeyAgreementKeyPair.Key != null)
+                {
+                    return Cipher.KeyAgreementKeyPair.Key;
+                }
+            }
+            GXCryptoKeyParameter args = new GXCryptoKeyParameter();
+            args.Encrypt = encrypt;
+            args.SecuritySuite = Cipher.SecuritySuite;
+            args.CertificateType = certificateType;
+            args.SystemTitle = systemTitle;
+            if (CryptoNotifier.keys != null)
+            {
+                CryptoNotifier.keys(CryptoNotifier, args);
+            }
+            if (encrypt)
+            {
+                return args.PrivateKey;
+            }
+            else
+            {
+                return args.PublicKey;
+            }
+        }
     }
 }

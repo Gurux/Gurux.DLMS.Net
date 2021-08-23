@@ -208,15 +208,6 @@ namespace Gurux.DLMS.Secure
             set;
         }
 
-        ///<summary>
-        /// XML Translator.
-        ///</summary>
-        internal GXCryptoNotifier CryptoNotifier
-        {
-            get;
-            set;
-        }
-
         /// <summary>
         /// System title is not send on pre-established connecions.
         /// </summary>

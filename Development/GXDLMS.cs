@@ -340,7 +340,7 @@ namespace Gurux.DLMS
             byte[][] data;
             if (reply.MoreData == RequestTypes.GBT)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(null, settings, 0, Command.GeneralBlockTransfer, 0, null, null, 0xff, Command.None);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, Command.GeneralBlockTransfer, 0, null, null, 0xff, Command.None);
                 p.WindowSize = reply.WindowSize;
                 p.blockNumberAck = reply.BlockNumberAck;
                 p.blockIndex = reply.BlockNumber;
@@ -362,7 +362,7 @@ namespace Gurux.DLMS
                 settings.IncreaseBlockIndex();
                 if (settings.UseLogicalNameReferencing)
                 {
-                    GXDLMSLNParameters p = new GXDLMSLNParameters(null, settings, 0, cmd, (byte)GetCommandType.NextDataBlock, bb, null, 0xff, Command.None);
+                    GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, cmd, (byte)GetCommandType.NextDataBlock, bb, null, 0xff, Command.None);
                     data = GXDLMS.GetLnMessages(p);
                 }
                 else
@@ -830,37 +830,7 @@ namespace Gurux.DLMS
             byte[] tmp = GXCiphering.Encrypt(s, data);
             ++cipher.InvocationCounter;
             return tmp;
-        }
-
-
-        internal static object GetKey(GXCryptoNotifier cryptoNotifier,
-            SecuritySuite securitySuite,
-            CertificateType certificateType,
-            byte[] systemTitle,
-            bool encrypt)
-        {
-            if (cryptoNotifier == null)
-            {
-                throw new Exception("Failed to get the certificate.");
-            }
-            GXCryptoKeyParameter args = new GXCryptoKeyParameter();
-            args.Encrypt = encrypt;
-            args.SecuritySuite = securitySuite;
-            args.CertificateType = certificateType;
-            args.SystemTitle = systemTitle;
-            if (cryptoNotifier.keys != null)
-            {
-                cryptoNotifier.keys(cryptoNotifier, args);
-            }
-            if (encrypt)
-            {
-                return args.PrivateKey;
-            }
-            else
-            {
-                return args.PublicKey;
-            }
-        }
+        }      
 
         /// <summary>
         /// Cipher using security suite 1 or 2.
@@ -920,12 +890,12 @@ namespace Gurux.DLMS
                 pub = c.KeyAgreementKeyPair.Key;
                 if (key == null)
                 {
-                    key = (GXPrivateKey)GetKey(p.CryptoNotifier, p.settings.Cipher.SecuritySuite, CertificateType.KeyAgreement, p.settings.Cipher.SystemTitle, true);
+                    key = (GXPrivateKey)p.settings.GetKey(CertificateType.KeyAgreement, p.settings.Cipher.SystemTitle, true);
                     c.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
                 }
                 if (pub == null)
                 {
-                    pub = (GXPublicKey)GetKey(p.CryptoNotifier, p.settings.Cipher.SecuritySuite, CertificateType.KeyAgreement, p.settings.SourceSystemTitle, false);
+                    pub = (GXPublicKey)p.settings.GetKey(CertificateType.KeyAgreement, p.settings.SourceSystemTitle, false);
                     c.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
                 }
                 if (keyid == 1)
@@ -959,19 +929,18 @@ namespace Gurux.DLMS
                 pub = c.SigningKeyPair.Key;
                 if (key == null)
                 {
-                    key = (GXPrivateKey)GetKey(p.CryptoNotifier, p.settings.Cipher.SecuritySuite, CertificateType.DigitalSignature, p.settings.Cipher.SystemTitle, true);
+                    key = (GXPrivateKey)p.settings.GetKey(CertificateType.DigitalSignature, p.settings.Cipher.SystemTitle, true);
                     c.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
                 }
                 if (pub == null)
                 {
-                    pub = (GXPublicKey)GetKey(p.CryptoNotifier, p.settings.Cipher.SecuritySuite, CertificateType.DigitalSignature, p.settings.SourceSystemTitle, false);
+                    pub = (GXPublicKey)p.settings.GetKey(CertificateType.DigitalSignature, p.settings.SourceSystemTitle, false);
                     c.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
                 }
                 GXEcdsa ka = new GXEcdsa(key);
                 z = ka.GenerateSecret(pub);
                 System.Diagnostics.Debug.WriteLine("Private signing key: " + key.ToHex());
                 System.Diagnostics.Debug.WriteLine("Public signing key: " + pub.ToHex());
-                System.Diagnostics.Debug.WriteLine("Shared secret:" + GXCommon.ToHex(z, true));
             }
             tmp2.Set(p.settings.SourceSystemTitle);
             if (z != null)
@@ -1034,12 +1003,12 @@ namespace Gurux.DLMS
                 pub = c.SigningKeyPair.Key;
                 if (key == null)
                 {
-                    key = (GXPrivateKey)GetKey(p.CryptoNotifier, p.settings.Cipher.SecuritySuite, CertificateType.DigitalSignature, p.settings.Cipher.SystemTitle, true);
+                    key = (GXPrivateKey)p.settings.GetKey(CertificateType.DigitalSignature, p.settings.Cipher.SystemTitle, true);
                     c.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
                 }
                 if (pub == null)
                 {
-                    pub = (GXPublicKey)GetKey(p.CryptoNotifier, p.settings.Cipher.SecuritySuite, CertificateType.DigitalSignature, p.settings.SourceSystemTitle, false);
+                    pub = (GXPublicKey)p.settings.GetKey(CertificateType.DigitalSignature, p.settings.SourceSystemTitle, false);
                     c.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
                 }
                 // key-ciphered-data
@@ -1070,18 +1039,6 @@ namespace Gurux.DLMS
 
             if (p.settings.Cipher.KeyAgreementScheme == KeyAgreementScheme.GeneralSigning)
             {
-                key = c.SigningKeyPair.Value;
-                pub = c.SigningKeyPair.Key;
-                if (key == null)
-                {
-                    key = (GXPrivateKey)GetKey(p.CryptoNotifier, p.settings.Cipher.SecuritySuite, CertificateType.DigitalSignature, p.settings.Cipher.SystemTitle, true);
-                    c.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
-                }
-                if (pub == null)
-                {
-                    pub = (GXPublicKey)GetKey(p.CryptoNotifier, p.settings.Cipher.SecuritySuite, CertificateType.DigitalSignature, p.settings.SourceSystemTitle, false);
-                    c.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
-                }
                 // Signature
                 GXEcdsa ecdsa = new GXEcdsa(key);
                 tmp = reply.SubArray(contentStart, reply.Size - contentStart);
@@ -1379,9 +1336,9 @@ namespace Gurux.DLMS
                         reply.Set(tmp);
                     }
                 }
-                if (reply.Size != 0 && p.command != Command.GeneralBlockTransfer && p.CryptoNotifier != null && p.CryptoNotifier.pdu != null)
+                if (reply.Size != 0 && p.command != Command.GeneralBlockTransfer && p.settings.CryptoNotifier != null && p.settings.CryptoNotifier.pdu != null)
                 {
-                    p.CryptoNotifier.pdu(p.CryptoNotifier, reply.Array());
+                    p.settings.CryptoNotifier.pdu(p.settings.CryptoNotifier, reply.Array());
                 }
                 if (ciphering && reply.Size != 0 && p.command != Command.ReleaseRequest && (!p.multipleBlocks || (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0))
                 {
@@ -4156,8 +4113,7 @@ namespace Gurux.DLMS
         /// <param name="data"></param>
         internal static void HandleGbt(
             GXDLMSSettings settings,
-            GXReplyData data,
-            GXCryptoNotifier cryptoNotifier)
+            GXReplyData data)
         {
             int index = data.Data.Position - 1;
             data.WindowSize = settings.WindowSize;
@@ -4225,7 +4181,7 @@ namespace Gurux.DLMS
                         reply.Data = data.Data;
                         reply.Xml = data.Xml;
                         reply.Xml.StartComment("");
-                        GetPdu(settings, reply, cryptoNotifier);
+                        GetPdu(settings, reply);
                         reply.Xml.EndComment();
                     }
                     catch (Exception)
@@ -4251,7 +4207,7 @@ namespace Gurux.DLMS
                 if (data.Data.Size != 0)
                 {
                     data.Data.Position = 0;
-                    GetPdu(settings, data, cryptoNotifier);
+                    GetPdu(settings, data);
                 }
                 // Get data if all data is read or we want to peek data.
                 if (data.Data.Position != data.Data.Size
@@ -4338,8 +4294,7 @@ namespace Gurux.DLMS
         }
 
         private static void HandleGloDedRequest(GXDLMSSettings settings,
-                                              GXReplyData data,
-                                              GXCryptoNotifier cryptoNotifier)
+                                              GXReplyData data)
         {
             if (data.Xml != null && !data.Xml.Comments)
             {
@@ -4387,9 +4342,9 @@ namespace Gurux.DLMS
                     byte[] encrypted = data.Data.SubArray(0, data.Data.Size);
                     byte[] tmp = GXCiphering.Decrypt(p, data.Data);
                     cipher.SecuritySuite = p.SecuritySuite;
-                    if (cryptoNotifier != null && cryptoNotifier.pdu != null && data.IsComplete && (data.MoreData & RequestTypes.Frame) == 0)
+                    if (settings.CryptoNotifier != null && settings.CryptoNotifier.pdu != null && data.IsComplete && (data.MoreData & RequestTypes.Frame) == 0)
                     {
-                        cryptoNotifier.pdu(cryptoNotifier, tmp);
+                        settings.CryptoNotifier.pdu(settings.CryptoNotifier, tmp);
                     }
                     data.Data.Clear();
                     data.Data.Set(tmp);
@@ -4409,7 +4364,7 @@ namespace Gurux.DLMS
                     {
                         data.Command = Command.None;
                         --data.Data.Position;
-                        GetPdu(settings, data, cryptoNotifier);
+                        GetPdu(settings, data);
                     }
                 }
                 else
@@ -4422,8 +4377,7 @@ namespace Gurux.DLMS
         private static void HandleGloDedResponse(
             GXDLMSSettings settings,
             GXReplyData data,
-            int index,
-            GXCryptoNotifier cryptoNotifier)
+            int index)
         {
             if (data.Xml != null && !data.Xml.Comments)
             {
@@ -4496,14 +4450,14 @@ namespace Gurux.DLMS
                         }
                         settings.ExpectedInvocationCounter = p.InvocationCounter;
                     }
-                    if (cryptoNotifier != null && cryptoNotifier.pdu != null)
+                    if (settings.CryptoNotifier != null && settings.CryptoNotifier.pdu != null)
                     {
-                        cryptoNotifier.pdu(cryptoNotifier, tmp);
+                        settings.CryptoNotifier.pdu(settings.CryptoNotifier, tmp);
                     }
                     data.Data.Set(tmp);
                     data.CipheredCommand = data.Command;
                     data.Command = Command.None;
-                    GetPdu(settings, data, cryptoNotifier);
+                    GetPdu(settings, data);
                     data.CipherIndex = data.Data.Size;
                 }
             }
@@ -4516,8 +4470,7 @@ namespace Gurux.DLMS
         /// <param name="data">received data.</param>
         public static void GetPdu(
             GXDLMSSettings settings,
-            GXReplyData data,
-            GXCryptoNotifier cryptoNotifier)
+            GXReplyData data)
         {
             short ch;
             Command cmd = data.Command;
@@ -4573,7 +4526,7 @@ namespace Gurux.DLMS
                     case Command.GeneralBlockTransfer:
                         if (data.Xml != null || (!settings.IsServer && (data.MoreData & RequestTypes.Frame) == 0))
                         {
-                            HandleGbt(settings, data, cryptoNotifier);
+                            HandleGbt(settings, data);
                         }
                         break;
                     case Command.Aarq:
@@ -4634,7 +4587,7 @@ namespace Gurux.DLMS
                     case Command.DedGetRequest:
                     case Command.DedSetRequest:
                     case Command.DedMethodRequest:
-                        HandleGloDedRequest(settings, data, cryptoNotifier);
+                        HandleGloDedRequest(settings, data);
                         // Server handles this.
                         break;
                     case Command.GloReadResponse:
@@ -4649,27 +4602,27 @@ namespace Gurux.DLMS
                     case Command.DedEventNotification:
                     case Command.GloConfirmedServiceError:
                     case Command.DedConfirmedServiceError:
-                        HandleGloDedResponse(settings, data, index, cryptoNotifier);
+                        HandleGloDedResponse(settings, data, index);
                         break;
                     case Command.GeneralGloCiphering:
                     case Command.GeneralDedCiphering:
                         if (settings.IsServer)
                         {
-                            HandleGloDedRequest(settings, data, cryptoNotifier);
+                            HandleGloDedRequest(settings, data);
                         }
                         else
                         {
-                            HandleGloDedResponse(settings, data, index, cryptoNotifier);
+                            HandleGloDedResponse(settings, data, index);
                         }
                         break;
                     case Command.GeneralSigning:
                         if (settings.IsServer)
                         {
-                            HandleGloDedRequest(settings, data, cryptoNotifier);
+                            HandleGloDedRequest(settings, data);
                         }
                         else
                         {
-                            HandleGloDedResponse(settings, data, index, cryptoNotifier);
+                            HandleGloDedResponse(settings, data, index);
                         }
                         break;
                     case Command.DataNotification:
@@ -4683,7 +4636,7 @@ namespace Gurux.DLMS
                         //Client handles this.
                         break;
                     case Command.GeneralCiphering:
-                        HandleGeneralCiphering(settings, data, cryptoNotifier);
+                        HandleGeneralCiphering(settings, data);
                         break;
                     case Command.GatewayRequest:
                     case Command.GatewayResponse:
@@ -4694,7 +4647,7 @@ namespace Gurux.DLMS
                         data.Data.Get(data.Gateway.PhysicalDeviceAddress);
                         GetDataFromBlock(data.Data, index);
                         data.Command = Command.None;
-                        GetPdu(settings, data, cryptoNotifier);
+                        GetPdu(settings, data);
                         break;
                     case Command.PingResponse:
                     case Command.DiscoverReport:
@@ -4724,7 +4677,7 @@ namespace Gurux.DLMS
                 if (cmd == Command.GeneralBlockTransfer)
                 {
                     data.Data.Position = data.CipherIndex + 1;
-                    HandleGbt(settings, data, cryptoNotifier);
+                    HandleGbt(settings, data);
                     data.CipherIndex = data.Data.Size;
                     data.Command = Command.None;
                 }
@@ -4742,7 +4695,7 @@ namespace Gurux.DLMS
                         case Command.GeneralSigning:
                             data.Command = Command.None;
                             data.Data.Position = data.CipherIndex;
-                            GetPdu(settings, data, cryptoNotifier);
+                            GetPdu(settings, data);
                             break;
                         default:
                             break;
@@ -4775,7 +4728,7 @@ namespace Gurux.DLMS
                         case Command.GeneralSigning:
                             data.Command = Command.None;
                             data.Data.Position = data.CipherIndex;
-                            GetPdu(settings, data, cryptoNotifier);
+                            GetPdu(settings, data);
                             break;
                         default:
                             break;
@@ -4941,8 +4894,7 @@ namespace Gurux.DLMS
 
         private static void HandleGeneralCiphering(
             GXDLMSSettings settings,
-            GXReplyData data,
-            GXCryptoNotifier cryptoNotifier)
+            GXReplyData data)
         {
             if (settings.Cipher == null)
             {
@@ -4963,7 +4915,6 @@ namespace Gurux.DLMS
                     GetBlockCipherKey(settings),
                     GetAuthenticationKey(settings));
                 p.Xml = data.Xml;
-                p.CryptoNotifier = cryptoNotifier;
                 try
                 {
                     byte[] tmp = GXCiphering.Decrypt(p, data.Data);
@@ -4999,7 +4950,7 @@ namespace Gurux.DLMS
                             data.Xml.AppendEndTag(TranslatorTags.KeyInfo);
                             p.Xml.StartComment("");
                         }
-                        GetPdu(settings, data, cryptoNotifier);
+                        GetPdu(settings, data);
                         if (data.Xml != null && p != null && p.Xml.Comments)
                         {
                             p.Xml.EndComment();
@@ -5127,8 +5078,7 @@ namespace Gurux.DLMS
             GXDLMSSettings settings,
             GXByteBuffer reply,
             GXReplyData data,
-            GXReplyData notify,
-            GXCryptoNotifier cryptoNotifier)
+            GXReplyData notify)
         {
             byte frame = 0;
             bool isLast = true;
@@ -5197,7 +5147,7 @@ namespace Gurux.DLMS
                 }
                 if (frame == 0x3 && data.IsMoreData)
                 {
-                    bool tmp = GetData(settings, reply, data, notify, cryptoNotifier);
+                    bool tmp = GetData(settings, reply, data, notify);
                     data.Data.Position = 0;
                     return tmp;
                 }
@@ -5214,7 +5164,7 @@ namespace Gurux.DLMS
             }
             try
             {
-                GetPdu(settings, data, cryptoNotifier);
+                GetPdu(settings, data);
             }
             catch (Exception)
             {
@@ -5255,7 +5205,7 @@ namespace Gurux.DLMS
             }
             if (!isLast)
             {
-                return GetData(settings, reply, data, notify, cryptoNotifier);
+                return GetData(settings, reply, data, notify);
             }
             return !isNotify;
         }

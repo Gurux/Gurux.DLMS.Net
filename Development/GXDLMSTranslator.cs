@@ -500,7 +500,7 @@ namespace Gurux.DLMS
                     if ((type == InterfaceType.HDLC || type == InterfaceType.HdlcWithModeE) && data.GetUInt8(data.Position) == 0x7e)
                     {
                         pos = data.Position;
-                        found = GXDLMS.GetData(settings, data, reply, null, null);
+                        found = GXDLMS.GetData(settings, data, reply, null);
                         data.Position = pos;
                         if (found)
                         {
@@ -510,7 +510,7 @@ namespace Gurux.DLMS
                     else if (type == InterfaceType.WRAPPER && data.GetUInt16(data.Position) == 0x1)
                     {
                         pos = data.Position;
-                        found = GXDLMS.GetData(settings, data, reply, null, null);
+                        found = GXDLMS.GetData(settings, data, reply, null);
                         data.Position = pos;
                         if (found)
                         {
@@ -520,7 +520,7 @@ namespace Gurux.DLMS
                     else if (type == InterfaceType.Plc && data.GetUInt8(data.Position) == 0x2)
                     {
                         pos = data.Position;
-                        found = GXDLMS.GetData(settings, data, reply, null, null);
+                        found = GXDLMS.GetData(settings, data, reply, null);
                         data.Position = pos;
                         if (found)
                         {
@@ -530,7 +530,7 @@ namespace Gurux.DLMS
                     else if (type == InterfaceType.PlcHdlc && GXDLMS.GetPlcSfskFrameSize(data) != 0)
                     {
                         pos = data.Position;
-                        found = GXDLMS.GetData(settings, data, reply, null, null);
+                        found = GXDLMS.GetData(settings, data, reply, null);
                         data.Position = pos;
                         if (found)
                         {
@@ -540,7 +540,7 @@ namespace Gurux.DLMS
                     else if (type == InterfaceType.WirelessMBus && GXDLMS.IsWirelessMBusData(data))
                     {
                         pos = data.Position;
-                        found = GXDLMS.GetData(settings, data, reply, null, null);
+                        found = GXDLMS.GetData(settings, data, reply, null);
                         data.Position = pos;
                         if (found)
                         {
@@ -550,7 +550,7 @@ namespace Gurux.DLMS
                     else if (type == InterfaceType.WiredMBus && GXDLMS.IsWiredMBusData(data))
                     {
                         pos = data.Position;
-                        found = GXDLMS.GetData(settings, data, reply, null, null);
+                        found = GXDLMS.GetData(settings, data, reply, null);
                         data.Position = pos;
                         if (found)
                         {
@@ -600,7 +600,7 @@ namespace Gurux.DLMS
                 {
                     pos = data.Position;
                     settings.InterfaceType = InterfaceType.HDLC;
-                    found = GXDLMS.GetData(settings, data, reply, null, null);
+                    found = GXDLMS.GetData(settings, data, reply, null);
                     data.Position = pos;
                     if (found)
                     {
@@ -611,7 +611,7 @@ namespace Gurux.DLMS
                 {
                     pos = data.Position;
                     settings.InterfaceType = InterfaceType.WRAPPER;
-                    found = GXDLMS.GetData(settings, data, reply, null, null);
+                    found = GXDLMS.GetData(settings, data, reply, null);
                     data.Position = pos;
                     if (found)
                     {
@@ -623,7 +623,7 @@ namespace Gurux.DLMS
                 {
                     pos = data.Position;
                     settings.InterfaceType = InterfaceType.Plc;
-                    found = GXDLMS.GetData(settings, data, reply, null, null);
+                    found = GXDLMS.GetData(settings, data, reply, null);
                     data.Position = pos;
                     if (found)
                     {
@@ -636,7 +636,7 @@ namespace Gurux.DLMS
                 {
                     pos = data.Position;
                     settings.InterfaceType = InterfaceType.PlcHdlc;
-                    found = GXDLMS.GetData(settings, data, reply, null, null);
+                    found = GXDLMS.GetData(settings, data, reply, null);
                     data.Position = pos;
                     if (found)
                     {
@@ -726,6 +726,7 @@ namespace Gurux.DLMS
             GXReplyData data = new GXReplyData();
             data.Xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
             GXDLMSSettings settings = new GXDLMSSettings(true, InterfaceType.HDLC);
+            GetCiphering(settings, true);
             if (value.GetUInt8(0) == 0x7e)
             {
                 settings.InterfaceType = Enums.InterfaceType.HDLC;
@@ -739,7 +740,7 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentNullException("Invalid DLMS framing.");
             }
-            GXDLMS.GetData(settings, value, data, null, null);
+            GXDLMS.GetData(settings, value, data, null);
             //Only fully PDUs are returned.
             if (data.IsMoreData)
             {
@@ -775,6 +776,7 @@ namespace Gurux.DLMS
 
         private void GetCiphering(GXDLMSSettings settings, bool force)
         {
+            settings.CryptoNotifier = cryptoNotifier;
             if (force || Security != Security.None)
             {
                 GXCiphering c = new Secure.GXCiphering(this.SystemTitle);
@@ -1110,7 +1112,7 @@ namespace Gurux.DLMS
                 if (msg.Message.GetUInt8(msg.Message.Position) == 0x7e)
                 {
                     settings.InterfaceType = Enums.InterfaceType.HDLC;
-                    if (GXDLMS.GetData(settings, msg.Message, data, null, null))
+                    if (GXDLMS.GetData(settings, msg.Message, data, null))
                     {
                         //settings.SourceSystemTitle
                         if (!PduOnly)
@@ -1220,7 +1222,7 @@ namespace Gurux.DLMS
                 else if (msg.Message.GetUInt16(msg.Message.Position) == 1)
                 {
                     msg.InterfaceType = settings.InterfaceType = Enums.InterfaceType.WRAPPER;
-                    GXDLMS.GetData(settings, msg.Message, data, null, null);
+                    GXDLMS.GetData(settings, msg.Message, data, null);
                     string pdu = PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg);
                     if (msg.Command == Command.Aarq)
                     {
@@ -1266,7 +1268,7 @@ namespace Gurux.DLMS
                 else if (msg.Message.GetUInt8(msg.Message.Position) == 2)
                 {
                     msg.InterfaceType = settings.InterfaceType = Enums.InterfaceType.Plc;
-                    GXDLMS.GetData(settings, msg.Message, data, null, null);
+                    GXDLMS.GetData(settings, msg.Message, data, null);
                     if (msg.Command == Command.Aarq)
                     {
                         msg.SystemTitle = settings.Cipher.SystemTitle;
@@ -1326,7 +1328,7 @@ namespace Gurux.DLMS
                 else if (GXDLMS.GetPlcSfskFrameSize(msg.Message) != 0)
                 {
                     msg.InterfaceType = settings.InterfaceType = Enums.InterfaceType.PlcHdlc;
-                    GXDLMS.GetData(settings, msg.Message, data, null, null);
+                    GXDLMS.GetData(settings, msg.Message, data, null);
                     if (msg.Command == Command.Aarq)
                     {
                         msg.SystemTitle = settings.Cipher.SystemTitle;
@@ -1387,7 +1389,7 @@ namespace Gurux.DLMS
                 {
                     settings.InterfaceType = Enums.InterfaceType.WiredMBus;
                     int len = xml.GetXmlLength();
-                    GXDLMS.GetData(settings, msg.Message, data, null, null);
+                    GXDLMS.GetData(settings, msg.Message, data, null);
                     if (msg.Command == Command.Aarq)
                     {
                         msg.SystemTitle = settings.Cipher.SystemTitle;
@@ -1469,7 +1471,7 @@ namespace Gurux.DLMS
                 {
                     settings.InterfaceType = Enums.InterfaceType.WirelessMBus;
                     int len = xml.GetXmlLength();
-                    GXDLMS.GetData(settings, msg.Message, data, null, null);
+                    GXDLMS.GetData(settings, msg.Message, data, null);
                     if (msg.Command == Command.Aarq)
                     {
                         msg.SystemTitle = settings.Cipher.SystemTitle;
@@ -1795,7 +1797,7 @@ namespace Gurux.DLMS
                         data.Xml = xml;
                         data.Data = value;
                         value.Position = 0;
-                        GXDLMS.GetPdu(settings, data, cryptoNotifier);
+                        GXDLMS.GetPdu(settings, data);
                         break;
                     case (byte)Command.InformationReport:
                         data.Xml = xml;
@@ -1817,13 +1819,13 @@ namespace Gurux.DLMS
                         data.Xml = xml;
                         data.Data = value;
                         value.Position = 0;
-                        GXDLMS.GetPdu(settings, data, cryptoNotifier);
+                        GXDLMS.GetPdu(settings, data);
                         break;
                     case (byte)Command.GeneralCiphering:
                         data.Xml = xml;
                         data.Data = value;
                         value.Position = 0;
-                        GXDLMS.GetPdu(settings, data, cryptoNotifier);
+                        GXDLMS.GetPdu(settings, data);
                         break;
                     case (byte)Command.ReleaseRequest:
                         xml.AppendStartTag((Command)cmd);
@@ -2056,67 +2058,34 @@ namespace Gurux.DLMS
                             {
                                 int len2 = xml.GetXmlLength();
                                 --value.Position;
-                                //Check is this client msg.
                                 try
                                 {
                                     byte[] st;
                                     st = settings.Cipher.SystemTitle;
-                                    if (cmd == (byte)Command.GeneralDedCiphering && settings.Cipher.DedicatedKey != null)
-                                    {
-                                        p = new AesGcmParameter(settings, st, settings.Cipher.DedicatedKey, settings.Cipher.AuthenticationKey);
-                                    }
-                                    else
-                                    {
-                                        p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
-                                    }
+                                    p = new AesGcmParameter(settings, st, null, null);
                                     p.Xml = xml;
                                     GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
-                                    len2 = xml.GetXmlLength();
-                                    xml.StartComment("Decrypt data: " + data2.ToString());
-                                    PduToXml(xml, data2, omitDeclaration, omitNameSpace, false, msg);
                                     xml.AppendComment("Security : " + p.Security);
                                     xml.AppendComment("Security Suite: " + p.SecuritySuite);
                                     xml.AppendComment("Invocation Counter: " + p.InvocationCounter.ToString());
+                                    xml.StartComment("Decrypt data: " + data2.ToString());
+                                    PduToXml(xml, data2, omitDeclaration, omitNameSpace, false, msg);
                                     xml.EndComment();
-                                    p.Xml.AppendLine(TranslatorTags.CipheredContent, null, GXCommon.ToHex(p.CipheredContent, false));
+                                    p.Xml.AppendLine(TranslatorTags.Content, null, GXCommon.ToHex(p.CipheredContent, false));
                                     p.Xml.AppendLine(TranslatorTags.Signature, null, GXCommon.ToHex(p.Signature, false));
                                 }
                                 catch (Exception)
                                 {
+                                    // It's OK if this fails. Ciphering settings are not correct.
+                                    if (msg != null)
+                                    {
+                                        msg.Command = (Command)cmd;
+                                    }
                                     xml.SetXmlLength(len2);
                                     value.Position = originalPosition;
-                                    --value.Position;
-                                    //Check is this server msg.
-                                    try
-                                    {
-                                        byte[] st;
-                                        st = settings.SourceSystemTitle;
-                                        if (st != null)
-                                        {
-                                            p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
-                                            GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
-                                            xml.StartComment("Decrypt data: " + data2.ToString());
-                                            PduToXml(xml, data2, omitDeclaration, omitNameSpace, false, msg);
-                                            xml.AppendComment("Security : " + p.Security);
-                                            xml.AppendComment("Security Suite: " + p.SecuritySuite);
-                                            xml.AppendComment("Invocation Counter: " + p.InvocationCounter.ToString());
-                                            xml.EndComment();
-                                            p.Xml.AppendLine(TranslatorTags.CipheredContent, null, GXCommon.ToHex(p.CipheredContent, false));
-                                            p.Xml.AppendLine(TranslatorTags.Signature, null, GXCommon.ToHex(p.Signature, false));
-                                        }
-                                    }
-                                    catch (Exception)
-                                    {
-                                        // It's OK if this fails. Ciphering settings are not correct.
-                                        if (msg != null)
-                                        {
-                                            msg.Command = (Command)cmd;
-                                        }
-                                        xml.SetXmlLength(len2);
-                                    }
                                 }
                             }
-                            else
+                            if (value.Position == originalPosition)
                             {
                                 GXByteBuffer transactionId = new GXByteBuffer();
                                 len = GXCommon.GetObjectCount(value);
@@ -2144,7 +2113,7 @@ namespace Gurux.DLMS
                                 len = GXCommon.GetObjectCount(value);
                                 tmp = new byte[len];
                                 value.Get(tmp);
-                                xml.AppendLine(TranslatorTags.CipheredContent, null, GXCommon.ToHex(tmp, false));
+                                xml.AppendLine(TranslatorTags.Content, null, GXCommon.ToHex(tmp, false));
                                 len = GXCommon.GetObjectCount(value);
                                 tmp = new byte[len];
                                 value.Get(tmp);
@@ -3791,7 +3760,7 @@ namespace Gurux.DLMS
                 case Command.SetResponse:
                 case Command.MethodRequest:
                 case Command.MethodResponse:
-                    ln = new GXDLMSLNParameters(null, s.settings, 0, s.command, s.requestType,
+                    ln = new GXDLMSLNParameters(s.settings, 0, s.command, s.requestType,
                                                 s.attributeDescriptor, s.data, 0xff, Command.None);
                     GXDLMS.GetLNPdu(ln, bb);
                     break;
@@ -3892,22 +3861,22 @@ namespace Gurux.DLMS
                     bb.Set(s.attributeDescriptor);
                     break;
                 case Command.GeneralBlockTransfer:
-                    ln = new GXDLMSLNParameters(null, s.settings, 0, s.command, s.requestType,
+                    ln = new GXDLMSLNParameters(s.settings, 0, s.command, s.requestType,
                                                  s.attributeDescriptor, s.data, 0xff, Command.None);
                     GXDLMS.GetLNPdu(ln, bb);
                     break;
                 case Command.AccessRequest:
-                    ln = new GXDLMSLNParameters(null, s.settings, 0, s.command, s.requestType,
+                    ln = new GXDLMSLNParameters(s.settings, 0, s.command, s.requestType,
                                                 s.attributeDescriptor, s.data, 0xff, Command.None);
                     GXDLMS.GetLNPdu(ln, bb);
                     break;
                 case Command.AccessResponse:
-                    ln = new GXDLMSLNParameters(null, s.settings, 0, s.command, s.requestType,
+                    ln = new GXDLMSLNParameters(s.settings, 0, s.command, s.requestType,
                                                 s.attributeDescriptor, s.data, 0xff, Command.None);
                     GXDLMS.GetLNPdu(ln, bb);
                     break;
                 case Command.DataNotification:
-                    ln = new GXDLMSLNParameters(null, s.settings, 0, s.command, s.requestType,
+                    ln = new GXDLMSLNParameters(s.settings, 0, s.command, s.requestType,
                                                 s.attributeDescriptor, s.data, 0xff, Command.None);
                     ln.time = s.time;
                     GXDLMS.GetLNPdu(ln, bb);
@@ -3919,7 +3888,7 @@ namespace Gurux.DLMS
                     GXDLMS.GetSNPdu(sn, bb);
                     break;
                 case Command.EventNotification:
-                    ln = new GXDLMSLNParameters(null, s.settings, 0, s.command, s.requestType,
+                    ln = new GXDLMSLNParameters(s.settings, 0, s.command, s.requestType,
                                                 s.attributeDescriptor, s.data, 0xff, Command.None);
                     ln.time = s.time;
                     GXDLMS.GetLNPdu(ln, bb);
