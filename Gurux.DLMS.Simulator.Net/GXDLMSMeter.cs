@@ -500,6 +500,17 @@ namespace Gurux.DLMS.Simulator.Net
                 if (Trace > TraceLevel.Warning)
                 {
                     System.Diagnostics.Debug.WriteLine("PreAction {0}:{1}", it.Target.LogicalName, it.Index);
+                    if ((it.Target is GXDLMSProfileGeneric pg) && it.Index == 2)
+                    {
+                        //Update clock for profile-generic object when capture is invoked.
+                        foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> co in pg.CaptureObjects)
+                        {
+                            if ((co.Key is GXDLMSClock clock) && co.Value.AttributeIndex == 2)
+                            {
+                                clock.Time = clock.Now();
+                            }
+                        }
+                    }
                 }
             }
         }

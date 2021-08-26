@@ -1590,6 +1590,8 @@ namespace Gurux.DLMS.Objects
                     }
                 }
                 reader.ReadEndElement("ObjectList");
+                // Add logical name association object to the object list.
+                ObjectList.Add(this);
             }
             ClientSAP = (byte)reader.ReadElementContentAsInt("ClientSAP");
             ServerSAP = (byte)reader.ReadElementContentAsInt("ServerSAP");

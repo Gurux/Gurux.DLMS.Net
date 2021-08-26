@@ -256,18 +256,14 @@ namespace Gurux.DLMS.Client.Example
                             {
                                 settings.client.Ciphering.Security = Security.AuthenticationEncryption;
                             }
-                            else if (string.Compare("DigitallySigned", it.Value, true) == 0)
-                            {
-                                settings.client.Ciphering.Security = Security.DigitallySigned;
-                            }
                             else
                             {
-                                throw new ArgumentException("Invalid Ciphering option '" + it.Value + "'. (None, Authentication, Encryption, AuthenticationEncryption, DigitallySigned)");
+                                throw new ArgumentException("Invalid Ciphering option '" + it.Value + "'. (None, Authentication, Encryption, AuthenticationEncryption)");
                             }
                         }
                         catch (Exception)
                         {
-                            throw new ArgumentException("Invalid Ciphering option '" + it.Value + "'. (None, Authentication, Encryption, AuthenticationEncryption, DigitallySigned)");
+                            throw new ArgumentException("Invalid Ciphering option '" + it.Value + "'. (None, Authentication, Encryption, AuthenticationEncryption)");
                         }
                         break;
                     case 'V':
@@ -283,11 +279,12 @@ namespace Gurux.DLMS.Client.Example
                     case 'K':
                         try
                         {
-                            settings.client.Ciphering.KeyAgreementScheme = (KeyAgreementScheme)Enum.Parse(typeof(KeyAgreementScheme), it.Value);
+                            settings.client.Ciphering.Signing = (Signing)Enum.Parse(typeof(Signing), it.Value);
+                            settings.client.ProposedConformance |= Conformance.GeneralProtection;
                         }
                         catch (Exception)
                         {
-                            throw new ArgumentException("Invalid security suite option '" + it.Value + "'. (OnePassDiffieHellman, StaticUnifiedModel)");
+                            throw new ArgumentException("Invalid security suite option '" + it.Value + "'. (None, OnePassDiffieHellman, StaticUnifiedModel, GeneralSigning)");
                         }
                         break;
                     case 'T':
@@ -446,9 +443,9 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine(" -r [sn, ln]\t Short name or Logical Name (default) referencing is used.");
             Console.WriteLine(" -t [Error, Warning, Info, Verbose] Trace messages.");
             Console.WriteLine(" -g \"0.0.1.0.0.255:1; 0.0.1.0.0.255:2\" Get selected object(s) with given attribute index.");
-            Console.WriteLine(" -C \t Security Level. (None, Authentication, Encrypted, AuthenticationEncryption or DigitallySigned)");
+            Console.WriteLine(" -C \t Security Level. (None, Authentication, Encrypted, AuthenticationEncryption)");
             Console.WriteLine(" -V \t Security Suite version. (Default: Suite0). (Suite0, Suite1 or Suite2)");
-            Console.WriteLine(" -K \t Used Key agreement scheme (OnePassDiffieHellman or StaticUnifiedModel).");
+            Console.WriteLine(" -K \t Signing (None, EphemeralUnifiedModel, OnePassDiffieHellman or StaticUnifiedModel, GeneralSigning).");
             Console.WriteLine(" -v \t Invocation counter data object Logical Name. Ex. 0.0.43.1.1.255");
             Console.WriteLine(" -I \t Auto increase invoke ID");
             Console.WriteLine(" -o \t Cache association view to make reading faster. Ex. -o C:\\device.xml");

@@ -49,12 +49,6 @@ namespace Gurux.DLMS.Secure
         void Reset();
 
         /// <summary>
-        /// Is ciphering used.
-        /// </summary>
-        /// <returns></returns>
-        bool IsCiphered();
-
-        /// <summary>
         /// Used security level.
         /// </summary>
         Security Security
@@ -84,15 +78,6 @@ namespace Gurux.DLMS.Secure
         /// Used security suite.
         /// </summary>
         SecuritySuite SecuritySuite
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Used key agreement scheme.
-        /// </summary>
-        KeyAgreementScheme KeyAgreementScheme
         {
             get;
             set;
@@ -197,6 +182,12 @@ namespace Gurux.DLMS.Secure
         /// TLS signing key pair.
         /// </summary>
         KeyValuePair<GXPublicKey, GXPrivateKey> TlsKeyPair
+        {
+            get;
+            set;
+        }
+
+        Signing Signing
         {
             get;
             set;

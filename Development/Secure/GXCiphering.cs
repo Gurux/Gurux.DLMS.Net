@@ -120,7 +120,7 @@ namespace Gurux.DLMS.Secure
         {
             target.Security = Security;
             target.SecuritySuite = SecuritySuite;
-            target.KeyAgreementScheme = KeyAgreementScheme;
+            target.Signing = Signing;
             target.InvocationCounter = InvocationCounter;
             target.SystemTitle = SystemTitle;
             target.BlockCipherKey = BlockCipherKey;
@@ -167,15 +167,6 @@ namespace Gurux.DLMS.Secure
         /// Used security suite.
         /// </summary>
         public SecuritySuite SecuritySuite
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Used key agreement scheme.
-        /// </summary>
-        public KeyAgreementScheme KeyAgreementScheme
         {
             get;
             set;
@@ -398,11 +389,6 @@ namespace Gurux.DLMS.Secure
             InvocationCounter = 0;
         }
 
-        bool GXICipher.IsCiphered()
-        {
-            return Security != Security.None;
-        }
-
         /// <summary>
         /// Generate GMAC password from given challenge.
         /// </summary>
@@ -422,6 +408,15 @@ namespace Gurux.DLMS.Secure
             bb.SetUInt32(InvocationCounter);
             bb.Set(p.CountTag);
             return bb.Array();
+        }
+
+        /// <summary>
+        /// Used signing.
+        /// </summary>
+        public Signing Signing
+        {
+            get;
+            set;
         }
     }
 }

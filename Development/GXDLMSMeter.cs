@@ -149,9 +149,11 @@ namespace Gurux.DLMS
             set;
         }
 
+
         /// <summary>
         /// Used Key agreement scheme.
         /// </summary>
+        /// Obsolete. This is removed at some point.
         public KeyAgreementScheme KeyAgreementScheme
         {
             get;
@@ -245,6 +247,15 @@ namespace Gurux.DLMS
         /// </summary>
         [DefaultValue(null)]
         public string Challenge
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Signing type.
+        /// </summary>
+        public Signing Signing
         {
             get;
             set;

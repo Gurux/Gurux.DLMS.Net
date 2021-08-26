@@ -32,6 +32,7 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using System;
 using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Enums
@@ -59,7 +60,8 @@ namespace Gurux.DLMS.Enums
         /// <summary>
         /// General signing is used.
         /// </summary>
-        [XmlEnum("3")]
+       [XmlEnum("3")]
+       //[Obsolete("This will be removed.")]
         GeneralSigning
     }
 }

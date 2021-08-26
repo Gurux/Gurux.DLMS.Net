@@ -1190,7 +1190,7 @@ namespace Gurux.DLMS
                 buff.SetUInt8(00);
                 GXAPDU.GenerateUserInformation(Settings, Settings.Cipher, null, buff);
                 //Increase IC.
-                if (Settings.Cipher != null && Settings.Cipher.IsCiphered())
+                if (Settings.IsCiphered(false))
                 {
                     ++Settings.Cipher.InvocationCounter;
                 }

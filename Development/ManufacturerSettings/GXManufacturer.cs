@@ -236,13 +236,13 @@ namespace Gurux.DLMS.ManufacturerSettings
         }
 
         /// <summary>
-        /// Used Key agreement scheme.
+        /// Used Signing.
         /// </summary>
 #if !WINDOWS_UWP
         [Browsable(false)]
 #endif
-        [DefaultValue(KeyAgreementScheme.EphemeralUnifiedModel)]
-        public KeyAgreementScheme KeyAgreementScheme
+        [DefaultValue(Signing.None)]
+        public Signing Signing
         {
             get;
             set;

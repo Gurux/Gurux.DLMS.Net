@@ -38,6 +38,9 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Internal;
 using System.Diagnostics;
 using Gurux.DLMS.Objects;
+using Gurux.DLMS.Ecdsa;
+using Gurux.DLMS.Secure;
+using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS
 {

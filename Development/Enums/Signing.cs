@@ -32,33 +32,43 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using System.Xml.Serialization;
+
 namespace Gurux.DLMS.Enums
 {
     /// <summary>
-    /// Enumerates used security.
+    /// Enumerates Signing types.
     /// </summary>
-    public enum Security
+    public enum Signing
     {
         /// <summary>
-        /// Transport security is not used.
+        /// Signing is not used.
         /// </summary>
+        [XmlEnum("0")]
         None = 0,
         /// <summary>
-        /// Authentication security is used.
+        /// The Ephemeral Unified Model scheme. Messages are digitally signed and send with general-ciphering messages.
         /// </summary>
-        Authentication = 0x10,
+        [XmlEnum("1")]
+        EphemeralUnifiedModel,
         /// <summary>
-        /// Encryption security is used.
+        /// The One-Pass Diffie-Hellman scheme. Messages are digitally signed and send with general-ciphering messages.
         /// </summary>
-        Encryption = 0x20,
+        [XmlEnum("2")]
+        OnePassDiffieHellman,
         /// <summary>
-        /// Authentication and Encryption security are used.
+        /// The Static Unified Model scheme. Messages are digitally signed and send with general-ciphering messages.
         /// </summary>
-        AuthenticationEncryption = 0x30,
+        [XmlEnum("3")]
+        StaticUnifiedModel,
         /// <summary>
-        /// Messages are digitally signed.
+        /// General signing is used.
         /// </summary>
-        //[Obsolete("This will be removed.")]
-        DigitallySigned = 0x40
+        /// <remarks>
+        /// Messages are digitally signed and send with general-signing messages.
+        /// general-signing messages are encrypted and send with glo_action
+        /// </remarks>
+        [XmlEnum("4")]
+        GeneralSigning
     }
 }

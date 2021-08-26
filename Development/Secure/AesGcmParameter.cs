@@ -175,14 +175,8 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
-        ///       Shared secret is generated when connection is made.
+        /// Signature.
         /// </summary>
-        public byte[] SharedSecret
-        {
-            get;
-            set;
-        }
-
         public byte[] Signature
         {
             get;

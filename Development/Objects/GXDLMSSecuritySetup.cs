@@ -729,7 +729,7 @@ namespace Gurux.DLMS.Objects
             {
                 if (e.Index == 1)
                 {
-                    SecurityPolicy = (SecurityPolicy)e.Parameters;
+                    SecurityPolicy = (SecurityPolicy)Convert.ToByte(e.Parameters);
                 }
                 else if (e.Index == 2)
                 {

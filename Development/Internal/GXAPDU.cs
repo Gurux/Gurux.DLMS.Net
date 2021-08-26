@@ -127,7 +127,7 @@ namespace Gurux.DLMS.Internal
             data.SetUInt8(BerType.ObjectIdentifier);
             //Len
             data.SetUInt8(0x07);
-            bool ciphered = cipher != null && cipher.IsCiphered();
+            bool ciphered = settings.IsCiphered(true);
             data.SetUInt8(0x60);
             data.SetUInt8(0x85);
             data.SetUInt8(0x74);
@@ -249,7 +249,7 @@ namespace Gurux.DLMS.Internal
         static internal void GenerateUserInformation(GXDLMSSettings settings, GXICipher cipher, GXByteBuffer encryptedData, GXByteBuffer data)
         {
             data.SetUInt8((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.UserInformation);
-            if (cipher == null || !cipher.IsCiphered())
+            if (!settings.IsCiphered(true))
             {
                 //Length for AARQ user field
                 data.SetUInt8(0x10);
@@ -687,7 +687,7 @@ namespace Gurux.DLMS.Internal
                     cnt = GXCommon.GetObjectCount(data);
                     encrypted = new byte[cnt];
                     data.Get(encrypted);
-                    if (st != null && settings.Cipher.BlockCipherKey != null && settings.Cipher.AuthenticationKey != null && cipher != null && xml.Comments)
+                    if (st != null && cipher != null && cipher.BlockCipherKey != null && cipher.AuthenticationKey != null && xml.Comments)
                     {
                         int pos = xml.GetXmlLength();
                         int pos2 = data.Position;
@@ -1441,6 +1441,10 @@ namespace Gurux.DLMS.Internal
                         {
                             throw ex;
                         }
+                        catch (GXDLMSExceptionResponse)
+                        {
+                            return  ExceptionServiceError.DecipheringError;
+                        }
                         catch (Exception)
                         {
                             if (xml == null)
@@ -1588,7 +1592,7 @@ namespace Gurux.DLMS.Internal
             {
                 data.SetUInt16(0xFA00);
             }
-            if (cipher != null && cipher.IsCiphered())
+            if (settings.IsCiphered(false))
             {
                 byte cmd;
                 if ((settings.NegotiatedConformance & Conformance.GeneralProtection) != 0)
@@ -1662,9 +1666,9 @@ namespace Gurux.DLMS.Internal
             data.SetUInt8(Convert.ToByte(diagnostic));
 
             //SystemTitle
-            if (cipher != null && (cipher.IsCiphered() || settings.Authentication == Authentication.HighGMAC ||
+            if (settings.IsCiphered(false) || settings.Authentication == Authentication.HighGMAC ||
                 settings.Authentication == Authentication.HighSHA256 ||
-                settings.Authentication == Authentication.HighECDSA))
+                settings.Authentication == Authentication.HighECDSA)
             {
                 data.SetUInt8((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CalledApInvocationId);
                 data.SetUInt8((byte)(2 + cipher.SystemTitle.Length));

@@ -104,6 +104,16 @@ namespace Gurux.DLMS
 
         byte[] _sourceSystemTitle;
 
+        internal bool IsCiphered(bool checkGeneralSigning)
+        {
+            if (Cipher == null)
+            {
+                return false;
+            }
+            return Cipher.Security != Security.None ||
+                (checkGeneralSigning && Cipher.Signing == Signing.GeneralSigning);
+        }
+
         /// <summary>
         /// Source system title.
         /// </summary>
@@ -900,6 +910,7 @@ namespace Gurux.DLMS
                     EphemeralBroadcastBlockCipherKey = null;
                     EphemeralAuthenticationKey = null;
                     Cipher.SecuritySuite = SecuritySuite.Suite0;
+                    Cipher.Signing = Signing.None;
                 }
 
                 assignedAssociation = value;

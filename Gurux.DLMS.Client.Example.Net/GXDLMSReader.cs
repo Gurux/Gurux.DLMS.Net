@@ -118,7 +118,7 @@ namespace Gurux.DLMS.Reader
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
@@ -196,7 +196,7 @@ namespace Gurux.DLMS.Reader
             //Read server system title.
             Read(ss, 5);
             byte[] clientST = ss.ClientSystemTitle;
-            if (clientST == null || clientST.Length != 8) 
+            if (clientST == null || clientST.Length != 8)
             {
                 clientST = Client.Ciphering.SystemTitle;
             }
@@ -946,7 +946,10 @@ namespace Gurux.DLMS.Reader
             {
                 Console.WriteLine("Read scalers and units from the device.");
             }
-            if ((Client.NegotiatedConformance & Conformance.Access) != 0)
+            //Access services are available only for general protection.
+            if ((Client.NegotiatedConformance & Conformance.Access) != 0 &&
+                (Client.Ciphering.Security == Security.None ||
+                (Client.NegotiatedConformance & Conformance.GeneralProtection) != 0))
             {
                 List<GXDLMSAccessItem> list = new List<GXDLMSAccessItem>();
                 foreach (GXDLMSObject it in objs)

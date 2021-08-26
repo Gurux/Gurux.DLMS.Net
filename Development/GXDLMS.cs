@@ -830,7 +830,7 @@ namespace Gurux.DLMS
             byte[] tmp = GXCiphering.Encrypt(s, data);
             ++cipher.InvocationCounter;
             return tmp;
-        }      
+        }
 
         /// <summary>
         /// Cipher using security suite 1 or 2.
@@ -840,9 +840,21 @@ namespace Gurux.DLMS
         /// <returns></returns>
         private static byte[] Cipher1(GXDLMSLNParameters p, byte[] data)
         {
-            byte keyid = (byte)p.settings.Cipher.KeyAgreementScheme;
+            byte keyid;
+            switch (p.settings.Cipher.Signing)
+            {
+                case Signing.OnePassDiffieHellman:
+                    keyid = 1;
+                    break;
+                case Signing.StaticUnifiedModel:
+                    keyid = 2;
+                    break;
+                default:
+                    keyid = 0;
+                    break;
+            }
             GXICipher c = p.settings.Cipher;
-            byte sc;
+            byte sc = 0;
             if (p.settings.SourceSystemTitle == null && p.settings.PreEstablishedSystemTitle == null)
             {
                 throw new ArgumentOutOfRangeException("Invalid Recipient System Title.");
@@ -856,7 +868,6 @@ namespace Gurux.DLMS
                 case Security.Authentication:
                     sc = 0x10;
                     break;
-                case Security.DigitallySigned:
                 case Security.AuthenticationEncryption:
                     sc = 0x30;
                     break;
@@ -864,7 +875,11 @@ namespace Gurux.DLMS
                     sc = 0x20;
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException("Invalid security.");
+                    if (c.Signing != Signing.GeneralSigning)
+                    {
+                        throw new ArgumentOutOfRangeException("Invalid security.");
+                    }
+                    break;
             }
             AlgorithmId algorithmID;
             switch (c.SecuritySuite)
@@ -884,7 +899,7 @@ namespace Gurux.DLMS
             byte[] z = null;
             GXPrivateKey key;
             GXPublicKey pub;
-            if (p.settings.Cipher.KeyAgreementScheme != KeyAgreementScheme.GeneralSigning)
+            if (p.settings.Cipher.Signing != Signing.GeneralSigning)
             {
                 key = c.KeyAgreementKeyPair.Value;
                 pub = c.KeyAgreementKeyPair.Key;
@@ -968,7 +983,7 @@ namespace Gurux.DLMS
                 null);
 
             GXByteBuffer reply = new GXByteBuffer();
-            if (p.settings.Cipher.KeyAgreementScheme == KeyAgreementScheme.GeneralSigning)
+            if (p.settings.Cipher.Signing == Signing.GeneralSigning)
             {
                 reply.SetUInt8(Command.GeneralSigning);
             }
@@ -987,7 +1002,7 @@ namespace Gurux.DLMS
             reply.SetUInt8(0);
             // other-information not present
             reply.SetUInt8(0);
-            if (p.settings.Cipher.KeyAgreementScheme != KeyAgreementScheme.GeneralSigning)
+            if (p.settings.Cipher.Signing != Signing.GeneralSigning)
             {
                 // optional flag
                 reply.SetUInt8(1);
@@ -1020,29 +1035,39 @@ namespace Gurux.DLMS
                 reply.Set(GXSecure.GetEphemeralPublicKeySignature(keyid,
                         c.EphemeralKeyPair.Key, c.SigningKeyPair.Value));
             }
-            else if (p.settings.Cipher.KeyAgreementScheme != KeyAgreementScheme.GeneralSigning)
+            else if (p.settings.Cipher.Signing != Signing.GeneralSigning)
             {
                 reply.SetUInt8(0);
             }
             // ciphered-content
             s.Type = (CountType.Data | CountType.Tag);
+            int contentStart = 0;
             System.Diagnostics.Debug.WriteLine("Data: " + GXDLMSTranslator.ToHex(data));
             byte[] tmp = GXCiphering.Encrypt(s, data);
-            // Len
-            GXCommon.SetObjectCount(5 + tmp.Length, reply);
-            int contentStart = reply.Size;
-            // Add SC
-            reply.SetUInt8(sc);
-            // Add IC.
-            reply.SetUInt32(0);
+            if (c.Security != Security.None)
+            {
+                // Len
+                GXCommon.SetObjectCount(5 + tmp.Length, reply);
+                contentStart = reply.Size;
+                // Add SC
+                reply.SetUInt8(sc);
+                // Add IC.
+                reply.SetUInt32(0);
+            }
+            else
+            {
+                // Len
+                GXCommon.SetObjectCount(tmp.Length, reply);
+                contentStart = reply.Size;
+            }
             reply.Set(tmp);
 
-            if (p.settings.Cipher.KeyAgreementScheme == KeyAgreementScheme.GeneralSigning)
+            if (p.settings.Cipher.Signing == Signing.GeneralSigning)
             {
                 // Signature
                 GXEcdsa ecdsa = new GXEcdsa(key);
-                tmp = reply.SubArray(contentStart, reply.Size - contentStart);
-                System.Diagnostics.Debug.WriteLine("Counting signature:" + reply.ToHex(true, contentStart, reply.Size - contentStart));
+                tmp = reply.SubArray(1, reply.Size - 1);
+                System.Diagnostics.Debug.WriteLine("Counting signature:" + reply.ToHex(true, 1));
                 byte[] signature = ecdsa.Sign(tmp);
                 GXCommon.SetObjectCount(signature.Length, reply);
                 reply.Set(signature);
@@ -1059,8 +1084,8 @@ namespace Gurux.DLMS
         /// <param name="reply">Generated message.</param>
         internal static void GetLNPdu(GXDLMSLNParameters p, GXByteBuffer reply)
         {
-            bool ciphering = p.command != Command.Aarq && p.command != Command.Aare && p.settings.Cipher != null &&
-                (p.settings.Cipher.Security != Security.None || p.cipheredCommand != Command.None);
+            bool ciphering = p.command != Command.Aarq && p.command != Command.Aare &&
+                (p.settings.IsCiphered(true) || p.cipheredCommand != Command.None || p.settings.Cipher.Signing == Signing.GeneralSigning);
             int len = 0;
             if (p.command == Command.Aarq)
             {
@@ -1115,7 +1140,7 @@ namespace Gurux.DLMS
                     }
                     MultipleBlocks(p, reply, ciphering);
                 }
-                else if (p.command != Command.ReleaseRequest)
+                else if (p.command != Command.ReleaseRequest && p.command != Command.ExceptionResponse)
                 {
                     //Get request size can be bigger than PDU size.
                     if (p.command != Command.GetRequest &&
@@ -1293,9 +1318,9 @@ namespace Gurux.DLMS
                             {
                                 byte[] tmp;
                                 reply.Set(p.data);
-                                if ((p.settings.Connected & ConnectionState.Dlms) == 0 ||
-                                   !(p.settings.Cipher.Security == Security.DigitallySigned &&
-                                   p.settings.Cipher.KeyAgreementScheme != KeyAgreementScheme.EphemeralUnifiedModel))
+                                if ((p.settings.NegotiatedConformance & Conformance.GeneralProtection) == 0 ||
+                                    (p.settings.Connected & ConnectionState.Dlms) == 0 ||
+                                     p.settings.Cipher.Signing == Signing.None)
                                 {
                                     tmp = Cipher0(p, reply.Array());
                                 }
@@ -1344,9 +1369,9 @@ namespace Gurux.DLMS
                 {
                     //GBT ciphering is done for all the data, not just block.
                     byte[] tmp;
-                    if ((p.settings.Connected & ConnectionState.Dlms) == 0 ||
-                        !(p.settings.Cipher.Security == Security.DigitallySigned &&
-                        p.settings.Cipher.KeyAgreementScheme != KeyAgreementScheme.EphemeralUnifiedModel))
+                    if ((p.settings.NegotiatedConformance & Conformance.GeneralProtection) == 0 ||
+                        (p.settings.Connected & ConnectionState.Dlms) == 0 ||
+                        p.settings.Cipher.Signing == Signing.None)
                     {
                         tmp = Cipher0(p, reply.Array());
                     }
@@ -1564,7 +1589,7 @@ namespace Gurux.DLMS
 
         static int AppendMultipleSNBlocks(GXDLMSSNParameters p, GXByteBuffer reply)
         {
-            bool ciphering = p.settings.Cipher != null && p.settings.Cipher.Security != Security.None;
+            bool ciphering = p.settings.IsCiphered(false);
             int hSize = reply.Size + 3;
             //Add LLC bytes.
             if (p.command == Command.WriteRequest ||
@@ -1616,7 +1641,7 @@ namespace Gurux.DLMS
         /// <param name="reply"></param>
         internal static void GetSNPdu(GXDLMSSNParameters p, GXByteBuffer reply)
         {
-            bool ciphering = p.command != Command.Aarq && p.command != Command.Aare && p.settings.Cipher != null && p.settings.Cipher.Security != (byte)Security.None;
+            bool ciphering = p.command != Command.Aarq && p.command != Command.Aare && p.settings.IsCiphered(false);
             if (!ciphering && UseHdlc(p.settings.InterfaceType))
             {
                 if (p.settings.IsServer)
@@ -4437,7 +4462,7 @@ namespace Gurux.DLMS
                     byte[] tmp = GXCiphering.Decrypt(p, bb);
                     //If target is sending data ciphered using different security policy.
                     if (!settings.Cipher.SecurityChangeCheck && (settings.Connected & ConnectionState.Dlms) != 0 &&
-                        settings.Cipher.Security != Security.None && settings.Cipher.Security != Security.DigitallySigned &&
+                        settings.Cipher.Security != Security.None && settings.Cipher.Signing != Signing.GeneralSigning &&
                         settings.Cipher.Security != p.Security)
                     {
                         throw new GXDLMSCipherException(string.Format("Data is ciphered using different security level. Actual: {0}. Expected: {1}", p.Security, settings.Cipher.Security));

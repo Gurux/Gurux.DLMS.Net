@@ -1100,6 +1100,14 @@ namespace Gurux.DLMS
                     {
                         GXDLMS.GetData(Settings, receivedData, info, null);
                     }
+                    catch (GXDLMSExceptionResponse ex)
+                    {
+                        dataReceived = DateTime.Now;
+                        receivedData.Size = 0;
+                        sr.Reply = ReportExceptionResponse(ex);                        
+                        info.Clear();
+                        return;
+                    }
                     catch (Exception)
                     {
                         dataReceived = DateTime.Now;
@@ -1453,6 +1461,28 @@ namespace Gurux.DLMS
             return true;
         }
 
+        protected byte[] ReportExceptionResponse(GXDLMSExceptionResponse ex)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetUInt8(ExceptionStateError.ServiceNotAllowed);
+            bb.SetUInt8(ex.ExceptionServiceError);
+            if (ex.ExceptionServiceError == ExceptionServiceError.InvocationCounterError)
+            {
+                replyData.SetUInt32((UInt32)Settings.ExpectedInvocationCounter);
+            }
+            if (Settings.UseLogicalNameReferencing)
+            {
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.ExceptionResponse, 1, bb, null, 0xFF, info.CipheredCommand);
+                GXDLMS.GetLNPdu(p, replyData);
+            }
+            else
+            {
+                GXDLMSSNParameters p = new GXDLMSSNParameters(Settings, Command.ExceptionResponse, 1, 0, null, bb);
+                GXDLMS.GetSNPdu(p, replyData);
+            }
+            return AddPduToFrame(Command.ExceptionResponse, 0, replyData);
+        }
+
         protected byte[] ReportError(Command cmd, ErrorCode error)
         {
             switch (cmd)
@@ -1471,6 +1501,12 @@ namespace Gurux.DLMS
                     break;
                 case Command.MethodRequest:
                     cmd = Command.MethodResponse;
+                    break;
+                case Command.GeneralSigning:
+                case Command.GeneralCiphering:
+                case Command.GeneralDedCiphering:
+                case Command.GeneralGloCiphering:
+                    cmd = Command.ExceptionResponse;
                     break;
                 default:
                     //Return HW error and close connection..
@@ -1527,7 +1563,7 @@ namespace Gurux.DLMS
                         replyData.Set(GXCommon.LLCReplyBytes);
                     }
                     replyData.SetUInt8(Command.ExceptionResponse);
-                    replyData.SetUInt8(ExceptionStateError.ServiceUnknown);
+                    replyData.SetUInt8(ExceptionStateError.ServiceNotAllowed);
                     replyData.SetUInt8(e);
                     if (e == ExceptionServiceError.InvocationCounterError)
                     {
@@ -1999,7 +2035,7 @@ namespace Gurux.DLMS
             {
                 return true;
             }
-            if (objectType == ObjectType.SecuritySetup && (methodIndex == 4 || methodIndex == 6 || methodIndex == 7 || methodIndex == 8))
+            if (objectType == ObjectType.SecuritySetup && (methodIndex == 1 || methodIndex == 4 || methodIndex == 6 || methodIndex == 7 || methodIndex == 8))
             {
                 return true;
             }

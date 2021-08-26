@@ -394,8 +394,7 @@ namespace Gurux.DLMS.Secure
                     if (value == (int)KeyAgreementScheme.OnePassDiffieHellman)
                     {
                         //Update security because server needs it and client when push message is received.
-                        p.Settings.Cipher.Security = Security.DigitallySigned;
-                        p.Settings.Cipher.KeyAgreementScheme = KeyAgreementScheme.OnePassDiffieHellman;
+                        p.Settings.Cipher.Signing = Signing.OnePassDiffieHellman;
                         // key-ciphered-data
                         len = GXCommon.GetObjectCount(data);
                         GXByteBuffer bb = new GXByteBuffer();
@@ -433,8 +432,7 @@ namespace Gurux.DLMS.Secure
                     else if (value == (int)KeyAgreementScheme.StaticUnifiedModel)
                     {
                         //Update security because server needs it and client when push message is received.
-                        p.Settings.Cipher.Security = Security.DigitallySigned;
-                        p.Settings.Cipher.KeyAgreementScheme = KeyAgreementScheme.StaticUnifiedModel;
+                        p.Settings.Cipher.Signing = Signing.StaticUnifiedModel;
                         len = GXCommon.GetObjectCount(data);
                         if (len != 0)
                         {
@@ -470,8 +468,7 @@ namespace Gurux.DLMS.Secure
                 else
                 {
                     //Update security because server needs it and client when push message is received.
-                    p.Settings.Cipher.Security = Security.DigitallySigned;
-                    p.Settings.Cipher.KeyAgreementScheme = KeyAgreementScheme.GeneralSigning;
+                    p.Settings.Cipher.Signing = Signing.GeneralSigning;
                     kp = p.Settings.Cipher.SigningKeyPair;
                     if (kp.Key == null || kp.Value == null)
                     {
@@ -506,93 +503,7 @@ namespace Gurux.DLMS.Secure
             {
                 throw new Exception("Not enought data.");
             }
-            p.CipheredContent = data.SubArray(data.Position, len);
-            if (cmd == Command.GeneralCiphering)
-            {
-                // KeyInfo OPTIONAL
-                data.GetUInt8();
-                // AgreedKey CHOICE tag.
-                data.GetUInt8();
-                // key-parameters
-                data.GetUInt8();
-                value = data.GetUInt8();
-                p.KeyParameters = value;
-                if (value == (int)KeyAgreementScheme.OnePassDiffieHellman)
-                {
-                    //Update security because server needs it and client when push message is received.
-                    p.Settings.Cipher.Security = Security.DigitallySigned;
-                    p.Settings.Cipher.KeyAgreementScheme = KeyAgreementScheme.OnePassDiffieHellman;
-                    // key-ciphered-data
-                    len = GXCommon.GetObjectCount(data);
-                    GXByteBuffer bb = new GXByteBuffer();
-                    bb.Set(data, len);
-                    if (p.Xml != null)
-                    {
-                        p.KeyCipheredData = bb.Array();
-                        //Find key agreement key using subject.
-                        kp = FindKeys(ASN.Enums.KeyUsage.KeyAgreement, p, p.RecipientSystemTitle, p.SystemTitle);
-                        //If private key is not found.
-                        if (kp.Key == null)
-                        {
-                            kp = FindKeys(ASN.Enums.KeyUsage.KeyAgreement, p, p.SystemTitle, p.RecipientSystemTitle);
-                        }
-                    }
-                    else
-                    {
-                        kp = p.Settings.Cipher.KeyAgreementKeyPair;
-                        if (kp.Key == null)
-                        {
-                            pub = (GXPublicKey)p.Settings.GetKey(CertificateType.KeyAgreement, p.SystemTitle, false);
-                        }
-                        if (kp.Value == null)
-                        {
-                            key = (GXPrivateKey)p.Settings.GetKey(CertificateType.KeyAgreement, p.SystemTitle, true);
-                        }
-                    }
-                    if (kp.Key != null)
-                    {
-                        //Get Ephemeral public key.
-                        int keySize = len / 2;
-                        kp = new KeyValuePair<GXPublicKey, GXPrivateKey>(GXPublicKey.FromRawBytes(bb.SubArray(0, keySize)), kp.Value);
-                    }
-                }
-                else if (value == (int)KeyAgreementScheme.StaticUnifiedModel)
-                {
-                    //Update security because server needs it and client when push message is received.
-                    p.Settings.Cipher.Security = Security.DigitallySigned;
-                    p.Settings.Cipher.KeyAgreementScheme = KeyAgreementScheme.StaticUnifiedModel;
-                    len = GXCommon.GetObjectCount(data);
-                    if (len != 0)
-                    {
-                        throw new ArgumentException("Invalid key parameters");
-                    }
-                    if (p.Xml != null)
-                    {
-                        kp = FindKeys(ASN.Enums.KeyUsage.KeyAgreement, p, p.SystemTitle, p.RecipientSystemTitle);
-                        //If private key is not found.
-                        if (kp.Key == null)
-                        {
-                            kp = FindKeys(ASN.Enums.KeyUsage.KeyAgreement, p, p.RecipientSystemTitle, p.SystemTitle);
-                        }
-                    }
-                    else
-                    {
-                        kp = p.Settings.Cipher.KeyAgreementKeyPair;
-                        if (kp.Key == null)
-                        {
-                            pub = (GXPublicKey)p.Settings.GetKey(CertificateType.KeyAgreement, p.SystemTitle, false);
-                        }
-                        if (kp.Value == null)
-                        {
-                            key = (GXPrivateKey)p.Settings.GetKey(CertificateType.KeyAgreement, p.RecipientSystemTitle, true);
-                        }
-                        if (kp.Key == null || kp.Value == null)
-                        {
-                            kp = p.Settings.Cipher.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
-                        }
-                    }
-                }
-            }
+            p.CipheredContent = data.SubArray(data.Position, len);           
             if (cmd == Command.GeneralSigning && p.Xml != null)
             {
                 p.Xml.AppendLine(TranslatorTags.TransactionId, null, p.Xml.IntegerToHex(p.TransactionId, 16, true));
@@ -601,26 +512,69 @@ namespace Gurux.DLMS.Secure
                 p.Xml.AppendLine(TranslatorTags.DateTime, null, GXCommon.ToHex(p.DateTime, false));
                 p.Xml.AppendLine(TranslatorTags.OtherInformation, null, GXCommon.ToHex(p.OtherInformation, false));
             }
-            byte sc = data.GetUInt8();
-            p.SecuritySuite = (SecuritySuite)(sc & 0x3);
-            p.Security = (Security)(sc & 0x30);
-            if ((sc & 0x80) != 0)
+            //Data is not nesessary ciphere with general signing.
+            bool ciphered = cmd != Command.GeneralSigning;
+            if (!ciphered)
             {
-                System.Diagnostics.Debug.WriteLine("Compression is used.");
+                ciphered = (p.Settings.Cipher.Security != Security.None ||
+                    (p.Settings.Cipher.SecurityPolicy & ~(SecurityPolicy.DigitallySignedRequest | SecurityPolicy.DigitallySignedResponse)) != 0);
             }
-            if ((sc & 0x40) != 0)
+            if (ciphered)
             {
-                throw new GXDLMSCipherException("Key_Set is used.");
+                byte sc = data.GetUInt8();
+                p.SecuritySuite = (SecuritySuite)(sc & 0x3);
+                p.Security = (Security)(sc & 0x30);
+                if ((sc & 0x80) != 0)
+                {
+                    System.Diagnostics.Debug.WriteLine("Compression is used.");
+                }
+                if ((sc & 0x40) != 0)
+                {
+                    System.Diagnostics.Debug.WriteLine("Key_Set is used.");
+                    throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
+                                ExceptionServiceError.DecipheringError, 0);
+                }
+                if ((sc & 0x20) != 0)
+                {
+                    System.Diagnostics.Debug.WriteLine("Encryption is applied.");
+                    if (p.Settings.IsServer && (p.Settings.Cipher.SecurityPolicy & SecurityPolicy.EncryptedRequest) == 0)
+                    {
+                        throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
+                                ExceptionServiceError.DecipheringError, 0);
+                    }
+                }
+                if ((sc & 0x10) != 0)
+                {
+                    System.Diagnostics.Debug.WriteLine("Authentication is applied.");
+                    if (p.Settings.IsServer && (p.Settings.Cipher.SecurityPolicy & SecurityPolicy.AuthenticatedRequest) == 0)
+                    {
+                        throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
+                                ExceptionServiceError.DecipheringError, 0);
+                    }
+                }
+                if (value != 0 && p.Xml != null && kp.Key == null)
+                {
+                    return p.CipheredContent;
+                }
             }
-            if ((sc & 0x20) != 0)
+            else
             {
-                System.Diagnostics.Debug.WriteLine("Encryption is applied.");
+                p.Security = Security.None;
+                if (p.Settings.IsServer)
+                {
+                    if ((p.Settings.Cipher.SecurityPolicy & SecurityPolicy.EncryptedRequest) != 0)
+                    {
+                        throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
+                                ExceptionServiceError.DecipheringError, 0);
+                    }
+                    if ((p.Settings.Cipher.SecurityPolicy & SecurityPolicy.AuthenticatedRequest) != 0)
+                    {
+                        throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
+                                ExceptionServiceError.DecipheringError, 0);
+                    }
+                }
             }
-            if (value != 0 && p.Xml != null && kp.Key == null)
-            {
-                return p.CipheredContent;
-            }
-            if (cmd == Command.GeneralSigning)
+            if (cmd == Command.GeneralSigning && p.Security != Security.None)
             {
                 GXEcdsa c = new GXEcdsa(kp.Value);
                 byte[] z = c.GenerateSecret(kp.Key);
@@ -677,8 +631,12 @@ namespace Gurux.DLMS.Secure
                 throw new ArgumentOutOfRangeException("Invalid Key-id value.");
             }
             int contentStart = data.Position - 1;
-            UInt32 invocationCounter = data.GetUInt32();
-            if (cmd != Command.GeneralSigning && p.Settings.InvocationCounter != null && p.Settings.InvocationCounter.Value is UInt32)
+            UInt32 invocationCounter = 0;
+            if (p.Security != Security.None)
+            {
+                invocationCounter = data.GetUInt32();
+            }
+            if (cmd != Command.GeneralSigning && cmd != Command.GeneralCiphering && p.Settings.InvocationCounter != null && p.Settings.InvocationCounter.Value is UInt32)
             {
                 if (invocationCounter < Convert.ToUInt32(p.Settings.InvocationCounter.Value))
                 {
@@ -688,7 +646,6 @@ namespace Gurux.DLMS.Secure
                 // Update IC value.
                 p.Settings.InvocationCounter.Value = invocationCounter;
             }
-
             p.InvocationCounter = invocationCounter;
             System.Diagnostics.Debug.WriteLine("Decrypt settings: " + p.ToString());
             System.Diagnostics.Debug.WriteLine("Encrypted: " + GXCommon.ToHex(data.Data,
@@ -731,35 +688,46 @@ namespace Gurux.DLMS.Secure
                 data.Get(ciphertext);
                 data.Get(tag);
             }
-            byte[] aad = GetAuthenticatedData(p, ciphertext),
-                    iv = GetNonse(invocationCounter, p.SystemTitle);
-            GXDLMSChipperingStream gcm = new GXDLMSChipperingStream(p.Security, true,
-                    p.BlockCipherKey, aad, iv, tag);
-            gcm.Write(ciphertext);
-            byte[] decrypted = gcm.FlushFinalBlock();
-            System.Diagnostics.Debug.WriteLine("Decrypted: " + GXCommon.ToHex(decrypted, true));
-            if (p.Security != Security.Encryption)
+            byte[] decrypted;
+            //Data might be without ciphering in GeneralSigning.
+            if (p.Security != Security.None)
             {
-                if (!GXCommon.Compare(gcm.GetTag(), tag))
+                byte[] aad = GetAuthenticatedData(p, ciphertext),
+                        iv = GetNonse(invocationCounter, p.SystemTitle);
+                GXDLMSChipperingStream gcm = new GXDLMSChipperingStream(p.Security, true,
+                        p.BlockCipherKey, aad, iv, tag);
+                gcm.Write(ciphertext);
+                decrypted = gcm.FlushFinalBlock();
+                System.Diagnostics.Debug.WriteLine("Decrypted: " + GXCommon.ToHex(decrypted, true));
+                if (p.Security != Security.Encryption)
                 {
-                    if (p.Xml == null)
+                    if (!GXCommon.Compare(gcm.GetTag(), tag))
                     {
-                        throw new GXDLMSCipherException("Decrypt failed. Invalid authentication tag.");
+                        if (p.Xml == null)
+                        {
+                            throw new GXDLMSCipherException("Decrypt failed. Invalid authentication tag.");
+                        }
+                        p.Xml.AppendComment("Decrypt failed. Invalid authentication tag.");
                     }
-                    p.Xml.AppendComment("Decrypt failed. Invalid authentication tag.");
                 }
+            }
+            else
+            {
+                length = len;
+                decrypted = new byte[length];
+                data.Get(decrypted);
             }
             if (cmd == Command.GeneralSigning)
             {
-                p.Security = Security.DigitallySigned;
-                int contentEnd = data.Position;
+                int contentEnd = data.Position - 1;
                 len = GXCommon.GetObjectCount(data);
                 p.Signature = new byte[len];
                 data.Get(p.Signature);
                 if (p.Xml == null && !default(KeyValuePair<GXPublicKey, GXPrivateKey>).Equals(kp) && kp.Key != null)
                 {
                     GXEcdsa c = new GXEcdsa(kp.Key);
-                    if (!c.Verify(p.Signature, data.SubArray(contentStart, contentEnd - contentStart)))
+                    System.Diagnostics.Debug.WriteLine("Verifying signature:" + data.ToHex(true, 1, contentEnd));
+                    if (!c.Verify(p.Signature, data.SubArray(1, contentEnd)))
                     {
                         throw new Exception("Invalid signature.");
                     }
