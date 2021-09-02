@@ -509,12 +509,14 @@ namespace Gurux.DLMS.Reader
                 int add = Client.ClientAddress;
                 Authentication auth = Client.Authentication;
                 Security security = Client.Ciphering.Security;
+                Signing signing = Client.Ciphering.Signing;
                 byte[] challenge = Client.CtoSChallenge;
                 try
                 {
                     Client.ClientAddress = 16;
                     Client.Authentication = Authentication.None;
                     Client.Ciphering.Security = Security.None;
+                    Client.Ciphering.Signing = Signing.None;
                     data = Client.SNRMRequest();
                     if (data != null)
                     {
@@ -574,6 +576,7 @@ namespace Gurux.DLMS.Reader
                     Client.Authentication = auth;
                     Client.Ciphering.Security = security;
                     Client.CtoSChallenge = challenge;
+                    Client.Ciphering.Signing = signing;
                 }
             }
         }
@@ -803,6 +806,7 @@ namespace Gurux.DLMS.Reader
             }
             //Parse reply.
             Client.ParseAAREResponse(reply.Data);
+            Console.WriteLine("Conformance: " + Client.NegotiatedConformance);
             reply.Clear();
             //Get challenge Is HLS authentication is used.
             if (Client.IsAuthenticationRequired)

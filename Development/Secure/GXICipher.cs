@@ -147,6 +147,15 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
+        /// Transaction Id.
+        /// </summary>
+        byte[] TransactionId
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Ephemeral key pair.
         /// </summary>
         KeyValuePair<GXPublicKey, GXPrivateKey> EphemeralKeyPair

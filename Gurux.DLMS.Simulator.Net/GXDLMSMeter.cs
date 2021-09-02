@@ -99,6 +99,8 @@ namespace Gurux.DLMS.Simulator.Net
             Media = media;
             Trace = trace;
             Exclusive = exclusive;
+            // Each association has own conformance.
+            Conformance = Conformance.None;
             Init(exclusive);
         }
 

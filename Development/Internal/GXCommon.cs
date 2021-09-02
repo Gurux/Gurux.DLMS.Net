@@ -153,7 +153,7 @@ namespace Gurux.DLMS.Internal
                 }
                 else if (lastValue != -1 && ch == ' ')
                 {
-                    buffer[index] = GetValue(ch);
+                    buffer[index] = (byte)lastValue;
                     lastValue = -1;
                     ++index;
                 }

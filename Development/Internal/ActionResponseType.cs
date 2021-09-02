@@ -55,6 +55,6 @@ namespace Gurux.DLMS.Internal
         /// <summary>
         /// Action with next block.
         /// </summary>
-        WithBlock = 4,
+        NextBlock = 4,
     }
 }

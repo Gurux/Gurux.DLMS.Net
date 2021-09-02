@@ -142,7 +142,7 @@ namespace Gurux.DLMS
         {
             if (value == null)
             {
-                throw new ArgumentNullException("Invalid hex string.");
+                return new byte[0];
             }
             value = value.Replace("\r\n", "").Replace("\n", "");
             return GXCommon.HexToBytes(value);
@@ -1604,43 +1604,7 @@ namespace Gurux.DLMS
             GXDLMSTranslatorStructure xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
             return PduToXml(xml, value, omitDeclaration, omitNameSpace, true, arg);
         }
-
-        private static bool IsCiphered(byte cmd)
-        {
-            switch ((Command)cmd)
-            {
-                case Command.GloReadRequest:
-                case Command.GloWriteRequest:
-                case Command.GloGetRequest:
-                case Command.GloSetRequest:
-                case Command.GloReadResponse:
-                case Command.GloWriteResponse:
-                case Command.GloGetResponse:
-                case Command.GloSetResponse:
-                case Command.GloMethodRequest:
-                case Command.GloMethodResponse:
-                case Command.DedGetRequest:
-                case Command.DedSetRequest:
-                case Command.DedReadResponse:
-                case Command.DedGetResponse:
-                case Command.DedSetResponse:
-                case Command.DedMethodRequest:
-                case Command.DedMethodResponse:
-                case Command.GeneralGloCiphering:
-                case Command.GeneralDedCiphering:
-                case Command.Aare:
-                case Command.Aarq:
-                case Command.GloConfirmedServiceError:
-                case Command.DedConfirmedServiceError:
-                case Command.GeneralCiphering:
-                case Command.ReleaseRequest:
-                case Command.GeneralSigning:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
+      
         private void HandleDiscoverRequest(GXReplyData data)
         {
             byte responseProbability = data.Data.GetUInt8();
@@ -1717,7 +1681,7 @@ namespace Gurux.DLMS
                 {
                     msg.Command = (Command)cmd;
                 }
-                GetCiphering(settings, IsCiphered(cmd));
+                GetCiphering(settings, GXDLMS.IsCiphered(cmd));
                 if (settings != null && settings.Cipher != null)
                 {
                     ((GXCiphering)settings.Cipher).TestMode = true;
@@ -3063,7 +3027,7 @@ namespace Gurux.DLMS
                     case (byte)(int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.Normal:
                     case (byte)(int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.WithFirstBlock:
                     case (byte)(int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.WithList:
-                    case (byte)(int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.WithBlock:
+                    case (byte)(int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.NextBlock:
                         //MethodResponseNormal
                         s.requestType = (byte)(tag & 0xFF);
                         break;

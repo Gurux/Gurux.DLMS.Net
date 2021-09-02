@@ -81,7 +81,7 @@ namespace Gurux.DLMS.Secure
                 byte[] s = new byte[16];
                 byte[] x = new byte[16];
                 int i;
-                data.CopyTo(p, 0);
+                Array.Copy(data, p, len);
                 secret.CopyTo(s, 0);
                 for (i = 0; i < p.Length; i += 16)
                 {

@@ -340,9 +340,16 @@ namespace Gurux.DLMS.Secure
             {
                 transactionId = new GXByteBuffer();
                 len = GXCommon.GetObjectCount(data);
-                GXCommon.SetObjectCount(len, transactionId);
-                transactionId.Set(data, len);
-                p.TransactionId = transactionId.GetUInt64(1);
+                if (len != 0)
+                {
+                    GXCommon.SetObjectCount(len, transactionId);
+                    transactionId.Set(data, len);
+                    p.TransactionId = transactionId.GetUInt64(1);
+                }
+                else
+                {
+                    p.TransactionId = 0;
+                }
                 len = GXCommon.GetObjectCount(data);
                 if (len != 0)
                 {
@@ -503,7 +510,7 @@ namespace Gurux.DLMS.Secure
             {
                 throw new Exception("Not enought data.");
             }
-            p.CipheredContent = data.SubArray(data.Position, len);           
+            p.CipheredContent = data.SubArray(data.Position, len);
             if (cmd == Command.GeneralSigning && p.Xml != null)
             {
                 p.Xml.AppendLine(TranslatorTags.TransactionId, null, p.Xml.IntegerToHex(p.TransactionId, 16, true));
@@ -512,83 +519,84 @@ namespace Gurux.DLMS.Secure
                 p.Xml.AppendLine(TranslatorTags.DateTime, null, GXCommon.ToHex(p.DateTime, false));
                 p.Xml.AppendLine(TranslatorTags.OtherInformation, null, GXCommon.ToHex(p.OtherInformation, false));
             }
-            //Data is not nesessary ciphere with general signing.
-            bool ciphered = cmd != Command.GeneralSigning;
-            if (!ciphered)
+            if (cmd == Command.GeneralSigning)
             {
-                ciphered = (p.Settings.Cipher.Security != Security.None ||
-                    (p.Settings.Cipher.SecurityPolicy & ~(SecurityPolicy.DigitallySignedRequest | SecurityPolicy.DigitallySignedResponse)) != 0);
-            }
-            if (ciphered)
-            {
-                byte sc = data.GetUInt8();
-                p.SecuritySuite = (SecuritySuite)(sc & 0x3);
-                p.Security = (Security)(sc & 0x30);
-                if ((sc & 0x80) != 0)
+                if (!GXDLMS.IsCiphered(data.GetUInt8()))
                 {
-                    System.Diagnostics.Debug.WriteLine("Compression is used.");
+                    --data.Position;
+                    if (p.Settings.IsServer)
+                    {
+                        if ((p.Settings.Cipher.SecurityPolicy & (SecurityPolicy.EncryptedRequest | SecurityPolicy.AuthenticatedRequest)) != 0)
+                        {
+                            throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
+                                    ExceptionServiceError.DecipheringError, 0);
+                        }
+                    }
+                    return data.Remaining();
                 }
-                if ((sc & 0x40) != 0)
+                len = GXCommon.GetObjectCount(data);
+                if (len > data.Available)
                 {
-                    System.Diagnostics.Debug.WriteLine("Key_Set is used.");
+                    throw new Exception("Not enought data.");
+                }
+            }
+
+            byte sc = data.GetUInt8();
+            p.SecuritySuite = (SecuritySuite)(sc & 0x3);
+            p.Security = (Security)(sc & 0x30);
+            if ((sc & 0x80) != 0)
+            {
+                System.Diagnostics.Debug.WriteLine("Compression is used.");
+            }
+            if ((sc & 0x40) != 0)
+            {
+                System.Diagnostics.Debug.WriteLine("Key_Set is used.");
+                if (p.Xml == null)
+                {
                     throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
                                 ExceptionServiceError.DecipheringError, 0);
                 }
-                if ((sc & 0x20) != 0)
-                {
-                    System.Diagnostics.Debug.WriteLine("Encryption is applied.");
-                    if (p.Settings.IsServer && (p.Settings.Cipher.SecurityPolicy & SecurityPolicy.EncryptedRequest) == 0)
-                    {
-                        throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
-                                ExceptionServiceError.DecipheringError, 0);
-                    }
-                }
-                if ((sc & 0x10) != 0)
-                {
-                    System.Diagnostics.Debug.WriteLine("Authentication is applied.");
-                    if (p.Settings.IsServer && (p.Settings.Cipher.SecurityPolicy & SecurityPolicy.AuthenticatedRequest) == 0)
-                    {
-                        throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
-                                ExceptionServiceError.DecipheringError, 0);
-                    }
-                }
-                if (value != 0 && p.Xml != null && kp.Key == null)
-                {
-                    return p.CipheredContent;
-                }
             }
-            else
+            if ((sc & 0x20) != 0)
             {
-                p.Security = Security.None;
-                if (p.Settings.IsServer)
+                System.Diagnostics.Debug.WriteLine("Encryption is applied.");
+                if (p.Xml == null && p.Settings.IsServer && (p.Settings.Cipher.SecurityPolicy & SecurityPolicy.EncryptedRequest) == 0)
                 {
-                    if ((p.Settings.Cipher.SecurityPolicy & SecurityPolicy.EncryptedRequest) != 0)
-                    {
-                        throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
-                                ExceptionServiceError.DecipheringError, 0);
-                    }
-                    if ((p.Settings.Cipher.SecurityPolicy & SecurityPolicy.AuthenticatedRequest) != 0)
-                    {
-                        throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
-                                ExceptionServiceError.DecipheringError, 0);
-                    }
+                    throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
+                            ExceptionServiceError.DecipheringError, 0);
                 }
             }
+            if ((sc & 0x10) != 0)
+            {
+                System.Diagnostics.Debug.WriteLine("Authentication is applied.");
+                if (p.Xml == null && p.Settings.IsServer && (p.Settings.Cipher.SecurityPolicy & SecurityPolicy.AuthenticatedRequest) == 0)
+                {
+                    throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
+                            ExceptionServiceError.DecipheringError, 0);
+                }
+            }
+            if (value != 0 && p.Xml != null && kp.Key == null)
+            {
+                return p.CipheredContent;
+            }            
             if (cmd == Command.GeneralSigning && p.Security != Security.None)
             {
-                GXEcdsa c = new GXEcdsa(kp.Value);
-                byte[] z = c.GenerateSecret(kp.Key);
-                System.Diagnostics.Debug.WriteLine("Private signing key: " + kp.Value.ToHex());
-                System.Diagnostics.Debug.WriteLine("Public signing key: " + kp.Key.ToHex());
-                System.Diagnostics.Debug.WriteLine("Shared secret:" + GXCommon.ToHex(z, true));
-                GXByteBuffer kdf = new GXByteBuffer();
-                kdf.Set(GXSecure.GenerateKDF(p.SecuritySuite, z,
-                    p.SecuritySuite == SecuritySuite.Suite1 ? AlgorithmId.AesGcm128 : AlgorithmId.AesGcm256,
-                    p.SystemTitle,
-                    p.RecipientSystemTitle,
-                    null, null));
-                System.Diagnostics.Debug.WriteLine("KDF:" + kdf.ToString());
-                p.BlockCipherKey = kdf.SubArray(0, 16);
+                if (!(p.Xml != null && (kp.Value == null || kp.Key == null)))
+                {
+                    GXEcdsa c = new GXEcdsa(kp.Value);
+                    byte[] z = c.GenerateSecret(kp.Key);
+                    System.Diagnostics.Debug.WriteLine("Private signing key: " + kp.Value.ToHex());
+                    System.Diagnostics.Debug.WriteLine("Public signing key: " + kp.Key.ToHex());
+                    System.Diagnostics.Debug.WriteLine("Shared secret:" + GXCommon.ToHex(z, true));
+                    GXByteBuffer kdf = new GXByteBuffer();
+                    kdf.Set(GXSecure.GenerateKDF(p.SecuritySuite, z,
+                        p.SecuritySuite == SecuritySuite.Suite1 ? AlgorithmId.AesGcm128 : AlgorithmId.AesGcm256,
+                        p.SystemTitle,
+                        p.RecipientSystemTitle,
+                        null, null));
+                    System.Diagnostics.Debug.WriteLine("KDF:" + kdf.ToString());
+                    p.BlockCipherKey = kdf.SubArray(0, 16);
+                }
             }
             else if (value == (int)KeyAgreementScheme.OnePassDiffieHellman)
             {
@@ -636,7 +644,7 @@ namespace Gurux.DLMS.Secure
             {
                 invocationCounter = data.GetUInt32();
             }
-            if (cmd != Command.GeneralSigning && cmd != Command.GeneralCiphering && p.Settings.InvocationCounter != null && p.Settings.InvocationCounter.Value is UInt32)
+            if (p.Settings.InvocationCounter != null && p.Settings.InvocationCounter.Value is UInt32)
             {
                 if (invocationCounter < Convert.ToUInt32(p.Settings.InvocationCounter.Value))
                 {

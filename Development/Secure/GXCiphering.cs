@@ -75,6 +75,11 @@ namespace Gurux.DLMS.Secure
         private byte[] dedicatedKey;
 
         /// <summary>
+        /// Transaction Id.
+        /// </summary>
+        private byte[] transactionId;
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         public GXCiphering()
@@ -125,6 +130,7 @@ namespace Gurux.DLMS.Secure
             target.SystemTitle = SystemTitle;
             target.BlockCipherKey = BlockCipherKey;
             target.AuthenticationKey = AuthenticationKey;
+            target.TransactionId = TransactionId;
         }
 
         /// <summary>
@@ -179,6 +185,25 @@ namespace Gurux.DLMS.Secure
         {
             get;
             set;
+        }
+
+        /// <summary>
+        /// Transaction Id.
+        /// </summary>
+        public byte[] TransactionId
+        {
+            get
+            {
+                return transactionId;
+            }
+            set
+            {
+                if (!TestMode && value != null && value.Length != 8 && value.Length != 0)
+                {
+                    throw new ArgumentOutOfRangeException("Invalid Transaction Id.");
+                }
+                transactionId = value;
+            }
         }
 
         /// <summary>

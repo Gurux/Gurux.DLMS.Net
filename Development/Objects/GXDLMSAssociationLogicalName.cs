@@ -724,7 +724,7 @@ namespace Gurux.DLMS.Objects
                 }
                 settings.Count = count;
                 data.SetUInt8((byte)DataType.Array);
-                GXCommon.SetObjectCount(ObjectList.Count, data);
+                GXCommon.SetObjectCount(count, data);
                 // If default association view is not found.
                 if (!found)
                 {
@@ -1209,6 +1209,10 @@ namespace Gurux.DLMS.Objects
                         ApplicationContextName.DlmsUA = arr.GetUInt8();
                         ApplicationContextName.ApplicationContext = arr.GetUInt8();
                         ApplicationContextName.ContextId = (ApplicationContextName)arr.GetUInt8();
+                        if (ApplicationContextName.ContextId > Enums.ApplicationContextName.ShortNameWithCiphering)
+                        {
+                            throw new ArgumentOutOfRangeException();
+                        }
                     }
                     else
                     {
@@ -1279,6 +1283,10 @@ namespace Gurux.DLMS.Objects
                     ApplicationContextName.DlmsUA = Convert.ToByte(arr[4]);
                     ApplicationContextName.ApplicationContext = Convert.ToByte(arr[5]);
                     ApplicationContextName.ContextId = (ApplicationContextName)Convert.ToByte(arr[6]);
+                    if (ApplicationContextName.ContextId > Enums.ApplicationContextName.ShortNameWithCiphering)
+                    {
+                        throw new ArgumentOutOfRangeException();
+                    }
                 }
             }
             else if (e.Index == 5)
@@ -1300,6 +1308,15 @@ namespace Gurux.DLMS.Objects
                     XDLMSContextInfo.DlmsVersionNumber = Convert.ToByte(arr[3]);
                     XDLMSContextInfo.QualityOfService = Convert.ToSByte(arr[4]);
                     XDLMSContextInfo.CypheringInfo = (byte[])arr[5];
+                    if (XDLMSContextInfo.Conformance == Conformance.None)
+                    {
+                        throw new ArgumentOutOfRangeException();
+                    }
+                    if (XDLMSContextInfo.MaxReceivePduSize < 64 ||
+                        XDLMSContextInfo.MaxSendPduSize < 64)
+                    {
+                        throw new ArgumentOutOfRangeException();
+                    }
                 }
             }
             else if (e.Index == 6)
@@ -1321,6 +1338,10 @@ namespace Gurux.DLMS.Objects
                         AuthenticationMechanismName.DlmsUA = arr.GetUInt8();
                         AuthenticationMechanismName.AuthenticationMechanismName = arr.GetUInt8();
                         AuthenticationMechanismName.MechanismId = (Authentication)arr.GetUInt8();
+                        if (AuthenticationMechanismName.MechanismId > Authentication.HighECDSA)
+                        {
+                            throw new ArgumentOutOfRangeException();
+                        }
                     }
                     else
                     {
@@ -1371,6 +1392,10 @@ namespace Gurux.DLMS.Objects
                             throw new ArgumentOutOfRangeException();
                         }
                         AuthenticationMechanismName.MechanismId = (Authentication)arr.GetUInt8();
+                        if (AuthenticationMechanismName.MechanismId > Authentication.HighECDSA)
+                        {
+                            throw new ArgumentOutOfRangeException();
+                        }
                     }
                 }
                 else if (e.Value != null)
@@ -1391,6 +1416,10 @@ namespace Gurux.DLMS.Objects
                     AuthenticationMechanismName.DlmsUA = Convert.ToByte(arr[4]);
                     AuthenticationMechanismName.AuthenticationMechanismName = Convert.ToByte(arr[5]);
                     AuthenticationMechanismName.MechanismId = (Authentication)Convert.ToByte(arr[6]);
+                    if (AuthenticationMechanismName.MechanismId > Authentication.HighECDSA)
+                    {
+                        throw new ArgumentOutOfRangeException();
+                    }
                 }
             }
             else if (e.Index == 7)
@@ -1834,27 +1863,16 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {
-            //Copy objects from the object collection to the association object list.
-            for (int pos = 0; pos != ObjectList.Count; ++pos)
-            {
-                GXDLMSObject obj = ObjectList[pos];
-                GXDLMSObject tmp = reader.Objects.FindByLN(obj.ObjectType, obj.LogicalName);
-                if (tmp != null)
-                {
-                    ObjectList.Remove(obj);
-                    ObjectList.Add(tmp);
-                }
-            }
         }
         #endregion
 
-        /**
-	 * Returns default attribute access mode for the selected object.
-	 * 
-	 * @param target         target object.
-	 * @param attributeIndex Attribute index.
-	 * @return Returns Default access mode.
-	 */
+        /// <summary>
+        ///  Returns default attribute access mode for the selected object.
+        /// </summary>
+        /// <param name="target">target object.</param>
+        /// <param name="attributeIndex">Attribute index.</param>
+        /// <returns> Default access mode.</returns>
+
         private static int GetAttributeAccess(GXDLMSObject target, int attributeIndex)
         {
             if (attributeIndex == 1)

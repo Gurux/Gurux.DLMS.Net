@@ -229,7 +229,7 @@ namespace Gurux.DLMS
                      "action-response-with-pblock");
             list.Add((int)Command.MethodResponse << 8 | (int)ActionResponseType.WithList,
                      "action-response-with-list");
-            list.Add((int)Command.MethodResponse << 8 | (int)ActionResponseType.WithBlock,
+            list.Add((int)Command.MethodResponse << 8 | (int)ActionResponseType.NextBlock,
                      "action-response-next-pblock");
             list.Add((int)TranslatorTags.SingleResponse, "single-response");
             list.Add((int)Command.DataNotification, "data-notification");

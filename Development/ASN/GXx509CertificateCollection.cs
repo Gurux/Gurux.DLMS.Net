@@ -141,16 +141,20 @@ namespace Gurux.DLMS.ASN
         /// <param name="path"></param>
         public void Import(string path)
         {
-            foreach (string it in Directory.GetFiles(path, "*.pem"))
+            foreach (string it in Directory.GetFiles(path))
             {
-                try
+                string ext = Path.GetExtension(it);
+                if (string.Compare(ext, ".pem", true) == 0 || string.Compare(ext, ".cer", true) == 0)
                 {
-                    GXx509Certificate cert = GXx509Certificate.Load(it);
-                    Add(cert);
-                }
-                catch (Exception)
-                {
-                    System.Diagnostics.Debug.WriteLine("Failed to load x509 certificate." + it);
+                    try
+                    {
+                        GXx509Certificate cert = GXx509Certificate.Load(it);
+                        Add(cert);
+                    }
+                    catch (Exception)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Failed to load x509 certificate." + it);
+                    }
                 }
             }
         }

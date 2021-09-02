@@ -775,8 +775,8 @@ namespace Gurux.DLMS.Objects
 
         private void RemoveCertificate(GXDLMSSettings settings, ValueEventArgs e)
         {
-            List<Object> tmp = (List<Object>)((List<object>)e.Parameters)[0];
-            short type = (short)tmp[0];
+            List<Object> tmp = (List<object>)e.Parameters;
+            byte type = Convert.ToByte(tmp[0]);
             tmp = (List<Object>)tmp[1];
             GXx509Certificate cert = null;
             if (type == 0)

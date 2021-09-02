@@ -807,6 +807,19 @@ namespace Gurux.DLMS.ASN
         public override sealed string ToString()
         {
             StringBuilder bb = new StringBuilder();
+            if (ExtendedKeyUsage == ExtendedKeyUsage.ServerAuth)
+            {
+                bb.AppendLine("Server certificate");
+            }
+            else if (ExtendedKeyUsage == ExtendedKeyUsage.ClientAuth)
+            {
+                bb.AppendLine("Client certificate");
+            }
+            else if (ExtendedKeyUsage == (ExtendedKeyUsage.ServerAuth | ExtendedKeyUsage.ClientAuth))
+            {
+                bb.AppendLine("TLS certificate");
+            }
+            bb.AppendLine("");
             bb.Append("Version: ");
             bb.AppendLine(Version.ToString());
             bb.Append("SerialNumber: ");
@@ -965,19 +978,23 @@ namespace Gurux.DLMS.ASN
         public static GXx509Certificate Search(string path, byte[] systemtitle)
         {
             string subject = GXAsn1Converter.SystemTitleToSubject(systemtitle);
-            foreach (string it in Directory.GetFiles(path, "*.pem"))
+            foreach (string it in Directory.GetFiles(path))
             {
-                try
+                string ext = Path.GetExtension(it);
+                if (string.Compare(ext, ".pem", true) == 0 || string.Compare(ext, ".cer", true) == 0)
                 {
-                    GXx509Certificate cert = FromPem(File.ReadAllText(it));
-                    if (cert.Subject.Contains(subject))
+                    try
                     {
-                        return cert;
+                        GXx509Certificate cert = FromPem(File.ReadAllText(it));
+                        if (cert.Subject.Contains(subject))
+                        {
+                            return cert;
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine(ex.Message);
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine(ex.Message);
+                    }
                 }
             }
             return null;

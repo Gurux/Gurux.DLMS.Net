@@ -847,12 +847,12 @@ namespace Gurux.DLMS
         /// <param name="manually">If true, server handle objects and all data are updated manually.</param>
         public void Initialize(bool manually)
         {
+            GXDLMSObject associationObject = null;
             Initialized = true;
             if (manually)
             {
                 return;
             }
-            bool association = false;
             for (int pos = 0; pos != Items.Count; ++pos)
             {
                 GXDLMSObject it = Items[pos];
@@ -862,24 +862,13 @@ namespace Gurux.DLMS
                     throw new Exception("Invalid Logical Name.");
                 }
                 it.Start(this);
-                if (it is GXDLMSProfileGeneric)
-                {
-                    GXDLMSProfileGeneric pg = it as GXDLMSProfileGeneric;
-                    foreach (var obj in pg.CaptureObjects)
-                    {
-                        if (obj.Value.AttributeIndex < 0)
-                        {
-                            throw new Exception("Invalid attribute index. SelectedAttributeIndex is not set for " + obj.Key.Name);
-                        }
-                    }
-                }
-                else if (it is GXDLMSAssociationShortName && !UseLogicalNameReferencing)
+                if (it is GXDLMSAssociationShortName && !UseLogicalNameReferencing)
                 {
                     if ((it as GXDLMSAssociationShortName).ObjectList.Count == 0)
                     {
                         (it as GXDLMSAssociationShortName).ObjectList.AddRange(this.Items);
                     }
-                    association = true;
+                    associationObject = it;
                 }
                 else if (it is GXDLMSAssociationLogicalName && UseLogicalNameReferencing)
                 {
@@ -888,11 +877,7 @@ namespace Gurux.DLMS
                     {
                         ln.ObjectList.AddRange(this.Items);
                     }
-                    association = true;
-                    if (Settings.MaxServerPDUSize != 0)
-                    {
-                        ln.XDLMSContextInfo.MaxReceivePduSize = ln.XDLMSContextInfo.MaxSendPduSize = Settings.MaxServerPDUSize;
-                    }
+                    associationObject = it;
                     if (Settings.ProposedConformance != 0)
                     {
                         ln.XDLMSContextInfo.Conformance = Settings.ProposedConformance;
@@ -905,20 +890,20 @@ namespace Gurux.DLMS
                     --pos;
                 }
             }
-            if (!association)
+            if (associationObject == null)
             {
                 if (UseLogicalNameReferencing)
                 {
                     GXDLMSAssociationLogicalName ln = new GXDLMSAssociationLogicalName();
                     ln.XDLMSContextInfo.MaxReceivePduSize = ln.XDLMSContextInfo.MaxSendPduSize = Settings.MaxServerPDUSize;
                     ln.XDLMSContextInfo.Conformance = Settings.ProposedConformance;
-                    ln.ObjectList = Items;
+                    ln.ObjectList.AddRange(Items);
                     Items.Add(ln);
                 }
                 else
                 {
                     GXDLMSAssociationShortName it = new GXDLMSAssociationShortName();
-                    it.ObjectList = Items;
+                    it.ObjectList.AddRange(Items);
                     Items.Add(it);
                 }
             }

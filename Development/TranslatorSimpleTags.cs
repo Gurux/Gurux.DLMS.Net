@@ -153,7 +153,7 @@ namespace Gurux.DLMS
             list.Add((int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.Normal, "ActionResponseNormal");
             list.Add((int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.WithFirstBlock, "ActionResponseWithPBlock");
             list.Add((int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.WithList, "ActionResponseWithList");
-            list.Add((int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.WithBlock, "ActionResponseWithBlock");
+            list.Add((int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.NextBlock, "ActionResponseWithBlock");
             list.Add((int)Command.DataNotification, "DataNotification");
             list.Add((int)Command.GetResponse, "GetResponse");
             list.Add((int)Command.GetResponse << 8 | (byte)GetCommandType.Normal, "GetResponseNormal");

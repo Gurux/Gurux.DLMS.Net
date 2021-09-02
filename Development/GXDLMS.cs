@@ -314,9 +314,17 @@ namespace Gurux.DLMS
                 return GetHdlcFrame(settings, id, null);
             }
             Command cmd;
+            byte cmdType = (byte)GetCommandType.NextDataBlock;
             if (settings.UseLogicalNameReferencing)
             {
-                if (settings.IsServer)
+                if (reply.CipheredCommand == Command.GloMethodResponse ||
+                    reply.CipheredCommand == Command.DedMethodResponse ||
+                    reply.Command == Command.MethodResponse)
+                {
+                    cmd = Command.MethodRequest;
+                    cmdType = (byte)ActionRequestType.NextBlock;
+                }
+                else if (settings.IsServer)
                 {
                     cmd = Command.GetResponse;
                 }
@@ -362,7 +370,7 @@ namespace Gurux.DLMS
                 settings.IncreaseBlockIndex();
                 if (settings.UseLogicalNameReferencing)
                 {
-                    GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, cmd, (byte)GetCommandType.NextDataBlock, bb, null, 0xff, Command.None);
+                    GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, cmd, cmdType, bb, null, 0xff, Command.None);
                     data = GXDLMS.GetLnMessages(p);
                 }
                 else
@@ -672,6 +680,10 @@ namespace Gurux.DLMS
                 case Command.ReleaseResponse:
                     cmd = Command.ReleaseResponse;
                     break;
+                case Command.AccessRequest:
+                case Command.AccessResponse:
+                    cmd = Command.GeneralDedCiphering;
+                    break;
                 default:
                     throw new GXDLMSException("Invalid DED command.");
             }
@@ -810,12 +822,12 @@ namespace Gurux.DLMS
                 }
                 else if (IsGloMessage(p.cipheredCommand))
                 {
-                    cmd = (byte)GetGloMessage(p.command);
+                    cmd = GetGloMessage(p.command);
                     key = GetBlockCipherKey(p.settings);
                 }
                 else
                 {
-                    cmd = (byte)GetDedMessage(p.command);
+                    cmd = GetDedMessage(p.command);
                     key = cipher.DedicatedKey;
                 }
             }
@@ -930,8 +942,15 @@ namespace Gurux.DLMS
                     System.Diagnostics.Debug.WriteLine("Authentication key: " + GXDLMSTranslator.ToHex(c.AuthenticationKey));
                     GXEcdsa ka = new GXEcdsa(key);
                     z = ka.GenerateSecret(pub);
-                    tmp2.SetUInt8(0x8);
-                    tmp2.SetUInt64(c.InvocationCounter);
+                    if (c.TransactionId == null)
+                    {
+                        tmp2.SetUInt8(0x0);
+                    }
+                    else
+                    {
+                        tmp2.SetUInt8((byte)c.TransactionId.Length);
+                        tmp2.Set(c.TransactionId);
+                    }
                 }
                 else
                 {
@@ -968,7 +987,8 @@ namespace Gurux.DLMS
             AesGcmParameter s = new AesGcmParameter(0x31,
                 p.settings,
                 c.Security,
-                c.SecuritySuite, 0,
+                c.SecuritySuite,
+                p.settings.Cipher.InvocationCounter,
                 // KDF
                 kdf.SubArray(0, 16),
                 // Authentication key.
@@ -991,9 +1011,15 @@ namespace Gurux.DLMS
             {
                 reply.SetUInt8(Command.GeneralCiphering);
             }
-            GXCommon.SetObjectCount(8, reply);
-            reply.SetUInt64(c.InvocationCounter);
-            ++c.InvocationCounter;
+            if (c.TransactionId == null)
+            {
+                GXCommon.SetObjectCount(0, reply);
+            }
+            else
+            {
+                GXCommon.SetObjectCount(c.TransactionId.Length, reply);
+                reply.Set(c.TransactionId);
+            }
             GXCommon.SetObjectCount(s.SystemTitle.Length, reply);
             reply.Set(s.SystemTitle);
             GXCommon.SetObjectCount(s.RecipientSystemTitle.Length, reply);
@@ -1041,25 +1067,37 @@ namespace Gurux.DLMS
             }
             // ciphered-content
             s.Type = (CountType.Data | CountType.Tag);
-            int contentStart = 0;
             System.Diagnostics.Debug.WriteLine("Data: " + GXDLMSTranslator.ToHex(data));
             byte[] tmp = GXCiphering.Encrypt(s, data);
             if (c.Security != Security.None)
             {
+                if (p.settings.Cipher.Signing == Signing.GeneralSigning)
+                {
+                    // Len
+                    GXCommon.SetObjectCount(7 + tmp.Length, reply);
+                    //Add ciphered command.
+                    if (p.settings.Cipher.DedicatedKey == null)
+                    {
+                        reply.SetUInt8(GetGloMessage(p.command));
+                    }
+                    else
+                    {
+                        reply.SetUInt8(GetDedMessage(p.command));
+                    }
+                }
                 // Len
                 GXCommon.SetObjectCount(5 + tmp.Length, reply);
-                contentStart = reply.Size;
                 // Add SC
                 reply.SetUInt8(sc);
                 // Add IC.
-                reply.SetUInt32(0);
+                reply.SetUInt32(p.settings.Cipher.InvocationCounter);
             }
             else
             {
                 // Len
                 GXCommon.SetObjectCount(tmp.Length, reply);
-                contentStart = reply.Size;
             }
+            ++p.settings.Cipher.InvocationCounter;
             reply.Set(tmp);
 
             if (p.settings.Cipher.Signing == Signing.GeneralSigning)
@@ -1176,7 +1214,26 @@ namespace Gurux.DLMS
                             }
                             else if (p.requestType == (byte)ActionRequestType.WithFirstBlock)
                             {
-                                p.requestType = (byte)ActionRequestType.NextBlock;
+                                p.requestType = (byte)ActionRequestType.WithBlock;
+                            }
+                        }
+                    }
+                    //Change Request type if action request and multiple blocks is needed.
+                    else if (p.command == Command.MethodResponse)
+                    {
+                        if (p.multipleBlocks && (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0)
+                        {
+                            if (p.requestType == (byte)ActionResponseType.Normal)
+                            {
+                                //Remove Method Invocation Parameters tag.
+                                ++p.data.Position;
+                                ++p.data.Position;
+                                p.requestType = (byte)ActionResponseType.WithFirstBlock;
+                                p.status = 0xFF;
+                            }
+                            else if (p.requestType == (byte)ActionResponseType.WithFirstBlock)
+                            {
+                                p.requestType = (byte)ActionResponseType.NextBlock;
                             }
                         }
                     }
@@ -1211,7 +1268,7 @@ namespace Gurux.DLMS
                 //If multiple blocks.
                 if (p.multipleBlocks && (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0)
                 {
-                    if (p.command != Command.SetResponse && p.command != Command.MethodResponse)
+                    if (p.command != Command.SetResponse && (p.command != Command.MethodResponse || p.data.Size != 0))
                     {
                         // Is last block.
                         if (p.lastBlock)
@@ -1264,8 +1321,11 @@ namespace Gurux.DLMS
                         }
                         len -= GXCommon.GetObjectCountSizeInBytes(len);
                     }
-                    GXCommon.SetObjectCount(len, reply);
-                    reply.Set(p.data, len);
+                    if (!(p.command == Command.MethodResponse && p.requestType == (byte)ActionResponseType.NextBlock))
+                    {
+                        GXCommon.SetObjectCount(len, reply);
+                        reply.Set(p.data, len);
+                    }
                 }
 
                 //Add data that fits to one block.
@@ -3605,10 +3665,10 @@ namespace Gurux.DLMS
             }
             else
             {
-                //If meter's block index is zero based.
-                if (number != 1 && settings.BlockIndex == 1)
+                //Update  initial block index. This is critical if message is send and received in multiple blocks.
+                if (number == 1)
                 {
-                    settings.BlockIndex = (uint)number;
+                    settings.ResetBlockIndex();
                 }
                 if (number != settings.BlockIndex)
                 {
@@ -3617,20 +3677,10 @@ namespace Gurux.DLMS
                         + " and it should be " + settings.BlockIndex + ".");
                 }
             }
-            // Get status.
-            ch = reply.Data.GetUInt8();
-            if (ch != 0)
-            {
-                reply.Error = reply.Data.GetUInt8();
-            }
+            //Note! There is no status!!
             if (reply.Xml != null)
             {
-                if (reply.Error != 0)
-                {
-                    reply.Xml.AppendLine(TranslatorTags.DataAccessResult, "Value",
-                        GXDLMSTranslator.ErrorCodeToString(reply.Xml.OutputType, (ErrorCode)reply.Error));
-                }
-                else if (reply.Data.Available != 0)
+                if (reply.Data.Available != 0)
                 {
                     // Get data size.
                     int blockLength = GXCommon.GetObjectCount(reply.Data);
@@ -3723,8 +3773,20 @@ namespace Gurux.DLMS
                     break;
                 case ActionResponseType.WithList:
                     throw new ArgumentException("Invalid Command.");
-                case ActionResponseType.WithBlock:
-                    throw new ArgumentException("Invalid Command.");
+                case ActionResponseType.NextBlock:
+                    UInt32 number = data.Data.GetUInt32();
+                    if (data.Xml != null)
+                    {
+                        data.Xml.AppendLine(TranslatorTags.BlockNumber, "Value", data.Xml.IntegerToHex(number, 8));
+                    }
+                    else if (number != settings.BlockIndex)
+                    {
+                        throw new ArgumentException(
+                            "Invalid Block number. It is " + number
+                            + " and it should be " + settings.BlockIndex + ".");
+                    }
+                    settings.IncreaseBlockIndex();
+                    break;
                 default:
                     throw new ArgumentException("Invalid Command.");
             }
@@ -5506,5 +5568,42 @@ namespace Gurux.DLMS
                 data.SetUInt16(value);
             }
         }
+
+        internal static bool IsCiphered(byte cmd)
+        {
+            switch ((Command)cmd)
+            {
+                case Command.GloReadRequest:
+                case Command.GloWriteRequest:
+                case Command.GloGetRequest:
+                case Command.GloSetRequest:
+                case Command.GloReadResponse:
+                case Command.GloWriteResponse:
+                case Command.GloGetResponse:
+                case Command.GloSetResponse:
+                case Command.GloMethodRequest:
+                case Command.GloMethodResponse:
+                case Command.DedGetRequest:
+                case Command.DedSetRequest:
+                case Command.DedReadResponse:
+                case Command.DedGetResponse:
+                case Command.DedSetResponse:
+                case Command.DedMethodRequest:
+                case Command.DedMethodResponse:
+                case Command.GeneralGloCiphering:
+                case Command.GeneralDedCiphering:
+                case Command.Aare:
+                case Command.Aarq:
+                case Command.GloConfirmedServiceError:
+                case Command.DedConfirmedServiceError:
+                case Command.GeneralCiphering:
+                case Command.ReleaseRequest:
+                case Command.GeneralSigning:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
     }
 }

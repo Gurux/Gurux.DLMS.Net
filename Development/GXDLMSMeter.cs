@@ -282,17 +282,6 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// TLS key of the client.
-        /// </summary>
-        [DefaultValue(null)]
-        public string ClientTlsKey
-        {
-            get;
-            set;
-        }
-
-
-        /// <summary>
         /// Signing key of the server.
         /// </summary>
         [DefaultValue(null)]
@@ -307,16 +296,6 @@ namespace Gurux.DLMS
         /// </summary>
         [DefaultValue(null)]
         public string ServerAgreementKey
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// TLS key of the server.
-        /// </summary>
-        [DefaultValue(null)]
-        public string ServerTlsKey
         {
             get;
             set;
