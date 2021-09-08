@@ -40,19 +40,21 @@ using Gurux.DLMS.Enums;
 using System.Threading;
 using Gurux.DLMS.Objects;
 
-namespace Gurux.DLMS.Client.Example
+namespace Gurux.DLMS.Client.Example.Net
 {
     class Program
     {
+        /*
         static int Main(string[] args)
         {
             Settings settings = new Settings();
+
             Reader.GXDLMSReader reader = null;
             try
             {
                 ////////////////////////////////////////
                 //Handle command line parameters.
-                int ret = Settings.GetParameters(args, settings);
+                int ret = Settings.GetParameters(argsE, settings);
                 if (ret != 0)
                 {
                     return ret;
@@ -189,5 +191,17 @@ namespace Gurux.DLMS.Client.Example
             }
             return 0;
         }
+        
+        */
+        
+        static void Main()
+        {
+            String[] argsE = { "-S", "COM5:300:7Even1", "-i", "HdlcWithModeE", "-c", "1", "-s", "145", "-a", "Low", "-P", "12345678","-d", "Idis", "-t", "Verbose" , "-g", "1.0.32.7.0.255:1 ; 1.0.32.7.0.255:2 ; 1.0.32.7.0.255:3"};
+
+            IEGReader eGReader = new IEGReader(argsE, "D:/C_ATS/Test.xml");
+
+            eGReader.Voltage();
+        }
+        
     }
 }

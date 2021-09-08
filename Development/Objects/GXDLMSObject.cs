@@ -330,7 +330,15 @@ namespace Gurux.DLMS.Objects
             get;
             set;
         }
-
+        /// <summary>
+        /// Junk Test of DLMS object.
+        /// </summary>
+        [DefaultValue(null)]
+        public string Junk_Test
+        {
+            get;
+            set;
+        }
         /// <summary>
         /// object attribute collection.
         /// </summary>
