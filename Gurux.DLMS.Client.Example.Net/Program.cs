@@ -42,7 +42,7 @@ using Gurux.DLMS.Objects;
 
 namespace Gurux.DLMS.Client.Example.Net
 {
-    class Program
+    public class Program
     {
         /*
         static int Main(string[] args)
@@ -196,12 +196,20 @@ namespace Gurux.DLMS.Client.Example.Net
         
         static void Main()
         {
-            String[] argsE = { "-S", "COM5:300:7Even1", "-i", "HdlcWithModeE", "-c", "1", "-s", "145", "-a", "Low", "-P", "12345678","-d", "Idis", "-t", "Verbose" , "-g", "1.0.32.7.0.255:1 ; 1.0.32.7.0.255:2 ; 1.0.32.7.0.255:3"};
+            IEGReader eGReader =  Voltage.Intializer();
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            object var1 = Voltage.Reader(eGReader);
+            watch.Stop();
 
-            IEGReader eGReader = new IEGReader(argsE, "D:/C_ATS/Test.xml");
+            Console.WriteLine(var1);
+            Console.WriteLine(watch.ElapsedMilliseconds);
 
-            eGReader.Voltage();
+            Console.ReadKey();
+
+            Voltage.Closer(eGReader);
         }
+
+        
         
     }
 }

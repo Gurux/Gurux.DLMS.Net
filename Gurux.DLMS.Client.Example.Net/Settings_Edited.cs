@@ -246,7 +246,7 @@ namespace Gurux.DLMS.Client.Example.Net
                             throw new ArgumentException("Invalid security suite option '" + it.Value + "'. (Suite0, Suite1, Suite2)");
                         }
                         break;
-                    case 'K':
+                    /*case 'K':
                         try
                         {
                             settings.client.Ciphering.KeyAgreementScheme = (KeyAgreementScheme)Enum.Parse(typeof(KeyAgreementScheme), it.Value);
@@ -255,7 +255,7 @@ namespace Gurux.DLMS.Client.Example.Net
                         {
                             throw new ArgumentException("Invalid security suite option '" + it.Value + "'. (OnePassDiffieHellman, StaticUnifiedModel)");
                         }
-                        break;
+                        break;*/
                     case 'T':
                         settings.client.Ciphering.SystemTitle = GXCommon.HexToBytes(it.Value);
                         break;

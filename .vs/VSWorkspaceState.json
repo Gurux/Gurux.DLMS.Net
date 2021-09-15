@@ -1,9 +1,8 @@
 {
   "ExpandedNodes": [
     "",
-    "\\Gurux.DLMS.Client.Example.Net",
-    "\\Gurux.DLMS.Simulator.Net"
+    "\\Gurux.DLMS.Client.Example.Net"
   ],
-  "SelectedNode": "\\Gurux.DLMS.Simulator.Net\\README.md",
+  "SelectedNode": "\\Gurux.DLMS.Client.Example.Net\\Settings.cs",
   "PreviewInSolutionExplorer": false
 }

@@ -331,7 +331,7 @@ namespace Gurux.DLMS.Objects
             set;
         }
         /// <summary>
-        /// Junk Test of DLMS object.
+        ///  of DLMS object.
         /// </summary>
         [DefaultValue(null)]
         public string Junk_Test
