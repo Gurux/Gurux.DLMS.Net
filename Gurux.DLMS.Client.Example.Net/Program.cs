@@ -196,9 +196,9 @@ namespace Gurux.DLMS.Client.Example.Net
         
         static void Main()
         {
-            IEGReader eGReader =  Voltage.Intializer();
+            IEGReader eGReader =  MeterReader.Intializer();
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            object var1 = Voltage.Reader(eGReader);
+            object var1 = MeterReader.Reader(eGReader);
             watch.Stop();
 
             Console.WriteLine(var1);
@@ -206,7 +206,7 @@ namespace Gurux.DLMS.Client.Example.Net
 
             Console.ReadKey();
 
-            Voltage.Closer(eGReader);
+            MeterReader.Closer(eGReader);
         }
 
         

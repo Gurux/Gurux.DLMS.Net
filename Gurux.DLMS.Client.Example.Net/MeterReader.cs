@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Gurux.DLMS.Client.Example.Net
 {
-    public class Voltage
+    public class MeterReader
     {
 
         public static IEGReader Intializer()
