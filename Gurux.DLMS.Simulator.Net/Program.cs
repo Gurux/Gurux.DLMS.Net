@@ -92,7 +92,7 @@ namespace Gurux.DLMS.Simulator.Net
         {
             if (settings.media is GXSerial)
             {
-                GXDLMSMeter server = new GXDLMSMeter(settings.client.UseLogicalNameReferencing, Enums.InterfaceType.HDLC);
+                GXDLMSMeter server = new GXDLMSMeter(settings.client.UseLogicalNameReferencing, Enums.InterfaceType.HDLC, settings.client.UseUtc2NormalTime);
                 if (settings.client.UseLogicalNameReferencing)
                 {
                     Console.WriteLine("Logical Name DLMS Server in serial port {0}.", settings.media);
@@ -151,7 +151,7 @@ namespace Gurux.DLMS.Simulator.Net
                     if (settings.gatewaySettings != null)
                     {
                         net.OnReceived += new Gurux.Common.ReceivedEventHandler(GXDLMSMeter.OnGatewayReceived);
-                        GXDLMSMeter.GatewayServer = new GXDLMSMeter(settings.client.UseLogicalNameReferencing, settings.client.InterfaceType);
+                        GXDLMSMeter.GatewayServer = new GXDLMSMeter(settings.client.UseLogicalNameReferencing, settings.client.InterfaceType, settings.client.UseUtc2NormalTime);
                         GXDLMSMeter.GatewayServer.Initialize();
                         settings.client.InterfaceType = (InterfaceType)settings.gatewaySettings;
                     }
@@ -169,7 +169,7 @@ namespace Gurux.DLMS.Simulator.Net
                 }
                 for (int pos = 0; pos != settings.serverCount; ++pos)
                 {
-                    GXDLMSMeter server = new GXDLMSMeter(settings.client.UseLogicalNameReferencing, settings.client.InterfaceType);
+                    GXDLMSMeter server = new GXDLMSMeter(settings.client.UseLogicalNameReferencing, settings.client.InterfaceType, settings.client.UseUtc2NormalTime);
                     servers.Add(server);
                     if (settings.exclusive)
                     {

@@ -88,9 +88,11 @@ namespace Gurux.DLMS.Simulator.Net
         ///</summary>
         ///<param name="logicalNameReferencing">Is logical name referencing used.</param>
         ///<param name="type">Interface type.</param>
-        public GXDLMSMeter(bool logicalNameReferencing, InterfaceType type) : base(logicalNameReferencing, type)
+        ///<param name="useUtc2NormalTime">Is UTC time used.</param>
+        public GXDLMSMeter(bool logicalNameReferencing, InterfaceType type, bool useUtc2NormalTime) : base(logicalNameReferencing, type)
         {
             interfaceType = type;
+            UseUtc2NormalTime = useUtc2NormalTime;
         }
         public void Initialize(IGXMedia media, TraceLevel trace, string path, UInt32 sn, bool exclusive)
         {
@@ -448,7 +450,7 @@ namespace Gurux.DLMS.Simulator.Net
                 //Update date-time of the clock object when client asks it.
                 if ((it.Target is GXDLMSClock c) && it.Index == 2)
                 {
-                    c.Time = c.Now();
+                    c.Time = DateTime.Now;
                 }
             }
         }
@@ -741,7 +743,7 @@ namespace Gurux.DLMS.Simulator.Net
                 lock (this)
                 {
                     //Show trace only for connected meters.
-//                    if (Trace > TraceLevel.Info && this.ConnectionState != ConnectionState.None)
+                    if (Trace > TraceLevel.Info && this.ConnectionState != ConnectionState.None)
                     {
                         Console.WriteLine("RX:\t" + Gurux.Common.GXCommon.ToHex((byte[])e.Data, true));
                     }
