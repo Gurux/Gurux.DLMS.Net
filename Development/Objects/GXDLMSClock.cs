@@ -455,15 +455,36 @@ namespace Gurux.DLMS.Objects
         /// <returns>Current time</returns>
         public GXDateTime Now()
         {
-            return GetTime(DateTime.Now);
+            return GetTime(DateTime.Now, false);
+        }
+
+        /// <summary>
+        /// Return current time.
+        /// </summary>
+        ///<param name="useUtc2NormalTime">Is UTC time used.</param>
+        /// <returns>Current time</returns>
+        public GXDateTime Now(bool useUtc2NormalTime)
+        {
+            return GetTime(DateTime.Now, useUtc2NormalTime);
         }
 
         /// <summary>
         /// Returns time using clock settings.
         /// </summary>
         /// <param name="time"></param>
-        /// <returns></returns>
+        /// <returns>Current time</returns>
         public GXDateTime GetTime(DateTime time)
+        {
+            return GetTime(time, false);
+        }
+
+        /// <summary>
+        /// Returns time using clock settings.
+        /// </summary>
+        /// <param name="time"></param>
+        ///<param name="useUtc2NormalTime">Is UTC time used.</param>
+        /// <returns>Current time</returns>
+        public GXDateTime GetTime(DateTime time, bool useUtc2NormalTime)
         {
             GXDateTime tm = new GXDateTime(time);
             //-32768 == 0x8000
@@ -475,7 +496,14 @@ namespace Gurux.DLMS.Objects
             {
                 //If clock's time zone is different what user want's to use.
                 int offset = TimeZone;
-                offset += (int)TimeZoneInfo.Local.BaseUtcOffset.TotalMinutes;
+                if (useUtc2NormalTime)
+                {
+                    offset -= (int)TimeZoneInfo.Local.BaseUtcOffset.TotalMinutes;
+                }
+                else
+                {
+                    offset += (int)TimeZoneInfo.Local.BaseUtcOffset.TotalMinutes;
+                }
                 if (offset != 0 ||
                     (!Enabled && time.IsDaylightSavingTime()))
                 {
@@ -487,7 +515,14 @@ namespace Gurux.DLMS.Objects
                     else
                     {
                         time = time.AddMinutes(-60);
-                        zone = new TimeSpan(0, -TimeZone, 0);
+                        if (useUtc2NormalTime)
+                        {
+                            zone = new TimeSpan(0, TimeZone, 0);
+                        }
+                        else
+                        {
+                            zone = new TimeSpan(0, -TimeZone, 0);
+                        }
                     }
                     time = time.AddMinutes(-offset);
                     time = new DateTime(time.Ticks, DateTimeKind.Unspecified);

@@ -443,5 +443,23 @@ namespace Gurux.DLMS.Secure
             get;
             set;
         }
+
+        /// <summary>
+        /// Used signing and ciphering order.
+        /// </summary>
+        public SignCipherOrder SignCipherOrder
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Are InitiateRequest and Response signed.
+        /// </summary>
+        public bool SignInitiateRequestResponse
+        {
+            get;
+            set;
+        }
     }
 }

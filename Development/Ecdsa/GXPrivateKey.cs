@@ -68,6 +68,18 @@ namespace Gurux.DLMS.Ecdsa
         private GXPublicKey publicKey;
 
         /// <summary>
+        /// SystemTitle is an extra information that can be used in debugging.
+        /// </summary>
+        /// <remarks>
+        /// SystemTitle is not serialized.
+        /// </remarks>
+        public byte[] SystemTitle
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Create the private key from raw bytes.
         /// </summary>
         /// <param name="key">Raw data</param>

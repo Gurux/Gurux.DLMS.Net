@@ -172,14 +172,21 @@ namespace GuruxDLMSServerExample
                         reply.Clear();
                         if (!notify.IsMoreData)
                         {
-                            // Make clone so we don't replace current values.
-                            GXDLMSPushSetup clone = (GXDLMSPushSetup)push.Clone();
-                            clone.GetPushValues(client, (List<object>)notify.Value);
-                            //Comment this if the meter describes the content of the push message for the client in the received data.
-                            foreach (KeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in clone.PushObjectList)
+                            try
                             {
-                                int index = it.Value.AttributeIndex - 1;
-                                Console.WriteLine(((IGXDLMSBase)it.Key).GetNames()[index] + ": " + it.Key.GetValues()[index]);
+                                // Make clone so we don't replace current values.
+                                GXDLMSPushSetup clone = (GXDLMSPushSetup)push.Clone();
+                                clone.GetPushValues(client, (List<object>)notify.Value);
+                                //Comment this if the meter describes the content of the push message for the client in the received data.
+                                foreach (KeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in clone.PushObjectList)
+                                {
+                                    int index = it.Value.AttributeIndex - 1;
+                                    Console.WriteLine(((IGXDLMSBase)it.Key).GetNames()[index] + ": " + it.Key.GetValues()[index]);
+                                }
+                            }
+                            catch(Exception ex)
+                            {
+                                Console.WriteLine(ex.Message);
                             }
                             try
                             {

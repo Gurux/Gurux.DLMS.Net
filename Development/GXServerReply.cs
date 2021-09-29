@@ -32,6 +32,8 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using Gurux.DLMS.Objects.Enums;
+
 namespace Gurux.DLMS
 {
     public class GXServerReply
@@ -105,6 +107,15 @@ namespace Gurux.DLMS
         /// Gateway information.
         /// </summary>
         public GXDLMSGateway Gateway
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Baudrate is changed when optical probe is used.
+        /// </summary>
+        public int NewBaudRate
         {
             get;
             set;

@@ -78,12 +78,13 @@ namespace GuruxDLMSServerExample
         {
             PushClientAddress = 64;
             MaxReceivePDUSize = 1024;
+            ln.XDLMSContextInfo.MaxReceivePduSize = ln.XDLMSContextInfo.MaxSendPduSize = 1024;
             //Default secret.
             ln.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
             //Add security setup object.
             ln.SecuritySetupReference = "0.0.43.0.0.255";
             GXDLMSSecuritySetup s = new GXDLMSSecuritySetup("0.0.43.0.0.255");
-            s.ServerSystemTitle = this.Ciphering.SystemTitle;
+            s.ServerSystemTitle = Ciphering.SystemTitle;
             Items.Add(s);
         }
 
@@ -116,6 +117,7 @@ namespace GuruxDLMSServerExample
         {
             PushClientAddress = 64;
             MaxReceivePDUSize = 1024;
+            ln.XDLMSContextInfo.MaxReceivePduSize = ln.XDLMSContextInfo.MaxSendPduSize = 1024;
             //Default secret.
             ln.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
             //Add security setup object.

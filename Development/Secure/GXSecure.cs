@@ -187,20 +187,26 @@ namespace Gurux.DLMS.Secure
         ///<summary>
         ///Generates challenge.
         ///</summary>
-        ///<param name="authentication">
-        ///Used authentication.
-        ///</param>
+        ///<param name="authentication">Used authentication.</param>
+        ///<param name="size">Challenge size. Random if it's zero.</param>
         ///<returns>
         ///Generated challenge.
         ///</returns>
-        public static byte[] GenerateChallenge(Authentication authentication)
+        public static byte[] GenerateChallenge(Authentication authentication, byte size)
         {
             Random r = new Random();
-            // Random challenge is 8 to 64 bytes.
-            // Texas Instruments accepts only 16 byte long challenge.
-            // For this reason challenge size is 16 bytes at the moment.
-            int len = 16;
-            //            int len = r.Next(57) + 8;
+            int len = size;
+            if (size == 0)
+            {
+                if (authentication == Authentication.HighECDSA)
+                {
+                    len = r.Next(32) + 32;
+                }
+                else
+                {
+                    len = r.Next(57) + 8;
+                }
+            }
             byte[] result = new byte[len];
             for (int pos = 0; pos != len; ++pos)
             {

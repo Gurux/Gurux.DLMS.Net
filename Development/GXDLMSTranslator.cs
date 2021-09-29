@@ -46,6 +46,7 @@ using System.Diagnostics;
 using Gurux.DLMS.Plc.Enums;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.ASN;
+using Gurux.DLMS.Ecdsa;
 
 namespace Gurux.DLMS
 {
@@ -341,6 +342,48 @@ namespace Gurux.DLMS
         /// List of private keys and certifications.
         /// </summary>
         public List<KeyValuePair<GXPkcs8, GXx509Certificate>> Keys
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Public/private key signing key pair.
+        /// </summary>
+        /// <remarks>
+        /// Private key is for the initializer and Public key is for the target.
+        /// </remarks>
+        public KeyValuePair<GXPublicKey, GXPrivateKey> SigningKeyPair
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Public/private key TLS key pair.
+        /// </summary>
+        /// <remarks>
+        /// Private key is for the initializer and Public key is for the target.
+        /// </remarks>
+        public KeyValuePair<GXPublicKey, GXPrivateKey> TlsKeyPair
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Ephemeral key pair.
+        /// </summary>
+        public KeyValuePair<GXPublicKey, GXPrivateKey> EphemeralKeyPair
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Public/private key key agreement key pair.
+        /// </summary>
+        public KeyValuePair<GXPublicKey, GXPrivateKey> KeyAgreementKeyPair
         {
             get;
             set;
@@ -806,6 +849,9 @@ namespace Gurux.DLMS
                 {
                     settings.SourceSystemTitle = ServerSystemTitle;
                 }
+                settings.Cipher.SigningKeyPair = SigningKeyPair;
+                settings.Cipher.KeyAgreementKeyPair = KeyAgreementKeyPair;
+                settings.Cipher.TlsKeyPair = TlsKeyPair;
             }
             else
             {
@@ -2026,7 +2072,7 @@ namespace Gurux.DLMS
                                 {
                                     byte[] st;
                                     st = settings.Cipher.SystemTitle;
-                                    p = new AesGcmParameter(settings, st, null, null);
+                                    p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
                                     p.Xml = xml;
                                     GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
                                     xml.AppendComment("Security : " + p.Security);

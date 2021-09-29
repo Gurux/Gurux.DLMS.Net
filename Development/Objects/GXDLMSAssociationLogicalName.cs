@@ -1580,7 +1580,7 @@ namespace Gurux.DLMS.Objects
                                 buff = new int[access.Length / 4];
                                 for (pos = 0; pos != buff.Length; ++pos)
                                 {
-                                    buff[pos] = int.Parse(access.Substring(4 * pos, 4 * pos + 4), NumberStyles.HexNumber) & ~0x8000;
+                                    buff[pos] = int.Parse(access.Substring(4 * pos, 4), NumberStyles.HexNumber) & ~0x8000;
                                 }
                                 accessRights[obj] = buff;
                                 pos = 0;
@@ -1603,7 +1603,7 @@ namespace Gurux.DLMS.Objects
                                 buff = new int[access.Length / 4];
                                 for (pos = 0; pos != buff.Length; ++pos)
                                 {
-                                    buff[pos] = int.Parse(access.Substring(4 * pos, 4 * pos + 4), NumberStyles.HexNumber) & ~0x8000;
+                                    buff[pos] = int.Parse(access.Substring(4 * pos, 4), NumberStyles.HexNumber) & ~0x8000;
                                 }
                                 methodAccessRights[obj] = buff;
                             }

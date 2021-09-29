@@ -41,6 +41,9 @@ using System.IO;
 using System.Diagnostics;
 using Gurux.Common;
 using System.Net.Sockets;
+using Gurux.Serial;
+using System.Threading;
+using System.IO.Ports;
 
 namespace Gurux.DLMS.Simulator.Net
 {
@@ -89,10 +92,13 @@ namespace Gurux.DLMS.Simulator.Net
         ///<param name="logicalNameReferencing">Is logical name referencing used.</param>
         ///<param name="type">Interface type.</param>
         ///<param name="useUtc2NormalTime">Is UTC time used.</param>
-        public GXDLMSMeter(bool logicalNameReferencing, InterfaceType type, bool useUtc2NormalTime) : base(logicalNameReferencing, type)
+        ///<param name="flagId">Flag ID.</param>
+        public GXDLMSMeter(bool logicalNameReferencing, InterfaceType type, bool useUtc2NormalTime,
+            string flagId) : base(logicalNameReferencing, type)
         {
             interfaceType = type;
             UseUtc2NormalTime = useUtc2NormalTime;
+            FlaID = flagId;
         }
         public void Initialize(IGXMedia media, TraceLevel trace, string path, UInt32 sn, bool exclusive)
         {
@@ -390,6 +396,20 @@ namespace Gurux.DLMS.Simulator.Net
             {
                 throw new Exception(string.Format("Invalid device template file {0}", objectsFile));
             }
+            //Find defualt local port setup when optical head is used.
+            if (InterfaceType == InterfaceType.HdlcWithModeE)
+            {
+                GXDLMSObjectCollection objs = Items.GetObjects(ObjectType.IecLocalPortSetup);
+                if (objs.Count != 0)
+                {
+                    LocalPortSetup = (GXDLMSIECLocalPortSetup)objs[0];
+                }
+                else
+                {
+                    throw new Exception("HdlcWithModeE can't be used because LocalPortSetup not found.");
+                }
+            }
+
             //Own listener isn't created if there are multiple meters in the same port.
             if (!exclusive)
             {
@@ -450,7 +470,7 @@ namespace Gurux.DLMS.Simulator.Net
                 //Update date-time of the clock object when client asks it.
                 if ((it.Target is GXDLMSClock c) && it.Index == 2)
                 {
-                    c.Time = DateTime.Now;
+                    c.Time = c.Now(UseUtc2NormalTime);
                 }
             }
         }
@@ -624,7 +644,7 @@ namespace Gurux.DLMS.Simulator.Net
         protected override MethodAccessMode GetMethodAccess(ValueEventArgs arg)
         {
             return AssignedAssociation.GetMethodAccess(arg.Target, arg.Index);
-        }      
+        }
 
         /// <summary>
         /// Check authentication.
@@ -652,7 +672,7 @@ namespace Gurux.DLMS.Simulator.Net
                     {
                         return SourceDiagnostic.None;
                     }
-                    Debug.WriteLine("Invalid password. Expected: " + GXCommon.ToHex(AssignedAssociation.Secret) + 
+                    Debug.WriteLine("Invalid password. Expected: " + GXCommon.ToHex(AssignedAssociation.Secret) +
                         " Actual: " + GXCommon.ToHex(password));
                 }
             }
@@ -755,11 +775,32 @@ namespace Gurux.DLMS.Simulator.Net
                         //This is done if client try to make connection with wrong device ID.
                         if (sr.Reply != null)
                         {
+                            Media.Send(sr.Reply, e.SenderInfo);
                             if (Trace > TraceLevel.Info)
                             {
                                 Console.WriteLine("TX:\t" + Gurux.Common.GXCommon.ToHex(sr.Reply, true));
                             }
-                            Media.Send(sr.Reply, e.SenderInfo);
+                            if ((Media is GXSerial serial) && sr.NewBaudRate != 0)
+                            {
+                                if (ConnectionState == ConnectionState.Iec)
+                                {
+                                    serial.BaudRate = sr.NewBaudRate;
+                                    serial.DataBits = 8;
+                                    serial.Parity = Parity.None;
+                                    serial.StopBits = StopBits.One;
+                                    Console.WriteLine("Connected with optical probe. The new baudrate is: " + serial.BaudRate);
+                                }
+                                else
+                                {
+                                    Thread.Sleep(200);
+                                    //Reset optical probe default settings.
+                                    serial.BaudRate = sr.NewBaudRate;
+                                    serial.DataBits = 7;
+                                    serial.Parity = Parity.Even;
+                                    serial.StopBits = StopBits.One;
+                                    Console.WriteLine("Disconnected with optical probe. The new baudrate is: " + serial.BaudRate);
+                                }
+                            }
                             sr.Data = null;
                         }
                     }

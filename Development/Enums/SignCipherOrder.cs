@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-// 
+//
 //
 //
 // Filename:        $HeadURL$
@@ -19,44 +19,37 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License 
+// and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: https://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2. 
+// This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
+using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Enums
 {
     /// <summary>
-    /// Enumerates Action request types.
+    /// Enumerates Signing and ciphering order.
     /// </summary>
-    [Flags]
-    public enum ConnectionState
+    public enum SignCipherOrder
     {
         /// <summary>
-        ///Connection is not made for the meter.
+        /// Message is ciphered first and then signed.
         /// </summary>
-        None = 0,
+        [XmlEnum("0")]
+        CipheredFirst = 0,
         /// <summary>
-        /// Connection is made for HDLC level.
+        /// Message is signed first and then ciphered.
         /// </summary>
-        Hdlc = 1,
-        /// <summary>
-        /// Connection is made for DLMS level.
-        /// </summary>
-        Dlms = 2,
-        /// <summary>
-        /// Connection is made for optical IEC 62056-21 level.
-        /// </summary>
-        Iec = 4
+        [XmlEnum("1")]
+        SignedFirst = 1        
     }
 }

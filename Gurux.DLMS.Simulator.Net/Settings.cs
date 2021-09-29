@@ -63,12 +63,15 @@ namespace Gurux.DLMS.Simulator.Net
         public bool exclusive = false;
         //Gateway settings.
         public object gatewaySettings = null;
+        //FLAG ID.
+        public string flagId;
 
         static public int GetParameters(string[] args, Settings settings)
         {
             string[] tmp;
             GXNet net;
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:wP:g:S:C:n:v:o:T:A:B:D:d:l:F:r:x:N:Xx:G:");
+            GXSerial serial;
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:wP:g:S:C:n:v:o:T:A:B:D:d:l:F:r:x:N:Xx:G:f:");
             foreach (GXCmdParameter it in parameters)
             {
                 switch (it.Tag)
@@ -123,6 +126,14 @@ namespace Gurux.DLMS.Simulator.Net
                         try
                         {
                             settings.client.InterfaceType = (InterfaceType)Enum.Parse(typeof(InterfaceType), it.Value);
+                            if (settings.client.InterfaceType == InterfaceType.HdlcWithModeE)
+                            {
+                                serial = settings.media as GXSerial;
+                                serial.BaudRate = 300;
+                                serial.DataBits = 7;
+                                serial.Parity = Parity.Even;
+                                serial.StopBits = StopBits.One;
+                            }
                         }
                         catch (Exception)
                         {
@@ -151,7 +162,7 @@ namespace Gurux.DLMS.Simulator.Net
                         break;
                     case 'S'://Serial Port
                         settings.media = new GXSerial();
-                        GXSerial serial = settings.media as GXSerial;
+                        serial = settings.media as GXSerial;
                         tmp = it.Value.Split(':');
                         serial.PortName = tmp[0];
                         if (tmp.Length > 1)
@@ -294,6 +305,9 @@ namespace Gurux.DLMS.Simulator.Net
                         settings.gatewaySettings = Enum.Parse(typeof(InterfaceType), it.Value);
                         settings.exclusive = true;
                         break;
+                    case 'f':
+                        settings.flagId = it.Value;
+                        break;
                     case '?':
                         switch (it.Tag)
                         {
@@ -399,6 +413,7 @@ namespace Gurux.DLMS.Simulator.Net
             Console.WriteLine(" -F \t Initial Frame Counter (Invocation counter) value.");
             Console.WriteLine(" -d \t Used DLMS standard. Ex. -d India (DLMS, India, Italy, SaudiArabia, IDIS)");
             Console.WriteLine(" -G \t Simulator is acting like a gateway for the meters that are using different interface than GW. Ex. -G HDLC");
+            Console.WriteLine(" -f \t Flag ID.");
             Console.WriteLine("Example:");
             Console.WriteLine("Read DLMS device using TCP/IP connection.");
             Console.WriteLine("Gurux.Dlms.Simulator.Net -c 16 -s 1 -h [Meter IP Address] -p [Meter Port No] -o meter-template.xml");

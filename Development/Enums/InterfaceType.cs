@@ -42,13 +42,13 @@ namespace Gurux.DLMS.Enums
     public enum InterfaceType
     {
         /// <summary>
-        /// General interface type is used for meters that support
+        /// General interface type is used for meters that supports
         /// IEC 62056-46 Data link layer using HDLC protocol.
         /// </summary>
         [XmlEnum("0")]
         HDLC,
         /// <summary>
-        /// Network interface type is used for meters that support
+        /// Network interface type is used for meters that supports
         /// IEC 62056-47 COSEM transport layers for IPv4 networks.
         /// </summary>
         [XmlEnum("1")]

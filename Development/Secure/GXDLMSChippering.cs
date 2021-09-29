@@ -175,87 +175,6 @@ namespace Gurux.DLMS.Secure
             }
             return null;
         }
-        /// <summary>
-        /// Find public and private keys.
-        /// </summary>
-        /// <param name="p"></param>
-        private static KeyValuePair<GXPublicKey, GXPrivateKey> FindKeys(ASN.Enums.KeyUsage usage, AesGcmParameter p, byte[] originator, byte[] recipient)
-        {
-            GXPrivateKey key = null;
-            GXPublicKey pub = null;
-            //Find key agreement key using subject.
-            string subject = GXAsn1Converter.SystemTitleToSubject(originator);
-            foreach (KeyValuePair<GXPkcs8, GXx509Certificate> it in p.Settings.Keys)
-            {
-                if (it.Key != null && it.Value.KeyUsage == usage && it.Value.Subject.Contains(subject))
-                {
-                    key = it.Key.PrivateKey;
-                    break;
-                }
-            }
-            if (key == null && p.Settings.CryptoNotifier != null && p.Settings.CryptoNotifier.keys != null)
-            {
-                GXCryptoKeyParameter args = new GXCryptoKeyParameter();
-                args.Encrypt = true;
-                if (usage == ASN.Enums.KeyUsage.KeyAgreement)
-                {
-                    args.CertificateType = CertificateType.KeyAgreement;
-                }
-                else
-                {
-                    args.CertificateType = CertificateType.DigitalSignature;
-                }
-                args.SystemTitle = originator;
-                args.SecuritySuite = p.SecuritySuite;
-                try
-                {
-                    p.Settings.CryptoNotifier.keys(p.Settings.CryptoNotifier, args);
-                    key = args.PrivateKey;
-                }
-                catch (Exception)
-                {
-                    key = null;
-                }
-            }
-            if (key != null)
-            {
-                //Find key agreement key using subject.
-                subject = GXAsn1Converter.SystemTitleToSubject(recipient);
-                foreach (KeyValuePair<GXPkcs8, GXx509Certificate> it in p.Settings.Keys)
-                {
-                    if (it.Value.KeyUsage == usage && it.Value.Subject.Contains(subject))
-                    {
-                        pub = it.Value.PublicKey;
-                        break;
-                    }
-                }
-                if (pub == null && p.Settings.CryptoNotifier != null && p.Settings.CryptoNotifier.keys != null)
-                {
-                    GXCryptoKeyParameter args = new GXCryptoKeyParameter();
-                    args.SecuritySuite = p.SecuritySuite;
-                    if (usage == ASN.Enums.KeyUsage.KeyAgreement)
-                    {
-                        args.CertificateType = CertificateType.KeyAgreement;
-                    }
-                    else
-                    {
-                        args.CertificateType = CertificateType.DigitalSignature;
-                    }
-                    args.SystemTitle = recipient;
-                    args.SecuritySuite = p.SecuritySuite;
-                    try
-                    {
-                        p.Settings.CryptoNotifier.keys(p.Settings.CryptoNotifier, args);
-                        pub = args.PublicKey;
-                    }
-                    catch (Exception)
-                    {
-                        pub = null;
-                    }
-                }
-            }
-            return new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
-        }
 
         /// <summary>
         /// Decrypt data.
@@ -409,24 +328,22 @@ namespace Gurux.DLMS.Secure
                         if (p.Xml != null)
                         {
                             p.KeyCipheredData = bb.Array();
-                            //Find key agreement key using subject.
-                            kp = FindKeys(ASN.Enums.KeyUsage.KeyAgreement, p, p.RecipientSystemTitle, p.SystemTitle);
-                            //If private key is not found.
-                            if (kp.Key == null)
+                        }
+                        kp = p.Settings.Cipher.KeyAgreementKeyPair;
+                        if (kp.Key == null)
+                        {
+                            pub = (GXPublicKey)p.Settings.GetKey(CertificateType.KeyAgreement, p.SystemTitle, false);
+                            if (pub != null)
                             {
-                                kp = FindKeys(ASN.Enums.KeyUsage.KeyAgreement, p, p.SystemTitle, p.RecipientSystemTitle);
+                                p.Settings.Cipher.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, p.Settings.Cipher.KeyAgreementKeyPair.Value);
                             }
                         }
-                        else
+                        if (kp.Value == null)
                         {
-                            kp = p.Settings.Cipher.KeyAgreementKeyPair;
-                            if (kp.Key == null)
+                            key = (GXPrivateKey)p.Settings.GetKey(CertificateType.KeyAgreement, p.SystemTitle, true);
+                            if (key != null)
                             {
-                                pub = (GXPublicKey)p.Settings.GetKey(CertificateType.KeyAgreement, p.SystemTitle, false);
-                            }
-                            if (kp.Value == null)
-                            {
-                                key = (GXPrivateKey)p.Settings.GetKey(CertificateType.KeyAgreement, p.SystemTitle, true);
+                                p.Settings.Cipher.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(p.Settings.Cipher.KeyAgreementKeyPair.Key, key);
                             }
                         }
                         if (kp.Key != null)
@@ -445,30 +362,18 @@ namespace Gurux.DLMS.Secure
                         {
                             throw new ArgumentException("Invalid key parameters");
                         }
-                        if (p.Xml != null)
+                        kp = p.Settings.Cipher.KeyAgreementKeyPair;
+                        if (kp.Key == null)
                         {
-                            kp = FindKeys(ASN.Enums.KeyUsage.KeyAgreement, p, p.SystemTitle, p.RecipientSystemTitle);
-                            //If private key is not found.
-                            if (kp.Key == null)
-                            {
-                                kp = FindKeys(ASN.Enums.KeyUsage.KeyAgreement, p, p.RecipientSystemTitle, p.SystemTitle);
-                            }
+                            pub = (GXPublicKey)p.Settings.GetKey(CertificateType.KeyAgreement, p.SystemTitle, false);
                         }
-                        else
+                        if (kp.Value == null)
                         {
-                            kp = p.Settings.Cipher.KeyAgreementKeyPair;
-                            if (kp.Key == null)
-                            {
-                                pub = (GXPublicKey)p.Settings.GetKey(CertificateType.KeyAgreement, p.SystemTitle, false);
-                            }
-                            if (kp.Value == null)
-                            {
-                                key = (GXPrivateKey)p.Settings.GetKey(CertificateType.KeyAgreement, p.RecipientSystemTitle, true);
-                            }
-                            if (kp.Key == null || kp.Value == null)
-                            {
-                                kp = p.Settings.Cipher.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
-                            }
+                            key = (GXPrivateKey)p.Settings.GetKey(CertificateType.KeyAgreement, p.RecipientSystemTitle, true);
+                        }
+                        if (kp.Key == null || kp.Value == null)
+                        {
+                            kp = p.Settings.Cipher.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
                         }
                     }
                 }
@@ -479,32 +384,23 @@ namespace Gurux.DLMS.Secure
                     kp = p.Settings.Cipher.SigningKeyPair;
                     if (kp.Key == null || kp.Value == null)
                     {
-                        if (p.Xml != null)
+                        if (kp.Key == null)
                         {
-                            //Find key agreement key using subject.
-                            kp = FindKeys(ASN.Enums.KeyUsage.DigitalSignature, p, p.RecipientSystemTitle, p.SystemTitle);
-                            //If private key is not found.
-                            if (kp.Key == null)
-                            {
-                                kp = FindKeys(ASN.Enums.KeyUsage.DigitalSignature, p, p.SystemTitle, p.RecipientSystemTitle);
-                            }
+                            key = p.Settings.Cipher.SigningKeyPair.Value;
+                            pub = (GXPublicKey)p.Settings.GetKey(CertificateType.DigitalSignature, p.SystemTitle, false);
+                            kp = p.Settings.Cipher.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
                         }
-                        else
+                        if (kp.Value == null)
                         {
-                            if (kp.Key == null)
-                            {
-                                pub = (GXPublicKey)p.Settings.GetKey(CertificateType.DigitalSignature, p.SystemTitle, false);
-                                kp = p.Settings.Cipher.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
-                            }
-                            if (kp.Value == null)
-                            {
-                                key = (GXPrivateKey)p.Settings.GetKey(CertificateType.DigitalSignature, p.RecipientSystemTitle, true);
-                                kp = p.Settings.Cipher.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
-                            }
+                            pub = p.Settings.Cipher.SigningKeyPair.Key;
+                            key = (GXPrivateKey)p.Settings.GetKey(CertificateType.DigitalSignature, p.RecipientSystemTitle, true);
+                            kp = p.Settings.Cipher.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
                         }
                     }
                 }
             }
+            int contentStart = data.Position;
+            //Content lenght is not add for the signed data.
             len = GXCommon.GetObjectCount(data);
             if (len > data.Available)
             {
@@ -578,24 +474,13 @@ namespace Gurux.DLMS.Secure
             if (value != 0 && p.Xml != null && kp.Key == null)
             {
                 return p.CipheredContent;
-            }            
+            }
             if (cmd == Command.GeneralSigning && p.Security != Security.None)
             {
                 if (!(p.Xml != null && (kp.Value == null || kp.Key == null)))
                 {
-                    GXEcdsa c = new GXEcdsa(kp.Value);
-                    byte[] z = c.GenerateSecret(kp.Key);
                     System.Diagnostics.Debug.WriteLine("Private signing key: " + kp.Value.ToHex());
                     System.Diagnostics.Debug.WriteLine("Public signing key: " + kp.Key.ToHex());
-                    System.Diagnostics.Debug.WriteLine("Shared secret:" + GXCommon.ToHex(z, true));
-                    GXByteBuffer kdf = new GXByteBuffer();
-                    kdf.Set(GXSecure.GenerateKDF(p.SecuritySuite, z,
-                        p.SecuritySuite == SecuritySuite.Suite1 ? AlgorithmId.AesGcm128 : AlgorithmId.AesGcm256,
-                        p.SystemTitle,
-                        p.RecipientSystemTitle,
-                        null, null));
-                    System.Diagnostics.Debug.WriteLine("KDF:" + kdf.ToString());
-                    p.BlockCipherKey = kdf.SubArray(0, 16);
                 }
             }
             else if (value == (int)KeyAgreementScheme.OnePassDiffieHellman)
@@ -638,7 +523,6 @@ namespace Gurux.DLMS.Secure
             {
                 throw new ArgumentOutOfRangeException("Invalid Key-id value.");
             }
-            int contentStart = data.Position - 1;
             UInt32 invocationCounter = 0;
             if (p.Security != Security.None)
             {
@@ -727,17 +611,72 @@ namespace Gurux.DLMS.Secure
             }
             if (cmd == Command.GeneralSigning)
             {
-                int contentEnd = data.Position - 1;
+                //Content lenght is not add for the signed data.
+                GXByteBuffer signedData = new GXByteBuffer();
+                signedData.Set(data.Data, 1, contentStart - 1);
+                signedData.Set(p.CipheredContent);
                 len = GXCommon.GetObjectCount(data);
                 p.Signature = new byte[len];
                 data.Get(p.Signature);
-                if (p.Xml == null && !default(KeyValuePair<GXPublicKey, GXPrivateKey>).Equals(kp) && kp.Key != null)
+                //signedData.Set(p.Signature);
+                System.Diagnostics.Debug.WriteLine("Verifying signature for sender:" + GXCommon.ToHex(p.SystemTitle, true));
+                if (p.Xml == null)
                 {
+                    if (kp.Key == null)
+                    {
+                        throw new Exception("Public key is not set.");
+                    }
+                    if (kp.Key.SystemTitle != null && !GXCommon.Compare(kp.Key.SystemTitle, p.SystemTitle))
+                    {
+                        throw new Exception(string.Format("Invalid certificate. Expected certificate is for {0} and actual is for {1}",
+                            GXCommon.ToHex(p.SystemTitle, false),
+                            GXCommon.ToHex(kp.Key.SystemTitle, false)));
+                    }
                     GXEcdsa c = new GXEcdsa(kp.Key);
-                    System.Diagnostics.Debug.WriteLine("Verifying signature:" + data.ToHex(true, 1, contentEnd));
-                    if (!c.Verify(p.Signature, data.SubArray(1, contentEnd)))
+                    System.Diagnostics.Debug.WriteLine("Verifying signature: " + signedData);
+                    if (!c.Verify(p.Signature, signedData.Array()))
                     {
                         throw new Exception("Invalid signature.");
+                    }
+                }
+                else
+                {
+                    if (kp.Key == null && kp.Value == null)
+                    {
+                        p.Xml.AppendComment("Failed to verify signed data. Public key is not set.");
+                    }
+                    else if ((kp.Key != null && kp.Key.SystemTitle != null && !GXCommon.Compare(kp.Key.SystemTitle, p.SystemTitle)) &&
+                        kp.Value != null && kp.Value.SystemTitle != null && !GXCommon.Compare(kp.Value.SystemTitle, p.SystemTitle))
+                    {
+                        string st;
+                        if (kp.Key != null)
+                        {
+                            st = GXCommon.ToHex(kp.Key.SystemTitle, false);
+                        }
+                        else
+                        {
+                            st = GXCommon.ToHex(kp.Value.SystemTitle, false);
+                        }
+                        p.Xml.AppendComment(string.Format("Failed to verify signed data. Invalid certificate. Expected certificate is for {0} and actual is for {1}",
+                            GXCommon.ToHex(p.SystemTitle, false),
+                            st));
+                    }
+                    else
+                    {
+                        GXEcdsa c;
+                        if (kp.Key != null && GXCommon.Compare(kp.Key.SystemTitle, p.SystemTitle))
+                        {
+                            c = new GXEcdsa(kp.Key);
+                        }
+                        else
+                        {
+                            c = new GXEcdsa(kp.Value);
+                        }
+                        System.Diagnostics.Debug.WriteLine("Verifying signature:" + signedData.ToString());
+                        if (!c.Verify(p.Signature, signedData.Array()))
+                        {
+                            p.Xml.AppendComment("Failed to verify signed data. Invalid signature.");
+                        }
                     }
                 }
             }

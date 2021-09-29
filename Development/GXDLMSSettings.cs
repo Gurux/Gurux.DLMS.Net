@@ -87,6 +87,8 @@ namespace Gurux.DLMS
         ///</summary>
         private byte[] ctoSChallenge;
 
+        byte challengeSize = 16;
+
         ///<summary>
         ///Server to Client challenge.
         ///</summary>
@@ -442,6 +444,39 @@ namespace Gurux.DLMS
                 target.Gateway.NetworkId = Gateway.NetworkId;
                 target.Gateway.PhysicalDeviceAddress = Gateway.PhysicalDeviceAddress;
             }
+        }
+
+
+        /// <summary>
+        /// Challenge Size.
+        /// </summary>
+        /// <remarks>
+        /// Random challenge is used if value is zero.
+        /// </remarks>
+        public byte ChallengeSize
+        {
+            get
+            {
+                return challengeSize;
+            }
+            set
+            {
+                if ((Authentication == Authentication.HighECDSA && challengeSize < 32) || challengeSize < 8 || challengeSize > 64)
+                {
+                    throw new ArgumentOutOfRangeException("Invalid challenge size. Challenge must be between 8 to 64 bytes.");
+                }
+                challengeSize = value;
+            }
+        }
+
+        /// <summary>
+        /// Public key certificate is send in part of AARQ and AARE.
+        /// </summary>
+        /// <returns></returns>
+        public bool PublicKeyInInitialize
+        {
+            get;
+            set;
         }
 
         /// <summary>
@@ -1008,6 +1043,7 @@ namespace Gurux.DLMS
                 // Update security settings.
                 if (assignedAssociation.SecuritySetupReference != null &&
                    (assignedAssociation.ApplicationContextName.ContextId == ApplicationContextName.LogicalNameWithCiphering ||
+                   assignedAssociation.AuthenticationMechanismName.MechanismId == Authentication.HighGMAC ||
                    assignedAssociation.AuthenticationMechanismName.MechanismId == Authentication.HighECDSA))
                 {
                     GXDLMSSecuritySetup ss = (GXDLMSSecuritySetup)assignedAssociation.ObjectList.FindByLN(ObjectType.SecuritySetup, assignedAssociation.SecuritySetupReference);

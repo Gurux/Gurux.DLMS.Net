@@ -45,6 +45,7 @@ using Gurux.DLMS.Secure;
 using System.Diagnostics;
 using Gurux.DLMS.Objects.Enums;
 using System.Threading;
+using System.Text;
 
 namespace Gurux.DLMS
 {
@@ -79,7 +80,7 @@ namespace Gurux.DLMS
         /// Reply data.
         /// </summary>
         private GXByteBuffer replyData = new GXByteBuffer();
-
+        private string flaID;
 
         /// <summary>
         /// Client system title.
@@ -112,6 +113,34 @@ namespace Gurux.DLMS
             {
                 Settings.PushClientAddress = value;
             }
+        }
+
+        /// <summary>
+        /// Flag ID is used when server is operating using optical probe.
+        /// </summary>
+        public string FlaID
+        {
+            get
+            {
+                return flaID;
+            }
+            set
+            {
+                if (!string.IsNullOrEmpty(value) && value.Length != 3)
+                {
+                    throw new ArgumentOutOfRangeException("Invalid FLAG ID.");
+                }
+                flaID = value;
+            }
+        }
+
+        /// <summary>
+        /// Local port setup is used when communicating with optical probe.
+        /// </summary>
+        public GXDLMSIECLocalPortSetup LocalPortSetup
+        {
+            get;
+            set;
         }
 
         /// <summary>
@@ -521,6 +550,25 @@ namespace Gurux.DLMS
             }
         }
 
+
+        /// <summary>
+        /// Challenge Size.
+        /// </summary>
+        /// <remarks>
+        /// Random challenge is used if value is zero.
+        /// </remarks>
+        public byte ChallengeSize
+        {
+            get
+            {
+                return Settings.ChallengeSize;
+            }
+            set
+            {
+                Settings.ChallengeSize = value;
+            }
+        }
+
         /// <summary>
         /// HDLC settings.
         /// </summary>
@@ -590,8 +638,7 @@ namespace Gurux.DLMS
                 return Settings.Hdlc;
             }
         }
-
-
+      
         /// <summary>
         /// Standard says that Time zone is from normal time to UTC in minutes.
         /// If meter is configured to use UTC time (UTC to normal time) set this to true.
@@ -853,6 +900,18 @@ namespace Gurux.DLMS
             {
                 return;
             }
+            if (InterfaceType == InterfaceType.HdlcWithModeE)
+            {
+                if (string.IsNullOrEmpty(flaID))
+                {
+                    throw new Exception("Invalid flag ID.");
+                }
+                if (LocalPortSetup == null)
+                {
+                    throw new Exception("Default LocalPortSetup is not set.");
+                }
+
+            }
             for (int pos = 0; pos != Items.Count; ++pos)
             {
                 GXDLMSObject it = Items[pos];
@@ -1060,6 +1119,54 @@ namespace Gurux.DLMS
             return reply;
         }
 
+        /// <summary>
+        /// Find IEC frame. Sometimes there are extra bytes or multiple packets on the data so they are removed.
+        /// </summary>
+        /// <returns></returns>
+        private bool GetIecPacket()
+        {
+            if (receivedData.Size < 5)
+            {
+                return false;
+            }
+            int eop = -1;
+            int bop = -1;
+            //Find EOP.
+            for (int pos = receivedData.Size - 2; pos != 2; --pos)
+            {
+                if (receivedData.GetUInt8(pos) == 0x0D &&
+                    receivedData.GetUInt8(pos + 1) == 0x0A)
+                {
+                    eop = pos;
+                    break;
+                }
+            }
+            if (eop == -1)
+            {
+                return false;
+            }
+            //Find BOP
+            byte ch;
+            for (int pos = eop - 1; pos != -1; --pos)
+            {
+                ch = receivedData.GetUInt8(pos);
+                if (ch == 6 ||
+                    (pos + 2 < receivedData.Size && ch == '/' &&
+                        receivedData.GetUInt8(pos + 1) == '?' &&
+                        receivedData.GetUInt8(pos + 2) == '!'))
+                {
+                    bop = pos;
+                    break;
+                }
+            }
+            if (bop == -1)
+            {
+                return false;
+            }
+            receivedData.Position = bop;
+            return true;
+        }
+
         ///<summary>
         /// Handles client request.
         /// </summary>
@@ -1081,6 +1188,69 @@ namespace Gurux.DLMS
                 {
                     receivedData.Set(sr.Data);
                     bool first = Settings.ServerAddress == 0 && Settings.ClientAddress == 0;
+                    //If using optical probe.
+                    if (Settings.InterfaceType == InterfaceType.HdlcWithModeE)
+                    {
+                        if (Settings.Connected == ConnectionState.None)
+                        {
+                            //If IEC packet not found.
+                            if (!GetIecPacket())
+                            {
+                                return;
+                            }
+                            if (receivedData.GetUInt8(receivedData.Position) == 6)
+                            {
+                                //User changes the baud rate.
+                                //Only Mode E is allowed.
+                                if (receivedData.GetUInt8(receivedData.Position + 1) != 0x32 || receivedData.GetUInt8(receivedData.Position + 3) != 0x32)
+                                {
+                                    //Return error.
+                                }
+                                BaudRate baudrate = (BaudRate)receivedData.GetUInt8(receivedData.Position + 2) - '0';
+                                if (baudrate > LocalPortSetup.ProposedBaudrate)
+                                {
+                                    baudrate = LocalPortSetup.ProposedBaudrate;
+                                }
+                                receivedData.Clear();
+                                //Return used baud rate.
+                                Settings.Connected = ConnectionState.Iec;
+                                //"2" //(HDLC protocol procedure) (Binary mode)
+                                //Set mode E.
+                                sr.Reply = new byte[] { 0x06,
+                                    //"2" HDLC protocol procedure (Mode E)
+                                    (byte)'2', 
+                                    //Send Baud rate character
+                                    (byte)('0' + baudrate), 
+                                    //Mode control character
+                                    (byte)'2', 13, 10 };
+                                //Change the baud rate.
+                                sr.NewBaudRate = 300 << (int) baudrate;
+                                Settings.Connected = ConnectionState.Iec;
+                            }
+                            else if (receivedData.GetUInt8(receivedData.Position) == '/')
+                            {
+                                string meterAddress = ASCIIEncoding.ASCII.GetString(receivedData.SubArray(receivedData.Position + 3, receivedData.Available - 5));
+                                //If meter address is wrong.
+                                if (meterAddress != "" && meterAddress != LocalPortSetup.DeviceAddress)
+                                {
+                                    receivedData.Clear();
+                                    return;
+                                }
+                                receivedData.Clear();
+                                receivedData.SetUInt8((byte)'/');
+                                //Add flag ID.
+                                receivedData.Set(ASCIIEncoding.ASCII.GetBytes(flaID));
+                                //Add proposed baud rate.
+                                receivedData.SetUInt8('0' + LocalPortSetup.ProposedBaudrate);
+                                //Add device address.
+                                receivedData.Add(LocalPortSetup.DeviceAddress);
+                                receivedData.Add("\r\n");
+                                sr.Reply = receivedData.Array();
+                                receivedData.Clear();
+                            }
+                            return;
+                        }
+                    }
                     try
                     {
                         GXDLMS.GetData(Settings, receivedData, info, null);
@@ -1089,7 +1259,7 @@ namespace Gurux.DLMS
                     {
                         dataReceived = DateTime.Now;
                         receivedData.Size = 0;
-                        sr.Reply = ReportExceptionResponse(ex);                        
+                        sr.Reply = ReportExceptionResponse(ex);
                         info.Clear();
                         return;
                     }
@@ -1172,6 +1342,7 @@ namespace Gurux.DLMS
                             if (elapsed >= Hdlc.InactivityTimeout)
                             {
                                 Reset();
+                                UpdateDefaultBaudRate(sr);
                                 return;
                             }
                         }
@@ -1232,8 +1403,17 @@ namespace Gurux.DLMS
                     {
                         Settings.Connected &= ~ConnectionState.Dlms;
                         Disconnected(sr.ConnectionInfo);
+                        UpdateDefaultBaudRate(sr);
                     }
                 }
+            }
+        }
+
+        private void UpdateDefaultBaudRate(GXServerReply sr)
+        {
+            if (Settings.InterfaceType == InterfaceType.HdlcWithModeE)
+            {
+                sr.NewBaudRate = 300 << (int)LocalPortSetup.DefaultBaudrate;
             }
         }
 
@@ -1305,6 +1485,7 @@ namespace Gurux.DLMS
                             Disconnected(sr.ConnectionInfo);
                         }
                         Settings.Connected = ConnectionState.None;
+                        UpdateDefaultBaudRate(sr);
                     }
                     frame = (byte)Command.Ua;
                     break;
@@ -1537,7 +1718,7 @@ namespace Gurux.DLMS
                 Reset(true);
             }
             object ret;
-            byte name = 0;
+            byte name;
             try
             {
                 ret = GXAPDU.ParsePDU(Settings, Settings.Cipher, data, null);
@@ -1668,7 +1849,7 @@ namespace Gurux.DLMS
             if (Settings.Authentication > Authentication.Low && !Settings.UseCustomChallenge)
             {
                 // If High authentication is used.
-                Settings.StoCChallenge = GXSecure.GenerateChallenge(Settings.Authentication);
+                Settings.StoCChallenge = GXSecure.GenerateChallenge(Settings.Authentication, Settings.ChallengeSize);
             }
             if (GXDLMS.UseHdlc(Settings.InterfaceType))
             {
@@ -1679,7 +1860,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Handles release reuest.
+        /// Handles release request.
         /// </summary>
         /// <param name="data">Received data.</param>
         /// <param name="connectionInfo">Connection info.</param>

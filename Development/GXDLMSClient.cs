@@ -44,14 +44,14 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Ecdsa;
 
 namespace Gurux.DLMS
-{  
+{
     /// <summary>
     /// GXDLMS implements methods to communicate with DLMS/COSEM metering devices.
     /// </summary>
     public class GXDLMSClient
     {
         protected GXDLMSTranslator translator;
-       
+
         /// <summary>
         /// XML client don't throw exceptions. It serializes them as a default. Set value to true, if exceptions are thrown.
         /// </summary>
@@ -568,6 +568,41 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Challenge Size.
+        /// </summary>
+        /// <remarks>
+        /// Random challenge is used if value is zero.
+        /// </remarks>
+        public byte ChallengeSize
+        {
+            get
+            {
+                return Settings.ChallengeSize;
+            }
+            set
+            {
+                Settings.ChallengeSize = value;
+            }
+        }
+
+        /// <summary>
+        /// Public key certificate is send in part of initialize messages (AARQ and AARE).
+        /// </summary>
+        /// <returns></returns>
+        [DefaultValue(false)]
+        public bool PublicKeyInInitialize
+        {
+            get
+            {
+                return Settings.PublicKeyInInitialize;
+            }
+            set
+            {
+                Settings.PublicKeyInInitialize = value;
+            }
+        }
+
+        /// <summary>
         /// Set starting block index in HDLC framing.
         /// Default is One based, but some meters use Zero based value.
         /// Usually this is not used.
@@ -899,7 +934,7 @@ namespace Gurux.DLMS
             {
                 if (!Settings.UseCustomChallenge)
                 {
-                    Settings.CtoSChallenge = GXSecure.GenerateChallenge(Settings.Authentication);
+                    Settings.CtoSChallenge = GXSecure.GenerateChallenge(Settings.Authentication, Settings.ChallengeSize);
                 }
             }
             else

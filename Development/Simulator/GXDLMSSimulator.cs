@@ -305,7 +305,10 @@ namespace Gurux.DLMS.Simulator
                                                  "object-class-inconsistent".Equals(it))
                                         {
                                             ValueEventArgs ve = targets[pos];
-                                            ve.Target.SetAccess(ve.Index, AccessMode.NoAccess);
+                                            if (ve.Target != null)
+                                            {
+                                                ve.Target.SetAccess(ve.Index, AccessMode.NoAccess);
+                                            }
                                             continue;
                                         }
                                         try

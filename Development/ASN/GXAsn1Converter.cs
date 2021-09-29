@@ -245,7 +245,7 @@ namespace Gurux.DLMS.ASN
                     if (tmp[0] is GXAsn1Sequence)
                     {
                         tmp = (GXAsn1Sequence)tmp[0];
-                        objects.Add(new KeyValuePair<object, object>(tmp[0], tmp[1]));
+                        objects.Add(new KeyValuePair<object, object>(tmp[0], tmp.Count == 1 ? null : tmp[1]));
                     }
                     else
                     {

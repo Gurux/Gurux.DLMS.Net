@@ -769,8 +769,7 @@ namespace Gurux.DLMS
             return settings.Cipher.AuthenticationKey;
         }
 
-
-        internal static byte[] Cipher0(GXDLMSLNParameters p, byte[] data)
+        internal static AesGcmParameter GetCipheringParameters(GXDLMSLNParameters p)
         {
             byte cmd;
             byte[] key;
@@ -820,7 +819,7 @@ namespace Gurux.DLMS
                     cmd = (byte)Command.GeneralGloCiphering;
                     key = GetBlockCipherKey(p.settings);
                 }
-                else if (IsGloMessage(p.cipheredCommand))
+                else if (p.settings.Cipher.DedicatedKey == null || IsGloMessage(p.cipheredCommand))
                 {
                     cmd = GetGloMessage(p.command);
                     key = GetBlockCipherKey(p.settings);
@@ -839,8 +838,14 @@ namespace Gurux.DLMS
                 key,
                 GetAuthenticationKey(p.settings));
             s.IgnoreSystemTitle = p.settings.Standard == Standard.Italy;
-            byte[] tmp = GXCiphering.Encrypt(s, data);
-            ++cipher.InvocationCounter;
+            s.RecipientSystemTitle = p.settings.SourceSystemTitle;
+            return s;
+        }
+
+        internal static byte[] Cipher0(GXDLMSLNParameters p, byte[] data)
+        {
+            byte[] tmp = GXCiphering.Encrypt(GetCipheringParameters(p), data);
+            ++p.settings.Cipher.InvocationCounter;
             return tmp;
         }
 
@@ -964,15 +969,23 @@ namespace Gurux.DLMS
                 if (key == null)
                 {
                     key = (GXPrivateKey)p.settings.GetKey(CertificateType.DigitalSignature, p.settings.Cipher.SystemTitle, true);
+                    if (key == null)
+                    {
+                        throw new ArgumentOutOfRangeException("Can't find digical signature for Client system title: " +
+                            GXCommon.ToHex(p.settings.Cipher.SystemTitle, true));
+                    }
                     c.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
                 }
                 if (pub == null)
                 {
                     pub = (GXPublicKey)p.settings.GetKey(CertificateType.DigitalSignature, p.settings.SourceSystemTitle, false);
+                    if (pub == null)
+                    {
+                        throw new ArgumentOutOfRangeException("Can't find digical signature for Server system title: " +
+                            GXCommon.ToHex(p.settings.SourceSystemTitle, true));
+                    }
                     c.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
                 }
-                GXEcdsa ka = new GXEcdsa(key);
-                z = ka.GenerateSecret(pub);
                 System.Diagnostics.Debug.WriteLine("Private signing key: " + key.ToHex());
                 System.Diagnostics.Debug.WriteLine("Public signing key: " + pub.ToHex());
             }
@@ -981,10 +994,17 @@ namespace Gurux.DLMS
             {
                 System.Diagnostics.Debug.WriteLine("Shared secret: " + GXCommon.ToHex(z, true));
             }
-            GXByteBuffer kdf = new GXByteBuffer();
-            kdf.Set(GXSecure.GenerateKDF(c.SecuritySuite, z, algorithmID, c.SystemTitle, tmp2.Array(), null, null));
-            System.Diagnostics.Debug.WriteLine("kdf: " + kdf.ToString());
-            AesGcmParameter s = new AesGcmParameter(0x31,
+            AesGcmParameter s;
+            if (p.settings.Cipher.Signing == Signing.GeneralSigning)
+            {
+                s = GetCipheringParameters(p);
+            }
+            else
+            {
+                GXByteBuffer kdf = new GXByteBuffer();
+                kdf.Set(GXSecure.GenerateKDF(c.SecuritySuite, z, algorithmID, c.SystemTitle, tmp2.Array(), null, null));
+                System.Diagnostics.Debug.WriteLine("kdf: " + kdf.ToString());
+                s = new AesGcmParameter(sc,
                 p.settings,
                 c.Security,
                 c.SecuritySuite,
@@ -1001,7 +1021,7 @@ namespace Gurux.DLMS
                 null,
                 // Other information.
                 null);
-
+            }
             GXByteBuffer reply = new GXByteBuffer();
             if (p.settings.Cipher.Signing == Signing.GeneralSigning)
             {
@@ -1069,44 +1089,51 @@ namespace Gurux.DLMS
             s.Type = (CountType.Data | CountType.Tag);
             System.Diagnostics.Debug.WriteLine("Data: " + GXDLMSTranslator.ToHex(data));
             byte[] tmp = GXCiphering.Encrypt(s, data);
+            //Content lenght is not add for the signed data.
+            GXByteBuffer signedData = new GXByteBuffer();
+            signedData.Set(reply.Data, 1, reply.Size - 1);
             if (c.Security != Security.None)
             {
                 if (p.settings.Cipher.Signing == Signing.GeneralSigning)
-                {
-                    // Len
-                    GXCommon.SetObjectCount(7 + tmp.Length, reply);
+                {                    
+                    //Content lenght is not add for the signed data.
+                    GXCommon.SetObjectCount(6 + GXCommon.GetObjectCountSizeInBytes(5 + tmp.Length) + tmp.Length, reply);
                     //Add ciphered command.
                     if (p.settings.Cipher.DedicatedKey == null)
                     {
                         reply.SetUInt8(GetGloMessage(p.command));
+                        signedData.SetUInt8(GetGloMessage(p.command));
                     }
                     else
                     {
                         reply.SetUInt8(GetDedMessage(p.command));
+                        signedData.SetUInt8(GetDedMessage(p.command));
                     }
                 }
                 // Len
                 GXCommon.SetObjectCount(5 + tmp.Length, reply);
+                GXCommon.SetObjectCount(5 + tmp.Length, signedData);
                 // Add SC
                 reply.SetUInt8(sc);
+                signedData.SetUInt8(sc);
                 // Add IC.
                 reply.SetUInt32(p.settings.Cipher.InvocationCounter);
+                signedData.SetUInt32(p.settings.Cipher.InvocationCounter);
             }
-            else
+            else if (p.settings.Cipher.Signing != Signing.GeneralSigning)
             {
                 // Len
                 GXCommon.SetObjectCount(tmp.Length, reply);
             }
             ++p.settings.Cipher.InvocationCounter;
             reply.Set(tmp);
-
+            signedData.Set(tmp);
             if (p.settings.Cipher.Signing == Signing.GeneralSigning)
             {
                 // Signature
                 GXEcdsa ecdsa = new GXEcdsa(key);
-                tmp = reply.SubArray(1, reply.Size - 1);
-                System.Diagnostics.Debug.WriteLine("Counting signature:" + reply.ToHex(true, 1));
-                byte[] signature = ecdsa.Sign(tmp);
+                System.Diagnostics.Debug.WriteLine("Counting signature: " + signedData);
+                byte[] signature = ecdsa.Sign(signedData.Array());
                 GXCommon.SetObjectCount(signature.Length, reply);
                 reply.Set(signature);
             }
@@ -1123,7 +1150,8 @@ namespace Gurux.DLMS
         internal static void GetLNPdu(GXDLMSLNParameters p, GXByteBuffer reply)
         {
             bool ciphering = p.command != Command.Aarq && p.command != Command.Aare &&
-                (p.settings.IsCiphered(true) || p.cipheredCommand != Command.None || p.settings.Cipher.Signing == Signing.GeneralSigning);
+                (p.settings.IsCiphered(true) || p.cipheredCommand != Command.None ||
+                (p.settings.Cipher != null && p.settings.Cipher.Signing == Signing.GeneralSigning));
             int len = 0;
             if (p.command == Command.Aarq)
             {
@@ -2535,6 +2563,10 @@ namespace Gurux.DLMS
                     data.Error = (int)ErrorCode.DisconnectMode;
                 }
                 data.Command = (Command)frame;
+                if (data.Command == Command.Snrm)
+                {
+                    settings.Connected &= ~ConnectionState.Iec;
+                }
                 //If client want to know used server and client address.
                 if (data.ClientAddress == 0 && data.ServerAddress == 0)
                 {
@@ -4412,7 +4444,7 @@ namespace Gurux.DLMS
                                 GetBlockCipherKey(settings),
                                 GetAuthenticationKey(settings));
                     }
-                    else if (IsGloMessage(data.Command))
+                    else if (cipher.DedicatedKey == null || IsGloMessage(data.Command))
                     {
                         p = new AesGcmParameter(settings, settings.SourceSystemTitle,
                                 GetBlockCipherKey(settings),

@@ -196,7 +196,28 @@ namespace Gurux.DLMS.Secure
             set;
         }
 
+        /// <summary>
+        /// Used signing.
+        /// </summary>
         Signing Signing
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Used signing and ciphering order.
+        /// </summary>
+        SignCipherOrder SignCipherOrder
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Are Initiate Request and Response signed.
+        /// </summary>
+        bool SignInitiateRequestResponse
         {
             get;
             set;

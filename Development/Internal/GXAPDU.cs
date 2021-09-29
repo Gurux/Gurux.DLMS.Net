@@ -33,7 +33,9 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Text;
+using Gurux.DLMS.ASN;
 using Gurux.DLMS.Ecdsa;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
@@ -304,17 +306,16 @@ namespace Gurux.DLMS.Internal
         ///</summary>
         static internal void GenerateAarq(GXDLMSSettings settings, GXICipher cipher, GXByteBuffer encryptedData, GXByteBuffer data)
         {
-            //AARQ APDU Tag
-            data.SetUInt8(BerType.Application | BerType.Constructed);
-            //Length is updated later.
-            int offset = data.Size;
-            data.SetUInt8(0);
+            GXByteBuffer tmp = new GXByteBuffer();
             ///////////////////////////////////////////
             // Add Application context name.
-            GenerateApplicationContextName(settings, data, cipher);
-            GetAuthenticationString(settings, data, encryptedData != null && encryptedData.Size != 0);
-            GenerateUserInformation(settings, cipher, encryptedData, data);
-            data.SetUInt8(offset, (byte)(data.Size - offset - 1));
+            GenerateApplicationContextName(settings, tmp, cipher);
+            GetAuthenticationString(settings, tmp, encryptedData != null && encryptedData.Size != 0);
+            GenerateUserInformation(settings, cipher, encryptedData, tmp);
+            //AARQ APDU Tag
+            data.SetUInt8(BerType.Application | BerType.Constructed);
+            GXCommon.SetObjectCount(tmp.Size, data);
+            data.Set(tmp);
         }
 
         private static void GetConformance(int value, GXDLMSTranslatorStructure xml)
@@ -1352,18 +1353,28 @@ namespace Gurux.DLMS.Internal
                         len = buff.GetUInt8();
                         tag = buff.GetUInt8();
                         len = buff.GetUInt8();
-                        settings.UserId = buff.GetUInt8();
-                        if (xml != null)
+                        if (settings.Authentication == Authentication.HighECDSA && tag == (byte)BerType.OctetString)
                         {
-                            if (settings.IsServer)
+                            //If public key certificate is coming part of AARQ.
+                            byte[] tmp2 = new byte[len];
+                            GXx509Certificate cert = new GXx509Certificate(tmp2);
+                            settings.Cipher.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(cert.PublicKey, settings.Cipher.SigningKeyPair.Value);
+                        }
+                        else
+                        {
+                            settings.UserId = buff.GetUInt8();
+                            if (xml != null)
                             {
-                                xml.AppendLine(TranslatorGeneralTags.CallingAeQualifier, "Value", xml.IntegerToHex(settings.UserId, 2));
-                            }
-                            else
-                            {
-                                xml.AppendLine(TranslatorGeneralTags.RespondingAeInvocationId, "Value", xml.IntegerToHex(settings.UserId, 2));
-                            }
+                                if (settings.IsServer)
+                                {
+                                    xml.AppendLine(TranslatorGeneralTags.CallingAeQualifier, "Value", xml.IntegerToHex(settings.UserId, 2));
+                                }
+                                else
+                                {
+                                    xml.AppendLine(TranslatorGeneralTags.RespondingAeInvocationId, "Value", xml.IntegerToHex(settings.UserId, 2));
+                                }
 
+                            }
                         }
                         break;
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingApInvocationId://0xA8
@@ -1443,7 +1454,7 @@ namespace Gurux.DLMS.Internal
                         }
                         catch (GXDLMSExceptionResponse)
                         {
-                            return  ExceptionServiceError.DecipheringError;
+                            return ExceptionServiceError.DecipheringError;
                         }
                         catch (Exception)
                         {
@@ -1676,8 +1687,16 @@ namespace Gurux.DLMS.Internal
                 data.SetUInt8((byte)cipher.SystemTitle.Length);
                 data.Set(cipher.SystemTitle);
             }
-            //Add CalledAEInvocationId.
-            if (settings.UserId != -1)
+            //Add CallingAeQualifier.
+            if (settings.Authentication == Authentication.HighECDSA && settings.PublicKeyInInitialize)
+            {
+                data.SetUInt8((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingAeQualifier);
+                data.SetUInt8((byte)(2 + cipher.SigningKeyPair.Key.RawValue.Length));
+                data.SetUInt8((byte)BerType.OctetString);
+                data.SetUInt8((byte)cipher.SigningKeyPair.Key.RawValue.Length);
+                data.Set(cipher.SigningKeyPair.Key.RawValue);
+            }
+            else if (settings.UserId != -1)
             {
                 data.SetUInt8((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingAeQualifier);
                 //LEN

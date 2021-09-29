@@ -33,7 +33,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 
 namespace Gurux.DLMS.Ecdsa
 {
@@ -54,40 +53,13 @@ namespace Gurux.DLMS.Ecdsa
         }
 
         /// <summary>
-        /// Is value changed.
+        /// Is value IsNegative.
         /// </summary>
-        private bool changed;
-        /// <summary>
-        /// Is value negative.
-        /// </summary>
-        private bool negative;
-        /// <summary>
-        /// Is value zero.
-        /// </summary>
-        private bool zero;
-        /// <summary>
-        /// Is value even.
-        /// </summary>
-        private bool even;
-        /// <summary>
-        /// Is value one.
-        /// </summary>
-        private bool one;
-
-        /// <summary>
-        /// Is value negative.
-        /// </summary>
-        /// <returns>True, if value is negative.</returns>
+        /// <returns>True, if value is IsNegative.</returns>
         public bool IsNegative
         {
-            get
-            {
-                if (changed)
-                {
-                    UpdateBooleanProperties();
-                }
-                return negative;
-            }
+            get;
+            private set;
         }
 
         /// <summary>
@@ -98,11 +70,7 @@ namespace Gurux.DLMS.Ecdsa
         {
             get
             {
-                if (changed)
-                {
-                    UpdateBooleanProperties();
-                }
-                return zero;
+                return Count == 0 || (Count == 1 && Data[0] == 0);
             }
         }
 
@@ -114,11 +82,7 @@ namespace Gurux.DLMS.Ecdsa
         {
             get
             {
-                if (changed)
-                {
-                    UpdateBooleanProperties();
-                }
-                return even;
+                return Count != 0 && Data[0] % 2 == 0;
             }
         }
 
@@ -130,81 +94,15 @@ namespace Gurux.DLMS.Ecdsa
         {
             get
             {
-                if (changed)
-                {
-                    UpdateBooleanProperties();
-                }
-                return one;
+                return Count == 1 && Data[0] == 1;
             }
         }
-
-        private void UpdateBooleanProperties()
-        {
-            int pos;
-            if (Count != 0)
-            {
-                //Remove extra zeroes.
-                for (pos = Count - 1; pos > -1; --pos)
-                {
-                    if (Data[pos] != 0)
-                    {
-                        break;
-                    }
-                }
-                if (pos != Count - 1)
-                {
-                    Count = (UInt16)(pos + 1);
-                }
-            }
-            one = even = false;
-            if (Count == 0)
-            {
-                zero = true;
-            }
-            else
-            {
-                zero = Data[0] == 0;
-                if (zero)
-                {
-                    //Check is value zero.
-                    for (pos = 1; pos < Count; ++pos)
-                    {
-                        if (Data[pos] != 0)
-                        {
-                            zero = false;
-                            break;
-                        }
-                    }
-                }
-                if (!zero)
-                {
-                    //Check is value even.
-                    even = Data[0] % 2 == 0;
-                    one = !even && Data[0] == 1;
-                    if (one)
-                    {
-                        //Check is value One.
-                        for (pos = 1; pos < Count; ++pos)
-                        {
-                            if (Data[pos] != 0)
-                            {
-                                one = false;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            changed = false;
-        }
-
 
         /// <summary>
         /// Constuctor.
         /// </summary>
         public GXBigInteger()
         {
-            zero = true;
         }
 
         private void Add(UInt32 value)
@@ -216,19 +114,6 @@ namespace Gurux.DLMS.Ecdsa
         private void AddRange(UInt32[] value)
         {
             Array.Copy(value, 0, Data, Count, value.Length);
-            Count += (UInt16) value.Length;
-        }
-
-        /// <summary>
-        /// Append data to the begin of the buffer.
-        /// </summary>
-        /// <param name="index"></param>
-        /// <param name="value"></param>
-        internal void InsertRange(int index, UInt32[] value)
-        {
-            //Move old data.
-            Array.Copy(Data, 0, Data, value.Length, Count);
-            Array.Copy(value, 0, Data, 0, value.Length);
             Count += (UInt16)value.Length;
         }
 
@@ -257,7 +142,6 @@ namespace Gurux.DLMS.Ecdsa
                 default:
                     break;
             }
-            changed = true;
         }
 
         /// <summary>
@@ -266,7 +150,7 @@ namespace Gurux.DLMS.Ecdsa
         /// <param name="value">Big integer value in MSB.</param>
         public GXBigInteger(string value)
         {
-            negative = value.StartsWith("-");
+            IsNegative = value.StartsWith("-");
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetHexString(value);
             FromByteBuffer(bb);
@@ -277,19 +161,16 @@ namespace Gurux.DLMS.Ecdsa
             Add((UInt32)value);
             value >>= 32;
             Add((UInt32)value);
-            changed = true;
         }
 
         public GXBigInteger(UInt32 value) : this()
         {
             Add(value);
-            changed = true;
         }
 
         public GXBigInteger(int value) : this()
         {
             Add((UInt32)value);
-            changed = true;
         }
 
         /// <summary>
@@ -300,7 +181,6 @@ namespace Gurux.DLMS.Ecdsa
         {
             AddRange(values);
             Array.Reverse(Data, 0, values.Length);
-            changed = true;
         }
 
         /// <summary>
@@ -327,8 +207,7 @@ namespace Gurux.DLMS.Ecdsa
         {
             AddRange(value.Data);
             Count = value.Count;
-            negative = value.negative;
-            changed = true;
+            IsNegative = value.IsNegative;
         }
 
         /// <summary>
@@ -392,21 +271,20 @@ namespace Gurux.DLMS.Ecdsa
             {
                 Data[pos] |= value.Data[pos];
             }
-            changed = true;
         }
 
         public void Add(GXBigInteger value)
         {
-            if (value.negative)
+            if (value.IsNegative)
             {
-                value.negative = false;
+                value.IsNegative = false;
                 try
                 {
                     Sub(value);
                 }
                 finally
                 {
-                    value.negative = true;
+                    value.IsNegative = true;
                 }
             }
             else
@@ -431,7 +309,6 @@ namespace Gurux.DLMS.Ecdsa
                 {
                     Add((UInt32)overflow);
                 }
-                changed = true;
             }
         }
 
@@ -443,9 +320,9 @@ namespace Gurux.DLMS.Ecdsa
             {
                 Clear();
             }
-            else if (value.negative || c == -1)
+            else if (value.IsNegative || c == -1)
             {
-                if (!value.negative && !negative)
+                if (!value.IsNegative && !IsNegative)
                 {
                     //If biger value is decreased from smaller value.
                     GXBigInteger tmp = new GXBigInteger(value);
@@ -453,22 +330,21 @@ namespace Gurux.DLMS.Ecdsa
                     Clear();
                     AddRange(tmp.Data);
                     Count = tmp.Count;
-                    negative = true;
-                    changed = true;
+                    IsNegative = true;
                 }
                 else
                 {
-                    //If negative value is decreased from the value.
-                    bool ret = value.negative;
-                    value.negative = false;
+                    //If IsNegative value is decreased from the value.
+                    bool ret = value.IsNegative;
+                    value.IsNegative = false;
                     try
                     {
                         Add(value);
                     }
                     finally
                     {
-                        value.negative = ret;
-                        negative = !ret;
+                        value.IsNegative = ret;
+                        IsNegative = !ret;
                     }
                 }
             }
@@ -478,7 +354,7 @@ namespace Gurux.DLMS.Ecdsa
                 {
                     if (IsZero)
                     {
-                        negative = true;
+                        IsNegative = true;
                         Clear();
                         AddRange(value.Data);
                         Count = value.Count;
@@ -516,8 +392,12 @@ namespace Gurux.DLMS.Ecdsa
                                 }
                             }
                         }
+                        //Remove empty last item(s).
+                        while (Count != 1 && Data[Count - 1] == 0)
+                        {
+                            --Count;
+                        }
                     }
-                    changed = true;
                 }
             }
         }
@@ -547,7 +427,6 @@ namespace Gurux.DLMS.Ecdsa
             if (value.IsZero || IsZero)
             {
                 Count = 0;
-                changed = true;
             }
             else if (!value.IsOne)
             {
@@ -569,41 +448,39 @@ namespace Gurux.DLMS.Ecdsa
                     if (overflow > 0)
                     {
                         AddValue(ret, overflow, 1 + index);
+                        overflow = 0;
                     }
                 }
-                if (overflow != 0)
+                index = ret.Length - 1;
+                while (index != 0 && ret[index] == 0)
                 {
-                    index = ret.Length;
+                    --index;
                 }
-                else
-                {
-                    index = ret.Length - 1;
-                }
+                ++index;
                 Array.Copy(ret, Data, index);
                 Count = (UInt16)index;
-                changed = true;
             }
             if (value.IsNegative != IsNegative)
             {
-                if (!negative)
+                if (!IsNegative)
                 {
-                    negative = true;
+                    IsNegative = true;
                 }
             }
             else if (IsNegative)
             {
-                //If both values are negative.
-                negative = false;
+                //If both values are IsNegative.
+                IsNegative = false;
             }
         }
 
         public int Compare(GXBigInteger value)
         {
             int ret = 0;
-            if (negative != value.negative)
+            if (IsNegative != value.IsNegative)
             {
-                //If other value is negative.
-                if (negative)
+                //If other value is IsNegative.
+                if (IsNegative)
                 {
                     ret = -1;
                 }
@@ -687,7 +564,6 @@ namespace Gurux.DLMS.Ecdsa
                 {
                     Add(overflow);
                 }
-                changed = true;
             }
         }
 
@@ -704,11 +580,11 @@ namespace Gurux.DLMS.Ecdsa
                 overflow = (tmp & mask) << (32 - amount);
             }
             //Remove last item if it's empty.
-            if (Count != 1 && Data[cnt] == 0)
+            while (Count != 1 && Data[cnt] == 0)
             {
                 --Count;
+                --cnt;
             }
-            changed = true;
         }
 
         /// <summary>
@@ -717,8 +593,7 @@ namespace Gurux.DLMS.Ecdsa
         public void Clear()
         {
             Count = 0;
-            changed = true;
-            negative = false;
+            IsNegative = false;
         }
 
         public void Div(GXBigInteger value)
@@ -726,20 +601,10 @@ namespace Gurux.DLMS.Ecdsa
             GXBigInteger current = new GXBigInteger(1);
             GXBigInteger denom = new GXBigInteger(value);
             GXBigInteger tmp = new GXBigInteger(this);
-            bool neq = negative;
-            negative = false;
+            bool neq = IsNegative;
+            IsNegative = false;
             try
             {
-                //Shift UInt32 values to make this faster.
-                if (denom.Count < Count - 1)
-                {
-                    UInt32[] tmp2 = new UInt32[Count - denom.Count - 1];
-                    //Append UInt32 values.
-                    current.InsertRange(0, tmp2);
-                    denom.InsertRange(0, tmp2);
-                    current.changed = denom.changed = true;
-                }
-
                 // while denom < this.
                 while (denom.Compare(this) == -1)
                 {
@@ -778,10 +643,9 @@ namespace Gurux.DLMS.Ecdsa
             }
             finally
             {
-                negative = neq;
+                IsNegative = neq;
             }
             Data = current.Data;
-            changed = true;
         }
 
         /// <summary>
@@ -792,17 +656,8 @@ namespace Gurux.DLMS.Ecdsa
         {
             GXBigInteger current = new GXBigInteger(1);
             GXBigInteger denom = new GXBigInteger(mod);
-            //Shift UInt32 values to make this faster.
-            if (denom.Count < Count - 1)
-            {
-                UInt32[] tmp = new UInt32[Count - denom.Count - 1];
-                //Append UInt32 values.
-                current.InsertRange(0, tmp);
-                denom.InsertRange(0, tmp);
-                current.changed = denom.changed = true;
-            }
-            bool neq = negative;
-            negative = false;
+            bool neq = IsNegative;
+            IsNegative = false;
             // while denom < this.
             while (denom.Compare(this) == -1)
             {
@@ -817,7 +672,7 @@ namespace Gurux.DLMS.Ecdsa
                     if (neq)
                     {
                         Sub(mod);
-                        negative = false;
+                        IsNegative = false;
                     }
                     return;
                 }
@@ -845,9 +700,8 @@ namespace Gurux.DLMS.Ecdsa
             if (neq)
             {
                 Sub(mod);
-                negative = false;
+                IsNegative = false;
             }
-            changed = true;
         }
 
         public void Inv(GXBigInteger value)
@@ -878,7 +732,7 @@ namespace Gurux.DLMS.Ecdsa
                     lm = new GXBigInteger(nm);
                 }
                 Data = lm.Data;
-                negative = lm.negative;
+                IsNegative = lm.IsNegative;
                 Mod(value);
             }
         }
@@ -906,7 +760,7 @@ namespace Gurux.DLMS.Ecdsa
                         break;
                     }
                 }
-                if (negative)
+                if (IsNegative)
                 {
                     str = "-";
                 }

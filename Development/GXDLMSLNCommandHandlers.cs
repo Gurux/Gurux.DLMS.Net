@@ -635,7 +635,13 @@ namespace Gurux.DLMS
         ///<summary>
         /// Handle action request.
         ///</summary>
-        public static void HandleMethodRequest(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXDLMSConnectionEventArgs connectionInfo, GXByteBuffer replyData, GXDLMSTranslatorStructure xml, Command cipheredCommand)
+        public static void HandleMethodRequest(GXDLMSSettings settings, 
+            GXDLMSServer server, 
+            GXByteBuffer data, 
+            GXDLMSConnectionEventArgs connectionInfo, 
+            GXByteBuffer replyData, 
+            GXDLMSTranslatorStructure xml, 
+            Command cipheredCommand)
         {
             // Get type.
             byte invokeID;
@@ -1036,15 +1042,15 @@ namespace Gurux.DLMS
                 {
                     bb.SetUInt8((byte)ErrorCode.HardwareFault);
                 }
-                if (settings.Index != settings.Count)
-                {
-                    server.transaction = new GXDLMSLongTransaction(list.ToArray(), Command.GetRequest, null);
-                }
                 ++pos;
             }
             server.NotifyPostRead(list.ToArray());
             GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeID, Command.GetResponse, 3, null, bb, 0xFF, cipheredCommand);
             GXDLMS.GetLNPdu(p, replyData);
+            if (settings.Index != settings.Count || bb.Available != 0)
+            {
+                server.transaction = new GXDLMSLongTransaction(list.ToArray(), Command.GetRequest, bb);
+            }
         }
 
 

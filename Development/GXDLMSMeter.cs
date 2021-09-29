@@ -569,6 +569,47 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Challenge size.
+        /// </summary>
+        /// <returns></returns>
+        [DefaultValue(16)]
+        public byte ChallengeSize
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Public key certificate is send in part of initialize messages (AARQ and AARE).
+        /// </summary>
+        /// <returns></returns>
+        [DefaultValue(false)]
+        public bool PublicKeyInInitialize
+        {
+            get;
+            set;
+        }
+        /// <summary>
+        /// Are Initiate Request and Response (AARQ and AARE) signed.
+        /// </summary>
+        /// <returns></returns>
+        [DefaultValue(false)]
+        public bool SignInitiateRequestResponse
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Used signing and ciphering order.
+        /// </summary>
+        public SignCipherOrder SignCipherOrder
+        {
+            get;
+            set;
+        }       
+
+        /// <summary>
         /// Name of the meter.
         /// </summary>
         [Description("Device Name.")]
@@ -656,6 +697,7 @@ namespace Gurux.DLMS
             Priority = Priority.High;
             UserId = -1;
             MACSourceAddress = 0xC00;
+            ChallengeSize = 16;
         }
 
         /// <summary>
