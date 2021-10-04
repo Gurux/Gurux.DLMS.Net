@@ -1176,6 +1176,16 @@ namespace GuruxDLMSServerExample
         /// </summary>
         protected override bool IsTarget(int serverAddress, int clientAddress)
         {
+            AssignedAssociation = null;
+            var list = Items.GetObjects(ObjectType.AssociationLogicalName);
+            foreach (GXDLMSAssociationLogicalName it in list)
+            {
+                if (it.ClientSAP == clientAddress || list.Count == 1)
+                {
+                    AssignedAssociation = it;
+                    break;
+                }
+            }
             return true;
         }
 

@@ -51,6 +51,34 @@ namespace Gurux.DLMS
     public class GXDLMSClient
     {
         protected GXDLMSTranslator translator;
+        /// <summary>
+        /// Initialize challenge that is restored after the connection is closed.
+        /// </summary>
+        private byte[] InitializeChallenge;
+        /// <summary>
+        /// Initialize PDU size that is restored after the connection is closed.
+        /// </summary>
+        private UInt16 InitializePduSize;
+
+        /// <summary>
+        /// Initialize Max HDLC transmission size that is restored after the connection is closed.
+        /// </summary>
+        private UInt16 InitializeMaxInfoTX;
+
+        /// <summary>
+        /// Initialize Max HDLC receive size that is restored after the connection is closed.
+        /// </summary>
+        private UInt16 InitializeMaxInfoRX;
+
+        /// <summary>
+        /// Initialize max HDLC window size in transmission that is restored after the connection is closed.
+        /// </summary>
+        private byte InitializeWindowSizeTX;
+
+        /// <summary>
+        /// Initialize max HDLC window size in receive that is restored after the connection is closed.
+        /// </summary>
+        private byte InitializeWindowSizeRX;
 
         /// <summary>
         /// XML client don't throw exceptions. It serializes them as a default. Set value to true, if exceptions are thrown.
@@ -804,6 +832,11 @@ namespace Gurux.DLMS
         /// <seealso cref="ParseUAResponse"/>
         public byte[] SNRMRequest()
         {
+            //Save default values.
+            InitializeMaxInfoTX = HdlcSettings.MaxInfoTX;
+            InitializeMaxInfoRX = HdlcSettings.MaxInfoRX;
+            InitializeWindowSizeTX = HdlcSettings.WindowSizeTX;
+            InitializeWindowSizeRX = HdlcSettings.WindowSizeRX;
             return SNRMRequest(false);
         }
 
@@ -910,6 +943,9 @@ namespace Gurux.DLMS
         /// <seealso cref="ParseAAREResponse"/>
         public byte[][] AARQRequest()
         {
+            //Save default values.
+            InitializePduSize = MaxReceivePDUSize;
+            InitializeChallenge = Settings.CtoSChallenge;
             Settings.NegotiatedConformance = (Conformance)0;
             Settings.ResetBlockIndex();
             Settings.Connected &= ~ConnectionState.Dlms;
@@ -1242,6 +1278,10 @@ namespace Gurux.DLMS
                 reply = GXDLMS.GetSnMessages(new GXDLMSSNParameters(Settings, Command.ReleaseRequest, 0xFF, 0xFF, null, buff));
             }
             Settings.Connected &= ~ConnectionState.Dlms;
+
+            //Restore default values.
+            MaxReceivePDUSize = InitializePduSize;
+            Settings.CtoSChallenge = InitializeChallenge;
             return reply;
         }
         /// <summary>
@@ -1279,8 +1319,11 @@ namespace Gurux.DLMS
             {
                 ret = ReleaseRequest(force)[0];
             }
-            //Reset to max PDU size when connection is closed.
-            Settings.MaxPduSize = 0xFFFF;
+            //Restore default HDLC values.
+            HdlcSettings.MaxInfoTX = InitializeMaxInfoTX;
+            HdlcSettings.MaxInfoRX = InitializeMaxInfoRX;
+            HdlcSettings.WindowSizeTX = InitializeWindowSizeTX;
+            HdlcSettings.WindowSizeRX = InitializeWindowSizeRX;
             Settings.Connected = ConnectionState.None;
             Settings.ResetFrameSequence();
             return ret;

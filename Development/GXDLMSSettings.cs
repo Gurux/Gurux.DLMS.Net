@@ -287,6 +287,8 @@ namespace Gurux.DLMS
             set;
         }
 
+        private UInt64 expectedInvocationCounter;
+
         /// <summary>
         /// Expected Invocation (Frame) counter value.
         /// </summary>
@@ -295,8 +297,25 @@ namespace Gurux.DLMS
         /// </remarks>
         public UInt64 ExpectedInvocationCounter
         {
-            get;
-            set;
+            get
+            {
+                if (InvocationCounter != null && InvocationCounter.Value is UInt32)
+                {
+                    return Convert.ToUInt64(InvocationCounter.Value);
+                }
+                return expectedInvocationCounter;
+            }
+            set
+            {
+                if (InvocationCounter != null)
+                {
+                    InvocationCounter.Value = value;
+                }
+                else
+                {
+                    expectedInvocationCounter = value;
+                }
+            }
         }
 
         /// <summary>
@@ -1050,10 +1069,22 @@ namespace Gurux.DLMS
                     if (ss != null)
                     {
                         Cipher.SecurityPolicy = ss.SecurityPolicy;
-                        Cipher.BlockCipherKey = EphemeralBlockCipherKey = ss.Guek;
-                        Cipher.BroadcastBlockCipherKey = EphemeralBroadcastBlockCipherKey = ss.Gbek;
-                        Cipher.AuthenticationKey = EphemeralAuthenticationKey = ss.Gak;
-                        Kek = ss.Kek;
+                        if (ss.Guek != null)
+                        {
+                            Cipher.BlockCipherKey = EphemeralBlockCipherKey = ss.Guek;
+                        }
+                        if (ss.Gbek != null)
+                        {
+                            Cipher.BroadcastBlockCipherKey = EphemeralBroadcastBlockCipherKey = ss.Gbek;
+                        }
+                        if (ss.Gak != null)
+                        {
+                            Cipher.AuthenticationKey = EphemeralAuthenticationKey = ss.Gak;
+                        }
+                        if (ss.Kek != null)
+                        {
+                            Kek = ss.Kek;
+                        }
                         // Update certificates for pre-established connections.
                         byte[] st;
                         if (systemTitle == null)

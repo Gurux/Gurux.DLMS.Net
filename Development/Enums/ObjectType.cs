@@ -372,6 +372,12 @@ namespace Gurux.DLMS.Enums
         RegisterTable = 61,
 
         ///<summary>
+        ///NTP Setup is used for time synchronisation.
+        ///</summary>
+        [XmlEnum("100")]
+        NtpSetup = 100,
+
+        ///<summary>
         ///Configure a ZigBee PRO device with information necessary
         ///to create or join the network.
         ///</summary>

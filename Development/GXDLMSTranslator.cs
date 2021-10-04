@@ -1280,7 +1280,7 @@ namespace Gurux.DLMS
                     }
                     if (!PduOnly)
                     {
-                        xml.AppendLine("<WRAPPER len=\"" + (data.PacketLength - offset).ToString("X") + "\" >");
+                        xml.AppendLine("<WRAPPER len=\"" + xml.IntegerToHex(data.Data.Size, 0, Hex) + "\" >");
                         xml.AppendLine("<TargetAddress Value=\"" + settings.ClientAddress.ToString("X") + "\" />");
                         xml.AppendLine("<SourceAddress Value=\"" + settings.ServerAddress.ToString("X") + "\" />");
                     }

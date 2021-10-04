@@ -185,6 +185,7 @@ namespace Gurux.DLMS
                 availableObjectTypes.Add(ObjectType.Iec8802LlcType3Setup, typeof(GXDLMSIec8802LlcType3Setup));
                 availableObjectTypes.Add(ObjectType.SFSKReportingSystemList, typeof(GXDLMSSFSKReportingSystemList));
                 availableObjectTypes.Add(ObjectType.Arbitrator, typeof(GXDLMSArbitrator));
+                availableObjectTypes.Add(ObjectType.NtpSetup, typeof(GXDLMSNtpSetup));
                 //Italian standard uses this.
                 availableObjectTypes.Add(ObjectType.TariffPlan, typeof(GXDLMSTariffPlan));
             }
@@ -728,6 +729,23 @@ namespace Gurux.DLMS
             {
                 len += CipheringHeaderSize;
             }
+            //If system title is sent.
+            if ((p.settings.NegotiatedConformance & Conformance.GeneralProtection) != 0)
+            {
+                len += 9;
+            }
+            //If signing is used.
+            if (p.settings.Cipher != null && p.settings.Cipher.Signing == Signing.GeneralSigning)
+            {
+                if (p.settings.Cipher.SecuritySuite == SecuritySuite.Suite1)
+                {
+                    len += 65;
+                }
+                else if (p.settings.Cipher.SecuritySuite == SecuritySuite.Suite2)
+                {
+                    len += 99;
+                }
+            }
             if (!p.multipleBlocks)
             {
                 //Add command type and invoke and priority.
@@ -1095,7 +1113,7 @@ namespace Gurux.DLMS
             if (c.Security != Security.None)
             {
                 if (p.settings.Cipher.Signing == Signing.GeneralSigning)
-                {                    
+                {
                     //Content lenght is not add for the signed data.
                     GXCommon.SetObjectCount(6 + GXCommon.GetObjectCountSizeInBytes(5 + tmp.Length) + tmp.Length, reply);
                     //Add ciphered command.

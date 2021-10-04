@@ -528,7 +528,7 @@ namespace Gurux.DLMS.Secure
             {
                 invocationCounter = data.GetUInt32();
             }
-            if (p.Settings.InvocationCounter != null && p.Settings.InvocationCounter.Value is UInt32)
+            if (p.Settings.InvocationCounter != null)
             {
                 if (invocationCounter < Convert.ToUInt32(p.Settings.InvocationCounter.Value))
                 {

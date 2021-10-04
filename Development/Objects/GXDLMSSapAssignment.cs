@@ -109,7 +109,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Remove user from user list.
+        /// Remove SAP item.
         /// </summary>
         /// <param name="client">DLMS client.</param>
         /// <param name="name">Logical device name.</param>

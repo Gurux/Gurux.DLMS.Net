@@ -1452,8 +1452,12 @@ namespace Gurux.DLMS.Internal
                         {
                             throw ex;
                         }
-                        catch (GXDLMSExceptionResponse)
+                        catch (GXDLMSExceptionResponse ex)
                         {
+                            if (ex.ExceptionServiceError == ExceptionServiceError.InvocationCounterError)
+                            {
+                                return ExceptionServiceError.InvocationCounterError;
+                            }
                             return ExceptionServiceError.DecipheringError;
                         }
                         catch (Exception)
