@@ -315,7 +315,7 @@ namespace Gurux.DLMS
                         {
                             e.Parameters = value;
                             ValueEventArgs[] actions = new ValueEventArgs[] {e };
-                            server.NotifyAction(actions);
+                            server.NotifyPreAction(actions);
                             if (!e.Handled)
                             {
                                 byte[] reply = (target.Item as IGXDLMSBase).Invoke(settings, e);
@@ -514,7 +514,7 @@ namespace Gurux.DLMS
 
                 if (actions.Count != 0)
                 {
-                    server.NotifyAction(actions.ToArray());
+                    server.NotifyPreAction(actions.ToArray());
                 }
                 GetReadData(settings, server.transaction.targets, server.transaction.data);
                 if (reads.Count != 0)

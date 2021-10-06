@@ -335,7 +335,7 @@ namespace Gurux.DLMS
                         else
                         {
                             p.requestType = (byte)ActionResponseType.Normal;
-                            server.NotifyAction(new ValueEventArgs[] { e });
+                            server.NotifyPreAction(new ValueEventArgs[] { e });
                             byte[] actionReply;
                             if (e.Handled)
                             {
@@ -444,7 +444,7 @@ namespace Gurux.DLMS
                         foreach (ValueEventArgs arg in server.transaction.targets)
                         {
                             object value;
-                            server.NotifyAction(new ValueEventArgs[] { arg });
+                            server.NotifyPreAction(new ValueEventArgs[] { arg });
                             if (arg.Handled)
                             {
                                 value = arg.Value;
@@ -557,7 +557,7 @@ namespace Gurux.DLMS
                         {
                             object value;
                             arg.Parameters = parameters;
-                            server.NotifyAction(new ValueEventArgs[] { arg });
+                            server.NotifyPreAction(new ValueEventArgs[] { arg });
                             if (arg.Handled)
                             {
                                 value = arg.Value;

@@ -567,6 +567,7 @@ namespace Gurux.DLMS.Objects
                 Buffer = null;
                 if (server != null)
                 {
+                    server.NotifyPreAction(args);
                     server.PreGet(args);
                 }
                 if (!args[0].Handled)
@@ -610,7 +611,6 @@ namespace Gurux.DLMS.Objects
                 if (server != null)
                 {
                     server.PostGet(args);
-                    server.NotifyAction(args);
                     server.NotifyPostAction(args);
                 }
             }

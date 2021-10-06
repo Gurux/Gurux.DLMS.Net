@@ -229,12 +229,14 @@ namespace Gurux.DLMS
         /// Pre get selected value.
         /// </summary>
         /// <param name="args">Event arguments.</param>
+        [Obsolete("Use PreRead instead.")]
         public abstract void PreGet(ValueEventArgs[] args);
 
         /// <summary>
         /// Post get selected value.
         /// </summary>
         /// <param name="args">Event arguments.</param>
+        [Obsolete("Use PostRead instead.")]
         public abstract void PostGet(ValueEventArgs[] args);
 
         /// <summary>
@@ -353,7 +355,7 @@ namespace Gurux.DLMS
         /// Action is occurred.
         /// </summary>
         /// <param name="args">Handled action requests.</param>
-        internal void NotifyAction(ValueEventArgs[] args)
+        internal void NotifyPreAction(ValueEventArgs[] args)
         {
             PreAction(args);
         }
@@ -638,7 +640,7 @@ namespace Gurux.DLMS
                 return Settings.Hdlc;
             }
         }
-      
+
         /// <summary>
         /// Standard says that Time zone is from normal time to UTC in minutes.
         /// If meter is configured to use UTC time (UTC to normal time) set this to true.
@@ -1224,7 +1226,7 @@ namespace Gurux.DLMS
                                     //Mode control character
                                     (byte)'2', 13, 10 };
                                 //Change the baud rate.
-                                sr.NewBaudRate = 300 << (int) baudrate;
+                                sr.NewBaudRate = 300 << (int)baudrate;
                                 Settings.Connected = ConnectionState.Iec;
                             }
                             else if (receivedData.GetUInt8(receivedData.Position) == '/')
@@ -2099,15 +2101,6 @@ namespace Gurux.DLMS
             return GenerateDataNotificationMessages(date, buff);
         }
 
-        internal void TimeUpdated()
-        {
-            if (waiting != null)
-            {
-                waiting.Set();
-            }
-        }
-
-
         /// <summary>
         /// Run the background processes.
         /// </summary>
@@ -2118,6 +2111,29 @@ namespace Gurux.DLMS
             waiting = wait;
             DateTime now = DateTime.Now;
             DateTime next = now.AddDays(1);
+            foreach (GXDLMSProfileGeneric it in Items.GetObjects(ObjectType.ProfileGeneric))
+            {
+                if (it.CapturePeriod != 0)
+                {
+                    if (!ExecutionTimes.ContainsKey(it) ||
+                        ExecutionTimes[it].AddSeconds(it.CapturePeriod) <= now)
+                    {
+                        it.Capture(this);
+                        ExecutionTimes[it] = now;
+                    }
+                    int seconds = (int)(now - now.Date).TotalSeconds;
+                    seconds = it.CapturePeriod - (seconds % it.CapturePeriod);
+                    if (seconds == 0)
+                    {
+                        seconds = it.CapturePeriod;
+                    }
+                    if (next > now.AddSeconds(seconds))
+                    {
+                        next = now.AddSeconds(seconds);
+                    }
+                }
+            }
+
             foreach (GXDLMSAutoConnect it in Items.GetObjects(ObjectType.AutoConnect))
             {
                 foreach (var time in it.CallingWindow)
@@ -2150,22 +2166,6 @@ namespace Gurux.DLMS
                     }
                 }
             }
-            /*
-            foreach (GXDLMSAutoConnect it in Items.GetObjects(ObjectType.AutoConnect))
-            {
-                foreach (var time in it.CallingWindow)
-                {
-                    if (time.Key.Compare(now) != 1 && time.Value.Compare(now) != -1)
-                    {
-                        DateTime tmp = GXDateTime.GetNextScheduledDates(now, time.Key, 1)[0];
-                        if (tmp < next)
-                        {
-                            next = tmp;
-                        }
-                    }
-                }
-            }
-            */
             if (list.Count != 0)
             {
                 Execute(list);
@@ -2209,7 +2209,17 @@ namespace Gurux.DLMS
             return objectType == ObjectType.SapAssignment ||
             //Connection state is changed.
             objectType == ObjectType.DisconnectControl ||
+            objectType == ObjectType.SpecialDaysTable ||
             objectType == ObjectType.RegisterActivation;
+        }
+
+        internal void InvokePreRead(ValueEventArgs[] args)
+        {
+            PreRead(args);
+        }
+        internal void InvokePostRead(ValueEventArgs[] args)
+        {
+            PostRead(args);
         }
     }
 }

@@ -93,8 +93,7 @@ namespace Gurux.DLMS.Simulator.Net
             if (settings.media is GXSerial)
             {
                 GXDLMSMeter server = new GXDLMSMeter(settings.client.UseLogicalNameReferencing, settings.client.InterfaceType, 
-                                                        settings.client.UseUtc2NormalTime, settings.flagId
-);
+                                                        settings.client.UseUtc2NormalTime, settings.flagId);
                 if (settings.client.UseLogicalNameReferencing)
                 {
                     Console.WriteLine("Logical Name DLMS Server in serial port {0} using {1}.", settings.media, settings.client.InterfaceType);

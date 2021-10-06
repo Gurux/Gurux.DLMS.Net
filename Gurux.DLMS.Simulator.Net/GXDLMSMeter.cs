@@ -53,6 +53,10 @@ namespace Gurux.DLMS.Simulator.Net
     class GXDLMSMeter : GXDLMSSecureServer
     {
         /// <summary>
+        /// Application is closing
+        /// </summary>
+        AutoResetEvent closing = new AutoResetEvent(false);
+        /// <summary>
         /// Server that is used to parse Gateway messages.
         /// </summary>
         public static GXDLMSMeter GatewayServer = null;
@@ -172,6 +176,28 @@ namespace Gurux.DLMS.Simulator.Net
                     GXDLMSObjectCollection objects = GXDLMSObjectCollection.Load(path);
                     items.Clear();
                     items.AddRange(objects);
+                    //Add objects from profile generic that are not in association view.
+                    foreach (GXDLMSProfileGeneric pg in objects.GetObjects(ObjectType.ProfileGeneric))
+                    {
+                        //Remove invalid rows.
+                        for(int pos = 0; pos != pg.Buffer.Count; ++pos)
+                        {
+                            if (pg.Buffer[pos].Length != pg.CaptureObjects.Count)
+                            {
+                                pg.Buffer.RemoveAt(pos);
+                                --pos;
+                            }
+                        }
+
+                        pg.EntriesInUse = (UInt32) pg.Buffer.Count;
+                        foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in pg.CaptureObjects)
+                        {
+                            if (objects.FindByLN(it.Key.ObjectType, it.Key.LogicalName) == null)
+                            {
+                                objects.Add(it.Key);
+                            }
+                        }
+                    }
                     UpdateValues(items);
                     return true;
                 }
@@ -409,6 +435,18 @@ namespace Gurux.DLMS.Simulator.Net
                     throw new Exception("HdlcWithModeE can't be used because LocalPortSetup not found.");
                 }
             }
+            //Create thread for every profile generic so values are captured if capture period is given.
+            new Thread(() =>
+            {
+                int wt = 0;
+                do
+                {
+                    wt = Run(closing);
+                    //Wait until next event needs to execute.
+                    Console.WriteLine("Waiting " + TimeSpan.FromSeconds(wt).ToString() + " before next execution.");
+                }
+                while (!closing.WaitOne(wt * 1000));
+            }).Start();
 
             //Own listener isn't created if there are multiple meters in the same port.
             if (!exclusive)
@@ -430,6 +468,7 @@ namespace Gurux.DLMS.Simulator.Net
 
         public override void Close()
         {
+            closing.Set();
             base.Close();
             if (Media != null)
             {

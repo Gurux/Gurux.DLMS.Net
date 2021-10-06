@@ -50,7 +50,6 @@ namespace Gurux.DLMS.Objects
     public class GXDLMSProfileGeneric : GXDLMSObject, IGXDLMSBase
     {
         private GXDLMSServer server = null;
-        private GXProfileGenericUpdater updater = null;
 #if WINDOWS_UWP
         private System.Threading.Tasks.Task thread = null;
 #else
@@ -164,10 +163,6 @@ namespace Gurux.DLMS.Objects
             set
             {
                 capturePeriod = value;
-                if (server != null)
-                {
-                    Start(server);
-                }
             }
         }
 
@@ -302,6 +297,7 @@ namespace Gurux.DLMS.Objects
                 int pos = 0;
                 ValueEventArgs[] args = new ValueEventArgs[] { new ValueEventArgs(server, this, 2, 0, null) };
                 server.PreGet(args);
+                server.NotifyPreAction(args);
                 if (!args[0].Handled)
                 {
                     foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in CaptureObjects)
@@ -328,46 +324,10 @@ namespace Gurux.DLMS.Objects
                         ++EntriesInUse;
                     }
                 }
-                server.PostGet(args);
-                server.NotifyAction(args);
                 server.NotifyPostAction(args);
+                server.PostGet(args);
             }
         }
-
-        internal override void Start(GXDLMSServer svr)
-        {
-            server = svr;
-            if (CapturePeriod != 0)
-            {
-                updater = new GXProfileGenericUpdater(server, this);
-#if !WINDOWS_UWP
-                thread = new Thread(new ThreadStart(updater.UpdateProfileGenericData));
-                thread.IsBackground = true;
-                thread.Start();
-#else
-                thread = System.Threading.Tasks.Task.Factory.StartNew(updater.UpdateProfileGenericData);
-#endif
-            }
-        }
-
-        internal override void Stop(GXDLMSServer server)
-        {
-            if (updater != null)
-            {
-                updater.Closing.Set();
-                if (thread != null)
-                {
-#if !WINDOWS_UWP
-                    thread.Join(10000);
-#else
-                    thread.Wait(10000);
-#endif
-                    thread = null;
-                }
-                updater = null;
-            }
-        }
-
 
         #region IGXDLMSBase Members
 
@@ -1157,7 +1117,7 @@ namespace Gurux.DLMS.Objects
                 if (e.Server != null)
                 {
                     ValueEventArgs[] list = new ValueEventArgs[] { new ValueEventArgs(this, 1, 0, null) };
-                    e.Server.NotifyAction(list);
+                    e.Server.NotifyPreAction(list);
                     e.Server.NotifyPostAction(list);
                 }
                 CaptureObjects.Clear();
