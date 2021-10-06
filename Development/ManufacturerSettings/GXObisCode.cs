@@ -123,8 +123,6 @@ namespace Gurux.DLMS.ManufacturerSettings
             set;
         }
 
-        private string uiDataType;
-
         /// <summary>
         /// UI data type. This is obsolete. Use ObjectType instead.
         /// </summary>
@@ -134,37 +132,10 @@ namespace Gurux.DLMS.ManufacturerSettings
         [DefaultValue(null)]
         public string UIDataType
         {
-            get
-            {
-                if (UIDataType2 == DataType.None)
-                {
-                    return null;
-                }
-                return UIDataType2.ToString();
-            }
-            set
-            {
-                if (string.IsNullOrEmpty(value))
-                {
-                    UIDataType2 = DataType.None;
-                }
-                else
-                {
-                    UIDataType2 = (DataType)Enum.Parse(typeof(DataType), value);
-                }
-            }
-        }
-
-        /// <summary>
-        /// UI data type.
-        /// </summary>
-        [DefaultValue(DataType.None)]
-        public DataType UIDataType2
-        {
             get;
             set;
         }
-
+     
         /// <summary>
         /// Interface type. This is obsolete. Use ObjectType instead.
         /// </summary>
