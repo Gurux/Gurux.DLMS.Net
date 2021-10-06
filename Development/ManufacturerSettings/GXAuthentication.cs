@@ -144,7 +144,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         }
 
         /// <summary>
-        /// Client address has replace this. Opsolite
+        /// Client address has replace this. This is obsolete. Use ClientAddress instead.
         /// </summary>
 #if !WINDOWS_UWP
         [Browsable(false)]

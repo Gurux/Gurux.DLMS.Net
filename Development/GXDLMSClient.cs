@@ -1506,7 +1506,14 @@ namespace Gurux.DLMS
                             }
                             if (id > 0)
                             {
-                                obj.SetMethodAccess(id, (MethodAccessMode)tmp);
+                                if (lnVersion < 3)
+                                {
+                                    obj.SetMethodAccess(id, (MethodAccessMode)tmp);
+                                }
+                                else
+                                {
+                                    obj.SetMethodAccess3(id, (MethodAccessMode3)tmp);
+                                }
                             }
                         }
                     }
@@ -1689,6 +1696,37 @@ namespace Gurux.DLMS
             GXDLMSObjectCollection items = new GXDLMSObjectCollection(this);
             GXDataInfo info = new GXDataInfo();
             int lnVersion = 2;
+            //Find LN Version because some meters don't add LN Assciation the fist object.
+            int pos = buff.Position;
+            while (buff.Position != buff.Size && cnt != objectCnt)
+            {
+                info.Clear();
+                object tmp = GXCommon.GetData(Settings, buff, info);
+                List<object> objects;
+                if (tmp is List<object>)
+                {
+                    objects = (List<object>)tmp;
+                }
+                else
+                {
+                    objects = new List<object>((object[])tmp);
+                }
+                if (objects.Count != 4)
+                {
+                    throw new GXDLMSException("Invalid structure format.");
+                }
+                ++objectCnt;
+                int ot = Convert.ToInt16(objects[0]);
+                //Get LN association version.
+                if (ot == (int)ObjectType.AssociationLogicalName
+                     && GXCommon.ToLogicalName((byte[])objects[2]) == "0.0.40.0.0.255")
+                {
+                    lnVersion = Convert.ToInt32(objects[1]);
+                    break;
+                }
+            }
+            objectCnt = 0;
+            buff.Position = pos;
             //Some meters give wrong item count.
             while (buff.Position != buff.Size && cnt != objectCnt)
             {
@@ -1712,11 +1750,6 @@ namespace Gurux.DLMS
                 int version = Convert.ToByte(objects[1]);
                 if (!onlyKnownObjects || AvailableObjectTypes.ContainsKey((ObjectType)ot))
                 {
-                    //Save LN association version.
-                    if (ot == (int)ObjectType.AssociationLogicalName)
-                    {
-                        lnVersion = Convert.ToInt32(objects[1]);
-                    }
                     GXDLMSObject comp = CreateDLMSObject(ot, objects[1], 0, objects[2], objects[3], lnVersion);
                     if (comp != null)
                     {

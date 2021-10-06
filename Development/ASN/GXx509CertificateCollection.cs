@@ -127,7 +127,7 @@ namespace Gurux.DLMS.ASN
         {
             foreach (GXx509Certificate it in this)
             {
-                if ((usage == KeyUsage.None || it.KeyUsage == usage) && it.Subject.Contains(commonName))
+                if ((usage == KeyUsage.None || (it.KeyUsage & usage) != 0) && it.Subject.Contains(commonName))
                 {
                     return it;
                 }

@@ -123,17 +123,50 @@ namespace Gurux.DLMS.ManufacturerSettings
             set;
         }
 
+        private string uiDataType;
+
+        /// <summary>
+        /// UI data type. This is obsolete. Use ObjectType instead.
+        /// </summary>
+#if !WINDOWS_UWP
+        [Browsable(false)]
+#endif
+        [DefaultValue(null)]
+        public string UIDataType
+        {
+            get
+            {
+                if (UIDataType2 == DataType.None)
+                {
+                    return null;
+                }
+                return UIDataType2.ToString();
+            }
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    UIDataType2 = DataType.None;
+                }
+                else
+                {
+                    UIDataType2 = (DataType)Enum.Parse(typeof(DataType), value);
+                }
+            }
+        }
+
         /// <summary>
         /// UI data type.
         /// </summary>
-        public string UIDataType
+        [DefaultValue(DataType.None)]
+        public DataType UIDataType2
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Interface type. Opsolite. Use ObjectType instead.
+        /// Interface type. This is obsolete. Use ObjectType instead.
         /// </summary>
 #if !WINDOWS_UWP
         [Browsable(false)]
@@ -153,11 +186,12 @@ namespace Gurux.DLMS.ManufacturerSettings
         }
 
         /// <summary>
-        /// object type.
+        /// Object type.
         /// </summary>
 #if !WINDOWS_UWP
         [Browsable(false)]
 #endif
+        [DefaultValue(ObjectType.None)]
         public ObjectType ObjectType
         {
             get;
@@ -165,12 +199,12 @@ namespace Gurux.DLMS.ManufacturerSettings
         }
 
         /// <summary>
-        /// Interface type.
+        /// Object version.
         /// </summary>
-#if !WINDOWS_UWP
-        [Browsable(false)]
-#endif
         [DefaultValue(0)]
+#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0 && !NETCOREAPP3_0 && !NETCOREAPP3_1
+        [Editor(typeof(GXVersionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+#endif
         public int Version
         {
             get;

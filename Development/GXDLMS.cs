@@ -734,18 +734,7 @@ namespace Gurux.DLMS
             {
                 len += 9;
             }
-            //If signing is used.
-            if (p.settings.Cipher != null && p.settings.Cipher.Signing == Signing.GeneralSigning)
-            {
-                if (p.settings.Cipher.SecuritySuite == SecuritySuite.Suite1)
-                {
-                    len += 65;
-                }
-                else if (p.settings.Cipher.SecuritySuite == SecuritySuite.Suite2)
-                {
-                    len += 99;
-                }
-            }
+            len += GetSigningSize(p);
             if (!p.multipleBlocks)
             {
                 //Add command type and invoke and priority.
@@ -1161,6 +1150,28 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Return amount of the bytes that signing requires.
+        /// </summary>
+        /// <returns></returns>
+        static private byte GetSigningSize(GXDLMSLNParameters p)
+        {
+            byte size = 0;
+            //If signing is used.
+            if (p.settings.Cipher != null && p.settings.Cipher.Signing == Signing.GeneralSigning)
+            {
+                if (p.settings.Cipher.SecuritySuite == SecuritySuite.Suite1)
+                {
+                    size = 65;
+                }
+                else if (p.settings.Cipher.SecuritySuite == SecuritySuite.Suite2)
+                {
+                    size = 99;
+                }
+            }
+            return size;
+        }
+
+        /// <summary>
         /// Get next logical name PDU.
         /// </summary>
         /// <param name="p">LN parameters.</param>
@@ -1353,6 +1364,7 @@ namespace Gurux.DLMS
                     {
                         totalLength += CipheringHeaderSize;
                     }
+                    totalLength += GetSigningSize(p);
 
                     if (totalLength > p.settings.MaxPduSize)
                     {
@@ -1365,6 +1377,7 @@ namespace Gurux.DLMS
                         {
                             len -= CipheringHeaderSize;
                         }
+                        len -= GetSigningSize(p);
                         len -= GXCommon.GetObjectCountSizeInBytes(len);
                     }
                     if (!(p.command == Command.MethodResponse && p.requestType == (byte)ActionResponseType.NextBlock))
@@ -1442,22 +1455,20 @@ namespace Gurux.DLMS
                                 {
                                     len = p.settings.MaxPduSize - 7;
                                 }
+                                len -= GetSigningSize(p);
                                 ciphering = false;
                             }
                         }
                         else if (p.command != Command.GetRequest && len + reply.Size > p.settings.MaxPduSize)
                         {
                             len = p.settings.MaxPduSize - reply.Size;
+                            len -= GetSigningSize(p);
                         }
                         reply.Set(p.data, len);
                     }
                     else if ((p.settings.Gateway != null && p.settings.Gateway.PhysicalDeviceAddress != null) &&
                         !(p.command == Command.GeneralBlockTransfer || (p.multipleBlocks && (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) != 0)))
                     {
-                        if (3 + len + p.settings.Gateway.PhysicalDeviceAddress.Length > p.settings.MaxPduSize)
-                        {
-                            len -= (3 + p.settings.Gateway.PhysicalDeviceAddress.Length);
-                        }
                         GXByteBuffer tmp = new GXByteBuffer(reply);
                         reply.Size = 0;
                         reply.SetUInt8(Command.GatewayRequest);
@@ -1533,10 +1544,6 @@ namespace Gurux.DLMS
                     }
                     if (p.settings.Gateway != null && p.settings.Gateway.PhysicalDeviceAddress != null)
                     {
-                        if (3 + len + p.settings.Gateway.PhysicalDeviceAddress.Length > p.settings.MaxPduSize)
-                        {
-                            len -= (3 + p.settings.Gateway.PhysicalDeviceAddress.Length);
-                        }
                         GXByteBuffer tmp = new GXByteBuffer(reply);
                         reply.Size = 0;
                         reply.SetUInt8(Command.GatewayRequest);

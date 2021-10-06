@@ -480,7 +480,7 @@ namespace Gurux.DLMS
             }
             set
             {
-                if ((Authentication == Authentication.HighECDSA && challengeSize < 32) || challengeSize < 8 || challengeSize > 64)
+                if ((Authentication == Authentication.HighECDSA && value < 32) || value < 8 || value > 64)
                 {
                     throw new ArgumentOutOfRangeException("Invalid challenge size. Challenge must be between 8 to 64 bytes.");
                 }
@@ -1103,7 +1103,7 @@ namespace Gurux.DLMS
                                 Cipher.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(cert.PublicKey, ss.SigningKey.Value.Value);
                             }
                             cert = ss.ServerCertificates.FindBySystemTitle(st, KeyUsage.KeyAgreement);
-                            if (cert != null)
+                            if (cert != null && ss.KeyAgreementKey != null)
                             {
                                 Cipher.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(cert.PublicKey, ss.KeyAgreementKey.Value.Value);
                             }
