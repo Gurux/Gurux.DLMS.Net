@@ -1457,7 +1457,7 @@ namespace Gurux.DLMS.Objects
                         {
                             item = new List<object>((object[])tmp);
                         }
-                        UserList.Add(new KeyValuePair<byte, string>(Convert.ToByte(item[0]), Convert.ToString(item[1])));
+                        UserList.Add(new KeyValuePair<byte, string>(Convert.ToByte(item[0]), ASCIIEncoding.ASCII.GetString((byte[])item[1])));
                     }
                 }
             }
@@ -1480,7 +1480,17 @@ namespace Gurux.DLMS.Objects
                     }
                     else
                     {
-                        CurrentUser = new KeyValuePair<byte, string>(Convert.ToByte(arr[0]), Convert.ToString(arr[1]));
+                        string user;
+                        //Some meters are sending current user as a string.
+                        if (arr[1] is byte[])
+                        {
+                            user = ASCIIEncoding.ASCII.GetString((byte[])arr[1]);
+                        }
+                        else
+                        {
+                            user = Convert.ToString(arr[1]);
+                        }
+                        CurrentUser = new KeyValuePair<byte, string>(Convert.ToByte(arr[0]), user);
                     }
                 }
                 else

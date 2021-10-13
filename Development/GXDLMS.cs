@@ -4820,10 +4820,13 @@ namespace Gurux.DLMS
                 }
                 if (cmd == Command.GeneralBlockTransfer)
                 {
-                    data.Data.Position = data.CipherIndex + 1;
-                    HandleGbt(settings, data);
-                    data.CipherIndex = data.Data.Size;
-                    data.Command = Command.None;
+                    if (data.Xml != null || !settings.IsServer)
+                    {
+                        data.Data.Position = data.CipherIndex + 1;
+                        HandleGbt(settings, data);
+                        data.CipherIndex = data.Data.Size;
+                        data.Command = Command.None;
+                    }
                 }
                 else if (settings.IsServer)
                 {

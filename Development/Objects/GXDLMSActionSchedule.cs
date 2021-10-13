@@ -300,14 +300,21 @@ namespace Gurux.DLMS.Objects
                     {
                         arr = new List<object>((object[])e.Value);
                     }
-
-                    String ln = GXCommon.ToLogicalName(arr[0]);
-                    Target = (GXDLMSScriptTable)settings.Objects.FindByLN(ObjectType.ScriptTable, ln);
-                    if (Target == null)
+                    if (arr.Count != 0)
                     {
-                        Target = new GXDLMSScriptTable(ln);
+                        String ln = GXCommon.ToLogicalName(arr[0]);
+                        Target = (GXDLMSScriptTable)settings.Objects.FindByLN(ObjectType.ScriptTable, ln);
+                        if (Target == null)
+                        {
+                            Target = new GXDLMSScriptTable(ln);
+                        }
+                        ExecutedScriptSelector = Convert.ToUInt16(arr[1]);
                     }
-                    ExecutedScriptSelector = Convert.ToUInt16(arr[1]);
+                    else
+                    {
+                        Target = null;
+                        ExecutedScriptSelector = 0;
+                    }
                 }
                 else
                 {

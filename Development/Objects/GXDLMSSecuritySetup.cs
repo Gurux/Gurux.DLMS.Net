@@ -727,42 +727,32 @@ namespace Gurux.DLMS.Objects
         {
             try
             {
-                if (e.Index == 1)
+                switch (e.Index)
                 {
-                    SecurityPolicy = (SecurityPolicy)Convert.ToByte(e.Parameters);
-                }
-                else if (e.Index == 2)
-                {
-                    KeyTransfer(settings, e);
-                }
-                else if (e.Index == 3)
-                {
-                    return InvokeKeyAgreement(settings, e);
-                }
-                else if (e.Index == 4)
-                {
-                    GenerateKeyPair(settings, e);
-                }
-                else if (e.Index == 5)
-                {
-                    return GenerateCertificateRequest(settings, e);
-                }
-                else if (e.Index == 6)
-                {
-                    ImportCertificate(settings, e);
-                }
-                else if (e.Index == 7)
-                {
-                    return ExportCertificate(settings, e);
-                }
-                else if (e.Index == 8)
-                {
-                    // remove_certificate
-                    RemoveCertificate(settings, e);
-                }
-                else
-                {
-                    e.Error = ErrorCode.ReadWriteDenied;
+                    case 1:
+                        SecurityPolicy = (SecurityPolicy)Convert.ToByte(e.Parameters);
+                        break;
+                    case 2:
+                        KeyTransfer(settings, e);
+                        break;
+                    case 3:
+                        return InvokeKeyAgreement(settings, e);
+                    case 4:
+                        GenerateKeyPair(settings, e);
+                        break;
+                    case 5:
+                        return GenerateCertificateRequest(settings, e);
+                    case 6:
+                        ImportCertificate(settings, e);
+                        break;
+                    case 7:
+                        return ExportCertificate(settings, e);
+                    case 8:
+                        RemoveCertificate(settings, e);
+                        break;
+                    default:
+                        e.Error = ErrorCode.InconsistentClass;
+                        break;
                 }
             }
             catch (Exception)

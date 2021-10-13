@@ -39,6 +39,7 @@ using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 using System.Net;
+using System.Text;
 
 namespace Gurux.DLMS.Objects
 {
@@ -573,7 +574,14 @@ namespace Gurux.DLMS.Objects
                 {
                     foreach (object it in (IEnumerable<object>)e.Value)
                     {
-                        data.Add(new IPAddress((byte[])it));
+                        try
+                        {
+                            data.Add(new IPAddress((byte[])it));
+                        }
+                        catch (Exception ex)
+                        {
+                            data.Add(IPAddress.Parse(ASCIIEncoding.ASCII.GetString((byte[])it)));
+                        }
                     }
                 }
                 UnicastIPAddress = data.ToArray();

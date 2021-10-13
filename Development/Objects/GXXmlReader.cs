@@ -142,6 +142,10 @@ namespace Gurux.DLMS.Objects
                 }
                 else if (isEmpty)
                 {
+                    if (reader.NodeType == XmlNodeType.Whitespace)
+                    {
+                        ret = IsStartElement(name, getNext);
+                    }
                     ret = false;
                 }
             }

@@ -264,90 +264,93 @@ namespace Gurux.DLMS.Objects
                     {
                         arr1 = new List<object>((object[])e.Value);
                     }
-                    if (arr1.Count != 0 && arr1[0] is IEnumerable<object>)
+                    if (arr1.Count != 0)
                     {
-                        foreach (object tmp in (IEnumerable<object>)e.Value)
+                        if (arr1[0] is IEnumerable<object>)
                         {
-                            List<object> item;
-                            if (tmp is List<object>)
+                            foreach (object tmp in (IEnumerable<object>)e.Value)
                             {
-                                item = (List<object>)tmp;
-                            }
-                            else
-                            {
-                                item = new List<object>((object[])tmp);
-                            }
-                            GXDLMSScript script = new GXDLMSScript();
-                            script.Id = Convert.ToInt32(item[0]);
-                            Scripts.Add(script);
-                            foreach (object tmp2 in (IEnumerable<object>)item[1])
-                            {
-                                if (tmp2 is List<object>)
+                                List<object> item;
+                                if (tmp is List<object>)
                                 {
-                                    arr = (List<object>)tmp2;
+                                    item = (List<object>)tmp;
                                 }
                                 else
                                 {
-                                    arr = new List<object>((object[])tmp2);
+                                    item = new List<object>((object[])tmp);
                                 }
-                                GXDLMSScriptAction it = new GXDLMSScriptAction();
-                                it.Type = (ScriptActionType)Convert.ToInt32(arr[0]);
-                                ObjectType ot = (ObjectType)Convert.ToInt32(arr[1]);
-                                String ln = GXCommon.ToLogicalName(arr[2]);
-                                it.Target = settings.Objects.FindByLN(ot, ln);
-                                if (it.Target == null)
+                                GXDLMSScript script = new GXDLMSScript();
+                                script.Id = Convert.ToInt32(item[0]);
+                                Scripts.Add(script);
+                                foreach (object tmp2 in (IEnumerable<object>)item[1])
                                 {
-                                    it.Target = GXDLMSClient.CreateObject(ot);
-                                    it.Target.LogicalName = ln;
+                                    if (tmp2 is List<object>)
+                                    {
+                                        arr = (List<object>)tmp2;
+                                    }
+                                    else
+                                    {
+                                        arr = new List<object>((object[])tmp2);
+                                    }
+                                    GXDLMSScriptAction it = new GXDLMSScriptAction();
+                                    it.Type = (ScriptActionType)Convert.ToInt32(arr[0]);
+                                    ObjectType ot = (ObjectType)Convert.ToInt32(arr[1]);
+                                    String ln = GXCommon.ToLogicalName(arr[2]);
+                                    it.Target = settings.Objects.FindByLN(ot, ln);
+                                    if (it.Target == null)
+                                    {
+                                        it.Target = GXDLMSClient.CreateObject(ot);
+                                        it.Target.LogicalName = ln;
+                                    }
+                                    it.Index = Convert.ToInt32(arr[3]);
+                                    it.Parameter = arr[4];
+                                    if (it.Parameter != null)
+                                    {
+                                        it.ParameterDataType = GXDLMSConverter.GetDLMSDataType(it.Parameter);
+                                    }
+                                    script.Actions.Add(it);
                                 }
-                                it.Index = Convert.ToInt32(arr[3]);
-                                it.Parameter = arr[4];
-                                if (it.Parameter != null)
-                                {
-                                    it.ParameterDataType = GXDLMSConverter.GetDLMSDataType(it.Parameter);
-                                }
-                                script.Actions.Add(it);
                             }
                         }
-                    }
-                    else //Read Xemex meter here.
-                    {
-                        GXDLMSScript script = new GXDLMSScript();
-                        if (e.Value is List<object>)
+                        else //Read Xemex meter here.
                         {
-                            arr1 = (List<object>)e.Value;
-                        }
-                        else
-                        {
-                            arr1 = new List<object>((object[])e.Value);
-                        }
+                            GXDLMSScript script = new GXDLMSScript();
+                            if (e.Value is List<object>)
+                            {
+                                arr1 = (List<object>)e.Value;
+                            }
+                            else
+                            {
+                                arr1 = new List<object>((object[])e.Value);
+                            }
 
-                        script.Id = Convert.ToInt32(arr1[0]);
-                        Scripts.Add(script);
-                        if (arr1[1] is List<object>)
-                        {
-                            arr = (List<object>)arr1[1];
-                        }
-                        else
-                        {
-                            arr = new List<object>((object[])arr1[1]);
-                        }
-                        GXDLMSScriptAction it = new GXDLMSScriptAction();
-                        it.Type = (ScriptActionType)Convert.ToInt32(arr[0]);
-                        ObjectType ot = (ObjectType)Convert.ToInt32(arr[1]);
-                        String ln = GXCommon.ToLogicalName(arr[2]);
-                        it.Target = settings.Objects.FindByLN(ot, ln);
-                        if (it.Target == null)
-                        {
+                            script.Id = Convert.ToInt32(arr1[0]);
+                            Scripts.Add(script);
+                            if (arr1[1] is List<object>)
+                            {
+                                arr = (List<object>)arr1[1];
+                            }
+                            else
+                            {
+                                arr = new List<object>((object[])arr1[1]);
+                            }
+                            GXDLMSScriptAction it = new GXDLMSScriptAction();
+                            it.Type = (ScriptActionType)Convert.ToInt32(arr[0]);
+                            ObjectType ot = (ObjectType)Convert.ToInt32(arr[1]);
+                            String ln = GXCommon.ToLogicalName(arr[2]);
+                            it.Target = settings.Objects.FindByLN(ot, ln);
+                            if (it.Target == null)
+                            {
 #pragma warning disable CS0618
-                            it.ObjectType = ot;
-                            it.LogicalName = ln;
+                                it.ObjectType = ot;
+                                it.LogicalName = ln;
 #pragma warning restore CS0618
-                        }
+                            }
 
-                        it.Index = Convert.ToInt32(arr[3]);
-                        it.Parameter = arr[4];
-                        script.Actions.Add(it);
+                            it.Index = Convert.ToInt32(arr[3]);
+                            it.Parameter = arr[4];
+                            script.Actions.Add(it);
+                        }
                     }
                 }
             }

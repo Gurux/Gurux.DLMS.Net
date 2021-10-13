@@ -114,7 +114,7 @@ namespace Gurux.DLMS.Simulator
             List<string> list = new List<string>();
             foreach (XmlNode node in nodes)
             {
-                if (node.ChildNodes[1].ChildNodes[0].Name == "LastBlock")
+                if (node.ChildNodes[1].ChildNodes[0].Name == "last-block")
                 {
                     return int.Parse(node.ChildNodes[1].ChildNodes[0].InnerXml) != 0;
                 }

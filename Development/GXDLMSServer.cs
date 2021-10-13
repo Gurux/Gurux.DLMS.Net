@@ -1369,7 +1369,7 @@ namespace Gurux.DLMS
                 }
                 try
                 {
-                    sr.Reply = HandleCommand(info.Command, info.Data, sr, info.CipheredCommand);
+                    sr.Reply = HandleCommand(info.Command, info.Data, sr, info.CipheredCommand, true);
                 }
                 catch (Exception)
                 {
@@ -1431,10 +1431,22 @@ namespace Gurux.DLMS
             return new byte[] { (byte)Command.ConfirmedServiceError, (byte)service, (byte)type, code };
         }
 
-        ///<summary>
+
+        /// <summary>
         /// Handle received command.
-        ///</summary>
-        private byte[] HandleCommand(Command cmd, GXByteBuffer data, GXServerReply sr, Command cipheredCommand)
+        /// </summary>
+        /// <param name="cmd">Command</param>
+        /// <param name="data">Received data.</param>
+        /// <param name="sr"></param>
+        /// <param name="cipheredCommand">Ciphered command.</param>
+        /// <param name="addFrame">Frame is not add when GBT is used.</param>
+        /// <returns></returns>
+        private byte[] HandleCommand(
+            Command cmd, 
+            GXByteBuffer data, 
+            GXServerReply sr, 
+            Command cipheredCommand,
+            bool addFrame)
         {
             byte frame = 0;
             if (GXDLMS.UseHdlc(Settings.InterfaceType) && replyData.Size != 0)
@@ -1514,7 +1526,15 @@ namespace Gurux.DLMS
                 default:
                     throw new Exception("Invalid command: " + (int)cmd);
             }
-            byte[] reply = AddPduToFrame(cmd, frame, replyData);
+            byte[] reply;
+            if (addFrame)
+            {
+                reply = AddPduToFrame(cmd, frame, replyData);
+            }
+            else
+            {
+                reply = null;
+            }
             if (cmd == Command.DisconnectRequest ||
                 (InterfaceType == InterfaceType.WRAPPER && cmd == Command.ReleaseRequest))
             {
@@ -1583,7 +1603,7 @@ namespace Gurux.DLMS
                         UInt16 bn = (UInt16)Settings.BlockIndex;
                         if ((bc & 0x80) != 0)
                         {
-                            HandleCommand(transaction.command, transaction.data, sr, cipheredCommand);
+                            HandleCommand(transaction.command, transaction.data, sr, cipheredCommand, false);
                             transaction = null;
                             igonoreAck = false;
                             windowSize = 1;
@@ -1592,6 +1612,7 @@ namespace Gurux.DLMS
                         {
                             return false;
                         }
+                        replyData.Clear();
                         replyData.SetUInt8(Command.GeneralBlockTransfer);
                         replyData.SetUInt8((byte)(0x80 | windowSize));
                         ++Settings.BlockIndex;
@@ -2115,13 +2136,7 @@ namespace Gurux.DLMS
             {
                 if (it.CapturePeriod != 0)
                 {
-                    if (!ExecutionTimes.ContainsKey(it) ||
-                        ExecutionTimes[it].AddSeconds(it.CapturePeriod) <= now)
-                    {
-                        it.Capture(this);
-                        ExecutionTimes[it] = now;
-                    }
-                    int seconds = (int)(now - now.Date).TotalSeconds;
+                    UInt32 seconds = (UInt32)(now - now.Date).TotalSeconds;
                     seconds = it.CapturePeriod - (seconds % it.CapturePeriod);
                     if (seconds == 0)
                     {
@@ -2130,6 +2145,12 @@ namespace Gurux.DLMS
                     if (next > now.AddSeconds(seconds))
                     {
                         next = now.AddSeconds(seconds);
+                    }
+                    if (!ExecutionTimes.ContainsKey(it) ||
+                        ExecutionTimes[it].AddSeconds(it.CapturePeriod) <= now)
+                    {
+                        it.Capture(this);
+                        ExecutionTimes[it] = now.AddSeconds(seconds).AddSeconds(-it.CapturePeriod);
                     }
                 }
             }
@@ -2197,11 +2218,8 @@ namespace Gurux.DLMS
         /// <returns>Returns true if object is modified with action.</returns>
         public bool IsChangedWithAction(ObjectType objectType, int methodIndex)
         {
-            if (objectType == ObjectType.AssociationLogicalName && methodIndex != 1)
-            {
-                return true;
-            }
-            if (objectType == ObjectType.SecuritySetup && (methodIndex == 1 || methodIndex == 4 || methodIndex == 6 || methodIndex == 7 || methodIndex == 8))
+            if ((objectType == ObjectType.AssociationLogicalName && methodIndex != 1) ||
+                (objectType == ObjectType.SecuritySetup && (methodIndex == 1 || methodIndex == 4 || methodIndex == 6 || methodIndex == 7 || methodIndex == 8)))
             {
                 return true;
             }

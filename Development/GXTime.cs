@@ -80,7 +80,7 @@ namespace Gurux.DLMS
         public GXTime(int hour, int minute, int second, int millisecond)
             : base(-1, -1, -1, hour, minute, second, millisecond)
         {
-            Skip = DateTimeSkips.DayOfWeek;
+            Skip |= DateTimeSkips.DayOfWeek;
         }
 
         public GXTime(string time)

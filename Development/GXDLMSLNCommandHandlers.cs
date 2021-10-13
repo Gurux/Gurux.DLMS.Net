@@ -474,7 +474,7 @@ namespace Gurux.DLMS
                 }
                 p.multipleBlocks = true;
                 GXDLMS.GetLNPdu(p, replyData);
-                if (moreData || bb.Size - bb.Position != 0)
+                if (moreData || bb.Size != bb.Position)
                 {
                     server.transaction.data = bb;
                 }

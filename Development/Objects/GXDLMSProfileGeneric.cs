@@ -49,14 +49,6 @@ namespace Gurux.DLMS.Objects
     /// </summary>
     public class GXDLMSProfileGeneric : GXDLMSObject, IGXDLMSBase
     {
-        private GXDLMSServer server = null;
-#if WINDOWS_UWP
-        private System.Threading.Tasks.Task thread = null;
-#else
-        private Thread thread = null;
-#endif
-        private int capturePeriod;
-
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -154,16 +146,10 @@ namespace Gurux.DLMS.Objects
         /// How often values are captured.
         /// </summary>
         [XmlIgnore()]
-        public int CapturePeriod
+        public UInt32 CapturePeriod
         {
-            get
-            {
-                return capturePeriod;
-            }
-            set
-            {
-                capturePeriod = value;
-            }
+            get;
+            set;
         }
 
         /// <summary>
@@ -302,6 +288,8 @@ namespace Gurux.DLMS.Objects
                 {
                     foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in CaptureObjects)
                     {
+                        ValueEventArgs[] args2 = new ValueEventArgs[] { new ValueEventArgs(server, it.Key, it.Value.AttributeIndex, 0, null) };
+                        server.InvokePreRead(args2);
                         if (it.Value.AttributeIndex == 0)
                         {
                             values[pos] = it.Key.GetValues();
@@ -310,6 +298,7 @@ namespace Gurux.DLMS.Objects
                         {
                             values[pos] = it.Key.GetValues()[it.Value.AttributeIndex - 1];
                         }
+                        server.InvokePostRead(args2);
                         ++pos;
                     }
                     lock (Buffer)
@@ -947,7 +936,14 @@ namespace Gurux.DLMS.Objects
                                 }
                                 if (lastDate.HasValue)
                                 {
-                                    lastDate = lastDate.Value.AddSeconds(CapturePeriod);
+                                    if (SortMethod == SortMethod.FiFo || SortMethod == SortMethod.Smallest)
+                                    {
+                                        lastDate = lastDate.Value.AddSeconds(CapturePeriod);
+                                    }
+                                    else
+                                    {
+                                        lastDate = lastDate.Value.AddSeconds(-CapturePeriod);
+                                    }
                                     row[pos] = new GXDateTime(lastDate.Value);
                                 }
                             }
@@ -1134,7 +1130,7 @@ namespace Gurux.DLMS.Objects
                 {
                     Reset();
                 }
-                CapturePeriod = Convert.ToInt32(e.Value);
+                CapturePeriod = Convert.ToUInt32(e.Value);
             }
             else if (e.Index == 5)
             {
@@ -1259,11 +1255,10 @@ namespace Gurux.DLMS.Objects
                 }
                 reader.ReadEndElement("CaptureObjects");
             }
-            CapturePeriod = reader.ReadElementContentAsInt("CapturePeriod");
+            CapturePeriod = Convert.ToUInt32(reader.ReadElementContentAsLong("CapturePeriod"));
             SortMethod = (SortMethod)reader.ReadElementContentAsInt("SortMethod");
             if (reader.IsStartElement("SortObject", true))
             {
-                CapturePeriod = reader.ReadElementContentAsInt("CapturePeriod");
                 ObjectType ot = (ObjectType)reader.ReadElementContentAsInt("ObjectType");
                 string ln = reader.ReadElementContentAsString("LN");
                 SortObject = reader.Objects.FindByLN(ot, ln);
@@ -1279,7 +1274,7 @@ namespace Gurux.DLMS.Objects
             if (Buffer != null)
             {
                 GXDateTime lastdt = null;
-                int add = CapturePeriod;
+                UInt32 add = CapturePeriod;
                 //Some meters are returning 0 if capture period is one hour.
                 if (add == 0)
                 {
