@@ -180,7 +180,7 @@ namespace Gurux.DLMS.Simulator.Net
                     foreach (GXDLMSProfileGeneric pg in objects.GetObjects(ObjectType.ProfileGeneric))
                     {
                         //Remove invalid rows.
-                        for(int pos = 0; pos != pg.Buffer.Count; ++pos)
+                        for (int pos = 0; pos != pg.Buffer.Count; ++pos)
                         {
                             if (pg.Buffer[pos].Length != pg.CaptureObjects.Count)
                             {
@@ -189,7 +189,7 @@ namespace Gurux.DLMS.Simulator.Net
                             }
                         }
 
-                        pg.EntriesInUse = (UInt32) pg.Buffer.Count;
+                        pg.EntriesInUse = (UInt32)pg.Buffer.Count;
                         foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in pg.CaptureObjects)
                         {
                             if (objects.FindByLN(it.Key.ObjectType, it.Key.LogicalName) == null)
@@ -444,8 +444,10 @@ namespace Gurux.DLMS.Simulator.Net
                     wt = Run(closing);
                     //Wait until next event needs to execute.
                     Console.WriteLine("Waiting " + TimeSpan.FromSeconds(wt).ToString() + " before next execution.");
+                    wt *= 1000;
+                    wt -= DateTime.Now.Millisecond; 
                 }
-                while (!closing.WaitOne(wt * 1000));
+                while (!closing.WaitOne(wt));
             }).Start();
 
             //Own listener isn't created if there are multiple meters in the same port.
@@ -510,6 +512,8 @@ namespace Gurux.DLMS.Simulator.Net
                 if ((it.Target is GXDLMSClock c) && it.Index == 2)
                 {
                     c.Time = c.Now(UseUtc2NormalTime);
+                    //Set milliseconds to zero.
+                    c.Time.Value = c.Time.Value.AddMilliseconds(-c.Time.Value.Millisecond);
                 }
             }
         }
