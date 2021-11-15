@@ -40,6 +40,9 @@ namespace Gurux.DLMS.Internal
 
         internal KeyEventHandler keys;
 
+        /// <summary>
+        /// Encrypt or decrypt the data using external Hardware Security Module.
+        /// </summary>
         internal CryptoEventHandler crypto;
     }
 }

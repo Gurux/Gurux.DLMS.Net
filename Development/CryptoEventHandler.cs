@@ -35,7 +35,7 @@
 namespace Gurux.DLMS
 {
     /// <summary>
-    /// Called to encrypt or decrypt the ciphered data.
+    /// Called to encrypt or decrypt the data using external Hardware Security Module.
     /// </summary>
     /// <param name="sender">Sender</param>
     /// <param name="args">Arguments</param>

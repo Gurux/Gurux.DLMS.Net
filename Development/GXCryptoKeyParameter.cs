@@ -38,6 +38,7 @@ using Gurux.DLMS.Enums;
 using System.Globalization;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Ecdsa;
+using Gurux.DLMS.Secure;
 
 namespace Gurux.DLMS
 {
@@ -56,12 +57,39 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Encrypted data.
+        /// </summary>
+        public byte[] Encrypted
+        {
+            get;
+            internal set;
+        }
+
+        /// <summary>
+        /// Data used to enctypt.
+        /// </summary>
+        public byte[] PlainText
+        {
+            get;
+            internal set;
+        }
+        
+        /// <summary>
         /// Used security suite.
         /// </summary>
         public SecuritySuite SecuritySuite
         {
             get;
-            internal  set;
+            internal set;
+        }
+
+        /// <summary>
+        /// Used security policy.
+        /// </summary>
+        public SecurityPolicy SecurityPolicy
+        {
+            get;
+            internal set;
         }
 
         /// <summary>
@@ -83,6 +111,51 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Recipient system title.
+        /// </summary>
+        public byte[] RecipientSystemTitle
+        {
+            get;
+            internal set;
+        }
+
+        /// <summary>
+        /// Block cipher key.
+        /// </summary>
+        public byte[] BlockCipherKey
+        {
+            get;
+            internal set;
+        }
+
+        /// <summary>
+        /// Authentication key.
+        /// </summary>
+        public byte[] AuthenticationKey
+        {
+            get;
+            set;
+        }
+       
+        /// <summary>
+        /// Frame counter. Invocation counter.
+        /// </summary>
+        public UInt32 InvocationCounter
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Transaction Id.
+        /// </summary>
+        public byte[] TransactionId
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Private key to used to encrypt the data.
         /// </summary>
         public GXPrivateKey PrivateKey
@@ -97,15 +170,6 @@ namespace Gurux.DLMS
         {
             get;
             set;
-        }
-
-        /// <summary>
-        /// The invocation counter is used when data is enctypted or decrypted.
-        /// </summary>
-        public UInt32 InvocationCounter
-        {
-            get;
-            set;
-        }
+        }        
     }
 }

@@ -610,7 +610,7 @@ namespace Gurux.DLMS
             {
                 if (frame == 0x93)
                 {
-                    bool isEcho = !IsServer && frame == 0x93 && 
+                    bool isEcho = !IsServer && frame == 0x93 &&
                         (SenderFrame == 0x10 || SenderFrame == 0xfe) && ReceiverFrame == 0xE;
                     ResetFrameSequence();
                     return !isEcho;
@@ -1203,6 +1203,52 @@ namespace Gurux.DLMS
         {
             get;
             set;
+        }
+
+        //Encrypt or decrypt the data using external Hardware Security Module.
+        internal byte[] Crypt(CertificateType certificateType,
+          byte[] Data,
+          bool encrypt)
+        {
+            if (CryptoNotifier.crypto != null)
+            {
+                GXCryptoKeyParameter args = new GXCryptoKeyParameter();
+                args.Encrypt = encrypt;
+                args.SystemTitle = Cipher.SystemTitle;
+                args.RecipientSystemTitle = SourceSystemTitle;
+                args.CertificateType = certificateType;
+                args.InvocationCounter = Cipher.InvocationCounter;
+                args.SecuritySuite = Cipher.SecuritySuite;
+                args.SecurityPolicy = Cipher.SecurityPolicy;
+                if (encrypt)
+                {
+                    args.PlainText = Data;
+                }
+                else
+                {
+                    args.Encrypted = Data;
+                }
+                args.AuthenticationKey = Cipher.AuthenticationKey;
+                if (Cipher.DedicatedKey != null && Cipher.DedicatedKey.Length == 16 &&
+                    (Connected & ConnectionState.Dlms) != 0)
+                {
+                    args.BlockCipherKey = Cipher.DedicatedKey;
+                }
+                else
+                {
+                    args.BlockCipherKey = Cipher.BlockCipherKey;
+                }
+                CryptoNotifier.crypto(CryptoNotifier, args);
+                if (encrypt)
+                {
+                    return args.Encrypted;
+                }
+                else
+                {
+                    return args.PlainText;
+                }
+            }
+            return null;
         }
 
         internal object GetKey(CertificateType certificateType,

@@ -69,7 +69,7 @@ namespace Gurux.DLMS.Client.Example
             //Has user give the custom serial port settings or are the default values used in mode E.
             bool modeEDefaultValues = true;
             string[] tmp;
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:P:g:S:C:n:v:o:T:A:B:D:d:l:F:m:E:V:G:M:K:N:W:w:f:");
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:P:g:S:C:n:v:o:T:A:B:D:d:l:F:m:E:V:G:M:K:N:W:w:f:L:");
             GXNet net;
             foreach (GXCmdParameter it in parameters)
             {
@@ -359,6 +359,9 @@ namespace Gurux.DLMS.Client.Example
                     case 'f':
                         settings.client.HdlcSettings.MaxInfoRX = settings.client.HdlcSettings.MaxInfoTX = UInt16.Parse(it.Value);
                         break;
+                    case 'L':
+                        settings.client.ManufacturerId = it.Value;
+                        break;
                     case 'G':
                         tmp = it.Value.Split(':');
                         settings.client.Gateway = new GXDLMSGateway();
@@ -474,6 +477,7 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine(" -W \t General Block Transfer window size.");
             Console.WriteLine(" -w \t HDLC Window size. Default is 1");
             Console.WriteLine(" -f \t HDLC Frame size. Default is 128");
+            Console.WriteLine(" -L \t Manufacturer ID (Flag ID) is used to use manufacturer depending functionality. -L LGZ");
             Console.WriteLine("Example:");
             Console.WriteLine("Read LG device using TCP/IP connection.");
             Console.WriteLine("GuruxDlmsSample -r SN -c 16 -s 1 -h [Meter IP Address] -p [Meter Port No]");

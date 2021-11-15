@@ -851,9 +851,14 @@ namespace Gurux.DLMS
 
         internal static byte[] Cipher0(GXDLMSLNParameters p, byte[] data)
         {
-            byte[] tmp = GXCiphering.Encrypt(GetCipheringParameters(p), data);
+            //If external Hardware Security Module is used.
+            byte[] ret = p.settings.Crypt(CertificateType.DigitalSignature, data, true);
+            if (ret == null)
+            {
+                ret = GXCiphering.Encrypt(GetCipheringParameters(p), data);
+            }
             ++p.settings.Cipher.InvocationCounter;
-            return tmp;
+            return ret;
         }
 
         /// <summary>
@@ -925,6 +930,12 @@ namespace Gurux.DLMS
             GXPublicKey pub;
             if (p.settings.Cipher.Signing != Signing.GeneralSigning)
             {
+                //If external Hardware Security Module is used.
+                byte[] ret = p.settings.Crypt(CertificateType.KeyAgreement, data, true);
+                if (ret != null)
+                {
+                    return ret;
+                }
                 key = c.KeyAgreementKeyPair.Value;
                 pub = c.KeyAgreementKeyPair.Key;
                 if (key == null)
@@ -971,6 +982,12 @@ namespace Gurux.DLMS
             }
             else
             {
+                //If external Hardware Security Module is used.
+                byte[] ret = p.settings.Crypt(CertificateType.DigitalSignature, data, true);
+                if (ret != null)
+                {
+                    return ret;
+                }
                 key = c.SigningKeyPair.Value;
                 pub = c.SigningKeyPair.Key;
                 if (key == null)
@@ -2685,7 +2702,7 @@ namespace Gurux.DLMS
                                     data.HdlcStreaming = (frame & 0x10) == 0;
                                 }
                             }
-                        }                        
+                        }
                     }
                 }
             }
@@ -4499,43 +4516,54 @@ namespace Gurux.DLMS
                 if ((data.MoreData & RequestTypes.Frame) == 0)
                 {
                     --data.Data.Position;
-                    AesGcmParameter p;
-                    GXICipher cipher = settings.Cipher;
-                    if (data.Command == Command.GeneralDedCiphering)
+                    int pos = data.Data.Position;
+                    //Return copy from data because ciphering is changing it.
+                    byte[] encrypted = data.Data.Array();
+                    //If external Hardware Security Module is used.
+                    byte[] ret = settings.Crypt(CertificateType.DigitalSignature, encrypted, false);
+                    if (ret != null)
                     {
-                        p = new AesGcmParameter(settings, settings.SourceSystemTitle,
-                                cipher.DedicatedKey,
-                                GetAuthenticationKey(settings));
-                    }
-                    else if (data.Command == Command.GeneralGloCiphering)
-                    {
-                        p = new AesGcmParameter(settings, settings.SourceSystemTitle,
-                                GetBlockCipherKey(settings),
-                                GetAuthenticationKey(settings));
-                    }
-                    else if (cipher.DedicatedKey == null || IsGloMessage(data.Command))
-                    {
-                        p = new AesGcmParameter(settings, settings.SourceSystemTitle,
-                                GetBlockCipherKey(settings),
-                                GetAuthenticationKey(settings));
+                        encrypted = data.Data.Array();
+                        data.Data.Size = 0;
+                        data.Data.Set(ret);
                     }
                     else
                     {
-                        p = new AesGcmParameter(settings, settings.SourceSystemTitle,
-                                cipher.DedicatedKey,
-                                GetAuthenticationKey(settings));
+                        AesGcmParameter p;
+                        GXICipher cipher = settings.Cipher;
+                        if (data.Command == Command.GeneralDedCiphering)
+                        {
+                            p = new AesGcmParameter(settings, settings.SourceSystemTitle,
+                                    cipher.DedicatedKey,
+                                    GetAuthenticationKey(settings));
+                        }
+                        else if (data.Command == Command.GeneralGloCiphering)
+                        {
+                            p = new AesGcmParameter(settings, settings.SourceSystemTitle,
+                                    GetBlockCipherKey(settings),
+                                    GetAuthenticationKey(settings));
+                        }
+                        else if (cipher.DedicatedKey == null || IsGloMessage(data.Command))
+                        {
+                            p = new AesGcmParameter(settings, settings.SourceSystemTitle,
+                                    GetBlockCipherKey(settings),
+                                    GetAuthenticationKey(settings));
+                        }
+                        else
+                        {
+                            p = new AesGcmParameter(settings, settings.SourceSystemTitle,
+                                    cipher.DedicatedKey,
+                                    GetAuthenticationKey(settings));
+                        }
+                        byte[] tmp = GXCiphering.Decrypt(p, data.Data);
+                        cipher.SecuritySuite = p.SecuritySuite;
+                        if (settings.CryptoNotifier != null && settings.CryptoNotifier.pdu != null && data.IsComplete && (data.MoreData & RequestTypes.Frame) == 0)
+                        {
+                            settings.CryptoNotifier.pdu(settings.CryptoNotifier, tmp);
+                        }
+                        data.Data.Clear();
+                        data.Data.Set(tmp);
                     }
-                    int pos = data.Data.Position;
-                    //Return copy from data because ciphering is changing it.
-                    byte[] encrypted = data.Data.SubArray(0, data.Data.Size);
-                    byte[] tmp = GXCiphering.Decrypt(p, data.Data);
-                    cipher.SecuritySuite = p.SecuritySuite;
-                    if (settings.CryptoNotifier != null && settings.CryptoNotifier.pdu != null && data.IsComplete && (data.MoreData & RequestTypes.Frame) == 0)
-                    {
-                        settings.CryptoNotifier.pdu(settings.CryptoNotifier, tmp);
-                    }
-                    data.Data.Clear();
-                    data.Data.Set(tmp);
                     // Get command.
                     data.CipheredCommand = data.Command;
                     data.Command = (Command)data.Data.GetUInt8();
@@ -4584,65 +4612,74 @@ namespace Gurux.DLMS
                     --data.Data.Position;
                     GXByteBuffer bb = new GXByteBuffer(data.Data);
                     data.Data.Position = data.Data.Size = index;
-                    AesGcmParameter p;
-                    GXICipher cipher = settings.Cipher;
-                    if (cipher.DedicatedKey != null
-                            && (settings.Connected & ConnectionState.Dlms) != 0)
+                    //If external Hardware Security Module is used.
+                    byte[] ret = settings.Crypt(CertificateType.DigitalSignature, bb.Array(), false);
+                    if (ret != null)
                     {
-                        p = new AesGcmParameter(settings,
-                            settings.SourceSystemTitle,
-                            cipher.DedicatedKey,
-                            GetAuthenticationKey(settings));
+                        data.Data.Set(ret);
                     }
                     else
                     {
-                        if (settings.PreEstablishedSystemTitle != null && (settings.Connected & ConnectionState.Dlms) == 0)
+                        AesGcmParameter p;
+                        GXICipher cipher = settings.Cipher;
+                        if (cipher.DedicatedKey != null
+                                && (settings.Connected & ConnectionState.Dlms) != 0)
                         {
                             p = new AesGcmParameter(settings,
-                            settings.PreEstablishedSystemTitle,
-                            GetBlockCipherKey(settings),
-                            GetAuthenticationKey(settings));
+                                settings.SourceSystemTitle,
+                                cipher.DedicatedKey,
+                                GetAuthenticationKey(settings));
                         }
                         else
                         {
-                            if (settings.SourceSystemTitle == null && (settings.Connected & ConnectionState.Dlms) != 0)
+                            if (settings.PreEstablishedSystemTitle != null && (settings.Connected & ConnectionState.Dlms) == 0)
                             {
-                                if (settings.IsServer)
-                                {
-                                    throw new Exception("Ciphered failed. Client system title is unknown.");
-                                }
-                                else
-                                {
-                                    throw new Exception("Ciphered failed. Server system title is unknown.");
-                                }
-                            }
-                            p = new AesGcmParameter(settings,
-                                settings.SourceSystemTitle,
+                                p = new AesGcmParameter(settings,
+                                settings.PreEstablishedSystemTitle,
                                 GetBlockCipherKey(settings),
                                 GetAuthenticationKey(settings));
+                            }
+                            else
+                            {
+                                if (settings.SourceSystemTitle == null && (settings.Connected & ConnectionState.Dlms) != 0)
+                                {
+                                    if (settings.IsServer)
+                                    {
+                                        throw new Exception("Ciphered failed. Client system title is unknown.");
+                                    }
+                                    else
+                                    {
+                                        throw new Exception("Ciphered failed. Server system title is unknown.");
+                                    }
+                                }
+                                p = new AesGcmParameter(settings,
+                                    settings.SourceSystemTitle,
+                                    GetBlockCipherKey(settings),
+                                    GetAuthenticationKey(settings));
+                            }
                         }
-                    }
-                    byte[] tmp = GXCiphering.Decrypt(p, bb);
-                    //If target is sending data ciphered using different security policy.
-                    if (!settings.Cipher.SecurityChangeCheck && (settings.Connected & ConnectionState.Dlms) != 0 &&
-                        settings.Cipher.Security != Security.None && settings.Cipher.Signing != Signing.GeneralSigning &&
-                        settings.Cipher.Security != p.Security)
-                    {
-                        throw new GXDLMSCipherException(string.Format("Data is ciphered using different security level. Actual: {0}. Expected: {1}", p.Security, settings.Cipher.Security));
-                    }
-                    if (settings.ExpectedInvocationCounter != 0)
-                    {
-                        if (p.InvocationCounter < settings.ExpectedInvocationCounter)
+                        byte[] tmp = GXCiphering.Decrypt(p, bb);
+                        data.Data.Set(tmp);
+                        //If target is sending data ciphered using different security policy.
+                        if (!settings.Cipher.SecurityChangeCheck && (settings.Connected & ConnectionState.Dlms) != 0 &&
+                            settings.Cipher.Security != Security.None && settings.Cipher.Signing != Signing.GeneralSigning &&
+                            settings.Cipher.Security != p.Security)
                         {
-                            throw new GXDLMSCipherException(string.Format("Data is ciphered using invalid invocation counter value. Actual: {0}. Expected: {1}", p.InvocationCounter, settings.ExpectedInvocationCounter));
+                            throw new GXDLMSCipherException(string.Format("Data is ciphered using different security level. Actual: {0}. Expected: {1}", p.Security, settings.Cipher.Security));
                         }
-                        settings.ExpectedInvocationCounter = p.InvocationCounter;
+                        if (settings.ExpectedInvocationCounter != 0)
+                        {
+                            if (p.InvocationCounter < settings.ExpectedInvocationCounter)
+                            {
+                                throw new GXDLMSCipherException(string.Format("Data is ciphered using invalid invocation counter value. Actual: {0}. Expected: {1}", p.InvocationCounter, settings.ExpectedInvocationCounter));
+                            }
+                            settings.ExpectedInvocationCounter = p.InvocationCounter;
+                        }
+                        if (settings.CryptoNotifier != null && settings.CryptoNotifier.pdu != null)
+                        {
+                            settings.CryptoNotifier.pdu(settings.CryptoNotifier, tmp);
+                        }
                     }
-                    if (settings.CryptoNotifier != null && settings.CryptoNotifier.pdu != null)
-                    {
-                        settings.CryptoNotifier.pdu(settings.CryptoNotifier, tmp);
-                    }
-                    data.Data.Set(tmp);
                     data.CipheredCommand = data.Command;
                     data.Command = Command.None;
                     GetPdu(settings, data);

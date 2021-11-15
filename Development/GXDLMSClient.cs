@@ -50,6 +50,14 @@ namespace Gurux.DLMS
     /// </summary>
     public class GXDLMSClient
     {
+        /// <summary>
+        /// Manufacturer ID.
+        /// </summary>
+        /// <remarks>
+        /// Manufacturer ID (FLAG ID) is used for manucaturer depending functionality.
+        /// </remarks>
+        private string manufacturerId;
+
         protected GXDLMSTranslator translator;
         /// <summary>
         /// Initialize challenge that is restored after the connection is closed.
@@ -93,6 +101,29 @@ namespace Gurux.DLMS
             get;
             private set;
         }
+
+        /// <summary>
+        /// Manufacturer ID.
+        /// </summary>
+        /// <remarks>
+        /// Manufacturer ID (FLAG ID) is used for manucaturer depending functionality.
+        /// </remarks>
+        public string ManufacturerId
+        {
+            get
+            {
+                return manufacturerId;
+            }
+            set
+            {
+                if (!string.IsNullOrEmpty(value) && value.Length != 3)
+                {
+                    throw new ArgumentOutOfRangeException("Manufacturer ID is 3 chars long string");
+                }
+                manufacturerId = value;
+            }
+        }
+
 
         private static Dictionary<ObjectType, Type> AvailableObjectTypes = new Dictionary<ObjectType, Type>();
 
@@ -1078,6 +1109,23 @@ namespace Gurux.DLMS
                 throw new ArgumentException("Password is invalid.");
             }
             Settings.ResetBlockIndex();
+            byte[] challenge;
+            //Count challenge for Landis+Gyr.L+G is using custom way to count the challenge.
+            if (manufacturerId == "LGZ" && Settings.Authentication == Enums.Authentication.High)
+            {
+                challenge = EncryptLandisGyrHighLevelAuthentication(Settings.Password, Settings.StoCChallenge);
+                if (UseLogicalNameReferencing)
+                {
+                    if (string.IsNullOrEmpty(ln))
+                    {
+                        ln = "0.0.40.0.0.255";
+                    }
+                    return Method(ln, ObjectType.AssociationLogicalName,
+                                  1, challenge, DataType.OctetString);
+                }
+                return Method(0xFA00, ObjectType.AssociationShortName, 8, challenge, DataType.OctetString);
+            }
+
             byte[] pw;
             if (Settings.Authentication == Enums.Authentication.HighGMAC)
             {
@@ -1123,7 +1171,7 @@ namespace Gurux.DLMS
             {
                 ++Settings.Cipher.InvocationCounter;
             }
-            byte[] challenge = GXSecure.Secure(Settings, Settings.Cipher, Settings.Cipher.InvocationCounter,
+            challenge = GXSecure.Secure(Settings, Settings.Cipher, Settings.Cipher.InvocationCounter,
                                                Settings.StoCChallenge, pw);
             if (UseLogicalNameReferencing)
             {
@@ -3145,6 +3193,31 @@ namespace Gurux.DLMS
                 return SerialnumberCounter.Count(serialNumber, formula);
             }
             return logicalAddress << 14 | SerialnumberCounter.Count(serialNumber, formula);
+        }
+
+        /// <summary>
+        /// Encrypt Landis+Gyr High level password.
+        /// </summary>
+        /// <param name="password">User password.</param>
+        /// <param name="seed">Seed received from the meter.</param>
+        /// <returns></returns>
+        public static byte[] EncryptLandisGyrHighLevelAuthentication(byte[] password, byte[] seed)
+        {
+            byte[] crypted = new byte[seed.Length];//Settings.StoCChallenge
+            seed.CopyTo(crypted, 0);
+            for (int pos = 0; pos != password.Length; ++pos)
+            {
+                if (password[pos] != 0x30)
+                {
+                    crypted[pos] += (byte)(password[pos] - 0x30);
+                    //Convert to cabital letter.
+                    if (crypted[pos] > 0x39)
+                    {
+                        crypted[pos] += 7;
+                    }
+                }
+            }
+            return crypted;
         }
 
         /// <summary>
