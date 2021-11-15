@@ -35,7 +35,6 @@
 using Gurux.DLMS.ASN;
 using Gurux.DLMS.Ecdsa;
 using Gurux.DLMS.Enums;
-using Gurux.DLMS.Internal;
 using Gurux.DLMS.Objects.Enums;
 using System;
 using System.Collections.Generic;

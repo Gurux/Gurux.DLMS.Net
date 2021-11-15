@@ -206,21 +206,6 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// GBT window size.
-        /// </summary>
-        public byte WindowSize
-        {
-            get
-            {
-                return Settings.WindowSize;
-            }
-            set
-            {
-                Settings.WindowSize = value;
-            }
-        }
-
-        /// <summary>
         /// Standard says that Time zone is from normal time to UTC in minutes.
         /// If meter is configured to use UTC time (UTC to normal time) set this to true.
         /// Example. Italy, Saudi Arabia and India standards are using UTC time zone, not DLMS standard time zone.
@@ -458,6 +443,22 @@ namespace Gurux.DLMS
             set
             {
                 Settings.MaxPduSize = value;
+            }
+        }
+
+        /// <summary>
+        /// Maximum GBT window size.
+        /// </summary>
+        [DefaultValue(1)]
+        public byte GbtWindowSize
+        {
+            get
+            {
+                return Settings.GbtWindowSize;
+            }
+            set
+            {
+                Settings.GbtWindowSize = value;
             }
         }
 
@@ -943,6 +944,10 @@ namespace Gurux.DLMS
         /// <seealso cref="ParseAAREResponse"/>
         public byte[][] AARQRequest()
         {
+            if (ProposedConformance == 0)
+            {
+                throw new Exception("Invalid conformance.");
+            }
             //Save default values.
             InitializePduSize = MaxReceivePDUSize;
             InitializeChallenge = Settings.CtoSChallenge;
@@ -1768,6 +1773,10 @@ namespace Gurux.DLMS
                     System.Diagnostics.Debug.WriteLine(string.Format("Unknown object : {0} {1}", ot, GXCommon.ToLogicalName((byte[])objects[2])));
                 }
             }
+            if (cnt != objectCnt)
+            {
+                System.Diagnostics.Debug.WriteLine(string.Format("Association expect size is {0} and actual size is {1}", cnt, objectCnt));
+            }
             return items;
         }
 
@@ -2092,6 +2101,8 @@ namespace Gurux.DLMS
                     attributeDescriptor.SetUInt8(1);
                 }
                 GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.MethodRequest, (byte)ActionRequestType.Normal, attributeDescriptor, data, 0xff, Command.None);
+                //GBT Window size or streaming is not used with method because there is no information available from the
+                //GBT block number and client doesn't know when ACK is expected.
                 return GXDLMS.GetLnMessages(p);
             }
             else
@@ -2192,6 +2203,8 @@ namespace Gurux.DLMS
                 p.blockIndex = Settings.BlockIndex;
                 p.blockNumberAck = Settings.BlockNumberAck;
                 p.Streaming = false;
+                //GBT Window size or streaming is not used with write because there is no information available from the
+                //GBT block number and client doesn't know when ACK is expected.
                 reply = GXDLMS.GetLnMessages(p);
             }
             else
@@ -2390,7 +2403,7 @@ namespace Gurux.DLMS
             Settings.ResetBlockIndex();
             List<byte[]> messages = new List<byte[]>();
             GXByteBuffer data = new GXByteBuffer();
-            if (this.UseLogicalNameReferencing)
+            if (UseLogicalNameReferencing)
             {
                 GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.SetRequest, (byte)SetCommandType.WithList, null, data, 0xff, Command.None);
                 // Add length.
@@ -3256,7 +3269,7 @@ namespace Gurux.DLMS
             {
                 throw new Exception("This method can be used only to generate HDLC custom frames");
             }
-            return GXDLMS.GetHdlcFrame(Settings, command, data);
+            return GXDLMS.GetHdlcFrame(Settings, command, data, true);
         }
 
         /// <summary>

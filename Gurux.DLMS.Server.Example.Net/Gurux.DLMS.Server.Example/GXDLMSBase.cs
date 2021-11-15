@@ -79,6 +79,10 @@ namespace GuruxDLMSServerExample
             PushClientAddress = 64;
             MaxReceivePDUSize = 1024;
             ln.XDLMSContextInfo.MaxReceivePduSize = ln.XDLMSContextInfo.MaxSendPduSize = 1024;
+            //Set max TX and RX sizes for the HDLC frame.
+            hdlc.MaximumInfoLengthReceive = hdlc.MaximumInfoLengthTransmit = 2048;
+            //Set max TX and RX window sizes for the HDLC frame.
+            hdlc.WindowSizeReceive = hdlc.WindowSizeTransmit = 3;
             //Default secret.
             ln.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
             //Add security setup object.

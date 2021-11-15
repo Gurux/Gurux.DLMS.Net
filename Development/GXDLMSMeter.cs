@@ -807,6 +807,7 @@ namespace Gurux.DLMS
         {
             Objects = new GXDLMSObjectCollection(this);
             PduWaitTime = 100;
+            GbtWindowSize = 1;
         }
 
 
@@ -870,5 +871,17 @@ namespace Gurux.DLMS
             set;
         }
 
+        /// <summary>
+        /// Maximum GBT window size.
+        /// </summary>
+        /// <remarks>
+        /// DefaultValue is 1.
+        /// </remarks>
+        [DefaultValue(1)]
+        public byte GbtWindowSize
+        {
+            get;
+            set;
+        }
     }
 }

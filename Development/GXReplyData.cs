@@ -263,7 +263,19 @@ namespace Gurux.DLMS
         /// <remarks>
         /// This is for internal use.
         /// </remarks>
-        internal byte WindowSize
+        internal byte GbtWindowSize
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Is HDLC streaming in progress.
+        /// </summary>
+        /// <remarks>
+        /// This is for internal use.
+        /// </remarks>
+        internal bool HdlcStreaming
         {
             get;
             set;
@@ -304,12 +316,14 @@ namespace Gurux.DLMS
 
 
         /// <summary>
-        /// Is GBT streaming.
+        /// Is GBT or HDLC streaming used.
         /// </summary>
         /// <returns></returns>
         public bool IsStreaming()
         {
-            return Streaming && (BlockNumberAck * WindowSize) + 1 > BlockNumber;
+            return ((MoreData & RequestTypes.Frame) == 0 &&
+                Streaming && (BlockNumberAck * GbtWindowSize) + 1 > BlockNumber) ||
+                ((MoreData & RequestTypes.Frame) == RequestTypes.Frame && HdlcStreaming);
         }
 
         ///<summary>
@@ -330,6 +344,7 @@ namespace Gurux.DLMS
             DataType = DataType.None;
             CipherIndex = 0;
             Time = DateTime.MinValue;
+            GbtWindowSize = 0;
             if (Xml != null)
             {
                 Xml.SetXmlLength(0);

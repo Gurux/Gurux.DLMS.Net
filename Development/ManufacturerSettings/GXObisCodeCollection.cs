@@ -45,12 +45,15 @@ namespace Gurux.DLMS.ManufacturerSettings
     {
         public GXObisCode FindByLN(ObjectType type, string ln, GXObisCode skipItem)
         {
-            ln = ln.Trim();
-            foreach (GXObisCode it in this)
+            if (!string.IsNullOrEmpty(ln))
             {
-                if ((it.ObjectType == type || type == ObjectType.None) && it.LogicalName == ln && it != skipItem)
+                ln = ln.Trim();
+                foreach (GXObisCode it in this)
                 {
-                    return it;
+                    if ((it.ObjectType == type || type == ObjectType.None) && it.LogicalName == ln && it != skipItem)
+                    {
+                        return it;
+                    }
                 }
             }
             return null;

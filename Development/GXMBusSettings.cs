@@ -43,8 +43,6 @@ namespace Gurux.DLMS
     /// </summary>
     public class GXMBusSettings
     {
-        private GXDLMSSettings settings;
-
         /// <summary>
         /// Device identification number.
         /// </summary>

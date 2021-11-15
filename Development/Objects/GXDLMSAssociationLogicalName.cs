@@ -728,6 +728,8 @@ namespace Gurux.DLMS.Objects
                 // If default association view is not found.
                 if (!found)
                 {
+                    //Remove added association view from total count.
+                    --settings.Count;
                     data.SetUInt8(DataType.Structure);
                     // Count
                     data.SetUInt8(4);

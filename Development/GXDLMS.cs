@@ -279,7 +279,7 @@ namespace Gurux.DLMS
         internal static byte[] ReceiverReady(GXDLMSSettings settings, RequestTypes type)
         {
             GXReplyData reply = new GXReplyData() { MoreData = type };
-            reply.WindowSize = settings.WindowSize;
+            reply.GbtWindowSize = settings.GbtWindowSize;
             reply.BlockNumberAck = settings.BlockNumberAck;
             reply.BlockNumber = (UInt16)settings.BlockIndex;
             return ReceiverReady(settings, reply);
@@ -350,10 +350,10 @@ namespace Gurux.DLMS
             if (reply.MoreData == RequestTypes.GBT)
             {
                 GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, Command.GeneralBlockTransfer, 0, null, null, 0xff, Command.None);
-                p.WindowSize = reply.WindowSize;
-                p.blockNumberAck = reply.BlockNumberAck;
-                p.blockIndex = reply.BlockNumber;
-                p.Streaming = false;
+                p.WindowSize = reply.GbtWindowSize;
+                p.blockNumberAck = (UInt16)reply.BlockNumber;
+                p.blockIndex = settings.BlockIndex;
+                p.Streaming = p.WindowSize != 1;
                 data = GXDLMS.GetLnMessages(p);
             }
             else
@@ -1512,7 +1512,7 @@ namespace Gurux.DLMS
                     {
                         value = 0x80;
                     }
-                    else if (p.Streaming)
+                    if (p.Streaming)
                     {
                         value |= 0x40;
                     }
@@ -2028,6 +2028,18 @@ namespace Gurux.DLMS
         /// <returns>HDLC frames.</returns>
         internal static byte[] GetHdlcFrame(GXDLMSSettings settings, byte frame, GXByteBuffer data)
         {
+            return GetHdlcFrame(settings, frame, data, true);
+        }
+
+        /// <summary>
+        /// Get HDLC frame for data.
+        /// </summary>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="frame">Frame ID. If zero new is generated.</param>
+        /// <param name="data">Data to add.</param>
+        /// <returns>HDLC frames.</returns>
+        internal static byte[] GetHdlcFrame(GXDLMSSettings settings, byte frame, GXByteBuffer data, bool final)
+        {
             GXByteBuffer bb = new GXByteBuffer();
             int frameSize, len;
             byte[] primaryAddress, secondaryAddress;
@@ -2073,14 +2085,14 @@ namespace Gurux.DLMS
             }
             else if (data.Size - data.Position <= frameSize)
             {
-                len = data.Size - data.Position;
                 // Is last packet.
+                len = data.Available;
                 bb.SetUInt8((byte)(0xA0 | ((7 + primaryAddress.Length + secondaryAddress.Length + len) >> 8) & 0x7));
             }
             else
             {
-                len = frameSize;
                 // More data to left.
+                len = frameSize;
                 bb.SetUInt8((byte)(0xA8 | ((7 + primaryAddress.Length + secondaryAddress.Length + len) >> 8) & 0x7));
             }
             //Frame len.
@@ -2100,6 +2112,10 @@ namespace Gurux.DLMS
             if (frame == 0)
             {
                 frame = settings.NextSend(true);
+            }
+            if (!final)
+            {
+                frame = (byte)(frame & ~0x10);
             }
             bb.SetUInt8(frame);
             // Add header CRC.
@@ -2238,7 +2254,7 @@ namespace Gurux.DLMS
             int val = settings.Plc.MacSourceAddress << 12;
             val |= settings.Plc.MacDestinationAddress & 0xFFF;
             bb.SetUInt16((UInt16)val);
-            byte[] tmp = GXDLMS.GetHdlcFrame(settings, frame, data);
+            byte[] tmp = GXDLMS.GetHdlcFrame(settings, frame, data, true);
             int padLen = (36 - ((10 + tmp.Length) % 36)) % 36;
             bb.SetUInt8((byte)padLen);
             bb.Set(tmp);
@@ -2384,6 +2400,8 @@ namespace Gurux.DLMS
             short ch;
             int pos, packetStartID = reply.Position, frameLen = 0;
             int crc, crcRead;
+            bool first = (data.MoreData & RequestTypes.Frame) == 0 ||
+                (notify != null && (notify.MoreData & RequestTypes.Frame) != 0);
             // If whole frame is not received yet.
             if (reply.Size - reply.Position < 9)
             {
@@ -2495,21 +2513,26 @@ namespace Gurux.DLMS
                 if (isNotify)
                 {
                     notify.MoreData = (RequestTypes)(notify.MoreData | RequestTypes.Frame);
+                    notify.HdlcStreaming = (frame & 0x10) == 0;
                 }
                 else
                 {
                     data.MoreData = (RequestTypes)(data.MoreData | RequestTypes.Frame);
+                    data.HdlcStreaming = (frame & 0x10) == 0;
                 }
             }
-            else
+            //If the final bit is set. This is used when Window size > 1.
+            else if ((frame & 0x10) != 0 || settings.Hdlc.WindowSizeRX == 1)
             {
                 if (isNotify)
                 {
                     notify.MoreData = (RequestTypes)(notify.MoreData & ~RequestTypes.Frame);
+                    notify.HdlcStreaming = false;
                 }
                 else
                 {
                     data.MoreData = (RequestTypes)(data.MoreData & ~RequestTypes.Frame);
+                    data.HdlcStreaming = false;
                 }
             }
             if (data.Xml == null && !settings.CheckFrame(frame))
@@ -2637,9 +2660,32 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    if (!GetLLCBytes(server, reply) && data.Xml != null)
+                    if (first)
                     {
-                        GetLLCBytes(!server, reply);
+                        bool llc = GetLLCBytes(server, reply);
+                        if (data.Xml == null)
+                        {
+                            if (!llc)
+                            {
+                                throw new Exception("LLC bytes are missing from the message.");
+                            }
+                        }
+                        else if (!llc)
+                        {
+                            if (!GetLLCBytes(!server, reply))
+                            {
+                                if (isNotify)
+                                {
+                                    notify.MoreData = (RequestTypes)(notify.MoreData | RequestTypes.Frame);
+                                    notify.HdlcStreaming = (frame & 0x10) == 0;
+                                }
+                                else
+                                {
+                                    data.MoreData = (RequestTypes)(data.MoreData | RequestTypes.Frame);
+                                    data.HdlcStreaming = (frame & 0x10) == 0;
+                                }
+                            }
+                        }                        
                     }
                 }
             }
@@ -3638,13 +3684,11 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        data.Xml.AppendStartTag(Command.MethodResponse,
-                                                ActionResponseType.Normal);
+                        data.Xml.AppendStartTag(TranslatorTags.Data);
                         GXDataInfo di = new GXDataInfo();
                         di.xml = data.Xml;
                         GXCommon.GetData(settings, data.Data, di);
-                        data.Xml.AppendEndTag(Command.MethodResponse,
-                                              ActionResponseType.Normal);
+                        data.Xml.AppendEndTag(TranslatorTags.Data);
                     }
                     data.Xml.AppendEndTag(TranslatorTags.ReturnParameters);
 
@@ -4260,7 +4304,7 @@ namespace Gurux.DLMS
             GXReplyData data)
         {
             int index = data.Data.Position - 1;
-            data.WindowSize = settings.WindowSize;
+            data.GbtWindowSize = settings.GbtWindowSize;
             //BlockControl
             byte bc = data.Data.GetUInt8();
             //Is streaming active.
@@ -4314,8 +4358,8 @@ namespace Gurux.DLMS
                 data.Xml.AppendLine(TranslatorTags.BlockControl, null, data.Xml.IntegerToHex(bc, 2));
                 data.Xml.AppendLine(TranslatorTags.BlockNumber, null, data.Xml.IntegerToHex(data.BlockNumber, 4));
                 data.Xml.AppendLine(TranslatorTags.BlockNumberAck, null, data.Xml.IntegerToHex(data.BlockNumberAck, 4));
-                //If last block and comments.
-                if ((bc & 0x80) != 0 && data.Xml.Comments && data.Data.Available != 0)
+                //If last block and not streaming and comments.
+                if ((bc & 0x80) != 0 && !data.Streaming && data.Xml.Comments && data.Data.Available != 0)
                 {
                     int pos = data.Data.Position;
                     int len2 = data.Xml.GetXmlLength();
@@ -5554,10 +5598,6 @@ namespace Gurux.DLMS
             //If default settings are used.
             if (data.Size == 0)
             {
-                settings.Hdlc.MaxInfoRX = GXDLMSLimitsDefault.DefaultMaxInfoRX;
-                settings.Hdlc.MaxInfoTX = GXDLMSLimitsDefault.DefaultMaxInfoTX;
-                settings.Hdlc.WindowSizeRX = GXDLMSLimitsDefault.DefaultWindowSizeRX;
-                settings.Hdlc.WindowSizeTX = GXDLMSLimitsDefault.DefaultWindowSizeTX;
                 return;
             }
             data.GetUInt8(); // Skip FromatID

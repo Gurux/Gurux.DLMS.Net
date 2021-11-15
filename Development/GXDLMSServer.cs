@@ -577,15 +577,16 @@ namespace Gurux.DLMS
         public GXDLMSHdlcSetup Hdlc
         {
             get;
-            internal set;
+            set;
         }
+
         /// <summary>
         /// Wrapper settings.
         /// </summary>
         public GXDLMSTcpUdpSetup Wrapper
         {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -606,15 +607,15 @@ namespace Gurux.DLMS
         /// <summary>
         /// GBT window size.
         /// </summary>
-        public byte WindowSize
+        public byte GBTWindowSize
         {
             get
             {
-                return Settings.WindowSize;
+                return Settings.GbtWindowSize;
             }
             set
             {
-                Settings.WindowSize = value;
+                Settings.GbtWindowSize = value;
             }
         }
 
@@ -1066,6 +1067,7 @@ namespace Gurux.DLMS
                 }
             }
             dataReceived = DateTime.MinValue;
+            Settings.GbtCount = 0;
         }
 
         ///<summary>
@@ -1096,7 +1098,7 @@ namespace Gurux.DLMS
             return sr.Reply;
         }
 
-        private byte[] AddPduToFrame(Command cmd, byte frame, GXByteBuffer data)
+        private byte[] AddPduToFrame(Command cmd, byte frame, GXByteBuffer data, bool final)
         {
             byte[] reply;
             switch (InterfaceType)
@@ -1106,7 +1108,7 @@ namespace Gurux.DLMS
                     break;
                 case InterfaceType.HDLC:
                 case InterfaceType.HdlcWithModeE:
-                    reply = GXDLMS.GetHdlcFrame(Settings, frame, data);
+                    reply = GXDLMS.GetHdlcFrame(Settings, frame, data, final);
                     break;
                 case InterfaceType.Plc:
                 case InterfaceType.PlcHdlc:
@@ -1365,7 +1367,15 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    info.Command = Command.GeneralBlockTransfer;
+                    if (sr.Command != Command.None)
+                    {
+                        info.Command = sr.Command;
+                    }
+                    else
+                    {
+                        //If GBT is streaming.
+                        info.Command = Command.GeneralBlockTransfer;
+                    }
                 }
                 try
                 {
@@ -1388,7 +1398,7 @@ namespace Gurux.DLMS
                 replyData.Clear();
                 replyData.Set(GenerateConfirmedServiceError(e.ConfirmedServiceError, e.ServiceError, e.ServiceErrorValue));
                 info.Clear();
-                sr.Reply = AddPduToFrame(info.Command, 0, replyData);
+                sr.Reply = AddPduToFrame(info.Command, 0, replyData, true);
             }
             catch (Exception ex)
             {
@@ -1442,9 +1452,9 @@ namespace Gurux.DLMS
         /// <param name="addFrame">Frame is not add when GBT is used.</param>
         /// <returns></returns>
         private byte[] HandleCommand(
-            Command cmd, 
-            GXByteBuffer data, 
-            GXServerReply sr, 
+            Command cmd,
+            GXByteBuffer data,
+            GXServerReply sr,
             Command cipheredCommand,
             bool addFrame)
         {
@@ -1529,7 +1539,37 @@ namespace Gurux.DLMS
             byte[] reply;
             if (addFrame)
             {
-                reply = AddPduToFrame(cmd, frame, replyData);
+                bool final = true;
+                if ((Settings.InterfaceType == InterfaceType.HDLC ||
+                    Settings.InterfaceType == InterfaceType.HdlcWithModeE) &&
+                    replyData.Available > Settings.Hdlc.MaxInfoTX)
+                {
+                    sr.MoreData |= RequestTypes.Frame;
+                    if (sr.HdlcWindowCount == 0 && Settings.Hdlc.WindowSizeTX != 1)
+                    {
+                        sr.HdlcWindowCount = Settings.Hdlc.WindowSizeTX;
+                        if (frame == 0)
+                        {
+                            frame = Settings.NextSend(true);
+                        }
+                    }
+                    if (sr.HdlcWindowCount != 0)
+                    {
+                        --sr.HdlcWindowCount;
+                    }
+                    //Reset final bit.
+                    if (sr.HdlcWindowCount != 0)
+                    {
+                        final = false;
+                    }
+                }
+                else
+                {
+                    sr.MoreData &= ~RequestTypes.Frame;
+                    sr.HdlcWindowCount = 0;
+                }
+                sr.GbtCount = Settings.GbtCount;
+                reply = AddPduToFrame(cmd, frame, replyData, final);
             }
             else
             {
@@ -1555,97 +1595,89 @@ namespace Gurux.DLMS
                 tmp.Set(Settings.Gateway.PhysicalDeviceAddress);
             }
             tmp.Set(data);
-            return AddPduToFrame(command, 0, tmp);
+            return AddPduToFrame(command, 0, tmp, true);
         }
 
         private bool HandleGeneralBlockTransfer(GXByteBuffer data, GXServerReply sr, Command cipheredCommand)
         {
+            byte bc = 0;
+            UInt16 blockNumberAck = 0, blockNumber = 0;
+            if (!sr.IsStreaming)
+            {
+                //BlockControl
+                bc = data.GetUInt8();
+                //Block number.
+                blockNumber = data.GetUInt16();
+                //Block number acknowledged.
+                blockNumberAck = data.GetUInt16();
+                int len = GXCommon.GetObjectCount(data);
+                if (len > data.Size - data.Position)
+                {
+                    replyData.Set(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
+                    ServiceError.Service, (byte)Service.Unsupported));
+                }
+            }
             if (transaction != null)
             {
                 if (transaction.command == Command.GetRequest)
                 {
                     // Get request for next data block
-                    if (sr.Count == 0)
+                    if (sr.GbtCount == 0)
                     {
                         ++Settings.BlockNumberAck;
-                        sr.Count = Settings.WindowSize;
+                        sr.GbtCount = (byte)(bc & 0x3F);
                     }
                     GXDLMSLNCommandHandler.GetRequestNextDataBlock(Settings, 0, this, data, replyData, null, true, cipheredCommand);
-                    if (sr.Count != 0)
+                    if (sr.GbtCount != 0)
                     {
-                        --sr.Count;
+                        --sr.GbtCount;
                     }
-                    if (this.transaction == null)
+                    if (transaction == null)
                     {
-                        sr.Count = 0;
+                        sr.GbtCount = 0;
+                    }
+                    //Save server GBT window size to settings because sr is lost.
+                    if (Settings.IsServer)
+                    {
+                        Settings.GbtCount = sr.GbtCount;
                     }
                 }
                 else
                 {
-                    //BlockControl
-                    byte bc = data.GetUInt8();
-                    //Block number.
-                    UInt16 blockNumber = data.GetUInt16();
-                    //Block number acknowledged.
-                    UInt16 blockNumberAck = data.GetUInt16();
-                    int len = GXCommon.GetObjectCount(data);
-                    if (len > data.Size - data.Position)
+                    transaction.data.Set(data);
+                    //Send ACK.
+                    bool igonoreAck = (bc & 0x40) != 0 && (blockNumberAck * GBTWindowSize) + 1 > blockNumber;
+                    UInt16 windowSize = Settings.GbtWindowSize;
+                    UInt16 bn = (UInt16)Settings.BlockIndex;
+                    if ((bc & 0x80) != 0)
                     {
-                        replyData.Set(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
-                        ServiceError.Service, (byte)Service.Unsupported));
+                        HandleCommand(transaction.command, transaction.data, sr, cipheredCommand, false);
+                        transaction = null;
+                        igonoreAck = false;
+                        windowSize = 1;
                     }
-                    else
+                    if (igonoreAck)
                     {
-                        transaction.data.Set(data);
-                        //Send ACK.
-                        bool igonoreAck = (bc & 0x40) != 0 && (blockNumberAck * WindowSize) + 1 > blockNumber;
-                        UInt16 windowSize = Settings.WindowSize;
-                        UInt16 bn = (UInt16)Settings.BlockIndex;
-                        if ((bc & 0x80) != 0)
-                        {
-                            HandleCommand(transaction.command, transaction.data, sr, cipheredCommand, false);
-                            transaction = null;
-                            igonoreAck = false;
-                            windowSize = 1;
-                        }
-                        if (igonoreAck)
-                        {
-                            return false;
-                        }
-                        replyData.Clear();
-                        replyData.SetUInt8(Command.GeneralBlockTransfer);
-                        replyData.SetUInt8((byte)(0x80 | windowSize));
-                        ++Settings.BlockIndex;
-                        replyData.SetUInt16(bn);
-                        replyData.SetUInt16(blockNumber);
-                        replyData.SetUInt8(0);
+                        return false;
                     }
+                    replyData.Clear();
+                    replyData.SetUInt8(Command.GeneralBlockTransfer);
+                    replyData.SetUInt8((byte)(0x80 | windowSize));
+                    ++Settings.BlockIndex;
+                    replyData.SetUInt16(bn);
+                    replyData.SetUInt16(blockNumber);
+                    replyData.SetUInt8(0);
                 }
             }
             else
             {
-                //BlockControl
-                byte bc = data.GetUInt8();
-                //Block number.
-                UInt16 blockNumber = data.GetUInt16();
-                //Block number acknowledged.
-                UInt16 blockNumberAck = data.GetUInt16();
-                int len = GXCommon.GetObjectCount(data);
-                if (len > data.Size - data.Position)
-                {
-                    replyData.Set(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
-                       ServiceError.Service, (byte)Service.Unsupported));
-                }
-                else
-                {
-                    transaction = new GXDLMSLongTransaction(null, (Command)data.GetUInt8(), data);
-                    replyData.SetUInt8(Command.GeneralBlockTransfer);
-                    replyData.SetUInt8((byte)(0x80 | Settings.WindowSize));
-                    replyData.SetUInt16(blockNumber);
-                    ++blockNumberAck;
-                    replyData.SetUInt16(blockNumberAck);
-                    replyData.SetUInt8(0);
-                }
+                transaction = new GXDLMSLongTransaction(null, (Command)data.GetUInt8(), data);
+                replyData.SetUInt8(Command.GeneralBlockTransfer);
+                replyData.SetUInt8((byte)(0x80 | Settings.GbtWindowSize));
+                replyData.SetUInt16(blockNumber);
+                ++blockNumberAck;
+                replyData.SetUInt16(blockNumberAck);
+                replyData.SetUInt8(0);
             }
             return true;
         }
@@ -1669,7 +1701,7 @@ namespace Gurux.DLMS
                 GXDLMSSNParameters p = new GXDLMSSNParameters(Settings, Command.ExceptionResponse, 1, 0, null, bb);
                 GXDLMS.GetSNPdu(p, replyData);
             }
-            return AddPduToFrame(Command.ExceptionResponse, 0, replyData);
+            return AddPduToFrame(Command.ExceptionResponse, 0, replyData, true);
         }
 
         protected byte[] ReportError(Command cmd, ErrorCode error)
@@ -1712,7 +1744,7 @@ namespace Gurux.DLMS
                 GXDLMSSNParameters p = new GXDLMSSNParameters(Settings, cmd, 1, (byte)error, null, bb);
                 GXDLMS.GetSNPdu(p, replyData);
             }
-            return AddPduToFrame(cmd, 0, replyData);
+            return AddPduToFrame(cmd, 0, replyData, true);
         }
 
         ///<summary>
@@ -1930,6 +1962,18 @@ namespace Gurux.DLMS
         ///</returns>
         private void HandleSnrmRequest(GXByteBuffer data)
         {
+            //Initialize default settings.
+            if (Hdlc != null)
+            {
+                Settings.Hdlc.Update(Hdlc);
+            }
+            else
+            {
+                Settings.Hdlc.MaxInfoRX = GXDLMSLimitsDefault.DefaultMaxInfoRX;
+                Settings.Hdlc.MaxInfoTX = GXDLMSLimitsDefault.DefaultMaxInfoTX;
+                Settings.Hdlc.WindowSizeRX = GXDLMSLimitsDefault.DefaultWindowSizeRX;
+                Settings.Hdlc.WindowSizeTX = GXDLMSLimitsDefault.DefaultWindowSizeTX;
+            }
             GXDLMS.ParseSnrmUaResponse(data, Settings);
             Reset(true);
             if (Hdlc != null)

@@ -1023,7 +1023,13 @@ namespace Gurux.DLMS
             return msg.Xml;
         }
 
-        private static void GetLogicalAndPhysicalAddress(int value, out int logical, out int physical)
+        /// <summary>
+        /// Get logical and physical address from the server address.
+        /// </summary>
+        /// <param name="value">Server address.</param>
+        /// <param name="logical">Logical server address.</param>
+        /// <param name="physical">Physical server address.</param>
+        public static void GetLogicalAndPhysicalAddress(int value, out int logical, out int physical)
         {
             if (value > 0x3FFF)
             {
@@ -2026,6 +2032,7 @@ namespace Gurux.DLMS
                                         if (st != null)
                                         {
                                             p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
+                                            p.Xml = xml; 
                                             GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
                                             xml.AppendComment("Invocation Counter: " + p.InvocationCounter.ToString());
                                             xml.StartComment("Decrypt data: " + data2.ToString());

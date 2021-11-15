@@ -97,6 +97,15 @@ namespace Gurux.DLMS
         {
             get;
             set;
-        }       
+        }
+
+        /// <summary>
+        /// The invocation counter is used when data is enctypted or decrypted.
+        /// </summary>
+        public UInt32 InvocationCounter
+        {
+            get;
+            set;
+        }
     }
 }

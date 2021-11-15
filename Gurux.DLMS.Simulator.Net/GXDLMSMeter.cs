@@ -422,10 +422,11 @@ namespace Gurux.DLMS.Simulator.Net
             {
                 throw new Exception(string.Format("Invalid device template file {0}", objectsFile));
             }
-            //Find defualt local port setup when optical head is used.
+            GXDLMSObjectCollection objs;
+            //Find default local port setup when optical head is used.
             if (InterfaceType == InterfaceType.HdlcWithModeE)
             {
-                GXDLMSObjectCollection objs = Items.GetObjects(ObjectType.IecLocalPortSetup);
+                objs = Items.GetObjects(ObjectType.IecLocalPortSetup);
                 if (objs.Count != 0)
                 {
                     LocalPortSetup = (GXDLMSIECLocalPortSetup)objs[0];
@@ -435,6 +436,19 @@ namespace Gurux.DLMS.Simulator.Net
                     throw new Exception("HdlcWithModeE can't be used because LocalPortSetup not found.");
                 }
             }
+            //Find default HDLC Setup settings.
+            objs = Items.GetObjects(ObjectType.IecHdlcSetup);
+            if (objs.Count != 0)
+            {
+                Hdlc = (GXDLMSHdlcSetup)objs[0];
+            }
+            //Find default Tcp/IP setup Setup settings.
+            objs = Items.GetObjects(ObjectType.TcpUdpSetup);
+            if (objs.Count != 0)
+            {
+                Wrapper = (GXDLMSTcpUdpSetup)objs[0];
+            }
+
             //Create thread for every profile generic so values are captured if capture period is given.
             new Thread(() =>
             {

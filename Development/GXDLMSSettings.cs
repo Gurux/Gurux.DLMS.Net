@@ -51,6 +51,11 @@ namespace Gurux.DLMS
     public class GXDLMSSettings
     {
         /// <summary>
+        /// General Block Transfer window size.
+        /// </summary>
+        private byte gbtWindowSize;
+
+        /// <summary>
         /// Assigned association for the server.
         /// </summary>
         private GXDLMSAssociationLogicalName assignedAssociation;
@@ -401,7 +406,7 @@ namespace Gurux.DLMS
                 ProposedConformance |= Conformance.GeneralProtection;
             }
             ResetFrameSequence();
-            WindowSize = 1;
+            GbtWindowSize = 1;
             UserId = -1;
             Standard = Standard.DLMS;
             Plc = new GXPlcSettings(this);
@@ -450,7 +455,7 @@ namespace Gurux.DLMS
             }
             target.UserId = UserId;
             target.UseUtc2NormalTime = UseUtc2NormalTime;
-            target.WindowSize = WindowSize;
+            target.GbtWindowSize = GbtWindowSize;
             target.Objects.Clear();
             target.Objects.AddRange(Objects);
             target.Hdlc.MaxInfoRX = Hdlc.MaxInfoRX;
@@ -603,11 +608,16 @@ namespace Gurux.DLMS
             //If U frame.
             if ((frame & (byte)HdlcFrameType.Uframe) == (byte)HdlcFrameType.Uframe)
             {
-                if (frame == 0x73 || frame == 0x93)
+                if (frame == 0x93)
                 {
-                    bool isEcho = !IsServer && frame == 0x93 && SenderFrame == 0x10 && ReceiverFrame == 0xE;
+                    bool isEcho = !IsServer && frame == 0x93 && 
+                        (SenderFrame == 0x10 || SenderFrame == 0xfe) && ReceiverFrame == 0xE;
                     ResetFrameSequence();
                     return !isEcho;
+                }
+                if (frame == 0x73 && !IsServer)
+                {
+                    return SenderFrame == 0xFE && ReceiverFrame == 0xE;
                 }
                 return true;
             }
@@ -627,16 +637,45 @@ namespace Gurux.DLMS
                     ReceiverFrame = frame;
                     return true;
                 }
+                //If the final bit is not set.
                 if (frame == (expected & ~0x10))
                 {
-                    ReceiverFrame = IncreaseSendSequence(ReceiverFrame);
+                    ReceiverFrame = frame;
                     return true;
+                }
+                //If Final bit is not set for the previous message.
+                if ((ReceiverFrame & 0x10) == 0)
+                {
+                    expected = (byte)(0x10 | IncreaseSendSequence(ReceiverFrame));
+                    if (frame == expected)
+                    {
+                        ReceiverFrame = frame;
+                        return true;
+                    }
+                    //If the final bit is not set.
+                    if (frame == (expected & ~0x10))
+                    {
+                        ReceiverFrame = frame;
+                        return true;
+                    }
                 }
             }
             //If answer for RR.
             else
             {
                 expected = IncreaseSendSequence(ReceiverFrame);
+                if (frame == expected)
+                {
+                    ReceiverFrame = frame;
+                    return true;
+                }
+                if (frame == (expected & ~0x10))
+                {
+                    ReceiverFrame = frame;
+                    return true;
+                }
+                //If HDLC window size is bigger than one.
+                expected = IncreaseReceiverSequence(IncreaseSendSequence(ReceiverFrame));
                 if (frame == expected)
                 {
                     ReceiverFrame = frame;
@@ -818,9 +857,28 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// GBT window size.
+        /// General Block Transfer window size.
         /// </summary>
-        public byte WindowSize
+        public byte GbtWindowSize
+        {
+            get
+            {
+                return gbtWindowSize;
+            }
+            set
+            {
+                if (gbtWindowSize > 63)
+                {
+                    throw new ArgumentOutOfRangeException("Maximum size for GBT Window is 63 messages.");
+                }
+                gbtWindowSize = value;
+            }
+        }
+
+        /// <summary>
+        /// General Block Transfer count in server.
+        /// </summary>
+        public byte GbtCount
         {
             get;
             set;

@@ -34,6 +34,7 @@
 
 using System;
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.Objects;
 
 namespace Gurux.DLMS
 {
@@ -52,6 +53,21 @@ namespace Gurux.DLMS
             MaxInfoTX = GXDLMSLimitsDefault.DefaultMaxInfoTX;
             WindowSizeRX = GXDLMSLimitsDefault.DefaultWindowSizeRX;
             WindowSizeTX = GXDLMSLimitsDefault.DefaultWindowSizeTX;
+        }
+
+        /// <summary>
+        /// Update HDLC settings from HdlcSetup COSEM object.
+        /// </summary>
+        /// <param name="hdlc">HdlcSetup COSEM object.</param>
+        internal void Update(GXDLMSHdlcSetup hdlc)
+        {
+            if (hdlc != null)
+            {
+                MaxInfoRX = hdlc.MaximumInfoLengthReceive;
+                MaxInfoTX = hdlc.MaximumInfoLengthTransmit;
+                WindowSizeRX = hdlc.WindowSizeReceive;
+                WindowSizeTX = hdlc.WindowSizeTransmit;
+            }
         }
 
         /// <summary>

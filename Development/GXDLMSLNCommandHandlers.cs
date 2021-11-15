@@ -425,7 +425,7 @@ namespace Gurux.DLMS
             settings.IncreaseBlockIndex();
             GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeID, streaming ? Command.GeneralBlockTransfer : Command.GetResponse, 2, null, bb, (byte)ErrorCode.Ok, cipheredCommand);
             p.Streaming = streaming;
-            p.WindowSize = settings.WindowSize;
+            p.WindowSize = settings.GbtWindowSize;
             //If transaction is not in progress.
             if (server.transaction == null)
             {
@@ -538,7 +538,7 @@ namespace Gurux.DLMS
                 (byte)ActionResponseType.Normal, null, bb, (byte)ErrorCode.Ok, cipheredCommand);
             p.multipleBlocks = lastBlock == 0;
             p.Streaming = streaming;
-            p.WindowSize = settings.WindowSize;
+            p.WindowSize = settings.GbtWindowSize;
             //If transaction is not in progress.
             if (server.transaction == null)
             {
@@ -866,7 +866,7 @@ namespace Gurux.DLMS
             settings.IncreaseBlockIndex();
             GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeID, streaming ? Command.GeneralBlockTransfer : Command.GetResponse, 2, null, bb, (byte)ErrorCode.Ok, cipheredCommand);
             p.Streaming = streaming;
-            p.WindowSize = settings.WindowSize;
+            p.WindowSize = settings.GbtWindowSize;
             //If transaction is not in progress.
             if (server.transaction == null)
             {
@@ -1202,6 +1202,7 @@ namespace Gurux.DLMS
 
         private static void HanleSetRequestWithDataBlock(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXDLMSLNParameters p, GXByteBuffer replyData, GXDLMSTranslatorStructure xml)
         {
+            byte ret = 0;
             GXDataInfo reply = new GXDataInfo();
             reply.xml = xml;
             byte lastBlock = data.GetUInt8();
@@ -1210,7 +1211,7 @@ namespace Gurux.DLMS
             if (xml == null && blockNumber != settings.BlockIndex)
             {
                 Debug.WriteLine("HanleSetRequestWithDataBlock failed. Invalid block number. " + settings.BlockIndex + "/" + blockNumber);
-                p.status = (byte)ErrorCode.DataBlockNumberInvalid;
+                ret = (byte)ErrorCode.DataBlockNumberInvalid;
             }
             else
             {
@@ -1220,7 +1221,7 @@ namespace Gurux.DLMS
                 if (size != realSize)
                 {
                     Debug.WriteLine("HanleSetRequestWithDataBlock failed. Invalid block size.");
-                    p.status = (byte)ErrorCode.DataBlockUnavailable;
+                    ret = (byte)ErrorCode.DataBlockUnavailable;
                 }
                 if (xml != null)
                 {
@@ -1252,11 +1253,12 @@ namespace Gurux.DLMS
                         {
                             (server.transaction.targets[0].Target as IGXDLMSBase).SetValue(settings, server.transaction.targets[0]);
                             server.NotifyPostWrite(server.transaction.targets);
+                            ret = (byte) server.transaction.targets[0].Error;
                         }
                     }
                     catch (Exception)
                     {
-                        p.status = (byte)ErrorCode.HardwareFault;
+                        ret = (byte)ErrorCode.InconsistentClass;
                     }
                     finally
                     {
@@ -1264,6 +1266,11 @@ namespace Gurux.DLMS
                     }
                     settings.ResetBlockIndex();
                 }
+            }
+            if (ret != 0)
+            {
+                p.attributeDescriptor = new GXByteBuffer();
+                p.attributeDescriptor.SetUInt8(ret);
             }
             p.multipleBlocks = true;
         }

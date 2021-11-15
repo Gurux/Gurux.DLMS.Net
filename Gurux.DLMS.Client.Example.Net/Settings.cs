@@ -69,7 +69,7 @@ namespace Gurux.DLMS.Client.Example
             //Has user give the custom serial port settings or are the default values used in mode E.
             bool modeEDefaultValues = true;
             string[] tmp;
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:P:g:S:C:n:v:o:T:A:B:D:d:l:F:m:E:V:G:M:K:N:");
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:P:g:S:C:n:v:o:T:A:B:D:d:l:F:m:E:V:G:M:K:N:W:w:f:");
             GXNet net;
             foreach (GXCmdParameter it in parameters)
             {
@@ -350,6 +350,15 @@ namespace Gurux.DLMS.Client.Example
                     case 'm':
                         settings.client.Plc.MacDestinationAddress = UInt16.Parse(it.Value);
                         break;
+                    case 'W':
+                        settings.client.GbtWindowSize = byte.Parse(it.Value);
+                        break;
+                    case 'w':
+                        settings.client.HdlcSettings.WindowSizeRX = settings.client.HdlcSettings.WindowSizeTX = byte.Parse(it.Value);
+                        break;
+                    case 'f':
+                        settings.client.HdlcSettings.MaxInfoRX = settings.client.HdlcSettings.MaxInfoTX = UInt16.Parse(it.Value);
+                        break;
                     case 'G':
                         tmp = it.Value.Split(':');
                         settings.client.Gateway = new GXDLMSGateway();
@@ -462,6 +471,9 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine(" -i \t Used communication interface. Ex. -i WRAPPER.");
             Console.WriteLine(" -m \t Used PLC MAC address. Ex. -m 1.");
             Console.WriteLine(" -G \t Gateway settings NetworkId:PhysicalDeviceAddress. Ex -G 1:12345678");
+            Console.WriteLine(" -W \t General Block Transfer window size.");
+            Console.WriteLine(" -w \t HDLC Window size. Default is 1");
+            Console.WriteLine(" -f \t HDLC Frame size. Default is 128");
             Console.WriteLine("Example:");
             Console.WriteLine("Read LG device using TCP/IP connection.");
             Console.WriteLine("GuruxDlmsSample -r SN -c 16 -s 1 -h [Meter IP Address] -p [Meter Port No]");

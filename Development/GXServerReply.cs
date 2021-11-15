@@ -31,8 +31,7 @@
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
-
-using Gurux.DLMS.Objects.Enums;
+using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS
 {
@@ -81,17 +80,36 @@ namespace Gurux.DLMS
         {
             get
             {
-                return Count != 0;
+                return (GbtCount != 0 && MoreData == RequestTypes.None) ||
+                    (HdlcWindowCount != 0 && (MoreData & RequestTypes.Frame) != 0);
             }
         }
 
         ///<summary>
-        ///Message count to send.
+        ///Is GBT streaming in progress.
         ///</summary>
-        public int Count
+        public RequestTypes MoreData
         {
             get;
-            set;
+            internal set;
+        }
+
+        ///<summary>
+        ///GBT Message count to send.
+        ///</summary>
+        public byte GbtCount
+        {
+            get;
+            internal set;
+        }
+
+        ///<summary>
+        ///HDLC window count to send.
+        ///</summary>
+        public byte HdlcWindowCount
+        {
+            get;
+            internal set;
         }
 
         ///<summary>
