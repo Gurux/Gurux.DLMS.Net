@@ -1194,61 +1194,69 @@ namespace Gurux.DLMS
         /// <seealso cref="GetApplicationAssociationRequest"/>
         public void ParseApplicationAssociationResponse(GXByteBuffer reply)
         {
-            GXDataInfo info = new GXDataInfo();
-            bool equals = false;
-            byte[] value = (byte[])GXCommon.GetData(Settings, reply, info);
-            if (value != null)
+            //Landis+Gyr is not returning StoC.
+            if (manufacturerId == "LGZ" && Settings.Authentication == Enums.Authentication.High)
             {
-                byte[] secret;
-                UInt32 ic = 0;
-                if (Settings.Authentication == Enums.Authentication.HighECDSA)
+                Settings.Connected |= ConnectionState.Dlms;
+            }
+            else
+            {
+                GXDataInfo info = new GXDataInfo();
+                bool equals = false;
+                byte[] value = (byte[])GXCommon.GetData(Settings, reply, info);
+                if (value != null)
                 {
-                    if (Settings.Cipher.Equals(new KeyValuePair<byte[], byte[]>()))
+                    byte[] secret;
+                    UInt32 ic = 0;
+                    if (Settings.Authentication == Enums.Authentication.HighECDSA)
                     {
-                        throw new ArgumentNullException("SigningKeyPair is empty.");
-                    }
-                    GXByteBuffer tmp2 = new GXByteBuffer();
-                    tmp2.Set(Settings.SourceSystemTitle);
-                    tmp2.Set(Settings.Cipher.SystemTitle);
-                    tmp2.Set(Settings.CtoSChallenge);
-                    tmp2.Set(Settings.StoCChallenge);
-                    GXEcdsa sig = new GXEcdsa(Settings.Cipher.SigningKeyPair.Key);
-                    equals = sig.Verify(value, tmp2.Array());
-                }
-                else
-                {
-                    if (Settings.Authentication == Authentication.HighGMAC)
-                    {
-                        secret = Settings.SourceSystemTitle;
-                        GXByteBuffer bb = new GXByteBuffer(value);
-                        bb.GetUInt8();
-                        ic = bb.GetUInt32();
-                    }
-                    else if (Settings.Authentication == Enums.Authentication.HighSHA256)
-                    {
+                        if (Settings.Cipher.Equals(new KeyValuePair<byte[], byte[]>()))
+                        {
+                            throw new ArgumentNullException("SigningKeyPair is empty.");
+                        }
                         GXByteBuffer tmp2 = new GXByteBuffer();
-                        tmp2.Set(Settings.Password);
                         tmp2.Set(Settings.SourceSystemTitle);
                         tmp2.Set(Settings.Cipher.SystemTitle);
                         tmp2.Set(Settings.CtoSChallenge);
                         tmp2.Set(Settings.StoCChallenge);
-                        secret = tmp2.Array();
+                        GXEcdsa sig = new GXEcdsa(Settings.Cipher.SigningKeyPair.Key);
+                        equals = sig.Verify(value, tmp2.Array());
                     }
                     else
                     {
-                        secret = Settings.Password;
+                        if (Settings.Authentication == Authentication.HighGMAC)
+                        {
+                            secret = Settings.SourceSystemTitle;
+                            GXByteBuffer bb = new GXByteBuffer(value);
+                            bb.GetUInt8();
+                            ic = bb.GetUInt32();
+                        }
+                        else if (Settings.Authentication == Enums.Authentication.HighSHA256)
+                        {
+                            GXByteBuffer tmp2 = new GXByteBuffer();
+                            tmp2.Set(Settings.Password);
+                            tmp2.Set(Settings.SourceSystemTitle);
+                            tmp2.Set(Settings.Cipher.SystemTitle);
+                            tmp2.Set(Settings.CtoSChallenge);
+                            tmp2.Set(Settings.StoCChallenge);
+                            secret = tmp2.Array();
+                        }
+                        else
+                        {
+                            secret = Settings.Password;
+                        }
+                        byte[] tmp = GXSecure.Secure(Settings, Settings.Cipher, ic,
+                                                     Settings.CtoSChallenge, secret);
+                        GXByteBuffer challenge = new GXByteBuffer(tmp);
+                        equals = challenge.Compare(value);
                     }
-                    byte[] tmp = GXSecure.Secure(Settings, Settings.Cipher, ic,
-                                                 Settings.CtoSChallenge, secret);
-                    GXByteBuffer challenge = new GXByteBuffer(tmp);
-                    equals = challenge.Compare(value);
+                    Settings.Connected |= ConnectionState.Dlms;
                 }
-                Settings.Connected |= ConnectionState.Dlms;
-            }
-            if (!equals)
-            {
-                Settings.Connected &= ~ConnectionState.Dlms;
-                throw new GXDLMSException("Invalid password. Server to Client challenge do not match.");
+                if (!equals)
+                {
+                    Settings.Connected &= ~ConnectionState.Dlms;
+                    throw new GXDLMSException("Invalid password. Server to Client challenge do not match.");
+                }
             }
         }
 
