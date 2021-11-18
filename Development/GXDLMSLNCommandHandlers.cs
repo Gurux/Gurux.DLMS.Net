@@ -651,7 +651,7 @@ namespace Gurux.DLMS
             settings.UpdateInvokeId(invokeID);
             if (xml != null)
             {
-                if (type <= ActionRequestType.WithBlock)
+                if (type > 0 && type <= ActionRequestType.WithBlock)
                 {
                     GXDLMS.AddInvokeId(xml, Command.MethodRequest, type, invokeID);
                 }
@@ -687,9 +687,13 @@ namespace Gurux.DLMS
             }
             if (xml != null)
             {
-                if (type <= ActionRequestType.WithBlock)
+                if (type > 0 && type <= ActionRequestType.WithBlock)
                 {
                     xml.AppendEndTag(Command.MethodRequest, type);
+                }
+                else
+                {
+                    xml.AppendEndTag(Command.MethodRequest);
                 }
                 xml.AppendEndTag(Command.MethodRequest);
             }

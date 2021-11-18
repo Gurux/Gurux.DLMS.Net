@@ -88,7 +88,7 @@ namespace Gurux.DLMS.Simulator
                     ValueEventArgs ve = new ValueEventArgs(t, attributeId, 0, null);
                     targets.Add(ve);
                 }
-                else if ("AttributeDescriptorList".Equals(node.Name))
+                else if ("attribute-descriptor-list".Equals(node.Name))
                 {
                     foreach (XmlNode it in node.ChildNodes)
                     {
@@ -245,17 +245,53 @@ namespace Gurux.DLMS.Simulator
             GXByteBuffer val = new DLMS.GXByteBuffer();
             GXDLMSConverter converter = new GXDLMSConverter(standard);
             bool newMeter = false;
-            while (translator.FindNextFrame(data, pdu, server.InterfaceType))
+            int row = 0;
+            GXDLMSTranslatorMessage msg = new GXDLMSTranslatorMessage();
+            msg.InterfaceType = server.InterfaceType;
+            msg.Message = data;
+            GXDLMSTranslatorMessage clientMsg = new GXDLMSTranslatorMessage();
+            clientMsg.InterfaceType = server.InterfaceType;
+            clientMsg.Message = data;
+            GXDLMSTranslatorMessage serverMsg = new GXDLMSTranslatorMessage();
+            serverMsg.InterfaceType = server.InterfaceType;
+            serverMsg.Message = data;
+            string lastPdu = "";
+            while (translator.FindNextFrame(msg, pdu))
             {
+                ++row;
                 if (newMeter)
                 {
                     break;
                 }
                 try
                 {
-                    String xml = translator.MessageToXml(data);
+                    if (clientMsg.SourceAddress == 0)
+                    {
+                        clientMsg.SourceAddress = msg.SourceAddress;
+                        clientMsg.TargetAddress = msg.TargetAddress;
+                        serverMsg.TargetAddress = msg.SourceAddress;
+                        serverMsg.SourceAddress = msg.TargetAddress;
+                    }
+                    string xml;
+                    if (msg.SourceAddress == clientMsg.SourceAddress)
+                    {
+                        translator.MessageToXml(clientMsg);
+                        xml = clientMsg.Xml;
+                    }
+                    else
+                    {
+                        translator.MessageToXml(serverMsg);
+                        xml = serverMsg.Xml;
+                    }
                     if (xml != "")
                     {
+                        xml = xml.TrimEnd();
+                        //If duplicate request.
+                        if (string.Compare(lastPdu, xml) == 0)
+                        {
+                            continue;
+                        }
+                        lastPdu = xml.TrimEnd();
                         doc.LoadXml(xml.Replace("&", "&amp;"));
                         foreach (XmlNode node in doc.ChildNodes[doc.ChildNodes.Count - 1].ChildNodes)
                         {

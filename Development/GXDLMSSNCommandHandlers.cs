@@ -116,10 +116,13 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        ReturnSNError(settings, server, Command.ReadResponse, ErrorCode.ReadWriteDenied, replyData);
                         if (xml != null)
                         {
                             xml.AppendEndTag(Command.ReadRequest);
+                        }
+                        else
+                        {
+                            ReturnSNError(settings, server, Command.ReadResponse, ErrorCode.ReadWriteDenied, replyData);
                         }
                         return;
                     }

@@ -43,7 +43,7 @@ namespace Gurux.DLMS
     /// <summary>
     /// This class is used internally in GXDLMSTranslator to save generated xml.
     /// </summary>
-    class GXDLMSTranslatorStructure
+    internal class GXDLMSTranslatorStructure
     {
         /// <summary>
         /// Is comment added already. Nested comments are not allowed in a XML.

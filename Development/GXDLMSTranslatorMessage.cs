@@ -97,7 +97,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Client address.
         /// </summary>
-        public int ClientAddress
+        public int SourceAddress
         {
             get;
             set;
@@ -106,10 +106,19 @@ namespace Gurux.DLMS
         /// <summary>
         /// Server address.
         /// </summary>
-        public int ServerAddress
+        public int TargetAddress
         {
             get;
             set;
-        }        
+        }
+
+        /// <summary>
+        /// Is more data available. Return None if more data is not available or Frame or Block type.
+        /// </summary>
+        public RequestTypes MoreData
+        {
+            get;
+            internal set;
+        }
     }
 }

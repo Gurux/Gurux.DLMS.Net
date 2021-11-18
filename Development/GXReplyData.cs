@@ -284,10 +284,26 @@ namespace Gurux.DLMS
         /// <summary>
         /// Client address of the notification message.
         /// </summary>
-        /// <remarks>
-        /// Notification message sets this.
-        /// </remarks>
+        [Obsolete("Use TargetAddress instead.")]
         public int ClientAddress
+        {
+            get
+            {
+                return TargetAddress;
+            }
+            set
+            {
+                TargetAddress = value;
+            }
+        }
+
+        /// <summary>
+        /// Client address of the notification message.
+        /// </summary>
+        /// <remarks>
+        /// Notification message sets this. This is also used with XML parser.
+        /// </remarks>
+        public int TargetAddress
         {
             get;
             set;
@@ -299,7 +315,26 @@ namespace Gurux.DLMS
         /// <remarks>
         /// Notification message sets this.
         /// </remarks>
+        [Obsolete("Use SourceAddress instead.")]
         public int ServerAddress
+        {
+            get
+            {
+                return SourceAddress;
+            }
+            set
+            {
+                SourceAddress = value;
+            }
+        }
+
+        /// <summary>
+        /// Server address of the notification message.
+        /// </summary>
+        /// <remarks>
+        /// Notification message sets this. This is also used with XML parser.
+        /// </remarks>
+        public int SourceAddress
         {
             get;
             set;

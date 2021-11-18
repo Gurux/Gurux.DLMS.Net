@@ -518,7 +518,6 @@ namespace Gurux.DLMS
             }
         }
 
-
         /// <summary>
         /// Find next frame from the string.
         /// </summary>
@@ -530,17 +529,39 @@ namespace Gurux.DLMS
         /// <returns>Is new frame found.</returns>
         public bool FindNextFrame(GXByteBuffer data, GXByteBuffer pdu, InterfaceType type)
         {
-            int original = data.Position;
-            GXDLMSSettings settings = new GXDLMSSettings(true, type);
+            GXDLMSTranslatorMessage msg = new GXDLMSTranslatorMessage() { Message = data };
+            msg.InterfaceType = type;
+            return FindNextFrame(msg, pdu);
+        }
+
+        /// <summary>
+        /// Find next frame from the string.
+        /// </summary>
+        /// <remarks>
+        /// Position of data is set to the begin of new frame. If Pdu is null it is not updated.
+        /// </remarks>
+        /// <param name="data">Data where frame is search.</param>
+        /// <param name="pdu">Pdu of received frame is set here.</param>
+        /// <param name="type">Interface type.</param>
+        /// <param name="reply">Reply data.</param>
+        /// <returns>Is new frame found.</returns>
+        public bool FindNextFrame(GXDLMSTranslatorMessage msg, GXByteBuffer pdu)
+        {
+            msg.SourceAddress = msg.TargetAddress = 0;
+            int original = msg.Message.Position;
+            GXByteBuffer data = msg.Message;
+            GXDLMSSettings settings = new GXDLMSSettings(true, msg.InterfaceType);
             GXReplyData reply = new GXReplyData();
+            reply.MoreData = msg.MoreData;
             reply.Xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
             int pos;
+            reply.Data.Clear();
             bool found = false;
             try
             {
                 while (data.Position != data.Size)
                 {
-                    if ((type == InterfaceType.HDLC || type == InterfaceType.HdlcWithModeE) && data.GetUInt8(data.Position) == 0x7e)
+                    if ((msg.InterfaceType == InterfaceType.HDLC || msg.InterfaceType == InterfaceType.HdlcWithModeE) && data.GetUInt8(data.Position) == 0x7e)
                     {
                         pos = data.Position;
                         found = GXDLMS.GetData(settings, data, reply, null);
@@ -550,7 +571,7 @@ namespace Gurux.DLMS
                             break;
                         }
                     }
-                    else if (type == InterfaceType.WRAPPER && data.GetUInt16(data.Position) == 0x1)
+                    else if (msg.InterfaceType == InterfaceType.WRAPPER && data.GetUInt16(data.Position) == 0x1)
                     {
                         pos = data.Position;
                         found = GXDLMS.GetData(settings, data, reply, null);
@@ -560,7 +581,7 @@ namespace Gurux.DLMS
                             break;
                         }
                     }
-                    else if (type == InterfaceType.Plc && data.GetUInt8(data.Position) == 0x2)
+                    else if (msg.InterfaceType == InterfaceType.Plc && data.GetUInt8(data.Position) == 0x2)
                     {
                         pos = data.Position;
                         found = GXDLMS.GetData(settings, data, reply, null);
@@ -570,7 +591,7 @@ namespace Gurux.DLMS
                             break;
                         }
                     }
-                    else if (type == InterfaceType.PlcHdlc && GXDLMS.GetPlcSfskFrameSize(data) != 0)
+                    else if (msg.InterfaceType == InterfaceType.PlcHdlc && GXDLMS.GetPlcSfskFrameSize(data) != 0)
                     {
                         pos = data.Position;
                         found = GXDLMS.GetData(settings, data, reply, null);
@@ -580,7 +601,7 @@ namespace Gurux.DLMS
                             break;
                         }
                     }
-                    else if (type == InterfaceType.WirelessMBus && GXDLMS.IsWirelessMBusData(data))
+                    else if (msg.InterfaceType == InterfaceType.WirelessMBus && GXDLMS.IsWirelessMBusData(data))
                     {
                         pos = data.Position;
                         found = GXDLMS.GetData(settings, data, reply, null);
@@ -590,7 +611,7 @@ namespace Gurux.DLMS
                             break;
                         }
                     }
-                    else if (type == InterfaceType.WiredMBus && GXDLMS.IsWiredMBusData(data))
+                    else if (msg.InterfaceType == InterfaceType.WiredMBus && GXDLMS.IsWiredMBusData(data))
                     {
                         pos = data.Position;
                         found = GXDLMS.GetData(settings, data, reply, null);
@@ -608,6 +629,9 @@ namespace Gurux.DLMS
                 data.Position = original;
                 throw new Exception("Invalid DLMS frame.");
             }
+            msg.MoreData = reply.MoreData;
+            msg.SourceAddress = reply.SourceAddress;
+            msg.TargetAddress = reply.TargetAddress;
             if (pdu != null)
             {
                 pdu.Clear();
@@ -1124,13 +1148,13 @@ namespace Gurux.DLMS
             }
             if (reply)
             {
-                msg.ServerAddress = settings.ClientAddress;
-                msg.ClientAddress = settings.ServerAddress;
+                msg.TargetAddress = settings.ClientAddress;
+                msg.SourceAddress = settings.ServerAddress;
             }
             else
             {
-                msg.ClientAddress = settings.ClientAddress;
-                msg.ServerAddress = settings.ServerAddress;
+                msg.SourceAddress = settings.ClientAddress;
+                msg.TargetAddress = settings.ServerAddress;
             }
         }
 
@@ -1334,21 +1358,21 @@ namespace Gurux.DLMS
                         xml.AppendLine("<Plc len=\"" + (data.PacketLength - offset).ToString("X") + "\" >");
                         if (Comments)
                         {
-                            if (data.ClientAddress == (UInt16)PlcSourceAddress.Initiator)
+                            if (data.TargetAddress == (UInt16)PlcSourceAddress.Initiator)
                             {
                                 xml.AppendComment("Initiator");
                             }
-                            else if (data.ClientAddress == (UInt16)PlcSourceAddress.New)
+                            else if (data.TargetAddress == (UInt16)PlcSourceAddress.New)
                             {
                                 xml.AppendComment("New");
                             }
                         }
-                        xml.AppendLine("<SourceAddress Value=\"" + data.ClientAddress.ToString("X") + "\" />");
-                        if (Comments && data.ServerAddress == (UInt16)PlcDestinationAddress.AllPhysical)
+                        xml.AppendLine("<SourceAddress Value=\"" + data.TargetAddress.ToString("X") + "\" />");
+                        if (Comments && data.SourceAddress == (UInt16)PlcDestinationAddress.AllPhysical)
                         {
                             xml.AppendComment("AllPhysical");
                         }
-                        xml.AppendLine("<DestinationAddress Value=\"" + data.ServerAddress.ToString("X") + "\" />");
+                        xml.AppendLine("<DestinationAddress Value=\"" + data.SourceAddress.ToString("X") + "\" />");
                     }
                     if (data.Data.Size == 0)
                     {
@@ -1394,21 +1418,21 @@ namespace Gurux.DLMS
                         xml.AppendLine("<PlcSFsk len=\"" + (data.PacketLength - offset).ToString("X") + "\" >");
                         if (Comments)
                         {
-                            if (data.ClientAddress == (UInt16)PlcSourceAddress.Initiator)
+                            if (data.TargetAddress == (UInt16)PlcSourceAddress.Initiator)
                             {
                                 xml.AppendComment("Initiator");
                             }
-                            else if (data.ClientAddress == (UInt16)PlcSourceAddress.New)
+                            else if (data.TargetAddress == (UInt16)PlcSourceAddress.New)
                             {
                                 xml.AppendComment("New");
                             }
                         }
-                        xml.AppendLine("<SourceAddress Value=\"" + data.ClientAddress.ToString("X") + "\" />");
-                        if (Comments && data.ServerAddress == (UInt16)PlcDestinationAddress.AllPhysical)
+                        xml.AppendLine("<SourceAddress Value=\"" + data.TargetAddress.ToString("X") + "\" />");
+                        if (Comments && data.SourceAddress == (UInt16)PlcDestinationAddress.AllPhysical)
                         {
                             xml.AppendComment("AllPhysical");
                         }
-                        xml.AppendLine("<DestinationAddress Value=\"" + data.ServerAddress.ToString("X") + "\" />");
+                        xml.AppendLine("<DestinationAddress Value=\"" + data.SourceAddress.ToString("X") + "\" />");
                     }
                     if (data.Data.Size == 0)
                     {
@@ -1656,7 +1680,7 @@ namespace Gurux.DLMS
             GXDLMSTranslatorStructure xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
             return PduToXml(xml, value, omitDeclaration, omitNameSpace, true, arg);
         }
-      
+
         private void HandleDiscoverRequest(GXReplyData data)
         {
             byte responseProbability = data.Data.GetUInt8();
@@ -2032,7 +2056,7 @@ namespace Gurux.DLMS
                                         if (st != null)
                                         {
                                             p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
-                                            p.Xml = xml; 
+                                            p.Xml = xml;
                                             GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
                                             xml.AppendComment("Invocation Counter: " + p.InvocationCounter.ToString());
                                             xml.StartComment("Decrypt data: " + data2.ToString());

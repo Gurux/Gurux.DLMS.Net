@@ -2510,20 +2510,25 @@ namespace Gurux.DLMS
                 if (notify != null)
                 {
                     isNotify = true;
-                    notify.ClientAddress = target;
-                    notify.ServerAddress = source;
+                    notify.TargetAddress = target;
+                    notify.SourceAddress = source;
                 }
             }
             // Is there more data available.
             bool moreData = (frame & 0x8) != 0;
             // Get frame type.
             frame = reply.GetUInt8();
+            if (data.Xml == null && !settings.CheckFrame(frame, data.Xml))
+            {
+                reply.Position = (eopPos + 1);
+                return GetHdlcData(server, settings, reply, data, notify);
+            }
             //If server is using same client and server address for notifications.
             if ((frame == 0x13 || frame == 0x3) && !isNotify && notify != null)
             {
                 isNotify = true;
-                notify.ClientAddress = target;
-                notify.ServerAddress = source;
+                notify.TargetAddress = target;
+                notify.SourceAddress = source;
             }
             if (moreData)
             {
@@ -2551,11 +2556,6 @@ namespace Gurux.DLMS
                     data.MoreData = (RequestTypes)(data.MoreData & ~RequestTypes.Frame);
                     data.HdlcStreaming = false;
                 }
-            }
-            if (data.Xml == null && !settings.CheckFrame(frame))
-            {
-                reply.Position = (eopPos + 1);
-                return GetHdlcData(server, settings, reply, data, notify);
             }
             // Check that header CRC is correct.
             crc = GXFCS16.CountFCS16(reply.Data, packetStartID + 1, reply.Position - packetStartID - 1);
@@ -2607,6 +2607,12 @@ namespace Gurux.DLMS
                     data.PacketLength = reply.Position + 1;
                 }
             }
+            //If client want to know used server and client address.
+            if (data.TargetAddress == 0 && data.SourceAddress == 0)
+            {
+                data.TargetAddress = target;
+                data.SourceAddress = source;
+            }
             if (frame != 0x13 && frame != 0x3 && (frame & (byte)HdlcFrameType.Uframe) == (byte)HdlcFrameType.Uframe)
             {
                 //Get Eop if there is no data.
@@ -2631,12 +2637,6 @@ namespace Gurux.DLMS
                 if (data.Command == Command.Snrm)
                 {
                     settings.Connected &= ~ConnectionState.Iec;
-                }
-                //If client want to know used server and client address.
-                if (data.ClientAddress == 0 && data.ServerAddress == 0)
-                {
-                    data.ClientAddress = target;
-                    data.ServerAddress = source;
                 }
             }
             //If S-frame
@@ -2689,19 +2689,8 @@ namespace Gurux.DLMS
                         }
                         else if (!llc)
                         {
-                            if (!GetLLCBytes(!server, reply))
-                            {
-                                if (isNotify)
-                                {
-                                    notify.MoreData = (RequestTypes)(notify.MoreData | RequestTypes.Frame);
-                                    notify.HdlcStreaming = (frame & 0x10) == 0;
-                                }
-                                else
-                                {
-                                    data.MoreData = (RequestTypes)(data.MoreData | RequestTypes.Frame);
-                                    data.HdlcStreaming = (frame & 0x10) == 0;
-                                }
-                            }
+                            //We don't know is this the first message when XML is handed.
+                            GetLLCBytes(!server, reply);
                         }
                     }
                 }
@@ -3148,8 +3137,8 @@ namespace Gurux.DLMS
                         data.IsComplete = data.Xml != null ||
                             ((macDa == (UInt16)PlcDestinationAddress.AllPhysical || macDa == settings.Plc.MacSourceAddress) &&
                         (macSa == (UInt16)PlcSourceAddress.Initiator || macSa == settings.Plc.MacDestinationAddress));
-                        data.ServerAddress = macDa;
-                        data.ClientAddress = macSa;
+                        data.SourceAddress = macDa;
+                        data.TargetAddress = macSa;
                     }
                     else
                     {
@@ -3157,8 +3146,8 @@ namespace Gurux.DLMS
                             (macDa == (UInt16)PlcDestinationAddress.AllPhysical ||
                             macDa == (UInt16)PlcSourceAddress.Initiator ||
                             macDa == settings.Plc.MacDestinationAddress);
-                        data.ClientAddress = macDa;
-                        data.ServerAddress = macSa;
+                        data.TargetAddress = macDa;
+                        data.SourceAddress = macSa;
                     }
                     //Skip padding.
                     if (data.IsComplete)
@@ -3227,15 +3216,15 @@ namespace Gurux.DLMS
                     data.IsComplete = data.Xml != null ||
                         ((da == (UInt16)PlcDestinationAddress.AllPhysical || da == settings.Plc.MacSourceAddress) &&
                     (sa == (UInt16)PlcHdlcSourceAddress.Initiator || sa == settings.Plc.MacDestinationAddress));
-                    data.ServerAddress = da;
-                    data.ClientAddress = sa;
+                    data.SourceAddress = da;
+                    data.TargetAddress = sa;
                 }
                 else
                 {
                     data.IsComplete = data.Xml != null ||
                         (da == (UInt16)PlcHdlcSourceAddress.Initiator || da == settings.Plc.MacDestinationAddress);
-                    data.ClientAddress = sa;
-                    data.ServerAddress = da;
+                    data.TargetAddress = sa;
+                    data.SourceAddress = da;
                 }
                 if (data.IsComplete)
                 {
@@ -3391,7 +3380,7 @@ namespace Gurux.DLMS
                         + settings.ServerAddress.ToString()
                         + ".");
                     }
-                    notify.ServerAddress = value;
+                    notify.SourceAddress = value;
                     ret = false;
                 }
                 else
@@ -3411,7 +3400,7 @@ namespace Gurux.DLMS
                         + settings.ClientAddress.ToString() + ".");
                     }
                     ret = false;
-                    notify.ClientAddress = value;
+                    notify.TargetAddress = value;
                 }
                 else
                 {
@@ -4205,7 +4194,7 @@ namespace Gurux.DLMS
                     if ((reply.MoreData & RequestTypes.Frame) == 0)
                     {
                         // Check Block length.
-                        if (blockLength > data.Size - data.Position)
+                        if (blockLength > data.Available)
                         {
                             reply.Xml.AppendComment("Block is not complete." + (data.Size - data.Position).ToString() + "/" + blockLength + ".");
                         }

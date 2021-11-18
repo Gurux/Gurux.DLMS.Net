@@ -598,7 +598,7 @@ namespace Gurux.DLMS
             }
         }
 
-        public bool CheckFrame(byte frame)
+        internal bool CheckFrame(byte frame, GXDLMSTranslatorStructure Xml)
         {
             //If notify
             if (frame == 0x13)
@@ -624,6 +624,11 @@ namespace Gurux.DLMS
             //If S -frame.
             if ((frame & (byte)HdlcFrameType.Sframe) == (byte)HdlcFrameType.Sframe)
             {
+                //If echo.
+                if (frame == (SenderFrame & 0xF1))
+                {
+                    return false;
+                }
                 ReceiverFrame = IncreaseReceiverSequence(ReceiverFrame);
                 return true;
             }
@@ -638,13 +643,13 @@ namespace Gurux.DLMS
                     return true;
                 }
                 //If the final bit is not set.
-                if (frame == (expected & ~0x10))
+                if (frame == (expected & ~0x10) && Hdlc.WindowSizeRX != 1)
                 {
                     ReceiverFrame = frame;
                     return true;
                 }
                 //If Final bit is not set for the previous message.
-                if ((ReceiverFrame & 0x10) == 0)
+                if ((ReceiverFrame & 0x10) == 0 && Hdlc.WindowSizeRX != 1)
                 {
                     expected = (byte)(0x10 | IncreaseSendSequence(ReceiverFrame));
                     if (frame == expected)
@@ -674,17 +679,20 @@ namespace Gurux.DLMS
                     ReceiverFrame = frame;
                     return true;
                 }
-                //If HDLC window size is bigger than one.
-                expected = IncreaseReceiverSequence(IncreaseSendSequence(ReceiverFrame));
-                if (frame == expected)
+                if (Hdlc.WindowSizeRX != 1)
                 {
-                    ReceiverFrame = frame;
-                    return true;
+                    //If HDLC window size is bigger than one.
+                    expected = IncreaseReceiverSequence(IncreaseSendSequence(ReceiverFrame));
+                    if (frame == expected)
+                    {
+                        ReceiverFrame = frame;
+                        return true;
+                    }
                 }
             }
             //If try to find data from bytestream and not real communicating.
-            if ((!IsServer && ReceiverFrame == 0xE) ||
-                (IsServer && ReceiverFrame == 0xEE))
+            if (Xml != null && ((!IsServer && ReceiverFrame == 0xE) ||
+                (IsServer && ReceiverFrame == 0xEE)))
             {
                 ReceiverFrame = frame;
                 return true;

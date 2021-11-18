@@ -1110,7 +1110,7 @@ namespace Gurux.DLMS
             }
             Settings.ResetBlockIndex();
             byte[] challenge;
-            //Count challenge for Landis+Gyr.L+G is using custom way to count the challenge.
+            //Count challenge for Landis+Gyr. L+G is using custom way to count the challenge.
             if (manufacturerId == "LGZ" && Settings.Authentication == Enums.Authentication.High)
             {
                 challenge = EncryptLandisGyrHighLevelAuthentication(Settings.Password, Settings.StoCChallenge);

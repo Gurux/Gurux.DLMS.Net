@@ -456,19 +456,29 @@ namespace Gurux.DLMS.Secure
             if ((sc & 0x20) != 0)
             {
                 System.Diagnostics.Debug.WriteLine("Encryption is applied.");
-                if (p.Xml == null && p.Settings.IsServer && (p.Settings.Cipher.SecurityPolicy & SecurityPolicy.EncryptedRequest) == 0)
+                if (p.Xml == null && p.Settings.IsServer)
                 {
-                    throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
-                            ExceptionServiceError.DecipheringError, 0);
+                    if ((p.SecuritySuite == SecuritySuite.Suite0 && (p.Settings.Cipher.SecurityPolicy & SecurityPolicy.Encrypted) == 0) ||
+                        ((p.SecuritySuite == SecuritySuite.Suite1 || p.SecuritySuite == SecuritySuite.Suite2)
+                        && (p.Settings.Cipher.SecurityPolicy & SecurityPolicy.EncryptedRequest) == 0))
+                    {
+                        throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
+                                ExceptionServiceError.DecipheringError, 0);
+                    }
                 }
             }
             if ((sc & 0x10) != 0)
             {
                 System.Diagnostics.Debug.WriteLine("Authentication is applied.");
-                if (p.Xml == null && p.Settings.IsServer && (p.Settings.Cipher.SecurityPolicy & SecurityPolicy.AuthenticatedRequest) == 0)
+                if (p.Xml == null && p.Settings.IsServer)
                 {
-                    throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
-                            ExceptionServiceError.DecipheringError, 0);
+                    if ((p.SecuritySuite == SecuritySuite.Suite0 && (p.Settings.Cipher.SecurityPolicy & SecurityPolicy.Authenticated) == 0) ||
+                    ((p.SecuritySuite == SecuritySuite.Suite1 || p.SecuritySuite == SecuritySuite.Suite2)
+                    && (p.Settings.Cipher.SecurityPolicy & SecurityPolicy.AuthenticatedRequest) == 0))
+                    {
+                        throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
+                                ExceptionServiceError.DecipheringError, 0);
+                    }
                 }
             }
             if (value != 0 && p.Xml != null && kp.Key == null)
