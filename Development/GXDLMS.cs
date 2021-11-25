@@ -3338,6 +3338,7 @@ namespace Gurux.DLMS
             if (settings.IsServer)
             {
                 value = buff.GetUInt16();
+                data.SourceAddress = value;
                 // Check that client addresses match.
                 if (data.Xml == null && settings.ClientAddress != 0
                         && settings.ClientAddress != value)
@@ -3350,8 +3351,8 @@ namespace Gurux.DLMS
                 {
                     settings.ClientAddress = value;
                 }
-
                 value = buff.GetUInt16();
+                data.TargetAddress = value;
                 // Check that server addresses match.
                 if (data.Xml == null && settings.ServerAddress != 0
                         && settings.ServerAddress != value)
@@ -3369,6 +3370,7 @@ namespace Gurux.DLMS
             else
             {
                 value = buff.GetUInt16();
+                data.TargetAddress = value;
                 // Check that server addresses match.
                 if (settings.ServerAddress != 0
                         && settings.ServerAddress != value)
@@ -3387,7 +3389,7 @@ namespace Gurux.DLMS
                 {
                     settings.ServerAddress = value;
                 }
-
+                data.SourceAddress = value;
                 value = buff.GetUInt16();
                 // Check that client addresses match.
                 if (settings.ClientAddress != 0

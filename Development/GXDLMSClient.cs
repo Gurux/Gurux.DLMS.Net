@@ -54,7 +54,7 @@ namespace Gurux.DLMS
         /// Manufacturer ID.
         /// </summary>
         /// <remarks>
-        /// Manufacturer ID (FLAG ID) is used for manucaturer depending functionality.
+        /// Manufacturer ID (FLAG ID) is used for manufacturer depending functionality.
         /// </remarks>
         private string manufacturerId;
 
@@ -864,11 +864,6 @@ namespace Gurux.DLMS
         /// <seealso cref="ParseUAResponse"/>
         public byte[] SNRMRequest()
         {
-            //Save default values.
-            InitializeMaxInfoTX = HdlcSettings.MaxInfoTX;
-            InitializeMaxInfoRX = HdlcSettings.MaxInfoRX;
-            InitializeWindowSizeTX = HdlcSettings.WindowSizeTX;
-            InitializeWindowSizeRX = HdlcSettings.WindowSizeRX;
             return SNRMRequest(false);
         }
 
@@ -893,6 +888,11 @@ namespace Gurux.DLMS
         /// <seealso cref="ParseUAResponse"/>
         public byte[] SNRMRequest(bool forceParameters)
         {
+            //Save default values.
+            InitializeMaxInfoTX = HdlcSettings.MaxInfoTX;
+            InitializeMaxInfoRX = HdlcSettings.MaxInfoRX;
+            InitializeWindowSizeTX = HdlcSettings.WindowSizeTX;
+            InitializeWindowSizeRX = HdlcSettings.WindowSizeRX;
             Settings.Connected = ConnectionState.None;
             IsAuthenticationRequired = false;
             Settings.ResetFrameSequence();
@@ -3211,15 +3211,15 @@ namespace Gurux.DLMS
         /// <returns></returns>
         public static byte[] EncryptLandisGyrHighLevelAuthentication(byte[] password, byte[] seed)
         {
-            byte[] crypted = new byte[seed.Length];//Settings.StoCChallenge
+            byte[] crypted = new byte[seed.Length];
             seed.CopyTo(crypted, 0);
             for (int pos = 0; pos != password.Length; ++pos)
             {
                 if (password[pos] != 0x30)
                 {
                     crypted[pos] += (byte)(password[pos] - 0x30);
-                    //Convert to cabital letter.
-                    if (crypted[pos] > 0x39)
+                    //Convert to upper case letter.
+                    if (crypted[pos] > '9' && crypted[pos] < 'A')
                     {
                         crypted[pos] += 7;
                     }

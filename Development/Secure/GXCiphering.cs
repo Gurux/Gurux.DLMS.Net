@@ -66,7 +66,7 @@ namespace Gurux.DLMS.Secure
         /// <summary>
         /// Broadcast block ciphering key.
         /// </summary>
-        private byte[] broadcastBlockCipherKey;        
+        private byte[] broadcastBlockCipherKey;
 
         /// <summary>
         /// Dedicated key.
@@ -270,6 +270,10 @@ namespace Gurux.DLMS.Secure
             }
             set
             {
+                if (value != null && value.Length == 0)
+                {
+                    value = null;
+                }
                 if (!TestMode && value != null && value.Length != 8 && value.Length != 0)
                 {
                     throw new ArgumentOutOfRangeException("Invalid System Title.");
@@ -289,6 +293,10 @@ namespace Gurux.DLMS.Secure
             }
             set
             {
+                if (value != null && value.Length == 0)
+                {
+                    value = null;
+                }
                 if (!TestMode && value != null && value.Length != 8 && value.Length != 0)
                 {
                     throw new ArgumentOutOfRangeException("Invalid System Title.");
@@ -308,6 +316,10 @@ namespace Gurux.DLMS.Secure
             }
             set
             {
+                if (value != null && value.Length == 0)
+                {
+                    value = null;
+                }
                 if (!TestMode && value != null && value.Length != 16 && value.Length != 0)
                 {
                     throw new ArgumentOutOfRangeException("Invalid block cipher key.");
@@ -327,6 +339,10 @@ namespace Gurux.DLMS.Secure
             }
             set
             {
+                if (value != null && value.Length == 0)
+                {
+                    value = null;
+                }
                 if (!TestMode && value != null && value.Length != 16 && value.Length != 0)
                 {
                     throw new ArgumentOutOfRangeException("Invalid broadcast block cipher Key.");
@@ -346,7 +362,11 @@ namespace Gurux.DLMS.Secure
             }
             set
             {
-                if (!TestMode && value != null && value.Length != 16 && value.Length != 0)
+                if (value != null && value.Length == 0)
+                {
+                    value = null;
+                }
+                if (!TestMode && value != null && value.Length != 16)
                 {
                     throw new ArgumentOutOfRangeException("Invalid Authentication Key.");
                 }
@@ -364,6 +384,10 @@ namespace Gurux.DLMS.Secure
             }
             set
             {
+                if (value != null && value.Length == 0)
+                {
+                    value = null;
+                }
                 if (!TestMode && value != null && value.Length != 16 && value.Length != 0)
                 {
                     throw new ArgumentOutOfRangeException("Invalid DedicatedKey Key.");

@@ -223,6 +223,15 @@ namespace Gurux.DLMS.ManufacturerSettings
         }
 
         /// <summary>
+        /// Custom manufacture settings
+        /// </summary>
+        public ManufactureSettings ManucatureSettings
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Used GMAC Security type.
         /// </summary>
 #if !WINDOWS_UWP

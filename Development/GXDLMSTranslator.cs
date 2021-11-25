@@ -56,6 +56,7 @@ namespace Gurux.DLMS
     ///</summary>
     public class GXDLMSTranslator
     {
+        byte[] systemTitle, blockCipherKey, authenticationKey, dedicatedKey, serverSystemTitle;
         GXCryptoNotifier cryptoNotifier = new GXCryptoNotifier();
         UInt16 SAck = 0, RAck = 0;
         bool sending = false;
@@ -270,8 +271,25 @@ namespace Gurux.DLMS
         /// </summary>
         public byte[] SystemTitle
         {
-            get;
-            set;
+            get
+            {
+                return systemTitle;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    if (value.Length == 0)
+                    {
+                        value = null;
+                    }
+                    else if (value.Length != 8)
+                    {
+                        throw new ArgumentOutOfRangeException("Invalid system title. System title size is 8 bytes.");
+                    }
+                }
+                systemTitle = value;
+            }
         }
 
         /// <summary>
@@ -279,8 +297,25 @@ namespace Gurux.DLMS
         /// </summary>
         public byte[] ServerSystemTitle
         {
-            get;
-            set;
+            get
+            {
+                return serverSystemTitle;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    if (value.Length == 0)
+                    {
+                        value = null;
+                    }
+                    else if (value.Length != 8)
+                    {
+                        throw new ArgumentOutOfRangeException("Invalid server system title. Server system title size is 8 bytes.");
+                    }
+                }
+                serverSystemTitle = value;
+            }
         }
 
         /// <summary>
@@ -288,8 +323,25 @@ namespace Gurux.DLMS
         /// </summary>
         public byte[] DedicatedKey
         {
-            get;
-            set;
+            get
+            {
+                return dedicatedKey;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    if (value.Length == 0)
+                    {
+                        value = null;
+                    }
+                    else if (value.Length != 16)
+                    {
+                        throw new ArgumentOutOfRangeException("Invalid dedicated key. Dedicated key size is 16 bytes.");
+                    }
+                }
+                dedicatedKey = value;
+            }
         }
 
 
@@ -298,8 +350,25 @@ namespace Gurux.DLMS
         /// </summary>
         public byte[] BlockCipherKey
         {
-            get;
-            set;
+            get
+            {
+                return blockCipherKey;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    if (value.Length == 0)
+                    {
+                        value = null;
+                    }
+                    else if (value.Length != 16)
+                    {
+                        throw new ArgumentOutOfRangeException("Invalid block cipher key. Block cipher key size is 16 bytes.");
+                    }
+                }
+                blockCipherKey = value;
+            }
         }
 
         /// <summary>
@@ -307,8 +376,25 @@ namespace Gurux.DLMS
         /// </summary>
         public byte[] AuthenticationKey
         {
-            get;
-            set;
+            get
+            {
+                return authenticationKey;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    if (value.Length == 0)
+                    {
+                        value = null;
+                    }
+                    else if (value.Length != 16)
+                    {
+                        throw new ArgumentOutOfRangeException("Invalid authentication key. Authentication key size is 16 bytes.");
+                    }
+                }
+                authenticationKey = value;
+            }
         }
 
         /// <summary>
@@ -540,12 +626,26 @@ namespace Gurux.DLMS
         /// <remarks>
         /// Position of data is set to the begin of new frame. If Pdu is null it is not updated.
         /// </remarks>
-        /// <param name="data">Data where frame is search.</param>
+        /// <param name="msg">GXDLMS Translator message.</param>
         /// <param name="pdu">Pdu of received frame is set here.</param>
-        /// <param name="type">Interface type.</param>
-        /// <param name="reply">Reply data.</param>
         /// <returns>Is new frame found.</returns>
         public bool FindNextFrame(GXDLMSTranslatorMessage msg, GXByteBuffer pdu)
+        {
+            return FindNextFrame(msg, pdu, 0, 0);
+        }
+
+        /// <summary>
+        /// Find next frame from the string.
+        /// </summary>
+        /// <remarks>
+        /// Position of data is set to the begin of new frame. If Pdu is null it is not updated.
+        /// </remarks>
+        /// <param name="msg">GXDLMS Translator message.</param>
+        /// <param name="pdu">Pdu of received frame is set here.</param>
+        /// <param name="clientAddress">If client address is set only messages that use this client address are accepted.</param>
+        /// <param name="serverAddress">If server address is set only messages that use this server addresses are find.</param>
+        /// <returns>Is new frame found.</returns>
+        public bool FindNextFrame(GXDLMSTranslatorMessage msg, GXByteBuffer pdu, int clientAddress, int serverAddress)
         {
             msg.SourceAddress = msg.TargetAddress = 0;
             int original = msg.Message.Position;
@@ -571,14 +671,23 @@ namespace Gurux.DLMS
                             break;
                         }
                     }
-                    else if (msg.InterfaceType == InterfaceType.WRAPPER && data.GetUInt16(data.Position) == 0x1)
+                    else if (msg.InterfaceType == InterfaceType.WRAPPER && data.Available > 1 && data.GetUInt16(data.Position) == 0x1)
                     {
                         pos = data.Position;
                         found = GXDLMS.GetData(settings, data, reply, null);
-                        data.Position = pos;
                         if (found)
                         {
-                            break;
+                            //If client and server address are used as a filter.
+                            if ((clientAddress == 0 || clientAddress == reply.SourceAddress || clientAddress == reply.TargetAddress) &&
+                                (serverAddress == 0 || serverAddress == reply.TargetAddress || serverAddress == reply.SourceAddress)) 
+                            {
+                                data.Position = pos;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            data.Position = pos;
                         }
                     }
                     else if (msg.InterfaceType == InterfaceType.Plc && data.GetUInt8(data.Position) == 0x2)
@@ -627,7 +736,7 @@ namespace Gurux.DLMS
             catch (Exception)
             {
                 data.Position = original;
-                throw new Exception("Invalid DLMS frame.");
+                throw new Exception(string.Format("Invalid {0} frame.", msg.InterfaceType));
             }
             msg.MoreData = reply.MoreData;
             msg.SourceAddress = reply.SourceAddress;
@@ -1176,6 +1285,7 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentNullException("Message is empty.");
             }
+            msg.Exception = null;
             GXReplyData data = new GXReplyData();
             GXDLMSTranslatorStructure xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
             GXDLMSSettings settings = new GXDLMSSettings(true, InterfaceType.HDLC);
@@ -1300,37 +1410,22 @@ namespace Gurux.DLMS
                     msg.InterfaceType = settings.InterfaceType = Enums.InterfaceType.WRAPPER;
                     GXDLMS.GetData(settings, msg.Message, data, null);
                     string pdu = PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg);
-                    if (msg.Command == Command.Aarq)
-                    {
-                        msg.SystemTitle = settings.Cipher.SystemTitle;
-                    }
-                    else if (msg.Command == Command.Aare)
-                    {
-                        msg.SystemTitle = settings.SourceSystemTitle;
-                    }
                     if (!PduOnly)
                     {
                         xml.AppendLine("<WRAPPER len=\"" + xml.IntegerToHex(data.Data.Size, 0, Hex) + "\" >");
                         xml.AppendLine("<TargetAddress Value=\"" + settings.ClientAddress.ToString("X") + "\" />");
                         xml.AppendLine("<SourceAddress Value=\"" + settings.ServerAddress.ToString("X") + "\" />");
                     }
-                    if (data.Data.Size == 0)
+                    if (!PduOnly)
                     {
-                        xml.AppendLine("<Command Value=\"" + data.Command.ToString().ToUpper() + "\" />");
+                        xml.AppendLine("<PDU>");
                     }
-                    else
+                    xml.AppendLine(pdu);
+                    //Remove \r\n.
+                    xml.sb.Length -= Environment.NewLine.Length;
+                    if (!PduOnly)
                     {
-                        if (!PduOnly)
-                        {
-                            xml.AppendLine("<PDU>");
-                        }
-                        xml.AppendLine(pdu);
-                        //Remove \r\n.
-                        xml.sb.Length -= Environment.NewLine.Length;
-                        if (!PduOnly)
-                        {
-                            xml.AppendLine("</PDU>");
-                        }
+                        xml.AppendLine("</PDU>");
                     }
                     if (!PduOnly)
                     {
@@ -1345,14 +1440,6 @@ namespace Gurux.DLMS
                 {
                     msg.InterfaceType = settings.InterfaceType = Enums.InterfaceType.Plc;
                     GXDLMS.GetData(settings, msg.Message, data, null);
-                    if (msg.Command == Command.Aarq)
-                    {
-                        msg.SystemTitle = settings.Cipher.SystemTitle;
-                    }
-                    else if (msg.Command == Command.Aare)
-                    {
-                        msg.SystemTitle = settings.SourceSystemTitle;
-                    }
                     if (!PduOnly)
                     {
                         xml.AppendLine("<Plc len=\"" + (data.PacketLength - offset).ToString("X") + "\" >");
@@ -1405,15 +1492,7 @@ namespace Gurux.DLMS
                 {
                     msg.InterfaceType = settings.InterfaceType = Enums.InterfaceType.PlcHdlc;
                     GXDLMS.GetData(settings, msg.Message, data, null);
-                    if (msg.Command == Command.Aarq)
-                    {
-                        msg.SystemTitle = settings.Cipher.SystemTitle;
-                    }
-                    else if (msg.Command == Command.Aare)
-                    {
-                        msg.SystemTitle = settings.SourceSystemTitle;
-                    }
-                    if (!PduOnly)
+                if (!PduOnly)
                     {
                         xml.AppendLine("<PlcSFsk len=\"" + (data.PacketLength - offset).ToString("X") + "\" >");
                         if (Comments)
@@ -1466,14 +1545,6 @@ namespace Gurux.DLMS
                     settings.InterfaceType = Enums.InterfaceType.WiredMBus;
                     int len = xml.GetXmlLength();
                     GXDLMS.GetData(settings, msg.Message, data, null);
-                    if (msg.Command == Command.Aarq)
-                    {
-                        msg.SystemTitle = settings.Cipher.SystemTitle;
-                    }
-                    else if (msg.Command == Command.Aare)
-                    {
-                        msg.SystemTitle = settings.SourceSystemTitle;
-                    }
                     string tmp = xml.ToString().Substring(len);
                     xml.SetXmlLength(len);
                     if (!PduOnly)
@@ -1548,14 +1619,6 @@ namespace Gurux.DLMS
                     settings.InterfaceType = Enums.InterfaceType.WirelessMBus;
                     int len = xml.GetXmlLength();
                     GXDLMS.GetData(settings, msg.Message, data, null);
-                    if (msg.Command == Command.Aarq)
-                    {
-                        msg.SystemTitle = settings.Cipher.SystemTitle;
-                    }
-                    else if (msg.Command == Command.Aare)
-                    {
-                        msg.SystemTitle = settings.SourceSystemTitle;
-                    }
                     string tmp = xml.ToString().Substring(len);
                     xml.SetXmlLength(len);
                     if (!PduOnly)
@@ -1594,6 +1657,7 @@ namespace Gurux.DLMS
             }
             catch (Exception ex)
             {
+                msg.Exception = ex;
                 xml.sb.AppendLine(ex.Message);
                 msg.Xml = xml.sb.ToString();
                 return;

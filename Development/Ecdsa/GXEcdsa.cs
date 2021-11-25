@@ -35,7 +35,6 @@ using Gurux.DLMS.Ecdsa.Enums;
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace Gurux.DLMS.Ecdsa
 {

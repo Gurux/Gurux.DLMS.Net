@@ -141,7 +141,7 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
-        ///  Server system title.
+        /// Server system title.
         /// </summary>
         /// <remarks>
         /// Server system title is optional and it's used when Pre-established Application Associations is used.

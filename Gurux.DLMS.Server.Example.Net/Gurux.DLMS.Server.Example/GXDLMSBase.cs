@@ -61,6 +61,10 @@ namespace GuruxDLMSServerExample
 
         //Image to update.
         string ImageUpdate = null;
+        //When image activation started.
+        DateTime imageActionStartTime;
+        //What is expected image size.
+        UInt32 ImageSize = 0;
         static readonly object FileLock = new object();
         static string GetdataFile()
         {
@@ -911,7 +915,6 @@ namespace GuruxDLMSServerExample
             }
         }
 
-        DateTime imageActionStartTime;
         protected override void PreAction(ValueEventArgs[] args)
         {
             foreach (ValueEventArgs it in args)
@@ -931,8 +934,9 @@ namespace GuruxDLMSServerExample
                         i.ImageTransferStatus = ImageTransferStatus.NotInitiated;
                         i.ImageActivateInfo = null;
                         ImageUpdate = ASCIIEncoding.ASCII.GetString((byte[])(it.Parameters as List<object>)[0]);
+                        ImageSize = Convert.ToUInt32((it.Parameters as List<object>)[1]);
                         string file = Path.Combine(Path.GetDirectoryName(typeof(GXDLMSBase).Assembly.Location), ImageUpdate + ".exe");
-                        System.Diagnostics.Debug.WriteLine("Updating image" + ImageUpdate + " Size:" + (it.Parameters as List<object>)[1]);
+                        System.Diagnostics.Debug.WriteLine("Updating image" + ImageUpdate + " Size:" + ImageSize);
                         using (var writer = File.Create(file))
                         {
                         }
@@ -975,7 +979,7 @@ namespace GuruxDLMSServerExample
                         i.ImageTransferStatus = ImageTransferStatus.VerificationInitiated;
                         //Check that size match.
                         uint size = (uint)new FileInfo(file).Length;
-                        if (size != i.ImageSize)
+                        if (size != ImageSize)
                         {
                             i.ImageTransferStatus = ImageTransferStatus.VerificationFailed;
                             it.Error = ErrorCode.OtherReason;

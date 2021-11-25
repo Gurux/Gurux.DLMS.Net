@@ -32,24 +32,26 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-namespace Gurux.DLMS.Objects.Enums
+using System;
+using System.Xml.Serialization;
+
+namespace Gurux.DLMS.ManufacturerSettings
 {
     /// <summary>
-    /// Defines NTP authentication methods.
+    /// Enumarate device manufacturer custom settings.
     /// </summary>
-    public enum NtpAuthenticationMethod
+    [Flags]
+    public enum ManufactureSettings
     {
         /// <summary>
-        /// No security is used.
+        /// Custom settings are not used.
         /// </summary>
-        NoSecurity = 0,
+        [XmlEnum("0")]
+        None = 0,
         /// <summary>
-        /// Shared secrets are used.
+        /// Image is sign with ECDSA
         /// </summary>
-        SharedSecrets,
-        /// <summary>
-        /// IFF auto key is used.
-        /// </summary>
-        AutoKeyIff
+        [XmlEnum("1")]
+        SignImageWithEcdsa = 1
     }
 }

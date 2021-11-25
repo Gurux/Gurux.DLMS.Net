@@ -94,20 +94,76 @@ namespace Gurux.DLMS.Secure
             set;
         }
 
+        byte[] systemTitle, blockCipherKey, authenticationKey, recipientSystemTitle;
+
         public byte[] SystemTitle
         {
-            get;
-            set;
+            get
+            {
+                return systemTitle;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    if (value.Length == 0)
+                    {
+                        value = null;
+                    }
+                    else if (value.Length != 8)
+                    {
+                        throw new ArgumentOutOfRangeException("Invalid system title. System title size is 8 bytes.");
+                    }
+                }
+                systemTitle = value;
+            }
         }
+
+
         public byte[] BlockCipherKey
         {
-            get;
-            set;
+            get
+            {
+                return blockCipherKey;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    if (value.Length == 0)
+                    {
+                        value = null;
+                    }
+                    else if (value.Length != 16)
+                    {
+                        throw new ArgumentOutOfRangeException("Invalid block cipher key. Block cipher key size is 16 bytes.");
+                    }
+                }
+                blockCipherKey = value;
+            }
         }
+
         public byte[] AuthenticationKey
         {
-            get;
-            set;
+            get
+            {
+                return authenticationKey;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    if (value.Length == 0)
+                    {
+                        value = null;
+                    }
+                    else if (value.Length != 16)
+                    {
+                        throw new ArgumentOutOfRangeException("Invalid authentication key. Authentication key size is 16 bytes.");
+                    }
+                }
+                authenticationKey = value;
+            }
         }
         public CountType Type
         {
@@ -125,8 +181,25 @@ namespace Gurux.DLMS.Secure
         /// </summary>
         public byte[] RecipientSystemTitle
         {
-            get;
-            set;
+            get
+            {
+                return recipientSystemTitle;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    if (value.Length == 0)
+                    {
+                        value = null;
+                    }
+                    else if (value.Length != 8)
+                    {
+                        throw new ArgumentOutOfRangeException("Invalid recipient system title. Recipient system title size is 8 bytes.");
+                    }
+                }
+                recipientSystemTitle = value;
+            }
         }
 
         /// <summary>

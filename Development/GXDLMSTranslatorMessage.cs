@@ -32,6 +32,7 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 using Gurux.DLMS.Enums;
+using System;
 
 namespace Gurux.DLMS
 {
@@ -120,5 +121,15 @@ namespace Gurux.DLMS
             get;
             internal set;
         }
+
+        /// <summary>
+        /// Occurred exception.
+        /// </summary>
+        public Exception Exception
+        {
+            get;
+            internal set;
+        }
+        
     }
 }

@@ -44,6 +44,8 @@ using System.Net.Sockets;
 using Gurux.Serial;
 using System.Threading;
 using System.IO.Ports;
+using Gurux.DLMS.Objects.Enums;
+using System.Text;
 
 namespace Gurux.DLMS.Simulator.Net
 {
@@ -52,6 +54,11 @@ namespace Gurux.DLMS.Simulator.Net
     /// </summary>
     class GXDLMSMeter : GXDLMSSecureServer
     {
+        //Image to update.
+        string ImageUpdate = null;
+        //What is expected image size.
+        UInt32 ImageSize = 0;
+
         /// <summary>
         /// Application is closing
         /// </summary>
@@ -459,7 +466,7 @@ namespace Gurux.DLMS.Simulator.Net
                     //Wait until next event needs to execute.
                     Console.WriteLine("Waiting " + TimeSpan.FromSeconds(wt).ToString() + " before next execution.");
                     wt *= 1000;
-                    wt -= DateTime.Now.Millisecond; 
+                    wt -= DateTime.Now.Millisecond;
                 }
                 while (!closing.WaitOne(wt));
             }).Start();
@@ -581,15 +588,118 @@ namespace Gurux.DLMS.Simulator.Net
                 if (Trace > TraceLevel.Warning)
                 {
                     System.Diagnostics.Debug.WriteLine("PreAction {0}:{1}", it.Target.LogicalName, it.Index);
-                    if ((it.Target is GXDLMSProfileGeneric pg) && it.Index == 2)
+                }
+                if ((it.Target is GXDLMSProfileGeneric pg) && it.Index == 2)
+                {
+                    //Update clock for profile-generic object when capture is invoked.
+                    foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> co in pg.CaptureObjects)
                     {
-                        //Update clock for profile-generic object when capture is invoked.
-                        foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> co in pg.CaptureObjects)
+                        if ((co.Key is GXDLMSClock clock) && co.Value.AttributeIndex == 2)
                         {
-                            if ((co.Key is GXDLMSClock clock) && co.Value.AttributeIndex == 2)
+                            clock.Time = clock.Now();
+                        }
+                    }
+                }
+                if (it.Target is GXDLMSImageTransfer)
+                {
+                    GXDLMSImageTransfer i = it.Target as GXDLMSImageTransfer;
+                    //Image name and size to transfer
+                    if (it.Index == 1)
+                    {
+                        i.ImageTransferStatus = ImageTransferStatus.NotInitiated;
+                        i.ImageActivateInfo = null;
+                        ImageUpdate = ASCIIEncoding.ASCII.GetString((byte[])(it.Parameters as List<object>)[0]);
+                        ImageSize = Convert.ToUInt32((it.Parameters as List<object>)[1]);
+                        string file = Path.Combine(Path.GetDirectoryName(typeof(GXDLMSMeter).Assembly.Location), ImageUpdate + ".exe");
+                        System.Diagnostics.Debug.WriteLine("Updating image" + ImageUpdate + " Size:" + ImageSize);
+                        using (var writer = File.Create(file))
+                        {
+                        }
+                    }
+                    //Transfers one block of the Image to the server
+                    else if (it.Index == 2)
+                    {
+                        i.ImageTransferStatus = ImageTransferStatus.TransferInitiated;
+                        string file = Path.Combine(Path.GetDirectoryName(typeof(GXDLMSMeter).Assembly.Location), ImageUpdate + ".exe");
+                        List<object> p = (List<object>)it.Parameters;
+                        try
+                        {
+                            using (FileStream fs = new FileStream(file, FileMode.Append))
                             {
-                                clock.Time = clock.Now();
+                                using (BinaryWriter writer = new BinaryWriter(fs))
+                                {
+                                    writer.Write((byte[])p[1]);
+                                }
+                                fs.Close();
                             }
+                        }
+                        catch (System.IO.IOException)
+                        {
+                            Thread.Sleep(1000);
+                            using (FileStream fs = new FileStream(file, FileMode.Append))
+                            {
+                                using (BinaryWriter writer = new BinaryWriter(fs))
+                                {
+                                    writer.Write((byte[])p[1]);
+                                }
+                                fs.Close();
+                            }
+                        }
+                    }
+                    //Verifies the integrity of the Image before activation.
+                    else if (it.Index == 3)
+                    {
+                        string file = Path.Combine(Path.GetDirectoryName(typeof(GXDLMSMeter).Assembly.Location), ImageUpdate + ".exe");
+                        bool init = i.ImageTransferStatus == ImageTransferStatus.TransferInitiated;
+                        if (init)
+                        {
+                            i.ImageTransferStatus = ImageTransferStatus.VerificationInitiated;
+                            //Check that size match.
+                            uint size = (uint)new FileInfo(file).Length;
+                            if (size != ImageSize)
+                            {
+                                i.ImageTransferStatus = ImageTransferStatus.VerificationFailed;
+                                it.Error = ErrorCode.OtherReason;
+                            }
+                            else
+                            {
+                                Thread t = new Thread(() => {
+                                    //Wait 5 seconds before image is verified.
+                                    Thread.Sleep(5000);
+                                    i.ImageTransferStatus = ImageTransferStatus.VerificationSuccessful;
+                                    Console.WriteLine("Image is verificated");
+                                });
+                                t.Start();
+                            }
+                        }
+                        if (i.ImageTransferStatus != ImageTransferStatus.VerificationFailed &&
+                            i.ImageTransferStatus != ImageTransferStatus.VerificationSuccessful)
+                        {
+                            Console.WriteLine("Image verification is on progress.");
+                            it.Error = ErrorCode.TemporaryFailure;
+                        }
+                    }
+                    //Activates the Image.
+                    else if (it.Index == 4)
+                    {
+                        bool init = i.ImageTransferStatus == ImageTransferStatus.VerificationSuccessful;
+                        if (init)
+                        {
+                            i.ImageTransferStatus = ImageTransferStatus.ActivationInitiated;
+                            Thread t = new Thread(() => {
+                                //Wait 5 seconds before image is activated.
+                                Thread.Sleep(5000);
+                                i.ImageTransferStatus = ImageTransferStatus.ActivationSuccessful;
+                                Console.WriteLine("Image is activated.");
+                            });
+                            t.Start();
+                        }
+                        //Wait 5 seconds before image is verified.
+                        if (i.ImageTransferStatus != ImageTransferStatus.ActivationFailed &&
+                            i.ImageTransferStatus != ImageTransferStatus.ActivationSuccessful)
+                        {
+                            Console.WriteLine("Image activation is on progress.");
+                            it.Error = ErrorCode.TemporaryFailure;
                         }
                     }
                 }
@@ -600,7 +710,8 @@ namespace Gurux.DLMS.Simulator.Net
         {
             foreach (ValueEventArgs it in args)
             {
-                if (it.Error != ErrorCode.Ok)
+                //Image update returns TemporaryFailure if image verify or acticvation is not finished.
+                if (it.Error != ErrorCode.Ok && it.Error != ErrorCode.TemporaryFailure)
                 {
                     // Load default values if user has try to save invalid data.
                     Items.Clear();

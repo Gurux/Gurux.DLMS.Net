@@ -49,15 +49,6 @@ namespace Gurux.DLMS.Objects
     public class GXDLMSImageTransfer : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>
-        /// Image size.
-        /// </summary>
-        public UInt32 ImageSize
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// Constructor.
         /// </summary>
         public GXDLMSImageTransfer()
@@ -268,7 +259,6 @@ namespace Gurux.DLMS.Objects
                 ImageTransferredBlocksStatus = "";
                 List<object> value = (List<object>)e.Parameters;
                 byte[] imageIdentifier = (byte[])value[0];
-                ImageSize = (UInt32)value[1];
                 ImageTransferStatus = ImageTransferStatus.TransferInitiated;
                 List<GXDLMSImageActivateInfo> list;
                 if (ImageActivateInfo == null)
@@ -293,10 +283,10 @@ namespace Gurux.DLMS.Objects
                     item = new Objects.GXDLMSImageActivateInfo();
                     list.Add(item);
                 }
-                item.Size = ImageSize;
+                item.Size = (UInt32)value[1];
                 item.Identification = imageIdentifier;
                 ImageActivateInfo = list.ToArray();
-                int cnt = (int)Math.Ceiling((double)ImageSize / ImageBlockSize);
+                int cnt = (int)Math.Ceiling((double)item.Size / ImageBlockSize);
                 StringBuilder sb = new StringBuilder(cnt);
                 for (uint pos = 0; pos < cnt; ++pos)
                 {

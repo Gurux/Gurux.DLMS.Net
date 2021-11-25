@@ -709,6 +709,18 @@ namespace Gurux.DLMS
             xml.AppendLine(TranslatorTags.ClassId, "Value", xml.IntegerToHex((int)ci, 4));
             xml.AppendComment(GXCommon.ToLogicalName(ln));
             xml.AppendLine(TranslatorTags.InstanceId, "Value", GXCommon.ToHex(ln, false));
+            try
+            {
+                IGXDLMSBase obj = GXDLMSClient.CreateObject((ObjectType)ci) as IGXDLMSBase;
+                if (obj != null)
+                {
+                    xml.AppendComment(obj.GetNames()[attributeIndex - 1]);
+                }
+            }
+            catch(Exception)
+            {
+                //It's OK if this fails.
+            }
             xml.AppendLine(TranslatorTags.AttributeId, "Value", xml.IntegerToHex(attributeIndex, 2));
             xml.AppendEndTag(TranslatorTags.AttributeDescriptor);
         }
@@ -723,6 +735,18 @@ namespace Gurux.DLMS
             xml.AppendLine(TranslatorTags.ClassId, "Value", xml.IntegerToHex((int)ci, 4));
             xml.AppendComment(GXCommon.ToLogicalName(ln));
             xml.AppendLine(TranslatorTags.InstanceId, "Value", GXCommon.ToHex(ln, false));
+            try
+            {
+                IGXDLMSBase obj = GXDLMSClient.CreateObject((ObjectType)ci) as IGXDLMSBase;
+                if (obj != null)
+                {
+                    xml.AppendComment(obj.GetMethodNames()[attributeIndex - 1]);
+                }
+            }
+            catch (Exception)
+            {
+                //It's OK if this fails.
+            }
             xml.AppendLine(TranslatorTags.MethodId, "Value", xml.IntegerToHex(attributeIndex, 2));
             xml.AppendEndTag(TranslatorTags.MethodDescriptor);
         }
