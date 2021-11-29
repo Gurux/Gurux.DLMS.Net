@@ -123,7 +123,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Block cipher key.
         /// </summary>
-        internal byte[] Guek
+        public byte[] Guek
         {
             get;
             set;
@@ -132,7 +132,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Broadcast block cipher key.
         /// </summary>
-        internal byte[] Gbek
+        public byte[] Gbek
         {
             get;
             set;
@@ -141,7 +141,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Authentication key.
         /// </summary>
-        internal byte[] Gak
+        public byte[] Gak
         {
             get;
             set;
@@ -150,7 +150,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Master key.
         /// </summary>
-        internal byte[] Kek
+        public byte[] Kek
         {
             get;
             set;
@@ -860,27 +860,12 @@ namespace Gurux.DLMS.Objects
             {
                 case CertificateType.DigitalSignature:
                     SigningKey = value;
-                    // If all associations are using same certifications.
-                    if (settings.AssociationsShareCertificates)
-                    {
-                        settings.Cipher.SigningKeyPair = value;
-                    }
                     break;
                 case CertificateType.KeyAgreement:
                     KeyAgreementKey = value;
-                    // If all associations are using same certifications.
-                    if (settings.AssociationsShareCertificates)
-                    {
-                        settings.Cipher.KeyAgreementKeyPair = value;
-                    }
                     break;
                 default:
                     TlsKey = value;
-                    // If all associations are using same certifications.
-                    if (settings.AssociationsShareCertificates)
-                    {
-                        settings.Cipher.TlsKeyPair = value;
-                    }
                     break;
             }
         }
@@ -1438,12 +1423,6 @@ namespace Gurux.DLMS.Objects
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();
-            }
-            // If all associations are using the same certificates.
-            if (serverSettings != null && serverSettings.AssociationsShareCertificates)
-            {
-                SigningKey = serverSettings.Cipher.SigningKeyPair;
-                KeyAgreementKey = serverSettings.Cipher.KeyAgreementKeyPair;
             }
             if (SigningKey != null)
             {

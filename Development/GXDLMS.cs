@@ -314,37 +314,8 @@ namespace Gurux.DLMS
                 }
                 return GetHdlcFrame(settings, id, null);
             }
-            Command cmd;
-            byte cmdType = (byte)GetCommandType.NextDataBlock;
-            if (settings.UseLogicalNameReferencing)
-            {
-                if (reply.CipheredCommand == Command.GloMethodResponse ||
-                    reply.CipheredCommand == Command.DedMethodResponse ||
-                    reply.Command == Command.MethodResponse)
-                {
-                    cmd = Command.MethodRequest;
-                    cmdType = (byte)ActionRequestType.NextBlock;
-                }
-                else if (settings.IsServer)
-                {
-                    cmd = Command.GetResponse;
-                }
-                else
-                {
-                    cmd = Command.GetRequest;
-                }
-            }
-            else
-            {
-                if (settings.IsServer)
-                {
-                    cmd = Command.ReadResponse;
-                }
-                else
-                {
-                    cmd = Command.ReadRequest;
-                }
-            }
+            Command cmd = settings.Command;
+            byte cmdType = (byte)GetCommandType.NextDataBlock;          
             // Get next block.
             byte[][] data;
             if (reply.MoreData == RequestTypes.GBT)
@@ -1297,16 +1268,18 @@ namespace Gurux.DLMS
                     {
                         if (p.multipleBlocks && (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) == 0)
                         {
+                            //There is no status fiel in action resonse.
+                            p.status = 0xFF;
                             if (p.requestType == (byte)ActionResponseType.Normal)
                             {
                                 //Remove Method Invocation Parameters tag.
                                 ++p.data.Position;
                                 ++p.data.Position;
-                                p.requestType = (byte)ActionResponseType.WithFirstBlock;
-                                p.status = 0xFF;
+                                p.requestType = (byte)ActionResponseType.WithBlock;
                             }
-                            else if (p.requestType == (byte)ActionResponseType.WithFirstBlock)
+                            else if (p.requestType == (byte)ActionResponseType.WithBlock && p.data.Available == 0)
                             {
+                                //If server asks next part of PDU.
                                 p.requestType = (byte)ActionResponseType.NextBlock;
                             }
                         }
@@ -1397,7 +1370,8 @@ namespace Gurux.DLMS
                         len -= GetSigningSize(p);
                         len -= GXCommon.GetObjectCountSizeInBytes(len);
                     }
-                    if (!(p.command == Command.MethodResponse && p.requestType == (byte)ActionResponseType.NextBlock))
+                    //If server is not asking the next block.
+                    if (!(len == 0 && p.command == Command.MethodResponse && p.requestType == (byte)ActionResponseType.NextBlock))
                     {
                         GXCommon.SetObjectCount(len, reply);
                         reply.Set(p.data, len);
@@ -3877,7 +3851,7 @@ namespace Gurux.DLMS
                 case ActionResponseType.Normal:
                     HandleActionResponseNormal(settings, data);
                     break;
-                case ActionResponseType.WithFirstBlock:
+                case ActionResponseType.WithBlock:
                     HandleActionResponseFirstBlock(settings, data, index);
                     break;
                 case ActionResponseType.WithList:

@@ -365,15 +365,6 @@ namespace Gurux.DLMS
             set;
         }
 
-        /// <summary>
-        /// Are all associations using the same certifications.
-        /// </summary>
-        public bool AssociationsShareCertificates
-        {
-            get;
-            set;
-        }
-
         ///<summary>
         ///Constructor.
         ///</summary>

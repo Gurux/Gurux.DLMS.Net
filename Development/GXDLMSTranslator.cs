@@ -3166,7 +3166,7 @@ namespace Gurux.DLMS
                         s.requestType = (byte)(tag & 0xFF);
                         break;
                     case (byte)(int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.Normal:
-                    case (byte)(int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.WithFirstBlock:
+                    case (byte)(int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.WithBlock:
                     case (byte)(int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.WithList:
                     case (byte)(int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.NextBlock:
                         //MethodResponseNormal

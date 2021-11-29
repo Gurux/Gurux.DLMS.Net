@@ -225,7 +225,7 @@ namespace Gurux.DLMS
                                     "action-response");
             list.Add((int)Command.MethodResponse << 8 | (int)ActionResponseType.Normal,
                      "action-response-normal");
-            list.Add((int)Command.MethodResponse << 8 | (int)ActionResponseType.WithFirstBlock,
+            list.Add((int)Command.MethodResponse << 8 | (int)ActionResponseType.WithBlock,
                      "action-response-with-pblock");
             list.Add((int)Command.MethodResponse << 8 | (int)ActionResponseType.WithList,
                      "action-response-with-list");

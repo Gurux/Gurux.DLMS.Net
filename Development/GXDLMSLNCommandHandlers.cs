@@ -377,6 +377,11 @@ namespace Gurux.DLMS
                 p.status = (byte)error;
             }
             GXDLMS.GetLNPdu(p, replyData);
+            //If all reply data doesn't fit to one PDU.
+            if (server.transaction == null && p.data.Available != 0)
+            {
+                server.transaction = new GXDLMSLongTransaction(new ValueEventArgs[] { e }, Command.MethodResponse, p.data);
+            }
             //If High level authentication fails.
             if (error == 0 && obj is GXDLMSAssociationLogicalName && id == 1)
             {
@@ -423,13 +428,15 @@ namespace Gurux.DLMS
                 }
             }
             settings.IncreaseBlockIndex();
-            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeID, streaming ? Command.GeneralBlockTransfer : Command.GetResponse, 2, null, bb, (byte)ErrorCode.Ok, cipheredCommand);
+            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeID, streaming ? Command.GeneralBlockTransfer : Command.MethodResponse, (byte) ActionResponseType.WithBlock, null, bb, (byte)ErrorCode.Ok, cipheredCommand);
             p.Streaming = streaming;
             p.WindowSize = settings.GbtWindowSize;
             //If transaction is not in progress.
             if (server.transaction == null)
             {
                 p.status = (byte)ErrorCode.NoLongGetOrReadInProgress;
+                p.requestType = 1;
+                GXDLMS.GetLNPdu(p, replyData);
             }
             else
             {
@@ -464,6 +471,7 @@ namespace Gurux.DLMS
                             }
                             else
                             {
+                                p.requestType = 1;
                                 p.status = (byte)arg.Error;
                                 //Add return parameters
                                 bb.SetUInt8(0);

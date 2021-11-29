@@ -151,7 +151,7 @@ namespace Gurux.DLMS
             list.Add((int)Command.MethodRequest << 8 | (int)ActionRequestType.WithBlock, "ActionRequestWithBlock");
             GXDLMSTranslator.AddTag(list, Command.MethodResponse, "ActionResponse");
             list.Add((int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.Normal, "ActionResponseNormal");
-            list.Add((int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.WithFirstBlock, "ActionResponseWithPBlock");
+            list.Add((int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.WithBlock, "ActionResponseWithPBlock");
             list.Add((int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.WithList, "ActionResponseWithList");
             list.Add((int)(Command.MethodResponse) << 8 | (byte)ActionResponseType.NextBlock, "ActionResponseWithBlock");
             list.Add((int)Command.DataNotification, "DataNotification");

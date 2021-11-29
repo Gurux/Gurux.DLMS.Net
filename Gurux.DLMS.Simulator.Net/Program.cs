@@ -213,6 +213,24 @@ namespace Gurux.DLMS.Simulator.Net
                                     it.AuthenticationMechanismName.MechanismId,
                                     it.Secret != null ? ASCIIEncoding.ASCII.GetString(it.Secret) : "");
                             }
+                            GXDLMSSecuritySetup ss = server.Items.FindByLN(ObjectType.SecuritySetup, it.SecuritySetupReference) as GXDLMSSecuritySetup;
+                            if (ss != null)
+                            {
+                                str += Environment.NewLine;
+                                str += " Security suite: " + ss.SecuritySuite;
+                                str += Environment.NewLine;
+                                str += " Security policy: " + ss.SecurityPolicy;
+                                str += Environment.NewLine;
+                                str += " Authentication key: " + GXDLMSTranslator.ToHex(ss.Gak);
+                                str += Environment.NewLine;
+                                str += " Block cipher key: " + GXDLMSTranslator.ToHex(ss.Guek);
+                                str += Environment.NewLine;
+                                if (ss.Gbek != null)
+                                {
+                                    str += " Broadcast block cipher key: " + GXDLMSTranslator.ToHex(ss.Gbek);
+                                }
+                                str += Environment.NewLine;
+                            }
                             Console.WriteLine(str);
                         }
                     }

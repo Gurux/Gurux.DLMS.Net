@@ -45,9 +45,9 @@ namespace Gurux.DLMS.Internal
         /// </summary>
         Normal = 1,
         /// <summary>
-        /// Action with first block.
+        /// Action with block.
         /// </summary>
-        WithFirstBlock = 2,
+        WithBlock = 2,
         /// <summary>
         /// Action with list.
         /// </summary>

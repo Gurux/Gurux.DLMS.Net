@@ -168,15 +168,38 @@ namespace Gurux.DLMS.Objects
         /// <param name="client">DLMS Client.</param>
         /// <param name="imageBlock">Image</param>
         /// <param name="ImageBlockCount"></param>
-        /// <returns></returns>
+        /// <returns>DLMS frames that are send to the meter.</returns>
         public byte[][] ImageBlockTransfer(GXDLMSClient client, byte[] image, out int ImageBlockCount)
+        {
+            return ImageBlockTransfer(client, image, 0, out ImageBlockCount);
+        }
+        /// <summary>
+        /// Move image to the meter.
+        /// </summary>
+        /// <param name="client">DLMS Client.</param>
+        /// <param name="image">Image</param>
+        /// <param name="index">Zero based index from which blocks are send.</param>
+        /// <param name="ImageBlockCount">Total number of blocks to send.</param>
+        /// <returns>DLMS frames that are send to the meter.</returns>
+        public byte[][] ImageBlockTransfer(GXDLMSClient client, byte[] image, int index, out int ImageBlockCount)
         {
             List<byte[]> packets = new List<byte[]>();
             byte[][] blocks = GetImageBlocks(image);
             ImageBlockCount = blocks.Length;
+            if (index >= ImageBlockCount)
+            {
+                throw new ArgumentOutOfRangeException("Image start index is higher than image block count");
+            }
             foreach (byte[] it in blocks)
             {
-                packets.AddRange(client.Method(this, 2, it, DataType.Array));
+                if (index == 0)
+                {
+                    packets.AddRange(client.Method(this, 2, it, DataType.Array));
+                }
+                else
+                {
+                    --index;
+                }
             }
             return packets.ToArray();
         }

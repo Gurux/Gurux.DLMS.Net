@@ -580,7 +580,6 @@ namespace Gurux.DLMS.Simulator.Net
         protected override void InvalidConnection(GXDLMSConnectionEventArgs e)
         {
         }
-
         protected override void PreAction(ValueEventArgs[] args)
         {
             foreach (ValueEventArgs it in args)
@@ -711,7 +710,7 @@ namespace Gurux.DLMS.Simulator.Net
             foreach (ValueEventArgs it in args)
             {
                 //Image update returns TemporaryFailure if image verify or acticvation is not finished.
-                if (it.Error != ErrorCode.Ok && it.Error != ErrorCode.TemporaryFailure)
+                if (it.Error != ErrorCode.Ok && !(it.Target is GXDLMSImageTransfer))
                 {
                     // Load default values if user has try to save invalid data.
                     Items.Clear();
