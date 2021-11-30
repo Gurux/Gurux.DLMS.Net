@@ -435,7 +435,7 @@ namespace Gurux.DLMS.Objects
                     Keys[Id] = key;
                 }
             }
-            ClientKey = GXCommon.HexToBytes(reader.ReadElementContentAsString("ServerAddress", null));
+            ClientKey = GXCommon.HexToBytes(reader.ReadElementContentAsString("ClientKey", null));
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)

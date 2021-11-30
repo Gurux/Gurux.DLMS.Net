@@ -186,6 +186,7 @@ namespace Gurux.DLMS
                 availableObjectTypes.Add(ObjectType.SFSKReportingSystemList, typeof(GXDLMSSFSKReportingSystemList));
                 availableObjectTypes.Add(ObjectType.Arbitrator, typeof(GXDLMSArbitrator));
                 availableObjectTypes.Add(ObjectType.NtpSetup, typeof(GXDLMSNtpSetup));
+                availableObjectTypes.Add(ObjectType.CommunicationPortProtection, typeof(GXDLMSCommunicationPortProtection));
                 //Italian standard uses this.
                 availableObjectTypes.Add(ObjectType.TariffPlan, typeof(GXDLMSTariffPlan));
             }
@@ -249,6 +250,7 @@ namespace Gurux.DLMS
 
         internal static GXDLMSObject CreateObject(ObjectType type, byte version, Dictionary<ObjectType, Type> availableObjectTypes)
         {
+            GXDLMSObject obj;
             lock (availableObjectTypes)
             {
                 //Update objects.
@@ -258,12 +260,16 @@ namespace Gurux.DLMS
                 }
                 if (availableObjectTypes.ContainsKey(type))
                 {
-                    return Activator.CreateInstance(availableObjectTypes[type]) as GXDLMSObject;
+                    obj = Activator.CreateInstance(availableObjectTypes[type]) as GXDLMSObject;
+                    obj.Version = version;
+                }
+                else
+                {
+                    obj = new GXDLMSObject();
+                    obj.ObjectType = type;
+                    obj.Version = version;
                 }
             }
-            GXDLMSObject obj = new GXDLMSObject();
-            obj.ObjectType = type;
-            obj.Version = version;
             return obj;
         }
 
@@ -315,7 +321,7 @@ namespace Gurux.DLMS
                 return GetHdlcFrame(settings, id, null);
             }
             Command cmd = settings.Command;
-            byte cmdType = (byte)GetCommandType.NextDataBlock;          
+            byte cmdType = (byte)GetCommandType.NextDataBlock;
             // Get next block.
             byte[][] data;
             if (reply.MoreData == RequestTypes.GBT)

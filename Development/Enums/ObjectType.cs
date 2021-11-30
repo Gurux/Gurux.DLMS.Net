@@ -547,6 +547,18 @@ namespace Gurux.DLMS.Enums
         G3Plc6LoWPan = 92,
 
         /// <summary>
+        /// Function control.
+        /// </summary>
+        [XmlEnum("122")]
+        FunctionControl = 122,
+
+        /// <summary>
+        /// Communication port protection.
+        /// </summary>
+        [XmlEnum("124")]
+        CommunicationPortProtection = 124,
+
+        /// <summary>
         /// IEC 14908 Identification.
         /// </summary>
         [XmlEnum("150")]
