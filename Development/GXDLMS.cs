@@ -282,6 +282,7 @@ namespace Gurux.DLMS
         ///<returns>
         ///Acknowledgment message as byte array.
         ///</returns>
+        [Obsolete()]
         internal static byte[] ReceiverReady(GXDLMSSettings settings, RequestTypes type)
         {
             GXReplyData reply = new GXReplyData() { MoreData = type };
@@ -321,7 +322,6 @@ namespace Gurux.DLMS
                 return GetHdlcFrame(settings, id, null);
             }
             Command cmd = settings.Command;
-            byte cmdType = (byte)GetCommandType.NextDataBlock;
             // Get next block.
             byte[][] data;
             if (reply.MoreData == RequestTypes.GBT)
@@ -330,7 +330,6 @@ namespace Gurux.DLMS
                 p.WindowSize = reply.GbtWindowSize;
                 p.blockNumberAck = (UInt16)reply.BlockNumber;
                 p.blockIndex = settings.BlockIndex;
-                p.Streaming = p.WindowSize != 1;
                 data = GXDLMS.GetLnMessages(p);
             }
             else
@@ -348,7 +347,7 @@ namespace Gurux.DLMS
                 settings.IncreaseBlockIndex();
                 if (settings.UseLogicalNameReferencing)
                 {
-                    GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, cmd, cmdType, bb, null, 0xff, Command.None);
+                    GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, cmd, (byte)GetCommandType.NextDataBlock, bb, null, 0xff, Command.None);
                     data = GXDLMS.GetLnMessages(p);
                 }
                 else
@@ -846,6 +845,26 @@ namespace Gurux.DLMS
         /// <returns></returns>
         private static byte[] Cipher1(GXDLMSLNParameters p, byte[] data)
         {
+            bool signing = p.settings.Cipher.Signing != Signing.None;
+            //Association LN V3 and signing is not needed.
+            if (!p.settings.OverwriteAttributeAccessRights && signing & p.AccessMode != 0)
+            {
+                if (p.settings.IsServer)
+                {
+                    if ((p.AccessMode & (int)(AccessMode3.DigitallySignedResponse)) == 0)
+                    {
+                        signing = false;
+                    }
+                }
+                else
+                {
+                    if ((p.AccessMode & (int)(AccessMode3.DigitallySignedRequest)) == 0)
+                    {
+                        signing = false;
+                    }
+                }
+            }
+
             byte keyid;
             switch (p.settings.Cipher.Signing)
             {
@@ -1090,14 +1109,14 @@ namespace Gurux.DLMS
             s.Type = (CountType.Data | CountType.Tag);
             System.Diagnostics.Debug.WriteLine("Data: " + GXDLMSTranslator.ToHex(data));
             byte[] tmp = GXCiphering.Encrypt(s, data);
-            //Content lenght is not add for the signed data.
+            //Content length is not add for the signed data.
             GXByteBuffer signedData = new GXByteBuffer();
             signedData.Set(reply.Data, 1, reply.Size - 1);
             if (c.Security != Security.None)
             {
                 if (p.settings.Cipher.Signing == Signing.GeneralSigning)
                 {
-                    //Content lenght is not add for the signed data.
+                    //Content length is not add for the signed data.
                     GXCommon.SetObjectCount(6 + GXCommon.GetObjectCountSizeInBytes(5 + tmp.Length) + tmp.Length, reply);
                     //Add ciphered command.
                     if (p.settings.Cipher.DedicatedKey == null)
@@ -1175,6 +1194,24 @@ namespace Gurux.DLMS
             bool ciphering = p.command != Command.Aarq && p.command != Command.Aare &&
                 (p.settings.IsCiphered(true) || p.cipheredCommand != Command.None ||
                 (p.settings.Cipher != null && p.settings.Cipher.Signing == Signing.GeneralSigning));
+            //Association LN V3 and ciphering is not needed.
+            if (!p.settings.OverwriteAttributeAccessRights && ciphering & p.AccessMode != 0)
+            {
+                if (p.settings.IsServer)
+                {
+                    if ((p.AccessMode & (int)(AccessMode3.AuthenticatedResponse | AccessMode3.EncryptedResponse | AccessMode3.DigitallySignedResponse)) == 0)
+                    {
+                        ciphering = false;
+                    }
+                }
+                else
+                {
+                    if ((p.AccessMode & (int)(AccessMode3.AuthenticatedRequest | AccessMode3.EncryptedRequest | AccessMode3.DigitallySignedRequest)) == 0)
+                    {
+                        ciphering = false;
+                    }
+                }
+            }
             int len = 0;
             if (p.command == Command.Aarq)
             {
@@ -1434,8 +1471,7 @@ namespace Gurux.DLMS
                             {
                                 byte[] tmp;
                                 reply.Set(p.data);
-                                if ((p.settings.NegotiatedConformance & Conformance.GeneralProtection) == 0 ||
-                                    (p.settings.Connected & ConnectionState.Dlms) == 0 ||
+                                if ((p.settings.Connected & ConnectionState.Dlms) == 0 ||
                                      p.settings.Cipher.Signing == Signing.None)
                                 {
                                     tmp = Cipher0(p, reply.Array());
@@ -1483,8 +1519,7 @@ namespace Gurux.DLMS
                 {
                     //GBT ciphering is done for all the data, not just block.
                     byte[] tmp;
-                    if ((p.settings.NegotiatedConformance & Conformance.GeneralProtection) == 0 ||
-                        (p.settings.Connected & ConnectionState.Dlms) == 0 ||
+                    if ((p.settings.Connected & ConnectionState.Dlms) == 0 ||
                         p.settings.Cipher.Signing == Signing.None)
                     {
                         tmp = Cipher0(p, reply.Array());
@@ -3625,6 +3660,7 @@ namespace Gurux.DLMS
                                         data.Xml.OutputType,
                                         (ErrorCode)data.Error));
             }
+            settings.ResetBlockIndex();
             // Response normal. Get data if exists. Some meters do not return here anything.
             if (data.Error == 0 && data.Data.Position < data.Data.Size)
             {

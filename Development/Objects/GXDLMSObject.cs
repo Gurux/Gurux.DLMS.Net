@@ -47,10 +47,6 @@ namespace Gurux.DLMS.Objects
     /// <summary>
     /// Notifiest that user has change value.
     /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="Dirty"></param>
-    /// <param name="attributeIndex"></param>
-    /// <param name="value"></param>
     public delegate void ObjectChangeEventHandler(GXDLMSObject sender, bool Dirty, int attributeIndex, object value);
 
     /// <summary>
@@ -84,7 +80,8 @@ namespace Gurux.DLMS.Objects
         /// <returns>True, if attribute of the object is readable.</returns>
         public bool CanRead(int index)
         {
-            return GetAccess(index) != AccessMode.NoAccess;
+            return (GetAccess(index) & AccessMode.Read) != 0 ||
+                (GetAccess3(index) & AccessMode3.Read) != 0;
         }
 
         class GXStatusInfo
@@ -588,7 +585,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Returns is attribute read only.
+        /// Returns attribute access mode.
         /// </summary>-
         /// <param name="index">Attribute index.</param>
         /// <returns>Is attribute read only.</returns>
@@ -612,6 +609,7 @@ namespace Gurux.DLMS.Objects
 
             GXDLMSAttributeSettings att = GetAttribute(index, Attributes);
             att.Access = access;
+            att.Access3 = AccessMode3.NoAccess;
         }
 
         /// <summary>
@@ -634,6 +632,7 @@ namespace Gurux.DLMS.Objects
         {
             GXDLMSAttributeSettings att = GetAttribute(index, Attributes);
             att.Access3 = access;
+            att.Access = AccessMode.NoAccess;
         }
 
         /// <summary>
@@ -669,6 +668,7 @@ namespace Gurux.DLMS.Objects
                 MethodAttributes.Add(att);
             }
             att.MethodAccess = access;
+            att.MethodAccess3 = MethodAccessMode3.NoAccess;
         }
 
         /// <summary>
@@ -700,6 +700,7 @@ namespace Gurux.DLMS.Objects
                 MethodAttributes.Add(att);
             }
             att.MethodAccess3 = access;
+            att.MethodAccess = MethodAccessMode.NoAccess;
         }
 
         /// <summary>

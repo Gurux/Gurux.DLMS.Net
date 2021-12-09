@@ -55,10 +55,5 @@ namespace Gurux.DLMS.Enums
         /// Authentication and Encryption security are used.
         /// </summary>
         AuthenticationEncryption = 0x30,
-        /// <summary>
-        /// Messages are digitally signed.
-        /// </summary>
-        //[Obsolete("This will be removed.")]
-        DigitallySigned = 0x40
     }
 }

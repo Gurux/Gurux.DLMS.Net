@@ -56,12 +56,6 @@ namespace Gurux.DLMS.Enums
         /// The Static Unified Model scheme.
         /// </summary>
         [XmlEnum("2")]
-        StaticUnifiedModel,
-        /// <summary>
-        /// General signing is used.
-        /// </summary>
-       [XmlEnum("3")]
-       //[Obsolete("This will be removed.")]
-        GeneralSigning
+        StaticUnifiedModel       
     }
 }

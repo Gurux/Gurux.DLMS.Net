@@ -193,7 +193,7 @@ namespace Gurux.DLMS.Objects
             if (e.Index == 1)
             {
                 FailedAttempts = 0;
-                //MIKKO Reset current lockout time.
+                //TODO: Reset current lockout time.
                 if (ProtectionMode == ProtectionMode.LockedOnFailedAttempts)
                 {
                     ProtectionStatus = ProtectionStatus.Unlocked;

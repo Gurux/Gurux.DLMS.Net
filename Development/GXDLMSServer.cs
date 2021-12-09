@@ -1619,7 +1619,7 @@ namespace Gurux.DLMS
             }
             if (transaction != null)
             {
-                if (transaction.command == Command.GetRequest)
+                if (transaction.command == Command.GetRequest || transaction.command == Command.MethodResponse)
                 {
                     // Get request for next data block
                     if (sr.GbtCount == 0)
@@ -1627,7 +1627,14 @@ namespace Gurux.DLMS
                         ++Settings.BlockNumberAck;
                         sr.GbtCount = (byte)(bc & 0x3F);
                     }
-                    GXDLMSLNCommandHandler.GetRequestNextDataBlock(Settings, 0, this, data, replyData, null, true, cipheredCommand);
+                    if (transaction.command == Command.GetRequest)
+                    {
+                        GXDLMSLNCommandHandler.GetRequestNextDataBlock(Settings, 0, this, data, replyData, null, true, cipheredCommand);
+                    }
+                    else
+                    {
+                        GXDLMSLNCommandHandler.MethodRequestNextDataBlock(Settings, 0, this, data, replyData, null, true, cipheredCommand);                        
+                    }
                     if (sr.GbtCount != 0)
                     {
                         --sr.GbtCount;

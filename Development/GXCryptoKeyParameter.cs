@@ -66,7 +66,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Data used to enctypt.
+        /// Decrypted data.
         /// </summary>
         public byte[] PlainText
         {

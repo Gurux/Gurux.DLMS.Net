@@ -470,7 +470,9 @@ namespace Gurux.DLMS.Objects
             //Unknown objects are not add.
             if (obj is IGXDLMSBase)
             {
-                if (ObjectList.FindByLN(obj.ObjectType, obj.LogicalName) == null)
+                GXDLMSObject exists = ObjectList.FindByLN(obj.ObjectType, obj.LogicalName);
+                //Add object to object list if it not exists yet.
+                if (exists == null)
                 {
                     ObjectList.Add(obj);
                 }
@@ -487,44 +489,44 @@ namespace Gurux.DLMS.Objects
                         ln.XDLMSContextInfo.Conformance = XDLMSContextInfo.Conformance;
                         ln.XDLMSContextInfo.MaxReceivePduSize = XDLMSContextInfo.MaxReceivePduSize;
                         ln.XDLMSContextInfo.MaxSendPduSize = XDLMSContextInfo.MaxSendPduSize;
-                        // Use the same access right as parent is using.
-                        int count = ((IGXDLMSBase)this).GetAttributeCount();
-                        int[] list = new int[count];
-                        for (int pos = 0; pos != count; ++pos)
-                        {
-                            list[pos] = (int)GetAccess(1 + pos);
-                        }
-                        accessRights[obj] = list;
-                        count = ((IGXDLMSBase)this).GetMethodCount();
-                        list = new int[count];
-                        for (int pos = 0; pos != count; ++pos)
-                        {
-                            list[pos] = (int)GetMethodAccess(1 + pos);
-                        }
-                        methodAccessRights[obj] = list;
                     }
-                    else
+                    else if (obj is GXDLMSSecuritySetup ss)
                     {
-                        int count = ((IGXDLMSBase)obj).GetAttributeCount();
-                        int[] list = new int[count];
-                        for (int pos = 0; pos != count; ++pos)
+                        // Update server system title and keys.
+                        ss.ServerSystemTitle = settings.Cipher.SystemTitle;
+                        ss.Guek = settings.Cipher.BlockCipherKey;
+                        ss.Gbek = settings.Cipher.BroadcastBlockCipherKey;
+                        ss.Gak = settings.Cipher.AuthenticationKey;
+                        ss.Kek = settings.Kek;
+                    }
+                    int count = ((IGXDLMSBase)obj).GetAttributeCount();
+                    int[] list = new int[count];
+                    for (int pos = 0; pos != count; ++pos)
+                    {
+                        if (this.Version == 3)
+                        {
+                            list[pos] = (int)obj.GetAccess3(1 + pos);
+                        }
+                        else
                         {
                             list[pos] = (int)obj.GetAccess(1 + pos);
                         }
-                        accessRights[obj] = list;
-                        count = ((IGXDLMSBase)obj).GetMethodCount();
-                        list = new int[count];
-                        for (int pos = 0; pos != count; ++pos)
+                    }
+                    accessRights[obj] = list;
+                    count = ((IGXDLMSBase)obj).GetMethodCount();
+                    list = new int[count];
+                    for (int pos = 0; pos != count; ++pos)
+                    {
+                        if (this.Version == 3)
+                        {
+                            list[pos] = (int)obj.GetMethodAccess3(1 + pos);
+                        }
+                        else
                         {
                             list[pos] = (int)obj.GetMethodAccess(1 + pos);
                         }
-                        methodAccessRights[obj] = list;
-                        if (obj is GXDLMSSecuritySetup ss)
-                        {
-                            // Update server system title.
-                            ss.ServerSystemTitle = settings.Cipher.SystemTitle;
-                        }
                     }
+                    methodAccessRights[obj] = list;
                 }
             }
         }
@@ -787,6 +789,7 @@ namespace Gurux.DLMS.Objects
             int cnt = (item as IGXDLMSBase).GetAttributeCount();
             data.SetUInt8((byte)cnt);
             ValueEventArgs e;
+            byte m;
             if (server != null)
             {
                 e = new DLMS.ValueEventArgs(server, item, 0, 0, null);
@@ -798,14 +801,20 @@ namespace Gurux.DLMS.Objects
             for (int pos = 0; pos != cnt; ++pos)
             {
                 e.Index = pos + 1;
-                AccessMode m;
                 if (server != null)
                 {
-                    m = server.NotifyGetAttributeAccess(e);
+                    m = (byte)server.NotifyGetAttributeAccess(e);
                 }
                 else
                 {
-                    m = item.GetAccess(e.Index);
+                    if (Version < 3)
+                    {
+                        m = (byte)item.GetAccess(e.Index);
+                    }
+                    else
+                    {
+                        m = (byte)item.GetAccess3(e.Index);
+                    }
                 }
                 //attribute_access_item
                 data.SetUInt8((byte)DataType.Structure);
@@ -844,14 +853,20 @@ namespace Gurux.DLMS.Objects
             for (int pos = 0; pos != cnt; ++pos)
             {
                 e.Index = pos + 1;
-                MethodAccessMode m;
                 if (server != null)
                 {
-                    m = server.NotifyGetMethodAccess(e);
+                    m = (byte) server.NotifyGetMethodAccess(e);
                 }
                 else
                 {
-                    m = item.GetMethodAccess(e.Index);
+                    if (Version < 3)
+                    {
+                        m = (byte)item.GetMethodAccess(e.Index);
+                    }
+                    else
+                    {
+                        m = (byte)item.GetMethodAccess3(e.Index);
+                    }
                 }
                 //attribute_access_item
                 data.SetUInt8((byte)DataType.Structure);
@@ -2215,7 +2230,11 @@ namespace Gurux.DLMS.Objects
             {
                 return GetAccess3(index);
             }
-            int[] tmp = accessRights[target];
+            int[] tmp;
+            if (!accessRights.TryGetValue(target, out tmp))
+            {
+                return AccessMode3.NoAccess;
+            }
             if (tmp == null)
             {
                 return (AccessMode3)GetAttributeAccess(target, index);

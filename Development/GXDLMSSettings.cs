@@ -476,7 +476,11 @@ namespace Gurux.DLMS
             }
             set
             {
-                if ((Authentication == Authentication.HighECDSA && value < 32) || value < 8 || value > 64)
+                if (Authentication == Authentication.HighECDSA && value < 32)
+                {
+                    throw new ArgumentOutOfRangeException("Invalid challenge size. ECDSA Challenge must be between 32 to 64 bytes.");
+                }
+                else if (value < 8 || value > 64)
                 {
                     throw new ArgumentOutOfRangeException("Invalid challenge size. Challenge must be between 8 to 64 bytes.");
                 }
@@ -776,6 +780,15 @@ namespace Gurux.DLMS
         /// Is this server or client settings.
         /// </summary>
         internal bool IsServer
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// If association view tells wrong access rights and they are overwritten.
+        /// </summary>
+        internal bool OverwriteAttributeAccessRights
         {
             get;
             set;

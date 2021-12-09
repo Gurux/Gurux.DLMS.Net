@@ -197,22 +197,30 @@ namespace Gurux.DLMS.Simulator.Net
                         Console.WriteLine("Associations:");
                         foreach (GXDLMSAssociationLogicalName it in server.Items.GetObjects(ObjectType.AssociationLogicalName))
                         {
+                            str = "++++++++++++++++++++++++++++" + Environment.NewLine;
                             //Overwrite the password.
                             if (settings.client.Password != null && settings.client.Password.Length != 0)
                             {
                                 it.Secret = settings.client.Password;
                             }
-                            str = "Client address: " + it.ClientSAP.ToString();
+                            str += "Client address: " + it.ClientSAP.ToString();
                             if (it.AuthenticationMechanismName.MechanismId == Authentication.None)
                             {
                                 str += " Without authentication.";
                             }
                             else
                             {
-                                str += string.Format(" {0} authentication, password {1}",
-                                    it.AuthenticationMechanismName.MechanismId,
-                                    it.Secret != null ? ASCIIEncoding.ASCII.GetString(it.Secret) : "");
+                                str += string.Format(" {0} authentication",
+                                    it.AuthenticationMechanismName.MechanismId);
+                                if (it.Secret != null)
+                                {
+                                    str += string.Format(", password {0}", ASCIIEncoding.ASCII.GetString(it.Secret));
+                                }
                             }
+                            str += Environment.NewLine + " Conformance:" + Environment.NewLine;
+                            str += it.XDLMSContextInfo.Conformance + Environment.NewLine;
+                            str += " MaxReceivePduSize: " + it.XDLMSContextInfo.MaxReceivePduSize;
+                            str += " MaxSendPduSize: " + it.XDLMSContextInfo.MaxSendPduSize + Environment.NewLine;
                             GXDLMSSecuritySetup ss = server.Items.FindByLN(ObjectType.SecuritySetup, it.SecuritySetupReference) as GXDLMSSecuritySetup;
                             if (ss != null)
                             {

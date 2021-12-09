@@ -163,7 +163,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Move image to the meter.
+        /// Send image to the meter.
         /// </summary>
         /// <param name="client">DLMS Client.</param>
         /// <param name="imageBlock">Image</param>
@@ -174,12 +174,12 @@ namespace Gurux.DLMS.Objects
             return ImageBlockTransfer(client, image, 0, out ImageBlockCount);
         }
         /// <summary>
-        /// Move image to the meter.
+        /// Send image to the meter using first not transferred block number.
         /// </summary>
         /// <param name="client">DLMS Client.</param>
         /// <param name="image">Image</param>
-        /// <param name="index">Zero based index from which blocks are send.</param>
-        /// <param name="ImageBlockCount">Total number of blocks to send.</param>
+        /// <param name="index">first not transferred block number.</param>
+        /// <param name="ImageBlockCount">Total bumber of image blocks.</param>
         /// <returns>DLMS frames that are send to the meter.</returns>
         public byte[][] ImageBlockTransfer(GXDLMSClient client, byte[] image, int index, out int ImageBlockCount)
         {
@@ -204,6 +204,37 @@ namespace Gurux.DLMS.Objects
             return packets.ToArray();
         }
 
+        /// <summary>
+        /// Send image to the meter using blocks states.
+        /// </summary>
+        /// <param name="client">DLMS Client.</param>
+        /// <param name="image">Image</param>
+        /// <param name="BlocksStatus">Block states in the bit string.</param>
+        /// <param name="ImageBlockCount">Total bumber of image blocks.</param>
+        /// <returns>DLMS frames that are send to the meter.</returns>
+        public byte[][] ImageBlockTransfer(GXDLMSClient client, byte[] image, string blocksStatus, out int ImageBlockCount)
+        {
+            List<byte[]> packets = new List<byte[]>();
+            byte[][] blocks = GetImageBlocks(image);
+            ImageBlockCount = blocks.Length;
+            if (blocksStatus == null || blocksStatus.Length < ImageBlockCount)
+            {
+                throw new ArgumentOutOfRangeException("Image start index is higher than image block count");
+            }
+            int index = 0;
+            foreach (byte[] it in blocks)
+            {
+                if (blocksStatus == null || blocksStatus.Length < index || blocksStatus[index] != '1')
+                {
+                    packets.AddRange(client.Method(this, 2, it, DataType.Array));
+                }
+                else
+                {
+                    ++index;
+                }
+            }
+            return packets.ToArray();
+        }
         /// <summary>
         /// Returns image blocks to send to the meter.
         /// </summary>

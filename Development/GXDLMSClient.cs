@@ -42,6 +42,7 @@ using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Secure;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Ecdsa;
+using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS
 {
@@ -1757,7 +1758,7 @@ namespace Gurux.DLMS
             GXDLMSObjectCollection items = new GXDLMSObjectCollection(this);
             GXDataInfo info = new GXDataInfo();
             int lnVersion = 2;
-            //Find LN Version because some meters don't add LN Assciation the fist object.
+            //Find LN Version because some meters don't add LN Association the fist object.
             int pos = buff.Position;
             while (buff.Position != buff.Size && cnt != objectCnt)
             {
@@ -2089,7 +2090,7 @@ namespace Gurux.DLMS
             {
                 name = (ushort)0xFA00;
             }
-            return Read(name, ObjectType.AssociationLogicalName, 2);
+            return Read(name, ObjectType.AssociationLogicalName, 2, null, 0);
         }
 
         /// <summary>
@@ -2113,7 +2114,8 @@ namespace Gurux.DLMS
         /// <returns></returns>
         public byte[][] Method(GXDLMSObject item, int index, Object data, DataType type)
         {
-            return Method(item.Name, item.ObjectType, index, data, type);
+            int mode = (int)item.GetMethodAccess3(index);
+            return Method(item.Name, item.ObjectType, index, data, type, mode);
         }
 
         /// <summary>
@@ -2126,6 +2128,20 @@ namespace Gurux.DLMS
         /// <param name="type">Additional data type.</param>
         /// <returns></returns>
         public byte[][] Method(object name, ObjectType objectType, int index, Object value, DataType type)
+        {
+            return Method(name, objectType, index, value, type, 0);
+        }
+
+        /// <summary>
+        /// Generate Method (Action) request.
+        /// </summary>
+        /// <param name="name">Method object short name or Logical Name.</param>
+        /// <param name="objectType">Object type.</param>
+        /// <param name="index">Method index.</param>
+        /// <param name="value">Additional data.</param>
+        /// <param name="type">Additional data type.</param>
+        /// <returns></returns>
+        private byte[][] Method(object name, ObjectType objectType, int index, Object value, DataType type, int mode)
         {
             if (name == null || (index < 1 && Standard != Standard.Italy))
             {
@@ -2156,7 +2172,9 @@ namespace Gurux.DLMS
                 {
                     attributeDescriptor.SetUInt8(1);
                 }
-                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.MethodRequest, (byte)ActionRequestType.Normal, attributeDescriptor, data, 0xff, Command.None);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.MethodRequest, 
+                    (byte)ActionRequestType.Normal, attributeDescriptor, data, 0xff, Command.None);
+                p.AccessMode = mode;
                 //GBT Window size or streaming is not used with method because there is no information available from the
                 //GBT block number and client doesn't know when ACK is expected.
                 return GXDLMS.GetLnMessages(p);
@@ -2212,7 +2230,8 @@ namespace Gurux.DLMS
                     value = ASCIIEncoding.ASCII.GetBytes((string)value);
                 }
             }
-            return Write2(item.Name, value, type, item.ObjectType, index);
+            int mode = (int)item.GetAccess3(index);
+            return Write2(item.Name, value, type, item.ObjectType, index, mode);
         }
 
         /// <summary>
@@ -2227,10 +2246,10 @@ namespace Gurux.DLMS
         [Obsolete("Use Write")]
         public byte[][] Write(object name, object value, DataType type, ObjectType objectType, int index)
         {
-            return Write2(name, value, type, objectType, index);
+            return Write2(name, value, type, objectType, index, 0);
         }
 
-        private byte[][] Write2(object name, object value, DataType type, ObjectType objectType, int index)
+        private byte[][] Write2(object name, object value, DataType type, ObjectType objectType, int index, int mode)
         {
             Settings.ResetBlockIndex();
             if (type == DataType.None && value != null)
@@ -2256,6 +2275,7 @@ namespace Gurux.DLMS
                 // Access selection is not used.
                 attributeDescriptor.SetUInt8(0);
                 GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.SetRequest, (byte)SetRequestType.Normal, attributeDescriptor, data, 0xff, Command.None);
+                p.AccessMode = mode;
                 p.blockIndex = Settings.BlockIndex;
                 p.blockNumberAck = Settings.BlockNumberAck;
                 p.Streaming = false;
@@ -2285,12 +2305,13 @@ namespace Gurux.DLMS
         /// <param name="objectType">Read Interface.</param>
         /// <param name="attributeOrdinal">Read attribute index.</param>
         /// <returns>Read request as byte array.</returns>
+        [Obsolete("Use Read")]
         public byte[][] Read(object name, ObjectType objectType, int attributeOrdinal)
         {
-            return Read(name, objectType, attributeOrdinal, null);
+            return Read(name, objectType, attributeOrdinal, null, 0);
         }
 
-        private byte[][] Read(object name, ObjectType objectType, int attributeOrdinal, GXByteBuffer data)
+        private byte[][] Read(object name, ObjectType objectType, int attributeOrdinal, GXByteBuffer data, int mode)
         {
             if ((attributeOrdinal < 0))
             {
@@ -2318,6 +2339,7 @@ namespace Gurux.DLMS
                     attributeDescriptor.SetUInt8(1);
                 }
                 GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.GetRequest, (byte)GetCommandType.Normal, attributeDescriptor, data, 0xff, Command.None);
+                p.AccessMode = mode;
                 reply = GXDLMS.GetLnMessages(p);
             }
             else
@@ -2349,7 +2371,8 @@ namespace Gurux.DLMS
         /// <returns>Read request as byte array.</returns>
         public byte[][] Read(GXDLMSObject item, int attributeOrdinal)
         {
-            return Read(item.Name, item.ObjectType, attributeOrdinal, null);
+            int mode = (int)item.GetAccess3(attributeOrdinal);
+            return Read(item.Name, item.ObjectType, attributeOrdinal, null, mode);
         }
 
         /// <summary>
@@ -2372,7 +2395,18 @@ namespace Gurux.DLMS
             GXByteBuffer data = new GXByteBuffer();
             if (this.UseLogicalNameReferencing)
             {
+                //Find highest access mode.
+                int mode = 0;
+                foreach (var it in list)
+                {
+                    int m = (int)it.Key.GetAccess3(it.Value);
+                    if (m > mode)
+                    {
+                        mode = m;
+                    }
+                }
                 GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.GetRequest, (byte)GetCommandType.WithList, data, null, 0xff, Command.None);
+                p.AccessMode = mode;
                 //Request service primitive shall always fit in a single APDU.
                 int pos = 0, count = (Settings.MaxPduSize - 12) / 10;
                 if (list.Count < count)
@@ -2456,12 +2490,24 @@ namespace Gurux.DLMS
             {
                 throw new ArgumentOutOfRangeException("Invalid parameter.");
             }
+            //Find highest access mode.
+            int mode = 0;
+            foreach (var it in list)
+            {
+                int m = (int)it.Key.GetAccess3(it.Value);
+                if (m > mode)
+                {
+                    mode = m;
+                }
+            }
+
             Settings.ResetBlockIndex();
             List<byte[]> messages = new List<byte[]>();
             GXByteBuffer data = new GXByteBuffer();
             if (UseLogicalNameReferencing)
             {
                 GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.SetRequest, (byte)SetCommandType.WithList, null, data, 0xff, Command.None);
+                p.AccessMode = mode;
                 // Add length.
                 GXCommon.SetObjectCount(list.Count, data);
                 foreach (KeyValuePair<GXDLMSObject, int> it in list)
@@ -2680,7 +2726,8 @@ namespace Gurux.DLMS
             // Select columns to read.
             GXCommon.SetData(Settings, buff, DataType.UInt16, columnStart);
             GXCommon.SetData(Settings, buff, DataType.UInt16, columnEnd);
-            return Read(pg.Name, ObjectType.ProfileGeneric, 2, buff);
+            int mode = (int)pg.GetAccess3(2);
+            return Read(pg.Name, ObjectType.ProfileGeneric, 2, buff, mode);
         }
 
         /// <summary>
@@ -2864,7 +2911,8 @@ namespace Gurux.DLMS
                     GXCommon.SetData(Settings, buff, DataType.UInt16, it.Value.DataIndex);
                 }
             }
-            return Read(pg.Name, ObjectType.ProfileGeneric, 2, buff);
+            int mode = (int)pg.GetAccess3(2);
+            return Read(pg.Name, ObjectType.ProfileGeneric, 2, buff, mode);
         }
 
         /// <summary>
@@ -2894,6 +2942,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="type">Frame type</param>
         /// <returns>Acknowledgment message as byte array.</returns>
+        [Obsolete()]
         public byte[] ReceiverReady(RequestTypes type)
         {
             return GXDLMS.ReceiverReady(Settings, type);
@@ -3237,6 +3286,7 @@ namespace Gurux.DLMS
         /// <seealso cref="ParseAccessResponse"/>
         public byte[][] AccessRequest(DateTime time, List<GXDLMSAccessItem> list)
         {
+            int mode = 0;
             GXByteBuffer bb = new GXByteBuffer();
             GXCommon.SetObjectCount(list.Count, bb);
             foreach (GXDLMSAccessItem it in list)
@@ -3256,6 +3306,11 @@ namespace Gurux.DLMS
                 }
                 // Attribute ID.
                 bb.SetUInt8(it.Index);
+                int m = (int)it.Target.GetAccess3(it.Index);
+                if (m > mode)
+                {
+                    mode = m;
+                }
             }
             //Data
             GXCommon.SetObjectCount(list.Count, bb);
@@ -3282,6 +3337,7 @@ namespace Gurux.DLMS
                 }
             }
             GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.AccessRequest, 0xFF, null, bb, 0xff, Command.None);
+            p.AccessMode = mode;
             p.time = new GXDateTime(time);
             return GXDLMS.GetLnMessages(p);
         }
@@ -3295,7 +3351,8 @@ namespace Gurux.DLMS
         {
             if (useLogicalNameReferencing)
             {
-                return Conformance.BlockTransferWithAction |
+                return Conformance.GeneralBlockTransfer |
+                    Conformance.BlockTransferWithAction |
                            Conformance.BlockTransferWithSetOrWrite |
                            Conformance.BlockTransferWithGetOrRead |
                            Conformance.Set | Conformance.SelectiveAccess |
@@ -3491,6 +3548,176 @@ namespace Gurux.DLMS
         public static void GetHdlcAddressInfo(GXByteBuffer reply, out int target, out int source, out byte type)
         {
             GXDLMS.GetHdlcAddressInfo(reply, out target, out source, out type);
+        }
+
+
+        /// <summary>
+        /// Overwrite attribute access rights if association view tells wrong access rights and they are overwritten.
+        /// </summary>
+        public bool OverwriteAttributeAccessRights
+        {
+            get
+            {
+                return Settings.OverwriteAttributeAccessRights;
+            }
+            set
+            {
+                Settings.OverwriteAttributeAccessRights = value;
+            }
+        }
+
+
+        /// <summary>
+        /// Can client read the object attribute index. 
+        /// </summary>
+        /// <remarks>
+        /// This method is added because Association Logical Name version #3 where access rights are defined with bitmask.
+        /// </remarks>
+        /// <param name="target">Object to read.</param>
+        /// <param name="index">Attribute index.</param>
+        /// <returns>True, if read is allowed.</returns>
+        public bool CanRead(GXDLMSObject target, int index)
+        {
+            //Handle access rights for Association LN Version < 3.
+            if ((target.GetAccess(index) & AccessMode.Read) == 0)
+            {
+                //If bit mask is used.
+                AccessMode3 m = target.GetAccess3(index);
+                if (m != AccessMode3.NoAccess)
+                {
+                    if ((m & AccessMode3.Read) == 0)
+                    {
+                        return false;
+                    }
+                    Security security = Security.None;
+                    Signing signing = Signing.None;
+                    if (Settings.Cipher != null)
+                    {
+                        security = Settings.Cipher.Security;
+                        signing = Settings.Cipher.Signing;
+                    }
+                    //If authenticatation is expected, but secured connection is not used.
+                    if ((m & (AccessMode3.AuthenticatedRequest | AccessMode3.AuthenticatedResponse)) != 0 && (security & (Security.Authentication)) == 0)
+                    {
+                        return false;
+                    }
+                    //If encryption is expected, but secured connection is not used.
+                    if ((m & (AccessMode3.EncryptedRequest | AccessMode3.EncryptedResponse)) != 0 &&
+                        (security & (Security.Encryption)) == 0)
+                    {
+                        return false;
+                    }
+                    //If signing is expected, but it's not used.
+                    if ((m & (AccessMode3.DigitallySignedRequest | AccessMode3.DigitallySignedResponse)) != 0 &&
+                        (signing & (Signing.GeneralSigning)) == 0)
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Can client write the object attribute index. 
+        /// </summary>
+        /// <remarks>
+        /// This method is added because Association Logical Name version #3 where access rights are defined with bitmask.
+        /// </remarks>
+        /// <param name="target">Object to write.</param>
+        /// <param name="index">Attribute index.</param>
+        /// <returns>True, if write is allowed.</returns>
+        public bool CanWrite(GXDLMSObject target, int index)
+        {
+            //Handle access rights for Association LN Version < 3.
+            if ((target.GetAccess(index) & AccessMode.Write) == 0)
+            {
+                //If bit mask is used.
+                AccessMode3 m = target.GetAccess3(index);
+                if (m != AccessMode3.NoAccess)
+                {
+                    if ((m & AccessMode3.Write) == 0)
+                    {
+                        return false;
+                    }
+                    Security security = Security.None;
+                    Signing signing = Signing.None;
+                    if (Settings.Cipher != null)
+                    {
+                        security = Settings.Cipher.Security;
+                        signing = Settings.Cipher.Signing;
+                    }
+                    //If authentication is expected, but secured connection is not used.
+                    if ((m & (AccessMode3.AuthenticatedRequest | AccessMode3.AuthenticatedResponse)) != 0 && (security & (Security.Authentication)) == 0)
+                    {
+                        return false;
+                    }
+                    //If encryption is expected, but secured connection is not used.
+                    if ((m & (AccessMode3.EncryptedRequest | AccessMode3.EncryptedResponse)) != 0 &&
+                        (security & (Security.Encryption)) == 0)
+                    {
+                        return false;
+                    }
+                    //If signing is expected, but it's not used.
+                    if ((m & (AccessMode3.DigitallySignedRequest | AccessMode3.DigitallySignedResponse)) != 0 &&
+                        (signing & (Signing.GeneralSigning)) == 0)
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Can client invoke server methods. 
+        /// </summary>
+        /// <remarks>
+        /// This method is added because Association Logical Name version #3 where access rights are defined with bitmask.
+        /// </remarks>
+        /// <param name="target">Object to invoke.</param>
+        /// <param name="index">Method attribute index.</param>
+        /// <returns>True, if client can access meter methods.</returns>
+        public bool CanInvoke(GXDLMSObject target, int index)
+        {
+            //Handle access rights for Association LN Version < 3.
+            if (target.GetMethodAccess(index) == MethodAccessMode.NoAccess)
+            {
+                //If bit mask is used.
+                MethodAccessMode3 m = target.GetMethodAccess3(index);
+                if (m != MethodAccessMode3.NoAccess)
+                {
+                    if ((m & MethodAccessMode3.Access) == 0)
+                    {
+                        return false;
+                    }
+                    Security security = Security.None;
+                    Signing signing = Signing.None;
+                    if (Settings.Cipher != null)
+                    {
+                        security = Settings.Cipher.Security;
+                        signing = Settings.Cipher.Signing;
+                    }
+                    //If authentication is expected, but secured connection is not used.
+                    if ((m & (MethodAccessMode3.AuthenticatedRequest | MethodAccessMode3.AuthenticatedResponse)) != 0 && (security & (Security.Authentication)) == 0)
+                    {
+                        return false;
+                    }
+                    //If encryption is expected, but secured connection is not used.
+                    if ((m & (MethodAccessMode3.EncryptedRequest | MethodAccessMode3.EncryptedResponse)) != 0 &&
+                        (security & (Security.Encryption)) == 0)
+                    {
+                        return false;
+                    }
+                    //If signing is expected, but it's not used.
+                    if ((m & (MethodAccessMode3.DigitallySignedRequest | MethodAccessMode3.DigitallySignedResponse)) != 0 &&
+                        (signing & (Signing.GeneralSigning)) == 0)
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
     }
 }

@@ -367,9 +367,17 @@ namespace Gurux.DLMS.Secure
                         {
                             pub = (GXPublicKey)p.Settings.GetKey(CertificateType.KeyAgreement, p.SystemTitle, false);
                         }
+                        else
+                        {
+                            pub = p.Settings.Cipher.KeyAgreementKeyPair.Key;
+                        }
                         if (kp.Value == null)
                         {
                             key = (GXPrivateKey)p.Settings.GetKey(CertificateType.KeyAgreement, p.RecipientSystemTitle, true);
+                        }
+                        else
+                        {
+                            key = p.Settings.Cipher.KeyAgreementKeyPair.Value;
                         }
                         if (kp.Key == null || kp.Value == null)
                         {
@@ -400,7 +408,7 @@ namespace Gurux.DLMS.Secure
                 }
             }
             int contentStart = data.Position;
-            //Content lenght is not add for the signed data.
+            //Content length is not add for the signed data.
             len = GXCommon.GetObjectCount(data);
             if (len > data.Available)
             {
@@ -456,30 +464,10 @@ namespace Gurux.DLMS.Secure
             if ((sc & 0x20) != 0)
             {
                 System.Diagnostics.Debug.WriteLine("Encryption is applied.");
-                if (p.Xml == null && p.Settings.IsServer)
-                {
-                    if ((p.SecuritySuite == SecuritySuite.Suite0 && (p.Settings.Cipher.SecurityPolicy & SecurityPolicy.Encrypted) == 0) ||
-                        ((p.SecuritySuite == SecuritySuite.Suite1 || p.SecuritySuite == SecuritySuite.Suite2)
-                        && (p.Settings.Cipher.SecurityPolicy & SecurityPolicy.EncryptedRequest) == 0))
-                    {
-                        throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
-                                ExceptionServiceError.DecipheringError, 0);
-                    }
-                }
             }
             if ((sc & 0x10) != 0)
             {
                 System.Diagnostics.Debug.WriteLine("Authentication is applied.");
-                if (p.Xml == null && p.Settings.IsServer)
-                {
-                    if ((p.SecuritySuite == SecuritySuite.Suite0 && (p.Settings.Cipher.SecurityPolicy & SecurityPolicy.Authenticated) == 0) ||
-                    ((p.SecuritySuite == SecuritySuite.Suite1 || p.SecuritySuite == SecuritySuite.Suite2)
-                    && (p.Settings.Cipher.SecurityPolicy & SecurityPolicy.AuthenticatedRequest) == 0))
-                    {
-                        throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
-                                ExceptionServiceError.DecipheringError, 0);
-                    }
-                }
             }
             if (value != 0 && p.Xml != null && kp.Key == null)
             {
@@ -621,14 +609,13 @@ namespace Gurux.DLMS.Secure
             }
             if (cmd == Command.GeneralSigning)
             {
-                //Content lenght is not add for the signed data.
+                //Content length is not add for the signed data.
                 GXByteBuffer signedData = new GXByteBuffer();
                 signedData.Set(data.Data, 1, contentStart - 1);
                 signedData.Set(p.CipheredContent);
                 len = GXCommon.GetObjectCount(data);
                 p.Signature = new byte[len];
                 data.Get(p.Signature);
-                //signedData.Set(p.Signature);
                 System.Diagnostics.Debug.WriteLine("Verifying signature for sender:" + GXCommon.ToHex(p.SystemTitle, true));
                 if (p.Xml == null)
                 {

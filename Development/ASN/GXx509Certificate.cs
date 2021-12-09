@@ -558,7 +558,7 @@ namespace Gurux.DLMS.ASN
                             }
                             break;
                         default:
-                            System.Diagnostics.Debug.WriteLine("Unknown extensions: " + t.ToString());
+                            System.Diagnostics.Debug.WriteLine("Unknown extensions: " + id.ToString());
                             break;
                     }
                 }

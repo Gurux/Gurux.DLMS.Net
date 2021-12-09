@@ -107,6 +107,12 @@ namespace Gurux.DLMS
         public bool Streaming;
 
         /// <summary>
+        /// Access mode.
+        /// </summary>
+        public int AccessMode;
+        
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="owner">Owner component.</param>

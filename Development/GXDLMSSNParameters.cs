@@ -102,6 +102,10 @@ namespace Gurux.DLMS
             data = forData;
             time = DateTime.MinValue;
             multipleBlocks = false;
+            if (settings != null)
+            {
+                settings.Command = forCommand;
+            }
         }
     }
 }

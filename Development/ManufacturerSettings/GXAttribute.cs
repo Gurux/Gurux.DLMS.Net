@@ -239,7 +239,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         {
             get
             {
-                if (Access != AccessMode.ReadWrite)
+                if (Access != AccessMode.NoAccess)
                 {
                     return Access.ToString();
                 }

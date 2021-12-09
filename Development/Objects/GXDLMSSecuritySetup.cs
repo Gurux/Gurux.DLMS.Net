@@ -55,8 +55,6 @@ namespace Gurux.DLMS.Objects
     public class GXDLMSSecuritySetup : GXDLMSObject, IGXDLMSBase
     {
         SecurityPolicy _securityPolicy = SecurityPolicy.None;
-        private GXDLMSSettings serverSettings;
-
         /// <summary>
         /// Signing key of the server.
         /// </summary>
@@ -467,6 +465,18 @@ namespace Gurux.DLMS.Objects
         /// <param name="serialNumber">Serial number.</param>
         /// <param name="issuer">Issuer</param>
         /// <returns>Generated action.</returns>
+        public byte[][] ExportCertificateBySerial(GXDLMSClient client, BigInteger serialNumber, string issuer)
+        {
+            return ExportCertificateBySerial(client, serialNumber, ASCIIEncoding.ASCII.GetBytes(issuer));
+        }
+
+        /// <summary>
+        /// Exports an X.509 v3 certificate from the server using serial information.
+        /// </summary>
+        /// <param name="client">DLMS client that is used to generate action.</param>
+        /// <param name="serialNumber">Serial number.</param>
+        /// <param name="issuer">Issuer</param>
+        /// <returns>Generated action.</returns>
         public byte[][] ExportCertificateBySerial(GXDLMSClient client, BigInteger serialNumber, byte[] issuer)
         {
             GXByteBuffer bb = new GXByteBuffer();
@@ -660,7 +670,7 @@ namespace Gurux.DLMS.Objects
                     k = KeyUsage.KeyAgreement;
                     break;
                 case CertificateType.TLS:
-                    k = KeyUsage.KeyCertSign;
+                    k = KeyUsage.DigitalSignature | KeyUsage.KeyAgreement;
                     break;
                 case CertificateType.Other:
                     k = KeyUsage.CrlSign;
@@ -687,7 +697,7 @@ namespace Gurux.DLMS.Objects
             KeyUsage k = CertificateTypeToKeyUsage(type);
             foreach (GXx509Certificate it in certificates)
             {
-                if ((it.KeyUsage & k) != 0 && it.Subject == subject)
+                if ((it.KeyUsage & k) != 0 && it.Subject.Contains(subject))
                 {
                     return it;
                 }
@@ -1304,6 +1314,10 @@ namespace Gurux.DLMS.Objects
             //This is old functionality.It can be removed in some point.
             reader.ReadElementContentAsInt("SecurityPolicy0");
             SecuritySuite = (SecuritySuite)reader.ReadElementContentAsInt("SecuritySuite");
+            if (SecuritySuite != SecuritySuite.Suite0 && Version == 0)
+            {
+                throw new Exception(string.Format("Security suite {0} is not available for Suite 0", SecuritySuite));
+            }
             string str = reader.ReadElementContentAsString("ClientSystemTitle");
             if (str == null)
             {
