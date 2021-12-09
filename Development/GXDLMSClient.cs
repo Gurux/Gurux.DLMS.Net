@@ -3272,6 +3272,10 @@ namespace Gurux.DLMS
                     {
                         crypted[pos] += 7;
                     }
+                    if (crypted[pos] > 'F')
+                    {
+                        crypted[pos] = (byte) ('0' + crypted[pos] - 'G');
+                    }
                 }
             }
             return crypted;
