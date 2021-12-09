@@ -2593,9 +2593,11 @@ namespace Gurux.DLMS
             Settings.ResetBlockIndex();
             if (UseLogicalNameReferencing)
             {
-                return Read("0.0.40.0.0.255", ObjectType.AssociationLogicalName, 1)[0];
+                GXDLMSAssociationLogicalName ln = new GXDLMSAssociationLogicalName();
+                return Read(ln, 1)[0];
             }
-            return Read(0xFA00, ObjectType.AssociationShortName, 1)[0];
+            GXDLMSAssociationShortName sn = new GXDLMSAssociationShortName();
+            return Read(sn, 1)[0];
         }
 
         /// <summary>

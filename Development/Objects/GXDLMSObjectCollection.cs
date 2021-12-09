@@ -40,6 +40,7 @@ using System.Collections;
 using Gurux.DLMS.Enums;
 using System.IO;
 using Gurux.DLMS.Internal;
+using System.Globalization;
 
 namespace Gurux.DLMS.Objects
 {
@@ -451,6 +452,17 @@ namespace Gurux.DLMS.Objects
                                 obj.SetAccess(pos, (AccessMode)(it - 0x30));
                             }
                         }
+                        else if (string.Compare("Access3", target, true) == 0)
+                        {
+                            string tmp = reader.ReadElementContentAsString("Access3");
+                            if (tmp != null)
+                            {
+                                for (int pos = 0; pos != tmp.Length / 4; ++pos)
+                                {
+                                    obj.SetAccess3(pos, (AccessMode3)(int.Parse(tmp.Substring(4 * pos, 4), NumberStyles.HexNumber) & ~0x8000));
+                                }
+                            }
+                        }
                         else if (string.Compare("MethodAccess", target, true) == 0)
                         {
                             int pos = 0;
@@ -458,6 +470,17 @@ namespace Gurux.DLMS.Objects
                             {
                                 ++pos;
                                 obj.SetMethodAccess(pos, (MethodAccessMode)(it - 0x30));
+                            }
+                        }
+                        else if (string.Compare("MethodAccess3", target, true) == 0)
+                        {
+                            string tmp = reader.ReadElementContentAsString("MethodAccess3");
+                            if (tmp != null)
+                            {
+                                for (int pos = 0; pos != tmp.Length / 4; ++pos)
+                                {
+                                    obj.SetMethodAccess3(pos, (MethodAccessMode3)(int.Parse(tmp.Substring(4 * pos, 4), NumberStyles.HexNumber) & ~0x8000));
+                                }
                             }
                         }
                         else
@@ -515,6 +538,7 @@ namespace Gurux.DLMS.Objects
             {
                 index = settings.Index;
             }
+            int lnVersion = 2;
             using (GXXmlWriter writer = new GXXmlWriter(stream, settings))
             {
                 if (!ignoreDescription)
@@ -558,18 +582,41 @@ namespace Gurux.DLMS.Objects
                                 writer.WriteElementString("Description", it.Description, 0);
                             }
                             //Add access rights.
-                            StringBuilder sb = new StringBuilder();
-                            for (int pos = 1; pos != (it as IGXDLMSBase).GetAttributeCount() + 1; ++pos)
+                            if (lnVersion < 3)
                             {
-                                sb.Append(((int)it.GetAccess(pos)).ToString());
+                                StringBuilder sb = new StringBuilder();
+                                for (int pos = 1; pos != (it as IGXDLMSBase).GetAttributeCount() + 1; ++pos)
+                                {
+                                    sb.Append(((int)it.GetAccess(pos)).ToString());
+                                }
+                                writer.WriteElementString("Access", sb.ToString(), 0);
+                                sb.Length = 0;
+                                for (int pos = 1; pos != (it as IGXDLMSBase).GetMethodCount() + 1; ++pos)
+                                {
+                                    sb.Append(((int)it.GetMethodAccess(pos)).ToString());
+                                }
+                                writer.WriteElementString("MethodAccess", sb.ToString(), 0);
                             }
-                            writer.WriteElementString("Access", sb.ToString(), 0);
-                            sb.Length = 0;
-                            for (int pos = 1; pos != (it as IGXDLMSBase).GetMethodCount() + 1; ++pos)
+                            else
                             {
-                                sb.Append(((int)it.GetMethodAccess(pos)).ToString());
+                                StringBuilder sb = new StringBuilder();
+                                int value;
+                                for (int pos = 1; pos != (it as IGXDLMSBase).GetAttributeCount() + 1; ++pos)
+                                {
+                                    // Set highest bit to save integer with two chars.
+                                    value = 0x8000 | (int)it.GetAccess3(pos);
+                                    sb.Append(value.ToString("X"));
+                                }
+                                writer.WriteElementString("Access3", sb.ToString(), 0);
+                                sb.Length = 0;
+                                for (int pos = 1; pos != (it as IGXDLMSBase).GetMethodCount() + 1; ++pos)
+                                {
+                                    // Set highest bit to save integer with two chars.
+                                    value = 0x8000 | (int)it.GetMethodAccess3(pos);
+                                    sb.Append(value.ToString("X"));
+                                }
+                                writer.WriteElementString("MethodAccess3", sb.ToString(), 0);
                             }
-                            writer.WriteElementString("MethodAccess", sb.ToString(), 0);
                         }
                         if (settings == null || settings.Values)
                         {

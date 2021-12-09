@@ -288,9 +288,9 @@ namespace Gurux.DLMS
                     ValueEventArgs e = new ValueEventArgs(server, target.Item, target.Index, 0, null);
                     if (target.IsAction)
                     {
-                        MethodAccessMode am = server.NotifyGetMethodAccess(e);
+                        int am = server.NotifyGetMethodAccess(e);
                         // If action is denied.
-                        if (am != MethodAccessMode.Access)
+                        if ((am & (int)MethodAccessMode.Access) != 0)
                         {
                             access = false;
                         }
@@ -305,9 +305,9 @@ namespace Gurux.DLMS
                                 value = GXDLMSClient.ChangeType((byte[])value, dt, settings.UseUtc2NormalTime);
                             }
                         }
-                        AccessMode am = server.NotifyGetAttributeAccess(e);
+                        int am = server.NotifyGetAttributeAccess(e);
                         // If write is denied.
-                        if (am != AccessMode.Write && am != AccessMode.ReadWrite)
+                        if ((am & (int)AccessMode.Write) == 0)
                         {
                             access = false;
                         }
@@ -457,11 +457,11 @@ namespace Gurux.DLMS
                 e.RowToPdu = GXDLMS.RowsToPdu(settings, (GXDLMSProfileGeneric)e.Target);
             }
             list.Add(e);
-            if (!e.action && server.NotifyGetAttributeAccess(e) == AccessMode.NoAccess)
+            if (!e.action && server.NotifyGetAttributeAccess(e) == 0)
             {
                 e.Error = ErrorCode.ReadWriteDenied;
             }
-            else if (e.action && server.NotifyGetMethodAccess(e) == MethodAccessMode.NoAccess)
+            else if (e.action && (server.NotifyGetMethodAccess(e) & (int)MethodAccessMode.Access) == 0)
             {
                 e.Error = ErrorCode.ReadWriteDenied;
             }

@@ -273,14 +273,14 @@ namespace Gurux.DLMS.Objects
             for (int pos = 0; pos != cnt; ++pos)
             {
                 e.Index = pos + 1;
-                AccessMode m;
+                int m;
                 if (server != null)
                 {
                     m = server.NotifyGetAttributeAccess(e);
                 }
                 else
                 {
-                    m = AccessMode.ReadWrite;
+                    m = (int)AccessMode.ReadWrite;
                 }
                 //attribute_access_item
                 data.SetUInt8((byte)DataType.Structure);
@@ -294,14 +294,14 @@ namespace Gurux.DLMS.Objects
             for (int pos = 0; pos != cnt; ++pos)
             {
                 e.Index = pos + 1;
-                MethodAccessMode m;
+                int m;
                 if (server != null)
                 {
                     m = server.NotifyGetMethodAccess(e);
                 }
                 else
                 {
-                    m = MethodAccessMode.Access;
+                    m = (int)MethodAccessMode.Access;
                 }
                 //attribute_access_item
                 data.SetUInt8((byte)DataType.Structure);

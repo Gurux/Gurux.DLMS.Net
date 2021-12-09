@@ -837,13 +837,7 @@ namespace Gurux.DLMS
             return ret;
         }
 
-        /// <summary>
-        /// Cipher using security suite 1 or 2.
-        /// </summary>
-        /// <param name="p">LN settings.</param>
-        /// <param name="data">Data to encrypt</param>
-        /// <returns></returns>
-        private static byte[] Cipher1(GXDLMSLNParameters p, byte[] data)
+        static private bool ShoudSign(GXDLMSLNParameters p)
         {
             bool signing = p.settings.Cipher.Signing != Signing.None;
             //Association LN V3 and signing is not needed.
@@ -864,7 +858,17 @@ namespace Gurux.DLMS
                     }
                 }
             }
+            return signing;
+        }
 
+        /// <summary>
+        /// Cipher using security suite 1 or 2.
+        /// </summary>
+        /// <param name="p">LN settings.</param>
+        /// <param name="data">Data to encrypt</param>
+        /// <returns></returns>
+        private static byte[] Cipher1(GXDLMSLNParameters p, byte[] data)
+        {
             byte keyid;
             switch (p.settings.Cipher.Signing)
             {
@@ -1193,25 +1197,7 @@ namespace Gurux.DLMS
         {
             bool ciphering = p.command != Command.Aarq && p.command != Command.Aare &&
                 (p.settings.IsCiphered(true) || p.cipheredCommand != Command.None ||
-                (p.settings.Cipher != null && p.settings.Cipher.Signing == Signing.GeneralSigning));
-            //Association LN V3 and ciphering is not needed.
-            if (!p.settings.OverwriteAttributeAccessRights && ciphering & p.AccessMode != 0)
-            {
-                if (p.settings.IsServer)
-                {
-                    if ((p.AccessMode & (int)(AccessMode3.AuthenticatedResponse | AccessMode3.EncryptedResponse | AccessMode3.DigitallySignedResponse)) == 0)
-                    {
-                        ciphering = false;
-                    }
-                }
-                else
-                {
-                    if ((p.AccessMode & (int)(AccessMode3.AuthenticatedRequest | AccessMode3.EncryptedRequest | AccessMode3.DigitallySignedRequest)) == 0)
-                    {
-                        ciphering = false;
-                    }
-                }
-            }
+                (p.settings.Cipher != null && p.settings.Cipher.Signing == Signing.GeneralSigning));            
             int len = 0;
             if (p.command == Command.Aarq)
             {
@@ -1472,7 +1458,7 @@ namespace Gurux.DLMS
                                 byte[] tmp;
                                 reply.Set(p.data);
                                 if ((p.settings.Connected & ConnectionState.Dlms) == 0 ||
-                                     p.settings.Cipher.Signing == Signing.None)
+                                     !ShoudSign(p))
                                 {
                                     tmp = Cipher0(p, reply.Array());
                                 }
@@ -1520,7 +1506,7 @@ namespace Gurux.DLMS
                     //GBT ciphering is done for all the data, not just block.
                     byte[] tmp;
                     if ((p.settings.Connected & ConnectionState.Dlms) == 0 ||
-                        p.settings.Cipher.Signing == Signing.None)
+                        !ShoudSign(p))
                     {
                         tmp = Cipher0(p, reply.Array());
                     }

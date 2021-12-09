@@ -80,6 +80,11 @@ namespace Gurux.DLMS.Simulator.Net
         /// </summary>
         public static Dictionary<int, GXDLMSClient> clients = new Dictionary<int, GXDLMSClient>();
 
+        /// <summary>
+        /// List of connections. This is used to close connection if meter is leave without diconnect.
+        /// </summary>
+        public static Dictionary<object, GXDLMSMeter> connections = new Dictionary<object, GXDLMSMeter>();
+
         static InterfaceType interfaceType;
 
         //Are all meters using the same port.
@@ -121,20 +126,7 @@ namespace Gurux.DLMS.Simulator.Net
             // Each association has own conformance.
             Conformance = Conformance.None;
             Init(exclusive);
-        }
-
-        /// <summary>
-        /// Save COSEM objects to XML.
-        /// </summary>
-        /// <param name="path">File path.</param>
-        void SaveObjects(string path)
-        {
-            lock (settingsLock)
-            {
-                GXXmlWriterSettings settings = new Objects.GXXmlWriterSettings();
-                Items.Save(path, settings);
-            }
-        }
+        }       
 
         /// <summary>
         /// Update simulated values for the meter instance.
@@ -802,6 +794,10 @@ namespace Gurux.DLMS.Simulator.Net
         {
             return AssignedAssociation.GetAccess(arg.Target, arg.Index);
         }
+        protected override AccessMode3 GetAttributeAccess3(ValueEventArgs arg)
+        {
+            return AssignedAssociation.GetAccess3(arg.Target, arg.Index);
+        }
 
         /// <summary>
         /// Get method access mode.
@@ -812,7 +808,16 @@ namespace Gurux.DLMS.Simulator.Net
         {
             return AssignedAssociation.GetMethodAccess(arg.Target, arg.Index);
         }
-
+        
+        /// <summary>
+        /// Get method access mode.
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <returns>Method access mode</returns>
+        protected override MethodAccessMode3 GetMethodAccess3(ValueEventArgs arg)
+        {
+            return AssignedAssociation.GetMethodAccess3(arg.Target, arg.Index);
+        }
         /// <summary>
         /// Check authentication.
         /// </summary>
@@ -896,6 +901,12 @@ namespace Gurux.DLMS.Simulator.Net
             if (buffers.ContainsKey(e.Info))
             {
                 buffers[e.Info].Clear();
+                buffers.Remove(e.Info);
+            }
+            if (connections.ContainsKey(e.Info))
+            {
+                connections[e.Info].Reset();
+                connections.Remove(e.Info);
             }
         }
 

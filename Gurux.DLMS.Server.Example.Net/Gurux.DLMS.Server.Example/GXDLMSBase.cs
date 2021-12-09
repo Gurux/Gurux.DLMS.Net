@@ -1197,6 +1197,24 @@ namespace GuruxDLMSServerExample
             return true;
         }
 
+        /// <summary>
+        /// Get access rights for LN version #3.
+        /// </summary>
+        protected override AccessMode3 GetAttributeAccess3(ValueEventArgs arg)
+        {
+            AccessMode3 ret = AccessMode3.NoAccess;
+            AccessMode am = GetAttributeAccess(arg);
+            if ((am & AccessMode.Read) != 0)
+            {
+                ret = AccessMode3.Read;
+            }
+            if ((am & AccessMode.Write) != 0)
+            {
+                ret |= AccessMode3.Write;
+            }
+            return ret;
+        }
+
         protected override AccessMode GetAttributeAccess(ValueEventArgs arg)
         {
             //Only read is allowed for register.
@@ -1246,6 +1264,21 @@ namespace GuruxDLMSServerExample
             return MethodAccessMode.Access;
         }
 
+        /// <summary>
+        /// Get method access mode.
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <returns>Method access mode</returns>
+        protected override MethodAccessMode3 GetMethodAccess3(ValueEventArgs arg)
+        {
+            MethodAccessMode3 ret = MethodAccessMode3.NoAccess;
+            MethodAccessMode m = GetMethodAccess(arg);
+            if ((m & MethodAccessMode.Access) != 0)
+            {
+                ret = MethodAccessMode3.Access;
+            }
+            return ret;
+        }
 
         /// <summary>
         /// Our example server accept all authentications.

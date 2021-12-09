@@ -188,11 +188,25 @@ namespace Gurux.DLMS
         protected abstract AccessMode GetAttributeAccess(ValueEventArgs arg);
 
         /// <summary>
+        /// Get attribute access mode.
+        /// </summary>
+        /// <param name="arg">Value event argument.</param>
+        /// <returns>Access mode.</returns>
+        protected abstract AccessMode3 GetAttributeAccess3(ValueEventArgs arg);
+
+        /// <summary>
         /// Get method access mode.
         /// </summary>
         /// <param name="arg">Value event argument.</param>
         /// <returns>Method access mode.</returns>
         protected abstract MethodAccessMode GetMethodAccess(ValueEventArgs arg);
+
+        /// <summary>
+        /// Get method access mode.
+        /// </summary>
+        /// <param name="arg">Value event argument.</param>
+        /// <returns>Method access mode.</returns>
+        protected abstract MethodAccessMode3 GetMethodAccess3(ValueEventArgs arg);
 
         /// <summary>
         /// Check whether the authentication and password are correct.
@@ -314,13 +328,21 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="arg"></param>
         /// <returns>Access mode.</returns>
-        internal AccessMode NotifyGetAttributeAccess(ValueEventArgs arg)
+        internal int NotifyGetAttributeAccess(ValueEventArgs arg)
         {
             if (arg.Index == 1)
             {
-                return AccessMode.Read;
+                return (int)AccessMode.Read;
             }
-            return GetAttributeAccess(arg);
+            if (AssignedAssociation != null)
+            {
+                if (AssignedAssociation.Version < 3)
+                {
+                    return (int)GetAttributeAccess(arg);
+                }
+                return (int)GetAttributeAccess3(arg);
+            }
+            return (int)GetAttributeAccess(arg);
         }
 
         /// <summary>
@@ -328,9 +350,17 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="arg"></param>
         /// <returns>Method access mode</returns>
-        internal MethodAccessMode NotifyGetMethodAccess(ValueEventArgs arg)
+        internal int NotifyGetMethodAccess(ValueEventArgs arg)
         {
-            return GetMethodAccess(arg);
+            if (AssignedAssociation != null)
+            {
+                if (AssignedAssociation.Version < 3)
+                {
+                    return (int)GetMethodAccess(arg);
+                }
+                return (int)GetMethodAccess3(arg);
+            }
+            return (int)GetMethodAccess(arg);
         }
 
         /// <summary>
@@ -1053,6 +1083,7 @@ namespace Gurux.DLMS
                 info.Clear();
                 Settings.ServerAddress = 0;
                 Settings.ClientAddress = 0;
+                AssignedAssociation = null;
             }
             Settings.Authentication = Authentication.None;
             if (Settings.Cipher != null)
