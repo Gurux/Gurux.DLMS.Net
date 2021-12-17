@@ -126,7 +126,7 @@ namespace Gurux.DLMS.Simulator.Net
             // Each association has own conformance.
             Conformance = Conformance.None;
             Init(exclusive);
-        }       
+        }
 
         /// <summary>
         /// Update simulated values for the meter instance.
@@ -350,40 +350,18 @@ namespace Gurux.DLMS.Simulator.Net
             }
         }
 
-
-
-        /// <summary>
-        /// Client has send data for the meters that are using the same port.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        public static void OnExclusiveReceived(object sender, Gurux.Common.ReceiveEventArgs e)
+        private static void HandleReply(GXByteBuffer bb, Gurux.Common.ReceiveEventArgs e)
         {
             try
             {
-                lock (buffers)
+                lock (bb)
                 {
-                    GXByteBuffer bb;
-                    if (!buffers.ContainsKey(e.SenderInfo))
-                    {
-                        bb = new GXByteBuffer();
-                        buffers[e.SenderInfo] = bb;
-                    }
-                    else
-                    {
-                        bb = buffers[e.SenderInfo];
-                    }
-                    bb.Set((byte[])e.Data);
                     int target, source;
                     //All simulated meters are using the same interface type.
                     GXDLMSTranslator.GetAddressInfo(interfaceType, bb, out target, out source);
                     if (target != 0 && meters.ContainsKey(target))
                     {
                         GXDLMSMeter m = meters[target];
-                        if (Trace > TraceLevel.Info)
-                        {
-                            Console.WriteLine("RX:\t" + Gurux.Common.GXCommon.ToHex((byte[])e.Data, true));
-                        }
                         GXServerReply sr = new GXServerReply(bb.Data);
                         do
                         {
@@ -404,6 +382,51 @@ namespace Gurux.DLMS.Simulator.Net
                         while (sr.IsStreaming);
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                if (!(ex is SocketException))
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Client has send data for the meters that are using the same port.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public static void OnExclusiveReceived(object sender, Gurux.Common.ReceiveEventArgs e)
+        {
+            try
+            {
+                if (Trace > TraceLevel.Info)
+                {
+                    Console.WriteLine("RX:\t" + Gurux.Common.GXCommon.ToHex((byte[])e.Data, true));
+                }
+                GXByteBuffer bb;
+                lock (buffers)
+                {
+                    if (!buffers.ContainsKey(e.SenderInfo))
+                    {
+                        bb = new GXByteBuffer();
+                        buffers[e.SenderInfo] = bb;
+                    }
+                    else
+                    {
+                        bb = buffers[e.SenderInfo];
+                    }
+                    lock(bb)
+                    {
+                        bb.Set((byte[])e.Data);
+                    }
+                }
+                //Each reply is handled in own thread.
+                new Thread(() =>
+                {
+                    HandleReply(bb, e);
+                }).Start();
             }
             catch (Exception ex)
             {
@@ -654,7 +677,8 @@ namespace Gurux.DLMS.Simulator.Net
                             }
                             else
                             {
-                                Thread t = new Thread(() => {
+                                Thread t = new Thread(() =>
+                                {
                                     //Wait 5 seconds before image is verified.
                                     Thread.Sleep(5000);
                                     i.ImageTransferStatus = ImageTransferStatus.VerificationSuccessful;
@@ -677,7 +701,8 @@ namespace Gurux.DLMS.Simulator.Net
                         if (init)
                         {
                             i.ImageTransferStatus = ImageTransferStatus.ActivationInitiated;
-                            Thread t = new Thread(() => {
+                            Thread t = new Thread(() =>
+                            {
                                 //Wait 5 seconds before image is activated.
                                 Thread.Sleep(5000);
                                 i.ImageTransferStatus = ImageTransferStatus.ActivationSuccessful;
@@ -808,7 +833,7 @@ namespace Gurux.DLMS.Simulator.Net
         {
             return AssignedAssociation.GetMethodAccess(arg.Target, arg.Index);
         }
-        
+
         /// <summary>
         /// Get method access mode.
         /// </summary>
