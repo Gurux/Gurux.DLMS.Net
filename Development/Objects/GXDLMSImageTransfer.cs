@@ -179,14 +179,14 @@ namespace Gurux.DLMS.Objects
         /// <param name="client">DLMS Client.</param>
         /// <param name="image">Image</param>
         /// <param name="index">first not transferred block number.</param>
-        /// <param name="ImageBlockCount">Total bumber of image blocks.</param>
+        /// <param name="imageBlockCount">Total bumber of image blocks.</param>
         /// <returns>DLMS frames that are send to the meter.</returns>
-        public byte[][] ImageBlockTransfer(GXDLMSClient client, byte[] image, int index, out int ImageBlockCount)
+        public byte[][] ImageBlockTransfer(GXDLMSClient client, byte[] image, int index, out int imageBlockCount)
         {
             List<byte[]> packets = new List<byte[]>();
             byte[][] blocks = GetImageBlocks(image);
-            ImageBlockCount = blocks.Length;
-            if (index >= ImageBlockCount)
+            imageBlockCount = blocks.Length;
+            if (index >= imageBlockCount)
             {
                 throw new ArgumentOutOfRangeException("Image start index is higher than image block count");
             }
@@ -209,29 +209,26 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="client">DLMS Client.</param>
         /// <param name="image">Image</param>
-        /// <param name="BlocksStatus">Block states in the bit string.</param>
-        /// <param name="ImageBlockCount">Total bumber of image blocks.</param>
+        /// <param name="blocksStatus">Block states in the bit string.</param>
+        /// <param name="imageBlockCount">Total bumber of image blocks.</param>
         /// <returns>DLMS frames that are send to the meter.</returns>
-        public byte[][] ImageBlockTransfer(GXDLMSClient client, byte[] image, string blocksStatus, out int ImageBlockCount)
+        public byte[][] ImageBlockTransfer(GXDLMSClient client, byte[] image, string blocksStatus, out int imageBlockCount)
         {
             List<byte[]> packets = new List<byte[]>();
             byte[][] blocks = GetImageBlocks(image);
-            ImageBlockCount = blocks.Length;
-            if (blocksStatus == null || blocksStatus.Length < ImageBlockCount)
+            imageBlockCount = blocks.Length;
+            if (blocksStatus == null || blocksStatus.Length < imageBlockCount)
             {
                 throw new ArgumentOutOfRangeException("Image start index is higher than image block count");
             }
-            int index = 0;
+            int index = blocksStatus.Length - 1;
             foreach (byte[] it in blocks)
             {
                 if (blocksStatus == null || blocksStatus.Length < index || blocksStatus[index] != '1')
                 {
                     packets.AddRange(client.Method(this, 2, it, DataType.Array));
                 }
-                else
-                {
-                    ++index;
-                }
+                --index;
             }
             return packets.ToArray();
         }
