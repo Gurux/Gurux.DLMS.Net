@@ -221,14 +221,14 @@ namespace Gurux.DLMS.Objects
             {
                 throw new ArgumentOutOfRangeException("Image start index is higher than image block count");
             }
-            int index = blocksStatus.Length - 1;
+            int index = 0;
             foreach (byte[] it in blocks)
             {
                 if (blocksStatus == null || blocksStatus.Length < index || blocksStatus[index] != '1')
                 {
                     packets.AddRange(client.Method(this, 2, it, DataType.Array));
                 }
-                --index;
+                ++index;
             }
             return packets.ToArray();
         }
