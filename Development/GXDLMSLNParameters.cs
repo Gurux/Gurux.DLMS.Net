@@ -99,7 +99,7 @@ namespace Gurux.DLMS
         ///<summary>
         /// GBT window size.
         ///</summary>
-        public byte WindowSize;
+        public byte GbtWindowSize;
 
         ///<summary>
         /// Is GBT streaming used.
@@ -143,7 +143,7 @@ namespace Gurux.DLMS
             status = forStatus;
             multipleBlocks = settings.ForceToBlocks || forSettings.Count != forSettings.Index;
             lastBlock = forSettings.Count == forSettings.Index;
-            WindowSize = 1;
+            GbtWindowSize = 1;
             if (settings != null)
             {
                 settings.Command = forCommand;

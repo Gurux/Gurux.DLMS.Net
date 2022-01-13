@@ -1607,7 +1607,7 @@ namespace Gurux.DLMS
                 reply = null;
             }
             if (cmd == Command.DisconnectRequest ||
-                (InterfaceType == InterfaceType.WRAPPER && cmd == Command.ReleaseRequest))
+                (cmd == Command.ReleaseRequest && !GXDLMS.UseHdlc(InterfaceType)))
             {
                 Reset();
             }

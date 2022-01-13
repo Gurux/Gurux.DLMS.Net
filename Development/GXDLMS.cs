@@ -327,7 +327,7 @@ namespace Gurux.DLMS
             if (reply.MoreData == RequestTypes.GBT)
             {
                 GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, Command.GeneralBlockTransfer, 0, null, null, 0xff, Command.None);
-                p.WindowSize = reply.GbtWindowSize;
+                p.GbtWindowSize = reply.GbtWindowSize;
                 p.blockNumberAck = (UInt16)reply.BlockNumber;
                 p.blockIndex = settings.BlockIndex;
                 data = GXDLMS.GetLnMessages(p);
@@ -1534,7 +1534,7 @@ namespace Gurux.DLMS
                     {
                         value |= 0x40;
                     }
-                    value |= p.WindowSize;
+                    value |= p.GbtWindowSize;
                     reply.SetUInt8(value);
                     // Set block number sent.
                     reply.SetUInt16((UInt16)p.blockIndex);
@@ -3348,10 +3348,7 @@ namespace Gurux.DLMS
                         + value.ToString() + ". It should be "
                         + settings.ClientAddress.ToString());
                 }
-                else
-                {
-                    settings.ClientAddress = value;
-                }
+                settings.ClientAddress = value;
                 value = buff.GetUInt16();
                 data.TargetAddress = value;
                 // Check that server addresses match.
@@ -3363,17 +3360,14 @@ namespace Gurux.DLMS
                     + settings.ServerAddress.ToString()
                     + ".");
                 }
-                else
-                {
-                    settings.ServerAddress = value;
-                }
+                settings.ServerAddress = value;
             }
             else
             {
                 value = buff.GetUInt16();
                 data.TargetAddress = value;
                 // Check that server addresses match.
-                if (settings.ServerAddress != 0
+                if (data.Xml == null && settings.ServerAddress != 0
                         && settings.ServerAddress != value)
                 {
                     if (notify == null)
@@ -3390,10 +3384,10 @@ namespace Gurux.DLMS
                 {
                     settings.ServerAddress = value;
                 }
-                data.SourceAddress = value;
                 value = buff.GetUInt16();
+                data.SourceAddress = value;
                 // Check that client addresses match.
-                if (settings.ClientAddress != 0
+                if (data.Xml == null && settings.ClientAddress != 0
                         && settings.ClientAddress != value)
                 {
                     if (notify == null)
@@ -3743,7 +3737,7 @@ namespace Gurux.DLMS
             }
         }
 
-        private static bool HandleActionResponseFirstBlock(
+        private static bool HandleActionResponseWithBlock(
            GXDLMSSettings settings,
            GXReplyData reply,
            int index)
@@ -3880,7 +3874,7 @@ namespace Gurux.DLMS
                     HandleActionResponseNormal(settings, data);
                     break;
                 case ActionResponseType.WithBlock:
-                    HandleActionResponseFirstBlock(settings, data, index);
+                    HandleActionResponseWithBlock(settings, data, index);
                     break;
                 case ActionResponseType.WithList:
                     throw new ArgumentException("Invalid Command.");
@@ -5424,7 +5418,7 @@ namespace Gurux.DLMS
                         break;
                 }
             }
-            if (!isLast)
+            if (!isLast || (data.MoreData == RequestTypes.GBT && reply.Available != 0))
             {
                 return GetData(settings, reply, data, notify);
             }

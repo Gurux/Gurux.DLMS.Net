@@ -218,14 +218,22 @@ namespace Gurux.DLMS
         /// Handle method request next data block command.
         /// </summary>
         /// <param name="data">Received data.</param>
-        internal static void MethodRequestNextDataBlock(GXDLMSSettings settings, byte invokeID, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml, bool streaming, Command cipheredCommand)
+        internal static void MethodRequestNextDataBlock(
+            GXDLMSSettings settings,
+            byte invokeID,
+            GXDLMSServer server,
+            GXByteBuffer data,
+            GXByteBuffer replyData,
+            GXDLMSTranslatorStructure xml,
+            bool streaming,
+            Command cipheredCommand)
         {
             GXByteBuffer bb = new GXByteBuffer();
+            byte lastBlock = data.GetUInt8();
             if (!streaming)
             {
-                UInt32 index;
                 // Get block index.
-                index = data.GetUInt32();
+                UInt32 index = data.GetUInt32();
                 if (xml != null)
                 {
                     xml.AppendLine(TranslatorTags.BlockNumber, null, xml.IntegerToHex(index, 8));
@@ -234,32 +242,97 @@ namespace Gurux.DLMS
                 if (index != settings.BlockIndex)
                 {
                     Debug.WriteLine("MethodRequestNextDataBlock failed. Invalid block number. " + settings.BlockIndex + "/" + index);
-                    GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, 0, Command.GetResponse, 2, null, bb, (byte)ErrorCode.DataBlockNumberInvalid, cipheredCommand), replyData);
+                    GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, 0, Command.MethodResponse, (byte)ActionResponseType.Normal, null,
+                        bb, (byte)ErrorCode.DataBlockNumberInvalid, cipheredCommand), replyData);
                     return;
                 }
             }
             settings.IncreaseBlockIndex();
-            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeID, streaming ? Command.GeneralBlockTransfer : Command.MethodResponse, 2, null, bb, (byte)ErrorCode.Ok, cipheredCommand);
+            GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeID,
+                streaming ? Command.GeneralBlockTransfer : Command.MethodResponse, (byte)ActionResponseType.Normal,
+                null, bb, (byte)ErrorCode.Ok, cipheredCommand);
             p.Streaming = streaming;
-            p.WindowSize = settings.GbtWindowSize;
+            p.GbtWindowSize = settings.GbtWindowSize;
             //If transaction is not in progress.
             if (server.transaction == null)
             {
                 p.status = (byte)ErrorCode.NoLongGetOrReadInProgress;
+                p.requestType = 1;
+                GXDLMS.GetLNPdu(p, replyData);
             }
             else
             {
-                bb.Set(server.transaction.data);
-                p.multipleBlocks = true;
-                GXDLMS.GetLNPdu(p, replyData);
-                if (bb.Size - bb.Position != 0)
+                try
                 {
-                    server.transaction.data = bb;
+                    server.transaction.data.Set(data);
+                    if (lastBlock == 1)
+                    {
+                        GXDataInfo info = new GXDataInfo();
+                        object parameters = GXCommon.GetData(settings, server.transaction.data, info);
+                        p.data.Clear();
+                        object value;
+                        foreach (ValueEventArgs arg in server.transaction.targets)
+                        {
+                            arg.InvokeId = p.InvokeId;
+                            arg.Parameters = parameters;
+                            server.NotifyPreAction(new ValueEventArgs[] { arg });
+                            if (arg.Handled)
+                            {
+                                value = arg.Value;
+                            }
+                            else
+                            {
+                                value = (arg.Target as IGXDLMSBase).Invoke(settings, arg);
+                            }
+                            server.NotifyPostAction(new ValueEventArgs[] { arg });
+                            p.InvokeId = arg.InvokeId;
+                            // Set default action reply if not given.
+                            if (value != null && arg.Error == ErrorCode.Ok)
+                            {
+                                // Add return parameters
+                                bb.SetUInt8(1);
+                                // Add parameters error code.
+                                bb.SetUInt8(0);
+                                if (arg.ByteArray)
+                                {
+                                    bb.Set((byte[])value);
+                                }
+                                else
+                                {
+                                    GXCommon.SetData(settings, bb, GXDLMSConverter.GetDLMSDataType(value), value);
+                                }
+                            }
+                            else
+                            {
+                                p.requestType = 1;
+                                // Add parameters error code.
+                                p.status = (byte)arg.Error;
+                                // Add return parameters
+                                bb.SetUInt8(0);
+                            }
+                        }
+                        server.transaction = null;
+                        settings.ResetBlockIndex();
+                    }
+                    else
+                    {
+                        // Ask next block.
+                        p.requestType = (byte)ActionResponseType.NextBlock;
+                        p.status = 0xFF;
+                    }
                 }
-                else
+                catch (Exception)
                 {
+                    p.status = (byte)ErrorCode.InconsistentClass;
+                    // Add return parameters
+                    bb.SetUInt8(0);
                     server.transaction = null;
                     settings.ResetBlockIndex();
+                }
+                GXDLMS.GetLNPdu(p, replyData);
+                if (p.status == 0xFF && p.multipleBlocks)
+                {
+                    settings.IncreaseBlockIndex();
                 }
             }
         }
@@ -374,7 +447,7 @@ namespace Gurux.DLMS
                 }
                 e = new ValueEventArgs(server, obj, id, 0, parameters);
                 e.InvokeId = invokeId;
-                if ((server.NotifyGetMethodAccess(e) & (int) MethodAccessMode.Access) == 0)
+                if ((server.NotifyGetMethodAccess(e) & (int)MethodAccessMode.Access) == 0)
                 {
                     error = ErrorCode.ReadWriteDenied;
                 }
@@ -486,7 +559,7 @@ namespace Gurux.DLMS
             settings.IncreaseBlockIndex();
             GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeID, streaming ? Command.GeneralBlockTransfer : Command.MethodResponse, (byte)ActionResponseType.WithBlock, null, bb, (byte)ErrorCode.Ok, cipheredCommand);
             p.Streaming = streaming;
-            p.WindowSize = settings.GbtWindowSize;
+            p.GbtWindowSize = settings.GbtWindowSize;
             //If transaction is not in progress.
             if (server.transaction == null)
             {
@@ -602,7 +675,7 @@ namespace Gurux.DLMS
                 (byte)ActionResponseType.Normal, null, bb, (byte)ErrorCode.Ok, cipheredCommand);
             p.multipleBlocks = lastBlock == 0;
             p.Streaming = streaming;
-            p.WindowSize = settings.GbtWindowSize;
+            p.GbtWindowSize = settings.GbtWindowSize;
             //If transaction is not in progress.
             if (server.transaction == null)
             {
@@ -976,7 +1049,7 @@ namespace Gurux.DLMS
             settings.IncreaseBlockIndex();
             GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeID, streaming ? Command.GeneralBlockTransfer : Command.GetResponse, 2, null, bb, (byte)ErrorCode.Ok, cipheredCommand);
             p.Streaming = streaming;
-            p.WindowSize = settings.GbtWindowSize;
+            p.GbtWindowSize = settings.GbtWindowSize;
             //If transaction is not in progress.
             if (server.transaction == null)
             {

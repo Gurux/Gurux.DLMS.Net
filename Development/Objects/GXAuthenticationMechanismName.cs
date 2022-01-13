@@ -33,6 +33,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Xml.Serialization;
 using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS.Objects
@@ -53,32 +54,38 @@ namespace Gurux.DLMS.Objects
             MechanismId = Authentication.None;
         }
 
+        [XmlIgnore()]
         public byte JointIsoCtt
         {
             get;
             set;
         }
+        [XmlIgnore()]
         public byte Country
         {
             get;
             set;
         }
+        [XmlIgnore()]
         public UInt16 CountryName
         {
             get;
             set;
         }
+        [XmlIgnore()]
         public byte IdentifiedOrganization
         {
             get;
             set;
         }
 
+        [XmlIgnore()]
         public byte DlmsUA
         {
             get;
             set;
         }
+        [XmlIgnore()]
         public byte AuthenticationMechanismName
         {
             get;

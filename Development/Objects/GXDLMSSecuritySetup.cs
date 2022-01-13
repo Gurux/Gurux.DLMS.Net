@@ -1155,14 +1155,11 @@ namespace Gurux.DLMS.Objects
             {
                 return DataType.OctetString;
             }
-            if (index == 6)
+            if (Version > 0 && index == 6)
             {
                 return DataType.Array;
             }
-            else
-            {
-                throw new ArgumentException("GetDataType failed. Invalid attribute index.");
-            }
+            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
         /// <summary>

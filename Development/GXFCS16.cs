@@ -96,6 +96,7 @@ namespace Gurux.DLMS
             return (UInt16)FCS16;
         }
 
+        const UInt32 CRCPOLY = 0xD3B6BA00;
 
         /// <summary>
         /// Reserved for internal use.
@@ -104,7 +105,6 @@ namespace Gurux.DLMS
         /// <param name="index"></param>
         /// <param name="count"></param>
         /// <returns></returns>
-        const UInt32 CRCPOLY = 0xD3B6BA00;
         internal static UInt32 CountFCS24(byte[] buff, int index, int count)
         {
             byte i, j;

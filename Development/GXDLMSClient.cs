@@ -2172,7 +2172,7 @@ namespace Gurux.DLMS
                 {
                     attributeDescriptor.SetUInt8(1);
                 }
-                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.MethodRequest, 
+                GXDLMSLNParameters p = new GXDLMSLNParameters(Settings, 0, Command.MethodRequest,
                     (byte)ActionRequestType.Normal, attributeDescriptor, data, 0xff, Command.None);
                 p.AccessMode = mode;
                 //GBT Window size or streaming is not used with method because there is no information available from the
@@ -3274,7 +3274,7 @@ namespace Gurux.DLMS
                     {
                         crypted[pos] += 7;
                     }
-                    if (crypted[pos] > 'F')
+                    if (crypted[pos] == 'G')
                     {
                         crypted[pos] = (byte) ('0' + crypted[pos] - 'G');
                     }
@@ -3317,6 +3317,7 @@ namespace Gurux.DLMS
                 {
                     mode = m;
                 }
+                it.Target.SetLastReadTime(it.Index, time);
             }
             //Data
             GXCommon.SetObjectCount(list.Count, bb);
@@ -3589,36 +3590,33 @@ namespace Gurux.DLMS
             {
                 //If bit mask is used.
                 AccessMode3 m = target.GetAccess3(index);
-                if (m != AccessMode3.NoAccess)
+                if ((m & AccessMode3.Read) == 0)
                 {
-                    if ((m & AccessMode3.Read) == 0)
-                    {
-                        return false;
-                    }
-                    Security security = Security.None;
-                    Signing signing = Signing.None;
-                    if (Settings.Cipher != null)
-                    {
-                        security = Settings.Cipher.Security;
-                        signing = Settings.Cipher.Signing;
-                    }
-                    //If authenticatation is expected, but secured connection is not used.
-                    if ((m & (AccessMode3.AuthenticatedRequest | AccessMode3.AuthenticatedResponse)) != 0 && (security & (Security.Authentication)) == 0)
-                    {
-                        return false;
-                    }
-                    //If encryption is expected, but secured connection is not used.
-                    if ((m & (AccessMode3.EncryptedRequest | AccessMode3.EncryptedResponse)) != 0 &&
-                        (security & (Security.Encryption)) == 0)
-                    {
-                        return false;
-                    }
-                    //If signing is expected, but it's not used.
-                    if ((m & (AccessMode3.DigitallySignedRequest | AccessMode3.DigitallySignedResponse)) != 0 &&
-                        (signing & (Signing.GeneralSigning)) == 0)
-                    {
-                        return false;
-                    }
+                    return false;
+                }
+                Security security = Security.None;
+                Signing signing = Signing.None;
+                if (Settings.Cipher != null)
+                {
+                    security = Settings.Cipher.Security;
+                    signing = Settings.Cipher.Signing;
+                }
+                //If authenticatation is expected, but secured connection is not used.
+                if ((m & (AccessMode3.AuthenticatedRequest | AccessMode3.AuthenticatedResponse)) != 0 && (security & (Security.Authentication)) == 0)
+                {
+                    return false;
+                }
+                //If encryption is expected, but secured connection is not used.
+                if ((m & (AccessMode3.EncryptedRequest | AccessMode3.EncryptedResponse)) != 0 &&
+                    (security & (Security.Encryption)) == 0)
+                {
+                    return false;
+                }
+                //If signing is expected, but it's not used.
+                if ((m & (AccessMode3.DigitallySignedRequest | AccessMode3.DigitallySignedResponse)) != 0 &&
+                    (signing & (Signing.GeneralSigning)) == 0)
+                {
+                    return false;
                 }
             }
             return true;
@@ -3640,36 +3638,33 @@ namespace Gurux.DLMS
             {
                 //If bit mask is used.
                 AccessMode3 m = target.GetAccess3(index);
-                if (m != AccessMode3.NoAccess)
+                if ((m & AccessMode3.Write) == 0)
                 {
-                    if ((m & AccessMode3.Write) == 0)
-                    {
-                        return false;
-                    }
-                    Security security = Security.None;
-                    Signing signing = Signing.None;
-                    if (Settings.Cipher != null)
-                    {
-                        security = Settings.Cipher.Security;
-                        signing = Settings.Cipher.Signing;
-                    }
-                    //If authentication is expected, but secured connection is not used.
-                    if ((m & (AccessMode3.AuthenticatedRequest | AccessMode3.AuthenticatedResponse)) != 0 && (security & (Security.Authentication)) == 0)
-                    {
-                        return false;
-                    }
-                    //If encryption is expected, but secured connection is not used.
-                    if ((m & (AccessMode3.EncryptedRequest | AccessMode3.EncryptedResponse)) != 0 &&
-                        (security & (Security.Encryption)) == 0)
-                    {
-                        return false;
-                    }
-                    //If signing is expected, but it's not used.
-                    if ((m & (AccessMode3.DigitallySignedRequest | AccessMode3.DigitallySignedResponse)) != 0 &&
-                        (signing & (Signing.GeneralSigning)) == 0)
-                    {
-                        return false;
-                    }
+                    return false;
+                }
+                Security security = Security.None;
+                Signing signing = Signing.None;
+                if (Settings.Cipher != null)
+                {
+                    security = Settings.Cipher.Security;
+                    signing = Settings.Cipher.Signing;
+                }
+                //If authentication is expected, but secured connection is not used.
+                if ((m & (AccessMode3.AuthenticatedRequest | AccessMode3.AuthenticatedResponse)) != 0 && (security & (Security.Authentication)) == 0)
+                {
+                    return false;
+                }
+                //If encryption is expected, but secured connection is not used.
+                if ((m & (AccessMode3.EncryptedRequest | AccessMode3.EncryptedResponse)) != 0 &&
+                    (security & (Security.Encryption)) == 0)
+                {
+                    return false;
+                }
+                //If signing is expected, but it's not used.
+                if ((m & (AccessMode3.DigitallySignedRequest | AccessMode3.DigitallySignedResponse)) != 0 &&
+                    (signing & (Signing.GeneralSigning)) == 0)
+                {
+                    return false;
                 }
             }
             return true;
@@ -3691,36 +3686,33 @@ namespace Gurux.DLMS
             {
                 //If bit mask is used.
                 MethodAccessMode3 m = target.GetMethodAccess3(index);
-                if (m != MethodAccessMode3.NoAccess)
+                if ((m & MethodAccessMode3.Access) == 0)
                 {
-                    if ((m & MethodAccessMode3.Access) == 0)
-                    {
-                        return false;
-                    }
-                    Security security = Security.None;
-                    Signing signing = Signing.None;
-                    if (Settings.Cipher != null)
-                    {
-                        security = Settings.Cipher.Security;
-                        signing = Settings.Cipher.Signing;
-                    }
-                    //If authentication is expected, but secured connection is not used.
-                    if ((m & (MethodAccessMode3.AuthenticatedRequest | MethodAccessMode3.AuthenticatedResponse)) != 0 && (security & (Security.Authentication)) == 0)
-                    {
-                        return false;
-                    }
-                    //If encryption is expected, but secured connection is not used.
-                    if ((m & (MethodAccessMode3.EncryptedRequest | MethodAccessMode3.EncryptedResponse)) != 0 &&
-                        (security & (Security.Encryption)) == 0)
-                    {
-                        return false;
-                    }
-                    //If signing is expected, but it's not used.
-                    if ((m & (MethodAccessMode3.DigitallySignedRequest | MethodAccessMode3.DigitallySignedResponse)) != 0 &&
-                        (signing & (Signing.GeneralSigning)) == 0)
-                    {
-                        return false;
-                    }
+                    return false;
+                }
+                Security security = Security.None;
+                Signing signing = Signing.None;
+                if (Settings.Cipher != null)
+                {
+                    security = Settings.Cipher.Security;
+                    signing = Settings.Cipher.Signing;
+                }
+                //If authentication is expected, but secured connection is not used.
+                if ((m & (MethodAccessMode3.AuthenticatedRequest | MethodAccessMode3.AuthenticatedResponse)) != 0 && (security & (Security.Authentication)) == 0)
+                {
+                    return false;
+                }
+                //If encryption is expected, but secured connection is not used.
+                if ((m & (MethodAccessMode3.EncryptedRequest | MethodAccessMode3.EncryptedResponse)) != 0 &&
+                    (security & (Security.Encryption)) == 0)
+                {
+                    return false;
+                }
+                //If signing is expected, but it's not used.
+                if ((m & (MethodAccessMode3.DigitallySignedRequest | MethodAccessMode3.DigitallySignedResponse)) != 0 &&
+                    (signing & (Signing.GeneralSigning)) == 0)
+                {
+                    return false;
                 }
             }
             return true;

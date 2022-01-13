@@ -575,6 +575,10 @@ namespace Gurux.DLMS.Objects
                             if (it.Version != 0)
                             {
                                 writer.WriteElementString("Version", it.Version, 0);
+                                if (it is GXDLMSAssociationLogicalName)
+                                {
+                                    lnVersion = it.Version;
+                                }
                             }
                             // Add description if given.
                             if (!ignoreDescription && !string.IsNullOrEmpty(it.Description))

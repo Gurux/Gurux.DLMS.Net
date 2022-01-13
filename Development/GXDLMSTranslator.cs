@@ -1288,18 +1288,21 @@ namespace Gurux.DLMS
             msg.Exception = null;
             GXReplyData data = new GXReplyData();
             GXDLMSTranslatorStructure xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
-            GXDLMSSettings settings = new GXDLMSSettings(true, InterfaceType.HDLC);
+            GXDLMSSettings settings = new GXDLMSSettings(true, msg.InterfaceType);
             GetCiphering(settings, true);
             data.Xml = xml;
             try
             {
                 //If HDLC framing.
                 int offset = msg.Message.Position;
-                if (msg.Message.GetUInt8(msg.Message.Position) == 0x7e)
+                if ((msg.InterfaceType == InterfaceType.HDLC || msg.InterfaceType == InterfaceType.HdlcWithModeE) && msg.Message.GetUInt8(msg.Message.Position) == 0x7e)
                 {
-                    settings.InterfaceType = Enums.InterfaceType.HDLC;
+                    msg.InterfaceType = settings.InterfaceType = InterfaceType.HDLC;
                     if (GXDLMS.GetData(settings, msg.Message, data, null))
                     {
+                        msg.MoreData = data.MoreData;
+                        msg.SourceAddress = data.SourceAddress;
+                        msg.TargetAddress = data.TargetAddress;
                         //settings.SourceSystemTitle
                         if (!PduOnly)
                         {
@@ -1384,7 +1387,19 @@ namespace Gurux.DLMS
                                     }
                                     else
                                     {
-                                        xml.AppendLine(PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg));
+                                        if (CompletePdu)
+                                        {
+                                            pduFrames.Set(data.Data.Data);
+                                            if (data.MoreData == RequestTypes.None)
+                                            {
+                                                xml.AppendLine(PduToXml(pduFrames, true, true, msg));
+                                                pduFrames.Clear();
+                                            }
+                                        }
+                                        else
+                                        {
+                                            xml.AppendLine(PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg));
+                                        }
                                     }
                                 }
                                 // Remove \r\n.
@@ -1405,10 +1420,13 @@ namespace Gurux.DLMS
                     return;
                 }
                 //If wrapper.
-                else if (msg.Message.GetUInt16(msg.Message.Position) == 1)
+                else if ((msg.InterfaceType == InterfaceType.HDLC || msg.InterfaceType == InterfaceType.WRAPPER) && msg.Message.Available > 1 && msg.Message.GetUInt16(msg.Message.Position) == 1)
                 {
-                    msg.InterfaceType = settings.InterfaceType = Enums.InterfaceType.WRAPPER;
+                    msg.InterfaceType = settings.InterfaceType = InterfaceType.WRAPPER;
                     GXDLMS.GetData(settings, msg.Message, data, null);
+                    msg.MoreData = data.MoreData;
+                    msg.SourceAddress = data.SourceAddress;
+                    msg.TargetAddress = data.TargetAddress;
                     string pdu = PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg);
                     if (!PduOnly)
                     {
@@ -1436,10 +1454,13 @@ namespace Gurux.DLMS
                     return;
                 }
                 //If PLC.
-                else if (msg.Message.GetUInt8(msg.Message.Position) == 2)
+                else if ((msg.InterfaceType == InterfaceType.HDLC || msg.InterfaceType == InterfaceType.Plc) && msg.Message.GetUInt8(msg.Message.Position) == 2)
                 {
-                    msg.InterfaceType = settings.InterfaceType = Enums.InterfaceType.Plc;
+                    msg.InterfaceType = settings.InterfaceType = InterfaceType.Plc;
                     GXDLMS.GetData(settings, msg.Message, data, null);
+                    msg.MoreData = data.MoreData;
+                    msg.SourceAddress = data.SourceAddress;
+                    msg.TargetAddress = data.TargetAddress;
                     if (!PduOnly)
                     {
                         xml.AppendLine("<Plc len=\"" + (data.PacketLength - offset).ToString("X") + "\" >");
@@ -1488,11 +1509,14 @@ namespace Gurux.DLMS
                     return;
                 }
                 //If PLC.
-                else if (GXDLMS.GetPlcSfskFrameSize(msg.Message) != 0)
+                else if ((msg.InterfaceType == InterfaceType.HDLC || msg.InterfaceType == InterfaceType.PlcHdlc) && GXDLMS.GetPlcSfskFrameSize(msg.Message) != 0)
                 {
-                    msg.InterfaceType = settings.InterfaceType = Enums.InterfaceType.PlcHdlc;
+                    msg.InterfaceType = settings.InterfaceType = InterfaceType.PlcHdlc;
                     GXDLMS.GetData(settings, msg.Message, data, null);
-                if (!PduOnly)
+                    msg.MoreData = data.MoreData;
+                    msg.SourceAddress = data.SourceAddress;
+                    msg.TargetAddress = data.TargetAddress;
+                    if (!PduOnly)
                     {
                         xml.AppendLine("<PlcSFsk len=\"" + (data.PacketLength - offset).ToString("X") + "\" >");
                         if (Comments)
@@ -1540,11 +1564,14 @@ namespace Gurux.DLMS
                     return;
                 }
                 //If Wired M-Bus.
-                else if (GXDLMS.IsWiredMBusData(msg.Message))
+                else if ((msg.InterfaceType == InterfaceType.HDLC || msg.InterfaceType == InterfaceType.WiredMBus) && GXDLMS.IsWiredMBusData(msg.Message))
                 {
-                    settings.InterfaceType = Enums.InterfaceType.WiredMBus;
+                    msg.InterfaceType = settings.InterfaceType = InterfaceType.WiredMBus;
                     int len = xml.GetXmlLength();
                     GXDLMS.GetData(settings, msg.Message, data, null);
+                    msg.MoreData = data.MoreData;
+                    msg.SourceAddress = data.SourceAddress;
+                    msg.TargetAddress = data.TargetAddress;
                     string tmp = xml.ToString().Substring(len);
                     xml.SetXmlLength(len);
                     if (!PduOnly)
@@ -1614,11 +1641,14 @@ namespace Gurux.DLMS
                     return;
                 }
                 //If Wireless M-Bus.
-                else if (GXDLMS.IsWirelessMBusData(msg.Message))
+                else if ((msg.InterfaceType == InterfaceType.HDLC || msg.InterfaceType == InterfaceType.WirelessMBus) && GXDLMS.IsWirelessMBusData(msg.Message))
                 {
-                    settings.InterfaceType = Enums.InterfaceType.WirelessMBus;
+                    msg.InterfaceType = settings.InterfaceType = InterfaceType.WirelessMBus;
                     int len = xml.GetXmlLength();
                     GXDLMS.GetData(settings, msg.Message, data, null);
+                    msg.MoreData = data.MoreData;
+                    msg.SourceAddress = data.SourceAddress;
+                    msg.TargetAddress = data.TargetAddress;
                     string tmp = xml.ToString().Substring(len);
                     xml.SetXmlLength(len);
                     if (!PduOnly)
@@ -4123,6 +4153,12 @@ namespace Gurux.DLMS
             finally
             {
                 xml = di.xml.ToString();
+                if (data.Position != data.Size)
+                {
+                    xml += "<!--";
+                    xml += Environment.NewLine + "Extra data:" + Environment.NewLine + data.RemainingHexString(true);
+                    xml += Environment.NewLine + "-->";
+                }
             }
         }
 

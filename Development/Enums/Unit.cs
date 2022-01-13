@@ -100,7 +100,7 @@ namespace Gurux.DLMS.Enums
         /// Length l meter m is used as an unit.
         /// </summary>
         [XmlEnum("11")]
-        Length, // 
+        Length,
         /// <summary>
         /// Unit is Speed v m/s.
         /// </summary>
@@ -135,7 +135,7 @@ namespace Gurux.DLMS.Enums
         /// Unit is Corrected volume flux m3/24*60*60s.
         /// </summary>
         [XmlEnum("18")]
-        CorrecteVolumeFluxDay,
+        CorrectedVolumeFluxDay,
         /// <summary>
         /// Unit is Volume 10-3 m3.
         /// </summary>
@@ -362,10 +362,265 @@ namespace Gurux.DLMS.Enums
         [XmlEnum("65")]
         JouleKilogram = 65,
         /// <summary>
-        /// dBm Signal strength (e.g. of GSM radio systems)
+        /// Pressure, gram per square centimeter.
+        /// </summary>
+        [XmlEnum("66")]
+        PressureGramPerSquareCentimeter = 66,
+        /// <summary>
+        /// Pressure, atmosphere.
+        /// </summary>
+        [XmlEnum("67")]
+        PressureAtmosphere = 67,
+        /// <summary>
+        /// Signal strength, dB milliwatt (e.g. of GSM radio systems).
         /// </summary>
         [XmlEnum("70")]
-        SignalStrength = 70,
+        SignalStrengthMilliWatt = 70,
+        /// <summary>
+        /// Signal strength, dB microvolt.
+        /// </summary>
+        [XmlEnum("71")]
+        SignalStrengthMicroVolt = 71,
+        /// <summary>
+        /// Logarithmic unit that expresses the ratio between two values of a physical quantity
+        /// </summary>
+        [XmlEnum("72")]
+        dB = 72,
+        /// <summary>
+        /// Length in inches.
+        /// </summary>
+        [XmlEnum("128")]
+        Inch = 128,
+        /// <summary>
+        /// Foot (Length).
+        /// </summary>
+        [XmlEnum("129")]
+        Foot = 129,
+        /// <summary>
+        /// Pound (mass).
+        /// </summary>
+        [XmlEnum("130")]
+        Pound = 130,
+        /// <summary>
+        /// Fahrenheit
+        /// </summary>
+        [XmlEnum("131")]
+        Fahrenheit = 131,
+        /// <summary>
+        /// Rankine
+        /// </summary>
+        [XmlEnum("132")]
+        Rankine = 132,
+        /// <summary>
+        /// Square inch.
+        /// </summary>
+        [XmlEnum("133")]
+        SquareInch = 133,
+        /// <summary>
+        /// Square foot.
+        /// </summary>
+        [XmlEnum("134")]
+        SquareFoot = 134,
+        /// <summary>
+        /// Acre
+        /// </summary>
+        [XmlEnum("135")]
+        Acre = 135,
+        /// <summary>
+        /// Cubic inch.
+        /// </summary>
+        [XmlEnum("136")]
+        CubicInch = 136,
+        /// <summary>
+        /// Cubic foot.
+        /// </summary>
+        [XmlEnum("137")]
+        CubicFoot = 137,
+        /// <summary>
+        /// Acre-foot.
+        /// </summary>
+        [XmlEnum("138")]
+        AcreFoot = 138,
+        /// <summary>
+        /// Gallon (imperial).
+        /// </summary>
+        [XmlEnum("139")]
+        GallonImperial = 139,
+        /// <summary>
+        /// Gallon (US).
+        /// </summary>
+        [XmlEnum("140")]
+        GallonUS = 140,
+        /// <summary>
+        /// Pound force.
+        /// </summary>
+        [XmlEnum("141")]
+        PoundForce = 141,
+        /// <summary>
+        /// Pound force per square inch
+        /// </summary>
+        [XmlEnum("142")]
+        PoundForcePerSquareInch = 142,
+        /// <summary>
+        /// Pound per cubic foot.
+        /// </summary>
+        [XmlEnum("143")]
+        PoundPerCubicFoot = 143,
+        /// <summary>
+        /// Pound per (foot second) 
+        /// </summary>
+        [XmlEnum("144")]
+        PoundPerFootSecond = 144,
+        /// <summary>
+        /// Square foot per second.
+        /// </summary>
+        [XmlEnum("145")]
+        SquareFootPerSecond = 145,
+        /// <summary>
+        /// British thermal unit.
+        /// </summary>
+        [XmlEnum("146")]
+        BritishThermalUnit = 146,
+        /// <summary>
+        /// Therm EU.
+        /// </summary>
+        [XmlEnum("147")]
+        ThermEU = 147,
+        /// <summary>
+        /// Therm US.
+        /// </summary>
+        [XmlEnum("148")]
+        ThermUS = 148,
+        /// <summary>
+        /// British thermal unit per pound.
+        /// </summary>
+        [XmlEnum("149")]
+        BritishThermalUnitPerPound = 149,
+        /// <summary>
+        /// British thermal unit per cubic foot.
+        /// </summary>
+        [XmlEnum("150")]
+        BritishThermalUnitPerCubicFoot = 150,
+        /// <summary>
+        /// Cubic feet.
+        /// </summary>
+        [XmlEnum("151")]
+        CubicFeet = 151,
+        /// <summary>
+        /// Foot per second.
+        /// </summary>
+        [XmlEnum("152")]
+        FootPerSecond = 152,
+        /// <summary>
+        /// Cubic foot per second. 
+        /// </summary>
+        [XmlEnum("153")]
+        CubicFootPerSecond = 153,
+        /// <summary>
+        /// Cubic foot per min.
+        /// </summary>
+        [XmlEnum("154")]
+        CubicFootPerMin = 154,
+        /// <summary>
+        /// Cubic foot per hour.
+        /// </summary>
+        [XmlEnum("155")]
+        CubicFootPerhour = 155,
+        /// <summary>
+        /// Cubic foot per day
+        /// </summary>
+        [XmlEnum("156")]
+        CubicFootPerDay = 156,
+        /// <summary>
+        /// Acre foot per second.
+        /// </summary>
+        [XmlEnum("157")]
+        AcreFootPerSecond = 157,
+        /// <summary>
+        /// Acre foot per min.
+        /// </summary>
+        [XmlEnum("158")]
+        AcreFootPerMin = 158,
+        /// <summary>
+        /// Acre foot per hour. 
+        /// </summary>
+        [XmlEnum("159")]
+        AcreFootPerHour = 159,
+        /// <summary>
+        /// Acre foot per day.
+        /// </summary>
+        [XmlEnum("160")]
+        AcreFootPerDay = 160,
+        /// <summary>
+        /// Imperial gallon.
+        /// </summary>
+        [XmlEnum("161")]
+        ImperialGallon = 161,
+        /// <summary>
+        /// Imperial gallon per second.
+        /// </summary>
+        [XmlEnum("162")]
+        ImperialGallonPerSecond = 162,
+        /// <summary>
+        /// Imperial gallon per min.
+        /// </summary>
+        [XmlEnum("163")]
+        ImperialGallonPerMin = 163,
+        /// <summary>
+        /// Imperial gallon per hour.
+        /// </summary>
+        [XmlEnum("164")]
+        ImperialGallonPerHour = 164,
+        /// <summary>
+        /// Imperial gallon per day.
+        /// </summary>
+        [XmlEnum("165")]
+        ImperialGallonPerDay = 165,
+        /// <summary>
+        /// US gallon.
+        /// </summary>
+        [XmlEnum("166")]
+        USGallon = 166,
+        /// <summary>
+        /// US gallon per second.
+        /// </summary>
+        [XmlEnum("167")]
+        USGallonPerSecond = 167,
+        /// <summary>
+        /// US gallon per min.
+        /// </summary>
+        [XmlEnum("168")]
+        USGallonPerMin = 168,
+        /// <summary>
+        /// US gallon per hour.
+        /// </summary>
+        [XmlEnum("169")]
+        USGallonPerHour = 169,
+        /// <summary>
+        /// US gallon per day.
+        /// </summary>
+        [XmlEnum("170")]
+        USGallonPerDay = 170,
+        /// <summary>
+        /// British thermal unit per second.
+        /// </summary>
+        [XmlEnum("171")]
+        BritishThermalUnitPerSecond = 171,
+        /// <summary>
+        /// British thermal unit per minute.
+        /// </summary>
+        [XmlEnum("172")]
+        BritishThermalUnitPerMinute = 172,
+        /// <summary>
+        /// British thermal unit per hour.
+        /// </summary>
+        [XmlEnum("173")]
+        BritishThermalUnitPerHour = 173,
+        /// <summary>
+        /// British thermal unit per day.
+        /// </summary>
+        [XmlEnum("174")]
+        BritishThermalUnitPerDay = 174,
         /// <summary>
         /// Other Unit is used.
         /// </summary>

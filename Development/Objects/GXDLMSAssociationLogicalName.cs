@@ -478,6 +478,12 @@ namespace Gurux.DLMS.Objects
                 }
                 if (settings.IsServer)
                 {
+                    //Object can be added only once for the association view.
+                    if (exists != null)
+                    {
+                        e.Error = ErrorCode.UndefinedObject;
+                        return;
+                    }
                     // Set default values from this LN.
                     if (obj is GXDLMSAssociationLogicalName ln)
                     {
@@ -486,9 +492,15 @@ namespace Gurux.DLMS.Objects
                             e.Error = ErrorCode.UndefinedObject;
                             return;
                         }
+                        //All LN objects are using the same version.
+                        obj.Version = Version;
                         ln.XDLMSContextInfo.Conformance = XDLMSContextInfo.Conformance;
                         ln.XDLMSContextInfo.MaxReceivePduSize = XDLMSContextInfo.MaxReceivePduSize;
                         ln.XDLMSContextInfo.MaxSendPduSize = XDLMSContextInfo.MaxSendPduSize;
+                        if (exists == null)
+                        {
+                            ln.ObjectList.Add(ln);
+                        }
                     }
                     else if (obj is GXDLMSSecuritySetup ss)
                     {
@@ -503,7 +515,7 @@ namespace Gurux.DLMS.Objects
                     int[] list = new int[count];
                     for (int pos = 0; pos != count; ++pos)
                     {
-                        if (this.Version == 3)
+                        if (Version == 3)
                         {
                             list[pos] = (int)obj.GetAccess3(1 + pos);
                         }
@@ -1586,7 +1598,10 @@ namespace Gurux.DLMS.Objects
                                 obj.LogicalName = ln;
                                 reader.Objects.Add(obj);
                             }
-                            ObjectList.Add(obj);
+                            if (obj != this)
+                            {
+                                ObjectList.Add(obj);
+                            }
                             // methodAccessRights
                             string access = reader.ReadElementContentAsString("Access");
                             int pos = 0;
@@ -1622,7 +1637,6 @@ namespace Gurux.DLMS.Objects
                                     ++pos;
                                 }
                                 methodAccessRights[obj] = buff;
-                                pos = 0;
                             }
                             access = reader.ReadElementContentAsString("MethodAccess3");
                             if (!string.IsNullOrEmpty(access))
@@ -1646,7 +1660,9 @@ namespace Gurux.DLMS.Objects
                     }
                 }
                 reader.ReadEndElement("ObjectList");
-                // Add logical name association object to the object list.
+            }
+            if (ObjectList.FindByLN(ObjectType.AssociationLogicalName, this.LogicalName) == null)
+            {
                 ObjectList.Add(this);
             }
             ClientSAP = (byte)reader.ReadElementContentAsInt("ClientSAP");
@@ -1727,7 +1743,7 @@ namespace Gurux.DLMS.Objects
                 {
                     // Default association view is not saved.
                     if (!(it.ObjectType == ObjectType.AssociationLogicalName
-                            && (it == this || it.LogicalName == "0.0.40.0.0.255")))
+                            && (it.LogicalName == "0.0.40.0.0.255")))
                     {
                         if (MultipleAssociationViews || it.ObjectType != ObjectType.AssociationLogicalName)
                         {
@@ -2290,6 +2306,10 @@ namespace Gurux.DLMS.Objects
         /// <returns>Method access mode.</returns>
         public MethodAccessMode3 GetMethodAccess3(GXDLMSObject target, int index)
         {
+            if (methodAccessRights.Count == 0)
+            {
+                return MethodAccessMode3.NoAccess;
+            }
             if (target == this ||
                 (target is GXDLMSAssociationLogicalName && target.LogicalName == "0.0.40.0.0.255")
                 || methodAccessRights[target] == null)

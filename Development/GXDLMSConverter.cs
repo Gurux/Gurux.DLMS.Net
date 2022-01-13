@@ -460,7 +460,7 @@ namespace Gurux.DLMS
                     return Gurux.DLMS.Properties.Resources.UnitCorrectedVolumeFluxHourTxt;
                 case Unit.VolumeFluxDay:
                     return Gurux.DLMS.Properties.Resources.UnitVolumeFluxDayTxt;
-                case Unit.CorrecteVolumeFluxDay:
+                case Unit.CorrectedVolumeFluxDay:
                     return Gurux.DLMS.Properties.Resources.UnitCorrecteVolumeFluxDayTxt;
                 case Unit.VolumeLiter:
                     return Gurux.DLMS.Properties.Resources.UnitVolumeLiterTxt;
@@ -532,6 +532,134 @@ namespace Gurux.DLMS
                     return Gurux.DLMS.Properties.Resources.UnitOtherTxt;
                 case Unit.NoUnit:
                     return Gurux.DLMS.Properties.Resources.UnitNoneTxt;
+                case Unit.Kelvin:
+                    return "Kelvin";
+                case Unit.RU2h:
+                    return "RU2h";
+                case Unit.RI2h:
+                    return "RI2h";
+                case Unit.CubicMeterRV:
+                    return "Cubic meter RV";
+                case Unit.Percentage:
+                    return "Percentage";
+                case Unit.AmpereHour:
+                    return "Ampere hour";
+                case Unit.EnergyPerVolume:
+                    return "Energy per volume";
+                case Unit.Wobbe:
+                    return "Wobbe";
+                case Unit.MolePercent:
+                    return "Mole percent";
+                case Unit.MassDensity:
+                    return "Mass density";
+                case Unit.PascalSecond:
+                    return "Pascal second";
+                case Unit.JouleKilogram:
+                    return "Joule kilogram";
+                case Unit.PressureGramPerSquareCentimeter:
+                    return "Pressure gram per square centimeter";
+                case Unit.PressureAtmosphere:
+                    return "Pressure atmosphere";
+                case Unit.SignalStrengthMilliWatt:
+                    return "Signal strength milli watt";
+                case Unit.SignalStrengthMicroVolt:
+                    return "Signal strength micro volt";
+                case Unit.dB:
+                    return "dB";
+                case Unit.Inch:
+                    return "Inch";
+                case Unit.Foot:
+                    return "Foot";
+                case Unit.Pound:
+                    return "Pound";
+                case Unit.Fahrenheit:
+                    return "Fahrenheit";
+                case Unit.Rankine:
+                    return "Rankine";
+                case Unit.SquareInch:
+                    return "SquareInch";
+                case Unit.SquareFoot:
+                    return "SquareFoot";
+                case Unit.Acre:
+                    return "Acre";
+                case Unit.CubicInch:
+                    return "CubicInch";
+                case Unit.CubicFoot:
+                    return "CubicFoot";
+                case Unit.AcreFoot:
+                    return "AcreFoot";
+                case Unit.GallonImperial:
+                    return "Gallon imperial";
+                case Unit.GallonUS:
+                    return "GallonUS";
+                case Unit.PoundForce:
+                    return "Pound force";
+                case Unit.PoundForcePerSquareInch:
+                    return "Pound force per square inch";
+                case Unit.PoundPerCubicFoot:
+                    return "Pound per cubic foot";
+                case Unit.PoundPerFootSecond:
+                    return "Pound per foot second";
+                case Unit.SquareFootPerSecond:
+                    return "Square foot per second";
+                case Unit.BritishThermalUnit:
+                    return "British thermal unit";
+                case Unit.ThermEU:
+                    return "Therm EU";
+                case Unit.ThermUS:
+                    return "Therm US";
+                case Unit.BritishThermalUnitPerPound:
+                    return "British thermal unit per pound";
+                case Unit.BritishThermalUnitPerCubicFoot:
+                    return "British thermal unit per cubic foot";
+                case Unit.CubicFeet:
+                    return "Cubic feet";
+                case Unit.FootPerSecond:
+                    return "Foot per second";
+                case Unit.CubicFootPerSecond:
+                    return "Cubic foot per second";
+                case Unit.CubicFootPerMin:
+                    return "Cubic foot per min";
+                case Unit.CubicFootPerhour:
+                    return "Cubic foot per hour";
+                case Unit.CubicFootPerDay:
+                    return "Cubic foot per day";
+                case Unit.AcreFootPerSecond:
+                    return "Acre foot per second";
+                case Unit.AcreFootPerMin:
+                    return "Acre foot per min";
+                case Unit.AcreFootPerHour:
+                    return "Acre foot per hour";
+                case Unit.AcreFootPerDay:
+                    return "Acre foot per day";
+                case Unit.ImperialGallon:
+                    return "Imperial gallon";
+                case Unit.ImperialGallonPerSecond:
+                    return "Imperial gallon per second";
+                case Unit.ImperialGallonPerMin:
+                    return "Imperial gallon per min";
+                case Unit.ImperialGallonPerHour:
+                    return "Imperial gallon per hour";
+                case Unit.ImperialGallonPerDay:
+                    return "Imperial gallon per day";
+                case Unit.USGallon:
+                    return "US gallon";
+                case Unit.USGallonPerSecond:
+                    return "US gallon per second";
+                case Unit.USGallonPerMin:
+                    return "US gallon per min";
+                case Unit.USGallonPerHour:
+                    return "US gallon per hour";
+                case Unit.USGallonPerDay:
+                    return "US gallon per day";
+                case Unit.BritishThermalUnitPerSecond:
+                    return "British thermal unit per second";
+                case Unit.BritishThermalUnitPerMinute:
+                    return "British thermal unit per minute";
+                case Unit.BritishThermalUnitPerHour:
+                    return "British thermal unit per hour";
+                case Unit.BritishThermalUnitPerDay:
+                    return "British thermal unit per day";
             }
             return "";
 #else
@@ -644,6 +772,134 @@ namespace Gurux.DLMS
                     return Resources.UnitOtherTxt;
                 case Unit.NoUnit:
                     return Resources.UnitNoneTxt;
+                    case Unit.Kelvin:
+                    return "Kelvin";
+                case Unit.RU2h:
+                    return "RU2h";
+                case Unit.RI2h:
+                    return "RI2h";
+                case Unit.CubicMeterRV:
+                    return "Cubic meter RV";
+                case Unit.Percentage:
+                    return "Percentage";
+                case Unit.AmpereHour:
+                    return "Ampere hour";
+                case Unit.EnergyPerVolume:
+                    return "Energy per volume";
+                case Unit.Wobbe:
+                    return "Wobbe";
+                case Unit.MolePercent:
+                    return "Mole percent";
+                case Unit.MassDensity:
+                    return "Mass density";
+                case Unit.PascalSecond:
+                    return "Pascal second";
+                case Unit.JouleKilogram:
+                    return "Joule kilogram";
+                case Unit.PressureGramPerSquareCentimeter:
+                    return "Pressure gram per square centimeter";
+                case Unit.PressureAtmosphere:
+                    return "Pressure atmosphere";
+                case Unit.SignalStrengthMilliWatt:
+                    return "Signal strength milli watt";
+                case Unit.SignalStrengthMicroVolt:
+                    return "Signal strength micro volt";
+                case Unit.dB:
+                    return "dB";
+                case Unit.Inch:
+                    return "Inch";
+                case Unit.Foot:
+                    return "Foot";
+                case Unit.Pound:
+                    return "Pound";
+                case Unit.Fahrenheit:
+                    return "Fahrenheit";
+                case Unit.Rankine:
+                    return "Rankine";
+                case Unit.SquareInch:
+                    return "SquareInch";
+                case Unit.SquareFoot:
+                    return "SquareFoot";
+                case Unit.Acre:
+                    return "Acre";
+                case Unit.CubicInch:
+                    return "CubicInch";
+                case Unit.CubicFoot:
+                    return "CubicFoot";
+                case Unit.AcreFoot:
+                    return "AcreFoot";
+                case Unit.GallonImperial:
+                    return "Gallon imperial";
+                case Unit.GallonUS:
+                    return "GallonUS";
+                case Unit.PoundForce:
+                    return "Pound force";
+                case Unit.PoundForcePerSquareInch:
+                    return "Pound force per square inch";
+                case Unit.PoundPerCubicFoot:
+                    return "Pound per cubic foot";
+                case Unit.PoundPerFootSecond:
+                    return "Pound per foot second";
+                case Unit.SquareFootPerSecond:
+                    return "Square foot per second";
+                case Unit.BritishThermalUnit:
+                    return "British thermal unit";
+                case Unit.ThermEU:
+                    return "Therm EU";
+                case Unit.ThermUS:
+                    return "Therm US";
+                case Unit.BritishThermalUnitPerPound:
+                    return "British thermal unit per pound";
+                case Unit.BritishThermalUnitPerCubicFoot:
+                    return "British thermal unit per cubic foot";
+                case Unit.CubicFeet:
+                    return "Cubic feet";
+                case Unit.FootPerSecond:
+                    return "Foot per second";
+                case Unit.CubicFootPerSecond:
+                    return "Cubic foot per second";
+                case Unit.CubicFootPerMin:
+                    return "Cubic foot per min";
+                case Unit.CubicFootPerhour:
+                    return "Cubic foot per hour";
+                case Unit.CubicFootPerDay:
+                    return "Cubic foot per day";
+                case Unit.AcreFootPerSecond:
+                    return "Acre foot per second";
+                case Unit.AcreFootPerMin:
+                    return "Acre foot per min";
+                case Unit.AcreFootPerHour:
+                    return "Acre foot per hour";
+                case Unit.AcreFootPerDay:
+                    return "Acre foot per day";
+                case Unit.ImperialGallon:
+                    return "Imperial gallon";
+                case Unit.ImperialGallonPerSecond:
+                    return "Imperial gallon per second";
+                case Unit.ImperialGallonPerMin:
+                    return "Imperial gallon per min";
+                case Unit.ImperialGallonPerHour:
+                    return "Imperial gallon per hour";
+                case Unit.ImperialGallonPerDay:
+                    return "Imperial gallon per day";
+                case Unit.USGallon:
+                    return "US gallon";
+                case Unit.USGallonPerSecond:
+                    return "US gallon per second";
+                case Unit.USGallonPerMin:
+                    return "US gallon per min";
+                case Unit.USGallonPerHour:
+                    return "US gallon per hour";
+                case Unit.USGallonPerDay:
+                    return "US gallon per day";
+                case Unit.BritishThermalUnitPerSecond:
+                    return "British thermal unit per second";
+                case Unit.BritishThermalUnitPerMinute:
+                    return "British thermal unit per minute";
+                case Unit.BritishThermalUnitPerHour:
+                    return "British thermal unit per hour";
+                case Unit.BritishThermalUnitPerDay:
+                    return "British thermal unit per day";
             }
             return "";
 #else
