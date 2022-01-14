@@ -3317,18 +3317,18 @@ namespace Gurux.DLMS
                 {
                     mode = m;
                 }
-                it.Target.SetLastReadTime(it.Index, time);
             }
             //Data
             GXCommon.SetObjectCount(list.Count, bb);
+            DateTime dt = DateTime.Now;
             foreach (GXDLMSAccessItem it in list)
             {
                 if (it.Command == AccessServiceCommandType.Get)
                 {
+                    it.Target.SetLastReadTime(it.Index, dt);
                     bb.SetUInt8(0);
                 }
-                else if (it.Command == AccessServiceCommandType.Set ||
-                    it.Command == AccessServiceCommandType.Action)
+                else if (it.Command == AccessServiceCommandType.Set)
                 {
                     object value = (it.Target as IGXDLMSBase).GetValue(Settings, new ValueEventArgs(it.Target, it.Index, 0, null));
                     DataType type = it.Target.GetDataType(it.Index);
