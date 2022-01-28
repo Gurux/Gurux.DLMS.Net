@@ -79,52 +79,96 @@ namespace Gurux.DLMS
             set;
         }
 
+        private UInt16 maxInfoTX = 128, maxInfoRX = 128;
+
         /// <summary>
         /// The maximum information field length in transmit.
         /// </summary>
         /// <remarks>
-        /// DefaultValue is 128. Minimum value is 32 and max value is 128.
+        /// DefaultValue is 128. Minimum value is 32 and max value is 2030.
         /// </remarks>
         public UInt16 MaxInfoTX
         {
-            get;
-            set;
+            get
+            {
+                return maxInfoTX;
+            }
+            set
+            {
+                if (value < 32 || value > 2030)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(MaxInfoTX));
+                }
+                maxInfoTX = value;
+            }
         }
 
         /// <summary>
         /// The maximum information field length in receive.
         /// </summary>
         /// <remarks>
-        /// DefaultValue is 128. Minimum value is 32 and max value is 128.
+        /// DefaultValue is 128. Minimum value is 32 and max value is 2030.
         /// </remarks>
         public UInt16 MaxInfoRX
         {
-            get;
-            set;
+            get
+            {
+                return maxInfoRX;
+            }
+            set
+            {
+                if (value < 32 || value > 2030)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(MaxInfoRX));
+                }
+                maxInfoRX = value;
+            }
         }
+
+        private byte windowSizeTX = 1, windowSizeRX = 1;
 
         /// <summary>
         /// The window size in transmit.
         /// </summary>
         /// <remarks>
-        /// DefaultValue is 1.
+        /// DefaultValue is 1. Minimum value is 1 and max value is 7.
         /// </remarks>
         public byte WindowSizeTX
         {
-            get;
-            set;
+            get
+            {
+                return windowSizeTX;
+            }
+            set
+            {
+                if (value > 7)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(WindowSizeTX));
+                }
+                windowSizeTX = value;
+            }
         }
 
         /// <summary>
         /// The window size in receive.
         /// </summary>
         /// <remarks>
-        /// DefaultValue is 1.
+        /// DefaultValue is 1. Minimum value is 1 and max value is 7.
         /// </remarks>
         public byte WindowSizeRX
         {
-            get;
-            set;
+            get
+            {
+                return windowSizeRX;
+            }
+            set
+            {
+                if (value > 7)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(WindowSizeRX));
+                }
+                windowSizeRX = value;
+            }
         }
 
         /// <summary>

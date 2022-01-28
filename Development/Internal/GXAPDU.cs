@@ -906,6 +906,17 @@ namespace Gurux.DLMS.Internal
                 {
                     return ApplicationContextName.Unknown;
                 }
+                //All connections are accepted if the There might be only one association view in some test meters.
+                if (settings.UseLogicalNameReferencing && 
+                    settings.Objects.GetObjects(ObjectType.AssociationLogicalName).Count == 1)
+                {
+                    return ApplicationContextName.Unknown;
+                }
+                if (!settings.UseLogicalNameReferencing &&
+                    settings.Objects.GetObjects(ObjectType.AssociationShortName).Count == 1)
+                {
+                    return ApplicationContextName.Unknown;
+                }
                 return settings.AssignedAssociation.ApplicationContextName.ContextId;
             }
 

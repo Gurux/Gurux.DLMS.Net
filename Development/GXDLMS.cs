@@ -5420,6 +5420,11 @@ namespace Gurux.DLMS
             }
             if (!isLast || (data.MoreData == RequestTypes.GBT && reply.Available != 0))
             {
+                //Clear received notify message.
+                if (data.Command == Command.DataNotification && data.MoreData == RequestTypes.None)
+                {
+                    return !isNotify;
+                }
                 return GetData(settings, reply, data, notify);
             }
             return !isNotify;
@@ -5622,6 +5627,10 @@ namespace Gurux.DLMS
             //If default settings are used.
             if (data.Size == 0)
             {
+                settings.Hdlc.MaxInfoRX = GXDLMSLimitsDefault.DefaultMaxInfoRX;
+                settings.Hdlc.MaxInfoTX = GXDLMSLimitsDefault.DefaultMaxInfoTX;
+                settings.Hdlc.WindowSizeRX = GXDLMSLimitsDefault.DefaultWindowSizeRX;
+                settings.Hdlc.WindowSizeTX = GXDLMSLimitsDefault.DefaultWindowSizeTX;
                 return;
             }
             data.GetUInt8(); // Skip FromatID

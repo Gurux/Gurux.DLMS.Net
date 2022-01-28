@@ -560,7 +560,7 @@ namespace Gurux.DLMS
                                 }
                             }
 
-                            GXDLMSXmlSettings s = new GXDLMSXmlSettings(translator.OutputType, translator.ShowStringAsHex, translator.Hex, translator.tagsByName); ;
+                            GXDLMSXmlSettings s = new GXDLMSXmlSettings(translator.OutputType, translator.Hex, translator.ShowStringAsHex, translator.tagsByName); ;
                             s.settings.ClientAddress = Settings.ClientAddress;
                             s.settings.ServerAddress = Settings.ServerAddress;
                             byte[] reply = translator.XmlToPdu(node.OuterXml, s);

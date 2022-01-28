@@ -1422,6 +1422,13 @@ namespace Gurux.DLMS
                 }
                 info.Clear();
                 dataReceived = DateTime.Now;
+                // Save command if there is more data available.
+                // This is needed when Windows size is bigger than one.
+                if ((sr.MoreData & RequestTypes.Frame) != 0)
+                {
+                    info.Command = sr.Command;
+                    info.MoreData |= RequestTypes.Frame;
+                }
             }
             catch (GXDLMSConfirmedServiceError e)
             {
@@ -1631,91 +1638,95 @@ namespace Gurux.DLMS
 
         private bool HandleGeneralBlockTransfer(GXByteBuffer data, GXServerReply sr, Command cipheredCommand)
         {
-            byte bc = 0;
-            UInt16 blockNumberAck = 0, blockNumber = 0;
-            if (!sr.IsStreaming)
+            //Next PDU is not generated streaming is on progress.
+            if ((sr.MoreData & RequestTypes.Frame) == 0)
             {
-                //BlockControl
-                bc = data.GetUInt8();
-                //Block number.
-                blockNumber = data.GetUInt16();
-                //Block number acknowledged.
-                blockNumberAck = data.GetUInt16();
-                int len = GXCommon.GetObjectCount(data);
-                if (len > data.Size - data.Position)
+                byte bc = 0;
+                UInt16 blockNumberAck = 0, blockNumber = 0;
+                if (!sr.IsStreaming && data.Available != 0)
                 {
-                    replyData.Set(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
-                    ServiceError.Service, (byte)Service.Unsupported));
-                }
-            }
-            if (transaction != null)
-            {
-                if (transaction.command == Command.GetRequest || transaction.command == Command.MethodResponse)
-                {
-                    // Get request for next data block
-                    if (sr.GbtCount == 0)
+                    //BlockControl
+                    bc = data.GetUInt8();
+                    //Block number.
+                    blockNumber = data.GetUInt16();
+                    //Block number acknowledged.
+                    blockNumberAck = data.GetUInt16();
+                    int len = GXCommon.GetObjectCount(data);
+                    if (len > data.Size - data.Position)
                     {
-                        ++Settings.BlockNumberAck;
-                        sr.GbtCount = (byte)(bc & 0x3F);
+                        replyData.Set(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
+                        ServiceError.Service, (byte)Service.Unsupported));
                     }
-                    if (transaction.command == Command.GetRequest)
+                }
+                if (transaction != null)
+                {
+                    if (transaction.command == Command.GetRequest || transaction.command == Command.MethodResponse)
                     {
-                        GXDLMSLNCommandHandler.GetRequestNextDataBlock(Settings, 0, this, data, replyData, null, true, cipheredCommand);
+                        // Get request for next data block
+                        if (sr.GbtCount == 0)
+                        {
+                            ++Settings.BlockNumberAck;
+                            sr.GbtCount = (byte)(bc & 0x3F);
+                        }
+                        if (transaction.command == Command.GetRequest)
+                        {
+                            GXDLMSLNCommandHandler.GetRequestNextDataBlock(Settings, 0, this, data, replyData, null, true, cipheredCommand);
+                        }
+                        else
+                        {
+                            GXDLMSLNCommandHandler.MethodRequestNextDataBlock(Settings, 0, this, data, replyData, null, true, cipheredCommand);
+                        }
+                        if (sr.GbtCount != 0)
+                        {
+                            --sr.GbtCount;
+                        }
+                        if (transaction == null)
+                        {
+                            sr.GbtCount = 0;
+                        }
+                        //Save server GBT window size to settings because sr is lost.
+                        if (Settings.IsServer)
+                        {
+                            Settings.GbtCount = sr.GbtCount;
+                        }
                     }
                     else
                     {
-                        GXDLMSLNCommandHandler.MethodRequestNextDataBlock(Settings, 0, this, data, replyData, null, true, cipheredCommand);                        
-                    }
-                    if (sr.GbtCount != 0)
-                    {
-                        --sr.GbtCount;
-                    }
-                    if (transaction == null)
-                    {
-                        sr.GbtCount = 0;
-                    }
-                    //Save server GBT window size to settings because sr is lost.
-                    if (Settings.IsServer)
-                    {
-                        Settings.GbtCount = sr.GbtCount;
+                        transaction.data.Set(data);
+                        //Send ACK.
+                        bool igonoreAck = (bc & 0x40) != 0 && (blockNumberAck * GBTWindowSize) + 1 > blockNumber;
+                        UInt16 windowSize = Settings.GbtWindowSize;
+                        UInt16 bn = (UInt16)Settings.BlockIndex;
+                        if ((bc & 0x80) != 0)
+                        {
+                            HandleCommand(transaction.command, transaction.data, sr, cipheredCommand, false);
+                            transaction = null;
+                            igonoreAck = false;
+                            windowSize = 1;
+                        }
+                        if (igonoreAck)
+                        {
+                            return false;
+                        }
+                        replyData.Clear();
+                        replyData.SetUInt8(Command.GeneralBlockTransfer);
+                        replyData.SetUInt8((byte)(0x80 | windowSize));
+                        ++Settings.BlockIndex;
+                        replyData.SetUInt16(bn);
+                        replyData.SetUInt16(blockNumber);
+                        replyData.SetUInt8(0);
                     }
                 }
-                else
+                else if (data.Available != 0)
                 {
-                    transaction.data.Set(data);
-                    //Send ACK.
-                    bool igonoreAck = (bc & 0x40) != 0 && (blockNumberAck * GBTWindowSize) + 1 > blockNumber;
-                    UInt16 windowSize = Settings.GbtWindowSize;
-                    UInt16 bn = (UInt16)Settings.BlockIndex;
-                    if ((bc & 0x80) != 0)
-                    {
-                        HandleCommand(transaction.command, transaction.data, sr, cipheredCommand, false);
-                        transaction = null;
-                        igonoreAck = false;
-                        windowSize = 1;
-                    }
-                    if (igonoreAck)
-                    {
-                        return false;
-                    }
-                    replyData.Clear();
+                    transaction = new GXDLMSLongTransaction(null, (Command)data.GetUInt8(), data);
                     replyData.SetUInt8(Command.GeneralBlockTransfer);
-                    replyData.SetUInt8((byte)(0x80 | windowSize));
-                    ++Settings.BlockIndex;
-                    replyData.SetUInt16(bn);
+                    replyData.SetUInt8((byte)(0x80 | Settings.GbtWindowSize));
                     replyData.SetUInt16(blockNumber);
+                    ++blockNumberAck;
+                    replyData.SetUInt16(blockNumberAck);
                     replyData.SetUInt8(0);
                 }
-            }
-            else
-            {
-                transaction = new GXDLMSLongTransaction(null, (Command)data.GetUInt8(), data);
-                replyData.SetUInt8(Command.GeneralBlockTransfer);
-                replyData.SetUInt8((byte)(0x80 | Settings.GbtWindowSize));
-                replyData.SetUInt16(blockNumber);
-                ++blockNumberAck;
-                replyData.SetUInt16(blockNumberAck);
-                replyData.SetUInt8(0);
             }
             return true;
         }
@@ -2027,12 +2038,12 @@ namespace Gurux.DLMS
                     Settings.Hdlc.MaxInfoRX = (UInt16)Hdlc.MaximumInfoLengthTransmit;
                 }
                 //If client asks higher window size what meter accepts.
-                if (Settings.Hdlc.WindowSizeTX > Hdlc.WindowSizeReceive)
+                if (Settings.Hdlc.WindowSizeTX > Hdlc.WindowSizeTransmit)
                 {
                     Settings.Hdlc.WindowSizeTX = (byte)Hdlc.WindowSizeReceive;
                 }
                 //If client asks higher window size what meter accepts.
-                if (Settings.Hdlc.WindowSizeRX > Hdlc.WindowSizeTransmit)
+                if (Settings.Hdlc.WindowSizeRX > Hdlc.WindowSizeReceive)
                 {
                     Settings.Hdlc.WindowSizeRX = (byte)Hdlc.WindowSizeTransmit;
                 }

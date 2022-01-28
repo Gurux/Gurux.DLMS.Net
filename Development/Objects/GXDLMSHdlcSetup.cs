@@ -48,6 +48,9 @@ namespace Gurux.DLMS.Objects
     /// </summary>
     public class GXDLMSHdlcSetup : GXDLMSObject, IGXDLMSBase
     {
+        byte windowSizeTransmit = 1, windowSizeReceive = 1;
+        UInt16 maximumInfoLengthTransmit = 128, maximumInfoLengthReceive = 128;
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -93,32 +96,72 @@ namespace Gurux.DLMS.Objects
         [DefaultValue(1)]
         public byte WindowSizeTransmit
         {
-            get;
-            set;
+            get
+            {
+                return windowSizeTransmit;
+            }
+            set
+            {
+                if (value > 7)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(WindowSizeTransmit));
+                }
+                windowSizeTransmit = value;
+            }
         }
 
         [XmlIgnore()]
         [DefaultValue(1)]
         public byte WindowSizeReceive
         {
-            get;
-            set;
+            get
+            {
+                return windowSizeReceive;
+            }
+            set
+            {
+                if (value > 7)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(WindowSizeReceive));
+                }
+                windowSizeReceive = value;
+            }
         }
 
         [XmlIgnore()]
         [DefaultValue(128)]
         public UInt16 MaximumInfoLengthTransmit
         {
-            get;
-            set;
+            get
+            {
+                return maximumInfoLengthTransmit;
+            }
+            set
+            {
+                if (value > 2030)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(MaximumInfoLengthTransmit));
+                }
+                maximumInfoLengthTransmit = value;
+            }
         }
 
         [XmlIgnore()]
         [DefaultValue(128)]
         public UInt16 MaximumInfoLengthReceive
         {
-            get;
-            set;
+            get
+            {
+                return maximumInfoLengthReceive;
+            }
+            set
+            {
+                if (value > 2030)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(MaximumInfoLengthReceive));
+                }
+                maximumInfoLengthReceive = value;
+            }
         }
 
         [XmlIgnore()]

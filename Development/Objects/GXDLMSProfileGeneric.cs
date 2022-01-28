@@ -270,20 +270,30 @@ namespace Gurux.DLMS.Objects
                 EntriesInUse = 0;
             }
         }
-
         /// <summary>
         /// Copies the values of the objects to capture
         /// into the buffer by reading capture objects.
         /// </summary>
         public void Capture(GXDLMSServer server)
         {
+            Capture(server, false);
+        }
+        /// <summary>
+        /// Copies the values of the objects to capture
+        /// into the buffer by reading capture objects.
+        /// </summary>
+        private void Capture(GXDLMSServer server, bool isInvoke)
+        {
             lock (this)
             {
                 object[] values = new object[CaptureObjects.Count];
                 int pos = 0;
-                ValueEventArgs[] args = new ValueEventArgs[] { new ValueEventArgs(server, this, 2, 0, null) };
+                ValueEventArgs[] args = new ValueEventArgs[] { new ValueEventArgs(server, this, 2, 0, null)};
                 server.PreGet(args);
-                server.NotifyPreAction(args);
+                if (!isInvoke)
+                {
+                    server.NotifyPreAction(args);
+                }
                 if (!args[0].Handled)
                 {
                     foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in CaptureObjects)
@@ -313,7 +323,10 @@ namespace Gurux.DLMS.Objects
                         ++EntriesInUse;
                     }
                 }
-                server.NotifyPostAction(args);
+                if (!isInvoke)
+                {
+                    server.NotifyPostAction(args);
+                }
                 server.PostGet(args);
             }
         }
@@ -330,7 +343,7 @@ namespace Gurux.DLMS.Objects
             else if (e.Index == 2)
             {
                 //Capture.
-                Capture(e.Server);
+                Capture(e.Server, true);
             }
             else
             {

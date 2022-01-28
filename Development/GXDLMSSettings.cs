@@ -61,17 +61,7 @@ namespace Gurux.DLMS
         private GXDLMSAssociationLogicalName assignedAssociation;
 
         private bool useLogicalNameReferencing;
-
-        ///<summary>
-        /// Server frame sequence starting number.
-        ///</summary>
-        private const byte ServerStartFrameSequence = 0x0F;
-
-        ///<summary>
-        /// Client frame sequence starting number.
-        ///</summary>
-        private const byte ClientStartFrameSequence = 0xEE;
-
+        
         ///<summary>
         /// Default Max received PDU size.
         ///</summary>
@@ -677,8 +667,7 @@ namespace Gurux.DLMS
                 if (Hdlc.WindowSizeRX != 1)
                 {
                     //If HDLC window size is bigger than one.
-                    expected = IncreaseReceiverSequence(IncreaseSendSequence(ReceiverFrame));
-                    if (frame == expected)
+                    if (frame == (expected | 0x10))
                     {
                         ReceiverFrame = frame;
                         return true;

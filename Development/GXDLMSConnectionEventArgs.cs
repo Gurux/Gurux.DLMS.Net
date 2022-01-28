@@ -44,5 +44,14 @@ namespace Gurux.DLMS
             get;
             set;
         }
+
+        /// <summary>
+        /// Information from the connection.
+        /// </summary>
+        public string ConnectionInfo
+        {
+            get;
+            set;
+        }
     }
 }
