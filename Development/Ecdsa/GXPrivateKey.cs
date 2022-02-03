@@ -35,7 +35,6 @@ using Gurux.DLMS.ASN;
 using Gurux.DLMS.ASN.Enums;
 using Gurux.DLMS.Ecdsa.Enums;
 using Gurux.DLMS.Internal;
-using Gurux.DLMS.Objects.Enums;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -65,7 +64,7 @@ namespace Gurux.DLMS.Ecdsa
             private set;
         }
 
-        private GXPublicKey publicKey;
+        internal GXPublicKey publicKey;
 
         /// <summary>
         /// SystemTitle is an extra information that can be used in debugging.
@@ -149,7 +148,7 @@ namespace Gurux.DLMS.Ecdsa
             else if (seq[3] is GXAsn1BitString)
             {
                 value.publicKey = GXPublicKey.FromRawBytes(((GXAsn1BitString)seq[3]).Value);
-            }            
+            }
             else
             {
                 //Open SSL PEM.
@@ -220,7 +219,7 @@ namespace Gurux.DLMS.Ecdsa
                 throw new Exception("Invalid ECC scheme.");
             }
             d.Add(d1);
-            GXAsn1Context d2 = new GXAsn1Context() {Index = 1 };
+            GXAsn1Context d2 = new GXAsn1Context() { Index = 1 };
             d2.Add(new GXAsn1BitString(GetPublicKey().RawValue, 0));
             d.Add(d2);
             return GXCommon.ToBase64(GXAsn1Converter.ToByteArray(d));
@@ -252,7 +251,7 @@ namespace Gurux.DLMS.Ecdsa
                 byte[] tmp = p.x.ToArray();
                 int size = Scheme == Ecc.P256 ? 32 : 48;
                 key.Set(tmp, tmp.Length % size, size);
-                tmp = p.y.ToArray();
+                tmp = p.y.ToArray(false);
                 key.Set(tmp, tmp.Length % size, size);
                 publicKey = GXPublicKey.FromRawBytes(key.Array());
             }

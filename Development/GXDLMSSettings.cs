@@ -1288,6 +1288,52 @@ namespace Gurux.DLMS
                     return Cipher.KeyAgreementKeyPair.Key;
                 }
             }
+            //Find keys from security setup object.
+            if (assignedAssociation != null && systemTitle != null)
+            {
+                GXDLMSSecuritySetup ss = (GXDLMSSecuritySetup)assignedAssociation.ObjectList.FindByLN(ObjectType.SecuritySetup, assignedAssociation.SecuritySetupReference);
+                if (ss != null)
+                {
+                    GXx509Certificate cert;
+                    if (certificateType == CertificateType.DigitalSignature)
+                    {
+                        cert = ss.ServerCertificates.FindBySystemTitle(systemTitle, KeyUsage.DigitalSignature);
+                        if (cert != null && ss.SigningKey != null)
+                        {
+                            if (encrypt)
+                            {                                
+                                if (ss.SigningKey.Value.Value != null)
+                                {
+                                    return ss.SigningKey.Value.Value;
+                                }
+                            }
+                            else if (cert.PublicKey != null)
+                            {
+                                return cert.PublicKey;
+                            }
+                        }
+                    }
+                    else if (certificateType == CertificateType.KeyAgreement)
+                    {
+                        cert = ss.ServerCertificates.FindBySystemTitle(systemTitle, KeyUsage.KeyAgreement);
+                        if (cert != null && ss.KeyAgreementKey != null)
+                        {
+                            if (encrypt)
+                            {
+                                if (ss.KeyAgreementKey.Value.Value != null)
+                                {
+                                    return ss.KeyAgreementKey.Value.Value;
+                                }
+                            }
+                            else if (cert.PublicKey != null)
+                            {
+                                return cert.PublicKey;
+                            }
+                        }
+                    }
+                }
+            }
+
             GXCryptoKeyParameter args = new GXCryptoKeyParameter();
             args.Encrypt = encrypt;
             args.SecuritySuite = Cipher.SecuritySuite;

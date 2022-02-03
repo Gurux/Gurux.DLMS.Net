@@ -1754,7 +1754,7 @@ namespace Gurux.DLMS.Internal
             {
                 len = GXCommon.GetObjectCount(buff);
                 // If there is not enough data available.
-                if (buff.Size - buff.Position < len)
+                if (buff.Available < len)
                 {
                     info.Complete = false;
                     return null;

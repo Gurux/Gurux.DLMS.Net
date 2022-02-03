@@ -248,6 +248,13 @@ namespace Gurux.DLMS
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="version">COSEM version number. It's ignored if it's 255.</param>
+        /// <param name="availableObjectTypes"></param>
+        /// <returns></returns>
         internal static GXDLMSObject CreateObject(ObjectType type, byte version, Dictionary<ObjectType, Type> availableObjectTypes)
         {
             GXDLMSObject obj;
@@ -261,13 +268,19 @@ namespace Gurux.DLMS
                 if (availableObjectTypes.ContainsKey(type))
                 {
                     obj = Activator.CreateInstance(availableObjectTypes[type]) as GXDLMSObject;
-                    obj.Version = version;
+                    if (version != 0xFF)
+                    {
+                        obj.Version = version;
+                    }
                 }
                 else
                 {
                     obj = new GXDLMSObject();
                     obj.ObjectType = type;
-                    obj.Version = version;
+                    if (version != 0xFF)
+                    {
+                        obj.Version = version;
+                    }
                 }
             }
             return obj;
@@ -328,9 +341,9 @@ namespace Gurux.DLMS
             {
                 GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, Command.GeneralBlockTransfer, 0, null, null, 0xff, Command.None);
                 p.GbtWindowSize = reply.GbtWindowSize;
-                p.blockNumberAck = (UInt16)reply.BlockNumber;
+                p.blockNumberAck = reply.BlockNumber;
                 p.blockIndex = settings.BlockIndex;
-                data = GXDLMS.GetLnMessages(p);
+                data = GetLnMessages(p);
             }
             else
             {
@@ -672,7 +685,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="settings">DLMS settings.</param>
         /// <param name="data">Data where bytes are added.</param>
-        private static void AddLLCBytes(GXDLMSSettings settings, GXByteBuffer data)
+        internal static void AddLLCBytes(GXDLMSSettings settings, GXByteBuffer data)
         {
             if (settings.IsServer)
             {
@@ -837,25 +850,25 @@ namespace Gurux.DLMS
             return ret;
         }
 
+        /// <summary>
+        /// Should the message sign.
+        /// </summary>
+        /// <param name="p"></param>
+        /// <returns></returns>
         static private bool ShoudSign(GXDLMSLNParameters p)
         {
-            bool signing = p.settings.Cipher.Signing != Signing.None;
-            //Association LN V3 and signing is not needed.
-            if (!p.settings.OverwriteAttributeAccessRights && signing & p.AccessMode != 0)
+            bool signing = p.settings.Cipher != null && 
+                p.settings.Cipher.Signing != Signing.None;
+            if (!signing)
             {
+                //Association LN V3 and signing is not needed.
                 if (p.settings.IsServer)
                 {
-                    if ((p.AccessMode & (int)(AccessMode3.DigitallySignedResponse)) == 0)
-                    {
-                        signing = false;
-                    }
+                    signing = (p.AccessMode & (int)(AccessMode3.DigitallySignedResponse)) != 0;
                 }
                 else
                 {
-                    if ((p.AccessMode & (int)(AccessMode3.DigitallySignedRequest)) == 0)
-                    {
-                        signing = false;
-                    }
+                    signing = (p.AccessMode & (int)(AccessMode3.DigitallySignedRequest)) != 0;
                 }
             }
             return signing;
@@ -867,8 +880,12 @@ namespace Gurux.DLMS
         /// <param name="p">LN settings.</param>
         /// <param name="data">Data to encrypt</param>
         /// <returns></returns>
-        private static byte[] Cipher1(GXDLMSLNParameters p, byte[] data)
+        private static byte[] Cipher1(GXDLMSLNParameters p, byte[] data, bool sign)
         {
+            if (!sign && p.settings.Cipher.Signing == Signing.GeneralSigning)
+            {
+                sign = true;
+            }
             byte keyid;
             switch (p.settings.Cipher.Signing)
             {
@@ -904,10 +921,7 @@ namespace Gurux.DLMS
                     sc = 0x20;
                     break;
                 default:
-                    if (c.Signing != Signing.GeneralSigning)
-                    {
-                        throw new ArgumentOutOfRangeException("Invalid security.");
-                    }
+                    throw new ArgumentOutOfRangeException("Invalid security.");
                     break;
             }
             AlgorithmId algorithmID;
@@ -928,7 +942,7 @@ namespace Gurux.DLMS
             byte[] z = null;
             GXPrivateKey key;
             GXPublicKey pub;
-            if (p.settings.Cipher.Signing != Signing.GeneralSigning)
+            if (!sign)
             {
                 //If external Hardware Security Module is used.
                 byte[] ret = p.settings.Crypt(CertificateType.KeyAgreement, data, true);
@@ -1019,7 +1033,7 @@ namespace Gurux.DLMS
                 System.Diagnostics.Debug.WriteLine("Shared secret: " + GXCommon.ToHex(z, true));
             }
             AesGcmParameter s;
-            if (p.settings.Cipher.Signing == Signing.GeneralSigning)
+            if (sign)
             {
                 s = GetCipheringParameters(p);
             }
@@ -1047,7 +1061,7 @@ namespace Gurux.DLMS
                 null);
             }
             GXByteBuffer reply = new GXByteBuffer();
-            if (p.settings.Cipher.Signing == Signing.GeneralSigning)
+            if (sign)
             {
                 reply.SetUInt8(Command.GeneralSigning);
             }
@@ -1072,7 +1086,7 @@ namespace Gurux.DLMS
             reply.SetUInt8(0);
             // other-information not present
             reply.SetUInt8(0);
-            if (p.settings.Cipher.Signing != Signing.GeneralSigning)
+            if (!sign)
             {
                 // optional flag
                 reply.SetUInt8(1);
@@ -1105,7 +1119,7 @@ namespace Gurux.DLMS
                 reply.Set(GXSecure.GetEphemeralPublicKeySignature(keyid,
                         c.EphemeralKeyPair.Key, c.SigningKeyPair.Value));
             }
-            else if (p.settings.Cipher.Signing != Signing.GeneralSigning)
+            else if (!sign)
             {
                 reply.SetUInt8(0);
             }
@@ -1118,7 +1132,7 @@ namespace Gurux.DLMS
             signedData.Set(reply.Data, 1, reply.Size - 1);
             if (c.Security != Security.None)
             {
-                if (p.settings.Cipher.Signing == Signing.GeneralSigning)
+                if (sign)
                 {
                     //Content length is not add for the signed data.
                     GXCommon.SetObjectCount(6 + GXCommon.GetObjectCountSizeInBytes(5 + tmp.Length) + tmp.Length, reply);
@@ -1144,7 +1158,7 @@ namespace Gurux.DLMS
                 reply.SetUInt32(p.settings.Cipher.InvocationCounter);
                 signedData.SetUInt32(p.settings.Cipher.InvocationCounter);
             }
-            else if (p.settings.Cipher.Signing != Signing.GeneralSigning)
+            else if (!sign)
             {
                 // Len
                 GXCommon.SetObjectCount(tmp.Length, reply);
@@ -1152,7 +1166,7 @@ namespace Gurux.DLMS
             ++p.settings.Cipher.InvocationCounter;
             reply.Set(tmp);
             signedData.Set(tmp);
-            if (p.settings.Cipher.Signing == Signing.GeneralSigning)
+            if (sign)
             {
                 // Signature
                 GXEcdsa ecdsa = new GXEcdsa(key);
@@ -1457,14 +1471,15 @@ namespace Gurux.DLMS
                             {
                                 byte[] tmp;
                                 reply.Set(p.data);
+                                bool sign = ShoudSign(p);
                                 if ((p.settings.Connected & ConnectionState.Dlms) == 0 ||
-                                     !ShoudSign(p))
+                                     !sign)
                                 {
                                     tmp = Cipher0(p, reply.Array());
                                 }
                                 else
                                 {
-                                    tmp = Cipher1(p, reply.Array());
+                                    tmp = Cipher1(p, reply.Array(), sign);
                                 }
                                 p.data.Size = 0;
                                 p.data.Set(tmp);
@@ -1505,16 +1520,16 @@ namespace Gurux.DLMS
                 {
                     //GBT ciphering is done for all the data, not just block.
                     byte[] tmp;
+                    bool sign = ShoudSign(p);
                     if ((p.settings.Connected & ConnectionState.Dlms) == 0 ||
-                        !ShoudSign(p))
+                        !sign)
                     {
                         tmp = Cipher0(p, reply.Array());
                     }
                     else
                     {
-                        tmp = Cipher1(p, reply.Array());
+                        tmp = Cipher1(p, reply.Array(), sign);
                     }
-
                     reply.Size = 0;
                     reply.Set(tmp);
                 }

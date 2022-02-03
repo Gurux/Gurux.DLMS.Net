@@ -5,14 +5,14 @@
     <AssemblyName>Gurux.DLMS</AssemblyName>
     <Company>Gurux Ltd</Company>
     <Authors>Gurux Ltd</Authors>
-    <Copyright>Copyright (c) 1998-2021 Gurux Ltd. All rights reserved.</Copyright>
+    <Copyright>Copyright (c) 1998-2022 Gurux Ltd. All rights reserved.</Copyright>
     <PackageProjectUrl>https://www.gurux.fi</PackageProjectUrl>
     <PackageLicenseUrl></PackageLicenseUrl>
     <Description>Gurux DLMS library for C#</Description>
     <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">0.0.1-local</Version>
     <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <TargetFrameworks>net46;net40;net45;netstandard2.0;netcoreapp3.1;netcoreapp2.1;</TargetFrameworks>
+    <TargetFrameworks>net472;net46;net40;net45;netcoreapp3.1;netcoreapp2.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/gurux/gurux.dlms.net</RepositoryUrl>
     <PackageTags>DLMS AMR, AMI IOT</PackageTags>
@@ -51,12 +51,14 @@
   </ItemGroup>
 
  <ItemGroup>
+  <Reference Condition="'$(TargetFramework)' == 'net472'" Include="System.Windows.Forms" />
   <Reference Condition="'$(TargetFramework)' == 'net46'" Include="System.Windows.Forms" />
 	<Reference Condition="'$(TargetFramework)' == 'net45'" Include="System.Windows.Forms" />
 	<Reference Condition="'$(TargetFramework)' == 'net40'" Include="System.Windows.Forms" />
 	<Reference Condition="'$(TargetFramework)' == 'net35'" Include="System.Windows.Forms" />
    </ItemGroup>
 <ItemGroup>
+  <Reference Condition="'$(TargetFramework)' == 'net472'" Include="System.Drawing.Design" />
   <Reference Condition="'$(TargetFramework)' == 'net46'" Include="System.Drawing.Design" />
 	<Reference Condition="'$(TargetFramework)' == 'net45'" Include="System.Drawing.Design" />
 	<Reference Condition="'$(TargetFramework)' == 'net40'" Include="System.Drawing.Design" />

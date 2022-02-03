@@ -84,7 +84,7 @@ namespace GuruxDLMSServerExample
             MaxReceivePDUSize = 1024;
             ln.XDLMSContextInfo.MaxReceivePduSize = ln.XDLMSContextInfo.MaxSendPduSize = 1024;
             //Set max TX and RX sizes for the HDLC frame.
-            hdlc.MaximumInfoLengthReceive = hdlc.MaximumInfoLengthTransmit = 2048;
+            hdlc.MaximumInfoLengthReceive = hdlc.MaximumInfoLengthTransmit = 2030;
             //Set max TX and RX window sizes for the HDLC frame.
             hdlc.WindowSizeReceive = hdlc.WindowSizeTransmit = 3;
             //Default secret.
@@ -1186,12 +1186,22 @@ namespace GuruxDLMSServerExample
         {
             AssignedAssociation = null;
             var list = Items.GetObjects(ObjectType.AssociationLogicalName);
-            foreach (GXDLMSAssociationLogicalName it in list)
+            if (list.Count == 1)
             {
-                if (it.ClientSAP == clientAddress || list.Count == 1)
+                AssignedAssociation = (list[0] as GXDLMSAssociationLogicalName);
+                //Accept all clients if there is only one association view.
+                AssignedAssociation.ClientSAP = (byte)clientAddress;
+                AssignedAssociation.ServerSAP = (byte)serverAddress;
+            }
+            else
+            {
+                foreach (GXDLMSAssociationLogicalName it in list)
                 {
-                    AssignedAssociation = it;
-                    break;
+                    if (it.ClientSAP == clientAddress)
+                    {
+                        AssignedAssociation = it;
+                        break;
+                    }
                 }
             }
             return true;

@@ -387,8 +387,6 @@ namespace Gurux.DLMS.Secure
                 }
                 else
                 {
-                    //Update security because server needs it and client when push message is received.
-                    p.Settings.Cipher.Signing = Signing.GeneralSigning;
                     kp = p.Settings.Cipher.SigningKeyPair;
                     if (kp.Key == null || kp.Value == null)
                     {

@@ -216,6 +216,15 @@ namespace Gurux.DLMS.Ecdsa
         /// <returns></returns>
         public byte[] ToArray()
         {
+            return ToArray(true);
+        }
+
+        /// <summary>
+        /// Convert value to byte array.
+        /// </summary>
+        /// <returns></returns>
+        internal byte[] ToArray(bool removeLeadingZeroes)
+        {
             int pos;
             UInt32 value;
             GXByteBuffer bb = new GXByteBuffer();
@@ -235,7 +244,7 @@ namespace Gurux.DLMS.Ecdsa
                 Array.Reverse(bb.Data, 4 * pos, 4);
             }
             //Remove leading zeroes.
-            if (zeroIndex != -1)
+            if (removeLeadingZeroes && zeroIndex != -1)
             {
                 bb.Size = zeroIndex * 4;
             }
@@ -263,9 +272,9 @@ namespace Gurux.DLMS.Ecdsa
         public void Or(GXBigInteger value)
         {
             int pos;
-            while (Count < value.Count)
+            if (Count < value.Count)
             {
-                Add(0);
+                Count = value.Count;
             }
             for (pos = 0; pos < value.Count; ++pos)
             {
@@ -544,7 +553,15 @@ namespace Gurux.DLMS.Ecdsa
         /// <returns></returns>
         public int Compare(int value)
         {
-            return Compare(new GXBigInteger(value));
+            if (Count == 0)
+            {
+                return -1;
+            }
+            if (Data[0] == value)
+            {
+                return 0;
+            }
+            return Data[0] < value ? -1 : 1;
         }
 
         public void Lshift(int amount)
@@ -594,6 +611,25 @@ namespace Gurux.DLMS.Ecdsa
         {
             Count = 0;
             IsNegative = false;
+        }
+
+        public void Pow(int exponent)
+        {
+            if (exponent != 1)
+            {
+                int pos = 1;
+                GXBigInteger tmp = new GXBigInteger(this);
+                while (pos <= exponent / 2)
+                {
+                    Multiply(this);
+                    pos <<= 1;
+                }
+                while (pos < exponent)
+                {
+                    Multiply(tmp);
+                    ++pos;
+                }
+            }
         }
 
         public void Div(GXBigInteger value)

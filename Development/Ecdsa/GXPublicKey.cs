@@ -254,6 +254,32 @@ namespace Gurux.DLMS.Ecdsa
             return "-----BEGIN EC PUBLIC KEY-----\n" + ToDer() + "-----END EC PUBLIC KEY-----";
         }
 
+        /// <summary>
+        /// X Coordinate.
+        /// </summary>
+        public byte[] X
+        {
+            get 
+            {
+                GXByteBuffer pk = new GXByteBuffer(RawValue);
+                int size = pk.Size / 2;
+                return pk.SubArray(1, size);
+            }
+        }
+
+        /// <summary>
+        /// Y Coordinate.
+        /// </summary>
+        public byte[] Y
+        {
+            get
+            {
+                GXByteBuffer pk = new GXByteBuffer(RawValue);
+                int size = pk.Size / 2;
+                return pk.SubArray(1 + size, size);
+            }
+        }
+
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();

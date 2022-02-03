@@ -110,7 +110,6 @@ namespace Gurux.DLMS
         /// Access mode.
         /// </summary>
         public int AccessMode;
-        
 
         /// <summary>
         /// Constructor.

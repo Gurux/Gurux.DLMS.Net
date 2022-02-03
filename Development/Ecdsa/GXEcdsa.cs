@@ -94,6 +94,7 @@ namespace Gurux.DLMS.Ecdsa
         /// <returns>Signature</returns>
         public byte[] Sign(byte[] data)
         {
+#if NET40 || NET45 || NET46  
             if (PrivateKey == null)
             {
                 throw new ArgumentException("Invalid private key.");
@@ -120,7 +121,7 @@ namespace Gurux.DLMS.Ecdsa
             GXBigInteger s;
             do
             {
-                n = GetRandomNumber(PrivateKey.Scheme);
+                n = GetRandomNumber(curve.N);
                 p = new GXEccPoint(curve.G.x, curve.G.y, new GXBigInteger(1));
                 Multiply(p, n, curve.N, curve.A, curve.P);
                 r = p.x;
@@ -134,9 +135,17 @@ namespace Gurux.DLMS.Ecdsa
                 s.Mod(curve.N);
             } while (r.IsZero || s.IsZero);
             GXByteBuffer signature = new GXByteBuffer();
-            signature.Set(r.ToArray());
-            signature.Set(s.ToArray());
+            signature.Set(r.ToArray(false));
+            signature.Set(s.ToArray(false));
             return signature.Array();
+#else
+            ECParameters p = new ECParameters();
+            p.D = PrivateKey.RawValue;
+            p.Q = new ECPoint() { X = PrivateKey.GetPublicKey().X, Y = PrivateKey.GetPublicKey().Y };
+            p.Curve = PrivateKey.Scheme == Ecc.P256 ? ECCurve.NamedCurves.nistP256 : ECCurve.NamedCurves.nistP384;
+            ECDsa ecdsa = ECDsa.Create(p);
+            return ecdsa.SignData(data, HashAlgorithmName.SHA256);
+#endif
         }
 
         /// <summary>
@@ -173,10 +182,25 @@ namespace Gurux.DLMS.Ecdsa
         /// <returns></returns>
         public static KeyValuePair<GXPublicKey, GXPrivateKey> GenerateKeyPair(Ecc scheme)
         {
-            byte[] raw = GetRandomNumber(scheme).ToArray();
+#if NET40 || NET45 || NET46
+            byte[] raw = GetRandomNumber(new GXCurve(scheme).N).ToArray(false);
             GXPrivateKey pk = GXPrivateKey.FromRawBytes(raw);
             GXPublicKey pub = pk.GetPublicKey();
             return new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, pk);
+#else
+            ECCurve curve = scheme == Ecc.P256 ? ECCurve.NamedCurves.nistP256 : ECCurve.NamedCurves.nistP384;
+            ECDsa ecdsa = ECDsa.Create(curve);
+            ecdsa.GenerateKey(curve);
+            var p = ecdsa.ExportParameters(true);
+            GXPrivateKey pk = GXPrivateKey.FromRawBytes(p.D);
+            GXByteBuffer tmp = new GXByteBuffer();
+            tmp.SetUInt8(4);
+            tmp.Set(p.Q.X);
+            tmp.Set(p.Q.Y);
+            GXPublicKey pub = GXPublicKey.FromRawBytes(tmp.Array());
+            pk.publicKey = pub;
+            return new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, pk);
+#endif
         }
 
         /// <summary>
@@ -187,6 +211,7 @@ namespace Gurux.DLMS.Ecdsa
         /// <returns></returns>
         public bool Verify(byte[] signature, byte[] data)
         {
+#if NET40 || NET45 || NET46  
             GXBigInteger msg;
             if (PublicKey == null)
             {
@@ -234,6 +259,25 @@ namespace Gurux.DLMS.Ecdsa
             JacobianAdd(u1, u2, curve.A, curve.P);
             FromJacobian(u1, curve.P);
             return sigR.Compare(u1.x) == 0;
+#else
+            if (PublicKey == null)
+            {
+                if (PrivateKey == null)
+                {
+                    throw new ArgumentNullException("Invalid private key.");
+                }
+                PublicKey = PrivateKey.GetPublicKey();
+            }
+            ECParameters p = new ECParameters();
+            if (PrivateKey != null)
+            {
+                p.D = PrivateKey.RawValue;
+            }
+            p.Q = new ECPoint() { X = PublicKey.X, Y = PublicKey.Y };
+            p.Curve = PublicKey.Scheme == Ecc.P256 ? ECCurve.NamedCurves.nistP256 : ECCurve.NamedCurves.nistP384;
+            ECDsa ecdsa = ECDsa.Create(p);
+            return ecdsa.VerifyData(data, signature, HashAlgorithmName.SHA256);
+#endif
         }
 
         private static void Multiply(GXEccPoint p, GXBigInteger n, GXBigInteger N, GXBigInteger A, GXBigInteger P)
@@ -401,25 +445,23 @@ namespace Gurux.DLMS.Ecdsa
         private static GXEccPoint JacobianDouble(GXEccPoint p, GXBigInteger A, GXBigInteger P)
         {
             GXBigInteger ysq = new GXBigInteger(p.y);
-            ysq.Multiply(p.y);
+            ysq.Pow(2);
             ysq.Mod(P);
             GXBigInteger S = new GXBigInteger(p.x);
             S.Multiply(new GXBigInteger(4));
             S.Multiply(ysq);
             S.Mod(P);
             GXBigInteger M = new GXBigInteger(p.x);
-            M.Multiply(p.x);
+            M.Pow(2);
             M.Multiply(new GXBigInteger(3));
             GXBigInteger tmp = new GXBigInteger(p.z);
-            tmp.Multiply(p.z);
-            tmp.Multiply(p.z);
-            tmp.Multiply(p.z);
+            tmp.Pow(4);
             tmp.Multiply(A);
             M.Add(tmp);
             M.Mod(P);
             //nx
             GXBigInteger nx = new GXBigInteger(M);
-            nx.Multiply(M);
+            nx.Pow(2);
             tmp = new GXBigInteger(S);
             tmp.Multiply(new GXBigInteger(2));
             nx.Sub(tmp);
@@ -429,7 +471,7 @@ namespace Gurux.DLMS.Ecdsa
             ny.Sub(nx);
             ny.Multiply(M);
             tmp = new GXBigInteger(ysq);
-            tmp.Multiply(ysq);
+            tmp.Pow(2);
             tmp.Multiply(new GXBigInteger(8));
             ny.Sub(tmp);
             ny.Mod(P);
@@ -444,15 +486,17 @@ namespace Gurux.DLMS.Ecdsa
         /// <summary>
         /// Generate random number.
         /// </summary>
-        /// <param name="schema"></param>
+        /// <param name="N">N</param>
         /// <returns>Random number.</returns>
         /// <summary>
-        private static GXBigInteger GetRandomNumber(Ecc schema)
+        private static GXBigInteger GetRandomNumber(GXBigInteger N)
         {
-            byte[] bytes = new byte[SchemeSize(schema)];
+            byte[] bytes = new byte[N.Count];
             Random random = new Random();
             random.NextBytes(bytes);
-            return new GXBigInteger(bytes);
+            byte[] tmp = new byte[4 * N.Count];
+            Array.Copy(bytes, tmp, bytes.Length);
+            return new GXBigInteger(tmp);
         }
 
         /// <summary>

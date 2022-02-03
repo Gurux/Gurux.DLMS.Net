@@ -958,11 +958,11 @@ namespace Gurux.DLMS.Reader
                 List<GXDLMSAccessItem> list = new List<GXDLMSAccessItem>();
                 foreach (GXDLMSObject it in objs)
                 {
-                    if ((it is GXDLMSRegister || it is GXDLMSExtendedRegister) && (it.GetAccess(3) & AccessMode.Read) != 0)
+                    if ((it is GXDLMSRegister || it is GXDLMSExtendedRegister) && Client.CanRead(it, 3))
                     {
                         list.Add(new GXDLMSAccessItem(AccessServiceCommandType.Get, it, 3));
                     }
-                    else if (it is GXDLMSDemandRegister && (it.GetAccess(4) & AccessMode.Read) != 0)
+                    else if (it is GXDLMSDemandRegister && Client.CanRead(it, 4))
                     {
                         list.Add(new GXDLMSAccessItem(AccessServiceCommandType.Get, it, 4));
                     }
@@ -974,11 +974,11 @@ namespace Gurux.DLMS.Reader
                 List<KeyValuePair<GXDLMSObject, int>> list = new List<KeyValuePair<GXDLMSObject, int>>();
                 foreach (GXDLMSObject it in objs)
                 {
-                    if ((it is GXDLMSRegister || it is GXDLMSExtendedRegister) && (it.GetAccess(3) & AccessMode.Read) != 0)
+                    if ((it is GXDLMSRegister || it is GXDLMSExtendedRegister) && Client.CanRead(it, 3))
                     {
                         list.Add(new KeyValuePair<GXDLMSObject, int>(it, 3));
                     }
-                    if (it is GXDLMSDemandRegister && (it.GetAccess(4) & AccessMode.Read) != 0)
+                    if (it is GXDLMSDemandRegister && Client.CanRead(it, 4))
                     {
                         list.Add(new KeyValuePair<GXDLMSObject, int>(it, 4));
                     }
@@ -1002,12 +1002,12 @@ namespace Gurux.DLMS.Reader
                 {
                     try
                     {
-                        if (it is GXDLMSRegister && (it.GetAccess(3) & AccessMode.Read) != 0)
+                        if (it is GXDLMSRegister && Client.CanRead(it, 3))
                         {
                             Console.WriteLine(it.Name);
                             Read(it, 3);
                         }
-                        if (it is GXDLMSDemandRegister && (it.GetAccess(4) & AccessMode.Read) != 0)
+                        if (it is GXDLMSDemandRegister && Client.CanRead(it, 4))
                         {
                             Console.WriteLine(it.Name);
                             Read(it, 4);
@@ -1261,11 +1261,8 @@ namespace Gurux.DLMS.Reader
                 {
                     try
                     {
-                        if ((it.GetAccess(pos) & AccessMode.Read) != 0)
-                        {
-                            object val = Read(it, pos);
-                            ShowValue(val, pos);
-                        }
+                        object val = Read(it, pos);
+                        ShowValue(val, pos);
                     }
                     catch (Exception ex)
                     {
@@ -1436,18 +1433,6 @@ namespace Gurux.DLMS.Reader
                         data = Client.ReceiverReady(reply);
                     }
                     ReadDLMSPacket(data, reply);
-                    if (Trace > TraceLevel.Info)
-                    {
-                        //If data block is read.
-                        if ((reply.MoreData & RequestTypes.Frame) == 0)
-                        {
-                            Console.Write("+");
-                        }
-                        else
-                        {
-                            Console.Write("-");
-                        }
-                    }
                 }
             }
         }
@@ -1460,28 +1445,35 @@ namespace Gurux.DLMS.Reader
         /// <returns>Read value.</returns>
         public object Read(GXDLMSObject it, int attributeIndex)
         {
-            GXReplyData reply = new GXReplyData();
-            if (!ReadDataBlock(Client.Read(it, attributeIndex), reply))
+            if (Client.CanRead(it, attributeIndex))
             {
-                if (reply.Error != (short)ErrorCode.Rejected)
-                {
-                    throw new GXDLMSException(reply.Error);
-                }
-                reply.Clear();
-                Thread.Sleep(1000);
+                GXReplyData reply = new GXReplyData();
                 if (!ReadDataBlock(Client.Read(it, attributeIndex), reply))
                 {
-                    throw new GXDLMSException(reply.Error);
+                    if (reply.Error != (short)ErrorCode.Rejected)
+                    {
+                        throw new GXDLMSException(reply.Error);
+                    }
+                    reply.Clear();
+                    Thread.Sleep(1000);
+                    if (!ReadDataBlock(Client.Read(it, attributeIndex), reply))
+                    {
+                        throw new GXDLMSException(reply.Error);
+                    }
                 }
+                //Update data type.
+                if (it.GetDataType(attributeIndex) == DataType.None)
+                {
+                    it.SetDataType(attributeIndex, reply.DataType);
+                }
+                return Client.UpdateValue(it, attributeIndex, reply.Value);
             }
-            //Update data type.
-            if (it.GetDataType(attributeIndex) == DataType.None)
+            else
             {
-                it.SetDataType(attributeIndex, reply.DataType);
+                Console.WriteLine("Can't read " + it.ToString() + ". Not enought acccess rights.");
             }
-            return Client.UpdateValue(it, attributeIndex, reply.Value);
+            return null;
         }
-
 
         /// <summary>
         /// Read list of attributes.
@@ -1531,8 +1523,11 @@ namespace Gurux.DLMS.Reader
         /// </summary>
         public void Write(GXDLMSObject it, int attributeIndex)
         {
-            GXReplyData reply = new GXReplyData();
-            ReadDataBlock(Client.Write(it, attributeIndex), reply);
+            if (Client.CanWrite(it, attributeIndex))
+            {
+                GXReplyData reply = new GXReplyData();
+                ReadDataBlock(Client.Write(it, attributeIndex), reply);
+            }
         }
 
         /// <summary>
@@ -1540,8 +1535,11 @@ namespace Gurux.DLMS.Reader
         /// </summary>
         public void Method(GXDLMSObject it, int attributeIndex, object value, DataType type)
         {
-            GXReplyData reply = new GXReplyData();
-            ReadDataBlock(Client.Method(it, attributeIndex, value, type), reply);
+            if (Client.CanInvoke(it, attributeIndex))
+            {
+                GXReplyData reply = new GXReplyData();
+                ReadDataBlock(Client.Method(it, attributeIndex, value, type), reply);
+            }
         }
 
         /// <summary>

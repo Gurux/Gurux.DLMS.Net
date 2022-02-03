@@ -2924,7 +2924,7 @@ namespace Gurux.DLMS
         /// <returns>COSEM object.</returns>
         public static GXDLMSObject CreateObject(ObjectType type)
         {
-            return GXDLMS.CreateObject(type, 0, AvailableObjectTypes);
+            return GXDLMS.CreateObject(type, 0xFF, AvailableObjectTypes);
         }
 
         /// <summary>
@@ -3616,7 +3616,12 @@ namespace Gurux.DLMS
                 if ((m & (AccessMode3.DigitallySignedRequest | AccessMode3.DigitallySignedResponse)) != 0 &&
                     (signing & (Signing.GeneralSigning)) == 0)
                 {
-                    return false;
+                    //If signing keys are not set.
+                    if (Settings.Cipher.SigningKeyPair.Key == null ||
+                        Settings.Cipher.SigningKeyPair.Value == null)
+                    {
+                        return false;
+                    }
                 }
             }
             return true;
@@ -3664,7 +3669,12 @@ namespace Gurux.DLMS
                 if ((m & (AccessMode3.DigitallySignedRequest | AccessMode3.DigitallySignedResponse)) != 0 &&
                     (signing & (Signing.GeneralSigning)) == 0)
                 {
-                    return false;
+                    //If signing keys are not set.
+                    if (Settings.Cipher.SigningKeyPair.Key == null ||
+                        Settings.Cipher.SigningKeyPair.Value == null)
+                    {
+                        return false;
+                    }
                 }
             }
             return true;
@@ -3712,7 +3722,12 @@ namespace Gurux.DLMS
                 if ((m & (MethodAccessMode3.DigitallySignedRequest | MethodAccessMode3.DigitallySignedResponse)) != 0 &&
                     (signing & (Signing.GeneralSigning)) == 0)
                 {
-                    return false;
+                    //If signing keys are not set.
+                    if (Settings.Cipher.SigningKeyPair.Key == null ||
+                        Settings.Cipher.SigningKeyPair.Value == null)
+                    {
+                        return false;
+                    }
                 }
             }
             return true;

@@ -119,7 +119,7 @@ namespace Gurux.DLMS
             {
                 if (xml != null)
                 {
-                    throw ex;
+                    throw;
                 }
                 Debug.WriteLine("HandleGetRequest failed. " + ex.Message);
                 settings.ResetBlockIndex();
@@ -229,9 +229,10 @@ namespace Gurux.DLMS
             Command cipheredCommand)
         {
             GXByteBuffer bb = new GXByteBuffer();
-            byte lastBlock = data.GetUInt8();
+            byte lastBlock = 0;
             if (!streaming)
             {
+                lastBlock = data.GetUInt8();
                 // Get block index.
                 UInt32 index = data.GetUInt32();
                 if (xml != null)
@@ -251,7 +252,7 @@ namespace Gurux.DLMS
             GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeID,
                 streaming ? Command.GeneralBlockTransfer : Command.MethodResponse, (byte)ActionResponseType.Normal,
                 null, bb, (byte)ErrorCode.Ok, cipheredCommand);
-            p.Streaming = streaming;
+            p.Streaming = settings.GbtWindowSize != 1;
             p.GbtWindowSize = settings.GbtWindowSize;
             //If transaction is not in progress.
             if (server.transaction == null)
@@ -264,7 +265,10 @@ namespace Gurux.DLMS
             {
                 try
                 {
-                    server.transaction.data.Set(data);
+                    if (data.Available != 0)
+                    {
+                        server.transaction.data.Set(data);
+                    }
                     if (lastBlock == 1)
                     {
                         GXDataInfo info = new GXDataInfo();
@@ -316,6 +320,7 @@ namespace Gurux.DLMS
                     }
                     else
                     {
+                        bb.Set(server.transaction.data);
                         // Ask next block.
                         p.requestType = (byte)ActionResponseType.NextBlock;
                         p.status = 0xFF;
@@ -334,6 +339,16 @@ namespace Gurux.DLMS
                 {
                     settings.IncreaseBlockIndex();
                 }
+                if (bb.Size - bb.Position != 0)
+                {
+                    server.transaction.data = bb;
+                }
+                else
+                {
+                    server.transaction = null;
+                    settings.ResetBlockIndex();
+                }
+
             }
         }
 
@@ -1048,7 +1063,7 @@ namespace Gurux.DLMS
             }
             settings.IncreaseBlockIndex();
             GXDLMSLNParameters p = new GXDLMSLNParameters(settings, invokeID, streaming ? Command.GeneralBlockTransfer : Command.GetResponse, 2, null, bb, (byte)ErrorCode.Ok, cipheredCommand);
-            p.Streaming = streaming;
+            p.Streaming = settings.GbtWindowSize != 1;
             p.GbtWindowSize = settings.GbtWindowSize;
             //If transaction is not in progress.
             if (server.transaction == null)
