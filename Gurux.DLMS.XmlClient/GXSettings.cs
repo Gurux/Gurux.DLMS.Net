@@ -207,7 +207,7 @@ namespace Gurux.DLMS.XmlClient
                     case 'C':
                         try
                         {
-                            settings.client.Ciphering.Security = Convert.ToByte(Enum.Parse(typeof(Security), it.Value));
+                            settings.client.Ciphering.Security = (Security) Enum.Parse(typeof(Security), it.Value);
                         }
                         catch (Exception)
                         {
@@ -259,7 +259,7 @@ namespace Gurux.DLMS.XmlClient
                         settings.client.ServerAddress = GXDLMSClient.GetServerAddress(int.Parse(it.Value), settings.client.ServerAddress);
                         break;
                     case 'n':
-                        settings.client.ServerAddress = GXDLMSClient.GetServerAddress(int.Parse(it.Value));
+                        settings.client.ServerAddress = GXDLMSClient.GetServerAddressFromSerialNumber(int.Parse(it.Value), 1);
                         break;
                     case '?':
                         switch (it.Tag)

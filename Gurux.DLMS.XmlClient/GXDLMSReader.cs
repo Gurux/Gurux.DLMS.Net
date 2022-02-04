@@ -738,7 +738,7 @@ namespace Gurux.DLMS.Reader
             ReadDLMSPacket(data, reply);
             while (reply.IsMoreData)
             {
-                data = Client.ReceiverReady(reply.MoreData);
+                data = Client.ReceiverReady(reply);
                 ReadDLMSPacket(data, reply);
                 if (Trace > TraceLevel.Info)
                 {
