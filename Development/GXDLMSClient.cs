@@ -1381,11 +1381,14 @@ namespace Gurux.DLMS
             {
                 ret = ReleaseRequest(force)[0];
             }
-            //Restore default HDLC values.
-            HdlcSettings.MaxInfoTX = InitializeMaxInfoTX;
-            HdlcSettings.MaxInfoRX = InitializeMaxInfoRX;
-            HdlcSettings.WindowSizeTX = InitializeWindowSizeTX;
-            HdlcSettings.WindowSizeRX = InitializeWindowSizeRX;
+            if (GXDLMS.UseHdlc(Settings.InterfaceType))
+            {
+                //Restore default HDLC values.
+                HdlcSettings.MaxInfoTX = InitializeMaxInfoTX;
+                HdlcSettings.MaxInfoRX = InitializeMaxInfoRX;
+                HdlcSettings.WindowSizeTX = InitializeWindowSizeTX;
+                HdlcSettings.WindowSizeRX = InitializeWindowSizeRX;
+            }
             Settings.Connected = ConnectionState.None;
             Settings.ResetFrameSequence();
             return ret;
