@@ -2623,10 +2623,6 @@ namespace Gurux.DLMS.Internal
                 foreach (object it in tmp)
                 {
                     DataType dt = GXDLMSConverter.GetDLMSDataType(it);
-                    if (dt == DataType.Array)
-                    {
-                        dt = DataType.Structure;
-                    }
                     SetData(settings, buff, dt, it);
                 }
             }

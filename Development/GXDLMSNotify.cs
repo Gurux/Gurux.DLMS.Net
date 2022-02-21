@@ -367,7 +367,20 @@ namespace Gurux.DLMS
             GXCommon.SetObjectCount(push.PushObjectList.Count, buff);
             foreach (KeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in push.PushObjectList)
             {
-                AddData(it.Key, it.Value.AttributeIndex, buff);
+                if (it.Value.AttributeIndex == 0)
+                {
+                    buff.SetUInt8(DataType.Structure);
+                    int count = (it.Key as IGXDLMSBase).GetAttributeCount();
+                    GXCommon.SetObjectCount(count, buff);
+                    for (int index = 1; index <= count; ++index)
+                    {
+                        AddData(it.Key, index, buff);
+                    }
+                }
+                else
+                {
+                    AddData(it.Key, it.Value.AttributeIndex, buff);
+                }
             }
             return GenerateDataNotificationMessages(date, buff);
         }

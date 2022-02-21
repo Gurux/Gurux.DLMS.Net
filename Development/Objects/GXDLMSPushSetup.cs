@@ -177,7 +177,18 @@ namespace Gurux.DLMS.Objects
             {
                 objects.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(it.Key,
                     new GXDLMSCaptureObject(it.Value.AttributeIndex, it.Value.DataIndex)));
-                client.UpdateValue(it.Key, it.Value.AttributeIndex, values[pos]);
+                if (it.Value.AttributeIndex == 0)
+                {
+                    List<object> tmp = (List<object>)values[pos];
+                    for (int index = 1; index <= (it.Key as IGXDLMSBase).GetAttributeCount(); ++index)
+                    {
+                        client.UpdateValue(it.Key, index, tmp[index - 1]);
+                    }
+                }
+                else
+                {
+                    client.UpdateValue(it.Key, it.Value.AttributeIndex, values[pos]);
+                }
                 ++pos;
             }
         }

@@ -178,15 +178,15 @@ namespace Gurux.DLMS.Objects
         /// <returns>Cloned object.</returns>
         public GXDLMSObject Clone()
         {
-            List<Type> types = new List<Type>(GXDLMSClient.GetObjectTypes());
-            types.Add(typeof(GXDLMSAttributeSettings));
-            types.Add(typeof(GXDLMSAttribute));
+            GXDLMSObjectCollection objs = new GXDLMSObjectCollection();
+            objs.Add(this);
             using (Stream stream = new MemoryStream())
             {
-                XmlSerializer x = new XmlSerializer(this.GetType(), types.ToArray());
-                x.Serialize(stream, this);
+                GXXmlWriterSettings settings = new GXXmlWriterSettings();
+                objs.Save(stream, settings);
                 stream.Seek(0, SeekOrigin.Begin);
-                return x.Deserialize(stream) as GXDLMSObject;
+                objs = GXDLMSObjectCollection.Load(stream);
+                return objs[0];
             }
         }
 
