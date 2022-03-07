@@ -73,15 +73,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSSpecialDaysTable(string ln, ushort sn)
         : base(ObjectType.SpecialDaysTable, ln, sn)
         {
-        }
-
-        /// <inheritdoc cref="GXDLMSObject.LogicalName"/>
-        [DefaultValue("0.0.11.0.0.255")]
-        override public string LogicalName
-        {
-            get;
-            set;
-        }
+        }      
 
         /// <summary>
         /// Value of COSEM Data object.

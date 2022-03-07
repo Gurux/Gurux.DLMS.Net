@@ -620,7 +620,7 @@ namespace Gurux.DLMS
                     return "Cubic foot per second";
                 case Unit.CubicFootPerMin:
                     return "Cubic foot per min";
-                case Unit.CubicFootPerhour:
+                case Unit.CubicFootPerHour:
                     return "Cubic foot per hour";
                 case Unit.CubicFootPerDay:
                     return "Cubic foot per day";

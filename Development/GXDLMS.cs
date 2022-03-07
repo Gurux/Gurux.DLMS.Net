@@ -360,7 +360,7 @@ namespace Gurux.DLMS
                 settings.IncreaseBlockIndex();
                 if (settings.UseLogicalNameReferencing)
                 {
-                    GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, cmd, (byte)GetCommandType.NextDataBlock, bb, null, 0xff, Command.None);
+                    GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, cmd, (byte)GetCommandType.NextDataBlock, bb, null, 0xff, reply.CipheredCommand);
                     data = GXDLMS.GetLnMessages(p);
                 }
                 else
@@ -857,8 +857,8 @@ namespace Gurux.DLMS
         /// <returns></returns>
         static private bool ShoudSign(GXDLMSLNParameters p)
         {
-            bool signing = p.settings.Cipher != null && 
-                p.settings.Cipher.Signing != Signing.None;
+            bool signing = p.cipheredCommand == Command.GeneralSigning ||
+                (p.settings.Cipher != null && p.settings.Cipher.Signing != Signing.None);
             if (!signing)
             {
                 //Association LN V3 and signing is not needed.
@@ -3516,7 +3516,6 @@ namespace Gurux.DLMS
                 if (!first)
                 {
                     reply.Data.Position = 0;
-                    first = true;
                 }
                 values = new List<object>();
                 if (reply.Value is List<object>)

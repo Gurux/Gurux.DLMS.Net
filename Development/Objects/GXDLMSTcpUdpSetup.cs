@@ -75,15 +75,7 @@ namespace Gurux.DLMS.Objects
             Port = 4059;
             InactivityTimeout = 180;
             MaximumSegmentSize = 576;
-        }
-
-        /// <inheritdoc cref="GXDLMSObject.LogicalName"/>
-        [DefaultValue("0.0.25.0.0.255")]
-        override public string LogicalName
-        {
-            get;
-            set;
-        }
+        }     
 
         /// <summary>
         /// TCP/UDP port number on which the physical device is

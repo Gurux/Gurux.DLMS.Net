@@ -70,12 +70,11 @@ namespace Gurux.DLMS
             //If get next frame.
             if (xml == null && data.Size == 0)
             {
-                if (server.transaction != null)
+                if (replyData.Available != 0)
                 {
+                    //Return existing PDU first.
                     return;
                 }
-                bb.Set(replyData);
-                replyData.Clear();
                 foreach (ValueEventArgs it in server.transaction.targets)
                 {
                     list.Add(it);
@@ -145,7 +144,7 @@ namespace Gurux.DLMS
             }
             GXDLMSSNParameters p = new GXDLMSSNParameters(settings, Command.ReadResponse, list.Count, requestType, null, bb);
             GXDLMS.GetSNPdu(p, replyData);
-            if (server.transaction == null && (bb.Size != bb.Position || settings.Count != settings.Index))
+            if (server.transaction == null && (bb.Available != 0 || settings.Count != settings.Index))
             {
                 reads = new List<ValueEventArgs>();
                 foreach (var it in list)

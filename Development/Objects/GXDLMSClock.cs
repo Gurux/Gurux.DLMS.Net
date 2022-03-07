@@ -84,15 +84,7 @@ namespace Gurux.DLMS.Objects
         : base(ObjectType.Clock, ln, sn)
         {
             Time = new GXDateTime(DateTime.MinValue);
-        }
-
-        /// <inheritdoc cref="GXDLMSObject.LogicalName"/>
-        [DefaultValue("0.0.1.0.0.255")]
-        override public string LogicalName
-        {
-            get;
-            set;
-        }
+        }       
 
         /// <summary>
         /// Time of COSEM Clock object.

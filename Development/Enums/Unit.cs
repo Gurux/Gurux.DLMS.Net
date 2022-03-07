@@ -525,7 +525,7 @@ namespace Gurux.DLMS.Enums
         /// Cubic foot per hour.
         /// </summary>
         [XmlEnum("155")]
-        CubicFootPerhour = 155,
+        CubicFootPerHour = 155,
         /// <summary>
         /// Cubic foot per day
         /// </summary>
