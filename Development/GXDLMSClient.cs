@@ -1321,6 +1321,8 @@ namespace Gurux.DLMS
                 buff.SetUInt8(0x80);
                 buff.SetUInt8(01);
                 buff.SetUInt8(00);
+                //Restore default PDU size for the release.
+                MaxReceivePDUSize = InitializePduSize;
                 GXAPDU.GenerateUserInformation(Settings, Settings.Cipher, null, buff);
                 //Increase IC.
                 if (Settings.IsCiphered(false))
@@ -3279,7 +3281,7 @@ namespace Gurux.DLMS
                     }
                     if (crypted[pos] == 'G')
                     {
-                        crypted[pos] = (byte) ('0' + crypted[pos] - 'G');
+                        crypted[pos] = (byte)('0' + crypted[pos] - 'G');
                     }
                 }
             }
@@ -3367,7 +3369,9 @@ namespace Gurux.DLMS
                            Conformance.BlockTransferWithGetOrRead |
                            Conformance.Set | Conformance.SelectiveAccess |
                            Conformance.Action | Conformance.MultipleReferences |
-                           Conformance.Get | Conformance.Access;
+                           Conformance.Get | Conformance.Access |
+                           Conformance.GeneralProtection |
+                           Conformance.DeltaValueEncoding;
             }
             return Conformance.InformationReport |
                         Conformance.Read | Conformance.UnconfirmedWrite |

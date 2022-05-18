@@ -54,6 +54,7 @@ namespace Gurux.DLMS.Objects
     /// </summary>
     public class GXDLMSSecuritySetup : GXDLMSObject, IGXDLMSBase
     {
+        private byte[] guek, gbek, gak;
         SecurityPolicy _securityPolicy = SecurityPolicy.None;
         /// <summary>
         /// Signing key of the server.
@@ -116,15 +117,30 @@ namespace Gurux.DLMS.Objects
             Version = 1;
             Certificates = new GXDLMSCertificateCollection();
             ServerCertificates = new GXx509CertificateCollection();
+            if (Version < 2)
+            {
+                Guek = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F };
+                Gbek = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F };
+                Gak = new byte[] { 0xD0, 0xD1, 0xD2, 0xD3, 0xD4, 0xD5, 0xD6, 0xD7, 0xD8, 0xD9, 0xDA, 0xDB, 0xDC, 0xDD, 0xDE, 0xDF };
+            }
         }
-
         /// <summary>
         /// Block cipher key.
         /// </summary>
         public byte[] Guek
         {
-            get;
-            set;
+            get
+            {
+                return guek;
+            }
+            set
+            {
+                if (Version < 2 && value != null && value.Length != 16 && value.Length != 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(Guek));
+                }
+                guek = value;
+            }
         }
 
         /// <summary>
@@ -132,8 +148,18 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         public byte[] Gbek
         {
-            get;
-            set;
+            get
+            {
+                return gbek;
+            }
+            set
+            {
+                if (Version < 2 && value != null && value.Length != 16 && value.Length != 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(Gbek));
+                }
+                gbek = value;
+            }
         }
 
         /// <summary>
@@ -141,8 +167,18 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         public byte[] Gak
         {
-            get;
-            set;
+            get
+            {
+                return gak;
+            }
+            set
+            {
+                if (Version < 2 && value != null && value.Length != 16 && value.Length != 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(Gak));
+                }
+                gak = value;
+            }
         }
 
         /// <summary>
@@ -737,6 +773,10 @@ namespace Gurux.DLMS.Objects
         {
             try
             {
+                if (SecuritySuite == SecuritySuite.Suite0 && e.Index > 3)
+                {
+                    throw new ArgumentOutOfRangeException(Properties.Resources.InvalidSecuritySuiteVersion);
+                }
                 switch (e.Index)
                 {
                     case 1:
@@ -864,6 +904,10 @@ namespace Gurux.DLMS.Objects
 
         private void GenerateKeyPair(GXDLMSSettings settings, ValueEventArgs e)
         {
+            if (SecuritySuite == SecuritySuite.Suite0)
+            {
+                throw new ArgumentOutOfRangeException(Properties.Resources.InvalidSecuritySuiteVersion);
+            }
             CertificateType key = (CertificateType)Convert.ToInt32(e.Parameters);
             KeyValuePair<GXPublicKey, GXPrivateKey> value = GXEcdsa.GenerateKeyPair(GetEcc(SecuritySuite));
             switch (key)

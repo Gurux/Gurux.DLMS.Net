@@ -433,6 +433,7 @@ namespace Gurux.DLMS.Secure
 
         public void Reset()
         {
+            Signing = Signing.None;
             Security = Security.None;
             InvocationCounter = 0;
         }

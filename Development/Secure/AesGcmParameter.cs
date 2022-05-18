@@ -276,7 +276,7 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
-        /// System title is not send on pre-established connecions.
+        /// System title is not send on pre-established connections.
         /// </summary>
         public bool IgnoreSystemTitle
         {

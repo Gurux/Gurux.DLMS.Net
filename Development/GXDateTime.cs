@@ -104,7 +104,8 @@ namespace Gurux.DLMS
                 {
                     Value = new DateTimeOffset(value, TimeZoneInfo.Local.GetUtcOffset(value));
                 }
-                if (value.IsDaylightSavingTime())
+                if ((timeZone == null && value.IsDaylightSavingTime()) 
+                    || (timeZone != null && timeZone.IsDaylightSavingTime(value)))
                 {
                     Status |= ClockStatus.DaylightSavingActive;
                 }

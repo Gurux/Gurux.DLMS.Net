@@ -790,6 +790,11 @@ namespace Gurux.DLMS.Objects
                     }
                 }
             }
+            //If all objects are read.
+            if (pos == ObjectList.Count)
+            {
+                settings.Count = settings.Index = 0;
+            }
             return data;
         }
 
@@ -2097,6 +2102,16 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
+        /// Are access right sets for the given object.
+        /// </summary>
+        /// <param name="target">Target object.</param>
+        /// <returns></returns>
+        public bool IsAccessRightSet(GXDLMSObject target)
+        {
+            return accessRights.ContainsKey(target);
+        }
+
+        /// <summary>
         /// Returns access mode for given object.
         /// </summary>
         /// <param name="target">COSEM object.</param>
@@ -2109,9 +2124,13 @@ namespace Gurux.DLMS.Objects
             {
                 return GetAccess(index);
             }
-            if (!accessRights.ContainsKey(target))
+            if (accessRights.Count == 0)
             {
                 return AccessMode.ReadWrite;
+            }
+            if (!accessRights.ContainsKey(target))
+            {
+                return AccessMode.NoAccess;
             }
             int[] tmp = accessRights[target];
             if (tmp == null)
@@ -2159,6 +2178,106 @@ namespace Gurux.DLMS.Objects
                 buff[pos] = (int)access[pos];
             }
             accessRights[target] = buff;
+        }
+
+        /// <summary>
+        /// Update default access mode for all objects in the association view.
+        /// </summary>
+        /// <remarks>
+        /// Server can use this to set default access mode for all the objects.
+        /// </remarks>
+        /// <param name="mode">Defaule method access mode.</param>
+        public void SetDefaultAccess(AccessMode mode)
+        {
+            if (this.Version > 2)
+            {
+                throw new ArgumentException("Use SetDefaultMethodAccess3 to set default method access for logical name association version 3.");
+            }
+            foreach (GXDLMSObject obj in ObjectList)
+            {
+                int count = ((IGXDLMSBase)obj).GetAttributeCount();
+                int[] list = new int[count];
+                for (int pos = 0; pos != count; ++pos)
+                {
+                    list[pos] = (int)mode;
+                }
+                accessRights[obj] = list;
+            }
+        }
+
+        /// <summary>
+        /// Update default access mode for all objects in the association view.
+        /// </summary>
+        /// <remarks>
+        /// Server can use this to set default access mode for all the objects.
+        /// </remarks>
+        /// <param name="mode">Defaule method access mode.</param>
+        public void SetDefaultAccess3(AccessMode3 mode)
+        {
+            if (this.Version < 3)
+            {
+                throw new ArgumentException("Use SetDefaultMethodAccess to set default method access for logical name association version 3.");
+            }
+            foreach (GXDLMSObject obj in ObjectList)
+            {
+                int count = ((IGXDLMSBase)obj).GetAttributeCount();
+                int[] list = new int[count];
+                for (int pos = 0; pos != count; ++pos)
+                {
+                    list[pos] = (int)mode;
+                }
+                accessRights[obj] = list;
+            }
+        }
+
+        /// <summary>
+        /// Update default method access mode for all objects.
+        /// </summary>
+        /// <remarks>
+        /// Server can use this to set default access mode for all the objects.
+        /// </remarks>
+        /// <param name="mode">Defaule method access mode.</param>
+        public void SetDefaultMethodAccess(MethodAccessMode mode)
+        {
+            if (this.Version > 2)
+            {
+                throw new ArgumentException("Use SetDefaultMethodAccess3 to set default method access for logical name association version 3.");
+            }
+            foreach (GXDLMSObject obj in ObjectList)
+            {
+                int count = ((IGXDLMSBase)obj).GetMethodCount();
+                int[] list = new int[count];
+                for(int pos = 0; pos != count; ++pos)
+                {
+                    list[pos] = (int)mode;
+                }
+                methodAccessRights[obj] = list;
+            }
+        }
+
+        /// <summary>
+        /// Update default method access mode for all objects.
+        /// </summary>
+        /// <remarks>
+        /// Server can use this to set default access mode for all the objects.
+        /// </remarks>
+        /// <param name="mode">Defaule method access mode.</param>
+        public void SetDefaultMethodAccess3(MethodAccessMode3 mode)
+        {
+            if (this.Version < 3)
+            {
+                throw new ArgumentException("Use SetDefaultMethodAccess to set default method access for logical name association version 1 or 2.");
+            }
+            foreach (GXDLMSObject obj in ObjectList)
+            {
+                int count = ((IGXDLMSBase)obj).GetMethodCount();
+                int[] list = new int[count];
+                for (int pos = 0; pos != count; ++pos)
+                {
+                    list[pos] = (int)mode;
+                }
+                methodAccessRights[obj] = list;
+            }
         }
 
         /// <summary>
@@ -2246,6 +2365,10 @@ namespace Gurux.DLMS.Objects
             {
                 return GetAccess3(index);
             }
+            if (accessRights.Count == 0)
+            {
+                return AccessMode3.Read | AccessMode3.Write;
+            }
             int[] tmp;
             if (!accessRights.TryGetValue(target, out tmp))
             {
@@ -2308,7 +2431,7 @@ namespace Gurux.DLMS.Objects
         {
             if (methodAccessRights.Count == 0)
             {
-                return MethodAccessMode3.NoAccess;
+                return MethodAccessMode3.Access;
             }
             if (target == this ||
                 (target is GXDLMSAssociationLogicalName && target.LogicalName == "0.0.40.0.0.255")

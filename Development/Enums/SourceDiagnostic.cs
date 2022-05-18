@@ -48,7 +48,7 @@ namespace Gurux.DLMS.Enums
         /// </summary>
         NoReasonGiven = 1,
         /// <summary>
-        /// Invlid ACSE version.
+        /// Invalid ACSE version.
         /// </summary>
         NoCommonAcseVersion = 2
     }

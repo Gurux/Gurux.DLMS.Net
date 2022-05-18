@@ -2096,6 +2096,8 @@ namespace Gurux.DLMS
                                     msg.Command = (Command)cmd;
                                 }
                                 xml.SetXmlLength(len2);
+                                value.Position = originalPosition;
+                                break;
                             }
                             value.Position = originalPosition;
                         }

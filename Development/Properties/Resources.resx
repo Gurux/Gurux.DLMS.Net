@@ -137,13 +137,19 @@
   </data>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="India" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\india.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+    <value>..\India.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="InvalidKeyUsage" xml:space="preserve">
+    <value>Invalid key usage. </value>
   </data>
   <data name="InvalidLogicalName" xml:space="preserve">
     <value>Invalid Logical name.</value>
   </data>
+  <data name="InvalidSecuritySuiteVersion" xml:space="preserve">
+    <value>Invalid security suite version.</value>
+  </data>
   <data name="Italy" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\italy.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+    <value>..\Italy.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
   <data name="LogicalNameTxt" xml:space="preserve">
     <value>Logical Name</value>
@@ -161,7 +167,7 @@
     <value>Access Error : No Long Set Or Write In Progress.</value>
   </data>
   <data name="OBISCodes" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\obiscodes.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+    <value>..\OBISCodes.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="OtherReasonTxt" xml:space="preserve">
     <value>Access Error : Other Reason.</value>
@@ -173,7 +179,10 @@
     <value>HDLC message rejected.</value>
   </data>
   <data name="SaudiArabia" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\saudiarabia.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+    <value>..\SaudiArabia.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Spain" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Spain.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
   <data name="TemporaryFailureTxt" xml:space="preserve">
     <value>Access Error : Device reports a temporary failure.</value>
@@ -351,11 +360,5 @@
   </data>
   <data name="UnmatchedTypeTxt" xml:space="preserve">
     <value>Access Error : Device reports a unmatched type.</value>
-  </data>
-  <data name="InvalidKeyUsage" xml:space="preserve">
-    <value>Invalid key usage. </value>
-  </data>
-  <data name="Spain" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\spain.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
 </root>

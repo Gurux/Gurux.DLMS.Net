@@ -19,7 +19,7 @@ namespace Gurux.DLMS.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -115,22 +115,31 @@ namespace Gurux.DLMS.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 1;0.0.94.91.9.255;0;Meter type
-        ///1;0.0.94.91.11.255;0;Category
-        ///1;0.0.94.91.12.255;0;Current rating 
-        ///1;0.0.96.1.4.255;0;0;Meter year of manufacture
-        ///1;0.0.94.91.18.255;0;Event Status word 1 (ESW 1)
-        ///1;0.0.94.91.0.255;0;Cumulative tamper count
-        ///3;0.0.94.91.13.255;0;Cumulative power ON duration in minutes
-        ///3;1.0.94.91.14.255;0;Current
-        ///3;0.0.94.91.8.255;0;Cumulative power — OFF duration in min
-        ///7;1.0.94.91.0.255;0;Snapshot of Instantaneous Parameters
-        ///7;1.0.94.91.7.255;0;Scaler Profile
-        ///7;1.0.94.91.3.255;0;Sc [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to # IC | OBIS | VERSION | DESCRIPTION | UI Type
+        ///1;0.0.0.1.0.255;0;Cum. Billing Count
+        ///1;0.0.0.1.1.255;0;Available Billing Periods
+        ///1;0.0.42.0.0.255;0;COSEM Logical Device Name;10
+        ///1;0.0.43.1.1.255;0;Invocation Counter #1 (PC)
+        ///1;0.0.43.1.2.255;0;Invocation Counter #2 (MR)
+        ///1;0.0.43.1.3.255;0;Invocation Counter #3 (US)
+        ///1;0.0.43.1.4.255;0;Invocation Counter #4 (Push)
+        ///1;0.0.43.1.5.255;0;Invocation Counter #5 (FW)
+        ///1;0.0.43.1.6.255;0;Invocation Counter #6 (IHD)
+        ///1;0.0.94.91.0.255;0;Cumulative Tamper Count
+        ///1;0.0.94.91.9. [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string India {
             get {
                 return ResourceManager.GetString("India", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid key usage. .
+        /// </summary>
+        internal static string InvalidKeyUsage {
+            get {
+                return ResourceManager.GetString("InvalidKeyUsage", resourceCulture);
             }
         }
         
@@ -140,6 +149,15 @@ namespace Gurux.DLMS.Properties {
         internal static string InvalidLogicalName {
             get {
                 return ResourceManager.GetString("InvalidLogicalName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid security suite version..
+        /// </summary>
+        internal static string InvalidSecuritySuiteVersion {
+            get {
+                return ResourceManager.GetString("InvalidSecuritySuiteVersion", resourceCulture);
             }
         }
         
@@ -211,11 +229,11 @@ namespace Gurux.DLMS.Properties {
         /// <summary>
         ///   Looks up a localized string similar to 0.0-64.0.1.0.0-99,255;1,3,4;6,17,18;Ch. $B;Billing period counter (1);;;#$F
         ///0.0-64.0.1.1.255;1,3,4;6,17,18;Ch. $B;No. of available billing periods (1);;;
-        ///0.0-64.0.1.2.0-99;1,3,4;9,25;Ch. $B;Time stamp of the billing period (1);;;#$F
-        ///0.0-64.0.1.2.255;1,3,4;9,25;Ch. $B;Time stamp of the most recent billing period (1) closed;;;
+        ///0.0-64.0.1.2.0-99;1,3,4;6,9,21,25;Ch. $B;Time stamp of the billing period (1);;;#$F
+        ///0.0-64.0.1.2.255;1,3,4;6,9,21,25;Ch. $B;Time stamp of the most recent billing period (1) closed;;;
         ///0.0-64.0.1.3.0-99,255;1,3,4;6,17,18;Ch. $B;Billing period counter (2), VZ;;;#$F
         ///0.0-64.0.1.4.255;1,3,4;6,17,18;Ch. $B;No. of available billing periods (2);;;
-        ///0.0-64.0.1.5.0-99;1,3 [rest of string was truncated]&quot;;.
+        ///0.0-64.0.1. [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string OBISCodes {
             get {
@@ -266,15 +284,23 @@ namespace Gurux.DLMS.Properties {
                 return ResourceManager.GetString("SaudiArabia", resourceCulture);
             }
         }
-
-        internal static string Spain
-        {
-            get
-            {
+        
+        /// <summary>
+        ///   Looks up a localized string similar to # IC | OBIS | VERSION | DESCRIPTION | UI Type
+        ///3;1.1.94.34.1.255;0;Clock Time Shift Invalid Limit
+        ///3;0.1.94.34.1.255;0;Active Demand Control Threshold Rate 1 Contract 1
+        ///3;0.1.94.34.2.255;0;Active Demand Control Threshold Rate 2 Contract 1
+        ///3;0.1.94.34.3.255;0;Active Demand Control Threshold Rate 3 Contract 1
+        ///3;0.1.94.34.4.255;0;Active Demand Control Threshold Rate 4 Contract 1
+        ///3;0.1.94.34.21.255;0;Active Demand Control Threshold Rate 1 Contract 3
+        ///3;0.1.94.34.22.255;0;Active Demand Control Threshold Rate 2 Cont [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Spain {
+            get {
                 return ResourceManager.GetString("Spain", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Access Error : Device reports a temporary failure..
         /// </summary>

@@ -437,7 +437,15 @@ namespace Gurux.DLMS
                 }
             }
 
-            GXDLMSObject obj = settings.Objects.FindByLN(ci, GXCommon.ToLogicalName(ln));
+            GXDLMSObject obj = null;
+            if (ci == ObjectType.AssociationLogicalName && GXCommon.ToLogicalName(ln) == "0.0.40.0.0.255")
+            {
+                obj = settings.AssignedAssociation;
+            }
+            if (obj == null)
+            {
+                obj = settings.Objects.FindByLN(ci, GXCommon.ToLogicalName(ln));
+            }
             if ((settings.Connected & ConnectionState.Dlms) == 0 && cipheredCommand == Command.None && (ci != ObjectType.AssociationLogicalName || id != 1))
             {
                 replyData.Set(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
@@ -966,7 +974,15 @@ namespace Gurux.DLMS
                 parameters = GXCommon.GetData(settings, data, info);
             }
 
-            GXDLMSObject obj = settings.Objects.FindByLN(ci, GXCommon.ToLogicalName(ln));
+            GXDLMSObject obj = null;
+            if (ci == ObjectType.AssociationLogicalName && GXCommon.ToLogicalName(ln) == "0.0.40.0.0.255")
+            {
+                obj = settings.AssignedAssociation;
+            }
+            if (obj == null)
+            {
+                obj = settings.Objects.FindByLN(ci, GXCommon.ToLogicalName(ln));
+            }
             if (obj == null)
             {
                 obj = server.NotifyFindObject(ci, 0, GXCommon.ToLogicalName(ln));
@@ -1167,7 +1183,15 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        GXDLMSObject obj = settings.Objects.FindByLN(ci, GXCommon.ToLogicalName(ln));
+                        GXDLMSObject obj = null;
+                        if (ci == ObjectType.AssociationLogicalName && GXCommon.ToLogicalName(ln) == "0.0.40.0.0.255")
+                        {
+                            obj = settings.AssignedAssociation;
+                        }
+                        if (obj == null)
+                        {
+                            obj = settings.Objects.FindByLN(ci, GXCommon.ToLogicalName(ln));
+                        }
                         if (obj == null)
                         {
                             obj = server.NotifyFindObject(ci, 0, GXCommon.ToLogicalName(ln));
@@ -1330,7 +1354,15 @@ namespace Gurux.DLMS
                 value = GXCommon.GetData(settings, data, reply);
             }
 
-            GXDLMSObject obj = settings.Objects.FindByLN(ci, GXCommon.ToLogicalName(ln));
+            GXDLMSObject obj = null;
+            if (ci == ObjectType.AssociationLogicalName && GXCommon.ToLogicalName(ln) == "0.0.40.0.0.255")
+            {
+                obj = settings.AssignedAssociation;
+            }
+            if (obj == null)
+            {
+                obj = settings.Objects.FindByLN(ci, GXCommon.ToLogicalName(ln));
+            }
             if (obj == null)
             {
                 obj = server.NotifyFindObject(ci, 0, GXCommon.ToLogicalName(ln));
@@ -1515,7 +1547,15 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        GXDLMSObject obj = settings.Objects.FindByLN(ci, GXCommon.ToLogicalName(ln));
+                        GXDLMSObject obj = null;
+                        if (ci == ObjectType.AssociationLogicalName && GXCommon.ToLogicalName(ln) == "0.0.40.0.0.255")
+                        {
+                            obj = settings.AssignedAssociation;
+                        }
+                        if (obj == null)
+                        {
+                            obj = settings.Objects.FindByLN(ci, GXCommon.ToLogicalName(ln));
+                        }
                         if (obj == null)
                         {
                             obj = server.NotifyFindObject(ci, 0, GXCommon.ToLogicalName(ln));
@@ -1674,7 +1714,16 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    list.Add(new GXDLMSAccessItem(type, settings.Objects.FindByLN(ci, GXCommon.ToLogicalName(ln)), attributeIndex));
+                    GXDLMSObject obj = null;
+                    if (ci == ObjectType.AssociationLogicalName && GXCommon.ToLogicalName(ln) == "0.0.40.0.0.255")
+                    {
+                        obj = settings.AssignedAssociation;
+                    }
+                    if (obj == null)
+                    {
+                        obj = settings.Objects.FindByLN(ci, GXCommon.ToLogicalName(ln));
+                    }
+                    list.Add(new GXDLMSAccessItem(type, obj, attributeIndex));
                 }
             }
             if (xml != null)
@@ -1839,7 +1888,15 @@ namespace Gurux.DLMS
             }
             else
             {
-                GXDLMSObject obj = settings.Objects.FindByLN((ObjectType)ci, GXCommon.ToLogicalName(ln));
+                GXDLMSObject obj = null;
+                if ((ObjectType)ci == ObjectType.AssociationLogicalName && GXCommon.ToLogicalName(ln) == "0.0.40.0.0.255")
+                {
+                    obj = settings.AssignedAssociation;
+                }
+                if (obj == null)
+                {
+                    obj = settings.Objects.FindByLN((ObjectType)ci, GXCommon.ToLogicalName(ln));
+                }
                 if (obj != null)
                 {
                     ValueEventArgs v = new ValueEventArgs(obj, index, 0, null);

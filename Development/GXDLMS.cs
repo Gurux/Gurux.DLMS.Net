@@ -921,7 +921,10 @@ namespace Gurux.DLMS
                     sc = 0x20;
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException("Invalid security.");
+                    if (c.Signing != Signing.GeneralSigning)
+                    {
+                        throw new ArgumentOutOfRangeException("Invalid security.");
+                    }
                     break;
             }
             AlgorithmId algorithmID;
@@ -1012,7 +1015,7 @@ namespace Gurux.DLMS
                         throw new ArgumentOutOfRangeException("Can't find digical signature for Client system title: " +
                             GXCommon.ToHex(p.settings.Cipher.SystemTitle, true));
                     }
-                    c.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
+                    c.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
                 }
                 if (pub == null)
                 {
@@ -1022,7 +1025,7 @@ namespace Gurux.DLMS
                         throw new ArgumentOutOfRangeException("Can't find digical signature for Server system title: " +
                             GXCommon.ToHex(p.settings.SourceSystemTitle, true));
                     }
-                    c.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
+                    c.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, key);
                 }
                 System.Diagnostics.Debug.WriteLine("Private signing key: " + key.ToHex());
                 System.Diagnostics.Debug.WriteLine("Public signing key: " + pub.ToHex());
@@ -1211,7 +1214,7 @@ namespace Gurux.DLMS
         {
             bool ciphering = p.command != Command.Aarq && p.command != Command.Aare &&
                 (p.settings.IsCiphered(true) || p.cipheredCommand != Command.None ||
-                (p.settings.Cipher != null && p.settings.Cipher.Signing == Signing.GeneralSigning));            
+                (p.settings.Cipher != null && p.settings.Cipher.Signing == Signing.GeneralSigning));
             int len = 0;
             if (p.command == Command.Aarq)
             {
@@ -1436,29 +1439,6 @@ namespace Gurux.DLMS
                     if (p.data != null && p.data.Size != 0)
                     {
                         len = p.data.Size - p.data.Position;
-                        if (p.settings.Gateway != null && p.settings.Gateway.PhysicalDeviceAddress != null)
-                        {
-                            if (3 + len + p.settings.Gateway.PhysicalDeviceAddress.Length > p.settings.MaxPduSize)
-                            {
-                                len -= (3 + p.settings.Gateway.PhysicalDeviceAddress.Length);
-                            }
-                            GXByteBuffer tmp = new GXByteBuffer(reply);
-                            reply.Size = 0;
-
-                            if (p.settings.IsServer && p.command != Command.DataNotification &&
-                                p.command != Command.EventNotification && p.command != Command.InformationReport)
-                            {
-                                reply.SetUInt8(Command.GatewayResponse);
-                            }
-                            else
-                            {
-                                reply.SetUInt8(Command.GatewayRequest);
-                            }
-                            reply.SetUInt8(p.settings.Gateway.NetworkId);
-                            reply.SetUInt8((byte)p.settings.Gateway.PhysicalDeviceAddress.Length);
-                            reply.Set(p.settings.Gateway.PhysicalDeviceAddress);
-                            reply.Set(tmp);
-                        }
                         //Get request size can be bigger than PDU size.
                         if ((p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) != 0)
                         {
@@ -1489,7 +1469,10 @@ namespace Gurux.DLMS
                                 {
                                     len = p.settings.MaxPduSize - 7;
                                 }
-                                len -= GetSigningSize(p);
+                                if (len + GetSigningSize(p) > p.settings.MaxPduSize)
+                                {
+                                    len -= GetSigningSize(p);
+                                }
                                 ciphering = false;
                             }
                         }
@@ -1498,18 +1481,14 @@ namespace Gurux.DLMS
                             len = p.settings.MaxPduSize - reply.Size;
                             len -= GetSigningSize(p);
                         }
+                        if (p.settings.Gateway != null && p.settings.Gateway.PhysicalDeviceAddress != null)
+                        {
+                            if (3 + len + p.settings.Gateway.PhysicalDeviceAddress.Length > p.settings.MaxPduSize)
+                            {
+                                len -= (3 + p.settings.Gateway.PhysicalDeviceAddress.Length);
+                            }
+                        }
                         reply.Set(p.data, len);
-                    }
-                    else if ((p.settings.Gateway != null && p.settings.Gateway.PhysicalDeviceAddress != null) &&
-                        !(p.command == Command.GeneralBlockTransfer || (p.multipleBlocks && (p.settings.NegotiatedConformance & Conformance.GeneralBlockTransfer) != 0)))
-                    {
-                        GXByteBuffer tmp = new GXByteBuffer(reply);
-                        reply.Size = 0;
-                        reply.SetUInt8(Command.GatewayRequest);
-                        reply.SetUInt8(p.settings.Gateway.NetworkId);
-                        reply.SetUInt8((byte)p.settings.Gateway.PhysicalDeviceAddress.Length);
-                        reply.Set(p.settings.Gateway.PhysicalDeviceAddress);
-                        reply.Set(tmp);
                     }
                 }
                 if (reply.Size != 0 && p.command != Command.GeneralBlockTransfer && p.settings.CryptoNotifier != null && p.settings.CryptoNotifier.pdu != null)
@@ -1575,16 +1554,17 @@ namespace Gurux.DLMS
                         p.command = Command.GeneralBlockTransfer;
                         p.blockNumberAck = (UInt16)(p.settings.BlockNumberAck + 1);
                     }
-                    if (p.settings.Gateway != null && p.settings.Gateway.PhysicalDeviceAddress != null)
-                    {
-                        GXByteBuffer tmp = new GXByteBuffer(reply);
-                        reply.Size = 0;
-                        reply.SetUInt8(Command.GatewayRequest);
-                        reply.SetUInt8(p.settings.Gateway.NetworkId);
-                        reply.SetUInt8((byte)p.settings.Gateway.PhysicalDeviceAddress.Length);
-                        reply.Set(p.settings.Gateway.PhysicalDeviceAddress);
-                        reply.Set(tmp);
-                    }
+                }
+                if (p.settings.Gateway != null && p.settings.Gateway.PhysicalDeviceAddress != null && p.command != Command.GatewayRequest)
+                {
+                    GXByteBuffer tmp = new GXByteBuffer(reply);
+                    reply.Size = 0;
+                    reply.SetUInt8(Command.GatewayRequest);
+                    reply.SetUInt8(p.settings.Gateway.NetworkId);
+                    reply.SetUInt8((byte)p.settings.Gateway.PhysicalDeviceAddress.Length);
+                    reply.Set(p.settings.Gateway.PhysicalDeviceAddress);
+                    reply.Set(tmp);
+                    p.command = Command.GatewayRequest;
                 }
             }
             if (UseHdlc(p.settings.InterfaceType))
@@ -4576,8 +4556,10 @@ namespace Gurux.DLMS
                         data.Data.Position = pos;
                         throw new Exception("Failed to decrypt the data.");
                     }
-                    if (data.Command == Command.DataNotification
-                        || data.Command == Command.InformationReport)
+                    if (data.Command == Command.DataNotification ||
+                        data.Command == Command.InformationReport ||
+                        data.Command == Command.GatewayRequest ||
+                        data.Command == Command.GatewayResponse)
                     {
                         data.Command = Command.None;
                         --data.Data.Position;

@@ -39,6 +39,7 @@ using Gurux.DLMS.Internal;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Enums;
 using System.Globalization;
+using System.Text;
 
 namespace Gurux.DLMS.Objects
 {
@@ -73,7 +74,9 @@ namespace Gurux.DLMS.Objects
         public GXDLMSAutoAnswer(string ln, ushort sn)
         : base(ObjectType.AutoAnswer, ln, sn)
         {
+            Version = 2;
             ListeningWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
+            AllowedCallers = new List<KeyValuePair<string, CallType>>();
         }
 
         [XmlIgnore()]
@@ -124,12 +127,24 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// Number of rings outside the window defined by ListeningWindow.
+        /// </summary>
+        [XmlIgnore()]
+        public List<KeyValuePair<string, CallType>> AllowedCallers
+        {
+            get;
+            set;
+        }
+
+
+
         /// <inheritdoc cref="GXDLMSObject.GetValues"/>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, Mode, ListeningWindow.ToArray(), Status,
-                              NumberOfCalls, NumberOfRingsInListeningWindow + "/" + NumberOfRingsOutListeningWindow
-                            };
+                              NumberOfCalls, NumberOfRingsInListeningWindow + "/" + NumberOfRingsOutListeningWindow,
+                              AllowedCallers};
         }
 
         #region IGXDLMSBase Members
@@ -168,19 +183,36 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(6);
             }
+            if (Version > 1)
+            {
+                //Allowed callers.
+                if (all || !base.IsRead(7))
+                {
+                    attributes.Add(7);
+                }
+            }
             return attributes.ToArray();
         }
 
         /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
         string[] IGXDLMSBase.GetNames()
         {
+            if (Version > 1)
+            {
+                return new string[] {Internal.GXCommon.GetLogicalNameString(),
+                             "Mode",
+                             "Listening Window",
+                             "Status",
+                             "Number Of Calls",
+                             "Number Of Rings In Listening Window",
+                             "Allowed callers"};
+            }
             return new string[] {Internal.GXCommon.GetLogicalNameString(),
                              "Mode",
                              "Listening Window",
                              "Status",
                              "Number Of Calls",
-                             "Number Of Rings In Listening Window"
-                            };
+                             "Number Of Rings In Listening Window"};
         }
 
         /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
@@ -191,12 +223,16 @@ namespace Gurux.DLMS.Objects
 
         int IGXDLMSBase.GetMaxSupportedVersion()
         {
-            return 0;
+            return 2;
         }
 
 
         int IGXDLMSBase.GetAttributeCount()
         {
+            if (Version > 1)
+            {
+                return 7;
+            }
             return 6;
         }
 
@@ -231,6 +267,13 @@ namespace Gurux.DLMS.Objects
             if (index == 6)
             {
                 return DataType.Array;
+            }
+            if (Version > 1)
+            {
+                if (index == 7)
+                {
+                    return DataType.Array;
+                }
             }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
@@ -282,6 +325,28 @@ namespace Gurux.DLMS.Objects
                 GXCommon.SetData(settings, data, DataType.UInt8, NumberOfRingsOutListeningWindow);
                 return data.Array();
             }
+            if (e.Index == 7)
+            {
+                int cnt = AllowedCallers.Count;
+                GXByteBuffer data = new GXByteBuffer();
+                data.SetUInt8((byte)DataType.Array);
+                //Add count
+                GXCommon.SetObjectCount(cnt, data);
+                if (cnt != 0)
+                {
+                    foreach (var it in AllowedCallers)
+                    {
+                        data.SetUInt8((byte)DataType.Structure);
+                        data.SetUInt8((byte)2); //Count
+                        //Caller_id.
+                        GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it.Key));
+                        //Call type.
+                        GXCommon.SetData(settings, data, DataType.Enum, it.Value);
+                    }
+                }
+                return data.Array();
+            }
+
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
         }
@@ -344,6 +409,28 @@ namespace Gurux.DLMS.Objects
                     NumberOfRingsOutListeningWindow = Convert.ToInt32(arr[1]);
                 }
             }
+            else if (e.Index == 7)
+            {
+                AllowedCallers.Clear();
+                if (e.Value != null)
+                {
+                    foreach (object tmp in (IEnumerable<object>)e.Value)
+                    {
+                        List<object> item;
+                        if (tmp is List<object>)
+                        {
+                            item = (List<object>)tmp;
+                        }
+                        else
+                        {
+                            item = new List<object>((object[])tmp);
+                        }
+                        string callerId = ASCIIEncoding.ASCII.GetString((byte[])item[0]);
+                        CallType callType = (CallType)Convert.ToInt32(item[1]);
+                        AllowedCallers.Add(new KeyValuePair<string, CallType>(callerId, callType));
+                    }
+                }
+            }
             else
             {
                 e.Error = ErrorCode.ReadWriteDenied;
@@ -374,6 +461,16 @@ namespace Gurux.DLMS.Objects
             NumberOfCalls = reader.ReadElementContentAsInt("NumberOfCalls");
             NumberOfRingsInListeningWindow = reader.ReadElementContentAsInt("NumberOfRingsInListeningWindow");
             NumberOfRingsOutListeningWindow = reader.ReadElementContentAsInt("NumberOfRingsOutListeningWindow");
+            if (reader.IsStartElement("AllowedCallers", true))
+            {
+                while (reader.IsStartElement("Item", true))
+                {
+                    string callerId = reader.ReadElementContentAsString("Id");
+                    CallType callType = (CallType)reader.ReadElementContentAsInt("Type");
+                    AllowedCallers.Add(new KeyValuePair<string, CallType>(callerId, callType));
+                }
+                reader.ReadEndElement("AllowedCallers");
+            }
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
@@ -395,6 +492,18 @@ namespace Gurux.DLMS.Objects
             writer.WriteElementString("NumberOfCalls", NumberOfCalls, 5);
             writer.WriteElementString("NumberOfRingsInListeningWindow", NumberOfRingsInListeningWindow, 6);
             writer.WriteElementString("NumberOfRingsOutListeningWindow", NumberOfRingsOutListeningWindow, 6);
+            if (AllowedCallers != null)
+            {
+                writer.WriteStartElement("AllowedCallers", 3);
+                foreach (KeyValuePair<string, CallType> it in AllowedCallers)
+                {
+                    writer.WriteStartElement("Item", 0);
+                    writer.WriteElementString("Id", it.Key, 0);
+                    writer.WriteElementString("Type", (int)it.Value, 0);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

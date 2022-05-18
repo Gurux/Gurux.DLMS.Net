@@ -153,7 +153,7 @@ namespace Gurux.DLMS
             {
                 sb.Append(' ');
             }
-            else
+            else if (offset > 0)
             {
                 sb.Append(' ', 2 * offset);
             }

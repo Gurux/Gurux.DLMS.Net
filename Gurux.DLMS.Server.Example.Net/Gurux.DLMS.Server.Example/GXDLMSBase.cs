@@ -55,6 +55,11 @@ namespace GuruxDLMSServerExample
     class GXDLMSBase : GXDLMSSecureServer
     {
         /// <summary>
+        /// Serial number of the meter.
+        /// </summary>
+        UInt32 serialNumber = 12345678;
+
+        /// <summary>
         /// Is data saved to ring buffer.
         /// </summary>
         bool UseRingBuffer = false;
@@ -73,6 +78,177 @@ namespace GuruxDLMSServerExample
         TraceLevel Trace = TraceLevel.Error;
 
         /// <summary>
+        /// List of connections. This is used to close connection if meter is leave without diconnect.
+        /// </summary>
+        public static Dictionary<object, GXDLMSBase> connections = new Dictionary<object, GXDLMSBase>();
+
+        /// <summary>
+        /// Add low level security object and set parameters.
+        /// </summary>
+        private void AddLowLevelAssociation()
+        {
+            GXDLMSAssociationLogicalName obj = new GXDLMSAssociationLogicalName("0.0.40.0.2.255");
+            obj.ClientSAP = 17;
+            obj.XDLMSContextInfo.MaxSendPduSize = obj.XDLMSContextInfo.MaxReceivePduSize = 1024;
+            byte[] secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
+            obj.Secret = secret;
+            obj.AuthenticationMechanismName.MechanismId = Authentication.Low;
+            // Only get, set, multiple references and parameterized access services
+            // are allowed. https://www.gurux.fi/Gurux.DLMS.Conformance
+            obj.XDLMSContextInfo.Conformance = Conformance.Get | Conformance.MultipleReferences | Conformance.Set | Conformance.SelectiveAccess;
+            Items.Add(obj);
+        }
+
+        private void AddHighLevelAssociation()
+        {
+            GXDLMSAssociationLogicalName obj = new GXDLMSAssociationLogicalName("0.0.40.0.3.255");
+            obj.ClientSAP = 18;
+            obj.XDLMSContextInfo.MaxSendPduSize = obj.XDLMSContextInfo.MaxReceivePduSize = 1024;
+            byte[] secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
+             obj.Secret = secret;
+            obj.AuthenticationMechanismName.MechanismId = Authentication.High;
+            // Add supported services.
+            // https://www.gurux.fi/Gurux.DLMS.Conformance
+            obj.XDLMSContextInfo.Conformance = GXDLMSClient.GetInitialConformance(true);
+            Items.Add(obj);
+            //Update access modes so user can invoke all methods and read/write values as default.
+            if (obj.Version < 3)
+            {
+                obj.SetDefaultAccess(AccessMode.ReadWrite);
+                obj.SetDefaultMethodAccess(MethodAccessMode.Access);
+            }
+            else
+            {
+                obj.SetDefaultAccess3(AccessMode3.Read | AccessMode3.Write);
+                obj.SetDefaultMethodAccess3(MethodAccessMode3.Access);
+            }
+        }
+
+        private void AddHighLevelAssociationMd5()
+        {
+            GXDLMSAssociationLogicalName obj = new GXDLMSAssociationLogicalName("0.0.40.0.4.255");
+            obj.ClientSAP = 19;
+            obj.XDLMSContextInfo.MaxSendPduSize = obj.XDLMSContextInfo.MaxReceivePduSize = 1024;
+            byte[] secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
+             obj.Secret = secret;
+            obj.AuthenticationMechanismName.MechanismId = Authentication.HighMD5;
+            // Add supported services.
+            // https://www.gurux.fi/Gurux.DLMS.Conformance
+            obj.XDLMSContextInfo.Conformance = GXDLMSClient.GetInitialConformance(true);
+            Items.Add(obj);
+            //Update access modes so user can invoke all methods and read/write values as default.
+            if (obj.Version < 3)
+            {
+                obj.SetDefaultAccess(AccessMode.ReadWrite);
+                obj.SetDefaultMethodAccess(MethodAccessMode.Access);
+            }
+            else
+            {
+                obj.SetDefaultAccess3(AccessMode3.Read | AccessMode3.Write);
+                obj.SetDefaultMethodAccess3(MethodAccessMode3.Access);
+            }
+        }
+
+        private void AddHighLevelAssociationSha1()
+        {
+            GXDLMSAssociationLogicalName obj = new GXDLMSAssociationLogicalName("0.0.40.0.5.255");
+            obj.ClientSAP = 20;
+            obj.XDLMSContextInfo.MaxSendPduSize = obj.XDLMSContextInfo.MaxReceivePduSize = 1024;
+            byte[] secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
+            obj.Secret = secret;
+            obj.AuthenticationMechanismName.MechanismId = Authentication.HighSHA1;
+            // Add supported services.
+            // https://www.gurux.fi/Gurux.DLMS.Conformance
+            obj.XDLMSContextInfo.Conformance = GXDLMSClient.GetInitialConformance(true);
+            Items.Add(obj);
+            //Update access modes so user can invoke all methods and read/write values as default.
+            if (obj.Version < 3)
+            {
+                obj.SetDefaultAccess(AccessMode.ReadWrite);
+                obj.SetDefaultMethodAccess(MethodAccessMode.Access);
+            }
+            else
+            {
+                obj.SetDefaultAccess3(AccessMode3.Read | AccessMode3.Write);
+                obj.SetDefaultMethodAccess3(MethodAccessMode3.Access);
+            }
+        }
+
+        private void AddHighLevelAssociationGmac()
+        {
+            GXDLMSAssociationLogicalName obj = new GXDLMSAssociationLogicalName("0.0.40.0.6.255");
+            obj.ClientSAP = 21;
+            obj.XDLMSContextInfo.MaxSendPduSize = obj.XDLMSContextInfo.MaxReceivePduSize = 1024;
+            obj.AuthenticationMechanismName.MechanismId = Authentication.HighGMAC;
+            // Add supported services.
+            // https://www.gurux.fi/Gurux.DLMS.Conformance
+            obj.XDLMSContextInfo.Conformance = GXDLMSClient.GetInitialConformance(true);
+            Items.Add(obj);
+        }
+
+        private void AddHighLevelAssociationSha256()
+        {
+            GXDLMSAssociationLogicalName obj = new GXDLMSAssociationLogicalName("0.0.40.0.7.255");
+            byte[] secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
+             obj.Secret = secret;
+            obj.ClientSAP = 22;
+            obj.XDLMSContextInfo.MaxSendPduSize = obj.XDLMSContextInfo.MaxReceivePduSize = 1024;
+            obj.AuthenticationMechanismName.MechanismId = Authentication.HighSHA256;
+            // Add supported services.
+            // https://www.gurux.fi/Gurux.DLMS.Conformance
+            obj.XDLMSContextInfo.Conformance = GXDLMSClient.GetInitialConformance(true);
+            Items.Add(obj);
+        }
+
+        private void AddHighLevelAssociationEcdsa()
+        {
+            GXDLMSAssociationLogicalName obj = new GXDLMSAssociationLogicalName("0.0.40.0.8.255");
+            obj.ClientSAP = 23;
+            obj.XDLMSContextInfo.MaxSendPduSize = obj.XDLMSContextInfo.MaxReceivePduSize = 1024;
+            obj.AuthenticationMechanismName.MechanismId = Authentication.HighECDSA;
+            // Add supported services.
+            // https://www.gurux.fi/Gurux.DLMS.Conformance
+            obj.XDLMSContextInfo.Conformance = GXDLMSClient.GetInitialConformance(true);
+            Items.Add(obj);
+            GXDLMSSecuritySetup s = new GXDLMSSecuritySetup("0.0.43.0.7.255");
+            s.SecuritySuite = SecuritySuite.Suite1;
+            obj.SecuritySetupReference = s.LogicalName;
+            s.ServerSystemTitle = Ciphering.SystemTitle;
+            Items.Add(s);
+        }
+
+        /*
+         * Add ciphered High level association.
+         */
+        private void AddSecuredHighLevelAssociation()
+        {
+            GXDLMSAssociationLogicalName obj = new GXDLMSAssociationLogicalName("0.0.40.0.9.255");
+            obj.ClientSAP = 24;
+            obj.XDLMSContextInfo.MaxSendPduSize = obj.XDLMSContextInfo.MaxReceivePduSize = 1024;
+            byte[] secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
+             obj.Secret = secret;
+            obj.AuthenticationMechanismName.MechanismId = Authentication.High;
+            // Add supported services.
+            // https://www.gurux.fi/Gurux.DLMS.Conformance
+            obj.XDLMSContextInfo.Conformance = GXDLMSClient.GetInitialConformance(true);
+            Items.Add(obj);
+            GXDLMSSecuritySetup s = new GXDLMSSecuritySetup("0.0.43.0.8.255");
+            s.SecuritySuite = SecuritySuite.Suite1;
+            obj.SecuritySetupReference = s.LogicalName;
+            s.ServerSystemTitle = Ciphering.SystemTitle;
+            obj.ApplicationContextName.ContextId = ApplicationContextName.LogicalNameWithCiphering;
+            Items.Add(s);
+            // Add invocation counter.
+            GXDLMSData d = new GXDLMSData("0.0.43.1.8.255");
+            d.Value = 0;
+            d.SetDataType(2, DataType.UInt32);
+            Items.Add(d);
+            //Add invocation counter for the public association as well so it can be read.
+            GXDLMSAssociationLogicalName publicAssociation = Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.1.255") as GXDLMSAssociationLogicalName;
+            publicAssociation.ObjectList.Add(d);
+        }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="ln">Logical name settings.</param>
@@ -80,6 +256,11 @@ namespace GuruxDLMSServerExample
         public GXDLMSBase(GXDLMSAssociationLogicalName ln, GXDLMSHdlcSetup hdlc)
         : base(ln, hdlc)
         {
+            Conformance = Conformance.None;
+            ln.LogicalName = "0.0.40.0.1.255";
+            ln.ClientSAP = 16;
+            // Only get is allowed.
+            ln.XDLMSContextInfo.Conformance = Conformance.Get;
             PushClientAddress = 64;
             MaxReceivePDUSize = 1024;
             ln.XDLMSContextInfo.MaxReceivePduSize = ln.XDLMSContextInfo.MaxSendPduSize = 1024;
@@ -87,13 +268,32 @@ namespace GuruxDLMSServerExample
             hdlc.MaximumInfoLengthReceive = hdlc.MaximumInfoLengthTransmit = 2030;
             //Set max TX and RX window sizes for the HDLC frame.
             hdlc.WindowSizeReceive = hdlc.WindowSizeTransmit = 3;
-            //Default secret.
-            ln.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
-            //Add security setup object.
-            ln.SecuritySetupReference = "0.0.43.0.0.255";
-            GXDLMSSecuritySetup s = new GXDLMSSecuritySetup("0.0.43.0.0.255");
-            s.ServerSystemTitle = Ciphering.SystemTitle;
-            Items.Add(s);
+            // Add only three object for this association.
+            ln.ObjectList.Clear();
+            ln.ObjectList.Add(ln);
+            //Add other objects.
+            AddObjects();
+            // Add Logical Device Name
+            GXDLMSObject obj = Items.FindByLN(ObjectType.Data, "0.0.42.0.0.255");
+            if (obj != null)
+            {
+                ln.ObjectList.Add(obj);
+            }
+            // Add invocation counter.
+            obj = Items.FindByLN(ObjectType.Data, "0.0.43.1.0.255");
+            if (obj != null)
+            {
+                ln.ObjectList.Add(obj);
+            }
+            //Update access modes so user can only read objects as default.
+            if (ln.Version < 3)
+            {
+                ln.SetDefaultAccess(AccessMode.Read);
+            }
+            else
+            {
+                ln.SetDefaultAccess3(AccessMode3.Read);
+            }
         }
 
         /// <summary>
@@ -110,9 +310,8 @@ namespace GuruxDLMSServerExample
             sn.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
             //Add security setup object.
             sn.SecuritySetupReference = "0.0.43.0.0.255";
-            GXDLMSSecuritySetup s = new GXDLMSSecuritySetup("0.0.43.0.0.255");
-            s.ServerSystemTitle = this.Ciphering.SystemTitle;
-            Items.Add(s);
+            //Add other objects.
+            AddObjects();
         }
 
         /// <summary>
@@ -123,16 +322,26 @@ namespace GuruxDLMSServerExample
         public GXDLMSBase(GXDLMSAssociationLogicalName ln, GXDLMSTcpUdpSetup wrapper)
         : base(ln, wrapper, "GRX", 12345678)
         {
+            Conformance = Conformance.None;
+            ln.LogicalName = "0.0.40.0.1.255";
+            ln.ClientSAP = 16;
             PushClientAddress = 64;
             MaxReceivePDUSize = 1024;
+            ln.XDLMSContextInfo.Conformance = Conformance.Get;
             ln.XDLMSContextInfo.MaxReceivePduSize = ln.XDLMSContextInfo.MaxSendPduSize = 1024;
             //Default secret.
             ln.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
-            //Add security setup object.
-            ln.SecuritySetupReference = "0.0.43.0.0.255";
-            GXDLMSSecuritySetup s = new GXDLMSSecuritySetup("0.0.43.0.0.255");
-            s.ServerSystemTitle = this.Ciphering.SystemTitle;
-            Items.Add(s);
+            //Add other objects.
+            AddObjects();
+            //Update access modes so user can only read objects as default.
+            if (ln.Version < 3)
+            {
+                ln.SetDefaultAccess(AccessMode.Read);
+            }
+            else
+            {
+                ln.SetDefaultAccess3(AccessMode3.Read);
+            }
         }
 
 
@@ -148,11 +357,8 @@ namespace GuruxDLMSServerExample
             MaxReceivePDUSize = 1024;
             //Default secret.
             sn.Secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
-            //Add security setup object.
-            sn.SecuritySetupReference = "0.0.43.0.0.255";
-            GXDLMSSecuritySetup s = new GXDLMSSecuritySetup("0.0.43.0.0.255");
-            s.ServerSystemTitle = this.Ciphering.SystemTitle;
-            Items.Add(s);
+            //Add other objects.
+            AddObjects();
         }
 
         Gurux.Common.IGXMedia Media = null;
@@ -207,21 +413,22 @@ namespace GuruxDLMSServerExample
             Items.Add(d);
         }
 
-        void Init()
+        private void AddObjects()
         {
-            //KEK is used when authentication keys are updated.
-            Kek = ASCIIEncoding.ASCII.GetBytes("1111111111111111");
+            if (UseLogicalNameReferencing)
+            {
+                // Add all possible associations for demo purposes.
+                AddLowLevelAssociation();
+                AddHighLevelAssociation();
+                AddHighLevelAssociationMd5();
+                AddHighLevelAssociationSha1();
+                AddHighLevelAssociationGmac();
+                AddHighLevelAssociationSha256();
+                AddHighLevelAssociationEcdsa();
+                AddSecuredHighLevelAssociation();
+            }
 
-            //If pre-established connections are used.
-            ClientSystemTitle = ASCIIEncoding.ASCII.GetBytes("ABCDEFGH");
-            Ciphering.Security = Security.AuthenticationEncryption;
-            this.Conformance |= Conformance.GeneralBlockTransfer;
 
-            Media.OnReceived += new Gurux.Common.ReceivedEventHandler(OnReceived);
-            Media.OnClientConnected += new Gurux.Common.ClientConnectedEventHandler(OnClientConnected);
-            Media.OnClientDisconnected += new Gurux.Common.ClientDisconnectedEventHandler(OnClientDisconnected);
-            Media.OnError += new Gurux.Common.ErrorEventHandler(OnError);
-            Media.Open();
             ///////////////////////////////////////////////////////////////////////
             //Add Logical Device Name. 123456 is meter serial number.
             GXDLMSData ldn = AddLogicalDeviceName();
@@ -476,6 +683,23 @@ namespace GuruxDLMSServerExample
             ///////////////////////////////////////////////////////////////////////
             //Server must initialize after all objects are added.
             Initialize();
+        }
+
+        void Init()
+        {
+            //KEK is used when authentication keys are updated.
+            Kek = ASCIIEncoding.ASCII.GetBytes("1111111111111111");
+
+            //If pre-established connections are used.
+            ClientSystemTitle = ASCIIEncoding.ASCII.GetBytes("ABCDEFGH");
+            Ciphering.Security = Security.AuthenticationEncryption;
+            this.Conformance |= Conformance.GeneralBlockTransfer;
+
+            Media.OnReceived += new Gurux.Common.ReceivedEventHandler(OnReceived);
+            Media.OnClientConnected += new Gurux.Common.ClientConnectedEventHandler(OnClientConnected);
+            Media.OnClientDisconnected += new Gurux.Common.ClientDisconnectedEventHandler(OnClientDisconnected);
+            Media.OnError += new Gurux.Common.ErrorEventHandler(OnError);
+            Media.Open();
         }
 
         public override void Close()
@@ -1184,18 +1408,64 @@ namespace GuruxDLMSServerExample
         /// </summary>
         protected override bool IsTarget(int serverAddress, int clientAddress)
         {
-            AssignedAssociation = null;
-            var list = Items.GetObjects(ObjectType.AssociationLogicalName);
-            if (list.Count == 1)
+            //Only one connection per meter at the time is allowed.
+            if (AssignedAssociation != null)
             {
-                AssignedAssociation = (list[0] as GXDLMSAssociationLogicalName);
-                //Accept all clients if there is only one association view.
-                AssignedAssociation.ClientSAP = (byte)clientAddress;
-                AssignedAssociation.ServerSAP = (byte)serverAddress;
+                return false;
             }
-            else
+            bool ret = false;
+            //Check HDLC station address if it's used.
+            if (InterfaceType == InterfaceType.HDLC &&
+                    Hdlc != null && Hdlc.DeviceAddress != 0)
             {
-                foreach (GXDLMSAssociationLogicalName it in list)
+                ret = Hdlc.DeviceAddress == serverAddress;
+            }
+            // Check server address using serial number.
+            if (!((serverAddress & 0x3FFF) == 0x3FFF || (serverAddress & 0x7F) == 0x7F ||
+                (serverAddress & 0x3FFF) == serialNumber % 10000 + 1000))
+            {
+                // Find address from the SAP table.
+                GXDLMSObjectCollection saps = Items.GetObjects(ObjectType.SapAssignment);
+                if (saps.Count != 0)
+                {
+                    foreach (GXDLMSSapAssignment sap in saps)
+                    {
+                        if (sap.SapAssignmentList.Count == 0)
+                        {
+                            ret = true;
+                            break;
+                        }
+                        foreach (KeyValuePair<UInt16, string> e in sap.SapAssignmentList)
+                        {
+                            // Check server address with two bytes.
+                            if ((serverAddress & 0xFFFF0000) == 0 && (serverAddress & 0x7FFF) == e.Key)
+                            {
+                                ret = true;
+                                break;
+                            }
+                            // Check server address with one byte.
+                            if ((serverAddress & 0xFFFFFF00) == 0 && (serverAddress & 0x7F) == e.Key)
+                            {
+                                ret = true;
+                                break;
+                            }
+                        }
+                        if (ret)
+                        {
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    //Accept all server addresses if there is no SAP table available.
+                    ret = true;
+                }
+            }
+            if (ret)
+            {
+                AssignedAssociation = null;
+                foreach (GXDLMSAssociationLogicalName it in Items.GetObjects(ObjectType.AssociationLogicalName))
                 {
                     if (it.ClientSAP == clientAddress)
                     {
@@ -1204,7 +1474,7 @@ namespace GuruxDLMSServerExample
                     }
                 }
             }
-            return true;
+            return ret;
         }
 
         /// <summary>
@@ -1212,42 +1482,26 @@ namespace GuruxDLMSServerExample
         /// </summary>
         protected override AccessMode3 GetAttributeAccess3(ValueEventArgs arg)
         {
-            AccessMode3 ret = AccessMode3.NoAccess;
-            AccessMode am = GetAttributeAccess(arg);
-            if ((am & AccessMode.Read) != 0)
+            if (AssignedAssociation == null)
             {
-                ret = AccessMode3.Read;
+                return arg.Target.GetAccess3(arg.Index);
             }
-            if ((am & AccessMode.Write) != 0)
-            {
-                ret |= AccessMode3.Write;
-            }
-            return ret;
+            return AssignedAssociation.GetAccess3(arg.Target, arg.Index);
         }
 
         protected override AccessMode GetAttributeAccess(ValueEventArgs arg)
         {
-            //Only read is allowed for register.
-            if (arg.Target is GXDLMSRegister)
+            if (AssignedAssociation == null)
+            {
+                return arg.Target.GetAccess(arg.Index);
+            }
+            //Only read is allowed for None or Low authentications.
+            if (AssignedAssociation.AuthenticationMechanismName.MechanismId == Authentication.None ||
+                AssignedAssociation.AuthenticationMechanismName.MechanismId == Authentication.Low)
             {
                 return AccessMode.Read;
             }
-            //Only read is allowed
-            if (arg.Settings.Authentication == Authentication.None)
-            {
-                return AccessMode.Read;
-            }
-            //Only clock write is allowed.
-            if (arg.Settings.Authentication == Authentication.Low)
-            {
-                if (arg.Target is GXDLMSClock)
-                {
-                    return AccessMode.ReadWrite;
-                }
-                return AccessMode.Read;
-            }
-            //All write are allowed.
-            return AccessMode.ReadWrite;
+            return AssignedAssociation.GetAccess(arg.Target, arg.Index);
         }
 
         /// <summary>
@@ -1257,21 +1511,18 @@ namespace GuruxDLMSServerExample
         /// <returns>Method access mode</returns>
         protected override MethodAccessMode GetMethodAccess(ValueEventArgs arg)
         {
-            //Methods are not allowed.
-            if (arg.Settings.Authentication == Authentication.None)
+            //Invoke is called when high level authentication is used.
+            if (AssignedAssociation == null)
+            {
+                return arg.Target.GetMethodAccess(arg.Index);
+            }
+            //Actions are not allowed for None or Low authentications.
+            if (AssignedAssociation.AuthenticationMechanismName.MechanismId == Authentication.None ||
+                AssignedAssociation.AuthenticationMechanismName.MechanismId == Authentication.Low)
             {
                 return MethodAccessMode.NoAccess;
             }
-            //Only clock and Profile generic methods are allowed.
-            if (arg.Settings.Authentication == Authentication.Low)
-            {
-                if (arg.Target is GXDLMSClock || arg.Target is GXDLMSProfileGeneric)
-                {
-                    return MethodAccessMode.Access;
-                }
-                return MethodAccessMode.NoAccess;
-            }
-            return MethodAccessMode.Access;
+            return AssignedAssociation.GetMethodAccess(arg.Target, arg.Index);
         }
 
         /// <summary>
@@ -1281,13 +1532,18 @@ namespace GuruxDLMSServerExample
         /// <returns>Method access mode</returns>
         protected override MethodAccessMode3 GetMethodAccess3(ValueEventArgs arg)
         {
-            MethodAccessMode3 ret = MethodAccessMode3.NoAccess;
-            MethodAccessMode m = GetMethodAccess(arg);
-            if ((m & MethodAccessMode.Access) != 0)
+            //Invoke is called when high level authentication is used.
+            if (AssignedAssociation == null)
             {
-                ret = MethodAccessMode3.Access;
+                return arg.Target.GetMethodAccess3(arg.Index);
             }
-            return ret;
+            //Actions are not allowed for None or Low authentications.
+            if (AssignedAssociation.AuthenticationMechanismName.MechanismId == Authentication.None ||
+                AssignedAssociation.AuthenticationMechanismName.MechanismId == Authentication.Low)
+            {
+                return MethodAccessMode3.NoAccess;
+            }
+            return AssignedAssociation.GetMethodAccess3(arg.Target, arg.Index);
         }
 
         /// <summary>
@@ -1301,7 +1557,11 @@ namespace GuruxDLMSServerExample
                 byte[] expected;
                 if (UseLogicalNameReferencing)
                 {
-                    GXDLMSAssociationLogicalName ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
+                    GXDLMSAssociationLogicalName ln = AssignedAssociation;
+                    if (ln == null)
+                    {
+                        ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
+                    }
                     ln.AuthenticationMechanismName.MechanismId = authentication;
                     ln.AssociationStatus = AssociationStatus.Associated;
                     expected = ln.Secret;
@@ -1319,9 +1579,16 @@ namespace GuruxDLMSServerExample
             }
             if (UseLogicalNameReferencing)
             {
-                GXDLMSAssociationLogicalName ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
-                ln.AuthenticationMechanismName.MechanismId = authentication;
-                ln.AssociationStatus = AssociationStatus.AssociationPending;
+                GXDLMSAssociationLogicalName ln = AssignedAssociation;
+                if (ln == null)
+                {
+                    ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
+                }
+                if (ln != null)
+                {
+                    ln.AuthenticationMechanismName.MechanismId = authentication;
+                    ln.AssociationStatus = AssociationStatus.AssociationPending;
+                }
             }
             //Other authentication levels are check later.
             return SourceDiagnostic.None;
@@ -1351,6 +1618,10 @@ namespace GuruxDLMSServerExample
             {
                 Console.WriteLine("Client Disconnected.");
             }
+            if (connections.ContainsKey(e.Info))
+            {
+                connections.Remove(e.Info);
+            }
         }
 
         /// <summary>
@@ -1360,6 +1631,12 @@ namespace GuruxDLMSServerExample
         /// <param name="e"></param>
         void OnClientConnected(object sender, Gurux.Common.ConnectionEventArgs e)
         {
+            if (connections.ContainsKey(e.Info))
+            {
+                connections[e.Info].Reset();
+            }
+            connections[e.Info] = this;
+
             //Reset server settings when connection is established.
             //This is mandatory if Wrapper is used.
             this.Reset();

@@ -475,8 +475,14 @@ namespace Gurux.DLMS.Secure
             {
                 if (!(p.Xml != null && (kp.Value == null || kp.Key == null)))
                 {
-                    System.Diagnostics.Debug.WriteLine("Private signing key: " + kp.Value.ToHex());
-                    System.Diagnostics.Debug.WriteLine("Public signing key: " + kp.Key.ToHex());
+                    if (kp.Value != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Private signing key: " + kp.Value.ToHex());
+                    }
+                    if (kp.Key != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Public signing key: " + kp.Key.ToHex());
+                    }
                 }
             }
             else if (value == (int)KeyAgreementScheme.OnePassDiffieHellman)
@@ -612,6 +618,10 @@ namespace Gurux.DLMS.Secure
                 signedData.Set(data.Data, 1, contentStart - 1);
                 signedData.Set(p.CipheredContent);
                 len = GXCommon.GetObjectCount(data);
+                if (len != 64 && len != 96)
+                {
+                    throw new ArgumentException("Invalid signing.");
+                }
                 p.Signature = new byte[len];
                 data.Get(p.Signature);
                 System.Diagnostics.Debug.WriteLine("Verifying signature for sender:" + GXCommon.ToHex(p.SystemTitle, true));

@@ -1302,7 +1302,14 @@ namespace Gurux.DLMS
                     {
                         dataReceived = DateTime.Now;
                         receivedData.Size = 0;
-                        sr.Reply = ReportError(info.Command, ErrorCode.HardwareFault);
+                        if (info.Command == Command.GeneralSigning)
+                        {
+                            sr.Reply = ReportExceptionResponse(new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed, ExceptionServiceError.DecipheringError, 0));
+                        }
+                        else
+                        {
+                            sr.Reply = ReportError(info.Command, ErrorCode.HardwareFault);
+                        }
                         info.Clear();
                         return;
                     }
@@ -1322,15 +1329,6 @@ namespace Gurux.DLMS
                             sr.Reply = GXDLMS.GetHdlcFrame(Settings, (byte)Command.DisconnectMode, replyData);
                         }
                         info.Clear();
-                        return;
-                    }
-                    //If data is send using GW.
-                    if (info.Gateway != null)
-                    {
-                        sr.Gateway = info.Gateway;
-                        sr.Data = info.Data.Array();
-                        info.Command = Command.None;
-                        info.Data.Clear();
                         return;
                     }
                     if ((first || info.Command == Command.Snrm ||
@@ -1504,7 +1502,10 @@ namespace Gurux.DLMS
             switch (cmd)
             {
                 case Command.AccessRequest:
-                    GXDLMSLNCommandHandler.HandleAccessRequest(Settings, this, data, replyData, null, cipheredCommand);
+                    if (data.Size != 0)
+                    {
+                        GXDLMSLNCommandHandler.HandleAccessRequest(Settings, this, data, replyData, null, cipheredCommand);
+                    }
                     break;
                 case Command.SetRequest:
                     GXDLMSLNCommandHandler.HandleSetRequest(Settings, this, data, replyData, null, cipheredCommand);
@@ -1928,7 +1929,15 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        ret = ValidateAuthentication(Settings.Authentication, Settings.Password);
+                        if (AssignedAssociation != null &&
+                            AssignedAssociation.AuthenticationMechanismName.MechanismId != Settings.Authentication)
+                        {
+                                ret = SourceDiagnostic.ApplicationContextNameNotSupported;
+                        }
+                        else
+                        {
+                            ret = ValidateAuthentication(Settings.Authentication, Settings.Password);
+                        }
                         if ((SourceDiagnostic)ret != SourceDiagnostic.None)
                         {
                             result = AssociationResult.PermanentRejected;
