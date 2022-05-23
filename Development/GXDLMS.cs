@@ -4053,6 +4053,11 @@ namespace Gurux.DLMS
                     {
                         reply.ReadPosition = reply.Data.Position;
                         GetValueFromData(settings, reply);
+                        if (reply.Value == null)
+                        {
+                            // Increase read position if data is null. This is a special case.
+                            ++reply.ReadPosition;
+                        }
                         reply.Data.Position = reply.ReadPosition;
                         values.Add(reply.Value);
                         reply.Value = null;
