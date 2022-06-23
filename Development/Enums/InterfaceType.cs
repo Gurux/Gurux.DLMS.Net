@@ -103,6 +103,11 @@ namespace Gurux.DLMS.Enums
         /// EN 13757-2 wired (twisted pair based) M-Bus scheme is used.
         /// </summary>
         [XmlEnum("10")]
-        WiredMBus
+        WiredMBus,
+        /// <summary>
+        /// SMS short wrapper scheme is used.
+        /// </summary>
+        [XmlEnum("11")]
+        SMS
     }
 }

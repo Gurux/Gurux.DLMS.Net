@@ -21,9 +21,8 @@ namespace Gurux.DLMS.XmlClient
         /// <summary>
         /// Handle meter reply.
         /// </summary>
-        /// <param name="item">Command to sent.</param>
         /// <param name="reply">Received reply.</param>
-        static void HandleReply(GXDLMSXmlPdu item, GXReplyData reply)
+        static void HandleReply(GXReplyData reply)
         {
             if (reply.Value is byte[])
             {
@@ -54,21 +53,6 @@ namespace Gurux.DLMS.XmlClient
                 //Initialize connection settings.
                 if (settings.media is GXSerial)
                 {
-                    GXSerial serial = settings.media as GXSerial;
-                    if (settings.iec)
-                    {
-                        serial.BaudRate = 300;
-                        serial.DataBits = 7;
-                        serial.Parity = System.IO.Ports.Parity.Even;
-                        serial.StopBits = System.IO.Ports.StopBits.One;
-                    }
-                    else
-                    {
-                        serial.BaudRate = 9600;
-                        serial.DataBits = 8;
-                        serial.Parity = System.IO.Ports.Parity.None;
-                        serial.StopBits = System.IO.Ports.StopBits.One;
-                    }
                 }
                 else if (settings.media is GXNet)
                 {
@@ -155,7 +139,7 @@ namespace Gurux.DLMS.XmlClient
                             if (it.IsRequest())
                             {
                                 reader.ReadDataBlock(settings.client.PduToMessages(it), reply);
-                                HandleReply(it, reply);
+                                HandleReply(reply);
                             }
                         }
                     }

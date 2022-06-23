@@ -49,7 +49,6 @@ namespace Gurux.DLMS.XmlClient
         public string path = null;
         public IGXMedia media = null;
         public TraceLevel trace = TraceLevel.Info;
-        public bool iec = false;
         public GXDLMSXmlClient client = new GXDLMSXmlClient(TranslatorOutputType.SimpleXml);
         // Invocation counter (frame counter).
         public string invocationCounter = null;
@@ -60,8 +59,11 @@ namespace Gurux.DLMS.XmlClient
 
         public static int GetParameters(string[] args, Settings settings)
         {
+            //Has user give the custom serial port settings or are the default values used in mode E.
+            bool modeEDefaultValues = true;
             string[] tmp;
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:iIt:a:wP:g:S:C:n:v:o:T:A:B:D:d:l:x:F:");
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:P:g:S:C:n:v:o:T:A:B:D:d:l:x:F:");
+            GXSerial serial;
             GXNet net = null;
             foreach (GXCmdParameter it in parameters)
             {
@@ -70,8 +72,25 @@ namespace Gurux.DLMS.XmlClient
                     case 'x':
                         settings.path = it.Value;
                         break;
-                    case 'w':
-                        settings.client.InterfaceType = InterfaceType.WRAPPER;
+                    case 'i':
+                        try
+                        {
+                            settings.client.InterfaceType = (InterfaceType)Enum.Parse(typeof(InterfaceType), it.Value);
+                            settings.client.Plc.Reset();
+                            if (modeEDefaultValues && settings.client.InterfaceType == InterfaceType.HdlcWithModeE &&
+                                settings.media is GXSerial)
+                            {
+                                serial = settings.media as GXSerial;
+                                serial.BaudRate = 300;
+                                serial.DataBits = 7;
+                                serial.Parity = Parity.Even;
+                                serial.StopBits = StopBits.One;
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            throw new ArgumentException("Invalid interface type option. (HDLC, WRAPPER, HdlcWithModeE, Plc, PlcHdlc)");
+                        }
                         break;
                     case 'r':
                         if (string.Compare(it.Value, "sn", true) == 0)
@@ -119,10 +138,6 @@ namespace Gurux.DLMS.XmlClient
                     case 'P'://Password
                         settings.client.Password = ASCIIEncoding.ASCII.GetBytes(it.Value);
                         break;
-                    case 'i':
-                        //IEC.
-                        settings.iec = true;
-                        break;
                     case 'I':
                         //AutoIncreaseInvokeID.
                         settings.client.AutoIncreaseInvokeID = true;
@@ -145,11 +160,12 @@ namespace Gurux.DLMS.XmlClient
                         break;
                     case 'S'://Serial Port
                         settings.media = new GXSerial();
-                        GXSerial serial = settings.media as GXSerial;
+                        serial = settings.media as GXSerial;
                         tmp = it.Value.Split(':');
                         serial.PortName = tmp[0];
                         if (tmp.Length > 1)
                         {
+                            modeEDefaultValues = false;
                             serial.BaudRate = int.Parse(tmp[1]);
                             serial.DataBits = int.Parse(tmp[2].Substring(0, 1));
                             serial.Parity = (Parity)Enum.Parse(typeof(Parity), tmp[2].Substring(1, tmp[2].Length - 2));
@@ -157,10 +173,20 @@ namespace Gurux.DLMS.XmlClient
                         }
                         else
                         {
-                            serial.BaudRate = 9600;
-                            serial.DataBits = 8;
-                            serial.Parity = Parity.None;
-                            serial.StopBits = StopBits.One;
+                            if (settings.client.InterfaceType == InterfaceType.HdlcWithModeE)
+                            {
+                                serial.BaudRate = 300;
+                                serial.DataBits = 7;
+                                serial.Parity = Parity.Even;
+                                serial.StopBits = StopBits.One;
+                            }
+                            else
+                            {
+                                serial.BaudRate = 9600;
+                                serial.DataBits = 8;
+                                serial.Parity = Parity.None;
+                                serial.StopBits = StopBits.One;
+                            }
                         }
                         break;
                     case 'a':
@@ -315,8 +341,8 @@ namespace Gurux.DLMS.XmlClient
 
         static void ShowHelp()
         {
-            Console.WriteLine("GuruxDlmsSample reads data from the DLMS/COSEM device.");
-            Console.WriteLine("GuruxDlmsSample -h [Meter IP Address] -p [Meter Port No] -c 16 -s 1 -r SN");
+            Console.WriteLine("Gurux.DLMS.XmlClient reads data from the DLMS/COSEM device.");
+            Console.WriteLine("Gurux.DLMS.XmlClient -h [Meter IP Address] -p [Meter Port No] -c 16 -s 1 -r SN");
             Console.WriteLine(" -h \t host name or IP address.");
             Console.WriteLine(" -p \t port number or name (Example: 1000).");
             Console.WriteLine(" -S [COM1:9600:8None1]\t serial port.");
@@ -344,11 +370,11 @@ namespace Gurux.DLMS.XmlClient
             Console.WriteLine(" -x input XML file.");
             Console.WriteLine("Example:");
             Console.WriteLine("Read LG device using TCP/IP connection.");
-            Console.WriteLine("GuruxDlmsSample -r SN -c 16 -s 1 -h [Meter IP Address] -p [Meter Port No]");
+            Console.WriteLine("Gurux.DLMS.XmlClient -r SN -c 16 -s 1 -h [Meter IP Address] -p [Meter Port No]");
             Console.WriteLine("Read LG device using serial port connection.");
-            Console.WriteLine("GuruxDlmsSample -r SN -c 16 -s 1 -sp COM1 -i");
+            Console.WriteLine("Gurux.DLMS.XmlClient -r SN -c 16 -s 1 -sp COM1 -i");
             Console.WriteLine("Read Indian device using serial port connection.");
-            Console.WriteLine("GuruxDlmsSample -S COM1 -c 16 -s 1 -a Low -P [password]");
+            Console.WriteLine("Gurux.DLMS.XmlClient -S COM1 -c 16 -s 1 -a Low -P [password]");
         }
     }
 }

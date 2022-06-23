@@ -730,6 +730,25 @@ namespace Gurux.DLMS
                             break;
                         }
                     }
+                    else if (msg.InterfaceType == InterfaceType.SMS && data.Available > 2)
+                    {
+                        pos = data.Position;
+                        found = GXDLMS.GetData(settings, data, reply, null);
+                        if (found)
+                        {
+                            //If client and server address are used as a filter.
+                            if ((clientAddress == 0 || clientAddress == reply.SourceAddress || clientAddress == reply.TargetAddress) &&
+                                (serverAddress == 0 || serverAddress == reply.TargetAddress || serverAddress == reply.SourceAddress))
+                            {
+                                data.Position = pos;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            data.Position = pos;
+                        }
+                    }
                     ++data.Position;
                 }
             }
@@ -1679,6 +1698,40 @@ namespace Gurux.DLMS
                     if (!PduOnly)
                     {
                         xml.AppendLine("</WirelessMBus>");
+                    }
+                    UpdateAddress(settings, msg);
+                    msg.Xml = xml.sb.ToString();
+                    return;
+                }
+                //If SMS.
+                else if (msg.InterfaceType == InterfaceType.SMS && msg.Message.Available > 2)
+                {
+                    msg.InterfaceType = settings.InterfaceType = InterfaceType.SMS;
+                    GXDLMS.GetData(settings, msg.Message, data, null);
+                    msg.MoreData = data.MoreData;
+                    msg.SourceAddress = data.SourceAddress;
+                    msg.TargetAddress = data.TargetAddress;
+                    string pdu = PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg);
+                    if (!PduOnly)
+                    {
+                        xml.AppendLine("<SMS len=\"" + xml.IntegerToHex(data.Data.Size, 0, Hex) + "\" >");
+                        xml.AppendLine("<Destination AP Value=\"" + settings.ClientAddress.ToString("X") + "\" />");
+                        xml.AppendLine("<Source AP Value=\"" + settings.ServerAddress.ToString("X") + "\" />");
+                    }
+                    if (!PduOnly)
+                    {
+                        xml.AppendLine("<PDU>");
+                    }
+                    xml.AppendLine(pdu);
+                    //Remove \r\n.
+                    xml.sb.Length -= Environment.NewLine.Length;
+                    if (!PduOnly)
+                    {
+                        xml.AppendLine("</PDU>");
+                    }
+                    if (!PduOnly)
+                    {
+                        xml.AppendLine("</SMS>");
                     }
                     UpdateAddress(settings, msg);
                     msg.Xml = xml.sb.ToString();

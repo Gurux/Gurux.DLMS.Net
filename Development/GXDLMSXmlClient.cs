@@ -614,6 +614,7 @@ namespace Gurux.DLMS
         /// <returns></returns>
         public byte[][] PduToMessages(GXDLMSXmlPdu pdu)
         {
+            Settings.Command = pdu.Command;
             List<byte[]> messages = new List<byte[]>();
             if (pdu.Command == Command.Snrm)
             {

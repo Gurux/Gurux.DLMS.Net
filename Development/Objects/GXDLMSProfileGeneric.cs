@@ -478,7 +478,6 @@ namespace Gurux.DLMS.Objects
                     }
                     ++pos;
                 }
-                pos = 0;
             }
             GXByteBuffer data = new GXByteBuffer();
             if (settings.Index == 0)

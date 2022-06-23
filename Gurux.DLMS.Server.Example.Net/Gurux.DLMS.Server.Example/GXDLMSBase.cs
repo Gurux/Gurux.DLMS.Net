@@ -105,7 +105,7 @@ namespace GuruxDLMSServerExample
             obj.ClientSAP = 18;
             obj.XDLMSContextInfo.MaxSendPduSize = obj.XDLMSContextInfo.MaxReceivePduSize = 1024;
             byte[] secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
-             obj.Secret = secret;
+            obj.Secret = secret;
             obj.AuthenticationMechanismName.MechanismId = Authentication.High;
             // Add supported services.
             // https://www.gurux.fi/Gurux.DLMS.Conformance
@@ -130,7 +130,7 @@ namespace GuruxDLMSServerExample
             obj.ClientSAP = 19;
             obj.XDLMSContextInfo.MaxSendPduSize = obj.XDLMSContextInfo.MaxReceivePduSize = 1024;
             byte[] secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
-             obj.Secret = secret;
+            obj.Secret = secret;
             obj.AuthenticationMechanismName.MechanismId = Authentication.HighMD5;
             // Add supported services.
             // https://www.gurux.fi/Gurux.DLMS.Conformance
@@ -190,7 +190,7 @@ namespace GuruxDLMSServerExample
         {
             GXDLMSAssociationLogicalName obj = new GXDLMSAssociationLogicalName("0.0.40.0.7.255");
             byte[] secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
-             obj.Secret = secret;
+            obj.Secret = secret;
             obj.ClientSAP = 22;
             obj.XDLMSContextInfo.MaxSendPduSize = obj.XDLMSContextInfo.MaxReceivePduSize = 1024;
             obj.AuthenticationMechanismName.MechanismId = Authentication.HighSHA256;
@@ -226,7 +226,7 @@ namespace GuruxDLMSServerExample
             obj.ClientSAP = 24;
             obj.XDLMSContextInfo.MaxSendPduSize = obj.XDLMSContextInfo.MaxReceivePduSize = 1024;
             byte[] secret = ASCIIEncoding.ASCII.GetBytes("Gurux");
-             obj.Secret = secret;
+            obj.Secret = secret;
             obj.AuthenticationMechanismName.MechanismId = Authentication.High;
             // Add supported services.
             // https://www.gurux.fi/Gurux.DLMS.Conformance
@@ -1472,6 +1472,10 @@ namespace GuruxDLMSServerExample
                         AssignedAssociation = it;
                         break;
                     }
+                }
+                if (AssignedAssociation == null)
+                {
+                    ret = false;
                 }
             }
             return ret;

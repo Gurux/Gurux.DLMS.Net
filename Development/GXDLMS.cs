@@ -1624,6 +1624,9 @@ namespace Gurux.DLMS
                         case InterfaceType.PlcHdlc:
                             messages.Add(GXDLMS.GetMacHdlcFrame(p.settings, frame, 0, reply));
                             break;
+                        case InterfaceType.SMS:
+                            messages.Add(GXDLMS.GetSMSFrame(p.settings, p.command, reply));
+                            break;
                         default:
                             throw new ArgumentOutOfRangeException("InterfaceType");
                     }
@@ -2028,6 +2031,44 @@ namespace Gurux.DLMS
                     data.Move(data.Position, 0, data.Size - data.Position);
                     data.Position = 0;
                 }
+            }
+            return bb.Array();
+        }
+
+
+        /// <summary>
+        /// Split DLMS PDU to SMS frame.
+        /// </summary>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="command">DLMS command.</param>
+        /// <param name="data">Wrapped data.</param>
+        /// <returns>SMS frame</returns>
+        internal static byte[] GetSMSFrame(GXDLMSSettings settings, Command command, GXByteBuffer data)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            if (settings.IsServer)
+            {
+                bb.SetUInt8((byte)settings.ServerAddress);
+                if (settings.PushClientAddress != 0 && (command == Command.DataNotification || command == Command.EventNotification))
+                {
+                    bb.SetUInt8((byte)settings.PushClientAddress);
+                }
+                else
+                {
+                    bb.SetUInt8((byte)settings.ClientAddress);
+                }
+            }
+            else
+            {
+                bb.SetUInt8((byte)settings.ClientAddress);
+                bb.SetUInt8((byte)settings.ServerAddress);
+            }
+            // Data
+            bb.Set(data);
+            //Remove sent data in server side.
+            if (settings.IsServer)
+            {
+                data.Clear();
             }
             return bb.Array();
         }
@@ -2869,6 +2910,48 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Get data from SMS frame.
+        /// </summary>
+        /// <param name="settings">DLMS settings.</param>
+        /// <param name="buff">Received data.</param>
+        /// <param name="data">Reply information.</param>
+        /// <param name="notify">Notify information.</param>
+        static bool GetSmsData(GXDLMSSettings settings,
+                               GXByteBuffer buff, GXReplyData data, GXReplyData notify)
+        {
+            // If whole frame is not received yet.
+            if (buff.Size - buff.Position < 3)
+            {
+                data.IsComplete = false;
+                return true;
+            }
+            bool isData = true;
+            int pos = buff.Position;
+            data.IsComplete = false;
+            if (notify != null)
+            {
+                notify.IsComplete = false;
+            }
+            // Check SMS addresses.
+            if (!CheckSMSAddress(settings, buff, data, notify))
+            {
+                data = notify;
+                isData = false;
+            }
+            // Get length.
+            data.IsComplete = buff.Available != 0;
+            if (!data.IsComplete)
+            {
+                buff.Position = pos;
+            }
+            else
+            {
+                data.PacketLength = buff.Size;
+            }
+            return isData;
+        }
+
+        /// <summary>
         /// Validate M-Bus checksum
         /// </summary>
         /// <param name="bb"></param>
@@ -3380,6 +3463,81 @@ namespace Gurux.DLMS
                     settings.ServerAddress = value;
                 }
                 value = buff.GetUInt16();
+                data.SourceAddress = value;
+                // Check that client addresses match.
+                if (data.Xml == null && settings.ClientAddress != 0
+                        && settings.ClientAddress != value)
+                {
+                    if (notify == null)
+                    {
+                        throw new Exception("Destination addresses do not match. It is "
+                        + value.ToString() + ". It should be "
+                        + settings.ClientAddress.ToString() + ".");
+                    }
+                    ret = false;
+                    notify.TargetAddress = value;
+                }
+                else
+                {
+                    settings.ClientAddress = value;
+                }
+            }
+            return ret;
+        }
+
+        internal static bool CheckSMSAddress(GXDLMSSettings settings, GXByteBuffer buff, GXReplyData data, GXReplyData notify)
+        {
+            bool ret = true;
+            int value;
+            if (settings.IsServer)
+            {
+                value = buff.GetUInt8();
+                data.SourceAddress = value;
+                // Check that client addresses match.
+                if (data.Xml == null && settings.ClientAddress != 0
+                        && settings.ClientAddress != value)
+                {
+                    throw new Exception("Source addresses do not match. It is "
+                        + value.ToString() + ". It should be "
+                        + settings.ClientAddress.ToString());
+                }
+                settings.ClientAddress = value;
+                value = buff.GetUInt8();
+                data.TargetAddress = value;
+                // Check that server addresses match.
+                if (data.Xml == null && settings.ServerAddress != 0
+                        && settings.ServerAddress != value)
+                {
+                    throw new Exception("Destination addresses do not match. It is "
+                    + value.ToString() + ". It should be "
+                    + settings.ServerAddress.ToString()
+                    + ".");
+                }
+                settings.ServerAddress = value;
+            }
+            else
+            {
+                value = buff.GetUInt8();
+                data.TargetAddress = value;
+                // Check that server addresses match.
+                if (data.Xml == null && settings.ServerAddress != 0
+                        && settings.ServerAddress != value)
+                {
+                    if (notify == null)
+                    {
+                        throw new Exception("Source addresses do not match. It is "
+                        + value.ToString() + ". It should be "
+                        + settings.ServerAddress.ToString()
+                        + ".");
+                    }
+                    notify.SourceAddress = value;
+                    ret = false;
+                }
+                else
+                {
+                    settings.ServerAddress = value;
+                }
+                value = buff.GetUInt8();
                 data.SourceAddress = value;
                 // Check that client addresses match.
                 if (data.Xml == null && settings.ClientAddress != 0
@@ -5340,6 +5498,16 @@ namespace Gurux.DLMS
                     break;
                 case InterfaceType.WiredMBus:
                     GetWiredMBusData(settings, reply, data);
+                    break;
+                case InterfaceType.SMS:
+                    if (!GetSmsData(settings, reply, data, notify))
+                    {
+                        if (notify != null)
+                        {
+                            data = notify;
+                        }
+                        isNotify = true;
+                    }
                     break;
                 default:
                     throw new ArgumentException("Invalid Interface type.");

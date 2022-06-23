@@ -77,6 +77,10 @@ namespace Gurux.DLMS.Secure
                 {
                     len += 16 - (secret.Length % 16);
                 }
+                if (data.Length < len)
+                {
+                    len = data.Length;
+                }
                 byte[] p = new byte[len];
                 byte[] s = new byte[16];
                 byte[] x = new byte[16];
@@ -85,11 +89,11 @@ namespace Gurux.DLMS.Secure
                 secret.CopyTo(s, 0);
                 for (i = 0; i < p.Length; i += 16)
                 {
-                    Buffer.BlockCopy(p, i, x, 0, 16);
+                    Buffer.BlockCopy(p, i, x, 0, Math.Min(p.Length, 16));
                     GXAes128.Encrypt(x, s);
-                    Buffer.BlockCopy(x, 0, p, i, 16);
+                    Buffer.BlockCopy(x, 0, p, i, Math.Min(p.Length, 16));
                 }
-                Buffer.BlockCopy(p, 0, x, 0, 16);
+                Buffer.BlockCopy(p, 0, x, 0, Math.Min(p.Length, 16));
                 return x;
             }
             // Get server Challenge.
