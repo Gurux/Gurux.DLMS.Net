@@ -40,19 +40,21 @@ using Gurux.DLMS.Enums;
 using System.Threading;
 using Gurux.DLMS.Objects;
 
-namespace Gurux.DLMS.Client.Example
+namespace Gurux.DLMS.Client.Example.Net
 {
-    class Program
+    public class Program
     {
+        /*
         static int Main(string[] args)
         {
             Settings settings = new Settings();
+
             Reader.GXDLMSReader reader = null;
             try
             {
                 ////////////////////////////////////////
                 //Handle command line parameters.
-                int ret = Settings.GetParameters(args, settings);
+                int ret = Settings.GetParameters(argsE, settings);
                 if (ret != 0)
                 {
                     return ret;
@@ -189,5 +191,25 @@ namespace Gurux.DLMS.Client.Example
             }
             return 0;
         }
+        
+        */
+        
+        static void Main()
+        {
+            IEGReader eGReader =  MeterReader.Intializer();
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            object var1 = MeterReader.Reader(eGReader);
+            watch.Stop();
+
+            Console.WriteLine(var1);
+            Console.WriteLine(watch.ElapsedMilliseconds);
+
+            Console.ReadKey();
+
+            MeterReader.Closer(eGReader);
+        }
+
+        
+        
     }
 }

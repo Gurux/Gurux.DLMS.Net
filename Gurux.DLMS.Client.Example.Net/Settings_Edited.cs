@@ -1,38 +1,4 @@
-//
-// --------------------------------------------------------------------------
-//  Gurux Ltd
-//
-//
-//
-// Filename:        $HeadURL$
-//
-// Version:         $Revision$,
-//                  $Date$
-//                  $Author$
-//
-// Copyright (c) Gurux Ltd
-//
-//---------------------------------------------------------------------------
-//
-//  DESCRIPTION
-//
-// This file is a part of Gurux Device Framework.
-//
-// Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; version 2 of the License.
-// Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-// See the GNU General Public License for more details.
-//
-// More information of Gurux products: http://www.gurux.org
-//
-// This code is licensed under the GNU General Public License v2.
-// Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
-//---------------------------------------------------------------------------
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using Gurux.Common;
@@ -44,9 +10,9 @@ using System.Diagnostics;
 using System.IO.Ports;
 using Gurux.DLMS.Objects.Enums;
 
-namespace Gurux.DLMS.Client.Example
+namespace Gurux.DLMS.Client.Example.Net
 {
-    public class Settings
+    class Settings_Edited
     {
         public IGXMedia media = null;
         public TraceLevel trace = TraceLevel.Info;
@@ -69,7 +35,7 @@ namespace Gurux.DLMS.Client.Example
             //Has user give the custom serial port settings or are the default values used in mode E.
             bool modeEDefaultValues = true;
             string[] tmp;
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:P:g:S:C:n:v:o:T:A:B:D:d:l:F:m:E:V:G:M:K:N:W:w:f:L:");
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:P:g:S:C:n:v:o:T:A:B:D:d:l:F:m:E:V:G:M:K:N:");
             GXNet net;
             foreach (GXCmdParameter it in parameters)
             {
@@ -256,14 +222,18 @@ namespace Gurux.DLMS.Client.Example
                             {
                                 settings.client.Ciphering.Security = Security.AuthenticationEncryption;
                             }
+                            else if (string.Compare("DigitallySigned", it.Value, true) == 0)
+                            {
+                                settings.client.Ciphering.Security = Security.DigitallySigned;
+                            }
                             else
                             {
-                                throw new ArgumentException("Invalid Ciphering option '" + it.Value + "'. (None, Authentication, Encryption, AuthenticationEncryption)");
+                                throw new ArgumentException("Invalid Ciphering option '" + it.Value + "'. (None, Authentication, Encryption, AuthenticationEncryption, DigitallySigned)");
                             }
                         }
                         catch (Exception)
                         {
-                            throw new ArgumentException("Invalid Ciphering option '" + it.Value + "'. (None, Authentication, Encryption, AuthenticationEncryption)");
+                            throw new ArgumentException("Invalid Ciphering option '" + it.Value + "'. (None, Authentication, Encryption, AuthenticationEncryption, DigitallySigned)");
                         }
                         break;
                     case 'V':
@@ -279,12 +249,11 @@ namespace Gurux.DLMS.Client.Example
                     /*case 'K':
                         try
                         {
-                            settings.client.Ciphering.Signing = (Signing)Enum.Parse(typeof(Signing), it.Value);
-                            settings.client.ProposedConformance |= Conformance.GeneralProtection;
+                            settings.client.Ciphering.KeyAgreementScheme = (KeyAgreementScheme)Enum.Parse(typeof(KeyAgreementScheme), it.Value);
                         }
                         catch (Exception)
                         {
-                            throw new ArgumentException("Invalid security suite option '" + it.Value + "'. (None, OnePassDiffieHellman, StaticUnifiedModel, GeneralSigning)");
+                            throw new ArgumentException("Invalid security suite option '" + it.Value + "'. (OnePassDiffieHellman, StaticUnifiedModel)");
                         }
                         break;*/
                     case 'T':
@@ -349,18 +318,6 @@ namespace Gurux.DLMS.Client.Example
                         break;
                     case 'm':
                         settings.client.Plc.MacDestinationAddress = UInt16.Parse(it.Value);
-                        break;
-                    case 'W':
-                        settings.client.GbtWindowSize = byte.Parse(it.Value);
-                        break;
-                    case 'w':
-                        settings.client.HdlcSettings.WindowSizeRX = settings.client.HdlcSettings.WindowSizeTX = byte.Parse(it.Value);
-                        break;
-                    case 'f':
-                        settings.client.HdlcSettings.MaxInfoRX = settings.client.HdlcSettings.MaxInfoTX = UInt16.Parse(it.Value);
-                        break;
-                    case 'L':
-                        settings.client.ManufacturerId = it.Value;
                         break;
                     case 'G':
                         tmp = it.Value.Split(':');
@@ -439,7 +396,7 @@ namespace Gurux.DLMS.Client.Example
             return 0;
         }
 
-        static void ShowHelp()
+        public static void ShowHelp()
         {
             Console.WriteLine("GuruxDlmsSample reads data from the DLMS/COSEM device.");
             Console.WriteLine("GuruxDlmsSample -h [Meter IP Address] -p [Meter Port No] -c 16 -s 1 -r SN");
@@ -455,9 +412,9 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine(" -r [sn, ln]\t Short name or Logical Name (default) referencing is used.");
             Console.WriteLine(" -t [Error, Warning, Info, Verbose] Trace messages.");
             Console.WriteLine(" -g \"0.0.1.0.0.255:1; 0.0.1.0.0.255:2\" Get selected object(s) with given attribute index.");
-            Console.WriteLine(" -C \t Security Level. (None, Authentication, Encrypted, AuthenticationEncryption)");
+            Console.WriteLine(" -C \t Security Level. (None, Authentication, Encrypted, AuthenticationEncryption or DigitallySigned)");
             Console.WriteLine(" -V \t Security Suite version. (Default: Suite0). (Suite0, Suite1 or Suite2)");
-            Console.WriteLine(" -K \t Signing (None, EphemeralUnifiedModel, OnePassDiffieHellman or StaticUnifiedModel, GeneralSigning).");
+            Console.WriteLine(" -K \t Used Key agreement scheme (OnePassDiffieHellman or StaticUnifiedModel).");
             Console.WriteLine(" -v \t Invocation counter data object Logical Name. Ex. 0.0.43.1.1.255");
             Console.WriteLine(" -I \t Auto increase invoke ID");
             Console.WriteLine(" -o \t Cache association view to make reading faster. Ex. -o C:\\device.xml");
@@ -474,10 +431,6 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine(" -i \t Used communication interface. Ex. -i WRAPPER.");
             Console.WriteLine(" -m \t Used PLC MAC address. Ex. -m 1.");
             Console.WriteLine(" -G \t Gateway settings NetworkId:PhysicalDeviceAddress. Ex -G 1:12345678");
-            Console.WriteLine(" -W \t General Block Transfer window size.");
-            Console.WriteLine(" -w \t HDLC Window size. Default is 1");
-            Console.WriteLine(" -f \t HDLC Frame size. Default is 128");
-            Console.WriteLine(" -L \t Manufacturer ID (Flag ID) is used to use manufacturer depending functionality. -L LGZ");
             Console.WriteLine("Example:");
             Console.WriteLine("Read LG device using TCP/IP connection.");
             Console.WriteLine("GuruxDlmsSample -r SN -c 16 -s 1 -h [Meter IP Address] -p [Meter Port No]");

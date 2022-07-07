@@ -485,8 +485,10 @@ namespace Gurux.DLMS.Objects
                         }
                         else
                         {
-                            (obj as IGXDLMSBase).Load(reader);
-                            obj = null;
+                            /*(obj as IGXDLMSBase).Load(reader);
+                            obj = null;*/
+                            reader.Read();
+
                         }
                     }
                     else

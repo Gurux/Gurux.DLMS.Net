@@ -452,6 +452,21 @@ namespace Gurux.DLMS.Reader
                 }
             }
         }
+        public void SNRMRequest_Edited()
+        {
+            GXReplyData reply = new GXReplyData();
+            byte[] data;
+            data = Client.SNRMRequest();
+            if (data != null)
+            {
+               
+                ReadDataBlock_Edited(data, reply);
+                
+                //Has server accepted client.
+                Client.ParseUAResponse(reply.Data);
+                
+            }
+        }
 
         /// <summary>
         /// Send AARQ Request to the meter.
@@ -577,6 +592,71 @@ namespace Gurux.DLMS.Reader
                     Client.Ciphering.Security = security;
                     Client.CtoSChallenge = challenge;
                     Client.Ciphering.Signing = signing;
+                }
+            }
+        }
+        private void UpdateFrameCounter_Edited()
+        {
+            //Read frame counter if GeneralProtection is used.
+            if (!string.IsNullOrEmpty(InvocationCounter) && Client.Ciphering != null && Client.Ciphering.Security != Security.None)
+            {
+                InitializeOpticalHead_Edited();
+                byte[] data;
+                GXReplyData reply = new GXReplyData();
+                Client.ProposedConformance |= Conformance.GeneralProtection;
+                int add = Client.ClientAddress;
+                Authentication auth = Client.Authentication;
+                Security security = Client.Ciphering.Security;
+                byte[] challenge = Client.CtoSChallenge;
+                try
+                {
+                    Client.ClientAddress = 16;
+                    Client.Authentication = Authentication.None;
+                    Client.Ciphering.Security = Security.None;
+                    data = Client.SNRMRequest();
+                    if (data != null)
+                    {
+                       
+                        ReadDataBlock(data, reply);
+                        
+                        //Has server accepted client.
+                        Client.ParseUAResponse(reply.Data);
+                        
+                    }
+                    //Generate AARQ request.
+                    //Split requests to multiple packets if needed.
+                    //If password is used all data might not fit to one packet.
+                    foreach (byte[] it in Client.AARQRequest())
+                    {
+                       
+                        reply.Clear();
+                        ReadDataBlock(it, reply);
+                    }
+                   
+                    try
+                    {
+                        //Parse reply.
+                        Client.ParseAAREResponse(reply.Data);
+                        reply.Clear();
+                        GXDLMSData d = new GXDLMSData(InvocationCounter);
+                        Read(d, 2);
+                        Client.Ciphering.InvocationCounter = 1 + Convert.ToUInt32(d.Value);
+                        
+                        reply.Clear();
+                        Disconnect();
+                    }
+                    catch (Exception Ex)
+                    {
+                        Disconnect();
+                        throw Ex;
+                    }
+                }
+                finally
+                {
+                    Client.ClientAddress = add;
+                    Client.Authentication = auth;
+                    Client.Ciphering.Security = security;
+                    Client.CtoSChallenge = challenge;
                 }
             }
         }
@@ -766,6 +846,145 @@ namespace Gurux.DLMS.Reader
             }
         }
 
+        void InitializeOpticalHead_Edited()
+        {
+            if (Client.InterfaceType != InterfaceType.HdlcWithModeE)
+            {
+                return;
+            }
+            GXSerial serial = Media as GXSerial;
+            byte Terminator = (byte)0x0A;
+            Media.Open();
+            //Some meters need a little break.
+            Thread.Sleep(1000);
+            //Query device information.
+            string data = "/?!\r\n";
+            
+            ReceiveParameters<string> p = new ReceiveParameters<string>()
+            {
+                AllData = false,
+                Eop = Terminator,
+                WaitTime = WaitTime * 1000
+            };
+            lock (Media.Synchronous)
+            {
+                Media.Send(data, null);
+                if (!Media.Receive(p))
+                {
+                    //Try to move away from mode E.
+                    try
+                    {
+                        Disconnect();
+                    }
+                    catch (Exception)
+                    {
+                    }
+                    DiscIEC();
+                    string str = "Failed to receive reply from the device in given time.";
+                   
+                    Media.Send(data, null);
+                    if (!Media.Receive(p))
+                    {
+                        throw new Exception(str);
+                    }
+                }
+                //If echo is used.
+                if (p.Reply == data)
+                {
+                    p.Reply = null;
+                    if (!Media.Receive(p))
+                    {
+                        //Try to move away from mode E.
+                        GXReplyData reply = new GXReplyData();
+                        Disconnect();
+                        if (serial != null)
+                        {
+                            DiscIEC();
+                            serial.DtrEnable = serial.RtsEnable = false;
+                            serial.BaudRate = 9600;
+                            serial.DtrEnable = serial.RtsEnable = true;
+                            DiscIEC();
+                        }
+                        data = "Failed to receive reply from the device in given time.";
+                        
+                        throw new Exception(data);
+                    }
+                }
+            }
+            
+            int pos = 0;
+            //With some meters there might be some extra invalid chars. Remove them.
+            while (pos < p.Reply.Length && p.Reply[pos] != '/')
+            {
+                ++pos;
+            }
+            if (p.Reply[pos] != '/')
+            {
+                p.WaitTime = 100;
+                Media.Receive(p);
+                DiscIEC();
+                throw new Exception("Invalid responce.");
+            }
+            string manufactureID = p.Reply.Substring(1 + pos, 3);
+            char baudrate = p.Reply[4 + pos];
+            int BaudRate = 0;
+            switch (baudrate)
+            {
+                case '0':
+                    BaudRate = 300;
+                    break;
+                case '1':
+                    BaudRate = 600;
+                    break;
+                case '2':
+                    BaudRate = 1200;
+                    break;
+                case '3':
+                    BaudRate = 2400;
+                    break;
+                case '4':
+                    BaudRate = 4800;
+                    break;
+                case '5':
+                    BaudRate = 9600;
+                    break;
+                case '6':
+                    BaudRate = 19200;
+                    break;
+                default:
+                    throw new Exception("Unknown baud rate.");
+            }
+            
+            //Send ACK
+            //Send Protocol control character
+            // "2" HDLC protocol procedure (Mode E)
+            byte controlCharacter = (byte)'2';
+            //Send Baud rate character
+            //Mode control character
+            byte ModeControlCharacter = (byte)'2';
+            //"2" //(HDLC protocol procedure) (Binary mode)
+            //Set mode E.
+            byte[] arr = new byte[] { 0x06, controlCharacter, (byte)baudrate, ModeControlCharacter, 13, 10 };
+            
+            lock (Media.Synchronous)
+            {
+                p.Reply = null;
+                Media.Send(arr, null);
+                //Some meters need this sleep. Do not remove.
+                Thread.Sleep(200);
+                p.WaitTime = 2000;
+                //Note! All meters do not echo this.
+                Media.Receive(p);
+                
+                serial.BaudRate = BaudRate;
+                serial.DataBits = 8;
+                serial.Parity = Parity.None;
+                serial.StopBits = StopBits.One;
+                //Some meters need this sleep. Do not remove.
+                Thread.Sleep(800);
+            }
+        }
+
 
         /// <summary>
         /// Initialize connection to the meter.
@@ -822,6 +1041,38 @@ namespace Gurux.DLMS.Reader
             {
                 Console.WriteLine("Parsing AARE reply succeeded.");
             }
+        }
+
+        public void InitializeConnection_Edited()
+        {
+            UpdateFrameCounter_Edited();
+            InitializeOpticalHead_Edited();
+            GXReplyData reply = new GXReplyData();
+            SNRMRequest_Edited();
+            //Generate AARQ request.
+            //Split requests to multiple packets if needed.
+            //If password is used all data might not fit to one packet.
+            foreach (byte[] it in Client.AARQRequest())
+            {
+                
+                reply.Clear();
+                ReadDataBlock_Edited(it, reply);
+            }
+            
+            //Parse reply.
+            Client.ParseAAREResponse(reply.Data);
+            reply.Clear();
+            //Get challenge Is HLS authentication is used.
+            /*if (Client.IsAuthenticationRequired)
+            {
+                foreach (byte[] it in Client.GetApplicationAssociationRequest())
+                {
+                    reply.Clear();
+                    ReadDataBlock(it, reply);
+                }
+                Client.ParseApplicationAssociationResponse(reply.Data);
+            }*/
+            
         }
 
         /// <summary>
@@ -1389,6 +1640,117 @@ namespace Gurux.DLMS.Reader
                 }
             }
         }
+        public void ReadDLMSPacket_Edited(byte[] data, GXReplyData reply)
+        {
+            if (data == null && !reply.IsStreaming())
+            {
+                return;
+            }
+            GXReplyData notify = new GXReplyData();
+            reply.Error = 0;
+            object eop = (byte)0x7E;
+            //In network connection terminator is not used.
+            if (Client.InterfaceType != InterfaceType.HDLC &&
+                Client.InterfaceType != InterfaceType.HdlcWithModeE)
+            {
+                eop = null;
+            }
+            int pos = 0;
+            bool succeeded = false;
+            GXByteBuffer rd = new GXByteBuffer();
+            ReceiveParameters<byte[]> p = new ReceiveParameters<byte[]>()
+            {
+                Eop = eop,
+                Count = Client.GetFrameSize(rd),
+                AllData = true,
+                WaitTime = WaitTime,
+            };
+            lock (Media.Synchronous)
+            {
+                while (!succeeded && pos != 3)
+                {
+                    if (!reply.IsStreaming())
+                    {
+                        //WriteTrace("TX:\t" + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(data, true));
+                        p.Reply = null;
+                        Media.Send(data, null);
+                    }
+                    succeeded = Media.Receive(p);
+                    if (!succeeded)
+                    {
+                        if (++pos >= RetryCount)
+                        {
+                            throw new Exception("Failed to receive reply from the device in given time.");
+                        }
+                        //If Eop is not set read one byte at time.
+                        if (p.Eop == null)
+                        {
+                            p.Count = 1;
+                        }
+                        //Try to read again...
+                        //System.Diagnostics.Debug.WriteLine("Data send failed. Try to resend " + pos.ToString() + "/3");
+                    }
+                }
+                rd = new GXByteBuffer(p.Reply);
+                try
+                {
+                    pos = 0;
+                    //Loop until whole COSEM packet is received.
+                    while (!Client.GetData(rd, reply, notify))
+                    {
+                        p.Reply = null;
+                        if (notify.IsComplete && notify.Data.Data != null)
+                        {
+                            //Handle notify.
+                            if (!notify.IsMoreData)
+                            {
+                                //Show received push message as XML.
+                                string xml;
+                                GXDLMSTranslator t = new GXDLMSTranslator(TranslatorOutputType.SimpleXml);
+                                t.DataToXml(notify.Data, out xml);
+                                //Console.WriteLine(xml);
+                                notify.Clear();
+                                continue;
+                            }
+                        }
+                        if (p.Eop == null)
+                        {
+                            p.Count = Client.GetFrameSize(rd);
+                        }
+                        while (!Media.Receive(p))
+                        {
+                            if (++pos >= RetryCount)
+                            {
+                                throw new Exception("Failed to receive reply from the device in given time.");
+                            }
+                            p.Reply = null;
+                            Media.Send(data, null);
+                            //Try to read again...
+                            //System.Diagnostics.Debug.WriteLine("Data send failed. Try to resend " + pos.ToString() + "/3");
+                        }
+                        rd.Set(p.Reply);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    //WriteTrace("RX:\t" + DateTime.Now.ToLongTimeString() + "\t" + rd);
+                    throw ex;
+                }
+            }
+            //WriteTrace("RX:\t" + DateTime.Now.ToLongTimeString() + "\t" + rd);
+            if (reply.Error != 0)
+            {
+                if (reply.Error == (short)ErrorCode.Rejected)
+                {
+                    Thread.Sleep(1000);
+                    ReadDLMSPacket_Edited(data, reply);
+                }
+                else
+                {
+                    throw new GXDLMSException(reply.Error);
+                }
+            }
+        }
 
         /// <summary>
         /// Send data block(s) to the meter.
@@ -1406,6 +1768,20 @@ namespace Gurux.DLMS.Reader
             {
                 reply.Clear();
                 ReadDataBlock(it, reply);
+            }
+            return reply.Error == 0;
+        }
+
+        public bool ReadDataBlock_Edited(byte[][] data, GXReplyData reply)
+        {
+            if (data == null)
+            {
+                return true;
+            }
+            foreach (byte[] it in data)
+            {
+                reply.Clear();
+                ReadDataBlock_Edited(it, reply);
             }
             return reply.Error == 0;
         }
@@ -1437,12 +1813,56 @@ namespace Gurux.DLMS.Reader
             }
         }
 
+        public void ReadDataBlock_Edited(byte[] data, GXReplyData reply)
+        {
+            ReadDLMSPacket_Edited(data, reply);
+            lock (Media.Synchronous)
+            {
+                while (reply.IsMoreData)
+                {
+                    if (reply.IsStreaming())
+                    {
+                        data = null;
+                    }
+                    else
+                    {
+                        data = Client.ReceiverReady(reply);
+                    }
+                    ReadDLMSPacket_Edited(data, reply);
+                    
+                }
+            }
+        }
+
         /// <summary>
         /// Read attribute value.
         /// </summary>
         /// <param name="it">COSEM object to read.</param>
         /// <param name="attributeIndex">Attribute index.</param>
         /// <returns>Read value.</returns>
+        public object Read_Edited(GXDLMSObject it, int attributeIndex)
+        {
+            GXReplyData reply = new GXReplyData();
+            if (!ReadDataBlock_Edited(Client.Read(it, attributeIndex), reply))
+            {
+                if (reply.Error != (short)ErrorCode.Rejected)
+                {
+                    throw new GXDLMSException(reply.Error);
+                }
+                reply.Clear();
+                Thread.Sleep(1000);
+                if (!ReadDataBlock_Edited(Client.Read(it, attributeIndex), reply))
+                {
+                    throw new GXDLMSException(reply.Error);
+                }
+            }
+            //Update data type.
+            if (it.GetDataType(attributeIndex) == DataType.None)
+            {
+                it.SetDataType(attributeIndex, reply.DataType);
+            }
+            return Client.UpdateValue(it, attributeIndex, reply.Value);
+        }
         public object Read(GXDLMSObject it, int attributeIndex)
         {
             if (Client.CanRead(it, attributeIndex))
@@ -1640,6 +2060,41 @@ namespace Gurux.DLMS.Reader
                     }
                     reply.Clear();
                     ReadDLMSPacket(Client.DisconnectRequest(), reply);
+                    Media.Close();
+                }
+                catch
+                {
+
+                }
+                Media = null;
+                Client = null;
+            }
+        }
+        public void Close_Edited()
+        {
+            if (Media != null && Client != null)
+            {
+                try
+                {
+                    
+                    GXReplyData reply = new GXReplyData();
+                    try
+                    {
+                        //Release is call only for secured connections.
+                        //All meters are not supporting Release and it's causing problems.
+                        if (Client.InterfaceType == InterfaceType.WRAPPER ||
+                            (Client.Ciphering.Security != Security.None))
+                        {
+                            ReadDataBlock_Edited(Client.ReleaseRequest(), reply);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        //All meters don't support Release.
+                        Console.WriteLine("Release failed. " + ex.Message);
+                    }
+                    reply.Clear();
+                    ReadDLMSPacket_Edited(Client.DisconnectRequest(), reply);
                     Media.Close();
                 }
                 catch
