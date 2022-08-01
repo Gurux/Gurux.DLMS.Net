@@ -361,7 +361,26 @@ namespace Gurux.DLMS.Objects
                     GXCommon.SetData(settings, buff, DataType.Enum, Service);
                     if (Destination != null)
                     {
-                        GXCommon.SetData(settings, buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(Destination));
+                        //LN can be used with HDLC
+                        if (Service == ServiceType.Hdlc)
+                        {
+                            try
+                            {
+                                byte[] tmp = GXCommon.LogicalNameToBytes(Destination);
+                                if (tmp.Length == 6 && tmp[5] == 0xFF)
+                                {
+                                    GXCommon.SetData(settings, buff, DataType.OctetString, tmp);
+                                }
+                                else
+                                {
+                                    GXCommon.SetData(settings, buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(Destination));
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                GXCommon.SetData(settings, buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(Destination));
+                            }
+                        }
                     }
                     else
                     {

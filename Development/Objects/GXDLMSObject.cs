@@ -81,6 +81,7 @@ namespace Gurux.DLMS.Objects
         public bool CanRead(int index)
         {
             return (GetAccess(index) & AccessMode.Read) != 0 ||
+                (GetAccess(index) & AccessMode.AuthenticatedRead) != 0 ||
                 (GetAccess3(index) & AccessMode3.Read) != 0;
         }
 

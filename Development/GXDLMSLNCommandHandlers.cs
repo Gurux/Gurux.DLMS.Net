@@ -997,7 +997,8 @@ namespace Gurux.DLMS
             }
             else
             {
-                if ((server.NotifyGetAttributeAccess(e) & (int)AccessMode.Read) == 0)
+                int access = server.NotifyGetAttributeAccess(e);
+                if ((access & (int)AccessMode.Read) == 0 && (access & (int)AccessMode.AuthenticatedRead) == 0)
                 {
                     //Read Write denied.
                     status = ErrorCode.ReadWriteDenied;
@@ -1207,7 +1208,8 @@ namespace Gurux.DLMS
                         {
                             ValueEventArgs arg = new ValueEventArgs(server, obj, attributeIndex, selector, parameters);
                             arg.InvokeId = invokeID;
-                            if ((server.NotifyGetAttributeAccess(arg) & (int)AccessMode.Read) == 0)
+                            int access = server.NotifyGetAttributeAccess(arg);
+                            if ((access & (int)AccessMode.Read) == 0 && (access & (int)AccessMode.AuthenticatedRead) == 0)
                             {
                                 //Read Write denied.
                                 arg.Error = ErrorCode.ReadWriteDenied;
@@ -1771,7 +1773,8 @@ namespace Gurux.DLMS
                         ValueEventArgs e = new ValueEventArgs(settings, it.Target, it.Index, 0, value);
                         if (it.Command == AccessServiceCommandType.Get)
                         {
-                            if ((server.NotifyGetAttributeAccess(e) & (int)AccessMode.Read) == 0)
+                            int access = server.NotifyGetAttributeAccess(e);
+                            if ((access & (int)AccessMode.Read) == 0 && (access & (int)AccessMode.AuthenticatedRead) == 0)
                             {
                                 //Read Write denied.
                                 bb.SetUInt8(0);
