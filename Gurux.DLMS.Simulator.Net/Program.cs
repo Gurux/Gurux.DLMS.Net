@@ -161,8 +161,8 @@ namespace Gurux.DLMS.Simulator.Net
                     {
                         net.OnReceived += new Gurux.Common.ReceivedEventHandler(GXDLMSMeter.OnExclusiveReceived);
                     }
-                    net.OnClientConnected += new Gurux.Common.ClientConnectedEventHandler(GXDLMSMeter.OnClientConnected);
-                    net.OnClientDisconnected += new Gurux.Common.ClientDisconnectedEventHandler(GXDLMSMeter.OnClientDisconnected);
+                    net.OnClientConnected += GXDLMSMeter.OnClientConnected;
+                    net.OnClientDisconnected += GXDLMSMeter.OnClientDisconnected;
                     net.OnError += new Gurux.Common.ErrorEventHandler(GXDLMSMeter.OnError);
                 }
                 else
@@ -262,6 +262,7 @@ namespace Gurux.DLMS.Simulator.Net
                 Console.WriteLine("Servers closed.");
             }
         }
+
         static int Main(string[] args)
         {
             try

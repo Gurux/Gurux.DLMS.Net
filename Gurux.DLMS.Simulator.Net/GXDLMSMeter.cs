@@ -758,57 +758,68 @@ namespace Gurux.DLMS.Simulator.Net
         /// </summary>
         protected override bool IsTarget(int serverAddress, int clientAddress)
         {
-            bool ret = false;
-            AssignedAssociation = null;
-            foreach (GXDLMSAssociationLogicalName it in Items.GetObjects(ObjectType.AssociationLogicalName))
-            {
-                if (it.ClientSAP == clientAddress)
-                {
-                    AssignedAssociation = it;
-                    break;
-                }
-            }
+            //Only one connection per meter at the time is allowed.
             if (AssignedAssociation != null)
             {
-                // Check server address using serial number.
-                if (!(serverAddress == 0x3FFF || serverAddress == 0x7F ||
-                    (serverAddress & 0x3FFF) == serialNumber % 10000 + 1000))
+                return false;
+            }
+            bool ret = false;
+            //Check HDLC station address if it's used.
+            if (InterfaceType == InterfaceType.HDLC && 
+                    Hdlc != null && Hdlc.DeviceAddress != 0)
+            {
+                ret = Hdlc.DeviceAddress == serverAddress;
+            }
+            // Check server address using serial number.
+            if (!(serverAddress == 0x3FFF || serverAddress == 0x7F ||
+                (serverAddress & 0x3FFF) == serialNumber % 10000 + 1000))
+            {
+                // Find address from the SAP table.
+                GXDLMSObjectCollection saps = Items.GetObjects(ObjectType.SapAssignment);
+                if (saps.Count != 0)
                 {
-                    // Find address from the SAP table.
-                    GXDLMSObjectCollection saps = Items.GetObjects(ObjectType.SapAssignment);
-                    if (saps.Count != 0)
+                    foreach (GXDLMSSapAssignment sap in saps)
                     {
-                        foreach (GXDLMSSapAssignment sap in saps)
+                        if (sap.SapAssignmentList.Count == 0)
                         {
-                            if (sap.SapAssignmentList.Count == 0)
+                            return true;
+                        }
+                        foreach (KeyValuePair<UInt16, string> e in sap.SapAssignmentList)
+                        {
+                            // Check server address with two bytes.
+                            if ((serverAddress & 0xFFFF0000) == 0 && (serverAddress & 0x7FFF) == e.Key)
                             {
-                                return true;
+                                ret = true;
+                                break;
                             }
-                            foreach (KeyValuePair<UInt16, string> e in sap.SapAssignmentList)
+                            // Check server address with one byte.
+                            if ((serverAddress & 0xFFFFFF00) == 0 && (serverAddress & 0x7F) == e.Key)
                             {
-                                // Check server address with two bytes.
-                                if ((serverAddress & 0xFFFF0000) == 0 && (serverAddress & 0x7FFF) == e.Key)
-                                {
-                                    ret = true;
-                                    break;
-                                }
-                                // Check server address with one byte.
-                                if ((serverAddress & 0xFFFFFF00) == 0 && (serverAddress & 0x7F) == e.Key)
-                                {
-                                    ret = true;
-                                    break;
-                                }
-                            }
-                            if (ret)
-                            {
+                                ret = true;
                                 break;
                             }
                         }
+                        if (ret)
+                        {
+                            break;
+                        }
                     }
-                    else
+                }
+                else
+                {
+                    //Accept all server addresses if there is no SAP table available.
+                    ret = true;
+                }
+            }
+            if (ret)
+            {
+                AssignedAssociation = null;
+                foreach (GXDLMSAssociationLogicalName it in Items.GetObjects(ObjectType.AssociationLogicalName))
+                {
+                    if (it.ClientSAP == clientAddress)
                     {
-                        //Accept all server addresses if there is no SAP table available.
-                        ret = true;
+                        AssignedAssociation = it;
+                        break;
                     }
                 }
             }
@@ -952,6 +963,12 @@ namespace Gurux.DLMS.Simulator.Net
             {
                 buffers[e.Info].Clear();
             }
+            if (connections.ContainsKey(e.Info))
+            {
+                connections[e.Info].Reset();
+                connections.Remove(e.Info);
+            }
+          //MIKKO  connections[e.Info] = this;
         }
 
         /// <summary>
@@ -971,6 +988,7 @@ namespace Gurux.DLMS.Simulator.Net
                         Console.WriteLine("RX:\t" + Gurux.Common.GXCommon.ToHex((byte[])e.Data, true));
                     }
                     GXServerReply sr = new GXServerReply((byte[])e.Data);
+                    sr.ConnectionInfo = new GXDLMSConnectionEventArgs() { ConnectionInfo = e.SenderInfo };
                     do
                     {
                         HandleRequest(sr);
@@ -1042,6 +1060,11 @@ namespace Gurux.DLMS.Simulator.Net
 
         protected override void Connected(GXDLMSConnectionEventArgs e)
         {
+            if (connections.ContainsKey(e.ConnectionInfo))
+            {
+                connections[e.ConnectionInfo].Reset();
+            }
+            connections[e.ConnectionInfo] = this;
             if (Trace > TraceLevel.Warning)
             {
                 Console.WriteLine("Client Connected.");
@@ -1053,6 +1076,10 @@ namespace Gurux.DLMS.Simulator.Net
             if (Trace > TraceLevel.Warning && this.ConnectionState != ConnectionState.None)
             {
                 Console.WriteLine("Client Disconnected");
+            }
+            if (connections.ContainsKey(e.ConnectionInfo))
+            {
+                connections.Remove(e.ConnectionInfo);
             }
         }
     }

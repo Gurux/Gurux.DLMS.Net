@@ -472,7 +472,19 @@ namespace Gurux.DLMS.Objects
                 ObjectType ot = (ObjectType)Convert.ToInt16(tmp[0]);
                 string ln = GXCommon.ToLogicalName(tmp[1]);
                 int attIndex = Convert.ToInt32(tmp[2]);
-                MonitoredValue = settings.Objects.FindByLN(ot, ln);
+                if (ot != ObjectType.None)
+                {
+                    MonitoredValue = settings.Objects.FindByLN(ot, ln);
+                    if (MonitoredValue == null)
+                    {
+                        MonitoredValue = GXDLMSClient.CreateObject(ot);
+                        MonitoredValue.LogicalName = ln;
+                    }
+                }
+                else
+                {
+                    MonitoredValue = null;
+                }
                 MonitoredAttributeIndex = attIndex;
                 if (MonitoredValue != null && attIndex != 0)
                 {
