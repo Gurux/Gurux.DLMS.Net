@@ -39,7 +39,6 @@ using System.Xml.Serialization;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
-using System.Threading;
 
 namespace Gurux.DLMS.Objects
 {

@@ -80,14 +80,13 @@ namespace Gurux.DLMS.Objects
         /// <returns>True, if attribute of the object is readable.</returns>
         public bool CanRead(int index)
         {
-            if (Version < 3)
-            {
-                AccessMode access = GetAccess(index);
-                return (access & AccessMode.Read) != 0 ||
-                    (access & AccessMode.AuthenticatedRead) != 0 ||
-                    (access & AccessMode.AuthenticatedReadWrite) != 0;
-            }
-            return (GetAccess3(index) & AccessMode3.Read) != 0;
+            //Association version number is not known
+            //and for this reason all access levels must be checked.
+            AccessMode access = GetAccess(index);
+            return (access & AccessMode.Read) != 0 ||
+                (access == AccessMode.AuthenticatedRead) ||
+                (access == AccessMode.AuthenticatedReadWrite) ||
+                (GetAccess3(index) & AccessMode3.Read) != 0;
         }
 
         class GXStatusInfo

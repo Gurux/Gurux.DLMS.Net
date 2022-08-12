@@ -3593,7 +3593,10 @@ namespace Gurux.DLMS
         public bool CanRead(GXDLMSObject target, int index)
         {
             //Handle access rights for Association LN Version < 3.
-            if ((target.GetAccess(index) & AccessMode.Read) == 0)
+            AccessMode access = target.GetAccess(index);
+            if ((access & AccessMode.Read) == 0 ||
+                access == AccessMode.AuthenticatedRead ||
+                access == AccessMode.AuthenticatedReadWrite)
             {
                 //If bit mask is used.
                 AccessMode3 m = target.GetAccess3(index);
@@ -3646,7 +3649,10 @@ namespace Gurux.DLMS
         public bool CanWrite(GXDLMSObject target, int index)
         {
             //Handle access rights for Association LN Version < 3.
-            if ((target.GetAccess(index) & AccessMode.Write) == 0)
+            AccessMode access = target.GetAccess(index);
+            if ((access & AccessMode.Write) == 0 ||
+                access == AccessMode.AuthenticatedWrite ||
+                access == AccessMode.AuthenticatedReadWrite)
             {
                 //If bit mask is used.
                 AccessMode3 m = target.GetAccess3(index);
