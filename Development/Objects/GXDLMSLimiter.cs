@@ -586,6 +586,8 @@ namespace Gurux.DLMS.Objects
             {
                 ObjectType ot = (ObjectType)reader.ReadElementContentAsInt("ObjectType");
                 string ln = reader.ReadElementContentAsString("LN");
+
+                MonitoredAttributeIndex = reader.ReadElementContentAsInt("Index");
                 if (ot != ObjectType.None && ln != null)
                 {
                     MonitoredValue = reader.Objects.FindByLN(ot, ln);
@@ -643,6 +645,7 @@ namespace Gurux.DLMS.Objects
             {
                 writer.WriteElementString("ObjectType", (int)MonitoredValue.ObjectType, 0);
                 writer.WriteElementString("LN", MonitoredValue.LogicalName, 0);
+                writer.WriteElementString("Index", MonitoredAttributeIndex, 0);
             }
             writer.WriteEndElement();
             writer.WriteElementObject("ThresholdActive", ThresholdActive, 3);
@@ -691,7 +694,7 @@ namespace Gurux.DLMS.Objects
             if (MonitoredValue != null)
             {
                 GXDLMSObject target = reader.Objects.FindByLN(MonitoredValue.ObjectType, MonitoredValue.LogicalName);
-                if (target != MonitoredValue)
+                if (target != null && target != MonitoredValue)
                 {
                     MonitoredValue = target;
                 }
