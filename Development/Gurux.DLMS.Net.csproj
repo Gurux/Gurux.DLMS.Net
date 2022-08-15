@@ -12,7 +12,7 @@
     <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">0.0.1-local</Version>
     <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <TargetFrameworks>net472;net46;net40;net45;netcoreapp3.1;netcoreapp2.1;</TargetFrameworks>
+    <TargetFrameworks>net60-windows;net60;net472;net46;netcoreapp3.1</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/gurux/gurux.dlms.net</RepositoryUrl>
     <PackageTags>DLMS AMR, AMI IOT</PackageTags>
@@ -25,20 +25,9 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>bin\Debug\</OutputPath>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>bin\Release\</OutputPath>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netcoreapp2.0|AnyCPU'">
-    <DefineConstants>TRACE;RELEASE;</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp2.0|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net6.0-windows'">
+    <TargetFramework>net60-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
 
   <ItemGroup>
@@ -50,32 +39,32 @@
     <None Remove="UWP\**" />
   </ItemGroup>
 
- <ItemGroup>
-  <Reference Condition="'$(TargetFramework)' == 'net472'" Include="System.Windows.Forms" />
-  <Reference Condition="'$(TargetFramework)' == 'net46'" Include="System.Windows.Forms" />
-	<Reference Condition="'$(TargetFramework)' == 'net45'" Include="System.Windows.Forms" />
-	<Reference Condition="'$(TargetFramework)' == 'net40'" Include="System.Windows.Forms" />
-	<Reference Condition="'$(TargetFramework)' == 'net35'" Include="System.Windows.Forms" />
-   </ItemGroup>
-<ItemGroup>
-  <Reference Condition="'$(TargetFramework)' == 'net472'" Include="System.Drawing.Design" />
-  <Reference Condition="'$(TargetFramework)' == 'net46'" Include="System.Drawing.Design" />
-	<Reference Condition="'$(TargetFramework)' == 'net45'" Include="System.Drawing.Design" />
-	<Reference Condition="'$(TargetFramework)' == 'net40'" Include="System.Drawing.Design" />
-	<Reference Condition="'$(TargetFramework)' == 'net35'" Include="System.Drawing.Design" />
-   </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="ManufacturerSettings\GXXmlEditor.cs" />
-    <Compile Update="ManufacturerSettings\GXXmlEditor.Designer.cs">
-      <DependentUpon>GXXmlEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Properties\Resources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net60-windows' or '$(TargetFramework)' == 'net60' or '$(TargetFramework)' == 'netcoreapp3.1' or '$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'netstandard2.1'">
+     <Compile Remove="IGXDataConcentrator.cs" />
+     <Compile Remove="ManufacturerSettings\GXVersionUIEditor.cs" />
+     <Compile Remove="ManufacturerSettings\GXVersionUIEditor.Designer.cs" />
+     <Compile Remove="ManufacturerSettings\GXXmlEditor.cs" />
+     <Compile Remove="ManufacturerSettings\GXXmlEditor.Designer.cs" />
+     <Compile Remove="ManufacturerSettings\GXXmlUIEditor.cs" />
+     <Compile Remove="ManufacturerSettings\GXXmlUIEditor.Designer.cs" />
   </ItemGroup>
+
+ <ItemGroup>
+    <Reference Condition="'$(TargetFramework)' == 'net472'" Include="System.Windows.Forms" />
+    <Reference Condition="'$(TargetFramework)' == 'net46'" Include="System.Windows.Forms" />
+    <Reference Condition="'$(TargetFramework)' == 'net45'" Include="System.Windows.Forms" />
+    <Reference Condition="'$(TargetFramework)' == 'net40'" Include="System.Windows.Forms" />
+    <Reference Condition="'$(TargetFramework)' == 'net35'" Include="System.Windows.Forms" />
+    <Reference Condition="'$(TargetFramework)' == 'net60-windows'" Include="System.Windows.Forms" />
+  </ItemGroup>
+<ItemGroup>
+    <Reference Condition="'$(TargetFramework)' == 'net472'" Include="System.Drawing.Design" />
+    <Reference Condition="'$(TargetFramework)' == 'net46'" Include="System.Drawing.Design" />
+    <Reference Condition="'$(TargetFramework)' == 'net45'" Include="System.Drawing.Design" />
+    <Reference Condition="'$(TargetFramework)' == 'net40'" Include="System.Drawing.Design" />
+    <Reference Condition="'$(TargetFramework)' == 'net35'" Include="System.Drawing.Design" />
+    <Reference Condition="'$(TargetFramework)' == 'net60-windows'" Include="System.Drawing.Design" />
+   </ItemGroup>
   <ItemGroup>
     <None Include="..\Gurux.DLMS.png" Pack="true" PackagePath="\" />
   </ItemGroup>

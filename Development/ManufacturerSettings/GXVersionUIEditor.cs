@@ -30,9 +30,6 @@
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
-
-#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0 && !NETCOREAPP3_0 && !NETCOREAPP3_1
-
 using Gurux.DLMS.Objects;
 using System;
 using System.Drawing.Design;
@@ -92,7 +89,9 @@ namespace Gurux.DLMS.ManufacturerSettings
                 lb.Items.Add(0);
                 lb.SelectedIndex = 0;
             }
+#if !NET6_0
             lb.SelectionMode = SelectionMode.One;
+#endif
             lb.SelectedValueChanged += OnListBoxSelectedValueChanged;
             m_EdSvc.DropDownControl(lb);
             if(lb.SelectedItem == null)
@@ -108,4 +107,3 @@ namespace Gurux.DLMS.ManufacturerSettings
         }
     }
 }
-#endif

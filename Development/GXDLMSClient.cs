@@ -3594,9 +3594,9 @@ namespace Gurux.DLMS
         {
             //Handle access rights for Association LN Version < 3.
             AccessMode access = target.GetAccess(index);
-            if ((access & AccessMode.Read) == 0 ||
-                access == AccessMode.AuthenticatedRead ||
-                access == AccessMode.AuthenticatedReadWrite)
+            if ((access & AccessMode.Read) == 0 &&
+                access != AccessMode.AuthenticatedRead &&
+                access != AccessMode.AuthenticatedReadWrite)
             {
                 //If bit mask is used.
                 AccessMode3 m = target.GetAccess3(index);
@@ -3650,9 +3650,9 @@ namespace Gurux.DLMS
         {
             //Handle access rights for Association LN Version < 3.
             AccessMode access = target.GetAccess(index);
-            if ((access & AccessMode.Write) == 0 ||
-                access == AccessMode.AuthenticatedWrite ||
-                access == AccessMode.AuthenticatedReadWrite)
+            if ((access & AccessMode.Write) == 0 &&
+                access != AccessMode.AuthenticatedWrite &&
+                access != AccessMode.AuthenticatedReadWrite)
             {
                 //If bit mask is used.
                 AccessMode3 m = target.GetAccess3(index);
