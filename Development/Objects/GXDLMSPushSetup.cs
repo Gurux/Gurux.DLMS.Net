@@ -381,6 +381,10 @@ namespace Gurux.DLMS.Objects
                                 GXCommon.SetData(settings, buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(Destination));
                             }
                         }
+                        else
+                        {
+                            GXCommon.SetData(settings, buff, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(Destination));
+                        }
                     }
                     else
                     {

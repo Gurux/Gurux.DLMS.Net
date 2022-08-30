@@ -1495,8 +1495,6 @@ namespace GuruxDLMSServerExample
 
         protected override AccessMode GetAttributeAccess(ValueEventArgs arg)
         {
-            //MIKKO
-            return AccessMode.AuthenticatedReadWrite;
             if (AssignedAssociation == null)
             {
                 return arg.Target.GetAccess(arg.Index);
