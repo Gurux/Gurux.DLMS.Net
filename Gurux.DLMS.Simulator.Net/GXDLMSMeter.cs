@@ -782,7 +782,8 @@ namespace Gurux.DLMS.Simulator.Net
                     {
                         if (sap.SapAssignmentList.Count == 0)
                         {
-                            return true;
+                            ret = true;
+                            break;
                         }
                         foreach (KeyValuePair<UInt16, string> e in sap.SapAssignmentList)
                         {

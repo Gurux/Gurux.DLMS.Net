@@ -84,6 +84,7 @@ namespace Gurux.DLMS.Objects
         : base(ObjectType.CompactData, ln, sn)
         {
             CaptureObjects = new List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
+            Version = 1;
         }
 
         /// <summary>
@@ -334,7 +335,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        private static void SetCaptureObjects(GXDLMSSettings settings, List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> list, IEnumerable<object> array)
+        private void SetCaptureObjects(GXDLMSSettings settings, List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> list, IEnumerable<object> array)
         {
             GXDLMSConverter c = null;
             list.Clear();
@@ -353,7 +354,11 @@ namespace Gurux.DLMS.Objects
                         {
                             it = new List<object>((object[])tmp);
                         }
-                        if (it.Count != 4)
+                        if (Version == 0 && it.Count != 4)
+                        {
+                            throw new GXDLMSException("Invalid structure format.");
+                        }
+                        else if (Version == 1 && it.Count != 5)
                         {
                             throw new GXDLMSException("Invalid structure format.");
                         }

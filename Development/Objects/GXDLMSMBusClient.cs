@@ -273,7 +273,6 @@ namespace Gurux.DLMS.Objects
         {
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetUInt8(DataType.Array);
-            bb.SetUInt8(DataType.Structure);
             GXCommon.SetObjectCount(data.Length, bb);
             foreach (GXMBusClientData it in data)
             {
