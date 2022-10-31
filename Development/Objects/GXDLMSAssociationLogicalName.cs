@@ -347,7 +347,8 @@ namespace Gurux.DLMS.Objects
                 tmp.Set(settings.CtoSChallenge);
                 secret = tmp.Array();
             }
-            else if (settings.Authentication == Authentication.HighECDSA)
+#if !WINDOWS_UWP
+else if (settings.Authentication == Authentication.HighECDSA)
             {
                 secret = null;
                 GXByteBuffer tmp = new GXByteBuffer();
@@ -376,6 +377,7 @@ namespace Gurux.DLMS.Objects
                 GXEcdsa sig = new GXEcdsa(pub);
                 equals = sig.Verify(clientChallenge, tmp.Array());
             }
+#endif //!WINDOWS_UWP
             else
             {
                 secret = Secret;
@@ -872,7 +874,7 @@ namespace Gurux.DLMS.Objects
                 e.Index = pos + 1;
                 if (server != null)
                 {
-                    m = (byte) server.NotifyGetMethodAccess(e);
+                    m = (byte)server.NotifyGetMethodAccess(e);
                 }
                 else
                 {
@@ -1627,7 +1629,7 @@ namespace Gurux.DLMS.Objects
                                 buff = new int[access.Length / 4];
                                 for (pos = 0; pos != buff.Length; ++pos)
                                 {
-                                    buff[pos] = int.Parse(access.Substring(4 * pos, 4), NumberStyles.HexNumber) & ~0x8000;                                    
+                                    buff[pos] = int.Parse(access.Substring(4 * pos, 4), NumberStyles.HexNumber) & ~0x8000;
                                 }
                                 accessRights[obj] = buff;
                                 pos = 0;
@@ -2247,7 +2249,7 @@ namespace Gurux.DLMS.Objects
             {
                 int count = ((IGXDLMSBase)obj).GetMethodCount();
                 int[] list = new int[count];
-                for(int pos = 0; pos != count; ++pos)
+                for (int pos = 0; pos != count; ++pos)
                 {
                     list[pos] = (int)mode;
                 }

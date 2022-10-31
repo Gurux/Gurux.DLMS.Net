@@ -34,7 +34,9 @@
 using Gurux.DLMS.Ecdsa.Enums;
 using System;
 using System.Collections.Generic;
+#if !WINDOWS_UWP
 using System.Security.Cryptography;
+#endif //!WINDOWS_UWP
 
 namespace Gurux.DLMS.Ecdsa
 {
@@ -87,6 +89,7 @@ namespace Gurux.DLMS.Ecdsa
             PrivateKey = key;
         }
 
+#if !WINDOWS_UWP
         /// <summary>
         /// Sign given data using public and private key.
         /// </summary>
@@ -94,7 +97,7 @@ namespace Gurux.DLMS.Ecdsa
         /// <returns>Signature</returns>
         public byte[] Sign(byte[] data)
         {
-#if NET40 || NET45 || NET46  
+#if NET40 || NET45 || NET46
             if (PrivateKey == null)
             {
                 throw new ArgumentException("Invalid private key.");
@@ -148,6 +151,8 @@ namespace Gurux.DLMS.Ecdsa
 #endif
         }
 
+#endif //!WINDOWS_UWP
+
         /// <summary>
         /// Generate shared secret from public and private key.
         /// </summary>
@@ -182,7 +187,7 @@ namespace Gurux.DLMS.Ecdsa
         /// <returns></returns>
         public static KeyValuePair<GXPublicKey, GXPrivateKey> GenerateKeyPair(Ecc scheme)
         {
-#if NET40 || NET45 || NET46
+#if NET40 || NET45 || NET46 || WINDOWS_UWP
             byte[] raw = GetRandomNumber(new GXCurve(scheme).N).ToArray(false);
             GXPrivateKey pk = GXPrivateKey.FromRawBytes(raw);
             GXPublicKey pub = pk.GetPublicKey();
@@ -203,6 +208,7 @@ namespace Gurux.DLMS.Ecdsa
 #endif
         }
 
+#if !WINDOWS_UWP
         /// <summary>
         /// Verify that signature matches the data.
         /// </summary>
@@ -211,7 +217,7 @@ namespace Gurux.DLMS.Ecdsa
         /// <returns></returns>
         public bool Verify(byte[] signature, byte[] data)
         {
-#if NET40 || NET45 || NET46  
+#if NET40 || NET45 || NET46
             GXBigInteger msg;
             if (PublicKey == null)
             {
@@ -279,6 +285,7 @@ namespace Gurux.DLMS.Ecdsa
             return ecdsa.VerifyData(data, signature, HashAlgorithmName.SHA256);
 #endif
         }
+#endif //!WINDOWS_UWP
 
         private static void Multiply(GXEccPoint p, GXBigInteger n, GXBigInteger N, GXBigInteger A, GXBigInteger P)
         {
@@ -491,7 +498,7 @@ namespace Gurux.DLMS.Ecdsa
         /// <summary>
         private static GXBigInteger GetRandomNumber(GXBigInteger N)
         {
-            byte[] bytes = new byte[N.Count];
+            byte[] bytes = new byte[4 * N.Count];
             Random random = new Random();
             random.NextBytes(bytes);
             byte[] tmp = new byte[4 * N.Count];

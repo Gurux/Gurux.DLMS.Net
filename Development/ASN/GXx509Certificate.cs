@@ -40,7 +40,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
+#if !WINDOWS_UWP
 using System.Security.Cryptography.X509Certificates;
+#endif //!WINDOWS_UWP
 using System.Text;
 
 namespace Gurux.DLMS.ASN
@@ -324,12 +326,14 @@ namespace Gurux.DLMS.ASN
             return cert;
         }
 
+#if !WINDOWS_UWP
         public static GXx509Certificate FromCertificate(X509Certificate2 cert)
         {
             GXx509Certificate tmp = new GXx509Certificate();
             tmp.Init(cert.RawData);
             return tmp;
         }
+#endif //!WINDOWS_UWP
 
         /// <summary>
         /// Create x509Certificate from PEM string.
@@ -943,6 +947,8 @@ namespace Gurux.DLMS.ASN
             return SerialNumber.GetHashCode();
         }
 
+        #if !WINDOWS_UWP
+
         /// <summary>
         /// Test is x509 file certified by the certifier.
         /// </summary>
@@ -970,6 +976,7 @@ namespace Gurux.DLMS.ASN
             bb.Set(((GXAsn1Integer)tmp3[1]).Value, ((GXAsn1Integer)tmp3[1]).Value.Length == size ? 0 : 1, size);
             return e.Verify(bb.Array(), tmp2.SubArray(tmp2.Position, tmp2.Available));
         }
+#endif //!WINDOWS_UWP
 
         /// <summary>Search x509 Certificate from the PEM file in given folder.
         /// </summary>

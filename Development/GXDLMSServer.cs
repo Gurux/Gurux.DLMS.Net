@@ -1540,6 +1540,7 @@ namespace Gurux.DLMS
                     HandleReleaseRequest(data, sr.ConnectionInfo);
                     Settings.Connected &= ~ConnectionState.Dlms;
                     Disconnected(sr.ConnectionInfo);
+                    AssignedAssociation = null;
                     break;
                 case Command.DisconnectRequest:
                     GenerateDisconnectRequest();
@@ -1550,6 +1551,7 @@ namespace Gurux.DLMS
                             Disconnected(sr.ConnectionInfo);
                         }
                         Settings.Connected = ConnectionState.None;
+                        AssignedAssociation = null;
                         UpdateDefaultBaudRate(sr);
                     }
                     frame = (byte)Command.Ua;

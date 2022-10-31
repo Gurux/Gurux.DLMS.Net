@@ -11,7 +11,7 @@
     <AssemblyName>Gurux.DLMS.Net</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion>10.0.17763.0</TargetPlatformVersion>
+    <TargetPlatformVersion>10.0.19041.0</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
@@ -103,11 +103,6 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
-    <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
-    <None Include="..\project.json" />
-    <PRIResource Include="..\Strings\Resources.resw" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="..\GXDLMSConfirmedServiceError.cs" />
     <Compile Include="..\ManufacturerSettings\GXAttributeCollection.cs" />
     <Compile Include="..\Objects\Enums\DeviceType.cs" />
@@ -123,7 +118,6 @@
     <Compile Include="..\Objects\Enums\Modulation.cs" />
     <Compile Include="..\Objects\Enums\AddressConfigMode.cs" />
     <Compile Include="..\Objects\Enums\MBusEncryptionKeyStatus.cs" />
-    <Compile Include="..\Objects\Enums\SecurityPolicy0.cs" />
     <Compile Include="..\Objects\GXDLMSCompactData.cs" />
     <Compile Include="..\Objects\GXDLMSWirelessModeQchannel.cs" />
     <Compile Include="..\Objects\GXDLMSUtilityTables.cs" />
@@ -199,9 +193,11 @@
     <Compile Include="..\Internal\HdlcControlFrame.cs" />
     <Compile Include="..\Internal\PduType.cs" />
     <Compile Include="..\Enums\AccessMode.cs" />
+    <Compile Include="..\Enums\AccessMode3.cs" />
     <Compile Include="..\Enums\ExceptionStateError.cs" />
     <Compile Include="..\Enums\ExceptionServiceError.cs" />
     <Compile Include="..\Enums\MethodAccessMode.cs" />
+    <Compile Include="..\Enums\MethodAccessMode3.cs" />
     <Compile Include="..\Enums\DateTimeSkips.cs" />
     <Compile Include="..\GXKeyValuePair.cs" />
     <Compile Include="..\GXDLMSNotify.cs" />
@@ -300,7 +296,7 @@
     <Compile Include="..\Objects\GXDLMSTokenGateway.cs" />
     <Compile Include="..\Objects\GXDLMSParameterMonitor.cs" />
     <Compile Include="..\Objects\GXDLMSTarget.cs" />
-    <Compile Include="..\Internal\GXFCS16.cs" />
+    <Compile Include="..\GXFCS16.cs" />
     <Compile Include="..\Enums\InterfaceType.cs" />
     <Compile Include="..\ManufacturerSettings\GXAttribute.cs" />
     <Compile Include="..\ManufacturerSettings\GXAuthentication.cs" />
@@ -346,7 +342,6 @@
     <Compile Include="..\Objects\GXDLMSSpecialDaysTable.cs" />
     <Compile Include="..\Objects\GXDLMSTcpUdpSetup.cs" />
     <Compile Include="..\Objects\GXDLMSWeekProfile.cs" />
-    <Compile Include="..\Objects\GXProfileGenericUpdater.cs" />
     <Compile Include="..\Objects\GXxDLMSContextType.cs" />
     <Compile Include="..\Objects\IGXDLMSBase.cs" />
     <Compile Include="..\Objects\Enums\ImageTransferStatus.cs" />
@@ -381,7 +376,120 @@
     <Compile Include="..\Internal\MBusControlInfo.cs" />
     <Compile Include="..\Internal\MBusEncryptionMode.cs" />
     <Compile Include="..\Internal\MBusMeterType.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="..\Ecdsa\Enums\AlgorithmId.cs" />
+    <Compile Include="..\Ecdsa\Enums\Ecc.cs" />
+    <Compile Include="..\Ecdsa\GXBigInteger.cs" />
+    <Compile Include="..\Ecdsa\GXCurve.cs" />
+    <Compile Include="..\Ecdsa\GXDLMSCertificateException.cs" />
+    <Compile Include="..\Ecdsa\GXEccPoint.cs" />
+    <Compile Include="..\Ecdsa\GXEcdsa.cs" />
+    <Compile Include="..\Ecdsa\GXPrivateKey.cs" />
+    <Compile Include="..\Ecdsa\GXPublicKey.cs" />
+    <Compile Include="..\Enums\SignCipherOrder.cs" />
+    <Compile Include="..\Enums\Signing.cs" />
+    <Compile Include="..\Objects\Enums\PaymentMode.cs" />
+    <Compile Include="..\Objects\Enums\WeekDays.cs" />
+    <Compile Include="..\Plc\Enums\PlcDataLinkData.cs" />
+    <Compile Include="..\Plc\Enums\PlcDestinationAddress.cs" />
+    <Compile Include="..\Plc\Enums\PlcHdlcSourceAddress.cs" />
+    <Compile Include="..\Plc\Enums\PlcMacSubframes.cs" />
+    <Compile Include="..\Plc\Enums\PlcSourceAddress.cs" />
+    <Compile Include="..\Plc\GXDLMSPlcMeterInfo.cs" />
+    <Compile Include="..\Plc\GXDLMSPlcRegister.cs" />
+    <Compile Include="..\Plc\GXPlcSettings.cs" />
+
+    <Compile Include="..\ASN\Enums\KeyUsage.cs" />
+    <Compile Include="..\KeyEventHandler.cs" />
+    
+    <Compile Include="..\ASN\GXx509Certificate.cs" />
+    <Compile Include="..\ASN\GXx509CertificateCollection.cs" />
+    <Compile Include="..\ASN\GXPkcs8.cs" />
+    <Compile Include="..\ASN\GXPkcs8Collection.cs" />
+    <Compile Include="..\GXCryptoKeyParameter.cs" />
+    <Compile Include="..\GXHdlcSettings.cs" />
+    <Compile Include="..\Internal\GXCryptoNotifier.cs" />
+    <Compile Include="..\ASN\Enums\PkcsType.cs" />
+    <Compile Include="..\ASN\GXAsn1Sequence.cs" />
+    <Compile Include="..\ASN\Enums\HashAlgorithm.cs" />
+    <Compile Include="..\ASN\GXAsn1ObjectIdentifier.cs" />
+   <Compile Include="..\ASN\Enums\X9ObjectIdentifier.cs" />
+   <Compile Include="..\ASN\Enums\CertificateVersion.cs" />
+   <Compile Include="..\ASN\GXAsn1Converter.cs" />
+   <Compile Include="..\PduEventHandler.cs" />
+   <Compile Include="..\ManufacturerSettings\ManufactureSettings.cs" />
+   <Compile Include="..\GXArray.cs" />
+   <Compile Include="..\GXStructure.cs" />
+   <Compile Include="..\GXPduSettings.cs" />
+   <Compile Include="..\GXMBusSettings.cs" />
+   <Compile Include="..\GXDLMSTranslatorMessage.cs" />
+   <Compile Include="..\CryptoEventHandler.cs" />
+   <Compile Include="..\Objects\GXDLMSIec8802LlcType1Setup.cs" />
+   <Compile Include="..\Objects\GXDLMSIec8802LlcType2Setup.cs" />
+   <Compile Include="..\ASN\Enums\ExtendedKeyUsage.cs" />
+   <Compile Include="..\ASN\GXAsn1BitString.cs" />
+   <Compile Include="..\Objects\GXDLMSCertificateCollection.cs" />
+
+   <Compile Include="..\Objects\Enums\CreditStatus.cs" />
+   <Compile Include="..\Objects\Enums\CreditConfiguration.cs" />
+   <Compile Include="..\ASN\GXAsn1Settings.cs" />
+   <Compile Include="..\Objects\Enums\CallType.cs" />
+   <Compile Include="..\Objects\Enums\AccountStatus.cs" />
+   <Compile Include="..\Objects\Enums\AccountCreditStatus.cs" />
+   <Compile Include="..\Objects\Enums\CreditCollectionConfiguration.cs" />
+   <Compile Include="..\Objects\Enums\Currency.cs" />
+   <Compile Include="..\ASN\Enums\X509CertificateType.cs" />
+   <Compile Include="..\Objects\Enums\ChargeConfiguration.cs" />
+   <Compile Include="..\ASN\Enums\X509Name.cs" />
+   <Compile Include="..\ASN\Enums\PkcsObjectIdentifier.cs" />
+
+   <Compile Include="..\ASN\GXPkcs10.cs" />
+   <Compile Include="..\ASN\GXCertificateRequest.cs" />
+
+   <Compile Include="..\Objects\GXDLMSLlcSscsSetup.cs" />
+   <Compile Include="..\Objects\GXDLMSPrimeNbOfdmPlcPhysicalLayerCounters.cs" />
+   <Compile Include="..\Objects\GXDLMSPrimeNbOfdmPlcMacSetup.cs" />
+
+   <Compile Include="..\Objects\GXDLMSPrimeNbOfdmPlcMacFunctionalParameters.cs" />
+   <Compile Include="..\Objects\GXDLMSPrimeNbOfdmPlcMacCounters.cs" />
+   <Compile Include="..\Objects\GXDLMSPrimeNbOfdmPlcMacNetworkAdministrationData.cs" />
+   <Compile Include="..\Objects\GXDLMSPrimeNbOfdmPlcApplicationsIdentification.cs" />
+
+   <Compile Include="..\Objects\GXDLMSIec8802LlcType3Setup.cs" />
+   <Compile Include="..\Objects\GXDLMSSFSKReportingSystemList.cs" />
+   <Compile Include="..\Objects\GXDLMSArbitrator.cs" />
+
+   <Compile Include="..\Objects\GXDLMSNtpSetup.cs" />
+   <Compile Include="..\Objects\GXDLMSCommunicationPortProtection.cs" />
+
+   <Compile Include="..\Objects\Enums\ProtectionStatus.cs" />
+   <Compile Include="..\Objects\Enums\ProtectionMode.cs" />
+   <Compile Include="..\Objects\Enums\NtpAuthenticationMethod.cs" />
+   <Compile Include="..\Objects\Enums\MacState.cs" />
+   <Compile Include="..\Objects\Enums\MacCapabilities.cs" />
+   <Compile Include="..\Objects\GXMacPhyCommunication.cs" />
+   <Compile Include="..\Objects\GXMacMulticastEntry.cs" />
+   <Compile Include="..\Objects\GXMacDirectTable.cs" />
+   <Compile Include="..\Objects\GXMacAvailableSwitch.cs" />
+
+   <Compile Include="..\GXDLMSCipherException.cs" />
+
+   <Compile Include="..\GXDeltaUInt8.cs" />
+   <Compile Include="..\GXDeltaUInt16.cs" />
+   <Compile Include="..\GXDeltaUInt32.cs" />
+   <Compile Include="..\GXDeltaInt8.cs" />
+   <Compile Include="..\GXDeltaInt16.cs" />
+   <Compile Include="..\GXDeltaInt32.cs" />
+
+   <Compile Include="..\ASN\GXAsn1Utf8String.cs" />
+   <Compile Include="..\ASN\GXAsn1Integer.cs" />
+   <Compile Include="..\ASN\GXAsn1Ia5String.cs" />
+   <Compile Include="..\ASN\GXAsn1Context.cs" />
+   <Compile Include="..\ASN\GXAsn1PublicKey.cs" />
+
+   <Compile Include="..\Enums\KeyAgreementScheme.cs" />
+   <Compile Include="..\Internal\SetCommandType.cs" />
+
+<Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\Gurux.DLMS.Net.UWP.rd.xml" />
   </ItemGroup>
   <ItemGroup />

@@ -2952,7 +2952,11 @@ namespace Gurux.DLMS.Internal
             {
                 return DataType.Array;
             }
-            else if (type == typeof(GXEnum) || type.IsEnum)
+            else if (type == typeof(GXEnum)
+#if !WINDOWS_UWP
+                || type.IsEnum
+#endif //!WINDOWS_UWP
+            )
             {
                 return DataType.Enum;
             }
@@ -3113,7 +3117,7 @@ namespace Gurux.DLMS.Internal
                 sb.Append("Manufacturer Code: ");
                 sb.AppendLine(new string(new char[] { (char)st[0], (char)st[1], (char)st[2] }));
                 sb.Append("Device type: ");
-                switch(st[3])
+                switch (st[3])
                 {
                     case 99:
                         sb.Append("DC");
@@ -3284,7 +3288,7 @@ namespace Gurux.DLMS.Internal
         public static string ToBase64(byte[] value)
         {
             return System.Convert.ToBase64String(value);
-        }       
+        }
     }
 
     static class GXHelpers2

@@ -1,7 +1,9 @@
 using Gurux.DLMS.Ecdsa;
 using Gurux.DLMS.Internal;
 using System;
+#if !WINDOWS_UWP
 using System.Security.Cryptography.X509Certificates;
+#endif //!WINDOWS_UWP
 
 //
 // --------------------------------------------------------------------------

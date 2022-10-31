@@ -1211,7 +1211,8 @@ namespace Gurux.DLMS
                     UInt32 ic = 0;
                     if (Settings.Authentication == Enums.Authentication.HighECDSA)
                     {
-                        if (Settings.Cipher.Equals(new KeyValuePair<byte[], byte[]>()))
+#if !WINDOWS_UWP
+if (Settings.Cipher.Equals(new KeyValuePair<byte[], byte[]>()))
                         {
                             throw new ArgumentNullException("SigningKeyPair is empty.");
                         }
@@ -1222,6 +1223,7 @@ namespace Gurux.DLMS
                         tmp2.Set(Settings.StoCChallenge);
                         GXEcdsa sig = new GXEcdsa(Settings.Cipher.SigningKeyPair.Key);
                         equals = sig.Verify(value, tmp2.Array());
+#endif //!WINDOWS_UWP                    
                     }
                     else
                     {
@@ -3505,7 +3507,7 @@ namespace Gurux.DLMS
                                 {
                                     ret = ((frame & 0x7) << 8);
                                 }
-                                ret += data.GetUInt8();
+                                ret += 1 + data.GetUInt8();
                             }
                         }
                         finally

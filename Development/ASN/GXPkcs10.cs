@@ -315,6 +315,7 @@ namespace Gurux.DLMS.ASN
             GXAsn1Sequence tmp3 = (GXAsn1Sequence)GXAsn1Converter.FromByteArray(Signature);
             GXByteBuffer bb = new GXByteBuffer();
             int size = SignatureAlgorithm == HashAlgorithm.Sha256WithEcdsa ? 32 : 48;
+#if !WINDOWS_UWP
             //Some implementations might add extra byte. It must removed.
             bb.Set(((GXAsn1Integer)tmp3[0]).Value, ((GXAsn1Integer)tmp3[0]).Value.Length == size ? 0 : 1, size);
             bb.Set(((GXAsn1Integer)tmp3[1]).Value, ((GXAsn1Integer)tmp3[1]).Value.Length == size ? 0 : 1, size);
@@ -322,6 +323,7 @@ namespace Gurux.DLMS.ASN
             {
                 throw new ArgumentException("Invalid Signature.");
             }
+#endif //!WINDOWS_UWP
         }
 
         public override sealed string ToString()
@@ -412,6 +414,7 @@ namespace Gurux.DLMS.ASN
             }
         }
 
+#if !WINDOWS_UWP
         /// <summary>
         /// Sign
         /// </summary>
@@ -539,6 +542,7 @@ namespace Gurux.DLMS.ASN
                 throw new Exception(new StreamReader(ex.Response.GetResponseStream()).ReadToEnd());
             }
         }
+#endif //!WINDOWS_UWP
 
         /// <summary>
         /// Load Pkcs10 Certificate Signing Request from the PEM (.csr) file.

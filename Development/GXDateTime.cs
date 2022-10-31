@@ -46,7 +46,9 @@ namespace Gurux.DLMS
     /// This class is used because in COSEM object model some fields from date time can be ignored.
     /// Default behavior of DateTime do not allow this.
     /// </summary>
-    [TypeConverter(typeof(GXDateTimeConverter))]
+#if !WINDOWS_UWP
+[TypeConverter(typeof(GXDateTimeConverter))]
+#endif//!WINDOWS_UWP
     public class GXDateTime : IConvertible
     {
         /// <summary>
@@ -1246,7 +1248,7 @@ namespace Gurux.DLMS
             return buff.ToHex(addSpace, 2);
         }
 
-        #region IConvertible Members
+#region IConvertible Members
 
         TypeCode IConvertible.GetTypeCode()
         {
@@ -1333,7 +1335,7 @@ namespace Gurux.DLMS
             return (ulong)GXDateTime.ToUnixTime(this.Value.DateTime);
         }
 
-        #endregion
+#endregion
 
         /// <summary>
         /// Compare to date time.

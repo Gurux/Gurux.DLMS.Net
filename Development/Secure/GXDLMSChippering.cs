@@ -35,7 +35,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+#if !WINDOWS_UWP
 using System.Security.Cryptography;
+#endif //!WINDOWS_UWP
 using Gurux.DLMS.ASN;
 using Gurux.DLMS.Ecdsa;
 using Gurux.DLMS.Ecdsa.Enums;
@@ -485,6 +487,7 @@ namespace Gurux.DLMS.Secure
                     }
                 }
             }
+#if !WINDOWS_UWP
             else if (value == (int)KeyAgreementScheme.OnePassDiffieHellman)
             {
                 GXEcdsa c = new GXEcdsa(kp.Value);
@@ -521,6 +524,7 @@ namespace Gurux.DLMS.Secure
                 System.Diagnostics.Debug.WriteLine("Authentication key: " + GXCommon.ToHex(p.AuthenticationKey, true));
                 p.BlockCipherKey = kdf.SubArray(0, 16);
             }
+#endif //!WINDOWS_UWP
             if (p.Xml == null && value != 0 && kp.Key == null)
             {
                 throw new ArgumentOutOfRangeException("Invalid Key-id value.");
@@ -639,10 +643,13 @@ namespace Gurux.DLMS.Secure
                     }
                     GXEcdsa c = new GXEcdsa(kp.Key);
                     System.Diagnostics.Debug.WriteLine("Verifying signature: " + signedData);
+#if !WINDOWS_UWP
+
                     if (!c.Verify(p.Signature, signedData.Array()))
                     {
                         throw new Exception("Invalid signature.");
                     }
+#endif //!WINDOWS_UWP
                 }
                 else
                 {
@@ -666,6 +673,7 @@ namespace Gurux.DLMS.Secure
                             GXCommon.ToHex(p.SystemTitle, false),
                             st));
                     }
+#if !WINDOWS_UWP
                     else
                     {
                         GXEcdsa c;
@@ -683,6 +691,7 @@ namespace Gurux.DLMS.Secure
                             p.Xml.AppendComment("Failed to verify signed data. Invalid signature.");
                         }
                     }
+#endif //!WINDOWS_UWP
                 }
             }
             return decrypted;

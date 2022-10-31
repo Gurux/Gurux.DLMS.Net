@@ -42,7 +42,9 @@ namespace Gurux.DLMS.Ecdsa
     /// <remarks>
     /// https://www.gurux.fi/Gurux.DLMS.Secure
     /// </remarks>
+#if !WINDOWS_UWP
     [Serializable]
+#endif //!WINDOWS_UWP
     public class GXDLMSCertificateException : Exception
     {
         public GXDLMSCertificateException(string message)

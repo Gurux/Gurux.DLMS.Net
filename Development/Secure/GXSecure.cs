@@ -162,6 +162,7 @@ namespace Gurux.DLMS.Secure
                 tmp = challenge.Array();
                 return tmp;
             }
+#if !WINDOWS_UWP
             else if (settings.Authentication == Authentication.HighECDSA)
             {
                 GXPrivateKey key = settings.Cipher.SigningKeyPair.Value;
@@ -185,6 +186,7 @@ namespace Gurux.DLMS.Secure
                 GXEcdsa sig = new GXEcdsa(key);
                 data = sig.Sign(secret);
             }
+#endif //!WINDOWS_UWP
             return data;
         }
 
@@ -219,7 +221,8 @@ namespace Gurux.DLMS.Secure
             return result;
         }
 
-        /// <summary>
+#if !WINDOWS_UWP
+/// <summary>
         /// Generate KDF.
         /// </summary>
         /// <remarks>
@@ -289,6 +292,7 @@ namespace Gurux.DLMS.Secure
                 throw new ArgumentOutOfRangeException("Invalid security suite.");
             }
         }
+#endif //!WINDOWS_UWP
 
         /// <summary>
         /// Get Ephemeral Public Key Signature.
@@ -307,6 +311,7 @@ namespace Gurux.DLMS.Secure
             return epk.Array();
         }
 
+#if !WINDOWS_UWP
         /// <summary>
         /// Get Ephemeral Public Key Signature.
         /// </summary>
@@ -353,5 +358,6 @@ namespace Gurux.DLMS.Secure
             }
             return ret;
         }
+#endif //!WINDOWS_UWP
     }
 }

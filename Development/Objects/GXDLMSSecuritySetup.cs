@@ -375,7 +375,7 @@ namespace Gurux.DLMS.Objects
             }
             return client.Method(this, 3, bb.Array(), DataType.Array);
         }
-
+#if !WINDOWS_UWP
         /// <summary>
         /// Agree on global unicast encryption key.
         /// </summary>
@@ -407,6 +407,7 @@ namespace Gurux.DLMS.Objects
             list.Add(new KeyValuePair<GlobalKeyType, byte[]>(GlobalKeyType.UnicastEncryption, bb.Array()));
             return KeyAgreement(client, list);
         }
+#endif //!WINDOWS_UWP
 
         /// <summary>
         ///  Generates an asymmetric key pair as required by the security suite.
@@ -590,6 +591,7 @@ namespace Gurux.DLMS.Objects
             return client.Method(this, 8, bb.Array(), DataType.Structure);
         }
 
+#if !WINDOWS_UWP
         /// <summary>
         /// Update ephemeral keys.
         /// </summary>
@@ -599,7 +601,9 @@ namespace Gurux.DLMS.Objects
         {
             return UpdateEphemeralKeys(client, new GXByteBuffer(value));
         }
+#endif //!WINDOWS_UWP
 
+#if !WINDOWS_UWP
         /// <summary>
         /// Update ephemeral keys.
         /// </summary>
@@ -691,6 +695,7 @@ namespace Gurux.DLMS.Objects
             }
             return list;
         }
+#endif //!WINDOWS_UWP
 
         #region IGXDLMSBase Members
 
@@ -775,7 +780,9 @@ namespace Gurux.DLMS.Objects
             {
                 if (SecuritySuite == SecuritySuite.Suite0 && e.Index > 3)
                 {
+#if !WINDOWS_UWP
                     throw new ArgumentOutOfRangeException(Properties.Resources.InvalidSecuritySuiteVersion);
+#endif //!WINDOWS_UWP
                 }
                 switch (e.Index)
                 {
@@ -790,8 +797,10 @@ namespace Gurux.DLMS.Objects
                     case 4:
                         GenerateKeyPair(settings, e);
                         break;
+#if !WINDOWS_UWP
                     case 5:
                         return GenerateCertificateRequest(settings, e);
+#endif //!WINDOWS_UWP
                     case 6:
                         ImportCertificate(settings, e);
                         break;
@@ -906,7 +915,9 @@ namespace Gurux.DLMS.Objects
         {
             if (SecuritySuite == SecuritySuite.Suite0)
             {
+#if !WINDOWS_UWP
                 throw new ArgumentOutOfRangeException(Properties.Resources.InvalidSecuritySuiteVersion);
+#endif //!WINDOWS_UWP
             }
             CertificateType key = (CertificateType)Convert.ToInt32(e.Parameters);
             KeyValuePair<GXPublicKey, GXPrivateKey> value = GXEcdsa.GenerateKeyPair(GetEcc(SecuritySuite));
@@ -924,6 +935,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
+#if !WINDOWS_UWP
         private byte[] GenerateCertificateRequest(GXDLMSSettings settings, ValueEventArgs e)
         {
             CertificateType key = (CertificateType)Convert.ToInt32(e.Parameters);
@@ -959,6 +971,8 @@ namespace Gurux.DLMS.Objects
             }
             return null;
         }
+        
+#endif //!WINDOWS_UWP
 
         private void KeyTransfer(GXDLMSSettings settings, ValueEventArgs e)
         {

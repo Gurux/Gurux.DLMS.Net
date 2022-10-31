@@ -1042,6 +1042,7 @@ namespace Gurux.DLMS
             }
             else
             {
+#if !WINDOWS_UWP
                 GXByteBuffer kdf = new GXByteBuffer();
                 kdf.Set(GXSecure.GenerateKDF(c.SecuritySuite, z, algorithmID, c.SystemTitle, tmp2.Array(), null, null));
                 System.Diagnostics.Debug.WriteLine("kdf: " + kdf.ToString());
@@ -1062,6 +1063,9 @@ namespace Gurux.DLMS
                 null,
                 // Other information.
                 null);
+#else                
+                throw new ArgumentException();
+#endif //!WINDOWS_UWP
             }
             GXByteBuffer reply = new GXByteBuffer();
             if (sign)
@@ -1101,6 +1105,7 @@ namespace Gurux.DLMS
             }
             if (keyid == 1)
             {
+#if !WINDOWS_UWP
                 key = c.SigningKeyPair.Value;
                 pub = c.SigningKeyPair.Key;
                 if (key == null)
@@ -1121,6 +1126,7 @@ namespace Gurux.DLMS
                 // Ephemeral Public Key Signature.
                 reply.Set(GXSecure.GetEphemeralPublicKeySignature(keyid,
                         c.EphemeralKeyPair.Key, c.SigningKeyPair.Value));
+#endif //!WINDOWS_UWP
             }
             else if (!sign)
             {
@@ -1169,6 +1175,7 @@ namespace Gurux.DLMS
             ++p.settings.Cipher.InvocationCounter;
             reply.Set(tmp);
             signedData.Set(tmp);
+#if !WINDOWS_UWP
             if (sign)
             {
                 // Signature
@@ -1178,7 +1185,7 @@ namespace Gurux.DLMS
                 GXCommon.SetObjectCount(signature.Length, reply);
                 reply.Set(signature);
             }
-
+#endif //!WINDOWS_UWP
             System.Diagnostics.Debug.WriteLine("Encrypted:" + reply.ToString());
             return reply.Array();
         }
