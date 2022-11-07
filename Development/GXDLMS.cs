@@ -187,6 +187,7 @@ namespace Gurux.DLMS
                 availableObjectTypes.Add(ObjectType.Arbitrator, typeof(GXDLMSArbitrator));
                 availableObjectTypes.Add(ObjectType.NtpSetup, typeof(GXDLMSNtpSetup));
                 availableObjectTypes.Add(ObjectType.CommunicationPortProtection, typeof(GXDLMSCommunicationPortProtection));
+                availableObjectTypes.Add(ObjectType.FunctionControl, typeof(GXDLMSFunctionControl));               
                 //Italian standard uses this.
                 availableObjectTypes.Add(ObjectType.TariffPlan, typeof(GXDLMSTariffPlan));
             }

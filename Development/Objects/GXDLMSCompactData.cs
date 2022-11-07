@@ -376,7 +376,7 @@ namespace Gurux.DLMS.Objects
                         {
                             attributeIndex = 2;
                         }
-                        int dataIndex = Convert.ToInt16(it[3]);
+                        int dataIndex = Convert.ToUInt16(it[3]);
                         GXDLMSObject obj = null;
                         if (settings != null && settings.Objects != null)
                         {
