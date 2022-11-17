@@ -235,6 +235,17 @@ namespace Gurux.DLMS.Objects
             return new object[] { LogicalName, Token, Time, Descriptions, DeliveryMethod, new object[] { StatusCode, DataValue } };
         }
 
+        /// <summary>
+        /// Transfer a token to the server.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="token">The token to send.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] Enter(GXDLMSClient client, byte[] token)
+        {
+            return client.Method(this, 1, token, DataType.OctetString);
+        }
+
         #region IGXDLMSBase Members
 
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
