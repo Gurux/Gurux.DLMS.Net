@@ -119,7 +119,14 @@ namespace Gurux.DLMS.Client.Example
                         net.Port = int.Parse(it.Value);
                         break;
                     case 'P'://Password
-                        settings.client.Password = ASCIIEncoding.ASCII.GetBytes(it.Value);
+                        if (it.Value.StartsWith("0x"))
+                        {
+                            settings.client.Password = GXCommon.HexToBytes(it.Value.Substring(2));
+                        }
+                        else
+                        {
+                            settings.client.Password = ASCIIEncoding.ASCII.GetBytes(it.Value);
+                        }
                         break;
                     case 'i':
                         try
