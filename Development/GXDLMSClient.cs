@@ -198,6 +198,23 @@ namespace Gurux.DLMS
             }
         }
 
+        /// <summary>
+        /// Notify is used to find correct keys.
+        /// </summary>
+        /// <remarks>
+        /// This can be used when excypted push notification is received.
+        /// </remarks>
+        public event KeyEventHandler OnKeys
+        {
+            add
+            {
+                Settings.CryptoNotifier.keys += value;
+            }
+            remove
+            {
+                Settings.CryptoNotifier.keys -= value;
+            }
+        }
 
         /// <summary>
         /// Copy client settings.

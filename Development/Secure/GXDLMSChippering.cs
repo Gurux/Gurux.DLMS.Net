@@ -217,6 +217,45 @@ namespace Gurux.DLMS.Secure
                             p.Xml.AppendComment("Invalid sender system title.");
                         }
                     }
+                    if (p.AuthenticationKey == null || p.BlockCipherKey == null)
+                    {
+                        if (p.Settings.CryptoNotifier == null ||
+                            p.Settings.CryptoNotifier.keys == null)
+                        {
+                            throw new Exception("Failed to get the block cipher key.");
+                        }
+                        GXCryptoKeyParameter args = new GXCryptoKeyParameter()
+                        {
+                            SystemTitle = p.SystemTitle
+                        };
+                        if (p.BlockCipherKey == null)
+                        {
+                            args.KeyType |= CryptoKeyType.BlockCipher;
+                        }
+                        if (p.AuthenticationKey == null)
+                        {
+                            args.KeyType |= CryptoKeyType.Authentication;
+                        }
+                        p.Settings.CryptoNotifier.keys(p.Settings.CryptoNotifier, args);
+                        if (p.BlockCipherKey == null)
+                        {
+                            if (args.BlockCipherKey == null || (
+                                args.BlockCipherKey.Length != 16 && args.BlockCipherKey.Length != 32))
+                            {
+                                throw new Exception("Invalid Block cipher key.");
+                            }
+                            p.BlockCipherKey = args.BlockCipherKey;
+                        }
+                        if (p.AuthenticationKey == null)
+                        {
+                            if (args.AuthenticationKey == null || (
+                                args.AuthenticationKey.Length != 16 && args.AuthenticationKey.Length != 32))
+                            {
+                                throw new Exception("Invalid authentication key.");
+                            }
+                            p.AuthenticationKey = args.AuthenticationKey;
+                        }
+                    }
                     break;
                 case Command.GeneralCiphering:
                 case Command.GloInitiateRequest:

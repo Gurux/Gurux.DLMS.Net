@@ -33,20 +33,27 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using Gurux.DLMS.Enums;
-using System.Globalization;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Ecdsa;
-using Gurux.DLMS.Secure;
+using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS
 {
+
     /// <summary>
     /// Crypto key parameter is used to get public or private key.
     /// </summary>
     public class GXCryptoKeyParameter
     {
+        /// <summary>
+        /// Crypto key type.
+        /// </summary>
+        public CryptoKeyType KeyType
+        {
+            get;
+            internal set;
+        }
+
         /// <summary>
         /// Is data encrypted or decrypted.
         /// </summary>
@@ -73,7 +80,7 @@ namespace Gurux.DLMS
             get;
             internal set;
         }
-        
+
         /// <summary>
         /// Used security suite.
         /// </summary>
@@ -125,7 +132,7 @@ namespace Gurux.DLMS
         public byte[] BlockCipherKey
         {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -136,7 +143,7 @@ namespace Gurux.DLMS
             get;
             set;
         }
-       
+
         /// <summary>
         /// Frame counter. Invocation counter.
         /// </summary>
@@ -170,6 +177,6 @@ namespace Gurux.DLMS
         {
             get;
             set;
-        }        
+        }
     }
 }
