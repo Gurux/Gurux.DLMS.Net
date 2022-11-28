@@ -363,6 +363,7 @@ namespace Gurux.DLMS.Simulator.Net
                     {
                         GXDLMSMeter m = meters[target];
                         GXServerReply sr = new GXServerReply(bb.Data);
+                        sr.ConnectionInfo = new GXDLMSConnectionEventArgs() { ConnectionInfo = e.SenderInfo };
                         do
                         {
                             m.HandleRequest(sr);
@@ -761,7 +762,12 @@ namespace Gurux.DLMS.Simulator.Net
             //Only one connection per meter at the time is allowed.
             if (AssignedAssociation != null)
             {
-                return false;
+                if (AssignedAssociation.ServerSAP == serverAddress &&
+                    AssignedAssociation.ClientSAP != clientAddress)
+                {
+                    return false;
+                }
+                AssignedAssociation = null;
             }
             bool ret = false;
             //Check HDLC station address if it's used.
@@ -969,7 +975,6 @@ namespace Gurux.DLMS.Simulator.Net
                 connections[e.Info].Reset();
                 connections.Remove(e.Info);
             }
-          //MIKKO  connections[e.Info] = this;
         }
 
         /// <summary>
@@ -1061,11 +1066,14 @@ namespace Gurux.DLMS.Simulator.Net
 
         protected override void Connected(GXDLMSConnectionEventArgs e)
         {
-            if (connections.ContainsKey(e.ConnectionInfo))
+            if (e != null && e.ConnectionInfo != null)
             {
-                connections[e.ConnectionInfo].Reset();
+                if (connections.ContainsKey(e.ConnectionInfo))
+                {
+                    connections[e.ConnectionInfo].Reset();
+                }
+                connections[e.ConnectionInfo] = this;
             }
-            connections[e.ConnectionInfo] = this;
             if (Trace > TraceLevel.Warning)
             {
                 Console.WriteLine("Client Connected.");
@@ -1078,9 +1086,12 @@ namespace Gurux.DLMS.Simulator.Net
             {
                 Console.WriteLine("Client Disconnected");
             }
-            if (connections.ContainsKey(e.ConnectionInfo))
+            if (e != null && e.ConnectionInfo != null)
             {
-                connections.Remove(e.ConnectionInfo);
+                if (connections.ContainsKey(e.ConnectionInfo))
+                {
+                    connections.Remove(e.ConnectionInfo);
+                }
             }
         }
     }
