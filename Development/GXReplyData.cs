@@ -349,6 +349,14 @@ namespace Gurux.DLMS
             set;
         }
 
+        /// <summary>
+        /// PRIME data concentrator notification information.
+        /// </summary>
+        public GXDLMSPrimeDataConcentrator PrimeDc
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Is GBT or HDLC streaming used.

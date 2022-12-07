@@ -242,35 +242,45 @@ namespace Gurux.DLMS.Objects
             {
                 object ret;
                 DataType uiType;
-                DataType dt = (DataType)Enum.Parse(typeof(DataType), reader.GetAttribute(0));
-                if (obj != null)
+                if (reader.AttributeCount == 0)
                 {
-                    obj.SetDataType(index, dt);
-                }
-                if (reader.AttributeCount > 1)
-                {
-                    uiType = (DataType)Enum.Parse(typeof(DataType), reader.GetAttribute(1));
-                }
-                else
-                {
-                    uiType = dt;
-                }
-                if (obj != null && obj.GetUIDataType(index) == DataType.None)
-                {
-                    obj.SetUIDataType(index, uiType);
-                }
-                if (dt == DataType.Array || dt == DataType.Structure)
-                {
-                    reader.Read();
-                    GetNext();
-                    ret = ReadArray();
-                    ReadEndElement(name);
-                    return ret;
-                }
-                else
-                {
+                    ret = null;
                     string str = reader.ReadElementContentAsString();
-                    ret = GXDLMSConverter.ChangeType(str, uiType, CultureInfo.InvariantCulture);
+                    obj.SetDataType(index, DataType.None);
+                }
+                else
+                {
+                    string tmp = reader.GetAttribute(0);
+                    DataType dt = (DataType)Enum.Parse(typeof(DataType), tmp);
+                    if (obj != null)
+                    {
+                        obj.SetDataType(index, dt);
+                    }
+                    if (reader.AttributeCount > 1)
+                    {
+                        uiType = (DataType)Enum.Parse(typeof(DataType), reader.GetAttribute(1));
+                    }
+                    else
+                    {
+                        uiType = dt;
+                    }
+                    if (obj != null && obj.GetUIDataType(index) == DataType.None)
+                    {
+                        obj.SetUIDataType(index, uiType);
+                    }
+                    if (dt == DataType.Array || dt == DataType.Structure)
+                    {
+                        reader.Read();
+                        GetNext();
+                        ret = ReadArray();
+                        ReadEndElement(name);
+                        return ret;
+                    }
+                    else
+                    {
+                        string str = reader.ReadElementContentAsString();
+                        ret = GXDLMSConverter.ChangeType(str, uiType, CultureInfo.InvariantCulture);
+                    }
                 }
                 while (!(reader.NodeType == XmlNodeType.Element || reader.NodeType == XmlNodeType.EndElement))
                 {

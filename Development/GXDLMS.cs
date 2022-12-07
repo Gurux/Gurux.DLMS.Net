@@ -5482,6 +5482,7 @@ namespace Gurux.DLMS
                     }
                     break;
                 case InterfaceType.WRAPPER:
+                case InterfaceType.PrimeDcWrapper:
                     if (!GetTcpData(settings, reply, data, notify))
                     {
                         if (notify != null)

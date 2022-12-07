@@ -32,6 +32,8 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using System.Xml.Serialization;
+
 namespace Gurux.DLMS.Internal
 {
     internal enum TranslatorGeneralTags
@@ -65,6 +67,12 @@ namespace Gurux.DLMS.Internal
         CallingAeQualifier = 0xA7,
         CharString = 0xAA,
         UserInformation = 0xAB,
-        RespondingAeInvocationId = 0xAD
+        RespondingAeInvocationId = 0xAD,
+        PrimeNewDeviceNotification = 0xAE,
+        PrimeRemoveDeviceNotification = 0xAF,
+        PrimeStartReportingMeters = 0xB0,
+        PrimeDeleteMeters = 0xB1,
+        PrimeEnableAutoClose = 0xB2,
+        PrimeDisableAutoClose = 0xB3
     }
 }

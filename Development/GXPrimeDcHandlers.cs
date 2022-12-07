@@ -38,91 +38,214 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Internal;
 using System.Diagnostics;
 using Gurux.DLMS.Objects;
+using System.Text;
 
 namespace Gurux.DLMS
 {
     /// <summary>
-    /// this class is used to handle LN commands.
+    /// This class is used to handle PRIME DC notifications.
     /// </summary>
-    internal sealed class GXDLMSLNCommandHandler
+    internal sealed class GXPrimeDcHandlers
     {
-        public static void HandleGetRequest(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml, Command cipheredCommand)
+        /// <summary>
+        /// Handle new device notification message.
+        /// </summary>
+        /// <param name="data">Received data</param>
+        /// <param name="replyData">Reply data.</param>
+        /// <param name="xml">XML settings.</param>
+        private static void HandleNewDeviceNotification(GXByteBuffer data,
+            GXReplyData replyData,
+            GXDLMSTranslatorStructure xml)
         {
-            //Return error if connection is not established.
-            if (xml == null && (settings.Connected & ConnectionState.Dlms) == 0 && cipheredCommand == Command.None)
+            UInt16 deviceId = data.GetUInt16();
+            UInt16 capabilities = data.GetUInt16();
+            byte len = data.GetUInt8();
+            byte[] id = new byte[len];
+            data.Get(id);
+            byte[] eui48 = new byte[6];
+            data.Get(eui48);
+            if (replyData != null)
             {
-                replyData.Set(GXDLMSServer.GenerateConfirmedServiceError(ConfirmedServiceError.InitiateError,
-                              ServiceError.Service, (byte)Service.Unsupported));
-                return;
+                replyData.PrimeDc = new GXDLMSPrimeDataConcentrator()
+                {
+                    Type = PrimeDcMsgType.NewDeviceNotification,
+                    DeviceID = deviceId,
+                    Capabilities = capabilities,
+                    DlmsId = id,
+                    Eui48 = eui48
+                };
             }
-            byte invokeID = 0;
-            GetCommandType type = GetCommandType.Normal;
-            try
+            if (xml != null)
             {
-                //If GBT is used data is empty.
-                if (data.Size != 0)
+                xml.AppendLine("<DeviceId Value=\"" + deviceId + "\" />");
+                xml.AppendLine("<Capabilities Value=\"" + capabilities + "\" />");
+                if (xml.Comments)
                 {
-                    type = (GetCommandType)data.GetUInt8();
-                    // Get invoke ID and priority.
-                    invokeID = data.GetUInt8();
-                    settings.UpdateInvokeId(invokeID);
-                    if (xml != null)
-                    {
-                        if (type <= GetCommandType.WithList)
-                        {
-                            GXDLMS.AddInvokeId(xml, Command.GetRequest, type, invokeID);
-                        }
-                        else
-                        {
-                            xml.AppendStartTag(Command.GetRequest);
-                            xml.AppendComment("Unknown tag: " + type);
-                            xml.AppendLine(TranslatorTags.InvokeId, "Value", xml.IntegerToHex(invokeID, 2));
-                        }
-                    }
+                    xml.AppendComment("DLMS ID " + ASCIIEncoding.ASCII.GetString(id));
                 }
-                // GetRequest normal
-                if (type == GetCommandType.Normal)
-                {
-                    GetRequestNormal(settings, invokeID, server, data, replyData, xml, cipheredCommand);
-                }
-                else if (type == GetCommandType.NextDataBlock)
-                {
-                    // Get request for next data block
-                    GetRequestNextDataBlock(settings, invokeID, server, data, replyData, xml, false, cipheredCommand);
-                }
-                else if (type == GetCommandType.WithList)
-                {
-                    // Get request with a list.
-                    GetRequestWithList(settings, invokeID, server, data, replyData, xml, cipheredCommand);
-                }
-                else if (xml == null)
-                {
-                    Debug.WriteLine("HandleGetRequest failed. Invalid command type.");
-                    settings.ResetBlockIndex();
-                    type = GetCommandType.Normal;
-                    data.Clear();
-                    GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, invokeID, Command.GetResponse, (byte)type, null, null, (byte)ErrorCode.ReadWriteDenied, cipheredCommand), replyData);
-                }
-                if (xml != null)
-                {
-                    if (type <= GetCommandType.WithList)
-                    {
-                        xml.AppendEndTag(Command.GetRequest, type);
-                    }
-                    xml.AppendEndTag(Command.GetRequest);
-                }
+                xml.AppendLine("<DlmsId Value=\"" + GXCommon.ToHex(id, false) + "\" />");
+                xml.AppendLine("<Eui48 Value=\"" + GXCommon.ToHex(eui48, false) + "\" />");
             }
-            catch (Exception ex)
+        }
+
+        /// <summary>
+        /// Handle remove device notification message.
+        /// </summary>
+        /// <param name="data">Received data</param>
+        /// <param name="replyData">Reply data.</param>
+        /// <param name="xml">XML settings.</param>
+        private static void HandleRemoveDeviceNotification(GXByteBuffer data,
+            GXReplyData replyData,
+            GXDLMSTranslatorStructure xml)
+        {
+            UInt16 deviceId = data.GetUInt16();
+            if (replyData != null)
             {
-                if (xml != null)
+                replyData.PrimeDc = new GXDLMSPrimeDataConcentrator()
                 {
-                    throw;
-                }
-                Debug.WriteLine("HandleGetRequest failed. " + ex.Message);
-                settings.ResetBlockIndex();
-                data.Clear();
-                GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, invokeID, Command.GetResponse, (byte)type, null, null, (byte)ErrorCode.ReadWriteDenied, cipheredCommand), replyData);
+                    Type = PrimeDcMsgType.RemoveDeviceNotification,
+                    DeviceID = deviceId,
+                };
             }
+            if (xml != null)
+            {
+                xml.AppendLine("<DeviceId Value=\"" + deviceId + "\" />");
+            }
+        }
+
+        /// <summary>
+        /// Handle start reporting meters notification message.
+        /// </summary>
+        /// <param name="data">Received data</param>
+        /// <param name="replyData">Reply data.</param>
+        /// <param name="xml">XML settings.</param>
+        private static void HandleStartReportingMeters(GXByteBuffer data,
+            GXReplyData replyData,
+            GXDLMSTranslatorStructure xml)
+        {
+            if (replyData != null)
+            {
+                replyData.PrimeDc = new GXDLMSPrimeDataConcentrator()
+                {
+                    Type = PrimeDcMsgType.StartReportingMeters
+                };
+            }
+        }
+        /// <summary>
+        /// Handle delete meters notification message.
+        /// </summary>
+        /// <param name="data">Received data</param>
+        /// <param name="replyData">Reply data.</param>
+        /// <param name="xml">XML settings.</param>
+        private static void HandleDeleteMeters(GXByteBuffer data,
+            GXReplyData replyData,
+            GXDLMSTranslatorStructure xml)
+        {
+            UInt16 deviceId = data.GetUInt16();
+            if (replyData != null)
+            {
+                replyData.PrimeDc = new GXDLMSPrimeDataConcentrator()
+                {
+                    Type = PrimeDcMsgType.DeleteMeters,
+                    DeviceID = deviceId,
+                };
+            }
+            if (xml != null)
+            {
+                xml.AppendLine("<DeviceId Value=\"" + deviceId + "\" />");
+            }
+        }
+
+        /// <summary>
+        /// Handle enable auto close notification message.
+        /// </summary>
+        /// <param name="data">Received data</param>
+        /// <param name="replyData">Reply data.</param>
+        /// <param name="xml">XML settings.</param>
+        private static void HandleEnableAutoClose(GXByteBuffer data,
+            GXReplyData replyData,
+            GXDLMSTranslatorStructure xml)
+        {
+            UInt16 deviceId = data.GetUInt16();
+            if (replyData != null)
+            {
+                replyData.PrimeDc = new GXDLMSPrimeDataConcentrator()
+                {
+                    Type = PrimeDcMsgType.EnableAutoClose,
+                    DeviceID = deviceId,
+                };
+            }
+            if (xml != null)
+            {
+                xml.AppendLine("<DeviceId Value=\"" + deviceId + "\" />");
+            }
+        }
+        /// <summary>
+        /// Handle disable auto close notification message.
+        /// </summary>
+        /// <param name="data">Received data</param>
+        /// <param name="replyData">Reply data.</param>
+        /// <param name="xml">XML settings.</param>
+        private static void HandleDisableAutoClose(GXByteBuffer data,
+            GXReplyData replyData,
+            GXDLMSTranslatorStructure xml)
+        {
+            UInt16 deviceId = data.GetUInt16();
+            if (replyData != null)
+            {
+                replyData.PrimeDc = new GXDLMSPrimeDataConcentrator()
+                {
+                    Type = PrimeDcMsgType.DisableAutoClose,
+                    DeviceID = deviceId,
+                };
+            }
+            if (xml != null)
+            {
+                xml.AppendLine("<DeviceId Value=\"" + deviceId + "\" />");
+            }
+        }
+
+        public static void HandleNotification(GXByteBuffer data,
+            GXReplyData replyData,
+            GXDLMSTranslatorStructure xml)
+        {
+            PrimeDcMsgType type = (PrimeDcMsgType)data.GetUInt8();
+            switch (type)
+            {
+                case PrimeDcMsgType.NewDeviceNotification:
+                    xml.AppendStartTag(TranslatorGeneralTags.PrimeNewDeviceNotification);
+                    HandleNewDeviceNotification(data, replyData, xml);
+                    xml.AppendEndTag(TranslatorGeneralTags.PrimeNewDeviceNotification);
+                    break;
+                case PrimeDcMsgType.RemoveDeviceNotification:
+                    xml.AppendStartTag(TranslatorGeneralTags.PrimeRemoveDeviceNotification);
+                    HandleRemoveDeviceNotification(data, replyData, xml);
+                    xml.AppendEndTag(TranslatorGeneralTags.PrimeRemoveDeviceNotification);
+                    break;
+                case PrimeDcMsgType.StartReportingMeters:
+                    xml.AppendStartTag(TranslatorGeneralTags.PrimeStartReportingMeters);
+                    HandleStartReportingMeters(data, replyData, xml);
+                    xml.AppendEndTag(TranslatorGeneralTags.PrimeStartReportingMeters);
+                    break;
+                case PrimeDcMsgType.DeleteMeters:
+                    xml.AppendStartTag(TranslatorGeneralTags.PrimeDeleteMeters);
+                    HandleDeleteMeters(data, replyData, xml);
+                    xml.AppendEndTag(TranslatorGeneralTags.PrimeDeleteMeters);
+                    break;
+                case PrimeDcMsgType.EnableAutoClose:
+                    xml.AppendStartTag(TranslatorGeneralTags.PrimeEnableAutoClose);
+                    HandleEnableAutoClose(data, replyData, xml);
+                    xml.AppendEndTag(TranslatorGeneralTags.PrimeEnableAutoClose);
+                    break;
+                case PrimeDcMsgType.DisableAutoClose:
+                    xml.AppendStartTag(TranslatorGeneralTags.PrimeDisableAutoClose);
+                    HandleDisableAutoClose(data, replyData, xml);
+                    xml.AppendEndTag(TranslatorGeneralTags.PrimeDisableAutoClose);
+                    break;
+                default:
+                    throw new Exception("Invalid command.");
+            }
+
         }
 
         ///<summary>

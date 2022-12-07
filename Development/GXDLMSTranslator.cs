@@ -661,7 +661,9 @@ namespace Gurux.DLMS
             {
                 while (data.Position != data.Size)
                 {
-                    if ((msg.InterfaceType == InterfaceType.HDLC || msg.InterfaceType == InterfaceType.HdlcWithModeE) && data.GetUInt8(data.Position) == 0x7e)
+                    if ((msg.InterfaceType == InterfaceType.HDLC ||
+                        msg.InterfaceType == InterfaceType.HdlcWithModeE) &&
+                        data.GetUInt8(data.Position) == 0x7e)
                     {
                         pos = data.Position;
                         found = GXDLMS.GetData(settings, data, reply, null);
@@ -671,7 +673,9 @@ namespace Gurux.DLMS
                             break;
                         }
                     }
-                    else if (msg.InterfaceType == InterfaceType.WRAPPER && data.Available > 1 && data.GetUInt16(data.Position) == 0x1)
+                    else if ((msg.InterfaceType == InterfaceType.WRAPPER ||
+                        msg.InterfaceType == InterfaceType.PrimeDcWrapper) &&
+                        data.Available > 1 && data.GetUInt16(data.Position) == 0x1)
                     {
                         pos = data.Position;
                         found = GXDLMS.GetData(settings, data, reply, null);
@@ -679,7 +683,7 @@ namespace Gurux.DLMS
                         {
                             //If client and server address are used as a filter.
                             if ((clientAddress == 0 || clientAddress == reply.SourceAddress || clientAddress == reply.TargetAddress) &&
-                                (serverAddress == 0 || serverAddress == reply.TargetAddress || serverAddress == reply.SourceAddress)) 
+                                (serverAddress == 0 || serverAddress == reply.TargetAddress || serverAddress == reply.SourceAddress))
                             {
                                 data.Position = pos;
                                 break;
@@ -690,7 +694,8 @@ namespace Gurux.DLMS
                             data.Position = pos;
                         }
                     }
-                    else if (msg.InterfaceType == InterfaceType.Plc && data.GetUInt8(data.Position) == 0x2)
+                    else if (msg.InterfaceType == InterfaceType.Plc &&
+                        data.GetUInt8(data.Position) == 0x2)
                     {
                         pos = data.Position;
                         found = GXDLMS.GetData(settings, data, reply, null);
@@ -700,7 +705,8 @@ namespace Gurux.DLMS
                             break;
                         }
                     }
-                    else if (msg.InterfaceType == InterfaceType.PlcHdlc && GXDLMS.GetPlcSfskFrameSize(data) != 0)
+                    else if (msg.InterfaceType == InterfaceType.PlcHdlc &&
+                        GXDLMS.GetPlcSfskFrameSize(data) != 0)
                     {
                         pos = data.Position;
                         found = GXDLMS.GetData(settings, data, reply, null);
@@ -710,7 +716,8 @@ namespace Gurux.DLMS
                             break;
                         }
                     }
-                    else if (msg.InterfaceType == InterfaceType.WirelessMBus && GXDLMS.IsWirelessMBusData(data))
+                    else if (msg.InterfaceType == InterfaceType.WirelessMBus &&
+                        GXDLMS.IsWirelessMBusData(data))
                     {
                         pos = data.Position;
                         found = GXDLMS.GetData(settings, data, reply, null);
@@ -720,7 +727,8 @@ namespace Gurux.DLMS
                             break;
                         }
                     }
-                    else if (msg.InterfaceType == InterfaceType.WiredMBus && GXDLMS.IsWiredMBusData(data))
+                    else if (msg.InterfaceType == InterfaceType.WiredMBus &&
+                        GXDLMS.IsWiredMBusData(data))
                     {
                         pos = data.Position;
                         found = GXDLMS.GetData(settings, data, reply, null);
@@ -1439,9 +1447,19 @@ namespace Gurux.DLMS
                     return;
                 }
                 //If wrapper.
-                else if ((msg.InterfaceType == InterfaceType.HDLC || msg.InterfaceType == InterfaceType.WRAPPER) && msg.Message.Available > 1 && msg.Message.GetUInt16(msg.Message.Position) == 1)
+                else if ((msg.InterfaceType == InterfaceType.HDLC ||
+                    msg.InterfaceType == InterfaceType.WRAPPER ||
+                    msg.InterfaceType == InterfaceType.PrimeDcWrapper) &&
+                    msg.Message.Available > 1 && msg.Message.GetUInt16(msg.Message.Position) == 1)
                 {
-                    msg.InterfaceType = settings.InterfaceType = InterfaceType.WRAPPER;
+                    if (msg.InterfaceType == InterfaceType.PrimeDcWrapper)
+                    {
+                        settings.InterfaceType = msg.InterfaceType;
+                    }
+                    else
+                    {
+                        msg.InterfaceType = settings.InterfaceType = InterfaceType.WRAPPER;
+                    }
                     GXDLMS.GetData(settings, msg.Message, data, null);
                     msg.MoreData = data.MoreData;
                     msg.SourceAddress = data.SourceAddress;
@@ -1893,8 +1911,18 @@ namespace Gurux.DLMS
             }
         }
 
-        internal string PduToXml(GXDLMSTranslatorStructure xml, GXByteBuffer value, bool omitDeclaration, bool omitNameSpace, bool allowUnknownCommand, GXDLMSTranslatorMessage msg)
+        internal string PduToXml(GXDLMSTranslatorStructure xml,
+            GXByteBuffer value,
+            bool omitDeclaration,
+            bool omitNameSpace,
+            bool allowUnknownCommand,
+            GXDLMSTranslatorMessage msg)
         {
+            if (msg.InterfaceType == InterfaceType.PrimeDcWrapper)
+            {
+                GXPrimeDcHandlers.HandleNotification(value, null, xml);
+                return xml.ToString();
+            }
             GXDLMSSettings settings = new GXDLMSSettings(true, InterfaceType.HDLC);
             try
             {

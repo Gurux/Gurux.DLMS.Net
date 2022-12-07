@@ -108,6 +108,11 @@ namespace Gurux.DLMS.Enums
         /// SMS short wrapper scheme is used.
         /// </summary>
         [XmlEnum("11")]
-        SMS
+        SMS,
+        /// <summary>
+        /// PRIME data concentrator wrapper.
+        /// </summary>
+        [XmlEnum("12")]
+        PrimeDcWrapper
     }
 }

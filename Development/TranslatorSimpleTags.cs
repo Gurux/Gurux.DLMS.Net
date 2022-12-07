@@ -97,6 +97,18 @@ namespace Gurux.DLMS
             GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.CallingAeQualifier,
                 "CallingAEQualifier");
 
+            GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.PrimeNewDeviceNotification,
+                "PrimeNewDeviceNotification");
+            GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.PrimeRemoveDeviceNotification,
+                "PrimeRemoveDeviceNotification");
+            GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.PrimeStartReportingMeters,
+                "PrimeStartReportingMeters");
+            GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.PrimeDeleteMeters,
+                "PrimeDeleteMeters");
+            GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.PrimeEnableAutoClose,
+                "PrimeEnableAutoClose");
+            GXDLMSTranslator.AddTag(list, TranslatorGeneralTags.PrimeDisableAutoClose,
+                "PrimeDisableAutoClose");
             GXDLMSTranslator.AddTag(list, Command.ExceptionResponse, "ExceptionResponse");
             GXDLMSTranslator.AddTag(list, TranslatorTags.StateError, "StateError");
         }
