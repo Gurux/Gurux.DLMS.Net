@@ -1344,11 +1344,18 @@ namespace Gurux.DLMS.Reader
                             //Handle notify.
                             if (!notify.IsMoreData)
                             {
-                                //Show received push message as XML.
-                                string xml;
-                                GXDLMSTranslator t = new GXDLMSTranslator(TranslatorOutputType.SimpleXml);
-                                t.DataToXml(notify.Data, out xml);
-                                Console.WriteLine(xml);
+                                if (notify.PrimeDc != null)
+                                {
+                                    Console.WriteLine(notify.PrimeDc);
+                                }
+                                else
+                                {
+                                    //Show received push message as XML.
+                                    string xml;
+                                    GXDLMSTranslator t = new GXDLMSTranslator(TranslatorOutputType.SimpleXml);
+                                    t.DataToXml(notify.Data, out xml);
+                                    Console.WriteLine(xml);
+                                }
                                 notify.Clear();
                                 continue;
                             }

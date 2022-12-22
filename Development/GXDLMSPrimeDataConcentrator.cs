@@ -36,6 +36,7 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Internal;
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Gurux.DLMS
 {
@@ -98,6 +99,36 @@ namespace Gurux.DLMS
             set;
         }
 
+        public override string ToString()
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            switch (Type)
+            {
+                case PrimeDcMsgType.NewDeviceNotification:
+                    bb.Set(GenerateNewDeviceNotification(null));
+                    break;
+                case PrimeDcMsgType.RemoveDeviceNotification:
+                    bb.Set(GenerateRemoveDeviceNotification(null));
+                    break;
+                case PrimeDcMsgType.StartReportingMeters:
+                    bb.Set(GenerateStartReportingMeters(null));
+                    break;
+                case PrimeDcMsgType.DeleteMeters:
+                    bb.Set(GenerateDeleteMetersNotification(null));
+                    break;
+                case PrimeDcMsgType.EnableAutoClose:
+                    bb.Set(GenerateEnableAutoCloseNotification(null));
+                    break;
+                case PrimeDcMsgType.DisableAutoClose:
+                    bb.Set(GenerateDisableAutoCloseNotification(null));
+                    break;
+                default:
+                    return nameof(GXDLMSPrimeDataConcentrator);
+            }
+            GXDLMSTranslator t = new GXDLMSTranslator();
+            return t.PduToXml(bb, InterfaceType.PrimeDcWrapper);
+        }
+
         /// <summary>
         /// This method generates new device notification message.
         /// </summary>
@@ -112,6 +143,10 @@ namespace Gurux.DLMS
             bb.SetUInt8((byte)DlmsId.Length);
             bb.Set(DlmsId);
             bb.Set(Eui48);
+            if (client == null)
+            {
+                return bb.Array();
+            }
             return GXDLMS.GetWrapperFrame(client.Settings, Command.DataNotification, bb);
         }
 
@@ -125,6 +160,10 @@ namespace Gurux.DLMS
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetUInt8(PrimeDcMsgType.RemoveDeviceNotification);
             bb.SetUInt16(DeviceID);
+            if (client == null)
+            {
+                return bb.Array();
+            }
             return GXDLMS.GetWrapperFrame(client.Settings, Command.DataNotification, bb);
         }
 
@@ -137,6 +176,10 @@ namespace Gurux.DLMS
         {
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetUInt8(PrimeDcMsgType.StartReportingMeters);
+            if (client == null)
+            {
+                return bb.Array();
+            }
             return GXDLMS.GetWrapperFrame(client.Settings, Command.SetRequest, bb);
         }
 
@@ -150,6 +193,10 @@ namespace Gurux.DLMS
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetUInt8(PrimeDcMsgType.DeleteMeters);
             bb.SetUInt16(DeviceID);
+            if (client == null)
+            {
+                return bb.Array();
+            }
             return GXDLMS.GetWrapperFrame(client.Settings, Command.SetRequest, bb);
         }
 
@@ -163,6 +210,10 @@ namespace Gurux.DLMS
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetUInt8(PrimeDcMsgType.EnableAutoClose);
             bb.SetUInt16(DeviceID);
+            if (client == null)
+            {
+                return bb.Array();
+            }
             return GXDLMS.GetWrapperFrame(client.Settings, Command.SetRequest, bb);
         }
 
@@ -176,6 +227,10 @@ namespace Gurux.DLMS
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetUInt8(PrimeDcMsgType.DisableAutoClose);
             bb.SetUInt16(DeviceID);
+            if (client == null)
+            {
+                return bb.Array();
+            }
             return GXDLMS.GetWrapperFrame(client.Settings, Command.SetRequest, bb);
         }
     }

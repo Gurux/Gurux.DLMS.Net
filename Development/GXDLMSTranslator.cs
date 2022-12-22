@@ -1468,8 +1468,8 @@ namespace Gurux.DLMS
                     if (!PduOnly)
                     {
                         xml.AppendLine("<WRAPPER len=\"" + xml.IntegerToHex(data.Data.Size, 0, Hex) + "\" >");
-                        xml.AppendLine("<TargetAddress Value=\"" + settings.ClientAddress.ToString("X") + "\" />");
-                        xml.AppendLine("<SourceAddress Value=\"" + settings.ServerAddress.ToString("X") + "\" />");
+                        xml.AppendLine("<SourceAddress Value=\"" + settings.ClientAddress.ToString("X") + "\" />");
+                        xml.AppendLine("<TargetAddress Value=\"" + settings.ServerAddress.ToString("X") + "\" />");
                     }
                     if (!PduOnly)
                     {
@@ -1834,6 +1834,20 @@ namespace Gurux.DLMS
         /// Convert bytes to xml.
         /// </summary>
         /// <param name="value">Bytes to convert.</param>
+        /// <param name="interfaceType">Interface type.</param>
+        /// <returns>Converted xml.</returns>
+        internal string PduToXml(GXByteBuffer value, InterfaceType interfaceType)
+        {
+            GXDLMSTranslatorMessage msg = new GXDLMSTranslatorMessage();
+            msg.InterfaceType = interfaceType;
+            return PduToXml(value, OmitXmlDeclaration, OmitXmlNameSpace, msg);
+        }
+
+
+        /// <summary>
+        /// Convert bytes to xml.
+        /// </summary>
+        /// <param name="value">Bytes to convert.</param>
         /// <returns>Converted xml.</returns>
         public string PduToXml(GXByteBuffer value)
         {
@@ -1918,7 +1932,7 @@ namespace Gurux.DLMS
             bool allowUnknownCommand,
             GXDLMSTranslatorMessage msg)
         {
-            if (msg.InterfaceType == InterfaceType.PrimeDcWrapper)
+            if (msg != null && msg.InterfaceType == InterfaceType.PrimeDcWrapper)
             {
                 if (GXPrimeDcHandlers.HandleNotification(value, null, xml))
                 {

@@ -46,7 +46,7 @@ namespace Gurux.DLMS
     /// This class is used to handle PRIME DC notifications.
     /// </summary>
     internal sealed class GXPrimeDcHandlers
-    {
+    {        
         /// <summary>
         /// Handle new device notification message.
         /// </summary>
@@ -56,7 +56,7 @@ namespace Gurux.DLMS
         private static void HandleNewDeviceNotification(GXByteBuffer data,
             GXReplyData replyData,
             GXDLMSTranslatorStructure xml)
-        {
+        {            
             UInt16 deviceId = data.GetUInt16();
             UInt16 capabilities = data.GetUInt16();
             byte len = data.GetUInt8();
@@ -213,34 +213,34 @@ namespace Gurux.DLMS
             switch (type)
             {
                 case PrimeDcMsgType.NewDeviceNotification:
-                    xml.AppendStartTag(TranslatorGeneralTags.PrimeNewDeviceNotification);
+                    xml?.AppendStartTag(TranslatorGeneralTags.PrimeNewDeviceNotification);
                     HandleNewDeviceNotification(data, replyData, xml);
-                    xml.AppendEndTag(TranslatorGeneralTags.PrimeNewDeviceNotification);
+                    xml?.AppendEndTag(TranslatorGeneralTags.PrimeNewDeviceNotification);
                     break;
                 case PrimeDcMsgType.RemoveDeviceNotification:
-                    xml.AppendStartTag(TranslatorGeneralTags.PrimeRemoveDeviceNotification);
+                    xml?.AppendStartTag(TranslatorGeneralTags.PrimeRemoveDeviceNotification);
                     HandleRemoveDeviceNotification(data, replyData, xml);
-                    xml.AppendEndTag(TranslatorGeneralTags.PrimeRemoveDeviceNotification);
+                    xml?.AppendEndTag(TranslatorGeneralTags.PrimeRemoveDeviceNotification);
                     break;
                 case PrimeDcMsgType.StartReportingMeters:
-                    xml.AppendStartTag(TranslatorGeneralTags.PrimeStartReportingMeters);
+                    xml?.AppendStartTag(TranslatorGeneralTags.PrimeStartReportingMeters);
                     HandleStartReportingMeters(data, replyData, xml);
-                    xml.AppendEndTag(TranslatorGeneralTags.PrimeStartReportingMeters);
+                    xml?.AppendEndTag(TranslatorGeneralTags.PrimeStartReportingMeters);
                     break;
                 case PrimeDcMsgType.DeleteMeters:
-                    xml.AppendStartTag(TranslatorGeneralTags.PrimeDeleteMeters);
+                    xml?.AppendStartTag(TranslatorGeneralTags.PrimeDeleteMeters);
                     HandleDeleteMeters(data, replyData, xml);
-                    xml.AppendEndTag(TranslatorGeneralTags.PrimeDeleteMeters);
+                    xml?.AppendEndTag(TranslatorGeneralTags.PrimeDeleteMeters);
                     break;
                 case PrimeDcMsgType.EnableAutoClose:
-                    xml.AppendStartTag(TranslatorGeneralTags.PrimeEnableAutoClose);
+                    xml?.AppendStartTag(TranslatorGeneralTags.PrimeEnableAutoClose);
                     HandleEnableAutoClose(data, replyData, xml);
-                    xml.AppendEndTag(TranslatorGeneralTags.PrimeEnableAutoClose);
+                    xml?.AppendEndTag(TranslatorGeneralTags.PrimeEnableAutoClose);
                     break;
                 case PrimeDcMsgType.DisableAutoClose:
-                    xml.AppendStartTag(TranslatorGeneralTags.PrimeDisableAutoClose);
+                    xml?.AppendStartTag(TranslatorGeneralTags.PrimeDisableAutoClose);
                     HandleDisableAutoClose(data, replyData, xml);
-                    xml.AppendEndTag(TranslatorGeneralTags.PrimeDisableAutoClose);
+                    xml?.AppendEndTag(TranslatorGeneralTags.PrimeDisableAutoClose);
                     break;
                 default:
                     --data.Position;

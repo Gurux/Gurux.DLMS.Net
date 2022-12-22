@@ -1612,6 +1612,7 @@ namespace Gurux.DLMS
                     switch (p.settings.InterfaceType)
                     {
                         case InterfaceType.WRAPPER:
+                        case InterfaceType.PrimeDcWrapper:
                             messages.Add(GXDLMS.GetWrapperFrame(p.settings, p.command, reply));
                             break;
                         case InterfaceType.HDLC:
@@ -4860,6 +4861,13 @@ namespace Gurux.DLMS
                 if (data.Data.Size - data.Data.Position == 0)
                 {
                     throw new InvalidOperationException("Invalid PDU.");
+                }
+                if (settings.InterfaceType == InterfaceType.PrimeDcWrapper)
+                {
+                    if (GXPrimeDcHandlers.HandleNotification(data.Data, data, null))
+                    {
+                        return;
+                    }
                 }
                 int index = data.Data.Position;
                 // Get command.
