@@ -205,7 +205,7 @@ namespace Gurux.DLMS
             }
         }
 
-        public static void HandleNotification(GXByteBuffer data,
+        public static bool HandleNotification(GXByteBuffer data,
             GXReplyData replyData,
             GXDLMSTranslatorStructure xml)
         {
@@ -243,9 +243,10 @@ namespace Gurux.DLMS
                     xml.AppendEndTag(TranslatorGeneralTags.PrimeDisableAutoClose);
                     break;
                 default:
-                    throw new Exception("Invalid command.");
+                    --data.Position;
+                    return false ;
             }
-
+            return true;
         }
 
         ///<summary>

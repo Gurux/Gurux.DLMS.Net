@@ -199,24 +199,6 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Notify is used to find correct keys.
-        /// </summary>
-        /// <remarks>
-        /// This can be used when excypted push notification is received.
-        /// </remarks>
-        public event KeyEventHandler OnKeys
-        {
-            add
-            {
-                Settings.CryptoNotifier.keys += value;
-            }
-            remove
-            {
-                Settings.CryptoNotifier.keys -= value;
-            }
-        }
-
-        /// <summary>
         /// Copy client settings.
         /// </summary>
         /// <param name="target"></param>
@@ -1832,7 +1814,7 @@ if (Settings.Cipher.Equals(new KeyValuePair<byte[], byte[]>()))
                     throw new GXDLMSException("Invalid structure format.");
                 }
                 ++objectCnt;
-                int ot = Convert.ToInt16(objects[0]);
+                UInt16 ot = Convert.ToUInt16(objects[0]);
                 int version = Convert.ToByte(objects[1]);
                 if (!onlyKnownObjects || AvailableObjectTypes.ContainsKey((ObjectType)ot))
                 {

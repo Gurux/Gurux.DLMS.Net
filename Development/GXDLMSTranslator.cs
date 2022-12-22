@@ -1920,8 +1920,10 @@ namespace Gurux.DLMS
         {
             if (msg.InterfaceType == InterfaceType.PrimeDcWrapper)
             {
-                GXPrimeDcHandlers.HandleNotification(value, null, xml);
-                return xml.ToString();
+                if (GXPrimeDcHandlers.HandleNotification(value, null, xml))
+                {
+                    return xml.ToString();
+                }
             }
             GXDLMSSettings settings = new GXDLMSSettings(true, InterfaceType.HDLC);
             try

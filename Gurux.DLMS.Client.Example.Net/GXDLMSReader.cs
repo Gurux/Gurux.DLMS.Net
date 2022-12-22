@@ -725,7 +725,7 @@ namespace Gurux.DLMS.Reader
             }
             if (Trace > TraceLevel.Info)
             {
-                Console.WriteLine("BaudRate is : " + BaudRate.ToString());
+                Console.WriteLine(DateTime.Now.ToLongTimeString() + "\tBaudRate is : " + BaudRate.ToString());
             }
             //Send ACK
             //Send Protocol control character
@@ -739,7 +739,7 @@ namespace Gurux.DLMS.Reader
             byte[] arr = new byte[] { 0x06, controlCharacter, (byte)baudrate, ModeControlCharacter, 13, 10 };
             if (Trace > TraceLevel.Info)
             {
-                Console.WriteLine("Moving to mode E.", arr);
+                Console.WriteLine(DateTime.Now.ToLongTimeString() + "\tMoving to mode E.", arr);
             }
             lock (Media.Synchronous)
             {
@@ -757,10 +757,12 @@ namespace Gurux.DLMS.Reader
                         Console.WriteLine("Received: " + p.Reply);
                     }
                 }
+                Media.Close();
                 serial.BaudRate = BaudRate;
                 serial.DataBits = 8;
                 serial.Parity = Parity.None;
                 serial.StopBits = StopBits.One;
+                Media.Open();
                 //Some meters need this sleep. Do not remove.
                 Thread.Sleep(800);
             }
