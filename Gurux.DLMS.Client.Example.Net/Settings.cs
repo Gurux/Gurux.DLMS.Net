@@ -43,6 +43,7 @@ using Gurux.DLMS.Secure;
 using System.Diagnostics;
 using System.IO.Ports;
 using Gurux.DLMS.Objects.Enums;
+using Gurux.MQTT;
 
 namespace Gurux.DLMS.Client.Example
 {
@@ -69,8 +70,7 @@ namespace Gurux.DLMS.Client.Example
             //Has user give the custom serial port settings or are the default values used in mode E.
             bool modeEDefaultValues = true;
             string[] tmp;
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:P:g:S:C:n:v:o:T:A:B:D:d:l:F:m:E:V:G:M:K:N:W:w:f:L:");
-            GXNet net;
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:P:g:S:C:n:v:o:T:A:B:D:d:l:F:m:E:V:G:M:K:N:W:w:f:L:q:");
             foreach (GXCmdParameter it in parameters)
             {
                 switch (it.Tag)
@@ -90,13 +90,21 @@ namespace Gurux.DLMS.Client.Example
                         }
                         break;
                     case 'h':
-                        //Host address.
-                        if (settings.media == null)
                         {
-                            settings.media = new GXNet();
+                            //Host address.
+                            if (settings.media == null)
+                            {
+                                settings.media = new GXNet();
+                            }
+                            if (settings.media is GXNet net)
+                            {
+                                net.HostName = it.Value;
+                            }
+                            else if (settings.media is GXMqtt mqtt)
+                            {
+                                mqtt.ServerAddress = it.Value;
+                            }
                         }
-                        net = settings.media as GXNet;
-                        net.HostName = it.Value;
                         break;
                     case 't':
                         //Trace.
@@ -110,13 +118,21 @@ namespace Gurux.DLMS.Client.Example
                         }
                         break;
                     case 'p':
-                        //Port.
-                        if (settings.media == null)
                         {
-                            settings.media = new GXNet();
+                            //Port.
+                            if (settings.media == null)
+                            {
+                                settings.media = new GXNet();
+                            }
+                            if (settings.media is GXNet net)
+                            {
+                                net.Port = int.Parse(it.Value);
+                            }
+                            else if (settings.media is GXMqtt mqtt)
+                            {
+                                mqtt.Port = int.Parse(it.Value);
+                            }
                         }
-                        net = settings.media as GXNet;
-                        net.Port = int.Parse(it.Value);
                         break;
                     case 'P'://Password
                         if (it.Value.StartsWith("0x"))
@@ -197,6 +213,23 @@ namespace Gurux.DLMS.Client.Example
                                 serial.Parity = Parity.None;
                                 serial.StopBits = StopBits.One;
                             }
+                        }
+                        break;
+                    case 'q':
+                        {
+                            GXMqtt mqtt = new GXMqtt()
+                            {
+                                Topic = it.Value,
+                            };
+                            if (settings.media is GXNet net)
+                            {
+                                mqtt.ServerAddress = net.HostName;
+                                if (net.Port != 0)
+                                {
+                                    mqtt.Port = net.Port;
+                                }
+                            }
+                            settings.media = mqtt;
                         }
                         break;
                     case 'a':
@@ -452,6 +485,7 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine("GuruxDlmsSample -h [Meter IP Address] -p [Meter Port No] -c 16 -s 1 -r SN");
             Console.WriteLine(" -h \t host name or IP address.");
             Console.WriteLine(" -p \t port number or name (Example: 1000).");
+            Console.WriteLine(" -q \t MQTT topic.");
             Console.WriteLine(" -S [COM1:9600:8None1]\t serial port.");
             Console.WriteLine(" -a \t Authentication (None, Low, High).");
             Console.WriteLine(" -P \t Password for authentication.");
@@ -492,6 +526,7 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine("GuruxDlmsSample -r SN -c 16 -s 1 -sp COM1");
             Console.WriteLine("Read Indian device using serial port connection.");
             Console.WriteLine("GuruxDlmsSample -S COM1 -c 16 -s 1 -a Low -P [password]");
+            Console.WriteLine("Read MQTT device -h [Broker address] -q [Topic/meterId]");
         }
     }
 }

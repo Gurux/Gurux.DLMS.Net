@@ -67,6 +67,11 @@ namespace Gurux.DLMS.Reader
         string InvocationCounter = null;
 
         /// <summary>
+        /// Notify caller from the notification event.
+        /// </summary>
+        public Action<object> OnNotification;
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="client">DLMS Client.</param>
@@ -1346,6 +1351,7 @@ namespace Gurux.DLMS.Reader
                             {
                                 if (notify.PrimeDc != null)
                                 {
+                                    OnNotification?.Invoke(notify.PrimeDc);
                                     Console.WriteLine(notify.PrimeDc);
                                 }
                                 else
@@ -1354,6 +1360,7 @@ namespace Gurux.DLMS.Reader
                                     string xml;
                                     GXDLMSTranslator t = new GXDLMSTranslator(TranslatorOutputType.SimpleXml);
                                     t.DataToXml(notify.Data, out xml);
+                                    OnNotification?.Invoke(xml);
                                     Console.WriteLine(xml);
                                 }
                                 notify.Clear();

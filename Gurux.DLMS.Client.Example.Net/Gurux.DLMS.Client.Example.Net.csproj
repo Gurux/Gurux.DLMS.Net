@@ -17,6 +17,8 @@
     <OldToolsVersion>3.5</OldToolsVersion>
     <UpgradeBackupLocation />
     <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -38,14 +40,20 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Gurux.Common, Version=8.1.2106.1701, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.Common.8.1.2106.1701\lib\net40\Gurux.Common.dll</HintPath>
+    <Reference Include="Gurux.Common, Version=8.4.2212.501, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Gurux.Common.8.4.2212.501\lib\net46\Gurux.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Gurux.MQTT, Version=8.1.2301.301, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Gurux.MQTT.8.1.2301.301\lib\net46\Gurux.MQTT.dll</HintPath>
     </Reference>
     <Reference Include="Gurux.Net, Version=8.1.2106.1701, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\Gurux.Net.8.1.2106.1701\lib\net40\Gurux.Net.dll</HintPath>
     </Reference>
     <Reference Include="Gurux.Serial, Version=8.1.2106.1701, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\Gurux.Serial.8.1.2106.1701\lib\net40\Gurux.Serial.dll</HintPath>
+    </Reference>
+    <Reference Include="MQTTnet, Version=4.1.4.563, Culture=neutral, PublicKeyToken=fdb7629f2e364a63, processorArchitecture=MSIL">
+      <HintPath>packages\MQTTnet.4.1.4.563\lib\net461\MQTTnet.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -80,6 +88,13 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets" Condition="Exists('packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets'))" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

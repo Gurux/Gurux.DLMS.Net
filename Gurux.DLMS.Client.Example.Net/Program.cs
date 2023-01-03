@@ -39,6 +39,7 @@ using Gurux.Net;
 using Gurux.DLMS.Enums;
 using System.Threading;
 using Gurux.DLMS.Objects;
+using Gurux.MQTT;
 
 namespace Gurux.DLMS.Client.Example
 {
@@ -65,12 +66,19 @@ namespace Gurux.DLMS.Client.Example
                 else if (settings.media is GXNet)
                 {
                 }
+                else if (settings.media is GXMqtt)
+                {
+                }
                 else
                 {
                     throw new Exception("Unknown media type.");
                 }
                 ////////////////////////////////////////
                 reader = new Reader.GXDLMSReader(settings.client, settings.media, settings.trace, settings.invocationCounter);
+                reader.OnNotification += (data) =>
+                {
+                    Console.WriteLine(data);
+                };
                 try
                 {
                     settings.media.Open();
