@@ -40,17 +40,17 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Gurux.Common, Version=8.4.2212.501, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.Common.8.4.2212.501\lib\net46\Gurux.Common.dll</HintPath>
+    <Reference Include="Gurux.Common, Version=8.4.2301.402, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Gurux.Common.8.4.2301.402\lib\net462\Gurux.Common.dll</HintPath>
     </Reference>
-    <Reference Include="Gurux.MQTT, Version=8.1.2301.301, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.MQTT.8.1.2301.301\lib\net46\Gurux.MQTT.dll</HintPath>
+    <Reference Include="Gurux.MQTT, Version=8.1.2301.402, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Gurux.MQTT.8.1.2301.402\lib\net462\Gurux.MQTT.dll</HintPath>
     </Reference>
-    <Reference Include="Gurux.Net, Version=8.1.2106.1701, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.Net.8.1.2106.1701\lib\net40\Gurux.Net.dll</HintPath>
+    <Reference Include="Gurux.Net, Version=8.4.2301.402, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Gurux.Net.8.4.2301.402\lib\net462\Gurux.Net.dll</HintPath>
     </Reference>
-    <Reference Include="Gurux.Serial, Version=8.1.2106.1701, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.Serial.8.1.2106.1701\lib\net40\Gurux.Serial.dll</HintPath>
+    <Reference Include="Gurux.Serial, Version=8.4.2301.402, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Gurux.Serial.8.4.2301.402\lib\net462\Gurux.Serial.dll</HintPath>
     </Reference>
     <Reference Include="MQTTnet, Version=4.1.4.563, Culture=neutral, PublicKeyToken=fdb7629f2e364a63, processorArchitecture=MSIL">
       <HintPath>packages\MQTTnet.4.1.4.563\lib\net461\MQTTnet.dll</HintPath>
