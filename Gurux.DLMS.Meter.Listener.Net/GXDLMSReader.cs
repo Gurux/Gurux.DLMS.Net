@@ -403,7 +403,7 @@ namespace Gurux.DLMS.Reader
                 {
                     Console.WriteLine("-------- Reading " + it.GetType().Name + " " + it.Name + " " + it.Description);
                 }
-                foreach (int pos in (it as IGXDLMSBase).GetAttributeIndexToRead())
+                foreach (int pos in (it as IGXDLMSBase).GetAttributeIndexToRead(true))
                 {
                     try
                     {
@@ -736,7 +736,7 @@ namespace Gurux.DLMS.Reader
         /// <summary>
         /// Read Profile Generic Columns by entry.
         /// </summary>
-        public object[] ReadRowsByEntry(GXDLMSProfileGeneric it, int index, int count)
+        public object[] ReadRowsByEntry(GXDLMSProfileGeneric it, UInt32 index, UInt32 count)
         {
             GXReplyData reply = new GXReplyData();
             ReadDataBlock(Client.ReadRowsByEntry(it, index, count), reply);

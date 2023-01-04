@@ -35,20 +35,23 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Gurux.Common, Version=8.1.1711.2301, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.Common.8.1.1711.2301\lib\portable-win+net40\Gurux.Common.dll</HintPath>
+    <Reference Include="Gurux.Common, Version=8.4.2301.402, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Gurux.Common.8.4.2301.402\lib\net462\Gurux.Common.dll</HintPath>
     </Reference>
-    <Reference Include="Gurux.DLMS, Version=8.5.1711.1701, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.DLMS.8.5.1711.1701\lib\portable-win+net35\Gurux.DLMS.dll</HintPath>
+    <Reference Include="Gurux.DLMS, Version=9.0.2301.301, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Gurux.DLMS.9.0.2301.301\lib\net472\Gurux.DLMS.dll</HintPath>
     </Reference>
-    <Reference Include="Gurux.Net, Version=8.1.1711.2301, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.Net.8.1.1711.2301\lib\portable-win+net40\Gurux.Net.dll</HintPath>
+    <Reference Include="Gurux.Net, Version=8.4.2301.402, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Gurux.Net.8.4.2301.402\lib\net462\Gurux.Net.dll</HintPath>
     </Reference>
-    <Reference Include="Gurux.Serial, Version=8.1.1711.2301, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.Serial.8.1.1711.2301\lib\portable-win+net40\Gurux.Serial.dll</HintPath>
+    <Reference Include="Gurux.Serial, Version=8.4.2301.402, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Gurux.Serial.8.4.2301.402\lib\net462\Gurux.Serial.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.Linq" />
+    <Reference Include="System.Drawing.Design" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
