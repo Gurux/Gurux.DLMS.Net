@@ -97,7 +97,7 @@ namespace Gurux.DLMS.Ecdsa
         /// <returns>Signature</returns>
         public byte[] Sign(byte[] data)
         {
-#if NET462
+#if NET462 || NET46
             if (PrivateKey == null)
             {
                 throw new ArgumentException("Invalid private key.");
@@ -187,7 +187,7 @@ namespace Gurux.DLMS.Ecdsa
         /// <returns></returns>
         public static KeyValuePair<GXPublicKey, GXPrivateKey> GenerateKeyPair(Ecc scheme)
         {
-#if NET462 || WINDOWS_UWP
+#if NET462 || NET46 || WINDOWS_UWP
             byte[] raw = GetRandomNumber(new GXCurve(scheme).N).ToArray(false);
             GXPrivateKey pk = GXPrivateKey.FromRawBytes(raw);
             GXPublicKey pub = pk.GetPublicKey();
@@ -217,7 +217,7 @@ namespace Gurux.DLMS.Ecdsa
         /// <returns></returns>
         public bool Verify(byte[] signature, byte[] data)
         {
-#if NET462
+#if NET462 || NET46
             GXBigInteger msg;
             if (PublicKey == null)
             {
