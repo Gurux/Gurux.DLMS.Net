@@ -187,7 +187,7 @@ namespace Gurux.DLMS
                 availableObjectTypes.Add(ObjectType.Arbitrator, typeof(GXDLMSArbitrator));
                 availableObjectTypes.Add(ObjectType.NtpSetup, typeof(GXDLMSNtpSetup));
                 availableObjectTypes.Add(ObjectType.CommunicationPortProtection, typeof(GXDLMSCommunicationPortProtection));
-                availableObjectTypes.Add(ObjectType.FunctionControl, typeof(GXDLMSFunctionControl));               
+                availableObjectTypes.Add(ObjectType.FunctionControl, typeof(GXDLMSFunctionControl));
                 //Italian standard uses this.
                 availableObjectTypes.Add(ObjectType.TariffPlan, typeof(GXDLMSTariffPlan));
             }
@@ -828,6 +828,7 @@ namespace Gurux.DLMS
                 }
             }
             AesGcmParameter s = new AesGcmParameter(cmd,
+                p.settings,
                 cipher.Security,
                 cipher.SecuritySuite,
                 cipher.InvocationCounter,
@@ -841,12 +842,7 @@ namespace Gurux.DLMS
 
         internal static byte[] Cipher0(GXDLMSLNParameters p, byte[] data)
         {
-            //If external Hardware Security Module is used.
-            byte[] ret = p.settings.Crypt(CertificateType.DigitalSignature, data, true);
-            if (ret == null)
-            {
-                ret = GXCiphering.Encrypt(GetCipheringParameters(p), data);
-            }
+            byte[] ret = GXCiphering.Encrypt(GetCipheringParameters(p), data);
             ++p.settings.Cipher.InvocationCounter;
             return ret;
         }
@@ -949,7 +945,8 @@ namespace Gurux.DLMS
             if (!sign)
             {
                 //If external Hardware Security Module is used.
-                byte[] ret = p.settings.Crypt(CertificateType.KeyAgreement, data, true);
+                byte[] ret = p.settings.Crypt(CertificateType.KeyAgreement, data, 
+                    true, CryptoKeyType.Ecdsa);
                 if (ret != null)
                 {
                     return ret;
@@ -1001,7 +998,8 @@ namespace Gurux.DLMS
             else
             {
                 //If external Hardware Security Module is used.
-                byte[] ret = p.settings.Crypt(CertificateType.DigitalSignature, data, true);
+                byte[] ret = p.settings.Crypt(CertificateType.DigitalSignature, data, 
+                    true, CryptoKeyType.Ecdsa);
                 if (ret != null)
                 {
                     return ret;
@@ -1910,6 +1908,7 @@ namespace Gurux.DLMS
                 GXICipher cipher = p.settings.Cipher;
                 AesGcmParameter s = new AesGcmParameter(
                     GetGloMessage(p.command),
+                    p.settings,
                     cipher.Security,
                     cipher.SecuritySuite,
                     cipher.InvocationCounter, cipher.SystemTitle,
@@ -4673,7 +4672,8 @@ namespace Gurux.DLMS
                     //Return copy from data because ciphering is changing it.
                     byte[] encrypted = data.Data.Array();
                     //If external Hardware Security Module is used.
-                    byte[] ret = settings.Crypt(CertificateType.DigitalSignature, encrypted, false);
+                    byte[] ret = settings.Crypt(CertificateType.DigitalSignature, encrypted, 
+                        false, CryptoKeyType.Ecdsa);
                     if (ret != null)
                     {
                         encrypted = data.Data.Array();
@@ -4768,7 +4768,8 @@ namespace Gurux.DLMS
                     GXByteBuffer bb = new GXByteBuffer(data.Data);
                     data.Data.Position = data.Data.Size = index;
                     //If external Hardware Security Module is used.
-                    byte[] ret = settings.Crypt(CertificateType.DigitalSignature, bb.Array(), false);
+                    byte[] ret = settings.Crypt(CertificateType.DigitalSignature, bb.Array(), 
+                        false, CryptoKeyType.Ecdsa);
                     if (ret != null)
                     {
                         data.Data.Set(ret);

@@ -211,15 +211,15 @@ namespace GuruxDLMSServerExample
             obj.XDLMSContextInfo.Conformance = GXDLMSClient.GetInitialConformance(true);
             Items.Add(obj);
             GXDLMSSecuritySetup s = new GXDLMSSecuritySetup("0.0.43.0.7.255");
-            s.SecuritySuite = SecuritySuite.Suite1;
+            s.SecuritySuite = SecuritySuite.Suite0;
             obj.SecuritySetupReference = s.LogicalName;
             s.ServerSystemTitle = Ciphering.SystemTitle;
             Items.Add(s);
         }
 
-        /*
-         * Add ciphered High level association.
-         */
+        /// <summary>
+        /// Add ciphered High level association.
+        /// </summary>
         private void AddSecuredHighLevelAssociation()
         {
             GXDLMSAssociationLogicalName obj = new GXDLMSAssociationLogicalName("0.0.40.0.9.255");
@@ -233,7 +233,7 @@ namespace GuruxDLMSServerExample
             obj.XDLMSContextInfo.Conformance = GXDLMSClient.GetInitialConformance(true);
             Items.Add(obj);
             GXDLMSSecuritySetup s = new GXDLMSSecuritySetup("0.0.43.0.8.255");
-            s.SecuritySuite = SecuritySuite.Suite1;
+            s.SecuritySuite = SecuritySuite.Suite0;
             obj.SecuritySetupReference = s.LogicalName;
             s.ServerSystemTitle = Ciphering.SystemTitle;
             obj.ApplicationContextName.ContextId = ApplicationContextName.LogicalNameWithCiphering;

@@ -119,9 +119,13 @@ namespace Gurux.DLMS
                     throw;
                 }
                 Debug.WriteLine("HandleGetRequest failed. " + ex.Message);
-                settings.ResetBlockIndex();
                 data.Clear();
+                if (type == GetCommandType.NextDataBlock)
+                {
+                    settings.IncreaseBlockIndex();
+                }
                 GXDLMS.GetLNPdu(new GXDLMSLNParameters(settings, invokeID, Command.GetResponse, (byte)type, null, null, (byte)ErrorCode.ReadWriteDenied, cipheredCommand), replyData);
+                settings.ResetBlockIndex();
             }
         }
 

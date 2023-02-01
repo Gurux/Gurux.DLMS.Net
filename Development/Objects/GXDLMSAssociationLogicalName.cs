@@ -1168,7 +1168,10 @@ else if (settings.Authentication == Authentication.HighECDSA)
             int version = Convert.ToInt32(item[1]);
             string ln = GXCommon.ToLogicalName((byte[])item[2]);
             GXDLMSObject obj = null;
-            if (settings != null && settings.Objects != null)
+            if (settings != null && settings.Objects != null &&
+                //There might be multiple association views with different associations.
+                //For that readon only current association is read from the client settings.
+                AssociationStatus == AssociationStatus.Associated)
             {
                 obj = settings.Objects.FindByLN(type, ln);
             }

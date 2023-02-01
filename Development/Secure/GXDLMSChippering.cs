@@ -73,7 +73,38 @@ namespace Gurux.DLMS.Secure
             {
                 data.SetUInt8((byte)((byte)param.Security | (byte)param.SecuritySuite));
             }
+            byte[] ciphertext = null;
             byte[] tmp = BitConverter.GetBytes((UInt32)param.InvocationCounter).Reverse().ToArray();
+            //If external Hardware Security Module is used.
+            if (param.Settings != null)
+            {
+                CryptoKeyType keyType;
+                switch (param.Security)
+                {
+                    case Security.Authentication:
+                        keyType = CryptoKeyType.Authentication;
+                        break;
+                    case Security.Encryption:
+                        keyType = CryptoKeyType.BlockCipher;
+                        break;
+                    case Security.AuthenticationEncryption:
+                        keyType = CryptoKeyType.Authentication | CryptoKeyType.BlockCipher;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException("Security");
+                }
+                ciphertext = param.Settings.Crypt(CertificateType.DigitalSignature, plainText, true, keyType);
+            }
+            if (ciphertext != null)
+            {
+                data.Set(tmp);
+                if (param.Security == Security.Authentication)
+                {
+                    data.Set(plainText);
+                }
+                data.Set(ciphertext);
+                return data.Array();
+            }
             byte[] aad = GetAuthenticatedData(param, plainText);
             GXDLMSChipperingStream gcm = new GXDLMSChipperingStream(param.Security, true, param.BlockCipherKey,
                     aad, GetNonse((UInt32)param.InvocationCounter, param.SystemTitle), null);
@@ -82,7 +113,7 @@ namespace Gurux.DLMS.Secure
             {
                 gcm.Write(plainText);
             }
-            byte[] ciphertext = gcm.FlushFinalBlock();
+            ciphertext = gcm.FlushFinalBlock();
             if (param.Security == Security.Authentication)
             {
                 if (param.Type == CountType.Packet)

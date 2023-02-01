@@ -1209,11 +1209,13 @@ namespace Gurux.DLMS
         //Encrypt or decrypt the data using external Hardware Security Module.
         internal byte[] Crypt(CertificateType certificateType,
           byte[] Data,
-          bool encrypt)
+          bool encrypt,
+          CryptoKeyType keyType)
         {
             if (CryptoNotifier.crypto != null)
             {
                 GXCryptoKeyParameter args = new GXCryptoKeyParameter();
+                args.KeyType = keyType;
                 args.Encrypt = encrypt;
                 args.SystemTitle = Cipher.SystemTitle;
                 args.RecipientSystemTitle = SourceSystemTitle;

@@ -1438,7 +1438,7 @@ namespace Gurux.DLMS.Reader
             ReadDLMSPacket(data, reply);
             lock (Media.Synchronous)
             {
-                while (reply.IsMoreData)
+                while (reply.IsMoreData && Client.ConnectionState != ConnectionState.None)
                 {
                     if (reply.IsStreaming())
                     {

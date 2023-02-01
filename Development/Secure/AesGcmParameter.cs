@@ -335,6 +335,7 @@ namespace Gurux.DLMS.Secure
         /// <param name="authenticationKey"></param>
         public AesGcmParameter(
             byte tag,
+            GXDLMSSettings settings,
             Security security,
             SecuritySuite securitySuite,
             UInt32 invocationCounter,
@@ -343,6 +344,7 @@ namespace Gurux.DLMS.Secure
             byte[] authenticationKey)
         {
             Tag = tag;
+            Settings = settings;
             Security = security;
             InvocationCounter = invocationCounter;
             SystemTitle = systemTitle;

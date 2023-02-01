@@ -38,6 +38,7 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 using System;
 using System.Collections.Generic;
+using System.Runtime;
 
 namespace Gurux.DLMS.Secure
 {
@@ -445,7 +446,9 @@ namespace Gurux.DLMS.Secure
         /// <returns></returns>
         public byte[] GenerateGmacPassword(byte[] challenge)
         {
-            AesGcmParameter p = new AesGcmParameter(0x10, Security.Authentication,
+            AesGcmParameter p = new AesGcmParameter(0x10,
+                null,
+                Security.Authentication,
                 SecuritySuite,
                 InvocationCounter,
                 systemTitle,
