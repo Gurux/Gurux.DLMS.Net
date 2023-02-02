@@ -1496,7 +1496,7 @@ else if (settings.Authentication == Authentication.HighECDSA)
                         {
                             item = new List<object>((object[])tmp);
                         }
-                        UserList.Add(new KeyValuePair<byte, string>(Convert.ToByte(item[0]), ASCIIEncoding.ASCII.GetString((byte[])item[1])));
+                        UserList.Add(new KeyValuePair<byte, string>(Convert.ToByte(item[0]), (string)item[1]));
                     }
                 }
             }
