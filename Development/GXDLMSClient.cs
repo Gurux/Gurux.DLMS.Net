@@ -42,7 +42,6 @@ using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Secure;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Ecdsa;
-using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS
 {
@@ -195,6 +194,24 @@ namespace Gurux.DLMS
             remove
             {
                 Settings.CryptoNotifier.pdu -= value;
+            }
+        }
+
+        /// <summary>
+        /// This event is called when meter implemenets manufacturer spesific object.
+        /// </summary>
+        /// <remarks>
+        /// The manufacturer spesific object must implement GXDLMSObject and IGXDLMSBase.
+        /// </remarks>
+        public event ObjectCreateEventHandler OnCustomObject
+        {
+            add
+            {
+                Settings.customObject += value;
+            }
+            remove
+            {
+                Settings.customObject -= value;
             }
         }
 
@@ -1424,16 +1441,16 @@ if (Settings.Cipher.Equals(new KeyValuePair<byte[], byte[]>()))
         /// <summary>
         /// Reserved for internal use.
         /// </summary>
-        /// <param name="ClassID"></param>
-        /// <param name="Version"></param>
-        /// <param name="BaseName"></param>
-        /// <param name="LN"></param>
-        /// <param name="AccessRights"></param>
+        /// <param name="ClassID">Class ID.</param>
+        /// <param name="Version">Object version.</param>
+        /// <param name="BaseName">Short name.</param>
+        /// <param name="LN">Logical name.</param>
+        /// <param name="AccessRights">Access rights.</param>
         /// <returns></returns>
-        internal static GXDLMSObject CreateDLMSObject(int ClassID, object Version, int BaseName, object LN, object AccessRights, int lnVersion)
+        internal static GXDLMSObject CreateDLMSObject(GXDLMSSettings settings, int ClassID, object Version, int BaseName, object LN, object AccessRights, int lnVersion)
         {
             ObjectType type = (ObjectType)ClassID;
-            GXDLMSObject obj = GXDLMS.CreateObject(type, Convert.ToByte(Version), AvailableObjectTypes);
+            GXDLMSObject obj = GXDLMS.CreateObject(settings, (int)type, Convert.ToByte(Version), AvailableObjectTypes);
             UpdateObjectData(obj, type, Version, BaseName, LN, AccessRights, lnVersion);
             return obj;
         }
@@ -1480,7 +1497,7 @@ if (Settings.Cipher.Equals(new KeyValuePair<byte[], byte[]>()))
                 int version = Convert.ToByte(objects[2]);
                 if (!onlyKnownObjects || AvailableObjectTypes.ContainsKey((ObjectType)ot))
                 {
-                    GXDLMSObject comp = CreateDLMSObject(ot, objects[2], baseName, objects[3], null, 2);
+                    GXDLMSObject comp = CreateDLMSObject(Settings, ot, objects[2], baseName, objects[3], null, 2);
                     if (comp != null)
                     {
                         if (!ignoreInactiveObjects || comp.LogicalName != "0.0.127.0.0.0")
@@ -1726,7 +1743,7 @@ if (Settings.Cipher.Equals(new KeyValuePair<byte[], byte[]>()))
                         comp = this.Objects.FindByLN((ObjectType)classID, GXCommon.ToLogicalName(it[1] as byte[]));
                         if (comp == null)
                         {
-                            comp = GXDLMSClient.CreateDLMSObject(classID, 0, 0, it[1], null, 2);
+                            comp = GXDLMSClient.CreateDLMSObject(Settings, classID, 0, 0, it[1], null, 2);
                             c.UpdateOBISCodeInformation(comp);
                         }
                         if ((comp is IGXDLMSBase))
@@ -1818,7 +1835,7 @@ if (Settings.Cipher.Equals(new KeyValuePair<byte[], byte[]>()))
                 int version = Convert.ToByte(objects[1]);
                 if (!onlyKnownObjects || AvailableObjectTypes.ContainsKey((ObjectType)ot))
                 {
-                    GXDLMSObject comp = CreateDLMSObject(ot, objects[1], 0, objects[2], objects[3], lnVersion);
+                    GXDLMSObject comp = CreateDLMSObject(Settings, ot, objects[1], 0, objects[2], objects[3], lnVersion);
                     if (comp != null)
                     {
                         if ((!ignoreInactiveObjects || comp.LogicalName != "0.0.127.0.0.0"))
@@ -1833,7 +1850,15 @@ if (Settings.Cipher.Equals(new KeyValuePair<byte[], byte[]>()))
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine(string.Format("Unknown object : {0} {1}", ot, GXCommon.ToLogicalName((byte[])objects[2])));
+                    GXDLMSObject comp = CreateDLMSObject(Settings, ot, objects[1], 0, objects[2], objects[3], lnVersion);
+                    if (comp != null && comp.GetType() != typeof(GXDLMSObject))
+                    {
+                        items.Add(comp);
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine(string.Format("Unknown object : {0} {1}", ot, GXCommon.ToLogicalName((byte[])objects[2])));
+                    }
                 }
             }
             if (cnt != objectCnt)
@@ -2930,7 +2955,7 @@ if (Settings.Cipher.Equals(new KeyValuePair<byte[], byte[]>()))
         /// <returns>COSEM object.</returns>
         public static GXDLMSObject CreateObject(ObjectType type)
         {
-            return GXDLMS.CreateObject(type, 0xFF, AvailableObjectTypes);
+            return GXDLMS.CreateObject(null, (int)type, 0xFF, AvailableObjectTypes);
         }
 
         /// <summary>
@@ -2941,7 +2966,7 @@ if (Settings.Cipher.Equals(new KeyValuePair<byte[], byte[]>()))
         /// <returns>COSEM object.</returns>
         public static GXDLMSObject CreateObject(ObjectType type, byte version)
         {
-            return GXDLMS.CreateObject(type, version, AvailableObjectTypes);
+            return GXDLMS.CreateObject(null, (int) type, version, AvailableObjectTypes);
         }
 
         /// <summary>

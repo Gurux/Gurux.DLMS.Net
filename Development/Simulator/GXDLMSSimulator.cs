@@ -83,7 +83,7 @@ namespace Gurux.DLMS.Simulator
                     GXDLMSObject t = objects.FindByLN(ot, instanceId);
                     if (t == null)
                     {
-                        t = GXDLMSClient.CreateDLMSObject((int)ot, 0, 0, instanceId, null, 2);
+                        t = GXDLMSClient.CreateDLMSObject(null, (int)ot, 0, 0, instanceId, null, 2);
                     }
                     ValueEventArgs ve = new ValueEventArgs(t, attributeId, 0, null);
                     targets.Add(ve);

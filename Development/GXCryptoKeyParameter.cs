@@ -69,7 +69,7 @@ namespace Gurux.DLMS
         public byte[] Encrypted
         {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace Gurux.DLMS
         public byte[] PlainText
         {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>

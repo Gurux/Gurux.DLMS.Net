@@ -384,7 +384,7 @@ namespace Gurux.DLMS.Objects
                         }
                         if (obj == null)
                         {
-                            obj = GXDLMSClient.CreateDLMSObject((int)type, null, 0, ln, 0, 2);
+                            obj = GXDLMSClient.CreateDLMSObject(settings, (int)type, null, 0, ln, 0, 2);
                             if (c == null)
                             {
                                 c = new GXDLMSConverter();

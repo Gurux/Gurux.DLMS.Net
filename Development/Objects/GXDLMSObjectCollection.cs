@@ -483,7 +483,7 @@ namespace Gurux.DLMS.Objects
                                 }
                             }
                         }
-                        else
+                        else if (obj != null)
                         {
                             (obj as IGXDLMSBase).Load(reader);
                             obj = null;

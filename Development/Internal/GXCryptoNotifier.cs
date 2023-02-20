@@ -37,9 +37,7 @@ namespace Gurux.DLMS.Internal
     internal class GXCryptoNotifier
     {
         internal PduEventHandler pdu;
-
         internal KeyEventHandler keys;
-
         /// <summary>
         /// Encrypt or decrypt the data using external Hardware Security Module.
         /// </summary>

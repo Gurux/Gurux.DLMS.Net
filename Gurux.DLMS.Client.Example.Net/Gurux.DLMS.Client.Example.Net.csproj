@@ -40,27 +40,42 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Gurux.Common, Version=8.4.2301.402, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.Common.8.4.2301.402\lib\net462\Gurux.Common.dll</HintPath>
+    <Reference Include="Gurux.Common, Version=8.4.2302.901, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Gurux.Common.8.4.2302.901\lib\net462\Gurux.Common.dll</HintPath>
     </Reference>
-    <Reference Include="Gurux.MQTT, Version=8.1.2301.402, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.MQTT.8.1.2301.402\lib\net462\Gurux.MQTT.dll</HintPath>
+    <Reference Include="Gurux.MQTT, Version=8.1.2302.902, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Gurux.MQTT.8.1.2302.902\lib\net462\Gurux.MQTT.dll</HintPath>
     </Reference>
-    <Reference Include="Gurux.Net, Version=8.4.2301.402, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.Net.8.4.2301.402\lib\net462\Gurux.Net.dll</HintPath>
+    <Reference Include="Gurux.Net, Version=8.4.2302.904, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Gurux.Net.8.4.2302.904\lib\net462\Gurux.Net.dll</HintPath>
     </Reference>
-    <Reference Include="Gurux.Serial, Version=8.4.2301.402, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Gurux.Serial.8.4.2301.402\lib\net462\Gurux.Serial.dll</HintPath>
+    <Reference Include="Gurux.Serial, Version=8.4.2302.902, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Gurux.Serial.8.4.2302.902\lib\net462\Gurux.Serial.dll</HintPath>
     </Reference>
     <Reference Include="MQTTnet, Version=4.1.4.563, Culture=neutral, PublicKeyToken=fdb7629f2e364a63, processorArchitecture=MSIL">
       <HintPath>packages\MQTTnet.4.1.4.563\lib\net461\MQTTnet.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Data.Linq" />
+    <Reference Include="System.Memory, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Resources.Extensions, Version=7.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Resources.Extensions.7.0.0\lib\net462\System.Resources.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Runtime.CompilerServices.Unsafe.6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>

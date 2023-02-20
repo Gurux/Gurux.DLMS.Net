@@ -79,6 +79,18 @@ namespace Gurux.DLMS.Client.Example
                 {
                     Console.WriteLine(data);
                 };
+                //Create manufacturer spesific custom COSEM object.
+                settings.client.OnCustomObject += (type, version) =>
+                {
+                    /*
+                    if (type == 6001 && version == 0)
+                    {
+                        return new ManufacturerSpesificObject();
+                    }
+                    */
+                    return null;
+                };
+
                 try
                 {
                     settings.media.Open();

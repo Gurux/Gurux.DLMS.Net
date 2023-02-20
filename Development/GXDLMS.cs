@@ -252,13 +252,14 @@ namespace Gurux.DLMS
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="type"></param>
+        /// <param name="objectCreate">This is called when meter implements manufacturer spesific object.</param>
+        /// <param name="type">Object type.</param>
         /// <param name="version">COSEM version number. It's ignored if it's 255.</param>
         /// <param name="availableObjectTypes"></param>
         /// <returns></returns>
-        internal static GXDLMSObject CreateObject(ObjectType type, byte version, Dictionary<ObjectType, Type> availableObjectTypes)
+        internal static GXDLMSObject CreateObject(GXDLMSSettings settings, int type, byte version, Dictionary<ObjectType, Type> availableObjectTypes)
         {
-            GXDLMSObject obj;
+            GXDLMSObject obj = null;
             lock (availableObjectTypes)
             {
                 //Update objects.
@@ -266,9 +267,9 @@ namespace Gurux.DLMS
                 {
                     GetObjectTypes(availableObjectTypes);
                 }
-                if (availableObjectTypes.ContainsKey(type))
+                if (availableObjectTypes.ContainsKey((ObjectType) type))
                 {
-                    obj = Activator.CreateInstance(availableObjectTypes[type]) as GXDLMSObject;
+                    obj = Activator.CreateInstance(availableObjectTypes[(ObjectType)type]) as GXDLMSObject;
                     if (version != 0xFF)
                     {
                         obj.Version = version;
@@ -276,11 +277,30 @@ namespace Gurux.DLMS
                 }
                 else
                 {
-                    obj = new GXDLMSObject();
-                    obj.ObjectType = type;
-                    if (version != 0xFF)
+                    if (settings != null && settings.customObject != null)
                     {
-                        obj.Version = version;
+                        obj = settings.customObject(type, version);
+                        if (obj != null)
+                        {
+                            if (!(obj is GXDLMSObject))
+                            {
+                                throw new Exception("Custom object must derived from GXDLMSObject.");
+                            }
+                            if (!(obj is IGXDLMSBase))
+                            {
+                                throw new Exception("Custom object must implement IGXDLMSBase.");
+                            }
+                            availableObjectTypes.Add((ObjectType)type, obj.GetType());
+                        }
+                    }
+                    if (obj == null)
+                    {
+                        obj = new GXDLMSObject();
+                        obj.ObjectType = (ObjectType)type;
+                        if (version != 0xFF)
+                        {
+                            obj.Version = version;
+                        }
                     }
                 }
             }

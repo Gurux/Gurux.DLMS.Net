@@ -4,11 +4,9 @@
 //
 //
 //
-// Filename:        $HeadURL$
-//
-// Version:         $Revision$,
-//                  $Date$
-//                  $Author$
+// Version:         $Revision: 13534 $,
+//                  $Date: 2023-02-06 11:47:17 +0200 (ma, 06 helmi 2023) $
+//                  $Author: gurux01 $
 //
 // Copyright (c) Gurux Ltd
 //
@@ -26,27 +24,27 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
-// More information of Gurux products: https://www.gurux.org
+// More information of Gurux DLMS/COSEM Director: http://www.gurux.org/GXDLMSDirector
 //
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
-
-using Gurux.DLMS.Objects;
-
-namespace Gurux.DLMS
+namespace Gurux.DLMS.Extension
 {
-    /// <summary>
-    /// This event handler is called when PDU is decrypted.
-    /// </summary>
-    /// <param name="sender">Sender.</param>
-    /// <param name="data">Decrypted PDU.</param>
-    public delegate void PduEventHandler(object sender, byte[] data);
+    public interface IGXDLMSExtension
+    {
+        /// <summary>
+        /// Get keys from external storage.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        void GetKeys(object sender, GXCryptoKeyParameter args);
 
-    /// <summary>
-    /// This event handler is called when meter uses custom object and it's needs to be created.
-    /// </summary>
-    /// <param name="type">Object type.</param>
-    /// <param name="version">Object Version.</param>
-    public delegate GXDLMSObject ObjectCreateEventHandler(int type, byte version);
+        /// <summary>
+        /// Called to encrypt or decrypt the data using external Hardware Security Module.
+        /// </summary>
+        /// <param name="sender">Sender.</param>
+        /// <param name="args">Crypto arguments.</param>
+        void Crypt(object sender, GXCryptoKeyParameter args);
+    }
 }

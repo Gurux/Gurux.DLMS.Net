@@ -1088,7 +1088,7 @@ namespace Gurux.DLMS.Objects
                     //Create a new instance to avoid circular references.
                     if (obj == null || obj == parent)
                     {
-                        obj = GXDLMSClient.CreateDLMSObject((int)type, null, 0, ln, 0, 2);
+                        obj = GXDLMSClient.CreateDLMSObject(settings, (int)type, null, 0, ln, 0, 2);
                         if (c == null)
                         {
                             c = new GXDLMSConverter(settings == null ? Standard.DLMS : settings.Standard);

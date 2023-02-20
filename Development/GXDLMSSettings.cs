@@ -1206,6 +1206,11 @@ namespace Gurux.DLMS
             set;
         }
 
+        /// <summary>
+        /// This event is invoked when custom manufacturer object is created.
+        /// </summary>
+        internal ObjectCreateEventHandler customObject;
+
         //Encrypt or decrypt the data using external Hardware Security Module.
         internal byte[] Crypt(CertificateType certificateType,
           byte[] Data,
