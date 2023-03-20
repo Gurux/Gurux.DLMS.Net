@@ -1409,6 +1409,8 @@ if (Settings.Cipher.Equals(new KeyValuePair<byte[], byte[]>()))
                 HdlcSettings.WindowSizeTX = InitializeWindowSizeTX;
                 HdlcSettings.WindowSizeRX = InitializeWindowSizeRX;
             }
+            //Restore default values.
+            MaxReceivePDUSize = InitializePduSize;
             Settings.Connected = ConnectionState.None;
             Settings.ResetFrameSequence();
             return ret;

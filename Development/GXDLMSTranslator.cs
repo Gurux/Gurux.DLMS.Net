@@ -2193,6 +2193,7 @@ namespace Gurux.DLMS
                                     msg.Command = (Command)cmd;
                                 }
                                 xml.SetXmlLength(len2);
+                                xml.AppendComment("Decrypt failed. Different block cipher or authentiocation key is used to generate this.");
                                 value.Position = originalPosition;
                                 break;
                             }

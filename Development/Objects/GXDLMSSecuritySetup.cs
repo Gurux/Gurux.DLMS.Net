@@ -1231,6 +1231,7 @@ namespace Gurux.DLMS.Objects
             GXCommon.SetObjectCount(ServerCertificates.Count, bb);
             foreach (GXx509Certificate it in ServerCertificates)
             {
+                GXAsn1Sequence seq = (GXAsn1Sequence)GXAsn1Converter.FromByteArray(it.RawData);
                 bb.SetUInt8(DataType.Structure);
                 GXCommon.SetObjectCount(6, bb);
                 bb.SetUInt8(DataType.Enum);
@@ -1263,14 +1264,41 @@ namespace Gurux.DLMS.Objects
                 {
                     bb.SetUInt8(CertificateType.Other);
                 }
+                //Get serial number.
+                GXAsn1Sequence reqInfo = (GXAsn1Sequence)seq[0];
+                byte[] tmp = GXAsn1Converter.ToByteArray(reqInfo[1]);
                 bb.SetUInt8(DataType.OctetString);
-                byte[] tmp = it.SerialNumber.ToByteArray();
-                Array.Reverse(tmp);
+                bb.SetUInt8((byte) tmp.Length);
+                bb.Set(tmp);
+                //Get issuer.
+                tmp = GXAsn1Converter.ToByteArray(reqInfo[3]);
+                bb.SetUInt8(DataType.OctetString);
                 bb.SetUInt8((byte)tmp.Length);
                 bb.Set(tmp);
-                GXCommon.AddString(it.Issuer, bb);
-                GXCommon.AddString(it.Subject, bb);
-                GXCommon.AddString("", bb);
+                //Get subject.
+                tmp = GXAsn1Converter.ToByteArray(reqInfo[5]);
+                bb.SetUInt8(DataType.OctetString);
+                bb.SetUInt8((byte)tmp.Length);
+                bb.Set(tmp);
+                //Add subject alternative name.
+                tmp = new byte[0];
+                if (reqInfo.Count > 7)
+                {
+                    foreach (GXAsn1Sequence s in (GXAsn1Sequence)((GXAsn1Context)reqInfo[7])[0])
+                    {
+                        GXAsn1ObjectIdentifier id = (GXAsn1ObjectIdentifier)s[0];
+                        object value = s[1];
+                        X509CertificateType t = X509CertificateTypeConverter.FromString(id.ToString());
+                        if (t == X509CertificateType.SubjectAlternativeName)
+                        {
+                            tmp = GXAsn1Converter.ToByteArray(s);
+                            break;
+                        }
+                    }
+                }
+                bb.SetUInt8(DataType.OctetString);
+                bb.SetUInt8((byte)tmp.Length);
+                bb.Set(tmp);
             }
             return bb.Array();
         }
@@ -1324,12 +1352,127 @@ namespace Gurux.DLMS.Objects
                     GXDLMSCertificateInfo info = new GXDLMSCertificateInfo();
                     info.Entity = (CertificateEntity)Convert.ToInt32(it[0]);
                     info.Type = (CertificateType)Convert.ToInt32(it[1]);
-                    byte[] tmp2 = (byte[])it[2];
-                    Array.Reverse(tmp2);
-                    info.SerialNumber = new BigInteger(tmp2);
-                    info.Issuer = ASCIIEncoding.ASCII.GetString((byte[])it[3]);
-                    info.Subject = ASCIIEncoding.ASCII.GetString((byte[])it[4]);
-                    info.SubjectAltName = ASCIIEncoding.ASCII.GetString((byte[])it[5]);
+                    try
+                    {
+                        object sn = GXAsn1Converter.FromByteArray((byte[])it[2]);
+                        if (sn is BigInteger bi)
+                        {
+                            info.SerialNumber = bi;
+                        }
+                        else if (sn is byte b)
+                        {
+                            info.SerialNumber = new BigInteger(b);
+                        }
+                        else if (sn is Int16 s)
+                        {
+                            info.SerialNumber = new BigInteger(s);
+                        }
+                        else if (sn is Int32 i)
+                        {
+                            info.SerialNumber = new BigInteger(i);
+                        }
+                        else
+                        {
+                            throw new ArgumentOutOfRangeException("Invalid type.");
+                        }
+                    }
+                    catch
+                    {
+                        //Show serial number as a octet-string.
+                        byte[] tmp2 = (byte[])it[2];
+                        Array.Reverse(tmp2);
+                        info.SerialNumber = new BigInteger(tmp2);
+                    }
+                    try
+                    {
+                        StringBuilder sb = new StringBuilder();
+                        object issuer = GXAsn1Converter.FromByteArray((byte[])it[3]);
+                        if (issuer is GXAsn1Sequence s)
+                        {
+                            foreach (KeyValuePair<object, object> v in s)
+                            {
+                                sb.Append(X509NameConverter.GetDescription(X509NameConverter.FromString(((GXAsn1ObjectIdentifier) v.Key).Description)));
+                                sb.Append("=");
+                                sb.Append(Convert.ToString(v.Value));
+                                sb.Append(", ");
+                            }
+                            if (sb.Length != 0)
+                            {
+                                //Remove last comma.
+                                sb.Length -= 2;
+                            }
+                            info.Issuer = sb.ToString();
+                        }
+                        else
+                        {
+                            info.Issuer = Convert.ToString(issuer);
+                        }
+                    }
+                    catch
+                    {
+                        //Show issuer as a octet-string.
+                        info.Issuer = ASCIIEncoding.ASCII.GetString((byte[])it[3]);
+                    }
+                    try
+                    {
+                        StringBuilder sb = new StringBuilder();
+                        object subject = GXAsn1Converter.FromByteArray((byte[])it[4]);
+                        if (subject is GXAsn1Sequence s)
+                        {
+                            foreach (KeyValuePair<object, object> v in s)
+                            {
+                                sb.Append(X509NameConverter.GetDescription(X509NameConverter.FromString(((GXAsn1ObjectIdentifier)v.Key).Description)));
+                                sb.Append("=");
+                                sb.Append(Convert.ToString(v.Value));
+                                sb.Append(", ");
+                            }
+                            if (sb.Length != 0)
+                            {
+                                //Remove last comma.
+                                sb.Length -= 2;
+                            }
+                            info.Subject = sb.ToString();
+                        }
+                        else
+                        {
+                            info.Subject = Convert.ToString(subject);
+                        }
+                    }
+                    catch
+                    {
+                        //Show subject as a octet-string.
+                        info.Subject = ASCIIEncoding.ASCII.GetString((byte[])it[4]);
+                    }
+                    try
+                    {
+                        StringBuilder sb = new StringBuilder();
+                        object subject = GXAsn1Converter.FromByteArray((byte[])it[5]);
+                        if (subject is GXAsn1Sequence s)
+                        {
+                            foreach (KeyValuePair<object, object> v in s)
+                            {
+                                sb.Append(X509NameConverter.GetDescription(X509NameConverter.FromString(((GXAsn1ObjectIdentifier)v.Key).Description)));
+                                sb.Append("=");
+                                sb.Append(Convert.ToString(v.Value));
+                                sb.Append(", ");
+                            }
+                            if (sb.Length != 0)
+                            {
+                                //Remove last comma.
+                                sb.Length -= 2;
+                            }
+                            info.SubjectAltName = sb.ToString();
+                        }
+                        else
+                        {
+                            info.SubjectAltName = Convert.ToString(subject);
+                        }
+                    }
+                    catch
+                    {
+                        //Show subject alt name as a octet-string.
+                        info.SubjectAltName = ASCIIEncoding.ASCII.GetString((byte[])it[5]);
+                    }
                     Certificates.Add(info);
                 }
             }

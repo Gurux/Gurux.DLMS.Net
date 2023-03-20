@@ -5445,17 +5445,14 @@ namespace Gurux.DLMS
                         }
                         else
                         {
-                            if (((List<object>)value).Count != 0)
+                            if (reply.Value == null)
                             {
-                                if (reply.Value == null)
-                                {
-                                    reply.Value = value;
-                                }
-                                else
-                                {
-                                    // Add items to collection.
-                                    ((List<object>)reply.Value).AddRange((List<object>)value);
-                                }
+                                reply.Value = value;
+                            }
+                            else if (((List<object>)value).Any())
+                            {
+                                // Add items to collection.
+                                ((List<object>)reply.Value).AddRange((List<object>)value);
                             }
                             reply.ReadPosition = data.Position;
                             // Element count.

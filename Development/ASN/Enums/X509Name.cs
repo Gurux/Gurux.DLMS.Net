@@ -101,6 +101,9 @@ namespace Gurux.DLMS.ASN.Enums
         Name,
         /// <summary>email address in Verisign certificates </summary>
         E,
+        /// <summary>
+        /// Domain component
+        /// </summary>
         DC,
         /// <summary>LDAP User id. </summary>
         UID
@@ -174,6 +177,77 @@ namespace Gurux.DLMS.ASN.Enums
                     return "0.9.2342.19200300.100.1.25";
                 case X509Name.UID:
                     return "0.9.2342.19200300.100.1.1";
+                default:
+                    throw new ArgumentOutOfRangeException("Invalid X509Name. " + value);
+            }
+        }
+
+        public static string GetDescription(X509Name value)
+        {
+            switch (value)
+            {
+                case X509Name.C:
+                    return "Country code";
+                case X509Name.O:
+                    return "Organization";
+                case X509Name.OU:
+                    return "Organizational unit name";
+                case X509Name.T:
+                    return "Title";
+                case X509Name.CN:
+                    return "Common name";
+                case X509Name.STREET:
+                    return "Street";
+                case X509Name.SerialNumber:
+                    return "Serial number";
+                case X509Name.L:
+                    return "Locality name";
+                case X509Name.ST:
+                    return "State";
+                case X509Name.SurName:
+                    return "Surname";
+                case X509Name.GivenName:
+                    return "Given name";
+                case X509Name.Initials:
+                    return "Initials";
+                case X509Name.Generation:
+                    return "Generation";
+                case X509Name.UniqueIdentifier:
+                    return "Unique identifier";
+                case X509Name.BusinessCategory:
+                    return "Business category";
+                case X509Name.PostalCode:
+                    return "Postal code";
+                case X509Name.DnQualifier:
+                    return "DN qualifier";
+                case X509Name.Pseudonym:
+                    return "Pseudonym";
+                case X509Name.DateOfBirth:
+                    return "Date of birth";
+                case X509Name.PlaceOfBirth:
+                    return "Place of birth";
+                case X509Name.Gender:
+                    return "Gender";
+                case X509Name.CountryOfCitizenship:
+                    return "CountryOfCitizenship";
+                case X509Name.CountryOfResidence:
+                    return "CountryOfResidence";
+                case X509Name.NameAtBirth:
+                    return "NameAtBirth";
+                case X509Name.PostalAddress:
+                    return "PostalAddress";
+                case X509Name.DmdName:
+                    return "DmdName";
+                case X509Name.TelephoneNumber:
+                    return "TelephoneNumber";
+                case X509Name.Name:
+                    return "Name";
+                case X509Name.E:
+                    return "Email";
+                case X509Name.DC:
+                    return "Domain component";
+                case X509Name.UID:
+                    return "User id.";
                 default:
                     throw new ArgumentOutOfRangeException("Invalid X509Name. " + value);
             }

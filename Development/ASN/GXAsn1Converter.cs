@@ -472,6 +472,10 @@ namespace Gurux.DLMS.ASN
             {
                 GetValue(bb, objects, null, false);
             }
+            if (objects.Count == 0)
+            {
+                return null;
+            }
             return objects[0];
         }
 

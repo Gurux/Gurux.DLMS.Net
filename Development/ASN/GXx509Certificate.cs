@@ -44,6 +44,7 @@ using System.Numerics;
 using System.Security.Cryptography.X509Certificates;
 #endif //!WINDOWS_UWP
 using System.Text;
+using System.Xml.Linq;
 
 namespace Gurux.DLMS.ASN
 {
@@ -100,7 +101,11 @@ namespace Gurux.DLMS.ASN
         /// <summary>
         /// Loaded x509Certificate as raw data.
         /// </summary>
-        private byte[] rawData;
+        public byte[] RawData
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// This extension identifies the public key being certified.
@@ -212,7 +217,15 @@ namespace Gurux.DLMS.ASN
             set;
         }
 
-
+        /// <summary>
+        /// Subject Alternative Name.
+        /// </summary>
+        public string SubjectAlternativeName
+        {
+            get;
+            set;
+        }
+        
         /// <summary>
         /// Issuer. Example: "CN=Test O=Gurux, L=Tampere, C=FI".
         /// </summary>
@@ -398,7 +411,7 @@ namespace Gurux.DLMS.ASN
         //  https://tools.ietf.org/html/rfc5280#section-4.1
         private void Init(byte[] data)
         {
-            rawData = data;
+            RawData = data;
             GXAsn1Sequence seq = (GXAsn1Sequence)GXAsn1Converter.FromByteArray(data);
             if (seq.Count != 3)
             {
@@ -419,7 +432,7 @@ namespace Gurux.DLMS.ASN
             GXAsn1Sequence reqInfo = (GXAsn1Sequence)seq[0];
             if ((reqInfo[0] is GXAsn1Integer))
             {
-                throw new GXDLMSCertificateException("Invalid Certificate. DLMS certificate version number must be 3.");
+                throw new GXDLMSCertificateException("Invalid Certificate. DLMS certificate version number must be integer.");
             }
             Version = (CertificateVersion)((GXAsn1Context)reqInfo[0])[0];
             if (reqInfo[1] is sbyte)
@@ -467,6 +480,30 @@ namespace Gurux.DLMS.ASN
                     {
                         case X509CertificateType.SubjectKeyIdentifier:
                             SubjectKeyIdentifier = (byte[])value;
+                            break;
+                        case X509CertificateType.SubjectAlternativeName:
+                            {
+                                StringBuilder sb = new StringBuilder();
+                                if (value is GXAsn1Sequence alt)
+                                {
+                                    foreach (GXAsn1Context it in alt)
+                                    {
+                                        sb.Append("DNS:");
+                                        sb.Append(ASCIIEncoding.ASCII.GetString((byte[])it[0]));
+                                        sb.Append(", ");
+                                    }
+                                }
+                                else
+                                {
+                                    throw new ArgumentException("Invalid subject alternative name.");
+                                }
+                                if (sb.Length != 0)
+                                {
+                                    //Remove last comma.
+                                    sb.Length -= 2;
+                                }
+                                SubjectAlternativeName = sb.ToString();
+                            }
                             break;
                         case X509CertificateType.AuthorityKeyIdentifier:
                             foreach (GXAsn1Context it in (GXAsn1Sequence)value)
@@ -788,14 +825,14 @@ namespace Gurux.DLMS.ASN
         {
             get
             {
-                if (rawData != null)
+                if (RawData != null)
                 {
-                    return rawData;
+                    return RawData;
                 }
                 object tmp = new object[] { new GXAsn1ObjectIdentifier(HashAlgorithmConverter.GetString(SignatureAlgorithm)) };
                 object[] list = new object[] { GetDataList(), tmp, new GXAsn1BitString(Signature, 0) };
-                rawData = GXAsn1Converter.ToByteArray(list);
-                return rawData;
+                RawData = GXAsn1Converter.ToByteArray(list);
+                return RawData;
             }
         }
 
