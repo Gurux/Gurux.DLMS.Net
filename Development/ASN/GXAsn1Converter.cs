@@ -66,6 +66,7 @@ namespace Gurux.DLMS.ASN
         /// <param name="certificateType">Certificate type.</param>
         /// <param name="systemTitle"> System title.</param>
         /// <returns>File path.</returns>
+        [ObsoleteAttribute]
         public static string GetFilePath(Ecc scheme, CertificateType certificateType, byte[] systemTitle)
         {
             string path;

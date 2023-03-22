@@ -53,6 +53,42 @@ namespace Gurux.DLMS.ASN
     public class GXPkcs8
     {
         /// <summary>
+        /// Returns default file path.
+        /// </summary>
+        /// <param name="scheme">Used scheme.</param>
+        /// <param name="certificateType">Certificate type.</param>
+        /// <param name="systemTitle"> System title.</param>
+        /// <returns>File path.</returns>
+        public static string GetFilePath(Ecc scheme, CertificateType certificateType, byte[] systemTitle)
+        {
+            string path;
+            switch (certificateType)
+            {
+                case CertificateType.DigitalSignature:
+                    path = "D";
+                    break;
+                case CertificateType.KeyAgreement:
+                    path = "A";
+                    break;
+                case CertificateType.TLS:
+                    path = "T";
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("Unknown certificate type.");
+            }
+            path += GXDLMSTranslator.ToHex(systemTitle, false) + ".pem";
+            if (scheme == Ecc.P256)
+            {
+                path = Path.Combine("Keys", path);
+            }
+            else
+            {
+                path = Path.Combine("Keys384", path);
+            }
+            return path;
+        }
+
+        /// <summary>
         /// Description is extra metadata that is saved to PEM file. 
         /// </summary>
         public string Description

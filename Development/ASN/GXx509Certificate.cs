@@ -36,6 +36,7 @@ using Gurux.DLMS.ASN.Enums;
 using Gurux.DLMS.Ecdsa;
 using Gurux.DLMS.Ecdsa.Enums;
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.Objects.Enums;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -1019,6 +1020,7 @@ namespace Gurux.DLMS.ASN
         /// </summary>
         /// <param name="folder">Folder to search. </param>
         /// <returns> Created GXPkcs8 object.</returns>
+        [Obsolete]
         public static GXx509Certificate Search(string path, byte[] systemtitle)
         {
             string subject = GXAsn1Converter.SystemTitleToSubject(systemtitle);
@@ -1042,6 +1044,54 @@ namespace Gurux.DLMS.ASN
                 }
             }
             return null;
+        }
+
+        /// <summary>Search x509 Certificate from the PEM file in given folder.
+        /// </summary>
+        /// <param name="folder">Folder to search.</param>
+        /// <param name="type">Certificate type.</param>
+        /// <returns> Created GXPkcs8 object.</returns>
+        public static GXx509Certificate[] Search(string folder, CertificateType type, byte[] systemtitle)
+        {
+            KeyUsage usage;
+            if (type == CertificateType.DigitalSignature)
+            {
+                usage = KeyUsage.DigitalSignature;
+            }
+            else if (type == CertificateType.KeyAgreement)
+            {
+                usage = KeyUsage.KeyAgreement;
+            }
+            else if (type == CertificateType.TLS)
+            {
+                usage = KeyUsage.DigitalSignature | KeyUsage.KeyAgreement;
+            }
+            else
+            {
+                usage = KeyUsage.None;
+            }
+            string subject = GXAsn1Converter.SystemTitleToSubject(systemtitle);
+            List<GXx509Certificate> certificates = new List<GXx509Certificate>();
+            foreach (string it in Directory.GetFiles(folder))
+            {
+                string ext = Path.GetExtension(it);
+                if (string.Compare(ext, ".pem", true) == 0 || string.Compare(ext, ".cer", true) == 0)
+                {
+                    try
+                    {
+                        GXx509Certificate cert = FromPem(File.ReadAllText(it));
+                        if ((usage == KeyUsage.None || cert.KeyUsage == usage) && cert.Subject.Contains(subject))
+                        {
+                            certificates.Add(cert);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine(ex.Message);
+                    }
+                }
+            }
+            return certificates.ToArray();
         }
 
     }

@@ -510,7 +510,7 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine(" -F \t Initial Frame Counter (Invocation counter) value.");
             Console.WriteLine(" -d \t Used DLMS standard. Ex -d India (DLMS, India, Italy, SaudiArabia, IDIS)");
             Console.WriteLine(" -E \t Export client and server certificates from the meter. Ex. -E 0.0.43.0.0.255.");
-            Console.WriteLine(" -N \t Generate new client and server certificates and import them to the server. Ex. -R 0.0.43.0.0.255.");
+            Console.WriteLine(" -N \t Generate new client and server certificates and import them to the server. Ex. -N 0.0.43.0.0.255.");
             Console.WriteLine(" -G \t Use Gateway with given NetworkId and PhysicalDeviceAddress. Ex -G 0:1.");
             Console.WriteLine(" -i \t Used communication interface. Ex. -i WRAPPER.");
             Console.WriteLine(" -m \t Used PLC MAC address. Ex. -m 1.");

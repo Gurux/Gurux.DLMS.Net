@@ -896,7 +896,16 @@ namespace Gurux.DLMS.Objects
                 else if (type == 1)
                 {
                     Array.Reverse((byte[])tmp[0]);
-                    cert = ServerCertificates.FindBySerial(new BigInteger((byte[])tmp[0]), ASCIIEncoding.ASCII.GetString((byte[])tmp[1]));
+                    string issuer;
+                    try
+                    {
+                        issuer = GetStringFromAsn1((byte[])tmp[1]);
+                    }
+                    catch (Exception)
+                    {
+                        issuer = ASCIIEncoding.ASCII.GetString((byte[])tmp[1]);
+                    }
+                    cert = ServerCertificates.FindBySerial(new BigInteger((byte[])tmp[0]), issuer);
                 }
                 if (cert == null)
                 {
@@ -1333,6 +1342,32 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
+        private static string GetStringFromAsn1(byte[] value)
+        {
+            StringBuilder sb = new StringBuilder();
+            object issuer = GXAsn1Converter.FromByteArray(value);
+            if (issuer is GXAsn1Sequence s)
+            {
+                foreach (KeyValuePair<object, object> v in s)
+                {
+                    sb.Append(X509NameConverter.FromString(((GXAsn1ObjectIdentifier)v.Key).Description));
+                    sb.Append("=");
+                    sb.Append(Convert.ToString(v.Value));
+                    sb.Append(", ");
+                }
+                if (sb.Length != 0)
+                {
+                    //Remove last comma.
+                    sb.Length -= 2;
+                }
+                return sb.ToString();
+            }
+            else
+            {
+                return Convert.ToString(issuer);
+            }
+        }
+
         private void UpdateSertificates(IEnumerable<object> list)
         {
             Certificates.Clear();
@@ -1354,27 +1389,9 @@ namespace Gurux.DLMS.Objects
                     info.Type = (CertificateType)Convert.ToInt32(it[1]);
                     try
                     {
-                        object sn = GXAsn1Converter.FromByteArray((byte[])it[2]);
-                        if (sn is BigInteger bi)
-                        {
-                            info.SerialNumber = bi;
-                        }
-                        else if (sn is byte b)
-                        {
-                            info.SerialNumber = new BigInteger(b);
-                        }
-                        else if (sn is Int16 s)
-                        {
-                            info.SerialNumber = new BigInteger(s);
-                        }
-                        else if (sn is Int32 i)
-                        {
-                            info.SerialNumber = new BigInteger(i);
-                        }
-                        else
-                        {
-                            throw new ArgumentOutOfRangeException("Invalid type.");
-                        }
+                        GXAsn1Integer value = (GXAsn1Integer) GXAsn1Converter.FromByteArray((byte[])it[2]);
+                        Array.Reverse(value.Value);
+                        info.SerialNumber = new BigInteger(value.Value);
                     }
                     catch
                     {
@@ -1385,28 +1402,8 @@ namespace Gurux.DLMS.Objects
                     }
                     try
                     {
-                        StringBuilder sb = new StringBuilder();
-                        object issuer = GXAsn1Converter.FromByteArray((byte[])it[3]);
-                        if (issuer is GXAsn1Sequence s)
-                        {
-                            foreach (KeyValuePair<object, object> v in s)
-                            {
-                                sb.Append(X509NameConverter.GetDescription(X509NameConverter.FromString(((GXAsn1ObjectIdentifier) v.Key).Description)));
-                                sb.Append("=");
-                                sb.Append(Convert.ToString(v.Value));
-                                sb.Append(", ");
-                            }
-                            if (sb.Length != 0)
-                            {
-                                //Remove last comma.
-                                sb.Length -= 2;
-                            }
-                            info.Issuer = sb.ToString();
-                        }
-                        else
-                        {
-                            info.Issuer = Convert.ToString(issuer);
-                        }
+                        info.IssuerAsn1 = (byte[])it[3];
+                        info.Issuer = GetStringFromAsn1(info.IssuerAsn1);
                     }
                     catch
                     {
@@ -1415,28 +1412,8 @@ namespace Gurux.DLMS.Objects
                     }
                     try
                     {
-                        StringBuilder sb = new StringBuilder();
-                        object subject = GXAsn1Converter.FromByteArray((byte[])it[4]);
-                        if (subject is GXAsn1Sequence s)
-                        {
-                            foreach (KeyValuePair<object, object> v in s)
-                            {
-                                sb.Append(X509NameConverter.GetDescription(X509NameConverter.FromString(((GXAsn1ObjectIdentifier)v.Key).Description)));
-                                sb.Append("=");
-                                sb.Append(Convert.ToString(v.Value));
-                                sb.Append(", ");
-                            }
-                            if (sb.Length != 0)
-                            {
-                                //Remove last comma.
-                                sb.Length -= 2;
-                            }
-                            info.Subject = sb.ToString();
-                        }
-                        else
-                        {
-                            info.Subject = Convert.ToString(subject);
-                        }
+                        info.SubjectAsn1 = (byte[])it[4];
+                        info.Subject = GetStringFromAsn1(info.SubjectAsn1);
                     }
                     catch
                     {
@@ -1445,28 +1422,8 @@ namespace Gurux.DLMS.Objects
                     }
                     try
                     {
-                        StringBuilder sb = new StringBuilder();
-                        object subject = GXAsn1Converter.FromByteArray((byte[])it[5]);
-                        if (subject is GXAsn1Sequence s)
-                        {
-                            foreach (KeyValuePair<object, object> v in s)
-                            {
-                                sb.Append(X509NameConverter.GetDescription(X509NameConverter.FromString(((GXAsn1ObjectIdentifier)v.Key).Description)));
-                                sb.Append("=");
-                                sb.Append(Convert.ToString(v.Value));
-                                sb.Append(", ");
-                            }
-                            if (sb.Length != 0)
-                            {
-                                //Remove last comma.
-                                sb.Length -= 2;
-                            }
-                            info.SubjectAltName = sb.ToString();
-                        }
-                        else
-                        {
-                            info.SubjectAltName = Convert.ToString(subject);
-                        }
+                        info.SubjectAltNameAsn1 = (byte[])it[5];
+                        info.SubjectAltName = GetStringFromAsn1(info.SubjectAltNameAsn1);
                     }
                     catch
                     {

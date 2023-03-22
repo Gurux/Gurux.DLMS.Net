@@ -102,7 +102,8 @@ namespace Gurux.DLMS.Reader
                     //Find private key.
                     string path = GetPath(args.SecuritySuite, args.CertificateType, "Keys", args.SystemTitle);
                     args.PrivateKey = GXPkcs8.Load(path).PrivateKey;
-                    Console.WriteLine("Client private key:" + args.PrivateKey.ToHex());
+                    Console.WriteLine("Client private key:" + path + " " + args.PrivateKey.ToHex());
+                    Console.WriteLine("Client public key:" + path + " " + args.PrivateKey.GetPublicKey().ToHex());
                 }
                 else
                 {
@@ -211,7 +212,7 @@ namespace Gurux.DLMS.Reader
             KeyValuePair<GXPublicKey, GXPrivateKey> kp = GXEcdsa.GenerateKeyPair(Ecc.P256);
             //Save private key in PKCS #8 format.
             GXPkcs8 key = new GXPkcs8(kp);
-            key.Save(GXAsn1Converter.GetFilePath(Ecc.P256, CertificateType.DigitalSignature, clientST));
+            key.Save(GXPkcs8.GetFilePath(Ecc.P256, CertificateType.DigitalSignature, clientST));
             //Generate x509 certificates.
             GXPkcs10 pkc10 = GXPkcs10.CreateCertificateSigningRequest(kp, subject);
             //All certigicates are generated with one request.
@@ -221,7 +222,7 @@ namespace Gurux.DLMS.Reader
             kp = GXEcdsa.GenerateKeyPair(Ecc.P256);
             //Save private key in PKCS #8 format.
             key = new GXPkcs8(kp);
-            key.Save(GXAsn1Converter.GetFilePath(Ecc.P256, CertificateType.KeyAgreement, clientST));
+            key.Save(GXPkcs8.GetFilePath(Ecc.P256, CertificateType.KeyAgreement, clientST));
             //Generate x509 certificates.
             pkc10 = GXPkcs10.CreateCertificateSigningRequest(kp, subject);
             //All certigicates are generated with one request.
@@ -382,12 +383,12 @@ namespace Gurux.DLMS.Reader
                 {
                     reply.Clear();
                     //Export certification and verify it.
-                    if (!ReadDataBlock(ss.ExportCertificateBySerial(Client, it.SerialNumber, ASCIIEncoding.ASCII.GetBytes(it.Issuer)), reply))
+                    if (!ReadDataBlock(ss.ExportCertificateBySerial(Client, it.SerialNumber, it.IssuerAsn1), reply))
                     {
                         throw new GXDLMSException(reply.Error);
                     }
                     GXx509Certificate cert = new GXx509Certificate((byte[])reply.Value);
-                    string path = GXAsn1Converter.GetFilePath(cert.PublicKey.Scheme, it.Type, GXAsn1Converter.SystemTitleFromSubject(it.Subject));
+                    string path = GXx509Certificate.GetFilePath(cert);
                     cert.Save(path);
                 }
             }
@@ -816,7 +817,7 @@ namespace Gurux.DLMS.Reader
             Console.WriteLine("Conformance: " + Client.NegotiatedConformance);
             reply.Clear();
             //Get challenge Is HLS authentication is used.
-            if (Client.IsAuthenticationRequired)
+            if (Client.Authentication > Authentication.Low)
             {
                 foreach (byte[] it in Client.GetApplicationAssociationRequest())
                 {
