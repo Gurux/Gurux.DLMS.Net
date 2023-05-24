@@ -51,7 +51,7 @@ namespace Gurux.DLMS
         const int ArrayCapacity = 10;
 
         ///<summary>
-        ///Constructor.
+        /// Initializes a new instance of the GXByteBuffer class.
         ///</summary>
         [DebuggerStepThrough]
         public GXByteBuffer()
@@ -61,7 +61,7 @@ namespace Gurux.DLMS
 
 
         ///<summary>
-        /// Constructor.
+        /// Initializes a new instance of the GXByteBuffer class.
         ///</summary>
         ///<param name="capacity">
         /// Buffer capacity.
@@ -74,7 +74,7 @@ namespace Gurux.DLMS
 
 
         ///<summary>
-        /// Constructor.
+        /// Initializes a new instance of the GXByteBuffer class.
         ///</summary>
         ///<param name="value">
         /// Byte array to attach.
@@ -90,7 +90,7 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
-        /// Constructor.
+        /// Initializes a new instance of the GXByteBuffer class.
         ///</summary>
         ///<param name="value">
         /// Byte array to attach.

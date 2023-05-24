@@ -3338,7 +3338,7 @@ namespace Gurux.DLMS
                     //PAD length.
                     byte padLen = buff.GetUInt8();
                     frame = GetHdlcData(settings.IsServer, settings, buff, data, null);
-                    GetDataFromFrame(buff, data, true);
+                    GetDataFromFrame(buff, data, InterfaceType.HDLC);
                     buff.Position += padLen;
                     UInt32 crcCount = GXFCS16.CountFCS24(buff.Data, index, buff.Position - index);
                     int crc = buff.GetUInt24(buff.Position);
@@ -5554,7 +5554,7 @@ namespace Gurux.DLMS
             }
             if (settings.InterfaceType != InterfaceType.PlcHdlc)
             {
-                GetDataFromFrame(reply, data, UseHdlc(settings.InterfaceType));
+                GetDataFromFrame(reply, data, settings.InterfaceType);
             }
             // If keepalive or get next frame request.
             if (data.Xml != null || (((frame != 0x13 && frame != 0x3) || data.IsMoreData) && (frame & 0x1) != 0))
@@ -5639,7 +5639,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="reply">Received data that includes HDLC frame.</param>
         /// <param name="info">Reply data.</param>
-        private static void GetDataFromFrame(GXByteBuffer reply, GXReplyData info, bool hdlc)
+        private static void GetDataFromFrame(GXByteBuffer reply, GXReplyData info, InterfaceType interfaceType)
         {
             int offset = info.Data.Size;
             int cnt = info.PacketLength - reply.Position;
@@ -5648,9 +5648,14 @@ namespace Gurux.DLMS
                 info.Data.Capacity = (offset + cnt);
                 info.Data.Set(reply.Data, reply.Position, cnt);
                 reply.Position = (reply.Position + cnt);
-                if (hdlc)
+                //Remove CRC and EOP.
+                if (UseHdlc(interfaceType))
                 {
                     reply.Position += 3;
+                }
+                else if (interfaceType == InterfaceType.WiredMBus)
+                {
+                    reply.Position += 2;
                 }
             }
             // Set position to begin of new data.

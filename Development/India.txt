@@ -217,4 +217,4 @@
 64;0.0.43.0.4.255;0;Global Key Change #4 (Push)
 64;0.0.43.0.5.255;0;Global Key Change #5 (Firmware Upgrade)
 70;0.0.96.3.10.255;0;Load Limit Function Status
-71;0.0.17.0.0.255;0;Load Limit Value (kW)
+71;0.0.17.0.0.255;0;Load Limit Value

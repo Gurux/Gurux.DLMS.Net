@@ -174,7 +174,6 @@ namespace Gurux.DLMS
         /// <summary>
         /// When connection is made client tells what kind of services it want's to use.
         /// </summary>
-        //internal Conformance ProposedConformance = (Conformance)0;
         internal Conformance ProposedConformance
         {
             get;
@@ -183,7 +182,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Server tells what functionality is available and client will know it.
         /// </summary>
-        internal Conformance NegotiatedConformance = (Conformance)0;
+        internal Conformance NegotiatedConformance;
 
         /// <summary>
         /// Cipher interface.

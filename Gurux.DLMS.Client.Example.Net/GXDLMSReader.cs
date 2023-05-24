@@ -835,10 +835,12 @@ namespace Gurux.DLMS.Reader
         /// <summary>
         /// This method is used to update meter firmware.
         /// </summary>
-        /// <param name="target"></param>
-        public void ImageUpdate(GXDLMSImageTransfer target, byte[] identification, byte[] data)
+        /// <param name="target">Image transfer object.</param>
+        /// <param name="identification">Image identification.</param>
+        /// <param name="image">Updated image.</param>
+        public void ImageUpdate(GXDLMSImageTransfer target, byte[] identification, byte[] image)
         {
-            //Check that image transfer ia enabled.
+            //Check that image transfer is enabled.
             GXReplyData reply = new GXReplyData();
             ReadDataBlock(Client.Read(target, 5), reply);
             Client.UpdateValue(target, 5, reply.Value);
@@ -852,11 +854,11 @@ namespace Gurux.DLMS.Reader
             Client.UpdateValue(target, 2, reply.Value);
 
             // Step 2: Initiate the Image transfer process.
-            ReadDataBlock(target.ImageTransferInitiate(Client, identification, data.Length), reply);
+            ReadDataBlock(target.ImageTransferInitiate(Client, identification, image.Length), reply);
 
             // Step 3: Transfers ImageBlocks.
             int imageBlockCount;
-            ReadDataBlock(target.ImageBlockTransfer(Client, data, out imageBlockCount), reply);
+            ReadDataBlock(target.ImageBlockTransfer(Client, image, out imageBlockCount), reply);
 
             //Step 4: Check the completeness of the Image.
             ReadDataBlock(Client.Read(target, 3), reply);
