@@ -38,6 +38,7 @@ using Gurux.DLMS.Objects;
 using Gurux.DLMS.Enums;
 using System.Threading;
 using Gurux.DLMS.Secure;
+using Gurux.DLMS;
 
 namespace GuruxDLMSServerExample
 {
@@ -55,8 +56,8 @@ namespace GuruxDLMSServerExample
                 GXDLMSPushSetup p = new GXDLMSPushSetup();
                 GXDLMSClock clock = new GXDLMSClock();
                 //Un-comment this if you want to describe the content of the push message for the client.
-//                p.PushObjectList.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(p, new GXDLMSCaptureObject(2, 0)));
-                p.PushObjectList.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(clock, new GXDLMSCaptureObject(2, 0)));
+                //                p.PushObjectList.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(p, new GXDLMSCaptureObject(2, 0)));
+                p.PushObjectList.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(clock, new GXDLMSCaptureObject(2, 0)));
 
                 ///////////////////////////////////////////////////////////////////////
                 //Create Gurux DLMS server component for Short Name and start listen events.

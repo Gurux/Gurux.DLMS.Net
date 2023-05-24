@@ -75,7 +75,7 @@ namespace Gurux.DLMS.Objects
         : base(ObjectType.PushSetup, ln, sn)
         {
             CommunicationWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
-            PushObjectList = new List<KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
+            PushObjectList = new List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
         }
 
         public ServiceType Service
@@ -96,11 +96,11 @@ namespace Gurux.DLMS.Objects
 
         /// <summary>
         /// Defines the list of attributes or objects to be pushed.
-        /// Upon a call of the push (data) method the selected attributes are sent to the desti-nation
+        /// Upon a call of the push (data) method the selected attributes are sent to the destination
         /// defined in send_destination_and_method.
         /// </summary>
-        [XmlIgnore()]
-        public List<KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> PushObjectList
+        [XmlArray("PushObjects")]
+        public List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> PushObjectList
         {
             get;
             set;
@@ -173,7 +173,7 @@ namespace Gurux.DLMS.Objects
             }
             int pos = 0;
             List<KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> objects = new List<KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
-            foreach (KeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in PushObjectList)
+            foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in PushObjectList)
             {
                 objects.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(it.Key,
                     new GXDLMSCaptureObject(it.Value.AttributeIndex, it.Value.DataIndex)));
@@ -331,7 +331,7 @@ namespace Gurux.DLMS.Objects
             GXByteBuffer buff = new GXByteBuffer();
             buff.SetUInt8(DataType.Array);
             GXCommon.SetObjectCount(PushObjectList.Count, buff);
-            foreach (KeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in PushObjectList)
+            foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in PushObjectList)
             {
                 buff.SetUInt8(DataType.Structure);
                 buff.SetUInt8(4);
@@ -453,7 +453,7 @@ namespace Gurux.DLMS.Objects
                             obj.LogicalName = ln;
                         }
                         GXDLMSCaptureObject co = new GXDLMSCaptureObject(Convert.ToInt32(it[2]), Convert.ToInt32(it[3]));
-                        PushObjectList.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, co));
+                        PushObjectList.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, co));
                     }
                 }
             }
@@ -541,7 +541,7 @@ namespace Gurux.DLMS.Objects
                         obj = GXDLMSClient.CreateObject(ot);
                         obj.LogicalName = ln;
                     }
-                    PushObjectList.Add(new KeyValuePair<Objects.GXDLMSObject, Objects.GXDLMSCaptureObject>(obj, co));
+                    PushObjectList.Add(new GXKeyValuePair<Objects.GXDLMSObject, Objects.GXDLMSCaptureObject>(obj, co));
                 }
                 reader.ReadEndElement("ObjectList");
             }
@@ -570,7 +570,7 @@ namespace Gurux.DLMS.Objects
             if (PushObjectList != null)
             {
                 writer.WriteStartElement("ObjectList", 2);
-                foreach (KeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in PushObjectList)
+                foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in PushObjectList)
                 {
                     writer.WriteStartElement("Item", 0);
                     writer.WriteElementString("ObjectType", (int)it.Key.ObjectType, 0);

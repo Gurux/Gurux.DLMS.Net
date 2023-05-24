@@ -646,11 +646,11 @@ namespace GuruxDLMSServerExample
             push.Destination = ip4.IPAddress + ":7000";
             Items.Add(push);
             //Add push object itself. This is needed to tell structure of data to the Push listener.
-            push.PushObjectList.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(push, new GXDLMSCaptureObject(2, 0)));
+            push.PushObjectList.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(push, new GXDLMSCaptureObject(2, 0)));
             //Add logical device name.
-            push.PushObjectList.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(ldn, new GXDLMSCaptureObject(2, 0)));
+            push.PushObjectList.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(ldn, new GXDLMSCaptureObject(2, 0)));
             //Add .0.0.25.1.0.255 Ch. 0 IPv4 setup IP address.
-            push.PushObjectList.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(ip4, new GXDLMSCaptureObject(3, 0)));
+            push.PushObjectList.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(ip4, new GXDLMSCaptureObject(3, 0)));
 
             Items.Add(new GXDLMSSpecialDaysTable());
             //Add  S-FSK objects
@@ -1465,12 +1465,20 @@ namespace GuruxDLMSServerExample
             if (ret)
             {
                 AssignedAssociation = null;
-                foreach (GXDLMSAssociationLogicalName it in Items.GetObjects(ObjectType.AssociationLogicalName))
+                var associations = Items.GetObjects(ObjectType.AssociationLogicalName);
+                if (associations.Count == 1)
                 {
-                    if (it.ClientSAP == clientAddress)
+                    AssignedAssociation = (GXDLMSAssociationLogicalName) associations[0];
+                }
+                else
+                {
+                    foreach (GXDLMSAssociationLogicalName it in associations)
                     {
-                        AssignedAssociation = it;
-                        break;
+                        if (it.ClientSAP == clientAddress)
+                        {
+                            AssignedAssociation = it;
+                            break;
+                        }
                     }
                 }
                 if (AssignedAssociation == null)

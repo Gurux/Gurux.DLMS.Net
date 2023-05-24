@@ -85,13 +85,13 @@ namespace GuruxDLMSServerExample
             // TODO: Must set communication specific settings.
             media = new GXNet(NetworkType.Tcp, port);
             media.Trace = TraceLevel.Verbose;
-            media.OnReceived += new Gurux.Common.ReceivedEventHandler(OnReceived);
-            media.OnClientConnected += new Gurux.Common.ClientConnectedEventHandler(OnClientConnected);
-            media.OnClientDisconnected += new Gurux.Common.ClientDisconnectedEventHandler(OnClientDisconnected);
-            media.OnError += new Gurux.Common.ErrorEventHandler(OnError);
+            media.OnReceived += new ReceivedEventHandler(OnReceived);
+            media.OnClientConnected += new ClientConnectedEventHandler(OnClientConnected);
+            media.OnClientDisconnected += new ClientDisconnectedEventHandler(OnClientDisconnected);
+            media.OnError += new ErrorEventHandler(OnError);
             media.Open();
             //Comment this if the meter describes the content of the push message for the client in the received data.
-            push.PushObjectList.Add(new KeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(new GXDLMSClock(), new GXDLMSCaptureObject(2, 0)));
+            push.PushObjectList.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(new GXDLMSClock(), new GXDLMSCaptureObject(2, 0)));
         }
 
         void OnError(object sender, Exception ex)
@@ -178,7 +178,7 @@ namespace GuruxDLMSServerExample
                                 GXDLMSPushSetup clone = (GXDLMSPushSetup)push.Clone();
                                 clone.GetPushValues(client, (List<object>)notify.Value);
                                 //Comment this if the meter describes the content of the push message for the client in the received data.
-                                foreach (KeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in clone.PushObjectList)
+                                foreach (var it in clone.PushObjectList)
                                 {
                                     int index = it.Value.AttributeIndex - 1;
                                     Console.WriteLine(((IGXDLMSBase)it.Key).GetNames()[index] + ": " + it.Key.GetValues()[index]);
