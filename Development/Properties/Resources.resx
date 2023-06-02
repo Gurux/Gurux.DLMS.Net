@@ -361,4 +361,10 @@
   <data name="UnmatchedTypeTxt" xml:space="preserve">
     <value>Access Error : Device reports a unmatched type.</value>
   </data>
+  <data name="UnknownKeyForSystemTitle" xml:space="preserve">
+    <value>Unknown key for system title '{0}'.</value>
+  </data>
+  <data name="UnknownDeviceForSystemTitle" xml:space="preserve">
+    <value>Unknown device for system title {0}.</value>
+  </data>
 </root>

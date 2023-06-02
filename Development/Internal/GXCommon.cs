@@ -42,6 +42,7 @@ using Gurux.DLMS.Objects;
 using Gurux.DLMS.Secure;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Ecdsa;
+using System.Threading;
 
 namespace Gurux.DLMS.Internal
 {
@@ -956,7 +957,7 @@ namespace Gurux.DLMS.Internal
                 //deviation = -1 if skipped.
                 if (deviation != -1 && deviation != -32768 && year != 1 && (dt.Skip & DateTimeSkips.Year) == 0)
                 {
-                    dt.Value = new DateTimeOffset(new DateTime(year, month, day, hours, minutes, seconds, milliseconds),
+                    dt.Value = new DateTimeOffset(new DateTime(year, month, day, hours, minutes, seconds, milliseconds, Thread.CurrentThread.CurrentCulture.Calendar),
                                                   new TimeSpan(0, -deviation, 0));
                 }
                 else //Use current time if deviation is not defined.

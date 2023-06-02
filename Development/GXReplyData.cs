@@ -184,6 +184,18 @@ namespace Gurux.DLMS
         }
 
         ///<summary>
+        /// System title of the received PDU.
+        ///</summary>
+        ///<remarks>
+        /// System title is set when ciphered notify packet is received.
+        ///</remarks>
+        public byte[] SystemTitle
+        {
+            get;
+            internal set;
+        }
+
+        ///<summary>
         /// Received error.
         ///</summary>
         public short Error

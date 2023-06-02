@@ -604,14 +604,22 @@ namespace Gurux.DLMS
         /// <summary>
         /// Overwrite attribute access rights if association view tells wrong access rights and they are overwritten.
         /// </summary>
-        /// <returns></returns>
         [DefaultValue(false)]
         public bool OverwriteAttributeAccessRights
         {
             get;
             set;
         }
-        
+
+        /// <summary>
+        /// Some meters expect that Invocation Counter is increased for GMAC Authentication when connection is established.
+        /// </summary>
+        [DefaultValue(false)]
+        public bool IncreaseInvocationCounterForGMacAuthentication
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Used signing and ciphering order.

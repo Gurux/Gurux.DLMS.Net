@@ -19,7 +19,7 @@ namespace Gurux.DLMS.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -815,11 +815,29 @@ namespace Gurux.DLMS.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unknown device for system title {0}..
+        /// </summary>
+        internal static string UnknownDeviceForSystemTitle {
+            get {
+                return ResourceManager.GetString("UnknownDeviceForSystemTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unknown Error..
         /// </summary>
         internal static string UnknownErrorTxt {
             get {
                 return ResourceManager.GetString("UnknownErrorTxt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown key for system title &apos;{0}&apos;..
+        /// </summary>
+        internal static string UnknownKeyForSystemTitle {
+            get {
+                return ResourceManager.GetString("UnknownKeyForSystemTitle", resourceCulture);
             }
         }
         

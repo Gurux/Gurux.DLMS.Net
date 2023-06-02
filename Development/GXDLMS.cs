@@ -267,7 +267,7 @@ namespace Gurux.DLMS
                 {
                     GetObjectTypes(availableObjectTypes);
                 }
-                if (availableObjectTypes.ContainsKey((ObjectType) type))
+                if (availableObjectTypes.ContainsKey((ObjectType)type))
                 {
                     obj = Activator.CreateInstance(availableObjectTypes[(ObjectType)type]) as GXDLMSObject;
                     if (version != 0xFF)
@@ -965,7 +965,7 @@ namespace Gurux.DLMS
             if (!sign)
             {
                 //If external Hardware Security Module is used.
-                byte[] ret = p.settings.Crypt(CertificateType.KeyAgreement, data, 
+                byte[] ret = p.settings.Crypt(CertificateType.KeyAgreement, data,
                     true, CryptoKeyType.Ecdsa);
                 if (ret != null)
                 {
@@ -1018,7 +1018,7 @@ namespace Gurux.DLMS
             else
             {
                 //If external Hardware Security Module is used.
-                byte[] ret = p.settings.Crypt(CertificateType.DigitalSignature, data, 
+                byte[] ret = p.settings.Crypt(CertificateType.DigitalSignature, data,
                     true, CryptoKeyType.Ecdsa);
                 if (ret != null)
                 {
@@ -4692,7 +4692,7 @@ namespace Gurux.DLMS
                     //Return copy from data because ciphering is changing it.
                     byte[] encrypted = data.Data.Array();
                     //If external Hardware Security Module is used.
-                    byte[] ret = settings.Crypt(CertificateType.DigitalSignature, encrypted, 
+                    byte[] ret = settings.Crypt(CertificateType.DigitalSignature, encrypted,
                         false, CryptoKeyType.Ecdsa);
                     if (ret != null)
                     {
@@ -4788,7 +4788,7 @@ namespace Gurux.DLMS
                     GXByteBuffer bb = new GXByteBuffer(data.Data);
                     data.Data.Position = data.Data.Size = index;
                     //If external Hardware Security Module is used.
-                    byte[] ret = settings.Crypt(CertificateType.DigitalSignature, bb.Array(), 
+                    byte[] ret = settings.Crypt(CertificateType.DigitalSignature, bb.Array(),
                         false, CryptoKeyType.Ecdsa);
                     if (ret != null)
                     {
@@ -4835,6 +4835,7 @@ namespace Gurux.DLMS
                             }
                         }
                         byte[] tmp = GXCiphering.Decrypt(p, bb);
+                        data.SystemTitle = p.SystemTitle;
                         data.Data.Set(tmp);
                         //If target is sending data ciphered using different security policy.
                         if (!settings.Cipher.SecurityChangeCheck && (settings.Connected & ConnectionState.Dlms) != 0 &&

@@ -47,12 +47,16 @@ namespace Gurux.DLMS.Enums
         /// </summary>
         Ecdsa = 0x0,
         /// <summary>
-        /// Block cipher key is asked.
+        /// Global unicast encryption key (GUEK) is asked.
         /// </summary>
         BlockCipher = 0x1,
         /// <summary>
         /// Authentication key is asked.
         /// </summary>
-        Authentication = 0x2
+        Authentication = 0x2,
+        /// <summary>
+        /// Global broadcast encryption key (GBEK) is asked.
+        /// </summary>
+        Broadcast = 0x4
     }
 }
