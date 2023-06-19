@@ -257,6 +257,8 @@ namespace Gurux.DLMS.Reader
                             {
                                 _media.Settings = _mediaSettings;
                             }
+                            //Some meters need a little break.
+                            Thread.Sleep(1000);
                             InitializeOpticalHead();
                         }
                         else
@@ -312,12 +314,6 @@ namespace Gurux.DLMS.Reader
             _mediaSettings = _media.Settings;
             GXSerial serial = _media as GXSerial;
             byte Terminator = (byte)0x0A;
-            if (!_media.IsOpen)
-            {
-                _media.Open();
-            }
-            //Some meters need a little break.
-            Thread.Sleep(1000);
             //Query device information.
             string data = "/?!\r\n";
             if (_trace > TraceLevel.Info)
@@ -483,7 +479,6 @@ namespace Gurux.DLMS.Reader
                 }
             }
             UpdateFrameCounter();
-            InitializeOpticalHead();
             GXReplyData reply = new GXReplyData();
             SNRMRequest();
             //Generate AARQ request.
