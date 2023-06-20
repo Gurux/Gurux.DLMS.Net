@@ -77,6 +77,7 @@ namespace Gurux.DLMS.Reader
             _media = media;
             _client = client;
             _invocationCounter = invocationCounter;
+            _mediaSettings = _media.Settings;
         }
 
         /// <summary>
@@ -255,7 +256,9 @@ namespace Gurux.DLMS.Reader
                             //Initialize IEC again for optical port connection.
                             if (!string.IsNullOrEmpty(_mediaSettings))
                             {
+                                _media.Close();
                                 _media.Settings = _mediaSettings;
+                                _media.Open();
                             }
                             //Some meters need a little break.
                             Thread.Sleep(1000);
@@ -311,7 +314,6 @@ namespace Gurux.DLMS.Reader
             {
                 return;
             }
-            _mediaSettings = _media.Settings;
             GXSerial serial = _media as GXSerial;
             byte Terminator = (byte)0x0A;
             //Query device information.
