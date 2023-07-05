@@ -49,4 +49,31 @@ namespace Gurux.DLMS
     /// <param name="type">Object type.</param>
     /// <param name="version">Object Version.</param>
     public delegate GXDLMSObject ObjectCreateEventHandler(int type, byte version);
+
+    public class GXCustomPduArgs
+    {
+        /// <summary>
+        /// Received PDU data.
+        /// </summary>
+        public byte[] Data
+        {
+            get;
+            internal set;
+        }
+
+        /// <summary>
+        /// Parsed value.
+        /// </summary>
+        public byte[] Value
+        {
+            get;
+            set;
+        }
+    }
+
+    /// <summary>
+    /// This event handler is called meter uses non DLMS standard PDU.
+    /// </summary>
+    /// <param name="e">PDU arguments.</param>
+    public delegate void CustomPduEventHandler(GXCustomPduArgs e);
 }

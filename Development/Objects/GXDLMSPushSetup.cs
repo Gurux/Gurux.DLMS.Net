@@ -99,14 +99,11 @@ namespace Gurux.DLMS.Objects
         /// Upon a call of the push (data) method the selected attributes are sent to the destination
         /// defined in send_destination_and_method.
         /// </summary>
-        [XmlArray("PushObjects")]
         public List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> PushObjectList
         {
             get;
             set;
         }
-
-
 
         /// <summary>
         /// Contains the start and end date/time

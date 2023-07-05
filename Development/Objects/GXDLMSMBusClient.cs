@@ -159,6 +159,17 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+
+        /// <summary>
+        /// Returns EN 61107 manufacturer from the manufacturer ID
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static string GetManufacturerName(UInt16 value)
+        {
+            return GXCommon.DecryptManufacturer(value);
+        }
+
         /// <summary>
         /// Carries the Version element of the data header as specified in
         /// EN 13757-3 sub-clause 5.6.
@@ -171,7 +182,7 @@ namespace Gurux.DLMS.Objects
         }
 
         [XmlIgnore()]
-        public int DeviceType
+        public MBusDeviceType DeviceType
         {
             get;
             set;
@@ -674,7 +685,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 9)
             {
-                DeviceType = Convert.ToByte(e.Value);
+                DeviceType = (MBusDeviceType)Convert.ToByte(e.Value);
             }
             else if (e.Index == 10)
             {
@@ -728,7 +739,7 @@ namespace Gurux.DLMS.Objects
             IdentificationNumber = (UInt16)reader.ReadElementContentAsInt("IdentificationNumber");
             ManufacturerID = (UInt16)reader.ReadElementContentAsInt("ManufacturerID");
             DataHeaderVersion = reader.ReadElementContentAsInt("DataHeaderVersion");
-            DeviceType = reader.ReadElementContentAsInt("DeviceType");
+            DeviceType = (MBusDeviceType)reader.ReadElementContentAsInt("DeviceType");
             AccessNumber = reader.ReadElementContentAsInt("AccessNumber");
 
             Status = reader.ReadElementContentAsInt("Status");
@@ -760,7 +771,7 @@ namespace Gurux.DLMS.Objects
             writer.WriteElementString("IdentificationNumber", IdentificationNumber, 6);
             writer.WriteElementString("ManufacturerID", ManufacturerID, 7);
             writer.WriteElementString("DataHeaderVersion", DataHeaderVersion, 8);
-            writer.WriteElementString("DeviceType", DeviceType, 9);
+            writer.WriteElementString("DeviceType", (int)DeviceType, 9);
             writer.WriteElementString("AccessNumber", AccessNumber, 10);
             writer.WriteElementString("Status", Status, 11);
             writer.WriteElementString("Alarm", Alarm, 12);

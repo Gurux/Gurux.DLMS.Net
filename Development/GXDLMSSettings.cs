@@ -61,7 +61,7 @@ namespace Gurux.DLMS
         private GXDLMSAssociationLogicalName assignedAssociation;
 
         private bool useLogicalNameReferencing;
-        
+
         ///<summary>
         /// Default Max received PDU size.
         ///</summary>
@@ -1113,6 +1113,71 @@ namespace Gurux.DLMS
             private set;
         }
 
+        private void UpdateSecurity(byte[] systemTitle, GXDLMSSecuritySetup ss)
+        {
+            if (ss != null)
+            {
+                Cipher.SecuritySuite = ss.SecuritySuite;
+                Cipher.SecurityPolicy = ss.SecurityPolicy;
+                if (ss.Guek != null)
+                {
+                    Cipher.BlockCipherKey = EphemeralBlockCipherKey = ss.Guek;
+                }
+                if (ss.Gbek != null)
+                {
+                    Cipher.BroadcastBlockCipherKey = EphemeralBroadcastBlockCipherKey = ss.Gbek;
+                }
+                if (ss.Gak != null)
+                {
+                    Cipher.AuthenticationKey = EphemeralAuthenticationKey = ss.Gak;
+                }
+                if (ss.Kek != null)
+                {
+                    Kek = ss.Kek;
+                }
+                // Update certificates for pre-established connections.
+                byte[] st;
+                if (systemTitle == null)
+                {
+                    st = ss.ClientSystemTitle;
+                }
+                else
+                {
+                    st = systemTitle;
+                }
+                if (st != null)
+                {
+                    GXx509Certificate cert = ss.ServerCertificates.FindBySystemTitle(st, KeyUsage.DigitalSignature);
+                    if (cert != null)
+                    {
+                        Cipher.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(cert.PublicKey, ss.SigningKey.Value.Value);
+                    }
+                    cert = ss.ServerCertificates.FindBySystemTitle(st, KeyUsage.KeyAgreement);
+                    if (cert != null && ss.KeyAgreementKey != null)
+                    {
+                        Cipher.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(cert.PublicKey, ss.KeyAgreementKey.Value.Value);
+                    }
+                    SourceSystemTitle = st;
+                }
+                Cipher.SystemTitle = ss.ServerSystemTitle;
+                // Find Invocation counter and use it if it exists.
+                String ln = "0.0.43.1." + ss.LogicalName.Split(new char[] { '.' })[4] + ".255";
+                InvocationCounter = (GXDLMSData)Objects.FindByLN(ObjectType.Data, ln);
+                if (InvocationCounter != null && InvocationCounter.Value == null)
+                {
+                    if (InvocationCounter.GetDataType(2) == DataType.None)
+                    {
+                        InvocationCounter.SetDataType(2, DataType.UInt32);
+                    }
+                    InvocationCounter.Value = 0;
+                }
+            }
+            else
+            {
+                assignedAssociation.ApplicationContextName.ContextId = ApplicationContextName.LogicalName;
+            }
+        }
+
         void UpdateSecuritySettings(byte[] systemTitle)
         {
             if (assignedAssociation != null)
@@ -1124,77 +1189,13 @@ namespace Gurux.DLMS
                    assignedAssociation.AuthenticationMechanismName.MechanismId == Authentication.HighECDSA))
                 {
                     GXDLMSSecuritySetup ss = (GXDLMSSecuritySetup)assignedAssociation.ObjectList.FindByLN(ObjectType.SecuritySetup, assignedAssociation.SecuritySetupReference);
-                    if (ss != null)
-                    {
-                        Cipher.SecurityPolicy = ss.SecurityPolicy;
-                        if (ss.Guek != null)
-                        {
-                            Cipher.BlockCipherKey = EphemeralBlockCipherKey = ss.Guek;
-                        }
-                        if (ss.Gbek != null)
-                        {
-                            Cipher.BroadcastBlockCipherKey = EphemeralBroadcastBlockCipherKey = ss.Gbek;
-                        }
-                        if (ss.Gak != null)
-                        {
-                            Cipher.AuthenticationKey = EphemeralAuthenticationKey = ss.Gak;
-                        }
-                        if (ss.Kek != null)
-                        {
-                            Kek = ss.Kek;
-                        }
-                        // Update certificates for pre-established connections.
-                        byte[] st;
-                        if (systemTitle == null)
-                        {
-                            st = ss.ClientSystemTitle;
-                        }
-                        else
-                        {
-                            st = systemTitle;
-                        }
-                        if (st != null)
-                        {
-                            GXx509Certificate cert = ss.ServerCertificates.FindBySystemTitle(st, KeyUsage.DigitalSignature);
-                            if (cert != null)
-                            {
-                                Cipher.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(cert.PublicKey, ss.SigningKey.Value.Value);
-                            }
-                            cert = ss.ServerCertificates.FindBySystemTitle(st, KeyUsage.KeyAgreement);
-                            if (cert != null && ss.KeyAgreementKey != null)
-                            {
-                                Cipher.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(cert.PublicKey, ss.KeyAgreementKey.Value.Value);
-                            }
-                            SourceSystemTitle = st;
-                        }
-                        Cipher.SecuritySuite = ss.SecuritySuite;
-                        Cipher.SystemTitle = ss.ServerSystemTitle;
-                        // Find Invocation counter and use it if it exists.
-                        String ln = "0.0.43.1." + ss.LogicalName.Split(new char[] { '.' })[4] + ".255";
-                        InvocationCounter = (GXDLMSData)Objects.FindByLN(ObjectType.Data, ln);
-                        if (InvocationCounter != null && InvocationCounter.Value == null)
-                        {
-                            if (InvocationCounter.GetDataType(2) == DataType.None)
-                            {
-                                InvocationCounter.SetDataType(2, DataType.UInt32);
-                            }
-                            InvocationCounter.Value = 0;
-                        }
-                    }
-                    else
-                    {
-                        assignedAssociation.ApplicationContextName.ContextId = ApplicationContextName.LogicalName;
-                    }
+                    UpdateSecurity(systemTitle, ss);
                 }
                 else
                 {
-                    // Update server system title if security setup is set.
                     GXDLMSSecuritySetup ss = (GXDLMSSecuritySetup)assignedAssociation.ObjectList.FindByLN(ObjectType.SecuritySetup,
                         assignedAssociation.SecuritySetupReference);
-                    if (ss != null)
-                    {
-                        Cipher.SystemTitle = ss.ServerSystemTitle;
-                    }
+                    UpdateSecurity(systemTitle, ss);
                 }
             }
         }
@@ -1209,6 +1210,11 @@ namespace Gurux.DLMS
         /// This event is invoked when custom manufacturer object is created.
         /// </summary>
         internal ObjectCreateEventHandler customObject;
+
+        /// <summary>
+        /// This event is invoked when custom PDU is handled.
+        /// </summary>
+        internal CustomPduEventHandler customPdu;        
 
         //Encrypt or decrypt the data using external Hardware Security Module.
         internal byte[] Crypt(CertificateType certificateType,
@@ -1307,7 +1313,7 @@ namespace Gurux.DLMS
                         if (cert != null && ss.SigningKey != null)
                         {
                             if (encrypt)
-                            {                                
+                            {
                                 if (ss.SigningKey.Value.Value != null)
                                 {
                                     return ss.SigningKey.Value.Value;

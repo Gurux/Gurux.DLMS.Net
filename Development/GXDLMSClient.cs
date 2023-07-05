@@ -216,6 +216,21 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// This event is called when meter implemenets custom non DLMS PDU.
+        /// </summary>
+        public event CustomPduEventHandler OnCustomPdu
+        {
+            add
+            {
+                Settings.customPdu += value;
+            }
+            remove
+            {
+                Settings.customPdu -= value;
+            }
+        }
+
+        /// <summary>
         /// Copy client settings.
         /// </summary>
         /// <param name="target"></param>
@@ -1184,12 +1199,12 @@ namespace Gurux.DLMS
             {
                 pw = Settings.Password;
             }
+            challenge = GXSecure.Secure(Settings, Settings.Cipher, Settings.Cipher.InvocationCounter,
+                                               Settings.StoCChallenge, pw);
             if (Settings.Cipher != null && Settings.IncreaseInvocationCounterForGMacAuthentication)
             {
                 ++Settings.Cipher.InvocationCounter;
             }
-            challenge = GXSecure.Secure(Settings, Settings.Cipher, Settings.Cipher.InvocationCounter,
-                                               Settings.StoCChallenge, pw);
             if (UseLogicalNameReferencing)
             {
                 if (string.IsNullOrEmpty(ln))

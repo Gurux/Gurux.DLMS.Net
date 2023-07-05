@@ -4874,7 +4874,7 @@ namespace Gurux.DLMS
             GXDLMSSettings settings,
             GXReplyData data)
         {
-            short ch;
+            byte ch;
             Command cmd = data.Command;
             // If header is not read yet or GBT message.
             if (data.Command == Command.None)
@@ -4899,9 +4899,31 @@ namespace Gurux.DLMS
                 switch (cmd)
                 {
                     case Command.ReadResponse:
-                        if (!HandleReadResponse(settings, data, index))
+                        if (!settings.UseLogicalNameReferencing)
                         {
-                            return;
+                            if (!HandleReadResponse(settings, data, index))
+                            {
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            if (settings.customPdu != null)
+                            {
+                                --data.Data.Position;
+                                GXCustomPduArgs e = new GXCustomPduArgs()
+                                {
+                                    Data = data.Data.Remaining()
+                                };
+                                settings.customPdu(e);
+                                data.Value = e.Data;
+                                return;
+                            }
+                            else
+                            {
+                                data.Command = Command.None;
+                                throw new ArgumentException("Invalid Command.");
+                            }
                         }
                         break;
                     case Command.GetResponse:
@@ -5064,8 +5086,22 @@ namespace Gurux.DLMS
                     case Command.RegisterRequest:
                         break;
                     default:
-                        data.Command = Command.None;
-                        throw new ArgumentException("Invalid Command.");
+                        if (settings.customPdu != null)
+                        {
+                            --data.Data.Position;
+                            GXCustomPduArgs e = new GXCustomPduArgs()
+                            {
+                                Data = data.Data.Remaining()
+                            };
+                            settings.customPdu(e);
+                            data.Value = e.Data;
+                            return;
+                        }
+                        else
+                        {
+                            data.Command = Command.None;
+                            throw new ArgumentException("Invalid Command.");
+                        }
                 }
             }
             else if ((data.MoreData & RequestTypes.Frame) == 0)

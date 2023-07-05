@@ -580,7 +580,14 @@ namespace Gurux.DLMS.Objects
                         }
                         catch (Exception ex)
                         {
-                            data.Add(IPAddress.Parse(ASCIIEncoding.ASCII.GetString((byte[])it)));
+                            try
+                            {
+                                data.Add(IPAddress.Parse(ASCIIEncoding.ASCII.GetString((byte[])it)));
+                            }
+                            catch (Exception)
+                            {
+                                //It's ok if this fails. Some meters are adding strange values here.
+                            }
                         }
                     }
                 }
