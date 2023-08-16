@@ -194,8 +194,24 @@ namespace Gurux.DLMS
         /// <summary>
         /// Use pre-established application associations.
         /// </summary>
+        /// <seealso cref="IgnoreSNRMWithPreEstablished"/>
         [DefaultValue(false)]
         public bool PreEstablished
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// SNRM command is not send With pre-established connection.
+        /// </summary>
+        /// <remarks>
+        /// DLMS standard defines that SNRM message is sent with pre-established connections, 
+        /// but there are some meters that don't follow the standard.
+        /// </remarks>
+        /// <seealso cref="PreEstablished"/>
+        [DefaultValue(false)]
+        public bool IgnoreSNRMWithPreEstablished
         {
             get;
             set;
@@ -628,7 +644,7 @@ namespace Gurux.DLMS
         {
             get;
             set;
-        }       
+        }
 
         /// <summary>
         /// Name of the meter.
