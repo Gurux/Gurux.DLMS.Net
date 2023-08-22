@@ -125,7 +125,7 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
-        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
+        /// <inheritdoc>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, Actions, PermissionsTable, WeightingsTable, MostRecentRequestsTable, LastOutcome };
@@ -216,13 +216,13 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetNames()
         {
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "Actions", "Permissions table", "Weightings table", "Most recent requests table", "Last outcome" };
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetMethodNames()
         {
             return new string[] { "Request Action", "Reset" };
@@ -270,7 +270,7 @@ namespace Gurux.DLMS.Objects
             return 2;
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
+        /// <inheritdoc />
         public override DataType GetDataType(int index)
         {
             switch (index)

@@ -280,7 +280,7 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
-        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
+        /// <inheritdoc>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, InitiatorElectricalPhase, DeltaElectricalPhase, MaxReceivingGain,
@@ -376,7 +376,7 @@ namespace Gurux.DLMS.Objects
                             };
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetMethodNames()
         {
             return new string[0];
@@ -397,7 +397,7 @@ namespace Gurux.DLMS.Objects
             return 0;
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
+        /// <inheritdoc />
         public override DataType GetDataType(int index)
         {
             DataType ret;

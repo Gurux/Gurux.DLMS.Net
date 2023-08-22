@@ -137,7 +137,7 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
-        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
+        /// <inheritdoc>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, Buffer, CaptureObjects, TemplateId, TemplateDescription, CaptureMethod };
@@ -200,13 +200,13 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetNames()
         {
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "Buffer", "CaptureObjects", "TemplateId", "TemplateDescription", "CaptureMethod" };
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetMethodNames()
         {
             return new string[] {"Reset", "Capture" };
@@ -261,7 +261,7 @@ namespace Gurux.DLMS.Objects
             return tmp;
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
+        /// <inheritdoc />
         public override DataType GetDataType(int index)
         {
             switch (index)
@@ -394,10 +394,10 @@ namespace Gurux.DLMS.Objects
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 list.Clear();
-                throw ex;
+                throw;
             }
         }
 

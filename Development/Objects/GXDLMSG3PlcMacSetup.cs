@@ -366,7 +366,7 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
-        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
+        /// <inheritdoc>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, ShortAddress, RcCoord, PANId, KeyTable , FrameCounter ,
@@ -499,7 +499,7 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetNames()
         {
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "MacShortAddress", "MacRcCoord", "MacPANId", "MackeyTable ", "MacFrameCounter",
@@ -508,7 +508,7 @@ namespace Gurux.DLMS.Objects
                 "MacFCCLegacyMode", "MacMaxBe", "MacMaxCsmaBackoffs", "MacMinBe" };
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetMethodNames()
         {
             return new string[] { "MAC get neighbour table entry" };
@@ -529,7 +529,7 @@ namespace Gurux.DLMS.Objects
             return 1;
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
+        /// <inheritdoc />
         public override DataType GetDataType(int index)
         {
             if (index == 1)

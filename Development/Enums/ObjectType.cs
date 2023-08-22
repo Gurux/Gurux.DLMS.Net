@@ -317,6 +317,18 @@ namespace Gurux.DLMS.Enums
         MBusMasterPortSetup = 74,
 
         /// <summary>
+        /// Servers hosted by M-Bus slave devices.
+        /// </summary>
+        [XmlEnum("76")]
+        MBusPortSetup = 76,
+
+        /// <summary>
+        /// Holds information related to the operation of the M-Bus network
+        /// </summary>
+        [XmlEnum("77")]
+        MBusDiagnostic = 77,
+
+        /// <summary>
         /// Addresses that are provided by the base node during the opening of the
         /// convergence layer.
         /// </summary>
@@ -414,6 +426,12 @@ namespace Gurux.DLMS.Enums
 
         [XmlEnum("115")]
         TokenGateway = 115,
+
+        /// <summary>
+        /// Allow managing attributes of type array of other interface objects.
+        /// </summary>
+        [XmlEnum("123")]
+        ArrayManager = 123,
 
         ///<summary>
         ///SapAssigment stores information of assignment of the logical devices to

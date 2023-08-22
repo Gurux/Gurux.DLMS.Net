@@ -164,7 +164,7 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
-        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
+        /// <inheritdoc>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, ObjectList, new object[]{ClientSAP, ServerSAP }, ApplicationContextName,
@@ -626,7 +626,7 @@ else if (settings.Authentication == Authentication.HighECDSA)
             return attributes.ToArray();
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetNames()
         {
             if (Version == 0)
@@ -668,7 +668,7 @@ else if (settings.Authentication == Authentication.HighECDSA)
 
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetMethodNames()
         {
             if (Version > 1)
@@ -999,7 +999,7 @@ else if (settings.Authentication == Authentication.HighECDSA)
             return data;
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
+        /// <inheritdoc />
         public override DataType GetDataType(int index)
         {
             if (index == 1)

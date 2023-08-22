@@ -79,13 +79,13 @@ namespace Gurux.DLMS.Internal
             return values;
         }
 
-        static int GetValue(string value, int sn)
+        static long GetValue(string value, long sn)
         {
             if (value == "sn")
             {
                 return sn;
             }
-            return int.Parse(value);
+            return long.Parse(value);
         }
 
         /// <summary>
@@ -94,16 +94,22 @@ namespace Gurux.DLMS.Internal
         /// <param name="sn">Serial number</param>
         /// <param name="formula">Formula to used.</param>
         /// <returns></returns>
-        public static int Count(int sn, string formula)
+        public static long Count(long sn, string formula)
         {
             List<string> values = GetValues(FormatString(formula));
             if (values.Count % 2 == 0)
             {
                 throw new ArgumentException("Invalid serial number formula.");
             }
-            int value = GetValue(values[0], sn);
+            long total = 0;
+            long value = GetValue(values[0], sn);
             for (int index = 1; index != values.Count; index += 2)
             {
+                if (values[index + 1] == "sn")
+                {
+                    total += value;
+                    value = 0;
+                }
                 switch (values[index])
                 {
                     case "%":
@@ -125,7 +131,8 @@ namespace Gurux.DLMS.Internal
                         throw new ArgumentException("Invalid serial number formula.");
                 }
             }
-            return value;
+            total += value;
+            return total;
         }
 
         /// <summary>

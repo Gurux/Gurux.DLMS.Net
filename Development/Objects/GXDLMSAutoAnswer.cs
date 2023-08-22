@@ -139,7 +139,7 @@ namespace Gurux.DLMS.Objects
 
 
 
-        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
+        /// <inheritdoc>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, Mode, ListeningWindow.ToArray(), Status,
@@ -194,7 +194,7 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetNames()
         {
             if (Version > 1)
@@ -215,7 +215,7 @@ namespace Gurux.DLMS.Objects
                              "Number Of Rings In Listening Window"};
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetMethodNames()
         {
             return new string[0];
@@ -241,7 +241,7 @@ namespace Gurux.DLMS.Objects
             return 0;
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
+        /// <inheritdoc />
         public override DataType GetDataType(int index)
         {
             if (index == 1)

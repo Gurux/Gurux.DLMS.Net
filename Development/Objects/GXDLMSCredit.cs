@@ -235,7 +235,7 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
-        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
+        /// <inheritdoc>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, CurrentCreditAmount, Type, Priority, WarningThreshold, Limit, CreditConfiguration, Status, PresetCreditAmount, CreditAvailableThreshold, Period };
@@ -373,7 +373,7 @@ namespace Gurux.DLMS.Objects
             return base.GetUIDataType(index);
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetNames()
         {
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "CurrentCreditAmount", "Type",
@@ -381,7 +381,7 @@ namespace Gurux.DLMS.Objects
                 "PresetCreditAmount", "CreditAvailableThreshold", "Period"
             };
         }
-        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetMethodNames()
         {
             return new string[] { "Update amount", "Set amount to value", "Invoke credit" };
@@ -402,7 +402,7 @@ namespace Gurux.DLMS.Objects
             return 3;
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
+        /// <inheritdoc />
         public override DataType GetDataType(int index)
         {
             switch (index)

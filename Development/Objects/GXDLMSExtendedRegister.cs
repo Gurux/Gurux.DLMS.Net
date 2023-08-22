@@ -102,7 +102,7 @@ namespace Gurux.DLMS.Objects
             return base.GetUIDataType(index);
         }
 
-        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
+        /// <inheritdoc>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, Value, new GXStructure { Scaler, Unit }, Status, CaptureTime };
@@ -164,7 +164,7 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetNames()
         {
             return new string[] {Internal.GXCommon.GetLogicalNameString(),
@@ -185,7 +185,7 @@ namespace Gurux.DLMS.Objects
             return 5;
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
+        /// <inheritdoc />
         public override DataType GetDataType(int index)
         {
             if (index == 1)

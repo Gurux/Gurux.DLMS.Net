@@ -196,7 +196,7 @@ namespace Gurux.DLMS.Objects
         }
 
 
-        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
+        /// <inheritdoc>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, DataLinkLayerReference,
@@ -351,7 +351,7 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetNames()
         {
             return new string[] {Internal.GXCommon.GetLogicalNameString(),
@@ -361,7 +361,7 @@ namespace Gurux.DLMS.Objects
         "Traffic Class", "Neighbor Discovery Setup"};
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetMethodNames()
         {
             return new string[] { "Add IP v6 address", "Remove IP v6 address" };
@@ -382,7 +382,7 @@ namespace Gurux.DLMS.Objects
             return 2;
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
+        /// <inheritdoc />
         public override DataType GetDataType(int index)
         {
             if (index == 1)

@@ -96,7 +96,7 @@ namespace Gurux.DLMS.Objects
         } = new List<KeyValuePair<string, List<GXDLMSObject>>>();
 
 
-        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
+        /// <inheritdoc>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, ActivationStatus, FunctionList };

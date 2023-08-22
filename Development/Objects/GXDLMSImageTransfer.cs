@@ -291,7 +291,7 @@ namespace Gurux.DLMS.Objects
             return client.Method(this, 4, 0, DataType.Int8);
         }
 
-        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
+        /// <inheritdoc>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, ImageBlockSize, ImageTransferredBlocksStatus,
@@ -403,7 +403,7 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetNames()
         {
             return new string[] {Internal.GXCommon.GetLogicalNameString(),
@@ -413,7 +413,7 @@ namespace Gurux.DLMS.Objects
                             };
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetMethodNames()
         {
             return new string[] { "Image transfer initiate", "Image block transfer",
@@ -435,7 +435,7 @@ namespace Gurux.DLMS.Objects
             return 4;
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
+        /// <inheritdoc />
         public override DataType GetDataType(int index)
         {
             if (index == 1)

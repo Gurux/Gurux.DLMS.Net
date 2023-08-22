@@ -325,7 +325,7 @@ namespace Gurux.DLMS
             {
                 if (xml != null)
                 {
-                    throw ex;
+                    throw;
                 }
                 Debug.WriteLine("HandleGetRequest failed. " + ex.Message);
                 data.Clear();
@@ -1742,11 +1742,11 @@ namespace Gurux.DLMS
                     xml.AppendEndTag(TranslatorTags.ValueList);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 if (xml == null)
                 {
-                    throw ex;
+                    throw;
                 }
             }
             p.status = 0xFF;

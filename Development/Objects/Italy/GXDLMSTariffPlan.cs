@@ -109,7 +109,7 @@ namespace Gurux.DLMS.Objects.Italy
         }
 
 
-        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
+        /// <inheritdoc>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, CalendarName, Enabled, Plan, ActivationTime };
@@ -154,13 +154,13 @@ namespace Gurux.DLMS.Objects.Italy
             return attributes.ToArray();
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetNames()
         {
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "CalendarName", "Enabled", "Plan", "ActivationTime" };
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetMethodNames()
         {
             return new string[0];
@@ -181,7 +181,7 @@ namespace Gurux.DLMS.Objects.Italy
             return 0;
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
+        /// <inheritdoc />
         public override DataType GetDataType(int index)
         {
             if (index == 1)

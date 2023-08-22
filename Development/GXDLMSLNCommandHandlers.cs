@@ -1224,11 +1224,11 @@ namespace Gurux.DLMS
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 if (xml == null)
                 {
-                    throw ex;
+                    throw;
                 }
             }
             if (xml != null)
@@ -1622,11 +1622,11 @@ namespace Gurux.DLMS
                     xml.AppendEndTag(TranslatorTags.ValueList);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 if (xml == null)
                 {
-                    throw ex;
+                    throw;
                 }
             }
             p.status = 0xFF;

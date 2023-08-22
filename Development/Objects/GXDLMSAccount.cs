@@ -420,7 +420,7 @@ namespace Gurux.DLMS.Objects
         }
 
 
-        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
+        /// <inheritdoc>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, new object[]{PaymentMode, AccountStatus }, CurrentCreditInUse,
@@ -596,7 +596,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
             return base.GetUIDataType(index);
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetNames()
         {
             return new string[] { Internal.GXCommon.GetLogicalNameString(),"PaymentMode", "CurrentCreditInUse",
@@ -606,7 +606,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
         "LowCreditThreshold", "NextCreditAvailableThreshold", "MaxProvision", "MaxProvisionPeriod"};
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetMethodNames()
         {
             return new string[] { "Activate account" , "Close account", "Reset account"};
@@ -628,7 +628,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
             return 3;
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
+        /// <inheritdoc />
         public override DataType GetDataType(int index)
         {
             switch (index)

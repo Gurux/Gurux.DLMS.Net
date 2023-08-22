@@ -187,7 +187,7 @@ namespace Gurux.DLMS.Objects
             return base.IsRead(index);
         }
 
-        /// <inheritdoc cref="GXDLMSObject.GetValues"/>
+        /// <inheritdoc>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, CurrentAverageValue, LastAverageValue, new GXStructure{ Scaler, Unit },
@@ -250,7 +250,7 @@ namespace Gurux.DLMS.Objects
             return attributes.ToArray();
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetNames()
         {
             return new string[] {Internal.GXCommon.GetLogicalNameString(),
@@ -265,7 +265,7 @@ namespace Gurux.DLMS.Objects
                             };
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetMethodNames"/>
+        /// <inheritdoc />
         string[] IGXDLMSBase.GetMethodNames()
         {
             return new string[] { "Reset", "Next period" };
@@ -295,7 +295,7 @@ namespace Gurux.DLMS.Objects
             return base.GetUIDataType(index);
         }
 
-        /// <inheritdoc cref="IGXDLMSBase.GetDataType"/>
+        /// <inheritdoc />
         public override DataType GetDataType(int index)
         {
             DataType dt;

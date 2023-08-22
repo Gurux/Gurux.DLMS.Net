@@ -1243,7 +1243,7 @@ namespace Gurux.DLMS
                     if (Settings.Authentication == Enums.Authentication.HighECDSA)
                     {
 #if !WINDOWS_UWP
-if (Settings.Cipher.Equals(new KeyValuePair<byte[], byte[]>()))
+                        if (Settings.Cipher.Equals(new KeyValuePair<byte[], byte[]>()))
                         {
                             throw new ArgumentNullException("SigningKeyPair is empty.");
                         }
@@ -2983,7 +2983,7 @@ if (Settings.Cipher.Equals(new KeyValuePair<byte[], byte[]>()))
         /// <returns>COSEM object.</returns>
         public static GXDLMSObject CreateObject(ObjectType type, byte version)
         {
-            return GXDLMS.CreateObject(null, (int) type, version, AvailableObjectTypes);
+            return GXDLMS.CreateObject(null, (int)type, version, AvailableObjectTypes);
         }
 
         /// <summary>
@@ -3259,7 +3259,7 @@ if (Settings.Cipher.Equals(new KeyValuePair<byte[], byte[]>()))
             {
                 formula = "SN % 10000 + 1000";
             }
-            return 0x4000 | SerialnumberCounter.Count(serialNumber, formula);
+            return 0x4000 | (int)SerialnumberCounter.Count(serialNumber, formula);
         }
 
         /// <summary>
@@ -3272,7 +3272,7 @@ if (Settings.Cipher.Equals(new KeyValuePair<byte[], byte[]>()))
         /// <param name="serialNumber">Meter serial number.</param>
         /// <param name="logicalAddress">Used logical address.</param>
         /// <returns>Server address.</returns>
-        public static int GetServerAddressFromSerialNumber(int serialNumber, int logicalAddress)
+        public static int GetServerAddressFromSerialNumber(long serialNumber, int logicalAddress)
         {
             return GetServerAddressFromSerialNumber(serialNumber, logicalAddress, null);
         }
@@ -3287,7 +3287,7 @@ if (Settings.Cipher.Equals(new KeyValuePair<byte[], byte[]>()))
         /// <remarks>
         /// All meters do not use standard formula or support serial number addressing at all.
         /// </remarks>
-        public static int GetServerAddressFromSerialNumber(int serialNumber, int logicalAddress, string formula)
+        public static int GetServerAddressFromSerialNumber(long serialNumber, int logicalAddress, string formula)
         {
             //If formula is not given use default formula.
             //This formula is defined in DLMS specification.
@@ -3297,9 +3297,9 @@ if (Settings.Cipher.Equals(new KeyValuePair<byte[], byte[]>()))
             }
             if (logicalAddress == 0)
             {
-                return SerialnumberCounter.Count(serialNumber, formula);
+                return (int)SerialnumberCounter.Count(serialNumber, formula);
             }
-            return logicalAddress << 14 | SerialnumberCounter.Count(serialNumber, formula);
+            return logicalAddress << 14 | (int)SerialnumberCounter.Count(serialNumber, formula);
         }
 
         /// <summary>

@@ -711,11 +711,11 @@ namespace Gurux.DLMS.Internal
                 }
                 value = new GXTime(hour, minute, second, ms);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 if (info.xml == null)
                 {
-                    throw ex;
+                    throw;
                 }
             }
             if (info.xml != null)
