@@ -535,6 +535,13 @@ namespace Gurux.DLMS
             set;
         }
 
+        /// <summary>
+        /// Some meters might return invalid data when disconnect is called and cause infinity loop.
+        /// This property is used to ignore it.
+        /// </summary>
+        internal bool Closing;
+
+
         internal ConnectionState Connected = ConnectionState.None;
 
         ///<summary>

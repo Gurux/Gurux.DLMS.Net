@@ -1375,7 +1375,7 @@ namespace Gurux.DLMS
                 reply = GXDLMS.GetSnMessages(new GXDLMSSNParameters(Settings, Command.ReleaseRequest, 0xFF, 0xFF, null, buff));
             }
             Settings.Connected &= ~ConnectionState.Dlms;
-
+            Settings.Closing = true;
             //Restore default values.
             MaxReceivePDUSize = InitializePduSize;
             Settings.CtoSChallenge = InitializeChallenge;
@@ -1428,6 +1428,7 @@ namespace Gurux.DLMS
             MaxReceivePDUSize = InitializePduSize;
             Settings.Connected = ConnectionState.None;
             Settings.ResetFrameSequence();
+            Settings.Closing = true;
             return ret;
         }
 

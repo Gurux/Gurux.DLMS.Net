@@ -4900,6 +4900,18 @@ namespace Gurux.DLMS
                 ch = data.Data.GetUInt8();
                 cmd = (Command)ch;
                 data.Command = cmd;
+                if (settings.Closing)
+                {
+                    settings.Closing = false;
+                    if (data.Xml == null &&
+                        cmd != Command.ReleaseResponse &&
+                        cmd != Command.DisconnectMode &&
+                        cmd != Command.ConfirmedServiceError &&
+                        cmd != Command.ExceptionResponse)
+                    {
+                        throw new GXDLMSException("Invalid reply. The client has closed the connection.");
+                    }
+                }
                 switch (cmd)
                 {
                     case Command.ReadResponse:
