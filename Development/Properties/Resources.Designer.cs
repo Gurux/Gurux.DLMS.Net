@@ -88,6 +88,15 @@ namespace Gurux.DLMS.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Decrypt failed. Invalid authentication tag..
+        /// </summary>
+        internal static string DecryptFailedInvalidAuthenticationTag {
+            get {
+                return ResourceManager.GetString("DecryptFailedInvalidAuthenticationTag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Disconnect mode..
         /// </summary>
         internal static string DisconnectMode {
@@ -131,6 +140,24 @@ namespace Gurux.DLMS.Properties {
         internal static string India {
             get {
                 return ResourceManager.GetString("India", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid authentication key. Authentication key size is 16 or 32 bytes..
+        /// </summary>
+        internal static string InvalidAuthenticationKey {
+            get {
+                return ResourceManager.GetString("InvalidAuthenticationKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid block cipher key. Block cipher key size is 16 or 32 bytes.
+        /// </summary>
+        internal static string InvalidBlockCipherKey {
+            get {
+                return ResourceManager.GetString("InvalidBlockCipherKey", resourceCulture);
             }
         }
         

@@ -155,7 +155,7 @@ namespace Gurux.DLMS.Objects
         /// <remarks>
         /// PIB attribute: 0x19.
         /// </remarks>
-        public byte RreqRerrWait
+        public byte RreqReqWait
         {
             get;
             set;

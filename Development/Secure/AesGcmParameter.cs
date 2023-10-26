@@ -134,9 +134,9 @@ namespace Gurux.DLMS.Secure
                     {
                         value = null;
                     }
-                    else if (value.Length != 16)
+                    else if (value.Length != 16 && value.Length != 32)
                     {
-                        throw new ArgumentOutOfRangeException("Invalid block cipher key. Block cipher key size is 16 bytes.");
+                        throw new ArgumentOutOfRangeException(Properties.Resources.InvalidBlockCipherKey);
                     }
                 }
                 blockCipherKey = value;
@@ -157,9 +157,9 @@ namespace Gurux.DLMS.Secure
                     {
                         value = null;
                     }
-                    else if (value.Length != 16)
+                    else if (value.Length != 16 && value.Length != 32)
                     {
-                        throw new ArgumentOutOfRangeException("Invalid authentication key. Authentication key size is 16 bytes.");
+                        throw new ArgumentOutOfRangeException(Properties.Resources.InvalidAuthenticationKey);
                     }
                 }
                 authenticationKey = value;

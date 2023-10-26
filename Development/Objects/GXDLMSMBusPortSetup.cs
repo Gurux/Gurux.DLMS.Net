@@ -52,7 +52,7 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSMBusPortSetup()
-        : this(null, 0)
+        : this("0.0.24.8.0.255", 0)
         {
         }
 
@@ -349,9 +349,11 @@ namespace Gurux.DLMS.Objects
                         foreach (var it in ListeningWindow)
                         {
                             data.SetUInt8((byte)DataType.Structure);
-                            data.SetUInt8((byte)2); //Count
-                            GXCommon.SetData(settings, data, DataType.OctetString, it.Key); //start_time
-                            GXCommon.SetData(settings, data, DataType.OctetString, it.Value); //end_time
+                            data.SetUInt8(2); //Count
+                            //start_time
+                            GXCommon.SetData(settings, data, DataType.OctetString, it.Key);
+                            //end_time
+                            GXCommon.SetData(settings, data, DataType.OctetString, it.Value); 
                         }
                     }
                     return data.Array();
@@ -466,8 +468,8 @@ namespace Gurux.DLMS.Objects
                 {
                     writer.WriteStartElement("Item", 11);
                     //Some meters are returning time here, not date-time.
-                    writer.WriteElementString("Start", it.Key, 11);
-                    writer.WriteElementString("End", it.Value, 11);
+                    writer.WriteElementString("Start", new GXDateTime(it.Key), 11);
+                    writer.WriteElementString("End", new GXDateTime(it.Value), 11);
                     writer.WriteEndElement();
                 }
             }
@@ -476,17 +478,6 @@ namespace Gurux.DLMS.Objects
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {
-            //Upload Profile selection after load.
-            if (ProfileSelection != null)
-            {
-                /*MIKKO
-                GXDLMSScriptTable target = (GXDLMSScriptTable)reader.Objects.FindByLN(ObjectType.ScriptTable, it.Script.LogicalName);
-                if (target != null && target != it.Script)
-                {
-                    it.Script = target;
-                }
-                */
-            }
         }
         #endregion
     }

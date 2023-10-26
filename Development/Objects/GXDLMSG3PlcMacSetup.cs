@@ -41,6 +41,39 @@ using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
 {
+    public class GXDLMSMacPosTable
+    {
+        /// <summary>
+        /// The 16-bit address the device is using to communicate through the PAN.
+        /// </summary>
+        /// <remarks>
+        /// PIB attribute 0x53.
+        /// </remarks>
+        public UInt16 ShortAddress
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Link Quality Indicator.
+        /// </summary>
+        public byte LQI
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Valid time,
+        /// </summary>
+        public UInt16 ValidTime
+        {
+            get;
+            set;
+        }
+    }
+
     /// <summary>
     /// Online help:
     /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSG3PlcMacSetup
@@ -72,6 +105,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSG3PlcMacSetup(string ln, ushort sn)
         : base(ObjectType.G3PlcMacSetup, ln, sn)
         {
+            Version = 2;
             KeyTable = new List<DLMS.GXKeyValuePair<byte, byte[]>>();
             ShortAddress = 0xFFFF;
             RcCoord = 0xFFFF;
@@ -366,13 +400,45 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        ///  If true, MAC uses maximum contention window.
+        /// </summary>
+        [XmlIgnore()]
+        public bool MacBroadcastMaxCwEnabled
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Attenuation of the output level in dB.
+        /// </summary>
+        [XmlIgnore()]
+        public byte MacTransmitAtten
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// The neighbour table contains some information 
+        /// about all the devices within the POS of the device.
+        /// </summary>
+        [XmlIgnore()]
+        public GXDLMSMacPosTable[] MacPosTable
+        {
+            get;
+            set;
+        }
+
         /// <inheritdoc>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, ShortAddress, RcCoord, PANId, KeyTable , FrameCounter ,
                 ToneMask , TmrTtl , MaxFrameRetries , NeighbourTableEntryTtl , NeighbourTable , HighPriorityWindowSize,
             CscmFairnessLimit, BeaconRandomizationWindowLength, A, K, MinCwAttempts, CenelecLegacyMode,
-                FccLegacyMode, MaxBe,MaxCsmaBackoffs, MinBe };
+                FccLegacyMode, MaxBe,MaxCsmaBackoffs, MinBe,
+            MacBroadcastMaxCwEnabled, MacTransmitAtten, MacPosTable};
         }
 
         #region IGXDLMSBase Members
@@ -496,6 +562,21 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(22);
             }
+            //MacBroadcastMaxCwEnabled
+            if (all || CanRead(23))
+            {
+                attributes.Add(23);
+            }
+            //MacTransmitAtten
+            if (all || CanRead(24))
+            {
+                attributes.Add(24);
+            }
+            //MacPosTable
+            if (all || CanRead(25))
+            {
+                attributes.Add(25);
+            }
             return attributes.ToArray();
         }
 
@@ -505,7 +586,8 @@ namespace Gurux.DLMS.Objects
             return new string[] { Internal.GXCommon.GetLogicalNameString(), "MacShortAddress", "MacRcCoord", "MacPANId", "MackeyTable ", "MacFrameCounter",
                 "MacToneMask", "MacTmrTtl", "MacMaxFrameRetries", "MacneighbourTableEntryTtl", "MacNeighbourTable", "MachighPriorityWindowSize",
                 "MacCscmFairnessLimit", "MacBeaconRandomizationWindowLength", "MacA", "MacK", "MacMinCwAttempts", "MacCenelecLegacyMode",
-                "MacFCCLegacyMode", "MacMaxBe", "MacMaxCsmaBackoffs", "MacMinBe" };
+                "MacFCCLegacyMode", "MacMaxBe", "MacMaxCsmaBackoffs", "MacMinBe",
+            "MacBroadcastMaxCwEnabled", "MacTransmitAtten", "MacPosTable"};
         }
 
         /// <inheritdoc />
@@ -521,6 +603,10 @@ namespace Gurux.DLMS.Objects
 
         int IGXDLMSBase.GetAttributeCount()
         {
+            if (Version == 2)
+            {
+                return 25;
+            }
             return 22;
         }
 
@@ -532,115 +618,84 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc />
         public override DataType GetDataType(int index)
         {
-            if (index == 1)
+            switch (index)
             {
-                return DataType.OctetString;
+                case 1:
+                    return DataType.OctetString;
+                case 2:
+                    return DataType.UInt16;
+                //MacRcCoord
+                case 3:
+                    return DataType.UInt16;
+                //MacPANId
+                case 4:
+                    return DataType.UInt16;
+                //MackeyTable
+                case 5:
+                    return DataType.Array;
+                //MacFrameCounter
+                case 6:
+                    return DataType.UInt16;
+                //MacToneMask
+                case 7:
+                    return DataType.BitString;
+                //MacTmrTtl
+                case 8:
+                    return DataType.UInt8;
+                //MacMaxFrameRetries
+                case 9:
+                    return DataType.UInt8;
+                //MacneighbourTableEntryTtl
+                case 10:
+                    return DataType.UInt8;
+                //MacNeighbourTable
+                case 11:
+                    return DataType.Array;
+                //MachighPriorityWindowSize
+                case 12:
+                    return DataType.UInt8;
+                //MacCscmFairnessLimit
+                case 13:
+                    return DataType.UInt8;
+                //MacBeaconRandomizationWindowLength
+                case 14:
+                    return DataType.UInt8;
+                //MacA
+                case 15:
+                    return DataType.UInt8;
+                //MacK
+                case 16:
+                    return DataType.UInt8;
+                //MacMinCwAttempts
+                case 17:
+                    return DataType.UInt8;
+                //MacCenelecLegacyMode
+                case 18:
+                    return DataType.UInt8;
+                //MacFCCLegacyMode
+                case 19:
+                    return DataType.UInt8;
+                //MacMaxBe
+                case 20:
+                    return DataType.UInt8;
+                //MacMaxCsmaBackoffs
+                case 21:
+                    return DataType.UInt8;
+                //MacMinBe
+                case 22:
+                    return DataType.UInt8;
+                //MacBroadcastMaxCwEnabled
+                case 23:
+                    return DataType.Boolean;
+                //MacTransmitAtten
+                case 24:
+                    return DataType.UInt8;
+                //MacPosTable
+                case 25:
+                    return DataType.Array;
+                default:
+                    throw new ArgumentException("GetDataType failed. Invalid attribute index.");
             }
-            if (index == 2)
-            {
-                return base.GetDataType(index);
-            }
-            //MacRcCoord
-            if (index == 3)
-            {
-                return DataType.UInt16;
-            }
-            //MacPANId
-            if (index == 4)
-            {
-                return DataType.UInt16;
-            }
-            //MackeyTable
-            if (index == 5)
-            {
-                return DataType.Array;
-            }
-            //MacFrameCounter
-            if (index == 6)
-            {
-                return DataType.UInt16;
-            }
-            //MacToneMask
-            if (index == 7)
-            {
-                return DataType.BitString;
-            }
-            //MacTmrTtl
-            if (index == 8)
-            {
-                return DataType.UInt8;
-            }
-            //MacMaxFrameRetries
-            if (index == 9)
-            {
-                return DataType.UInt8;
-            }
-            //MacneighbourTableEntryTtl
-            if (index == 10)
-            {
-                return DataType.UInt8;
-            }
-            //MacNeighbourTable
-            if (index == 11)
-            {
-                return DataType.Array;
-            }
-            //MachighPriorityWindowSize
-            if (index == 12)
-            {
-                return DataType.UInt8;
-            }
-            //MacCscmFairnessLimit
-            if (index == 13)
-            {
-                return DataType.UInt8;
-            }
-            //MacBeaconRandomizationWindowLength
-            if (index == 14)
-            {
-                return DataType.UInt8;
-            }
-            //MacA
-            if (index == 15)
-            {
-                return DataType.UInt8;
-            }
-            //MacK
-            if (index == 16)
-            {
-                return DataType.UInt8;
-            }
-            //MacMinCwAttempts
-            if (index == 17)
-            {
-                return DataType.UInt8;
-            }
-            //MacCenelecLegacyMode
-            if (index == 18)
-            {
-                return DataType.UInt8;
-            }
-            //MacFCCLegacyMode
-            if (index == 19)
-            {
-                return DataType.UInt8;
-            }
-            //MacMaxBe
-            if (index == 20)
-            {
-                return DataType.UInt8;
-            }
-            //MacMaxCsmaBackoffs
-            if (index == 21)
-            {
-                return DataType.UInt8;
-            }
-            //MacMinBe
-            if (index == 22)
-            {
-                return DataType.UInt8;
-            }
-            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
@@ -677,7 +732,7 @@ namespace Gurux.DLMS.Objects
                         bb.SetUInt8((byte)DataType.Structure);
                         bb.SetUInt8(2);
                         GXCommon.SetData(settings, bb, DataType.UInt8, it.Key);
-                        GXCommon.SetData(settings, bb, DataType.UInt8, it.Value);
+                        GXCommon.SetData(settings, bb, DataType.OctetString, it.Value);
                     }
                 }
                 return bb.Array();
@@ -775,6 +830,36 @@ namespace Gurux.DLMS.Objects
             if (e.Index == 22)
             {
                 return MinBe;
+            }
+            if (e.Index == 23)
+            {
+                return MacBroadcastMaxCwEnabled;
+            }
+            if (e.Index == 24)
+            {
+                return MacTransmitAtten;
+            }
+            if (e.Index == 25)
+            {
+                GXByteBuffer bb = new GXByteBuffer();
+                bb.SetUInt8((byte)DataType.Array);
+                if (MacPosTable == null)
+                {
+                    bb.SetUInt8(0);
+                }
+                else
+                {
+                    GXCommon.SetObjectCount(MacPosTable.Length, bb);
+                    foreach (var it in MacPosTable)
+                    {
+                        bb.SetUInt8((byte)DataType.Structure);
+                        bb.SetUInt8(3);
+                        GXCommon.SetData(settings, bb, DataType.UInt16, it.ShortAddress);
+                        GXCommon.SetData(settings, bb, DataType.UInt8, it.LQI);
+                        GXCommon.SetData(settings, bb, DataType.UInt8, it.ValidTime);
+                    }
+                }
+                return bb.Array();
             }
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
@@ -915,6 +1000,39 @@ namespace Gurux.DLMS.Objects
             {
                 MinBe = Convert.ToByte(e.Value);
             }
+            else if (e.Index == 23)
+            {
+                MacBroadcastMaxCwEnabled = Convert.ToBoolean(e.Value);
+            }
+            else if (e.Index == 24)
+            {
+                MacTransmitAtten = Convert.ToByte(e.Value);
+            }
+            else if (e.Index == 25)
+            {
+                List<GXDLMSMacPosTable> list = new List<GXDLMSMacPosTable>();
+                if (e.Value != null)
+                {
+                    foreach (object tmp in (IEnumerable<object>)e.Value)
+                    {
+                        List<object> arr;
+                        if (tmp is List<object>)
+                        {
+                            arr = (List<object>)tmp;
+                        }
+                        else
+                        {
+                            arr = new List<object>((object[])tmp);
+                        }
+                        GXDLMSMacPosTable it = new GXDLMSMacPosTable();
+                        it.ShortAddress = Convert.ToUInt16(arr[0]);
+                        it.LQI = Convert.ToByte(arr[1]);
+                        it.ValidTime = Convert.ToByte(arr[2]);
+                        list.Add(it);
+                    }
+                }
+                MacPosTable = list.ToArray();
+            }
             else
             {
                 e.Error = ErrorCode.ReadWriteDenied;
@@ -962,6 +1080,25 @@ namespace Gurux.DLMS.Objects
             NeighbourTable = list.ToArray();
         }
 
+
+        private void LoadMacPosTable(GXXmlReader reader)
+        {
+            List<GXDLMSMacPosTable> list = new List<GXDLMSMacPosTable>();
+            if (reader.IsStartElement("MacPosTable", true))
+            {
+                while (reader.IsStartElement("Item", true))
+                {
+                    GXDLMSMacPosTable it = new GXDLMSMacPosTable();
+                    it.ShortAddress = (UInt16)reader.ReadElementContentAsInt("ShortAddress");
+                    it.LQI = (byte)reader.ReadElementContentAsInt("LQI");
+                    it.ValidTime = (byte)reader.ReadElementContentAsInt("ValidTime");
+                    list.Add(it);
+                }
+                reader.ReadEndElement("MacPosTable");
+            }
+            MacPosTable = list.ToArray();
+        }
+
         void IGXDLMSBase.Load(GXXmlReader reader)
         {
             ShortAddress = (UInt16)reader.ReadElementContentAsInt("ShortAddress");
@@ -985,8 +1122,10 @@ namespace Gurux.DLMS.Objects
             MaxBe = (byte)reader.ReadElementContentAsInt("MaxBe");
             MaxCsmaBackoffs = (byte)reader.ReadElementContentAsInt("MaxCsmaBackoffs");
             MinBe = (byte)reader.ReadElementContentAsInt("MinBe");
+            MacBroadcastMaxCwEnabled = reader.ReadElementContentAsInt("MacBroadcastMaxCwEnabled") != 0;
+            MacTransmitAtten = (byte)reader.ReadElementContentAsInt("MacTransmitAtten");
+            LoadMacPosTable(reader);
         }
-
 
         void SaveKeyTable(GXXmlWriter writer, int index)
         {
@@ -1029,6 +1168,23 @@ namespace Gurux.DLMS.Objects
             writer.WriteEndElement();//NeighbourTable
         }
 
+        void SaveMacPosTable(GXXmlWriter writer)
+        {
+            writer.WriteStartElement("MacPosTable", 25);
+            if (NeighbourTable != null)
+            {
+                foreach (var it in MacPosTable)
+                {
+                    writer.WriteStartElement("Item", 25);
+                    writer.WriteElementString("ShortAddress", it.ShortAddress, 25);
+                    writer.WriteElementString("LQI", it.LQI, 25);
+                    writer.WriteElementString("ValidTime", it.ValidTime, 25);
+                    writer.WriteEndElement();
+                }
+            }
+            writer.WriteEndElement();//MacPosTable
+        }
+
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
             writer.WriteElementString("ShortAddress", ShortAddress, 2);
@@ -1052,6 +1208,9 @@ namespace Gurux.DLMS.Objects
             writer.WriteElementString("MaxBe", MaxBe, 20);
             writer.WriteElementString("MaxCsmaBackoffs", MaxCsmaBackoffs, 21);
             writer.WriteElementString("MinBe", MinBe, 22);
+            writer.WriteElementString("MacBroadcastMaxCwEnabled", MacBroadcastMaxCwEnabled, 23);
+            writer.WriteElementString("MacTransmitAtten", MacTransmitAtten, 24);
+            SaveMacPosTable(writer);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

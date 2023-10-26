@@ -205,7 +205,7 @@ namespace Gurux.DLMS
             {
                 if (xml != null)
                 {
-                    throw ex;
+                    throw;
                 }
                 Debug.WriteLine("HandleGetRequest failed. " + ex.Message);
                 data.Clear();
@@ -506,7 +506,14 @@ namespace Gurux.DLMS
                                 bb.SetUInt8(1);
                                 //Add parameters error code.
                                 bb.SetUInt8(0);
-                                GXCommon.SetData(settings, bb, GXDLMSConverter.GetDLMSDataType(actionReply), actionReply);
+                                if (e.ByteArray)
+                                {
+                                    bb.Set(actionReply);
+                                }
+                                else
+                                {
+                                    GXCommon.SetData(settings, bb, GXDLMSConverter.GetDLMSDataType(actionReply), actionReply);
+                                }
                             }
                             else
                             {

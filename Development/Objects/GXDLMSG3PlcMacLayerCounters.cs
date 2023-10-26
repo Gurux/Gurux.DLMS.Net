@@ -71,6 +71,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSG3PlcMacLayerCounters(string ln, ushort sn)
         : base(ObjectType.G3PlcMacLayerCounters, ln, sn)
         {
+            Version = 1;
         }
 
         /// <summary>

@@ -38,44 +38,46 @@ using Gurux.DLMS.Internal;
 namespace Gurux.DLMS
 {
     /// <summary>
-    /// M-Bus settings contains communication information when DLMS PDU is transported using M-Bus frames.
+    /// CoAP exception.
     /// </summary>
-    public class GXMBusSettings
+    public class GXDLMSCoAPException : Exception
     {
         /// <summary>
-        /// Device identification number.
+        /// Constructor for the client error.
         /// </summary>
-        public UInt32 Id
+        /// <param name="error">Client error code.</param>
+        public GXDLMSCoAPException(CoAPClientError error)
+            : base(error.ToString())
         {
-            get;
-            set;
+            ClientError = error;
         }
 
         /// <summary>
-        /// Manufacturer Id.
+        /// Constructor for the server error.
         /// </summary>
-        public string ManufacturerId
+        /// <param name="error">Server error code.</param>
+        public GXDLMSCoAPException(CoAPServerError error)
+            : base(error.ToString())
         {
-            get;
-            set;
+            ServerError = error;
         }
 
         /// <summary>
-        /// Version.
+        /// CoAP client error.
         /// </summary>
-        public byte Version
+        public CoAPClientError ClientError
         {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
-        /// Device type.
+        /// CoAP server error.
         /// </summary>
-        public MBusMeterType MeterType
+        public CoAPServerError ServerError
         {
             get;
-            set;
+            internal set;
         }
     }
 }

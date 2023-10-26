@@ -459,7 +459,7 @@ namespace Gurux.DLMS.Objects
                             {
                                 for (int pos = 0; pos != tmp.Length / 4; ++pos)
                                 {
-                                    obj.SetAccess3(pos, (AccessMode3)(int.Parse(tmp.Substring(4 * pos, 4), NumberStyles.HexNumber) & ~0x8000));
+                                    obj.SetAccess3(1 + pos, (AccessMode3)(int.Parse(tmp.Substring(4 * pos, 4), NumberStyles.HexNumber) & ~0x8000));
                                 }
                             }
                         }
@@ -479,7 +479,7 @@ namespace Gurux.DLMS.Objects
                             {
                                 for (int pos = 0; pos != tmp.Length / 4; ++pos)
                                 {
-                                    obj.SetMethodAccess3(pos, (MethodAccessMode3)(int.Parse(tmp.Substring(4 * pos, 4), NumberStyles.HexNumber) & ~0x8000));
+                                    obj.SetMethodAccess3(1 + pos, (MethodAccessMode3)(int.Parse(tmp.Substring(4 * pos, 4), NumberStyles.HexNumber) & ~0x8000));
                                 }
                             }
                         }

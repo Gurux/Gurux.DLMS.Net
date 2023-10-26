@@ -1148,6 +1148,9 @@ namespace Gurux.DLMS
                 case InterfaceType.PDU:
                     reply = data.Array();
                     break;
+                case InterfaceType.CoAP:
+                    reply = GXDLMS.GetCoAPFrame(Settings, cmd, data);
+                    break;
                 default:
                     throw new Exception("Unknown interface type " + InterfaceType);
             }
@@ -1239,7 +1242,8 @@ namespace Gurux.DLMS
                                 //Only Mode E is allowed.
                                 if (receivedData.GetUInt8(receivedData.Position + 1) != 0x32 || receivedData.GetUInt8(receivedData.Position + 3) != 0x32)
                                 {
-                                    //Return error.
+                                    receivedData.Clear();
+                                    return;
                                 }
                                 BaudRate baudrate = (BaudRate)receivedData.GetUInt8(receivedData.Position + 2) - '0';
                                 if (baudrate > LocalPortSetup.ProposedBaudrate)
@@ -1260,7 +1264,6 @@ namespace Gurux.DLMS
                                     (byte)'2', 13, 10 };
                                 //Change the baud rate.
                                 sr.NewBaudRate = 300 << (int)baudrate;
-                                Settings.Connected = ConnectionState.Iec;
                             }
                             else if (receivedData.GetUInt8(receivedData.Position) == '/')
                             {

@@ -32,50 +32,37 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-using Gurux.DLMS.Internal;
 
-namespace Gurux.DLMS
+namespace Gurux.DLMS.Internal
 {
     /// <summary>
-    /// M-Bus settings contains communication information when DLMS PDU is transported using M-Bus frames.
+    /// CoAP server error codes.
     /// </summary>
-    public class GXMBusSettings
+    public enum CoAPServerError : byte
     {
         /// <summary>
-        /// Device identification number.
+        /// Internal Server error.
         /// </summary>
-        public UInt32 Id
-        {
-            get;
-            set;
-        }
-
+        Internal,
         /// <summary>
-        /// Manufacturer Id.
+        /// Not implemented.
         /// </summary>
-        public string ManufacturerId
-        {
-            get;
-            set;
-        }
-
+        NotImplemented,
         /// <summary>
-        /// Version.
+        /// Bad gateway.
         /// </summary>
-        public byte Version
-        {
-            get;
-            set;
-        }
-
+        BadGateway,
         /// <summary>
-        /// Device type.
+        /// Service unavailable.
         /// </summary>
-        public MBusMeterType MeterType
-        {
-            get;
-            set;
-        }
+        ServiceUnavailable,
+        /// <summary>
+        /// Gateway timeout.
+        /// </summary>
+        GatewayTimeout,
+        /// <summary>
+        /// Proxying not supported.
+        /// </summary>
+        ProxyingNotSupported
     }
 }

@@ -32,50 +32,41 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-using Gurux.DLMS.Internal;
 
-namespace Gurux.DLMS
+namespace Gurux.DLMS.Internal
 {
     /// <summary>
-    /// M-Bus settings contains communication information when DLMS PDU is transported using M-Bus frames.
+    /// CoAP success enumerates.
     /// </summary>
-    public class GXMBusSettings
+    public enum CoAPSuccess: byte
     {
         /// <summary>
-        /// Device identification number.
+        /// Empty success code.
         /// </summary>
-        public UInt32 Id
-        {
-            get;
-            set;
-        }
-
+        None = 0,
         /// <summary>
-        /// Manufacturer Id.
+        /// Created.
         /// </summary>
-        public string ManufacturerId
-        {
-            get;
-            set;
-        }
-
+        Created = 1,
         /// <summary>
-        /// Version.
+        /// Deleted.
         /// </summary>
-        public byte Version
-        {
-            get;
-            set;
-        }
-
+        Deleted = 2,
         /// <summary>
-        /// Device type.
+        /// Valid.
         /// </summary>
-        public MBusMeterType MeterType
-        {
-            get;
-            set;
-        }
+        Valid = 3,
+        /// <summary>
+        /// Changed.
+        /// </summary>
+        Changed = 4,
+        /// <summary>
+        /// Content.
+        /// </summary>
+        Content = 5,
+        /// <summary>
+        /// Continue.
+        /// </summary>
+        Continue = 31
     }
 }

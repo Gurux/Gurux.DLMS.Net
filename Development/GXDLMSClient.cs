@@ -794,6 +794,21 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Is pre-established connection used.
+        /// </summary>
+        /// <remarks>
+        /// AARQ or release messages are not used with pre-established connections.
+        /// </remarks>
+        public bool PreEstablishedConnection
+        {
+            get
+            {
+                return Settings.PreEstablishedSystemTitle != null;
+            }
+        }
+
+
+        /// <summary>
         /// HDLC connection settings.
         /// </summary>
         [Obsolete("Use HdlcSettings instead.")]
@@ -846,6 +861,17 @@ namespace Gurux.DLMS
             get
             {
                 return Settings.Pdu;
+            }
+        }
+
+        /// <summary>
+        /// CoAP settings.
+        /// </summary>
+        public GXCoAPSettings Coap
+        {
+            get
+            {
+                return Settings.Coap;
             }
         }
 
@@ -1007,11 +1033,17 @@ namespace Gurux.DLMS
         /// <seealso cref="ParseAAREResponse"/>
         public byte[][] AARQRequest()
         {
+            if (PreEstablishedConnection)
+            {
+                // AARQ is not generate for pre-established connections.
+                return new byte[0][]; 
+            }
             if (ProposedConformance == 0)
             {
                 throw new Exception("Invalid conformance.");
             }
             //Save default values.
+            Settings.Closing = false;
             InitializePduSize = MaxReceivePDUSize;
             InitializeChallenge = Settings.CtoSChallenge;
             Settings.NegotiatedConformance = (Conformance)0;
@@ -1333,6 +1365,11 @@ namespace Gurux.DLMS
         /// <returns>Release request, as byte array.</returns>
         public byte[][] ReleaseRequest(bool force)
         {
+            if (PreEstablishedConnection)
+            {
+                // Disconnect message is not used for pre-established connections.
+                return new byte[0][];
+            }
             // If connection is not established, there is no need to send
             // DisconnectRequest.
             if (!force && (Settings.Connected & ConnectionState.Dlms) == 0)

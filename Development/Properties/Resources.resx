@@ -367,4 +367,13 @@
   <data name="UnknownDeviceForSystemTitle" xml:space="preserve">
     <value>Unknown device for system title {0}.</value>
   </data>
+  <data name="InvalidBlockCipherKey" xml:space="preserve">
+    <value>Invalid block cipher key. Block cipher key size is 16 or 32 bytes</value>
+  </data>
+  <data name="InvalidAuthenticationKey" xml:space="preserve">
+    <value>Invalid authentication key. Authentication key size is 16 or 32 bytes.</value>
+  </data>
+  <data name="DecryptFailedInvalidAuthenticationTag" xml:space="preserve">
+    <value>Decrypt failed. Invalid authentication tag.</value>
+  </data>
 </root>

@@ -392,6 +392,7 @@ namespace Gurux.DLMS
             Plc = new GXPlcSettings(this);
             MBus = new GXMBusSettings();
             Pdu = new GXPduSettings();
+            Coap = new GXCoAPSettings();
         }
 
         /// <summary>
@@ -829,6 +830,15 @@ namespace Gurux.DLMS
         /// PDU settings.
         /// </summary>
         public GXPduSettings Pdu
+        {
+            get;
+            internal set;
+        }
+
+        /// <summary>
+        /// CoAP settings.
+        /// </summary>
+        public GXCoAPSettings Coap
         {
             get;
             internal set;

@@ -136,11 +136,11 @@ namespace Gurux.DLMS.Objects
             //Add structure size.
             data.SetUInt8(4);
             //firstIndex
+            GXCommon.SetData(null, data, DataType.UInt16, 0);
+            GXCommon.SetData(null, data, DataType.UInt16, 0);
             GXCommon.SetData(null, data, DataType.UInt16, entry.Index);
             //lastIndex
             GXCommon.SetData(null, data, DataType.UInt16, entry.Index);
-            GXCommon.SetData(null, data, DataType.UInt16, 0);
-            GXCommon.SetData(null, data, DataType.UInt16, 0);
             return client.Method(this, 1, data.Array(), DataType.Structure);
         }
 
@@ -157,11 +157,11 @@ namespace Gurux.DLMS.Objects
             //Add structure size.
             data.SetUInt8(4);
             //firstIndex
-            GXCommon.SetData(null, data, DataType.UInt16, 0);
-            GXCommon.SetData(null, data, DataType.UInt16, 0);
             GXCommon.SetData(null, data, DataType.UInt16, entry.Index);
             //lastIndex
             GXCommon.SetData(null, data, DataType.UInt16, entry.Index);
+            GXCommon.SetData(null, data, DataType.UInt16, 0);
+            GXCommon.SetData(null, data, DataType.UInt16, 0);
             return client.Method(this, 1, data.Array(), DataType.Structure);
         }
 
@@ -187,7 +187,7 @@ namespace Gurux.DLMS.Objects
                 case 1:
                     {
                         List<object> tmp = (List<object>)e.Parameters;
-                        //Enable
+                        //Disable
                         for (int index = (UInt16)tmp[0]; index <= (UInt16)tmp[1]; ++index)
                         {
                             if (index != 0)
@@ -196,13 +196,13 @@ namespace Gurux.DLMS.Objects
                                 {
                                     if (it.Index == index)
                                     {
-                                        it.Enable = true;
+                                        it.Enable = false;
                                         break;
                                     }
                                 }
                             }
                         }
-                        //Disable
+                        //Enable
                         for (int index = (UInt16)tmp[2]; index <= (UInt16)tmp[3]; ++index)
                         {
                             if (index != 0)
@@ -211,7 +211,7 @@ namespace Gurux.DLMS.Objects
                                 {
                                     if (it.Index == index)
                                     {
-                                        it.Enable = false;
+                                        it.Enable = true;
                                         break;
                                     }
                                 }

@@ -995,10 +995,10 @@ namespace Gurux.DLMS.Objects
                 switch (type)
                 {
                     case GlobalKeyType.UnicastEncryption:
-                        Gbek = GXDLMSSecureClient.Decrypt(settings.Kek, data);
+                        Guek = GXDLMSSecureClient.Decrypt(settings.Kek, data);
                         break;
                     case GlobalKeyType.BroadcastEncryption:
-                        Guek = GXDLMSSecureClient.Decrypt(settings.Kek, data);
+                        Gbek = GXDLMSSecureClient.Decrypt(settings.Kek, data);
                         break;
                     case GlobalKeyType.Authentication:
                         Gak = GXDLMSSecureClient.Decrypt(settings.Kek, data);

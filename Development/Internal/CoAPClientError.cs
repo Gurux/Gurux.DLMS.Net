@@ -32,50 +32,61 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-using Gurux.DLMS.Internal;
 
-namespace Gurux.DLMS
+namespace Gurux.DLMS.Internal
 {
     /// <summary>
-    /// M-Bus settings contains communication information when DLMS PDU is transported using M-Bus frames.
+    /// CoAP client error codes.
     /// </summary>
-    public class GXMBusSettings
+    public enum CoAPClientError : byte
     {
         /// <summary>
-        /// Device identification number.
+        /// Bad Request.
         /// </summary>
-        public UInt32 Id
-        {
-            get;
-            set;
-        }
-
+        BadRequest = 0,
         /// <summary>
-        /// Manufacturer Id.
+        /// Unauthorized.
         /// </summary>
-        public string ManufacturerId
-        {
-            get;
-            set;
-        }
-
+        Unauthorized = 1,
         /// <summary>
-        /// Version.
+        /// Bad Option.
         /// </summary>
-        public byte Version
-        {
-            get;
-            set;
-        }
-
+        BadOption = 2,
         /// <summary>
-        /// Device type.
+        /// Forbidden.
         /// </summary>
-        public MBusMeterType MeterType
-        {
-            get;
-            set;
-        }
+        Forbidden = 3,
+        /// <summary>
+        /// Not Found.
+        /// </summary>
+        NotFound = 4,
+        /// <summary>
+        /// Method Not Allowed.
+        /// </summary>
+        MethodNotAllowed = 5,
+        /// <summary>
+        /// Not Acceptable.
+        /// </summary>
+        NotAcceptable = 6,
+        /// <summary>
+        /// Request Entity Incomplete.
+        /// </summary>
+        RequestEntityIncomplete = 8,
+        /// <summary>
+        /// Conflict.
+        /// </summary>
+        Conflict = 9,
+        /// <summary>
+        /// Precondition Failed.
+        /// </summary>
+        PreconditionFailed = 12,
+        /// <summary>
+        /// Request Entity Too Large.
+        /// </summary>
+        RequestEntityTooLarge = 13,
+        /// <summary>
+        /// Unsupported Content-Format.
+        /// </summary>
+        UnsupportedContentFormat = 15
     }
 }

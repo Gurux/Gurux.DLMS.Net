@@ -113,6 +113,11 @@ namespace Gurux.DLMS.Enums
         /// PRIME data concentrator wrapper.
         /// </summary>
         [XmlEnum("12")]
-        PrimeDcWrapper
+        PrimeDcWrapper,
+        /// <summary>
+        /// Constrained Application Protocol (CoAP).
+        /// </summary>
+        [XmlEnum("13")]
+        CoAP
     }
 }

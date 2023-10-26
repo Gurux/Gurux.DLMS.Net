@@ -698,7 +698,7 @@ namespace Gurux.DLMS.Internal
                             p = new AesGcmParameter(settings,
                                 st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
                             p.Xml = xml;
-                            tmp = GXDLMSChippering.DecryptAesGcm(p, data);
+                            tmp = GXSecure.DecryptAesGcm(p, data);
                             data.Clear();
                             data.Set(tmp);
                             cipher.Security = p.Security;
@@ -721,7 +721,7 @@ namespace Gurux.DLMS.Internal
                 }
                 --data.Position;
                 p = new AesGcmParameter(settings, settings.SourceSystemTitle, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
-                tmp = GXDLMSChippering.DecryptAesGcm(p, data);
+                tmp = GXSecure.DecryptAesGcm(p, data);
                 if (p.Xml == null && settings.ExpectedInvocationCounter != 0)
                 {
                     if (p.InvocationCounter < settings.ExpectedInvocationCounter)

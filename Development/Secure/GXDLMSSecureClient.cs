@@ -38,6 +38,8 @@ using Gurux.DLMS.Enums;
 using System;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Internal;
+using System.Security.Cryptography;
+using System.IO;
 
 namespace Gurux.DLMS.Secure
 {
@@ -154,68 +156,131 @@ namespace Gurux.DLMS.Secure
             }
             set
             {
+                if (value != null && value.Length == 0)
+                {
+                    value = null;
+                }
+                if (value != null && value.Length != 8)
+                {
+                    throw new ArgumentOutOfRangeException("Invalid System Title.");
+                }
                 Settings.PreEstablishedSystemTitle = value;
             }
         }
 
+        private static readonly byte[] IV = new byte[] { 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6 };
+
         /// <summary>
-        /// Encrypt data using Key Encrypting Key.
+        /// Encrypt data using AES RFC3394 key-wrapping.
         /// </summary>
         /// <param name="kek">Key Encrypting Key, also known as Master key.</param>
         /// <param name="data">Data to encrypt.</param>
         /// <returns>Encrypt data.</returns>
         public static byte[] Encrypt(byte[] kek, byte[] data)
         {
-            if (kek == null)
+            if (kek == null || (kek.Length != 16 && kek.Length != 32))
             {
-                throw new ArgumentNullException("Key Encrypting Key");
+                throw new ArgumentNullException("Invalid Key Encrypting Key");
             }
-            if (kek.Length < 16)
+            if (data == null || (data.Length != 16 && data.Length != 32))
             {
-                throw new ArgumentOutOfRangeException("Key Encrypting Key");
+                throw new ArgumentNullException("Invalid data.");
             }
-            if (kek.Length % 8 != 0)
+
+            int n = data.Length / 8;
+            byte[] block = new byte[data.Length + IV.Length];
+            Array.Copy(IV, 0, block, 0, IV.Length);
+            Array.Copy(data, 0, block, IV.Length, data.Length);
+            byte[] buf = new byte[8 + IV.Length];
+            using (Aes aes1 = Aes.Create())
             {
-                throw new ArgumentException("Key Encrypting Key");
+                aes1.Mode = CipherMode.ECB;
+                aes1.Padding = PaddingMode.None;
+                aes1.Key = kek;
+                ICryptoTransform encryptor = aes1.CreateEncryptor();
+                for (int j = 0; j != 6; j++)
+                {
+                    for (int i = 1; i <= n; i++)
+                    {
+                        Array.Copy(block, 0, buf, 0, IV.Length);
+                        Array.Copy(block, 8 * i, buf, IV.Length, 8);
+                        encryptor.TransformBlock(buf, 0, buf.Length, buf, 0);
+                        int t = n * j + i;
+                        for (int k = 1; t != 0; k++)
+                        {
+                            byte v = (byte)t;
+                            buf[IV.Length - k] ^= v;
+                            t = t >> 8;
+                        }
+                        Array.Copy(buf, 0, block, 0, 8);
+                        Array.Copy(buf, 8, block, 8 * i, 8);
+                    }
+                }
+                return block;
             }
-            GXDLMSChipperingStream gcm = new GXDLMSChipperingStream(true, kek);
-            return gcm.EncryptAes(data);
         }
 
         /// <summary>
-        /// Decrypt data using Key Encrypting Key.
+        /// Decrypt data using AES RFC3394 key-wrapping.
         /// </summary>
         /// <param name="kek">Key Encrypting Key, also known as Master key.</param>
         /// <param name="data">Data to decrypt.</param>
         /// <returns>Decrypted data.</returns>
-        public static byte[] Decrypt(byte[] kek, byte[] data)
+        public static byte[] Decrypt(byte[] kek, byte[] input)
         {
-            if (kek == null)
+            if (kek == null || (kek.Length != 16 && kek.Length != 32))
             {
-                throw new ArgumentNullException("Key Encrypting Key");
+                throw new ArgumentNullException("Invalid Key Encrypting Key");
             }
-            if (kek.Length < 16)
+            byte[] block;
+            if (input.Length > IV.Length)
             {
-                throw new ArgumentOutOfRangeException("Key Encrypting Key");
+                block = new byte[input.Length - IV.Length];
             }
-            if (kek.Length % 8 != 0)
+            else
             {
-                throw new ArgumentException("Key Encrypting Key");
+                block = new byte[IV.Length];
             }
-            if (data == null)
+            byte[] a = new byte[IV.Length];
+            byte[] buf = new byte[8 + IV.Length];
+            Array.Copy(input, 0, a, 0, IV.Length);
+            Array.Copy(input, 0 + IV.Length, block, 0, input.Length - IV.Length);
+            int n = input.Length / 8;
+            n = n - 1;
+            if (n == 0)
             {
-                throw new ArgumentNullException("data");
+                n = 1;
             }
-            if (data.Length < 16)
+            using (Aes aes1 = Aes.Create())
             {
-                throw new ArgumentOutOfRangeException("data");
+                aes1.Mode = CipherMode.ECB;
+                aes1.Padding = PaddingMode.None;
+                aes1.Key = kek;
+                ICryptoTransform decryptor = aes1.CreateDecryptor();
+                for (int j = 5; j >= 0; j--)
+                {
+                    for (int i = n; i >= 1; i--)
+                    {
+                        Array.Copy(a, 0, buf, 0, IV.Length);
+                        Array.Copy(block, 8 * (i - 1), buf, IV.Length, 8);
+                        int t = n * j + i;
+                        for (int k = 1; t != 0; k++)
+                        {
+                            byte v = (byte)t;
+                            buf[IV.Length - k] ^= v;
+                            t = t >> 8;
+                        }
+                        decryptor.TransformBlock(buf, 0, buf.Length, buf, 0);
+                        Array.Copy(buf, 0, a, 0, 8);
+                        Array.Copy(buf, 8, block, 8 * (i - 1), 8);
+                    }
+                }
             }
-            if (data.Length % 8 != 0)
+            if (!GXCommon.Compare(a, IV))
             {
-                throw new ArgumentException("data");
+                throw new ArithmeticException("AES key wrapping failed.");
             }
-            GXDLMSChipperingStream gcm = new GXDLMSChipperingStream(false, kek);
-            return gcm.DecryptAes(data);
+            return block;
         }
     }
 }

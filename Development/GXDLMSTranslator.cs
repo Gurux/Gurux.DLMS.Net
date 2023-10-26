@@ -523,6 +523,10 @@ namespace Gurux.DLMS
                 {
                     return InterfaceType.WiredMBus;
                 }
+                if (GXDLMS.IsCoAPData(value))
+                {
+                    return InterfaceType.CoAP;
+                }
                 if (GXDLMS.IsWirelessMBusData(value))
                 {
                     return InterfaceType.WirelessMBus;
@@ -651,6 +655,7 @@ namespace Gurux.DLMS
             int original = msg.Message.Position;
             GXByteBuffer data = msg.Message;
             GXDLMSSettings settings = new GXDLMSSettings(true, msg.InterfaceType);
+            GetCiphering(settings, true);
             GXReplyData reply = new GXReplyData();
             reply.MoreData = msg.MoreData;
             reply.Xml = new GXDLMSTranslatorStructure(OutputType, OmitXmlNameSpace, Hex, ShowStringAsHex, Comments, tags);
@@ -707,6 +712,17 @@ namespace Gurux.DLMS
                     }
                     else if (msg.InterfaceType == InterfaceType.PlcHdlc &&
                         GXDLMS.GetPlcSfskFrameSize(data) != 0)
+                    {
+                        pos = data.Position;
+                        found = GXDLMS.GetData(settings, data, reply, null);
+                        data.Position = pos;
+                        if (found)
+                        {
+                            break;
+                        }
+                    }
+                    else if (msg.InterfaceType == InterfaceType.CoAP &&
+                        GXDLMS.IsCoAPData(data))
                     {
                         pos = data.Position;
                         found = GXDLMS.GetData(settings, data, reply, null);
@@ -1330,7 +1346,6 @@ namespace Gurux.DLMS
                         msg.MoreData = data.MoreData;
                         msg.SourceAddress = data.SourceAddress;
                         msg.TargetAddress = data.TargetAddress;
-                        //settings.SourceSystemTitle
                         if (!PduOnly)
                         {
                             int logical, physical;
@@ -1677,8 +1692,142 @@ namespace Gurux.DLMS
                     msg.Xml = xml.sb.ToString();
                     return;
                 }
+                //If CoAP message.
+                else if ((msg.InterfaceType == InterfaceType.CoAP ||
+                    msg.InterfaceType == InterfaceType.HDLC ||
+                    GXDLMS.IsCoAPData(msg.Message)))
+                {
+                    msg.InterfaceType = settings.InterfaceType = InterfaceType.CoAP;
+                    settings.Coap.Reset();
+                    GXDLMS.GetData(settings, msg.Message, data, null);
+                    msg.MoreData = data.MoreData;
+                    msg.SourceAddress = data.SourceAddress;
+                    msg.TargetAddress = data.TargetAddress;
+                    if (!PduOnly)
+                    {
+                        xml.AppendLine("<CoAP len=\"" + xml.IntegerToHex(data.Data.Size, 0, Hex) + "\" >");
+                        switch (settings.Coap.Class)
+                        {
+                            case CoAPClass.Method:
+                                xml.AppendLine("<Code Value=\"Method." + settings.Coap.Method + "\" />");
+                                break;
+                            case CoAPClass.Success:
+                                xml.AppendLine("<Code Value=\"Success." + settings.Coap.Success + "\" />");
+                                break;
+                            case CoAPClass.ClientError:
+                                xml.AppendLine("<Code Value=\"ClientError." + settings.Coap.ClientError + "\" />");
+                                break;
+                            case CoAPClass.ServerError:
+                                xml.AppendLine("<Code Value=\"ServerError." + settings.Coap.ServerError + "\" />");
+                                break;
+                            case CoAPClass.Signaling:
+                                xml.AppendLine("<Code Value=\"Signaling." + settings.Coap.Signaling + "\" />");
+                                break;
+                        }
+                        xml.AppendLine("<MessageId Value=\"" + settings.Coap.MessageId + "\" />");
+                        xml.AppendLine("<Token Value=\"" + settings.Coap.Token.ToString("X") + "\" />");
+                        if (!string.IsNullOrEmpty(settings.Coap.Host))
+                        {
+                            xml.AppendLine("<Host Value=\"" + settings.Coap.Host + "\" />");
+                        }
+                        if (settings.Coap.Port != 0)
+                        {
+                            xml.AppendLine("<Port Value=\"" + settings.Coap.Port + "\" />");
+                        }
+                        if (!string.IsNullOrEmpty(settings.Coap.Path))
+                        {
+                            xml.AppendLine("<Path Value=\"" + settings.Coap.Path + "\" />");
+                        }
+                        if (settings.Coap.ContentFormat != CoAPContentType.None)
+                        {
+                            xml.AppendLine("<ContentType Value=\"" + settings.Coap.ContentFormat + "\" />");
+                        }
+                        if (settings.Coap.IfNoneMatch != CoAPContentType.None)
+                        {
+                            xml.AppendLine("<IfNoneMatch Value=\"" + settings.Coap.IfNoneMatch + "\" />");
+                        }
+                        if (settings.Coap.MaxAge != 0)
+                        {
+                            xml.AppendLine("<MaxAge Value=\"" + settings.Coap.MaxAge + "\" />");
+                        }
+                        if ((data.MoreData & RequestTypes.Frame) != 0)
+                        {
+                            xml.AppendLine("<MoreData BlockNumber=\"" + settings.Coap.BlockNumber + "\" />");
+                        }
+                        foreach (var it in settings.Coap.Options)
+                        {
+                            if (it.Value is byte[] ba)
+                            {
+                                xml.AppendLine("<Unknown " + it.Key + " Value=\"0x" + ToHex(ba) + "\" />");
+                            }
+                            else
+                            {
+                                xml.AppendLine("<Unknown " + it.Key + " Value=\"" + it.Value + "\" />");
+                            }
+                        }
+                    }
+                    if (!PduOnly)
+                    {
+                        xml.AppendLine("<PDU>");
+                    }
+                    string pdu = null;
+                    if (!multipleFrames && 
+                        data.MoreData == RequestTypes.None &&
+                        data.Data.Data != null)
+                    {
+                        pdu = PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg);
+                    }
+                    else
+                    {
+                        multipleFrames = true;
+                        if (!CompletePdu)
+                        {
+                            if (data.Data.Size != 0)
+                            {
+                                pdu = "<Block Value=\"" + GXCommon.ToHex(data.Data.Data, false, data.Data.Position, data.Data.Size - data.Data.Position) + "\" />";
+                            }
+
+                        }
+                        else
+                        {
+                            pduFrames.Set(data.Data.Data);
+                        }
+                        if (pduFrames.Size != 0 && data.MoreData == RequestTypes.None)
+                        {
+                            //If last CoAP block
+                            multipleFrames = false;
+                            try
+                            {
+                                pdu = PduToXml(pduFrames, OmitXmlDeclaration, OmitXmlNameSpace, msg);
+                            }
+                            finally
+                            {
+                                pduFrames.Clear();
+                            }
+                        }
+                        else
+                        {
+                            multipleFrames = true;
+                        }
+                    }
+                    xml.AppendLine(pdu);
+                    //Remove \r\n.
+                    xml.sb.Length -= Environment.NewLine.Length;
+                    if (!PduOnly)
+                    {
+                        xml.AppendLine("</PDU>");
+                    }
+                    if (!PduOnly)
+                    {
+                        xml.AppendLine("</CoAP>");
+                    }
+                    UpdateAddress(settings, msg);
+                    msg.Xml = xml.sb.ToString();
+                    return;
+                }
                 //If Wireless M-Bus.
-                else if ((msg.InterfaceType == InterfaceType.HDLC || msg.InterfaceType == InterfaceType.WirelessMBus) && GXDLMS.IsWirelessMBusData(msg.Message))
+                else if ((msg.InterfaceType == InterfaceType.HDLC || msg.InterfaceType == InterfaceType.WirelessMBus) && 
+                    GXDLMS.IsWirelessMBusData(msg.Message))
                 {
                     msg.InterfaceType = settings.InterfaceType = InterfaceType.WirelessMBus;
                     int len = xml.GetXmlLength();
@@ -2177,7 +2326,7 @@ namespace Gurux.DLMS
                                     p.Xml = xml;
                                     if (p.BlockCipherKey != null)
                                     {
-                                        GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
+                                        GXByteBuffer data2 = new GXByteBuffer(GXSecure.DecryptAesGcm(p, value));
                                         xml.AppendComment("Invocation Counter: " + p.InvocationCounter.ToString());
                                         xml.StartComment("Decrypt data: " + data2.ToString());
                                         PduToXml(xml, data2, omitDeclaration, omitNameSpace, false, msg);
@@ -2230,7 +2379,7 @@ namespace Gurux.DLMS
                                         p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
                                     }
                                     p.Xml = xml;
-                                    GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
+                                    GXByteBuffer data2 = new GXByteBuffer(GXSecure.DecryptAesGcm(p, value));
                                     len2 = xml.GetXmlLength();
                                     xml.AppendComment("Invocation Counter: " + p.InvocationCounter.ToString());
                                     xml.StartComment("Decrypt data: " + data2.ToString());
@@ -2251,7 +2400,7 @@ namespace Gurux.DLMS
                                         {
                                             p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
                                             p.Xml = xml;
-                                            GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
+                                            GXByteBuffer data2 = new GXByteBuffer(GXSecure.DecryptAesGcm(p, value));
                                             xml.AppendComment("Invocation Counter: " + p.InvocationCounter.ToString());
                                             xml.StartComment("Decrypt data: " + data2.ToString());
                                             PduToXml(xml, data2, omitDeclaration, omitNameSpace, false, msg);
@@ -2299,7 +2448,7 @@ namespace Gurux.DLMS
                                     st = settings.Cipher.SystemTitle;
                                     p = new AesGcmParameter(settings, st, settings.Cipher.BlockCipherKey, settings.Cipher.AuthenticationKey);
                                     p.Xml = xml;
-                                    GXByteBuffer data2 = new GXByteBuffer(GXDLMSChippering.DecryptAesGcm(p, value));
+                                    GXByteBuffer data2 = new GXByteBuffer(GXSecure.DecryptAesGcm(p, value));
                                     xml.AppendComment("Security : " + p.Security);
                                     xml.AppendComment("Security Suite: " + p.SecuritySuite);
                                     xml.AppendComment("Invocation Counter: " + p.InvocationCounter.ToString());

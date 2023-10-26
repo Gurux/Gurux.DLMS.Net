@@ -111,7 +111,7 @@ namespace Gurux.DLMS.Objects
         /// Constructor.
         /// </summary>
         public GXDLMSMBusDiagnostic()
-        : this(null, 0)
+        : this("0.0.24.9.0.255", 0)
         {
         }
 
@@ -137,7 +137,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Received-signal-strength in expressed in dBm.
+        /// Received signal strength in dBm.
         /// </summary>
         [XmlIgnore()]
         public byte ReceivedSignalStrength
@@ -393,7 +393,7 @@ namespace Gurux.DLMS.Objects
                                 data.SetUInt8((byte)3); //Count
                                 GXCommon.SetData(settings, data, DataType.UInt8, it.ClientId);
                                 GXCommon.SetData(settings, data, DataType.UInt32, it.Counter);
-                                GXCommon.SetData(settings, data, DataType.OctetString, it.TimeStamp);
+                                GXCommon.SetData(settings, data, DataType.DateTime, it.TimeStamp);
                             }
                         }
                         return data.Array();
@@ -411,7 +411,7 @@ namespace Gurux.DLMS.Objects
                         //Add count
                         GXCommon.SetObjectCount(2, data);
                         GXCommon.SetData(settings, data, DataType.UInt8, CaptureTime.AttributeId);
-                        GXCommon.SetData(settings, data, DataType.OctetString, CaptureTime.TimeStamp);
+                        GXCommon.SetData(settings, data, DataType.DateTime, CaptureTime.TimeStamp);
                         return data.Array();
                     }
                 default:
@@ -435,7 +435,7 @@ namespace Gurux.DLMS.Objects
                     ChannelId = Convert.ToByte(e.Value);
                     break;
                 case 4:
-                    LinkStatus = (MBusLinkStatus)Convert.ToByte(e.Value); ;
+                    LinkStatus = (MBusLinkStatus)Convert.ToByte(e.Value);
                     break;
                 case 5:
                     BroadcastFrames.Clear();
@@ -452,11 +452,25 @@ namespace Gurux.DLMS.Objects
                             {
                                 item = new List<object>((object[])tmp);
                             }
+                            //Time stamp should be date-time.
+                            GXDateTime timeStamp;
+                            if (item[2] is GXDateTime dt)
+                            {
+                                timeStamp = dt;
+                            }
+                            else if (item[2] is byte[] ba)
+                            {
+                                timeStamp = (GXDateTime)GXDLMSClient.ChangeType(ba, DataType.DateTime, settings.UseUtc2NormalTime);
+                            }
+                            else
+                            {
+                                timeStamp = null;
+                            }
                             BroadcastFrames.Add(new GXBroadcastFrameCounter()
                             {
                                 ClientId = (byte)item[0],
-                                Counter = (byte)item[1],
-                                TimeStamp = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime, settings.UseUtc2NormalTime)
+                                Counter = (UInt32)item[1],
+                                TimeStamp = timeStamp
                             });
                         }
                     }
@@ -483,7 +497,15 @@ namespace Gurux.DLMS.Objects
                             item = new List<object>((object[])e.Value);
                         }
                         CaptureTime.AttributeId = (byte)item[0];
-                        CaptureTime.TimeStamp = (GXDateTime)GXDLMSClient.ChangeType((byte[])item[1], DataType.DateTime, settings.UseUtc2NormalTime);
+                        //TimeStamp should be date time.
+                        if (item[1] is GXDateTime dt)
+                        {
+                            CaptureTime.TimeStamp = dt;
+                        }
+                        else if (item[1] is byte[] ba)
+                        {
+                            CaptureTime.TimeStamp = (GXDateTime)GXDLMSClient.ChangeType(ba, DataType.DateTime, settings.UseUtc2NormalTime);
+                        }
                     }
                     break;
                 default:
@@ -505,7 +527,7 @@ namespace Gurux.DLMS.Objects
                 {
                     var item = new GXBroadcastFrameCounter()
                     {
-                        ClientId = (byte)reader.ReadElementContentAsInt("ChannelId"),
+                        ClientId = (byte)reader.ReadElementContentAsInt("ClientId"),
                         Counter = (byte)reader.ReadElementContentAsInt("Counter")
                     };
                     str = reader.ReadElementContentAsString("TimeStamp");

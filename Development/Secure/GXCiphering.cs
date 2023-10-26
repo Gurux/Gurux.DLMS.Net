@@ -275,7 +275,7 @@ namespace Gurux.DLMS.Secure
                 {
                     value = null;
                 }
-                if (!TestMode && value != null && value.Length != 8 && value.Length != 0)
+                if (!TestMode && value != null && value.Length != 8)
                 {
                     throw new ArgumentOutOfRangeException("Invalid System Title.");
                 }
@@ -321,9 +321,9 @@ namespace Gurux.DLMS.Secure
                 {
                     value = null;
                 }
-                if (!TestMode && value != null && value.Length != 16 && value.Length != 0)
+                if (!TestMode && value != null && value.Length != 16 && value.Length != 32)
                 {
-                    throw new ArgumentOutOfRangeException("Invalid block cipher key.");
+                    throw new ArgumentOutOfRangeException(Properties.Resources.InvalidBlockCipherKey);
                 }
                 blockCipherKey = value;
             }
@@ -344,9 +344,9 @@ namespace Gurux.DLMS.Secure
                 {
                     value = null;
                 }
-                if (!TestMode && value != null && value.Length != 16 && value.Length != 0)
+                if (!TestMode && value != null && value.Length != 16 && value.Length != 32)
                 {
-                    throw new ArgumentOutOfRangeException("Invalid broadcast block cipher Key.");
+                    throw new ArgumentOutOfRangeException(Properties.Resources.InvalidBlockCipherKey);
                 }
                 broadcastBlockCipherKey = value;
             }
@@ -367,9 +367,9 @@ namespace Gurux.DLMS.Secure
                 {
                     value = null;
                 }
-                if (!TestMode && value != null && value.Length != 16)
+                if (!TestMode && value != null && value.Length != 16 && value.Length != 32)
                 {
-                    throw new ArgumentOutOfRangeException("Invalid Authentication Key.");
+                    throw new ArgumentOutOfRangeException(Properties.Resources.InvalidAuthenticationKey);
                 }
                 authenticationKey = value;
             }
@@ -389,7 +389,7 @@ namespace Gurux.DLMS.Secure
                 {
                     value = null;
                 }
-                if (!TestMode && value != null && value.Length != 16 && value.Length != 0)
+                if (!TestMode && value != null && value.Length != 16 && value.Length != 32)
                 {
                     throw new ArgumentOutOfRangeException("Invalid DedicatedKey Key.");
                 }
@@ -419,14 +419,14 @@ namespace Gurux.DLMS.Secure
         {
             if (p.Security != Security.None)
             {
-                return GXDLMSChippering.EncryptAesGcm(p, data);
+                return GXSecure.EncryptAesGcm(p, data);
             }
             return data;
         }
 
         internal static byte[] Decrypt(AesGcmParameter p, GXByteBuffer data)
         {
-            byte[] tmp = GXDLMSChippering.DecryptAesGcm(p, data);
+            byte[] tmp = GXSecure.DecryptAesGcm(p, data);
             data.Clear();
             data.Set(tmp);
             return tmp;
@@ -455,7 +455,7 @@ namespace Gurux.DLMS.Secure
                 BlockCipherKey,
                 AuthenticationKey);
             GXByteBuffer bb = new GXByteBuffer();
-            GXDLMSChippering.EncryptAesGcm(p, challenge);
+            GXSecure.EncryptAesGcm(p, challenge);
             bb.SetUInt8(0x10);
             bb.SetUInt32(InvocationCounter);
             bb.Set(p.CountTag);

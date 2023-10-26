@@ -73,6 +73,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSG3Plc6LoWPan(string ln, ushort sn)
         : base(ObjectType.G3Plc6LoWPan, ln, sn)
         {
+            Version = 2;
             BlacklistTable = new List<GXKeyValuePair<UInt16, UInt16>>();
             ContextInformationTable = new List<Objects.GXDLMSContextInformationTable>();
             RoutingConfiguration = new List<GXDLMSRoutingConfiguration>();
@@ -137,7 +138,7 @@ namespace Gurux.DLMS.Objects
         /// PIB attribute 0x01.
         /// </remarks>
         [XmlIgnore()]
-        public object[] PrefixTable
+        public byte[] PrefixTable
         {
             get;
             set;
@@ -316,12 +317,40 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// If true, the default route will be created.
+        /// </summary>
+        ///  <remarks>
+        /// PIB attribute 0x24
+        /// </remarks>
+        [XmlIgnore()]
+        public bool DefaultCoordRouteEnabled
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// List of the addresses of the devices for which this LOADng 
+        /// router is providing connectivity.
+        /// </summary>
+        ///  <remarks>
+        /// PIB attribute 0x23.
+        /// </remarks>
+        [XmlIgnore()]
+        public UInt16[] DestinationAddress
+        {
+            get;
+            set;
+        }
+
         /// <inheritdoc>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, MaxHops, WeakLqiValue , SecurityLevel, PrefixTable , RoutingConfiguration , BroadcastLogTableEntryTtl ,
             RoutingTable,ContextInformationTable, BlacklistTable, BroadcastLogTable, GroupTable,MaxJoinWaitTime,  PathDiscoveryTime,
-            ActiveKeyIndex, MetricType,CoordShortAddress, DisableDefaultRouting, DeviceType };
+            ActiveKeyIndex, MetricType,CoordShortAddress, DisableDefaultRouting, DeviceType,
+            DefaultCoordRouteEnabled, DestinationAddress};
         }
 
         #region IGXDLMSBase Members
@@ -415,20 +444,36 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(16);
             }
-            //CoordShortAddress
-            if (all || CanRead(17))
+            if (Version > 0)
             {
-                attributes.Add(17);
-            }
-            //DisableDefaultRouting
-            if (all || CanRead(18))
-            {
-                attributes.Add(18);
-            }
-            //DeviceType
-            if (all || CanRead(19))
-            {
-                attributes.Add(19);
+                //CoordShortAddress
+                if (all || CanRead(17))
+                {
+                    attributes.Add(17);
+                }
+                //DisableDefaultRouting
+                if (all || CanRead(18))
+                {
+                    attributes.Add(18);
+                }
+                //DeviceType
+                if (all || CanRead(19))
+                {
+                    attributes.Add(19);
+                }
+                if (Version > 1)
+                {
+                    //DefaultCoordRouteEnabled
+                    if (all || CanRead(20))
+                    {
+                        attributes.Add(20);
+                    }
+                    //DestinationAddress
+                    if (all || CanRead(21))
+                    {
+                        attributes.Add(21);
+                    }
+                }
             }
             return attributes.ToArray();
         }
@@ -440,9 +485,9 @@ namespace Gurux.DLMS.Objects
                 "SecurityLevel", "PrefixTable", "RoutingConfiguration", "BroadcastLogTableEntryTtl",
                 "RoutingTable", "ContextInformationTable", "BlacklistTable", "BroadcastLogTable",
                 "GroupTable", "MaxJoinWaitTime", " PathDiscoveryTime", "ActiveKeyIndex",
-                "MetricType", "CoordShortAddress", "DisableDefaultRouting", "DeviceType" };
+                "MetricType", "CoordShortAddress", "DisableDefaultRouting", "DeviceType",
+                            "Default coord route enabled", "Destination address"};
         }
-
         /// <inheritdoc />
         string[] IGXDLMSBase.GetMethodNames()
         {
@@ -456,7 +501,15 @@ namespace Gurux.DLMS.Objects
 
         int IGXDLMSBase.GetAttributeCount()
         {
-            return 19;
+            if (Version == 0)
+            {
+                return 16;
+            }
+            if (Version == 1)
+            {
+                return 19;
+            }
+            return 21;
         }
 
         int IGXDLMSBase.GetMethodCount()
@@ -547,20 +600,36 @@ namespace Gurux.DLMS.Objects
             {
                 return DataType.UInt8;
             }
-            //CoordShortAddress
-            if (index == 17)
+            if (Version > 0)
             {
-                return DataType.UInt16;
-            }
-            //DisableDefaultRouting
-            if (index == 18)
-            {
-                return DataType.Boolean;
-            }
-            //DeviceType
-            if (index == 19)
-            {
-                return DataType.Enum;
+                //CoordShortAddress
+                if (index == 17)
+                {
+                    return DataType.UInt16;
+                }
+                //DisableDefaultRouting
+                if (index == 18)
+                {
+                    return DataType.Boolean;
+                }
+                //DeviceType
+                if (index == 19)
+                {
+                    return DataType.Enum;
+                }
+                if (Version > 1)
+                {
+                    //DefaultCoordRouteEnabled
+                    if (index == 20)
+                    {
+                        return DataType.Boolean;
+                    }
+                    //DestinationAddress
+                    if (index == 21)
+                    {
+                        return DataType.Array;
+                    }
+                }
             }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
@@ -596,7 +665,7 @@ namespace Gurux.DLMS.Objects
                     GXCommon.SetObjectCount(PrefixTable.Length, bb);
                     foreach (var it in PrefixTable)
                     {
-                        GXCommon.SetData(settings, bb, GXDLMSConverter.GetDLMSDataType(it), it);
+                        GXCommon.SetData(settings, bb, DataType.UInt8, it);
                     }
                 }
                 return bb.Array();
@@ -625,7 +694,7 @@ namespace Gurux.DLMS.Objects
                         GXCommon.SetData(settings, bb, DataType.UInt8, it.Kh);
                         GXCommon.SetData(settings, bb, DataType.UInt8, it.Krt);
                         GXCommon.SetData(settings, bb, DataType.UInt8, it.RreqRetries);
-                        GXCommon.SetData(settings, bb, DataType.UInt8, it.RreqRerrWait);
+                        GXCommon.SetData(settings, bb, DataType.UInt8, it.RreqReqWait);
                         GXCommon.SetData(settings, bb, DataType.UInt16, it.BlacklistTableEntryTtl);
                         GXCommon.SetData(settings, bb, DataType.Boolean, it.UnicastRreqGenEnable);
                         GXCommon.SetData(settings, bb, DataType.Boolean, it.RlcEnabled);
@@ -783,6 +852,28 @@ namespace Gurux.DLMS.Objects
             {
                 return DeviceType;
             }
+            if (e.Index == 20)
+            {
+                return DefaultCoordRouteEnabled;
+            }
+            if (e.Index == 21)
+            {
+                GXByteBuffer bb = new GXByteBuffer();
+                bb.SetUInt8((byte)DataType.Array);
+                if (DestinationAddress == null)
+                {
+                    bb.SetUInt8(0);
+                }
+                else
+                {
+                    GXCommon.SetObjectCount(DestinationAddress.Length, bb);
+                    foreach (UInt16 it in DestinationAddress)
+                    {
+                        GXCommon.SetData(settings, bb, DataType.UInt16, it);
+                    }
+                }
+                return bb.Array();
+            }
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
         }
@@ -807,10 +898,13 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 5)
             {
-                List<object> list = new List<object>();
+                List<byte> list = new List<byte>();
                 if (e.Value != null)
                 {
-                    list.AddRange((IEnumerable<object>)e.Value);
+                    foreach (var it in (IEnumerable<object>)e.Value)
+                    {
+                        list.Add(Convert.ToByte(it));
+                    }
                 }
                 PrefixTable = list.ToArray();
             }
@@ -840,7 +934,7 @@ namespace Gurux.DLMS.Objects
                         it.Kh = Convert.ToByte(arr[6]);
                         it.Krt = Convert.ToByte(arr[7]);
                         it.RreqRetries = Convert.ToByte(arr[8]);
-                        it.RreqRerrWait = Convert.ToByte(arr[9]);
+                        it.RreqReqWait = Convert.ToByte(arr[9]);
                         it.BlacklistTableEntryTtl = Convert.ToUInt16(arr[10]);
                         it.UnicastRreqGenEnable = Convert.ToBoolean(arr[11]);
                         it.RlcEnabled = Convert.ToBoolean(arr[12]);
@@ -910,7 +1004,7 @@ namespace Gurux.DLMS.Objects
                 List<GXKeyValuePair<UInt16, UInt16>> list = new List<GXKeyValuePair<UInt16, UInt16>>();
                 if (e.Value != null)
                 {
-                    foreach (object tmp in (IEnumerable<object>) e.Value)
+                    foreach (object tmp in (IEnumerable<object>)e.Value)
                     {
                         List<object> arr;
                         if (tmp is List<object>)
@@ -990,6 +1084,22 @@ namespace Gurux.DLMS.Objects
             {
                 DeviceType = (DeviceType)Convert.ToInt32(e.Value);
             }
+            else if (e.Index == 20)
+            {
+                DefaultCoordRouteEnabled = Convert.ToBoolean(e.Value);
+            }
+            else if (e.Index == 21)
+            {
+                List<UInt16> list = new List<UInt16>();
+                if (e.Value != null)
+                {
+                    foreach (object it in (IEnumerable<object>)e.Value)
+                    {
+                        list.Add(Convert.ToUInt16(it));
+                    }
+                }
+                DestinationAddress = list.ToArray();
+            }
             else
             {
                 e.Error = ErrorCode.ReadWriteDenied;
@@ -998,12 +1108,12 @@ namespace Gurux.DLMS.Objects
 
         private void LoadPrefixTable(GXXmlReader reader)
         {
-            List<object> list = new List<object>();
+            List<byte> list = new List<byte>();
             if (reader.IsStartElement("PrefixTable", true))
             {
                 while (reader.IsStartElement("Value", false))
                 {
-                    list.Add(reader.ReadElementContentAsObject("Value", null, null, 0));
+                    list.Add((byte)reader.ReadElementContentAsInt("Value", 0));
                 }
                 reader.ReadEndElement("PrefixTable");
             }
@@ -1015,7 +1125,7 @@ namespace Gurux.DLMS.Objects
             RoutingConfiguration.Clear();
             if (reader.IsStartElement("RoutingConfiguration", true))
             {
-                while (reader.IsStartElement("Item", false))
+                while (reader.IsStartElement("Item", true))
                 {
                     GXDLMSRoutingConfiguration it = new GXDLMSRoutingConfiguration();
                     RoutingConfiguration.Add(it);
@@ -1028,7 +1138,7 @@ namespace Gurux.DLMS.Objects
                     it.Kh = (byte)reader.ReadElementContentAsInt("Kh");
                     it.Krt = (byte)reader.ReadElementContentAsInt("Krt");
                     it.RreqRetries = (byte)reader.ReadElementContentAsInt("RreqRetries");
-                    it.RreqRerrWait = (byte)reader.ReadElementContentAsInt("RreqRerrWait");
+                    it.RreqReqWait = (byte)reader.ReadElementContentAsInt("RreqReqWait");
                     it.BlacklistTableEntryTtl = (UInt16)reader.ReadElementContentAsInt("BlacklistTableEntryTtl");
                     it.UnicastRreqGenEnable = reader.ReadElementContentAsInt("UnicastRreqGenEnable") != 0;
                     it.RlcEnabled = reader.ReadElementContentAsInt("RlcEnabled") != 0;
@@ -1043,7 +1153,7 @@ namespace Gurux.DLMS.Objects
             RoutingTable.Clear();
             if (reader.IsStartElement("RoutingTable", true))
             {
-                while (reader.IsStartElement("Item", false))
+                while (reader.IsStartElement("Item", true))
                 {
                     GXDLMSRoutingTable it = new GXDLMSRoutingTable();
                     RoutingTable.Add(it);
@@ -1063,7 +1173,7 @@ namespace Gurux.DLMS.Objects
             ContextInformationTable.Clear();
             if (reader.IsStartElement("ContextInformationTable", true))
             {
-                while (reader.IsStartElement("Item", false))
+                while (reader.IsStartElement("Item", true))
                 {
                     GXDLMSContextInformationTable it = new GXDLMSContextInformationTable();
                     ContextInformationTable.Add(it);
@@ -1081,7 +1191,7 @@ namespace Gurux.DLMS.Objects
             BlacklistTable.Clear();
             if (reader.IsStartElement("BlacklistTable", true))
             {
-                while (reader.IsStartElement("Item", false))
+                while (reader.IsStartElement("Item", true))
                 {
                     UInt16 k = (UInt16)reader.ReadElementContentAsInt("Key");
                     UInt16 v = (UInt16)reader.ReadElementContentAsInt("Value");
@@ -1096,7 +1206,7 @@ namespace Gurux.DLMS.Objects
             BroadcastLogTable.Clear();
             if (reader.IsStartElement("BroadcastLogTable", true))
             {
-                while (reader.IsStartElement("Item", false))
+                while (reader.IsStartElement("Item", true))
                 {
                     GXDLMSBroadcastLogTable it = new GXDLMSBroadcastLogTable();
                     BroadcastLogTable.Add(it);
@@ -1122,6 +1232,20 @@ namespace Gurux.DLMS.Objects
             GroupTable = list.ToArray();
         }
 
+        private void LoadDestinationAddress(GXXmlReader reader)
+        {
+            List<UInt16> list = new List<UInt16>();
+            if (reader.IsStartElement("DestinationAddress", true))
+            {
+                while (reader.IsStartElement("Value", false))
+                {
+                    list.Add((UInt16)reader.ReadElementContentAsInt("Value"));
+                }
+                reader.ReadEndElement("DestinationAddress");
+            }
+            DestinationAddress = list.ToArray();
+        }
+
         void IGXDLMSBase.Load(GXXmlReader reader)
         {
             MaxHops = (byte)reader.ReadElementContentAsInt("MaxHops");
@@ -1142,6 +1266,8 @@ namespace Gurux.DLMS.Objects
             CoordShortAddress = (UInt16)reader.ReadElementContentAsInt("CoordShortAddress");
             DisableDefaultRouting = reader.ReadElementContentAsInt("DisableDefaultRouting") != 0;
             DeviceType = (DeviceType)reader.ReadElementContentAsInt("DeviceType");
+            DefaultCoordRouteEnabled = reader.ReadElementContentAsInt("DefaultCoordRouteEnabled") != 0;
+            LoadDestinationAddress(reader);
         }
 
         private void SavePrefixTable(GXXmlWriter writer, int index)
@@ -1174,7 +1300,7 @@ namespace Gurux.DLMS.Objects
                     writer.WriteElementString("Kh", it.Kh, index);
                     writer.WriteElementString("Krt", it.Krt, index);
                     writer.WriteElementString("RreqRetries", it.RreqRetries, index);
-                    writer.WriteElementString("RreqRerrWait", it.RreqRerrWait, index);
+                    writer.WriteElementString("RreqReqWait", it.RreqReqWait, index);
                     writer.WriteElementString("BlacklistTableEntryTtl", it.BlacklistTableEntryTtl, index);
                     writer.WriteElementString("UnicastRreqGenEnable", it.UnicastRreqGenEnable, index);
                     writer.WriteElementString("RlcEnabled", it.RlcEnabled, index);
@@ -1269,6 +1395,19 @@ namespace Gurux.DLMS.Objects
             }
         }
 
+        private void SaveDestinationAddress(GXXmlWriter writer, int index)
+        {
+            if (DestinationAddress != null)
+            {
+                writer.WriteStartElement("DestinationAddress", index);
+                foreach (UInt16 it in DestinationAddress)
+                {
+                    writer.WriteElementObject("Value", it, index);
+                }
+                writer.WriteEndElement();
+            }
+        }
+
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
             writer.WriteElementString("MaxHops", MaxHops, 2);
@@ -1289,6 +1428,8 @@ namespace Gurux.DLMS.Objects
             writer.WriteElementString("CoordShortAddress", CoordShortAddress, 17);
             writer.WriteElementString("DisableDefaultRouting", DisableDefaultRouting, 18);
             writer.WriteElementString("DeviceType", (int)DeviceType, 19);
+            writer.WriteElementString("DefaultCoordRouteEnabled", DefaultCoordRouteEnabled, 20);
+            SaveDestinationAddress(writer, 21);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

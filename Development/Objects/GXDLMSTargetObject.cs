@@ -1,7 +1,7 @@
 //
 // --------------------------------------------------------------------------
 //  Gurux Ltd
-//
+// 
 //
 //
 // Filename:        $HeadURL$
@@ -19,63 +19,58 @@
 // This file is a part of Gurux Device Framework.
 //
 // Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License
+// and/or modify it under the terms of the GNU General Public License 
 // as published by the Free Software Foundation; version 2 of the License.
 // Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// but WITHOUT ANY WARRANTY; without even the implied warranty of 
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 // See the GNU General Public License for more details.
 //
 // More information of Gurux products: https://www.gurux.org
 //
-// This code is licensed under the GNU General Public License v2.
+// This code is licensed under the GNU General Public License v2. 
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-using Gurux.DLMS.Internal;
-
-namespace Gurux.DLMS
+namespace Gurux.DLMS.Objects
 {
-    /// <summary>
-    /// M-Bus settings contains communication information when DLMS PDU is transported using M-Bus frames.
-    /// </summary>
-    public class GXMBusSettings
+    public class GXDLMSTargetObject
     {
         /// <summary>
-        /// Device identification number.
+        /// Target object.
         /// </summary>
-        public UInt32 Id
+        public GXDLMSObject Target
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Manufacturer Id.
+        /// Attribute Index of DLMS object.
         /// </summary>
-        public string ManufacturerId
+        public int AttributeIndex
         {
             get;
             set;
+        }        
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        public GXDLMSTargetObject()
+        {
+
         }
 
         /// <summary>
-        /// Version.
+        /// Constructor.
         /// </summary>
-        public byte Version
+        /// <param name="target">Target ohject.</param>
+        /// <param name="attributeIndex">Attribute index.</param>
+        public GXDLMSTargetObject(GXDLMSObject target, int attributeIndex)
         {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Device type.
-        /// </summary>
-        public MBusMeterType MeterType
-        {
-            get;
-            set;
+            Target = target;
+            AttributeIndex = attributeIndex;
         }
     }
 }
