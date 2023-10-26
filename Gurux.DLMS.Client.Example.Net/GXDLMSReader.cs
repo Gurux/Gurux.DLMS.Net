@@ -516,6 +516,8 @@ namespace Gurux.DLMS.Reader
             //Read frame counter if GeneralProtection is used.
             if (!string.IsNullOrEmpty(InvocationCounter) && Client.Ciphering != null && Client.Ciphering.Security != Security.None)
             {
+                //Media settings are saved and they are restored when HDLC with mode E is used.
+                string mediaSettings = Media.Settings;
                 InitializeOpticalHead();
                 byte[] data;
                 GXReplyData reply = new GXReplyData();
@@ -586,6 +588,13 @@ namespace Gurux.DLMS.Reader
                         Console.WriteLine("Invocation counter: " + Convert.ToString(Client.Ciphering.InvocationCounter));
                         reply.Clear();
                         Disconnect();
+                        //Reset media settings back to default.
+                        if (Client.InterfaceType == InterfaceType.HdlcWithModeE)
+                        {
+                            Media.Close();
+                            Media.Settings = mediaSettings;
+                            InitializeOpticalHead();
+                        }
                     }
                     catch (Exception Ex)
                     {
@@ -1624,12 +1633,20 @@ namespace Gurux.DLMS.Reader
                     {
                         Console.WriteLine("Disconnecting from the meter.");
                     }
+                    try
+                    {
+                        Release();
+                    }
+                    catch (Exception)
+                    {
+                        //All meters don't support release.
+                    }
                     GXReplyData reply = new GXReplyData();
                     ReadDLMSPacket(Client.DisconnectRequest(), reply);
                 }
                 catch
                 {
-
+                    //All meters don't support release.
                 }
             }
         }
@@ -1647,8 +1664,15 @@ namespace Gurux.DLMS.Reader
                     {
                         Console.WriteLine("Release from the meter.");
                     }
-                    GXReplyData reply = new GXReplyData();
-                    ReadDataBlock(Client.ReleaseRequest(), reply);
+                    //Release is call only for secured connections.
+                    //All meters are not supporting Release and it's causing problems.
+                    if (Client.InterfaceType == InterfaceType.WRAPPER ||
+                        (Client.Ciphering.Security != (byte)Security.None &&
+                        !Client.PreEstablishedConnection))
+                    {
+                        GXReplyData reply = new GXReplyData();
+                        ReadDataBlock(Client.ReleaseRequest(), reply);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -1671,30 +1695,21 @@ namespace Gurux.DLMS.Reader
                     {
                         Console.WriteLine("Disconnecting from the meter.");
                     }
-                    GXReplyData reply = new GXReplyData();
                     try
                     {
-                        //Release is call only for secured connections.
-                        //All meters are not supporting Release and it's causing problems.
-                        if (Client.InterfaceType == InterfaceType.WRAPPER ||
-                            (Client.Ciphering.Security != Security.None))
-                        {
-                            ReadDataBlock(Client.ReleaseRequest(), reply);
-                        }
+                        Release();
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        //All meters don't support Release.
-                        Console.WriteLine("Release failed. " + ex.Message);
                     }
-                    reply.Clear();
+                    GXReplyData reply = new GXReplyData();
                     ReadDLMSPacket(Client.DisconnectRequest(), reply);
-                    Media.Close();
                 }
                 catch
                 {
 
                 }
+                Media.Close();
                 Media = null;
                 Client = null;
             }
