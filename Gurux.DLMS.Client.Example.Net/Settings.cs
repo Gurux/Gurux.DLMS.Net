@@ -99,6 +99,10 @@ namespace Gurux.DLMS.Client.Example
                             if (settings.media is GXNet net)
                             {
                                 net.HostName = it.Value;
+                                if (settings.client.InterfaceType == InterfaceType.CoAP)
+                                {
+                                    net.Protocol = NetworkType.Udp;
+                                }
                             }
                             else if (settings.media is GXMqtt mqtt)
                             {
@@ -157,6 +161,13 @@ namespace Gurux.DLMS.Client.Example
                                 serial.DataBits = 7;
                                 serial.Parity = Parity.Even;
                                 serial.StopBits = StopBits.One;
+                            }
+                            if (settings.client.InterfaceType == InterfaceType.CoAP)
+                            {
+                                if (settings.media is GXNet net)
+                                {
+                                    net.Protocol = NetworkType.Udp;
+                                }
                             }
                         }
                         catch (Exception)

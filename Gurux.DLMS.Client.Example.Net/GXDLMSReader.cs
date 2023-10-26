@@ -33,18 +33,21 @@
 //---------------------------------------------------------------------------
 using Gurux.Common;
 using Gurux.DLMS.ASN;
+using Gurux.DLMS.Client.Example;
 using Gurux.DLMS.Ecdsa;
 using Gurux.DLMS.Ecdsa.Enums;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Secure;
+using Gurux.Net;
 using Gurux.Serial;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Ports;
+using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -468,35 +471,40 @@ namespace Gurux.DLMS.Reader
             //Generate AARQ request.
             //Split requests to multiple packets if needed.
             //If password is used all data might not fit to one packet.
-            foreach (byte[] it in Client.AARQRequest())
+            var aarq = Client.AARQRequest();
+            //AARQ is not used for pre-established connections.
+            if (aarq.Length != 0)
             {
-                if (Trace > TraceLevel.Info)
+                foreach (byte[] it in aarq)
                 {
-                    Console.WriteLine("Send AARQ request", GXCommon.ToHex(it, true));
-                }
-                reply.Clear();
-                ReadDataBlock(it, reply);
-            }
-            if (Trace > TraceLevel.Info)
-            {
-                Console.WriteLine("Parsing AARE reply" + reply.ToString());
-            }
-            //Parse reply.
-            Client.ParseAAREResponse(reply.Data);
-            reply.Clear();
-            //Get challenge Is HLS authentication is used.
-            if (Client.Authentication > Authentication.Low)
-            {
-                foreach (byte[] it in Client.GetApplicationAssociationRequest())
-                {
+                    if (Trace > TraceLevel.Info)
+                    {
+                        Console.WriteLine("Send AARQ request", GXCommon.ToHex(it, true));
+                    }
                     reply.Clear();
                     ReadDataBlock(it, reply);
                 }
-                Client.ParseApplicationAssociationResponse(reply.Data);
-            }
-            if (Trace > TraceLevel.Info)
-            {
-                Console.WriteLine("Parsing AARE reply succeeded.");
+                if (Trace > TraceLevel.Info)
+                {
+                    Console.WriteLine("Parsing AARE reply" + reply.ToString());
+                }
+                //Parse reply.
+                Client.ParseAAREResponse(reply.Data);
+                reply.Clear();
+                //Get challenge Is HLS authentication is used.
+                if (Client.Authentication > Authentication.Low)
+                {
+                    foreach (byte[] it in Client.GetApplicationAssociationRequest())
+                    {
+                        reply.Clear();
+                        ReadDataBlock(it, reply);
+                    }
+                    Client.ParseApplicationAssociationResponse(reply.Data);
+                }
+                if (Trace > TraceLevel.Info)
+                {
+                    Console.WriteLine("Parsing AARE reply succeeded.");
+                }
             }
         }
 
@@ -513,6 +521,7 @@ namespace Gurux.DLMS.Reader
                 GXReplyData reply = new GXReplyData();
                 Client.ProposedConformance |= Conformance.GeneralProtection;
                 int add = Client.ClientAddress;
+                int serverAddress = Client.ServerAddress;
                 Authentication auth = Client.Authentication;
                 Security security = Client.Ciphering.Security;
                 Signing signing = Client.Ciphering.Signing;
@@ -523,6 +532,14 @@ namespace Gurux.DLMS.Reader
                     Client.Authentication = Authentication.None;
                     Client.Ciphering.Security = Security.None;
                     Client.Ciphering.Signing = Signing.None;
+                    if (Media is GXNet net && Client.InterfaceType == InterfaceType.CoAP)
+                    {
+                        //Update Client Address.
+                        //Client SAP.
+                        Client.Coap.Options[65003] = (byte)Client.ClientAddress;
+                        //Server SAP
+                        Client.Coap.Options[65005] = (byte)1;
+                    }
                     data = Client.SNRMRequest();
                     if (data != null)
                     {
@@ -579,10 +596,19 @@ namespace Gurux.DLMS.Reader
                 finally
                 {
                     Client.ClientAddress = add;
+                    Client.ServerAddress = serverAddress;
                     Client.Authentication = auth;
                     Client.Ciphering.Security = security;
                     Client.CtoSChallenge = challenge;
                     Client.Ciphering.Signing = signing;
+                    if (Media is GXNet && Client.InterfaceType == InterfaceType.CoAP)
+                    {
+                        //Update Client Address.
+                        //Client SAP.
+                        Client.Coap.Options[65003] = (byte)Client.ClientAddress;
+                        //Server SAP
+                        Client.Coap.Options[65005] = (byte)Client.ServerAddress;
+                    }
                 }
             }
         }
@@ -763,12 +789,15 @@ namespace Gurux.DLMS.Reader
                         Console.WriteLine("Received: " + p.Reply);
                     }
                 }
-                Media.Close();
-                serial.BaudRate = BaudRate;
-                serial.DataBits = 8;
-                serial.Parity = Parity.None;
-                serial.StopBits = StopBits.One;
-                Media.Open();
+                if (serial != null)
+                {
+                    Media.Close();
+                    serial.BaudRate = BaudRate;
+                    serial.DataBits = 8;
+                    serial.Parity = Parity.None;
+                    serial.StopBits = StopBits.One;
+                    Media.Open();
+                }
                 //Some meters need this sleep. Do not remove.
                 Thread.Sleep(800);
             }
@@ -1441,7 +1470,9 @@ namespace Gurux.DLMS.Reader
             ReadDLMSPacket(data, reply);
             lock (Media.Synchronous)
             {
-                while (reply.IsMoreData && Client.ConnectionState != ConnectionState.None)
+                while (reply.IsMoreData &&
+                    (Client.ConnectionState != ConnectionState.None ||
+                    Client.PreEstablishedConnection))
                 {
                     if (reply.IsStreaming())
                     {
@@ -1505,14 +1536,13 @@ namespace Gurux.DLMS.Reader
             foreach (byte[] it in data)
             {
                 ReadDataBlock(it, reply);
-                //Value is null if data is send in multiple frames.
-                if (reply.Value is IEnumerable<object>)
+                if (!reply.IsMoreData)
                 {
-                    values.AddRange((IEnumerable<object>)reply.Value);
-                }
-                else if (reply.Value != null)
-                {
-                    values.Add(reply.Value);
+                    //Value is null if data is send in multiple frames.
+                    if (reply.Value is IEnumerable<object>)
+                    {
+                        values.AddRange((IEnumerable<object>)reply.Value);
+                    }
                 }
                 reply.Clear();
             }

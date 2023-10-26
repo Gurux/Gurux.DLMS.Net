@@ -105,6 +105,22 @@ namespace Gurux.DLMS.Client.Example
                 }
                 //Some meters need a break here.
                 Thread.Sleep(1000);
+                Console.WriteLine("Connected:");
+
+                if (settings.media is GXNet net && settings.client.InterfaceType == InterfaceType.CoAP)
+                {
+                    //Update token ID.
+                    settings.client.Coap.Token = 0x45;
+                    settings.client.Coap.Host = net.HostName;
+                    settings.client.Coap.MessageId = 1;
+                    settings.client.Coap.Port = (UInt16) net.Port;
+                    //DLMS version.
+                    settings.client.Coap.Options[65001] = (byte)1;
+                    //Client SAP.
+                    settings.client.Coap.Options[65003] = (byte)settings.client.ClientAddress;
+                    //Server SAP
+                    settings.client.Coap.Options[65005] = (byte)settings.client.ServerAddress;
+                }
                 //Export client and server certificates from the meter.
                 if (!string.IsNullOrEmpty(settings.ExportSecuritySetupLN))
                 {
