@@ -73,7 +73,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSG3Plc6LoWPan(string ln, ushort sn)
         : base(ObjectType.G3Plc6LoWPan, ln, sn)
         {
-            Version = 2;
+            Version = 3;
             BlacklistTable = new List<GXKeyValuePair<UInt16, UInt16>>();
             ContextInformationTable = new List<Objects.GXDLMSContextInformationTable>();
             RoutingConfiguration = new List<GXDLMSRoutingConfiguration>();
@@ -344,13 +344,33 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// PIB attribute 0x04.
+        /// </summary>
+        [XmlIgnore()]
+        public byte LowLQI
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// PIB attribute 0x05.
+        /// </summary>
+        [XmlIgnore()]
+        public byte HighLQI
+        {
+            get;
+            set;
+        }
+
         /// <inheritdoc>
         public override object[] GetValues()
         {
             return new object[] { LogicalName, MaxHops, WeakLqiValue , SecurityLevel, PrefixTable , RoutingConfiguration , BroadcastLogTableEntryTtl ,
             RoutingTable,ContextInformationTable, BlacklistTable, BroadcastLogTable, GroupTable,MaxJoinWaitTime,  PathDiscoveryTime,
             ActiveKeyIndex, MetricType,CoordShortAddress, DisableDefaultRouting, DeviceType,
-            DefaultCoordRouteEnabled, DestinationAddress};
+            DefaultCoordRouteEnabled, DestinationAddress, LowLQI, HighLQI };
         }
 
         #region IGXDLMSBase Members
@@ -473,6 +493,19 @@ namespace Gurux.DLMS.Objects
                     {
                         attributes.Add(21);
                     }
+                    if (Version > 2)
+                    {
+                        //LowLQI
+                        if (all || CanRead(22))
+                        {
+                            attributes.Add(22);
+                        }
+                        //HighLQI
+                        if (all || CanRead(23))
+                        {
+                            attributes.Add(23);
+                        }
+                    }
                 }
             }
             return attributes.ToArray();
@@ -486,7 +519,8 @@ namespace Gurux.DLMS.Objects
                 "RoutingTable", "ContextInformationTable", "BlacklistTable", "BroadcastLogTable",
                 "GroupTable", "MaxJoinWaitTime", " PathDiscoveryTime", "ActiveKeyIndex",
                 "MetricType", "CoordShortAddress", "DisableDefaultRouting", "DeviceType",
-                            "Default coord route enabled", "Destination address"};
+                "Default coord route enabled", "Destination address",
+                "Low LQI", "High LQI"};
         }
         /// <inheritdoc />
         string[] IGXDLMSBase.GetMethodNames()
@@ -496,7 +530,7 @@ namespace Gurux.DLMS.Objects
 
         int IGXDLMSBase.GetMaxSupportedVersion()
         {
-            return 0;
+            return 3;
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -509,7 +543,12 @@ namespace Gurux.DLMS.Objects
             {
                 return 19;
             }
-            return 21;
+            if (Version == 2)
+            {
+                return 21;
+            }
+            //Version 3.
+            return 23;
         }
 
         int IGXDLMSBase.GetMethodCount()
@@ -629,6 +668,17 @@ namespace Gurux.DLMS.Objects
                     {
                         return DataType.Array;
                     }
+                    //LowLQI
+                    if (index == 22)
+                    {
+                        return DataType.UInt8;
+                    }
+                    //HighLQI
+                    if (index == 23)
+                    {
+                        return DataType.UInt8;
+                    }
+
                 }
             }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
@@ -874,6 +924,14 @@ namespace Gurux.DLMS.Objects
                 }
                 return bb.Array();
             }
+            if (e.Index == 22)
+            {
+                return LowLQI;
+            }
+            if (e.Index == 23)
+            {
+                return HighLQI;
+            }
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
         }
@@ -1100,6 +1158,14 @@ namespace Gurux.DLMS.Objects
                 }
                 DestinationAddress = list.ToArray();
             }
+            else if (e.Index == 22)
+            {
+                LowLQI = Convert.ToByte(e.Value);
+            }
+            else if (e.Index == 23)
+            {
+                HighLQI = Convert.ToByte(e.Value);
+            }
             else
             {
                 e.Error = ErrorCode.ReadWriteDenied;
@@ -1268,6 +1334,8 @@ namespace Gurux.DLMS.Objects
             DeviceType = (DeviceType)reader.ReadElementContentAsInt("DeviceType");
             DefaultCoordRouteEnabled = reader.ReadElementContentAsInt("DefaultCoordRouteEnabled") != 0;
             LoadDestinationAddress(reader);
+            LowLQI = (byte)reader.ReadElementContentAsInt("LowLQI");
+            HighLQI = (byte)reader.ReadElementContentAsInt("HighLQI");
         }
 
         private void SavePrefixTable(GXXmlWriter writer, int index)
@@ -1430,6 +1498,8 @@ namespace Gurux.DLMS.Objects
             writer.WriteElementString("DeviceType", (int)DeviceType, 19);
             writer.WriteElementString("DefaultCoordRouteEnabled", DefaultCoordRouteEnabled, 20);
             SaveDestinationAddress(writer, 21);
+            writer.WriteElementString("LowLQI", LowLQI, 22);
+            writer.WriteElementString("HighLQI", HighLQI, 23);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
