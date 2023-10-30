@@ -105,7 +105,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSG3PlcMacSetup(string ln, ushort sn)
         : base(ObjectType.G3PlcMacSetup, ln, sn)
         {
-            Version = 2;
+            Version = 3;
             KeyTable = new List<DLMS.GXKeyValuePair<byte, byte[]>>();
             ShortAddress = 0xFFFF;
             RcCoord = 0xFFFF;
@@ -431,6 +431,16 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// Duplicate frame detection time in seconds.
+        /// </summary>
+        [XmlIgnore()]
+        public byte MacDuplicateDetectionTtl
+        {
+            get;
+            set;
+        }
+
         /// <inheritdoc>
         public override object[] GetValues()
         {
@@ -438,13 +448,94 @@ namespace Gurux.DLMS.Objects
                 ToneMask , TmrTtl , MaxFrameRetries , NeighbourTableEntryTtl , NeighbourTable , HighPriorityWindowSize,
             CscmFairnessLimit, BeaconRandomizationWindowLength, A, K, MinCwAttempts, CenelecLegacyMode,
                 FccLegacyMode, MaxBe,MaxCsmaBackoffs, MinBe,
-            MacBroadcastMaxCwEnabled, MacTransmitAtten, MacPosTable};
+            MacBroadcastMaxCwEnabled, MacTransmitAtten, MacPosTable, MacDuplicateDetectionTtl};
+        }
+
+        private static byte[] GetNeighbourTables(GXDLMSNeighbourTable[] tables)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetUInt8((byte)DataType.Array);
+            if (tables == null)
+            {
+                bb.SetUInt8(0);
+            }
+            else
+            {
+                GXCommon.SetObjectCount(tables.Length, bb);
+                foreach (GXDLMSNeighbourTable it in tables)
+                {
+                    bb.SetUInt8((byte)DataType.Structure);
+                    bb.SetUInt8(11);
+                    GXCommon.SetData(null, bb, DataType.UInt16, it.ShortAddress);
+                    GXCommon.SetData(null, bb, DataType.Boolean, it.Enabled);
+                    GXCommon.SetData(null, bb, DataType.BitString, it.ToneMap);
+                    GXCommon.SetData(null, bb, DataType.Enum, it.Modulation);
+                    GXCommon.SetData(null, bb, DataType.Int8, it.TxGain);
+                    GXCommon.SetData(null, bb, DataType.Enum, it.TxRes);
+                    GXCommon.SetData(null, bb, DataType.BitString, it.TxCoeff);
+                    GXCommon.SetData(null, bb, DataType.UInt8, it.Lqi);
+                    GXCommon.SetData(null, bb, DataType.Int8, it.PhaseDifferential);
+                    GXCommon.SetData(null, bb, DataType.UInt8, it.TMRValidTime);
+                    GXCommon.SetData(null, bb, DataType.UInt8, it.NeighbourValidTime);
+                }
+            }
+            return bb.Array();
+        }
+
+        private static byte[] GetPosTables(GXDLMSMacPosTable[] tables)
+        {
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetUInt8((byte)DataType.Array);
+            if (tables == null)
+            {
+                bb.SetUInt8(0);
+            }
+            else
+            {
+                GXCommon.SetObjectCount(tables.Length, bb);
+                foreach (var it in tables)
+                {
+                    bb.SetUInt8((byte)DataType.Structure);
+                    bb.SetUInt8(3);
+                    GXCommon.SetData(null, bb, DataType.UInt16, it.ShortAddress);
+                    GXCommon.SetData(null, bb, DataType.UInt8, it.LQI);
+                    GXCommon.SetData(null, bb, DataType.UInt8, it.ValidTime);
+                }
+            }
+            return bb.Array();
         }
 
         #region IGXDLMSBase Members
 
         byte[] IGXDLMSBase.Invoke(GXDLMSSettings settings, ValueEventArgs e)
         {
+            if (e.Index == 1)
+            {
+                List<GXDLMSNeighbourTable> list = new List<GXDLMSNeighbourTable>();
+                UInt16 index = (UInt16)e.Value;
+                foreach (var it in NeighbourTable)
+                {
+                    if (it.ShortAddress == index)
+                    {
+                        list.Add(it);
+                    }
+                }
+                return GetNeighbourTables(list.ToArray());
+            }
+            else if (e.Index == 2)
+            {
+                List<GXDLMSMacPosTable> list = new List<GXDLMSMacPosTable>();
+                UInt16 index = (UInt16)e.Value;
+                foreach (var it in MacPosTable)
+                {
+                    if (it.ShortAddress == index)
+                    {
+                        list.Add(it);
+                    }
+                }
+                return GetPosTables(list.ToArray());
+
+            }
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
         }
@@ -577,7 +668,125 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(25);
             }
+            //MacDuplicateDetectionTtl
+            if (Version > 2)
+            {
+                if (all || CanRead(26))
+                {
+                    attributes.Add(26);
+                }
+            }
             return attributes.ToArray();
+        }
+
+        /// <summary>
+        /// Retrieves the MAC neighbour table.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="address">MAC short address</param>
+        /// <returns>Generated bytes.</returns>
+        /// <seealso cref="ParseNeighbourTableEntry"/>
+        public byte[][] GetNeighbourTableEntry(GXDLMSClient client, UInt16 address)
+        {
+            return client.Method(this, 1, address);
+        }
+
+        private static GXDLMSNeighbourTable[] ParseNeighbourTableEntry(object value)
+        {
+            List<GXDLMSNeighbourTable> list = new List<GXDLMSNeighbourTable>();
+            if (value != null)
+            {
+                foreach (object tmp in (IEnumerable<object>)value)
+                {
+                    List<object> arr;
+                    if (tmp is List<object>)
+                    {
+                        arr = (List<object>)tmp;
+                    }
+                    else
+                    {
+                        arr = new List<object>((object[])tmp);
+                    }
+                    GXDLMSNeighbourTable it = new GXDLMSNeighbourTable();
+                    it.ShortAddress = Convert.ToUInt16(arr[0]);
+                    it.Enabled = Convert.ToBoolean(arr[1]);
+                    it.ToneMap = Convert.ToString(arr[2]);
+                    it.Modulation = (Modulation)Convert.ToInt32(arr[3]);
+                    it.TxGain = Convert.ToSByte(arr[4]);
+                    it.TxRes = (GainResolution)Convert.ToInt32(arr[5]);
+                    it.TxCoeff = Convert.ToString(arr[6]);
+                    it.Lqi = Convert.ToByte(arr[7]);
+                    it.PhaseDifferential = Convert.ToSByte(arr[8]);
+                    it.TMRValidTime = Convert.ToByte(arr[9]);
+                    it.NeighbourValidTime = Convert.ToByte(arr[10]);
+                    list.Add(it);
+                }
+            }
+            return list.ToArray();
+        }
+
+        /// <summary>
+        /// Parse neighbour table entry.
+        /// </summary>
+        /// <param name="reply">Received reply</param>
+        /// <returns></returns>
+        /// <seealso cref="GetNeighbourTableEntry"/>
+        public GXDLMSNeighbourTable[] ParseNeighbourTableEntry(GXByteBuffer reply)
+        {
+            GXDataInfo info = new GXDataInfo();
+            object value = GXCommon.GetData(null, reply, info);
+            return ParseNeighbourTableEntry(value);
+        }
+
+        /// <summary>
+        /// Retrieves the mac POS table.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="address">MAC short address</param>
+        /// <returns>Generated bytes.</returns>
+        /// <seealso cref="ParsePosTableEntry"/>
+        public byte[][] GetPosTableEntry(GXDLMSClient client, UInt16 address)
+        {
+            return client.Method(this, 2, address);
+        }
+
+        private static GXDLMSMacPosTable[] ParsePosTableEntry(object value)
+        {
+            List<GXDLMSMacPosTable> list = new List<GXDLMSMacPosTable>();
+            if (value != null)
+            {
+                foreach (object tmp in (IEnumerable<object>)value)
+                {
+                    List<object> arr;
+                    if (tmp is List<object>)
+                    {
+                        arr = (List<object>)tmp;
+                    }
+                    else
+                    {
+                        arr = new List<object>((object[])tmp);
+                    }
+                    GXDLMSMacPosTable it = new GXDLMSMacPosTable();
+                    it.ShortAddress = Convert.ToUInt16(arr[0]);
+                    it.LQI = Convert.ToByte(arr[1]);
+                    it.ValidTime = Convert.ToByte(arr[2]);
+                    list.Add(it);
+                }
+            }
+            return list.ToArray();
+        }
+
+        /// <summary>
+        /// Parse MAC POS tables.
+        /// </summary>
+        /// <param name="reply">Received reply</param>
+        /// <returns></returns>
+        /// <seealso cref="GetPosTableEntry"/>
+        public GXDLMSMacPosTable[] ParsePosTableEntry(GXByteBuffer reply)
+        {
+            GXDataInfo info = new GXDataInfo();
+            object value = GXCommon.GetData(null, reply, info);
+            return ParsePosTableEntry(value);
         }
 
         /// <inheritdoc />
@@ -587,7 +796,7 @@ namespace Gurux.DLMS.Objects
                 "MacToneMask", "MacTmrTtl", "MacMaxFrameRetries", "MacneighbourTableEntryTtl", "MacNeighbourTable", "MachighPriorityWindowSize",
                 "MacCscmFairnessLimit", "MacBeaconRandomizationWindowLength", "MacA", "MacK", "MacMinCwAttempts", "MacCenelecLegacyMode",
                 "MacFCCLegacyMode", "MacMaxBe", "MacMaxCsmaBackoffs", "MacMinBe",
-            "MacBroadcastMaxCwEnabled", "MacTransmitAtten", "MacPosTable"};
+            "MacBroadcastMaxCwEnabled", "MacTransmitAtten", "MacPosTable", "MacDuplicateDetectionTtl"};
         }
 
         /// <inheritdoc />
@@ -598,11 +807,15 @@ namespace Gurux.DLMS.Objects
 
         int IGXDLMSBase.GetMaxSupportedVersion()
         {
-            return 0;
+            return 3;
         }
 
         int IGXDLMSBase.GetAttributeCount()
         {
+            if (Version == 3)
+            {
+                return 26;
+            }
             if (Version == 2)
             {
                 return 25;
@@ -612,6 +825,10 @@ namespace Gurux.DLMS.Objects
 
         int IGXDLMSBase.GetMethodCount()
         {
+            if (Version == 3)
+            {
+                return 2;
+            }
             return 1;
         }
 
@@ -693,6 +910,9 @@ namespace Gurux.DLMS.Objects
                 //MacPosTable
                 case 25:
                     return DataType.Array;
+                case 26:
+                    //MacDuplicateDetectionTtl
+                    return DataType.UInt8;
                 default:
                     throw new ArgumentException("GetDataType failed. Invalid attribute index.");
             }
@@ -759,33 +979,7 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 11)
             {
-                GXByteBuffer bb = new GXByteBuffer();
-                bb.SetUInt8((byte)DataType.Array);
-                if (NeighbourTable == null)
-                {
-                    bb.SetUInt8(0);
-                }
-                else
-                {
-                    GXCommon.SetObjectCount(NeighbourTable.Length, bb);
-                    foreach (GXDLMSNeighbourTable it in NeighbourTable)
-                    {
-                        bb.SetUInt8((byte)DataType.Structure);
-                        bb.SetUInt8(11);
-                        GXCommon.SetData(settings, bb, DataType.UInt16, it.ShortAddress);
-                        GXCommon.SetData(settings, bb, DataType.Boolean, it.Enabled);
-                        GXCommon.SetData(settings, bb, DataType.BitString, it.ToneMap);
-                        GXCommon.SetData(settings, bb, DataType.Enum, it.Modulation);
-                        GXCommon.SetData(settings, bb, DataType.Int8, it.TxGain);
-                        GXCommon.SetData(settings, bb, DataType.Enum, it.TxRes);
-                        GXCommon.SetData(settings, bb, DataType.BitString, it.TxCoeff);
-                        GXCommon.SetData(settings, bb, DataType.UInt8, it.Lqi);
-                        GXCommon.SetData(settings, bb, DataType.Int8, it.PhaseDifferential);
-                        GXCommon.SetData(settings, bb, DataType.UInt8, it.TMRValidTime);
-                        GXCommon.SetData(settings, bb, DataType.UInt8, it.NeighbourValidTime);
-                    }
-                }
-                return bb.Array();
+                return GetNeighbourTables(NeighbourTable);
             }
             if (e.Index == 12)
             {
@@ -841,25 +1035,11 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 25)
             {
-                GXByteBuffer bb = new GXByteBuffer();
-                bb.SetUInt8((byte)DataType.Array);
-                if (MacPosTable == null)
-                {
-                    bb.SetUInt8(0);
-                }
-                else
-                {
-                    GXCommon.SetObjectCount(MacPosTable.Length, bb);
-                    foreach (var it in MacPosTable)
-                    {
-                        bb.SetUInt8((byte)DataType.Structure);
-                        bb.SetUInt8(3);
-                        GXCommon.SetData(settings, bb, DataType.UInt16, it.ShortAddress);
-                        GXCommon.SetData(settings, bb, DataType.UInt8, it.LQI);
-                        GXCommon.SetData(settings, bb, DataType.UInt8, it.ValidTime);
-                    }
-                }
-                return bb.Array();
+                return GetPosTables(MacPosTable);
+            }
+            if (e.Index == 26)
+            {
+                return MacDuplicateDetectionTtl;
             }
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
@@ -925,36 +1105,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 11)
             {
-                List<GXDLMSNeighbourTable> list = new List<GXDLMSNeighbourTable>();
-                if (e.Value != null)
-                {
-                    foreach (object tmp in (IEnumerable<object>)e.Value)
-                    {
-                        List<object> arr;
-                        if (tmp is List<object>)
-                        {
-                            arr = (List<object>)tmp;
-                        }
-                        else
-                        {
-                            arr = new List<object>((object[])tmp);
-                        }
-                        GXDLMSNeighbourTable it = new GXDLMSNeighbourTable();
-                        it.ShortAddress = Convert.ToUInt16(arr[0]);
-                        it.Enabled = Convert.ToBoolean(arr[1]);
-                        it.ToneMap = Convert.ToString(arr[2]);
-                        it.Modulation = (Modulation)Convert.ToInt32(arr[3]);
-                        it.TxGain = Convert.ToSByte(arr[4]);
-                        it.TxRes = (GainResolution)Convert.ToInt32(arr[5]);
-                        it.TxCoeff = Convert.ToString(arr[6]);
-                        it.Lqi = Convert.ToByte(arr[7]);
-                        it.PhaseDifferential = Convert.ToSByte(arr[8]);
-                        it.TMRValidTime = Convert.ToByte(arr[9]);
-                        it.NeighbourValidTime = Convert.ToByte(arr[10]);
-                        list.Add(it);
-                    }
-                }
-                NeighbourTable = list.ToArray();
+                NeighbourTable = ParseNeighbourTableEntry(e.Value);
             }
             else if (e.Index == 12)
             {
@@ -1010,29 +1161,13 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 25)
             {
-                List<GXDLMSMacPosTable> list = new List<GXDLMSMacPosTable>();
-                if (e.Value != null)
-                {
-                    foreach (object tmp in (IEnumerable<object>)e.Value)
-                    {
-                        List<object> arr;
-                        if (tmp is List<object>)
-                        {
-                            arr = (List<object>)tmp;
-                        }
-                        else
-                        {
-                            arr = new List<object>((object[])tmp);
-                        }
-                        GXDLMSMacPosTable it = new GXDLMSMacPosTable();
-                        it.ShortAddress = Convert.ToUInt16(arr[0]);
-                        it.LQI = Convert.ToByte(arr[1]);
-                        it.ValidTime = Convert.ToByte(arr[2]);
-                        list.Add(it);
-                    }
-                }
-                MacPosTable = list.ToArray();
+                MacPosTable = ParsePosTableEntry(e.Value);
             }
+            else if (e.Index == 26)
+            {
+                MacDuplicateDetectionTtl = Convert.ToByte(e.Value);
+            }
+
             else
             {
                 e.Error = ErrorCode.ReadWriteDenied;
@@ -1125,6 +1260,7 @@ namespace Gurux.DLMS.Objects
             MacBroadcastMaxCwEnabled = reader.ReadElementContentAsInt("MacBroadcastMaxCwEnabled") != 0;
             MacTransmitAtten = (byte)reader.ReadElementContentAsInt("MacTransmitAtten");
             LoadMacPosTable(reader);
+            MacDuplicateDetectionTtl = (byte)reader.ReadElementContentAsInt("MacDuplicateDetectionTtl");
         }
 
         void SaveKeyTable(GXXmlWriter writer, int index)
@@ -1211,6 +1347,7 @@ namespace Gurux.DLMS.Objects
             writer.WriteElementString("MacBroadcastMaxCwEnabled", MacBroadcastMaxCwEnabled, 23);
             writer.WriteElementString("MacTransmitAtten", MacTransmitAtten, 24);
             SaveMacPosTable(writer);
+            writer.WriteElementString("MacDuplicateDetectionTtl", MacDuplicateDetectionTtl, 26);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

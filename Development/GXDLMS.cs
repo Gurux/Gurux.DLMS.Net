@@ -4865,6 +4865,7 @@ namespace Gurux.DLMS
                 }
                 else
                 {
+                    reply.ReadPosition = reply.Data.Position;
                     if (reply.Xml != null)
                     {
                         GXDataInfo di = new GXDataInfo();
@@ -4880,6 +4881,7 @@ namespace Gurux.DLMS
                         values.Add(reply.Value);
                         reply.Value = null;
                     }
+                    reply.Data.Position = reply.ReadPosition;
                 }
             }
             reply.Value = values;
@@ -6115,7 +6117,7 @@ namespace Gurux.DLMS
             data.Position = reply.ReadPosition;
             try
             {
-                Object value = GXCommon.GetData(settings, data, info);
+                object value = GXCommon.GetData(settings, data, info);
                 if (value != null)
                 {
                     lock (reply)
