@@ -802,7 +802,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc />
         string[] IGXDLMSBase.GetMethodNames()
         {
-            return new string[] { "MAC get neighbour table entry" };
+            return new string[] { "MAC get neighbour table entry", "MAC get POS tableentry" };
         }
 
         int IGXDLMSBase.GetMaxSupportedVersion()
