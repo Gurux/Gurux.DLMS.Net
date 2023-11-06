@@ -359,7 +359,7 @@ namespace Gurux.DLMS
                 }
                 if (settings.InterfaceType == InterfaceType.CoAP)
                 {
-                    return GetCoAPFrame(settings, Command.GetRequest, null);
+                    return GetCoAPFrame(settings, Command.GetRequest, null, reply.MoreData);
                 }
                 return GetHdlcFrame(settings, id, null);
             }
@@ -1663,7 +1663,7 @@ namespace Gurux.DLMS
                             messages.Add(GetSMSFrame(p.settings, p.command, reply));
                             break;
                         case InterfaceType.CoAP:
-                            messages.Add(GetCoAPFrame(p.settings, p.command, reply));
+                            messages.Add(GetCoAPFrame(p.settings, p.command, reply, RequestTypes.None));
                             break;
                         default:
                             throw new ArgumentOutOfRangeException("InterfaceType");
@@ -2114,6 +2114,10 @@ namespace Gurux.DLMS
 
         private static UInt16 AddOpt(GXByteBuffer bb, UInt16 type, UInt16 last, object data)
         {
+            if (type < last)
+            {
+                last = 0;
+            }
             byte len;
             GXByteBuffer value = new GXByteBuffer();
             if (data is byte ui8)
@@ -2156,9 +2160,8 @@ namespace Gurux.DLMS
                 len |= (byte)(13 << 4);
                 bb.SetUInt8(len);
                 //Opt delta extended.
-                UInt16 delta = type;
-                delta -= (UInt16)(13 + last);
-                bb.SetUInt16(delta);
+                byte delta = (byte)(type - last + 1);
+                bb.SetUInt8(delta);
             }
             else
             {
@@ -2180,7 +2183,10 @@ namespace Gurux.DLMS
         /// <param name="command">DLMS command.</param>
         /// <param name="data">Wrapped data.</param>
         /// <returns>SMS frame</returns>
-        internal static byte[] GetCoAPFrame(GXDLMSSettings settings, Command command, GXByteBuffer data)
+        internal static byte[] GetCoAPFrame(GXDLMSSettings settings, 
+            Command command, 
+            GXByteBuffer data,
+            RequestTypes moreData)
         {
             GXByteBuffer bb = new GXByteBuffer();
             //Add version.
@@ -2204,7 +2210,12 @@ namespace Gurux.DLMS
             {
                 tokenLen = 8;
             }
-            if (!settings.IsServer ||
+            if ((moreData & RequestTypes.Frame) != 0)
+            {
+                type = CoAPType.Acknowledgement;
+                code = (byte)CoAPClass.Success << 5 | (byte)CoAPSuccess.Continue;
+            }
+            else if (!settings.IsServer ||
                 command == Command.DataNotification || command == Command.EventNotification)
             {
                 code = (byte)CoAPClass.Method << 5 | (byte)CoAPMethod.Post;
@@ -2219,7 +2230,10 @@ namespace Gurux.DLMS
             bb.SetUInt8((byte)(version << 6 | ((byte)type << 4) | tokenLen));
             //Add code.
             bb.SetUInt8(code);
-            ++settings.Coap.MessageId;
+            if ((moreData & RequestTypes.Frame) == 0)
+            {
+                ++settings.Coap.MessageId;
+            }
             bb.SetUInt16(settings.Coap.MessageId);
             if (settings.Coap.Token < 0x100)
             {
@@ -2237,26 +2251,39 @@ namespace Gurux.DLMS
             {
                 bb.SetUInt64(settings.Coap.Token);
             }
-            UInt16 lastOptionType = 0;
+            UInt16 lastOptionType = 14;
             if (type == CoAPType.Confirmable)
             {
                 //Add Uri-host.
-                lastOptionType = AddOpt(bb, (byte)CoAPOptionType.UriHost, lastOptionType, settings.Coap.Host);
+                if (!string.IsNullOrEmpty(settings.Coap.Host))
+                {
+                    lastOptionType = AddOpt(bb, (byte)CoAPOptionType.UriHost, lastOptionType, settings.Coap.Host);
+                }
                 //Add Uri-port.
-                lastOptionType = AddOpt(bb, (byte)CoAPOptionType.UriPort, lastOptionType, settings.Coap.Port);
+                if (settings.Coap.Port != 0)
+                {
+                    lastOptionType = AddOpt(bb, (byte)CoAPOptionType.UriPort, lastOptionType, settings.Coap.Port);
+                }
                 //Add Uri-port.
                 if (!string.IsNullOrEmpty(settings.Coap.Path))
                 {
                     lastOptionType = AddOpt(bb, (byte)CoAPOptionType.UriPath, lastOptionType, settings.Coap.Path);
                 }
             }
-            lastOptionType = AddOpt(bb, (byte)CoAPOptionType.ContentFormat, lastOptionType, (UInt16)settings.Coap.ContentFormat);
+            if ((moreData & RequestTypes.Frame) == 0)
+            {
+                lastOptionType = AddOpt(bb, (byte)CoAPOptionType.ContentFormat, lastOptionType, (UInt16)settings.Coap.ContentFormat);
+            }
             if (settings.Coap.MaxAge != 0)
             {
                 lastOptionType = AddOpt(bb, (byte)CoAPOptionType.MaxAge, lastOptionType, settings.Coap.MaxAge);
             }
 
-            if (settings.Coap.BlockNumber != 0)
+            if ((moreData & RequestTypes.Frame) != 0)
+            {
+                lastOptionType = AddOpt(bb, (byte)CoAPOptionType.Block1, lastOptionType, (byte)((settings.Coap.BlockNumber << 4) | 0xE));
+            }
+            else if (settings.Coap.BlockNumber != 0)
             {
                 lastOptionType = AddOpt(bb, (byte)CoAPOptionType.Block2, lastOptionType, (byte)((settings.Coap.BlockNumber << 4) | 0xE));
             }
@@ -3285,7 +3312,8 @@ namespace Gurux.DLMS
             CoAPClass coapClass = (CoAPClass)(ch >> 5);
             //Get msg ID.
             UInt16 msgId = buff.GetUInt16();
-            if (data != null && data.Xml == null && settings.Coap.MessageId != msgId)
+            if (data != null && data.Xml == null && 
+                settings.Coap.MessageId != 0 && settings.Coap.MessageId != msgId)
             {
                 return false;
             }
@@ -3295,6 +3323,7 @@ namespace Gurux.DLMS
             byte option;
             RequestTypes moreData = RequestTypes.None;
             UInt16 type = 0;
+            UInt16 frameSize = 0;
             if (coapClass != CoAPClass.ClientError)
             {
                 while (buff.Available != 0 && (option = buff.GetUInt8()) != 0xFF)
@@ -3309,16 +3338,14 @@ namespace Gurux.DLMS
                     if (delta == 13)
                     {
                         //Extended delta value.
-                        type = buff.GetUInt8();
+                        type += buff.GetUInt8();
                         type += 13;
-                        type += 12;
                     }
                     else if (delta == 14)
                     {
                         //Extended delta value.
-                        type = buff.GetUInt16();
+                        type += buff.GetUInt16();
                         type += 269;
-                        type += 12;
                     }
                     else
                     {
@@ -3353,15 +3380,31 @@ namespace Gurux.DLMS
                         }
                         continue;
                     }
+                    else if (type == (byte)CoAPOptionType.Block1)
+                    {
+                        int tmp = (int)GetCoAPValueAsInteger(buff, optionLen);
+                        if ((tmp & 0x8) != 0)
+                        {
+                            moreData |= RequestTypes.Frame;
+                        }
+                        if (data != null)
+                        {
+                            settings.Coap.BlockNumber = (byte)(tmp >> 8);
+                            data.MoreData |= moreData;
+                        }
+                        frameSize = (UInt16)Math.Pow(2, (tmp & 0x7) + 4);
+                        continue;
+                    }
                     else if (type == (byte)CoAPOptionType.Block2)
                     {
+                        int tmp = (int)GetCoAPValueAsInteger(buff, optionLen);
+                        byte blockNumber = (byte)(tmp >> 4);
                         //More flag.
-                        byte more = (byte)GetCoAPValueAsInteger(buff, optionLen);
-                        byte blockNumber = (byte)(more >> 4);
-                        if ((more & 0x8) != 0)
+                        if ((tmp & 0x8) != 0)
                         {
                             moreData = RequestTypes.Frame;
                         }
+                        frameSize = (UInt16)Math.Pow(2, (tmp & 0x7) + 4);
                         if (data != null)
                         {
                             if (settings != null && blockNumber != settings.Coap.BlockNumber && settings.Coap.BlockNumber != 0 && data.Xml == null)
@@ -3457,6 +3500,7 @@ namespace Gurux.DLMS
                             case CoAPSuccess.Created:
                             case CoAPSuccess.Deleted:
                             case CoAPSuccess.Valid:
+                            case CoAPSuccess.Continue:
                                 break;
                             default:
                                 return false;
@@ -3526,23 +3570,50 @@ namespace Gurux.DLMS
                 }
                 if (data.Xml != null)
                 {
-                    if (!data.IsMoreData && data.PacketLength == buff.Size)
+                    if (!data.IsMoreData && (frameSize != 0 ||
+                        data.PacketLength == buff.Size))
                     {
                         //If last block.
+                        data.IsComplete = true;
+                        if (buff.Available < frameSize)
+                        {
+                            data.PacketLength = buff.Size; 
+                        }
+                        else
+                        {
+                            data.PacketLength = buff.Position + frameSize;
+                        }
                         return true;
                     }
                     if (data.IsMoreData)
                     {
-                        FindNextToken(settings, buff, origPos, data, notify, false);
+                        /*Mikko
+                        if (coapType == CoAPType.Acknowledgement)
+                        {
+                            data.PacketLength = buff.Position;
+                            data.IsComplete = true;
+                        }
+                        else 
+                        */
+                        if ( buff.Available < frameSize)
+                        {
+                            data.IsComplete = false;
+                        }
+                        else
+                        {
+                            data.IsComplete = true;
+                            data.PacketLength = buff.Position + frameSize;
+                        }
                     }
                     else
                     {
-                        if (coapType == CoAPType.Confirmable && moreData != RequestTypes.None)
+                        if ((coapType == CoAPType.Confirmable &&
+                            moreData != RequestTypes.None))
                         {
                             //Client sends ACK
                             data.IsComplete = true;
                             data.PacketLength = buff.Position;
-                        }
+                        }                      
                         else
                         {
                             GXByteBuffer origData = data.Data;

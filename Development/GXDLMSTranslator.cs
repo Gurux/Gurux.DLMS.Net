@@ -335,7 +335,8 @@ namespace Gurux.DLMS
                     {
                         value = null;
                     }
-                    else if (value.Length != 16)
+                    else if (!((SecuritySuite != SecuritySuite.Suite2 && value.Length == 16) ||
+                        (SecuritySuite == SecuritySuite.Suite2 && value.Length == 32)))
                     {
                         throw new ArgumentOutOfRangeException("Invalid dedicated key. Dedicated key size is 16 bytes.");
                     }
@@ -362,7 +363,8 @@ namespace Gurux.DLMS
                     {
                         value = null;
                     }
-                    else if (value.Length != 16)
+                    else if (!((SecuritySuite != SecuritySuite.Suite2 && value.Length == 16) ||
+                        (SecuritySuite == SecuritySuite.Suite2 && value.Length == 32)))
                     {
                         throw new ArgumentOutOfRangeException("Invalid block cipher key. Block cipher key size is 16 bytes.");
                     }
@@ -388,7 +390,8 @@ namespace Gurux.DLMS
                     {
                         value = null;
                     }
-                    else if (value.Length != 16)
+                    else if (!((SecuritySuite != SecuritySuite.Suite2 && value.Length == 16) ||
+                        (SecuritySuite == SecuritySuite.Suite2 && value.Length == 32)))
                     {
                         throw new ArgumentOutOfRangeException("Invalid authentication key. Authentication key size is 16 bytes.");
                     }
@@ -1775,7 +1778,18 @@ namespace Gurux.DLMS
                         data.MoreData == RequestTypes.None &&
                         data.Data.Data != null)
                     {
-                        pdu = PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg);
+                        try
+                        {
+                            pdu = PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg);
+                        }
+                        catch(Exception)
+                        {
+                            //If block is shown on the middle or at the end of data.
+                            if (data.Data.Size != 0)
+                            {
+                                pdu = "<Block Value=\"" + GXCommon.ToHex(data.Data.Data, false, data.Data.Position, data.Data.Size - data.Data.Position) + "\" />";
+                            }
+                        }
                     }
                     else
                     {

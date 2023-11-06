@@ -1149,7 +1149,7 @@ namespace Gurux.DLMS
                     reply = data.Array();
                     break;
                 case InterfaceType.CoAP:
-                    reply = GXDLMS.GetCoAPFrame(Settings, cmd, data);
+                    reply = GXDLMS.GetCoAPFrame(Settings, cmd, data, RequestTypes.None);
                     break;
                 default:
                     throw new Exception("Unknown interface type " + InterfaceType);
