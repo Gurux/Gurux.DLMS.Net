@@ -539,6 +539,15 @@ namespace Gurux.DLMS.Objects
                 index = settings.Index;
             }
             int lnVersion = 2;
+            foreach (GXDLMSObject it in this)
+            {
+                if (it is GXDLMSAssociationLogicalName)
+                {
+                    lnVersion = it.Version;
+                    break;
+                }
+            }
+
             using (GXXmlWriter writer = new GXXmlWriter(stream, settings))
             {
                 if (!ignoreDescription)
