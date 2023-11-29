@@ -71,7 +71,7 @@ namespace Gurux.DLMS.Simulator.Net
             string[] tmp;
             GXNet net;
             GXSerial serial;
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:wP:g:S:C:n:v:o:T:A:B:D:d:l:F:r:x:N:Xx:G:f:");
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:wP:g:S:C:n:v:o:T:A:B:D:d:l:F:r:x:N:Xx:G:f:ub:");
             foreach (GXCmdParameter it in parameters)
             {
                 switch (it.Tag)
@@ -119,6 +119,17 @@ namespace Gurux.DLMS.Simulator.Net
                         net = settings.media as GXNet;
                         net.Port = int.Parse(it.Value);
                         break;
+                    case 'u':
+                        {
+                            //UDP.
+                            if (settings.media == null)
+                            {
+                                settings.media = new GXNet();
+                            }
+                            net = settings.media as GXNet;
+                            net.Protocol = NetworkType.Udp;
+                        }
+                        break;
                     case 'P'://Password
                         settings.client.Password = ASCIIEncoding.ASCII.GetBytes(it.Value);
                         break;
@@ -137,7 +148,7 @@ namespace Gurux.DLMS.Simulator.Net
                         }
                         catch (Exception)
                         {
-                            throw new ArgumentException("Invalid interface type option. (HDLC, WRAPPER, HdlcWithModeE, Plc, PlcHdlc, PDU)");
+                            throw new ArgumentException("Invalid interface type option. (HDLC, WRAPPER, HdlcWithModeE, Plc, PlcHdlc, PDU, CoAP)");
                         }
                         break;
                     case 'I':
@@ -250,6 +261,9 @@ namespace Gurux.DLMS.Simulator.Net
                     case 'B':
                         settings.client.Ciphering.BlockCipherKey = GXCommon.HexToBytes(it.Value);
                         break;
+                    case 'b':
+                        settings.client.Ciphering.BroadcastBlockCipherKey = GXCommon.HexToBytes(it.Value);
+                        break;
                     case 'D':
                         settings.client.Ciphering.DedicatedKey = GXCommon.HexToBytes(it.Value);
                         break;
@@ -354,7 +368,7 @@ namespace Gurux.DLMS.Simulator.Net
                             case 'm':
                                 throw new ArgumentException("Missing mandatory MAC destination address option.");
                             case 'i':
-                                throw new ArgumentException("Invalid interface type option. (HDLC, WRAPPER, HdlcWithModeE, Plc, PlcHdlc)");
+                                throw new ArgumentException("Invalid interface type option. (HDLC, WRAPPER, HdlcWithModeE, Plc, PlcHdlc, PDU, CoAP)");
                             default:
                                 ShowHelp();
                                 return 1;
@@ -378,6 +392,7 @@ namespace Gurux.DLMS.Simulator.Net
             Console.WriteLine("Server parameters:");
             Console.WriteLine(" -t [Error, Warning, Info, Verbose] Trace messages.");
             Console.WriteLine(" -p Start port number. Default is 4060.");
+            Console.WriteLine(" -u \t UDP is used.");
             Console.WriteLine(" -N Amount of the TCP/IP servers. Default is 1.");
             Console.WriteLine(" -X All meters are using the same port.");
             Console.WriteLine(" -i \t Used communication interface. Ex. -i WRAPPER.");
@@ -391,6 +406,7 @@ namespace Gurux.DLMS.Simulator.Net
             Console.WriteLine("Reading parameters:");
             Console.WriteLine(" -h \t host name or IP address.");
             Console.WriteLine(" -p \t port number or name (Example: 1000).");
+            Console.WriteLine(" -u \t UDP is used.");
             Console.WriteLine(" -S [COM1:9600:8None1]\t serial port.");
             Console.WriteLine(" -i \t Used communication interface. Ex. -i WRAPPER.");
             Console.WriteLine(" -a \t Authentication (None, Low, High).");

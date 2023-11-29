@@ -35,6 +35,7 @@ using Gurux.Common;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects;
 using Gurux.DLMS.Secure;
+using Gurux.DLMS.Simulator.Net;
 using Gurux.Serial;
 using System;
 using System.Collections.Generic;
@@ -97,6 +98,19 @@ namespace Gurux.DLMS.Reader
                 GetProfileGenerics();
                 if (outputFile != null)
                 {
+                    //Update block cipher and authentication keys if used.
+                    if (_client.Ciphering.Security != Security.None)
+                    {
+                        foreach (var it in _client.Objects)
+                        {
+                            if (it is GXDLMSSecuritySetup ss)
+                            {
+                                ss.Guek = _client.Ciphering.BlockCipherKey;
+                                ss.Gbek = _client.Ciphering.BlockCipherKey;
+                                ss.Gak = _client.Ciphering.AuthenticationKey;
+                            }
+                        }
+                    }
                     try
                     {
                         _client.Objects.Save(outputFile, new GXXmlWriterSettings() { UseMeterTime = true, IgnoreDefaultValues = false });
@@ -758,76 +772,84 @@ namespace Gurux.DLMS.Reader
                 {
                     continue;
                 }
-                //All meters are not supporting parameterized read.
-                if ((_client.NegotiatedConformance & (Gurux.DLMS.Enums.Conformance.ParameterizedAccess | Gurux.DLMS.Enums.Conformance.SelectiveAccess)) != 0)
+                if (entriesInUse < 10)
                 {
-                    try
-                    {
-                        //Read first row from Profile Generic.
-                        object[] rows = ReadRowsByEntry(it as GXDLMSProfileGeneric, 1, 1);
-                        //If trace is info.
-                        if (_trace > TraceLevel.Warning)
-                        {
-                            StringBuilder sb = new StringBuilder();
-                            foreach (object[] row in rows)
-                            {
-                                foreach (object cell in row)
-                                {
-                                    if (cell is byte[])
-                                    {
-                                        sb.Append(GXCommon.ToHex((byte[])cell, true));
-                                    }
-                                    else
-                                    {
-                                        sb.Append(Convert.ToString(cell));
-                                    }
-                                    sb.Append(" | ");
-                                }
-                                sb.Append("\r\n");
-                            }
-                            Console.WriteLine(sb.ToString());
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Error! Failed to read first row: " + ex.Message);
-                        //Continue reading.
-                    }
+                    //Read all rows.
+                    Read(it, 2);
                 }
-                //All meters are not supporting parameterized read.
-                if ((_client.NegotiatedConformance & (Gurux.DLMS.Enums.Conformance.ParameterizedAccess | Gurux.DLMS.Enums.Conformance.SelectiveAccess)) != 0)
+                else
                 {
-                    try
+                    if ((_client.NegotiatedConformance & (Gurux.DLMS.Enums.Conformance.ParameterizedAccess | Gurux.DLMS.Enums.Conformance.SelectiveAccess)) != 0)
                     {
-                        //Read last day from Profile Generic.
-                        object[] rows = ReadRowsByRange(it as GXDLMSProfileGeneric, DateTime.Now.Date, DateTime.MaxValue);
-                        //If trace is info.
-                        if (_trace > TraceLevel.Warning)
+                        //All meters are not supporting parameterized read.
+                        try
                         {
-                            StringBuilder sb = new StringBuilder();
-                            foreach (object[] row in rows)
+                            //Read first row from Profile Generic.
+                            object[] rows = ReadRowsByEntry(it as GXDLMSProfileGeneric, 1, 1);
+                            //If trace is info.
+                            if (_trace > TraceLevel.Warning)
                             {
-                                foreach (object cell in row)
+                                StringBuilder sb = new StringBuilder();
+                                foreach (object[] row in rows)
                                 {
-                                    if (cell is byte[])
+                                    foreach (object cell in row)
                                     {
-                                        sb.Append(GXCommon.ToHex((byte[])cell, true));
+                                        if (cell is byte[])
+                                        {
+                                            sb.Append(GXCommon.ToHex((byte[])cell, true));
+                                        }
+                                        else
+                                        {
+                                            sb.Append(Convert.ToString(cell));
+                                        }
+                                        sb.Append(" | ");
                                     }
-                                    else
-                                    {
-                                        sb.Append(Convert.ToString(cell));
-                                    }
-                                    sb.Append(" | ");
+                                    sb.Append("\r\n");
                                 }
-                                sb.Append("\r\n");
+                                Console.WriteLine(sb.ToString());
                             }
-                            Console.WriteLine(sb.ToString());
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("Error! Failed to read first row: " + ex.Message);
+                            //Continue reading.
                         }
                     }
-                    catch (Exception ex)
+                    //All meters are not supporting parameterized read.
+                    if ((_client.NegotiatedConformance & (Gurux.DLMS.Enums.Conformance.ParameterizedAccess | Gurux.DLMS.Enums.Conformance.SelectiveAccess)) != 0)
                     {
-                        Console.WriteLine("Error! Failed to read last day: " + ex.Message);
-                        //Continue reading.
+                        try
+                        {
+                            //Read last day from Profile Generic.
+                            object[] rows = ReadRowsByRange(it as GXDLMSProfileGeneric, DateTime.Now.Date, DateTime.MaxValue);
+                            //If trace is info.
+                            if (_trace > TraceLevel.Warning)
+                            {
+                                StringBuilder sb = new StringBuilder();
+                                foreach (object[] row in rows)
+                                {
+                                    foreach (object cell in row)
+                                    {
+                                        if (cell is byte[])
+                                        {
+                                            sb.Append(GXCommon.ToHex((byte[])cell, true));
+                                        }
+                                        else
+                                        {
+                                            sb.Append(Convert.ToString(cell));
+                                        }
+                                        sb.Append(" | ");
+                                    }
+                                    sb.Append("\r\n");
+                                }
+                                Console.WriteLine(sb.ToString());
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("Error! Failed to read last day: " + ex.Message);
+                            //Continue reading.
+                        }
                     }
                 }
             }

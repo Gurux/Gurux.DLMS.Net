@@ -418,7 +418,7 @@ namespace Gurux.DLMS.Simulator.Net
                     {
                         bb = buffers[e.SenderInfo];
                     }
-                    lock(bb)
+                    lock (bb)
                     {
                         bb.Set((byte[])e.Data);
                     }
@@ -596,6 +596,32 @@ namespace Gurux.DLMS.Simulator.Net
         protected override void InvalidConnection(GXDLMSConnectionEventArgs e)
         {
         }
+
+        void SendPush(GXDLMSPushSetup target)
+        {
+            int pos = target.Destination.IndexOf(':');
+            if (pos == -1)
+            {
+                throw new ArgumentException("Invalid destination.");
+            }
+            byte[][] data = GeneratePushSetupMessages(DateTime.MinValue, target);
+            string host = target.Destination.Substring(0, pos);
+            int port = int.Parse(target.Destination.Substring(pos + 1));
+            GXNet net = new GXNet(NetworkType.Tcp, host, port);
+            try
+            {
+                net.Open();
+                foreach (byte[] it in data)
+                {
+                    net.Send(it, null);
+                }
+            }
+            finally
+            {
+                net.Close();
+            }
+        }
+
         protected override void PreAction(ValueEventArgs[] args)
         {
             foreach (ValueEventArgs it in args)
@@ -615,6 +641,21 @@ namespace Gurux.DLMS.Simulator.Net
                         }
                     }
                 }
+                if ((it.Target is GXDLMSPushSetup push) && it.Index == 1)
+                {
+                    //Send push msg.
+                    SendPush(push);
+                    it.Handled = true; 
+                    continue;
+                }
+                if ((it.Target is GXDLMSAutoConnect ac) && it.Index == 1)
+                {
+                    //Connect for the give IP address.
+                    it.Handled = true;
+                    continue;
+                }
+                
+
                 if (it.Target is GXDLMSImageTransfer)
                 {
                     GXDLMSImageTransfer i = it.Target as GXDLMSImageTransfer;
@@ -771,7 +812,7 @@ namespace Gurux.DLMS.Simulator.Net
             }
             bool ret = false;
             //Check HDLC station address if it's used.
-            if (InterfaceType == InterfaceType.HDLC && 
+            if (InterfaceType == InterfaceType.HDLC &&
                     Hdlc != null && Hdlc.DeviceAddress != 0)
             {
                 ret = Hdlc.DeviceAddress == serverAddress;
