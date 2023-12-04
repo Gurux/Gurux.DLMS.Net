@@ -1639,7 +1639,7 @@ namespace Gurux.DLMS
                         byte value = 0;
                         foreach (object it in (GXArray)attributeAccess[2])
                         {
-                            value |= (byte)(1 << ((byte)it));
+                            value |= (byte)(1 << Convert.ToSByte(it));
                         }
                         obj.SetAccessSelector(id, value);
                     }
