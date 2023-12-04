@@ -496,15 +496,24 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Exports an X.509 v3 certificate from the server using serial information.
+        /// Verify that issuer is in ASN1 format.
         /// </summary>
-        /// <param name="client">DLMS client that is used to generate action.</param>
-        /// <param name="serialNumber">Serial number.</param>
-        /// <param name="issuer">Issuer</param>
-        /// <returns>Generated action.</returns>
-        public byte[][] ExportCertificateBySerial(GXDLMSClient client, BigInteger serialNumber, string issuer)
+        /// <param name="issuer">Certificate issuer.</param>
+        private static void VerifyIssuer(byte[] issuer)
         {
-            return ExportCertificateBySerial(client, serialNumber, ASCIIEncoding.ASCII.GetBytes(issuer));
+            //Verify that issuer is in ASN1 format.
+            try
+            {
+                if (issuer == null || issuer.Length == 0)
+                {
+                    throw new ArgumentException();
+                }
+                GXAsn1Converter.FromByteArray(issuer);
+            }
+            catch (Exception)
+            {
+                throw new ArgumentException("Invalid issuer. Issuer must be in ASN1 format.");
+            }
         }
 
         /// <summary>
@@ -516,6 +525,7 @@ namespace Gurux.DLMS.Objects
         /// <returns>Generated action.</returns>
         public byte[][] ExportCertificateBySerial(GXDLMSClient client, BigInteger serialNumber, byte[] issuer)
         {
+            VerifyIssuer(issuer);
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetUInt8(DataType.Structure);
             bb.SetUInt8(2);
@@ -573,6 +583,7 @@ namespace Gurux.DLMS.Objects
         /// <returns>Generated action.</returns>
         public byte[][] RemoveCertificateBySerial(GXDLMSClient client, BigInteger serialNumber, byte[] issuer)
         {
+            VerifyIssuer(issuer);
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetUInt8(DataType.Structure);
             bb.SetUInt8(2);
@@ -1344,28 +1355,12 @@ namespace Gurux.DLMS.Objects
 
         private static string GetStringFromAsn1(byte[] value)
         {
-            StringBuilder sb = new StringBuilder();
             object issuer = GXAsn1Converter.FromByteArray(value);
-            if (issuer is GXAsn1Sequence s)
+            if (issuer is GXAsn1Sequence)
             {
-                foreach (KeyValuePair<object, object> v in s)
-                {
-                    sb.Append(X509NameConverter.FromString(((GXAsn1ObjectIdentifier)v.Key).Description));
-                    sb.Append("=");
-                    sb.Append(Convert.ToString(v.Value));
-                    sb.Append(", ");
-                }
-                if (sb.Length != 0)
-                {
-                    //Remove last comma.
-                    sb.Length -= 2;
-                }
-                return sb.ToString();
+                return GXAsn1Converter.GetSubject((GXAsn1Sequence)issuer);
             }
-            else
-            {
-                return Convert.ToString(issuer);
-            }
+            return Convert.ToString(issuer);
         }
 
         private void UpdateSertificates(IEnumerable<object> list)
@@ -1402,8 +1397,8 @@ namespace Gurux.DLMS.Objects
                     }
                     try
                     {
-                        info.IssuerAsn1 = (byte[])it[3];
-                        info.Issuer = GetStringFromAsn1(info.IssuerAsn1);
+                        info.IssuerRaw = (byte[])it[3];
+                        info.Issuer = GetStringFromAsn1(info.IssuerRaw);
                     }
                     catch
                     {
@@ -1412,8 +1407,8 @@ namespace Gurux.DLMS.Objects
                     }
                     try
                     {
-                        info.SubjectAsn1 = (byte[])it[4];
-                        info.Subject = GetStringFromAsn1(info.SubjectAsn1);
+                        info.SubjectRaw = (byte[])it[4];
+                        info.Subject = GetStringFromAsn1(info.SubjectRaw);
                     }
                     catch
                     {
@@ -1422,8 +1417,8 @@ namespace Gurux.DLMS.Objects
                     }
                     try
                     {
-                        info.SubjectAltNameAsn1 = (byte[])it[5];
-                        info.SubjectAltName = GetStringFromAsn1(info.SubjectAltNameAsn1);
+                        info.SubjectAltNameRaw = (byte[])it[5];
+                        info.SubjectAltName = GetStringFromAsn1(info.SubjectAltNameRaw);
                     }
                     catch
                     {

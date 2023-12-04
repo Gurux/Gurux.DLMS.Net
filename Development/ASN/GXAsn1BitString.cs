@@ -43,10 +43,23 @@ namespace Gurux.DLMS.ASN
     public class GXAsn1BitString
     {
         /// <summary>Number of extra bits at the end of the string. </summary>
+        private int padBits;
+
+        /// <summary>Number of extra bits at the end of the string. </summary>
         public int PadBits
         {
-            get;
-            private set;
+            get
+            {
+                return padBits;
+            }
+            private set
+            {
+                if (value < 0)
+                {
+                    throw new System.ArgumentException(nameof(PadBits));
+                }
+                padBits = value;
+            }
         }
 
         /// <summary>Bit string. </summary>

@@ -38,7 +38,6 @@ using System.Security.Cryptography;
 #endif
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects;
-using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS.Secure
 {
@@ -52,7 +51,9 @@ namespace Gurux.DLMS.Secure
         public GXDLMSSecureServer(bool logicalNameReferencing, InterfaceType type) :
             base(logicalNameReferencing, type)
         {
-            Ciphering = new GXCiphering(ASCIIEncoding.ASCII.GetBytes("ABCDEFGH"));
+            //System title format is FLAG ID + serial number.
+            byte[] st = new byte[8] { 0x47, 0x52, 0x58, 0x00, 0x00, 0x00, 0x00, 0x01 };
+            Ciphering = new GXCiphering(st);
             Settings.Cipher = Ciphering;
         }
 

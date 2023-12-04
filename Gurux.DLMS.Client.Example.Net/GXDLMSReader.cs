@@ -33,7 +33,6 @@
 //---------------------------------------------------------------------------
 using Gurux.Common;
 using Gurux.DLMS.ASN;
-using Gurux.DLMS.Client.Example;
 using Gurux.DLMS.Ecdsa;
 using Gurux.DLMS.Ecdsa.Enums;
 using Gurux.DLMS.Enums;
@@ -47,7 +46,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Ports;
-using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -332,7 +330,7 @@ namespace Gurux.DLMS.Reader
             foreach (GXx509Certificate it in certs)
             {
                 if (!ReadDataBlock(ss.ExportCertificateBySerial(Client, it.SerialNumber,
-                    ASCIIEncoding.ASCII.GetBytes(it.Issuer)), reply))
+                    it.IssuerRaw), reply))
                 {
                     throw new GXDLMSException(reply.Error);
                 }
@@ -386,7 +384,7 @@ namespace Gurux.DLMS.Reader
                 {
                     reply.Clear();
                     //Export certification and verify it.
-                    if (!ReadDataBlock(ss.ExportCertificateBySerial(Client, it.SerialNumber, it.IssuerAsn1), reply))
+                    if (!ReadDataBlock(ss.ExportCertificateBySerial(Client, it.SerialNumber, it.IssuerRaw), reply))
                     {
                         throw new GXDLMSException(reply.Error);
                     }
@@ -521,15 +519,16 @@ namespace Gurux.DLMS.Reader
                 InitializeOpticalHead();
                 byte[] data;
                 GXReplyData reply = new GXReplyData();
-                Client.ProposedConformance |= Conformance.GeneralProtection;
                 int add = Client.ClientAddress;
                 int serverAddress = Client.ServerAddress;
                 Authentication auth = Client.Authentication;
                 Security security = Client.Ciphering.Security;
                 Signing signing = Client.Ciphering.Signing;
                 byte[] challenge = Client.CtoSChallenge;
+                byte[] serverSystemTitle = Client.ServerSystemTitle;
                 try
                 {
+                    Client.ServerSystemTitle = null;
                     Client.ClientAddress = 16;
                     Client.Authentication = Authentication.None;
                     Client.Ciphering.Security = Security.None;
@@ -593,17 +592,17 @@ namespace Gurux.DLMS.Reader
                         {
                             Media.Close();
                             Media.Settings = mediaSettings;
-                            InitializeOpticalHead();
                         }
                     }
-                    catch (Exception Ex)
+                    catch (Exception)
                     {
                         Disconnect();
-                        throw Ex;
+                        throw;
                     }
                 }
                 finally
                 {
+                    Client.ServerSystemTitle = serverSystemTitle;
                     Client.ClientAddress = add;
                     Client.ServerAddress = serverAddress;
                     Client.Authentication = auth;
@@ -617,6 +616,10 @@ namespace Gurux.DLMS.Reader
                         Client.Coap.Options[65003] = (byte)Client.ClientAddress;
                         //Server SAP
                         Client.Coap.Options[65005] = (byte)Client.ServerAddress;
+                    }
+                    if (Client.PreEstablishedConnection)
+                    {
+                        Client.NegotiatedConformance |= Conformance.GeneralProtection;
                     }
                 }
             }
@@ -834,39 +837,42 @@ namespace Gurux.DLMS.Reader
             InitializeOpticalHead();
             GXReplyData reply = new GXReplyData();
             SNRMRequest();
-            //Generate AARQ request.
-            //Split requests to multiple packets if needed.
-            //If password is used all data might not fit to one packet.
-            foreach (byte[] it in Client.AARQRequest())
+            if (!Client.PreEstablishedConnection)
             {
-                if (Trace > TraceLevel.Info)
+                //Generate AARQ request.
+                //Split requests to multiple packets if needed.
+                //If password is used all data might not fit to one packet.
+                foreach (byte[] it in Client.AARQRequest())
                 {
-                    Console.WriteLine("Send AARQ request", GXCommon.ToHex(it, true));
-                }
-                reply.Clear();
-                ReadDataBlock(it, reply);
-            }
-            if (Trace > TraceLevel.Info)
-            {
-                Console.WriteLine("Parsing AARE reply" + reply.ToString());
-            }
-            //Parse reply.
-            Client.ParseAAREResponse(reply.Data);
-            Console.WriteLine("Conformance: " + Client.NegotiatedConformance);
-            reply.Clear();
-            //Get challenge Is HLS authentication is used.
-            if (Client.Authentication > Authentication.Low)
-            {
-                foreach (byte[] it in Client.GetApplicationAssociationRequest())
-                {
+                    if (Trace > TraceLevel.Info)
+                    {
+                        Console.WriteLine("Send AARQ request", GXCommon.ToHex(it, true));
+                    }
                     reply.Clear();
                     ReadDataBlock(it, reply);
                 }
-                Client.ParseApplicationAssociationResponse(reply.Data);
-            }
-            if (Trace > TraceLevel.Info)
-            {
-                Console.WriteLine("Parsing AARE reply succeeded.");
+                if (Trace > TraceLevel.Info)
+                {
+                    Console.WriteLine("Parsing AARE reply" + reply.ToString());
+                }
+                //Parse reply.
+                Client.ParseAAREResponse(reply.Data);
+                Console.WriteLine("Conformance: " + Client.NegotiatedConformance);
+                reply.Clear();
+                //Get challenge Is HLS authentication is used.
+                if (Client.Authentication > Authentication.Low)
+                {
+                    foreach (byte[] it in Client.GetApplicationAssociationRequest())
+                    {
+                        reply.Clear();
+                        ReadDataBlock(it, reply);
+                    }
+                    Client.ParseApplicationAssociationResponse(reply.Data);
+                }
+                if (Trace > TraceLevel.Info)
+                {
+                    Console.WriteLine("Parsing AARE reply succeeded.");
+                }
             }
         }
 

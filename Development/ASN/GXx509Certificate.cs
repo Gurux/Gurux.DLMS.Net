@@ -237,6 +237,15 @@ namespace Gurux.DLMS.ASN
         }
 
         /// <summary>
+        /// Raw Issuer in ASN1 format.
+        /// </summary>
+        public byte[] IssuerRaw
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// Authority Cert Issuer. Example: "CN=Test O=Gurux, L=Tampere, C=FI".
         /// </summary>
         public string AuthorityCertIssuer
@@ -458,6 +467,7 @@ namespace Gurux.DLMS.ASN
                 SignatureParameters = ((GXAsn1Sequence)reqInfo[2])[1];
             }
             // Issuer
+            IssuerRaw = GXAsn1Converter.ToByteArray(reqInfo[3]);
             Issuer = GXAsn1Converter.GetSubject((GXAsn1Sequence)reqInfo[3]);
             bool basicConstraintsExists = false;
             // Validity

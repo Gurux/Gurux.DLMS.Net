@@ -119,7 +119,6 @@ namespace Gurux.DLMS.Secure
             }
         }
 
-
         public byte[] BlockCipherKey
         {
             get
@@ -165,6 +164,26 @@ namespace Gurux.DLMS.Secure
                 authenticationKey = value;
             }
         }
+
+        /// <summary>
+        /// Is data send as a broadcast or unicast.
+        /// </summary>
+        public bool Broacast
+        {
+            get;
+            set;
+        }
+
+
+        /// <summary>
+        /// V.44 Compression is used.
+        /// </summary>
+        public bool Compression
+        {
+            get;
+            set;
+        }
+
         public CountType Type
         {
             get;
@@ -352,6 +371,7 @@ namespace Gurux.DLMS.Secure
             AuthenticationKey = authenticationKey;
             Type = CountType.Packet;
             SecuritySuite = securitySuite;
+            Broacast = settings.Broacast;
         }
 
         /// <summary>

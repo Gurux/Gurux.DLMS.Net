@@ -70,7 +70,7 @@ namespace Gurux.DLMS.Client.Example
             //Has user give the custom serial port settings or are the default values used in mode E.
             bool modeEDefaultValues = true;
             string[] tmp;
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:P:g:S:C:n:v:o:T:A:B:D:d:l:F:m:E:V:G:M:K:N:W:w:f:L:q:");
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:P:g:S:C:n:v:o:T:A:B:D:d:l:F:m:E:V:G:M:K:N:W:w:f:L:q:b:R:u");
             foreach (GXCmdParameter it in parameters)
             {
                 switch (it.Tag)
@@ -135,6 +135,19 @@ namespace Gurux.DLMS.Client.Example
                             else if (settings.media is GXMqtt mqtt)
                             {
                                 mqtt.Port = int.Parse(it.Value);
+                            }
+                        }
+                        break;
+                    case 'u':
+                        {
+                            //UDP.
+                            if (settings.media == null)
+                            {
+                                settings.media = new GXNet();
+                            }
+                            if (settings.media is GXNet net)
+                            {
+                                net.Protocol = NetworkType.Udp;
                             }
                         }
                         break;
@@ -350,6 +363,9 @@ namespace Gurux.DLMS.Client.Example
                     case 'B':
                         settings.client.Ciphering.BlockCipherKey = GXCommon.HexToBytes(it.Value);
                         break;
+                    case 'b':
+                        settings.client.Ciphering.BroadcastBlockCipherKey= GXCommon.HexToBytes(it.Value);
+                        break;
                     case 'D':
                         settings.client.Ciphering.DedicatedKey = GXCommon.HexToBytes(it.Value);
                         break;
@@ -426,6 +442,21 @@ namespace Gurux.DLMS.Client.Example
                             settings.client.Gateway.PhysicalDeviceAddress = ASCIIEncoding.ASCII.GetBytes(tmp[1]);
                         }
                         break;
+                    case 'R':
+                        settings.client.Broacast = true;
+                        if (string.Compare(it.Value, "UnConfirmed", true) == 0)
+                        {
+                            settings.client.ServiceClass = ServiceClass.UnConfirmed;
+                        }
+                        else if (string.Compare(it.Value, "Confirmed", true) == 0)
+                        {
+                            settings.client.ServiceClass = ServiceClass.Confirmed;
+                        }
+                        else
+                        {
+                            throw new ArgumentException("Broadcast type must be UnConfirmed or Confirmed.");
+                        }
+                        break;
                     case '?':
                         switch (it.Tag)
                         {
@@ -496,6 +527,7 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine("GuruxDlmsSample -h [Meter IP Address] -p [Meter Port No] -c 16 -s 1 -r SN");
             Console.WriteLine(" -h \t host name or IP address.");
             Console.WriteLine(" -p \t port number or name (Example: 1000).");
+            Console.WriteLine(" -u \t UDP is used.");
             Console.WriteLine(" -q \t MQTT topic.");
             Console.WriteLine(" -S [COM1:9600:8None1]\t serial port.");
             Console.WriteLine(" -a \t Authentication (None, Low, High).");
@@ -517,6 +549,7 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine(" -M \t Meter system title that is used with chiphering. Ex -T 4775727578313233");
             Console.WriteLine(" -A \t Authentication key that is used with chiphering. Ex -A D0D1D2D3D4D5D6D7D8D9DADBDCDDDEDF");
             Console.WriteLine(" -B \t Block cipher key that is used with chiphering. Ex -B 000102030405060708090A0B0C0D0E0F");
+            Console.WriteLine(" -b \t Broadcast Block cipher key that is used with chiphering. Ex -b 000102030405060708090A0B0C0D0E0F");
             Console.WriteLine(" -D \t Dedicated key that is used with chiphering. Ex -D 00112233445566778899AABBCCDDEEFF");
             Console.WriteLine(" -F \t Initial Frame Counter (Invocation counter) value.");
             Console.WriteLine(" -d \t Used DLMS standard. Ex -d India (DLMS, India, Italy, SaudiArabia, IDIS)");
@@ -530,6 +563,7 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine(" -w \t HDLC Window size. Default is 1");
             Console.WriteLine(" -f \t HDLC Frame size. Default is 128");
             Console.WriteLine(" -L \t Manufacturer ID (Flag ID) is used to use manufacturer depending functionality. -L LGZ");
+            Console.WriteLine(" -R \t Data is send as a broadcast (UnConfirmed, Confirmed).");
             Console.WriteLine("Example:");
             Console.WriteLine("Read LG device using TCP/IP connection.");
             Console.WriteLine("GuruxDlmsSample -r SN -c 16 -s 1 -h [Meter IP Address] -p [Meter Port No]");

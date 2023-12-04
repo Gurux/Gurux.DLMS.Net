@@ -32,16 +32,20 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 namespace Gurux.DLMS.Enums
 {
+    /// <summary>
+    /// Is server responding for the request.
+    /// </summary>
     public enum ServiceClass
     {
+        /// <summary>
+        /// Server doesn't respond or send data.
+        /// </summary>
         UnConfirmed = 0,
+        /// <summary>
+        /// The server sends data or an acknowledge message.
+        /// </summary>
         Confirmed = 1
     }
 }

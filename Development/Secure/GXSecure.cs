@@ -366,11 +366,17 @@ namespace Gurux.DLMS.Secure
         static public byte[] EncryptAesGcm(AesGcmParameter param, byte[] plainText)
         {
             System.Diagnostics.Debug.WriteLine("Encrypt settings: " + param.ToString());
+            byte tag;
             param.CountTag = null;
             GXByteBuffer data = new GXByteBuffer();
+            tag = (byte)((byte)param.Security | (byte)param.SecuritySuite);
+            if (param.Broacast)
+            {
+                tag |= 0x40;
+            }
             if (param.Type == CountType.Packet)
             {
-                data.SetUInt8((byte)((byte)param.Security | (byte)param.SecuritySuite));
+                data.SetUInt8(tag);
             }
             byte[] ciphertext = null;
             byte[] tmp = BitConverter.GetBytes((UInt32)param.InvocationCounter).Reverse().ToArray();
@@ -404,8 +410,9 @@ namespace Gurux.DLMS.Secure
                 data.Set(ciphertext);
                 return data.Array();
             }
+
             GXGMac gmac = new GXGMac(param.AuthenticationKey, param.BlockCipherKey, param.SystemTitle, (UInt32)param.InvocationCounter);
-            ciphertext = gmac.Encrypt(plainText, (byte)((byte)param.Security | (byte)param.SecuritySuite));
+            ciphertext = gmac.Encrypt(plainText, tag);
             if (param.Security == Security.Authentication)
             {
                 if (param.Type == CountType.Packet)
@@ -766,15 +773,18 @@ namespace Gurux.DLMS.Secure
             if ((sc & 0x80) != 0)
             {
                 System.Diagnostics.Debug.WriteLine("Compression is used.");
+                p.Compression = true;
             }
             if ((sc & 0x40) != 0)
             {
-                System.Diagnostics.Debug.WriteLine("Key_Set is used.");
-                if (p.Xml == null)
+                System.Diagnostics.Debug.WriteLine("Broacast is used.");
+                if (p.Xml == null && p.Settings.Cipher.BroadcastBlockCipherKey == null)
                 {
                     throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
                                 ExceptionServiceError.DecipheringError, 0);
                 }
+                p.Broacast = true;
+                p.BlockCipherKey = p.Settings.Cipher.BroadcastBlockCipherKey;
             }
             if ((sc & 0x20) != 0)
             {
@@ -932,7 +942,9 @@ namespace Gurux.DLMS.Secure
             //Data might be without ciphering in GeneralSigning.
             if (p.Security != Security.None)
             {
-                GXGMac gmac = new GXGMac(p.AuthenticationKey, p.BlockCipherKey, p.SystemTitle,
+                GXGMac gmac = new GXGMac(p.AuthenticationKey,
+                    p.Broacast ? p.BlockCipherKey : p.BlockCipherKey, 
+                    p.SystemTitle,
                     invocationCounter);
                 decrypted = gmac.Decrypt(data.Remaining(), (byte)((byte)p.Security | (byte)p.SecuritySuite), p.Xml);
                 System.Diagnostics.Debug.WriteLine("Decrypted: " + GXCommon.ToHex(decrypted, true));

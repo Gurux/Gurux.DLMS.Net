@@ -7,7 +7,6 @@
     <Authors>Gurux Ltd</Authors>
     <Copyright>Copyright (c) 1998-2023 Gurux Ltd. All rights reserved.</Copyright>
     <PackageProjectUrl>https://www.gurux.fi</PackageProjectUrl>
-    <PackageLicenseUrl></PackageLicenseUrl>
     <Description>Gurux DLMS library for C#</Description>
     <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">0.0.1-local</Version>
     <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>

@@ -777,6 +777,10 @@ namespace Gurux.DLMS
 
         private static byte[] GetBlockCipherKey(GXDLMSSettings settings)
         {
+            if (settings.Broacast)
+            {
+                return settings.Cipher.BroadcastBlockCipherKey;
+            }
             if (settings.EphemeralBlockCipherKey != null)
             {
                 return settings.EphemeralBlockCipherKey;
@@ -2183,8 +2187,8 @@ namespace Gurux.DLMS
         /// <param name="command">DLMS command.</param>
         /// <param name="data">Wrapped data.</param>
         /// <returns>SMS frame</returns>
-        internal static byte[] GetCoAPFrame(GXDLMSSettings settings, 
-            Command command, 
+        internal static byte[] GetCoAPFrame(GXDLMSSettings settings,
+            Command command,
             GXByteBuffer data,
             RequestTypes moreData)
         {
@@ -3312,7 +3316,7 @@ namespace Gurux.DLMS
             CoAPClass coapClass = (CoAPClass)(ch >> 5);
             //Get msg ID.
             UInt16 msgId = buff.GetUInt16();
-            if (data != null && data.Xml == null && 
+            if (data != null && data.Xml == null &&
                 settings.Coap.MessageId != 0 && settings.Coap.MessageId != msgId)
             {
                 return false;
@@ -3577,7 +3581,7 @@ namespace Gurux.DLMS
                         data.IsComplete = true;
                         if (buff.Available < frameSize)
                         {
-                            data.PacketLength = buff.Size; 
+                            data.PacketLength = buff.Size;
                         }
                         else
                         {
@@ -3587,15 +3591,12 @@ namespace Gurux.DLMS
                     }
                     if (data.IsMoreData)
                     {
-                        /*Mikko
                         if (coapType == CoAPType.Acknowledgement)
                         {
                             data.PacketLength = buff.Position;
                             data.IsComplete = true;
                         }
-                        else 
-                        */
-                        if ( buff.Available < frameSize)
+                        else if (buff.Available < frameSize)
                         {
                             data.IsComplete = false;
                         }
@@ -3613,7 +3614,7 @@ namespace Gurux.DLMS
                             //Client sends ACK
                             data.IsComplete = true;
                             data.PacketLength = buff.Position;
-                        }                      
+                        }
                         else
                         {
                             GXByteBuffer origData = data.Data;
@@ -5831,6 +5832,7 @@ namespace Gurux.DLMS
                 // peek.
                 if (!data.Peek && data.MoreData == RequestTypes.None)
                 {
+                    data.Data.Position = 0;
                     if (data.Command == Command.Aare || data.Command == Command.Aarq)
                     {
                         data.Data.Position = 0;

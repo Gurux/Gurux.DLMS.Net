@@ -1059,8 +1059,24 @@ namespace Gurux.DLMS
             Set(Gurux.DLMS.Internal.GXCommon.HexToBytes(value), index, count);
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
+            return Gurux.DLMS.Internal.GXCommon.ToHex(Data, true, 0, Size);
+        }
+
+
+        /// <summary>
+        /// Show data as ASCII or Hex string.
+        /// </summary>
+        /// <param name="ascii"></param>
+        /// <returns></returns>
+        public string ToString(bool ascii)
+        {
+            if (ascii)
+            {
+                return ASCIIEncoding.ASCII.GetString(Data, 0, Size);
+            }
             return Gurux.DLMS.Internal.GXCommon.ToHex(Data, true, 0, Size);
         }
 

@@ -32,7 +32,6 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using Gurux.DLMS.Internal;
 using System;
 
 namespace Gurux.DLMS
@@ -143,13 +142,10 @@ namespace Gurux.DLMS
             multipleBlocks = settings.ForceToBlocks || forSettings.Count != forSettings.Index;
             lastBlock = forSettings.Count == forSettings.Index;
             GbtWindowSize = 1;
-            if (settings != null)
+            settings.Command = forCommand;
+            if (forCommand == Command.GetRequest && forCommandType != (byte)Internal.GetCommandType.NextDataBlock)
             {
-                settings.Command = forCommand;
-                if (forCommand == Command.GetRequest && forCommandType != (byte)Internal.GetCommandType.NextDataBlock)
-                {
-                    settings.CommandType = forCommandType;
-                }
+                settings.CommandType = forCommandType;
             }
         }
     }

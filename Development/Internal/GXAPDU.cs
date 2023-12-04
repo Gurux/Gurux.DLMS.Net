@@ -281,8 +281,9 @@ namespace Gurux.DLMS.Internal
                 {
                     GXByteBuffer value = new GXByteBuffer();
                     GetInitiateRequest(settings, cipher, value);
-                    byte cmd = (byte)Command.GloInitiateRequest;
-                    AesGcmParameter p = new AesGcmParameter(cmd, settings,
+                    AesGcmParameter p = new AesGcmParameter(
+                        (byte)Command.GloInitiateRequest,
+                        settings,
                         cipher.Security,
                         cipher.SecuritySuite,
                         cipher.InvocationCounter,

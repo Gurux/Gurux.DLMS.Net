@@ -846,6 +846,25 @@ namespace Gurux.DLMS
 
 
         /// <summary>
+        /// Is data send as a broadcast or unicast.
+        /// </summary>
+        public bool Broacast
+        {
+            get;
+            set;
+        }
+
+
+        /// <summary>
+        /// V.44 Compression is used.
+        /// </summary>
+        public bool Compression
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Used interface.
         /// </summary>
         public InterfaceType InterfaceType
@@ -1041,7 +1060,6 @@ namespace Gurux.DLMS
                     Cipher.SecuritySuite = SecuritySuite.Suite0;
                     Cipher.Signing = Signing.None;
                 }
-
                 assignedAssociation = value;
                 if (assignedAssociation != null)
                 {
@@ -1231,7 +1249,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// This event is invoked when custom PDU is handled.
         /// </summary>
-        internal CustomPduEventHandler customPdu;        
+        internal CustomPduEventHandler customPdu;
 
         //Encrypt or decrypt the data using external Hardware Security Module.
         internal byte[] Crypt(CertificateType certificateType,

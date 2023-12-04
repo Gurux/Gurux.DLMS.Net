@@ -892,6 +892,21 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Is data send as a broadcast or unicast.
+        /// </summary>
+        public bool Broacast
+        {
+            get
+            {
+                return Settings.Broacast;
+            }
+            set
+            {
+                Settings.Broacast = value;
+            }
+        }
+
+        /// <summary>
         /// Connection state to the meter.
         /// </summary>
         public ConnectionState ConnectionState
@@ -947,6 +962,7 @@ namespace Gurux.DLMS
         public byte[] SNRMRequest(bool forceParameters)
         {
             //Save default values.
+            Settings.Closing = false;
             InitializeMaxInfoTX = HdlcSettings.MaxInfoTX;
             InitializeMaxInfoRX = HdlcSettings.MaxInfoRX;
             InitializeWindowSizeTX = HdlcSettings.WindowSizeTX;
@@ -1036,7 +1052,7 @@ namespace Gurux.DLMS
             if (PreEstablishedConnection)
             {
                 // AARQ is not generate for pre-established connections.
-                return new byte[0][]; 
+                return null;
             }
             if (ProposedConformance == 0)
             {
@@ -1368,7 +1384,7 @@ namespace Gurux.DLMS
             if (PreEstablishedConnection)
             {
                 // Disconnect message is not used for pre-established connections.
-                return new byte[0][];
+                return null;
             }
             // If connection is not established, there is no need to send
             // DisconnectRequest.
@@ -1623,7 +1639,7 @@ namespace Gurux.DLMS
                         byte value = 0;
                         foreach (object it in (GXArray)attributeAccess[2])
                         {
-                            value |= (byte)(1 << ((sbyte)it));
+                            value |= (byte)(1 << ((byte)it));
                         }
                         obj.SetAccessSelector(id, value);
                     }

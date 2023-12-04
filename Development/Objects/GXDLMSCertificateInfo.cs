@@ -81,7 +81,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Certificate issuer in ASN1 format.
         /// </summary>
-        public byte[] IssuerAsn1
+        public byte[] IssuerRaw
         {
             get;
             internal set;
@@ -99,7 +99,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Certificate subject in ASN1 format.
         /// </summary>
-        public byte[] SubjectAsn1
+        public byte[] SubjectRaw
         {
             get;
             internal set;
@@ -117,7 +117,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Certificate subject alt name in ASN1 format.
         /// </summary>
-        public byte[] SubjectAltNameAsn1
+        public byte[] SubjectAltNameRaw
         {
             get;
             internal set;
