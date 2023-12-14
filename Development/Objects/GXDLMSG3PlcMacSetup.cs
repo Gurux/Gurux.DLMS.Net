@@ -1307,7 +1307,7 @@ namespace Gurux.DLMS.Objects
         void SaveMacPosTable(GXXmlWriter writer)
         {
             writer.WriteStartElement("MacPosTable", 25);
-            if (NeighbourTable != null)
+            if (MacPosTable != null)
             {
                 foreach (var it in MacPosTable)
                 {

@@ -471,8 +471,32 @@ namespace Gurux.DLMS.ASN
             Issuer = GXAsn1Converter.GetSubject((GXAsn1Sequence)reqInfo[3]);
             bool basicConstraintsExists = false;
             // Validity
-            ValidFrom = (DateTime)((GXAsn1Sequence)reqInfo[4])[0];
-            ValidTo = (DateTime)((GXAsn1Sequence)reqInfo[4])[1];
+            object tmp2 = ((GXAsn1Sequence)reqInfo[4])[0];
+            if (tmp2 is DateTime dtFrom)
+            {
+                ValidFrom = dtFrom;
+            }
+            else if (tmp2 is DateTimeOffset dtoFrom)
+            {
+                ValidFrom = dtoFrom.DateTime;
+            }
+            else
+            {
+                throw new ArgumentException(nameof(ValidFrom));
+            }
+            tmp2 = ((GXAsn1Sequence)reqInfo[4])[1];
+            if (tmp2 is DateTime dtTo)
+            {
+                ValidTo = dtTo;
+            }
+            else if (tmp2 is DateTimeOffset dtoTo)
+            {
+                ValidTo = dtoTo.DateTime;
+            }
+            else
+            {
+                throw new ArgumentException(nameof(ValidTo));
+            }
             Subject = GXAsn1Converter.GetSubject((GXAsn1Sequence)reqInfo[5]);
             string CN = X509NameConverter.GetString(X509Name.CN);
             // Subject public key Info

@@ -205,7 +205,8 @@ namespace Gurux.DLMS.Secure
         {
             Random r = new Random();
             int len = size;
-            if (size == 0)
+            if (size == 0 ||
+                (size == 16 && authentication == Authentication.HighECDSA))
             {
                 if (authentication == Authentication.HighECDSA)
                 {

@@ -2990,7 +2990,7 @@ namespace Gurux.DLMS.Internal
                 {
                     second = int.Parse(dateString.Substring(12, 2));
                 }
-                return new DateTimeOffset(year, month, day, hour, minute, second, TimeSpan.Zero).ToLocalTime();
+                return new DateTimeOffset(year, month, day, hour, minute, second, TimeSpan.Zero);
             }
             if (dateString.Length > 17)
             {

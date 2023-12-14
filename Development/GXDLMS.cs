@@ -3330,7 +3330,9 @@ namespace Gurux.DLMS
             UInt16 frameSize = 0;
             if (coapClass != CoAPClass.ClientError)
             {
-                while (buff.Available != 0 && (option = buff.GetUInt8()) != 0xFF)
+                while (buff.Available != 0 && 
+                    ((option = buff.GetUInt8()) != 0xFF ||
+                    type == 0))
                 {
                     if ((option == 0x61 || option == 0x41))
                     {
@@ -3593,7 +3595,7 @@ namespace Gurux.DLMS
                     {
                         if (coapType == CoAPType.Acknowledgement)
                         {
-                            data.PacketLength = buff.Position;
+                            data.PacketLength = buff.Position + frameSize;
                             data.IsComplete = true;
                         }
                         else if (buff.Available < frameSize)
@@ -3627,26 +3629,53 @@ namespace Gurux.DLMS
                             data.Data = buff;
                             try
                             {
-                                GetPdu(settings, data);
+                                bool comments = false;
+                                if (data.Xml != null)
+                                {
+                                    //Data is decrypted if comments are set.
+                                    //Temporaly remove comments.
+                                    byte cmd2 = buff.GetUInt8(buff.Position);
+                                    if (cmd2 == (byte)Command.GeneralGloCiphering)
+                                    {
+                                        comments = data.Xml.Comments;
+                                        data.Xml.Comments = false;
+                                    }
+                                }
+                                try
+                                {
+                                    GetPdu(settings, data);
+                                }
+                                finally
+                                {
+                                    if (data.Xml != null)
+                                    {
+                                        //Restore comments.
+                                        data.Xml.Comments = comments;
+                                    }
+                                }
                                 // Get length.
                                 data.IsComplete = true;
-                                if (!data.IsComplete)
+                                if (data.CipheredCommand != Command.None ||
+                                    data.Command == Command.GeneralGloCiphering)
                                 {
-                                    buff.Position = origPos;
+                                    //Get the length of the system title.
+                                    int tmp = buff.GetUInt8(1 + buff.Position);
+                                    buff.Position += 2 + tmp;
+                                    //Get the lenght of the data.
+                                    tmp = GXCommon.GetObjectCount(buff);
+                                    buff.Position += tmp;
+                                    data.PacketLength = buff.Position;
+                                }
+                                else if (data.Command == Command.Aarq ||
+                                    data.Command == Command.Aare)
+                                {
+                                    //Find next token.
+                                    FindNextToken(settings, buff, origPos, data, notify, true);
+                                    data.PacketLength -= orig;
                                 }
                                 else
                                 {
-                                    if (data.Command == Command.Aarq ||
-                                        data.Command == Command.Aare)
-                                    {
-                                        //Find next token.
-                                        FindNextToken(settings, buff, origPos, data, notify, true);
-                                        data.PacketLength -= orig;
-                                    }
-                                    else
-                                    {
-                                        data.PacketLength = buff.Position;
-                                    }
+                                    data.PacketLength = buff.Position;
                                 }
                             }
                             finally

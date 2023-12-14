@@ -291,7 +291,7 @@ namespace Gurux.DLMS.Secure
             }
             byte[] value = new byte[len];
             _encrypt.TransformBlock(data, 0, len, value, 0);
-            if ((tag & 0xF0) != (byte)Security.Encryption)
+            if ((tag & 0x30) != (byte)Security.Encryption)
             {
                 byte[] readTag = new byte[12];
                 Array.Copy(data, len, readTag, 0, 12);
