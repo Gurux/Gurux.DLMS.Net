@@ -31,18 +31,14 @@
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
-using System;
-using System.Collections.Generic;
 using Gurux.DLMS.Objects;
 using Gurux.Net;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Secure;
-using System.IO;
 using System.Diagnostics;
 using Gurux.Common;
 using System.Net.Sockets;
 using Gurux.Serial;
-using System.Threading;
 using System.IO.Ports;
 using Gurux.DLMS.Objects.Enums;
 using System.Text;

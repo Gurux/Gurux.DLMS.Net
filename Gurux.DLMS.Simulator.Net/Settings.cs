@@ -63,15 +63,12 @@ namespace Gurux.DLMS.Simulator.Net
         public bool exclusive = false;
         //Gateway settings.
         public object gatewaySettings = null;
-        //FLAG ID.
-        public string flagId;
-
         static public int GetParameters(string[] args, Settings settings)
         {
             string[] tmp;
             GXNet net;
             GXSerial serial;
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:wP:g:S:C:n:v:o:T:A:B:D:d:l:F:r:x:N:Xx:G:f:ub:");
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:wP:g:S:C:n:v:o:T:A:B:D:d:l:F:r:x:N:Xx:G:f:ub:W:w:L:");
             foreach (GXCmdParameter it in parameters)
             {
                 switch (it.Tag)
@@ -319,8 +316,17 @@ namespace Gurux.DLMS.Simulator.Net
                         settings.gatewaySettings = Enum.Parse(typeof(InterfaceType), it.Value);
                         settings.exclusive = true;
                         break;
+                    case 'W':
+                        settings.client.GbtWindowSize = byte.Parse(it.Value);
+                        break;
+                    case 'w':
+                        settings.client.HdlcSettings.WindowSizeRX = settings.client.HdlcSettings.WindowSizeTX = byte.Parse(it.Value);
+                        break;
                     case 'f':
-                        settings.flagId = it.Value;
+                        settings.client.HdlcSettings.MaxInfoRX = settings.client.HdlcSettings.MaxInfoTX = UInt16.Parse(it.Value);
+                        break;
+                    case 'L':
+                        settings.client.ManufacturerId = it.Value;
                         break;
                     case '?':
                         switch (it.Tag)
@@ -429,7 +435,10 @@ namespace Gurux.DLMS.Simulator.Net
             Console.WriteLine(" -F \t Initial Frame Counter (Invocation counter) value.");
             Console.WriteLine(" -d \t Used DLMS standard. Ex. -d India (DLMS, India, Italy, SaudiArabia, IDIS)");
             Console.WriteLine(" -G \t Simulator is acting like a gateway for the meters that are using different interface than GW. Ex. -G HDLC");
-            Console.WriteLine(" -f \t Flag ID.");
+            Console.WriteLine(" -W \t General Block Transfer window size.");
+            Console.WriteLine(" -w \t HDLC Window size. Default is 1");
+            Console.WriteLine(" -f \t HDLC Frame size. Default is 128");
+            Console.WriteLine(" -L \t Manufacturer ID (Flag ID) is used to use manufacturer depending functionality. -L LGZ");
             Console.WriteLine("Example:");
             Console.WriteLine("Read DLMS device using TCP/IP connection.");
             Console.WriteLine("Gurux.Dlms.Simulator.Net -c 16 -s 1 -h [Meter IP Address] -p [Meter Port No] -o meter-template.xml");

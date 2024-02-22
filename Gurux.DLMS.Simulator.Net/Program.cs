@@ -85,11 +85,17 @@ namespace Gurux.DLMS.Simulator.Net
             }
         }
 
+        /// <summary>
+        /// Password are given as command line parameters 
+        /// because they can't read from the meter.
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="server"></param>
         static private void UpdateSettings(Settings settings, GXDLMSMeter server)
         {
             if (settings.client.Password != null)
             {
-                foreach(GXDLMSAssociationLogicalName it in server.Items.GetObjects(ObjectType.AssociationLogicalName))
+                foreach (GXDLMSAssociationLogicalName it in server.Items.GetObjects(ObjectType.AssociationLogicalName))
                 {
                     it.Secret = settings.client.Password;
                 }
@@ -104,7 +110,7 @@ namespace Gurux.DLMS.Simulator.Net
             if (settings.media is GXSerial)
             {
                 GXDLMSMeter server = new GXDLMSMeter(settings.client.UseLogicalNameReferencing, settings.client.InterfaceType,
-                                                        settings.client.UseUtc2NormalTime, settings.flagId);
+                                                        settings.client.UseUtc2NormalTime, settings.client.ManufacturerId);
                 if (settings.client.UseLogicalNameReferencing)
                 {
                     Console.WriteLine("Logical Name DLMS Server in serial port {0} using {1}.", settings.media, settings.client.InterfaceType);
@@ -157,7 +163,8 @@ namespace Gurux.DLMS.Simulator.Net
                     {
                         net.OnReceived += new Gurux.Common.ReceivedEventHandler(GXDLMSMeter.OnGatewayReceived);
                         GXDLMSMeter.GatewayServer = new GXDLMSMeter(settings.client.UseLogicalNameReferencing, settings.client.InterfaceType,
-                                                                    settings.client.UseUtc2NormalTime, settings.flagId);
+                                                                    settings.client.UseUtc2NormalTime, 
+                                                                    settings.client.ManufacturerId);
                         GXDLMSMeter.GatewayServer.Initialize();
                         UpdateSettings(settings, GXDLMSMeter.GatewayServer);
                         settings.client.InterfaceType = (InterfaceType)settings.gatewaySettings;
@@ -177,7 +184,7 @@ namespace Gurux.DLMS.Simulator.Net
                 for (int pos = 0; pos != settings.serverCount; ++pos)
                 {
                     GXDLMSMeter server = new GXDLMSMeter(settings.client.UseLogicalNameReferencing, settings.client.InterfaceType,
-                                                        settings.client.UseUtc2NormalTime, settings.flagId);
+                                                        settings.client.UseUtc2NormalTime, settings.client.ManufacturerId);
                     servers.Add(server);
                     if (settings.exclusive)
                     {

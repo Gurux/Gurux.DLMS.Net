@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Company>Gurux Ltd</Company>
     <Authors>Gurux Ltd</Authors>
-    <Copyright>Copyright (c) 1998-2023 Gurux Ltd. All rights reserved.</Copyright>
+    <Copyright>Copyright (c) 1998-2024 Gurux Ltd. All rights reserved.</Copyright>
     <PackageProjectUrl>https://www.gurux.fi</PackageProjectUrl>
     <PackageLicenseExpression>GPL-2.0-only</PackageLicenseExpression>
     <OutputType>Exe</OutputType>
@@ -10,6 +10,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="*.xml" />
+    <None Remove="*.zip" />
+    <None Remove="*.bat" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Gurux.Net" Version="8.4.2302.904" />
     <PackageReference Include="Gurux.Serial" Version="8.4.2302.902" />
