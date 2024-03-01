@@ -58,7 +58,7 @@ You can use GetServerAddress method for that.
 //Count server address from serial number.
 int serverAddress = GXDLMSClient.GetServerAddress(Serial number);
 //Count server address from logican and physical address.
-serverAddress = CGXDLMSClient.GetServerAddress(logical Address, physical Address);
+serverAddress = GXDLMSClient.GetServerAddress(logical Address, physical Address);
 ```
 
 If you are using IEC handshake you must first send identify command and move to mode E.
