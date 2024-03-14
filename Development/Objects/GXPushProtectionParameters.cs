@@ -36,8 +36,19 @@ using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Push protection parameters.
+    /// </summary>
     public class GXPushProtectionParameters
     {
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public GXPushProtectionParameters()
+        {
+            KeyInfo = new GXDLMSDataProtectionKey();
+        }
+
         /// <summary>
         /// Protection type.
         /// </summary>

@@ -36,6 +36,9 @@ using System;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Push confirmation parameters.
+    /// </summary>
     public class GXPushConfirmationParameter
     {
         /// <summary>

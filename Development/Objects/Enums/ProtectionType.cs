@@ -35,7 +35,7 @@
 namespace Gurux.DLMS.Objects.Enums
 {
     /// <summary>
-    /// Defines data protection types.
+    /// Enumerated data protection types.
     /// </summary>
     public enum ProtectionType
     {

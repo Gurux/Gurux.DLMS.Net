@@ -188,7 +188,17 @@ namespace Gurux.DLMS.Objects
     public class GXDLMSDataProtectionKey
     {
         /// <summary>
-        /// Data protectionKey type.
+        /// Constructor.
+        /// </summary>
+        public GXDLMSDataProtectionKey()
+        {
+            IdentifiedKey = new GXDLMSDataProtectionIdentifiedKey();
+            WrappedKey = new GXDLMSDataProtectionWrappeddKey();
+            AgreedKey = new GXDLMSDataProtectionAgreedKey();
+        }
+
+        /// <summary>
+        /// Data protection key type.
         /// </summary>
         public DataProtectionKeyType DataProtectionKeyType
         {

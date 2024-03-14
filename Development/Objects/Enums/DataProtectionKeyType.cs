@@ -34,6 +34,9 @@
 
 namespace Gurux.DLMS.Objects.Enums
 {
+    /// <summary>
+    /// Enumerates data protection key types.
+    /// </summary>
     public enum DataProtectionKeyType
     {
         /// <summary>
