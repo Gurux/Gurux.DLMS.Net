@@ -76,6 +76,8 @@ namespace Gurux.DLMS.Objects
         {
             CommunicationWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
             PushObjectList = new List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
+            RepetitionDelay2 = new GXRepetitionDelay();
+            ConfirmationParameters = new GXPushConfirmationParameter();
         }
 
         public ServiceType Service
@@ -129,6 +131,7 @@ namespace Gurux.DLMS.Objects
             get;
             set;
         }
+
         /// <summary>
         /// The maximum number of retrials in case of unsuccessful push at-tempts. After a successful push no further push attempts are made until the push setup is triggered again.
         /// A value of 0 means no repetitions, i.e. only the initial connection at-tempt is made.
@@ -140,8 +143,85 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+
+        /// <summary>
+        /// Repetition delay.
+        /// </summary>
+        /// <remarks>
+        /// Version 2 is using RepetitionDelay2.
+        /// </remarks>
         [XmlIgnore()]
         public UInt16 RepetitionDelay
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Repetition delay for Version2.
+        /// </summary>
+        /// <remarks>
+        /// Version 0 and 1 use RepetitionDelay.
+        /// </remarks>
+        [XmlIgnore()]
+        public GXRepetitionDelay RepetitionDelay2
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// The logical name of a communication port setup object
+        /// </summary>
+        [XmlIgnore()]
+        public GXDLMSObject PortReference
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Push client SAP.
+        /// </summary>
+        [XmlIgnore()]
+        public sbyte PushClientSAP
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Push protection parameters.
+        /// </summary>
+        [XmlIgnore()]
+        public GXPushProtectionParameters[] PushProtectionParameters
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Push operation method.
+        /// </summary>
+        [XmlIgnore()]
+        public PushOperationMethod PushOperationMethod
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Push confirmation parameter.
+        /// </summary>
+        [XmlIgnore()]
+        public GXPushConfirmationParameter ConfirmationParameters
+        {
+            get;
+            set;
+        }
+
+        [XmlIgnore()]
+        public GXDateTime LastConfirmationDateTime
         {
             get;
             set;
@@ -150,9 +230,35 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, PushObjectList, Service + " " + Destination + " " + Message,
-                              CommunicationWindow, RandomisationStartInterval, NumberOfRetries, RepetitionDelay
-                            };
+            if (Version < 2)
+            {
+                return new object[] { LogicalName,
+                PushObjectList,
+                Service + " " + Destination + " " + Message,
+                CommunicationWindow,
+                RandomisationStartInterval,
+                NumberOfRetries,
+                RepetitionDelay,
+                PortReference,
+                PushClientSAP,
+                PushProtectionParameters,
+                PushOperationMethod,
+                ConfirmationParameters,
+                LastConfirmationDateTime};
+            }
+            return new object[] { LogicalName,
+                PushObjectList,
+                Service + " " + Destination + " " + Message,
+                CommunicationWindow,
+                RandomisationStartInterval,
+                NumberOfRetries,
+                RepetitionDelay2,
+                PortReference,
+                PushClientSAP,
+                PushProtectionParameters,
+                PushOperationMethod,
+                ConfirmationParameters,
+                LastConfirmationDateTime};
         }
 
         /// <summary>
@@ -214,9 +320,30 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="client">DLMS client.</param>
         /// <returns>Action bytes.</returns>
+        [Obsolete("Use Push method instead.")]
         public byte[][] Activate(GXDLMSClient client)
         {
             return client.Method(this, 1, (sbyte)0);
+        }
+
+        /// <summary>
+        /// Activates the push process.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] Push(GXDLMSClient client)
+        {
+            return client.Method(this, 1, (sbyte)0);
+        }
+
+        /// <summary>
+        /// Activates the push process.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] Reset(GXDLMSClient client)
+        {
+            return client.Method(this, 2, (sbyte)0);
         }
 
         int[] IGXDLMSBase.GetAttributeIndexToRead(bool all)
@@ -257,36 +384,98 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(7);
             }
+            if (Version > 0)
+            {
+                //PortReference
+                if (all || CanRead(8))
+                {
+                    attributes.Add(8);
+                }
+                //PushClientSAP
+                if (all || CanRead(9))
+                {
+                    attributes.Add(9);
+                }
+                //PushProtectionParameters
+                if (all || CanRead(10))
+                {
+                    attributes.Add(10);
+                }
+                if (Version < 1)
+                {
+                    //PushOperationMethod
+                    if (all || CanRead(11))
+                    {
+                        attributes.Add(11);
+                    }
+                    //ConfirmationParameters
+                    if (all || CanRead(12))
+                    {
+                        attributes.Add(12);
+                    }
+                    //LastConfirmationDateTime
+                    if (all || CanRead(13))
+                    {
+                        attributes.Add(13);
+                    }
+                }
+            }
             return attributes.ToArray();
         }
 
         /// <inheritdoc />
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Object List",
-                              "Send Destination And Method", "Communication Window", "Randomisation Start Interval", "Number Of Retries", "Repetition Delay"
-                            };
+            return new string[] { Internal.GXCommon.GetLogicalNameString(),
+                "Object List",
+                "Send Destination And Method",
+                "Communication Window",
+                "Randomisation Start Interval",
+                "Number Of Retries",
+                "Repetition Delay",
+                "Port reference",
+                "Push client SAP",
+                "Push protection parameters",
+                "Push operation method",
+                "Confirmation parameters",
+                "Last confirmation date time"};
         }
 
         /// <inheritdoc />
         string[] IGXDLMSBase.GetMethodNames()
         {
-            return new string[] { "Push" };
+            if (Version < 2)
+            {
+                return new string[] { "Push" };
+            }
+            return new string[] { "Push", "Reset" };
         }
 
         int IGXDLMSBase.GetMaxSupportedVersion()
         {
-            return 0;
+            return 2;
         }
 
         int IGXDLMSBase.GetAttributeCount()
         {
-            return 7;
+            if (Version == 0)
+            {
+                return 7;
+            }
+            if (Version == 1)
+            {
+                return 10;
+            }
+            return 13;
         }
 
         int IGXDLMSBase.GetMethodCount()
         {
-            return 1;
+            if (Version < 2)
+            {
+                return 1;
+            }
+            return 2;
         }
 
         /// <inheritdoc />
@@ -319,6 +508,42 @@ namespace Gurux.DLMS.Objects
             if (index == 7)
             {
                 return DataType.UInt16;
+            }
+            if (Version > 0)
+            {
+                //PortReference
+                if (index == 8)
+                {
+                    return DataType.OctetString;
+                }
+                //PushClientSAP
+                if (index == 9)
+                {
+                    return DataType.Int8;
+                }
+                //PushProtectionParameters
+                if (index == 10)
+                {
+                    return DataType.Array;
+                }
+                if (Version < 1)
+                {
+                    //PushOperationMethod
+                    if (index == 11)
+                    {
+                        return DataType.Enum;
+                    }
+                    //ConfirmationParameters
+                    if (index == 12)
+                    {
+                        return DataType.Structure;
+                    }
+                    //LastConfirmationDateTime
+                    if (index == 13)
+                    {
+                        return DataType.DateTime;
+                    }
+                }
             }
             throw new ArgumentException("GetDataType failed. Invalid attribute index.");
         }
@@ -409,7 +634,83 @@ namespace Gurux.DLMS.Objects
                     ret = NumberOfRetries;
                     break;
                 case 7:
-                    ret = RepetitionDelay;
+                    if (Version < 1)
+                    {
+                        ret = RepetitionDelay;
+                    }
+                    else
+                    {
+                        buff.SetUInt8(DataType.Structure);
+                        GXCommon.SetObjectCount(3, buff);
+                        GXCommon.SetData(settings, buff, DataType.UInt8, RepetitionDelay2.Min);
+                        GXCommon.SetData(settings, buff, DataType.UInt8, RepetitionDelay2.Exponent);
+                        GXCommon.SetData(settings, buff, DataType.UInt8, RepetitionDelay2.Max);
+                        ret = buff.Array();
+                    }
+                    break;
+                case 8:
+                    if (PortReference != null)
+                    {
+                        ret = GXCommon.LogicalNameToBytes(PortReference.LogicalName);
+                    }
+                    else
+                    {
+                        ret = null;
+                    }
+                    break;
+                case 9:
+                    ret = PushClientSAP;
+                    break;
+                case 10:
+                    buff.SetUInt8(DataType.Array);
+                    GXCommon.SetObjectCount(PushProtectionParameters.Length, buff);
+                    foreach (GXPushProtectionParameters it in PushProtectionParameters)
+                    {
+                        buff.SetUInt8(DataType.Structure);
+                        buff.SetUInt8(2);
+                        GXCommon.SetData(settings, buff, DataType.Enum, it.ProtectionType);
+                        buff.SetUInt8(DataType.Structure);
+                        buff.SetUInt8(5);
+                        GXCommon.SetData(settings, buff, DataType.OctetString, it.TransactionId);
+                        GXCommon.SetData(settings, buff, DataType.OctetString, it.OriginatorSystemTitle);
+                        GXCommon.SetData(settings, buff, DataType.OctetString, it.RecipientSystemTitle);
+                        GXCommon.SetData(settings, buff, DataType.OctetString, it.OtherInformation);
+                        buff.SetUInt8(DataType.Structure);
+                        buff.SetUInt8(2);
+                        GXCommon.SetData(settings, buff, DataType.Enum, it.KeyInfo.DataProtectionKeyType);
+                        buff.SetUInt8(DataType.Structure);
+                        if (it.KeyInfo.DataProtectionKeyType == DataProtectionKeyType.Identified)
+                        {
+                            buff.SetUInt8(1);
+                            GXCommon.SetData(settings, buff, DataType.Enum, it.KeyInfo.IdentifiedKey.KeyType);
+                        }
+                        else if (it.KeyInfo.DataProtectionKeyType == DataProtectionKeyType.Wrapped)
+                        {
+                            buff.SetUInt8(2);
+                            GXCommon.SetData(settings, buff, DataType.Enum, it.KeyInfo.WrappedKey.KeyType);
+                            GXCommon.SetData(settings, buff, DataType.OctetString, it.KeyInfo.WrappedKey.Key);
+                        }
+                        else if (it.KeyInfo.DataProtectionKeyType == DataProtectionKeyType.Agreed)
+                        {
+                            buff.SetUInt8(2);
+                            GXCommon.SetData(settings, buff, DataType.OctetString, it.KeyInfo.AgreedKey.Parameters);
+                            GXCommon.SetData(settings, buff, DataType.OctetString, it.KeyInfo.AgreedKey.Data);
+                        }
+                    }
+                    ret = buff.Array();
+                    break;
+                case 11:
+                    ret = PushOperationMethod;
+                    break;
+                case 12:
+                    buff.SetUInt8(DataType.Structure);
+                    GXCommon.SetObjectCount(2, buff);
+                    GXCommon.SetData(settings, buff, DataType.DateTime, ConfirmationParameters.StartDate);
+                    GXCommon.SetData(settings, buff, DataType.UInt32, ConfirmationParameters.Interval);
+                    ret = buff.Array();
+                    break;
+                case 13:
+                    ret = LastConfirmationDateTime;
                     break;
                 default:
                     e.Error = ErrorCode.ReadWriteDenied;
@@ -511,7 +812,90 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 7)
             {
-                RepetitionDelay = (UInt16)e.Value;
+                if (Version < 2)
+                {
+                    RepetitionDelay = (UInt16)e.Value;
+                }
+                else
+                {
+                    GXByteBuffer buff = new GXByteBuffer();
+                    buff.SetUInt8(DataType.Structure);
+                    buff.SetUInt8(3);
+                    GXCommon.SetData(settings, buff, DataType.UInt16, RepetitionDelay2.Min);
+                    GXCommon.SetData(settings, buff, DataType.UInt16, RepetitionDelay2.Exponent);
+                    GXCommon.SetData(settings, buff, DataType.UInt16, RepetitionDelay2.Max);
+                }
+            }
+            else if (Version < 0 && e.Index == 8)
+            {
+                PortReference = null;
+                if (e.Value is byte[] bv)
+                {
+                    string ln = GXCommon.ToLogicalName(bv);
+                    PortReference = settings.Objects.FindByLN(ObjectType.None, ln);
+                }
+            }
+            else if (Version < 0 && e.Index == 9)
+            {
+                PushClientSAP = (sbyte)e.Value;
+            }
+            else if (Version < 0 && e.Index == 10)
+            {
+                List<object> it;
+                List<GXPushProtectionParameters> list = new List<GXPushProtectionParameters>();
+                if (e.Value != null)
+                {
+                    foreach (object t in (IEnumerable<object>)e.Value)
+                    {
+                        if (t is List<object>)
+                        {
+                            it = (List<object>)t;
+                        }
+                        else
+                        {
+                            it = new List<object>((object[])t);
+                        }
+                        GXPushProtectionParameters p = new GXPushProtectionParameters();
+                        p.ProtectionType = (ProtectionType)Convert.ToInt32(it[0]);
+                        p.TransactionId = (byte[])it[1];
+                        p.OriginatorSystemTitle = (byte[])it[2];
+                        p.RecipientSystemTitle = (byte[])it[3];
+                        p.OtherInformation = (byte[])it[4];
+                        p.KeyInfo.DataProtectionKeyType = (DataProtectionKeyType)Convert.ToInt32(it[5]);
+                        p.KeyInfo.IdentifiedKey.KeyType = (DataProtectionIdentifiedKeyType)Convert.ToInt32(it[6]);
+                        p.KeyInfo.WrappedKey.KeyType = (DataProtectionWrappedKeyType)Convert.ToInt32(it[7]);
+                        p.KeyInfo.WrappedKey.Key = (byte[])it[8];
+                        p.KeyInfo.AgreedKey.Parameters = (byte[])it[9];
+                        p.KeyInfo.AgreedKey.Data = (byte[])it[10];
+                        list.Add(p);
+                    }
+                }
+                PushProtectionParameters = list.ToArray();
+            }
+            else if (Version < 1 && e.Index == 11)
+            {
+                PushOperationMethod = (PushOperationMethod)Convert.ToInt32(e.Value);
+            }
+            else if (Version < 0 && e.Index == 12)
+            {
+                List<object> it;
+                if (e.Value != null)
+                {
+                    if (e.Value is List<object>)
+                    {
+                        it = (List<object>)e.Value;
+                    }
+                    else
+                    {
+                        it = new List<object>((object[])e.Value);
+                    }
+                    ConfirmationParameters.StartDate = (GXDateTime)it[0];
+                    ConfirmationParameters.Interval = Convert.ToUInt32(it[0]);
+                }
+            }
+            else if (Version < 1 && e.Index == 13)
+            {
+                LastConfirmationDateTime = (GXDateTime)e.Value;
             }
             else
             {
@@ -559,7 +943,62 @@ namespace Gurux.DLMS.Objects
             }
             RandomisationStartInterval = (ushort)reader.ReadElementContentAsInt("RandomisationStartInterval");
             NumberOfRetries = (byte)reader.ReadElementContentAsInt("NumberOfRetries");
-            RepetitionDelay = (ushort)reader.ReadElementContentAsInt("RepetitionDelay");
+            if (Version < 2)
+            {
+                RepetitionDelay = (ushort)reader.ReadElementContentAsInt("RepetitionDelay");
+            }
+            else
+            {
+                if (reader.IsStartElement("RepetitionDelay", true))
+                {
+                    RepetitionDelay2.Min = (ushort)reader.ReadElementContentAsInt("Min");
+                    RepetitionDelay2.Exponent = (ushort)reader.ReadElementContentAsInt("Exponent");
+                    RepetitionDelay2.Max = (ushort)reader.ReadElementContentAsInt("Max");
+                }
+            }
+            if (Version > 0)
+            {
+                if (PortReference != null)
+                {
+                    string ln = reader.ReadElementContentAsString("LN");
+                    PortReference = reader.Objects.FindByLN(ObjectType.None, ln);
+                    if (PortReference == null)
+                    {
+                        PortReference = GXDLMSClient.CreateObject(ObjectType.IecHdlcSetup);
+                        PortReference.LogicalName = ln;
+                    }
+                }
+                PushClientSAP = (sbyte)reader.ReadElementContentAsInt("PushClientSAP");
+                if (reader.IsStartElement("PushProtectionParameters", true))
+                {
+                    List<GXPushProtectionParameters> list = new List<GXPushProtectionParameters>();
+                    while (reader.IsStartElement("Item", true))
+                    {
+                        GXPushProtectionParameters it = new GXPushProtectionParameters();
+                        it.ProtectionType = (ProtectionType)reader.ReadElementContentAsInt("ProtectionType");
+                        it.TransactionId = GXCommon.HexToBytes(reader.ReadElementContentAsString("TransactionId"));
+                        it.OriginatorSystemTitle = GXCommon.HexToBytes(reader.ReadElementContentAsString("OriginatorSystemTitle"));
+                        it.RecipientSystemTitle = GXCommon.HexToBytes(reader.ReadElementContentAsString("RecipientSystemTitle"));
+                        it.OtherInformation = GXCommon.HexToBytes(reader.ReadElementContentAsString("OtherInformation"));
+                        it.KeyInfo.DataProtectionKeyType = (DataProtectionKeyType)reader.ReadElementContentAsInt("DataProtectionKeyType");
+                        it.KeyInfo.IdentifiedKey.KeyType = (DataProtectionIdentifiedKeyType)reader.ReadElementContentAsInt("IdentifiedKey");
+                        it.KeyInfo.WrappedKey.KeyType = (DataProtectionWrappedKeyType)reader.ReadElementContentAsInt("WrappedKeyType");
+                        it.KeyInfo.WrappedKey.Key = GXCommon.HexToBytes(reader.ReadElementContentAsString("WrappedKey"));
+                        it.KeyInfo.AgreedKey.Parameters = GXCommon.HexToBytes(reader.ReadElementContentAsString("WrappedKeyParameters"));
+                        it.KeyInfo.AgreedKey.Data = GXCommon.HexToBytes(reader.ReadElementContentAsString("AgreedKeyData"));
+                        list.Add(it);
+                    }
+                    reader.ReadEndElement("PushProtectionParameters");
+                    PushProtectionParameters = list.ToArray();
+                }
+                if (Version > 1)
+                {
+                    PushOperationMethod = (PushOperationMethod)reader.ReadElementContentAsInt("PushOperationMethod");
+                    ConfirmationParameters.StartDate = reader.ReadElementContentAsDateTime("ConfirmationParametersStartDate");
+                    ConfirmationParameters.Interval = (UInt32)reader.ReadElementContentAsInt("ConfirmationParametersInterval");
+                    LastConfirmationDateTime = reader.ReadElementContentAsDateTime("LastConfirmationDateTime");
+                }
+            }
         }
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
@@ -579,11 +1018,11 @@ namespace Gurux.DLMS.Objects
                 writer.WriteEndElement();
             }
             writer.WriteElementString("Service", (int)Service, 3);
-            writer.WriteElementString("Destination", Destination, 4);
-            writer.WriteElementString("Message", (int)Message, 5);
+            writer.WriteElementString("Destination", Destination, 3);
+            writer.WriteElementString("Message", (int)Message, 3);
             if (CommunicationWindow != null)
             {
-                writer.WriteStartElement("CommunicationWindow", 6);
+                writer.WriteStartElement("CommunicationWindow", 4);
                 foreach (KeyValuePair<GXDateTime, GXDateTime> it in CommunicationWindow)
                 {
                     writer.WriteStartElement("Item", 0);
@@ -593,13 +1032,70 @@ namespace Gurux.DLMS.Objects
                 }
                 writer.WriteEndElement();
             }
-            writer.WriteElementString("RandomisationStartInterval", RandomisationStartInterval, 7);
-            writer.WriteElementString("NumberOfRetries", NumberOfRetries, 8);
-            writer.WriteElementString("RepetitionDelay", RepetitionDelay, 9);
+            writer.WriteElementString("RandomisationStartInterval", RandomisationStartInterval, 5);
+            writer.WriteElementString("NumberOfRetries", NumberOfRetries, 6);
+            if (Version < 2)
+            {
+                writer.WriteElementString("RepetitionDelay", RepetitionDelay, 7);
+            }
+            else
+            {
+                writer.WriteStartElement("RepetitionDelay", 7);
+                writer.WriteElementString("Min", RepetitionDelay2.Min, 0);
+                writer.WriteElementString("Exponent", RepetitionDelay2.Exponent, 0);
+                writer.WriteElementString("Max", RepetitionDelay2.Max, 0);
+                writer.WriteEndElement();
+            }
+            if (Version > 0)
+            {
+                if (PortReference != null)
+                {
+                    writer.WriteElementString("PortReference", PortReference.LogicalName, 8);
+                }
+                writer.WriteElementString("PushClientSAP", PushClientSAP, 9);
+                if (PushProtectionParameters != null)
+                {
+                    writer.WriteStartElement("PushProtectionParameters", 10);
+                    foreach (var it in PushProtectionParameters)
+                    {
+                        writer.WriteStartElement("Item", 0);
+                        writer.WriteElementString("ProtectionType", (byte)it.ProtectionType, 0);
+                        writer.WriteElementString("TransactionId", GXCommon.ToHex(it.TransactionId, false), 0);
+                        writer.WriteElementString("OriginatorSystemTitle", GXCommon.ToHex(it.OriginatorSystemTitle, false), 0);
+                        writer.WriteElementString("RecipientSystemTitle", GXCommon.ToHex(it.RecipientSystemTitle, false), 0);
+                        writer.WriteElementString("OtherInformation", GXCommon.ToHex(it.OtherInformation, false), 0);
+                        writer.WriteElementString("DataProtectionKeyType", (int)it.KeyInfo.DataProtectionKeyType, 0);
+                        writer.WriteElementString("IdentifiedKey", (int)it.KeyInfo.IdentifiedKey.KeyType, 0);
+                        writer.WriteElementString("WrappedKeyType", (int)it.KeyInfo.WrappedKey.KeyType, 0);
+                        writer.WriteElementString("WrappedKey", GXCommon.ToHex(it.KeyInfo.WrappedKey.Key, false), 0);
+                        writer.WriteElementString("WrappedKeyParameters", GXCommon.ToHex(it.KeyInfo.AgreedKey.Parameters, false), 0);
+                        writer.WriteElementString("AgreedKeyData", GXCommon.ToHex(it.KeyInfo.AgreedKey.Data, false), 0);
+                        writer.WriteEndElement();
+                    }
+                    writer.WriteEndElement();
+                }
+                if (Version > 1)
+                {
+                    writer.WriteElementString("PushOperationMethod", (int)PushOperationMethod, 11);
+                    writer.WriteElementString("ConfirmationParametersStartDate", ConfirmationParameters.StartDate, 12);
+                    writer.WriteElementString("ConfirmationParametersInterval", ConfirmationParameters.Interval, 12);
+                    writer.WriteElementString("LastConfirmationDateTime", LastConfirmationDateTime, 13);
+                }
+            }
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {
+            //Update port reference.
+            if (PortReference != null)
+            {
+                GXDLMSObject target = (GXDLMSObject)reader.Objects.FindByLN(ObjectType.None,
+                    PortReference.LogicalName);
+                if (target != null && target != PortReference)
+                {
+                    PortReference = target;
+                }
+            }
         }
 
         #endregion

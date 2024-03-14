@@ -419,12 +419,12 @@ namespace Gurux.DLMS.ASN
         /// Sign
         /// </summary>
         /// <param name="key">Private key. </param>
-        /// <param name="HashAlgorithm">Used algorithm for signing. </param>
-        void Sign(GXPrivateKey key, HashAlgorithm HashAlgorithm)
+        /// <param name="hashAlgorithm">Used algorithm for signing. </param>
+        void Sign(GXPrivateKey key, HashAlgorithm hashAlgorithm)
         {
             byte[] data = GXAsn1Converter.ToByteArray(GetData());
             GXEcdsa e = new GXEcdsa(key);
-            SignatureAlgorithm = HashAlgorithm;
+            SignatureAlgorithm = hashAlgorithm;
             GXByteBuffer bb = new GXByteBuffer();
             bb.Set(e.Sign(data));
             int size = SignatureAlgorithm == HashAlgorithm.Sha256WithEcdsa ? 32 : 48;
@@ -492,7 +492,7 @@ namespace Gurux.DLMS.ASN
                 usage.Append("\"}");
             }
             HttpWebRequest request = HttpWebRequest.Create(address) as HttpWebRequest;
-            string der = "{\"Certificates\":[" + usage.ToString() + "]}";
+            string der = "{\"Certificates\":[" + usage + "]}";
             request.ContentType = "application/json";
             request.Method = "POST";
             using (var streamWriter = new StreamWriter(request.GetRequestStream()))
@@ -583,6 +583,10 @@ namespace Gurux.DLMS.ASN
         /// <returns>Public key as in PEM string.</returns>
         public string ToDer()
         {
+            if (rawData != null)
+            {
+                return GXCommon.ToBase64(rawData);
+            }
             return GXCommon.ToBase64(Encoded);
         }
     }

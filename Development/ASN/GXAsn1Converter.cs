@@ -273,20 +273,24 @@ namespace Gurux.DLMS.ASN
 
                     break;
                 case (byte)BerType.PrintableString:
-                    objects.Add(bb.GetString(len));
-                    if (s != null)
                     {
-                        s.Append(Convert.ToString(objects[objects.Count - 1]));
+                        string str = bb.GetString(len);
+                        objects.Add(str);
+                        if (s != null)
+                        {
+                            s.Append(str);
+                        }
                     }
-
                     break;
                 case (byte)BerType.BmpString:
-                    objects.Add(bb.GetStringUnicode(len));
-                    if (s != null)
                     {
-                        s.Append(Convert.ToString(objects[objects.Count - 1]));
+                        string str = bb.GetStringUnicode(len);
+                        objects.Add(str);
+                        if (s != null)
+                        {
+                            s.Append(str);
+                        }
                     }
-
                     break;
                 case (byte)BerType.Utf8StringTag:
                     objects.Add(new GXAsn1Utf8String(bb.GetString(bb.Position, len)));
@@ -339,7 +343,7 @@ namespace Gurux.DLMS.ASN
                     {
                         // Append comment.
                         s.AppendComment(connectPos, Convert.ToString(tmp3.Length) + " bit.");
-                        s.Append(tmp3.asString());
+                        s.Append(tmp3.AsString());
                     }
                     break;
                 case (byte)BerType.UtcTime:
@@ -448,7 +452,6 @@ namespace Gurux.DLMS.ASN
 
         private static string DateToString(DateTime date)
         {
-            //  date = date.ToUniversalTime();
             StringBuilder sb = new StringBuilder();
             sb.Append((date.Year - 2000).ToString("00"));
             sb.Append(date.Month.ToString("00"));

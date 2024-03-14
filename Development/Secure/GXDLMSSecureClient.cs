@@ -31,15 +31,12 @@
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
-
-
 using System.Text;
 using Gurux.DLMS.Enums;
 using System;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Internal;
 using System.Security.Cryptography;
-using System.IO;
 
 namespace Gurux.DLMS.Secure
 {
@@ -281,6 +278,21 @@ namespace Gurux.DLMS.Secure
                 throw new ArithmeticException("AES key wrapping failed.");
             }
             return block;
+        }
+
+        /// <summary>
+        /// ECDSA key agreement key is send in part of AARE.
+        /// </summary>
+        public bool KeyAgreementInAARE
+        {
+            get
+            {
+                return Settings.KeyAgreementInAARE;
+            }
+            set
+            {
+                Settings.KeyAgreementInAARE = value;
+            }
         }
     }
 }

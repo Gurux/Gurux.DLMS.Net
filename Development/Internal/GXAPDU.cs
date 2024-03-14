@@ -161,6 +161,21 @@ namespace Gurux.DLMS.Internal
                 //LEN
                 data.SetUInt8((byte)cipher.SystemTitle.Length);
                 data.Set(cipher.SystemTitle);
+                if (settings.KeyAgreementInAARE && settings.Cipher.KeyAgreementKeyPair.Value != null)
+                {
+                    var pub = settings.Cipher.KeyAgreementKeyPair.Value.GetPublicKey();
+                    if (pub != null)
+                    {
+                        //Add calling-AE-qualifier.
+                        data.SetUInt8(((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingAeQualifier));
+                        //LEN
+                        data.SetUInt8((byte)(2 + pub.RawValue.Length));
+                        data.SetUInt8((byte)BerType.OctetString);
+                        //LEN
+                        data.SetUInt8((byte)pub.RawValue.Length);
+                        data.Set(pub.RawValue);
+                    }
+                }
             }
             //Add CallingAEInvocationId.
             if (!settings.IsServer && settings.UserId != -1)
@@ -1370,7 +1385,8 @@ namespace Gurux.DLMS.Internal
                             //If public key certificate is coming part of AARQ.
                             byte[] tmp2 = new byte[len];
                             GXx509Certificate cert = new GXx509Certificate(tmp2);
-                            settings.Cipher.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(cert.PublicKey, settings.Cipher.SigningKeyPair.Value);
+                            settings.Cipher.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(cert.PublicKey, 
+                                settings.Cipher.KeyAgreementKeyPair.Value);
                         }
                         else
                         {

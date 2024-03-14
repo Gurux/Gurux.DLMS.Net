@@ -577,28 +577,40 @@ namespace Gurux.DLMS.Enums
         CommunicationPortProtection = 124,
 
         /// <summary>
-        /// IEC 14908 Identification.
-        /// </summary>
-        [XmlEnum("150")]
-        IEC14908Identification = 150,
-
-        /// <summary>
-        /// IEC 14908 Physical Setup.
+        /// LTE monitoring.
         /// </summary>
         [XmlEnum("151")]
-        IEC14908PhysicalSetup = 151,
+        LteMonitoring = 151,
 
         /// <summary>
-        /// IEC 14908 Physical Status.
+        /// CoAP setup.
         /// </summary>
         [XmlEnum("152")]
-        IEC14908PhysicalStatus = 152,
+        CoAPSetup = 152,
 
         /// <summary>
-        /// IEC 14908 Diagnostic.
+        /// CoAP diagnostic.
         /// </summary>
         [XmlEnum("153")]
-        IEC14908Diagnostic = 153,
+        CoAPDiagnostic = 153,
+
+        /// <summary>
+        /// G3-PLC Hybrid RF MAC layer counters.
+        /// </summary>
+        [XmlEnum("160")]
+        G3PlcHybridRfMacLayerCounters = 160,
+
+        /// <summary>
+        /// G3-PLC Hybrid RF MAC setup.
+        /// </summary>
+        [XmlEnum("161")]
+        G3PlcHybridRfMacSetup = 161,
+
+        /// <summary>
+        /// G3-PLC Hybrid 6LoWPAN adaptation layer setup.
+        /// </summary>
+        [XmlEnum("162")]
+        G3PlcHybrid6LoWPANAdaptationLayerSetup = 162,
 
         ///<summary>
         /// Tariff Plan (Piano Tariffario) is used in Italian standard UNI/TS 11291-11.

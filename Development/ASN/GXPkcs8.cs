@@ -53,13 +53,20 @@ namespace Gurux.DLMS.ASN
     public class GXPkcs8
     {
         /// <summary>
+        /// Loaded PKCS #8 certificate as a raw data.
+        /// </summary>
+        private byte[] _rawData;
+
+        /// <summary>
         /// Returns default file path.
         /// </summary>
         /// <param name="scheme">Used scheme.</param>
         /// <param name="certificateType">Certificate type.</param>
         /// <param name="systemTitle"> System title.</param>
         /// <returns>File path.</returns>
-        public static string GetFilePath(Ecc scheme, CertificateType certificateType, byte[] systemTitle)
+        public static string GetFilePath(Ecc scheme,
+            CertificateType certificateType,
+            byte[] systemTitle)
         {
             string path;
             switch (certificateType)
@@ -172,6 +179,10 @@ namespace Gurux.DLMS.ASN
         {
             get
             {
+                if (_rawData != null)
+                {
+                    return _rawData;
+                }
                 GXAsn1Sequence d = new GXAsn1Sequence();
                 d.Add((sbyte)Version);
                 GXAsn1Sequence d1 = new GXAsn1Sequence();
@@ -195,7 +206,8 @@ namespace Gurux.DLMS.ASN
                 d3.Add(new GXAsn1BitString(PublicKey.RawValue, 0));
                 d2.Add(d3);
                 d.Add(GXAsn1Converter.ToByteArray(d2));
-                return GXAsn1Converter.ToByteArray(d);
+                _rawData = GXAsn1Converter.ToByteArray(d);
+                return _rawData;
             }
         }
 
@@ -333,6 +345,7 @@ namespace Gurux.DLMS.ASN
 
         private void Init(byte[] data)
         {
+            _rawData = data;
             GXAsn1Sequence seq = (GXAsn1Sequence)GXAsn1Converter.FromByteArray(data);
             if (seq.Count < 3)
             {

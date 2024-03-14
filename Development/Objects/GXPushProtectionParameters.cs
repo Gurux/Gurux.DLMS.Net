@@ -1,14 +1,14 @@
-//
+﻿//
 // --------------------------------------------------------------------------
 //  Gurux Ltd
 //
 //
 //
-// Filename:        $HeadURL$
+// Filename:    $HeadURL$
 //
-// Version:         $Revision$,
-//                  $Date$
-//                  $Author$
+// Version:     $Revision$,
+//      $Date$
+//      $Author$
 //
 // Copyright (c) Gurux Ltd
 //
@@ -32,61 +32,64 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using Gurux.DLMS.Objects.Enums;
 
-namespace Gurux.DLMS.Objects.Enums
+namespace Gurux.DLMS.Objects
 {
-    /// <summary>
-    /// Type of service used to push the data.
-    /// </summary>
-    public enum ServiceType
+    public class GXPushProtectionParameters
     {
         /// <summary>
-        /// Transport service type is TCP/IP.
+        /// Protection type.
         /// </summary>
-        Tcp = 0,
+        public ProtectionType ProtectionType
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Transport service type is UDP.
+        /// Transaction Id.
         /// </summary>
-        Udp = 1,
+        public byte[] TransactionId
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Transport service type is FTP.
+        /// Originator system title.
         /// </summary>
-        Ftp = 2,
+        public byte[] OriginatorSystemTitle
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Transport service type is SMTP.
+        /// Recipient system title.
         /// </summary>
-        Smtp = 3,
+        public byte[] RecipientSystemTitle
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Transport service type is SMS.
+        /// Other information.
         /// </summary>
-        Sms = 4,
+        public byte[] OtherInformation
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Transport service type is HDLC.
+        /// Key info.
         /// </summary>
-        Hdlc = 5,
-        /// <summary>
-        /// Transport service type is M-Bus.
-        /// </summary>
-        MBus = 6,
-        /// <summary>
-        /// Transport service type is ZigBee.
-        /// </summary>
-        ZigBee = 7,
-        /// <summary>
-        /// DLMS Gateway.
-        /// </summary>
-        DlmsGateway = 8,
-        /// <summary>
-        /// Reliable CoAP. 
-        /// </summary>
-        ReliableCoAP = 9,
-        /// <summary>
-        /// Unreliable CoAP.
-        /// </summary>
-        UnreliableCoAP = 10
+        public GXDLMSDataProtectionKey KeyInfo
+        {
+            get;
+            set;
+        }
     }
 }

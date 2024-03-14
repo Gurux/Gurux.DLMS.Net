@@ -512,7 +512,12 @@ namespace Gurux.DLMS
         {
             if (forceHex || (showNumericsAsHex && OutputType == TranslatorOutputType.SimpleXml))
             {
-                return value.ToString("X" + desimals.ToString());
+                string ret = value.ToString("X" + desimals.ToString());
+                if (value < 0)
+                {
+                    ret = ret.Substring(ret.Length - desimals, desimals);
+                }
+                return ret;
             }
             return value.ToString();
         }

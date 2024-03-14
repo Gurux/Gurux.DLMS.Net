@@ -254,7 +254,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Recipient system ttitle.
+        /// Recipient system title.
         /// </summary>
         public byte[] RecipientSystemTitle
         {

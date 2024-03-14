@@ -33,60 +33,35 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace Gurux.DLMS.Objects.Enums
+namespace Gurux.DLMS.Objects
 {
-    /// <summary>
-    /// Type of service used to push the data.
-    /// </summary>
-    public enum ServiceType
+    public class GXCoapBtCounter
     {
         /// <summary>
-        /// Transport service type is TCP/IP.
+        /// CoAP Block-Wise Transfers started.
         /// </summary>
-        Tcp = 0,
+        public UInt32 BlockWiseTransferStarted
+        {
+            get;
+            set;
+        }
         /// <summary>
-        /// Transport service type is UDP.
+        /// CoAP Block-Wise Transfers completed.
         /// </summary>
-        Udp = 1,
+        public UInt32 BlockWiseTransferCompleted
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Transport service type is FTP.
+        /// CoAP Block-Wise Transfers timeouts.
         /// </summary>
-        Ftp = 2,
-        /// <summary>
-        /// Transport service type is SMTP.
-        /// </summary>
-        Smtp = 3,
-        /// <summary>
-        /// Transport service type is SMS.
-        /// </summary>
-        Sms = 4,
-        /// <summary>
-        /// Transport service type is HDLC.
-        /// </summary>
-        Hdlc = 5,
-        /// <summary>
-        /// Transport service type is M-Bus.
-        /// </summary>
-        MBus = 6,
-        /// <summary>
-        /// Transport service type is ZigBee.
-        /// </summary>
-        ZigBee = 7,
-        /// <summary>
-        /// DLMS Gateway.
-        /// </summary>
-        DlmsGateway = 8,
-        /// <summary>
-        /// Reliable CoAP. 
-        /// </summary>
-        ReliableCoAP = 9,
-        /// <summary>
-        /// Unreliable CoAP.
-        /// </summary>
-        UnreliableCoAP = 10
+        public UInt32 BlockWiseTransferTimeout
+        {
+            get;
+            set;
+        }
     }
 }

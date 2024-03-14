@@ -120,10 +120,6 @@ namespace Gurux.DLMS
                 availableObjectTypes.Add(ObjectType.G3PlcMacLayerCounters, typeof(GXDLMSG3PlcMacLayerCounters));
                 availableObjectTypes.Add(ObjectType.G3Plc6LoWPan, typeof(GXDLMSG3Plc6LoWPan));
                 availableObjectTypes.Add(ObjectType.G3PlcMacSetup, typeof(GXDLMSG3PlcMacSetup));
-                availableObjectTypes.Add(ObjectType.IEC14908Diagnostic, typeof(GXDLMSIEC14908Diagnostic));
-                availableObjectTypes.Add(ObjectType.IEC14908PhysicalStatus, typeof(GXDLMSIEC14908PhysicalStatus));
-                availableObjectTypes.Add(ObjectType.IEC14908PhysicalSetup, typeof(GXDLMSIEC14908PhysicalSetup));
-                availableObjectTypes.Add(ObjectType.IEC14908Identification, typeof(GXDLMSIEC14908Identification));
                 availableObjectTypes.Add(ObjectType.Ip6Setup, typeof(GXDLMSIp6Setup));
                 availableObjectTypes.Add(ObjectType.SFSKMacCounters, typeof(GXDLMSSFSKMacCounters));
                 availableObjectTypes.Add(ObjectType.SFSKMacSynchronizationTimeouts, typeof(GXDLMSSFSKMacSynchronizationTimeouts));
@@ -192,6 +188,9 @@ namespace Gurux.DLMS
                 availableObjectTypes.Add(ObjectType.MBusDiagnostic, typeof(GXDLMSMBusDiagnostic));
                 availableObjectTypes.Add(ObjectType.DataProtection, typeof(GXDLMSDataProtection));
                 availableObjectTypes.Add(ObjectType.ArrayManager, typeof(GXDLMSArrayManager));
+                availableObjectTypes.Add(ObjectType.LteMonitoring, typeof(GXDLMSLteMonitoring));
+                availableObjectTypes.Add(ObjectType.CoAPSetup, typeof(GXDLMSCoAPSetup));
+                availableObjectTypes.Add(ObjectType.CoAPDiagnostic, typeof(GXDLMSCoAPDiagnostic));
                 //Italian standard uses this.
                 availableObjectTypes.Add(ObjectType.TariffPlan, typeof(GXDLMSTariffPlan));
             }
@@ -3330,7 +3329,7 @@ namespace Gurux.DLMS
             UInt16 frameSize = 0;
             if (coapClass != CoAPClass.ClientError)
             {
-                while (buff.Available != 0 && 
+                while (buff.Available != 0 &&
                     ((option = buff.GetUInt8()) != 0xFF ||
                     type == 0))
                 {

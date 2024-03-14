@@ -101,6 +101,11 @@ namespace Gurux.DLMS
 
         byte[] _sourceSystemTitle;
 
+        /// <summary>
+        /// ECDSA key agreement key is send in part of AARE.
+        /// </summary>
+        internal bool KeyAgreementInAARE;
+
         internal bool IsCiphered(bool checkGeneralSigning)
         {
             if (Cipher == null)
@@ -228,13 +233,14 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Some meters expect that Invocation Counter is increased for Authentication when connection is established.
+        /// Some meters expect that invocation counter is not increased 
+        /// for the authentication when connection is established.
         /// </summary>
         public bool IncreaseInvocationCounterForGMacAuthentication
         {
             get;
             set;
-        }
+        } = true;
 
         /// <summary>
         /// Skipped date time fields. This value can be used if meter can't handle deviation or status.
@@ -1175,6 +1181,10 @@ namespace Gurux.DLMS
                 if (systemTitle == null)
                 {
                     st = ss.ClientSystemTitle;
+                    if (st == null)
+                    {
+                        st = SourceSystemTitle;
+                    }
                 }
                 else
                 {

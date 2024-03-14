@@ -904,7 +904,7 @@ namespace Gurux.DLMS
             {
                 Settings.Broacast = value;
             }
-        }
+        }       
 
         /// <summary>
         /// Connection state to the meter.

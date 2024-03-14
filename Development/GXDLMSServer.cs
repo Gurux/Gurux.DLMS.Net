@@ -1968,6 +1968,9 @@ namespace Gurux.DLMS
                                 {
                                     ln.AssociationStatus = AssociationStatus.AssociationPending;
                                 }
+                                //Update association settings using system title.
+                                //ECDSA needs this.
+                                AssignedAssociation = ln;
                             }
                         }
                         else

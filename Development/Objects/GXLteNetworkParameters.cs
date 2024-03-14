@@ -33,60 +33,90 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace Gurux.DLMS.Objects.Enums
+namespace Gurux.DLMS.Objects
 {
-    /// <summary>
-    /// Type of service used to push the data.
-    /// </summary>
-    public enum ServiceType
+    public class GXLteNetworkParameters
     {
         /// <summary>
-        /// Transport service type is TCP/IP.
+        /// T3402 timer in seconds.
         /// </summary>
-        Tcp = 0,
+        public UInt16 T3402
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Transport service type is UDP.
+        /// T3412 timer in seconds.
         /// </summary>
-        Udp = 1,
+        public UInt16 T3412
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Transport service type is FTP.
+        /// T3412ext2 timer in seconds.
         /// </summary>
-        Ftp = 2,
+        public UInt32 T3412ext2
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Transport service type is SMTP.
+        /// Power saving mode active timer timer in 0,01 seconds.
         /// </summary>
-        Smtp = 3,
+        public UInt16 T3324
+        {
+            get;
+            set;
+        }
         /// <summary>
-        /// Transport service type is SMS.
+        /// Extended idle mode DRX cycle timer in 0,01 seconds.
         /// </summary>
-        Sms = 4,
+        public UInt32 TeDRX
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Transport service type is HDLC.
+        /// DRX paging time window timer in seconds.
         /// </summary>
-        Hdlc = 5,
+        public UInt16 TPTW
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Transport service type is M-Bus.
+        /// The minimum required Rx level in the cell in dBm.
         /// </summary>
-        MBus = 6,
+        public sbyte QRxlevMin
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Transport service type is ZigBee.
+        /// The minimum required Rx level in enhanced coverage CE Mode A.
         /// </summary>
-        ZigBee = 7,
+        public sbyte QRxlevMinCE
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// DLMS Gateway.
+        /// The minimum required Rx level in enhanced coverage CE Mode B.
         /// </summary>
-        DlmsGateway = 8,
-        /// <summary>
-        /// Reliable CoAP. 
-        /// </summary>
-        ReliableCoAP = 9,
-        /// <summary>
-        /// Unreliable CoAP.
-        /// </summary>
-        UnreliableCoAP = 10
+        public sbyte QRxLevMinCE1
+        {
+            get;
+            set;
+        }
     }
+
 }

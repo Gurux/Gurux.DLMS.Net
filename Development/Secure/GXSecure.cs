@@ -104,7 +104,8 @@ namespace Gurux.DLMS.Secure
             {
                 challenge.Set(data);
             }
-            else if (settings.Authentication == Authentication.HighSHA256)
+            else if (settings.Authentication == Authentication.HighSHA256 ||
+                settings.Authentication == Authentication.HighECDSA)
             {
                 challenge.Set(secret);
             }
@@ -374,6 +375,10 @@ namespace Gurux.DLMS.Secure
             if (param.Broacast)
             {
                 tag |= 0x40;
+            }
+            if (param.Compression)
+            {
+                tag |= 0x80;
             }
             if (param.Type == CountType.Packet)
             {

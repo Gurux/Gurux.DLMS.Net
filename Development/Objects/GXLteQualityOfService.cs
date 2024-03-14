@@ -32,61 +32,45 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using Gurux.DLMS.Objects.Enums;
 
-namespace Gurux.DLMS.Objects.Enums
+namespace Gurux.DLMS.Objects
 {
-    /// <summary>
-    /// Type of service used to push the data.
-    /// </summary>
-    public enum ServiceType
+    public class GXLteQualityOfService
     {
         /// <summary>
-        /// Transport service type is TCP/IP.
+        /// Signal quality.
         /// </summary>
-        Tcp = 0,
+        public sbyte SignalQuality
+        {
+            get;
+            set;
+        }
         /// <summary>
-        /// Transport service type is UDP.
+        /// Signal level.
         /// </summary>
-        Udp = 1,
+        public sbyte SignalLevel
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Transport service type is FTP.
+        /// Signal to noise ratio.
         /// </summary>
-        Ftp = 2,
+        public sbyte SignalToNoiseRatio
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Transport service type is SMTP.
+        /// Coverage enhancement.
         /// </summary>
-        Smtp = 3,
-        /// <summary>
-        /// Transport service type is SMS.
-        /// </summary>
-        Sms = 4,
-        /// <summary>
-        /// Transport service type is HDLC.
-        /// </summary>
-        Hdlc = 5,
-        /// <summary>
-        /// Transport service type is M-Bus.
-        /// </summary>
-        MBus = 6,
-        /// <summary>
-        /// Transport service type is ZigBee.
-        /// </summary>
-        ZigBee = 7,
-        /// <summary>
-        /// DLMS Gateway.
-        /// </summary>
-        DlmsGateway = 8,
-        /// <summary>
-        /// Reliable CoAP. 
-        /// </summary>
-        ReliableCoAP = 9,
-        /// <summary>
-        /// Unreliable CoAP.
-        /// </summary>
-        UnreliableCoAP = 10
+        public LteCoverageEnhancement CoverageEnhancement
+        {
+            get;
+            set;
+        }
     }
 }

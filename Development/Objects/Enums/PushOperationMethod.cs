@@ -32,61 +32,24 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 namespace Gurux.DLMS.Objects.Enums
 {
     /// <summary>
-    /// Type of service used to push the data.
+    /// Push operation method defines what service class is used with push messages.
     /// </summary>
-    public enum ServiceType
+    public enum PushOperationMethod : byte
     {
         /// <summary>
-        /// Transport service type is TCP/IP.
+        /// Unconfirmed, retry on supporting protocol layer failure.
         /// </summary>
-        Tcp = 0,
+        UnconfirmedFailure = 0,
         /// <summary>
-        /// Transport service type is UDP.
+        /// Unconfirmed, retry on missing supporting protocol layer confirmation.
         /// </summary>
-        Udp = 1,
+        UnconfirmedMissing = 1,
         /// <summary>
-        /// Transport service type is FTP.
+        /// Confirmed, retry on missing confirmation.
         /// </summary>
-        Ftp = 2,
-        /// <summary>
-        /// Transport service type is SMTP.
-        /// </summary>
-        Smtp = 3,
-        /// <summary>
-        /// Transport service type is SMS.
-        /// </summary>
-        Sms = 4,
-        /// <summary>
-        /// Transport service type is HDLC.
-        /// </summary>
-        Hdlc = 5,
-        /// <summary>
-        /// Transport service type is M-Bus.
-        /// </summary>
-        MBus = 6,
-        /// <summary>
-        /// Transport service type is ZigBee.
-        /// </summary>
-        ZigBee = 7,
-        /// <summary>
-        /// DLMS Gateway.
-        /// </summary>
-        DlmsGateway = 8,
-        /// <summary>
-        /// Reliable CoAP. 
-        /// </summary>
-        ReliableCoAP = 9,
-        /// <summary>
-        /// Unreliable CoAP.
-        /// </summary>
-        UnreliableCoAP = 10
+        Confirmed = 2
     }
 }

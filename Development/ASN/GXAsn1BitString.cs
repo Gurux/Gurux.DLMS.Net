@@ -161,16 +161,11 @@ namespace Gurux.DLMS.ASN
             {
                 return "";
             }
-            StringBuilder sb = new StringBuilder(8 * Value.Length);
-            foreach (byte it in Value)
-            {
-                GXCommon.ToBitString(sb, it, 8);
-            }
-            sb.Length = sb.Length - PadBits;
-            return Convert.ToString((8 * Value.Length) - PadBits) + " bit " + sb.ToString();
+            return Convert.ToString((8 * Value.Length) - PadBits) + 
+                " bit " + AsString();
         }
 
-        public string asString()
+        public string AsString()
         {
             if (Value == null)
             {

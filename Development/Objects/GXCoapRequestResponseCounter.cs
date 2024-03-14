@@ -33,60 +33,80 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace Gurux.DLMS.Objects.Enums
+namespace Gurux.DLMS.Objects
 {
-    /// <summary>
-    /// Type of service used to push the data.
-    /// </summary>
-    public enum ServiceType
+    public class GXCoapRequestResponseCounter
     {
         /// <summary>
-        /// Transport service type is TCP/IP.
+        /// CoAP requests received.
         /// </summary>
-        Tcp = 0,
+        public UInt32 RxRequests
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Transport service type is UDP.
+        /// CoAP requests sent.
         /// </summary>
-        Udp = 1,
+        public UInt32 TxRequests
+        {
+            get;
+            set;
+        }
         /// <summary>
-        /// Transport service type is FTP.
+        /// CoAP responses received.
         /// </summary>
-        Ftp = 2,
+        public UInt32 RxResponse
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Transport service type is SMTP.
+        /// CoAP responses sent.
         /// </summary>
-        Smtp = 3,
+        public UInt32 TxResponse
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Transport service type is SMS.
+        ///  CoAP client errors sent.
         /// </summary>
-        Sms = 4,
+        public UInt32 TxClientError
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Transport service type is HDLC.
+        /// CoAP client errors received.
         /// </summary>
-        Hdlc = 5,
+        public UInt32 RxClientError
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Transport service type is M-Bus.
+        ///  CoAP server errors sent.
         /// </summary>
-        MBus = 6,
+        public UInt32 TxServerError
+        {
+            get;
+            set;
+        }
+
         /// <summary>
-        /// Transport service type is ZigBee.
+        /// CoAP server errors received.
         /// </summary>
-        ZigBee = 7,
-        /// <summary>
-        /// DLMS Gateway.
-        /// </summary>
-        DlmsGateway = 8,
-        /// <summary>
-        /// Reliable CoAP. 
-        /// </summary>
-        ReliableCoAP = 9,
-        /// <summary>
-        /// Unreliable CoAP.
-        /// </summary>
-        UnreliableCoAP = 10
+        public UInt32 RxServerError
+        {
+            get;
+            set;
+        }
     }
 }

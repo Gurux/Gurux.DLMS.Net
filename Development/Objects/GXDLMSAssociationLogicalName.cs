@@ -2092,14 +2092,6 @@ else if (settings.Authentication == Authentication.HighECDSA)
                     break;
                 case ObjectType.G3Plc6LoWPan:
                     break;
-                case ObjectType.IEC14908Identification:
-                    break;
-                case ObjectType.IEC14908PhysicalSetup:
-                    break;
-                case ObjectType.IEC14908PhysicalStatus:
-                    break;
-                case ObjectType.IEC14908Diagnostic:
-                    break;
                 case ObjectType.TariffPlan:
                     break;
             }

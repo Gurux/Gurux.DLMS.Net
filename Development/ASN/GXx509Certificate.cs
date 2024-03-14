@@ -105,7 +105,7 @@ namespace Gurux.DLMS.ASN
         public byte[] RawData
         {
             get;
-            set;
+            private set;
         }
 
         /// <summary>
@@ -576,10 +576,10 @@ namespace Gurux.DLMS.ASN
                             }
                             break;
                         case X509CertificateType.KeyUsage:
-                            if (value is GXAsn1BitString)
+                            if (value is GXAsn1BitString bs)
                             {
                                 // critical is optional. BOOLEAN DEFAULT FALSE,
-                                KeyUsage = (KeyUsage)((GXAsn1BitString)value).ToInteger();
+                                KeyUsage = (KeyUsage)bs.ToInteger();
                             }
                             else if (value is bool?)
                             {
@@ -673,7 +673,8 @@ namespace Gurux.DLMS.ASN
             {
                 throw new Exception("Extended key usage not present. It's mandotory for TLS.");
             }
-            if (ExtendedKeyUsage != ExtendedKeyUsage.None && KeyUsage != (KeyUsage.DigitalSignature | KeyUsage.KeyAgreement))
+            if (ExtendedKeyUsage != ExtendedKeyUsage.None && 
+                KeyUsage != (KeyUsage.DigitalSignature | KeyUsage.KeyAgreement))
             {
                 throw new Exception("Extended key usage present. It's used only for TLS.");
             }

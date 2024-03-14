@@ -489,7 +489,7 @@ namespace Gurux.DLMS.Objects
             if (ActiveMask != null)
             {
                 writer.WriteElementString("ActiveMask", GXDLMSTranslator.ToHex(ActiveMask), 4);
-            }
+            }           
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

@@ -457,7 +457,6 @@ namespace Gurux.DLMS.Ecdsa
                     if (overflow > 0)
                     {
                         AddValue(ret, overflow, 1 + index);
-                        overflow = 0;
                     }
                 }
                 index = ret.Length - 1;
