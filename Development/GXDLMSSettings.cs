@@ -102,9 +102,9 @@ namespace Gurux.DLMS
         byte[] _sourceSystemTitle;
 
         /// <summary>
-        /// ECDSA key agreement key is send in part of AARE.
+        /// Optional ECDSA public key certificate that is send in part of AARE.
         /// </summary>
-        internal bool KeyAgreementInAARE;
+        internal GXx509Certificate ClientPublicKeyCertificate;
 
         internal bool IsCiphered(bool checkGeneralSigning)
         {

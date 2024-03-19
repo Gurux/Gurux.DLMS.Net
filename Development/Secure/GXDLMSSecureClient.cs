@@ -37,6 +37,7 @@ using System;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Internal;
 using System.Security.Cryptography;
+using Gurux.DLMS.ASN;
 
 namespace Gurux.DLMS.Secure
 {
@@ -281,17 +282,17 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
-        /// ECDSA key agreement key is send in part of AARE.
+        /// Optional ECDSA public key certificate that is send in part of AARE.
         /// </summary>
-        public bool KeyAgreementInAARE
+        public GXx509Certificate ClientPublicKeyCertificate
         {
             get
             {
-                return Settings.KeyAgreementInAARE;
+                return Settings.ClientPublicKeyCertificate;
             }
             set
             {
-                Settings.KeyAgreementInAARE = value;
+                Settings.ClientPublicKeyCertificate = value;
             }
         }
     }

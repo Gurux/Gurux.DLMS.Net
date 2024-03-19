@@ -161,20 +161,16 @@ namespace Gurux.DLMS.Internal
                 //LEN
                 data.SetUInt8((byte)cipher.SystemTitle.Length);
                 data.Set(cipher.SystemTitle);
-                if (settings.KeyAgreementInAARE && settings.Cipher.KeyAgreementKeyPair.Value != null)
+                if (settings.ClientPublicKeyCertificate != null)
                 {
-                    var pub = settings.Cipher.KeyAgreementKeyPair.Value.GetPublicKey();
-                    if (pub != null)
-                    {
-                        //Add calling-AE-qualifier.
-                        data.SetUInt8(((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingAeQualifier));
-                        //LEN
-                        data.SetUInt8((byte)(2 + pub.RawValue.Length));
-                        data.SetUInt8((byte)BerType.OctetString);
-                        //LEN
-                        data.SetUInt8((byte)pub.RawValue.Length);
-                        data.Set(pub.RawValue);
-                    }
+                    //Add calling-AE-qualifier.
+                    data.SetUInt8(((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingAeQualifier));
+                    //LEN
+                    data.SetUInt8((byte)(2 + settings.ClientPublicKeyCertificate.Encoded.Length));
+                    data.SetUInt8((byte)BerType.OctetString);
+                    //LEN
+                    data.SetUInt8((byte)settings.ClientPublicKeyCertificate.Encoded.Length);
+                    data.Set(settings.ClientPublicKeyCertificate.Encoded);
                 }
             }
             //Add CallingAEInvocationId.

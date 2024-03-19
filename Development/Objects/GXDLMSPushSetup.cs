@@ -220,6 +220,9 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// Last confirmation date time.
+        /// </summary>
         [XmlIgnore()]
         public GXDateTime LastConfirmationDateTime
         {
@@ -530,7 +533,7 @@ namespace Gurux.DLMS.Objects
                 {
                     return DataType.Array;
                 }
-                if (Version < 1)
+                if (Version > 1)
                 {
                     //PushOperationMethod
                     if (index == 11)
@@ -859,22 +862,20 @@ namespace Gurux.DLMS.Objects
                         p.OtherInformation = (byte[])options[3];
                         GXStructure keyInfo = (GXStructure)options[4];
                         p.KeyInfo.DataProtectionKeyType = (DataProtectionKeyType)Convert.ToInt32(keyInfo[0]);
+                        GXStructure data = (GXStructure)keyInfo[1];
                         if (p.KeyInfo.DataProtectionKeyType == DataProtectionKeyType.Identified)
                         {
-                            GXStructure identified = (GXStructure)keyInfo[1];
-                            p.KeyInfo.IdentifiedKey.KeyType = (DataProtectionIdentifiedKeyType)Convert.ToInt32(identified[0]);
+                            p.KeyInfo.IdentifiedKey.KeyType = (DataProtectionIdentifiedKeyType)Convert.ToInt32(data[0]);
                         }
                         else if (p.KeyInfo.DataProtectionKeyType == DataProtectionKeyType.Wrapped)
                         {
-                            GXStructure wrapped = (GXStructure)keyInfo[1];
-                            p.KeyInfo.WrappedKey.KeyType = (DataProtectionWrappedKeyType)Convert.ToInt32(wrapped[0]);
-                            p.KeyInfo.WrappedKey.Key = (byte[])wrapped[1];
+                            p.KeyInfo.WrappedKey.KeyType = (DataProtectionWrappedKeyType)Convert.ToInt32(data[0]);
+                            p.KeyInfo.WrappedKey.Key = (byte[])data[1];
                         }
                         else if (p.KeyInfo.DataProtectionKeyType == DataProtectionKeyType.Agreed)
                         {
-                            GXStructure agreed  = (GXStructure)keyInfo[1];
-                            p.KeyInfo.AgreedKey.Parameters = (byte[])agreed[0];
-                            p.KeyInfo.AgreedKey.Data = (byte[])agreed[1];
+                            p.KeyInfo.AgreedKey.Parameters = (byte[])data[0];
+                            p.KeyInfo.AgreedKey.Data = (byte[])data[1];
                         }
                         list.Add(p);
                     }
@@ -887,19 +888,14 @@ namespace Gurux.DLMS.Objects
             }
             else if (Version > 1 && e.Index == 12)
             {
-                List<object> it;
-                if (e.Value != null)
+                if (e.Value is GXStructure s)
                 {
-                    if (e.Value is List<object>)
-                    {
-                        it = (List<object>)e.Value;
-                    }
-                    else
-                    {
-                        it = new List<object>((object[])e.Value);
-                    }
-                    ConfirmationParameters.StartDate = (GXDateTime)it[0];
-                    ConfirmationParameters.Interval = Convert.ToUInt32(it[0]);
+                    ConfirmationParameters.StartDate = (GXDateTime)s[0];
+                    ConfirmationParameters.Interval = Convert.ToUInt32(s[1]);
+                }
+                else
+                {
+                    e.Error = ErrorCode.ReadWriteDenied;
                 }
             }
             else if (Version > 1 && e.Index == 13)
