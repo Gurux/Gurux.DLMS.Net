@@ -166,10 +166,10 @@ namespace Gurux.DLMS.Internal
                     //Add calling-AE-qualifier.
                     data.SetUInt8(((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingAeQualifier));
                     //LEN
-                    data.SetUInt8((byte)(2 + settings.ClientPublicKeyCertificate.Encoded.Length));
+                    GXCommon.SetObjectCount(2 + settings.ClientPublicKeyCertificate.Encoded.Length, data);
                     data.SetUInt8((byte)BerType.OctetString);
                     //LEN
-                    data.SetUInt8((byte)settings.ClientPublicKeyCertificate.Encoded.Length);
+                    GXCommon.SetObjectCount(2 + settings.ClientPublicKeyCertificate.Encoded.Length, data);
                     data.Set(settings.ClientPublicKeyCertificate.Encoded);
                 }
             }
@@ -1373,13 +1373,14 @@ namespace Gurux.DLMS.Internal
                         break;
                     //Server CallingAeQualifier.
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingAeQualifier://0xA7
-                        len = buff.GetUInt8();
+                        len = GXCommon.GetObjectCount(buff);
                         tag = buff.GetUInt8();
-                        len = buff.GetUInt8();
-                        if (settings.Authentication == Authentication.HighECDSA && tag == (byte)BerType.OctetString)
+                        len = GXCommon.GetObjectCount(buff);
+                        if (tag == (byte)BerType.OctetString)
                         {
-                            //If public key certificate is coming part of AARQ.
                             byte[] tmp2 = new byte[len];
+                            buff.Get(tmp2);
+                            //If public key certificate is coming part of AARQ.
                             GXx509Certificate cert = new GXx509Certificate(tmp2);
                             settings.Cipher.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(cert.PublicKey, 
                                 settings.Cipher.KeyAgreementKeyPair.Value);
